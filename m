@@ -1,22 +1,41 @@
-From: Jeff Garzik <jgarzik@pobox.com>
-Subject: Re: [2.5.50, ACPI] link error
-Date: Thu, 05 Dec 2002 19:36:45 -0500
+From: "Grover, Andrew" <andrew.grover@intel.com>
+Subject: RE: [BK PATCH] ACPI updates
+Date: Thu, 5 Dec 2002 17:36:02 -0800
 Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <3DEFF11D.9060206@pobox.com>
-References: <20021205224019.GH7396@atrey.karlin.mff.cuni.cz> <Pine.LNX.4.33.0212051632120.974-100000@localhost.localdomain> <20021206000618.GB15784@atrey.karlin.mff.cuni.cz>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A576@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-In-Reply-To: <20021206000618.GB15784@atrey.karlin.mff.cuni.cz>
-To: Pavel Machek <pavel@suse.cz>
-Cc: Patrick Mochel <mochel@osdl.org>, kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <acpi-devel@lists.sourceforge.net>
+To: 'Pavel Machek' <pavel@ucw.cz>
+Cc: 'Arjan van de Ven' <arjanv@redhat.com>, marcelo@conectiva.com.br, linux-kernel@vger.kernel.org, acpi-devel@sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-Pavel Machek wrote:
-> S3 needs process stopper from kernel/suspend.c. I did not want to have
-> #ifdefs all over suspend.c...
+> From: Pavel Machek [mailto:pavel@ucw.cz] 
 
+I (Andy) said:
+> > Well maybe that's what we should do - use the UnitedLinux 
+> ACPI patch (which
+> > iirc is based on fairly recent ACPI code, and presumably minimizes
+> > ACPI-related breakage) and then proceed incrementally from there?
+> > 
+> > Sound OK? Marcelo? UL folks?
 
-Then move it to a different file, that may be shared between various 
-CONFIG_xxx features.
+> I guess it will be better if you push acpi patch without killing those
+> backup solutions. Extractign blacklist from UL might be worth it,
+> through.
+
+Well after communicating with Marcelo it sounds like he'd like to hold off
+taking it in 2.4.21 because IDE changes take priority, and two big changes
+at once is too many for a stable kernel revision.
+
+Fair enough. I'm just worried that 2.4.22 is a long ways away.
+
+Maybe one way to address Marcelo's stability concerns and Arjan's "keep
+acpitable.[ch] around" preference is for me to submit a patch that I *know*
+don't affect anything besides ACPI -- i.e. only the changes that have been
+made under drivers/acpi, and then go from there, submitting UL-derived and
+other improvements incrementally after that.
+
+Thoughts?
+
+Regards -- Andy
