@@ -1,41 +1,67 @@
-From: Tobias Grimm <listaccount-ztmIXtBW4J6sTnJN9+BGXg@public.gmane.org>
-Subject: Re: shutdown comand and wakeup
-Date: Tue, 24 Feb 2004 19:55:41 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <403B9E2D.6020906@e-tobi.net>
-References: <40393853.9090704@e-tobi.net>
-Reply-To: listaccount-ztmIXtBW4J6sTnJN9+BGXg@public.gmane.org
+From: tmc@dreamcraft.com.au (Tomasz Ciolek)
+Subject: Re: [ACPI] [PATCH 1/2] 2.6: use scaling_available_freqs in
+	acpi-cpufreq-ioport driver
+Date: Wed, 25 Feb 2004 08:00:40 +1100
+Sender: cpufreq-bounces@www.linux.org.uk
+Message-ID: <20040224210040.GA8166@dreamcraft.com.au>
+References: <20040220083149.GA10215@dominikbrodowski.de>
+	<20040224125628.GA438@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <40393853.9090704-ztmIXtBW4J6sTnJN9+BGXg@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk>
+Content-Disposition: inline
+In-Reply-To: <20040224125628.GA438@elf.ucw.cz>
+List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@www.linux.org.uk?subject=unsubscribe>
+List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq>
+List-Post: <mailto:cpufreq@www.linux.org.uk>
+List-Help: <mailto:cpufreq-request@www.linux.org.uk?subject=help>
+List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@www.linux.org.uk?subject=subscribe>
+Errors-To: cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk
+To: Pavel Machek <pavel@ucw.cz>
+Cc: acpi-devel@lists.sourceforge.net, cpufreq@www.linux.org.uk
 List-Id: linux-acpi@vger.kernel.org
 
-Tobias Grimm wrote:
+ have a loook at the "userpace frequency governer" under 2.6.x 
 
-> But when I shutdown with "shutdown -h 0" instead of "echo 5 
->  >/proc/acpi/sleep", the computer will not wakeup at the programmed time.
+ TMC
 
-Just if someone else stumbles across this problem, when setting
-HWCLOCKACCESS=no in /etc/default/rcS, shutdown and wakeup seem to work perfectly.
+On Tue, Feb 24, 2004 at 01:56:28PM +0100, Pavel Machek wrote:
+> Hi!
+> 
+> > Export an array of supported frequencies in sysfs
+> > [scaling_available_frequencies]
+> 
+> Would it be possible to export [frequency/voltage] pairs, and allow
+> user to change it?
+> 								Pavel
+> 
+> 
+> 
+> -- 
+> When do you have a heart between your knees?
+> [Johanka's followup: and *two* hearts?]
+> 
+> 
+> -------------------------------------------------------
+> SF.Net is sponsored by: Speed Start Your Linux Apps Now.
+> Build and deploy apps & Web services for Linux with
+> a free DVD software kit from IBM. Click Now!
+> http://ads.osdn.com/?ad_id=1356&alloc_id=3438&op=click
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel@lists.sourceforge.net
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
-bye,
-
-Tobias
-
-
--------------------------------------------------------
-SF.Net is sponsored by: Speed Start Your Linux Apps Now.
-Build and deploy apps & Web services for Linux with
-a free DVD software kit from IBM. Click Now!
-http://ads.osdn.com/?ad_id=1356&alloc_id=3438&op=click
+-- 
+Tomasz M. Ciolek	
+*******************************************************************************
+ tmc at dreamcraft dot com dot au or tmc at goldweb dot com dot au 	
+*******************************************************************************
+	GPG Key ID: 0x41C4C2F0  Key available on www.pgp.net	
+*******************************************************************************
+  Everything falls under the law of change;	
+  Like a dream, a phantom, a bubble, a shadow,
+  like dew of flash of lightning.
+  You should contemplate like this. 
