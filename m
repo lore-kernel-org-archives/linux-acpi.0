@@ -1,14 +1,13 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: [PATCH] [suspend/resume] wrong wakeup address
-Date: Sun, 17 Oct 2004 11:28:38 +0200
+From: "Ava Childs" <avachildsiu-jd28gt0ljN5knbxzx/v8hQ@public.gmane.org>
+Subject: Order Rolex or other Swiss watches online
+Date: Sun, 17 Oct 2004 09:35:07 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041017092838.GE1811@elf.ucw.cz>
-References: <16A54BF5D6E14E4D916CE26C9AD30575546F88@pdsmsx402.ccr.corp.intel.com>
+Message-ID: <fb3101c4b42c$2d9ce84b$e0560f9d@purchas.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD30575546F88-4yWAQGcml66iAffOGbnezLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,38 +16,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ole.rohne-vJEk5272eHo@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Heya,
 
-> Yes, I guess the BIOS ignored the high bits. The difference is
-> unsurprised PAGE_OFFSET. Somebody has verified the patch helps his
-> system.
-> http://bugme.osdl.org/show_bug.cgi?id=3390
+Do you want a rolex watch?
 
-Okay, patch looks like to me, except..
+In our online store you can buy replicas of Rolex watches. They look
+and feel exactly like the real thing.
 
-===== drivers/acpi/sleep/main.c 1.40 vs edited =====
---- 1.40/drivers/acpi/sleep/main.c	2004-08-17 23:15:34 +08:00
-+++ edited/drivers/acpi/sleep/main.c	2004-10-15 16:58:33 +08:00
-@@ -12,6 +12,7 @@
- #include <linux/irq.h>
- #include <linux/dmi.h>
- #include <linux/device.h>
-+#include <asm/io.h>
- #include <linux/suspend.h>
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
+- We have 20+ different brands in our selection
+- Free shipping if you order 5 or more
+- Save up to 40% compared to the cost of other replicas
+- Standard Features:
+ - Screw-in crown
+ - Unidirectional turning bezel where appropriate
+ - All the appropriate rolex logos, on crown and dial
+ - Heavy weight
 
-Normally asm/ includes are placed after linux/ includes. (Cosmetic
-problem only).
+Visit us: http://www.toels.com/replica/rolex/
 
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Best regards,
+Hilton Jones
+
+
+No thanks: http://toels.com/z.php
+
 
 
 -------------------------------------------------------
