@@ -1,54 +1,37 @@
-From: "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>
+From: "Georg C. F. Greve" <greve@gnu.org>
 Subject: Re: PROBLEM: ACPI freezes 2.6.1 on boot
-Date: Wed, 21 Jan 2004 22:15:24 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <m3d69dhukz.fsf@reason.gnu-hamburg>
-References: <Pine.LNX.4.58.0401211051530.2123@home.osdl.org>
+Date: Wed, 21 Jan 2004 22:21:52 +0100
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <m3u12pgfpr.fsf@reason.gnu-hamburg>
+References: <7F740D512C7C1046AB53446D3720017361885C@scsmsx402.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.58.0401211051530.2123-Xqd2YWsQM6mXDw4h08c5KA@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+In-Reply-To: <7F740D512C7C1046AB53446D3720017361885C@scsmsx402.sc.intel.com> (Jun
+ Nakajima's message of "Wed, 21 Jan 2004 08:32:50 -0800")
+To: "Nakajima, Jun" <jun.nakajima@intel.com>
+Cc: Martin Loschwitz <madkiss@madkiss.org>, linux-kernel@vger.kernel.org, "Brown, Len" <len.brown@intel.com>, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-|| On 2004-01-21 18:56:59, Linus Torvalds wrote:
+ || On Wed, 21 Jan 2004 08:32:50 -0800
+ || "Nakajima, Jun" <jun.nakajima@intel.com> wrote: 
 
- > Does it go away if you just make "acpi_pic_set_level_irq()" do
- > nothing (ie just remove the "outb()" call
- > 
- > 	arch/i386/kernel/acpi/boot.c line 273
- > 
- > or just make the if-statement be always false).
+ nj> Right now I forwarded this to linux-acpi@intel.com, but copying
+ nj> the ACPI mailing list acpi-devel@lists.sourceforge.net would be
+ nj> helpful in general. Len can provide more specific directions for
+ nj> reporting ACPI bugs.
 
- > It's entirely possible that the SCI is just horribly broken, and
- > can't be level-triggered.
+Thanks.
 
-Just tried removing the outb() call both from plain vanilla 2.6.1 and
-one with the latest ACPI patch. No change. The system freezes with the
-same message at the same point during bootup.
+FYI, there is a bug on the Linux kernel bugzilla corresponding to this
+problem: 
 
-Any other ideas?
+         http://bugzilla.kernel.org/show_bug.cgi?id=1774
 
 Regards,
 Georg
 
 -- 
-Georg C. F. Greve                                       <greve-mXXj517/zsQ@public.gmane.org>
+Georg C. F. Greve                                       <greve@gnu.org>
 Free Software Foundation Europe	                 (http://fsfeurope.org)
 Brave GNU World	                           (http://brave-gnu-world.org)
-
-
--------------------------------------------------------
-The SF.Net email is sponsored by EclipseCon 2004
-Premiere Conference on Open Tools Development and Integration
-See the breadth of Eclipse activity. February 3-5 in Anaheim, CA.
-http://www.eclipsecon.org/osdn
