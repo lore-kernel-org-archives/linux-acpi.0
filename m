@@ -1,72 +1,57 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Subject: Re: [ACPI] MS-6368L ACPI IRQ problem still in 2.4.21
-Date: 25 Jun 2003 01:28:31 +0100
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <1056500914.2005.47.camel@darkstar.portugal>
-References: <20030623221541.GA8096@alf.amelek.gda.pl>
-	<20030623222311.GD25982@parcelfarce.linux.theplanet.co.uk>
-	<20030624054612.GA20235@alf.amelek.gda.pl>
-	<20030624112630.GB451@parcelfarce.linux.theplanet.co.uk>
-	<20030624221809.GA1805@alf.amelek.gda.pl>
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: EC SCI model?
+Date: Tue, 24 Jun 2003 18:01:36 -0700
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <F760B14C9561B941B89469F59BA3A8470255EE63@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20030624221809.GA1805-doiv7TgLjtAqfaPKo25k7GZHpeb/A1Y/@public.gmane.org>
-To: Marek Michalkiewicz <marekm-HuSaFJn/uQtscumT1wHf3A@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+content-class: urn:content-classes:message
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: "Diefenbaugh, Paul S" <paul.s.diefenbaugh-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi(gh)!
-So, has we can see in your dmesg, you don't test new acpi,
-you are report problems from old acpi.
-Well, can you send the /var/log/dmesg for ACPI: Core Subsystem version
-200306...
-you can try to see if DSDT has problems,without stop your production.
+> From: Nate Lawson [mailto:nate-Y6VGUYTwhu0@public.gmane.org]=20
 
-Get last iasl (ACPI CA - Unix Build Environment )in
-http://developer.intel.com/technology/iapc/acpi/downloads.htm
- cd compiler;make
-after this
-cat /proc/acpi/dsdt > acpi_dsdt.dat
-=2E/iasl  -d acpi_dsdt.dat
-=2E/iasl -tc acpi_dsdt.dsl
+> I am a FreeBSD developer but this is a more general question=20
+> with ACPI.  I
+> looked through the spec (especially 13 Embedded Controller)=20
+> and I have a
+> question regarding the IBF/OBF stuff.  Testing has shown that I get
+> multiple callbacks of my EcGpeHandler() routine even when IBF=20
+> and OBF have
+> not changed.  Isn't the GPE only supposed to trigger when=20
+> they change (and
+> only once)?  I've gotten more reliability by waiting for the=20
+> GPE, checking
+> the status and if it isn't what I'm waiting for, go back to sleep.
 
-and see your dsdt in bios are ok or not.
+Hi Nate,
 
-On Tue, 2003-06-24 at 23:18, Marek Michalkiewicz wrote:
-> On Tue, Jun 24, 2003 at 12:26:30PM +0100, Matthew Wilcox wrote:
-> > The ACPI code in 2.4.21 is something like 18 months old now.  It's
-> > basically unmaintainable.  Fortunately, 2.4.22 should have an ACPI =
-update.
->=20
+Please feel free to take a look at the Linux EC driver. (It's GPLed but
+you should still be able to use it as a reference w/o contamination.)
 
-> ACPI: Core Subsystem version [20011018]
-			        ^^^^^^^^
-> ACPI: Subsystem enabled
-> ACPI: System firmware supports S0 S1 S4 S5
-> Processor[0]: C0 C1 C2
-> ACPI: Power Button (FF) found
-> ACPI: Multiple power buttons detected, ignoring fixed-feature
-> ACPI: Power Button (CM) found
-> ACPI: Sleep Button (CM) found
->=20
->=20
->=20
-> -------------------------------------------------------
-> This SF.Net email is sponsored by: INetU
-> Attention Web Developers & Consultants: Become An INetU Hosting Partn=
-er.
-> Refer Dedicated Servers. We Manage Them. You Get 10% Monthly Commissi=
-on!
-> INetU Dedicated Managed Hosting http://www.inetu.net/partner/index.ph=
-p
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
---=20
-S=E9rgioMB
-email: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
+We ended up not being fully interrupt-driven, because of the very
+problem you mentioned, IIRC. Once the 3-phase ec read/write sequence has
+begun, we busy-wait for IBF/OBF. This is of course not ideal but it
+seems to work. Perhaps Paul would like to comment more, after he gets
+back from vacation. ;-)
 
-Who gives me one shell, give me everything.
+Regards -- Andy
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: INetU
+Attention Web Developers & Consultants: Become An INetU Hosting Partner.
+Refer Dedicated Servers. We Manage Them. You Get 10% Monthly Commission!
+INetU Dedicated Managed Hosting http://www.inetu.net/partner/index.php
