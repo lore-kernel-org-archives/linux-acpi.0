@@ -1,8 +1,8 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [BKPATCH] ACPI for 2.4
-Date: 26 Mar 2004 19:53:58 -0500
+Subject: [BKPATCH] ACPI for 2.6
+Date: 26 Mar 2004 19:59:11 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1080348837.16211.28.camel@dhcppc4>
+Message-ID: <1080349151.16211.33.camel@dhcppc4>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -15,26 +15,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>
+To: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
 Cc: Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Marcelo, please do a 
+Hi Linus, please do a 
 
-	bk pull bk://linux-acpi.bkbits.net/linux-acpi-release-2.4.26
+	bk pull bk://linux-acpi.bkbits.net/linux-acpi-release-2.6.5
 
-	Three fixes, all interrupt related.
+	Three significant interrupt fixes.
 
 thanks,
 -Len
 
 ps. a plain patch is also available here:
-ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.4.26/acpi-20040326-2.4.26.diff.gz
+ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.5/acpi-20040326-2.6.5.diff.gz
 
 This will update the following files:
 
- arch/i386/kernel/acpi.c           |   18 +
- arch/x86_64/kernel/acpi.c         |   18 +
+ arch/i386/kernel/acpi/boot.c      |   18 +
  drivers/acpi/ec.c                 |    4 
  drivers/acpi/events/evgpe.c       |   11 -
  drivers/acpi/events/evgpeblk.c    |  242 ++++++++++++++++++++++----
@@ -63,15 +62,15 @@ This will update the following files:
  include/acpi/aclocal.h            |    7 
  include/acpi/actypes.h            |   84 +++++----
  include/acpi/acutils.h            |    1 
- 30 files changed, 548 insertions(+), 208 deletions(-)
+ 29 files changed, 537 insertions(+), 201 deletions(-)
 
 through these ChangeSets:
 
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/03/26 1.1063.46.91)
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/03/26 1.1608.1.56)
    [ACPI] Linux specific updates from ACPICA 20040326
    "acpi_wake_gpes_always_on" boot flag for old GPE behaviour
 
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/03/26 1.1063.46.90)
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/03/26 1.1608.1.55)
    [ACPI] ACPICA 20040326 from Bob Moore
    
    Implemented support for "wake" GPEs via interaction between
@@ -106,11 +105,11 @@ through these ChangeSets:
    Return proper status from AcpiUtMutexInitialize,
    not just simply AE_OK.
 
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/03/26 1.1063.46.89)
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/03/26 1.1608.1.54)
    [ACPI] proposed fix for non-identity-mapped SCI override
    http://bugme.osdl.org/show_bug.cgi?id=2366
 
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/03/25 1.1302.46.18)
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/03/25 1.1608.1.53)
    [ACPI] PCI interrupt link routing (Luming Yu)
    use _PRS to determine resource type for _SRS
    fixes HP Proliant servers
