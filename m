@@ -1,13 +1,16 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] [suspend/resume] wrong wakeup address
-Date: Mon, 18 Oct 2004 11:06:47 +0800
+From: Ivor Hewitt <ivor-rtBon1mkn18@public.gmane.org>
+Subject: Re: Suspend-to-RAM on Sony Vaios
+Date: Mon, 18 Oct 2004 04:15:59 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <16A54BF5D6E14E4D916CE26C9AD3057554732B@pdsmsx402.ccr.corp.intel.com>
+Message-ID: <200410180415.59801.ivor@ivor.org>
+References: <20041018020816.48673359@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----_=_NextPart_001_01C4B4BF.813F8D9B"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <20041018020816.48673359-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -16,69 +19,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: ole.rohne-vJEk5272eHo@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Jon Valvatne <jon-hc6/xhmWZxdWk0Htik3J/w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
-
-------_=_NextPart_001_01C4B4BF.813F8D9B
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-
->Hi!
+On Monday 18 Oct 2004 00:08, Jon Valvatne wrote:
+> Hello list,
 >
->> Yes, I guess the BIOS ignored the high bits. The difference is
->> unsurprised PAGE_OFFSET. Somebody has verified the patch helps his
->> system.
->> http://bugme.osdl.org/show_bug.cgi?id=3D3390
+> I'd very much like to get suspend-to-RAM working on my Vaio X505; any
+> pointers would be very welcome. Trying with the latest RPM-kernel for FC2,
+> I can get it suspended just fine (after removing the ehci_hcd module), but
+> it doesn't come back up.
 >
->Okay, patch looks like to me, except..
->
->=3D=3D=3D=3D=3D drivers/acpi/sleep/main.c 1.40 vs edited =
-=3D=3D=3D=3D=3D
->--- 1.40/drivers/acpi/sleep/main.c	2004-08-17 23:15:34 +08:00
->+++ edited/drivers/acpi/sleep/main.c	2004-10-15 16:58:33 +08:00
->@@ -12,6 +12,7 @@
-> #include <linux/irq.h>
-> #include <linux/dmi.h>
-> #include <linux/device.h>
->+#include <asm/io.h>
-> #include <linux/suspend.h>
-> #include <acpi/acpi_bus.h>
-> #include <acpi/acpi_drivers.h>
->
->Normally asm/ includes are placed after linux/ includes. (Cosmetic
->problem only).
-Yes, indeed. Len, please apply the attached patch.
+What kernel version are you using? Are you using the latest versoin of ACPI?
 
-Thanks,
-Shaohua
+I had exactly the same problem with ACPI before acpi-20040816-26.
+At which point I then had the video mode problem.
 
-------_=_NextPart_001_01C4B4BF.813F8D9B
-Content-Type: application/octet-stream;
-	name="wakeup_addr.patch"
-Content-Transfer-Encoding: base64
-Content-Description: wakeup_addr.patch
-Content-Disposition: attachment;
-	filename="wakeup_addr.patch"
 
-PT09PT0gZHJpdmVycy9hY3BpL3NsZWVwL21haW4uYyAxLjQwIHZzIGVkaXRlZCA9PT09PQotLS0g
-MS40MC9kcml2ZXJzL2FjcGkvc2xlZXAvbWFpbi5jCTIwMDQtMDgtMTcgMjM6MTU6MzQgKzA4OjAw
-CisrKyBlZGl0ZWQvZHJpdmVycy9hY3BpL3NsZWVwL21haW4uYwkyMDA0LTEwLTE4IDEwOjU2OjEw
-ICswODowMApAQCAtMTMsNiArMTMsNyBAQAogI2luY2x1ZGUgPGxpbnV4L2RtaS5oPgogI2luY2x1
-ZGUgPGxpbnV4L2RldmljZS5oPgogI2luY2x1ZGUgPGxpbnV4L3N1c3BlbmQuaD4KKyNpbmNsdWRl
-IDxhc20vaW8uaD4KICNpbmNsdWRlIDxhY3BpL2FjcGlfYnVzLmg+CiAjaW5jbHVkZSA8YWNwaS9h
-Y3BpX2RyaXZlcnMuaD4KICNpbmNsdWRlICJzbGVlcC5oIgpAQCAtNTYsNyArNTcsOCBAQCBzdGF0
-aWMgaW50IGFjcGlfcG1fcHJlcGFyZSh1MzIgcG1fc3RhdGUpCiAJCWlmICghYWNwaV93YWtldXBf
-YWRkcmVzcykKIAkJCXJldHVybiAtRUZBVUxUOwogCQlhY3BpX3NldF9maXJtd2FyZV93YWtpbmdf
-dmVjdG9yKAotCQkJKGFjcGlfcGh5c2ljYWxfYWRkcmVzcykgYWNwaV93YWtldXBfYWRkcmVzcyk7
-CisJCQkoYWNwaV9waHlzaWNhbF9hZGRyZXNzKSB2aXJ0X3RvX3BoeXMoCisJCQkodm9pZCAqKWFj
-cGlfd2FrZXVwX2FkZHJlc3MpKTsKIAl9CiAJQUNQSV9GTFVTSF9DUFVfQ0FDSEUoKTsKIAlhY3Bp
-X2VuYWJsZV93YWtldXBfZGV2aWNlX3ByZXAoYWNwaV9zdGF0ZSk7Cg==
-
-------_=_NextPart_001_01C4B4BF.813F8D9B--
+-- 
+Ivor Hewitt.
+http://www.ivor.it - tech | http://www.ivor.org - hedge
 
 
 -------------------------------------------------------
