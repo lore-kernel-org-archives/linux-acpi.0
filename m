@@ -1,13 +1,12 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.kernel.2004-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Re: Re: Samsung P35 and S3 suspend
-Date: Thu, 16 Dec 2004 04:24:35 +0100
-Message-ID: <41C0FFF3.4010902@gmx.net>
-References: <41BFC3AD.5030001@gmx.net> <1103117333.5924.3.camel@mhcln03>	 <41C07B6F.70900@gmx.net> <1103159022.5924.17.camel@mhcln03>
+From: Michal Zimen <zimen-gugY4efDeRhaa/9Udqfwiw@public.gmane.org>
+Subject: TM632 and S3. Network after wakeup. (kernel 2.6.10-rc3-mm1)
+Date: Thu, 16 Dec 2004 10:11:37 +0100
+Message-ID: <20041216091137.GB5605@alfa.intrak.sk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="xgyAXRrhYN0wYx8y"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1103159022.5924.17.camel@mhcln03>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,66 +16,68 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthias Hentges <mailinglisten-H4PcyxPeSRnR7s880joybQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Oliver Dawid <od-VRmHG7Xu4f31qYPpFx2fzhvVK+yQ3ZXh@public.gmane.org>, =?ISO-8859-1?Q?Stefan_D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Matthias Hentges schrieb:
-> 
->> Matthias Hentges schrieb:
->> 
->>>I haven't had any luck with resume on any kernel > 2.6.9 so far.
->>>So, I suggest you try 2.6.9 and apply the patches from here:
->>>http://www.hentges.net/misc/howtos/samsung_p30_s3.shtml
 
-> Am Mittwoch, den 15.12.2004, 18:59 +0100 schrieb Carl-Daniel Hailfinger:
-> 
->>Do you have any hints what to exclude in the .config? The .config
->>which was once available in your forum is marked as "deleted
->>attachment" and cannot be downloaded.
-> 
-> Do not use any framebuffer, be it radeonfb or vesafb, it will freeze
-> your machine on resume. USB drivers should be built as modules and need
-> to be unloaded before suspending or USB might become FUBAR after a
-> resume. Besides that, I don't remember anything which I haven't noted on
-> my page (see above).
-> [...]
-> 
-> I've attached my current kernel .config for 2.6.9 and the suspend script
-> I'm using. 
-> It looks like an ugly hack but it is working very well for me
+--xgyAXRrhYN0wYx8y
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks! While you wrote your mail, I got S3 working here, but your suspend
-script is very appreciated.
+Salut.
+
+   a good job ! :)  Thanks a lot.
+  =20
+   Last night i've tested 2.6.10-rc3-mm1 kernel with S3 sleep state and i w=
+as surprised,
+   when i can wakeup normally :) (without hangs)
+
+   It looks very good, soundcard ALI5451 driver wakeups fine, but there is =
+a one
+   strange problem with network.
+   (I couldn't test X, because this version have several bugs, also X's
+    disfunction.:( I think, nv driver have work well for me.)
+
+   Resolver did not work, i guess.
+  =20
+   When i try to ping to another site: Uknown host.
+
+   But when i try to ping with IP address, it is all right.
 
 
->>Oh, and once I get S3 working with 2.6.9 I'll do a binary search
->>to find the changeset that is causing the problems after 2.6.9
->>and report back.
-> 
-> That would be most appreciated. I still haven't fully recovered from
-> trying 30+ kernels / configurations to find the borked patch ;)
 
-A first hint: CONFIG_REGPARM killed swsusp in some kernels before
-2.6.10-rc3, it could also be the culprit for S3.
-
-Besides that, I think we could convince the X.Org developers that
-the "get display working" bug is their problem ;-)
-It seems they have merged some suspend/resume bugfixes for Radeon and
-will merge at least one more bugfix in the next few days. Basically,
-it should be possible that the normal Radeon Xserver rePOSTs the card
-itself once it detects a resume event. If that is done properly, we
-could get rid of the hack completely and would only have to live with
-the text console.
-
-Once these patches are merged completely, I'll try a current X.Org
-build and open a bug with X.Org if the situation isn't better.
+   Any ideas ?
 
 
-Regards,
-Carl-Daniel
--- 
-http://www.hailfinger.org/
+   				mizu
+
+  =20
+
+
+  =20
+--=20
+              mizu
+=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D
+[-> E-mail:michal_AT_zimen_DOT_sk   =20
+[-> ICQ:97165392
+[-> WWW: http://michal.zimen.sk
+=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D
+
+--xgyAXRrhYN0wYx8y
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQFBwVFJ9kFXwDL4DRkRApydAKCl31mlF0Lm0/fWIe4MGn7uYqhtgACfUdp9
+l+5gNYGXdTDxZoEzBPIsZS0=
+=k7lS
+-----END PGP SIGNATURE-----
+
+--xgyAXRrhYN0wYx8y--
 
 
 -------------------------------------------------------
