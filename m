@@ -1,14 +1,16 @@
-From: Bernd Pfrommer <berndp-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
-Subject: Re: ACPI source release updated (20021002)
-Date: Thu, 03 Oct 2002 17:59:14 -0400
+From: Ernst Herzberg <earny-euM3SP4ZHrg@public.gmane.org>
+Subject: Re: CALL FOR TESTING
+Date: Fri, 4 Oct 2002 00:11:34 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3D9CBDB2.5040206@optonline.net>
-References: <EDC461A30AC4D511ADE10002A5072CAD0236DF00@orsmsx119.jf.intel.com>
-Reply-To: berndp-p32f3XyCuykqcZcGjlUOXw@public.gmane.org
+Message-ID: <200210040011.34762.earny@net4u.de>
+References: <EDC461A30AC4D511ADE10002A5072CAD0236DE80@orsmsx119.jf.intel.com> <200209260406.48808.earny@net4u.de> <20020930020016.A90@toy.ucw.cz>
+Reply-To: earny-euM3SP4ZHrg@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20020930020016.A90-muQmgwBScQHrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,100 +19,45 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I should have looked at the messages more carefully: things do markedly 
-change, but it still doesn't get the interrupts right.
-Interestingly, the links LN02-06 and LN10-15 which are first reported as 
-disabled seem to get enabled later. Does that look kosher?
-
-Thanks,
-Bernd
-
-Table [DSDT] - 769 Objects with 47 Devices 187 Methods 17 Regions
-ACPI Namespace successfully loaded at root c03c79fc
-evxfevnt-0074 [04] Acpi_enable           : Transition to ACPI mode 
-successful
-Executing all Device _STA and_INI 
-methods:...............................................
-47 Devices found containing: 47 _STA, 2 _INI methods
-Completing Region/Field/Buffer/Package 
-initialization:......................................................................
-Initialized 11/17 Regions 2/2 Fields 40/40 Buffers 17/17 Packages (769 
-nodes)
-ACPI: Interpreter enabled
-ACPI: Using IOAPIC for interrupt routing
-ACPI: System [ACPI] (supports S0 S1 S4 S5)
-ACPI: PCI Root Bridge [NRTH] (00:00)
-PCI: Probing PCI hardware (bus 00)
-ACPI: PCI Root Bridge [PCI1] (00:00)
-ACPI: PCI Interrupt Link [LN00] (IRQs 3 4 *5 7 9 11 12 14 15)
-ACPI: PCI Interrupt Link [LN01] (IRQs 3 4 5 7 9 11 12 14 15, enabled at 
-IRQ 10)
-ACPI: PCI Interrupt Link [LN02] (IRQs 3 4 5 7 9 11 12 14 15, disabled)
-ACPI: PCI Interrupt Link [LN03] (IRQs 3 4 5 7 9 11 12 14 15, disabled)
-ACPI: PCI Interrupt Link [LN04] (IRQs 3 4 5 7 9 11 12 14 15, disabled)
-ACPI: PCI Interrupt Link [LN05] (IRQs 3 4 5 7 9 11 12 14 15, disabled)
-ACPI: PCI Interrupt Link [LN06] (IRQs 3 4 5 7 9 11 12 14 15, disabled)
-ACPI: PCI Interrupt Link [LN07] (IRQs 3 4 5 7 9 *11 12 14 15)
-ACPI: PCI Interrupt Link [LN08] (IRQs *3 4 5 7 9 11 12 14 15)
-ACPI: PCI Interrupt Link [LN09] (IRQs 3 4 5 7 *9 11 12 14 15)
-ACPI: PCI Interrupt Link [LN10] (IRQs 3 4 5 7 9 11 12 14 15, disabled)
-ACPI: PCI Interrupt Link [LN11] (IRQs 3 4 5 7 9 11 12 14 15, disabled)
-ACPI: PCI Interrupt Link [LN12] (IRQs 3 4 5 7 9 11 12 14 15, disabled)
-ACPI: PCI Interrupt Link [LN13] (IRQs 3 4 5 7 9 11 12 14 15, disabled)
-ACPI: PCI Interrupt Link [LN14] (IRQs 3 4 5 7 9 11 12 14 15, disabled)
-ACPI: PCI Interrupt Link [LN15] (IRQs 3 4 5 7 9 11 12 14 15, disabled)
-ACPI: PCI Interrupt Link [LNUS] (IRQs *10)
-PCI: Probing PCI hardware
-ACPI: PCI Interrupt Link [LN02] enabled at IRQ 11
-ACPI: PCI Interrupt Link [LN03] enabled at IRQ 9
-ACPI: PCI Interrupt Link [LN04] enabled at IRQ 5
-ACPI: PCI Interrupt Link [LN05] enabled at IRQ 11
-ACPI: PCI Interrupt Link [LN06] enabled at IRQ 9
-ACPI: PCI Interrupt Link [LN10] enabled at IRQ 5
-ACPI: PCI Interrupt Link [LN11] enabled at IRQ 11
-ACPI: PCI Interrupt Link [LN12] enabled at IRQ 9
-ACPI: PCI Interrupt Link [LN13] enabled at IRQ 5
-ACPI: PCI Interrupt Link [LN14] enabled at IRQ 11
-ACPI: PCI Interrupt Link [LN15] enabled at IRQ 9
-PCI: Using ACPI for IRQ routing
-
-
-
-Grover, Andrew wrote:
-
->>From: Bernd Pfrommer [mailto:berndp-p32f3XyCuykqcZcGjlUOXw@public.gmane.org] 
->>    - it seems that there are a lot of these link devices, not just 
->>LNUS, no? Or do you think LNUS is the only one causing 
->>trouble? Maybe I 
->>can somehow get rid of it then?
->>
+On Montag, 30. September 2002 04:00, Pavel Machek wrote:
+> Hi!
 >
->You want them there if you are in a mode (usually PIC) that uses them. I
->think we may want to eliminate the dmesg output concerning them unless
->ACPI_DEBUG_OUTPUT, since in your case they're not even used (except for
->LNUS).
+>   > Yupp, i can reproduce this. Heated up with burnP6 an a little 'part=
+ial
+>   > cooling
+> >
+> > preventer' to aprox. 65 to 75=B0C (the temperature display jumps betw=
+een
+> > this values in the thermalzone, fan is forced 'off', means running ha=
+lf
+> > speed). The laptop is doing his job without problems...  i type reboo=
+t:
+> >
+> > [.... the kernel loads ....]
+> > md: ... autorun DONE.
+> > NET4: Linux TCP/IP 1.0 for NET4.0
+> > IP Protocols ICMP, UDP, TCP, IGMP
+> > Unable to handle kernel NULL pinter dereference at virtual address
+> > 00000004 printing eip
+> > c011fe45
+> > *pde =3D 00000000
+> > Oops: 0002
+> > CPU:    0
+> > EIP:    0010:[<c011fe45>]  Not tainted
 >
->>    - is there a way to disable the link devices altogether 
->>by modifying 
->>the DSDT?
->>
->
->They really are just a logical representation of the chipset routing control
->registers, so they should be harmless.
->
->>    - any suggestions as to why pci=noacpi does not fix the problem?
->>    - any other things I could try?
->>
->
->No, I'm kind of mystified why fixing GETI didn't fix things.
->
->Regards -- Andy
->
+> Can you ksymoops it?
 
+------
+
+Fixed with acpi-20021002 (doublechecked)
+
+Thx, great work :)
+
+<Earny>
 
 
 
