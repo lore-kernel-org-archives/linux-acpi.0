@@ -1,16 +1,15 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: _OSI boot hang
-Date: 13 Mar 2004 04:37:25 -0500
+From: liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
+Subject: Please comment on poweroff-patch
+Date: Sat, 13 Mar 2004 12:01:10 +0100 (CET)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1079170643.2174.116.camel@dhcppc4>
-References: <3ACA40606221794F80A5670F0AF15F8401CBB748@PDSMSX403.ccr.corp.intel.com>
-	 <20040311200031.J67848@root.org>  <1079073556.3868.37.camel@dhcppc4>
-	 <1079166150.2168.94.camel@dhcppc4>
+Message-ID: <Pine.LNX.4.58.0403131152490.1228@frog.athome>
+References: <1079031999.3679.1.camel@darkstar> <20040311230047.GA20345@stikine.ucs.sfu.ca>
+ <Pine.LNX.4.58.0403121055010.1203@frog.athome> <20040312193716.GC25056@stikine.ucs.sfu.ca>
+Reply-To: liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1079166150.2168.94.camel-D2Zvc0uNKG8@public.gmane.org>
+In-Reply-To: <20040312193716.GC25056-0ze2hujOWYhqr3d4nwidZ7Dks+cytr/Z@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -19,27 +18,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Cc: Luming Yu <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hmmm, now my Toshiba is not hanging.  Maybe the hang wasn't related to
-_OSI afterall?
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-In any case, if you experience issues with the latest
-"acpi_osi=" or "acpi_serialize" may be helpful -- do speak up if you
-find they're necessary.
+Salut list,
+I posted 10days ago a patch to this list. I have positive feedback from
+users who had the same problem as I had. But as I only traced down, which
+part of the change in the hwsleep.c (v 1.23) had broken powering-off, I
+would like verry much to hear, why this regressing changes were done in
+the first place. Please comment on my patch. I am verry intressted to
+hear, if the problems is BIOS-specific, or an Linux-acpi-issue.
 
-thanks,
--Len
-----
-kernel-parameters.txt:
+http://bugme.osdl.org/show_bug.cgi?id=2183
 
-        acpi_osi=       [HW,ACPI] empty param disables _OSI
+Cheers
+  hartwig felger
 
-        acpi_serialize  [HW,ACPI] force serialization of AML methods
+Hartwig Felger informatics
 
+- -- 
+1024D/339FD693 Hartwig Felger <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
+Key fingerprint = FB2F 3EE9 345A D55B 6FF2  0EC1 F5B0 684F 339F D693
+For the pulic keys, please visit my page.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2 (GNU/Linux)
 
+iD8DBQFAUuoF9bBoTzOf1pMRAjDcAJ95xcX26fblgMBkZ78A0XFUmobBPQCgmHpO
+hvFovkogRo5c31L6/WwOOBA=
+=p5sx
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
