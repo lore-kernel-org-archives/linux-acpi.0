@@ -1,12 +1,14 @@
-From: "P. Christeas" <p_christ-U04EIuiosng@public.gmane.org>
-Subject: [PATCH] 2.6.0-test4: Trivial /sys/power/state patch, sleep status report
-Date: Tue, 26 Aug 2003 01:25:30 +0300
+From: Bernd Petrovitsch <bernd-GBwJepH+xoVeoWH0uzbU5w@public.gmane.org>
+Subject: Re: [PATCH] 2.6.0-test4: Trivial /sys/power/state patch, sleep
+ status report
+Date: 26 Aug 2003 00:40:18 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200308260125.30194.p_christ@hol.gr>
+Message-ID: <1061851218.12331.23.camel@gimli.at.home>
+References: <200308260125.30194.p_christ@hol.gr>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_azoS/pSZkFiWC8B"
+Content-Type: multipart/mixed; boundary="=-ykqYJFslnnQ6Pcgb/vDd"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200308260125.30194.p_christ-U04EIuiosng@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,80 +17,66 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "P. Christeas" <p_christ-U04EIuiosng@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 
---Boundary-00=_azoS/pSZkFiWC8B
-Content-Type: text/plain;
-  charset="us-ascii"
+--=-ykqYJFslnnQ6Pcgb/vDd
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
-Just found out that by 'echo sth_wrong > /sys/power/state' the kernel would 
-oops in a fatal way (no clean exit from there).
-The oops suggested that the code would enter an invalid fn.
+On Tue, 2003-08-26 at 00:25, P. Christeas wrote:
+> Just found out that by 'echo sth_wrong > /sys/power/state' the kernel would 
+> oops in a fatal way (no clean exit from there).
+> The oops suggested that the code would enter an invalid fn.
+> 
+> You may apply the included patch to solve the bug. IMHO doing a clean exit is 
+> much preferrable than having BUG() there.
+[...]
+> ----
+[...]
+> diff -Bbur /diskb/users/panos/linux-off/kernel/power/main.c /usr/src/linux/kernel/power/main.c
+> --- /diskb/users/panos/linux-off/kernel/power/main.c	2003-08-23 12:13:17.000000000 +0300
+> +++ /usr/src/linux/kernel/power/main.c	2003-08-26 00:59:34.000000000 +0300
+> @@ -500,7 +514,7 @@
+>  		if (s->name && !strcmp(buf,s->name))
+>  			break;
+>  	}
+> -	if (s)
+> +	if ( (s) && (state < PM_SUSPEND_MAX) )
+>  		error = enter_state(state);
+>  	else
+>  		error = -EINVAL;
 
-You may apply the included patch to solve the bug. IMHO doing a clean exit is 
-much preferrable than having BUG() there.
+What do you think about the attached patch to solve the bug and remove a
+warning?
 
-In the patch I also added some double checking of the fn. You may disable that  
-(although sleeping is a one time fn which won't be slowed dow by that). 
+	Bernd
+-- 
+Firmix Software GmbH                   http://www.firmix.at/
+mobil: +43 664 4416156                 fax: +43 1 7890849-55
+          Embedded Linux Development and Services
 
-Status report:  (HP Omnibook XE3GC)
-S1 ('standby') works
-S3, S4bios will suspend, but NOT resume.
-that's the same as previous kernels I've tested so far.
+--=-ykqYJFslnnQ6Pcgb/vDd
+Content-Disposition: attachment; filename=power-main.patch
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; name=power-main.patch; charset=ISO-8859-1
 
-I still have the ALSA-artsd deadlock I reported w. -test1 (in short, artsd 
-resumes from S1 in a 'disk I/O' process state, which deadlocks maestro3)
-see: http://marc.theaimsgroup.com/?l=linux-kernel&m=105836807605512&w=2
+--- linux-2.6.0-test4/kernel/power/main.c	Sat Aug 23 01:53:13 2003
++++ linux-2.6.0-test4-patched/kernel/power/main.c	Mon Aug 25 21:16:50 2003
+@@ -492,7 +492,7 @@
+ static ssize_t state_store(struct subsystem * subsys, const char * buf, si=
+ze_t n)
+ {
+ 	u32 state;
+-	struct pm_state * s;
++	struct pm_state * s =3D NULL;
+ 	int error;
+=20
+ 	for (state =3D 0; state < PM_SUSPEND_MAX; state++) {
 
-
-
---Boundary-00=_azoS/pSZkFiWC8B
-Content-Type: text/x-diff;
-  charset="us-ascii";
-  name="sys-power-state.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename="sys-power-state.diff"
-
-diff -Bbur /diskb/users/panos/linux-off/kernel/power/main.c /usr/src/linux/kernel/power/main.c
---- /diskb/users/panos/linux-off/kernel/power/main.c	2003-08-23 12:13:17.000000000 +0300
-+++ /usr/src/linux/kernel/power/main.c	2003-08-26 00:59:34.000000000 +0300
-@@ -304,6 +304,20 @@
- 		goto Unlock;
- 	}
- 
-+# if 1 		/* disable once we're sure we got it right */
-+	/* double - check  code */
-+	if (!s ) {
-+		printk (KERN_ERR "Invalid suspend state %d\n",state);
-+		error = -EINVAL;
-+		goto Unlock ;
-+	}
-+	if (! s->fn) {
-+		printk(KERN_ERR "Invalid fn for suspend state %d\n", state );
-+		error = -EINVAL ;
-+		goto Unlock;
-+	}
-+# endif
-+
- 	pr_debug("PM: Preparing system for suspend.\n");
- 	if ((error = suspend_prepare(state)))
- 		goto Unlock;
-@@ -500,7 +514,7 @@
- 		if (s->name && !strcmp(buf,s->name))
- 			break;
- 	}
--	if (s)
-+	if ( (s) && (state < PM_SUSPEND_MAX) )
- 		error = enter_state(state);
- 	else
- 		error = -EINVAL;
-
---Boundary-00=_azoS/pSZkFiWC8B--
+--=-ykqYJFslnnQ6Pcgb/vDd--
 
 
 
