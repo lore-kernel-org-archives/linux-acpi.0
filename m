@@ -1,25 +1,71 @@
-From: Karol Kozimor <sziwan@hell.org.pl>
-Subject: Re: [ACPI] Call for help: list of machines with working S3
-Date: Tue, 22 Feb 2005 23:08:28 +0100
-Message-ID: <20050222220828.GB538@hell.org.pl>
-References: <20050214211105.GA12808@elf.ucw.cz> <20050215125555.GD16394@gamma.logic.tuwien.ac.at> <42121EC5.8000004@gmx.net> <20050215170837.GA6336@gamma.logic.tuwien.ac.at>
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Subject: Re: [PATCH] Fix a if-statement in setup_sys_fs_device_files()
+Date: Tue, 22 Feb 2005 19:49:48 -0800
+Message-ID: <20050222194948.5e890df4.akpm@osdl.org>
+References: <20050222185918.34429904.tokunaga.keiich@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Disposition: inline
-In-Reply-To: <20050215170837.GA6336@gamma.logic.tuwien.ac.at>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Norbert Preining <preining@logic.at>
-Cc: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>, Pavel Machek <pavel@suse.cz>, ACPI mailing list <acpi-devel@lists.sourceforge.net>, kernel list <linux-kernel@vger.kernel.org>, seife@suse.de, rjw@sisk.pl
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <20050222185918.34429904.tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+Cc: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org, anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Norbert Preining:
-> - DRI must be disabled I guess?! Even with newer X server (x.org)?
+Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org> wrote:
+>
+> 
+>    This fixes a if-statement in setup_sys_fs_device_files().
+>  It seems to assume that 'struct acpi_device_flags.ejectable'
+>  indicates whether a device has _EJ0 or not.  But this is
+>  not a right assumption.  It indicates whether a device has
+>  _EJ0|_EJD (See acpi_bus_get_flags() function).
+>    setup_sys_fs_device_files() creates 'eject' file for
+>  devices that have _EJ0 control method under a corresponding
+>  directory in /sys/firmware/acpi/namespace/ACPI/.  'eject'
+>  file is used to trigger hot-removal function from userland.
+> 
+>  Thanks,
+>  Keiichiro Tokunaga
+> 
+> 
+> 
+>  Signed-off-by: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+>  ---
+> 
+>   linux-2.6.11-rc4-kei/drivers/acpi/scan.c |   10 +++++++++-
+>   1 files changed, 9 insertions(+), 1 deletion(-)
+> 
+>  diff -puN drivers/acpi/scan.c~eject_interface_bug drivers/acpi/scan.c
+>  --- linux-2.6.11-rc4/drivers/acpi/scan.c~eject_interface_bug	2005-02-22 18:22:29.000000000 +0900
+>  +++ linux-2.6.11-rc4-kei/drivers/acpi/scan.c	2005-02-22 18:48:09.000000000 +0900
+>  @@ -358,7 +358,15 @@ setup_sys_fs_device_files (
+>   	struct acpi_device *dev,
+>   	acpi_device_sysfs_files *func)
+>   {
+>  -	if (dev->flags.ejectable == 1)
+>  +	acpi_status		status;
+>  +	acpi_handle		temp = NULL;
+>  +
+>  +	/*
+>  +	 * If device has _EJ0, 'eject' file is created that is used to trigger
+>  +	 * hot-removal function from userland.
+>  +	 */
+>  +	status = acpi_get_handle(dev->handle, "_EJ0", &temp);
+>  +	if (ACPI_SUCESS(status))
 
-You still didn't state which X server are you using. In short, XFree86 4.4,
-X.Org 6.7 and 6.8.2 are fine, anything other (including X.Org 6.8.0 and .1)
-is not.
-Best regards,
+This won't compile.  So...  how well tested can it be?
 
--- 
-Karol 'sziwan' Kozimor
-sziwan@hell.org.pl
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
