@@ -1,13 +1,13 @@
-From: "Dena I. Lilly" <di.lillyqq-W+6R15Ehb/SzXdm0FozmkQ@public.gmane.org>
-Subject: Order Rolex or other Swiss watches online
-Date: Sat, 23 Oct 2004 08:27:35 -0100
+From: Hiroshi 2 Itoh <HIROIT-JE5g2YyFxFHQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] GDT table patch for resume only reboots problem
+Date: Sat, 23 Oct 2004 19:47:24 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <d57e01c4b8e2$cefc07e4$480faeba@chelmsford-karate.co.uk>
+Message-ID: <OF6DD1F19E.F67F553B-ON49256F36.003AB93A-49256F36.003ACD73@jp.ibm.com>
+References: <20041022105340.GB1330@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20041022105340.GB1330-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -16,32 +16,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Heya,
-
-Do you want a rolex watch?
-
-In our online store you can buy replicas of Rolex watches. They look
-and feel exactly like the real thing.
-
-- We have 20+ different brands in our selection
-- Free shipping if you order 5 or more
-- Save up to 40% compared to the cost of other replicas
-- Standard Features:
- - Screw-in crown
- - Unidirectional turning bezel where appropriate
- - All the appropriate rolex logos, on crown and dial
- - Heavy weight
-
-Visit us: http://www.toels.com/replica/rolex/
-
-Best regards,
-Hilton Jones
 
 
-No thanks: http://toels.com/z.php
+
+
+Hi!
+
+acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org wrote on 2004/10/22 19:53:40:
+
+> > Instead, I test my machine to write a byte value on I/O port 0x3bc.
+This
+> > is the parallel port's output register to be latched and observable if
+you
+> > have a simple hardware decoder with 7 segment LEDs. <- do it yourself
+work
+> > is required. :-)
+>
+> Is it guaranteed that southbridge is initialized enough for parport to
+> work? Anyway you can do simpler debugging dongle with 8 leds and 8
+> resistors, right to the port, no ps/2 power needed (ok, its a hack).
+>
+
+Yes, BIOS people always enable it for their own debug.
+
+- Hiro.
 
 
 
