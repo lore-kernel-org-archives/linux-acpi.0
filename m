@@ -1,12 +1,14 @@
-From: Bill Chmura <bill-AiILL61qbRugSpxsJD1C4w@public.gmane.org>
-Subject: Help with my Friggin compag 2701us
-Date: Sun, 23 Nov 2003 13:30:36 -0500
+From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
+Subject: Re: ACPI + Laptop Power Management
+Date: Sun, 23 Nov 2003 20:12:46 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1069612236.3685.21.camel@loki>
-Reply-To: bill-AiILL61qbRugSpxsJD1C4w@public.gmane.org
+Message-ID: <3FC106AE.4040701@pca.it>
+References: <C386328088ED7F4E9F81AFBABDDF60DA03386202@wdmyexch02.my.asia.wdc.com> <20031121101232.GL32464@poupinou.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-2gVsIL3ymLPJF/jQmY1W"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20031121101232.GL32464-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,62 +17,32 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-
---=-2gVsIL3ymLPJF/jQmY1W
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
 Hello,
 
-I am having issues getting my battery power from Linux.  Here are the
-stats:
+on 11/21/03 11:12, Ducrot Bruno wrote:
+| I'm using laptop-mode which is now in linux-2.4 since 2.4.23-pre7.
+| You should really look at.  Look at linux/Documentation/laptop-mode.txt
+| for more details.
+I saw that in kernel 2.6.0-test9 'laptop_mode' is not present: is there
+a patch or something similar to enable it? Or is it merged in something
+other?
 
-Compaq 2701US : RedHat9 base, Kernel 2.4.22 (from kernel.org), Kde 3.1.4
-(from KDE.org)
-
-Shutdown works which is fantastic.  I cannot however get any readings
-from my batteries.  I have KLaptop running, which does tell when I am on
-AC power versus batteries, but when I am on batteries it thinks I am out
-of power.
-
-If I go into /proc and poke around:
-
-/proc/acpi/battery/BAT1 or BAT2/info - says no battery is present under
-AC or Battery
-
-/proc/acpi/ac_adapter/ACAD/state - shows off-line or on-line depending
-on if I am plugged in (which is where I guess the applet can tell if I
-am plugged in or not)
-
-I noticed there were some patches for my kernel, but all of the kernel
-how-tos have been taken down on the internet (strange) and that was
-pretty much my guide to rebuilding...
-
-If that patch will help, I will give it a try - but I am not sure I
-remember how to do it...
-
-Thanks
-
-Bill
-
-
-
---=-2gVsIL3ymLPJF/jQmY1W
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
+Thx, bye,
+Gismo / Luca
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
+Version: GnuPG v1.2.3 (GNU/Linux)
+Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
 
-iD8DBQA/wPzMTb7le3pxe0IRAtb4AJ9xNux5e+3ZU8xXrB5cJBmm7HHPGQCeMCNW
-6FFGEl68r7VJZAR2gjbBQTc=
-=rQ7+
+iD8DBQE/wQatVAp7Xm10JmkRAglIAJ44kdtOlYwWEHwzmSXAP0624KHFfgCghtKD
+cKYcNBy/5sLn58KV7GXgRPE=
+=SrPG
 -----END PGP SIGNATURE-----
-
---=-2gVsIL3ymLPJF/jQmY1W--
 
 
 
