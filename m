@@ -1,13 +1,12 @@
-From: Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
-Subject: Re: [PATCH, new ACPI driver] new sony_acpi driver
-Date: Wed, 16 Feb 2005 15:41:59 +0100
-Message-ID: <20050216144156.GA4372@crusoe.alcove-fr>
-References: <20050210161809.GK3493@crusoe.alcove-fr> <E1D0dqo-00041G-00@chiark.greenend.org.uk> <20050214105837.GE3233@crusoe.alcove-fr> <20050214203211.GA8007@ucw.cz> <20050215161412.GC20951@pern.dea.icai.upco.es>
-Reply-To: Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
+From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
+Subject: Re: Call for help: list of machines with working S3
+Date: Wed, 16 Feb 2005 15:54:38 +0100
+Message-ID: <42135EAE.8030407@gmx.net>
+References: <20050214211105.GA12808@elf.ucw.cz> <20050215125555.GD16394@gamma.logic.tuwien.ac.at> <42121EC5.8000004@gmx.net> <20050215170837.GA6336@gamma.logic.tuwien.ac.at> <20050216093454.GC22816@pern.dea.icai.upco.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20050215161412.GC20951-NfIQswJzSEaq9fEpoSJUslHdEuJhDOxL@public.gmane.org>
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <20050216093454.GC22816-NfIQswJzSEaq9fEpoSJUslHdEuJhDOxL@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,37 +16,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Romano Giannetti <romanol-qvIf60buks8@public.gmane.org>, Vojtech Pavlik <vojtech-AlSwsSmVLrQ@public.gmane.org>, Matthew Garrett <mgarrett-QGMSyCZBOSwv4zxTlrOuLwNdhmdF6hFW@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: romano-1BxYRfzsdQW8A8a7gxElqg@public.gmane.org
+Cc: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, seife-l3A5Bk7waGM@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Feb 15, 2005 at 05:14:12PM +0100, Romano Giannetti wrote:
-
-> On Mon, Feb 14, 2005 at 09:32:11PM +0100, Vojtech Pavlik wrote:
-> >  
-> > Yes, I'd like to see that. The other possible way is have the input
-> > layer generate ACPI events for power-related keys.
-> > 
+Romano Giannetti schrieb:
+> On Tue, Feb 15, 2005 at 06:08:37PM +0100, Norbert Preining wrote:
 > 
-> I beg your pardon, but I have a very strange problem with ACPI event on a
-> Sony laptop. Probably it's completely unraleted, but if you have time to
-> have a look, it is on bugzilla too:
+>>On Die, 15 Feb 2005, Carl-Daniel Hailfinger wrote:
+>>
+>>>To suspend and resume properly, call the following script as root:
+>>
+>>Success. 
 > 
-> http://bugme.osdl.org/show_bug.cgi?id=4124
+> I tried with my Sony Vaio FX701. No luck. It goes S3 ok, but it will never
+> come back (blank screen, HDD led fixed on). 
+> 
+> I am wishing to help, imply tell me what I have to do.
 
-Strange indeed.
+Please tell us about your graphics chipset, your .config, your
+dmesg and the modules loaded. Then we my be able to help.
 
-First thing to test is to disable sonypi (either rebuild a kernel
-without it or rename the module so it will not get loaded again),
-then reboot and see if you still have problems.
 
-If you do, the problem is ACPI/input related.
+Regards,
+Carl-Daniel
 
-If you don't, the strangeness comes from some interraction with
-sonypi.
-
-Stelian.
+P.S. If anyone of you is running SUSE 9.2, try their latest
+kernels from ftp.suse.com/pub/projects/kernel/kotd/i386/HEAD/
+Additionally, you may have to upgrade mkinitrd and udev with
+packages from ftp.suse.com/pub/projects and
+ftp.suse.com/pub/people (try searching around a bit and you'll
+surely find them).
+I'm running a kernel from there right now and can still use
+S3 without problems on my Samsung P35.
 -- 
-Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
+http://www.hailfinger.org/
 
 
 -------------------------------------------------------
