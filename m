@@ -1,15 +1,11 @@
-From: David =?iso-8859-15?Q?G=F3mez?= <david-0d+f1cuTMnnk1uMJSBkQmQ@public.gmane.org>
-Subject: Re: smart battery on acer travelmate 4001
-Date: Sun, 3 Oct 2004 11:40:08 +0200
+From: Kenneth Johansson <ken-+AkyqHw8l9jYtjvyW6yDsg@public.gmane.org>
+Subject: ACPI S1 problem
+Date: Sun, 03 Oct 2004 16:22:59 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041003094008.GA20789@fargo>
-References: <415DD4D6.2080402@mega.ist.utl.pt>
+Message-ID: <1096813379.2753.9.camel@tiger>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-PIfYRdRp6WsrgT1d0sB6"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <415DD4D6.2080402-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,62 +14,65 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Pedro ;),
 
-> i found out recently that i have one of those laptops with a smart
-> battery. mine is an acer travelmate 4001 wlmi.
+--=-PIfYRdRp6WsrgT1d0sB6
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Same as mine.
+I wanted to have standby mode working on my desktop so I do not have to
+listen to the fan all the time and also have a quick start.=20
 
-> i would like to ask you for some information:
+As I understand it I should be using S3 mode for this but
+cat /proc/acpi/sleep only reports support for "S0 S1 S4 S5" so I tried
+S1. Dose S1 turn of the hard disks and fan ?
 
-I'm nothing as far a an ACPI expert, just an user ;), but i'll try to hel=
-p you.
+For some reason  mysql do not want to play=20
+--
+kernel: Stopping tasks: =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+kernel:  stopping tasks failed (1 tasks remaining)
+kernel: Restarting tasks...<6> Strange, mysqld not stopped
+--
 
-> 1. where do the smart batteries differ from "regular" batteries;
+After stopping mysql by hand I still have problem.=20
+--
+kernel: Stopping tasks: =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D|
+kernel: NVRM: ACPI: device not initialized!
+kernel: Could not suspend device 0000:01:00.0: error -1
+kernel: Restarting tasks... done
+--
+That device is the graphics card.=20
+0000:01:00.0 VGA compatible controller: nVidia Corporation: Unknown device =
+0045 (rev a1)
 
-They're a different kind of batteries in the ACPI specification. It
-defines two types, control-method batteries and smart batteries. Currentl=
-y
-ACPI only supports the first type.
+I have seen that others have this working with nvidia card why dose it not =
+work for me?
 
-> 2. what are the advantages/disadvantages of a smart battery vs "regular=
-"
-> battery
+What dose the -1 error code mean?
 
->From what i understand, a smart battery can 'offer' some information abou=
-t
-its state, voltage, composition, etc... This leads to the ACPI subsystem
-to a more efficient power management. In short, they last longer, or at
-least that is what manufacturers say ;).
 
-> 3. i read that acpi4linux does not support smart batteries yet. what ca=
-n
-> i do to help?
+--=-PIfYRdRp6WsrgT1d0sB6
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
-I cannot answer to that. I downloaded the ACPI specification from
-http://www.acpi.info, i tried to learn a bit more about ACPI and smart
-batteries, but i'm far from being able to write a driver :-/
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
 
-> note: i do not code in the kernel, i am unable to write the drivers
-> myself... yet... but i am fully available to supply every bit of
-> necessary information to help others develop/test new drivers.
+iD8DBQBBYAtBmDGOmJIy9x8RAt40AJ9NRCZJ+3KxN9hPnG+BaLukBEhoNwCfW9so
+qS6ITy6DxYJ+4mK7dwCGzGw=
+=9wA2
+-----END PGP SIGNATURE-----
 
-Great ;). I'm avaliable too to do any kind of testing and help with
-information if someone starts to develop linux acpi support for smart
-batteries.
+--=-PIfYRdRp6WsrgT1d0sB6--
 
-cheers,
-
---=20
-David G=F3mez
-
-"The question of whether computers can think is just like the question of
-whether submarines can swim." -- Edsger W. Dijkstra
 
 
 -------------------------------------------------------
