@@ -1,7 +1,7 @@
 From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 04/12] pcc_acpi build fix
-Date: Wed, 23 Feb 2005 01:53:00 -0800
-Message-ID: <200502230953.j1N9rEUr020699@shell0.pdx.osdl.net>
+Subject: [patch 06/12] ACPI: report errors in fan.c
+Date: Wed, 23 Feb 2005 01:53:04 -0800
+Message-ID: <200502230953.j1N9rIwN020705@shell0.pdx.osdl.net>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -12,46 +12,54 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, pavel-+ZI9xUNit7I@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 
-With older gcc's:
-
-drivers/acpi/pcc_acpi.c: In function `acpi_pcc_write_sset':
-drivers/acpi/pcc_acpi.c:111: field `integer' already initialized
-drivers/acpi/pcc_acpi.c:111: unknown field `value' specified in initializer
-drivers/acpi/pcc_acpi.c:111: warning: excess elements in union initializer
-drivers/acpi/pcc_acpi.c:111: warning: (near initialization for `in_objs[0]')
-drivers/acpi/pcc_acpi.c:113: field `integer' already initialized
-drivers/acpi/pcc_acpi.c:113: unknown field `value' specified in initializer
-drivers/acpi/pcc_acpi.c:113: warning: excess elements in union initializer
-drivers/acpi/pcc_acpi.c:113: warning: (near initialization for `in_objs[1]')
-
+Currently, fan.c ignores errors from acpi_bus_get_power.  On compaq evo
+notebook that leads to very confusing empty output.
 
 Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 ---
 
- 25-akpm/drivers/acpi/pcc_acpi.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+ 25-akpm/drivers/acpi/fan.c |   19 ++++++++-----------
+ 1 files changed, 8 insertions(+), 11 deletions(-)
 
-diff -puN drivers/acpi/pcc_acpi.c~pcc_acpi-build-fix drivers/acpi/pcc_acpi.c
---- 25/drivers/acpi/pcc_acpi.c~pcc_acpi-build-fix	2005-02-23 01:48:02.000000000 -0800
-+++ 25-akpm/drivers/acpi/pcc_acpi.c	2005-02-23 01:48:02.000000000 -0800
-@@ -107,10 +107,8 @@ static int acpi_pcc_write_sset(struct ac
+diff -puN drivers/acpi/fan.c~acpi-report-errors-in-fanc drivers/acpi/fan.c
+--- 25/drivers/acpi/fan.c~acpi-report-errors-in-fanc	2005-02-23 01:48:03.000000000 -0800
++++ 25-akpm/drivers/acpi/fan.c	2005-02-23 01:48:03.000000000 -0800
+@@ -78,21 +78,18 @@ struct proc_dir_entry		*acpi_fan_dir;
+ static int
+ acpi_fan_read_state (struct seq_file *seq, void *offset)
  {
- 	acpi_status status;
- 	union acpi_object in_objs[] = {
--		{ .integer.type  = ACPI_TYPE_INTEGER,
--		  .integer.value = func, },
--		{ .integer.type  = ACPI_TYPE_INTEGER,
--		  .integer.value = val, },
-+		{ .integer = { .type  = ACPI_TYPE_INTEGER, .value = func, }},
-+		{ .integer = { .type  = ACPI_TYPE_INTEGER, .value = val, }},
- 	};
- 	struct acpi_object_list params = {
- 		.count   = ARRAY_SIZE(in_objs),
+-	struct acpi_fan		*fan = (struct acpi_fan *) seq->private;
++	struct acpi_fan		*fan = seq->private;
+ 	int			state = 0;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_fan_read_state");
+ 
+-	if (!fan)
+-		goto end;
+-
+-	if (acpi_bus_get_power(fan->handle, &state))
+-		goto end;
+-
+-	seq_printf(seq, "status:                  %s\n",
+-		!state?"on":"off");
+-
+-end:
++	if (fan) {
++		if (acpi_bus_get_power(fan->handle, &state))
++			seq_printf(seq, "status:                  ERROR\n");
++		else
++			seq_printf(seq, "status:                  %s\n",
++				     !state?"on":"off");
++	}
+ 	return_VALUE(0);
+ }
+ 
 _
 
 
