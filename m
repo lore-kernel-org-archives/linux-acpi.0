@@ -1,8 +1,8 @@
-From: MAILER-DAEMON-XF11MZ+IhFuTnpBtbRfDVg@public.gmane.org
-Subject: failure notice
-Date: 28 Jan 2004 13:44:30 -0000
+From: "MailScanner" <virusak-4ArB4eMHUs/twjQa/ONI9g@public.gmane.org>
+Subject: Warning: E-mail viruses detected
+Date: Wed, 28 Jan 2004 15:24:11 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E1Alq0q-0007Yc-00@deer.gmane.org>
+Message-ID: <200401281424.i0SEOBF18768@dec1.czu.cz>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,67 +15,23 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi. This is the qmail-send program at pop1.att.ne.jp.
-I'm afraid I wasn't able to deliver your message to the following addresses.
-This is a permanent error; I've given up. Sorry it didn't work out.
+Our virus detector has just been triggered by a message you sent:-
+  To: <munoz-DJaDmvjO7FbtwjQa/ONI9g@public.gmane.org>
+  Subject: HELLO
+  Date: Wed Jan 28 15:24:11 2004
+Any infected parts of the message have not been delivered.
 
-<david-54RQvxkVOIFHfZP73Gtkiw@public.gmane.org>:
-Sorry, no mailbox here by that name. vpopmail (#5.1.1)
+This message is simply to warn you that your computer system may have a
+virus present and should be checked.
 
---- Below this line is a copy of the message.
+The virus detector said this about the message:
+Report: i0SEO7Y18718/document.pif  Infection: W32/Mydoom.A-rtiCCPl9gjg@public.gmane.org
+Shortcuts to MS-Dos programs are very dangerous in email in document.pif
 
-Return-Path: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Received: (qmail 2698 invoked from network); 28 Jan 2004 13:44:25 -0000
-Received: from unknown (HELO smtp2.att.ne.jp) (10.10.15.10)
-  by 10.10.15.95 with SMTP; 28 Jan 2004 13:44:25 -0000
-Received: from samsungfirewall (unknown [203.200.194.74])
-	by smtp2.att.ne.jp (Postfix) with SMTP id 76DE525380
-	for <david-54RQvxkVOIFHfZP73Gtkiw@public.gmane.org>; Wed, 28 Jan 2004 22:44:23 +0900 (JST)
-Received: from  ([192.168.1.80]) by samsungfirewall; Wed, 28 Jan 2004 05:50:41 -0500 (GMT)
-From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: david-54RQvxkVOIFHfZP73Gtkiw@public.gmane.org
-Subject: MAIL TRANSACTION FAILED
-Date: Wed, 28 Jan 2004 16:06:29 +0530
-MIME-Version: 1.0
-X-Priority: 3
-X-MSMail-Priority: Normal
-Content-Type: multipart/mixed; 	boundary="----=_NextPart_000_0009_03C07502.43E3509C"
-Message-Id: <20040128134423.76DE525380-/DzOal4ioRCHrgMCATxkvg@public.gmane.org>
-
-This is a multi-part message in MIME format.
-
-
-------=_NextPart_000_0009_03C07502.43E3509C
-Content-Type: text/plain; 	charset="Windows-1252"
-Content-Transfer-Encoding: 7bit
-
-The message cannot be represented in 7-bit ASCII encoding and has been sent as a binary attachment.
-
-
-
-
-------=_NextPart_000_0009_03C07502.43E3509C
-Content-Type: text/plain;
-	name="InterScan_SafeStamp.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="InterScan_SafeStamp.txt"
-
-****** Message from InterScan E-Mail VirusWall NT ******
-
-** WARNING! Attached file data.pif contains:
-
-     WORM_MIMAIL.R virus
-
-   Attempted to clean the file but it is not cleanable.
-   It has been deleted.
-
-This mail contains virus
-*****************     End of message     ***************
-
-
-------=_NextPart_000_0009_03C07502.43E3509C--
-
+-- 
+MailScanner
+Email Virus Scanner
+www.mailscanner.info
 
 
 -------------------------------------------------------
