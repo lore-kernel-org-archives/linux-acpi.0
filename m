@@ -1,14 +1,14 @@
-From: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
-Subject: Re: smartbattery support
-Date: Thu, 07 Oct 2004 13:33:48 +0100
+From: Anil Mamede <amak-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
+Subject: Re: what is throttling?
+Date: Thu, 07 Oct 2004 14:54:07 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <416537AC.1010304@mega.ist.utl.pt>
-References: <41630B6D.2000107@mega.ist.utl.pt> <20041007094109.GA534@openzaurus.ucw.cz>
+Message-ID: <4165588F.8000109@mega.ist.utl.pt>
+References: <20041006090408.GA17104@rap.rap.dk> <20041006114935.GF17247@wotan.suse.de> <20041006141245.GB6785@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041007094109.GA534-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org>
+In-Reply-To: <20041006141245.GB6785-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,33 +17,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Bruno Ducrot wrote:
 
-i have joined the lmsensors mailing list and the sbs-forum to get some
-more help but i'm still waiting for feedback there, so... mean while
-i'll just study i2c protocols.
 
-i'm thinking in writing a sensor driver to read the battery information
-and then a userland program could format it and do whatever it likes.
+> though I don't see real usefullness for throttling anyway, so
+> I've not tested if that works.
+> 
 
-as far as acpi goes, i still need some information on how will the i2c
-driver be plugged into the ACPI framework.
+If throttling can save energy, why not throttling. The few things i do 
+with my computer is coding, doing some word process and listen to mp3. 
+Right now i cant put ACPI working. But if i had i whould throttle 
+because the CPU stays a lot of time idle.
 
-regards,
-pedro venda.
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+Anil Mamede
 
-iD8DBQFBZTeseRy7HWZxjWERAhruAKD2+1WfdGmnVTK0D193UI/0McnRqwCcCWwL
-xJ8po5VdwLyS2/pMP25drh8=
-=dQP1
------END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
