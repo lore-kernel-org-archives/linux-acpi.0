@@ -1,10 +1,11 @@
-From: Support Technique Club-Internet <hotline-fBIn7JHAfCbUKx/7vDf7Bw@public.gmane.org>
-Subject: Votre mail a Club-Internet
-Date: Sat, 24 Apr 2004 07:51:33 +0200 (CEST)
+From: trooper ryan <trooper_ryan-QPf0Bz723pkjHdulDSg1yw@public.gmane.org>
+Subject: IRQ routing problem
+Date: Sat, 24 Apr 2004 21:18:20 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040424055133.976DDC606@mx0.grolier.fr>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Message-ID: <408AD99C.6030501@dmtsystems.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,63 +15,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Further to my last email where I was getting "PCI: Cannot allocate 
+resource region 0 of device 0000:00:0d.0" errors, I disabled PnP in my BIOS.
 
-Cher(e) internaute,
+Now I'm getting:
 
-Nous avons bien reçu le courrier électronique que vous nous avez envoyé.
-Nous recevons actuellement beaucoup de demandes par mail, aussi nous vous
-remercions de votre patience si la réponse à votre question tardait à vous
-parvenir. 
-Vous allez recevoir bientôt un second accusé de réception avec une référence
-qui nous permettra d'identifier votre demande et vous assurer ainsi un suivi
-personnel.
-Soyez certain de tous nos efforts pour vous répondre le plus rapidement
-possible.
-
-
-N'oubliez pas que vous pouvez par vous-même gérer votre compte et trouver
-des réponses techniques en utilisant les sites ci-dessous :
-http://www.club-internet.fr/moncompte 
-http://www.club-internet.fr/assistance 
-
-Cordialement,
-Le Service Clients de Club Internet.
+ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 11
+ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 10
+ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 4
+  pci_irq-0316 [16] acpi_pci_irq_derive   : Unable to derive IRQ for 
+device 0000:00:0d.1
+ACPI: No IRQ known for interrupt pin ? of device 0000:00:0d.1
+PCI: Using ACPI for IRQ routing
 
 
- ----------- Extrait de votre message / Sample of your mail ----------
-
-    From: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org 
-      To: infosflashmail-fBIn7JHAfCbUKx/7vDf7Bw@public.gmane.org 
-      Cc:  
-    M-Id: <20040424055126.94DCBE071-I//O8CarL9rlO4KK9z1Djvd7pJkM5tWpUBSOeVevoDU@public.gmane.org> 
-    Date: Sat, 24 Apr 2004 07:29:34 +0200 
- Subject: Mail Delivery (failure infosflashmail-fBIn7JHAfCbUKx/7vDf7Bw@public.gmane.org) 
-
-> This is a multi-part message in MIME format. 
->  
-> ------=_NextPart_000_001B_01C0CA80.6B015D10 
-> Content-Type: multipart/alternative; 
-> 	boundary="----=_NextPart_001_001C_01C0CA80.6B015D10" 
->  
-> ------=_NextPart_001_001C_01C0CA80.6B015D10 
-> Content-Type: text/plain; 
-> 	charset="iso-8859-1" 
-> Content-Transfer-Encoding: quoted-printable 
->  
-> ------=_NextPart_001_001C_01C0CA80.6B015D10 
-> Content-Type: text/html; 
-> 	charset="iso-8859-1" 
-> Content-Transfer-Encoding: quoted-printable 
->  
-> <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"> 
-> <HTML><HEAD> 
-> <META content=3D"text/html; charset=3Diso-8859-1" = 
-> http-equiv=3DContent-Type> 
- 
-
+Any ideas?
 
 
 -------------------------------------------------------
