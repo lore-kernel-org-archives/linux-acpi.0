@@ -1,11 +1,12 @@
-From: =?ISO-8859-2?Q?Rafa=B3?= <lista-SwppDJA1QMU+Zj8wmS2FlIcoqjos4MI6@public.gmane.org>
-Subject: DSDT table for Asus L5F00GA
-Date: Fri, 04 Jun 2004 20:15:09 +0200
+From: "Mae Morris" <mmorrismb-5axiYf6vXTY/RIBTpq4ukg@public.gmane.org>
+Subject: Powerful weightloss now available for you.
+Date: Fri, 04 Jun 2004 19:42:29 -0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40C0BC2D.4060907@viktoria-poland.com.pl>
+Message-ID: <26c301c44a7c$1dd62eb9$41bed1ad@ezweb.com.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,70 +16,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello
+Hello, I have a special_offer for you...
+WANT TO LOSE WEIGHT?
+The most powerful weightloss is now available
+without prescription. All natural Adipren720
+100% Money Back Guarantée!
+- Lose up to 19% Total Body Weight.
+- Up to 300% more Weight Loss while dieting.
+- Loss of 20-35% abdominal Fat.
+- Reduction of 40-70% overall Fat under skin.
+- Increase metabolic rate by 76.9% without Exercise.
+- Boost your Confidence level and Self Esteem.
+- Burns calorized fat.
+- Suppresses appetite for sugar.
+Get the facts about all-natural Adipren720 <http://1adipren.com/>
 
-I'm using Asus L5F00GA notebook. I checked if the DSDT table is corect, 
-as shown on http://forums.gentoo.org/viewtopic.php?t=122145 site. Well, 
-it is not correct. When I try to compile table using iasl compiler, I 
-get the following error:
 
-Intel ACPI Component Architecture
-ASL Optimizing Compiler / AML Disassembler version 20040527 [Jun  4 2004]
-Copyright (C) 2000 - 2004 Intel Corporation
-Supports ACPI Specification Revision 2.0c
 
-dsdt.dsl  7416:     If (SS1)
-Error    1037 -      ^ syntax error, unexpected PARSEOP_IF
+---- system information ----
+difficult subscribe into generated numbering lang alone more 
+category used known if environments negotiation Localization] report 
+descriptions strongly work programming those status Produces Chinese 
+writing parts solely with locale We populate implementers 
+specific documents validate affected Semantics: resulting similar particular
 
-ASL Input:  dsdt.dsl - 7426 lines, 249938 bytes, 3268 keywords
-Compilation complete. 1 Errors, 0 Warnings, 0 Remarks, 0 Optimizations
 
-DSDT table after disassembly is here: 
-http://wujek.kolko-rozancowe.org/dsdt.dsl
-
-Line nr 7416 is: "IF (SS1)" (it will be easier for you to find :) ).
-
-Second question, I get the following error messages during bootup:
-
-ay 31 16:43:03 laptop ACPI-1133: *** Error: Method execution failed 
-[\_GPE._L1E] (Node c14d5e9c), AE_NOT_EXIST
-May 31 16:43:03 laptop ACPI-0295: *** Error: AE_NOT_EXIST while 
-evaluating method [_L1E] for GPE[ 0]
-May 31 16:43:03 laptop ACPI-1133: *** Error: Method execution failed 
-[\_GPE._L1E] (Node c14d5e9c), AE_NOT_EXIST
-May 31 16:43:03 laptop ACPI-0295: *** Error: AE_NOT_EXIST while 
-evaluating method [_L1E] for GPE[ 0]
-May 31 16:43:03 laptop ACPI-1133: *** Error: Method execution failed 
-[\_GPE._L1E] (Node c14d5e9c), AE_NOT_EXIST
-May 31 16:43:03 laptop ACPI-0295: *** Error: AE_NOT_EXIST while 
-evaluating method [_L1E] for GPE[ 0]
-May 31 16:43:03 laptop ACPI-1133: *** Error: Method execution failed 
-[\_GPE._L1E] (Node c14d5e9c), AE_NOT_EXIST
-May 31 16:43:03 laptop ACPI-0295: *** Error: AE_NOT_EXIST while 
-evaluating method [_L1E] for GPE[ 0]
-May 31 16:43:03 laptop ACPI-1133: *** Error: Method execution failed 
-[\_GPE._L1E] (Node c14d5e9c), AE_NOT_EXIST
-May 31 16:43:03 laptop ACPI-0295: *** Error: AE_NOT_EXIST while 
-evaluating method [_L1E] for GPE[ 0]
-May 31 16:43:03 laptop ACPI-1133: *** Error: Method execution failed 
-[\_GPE._L1E] (Node c14d5e9c), AE_NOT_EXIST
-May 31 16:43:03 laptop ACPI-0295: *** Error: AE_NOT_EXIST while 
-evaluating method [_L1E] for GPE[ 0]
-May 31 16:43:03 laptop ACPI-1133: *** Error: Method execution failed 
-[\_GPE._L1E] (Node c14d5e9c), AE_NOT_EXIST
-May 31 16:43:03 laptop ACPI-0295: *** Error: AE_NOT_EXIST while 
-evaluating method [_L1E] for GPE[ 0]
-May 31 16:43:03 laptop ACPI: Interpreter enabled
-
-What is wrong?
-
-Sorry for my language, I hope you understood everything ;)
-
-Best regards,
-Rafal
 
 
 -------------------------------------------------------
