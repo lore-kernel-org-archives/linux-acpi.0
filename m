@@ -1,14 +1,14 @@
-From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Subject: Re: ASUS M6800N: problem when removing 'ac' module
-Date: Tue, 23 Mar 2004 13:00:13 +0100
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: [PATCH] acpi4asus update
+Date: Tue, 23 Mar 2004 13:27:35 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <406026CD.10104@pca.it>
-References: <571ACEFD467F7749BC50E0A98C17CDD803300B9D@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <20040323122735.GA18934@hell.org.pl>
+References: <20040323000143.GA13711@hell.org.pl> <20040323094627.GA3413@fuchi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <571ACEFD467F7749BC50E0A98C17CDD803300B9D-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20040323094627.GA3413-5sK/Rx+du8M@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,122 +17,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Thus wrote Sebastian Henschel:
+> since i am currently working on a M6800N...
+> seems to work, although i do not see any difference to the unsupported
+> default values before, perhaps brightness. :)
+> what still does not work is the the display switch. when i cat
+> /proc/acpi/asus/disp i get random values like:
+> -583194208
+> -583193696
+> -1007965376
+> -588481760
+> 
+> the key strokes on Fn+F8 are recognized by acpid.
 
-Hi David,
+Hmm, reading the value should not be supported currently and it seems I
+have neglected something (looks like reading an uninitialized value here).
+I'll take a look at this in a couple of hours.
 
-on 03/22/04 03:04, Li, Shaohua wrote:
-> Please let me know if below patch helps.
-I applied the patch:
-=====
-gismo:/usr/src# cd linux-2.6.5-rc1-initrd-eciadsl-acpi.scan.c/
-gismo:/usr/src/linux-2.6.5-rc1-initrd-eciadsl-acpi.scan.c# cp
-/boot/config-2.6.5-rc1 .config
-cp: overwrite `.config'? y
-`/boot/config-2.6.5-rc1' -> `.config'
-gismo:/usr/src/linux-2.6.5-rc1-initrd-eciadsl-acpi.scan.c# patch -p1 <
-../kernel/v2.6/acpi-scan.c.diff
-patching file drivers/acpi/scan.c
-Hunk #1 succeeded at 311 with fuzz 1.
-=====
+OTOH, echoing a value (see the current acpi4asus README) to asus/disp
+should switch the displays -- at least I was told it worked on M3700N, and
+M6800N is similar. Anyway, if it doesn't, there's not really much more
+(than what's already in the README) I can do. A word from someone at ASUS
+could really help, but you surely know how it looks in the reality...
+Best regards,
 
-I compiled/installed the new kernel, but I got the same error (module unloaded
-in this order > ac, asus_acpi, battery, button, fan, thermal, processor):
-=====
-Badness in remove_proc_entry at fs/proc/generic.c:664
-Call Trace:
- [<c0182b4c>] remove_proc_entry+0x11c/0x160
- [<e114f328>] acpi_ac_remove_fs+0x49/0x6d [ac]
- [<e114f5e9>] acpi_ac_remove+0x86/0xa5 [ac]
- [<c02e9223>] acpi_driver_detach+0x7d/0xdd
- [<c02e9372>] acpi_bus_unregister_driver+0x3d/0x93
- [<e114f63d>] cleanup_module+0x35/0x55 [ac]
- [<c01326fb>] sys_delete_module+0x12b/0x170
- [<c014905a>] do_munmap+0x13a/0x180
- [<c01490e3>] sys_munmap+0x43/0x70
- [<c010935b>] syscall_call+0x7/0xb
-
-Badness in remove_proc_entry at fs/proc/generic.c:664
-Call Trace:
- [<c0182b4c>] remove_proc_entry+0x11c/0x160
- [<e1156861>] asus_acpi_exit+0x1d/0x2a [asus_acpi]
- [<c01326fb>] sys_delete_module+0x12b/0x170
- [<c01490e3>] sys_munmap+0x43/0x70
- [<c010935b>] syscall_call+0x7/0xb
-
-Badness in remove_proc_entry at fs/proc/generic.c:664
-Call Trace:
- [<c0182b4c>] remove_proc_entry+0x11c/0x160
- [<e11beeb5>] acpi_battery_remove_fs+0x49/0x6d [battery]
- [<e11bf185>] acpi_battery_remove+0x86/0xa5 [battery]
- [<c02e9223>] acpi_driver_detach+0x7d/0xdd
- [<c02e9372>] acpi_bus_unregister_driver+0x3d/0x93
- [<e11bf1d9>] acpi_battery_exit+0x35/0x55 [battery]
- [<c01326fb>] sys_delete_module+0x12b/0x170
- [<c01490e3>] sys_munmap+0x43/0x70
- [<c010935b>] syscall_call+0x7/0xb
-
-Badness in remove_proc_entry at fs/proc/generic.c:664
-Call Trace:
- [<c0182b4c>] remove_proc_entry+0x11c/0x160
- [<e11beeb5>] acpi_battery_remove_fs+0x49/0x6d [battery]
- [<e11bf185>] acpi_battery_remove+0x86/0xa5 [battery]
- [<c02e9223>] acpi_driver_detach+0x7d/0xdd
- [<c02e9372>] acpi_bus_unregister_driver+0x3d/0x93
- [<e11bf1d9>] acpi_battery_exit+0x35/0x55 [battery]
- [<c01326fb>] sys_delete_module+0x12b/0x170
- [<c01490e3>] sys_munmap+0x43/0x70
- [<c010935b>] syscall_call+0x7/0xb
-
-Badness in remove_proc_entry at fs/proc/generic.c:664
-Call Trace:
- [<c0182b4c>] remove_proc_entry+0x11c/0x160
- [<e116c865>] acpi_button_exit+0x45/0x55 [button]
- [<c01326fb>] sys_delete_module+0x12b/0x170
- [<c01490e3>] sys_munmap+0x43/0x70
- [<c010935b>] syscall_call+0x7/0xb
-
-Badness in remove_proc_entry at fs/proc/generic.c:664
-Call Trace:
- [<c0182b4c>] remove_proc_entry+0x11c/0x160
- [<e1230c1a>] acpi_thermal_remove_fs+0x49/0x6d [thermal]
- [<e12310a4>] acpi_thermal_remove+0xce/0xea [thermal]
- [<c02e9223>] acpi_driver_detach+0x7d/0xdd
- [<c02e9372>] acpi_bus_unregister_driver+0x3d/0x93
- [<e12310f5>] acpi_thermal_exit+0x35/0x55 [thermal]
- [<c01326fb>] sys_delete_module+0x12b/0x170
- [<c010935b>] syscall_call+0x7/0xb
-
-Badness in remove_proc_entry at fs/proc/generic.c:664
-Call Trace:
- [<c0182b4c>] remove_proc_entry+0x11c/0x160
- [<e121f561>] acpi_processor_remove_fs+0x49/0x6d [processor]
- [<e121fabc>] acpi_processor_remove+0x96/0xc3 [processor]
- [<c02e9223>] acpi_driver_detach+0x7d/0xdd
- [<c02e9372>] acpi_bus_unregister_driver+0x3d/0x93
- [<e121fb8f>] acpi_processor_exit+0x3f/0x5f [processor]
- [<c01326fb>] sys_delete_module+0x12b/0x170
- [<c01490e3>] sys_munmap+0x43/0x70
- [<c010935b>] syscall_call+0x7/0xb
-=====
-
-> Thanks,
-Your welcome, please let me know if I should make other tests.
-
-Thx, bye,
-Gismo / Luca
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
-
-iD8DBQFAYCbMVAp7Xm10JmkRArCqAJ43xrBTRNPuMP/n2f83ABmfh1P2CQCfdi8o
-Tpwpvjt0zB9bFh+/T1lIUUA=
-=hTpi
------END PGP SIGNATURE-----
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
