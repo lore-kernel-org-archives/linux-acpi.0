@@ -1,16 +1,12 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Subject: Re: differences between acpidump and disassembling dsdt
-	with iasl
-Date: Sat, 17 Apr 2004 16:38:09 +0100
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: [Acpi4asus-user] [ANNOUNCE] acpi4asus 0.28 released
+Date: Sat, 17 Apr 2004 17:55:40 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1082216288.3426.5.camel@darkstar>
-References: <200404171655.51162.emejia@ieee.org>
-Reply-To: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
+Message-ID: <20040417155540.GA18101@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200404171655.51162.emejia-EkmVulN54Sk@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -19,24 +15,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: emejia-EkmVulN54Sk@public.gmane.org
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, 2004-04-17 at 15:59, Emilio Mej=EDa Fern=E1ndez de Velasco wrote:
+Hi,
+The 0.28 release is out. The changes include:
+Version 0.28
+	Added support for Samsung P30
+	Added unsupported list of models (to be completed)
+	Added support for L4400L and M6800N
 
-> ACPI: IRQ9 SCI: Edge set to Level Trigger.
+You can grab it from http://sourceforge.net/projects/acpi4asus/ or
+http://hell.org.pl/~sziwan/asus/, whichever you prefer.
+Best regards,
 
-when this happens, my empiric experience says that you should try ,
-disable APIC in kernel configuration=20
-or=20
-boot with nolapic option ( that disable apic )
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
-let me know the result of the test.
 
-thanks,
---=20
-S=E9rgio M. B.
+-------------------------------------------------------
+The SF.Net email is sponsored by EclipseCon 2004
+Premiere Conference on Open Tools Development and Integration
+See the breadth of Eclipse activity. February 3-5 in Anaheim, CA.
+http://www.eclipsecon.org/osdn
+_______________________________________________
+Acpi4asus-user mailing list
+Acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+https://lists.sourceforge.net/lists/listinfo/acpi4asus-user
 
 
 
