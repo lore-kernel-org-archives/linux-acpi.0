@@ -1,48 +1,39 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Re: Re: s3_late_bios
-Date: Mon, 08 Nov 2004 13:53:25 -0800
-Message-ID: <418FEAD5.1000007@root.org>
-References: <20041108144947.GA31267@tate.loria.fr> <20041108213558.GB4607@elf.ucw.cz>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH/RFC 1/4]device core changes
+Date: Mon, 8 Nov 2004 14:58:10 -0800
+Message-ID: <20041108225810.GB16197@kroah.com>
+References: <1099887071.1750.243.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041108213558.GB4607-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: =?ISO-8859-1?Q?Emmanuel_Thom=E9?= <Emmanuel.Thome-MZpvjPyXg2s@public.gmane.org>, ole.rohne-vJEk5272eHo@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261288AbUKHXRR@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1099887071.1750.243.camel@sli10-desk.sh.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Li Shaohua <shaohua.li@intel.com>
+Cc: ACPI-DEV <acpi-devel@lists.sourceforge.net>, lkml <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, Patrick Mochel <mochel@digitalimplant.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Pavel Machek wrote:
->>Sorry I've been off for a week. Here is the version of the s3_late_bios
->>patch with the segment info coded in C.
->>
->>If somebody comes up with an attempt at resuming the video from the early
->>real mode phase by calling the pci bios, I'm all for testing it.
-> 
-> It looks good to me...
+On Mon, Nov 08, 2004 at 12:11:11PM +0800, Li Shaohua wrote:
+> Hi,
+> This is the device core change required. Add .platform_bind method for
+> bus_type, so platform can do addition things when add a new device. A
+> case is ACPI, we want to utilize some ACPI methods for physical devices.
+> 1. Why doesn't use 'platform_notify'?
+> Current device core has a 'platform_notify' mechanism, but it's not
+> sufficient for this. Only sepcific bus type know how to parse dev.bus_id
+> and know how to encode specific device's address into ACPI _ADR syntax.
 
-I'm not sure I understand the reason for this or how it works.  Does it 
-POST VGA via the "lcall $0xc000,$3" or the "int 10h" method?  I assume 
-the reason it's called by the PCI code is that you want the device to be 
-set to D0 and device-specific resume methods called before POSTing it?
-Why the switch to real mode to run the BIOS call?  Can't this be done 
-from vm86 mode?
+I don't see why platform_notify is not sufficient.  This is the exact
+reason it was added to the code.
 
--- 
-Nate
+> 2. Why adds new 'handle' in 'struct device'?
+> 'Platform_data' is the best candidate, but a search shows some drivers
+> have used it. We can remove 'handle' after the drivers changes their
+> behavior.
 
+No, fix the drivers.  Don't add something that you are going to remove
+later.
 
--------------------------------------------------------
-This SF.Net email is sponsored by:
-Sybase ASE Linux Express Edition - download now for FREE
-LinuxWorld Reader's Choice Award Winner for best database on Linux.
-http://ads.osdn.com/?ad_id=5588&alloc_id=12065&op=click
+thanks,
+
+greg k-h
