@@ -1,15 +1,13 @@
-From: David Goodenough <david.goodenough-6b45v/Ft3lbby3iVrkZq2A@public.gmane.org>
-Subject: Re: [PATCH] Sanitize ACPI Kconfig
-Date: Sat, 8 Jan 2005 19:14:42 +0000
-Message-ID: <200501081914.42306.david.goodenough@btconnect.com>
-References: <20050107212259.GA13026@wotan.suse.de>
+From: ultrakorne <ultrakorne-XtQPfPCVGG7srOwW+9ziJQ@public.gmane.org>
+Subject: Re: first shoot for smartbattery (was Re: Re: i2c-acpi-ec.c)
+Date: Sun, 09 Jan 2005 04:08:12 +0100
+Message-ID: <41E0A01C.6060607@paranoici.org>
+References: <20041231092156.GA612@phys.ethz.ch> <41D56002.5060008@mega.ist.utl.pt> <20041231150724.GK19199@poupinou.org> <20041231181628.GL19199@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050107212259.GA13026-B4tOwbsTzaBolqkO4TVVkw@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20041231181628.GL19199-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -22,144 +20,36 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-There are several ACPI BIOS's with dates before 2001 which work quite
-happily.  You are condeming people who do not want to have to rebuild
-their kernel to have ACPI disabled.  
+Bruno Ducrot wrote:
+> On Fri, Dec 31, 2004 at 04:07:24PM +0100, Bruno Ducrot wrote:
+> 
+>>I'm polishing i2c-acpi-ec right now.  Stay tunned.
+> 
+> 
+> It's not yet really polished as I wanted, but well I don't have
+> time to finish this due to, huh, ..., private stuff this night.
+> 
+> its should give people rough idea what will happens.
+> 
+> You can find this at http://www.poupinou.org/acpi/smartbatt/
+> Take one of the smartbatt.tar.{gz,bz2} and follow the README after
+> unpacking it, and hopefully a ./smartbatt will give you correct battery
+> informations (who knows).
+> 
+> happy new year!
+> 
+thx a lot ^^ seems to work fine for me
 
-I also think that having a few redundant modules around really does not hurt.  
+ultra@doom:~/acpi/smartbatt $ sudo ./smartbattery 1
+status: discharging
+current:       968 mA
+time to empty:  222 minutes
+remain:        3629 mAh
+temperature:   19.9 C
+voltage:       15986 mV
 
-There seems to be a presumption amongst those who maintain ACPI that
-the world rebuilds their kernels.  Look at the DSDT over-ride issue, the 
-"official" way is to rebuild your kernel, the derided method is to append
-the DSDT to the initrd.  This means that those with buggy DSDTs HAVE
-to build their own kernels as they can not use stock ones.  
+% i think is better than minuts (both is better :D)
 
-If we want Linux to become pervasive we have to make it easy to use,
-and forcing Joe-User to build their own kernels is a very quick way to 
-stop them using Linux.  Joe-User needs a stock kernel.
-
-David
-
-On Friday 07 January 2005 21:22, Andi Kleen wrote:
-> Sanitize ACPI Kconfig. No other subsystem uses default m for all its
-> options and surely there is no need to do this for the more obscure
-> modules. When you do make oldconfig with an old option and just press
-> return you tend to get a lot of modules you don't want with this.
-> Normally new stuff is off by default.
->
-> I added default y for the processor driver which is important
-> for power saving, and for the others the user can decide but
-> the default is off.
->
-> Also give a useful default for the cutoff year.
->
-> Signed-off-by: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
->
-> diff -u linux-2.6.10-bk6/drivers/acpi/Kconfig-o
-> linux-2.6.10-bk6/drivers/acpi/Kconfig ---
-> linux-2.6.10-bk6/drivers/acpi/Kconfig-o 2005-01-04 12:15:18.000000000 +0100
-> +++ linux-2.6.10-bk6/drivers/acpi/Kconfig 2005-01-04 13:44:00.000000000
-> +0100 @@ -82,7 +82,6 @@
->   tristate "AC Adapter"
->   depends on X86
->   depends on ACPI_INTERPRETER
-> - default m
->   help
->     This driver adds support for the AC Adapter object, which indicates
->     whether a system is on AC, or not.  Typically, only mobile systems
-> @@ -92,7 +91,6 @@
->   tristate "Battery"
->   depends on X86
->   depends on ACPI_INTERPRETER
-> - default m
->   help
->     This driver adds support for battery information through
->     /proc/acpi/battery. If you have a mobile system with a battery,
-> @@ -102,7 +100,6 @@
->   tristate "Button"
->   depends on ACPI_INTERPRETER
->   depends on !IA64_SGI_SN
-> - default m
->   help
->     This driver registers for events based on buttons, such as the
->     power, sleep, and lid switch.  In the future, a daemon will read
-> @@ -115,7 +112,6 @@
->   depends on ACPI_INTERPRETER
->   depends on EXPERIMENTAL
->  	depends on !IA64_SGI_SN
-> -	default m
->  	help
->  	  This driver implement the ACPI Extensions For Display Adapters
->  	  for integrated graphics devices on motherboard, as specified in
-> @@ -129,7 +125,6 @@
->  	tristate "Fan"
->  	depends on ACPI_INTERPRETER
->  	depends on !IA64_SGI_SN
-> -	default m
->  	help
->  	  This driver adds support for ACPI fan devices, allowing user-mode
->  	  applications to perform basic fan control (on, off, status).
-> @@ -138,7 +133,7 @@
->  	tristate "Processor"
->  	depends on ACPI_INTERPRETER
->  	depends on !IA64_SGI_SN
-> -	default m
-> +	default y
->  	help
->  	  This driver installs ACPI as the idle handler for Linux, and uses
->  	  ACPI C2 and C3 processor states to save power, on systems that
-> @@ -156,7 +151,7 @@
->  config ACPI_THERMAL
->  	tristate "Thermal Zone"
->  	depends on ACPI_PROCESSOR
-> -	default m
-> +	default y
->  	help
->  	  This driver adds support for ACPI thermal zones.  Most mobile and
->  	  some desktop systems support ACPI thermal zones.  It is HIGHLY
-> @@ -174,7 +169,6 @@
->          tristate "ASUS/Medion Laptop Extras"
->  	depends on X86
->  	depends on ACPI_INTERPRETER
-> -	default m
->          ---help---
->            This driver provides support for extra features of
-> ACPI-compatible ASUS laptops. As some of Medion laptops are made by ASUS,
-> it may also @@ -204,7 +198,6 @@
->  	tristate "IBM ThinkPad Laptop Extras"
->  	depends on X86
->  	depends on ACPI_INTERPRETER
-> -	default m
->  	---help---
->  	  This is a Linux ACPI driver for the IBM ThinkPad laptops. It adds
->  	  support for Fn-Fx key combinations, Bluetooth control, video
-> @@ -218,7 +211,6 @@
->  	tristate "Toshiba Laptop Extras"
->  	depends on X86
->  	depends on ACPI_INTERPRETER
-> -	default m
->  	---help---
->  	  This driver adds support for access to certain system settings
->  	  on "legacy free" Toshiba laptops.  These laptops can be recognized by
-> @@ -259,7 +251,7 @@
->
->  config ACPI_BLACKLIST_YEAR
->  	int "Disable ACPI for systems before Jan 1st this year"
-> -	default 0
-> +	default 2001
->  	help
->  	  enter a 4-digit year, eg. 2001 to disable ACPI by default
->  	  on platforms with DMI BIOS date before January 1st that year.
->
->
-> -------------------------------------------------------
-> The SF.Net email is sponsored by: Beat the post-holiday blues
-> Get a FREE limited edition SourceForge.net t-shirt from ThinkGeek.
-> It's fun and FREE -- well, almost....http://www.thinkgeek.com/sfshirt
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
