@@ -1,13 +1,13 @@
-From: Sebastian Zimmermann <wegwerf-juni02-XrphxVexwn4ANkabGmIAxw@public.gmane.org>
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Subject: Re: 2002-10-22 processor&thermal module broken?
-Date: 24 Oct 2002 21:44:55 +0200
+Date: Thu, 24 Oct 2002 21:51:54 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1035488695.10139.15.camel@coruscant.datenknoten.de>
-References: <Pine.LNX.4.44.0210242106010.16976-100000@dynast.gaugusch.at>
+Message-ID: <20021024195154.GC8003@poup.poupinou.org>
+References: <1035486370.2453.9.camel@coruscant.datenknoten.de> <Pine.LNX.4.44.0210242106010.16976-100000@dynast.gaugusch.at>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 In-Reply-To: <Pine.LNX.4.44.0210242106010.16976-100000-sxQ525G0OhRQK2oVCIMtW7NldLUNz+W/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -21,7 +21,7 @@ To: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
 Cc: ACPI-Devel <Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Am Don, 2002-10-24 um 21.06 schrieb Markus Gaugusch:
+On Thu, Oct 24, 2002 at 09:06:45PM +0200, Markus Gaugusch wrote:
 > On Oct 24, Sebastian Zimmermann <wegwerf-juni02-XrphxVexwn4ANkabGmIAxw@public.gmane.org> wrote:
 > > > Hi,
 > > > I just tried 2.4.20-pre11 with latest acpi patch (+ swsusp) and there is
@@ -30,11 +30,33 @@ Am Don, 2002-10-24 um 21.06 schrieb Markus Gaugusch:
 > > Thermal zone is enabled in config file.
 > Are you per chance using gcc 3.2, like me?
 > May this be the problem??
+> 
 
-no, gcc 2.95.4
+I just give it a try.  Do not have anymore processor too (grumble, grumble :)
 
-Sebastian
 
+ducrot@novae:~$ ls -1 /proc/acpi/
+ac_adapter
+alarm
+battery
+button
+debug_layer
+debug_level
+dsdt
+embedded_controller
+event
+fadt
+info
+sleep
+thermal_zone
+ducrot@novae:~$ gcc -v
+Reading specs from /usr/lib/gcc-lib/i386-linux/2.95.4/specs
+gcc version 2.95.4  (Debian prerelease)
+
+-- 
+Ducrot Bruno
+http://www.poupinou.org        Page profaissionelle
+http://toto.tu-me-saoules.com  Haume page
 
 
 -------------------------------------------------------
