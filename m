@@ -1,15 +1,13 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: ACPI @ Ottawa Linux Symposium
-Date: 30 Jul 2004 17:33:44 -0400
+From: Nuno Tavares <nunotavares-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: Re: ACPI and USB problems (usbnet)
+Date: Sat, 31 Jul 2004 04:21:11 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1091223224.9636.27.camel@dhcppc4>
-References: <1091158458.9636.17.camel@dhcppc4>
-	 <20040730105954.GB14945@wotan.suse.de>
+Message-ID: <pan.2004.07.31.03.21.11.31852@hotmail.com>
+References: <pan.2004.07.27.01.49.20.567519@hotmail.com> <1090969238.19046.26.camel@neuromancer.home.net> <pan.2004.07.28.15.49.34.346706@hotmail.com> <1091057294.10188.39.camel@neuromancer.home.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040730105954.GB14945-B4tOwbsTzaBolqkO4TVVkw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,30 +16,42 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2004-07-30 at 06:59, Andi Kleen wrote:
-> On Thu, Jul 29, 2004 at 11:34:18PM -0400, Brown, Len wrote:
-> > FYI,
-> > 
-> > Here are the slides I used to discuss ACPI at OLS last week:
-> >
-> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/doc/ACPI_OLS_2004.sxi
-> > (Open Office Format)
-> > 
-> > Here is the paper from the proceedings:
-> > http://www.finux.org/Reprints/Reprint-Brown-OLS2004.pdf
-> 
-> Will we see the promised ACPI 3.0 paper eventually too? 
+Em Wed, 28 Jul 2004 16:28:14 -0700, Ow Mun Heng escreveu:
 
-When ACPI 3.0 is officially public, I expect to discuss
-what it means to Linux here on this list.  But I don't think
-I'll wrestle with TeX again until next OLS;-)
+>> > Didn't try with ACPI off though
 
-cheers,
--Len
+Did you try it?
+
+> Actually I think it's a kernel issue. 
+
+In which subsytem?
+
+> When on RH9 and and running 2.6.3,
+> no problems. 
+
+I'll test 2.6.3. 
+
+Can you answer those questions? 
+Plus this one: do you have any other USB devices plugged in (I don't)?
+
+>> Perhaps we can establish a pattern...
+>> What's your motherboard (output 'dmidecode')? 
+>> What's your USB Host Controller (UHCI/OHCI/EHCI)?
+
+It seems to be UHCI, right (I'm assuming you are talking about Dell D600),
+and it seems to be EHCI also. Did you try to plug the mouse on the EHCI
+(usb2) virtual hub?
+
+>> Does 'lsusb -vvv | grep unknown' gives you any 'unknown interface class
+>> descriptor' messages? This is known to be errors in the
+>> manufacturer's USB code (CIIW), which seem to be related.
+
+-- 
+Nuno Tavares
+http://nthq.cjb.net/
 
 
 
