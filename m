@@ -1,14 +1,11 @@
-From: Kai Germaschewski <kai-germaschewski-Q3dYeWy5uxSHXe+LvDLADg@public.gmane.org>
-Subject: Re: ACPI Source patches updated (20021022)
-Date: Thu, 24 Oct 2002 10:29:04 -0500 (CDT)
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Various Lockups with IBM T30
+Date: Thu, 24 Oct 2002 09:14:41 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0210241017560.6574-100000@chaos.physics.uiowa.edu>
-References: <20021023110222.A14630@sci.fi>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DF74@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20021023110222.A14630-ORSVBvAovxo@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,52 +14,30 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?iso-8859-1?Q?Ville_Syrj=E4l=E4?= <syrjala-ORSVBvAovxo@public.gmane.org>
-Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: 'Ti Leggett' <leggett-zhzY/AYb9nBYTrM/R70HSA@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 23 Oct 2002, Ville Syrj=E4l=E4 wrote:
+> From: Ti Leggett [mailto:leggett-zhzY/AYb9nBYTrM/R70HSA@public.gmane.org] 
+> Good news! As of the latest patch against 2.4.20-pre11 I can boot with
+> all ACPI options compiled in. The only downside is that it kinda fails
+> and disables ACPI. I'm attaching my dmesg.
+> 
+> I haven't gotten anymore warnings since long time ago so I'm not even
+> sure where to start to futz with the DSDT.
 
-> On Tue, Oct 22, 2002 at 07:19:33PM -0700, Grover, Andrew wrote:
-> > Hi all,
-> >=20
-> > New ACPI patches are now available on http://sf.net/projects/acpi .
-> > Non-Linux source releases will be up by Thursday evening.
->=20
-> You didn't pick up my IRQ derive fix. Is it incorrect or did you just
-> miss it?
->=20
-> --- linux-2.4.20-pre7/drivers/acpi/pci_irq.c~   Thu Sep 19 17:17:58 200=
-2
-> +++ linux-2.4.20-pre7/drivers/acpi/pci_irq.c    Tue Oct  8 01:45:29 200=
-2
-> @@ -285,7 +285,7 @@
->  	 * PCI interrupt routing entry (a.k.a. the "bridge swizzle").
->  	 */
->  	while (!irq && (bridge =3D bridge->bus->self)) {
-> -		pin =3D (pin + PCI_SLOT(bridge->devfn)) % 4;
-> +		pin =3D (pin + PCI_SLOT(dev->devfn)) % 4;
->  		irq =3D acpi_pci_irq_lookup(0, bridge->bus->number, PCI_SLOT(bridge-=
->devfn), pin);
->  	}
+Hi Ti,
 
-Well, this patch is obviously not correct, consider the case where the=20
-loop is executed more than once.
+This is not good news. What happens is, the T30, in addition to having the
+problems you were reporting before, also has a bug in the ECDT. The most
+recent ACPI patch sees the ECDT bug, and terminates ACPI.
 
-I think it should be
+I've reported the ECDT bug to IBM, so we'll see what happens, but that is
+just a mask for the other problem, which I haven't been able to diagnose
+yet.
 
-	while (!irq && bridge->bus->self) {
-		pin =3D (pin + PCI_SLOT(bridge->devfn)) % 4;
-		bridge =3D bridge->bus->self;
-		irq =3D acpi_pci_irq_lookup(0, bridge->bus->number, PCI_SLOT(bridge->de=
-vfn), pin);
-	}
+Which is a shame, because the T30 is a pretty awesome machine.
 
-Want to give that a try?
-
---Kai
-
-
+Regards -- Andy
 
 
 -------------------------------------------------------
