@@ -1,47 +1,75 @@
-From: Dmitry Torokhov <dtor_core@ameritech.net>
-Subject: Re: [ACPI] PATCH-ACPI based CPU hotplug[2/6]-ACPI Eject interface support
-Date: Tue, 21 Sep 2004 00:51:36 -0500
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Subject: [PATCH] PCI IRQ resource deallocation support [0/3]
+Date: Tue, 21 Sep 2004 17:52:22 +0900
 Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <200409210051.36251.dtor_core@ameritech.net>
-References: <20040920092520.A14208@unix-os.sc.intel.com> <200409201812.45933.dtor_core@ameritech.net> <20040920183845.C17763@unix-os.sc.intel.com>
+Message-ID: <414FEBC6.4030901@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <20040920183845.C17763@unix-os.sc.intel.com>
-Content-Disposition: inline
-To: acpi-devel@lists.sourceforge.net, Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
-Cc: "Brown, Len" <len.brown@intel.com>, LHNS list <lhns-devel@lists.sourceforge.net>, Linux IA64 <linux-ia64@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>
+To: akpm@osdl.org, greg@kroah.com, len.brown@intel.com, tony.luck@intel.com, linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday 20 September 2004 08:38 pm, Keshavamurthy Anil S wrote:
-> Currently I am handling both the surprise removal and the eject request in the same
-> way, i,e send the notification to the userland and the usermode agent scripts
-> is responsible for offlining of all the devices and then echoing onto eject file.
-> 
+Hi,
 
-I actually think that on the highest level we should treat controlled and
-surprise ejects differently. With controlled ejects the system (kernel +
-userspace) can abort the sequence if something goes wrong while with surprise
-eject the device is physically gone. Even if driver refuses to detach or we
-have partition still mounted or something else if physical device is gone we
-don't have any choice except for trimming the tree and doing whatever we need
-to do.
+Architecture dependent IRQ resources such as interrupt vector for PCI
+devices are allocated at pci_enable_device() time on i386, x86-64 and
+ia64 platform. Today, however, these IRQ resources are never
+deallocated even if they are no longer used. The following set of
+patches adds supports to deallocate IRQ resources at
+pci_disable_device() time.
 
-> My worry is if we implement a generic handler for BUS_CHECK, then what would you 
-> do if the device fails to remove, i.e what action to take if the device remove fails?
-> 
+The motivation of the set of patches is as follows:
 
-It could depend on parent's status. If parent is gone (surprise removal) we will
-trim. If it is controlled removal and driver does not let device go we could
-abort eject. 
+    - IRQ resources such as interrupt vectors should be freed if they
+      are no longer used because the amount of these resources are
+      limited. By deallocating IRQ resources, we can recycle them.
 
-Or we could always trim and offload the responsibility of having the system in
-ready-to-eject state to the userspace. I.e. it should not write into "eject"
-unless everything is unmounted/shut down/disconnected.
+    - I think some hardwares will support hot-pluggable I/O units with
+      I/O xAPICs in the near future. So I/O xAPIC hot-plug support by
+      OS will be needed soon. IRQ resouces deallocation will be one of
+      the most important stuff for I/O xAPIC hot-plug.
 
-I am a bit light on implementation details though ;)
+To realize IRQ resource deallocation, the following set of patches
+defines new interfaces:
 
--- 
-Dmitry
+    - void pcibios_disable_device (struct pci_dev *dev)
+
+      This is a opposite portion of pcibios_enable_device(). It's a
+      hook to call architecture specific code for deallocating PCI
+      resources.
+      
+    - void acpi_unregister_gsi (int irq)
+
+      This is a opposite portion of acpi_register_gsi(). This has a
+      responsibility for deallocating IRQ resources associated with
+      the specified linux IRQ number. 
+
+For details of these interfaces, please see the description in each
+patch.
+
+The set of patches containes the following patches:
+
+    - add_pcibios_disable_device_hook.patch
+
+      This patch defines new a interface pcibios_disable_device(). It
+      has already been posted to LKML before. Please see:
+      http://marc.theaimsgroup.com/?l=linux-kernel&m=109533945101033&w=2
+
+    - IRQ_deallocation_acpi.patch
+
+      This is a acpi portion of IRQ resource deallocation. It defines
+      a new interface acpi_unregister_gsi().
+
+    - IRQ_deallocation_ia64.patch
+
+      This is a ia64 portion of IRQ resource deallocation. It
+      implements pcibios_disable_device() and acpi_unregister_gsi()
+      for ia64.
+
+For now, the following set of patches has ia64 implementation only.
+i386 and x86_64 implementations are TBD.
+
+Thanks,
+Kenji Kaneshige
+
