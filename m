@@ -1,11 +1,14 @@
-From: Peter Koellner <peter-j7nYi6VcvCfR7s880joybQ@public.gmane.org>
-Subject: update: sony fx209k 2.4.21-pre5 acpi 20030321 WORKS!
-Date: Mon, 24 Mar 2003 00:20:16 +0100 (CET)
+From: Joshua Legbandt <jtlegbandt-ihVZJaRskl1bRRN4PJnoQQ@public.gmane.org>
+Subject: Re: [20030321] Failed to acquire semaphore
+Date: 23 Mar 2003 19:30:23 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.43.0303240014210.1526-100000@finnegan>
+Message-ID: <1048476623.3112.2.camel@suburbia>
+References: <20030323203025.GA13039@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20030323203025.GA13039-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,25 +20,25 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-hi!
+On Sun, 2003-03-23 at 12:30, Karol Kozimor wrote:
+> Mar 23 20:12:30 nadir kernel:      osl-0888 [24] os_wait_semaphore     : Failed to acquire semaphore[cfff74c0|1|0], AE_TIME
+> Mar 23 20:12:30 nadir kernel:   utmisc-0743 [23] ut_acquire_mutex      : Thread 0 could not acquire Mutex [ACPI_MTX_Events] AE_TIME
+> #v-
+> 
+> Occasionally (e.g. upon a notify or event), the two last lines reappear,
+> and ACPI events are not handled otherwise (i.e. acpid fails to notice
+> them). 
 
-just a short update...
+I am seeing the same issue with 2.4.21-pre5, the 20030321 acpi patch and
+no other patches. Since I run this on my laptop, my question is whether
+this is going to negatively affect the lifespan of my laptop. On the
+other hand, now even with the power plugged in my battery is always
+recognized...
 
-after a year of troubles acpi for linux on sony fx 209k finally works!
-
-well, it took me some time to discover the BIOS update on
-
-ftp://ftp.vaio-link.com/Pub/Vaio/Bios/R0243U0.exe
-
-but now all the problems are gone! no more workaround for
-the display malfunction needed, no kernel freezes anymore, and it
-works with kernels more recent than linux-2.4.18-rc4-acpi-20020214!
-
-finally!!! :-)
+-Josh
 
 -- 
-peter koellner <peter-j7nYi6VcvCfR7s880joybQ@public.gmane.org>
-
+Joshua Legbandt <jtlegbandt-ihVZJaRskl1bRRN4PJnoQQ@public.gmane.org>
 
 
 
