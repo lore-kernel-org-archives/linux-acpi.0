@@ -1,10 +1,12 @@
-From: v1k1ng0-s8PdfxpoPdHk1uMJSBkQmQ@public.gmane.org
-Subject: Dell Inspiron 8200
-Date: Fri, 20 Jun 2003 04:53:24 -0600
+From: Derek Broughton <dbroughton-F3m4/jXepmf3fQ9qLvQP4Q@public.gmane.org>
+Subject: Re: Keybaord and power button.
+Date: Fri, 20 Jun 2003 09:53:50 -0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <courier.3EF2E7A5.000017DB@softhome.net>
+Message-ID: <01a101c3373d$99990160$3746028e@bio.dfo.ca>
+References: <004401c334c3$1dce6b00$b8d21b2b@ADACHIPC>
+ <0fa701c336dd$a2448e20$2a0806c0@wiproxcoio3398>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset="iso-8859-1"
+Content-Type: text/plain;	charset="Windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,18 +20,22 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
-I've compiled the 2.4.21 kernel version recently and I do a "dmesg" and it 
-shows: 
+From: "siva" <sivakumar.subramani-uxC5H9eHYlcAvxtiuMwx3w@public.gmane.org>
+>
+> I have doubt regarding the power button.
+> With out keyboard connected to the linux machine, Is it possible to do
+> gracefull shutdown of my machine by just pressing the Power button.
 
-Dell Inspiron with broken BIOS detected. Refusing to enable the local APIC. 
+Usually.  If you have ACPI enabled in the kernel, and you install the acpid
+daemon, acpid monitors /proc/acpi/events and, by default, shuts the system down
+with  your standard shutdown sequence on a short button press (ie, less than 4
+seconds).  ACPI doesn't do this itself, it just sends events and lets something
+else choose how to handle them.  Note, the acpid script may need to be tweaked,
+as it doesn't necessarily know the correct names of the button events.
 
-Someone knows about this? May I disable the local APIC in the kernel?
-I don't have any acpi patch at the moment.
-If someone has experience with ACPI + Dell Inspiron 8200, I would like to 
-listen any comment about that. 
+In future, please address questions like this to the
+acpi-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org list.
 
-Cheers...
 
 
 -------------------------------------------------------
