@@ -1,13 +1,13 @@
-From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
-Subject: Re: S3 broken Samsung P35 - howto debug?
-Date: Wed, 24 Nov 2004 13:54:53 +0100
-Message-ID: <200411241354.53598.stefandoesinger@gmx.at>
-References: <200411211600.01820.od@fet.uni-hannover.de> <1101064133.7220.15.camel@mhcln03> <41A4613F.2020905@helios.de>
+From: Andrea Borgia <borgia-iEixELS/QsY1GQ1Ptb7lUw@public.gmane.org>
+Subject: Re: powernow & ACPI & 2.6.9
+Date: Wed, 24 Nov 2004 17:05:26 +0100
+Message-ID: <41A4B146.1070109@cs.unibo.it>
+References: <20041119083851.GB2908@mithrandir.dakordnet.org> <20041119085900.GD31422@poupinou.org>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_dSIpBo7Rjp7E0Mf"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41A4613F.2020905-csNNzRR391izQB+pC5nmwQ@public.gmane.org>
+In-Reply-To: <20041119085900.GD31422-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,85 +17,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Matthias Hentges <mailinglisten-H4PcyxPeSRnR7s880joybQ@public.gmane.org>, Oliver Dawid <oliver-csNNzRR391izQB+pC5nmwQ@public.gmane.org>, Oliver Dawid <od-VRmHG7Xu4f31qYPpFx2fzhvVK+yQ3ZXh@public.gmane.org>
+To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
---Boundary-00=_dSIpBo7Rjp7E0Mf
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Bruno Ducrot wrote:
 
+> Could you please test those patches:
+> http://www.poupinou.org/cpufreq/powernow-k7/recalibrate_cpu_khz/powernow-k7.recalibrate-cpu_khz.diff
+> and
+> http://www.poupinou.org/cpufreq/powernow-k7/recalibrate_cpu_khz/timers-recalibrate_cpu_khz.diff
 
-> Now its time to switch on my backlight ;-)
-The attached program may help you. It uses lrmi and vm86 to call the reset 
-routine of the VGA bios. I use it to wake up my radeon card.
+On a 2.6.10-rc2 plus acpi 20041105, these two patches fix the problem 
+here on my Acer 1357 (Mobile Athlon XP 3000+)
 
-You need the lrmi libaries.
-Compile with gcc boot-vga-bios.c -o boot-vga-bios -llrmi
-It's a user space program, you can call it eighter manually or better from a 
-script.
+KUTGW,
+Andrea.
 
-Cheers,
-Stefan
-
---Boundary-00=_dSIpBo7Rjp7E0Mf
-Content-Type: text/x-csrc;
-  charset="iso-8859-1";
-  name="boot-vga-bios.c"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="boot-vga-bios.c"
-
-#define LRMI_DEBUG 1
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <lrmi.h>
-
-void err(char *function, int exitval) {
-	fprintf(stderr, "%s():\n");
-	exit(exitval);
-}
-
-int main () {
-	struct LRMI_regs regs;
-	
-	ioperm(0, 1024, 1);
-	iopl(3);
-
-	if (!LRMI_init()) {
-		err("LRMI_init", 1);
-	}
-
-	memset(&regs, 0, sizeof(regs));
-	
-	/*
-	   if ((pvp = xf86GetPciInfoForEntity(pInt->entityIndex)))
-	   	X86_AX = (pvp->bus << 8) | (pvp->device << 3) | (pvp->func & 0x7);
-	   pushw(pInt, X86_CS);
-	   pushw(pInt, X86_IP);
-	   X86_CS = pInt->BIOSseg;
-	   X86_EIP = 0x0003;
-	   X86_ES = 0;                  // standard pc es 
-	*/
-
-	regs.eax = ((1 << 8) | (0 << 3) | (0 & 0x7)) & 0x0000FFFF;
-	regs.cs = 0x0000c000;
-	regs.ip = 0x00000003;
-	//regs.ip = 0;
-	//regs.es = 0;
-
-	if (!LRMI_call(&regs)) {
-		err("LRMI_int", -1);
-	}
-
-
-	exit(0);
-}
-
---Boundary-00=_dSIpBo7Rjp7E0Mf--
+-- 
+Homepage: http://andrea.borgia.bo.it     /    Amateur radio: IZ4FHT
+A: Because it messes up the order in which people normally read text.
+Q: Why is top-posting such a bad thing?
+A: Top-posting.
+Q: What is the most annoying thing on usenet and in e-mail?
 
 
 -------------------------------------------------------
