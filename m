@@ -1,13 +1,12 @@
-From: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
-Subject: Re: /sys/firmware/acpi/namespace/
-Date: Sat, 5 Jul 2003 18:24:03 -0700 (PDT)
+From: Robert <robert-fPtsKRK0pHxl57MIdRCFDg@public.gmane.org>
+Subject: change IRQ routing table`s
+Date: Sun, 06 Jul 2003 16:32:42 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0307051821310.30868-100000@cherise>
-References: <20030705163221.GP23597@parcelfarce.linux.theplanet.co.uk>
+Message-ID: <3F08330A.5000606@paceblade.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030705163221.GP23597-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,24 +15,13 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi
 
-> Ah, now I understand.  Do you happen to remember what version it used
-> to work in?  I've got two boxes running 2.5.7[34] (one i386, one ia64)
-> and neither show anything but directories under /sys/firmware/acpi
-
-It has only ever showed the ACPI objects. They were originally under 
-/sys/devices/, but move to a more appropriate place. 
-
-It would be nice if their methods were shown, as well as what physical 
-devices the namespace objects corresponded to, but it has not happened 
-yet.
-
-
-	-pat
+can i also change the IRQ routing table provided by the bios within the 
+ACPI like some do it with their DSDT `s ??
 
 
 
