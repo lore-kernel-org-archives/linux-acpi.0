@@ -1,13 +1,13 @@
-From: "linda starkey" <linda_starkey-8PHFbfy+9prRrITwlokTxGD2FQJk+8+b@public.gmane.org>
-Subject: Fwd:here is the information
-Date: 4/25/2003 8:04:48 PM
+From: Mizu <michal-VaXaUECoPuY@public.gmane.org>
+Subject: S3,S4 on Acer TM632XC
+Date: Sat, 26 Apr 2003 11:47:05 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <164b7cc8$5b9e$2aca@NT5>
-Reply-To: linda_starkey-8PHFbfy+9prRrITwlokTxGD2FQJk+8+b@public.gmane.org
+Message-ID: <20030426094705.GA11796@icmza.sk>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_8518_7450_E1.4AF1780215A5"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="pf9I7BMVVzbSWLtt"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,227 +20,211 @@ To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-------=_NextPart_8518_7450_E1.4AF1780215A5
-Content-Type: text/html;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8bit
+--pf9I7BMVVzbSWLtt
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-<html xmlns:v="urn:schemas-microsoft-com:vml"
-xmlns:o="urn:schemas-microsoft-com:office:office"
-xmlns:w="urn:schemas-microsoft-com:office:word"
-xmlns="http://www.w3.org/TR/REC-html40">
+Hi.
 
-<head>
-<meta http-equiv=Content-Type content="text/html; charset=iso-8859-1">
-<meta name=ProgId content=Word.Document>
-<meta name=Generator content="Microsoft Word 9">
-<meta name=Originator content="Microsoft Word 9">
-<link rel=File-List href="./micromsg_files/filelist.xml">
-<title>Untitled Document</title>
-<!--[if gte mso 9]><xml>
- <o:DocumentProperties>
-  <o:Author>Admin</o:Author>
-  <o:LastAuthor>Admin</o:LastAuthor>
-  <o:Revision>3</o:Revision>
-  <o:TotalTime>1</o:TotalTime>
-  <o:Created>2003-04-19T16:38:00Z</o:Created>
-  <o:LastSaved>2003-04-19T16:42:00Z</o:LastSaved>
-  <o:Pages>1</o:Pages>
-  <o:Words>245</o:Words>
-  <o:Characters>1399</o:Characters>
-  <o:Lines>11</o:Lines>
-  <o:Paragraphs>2</o:Paragraphs>
-  <o:CharactersWithSpaces>1718</o:CharactersWithSpaces>
-  <o:Version>9.3821</o:Version>
- </o:DocumentProperties>
-</xml><![endif]-->
-<style>
-<!--
- /* Style Definitions */
-p.MsoNormal, li.MsoNormal, div.MsoNormal
-	{mso-style-parent:"";
-	margin:0in;
-	margin-bottom:.0001pt;
-	mso-pagination:widow-orphan;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";
-	color:black;}
-a:link, span.MsoHyperlink
-	{color:blue;
-	text-decoration:underline;
-	text-underline:single;}
-a:visited, span.MsoHyperlinkFollowed
-	{color:blue;
-	text-decoration:underline;
-	text-underline:single;}
-p
-	{margin-right:0in;
-	mso-margin-top-alt:auto;
-	mso-margin-bottom-alt:auto;
-	margin-left:0in;
-	mso-pagination:widow-orphan;
-	font-size:12.0pt;
-	font-family:"Times New Roman";
-	mso-fareast-font-family:"Times New Roman";
-	color:black;}
-@page Section1
-	{size:8.5in 11.0in;
-	margin:1.0in 1.25in 1.0in 1.25in;
-	mso-header-margin:.5in;
-	mso-footer-margin:.5in;
-	mso-paper-source:0;}
-div.Section1
-	{page:Section1;}
- /* List Definitions */
-@list l0
-	{mso-list-id:1508210404;
-	mso-list-type:hybrid;
-	mso-list-template-ids:-840923750 -218187582 -1958700524 2107402470 -1374143370 -977268302 1200128482 720256206 -15292714 250399058;}
-@list l0:level1
-	{mso-level-number-format:bullet;
-	mso-level-text:\F0B7;
-	mso-level-tab-stop:.5in;
-	mso-level-number-position:left;
-	text-indent:-.25in;
-	mso-ansi-font-size:10.0pt;
-	font-family:Symbol;}
-@list l1
-	{mso-list-id:2034450726;
-	mso-list-type:hybrid;
-	mso-list-template-ids:192434174 1150419336 1009801622 1059062464 -252563958 -1809388426 126226876 -1086137134 401884534 1102711682;}
-@list l1:level1
-	{mso-level-number-format:bullet;
-	mso-level-text:\F0B7;
-	mso-level-tab-stop:.5in;
-	mso-level-number-position:left;
-	text-indent:-.25in;
-	mso-ansi-font-size:10.0pt;
-	font-family:Symbol;}
-ol
-	{margin-bottom:0in;}
-ul
-	{margin-bottom:0in;}
--->
-</style>
-<!--[if gte mso 9]><xml>
- <o:shapedefaults v:ext="edit" spidmax="1027"/>
-</xml><![endif]--><!--[if gte mso 9]><xml>
- <o:shapelayout v:ext="edit">
-  <o:idmap v:ext="edit" data="1"/>
- </o:shapelayout></xml><![endif]-->
-</head>
+  I was testing $SUBJ with kernel 2.5.68 (acpi ver=3D3D20030328)
 
-<body bgcolor=white lang=EN-US link=blue vlink=blue style='tab-interval:.5in'>
+  With this kernel options:  acpi_sleep=3D3Ds3_bios pci=3D3Dnoacpi
 
-<div class=Section1>
+  echo -n 3 >/proc/acpi/sleep
+  this is a debug message:
 
-<p align=center style='text-align:center'><b><span style='font-size:24.0pt;
-font-family:Arial;color:red'>Want to know THE TRUTH???</span></b></p>
+    Enabling SEP on CPU 0
+    Back to C!
 
-<p align=center style='text-align:center'><b><span style='font-family:Arial;
-color:navy'>Find out</span></b><b><span style='font-size:13.5pt;font-family:
-Arial'> </span></b><b><span style='font-size:13.5pt;font-family:Arial;
-color:red'>THE TRUTH</span></b><span style='font-size:13.5pt;font-family:Arial'>
-</span><b><span style='font-family:Arial;color:navy'>about</span></b><span
-style='font-size:13.5pt;font-family:Arial'> </span><b><span style='font-size:
-13.5pt;font-family:Arial;color:red'>ANYONE</span></b><span style='font-size:
-13.5pt;font-family:Arial;color:navy'> </span><span style='font-size:13.5pt;
-font-family:Arial'>. .</span></p>
+    Debug: sleeping function called from illegal context
+    		at mm/slab.c:1664
+    Call Trace:
+    [...]  __might_sleep+..
+    	   kmalloc
+	   acpi_os_allocate
+	   acpi_ut_callocate
+	   acpi_evalute
+	   acpi_leave_sleep_state
+	   acpi_system_suspend
+	   acpi_suspend
+	   acpi_system_write_sleep
+	   vfs_write
+	   sys_write
+	   syscall_call
 
-<p><b><span style='font-size:10.0pt;font-family:Arial;color:navy'>What do you
-really know about your girlfriend, boyfriend, employees, boss, spouse,
-neighbors or friends?</span></b></p>
+  .................F R E E Z Y....................
 
-<p><strong><span style='font-size:10.0pt;font-family:Arial;color:navy'>Micro Detective
-knows and it will show you how to find all the information you need, quickly
-and easily.</span></strong><strong><span style='font-size:10.0pt;font-family:
-Arial'> </span></strong></p>
 
-<ul type=disc>
- <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-     mso-list:l0 level1 lfo3;tab-stops:list .5in'><span style='font-size:10.0pt;
-     font-family:Arial'>Use Unlimited Times - FREE Lifetime Updates</span></li>
- <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-     mso-list:l0 level1 lfo3;tab-stops:list .5in'><span style='font-size:10.0pt;
-     font-family:Arial'>Uncover Your OWN Family History!</span></li>
- <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-     mso-list:l0 level1 lfo3;tab-stops:list .5in'><span style='font-size:10.0pt;
-     font-family:Arial'>Find Birth, Death, SOCIAL SECURITY, Adoption, DMV
-     Records &amp; More!</span></li>
- <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-     mso-list:l0 level1 lfo3;tab-stops:list .5in'><span style='font-size:10.0pt;
-     font-family:Arial'>Find UNLISTED Phone Numbers</span></li>
- <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-     mso-list:l0 level1 lfo3;tab-stops:list .5in'><span style='font-size:10.0pt;
-     font-family:Arial'>Powerful Reverse Search To Find Address, Phone Number
-     and Email Addresses FAST!</span></li>
- <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-     mso-list:l0 level1 lfo3;tab-stops:list .5in'><span style='font-size:10.0pt;
-     font-family:Arial'>Investigate Your Own CREDIT REPORTS!</span></li>
- <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-     mso-list:l0 level1 lfo3;tab-stops:list .5in'><span style='font-size:10.0pt;
-     font-family:Arial'>Uncover Exciting Job Opportunities World Wide!</span></li>
-</ul>
+  Without s3_bios, there is no backlight of LCD.
 
-<p><span style='font-size:10.0pt;font-family:Arial'>Protect your family, your
-business and yourself. Expose the sordid past of criminals before they rob you
-too or harm your loved ones. Be your own detective for lawsuits, adoption,
-business disputes, child support, simple curiosity or reunions. Begin snooping,
-spying, researching and discovering the lowdown just minutes from now!</span></p>
 
-<ul type=disc>
- <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-     mso-list:l1 level1 lfo6;tab-stops:list .5in'><b><span style='font-size:
-     10.0pt;font-family:Arial;color:navy'>Find information easily</span></b><b><span
-     style='font-size:10.0pt;font-family:Arial;color:blue'><br>
-     </span></b><span style='font-size:10.0pt;font-family:Arial'>Look up
-     virtually anything about a person and/or a business at no per search
-     charge!</span></li>
- <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-     mso-list:l1 level1 lfo6;tab-stops:list .5in'><b><span style='font-size:
-     10.0pt;font-family:Arial;color:navy'>Conduct researches</span></b><b><span
-     style='font-size:10.0pt;font-family:Arial;color:blue'><br>
-     </span></b><span style='font-size:10.0pt;font-family:Arial'>Perform your online
-     researches without the need of hiring expensive investigation firms.</span></li>
- <li class=MsoNormal style='mso-margin-top-alt:auto;mso-margin-bottom-alt:auto;
-     mso-list:l1 level1 lfo6;tab-stops:list .5in'><b><span style='font-size:
-     10.0pt;font-family:Arial;color:navy'>Find lost friends &amp; family</span></b><b><span
-     style='font-size:10.0pt;font-family:Arial;color:blue'><br>
-     </span></b><span style='font-size:10.0pt;font-family:Arial'>Get unlisted
-     phone numbers and addresses from old friends or family members and contact
-     them. </span></li>
-</ul>
+++
+ And later, i saw this kernel messages. (Automatic sleeping function
+after x=3D
+y minutes
+?)=3D20
 
-<p align=center style='text-align:center'><span style='font-size:13.5pt;
-font-family:Arial;color:navy'><a
-href="http://www.micro-detective.com/order.html">Click Here</a> To Order </span><b><span
-style='font-size:18.0pt;color:red'>ONLY 19.95</span></b></p>
+kern.log:
+ Debug: sleeping function called from illegal context at
+mm/page_alloc.c:541
+Apr 25 10:24:08 mizu kernel: Call Trace:
+Apr 25 10:24:08 mizu kernel:  [<c011f637>] __might_sleep+0x5f/0x74
+Apr 25 10:24:08 mizu kernel:  [<c014aff8>] __alloc_pages+0x2c6/0x2cb
+Apr 25 10:24:08 mizu kernel:  [<c011ac2e>] pte_alloc_one+0x2d/0x98
+Apr 25 10:24:08 mizu kernel:  [<c015667b>] pte_alloc_map+0x89/0x210
+Apr 25 10:24:08 mizu kernel:  [<c015845c>] remap_page_range+0x113/0x30b
+Apr 25 10:24:08 mizu kernel:  [<c014adbc>] __alloc_pages+0x8a/0x2cb
+Apr 25 10:24:08 mizu kernel:  [<d0b762c0>] +0x0/0xa20 [nvidia]
+Apr 25 10:24:08 mizu kernel:  [<d0b762c0>] +0x0/0xa20 [nvidia]
+Apr 25 10:24:08 mizu kernel:  [<d0a0f41c>] KernMapAGPPages+0x37/0x71
+[nvidia]
+Apr 25 10:24:08 mizu kernel:  [<d0b762c0>] +0x0/0xa20 [nvidia]
+Apr 25 10:24:08 mizu kernel:  [<d0b76300>] +0x40/0xa20 [nvidia]
+Apr 25 10:24:08 mizu kernel:  [<d0b762c0>] +0x0/0xa20 [nvidia]
+Apr 25 10:24:08 mizu kernel:  [<d0a0cffe>] nv_kern_mmap+0x1a4/0x2bf
+[nvidia]
+Apr 25 10:24:08 mizu kernel:  [<c015bdfa>] do_mmap_pgoff+0x263/0x6a0
+Apr 25 10:24:08 mizu kernel:  [<c015beaa>] do_mmap_pgoff+0x313/0x6a0
+Apr 25 10:24:08 mizu kernel:  [<c0112e1f>] old_mmap+0xf7/0x14f
+Apr 25 10:24:08 mizu kernel:  [<c010c58b>] math_state_restore+0x29/0x41
+Apr 25 10:24:08 mizu kernel:  [<c010afaf>] syscall_call+0x7/0xb
+Apr 25 10:24:08 mizu kernel:=3D20
+Apr 25 10:25:30 mizu kernel: spurious 8259A interrupt: IRQ7.
+Apr 25 10:50:05 mizu kernel: Debug: sleeping function called from
+illegal context at mm/page_alloc.c:541
+Apr 25 10:50:05 mizu kernel: Call Trace:
+Apr 25 10:50:05 mizu kernel:  [<c011f637>] __might_sleep+0x5f/0x74
+Apr 25 10:50:05 mizu kernel:  [<c014aff8>] __alloc_pages+0x2c6/0x2cb
+Apr 25 10:50:05 mizu kernel:  [<c011ac2e>] pte_alloc_one+0x2d/0x98
+Apr 25 10:50:05 mizu kernel:  [<c015667b>] pte_alloc_map+0x89/0x210
+Apr 25 10:50:05 mizu kernel:  [<c015845c>] remap_page_range+0x113/0x30b
+Apr 25 10:50:05 mizu kernel:  [<c014adbc>] __alloc_pages+0x8a/0x2cb
+Apr 25 10:50:05 mizu kernel:  [<d0b762c0>] +0x0/0xa20 [nvidia]
+Apr 25 10:50:05 mizu kernel:  [<d0b762c0>] +0x0/0xa20 [nvidia]
+Apr 25 10:50:05 mizu kernel:  [<d0a0f41c>] KernMapAGPPages+0x37/0x71
+[nvidia] And later, i saw this kernel messages. (Automatic sleeping
+function after x=3D
+y minutes
+?)=3D20
 
-<p><b><span style='font-size:10.0pt;font-family:Arial;color:navy'>Do you want
-to know more? Visit us at<a href="http://www.micro-detective.com">
-www.micro-detective.com</a></span></b></p>
+kern.log:
+ Debug: sleeping function called from illegal context at
+mm/page_alloc.c:541
+Apr 25 10:24:08 mizu kernel: Call Trace:
+Apr 25 10:24:08 mizu kernel:  [<c011f637>] __might_sleep+0x5f/0x74
+Apr 25 10:24:08 mizu kernel:  [<c014aff8>] __alloc_pages+0x2c6/0x2cb
+Apr 25 10:24:08 mizu kernel:  [<c011ac2e>] pte_alloc_one+0x2d/0x98
+Apr 25 10:24:08 mizu kernel:  [<c015667b>] pte_alloc_map+0x89/0x210
+Apr 25 10:24:08 mizu kernel:  [<c015845c>] remap_page_range+0x113/0x30b
+Apr 25 10:24:08 mizu kernel:  [<c014adbc>] __alloc_pages+0x8a/0x2cb
+Apr 25 10:24:08 mizu kernel:  [<d0b762c0>] +0x0/0xa20 [nvidia]
+Apr 25 10:24:08 mizu kernel:  [<d0b762c0>] +0x0/0xa20 [nvidia]
+Apr 25 10:24:08 mizu kernel:  [<d0a0f41c>] KernMapAGPPages+0x37/0x71
+[nvidia]
+Apr 25 10:24:08 mizu kernel:  [<d0b762c0>] +0x0/0xa20 [nvidia]
+Apr 25 10:24:08 mizu kernel:  [<d0b76300>] +0x40/0xa20 [nvidia]
+Apr 25 10:24:08 mizu kernel:  [<d0b762c0>] +0x0/0xa20 [nvidia]
+Apr 25 10:24:08 mizu kernel:  [<d0a0cffe>] nv_kern_mmap+0x1a4/0x2bf
+[nvidia]
+Apr 25 10:24:08 mizu kernel:  [<c015bdfa>] do_mmap_pgoff+0x263/0x6a0
+Apr 25 10:24:08 mizu kernel:  [<c015beaa>] do_mmap_pgoff+0x313/0x6a0
+Apr 25 10:24:08 mizu kernel:  [<c0112e1f>] old_mmap+0xf7/0x14f
+Apr 25 10:24:08 mizu kernel:  [<c010c58b>] math_state_restore+0x29/0x41
+Apr 25 10:24:08 mizu kernel:  [<c010afaf>] syscall_call+0x7/0xb
+Apr 25 10:24:08 mizu kernel:=3D20
+Apr 25 10:25:30 mizu kernel: spurious 8259A interrupt: IRQ7.
+Apr 25 10:50:05 mizu kernel: Debug: sleeping function called from
+illegal context at mm/page_alloc.c:541
+Apr 25 10:50:05 mizu kernel: Call Trace:
+Apr 25 10:50:05 mizu kernel:  [<c011f637>] __might_sleep+0x5f/0x74
+Apr 25 10:50:05 mizu kernel:  [<c014aff8>] __alloc_pages+0x2c6/0x2cb
+Apr 25 10:50:05 mizu kernel:  [<c011ac2e>] pte_alloc_one+0x2d/0x98
+Apr 25 10:50:05 mizu kernel:  [<c015667b>] pte_alloc_map+0x89/0x210
+Apr 25 10:50:05 mizu kernel:  [<c015845c>] remap_page_range+0x113/0x30b
+Apr 25 10:50:05 mizu kernel:  [<c014adbc>] __alloc_pages+0x8a/0x2cb
+Apr 25 10:50:05 mizu kernel:  [<d0b762c0>] +0x0/0xa20 [nvidia]
+Apr 25 10:50:05 mizu kernel:  [<d0b762c0>] +0x0/0xa20 [nvidia]
+Apr 25 10:50:05 mizu kernel:  [<d0a0f41c>] KernMapAGPPages+0x37/0x71
+[nvidia]=20
+Apr 25 10:50:05 mizu kernel:  [<d0b762c0>] +0x0/0xa20 [nvidia]
+Apr 25 10:50:05 mizu kernel:  [<d0b76300>] +0x40/0xa20 [nvidia]
+Apr 25 10:50:05 mizu kernel:  [<d0b762c0>] +0x0/0xa20 [nvidia]
+Apr 25 10:50:05 mizu kernel:  [<d0a0cffe>] nv_kern_mmap+0x1a4/0x2bf
+[nvidia]
+Apr 25 10:50:05 mizu kernel:  [<c015bdfa>] do_mmap_pgoff+0x263/0x6a0
+Apr 25 10:50:05 mizu kernel:  [<c015beaa>] do_mmap_pgoff+0x313/0x6a0
+Apr 25 10:50:05 mizu kernel:  [<c0112e1f>] old_mmap+0xf7/0x14f
+Apr 25 10:50:05 mizu kernel:  [<c010c58b>] math_state_restore+0x29/0x41
+Apr 25 10:50:05 mizu kernel:  [<c010afaf>] syscall_call+0x7/0xb
+Apr 25 10:50:05 mizu kernel:=3D20
 
-<p>&nbsp;</p>
+=3D2E
+++
 
-<p>To be optout from our future mailing please email
-optout-8PHFbfy+9prRrITwlokTxGD2FQJk+8+b@public.gmane.org </p>
+Sometimes S4 works good (with same Trace messages ;( ), but sometimes
+when =3D
+i try to S4, there was something like ide-disk BUG. I dont have
+that message, becouse there was only console message + FREEZY !
 
-<p>You can also opt out by mail; Please send your request to: </p>
+I've ALI chipset:
 
-<p>11314 Ventura Blvd Suite #141 <br>
-Studio City, CA 91604</p>
+ALI15X3: IDE controller at PCI slot 00:10.0
+ALI15X3: chipset revision 196
+ALI15X3: not 100% native mode: will probe irqs later
+    ide0: BM-DMA at 0x2480-0x2487, BIOS settings: hda:DMA, hdb:pio
+    ide1: BM-DMA at 0x2488-0x248f, BIOS settings: hdc:pio, hdd:pio
 
-<p>Or by Phone (213) 216 8305</p>
 
-</div>
+++
+On the pci, there is this device:
 
-</body>
+00:11.0 Bridge: ALi Corporation M7101 PMU
+        Subsystem: Acer Incorporated [ALI]: Unknown device 102b
+        Control: I/O- Mem- BusMaster- SpecCycle- MemWINV- VGASnoop-
+ParErr-=3D
+ Stepping- SERR- FastB2B-
+        Status: Cap- 66Mhz- UDF- FastB2B- ParErr- DEVSEL=3D3Dmedium
+>TAbort- =3D
+<TAbort- <MAbort- >SERR- <PERR-
 
-</html>
-<!--7cf36955319810627b6b624222735f92280f54ac-->
+I read in kernel src: pci/devices.h:
+   DEVICE(1025,7101,"M7101 PCI PMU Power Management Controller")
+=3D2E...
+Do i need this device to correct Power Management ?
+=20
+---END OF QUESTIONS..  ;)
 
-------=_NextPart_8518_7450_E1.4AF1780215A5--
+
+Thx=3D20
+
+				mizu=20
+
+
+--=20
+--=20
+_______M_i_z_u________
+
+--> Linux Friendly <--
+[-> E-mail:michal-VaXaUECoPuY@public.gmane.org   =20
+[-> ICQ:97165392
+[-> WWW: http://www.mizu.sk
+
+
+--pf9I7BMVVzbSWLtt
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE+qlWZ9kFXwDL4DRkRAgn5AKC37xfsnWpOkZZQcvtSAaFXuHhXuQCgq2Yx
+Jg9PjmVEFaFFzjmfclxk7tw=
+=Ry1X
+-----END PGP SIGNATURE-----
+
+--pf9I7BMVVzbSWLtt--
 
 
 -------------------------------------------------------
