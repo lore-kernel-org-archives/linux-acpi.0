@@ -1,14 +1,14 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: [OT] 2.6.9: allow config to specify custom DSDT (Ulf Dambacher)
-Date: Fri, 29 Oct 2004 18:39:19 +0200
+From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: CONFIG_ACPI_DEBUG cost
+Date: Sat, 30 Oct 2004 01:24:37 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041029163918.GH5387@message-id.gmane0305.slipkontur.de>
-References: <3ACA40606221794F80A5670F0AF15F8403BD57CF@pdsmsx403> <1098418443.2096.8.camel@d845pe>
+Message-ID: <20041029232437.GF31914@wotan.suse.de>
+References: <37F890616C995246BE76B3E6B2DBE0550276521D@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1098418443.2096.8.camel@d845pe>
+In-Reply-To: <37F890616C995246BE76B3E6B2DBE0550276521D-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,32 +17,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Oct 22, 2004 at 12:14:03AM -0400, Len Brown wrote:
-> It has always been a mistake for SuSE to include that patch,
-> because an OSD can't possibly support modified OEM firmware.
+On Fri, Oct 29, 2004 at 09:27:47AM -0700, Moore, Robert wrote:
+> The function names are certainly expensive, but why "redundant"?  They
+> are used for more than just a call stack trace.
 
-Well, you know, there are also basically "unsupported" SUSE
-releases, namely the box products. And there it is nice to
-be able to override the DSDT with a simple "mk_initrd" without
-having to recompile the Kernel _and_ all additional drivers.
-You know, the nice 3d drivers or the wireless drivers or...
+Because the kernel has them already in the kallsyms symbol table
+when KALLSYMS is enabled, which it usually is now.
 
-Of course the customer is on its own if he is running with
-a patched DSDT, but he is also on his own if he is _not_ but
-then with a non-working machine.
+My proposal was to pass around addresses and then just look them
+up before you output.
 
-> Also, the initrd pach isn't "clean" -- there isn't a supported
-> interface for appending junk onto an initrd, it is a hack to
-> do so with magic strings.
-
-This is something one could change if there was an agreement on
-how to do it right and "clean".
--- 
-Stefan Seyfried
-
+-Andi
 
 
 -------------------------------------------------------
