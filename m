@@ -1,36 +1,80 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: [ACPI] Re: [RFC] Reliable video POSTing on resume (was: Re:
-	[ACPI] Samsung P35, S3, black screen (radeon))
-Date: Mon, 07 Feb 2005 13:24:56 +0000
-Message-ID: <1107782696.8575.72.camel@tyrosine>
-References: <e796392205020221387d4d8562@mail.gmail.com>
-	 <420217DB.709@gmx.net> <4202A972.1070003@gmx.net>
-	 <20050203225410.GB1110@elf.ucw.cz>
-	 <1107474198.5727.9.camel@desktop.cunninghams> <4202DF7B.2000506@gmx.net>
-	 <1107485504.5727.35.camel@desktop.cunninghams>
-	 <9e4733910502032318460f2c0c@mail.gmail.com>
-	 <20050204074454.GB1086@elf.ucw.cz>
-	 <9e473391050204093837bc50d3@mail.gmail.com>
-	 <20050205093550.GC1158@elf.ucw.cz>
-	 <1107695583.14847.167.camel@localhost.localdomain>
+From: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Subject: [PATCH] Fix container's notify handler to handle proper cases properly
+Date: Mon, 07 Feb 2005 22:28:47 +0900
+Message-ID: <20050207222847.5a32d68c.tokunaga.keiich@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <1107695583.14847.167.camel@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Pavel Machek <pavel@ucw.cz>, Jon Smirl <jonsmirl@gmail.com>, ncunningham@linuxmail.org, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>, ACPI List <acpi-devel@lists.sourceforge.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Cc: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>, Anil Keshavamurthy <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 2005-02-06 at 16:02 +0000, Alan Cox wrote:
+  This is to fix container's ACPI notify handler to handle
+proper cases properly.
 
-> Some systems (intel notably) appear to expect you to use the bios
-> save/restore video state not re-POST.
+  Previously, the handler tried to make a container device
+be offline if an ACPI_NOTIFY_BUS/DEVICE_CHECK notification
+is performed on the device was present and has its acpi_device.
+But, the condition is weird.  Whenever the notification is
+performed, there should be only the following two conditions:
 
-This works well in many cases, but there are some machines that freeze
-if you attempt to make a VBE state save call. Sadly, I don't have any
-access to an affected machine, so it's a bit awkward working out what
-the problem is.
+  1. the device is present, but does not have its acpi_device.
+  2. the device is not present, but has its acpi_device.
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+#1 is a hot-addition case, which was handled properly also
+in previous handler.  #2 is a surprising hot-removal case,
+which was not handled in previous handler.
+
+Hope it makes sense,
+Keiichiro Tokunaga
+
+
+Signed-off-by: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+---
+
+ linux-2.6.11-rc3-kei/drivers/acpi/container.c |   11 ++++++++---
+ 1 files changed, 8 insertions(+), 3 deletions(-)
+
+diff -puN drivers/acpi/container.c~container_bug_fix drivers/acpi/container.c
+--- linux-2.6.11-rc3/drivers/acpi/container.c~container_bug_fix	2005-02-07 22:15:44.000000000 +0900
++++ linux-2.6.11-rc3-kei/drivers/acpi/container.c	2005-02-07 22:15:44.000000000 +0900
+@@ -177,13 +177,18 @@ container_notify_cb(acpi_handle handle, 
+ 		printk("Container driver received %s event\n",
+ 			(type == ACPI_NOTIFY_BUS_CHECK)?
+ 			"ACPI_NOTIFY_BUS_CHECK":"ACPI_NOTIFY_DEVICE_CHECK");
++		status = acpi_bus_get_device(handle, &device);
+ 		if (present) {
+-			status = acpi_bus_get_device(handle, &device);
+ 			if (ACPI_FAILURE(status) || !device) {
+ 				result = container_device_add(&device, handle);
+ 				if (!result)
+-					kobject_hotplug(&device->kobj, KOBJ_ONLINE);
+-			} else {
++					kobject_hotplug(&device->kobj,
++							KOBJ_ONLINE);
++				else
++					printk("Failed to add container\n");
++			}
++		} else {
++			if (ACPI_SUCCESS(status)) {
+ 				/* device exist and this is a remove request */
+ 				kobject_hotplug(&device->kobj, KOBJ_OFFLINE);
+ 			}
+
+_
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: IntelliVIEW -- Interactive Reporting
+Tool for open source databases. Create drag-&-drop reports. Save time
+by over 75%! Publish reports on the web. Export to DOC, XLS, RTF, etc.
+Download a FREE copy at http://www.intelliview.com/go/osdn_nl
