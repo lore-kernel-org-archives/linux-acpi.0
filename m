@@ -1,22 +1,13 @@
-From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
-Subject: Re: Centrino speedstep
-Date: Thu, 30 Dec 2004 11:51:57 +0100
-Message-ID: <m2oegcdpo2.fsf@phoenix.squirrel.nl>
-References: <m2zmzyw4e7.fsf@phoenix.squirrel.nl>
-	<20041228212653.GA8436@dominikbrodowski.de>
-	<m2vfalc53k.fsf@phoenix.squirrel.nl> <41D30842.4040204@paranoici.org>
-	<20041229205905.GA12181@dominikbrodowski.de>
-	<m2sm5o23ix.fsf@phoenix.squirrel.nl>
-	<20041229214629.GA21054@dominikbrodowski.de>
-	<m24qi48z4q.fsf@phoenix.squirrel.nl>
-	<20041230074241.GB8464@dominikbrodowski.de>
-	<m2is6kuo63.fsf@phoenix.squirrel.nl>
-	<20041230103003.GA8206@dominikbrodowski.de>
+From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Subject: Re: Re: Centrino speedstep
+Date: Thu, 30 Dec 2004 14:19:04 +0100
+Message-ID: <20041230131904.GB8165@dominikbrodowski.de>
+References: <m2vfalc53k.fsf@phoenix.squirrel.nl> <41D30842.4040204@paranoici.org> <20041229205905.GA12181@dominikbrodowski.de> <m2sm5o23ix.fsf@phoenix.squirrel.nl> <20041229214629.GA21054@dominikbrodowski.de> <m24qi48z4q.fsf@phoenix.squirrel.nl> <20041230074241.GB8464@dominikbrodowski.de> <m2is6kuo63.fsf@phoenix.squirrel.nl> <20041230103003.GA8206@dominikbrodowski.de> <20041230110723.GD19199@poupinou.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041230103003.GA8206-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org> (Dominik
- Brodowski's message of "Thu, 30 Dec 2004 11:30:03 +0100")
+Content-Disposition: inline
+In-Reply-To: <20041230110723.GD19199-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -26,63 +17,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org> writes:
+On Thu, Dec 30, 2004 at 12:07:23PM +0100, Bruno Ducrot wrote:
+> On Thu, Dec 30, 2004 at 11:30:03AM +0100, Dominik Brodowski wrote:
+> > On Thu, Dec 30, 2004 at 10:32:20AM +0100, Johan Vromans wrote:
+> > > Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org> writes:
+> > > 
+> > > > Yes, indeed. These seem to be the right places for modification.
+> > > 
+> > > Okay, will do.
+> > > 
+> > > However, that brings up an interesting question: what guarantees that
+> > > the figures in the tables match the actual capabilities of the CPU?
+> > > Currently, it seems that my 1.5Ghz CPU is happily running at 1.6Ghz.
+> > 
+> > Run "x86info --mhz" and you'll most probably see the CPU runs at 1.5GHz 
+> > even though it is reported by ACPI as 1.6GHz. 
+> > 
+> 
+> Its maybe possible to get MSR MSR_IA32_PERF_STATUS and decode it in
+> userspace?
 
-> Run "x86info --mhz" and you'll most probably see the CPU runs at 1.5GHz 
-> even though it is reported by ACPI as 1.6GHz. 
+The decoding is already there in cpufrequtils//debug/i386/centrino-decode.c,
+someone just needs to adapt the MSR access as found in powernow-k8-decode.c
+in same directory :)
 
-Hmm. x86info doesn't seem to produce reliable figures:
-
-  # cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq
-  600000
-  # x86info --mhz
-  x86info v1.12b.  Dave Jones 2001-2003
-  Feedback to <davej-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>.
-
-  Found 1 CPU
-  --------------------------------------------------------------------------
-  unknown TLB/cache descriptor:   0xf0
-  unknown TLB/cache descriptor:   0x7d
-  Family: 6 Model: 13 Stepping: 6 Type: 0 Brand: 6
-  CPU Model: Unknown CPU Original OEM
-  Instruction TLB: 4K pages, 4-way associative, 128 entries.
-  Data TLB: 4K pages, 4-way associative, 128 entries.
-  Instruction TLB: 4MB pages, fully associative, 2 entries
-  unknown TLB/cache descriptor:   0xf0
-  unknown TLB/cache descriptor:   0x7d
-  L1 Instruction cache:
-          :Size 32KB      8-way associative.
-          line size=64 bytes.
-  Data TLB: 4MB pages, 4-way associative, 8 entries
-  L1 Data cache:
-          Size: 32KB      8-way associative.
-          line size=64 bytes.
-  100MHz processor (estimate).
-
-  # cat /proc/cpuinfo
-  processor       : 0
-  vendor_id       : GenuineIntel
-  cpu family      : 6
-  model           : 13
-  model name      : Intel(R) Pentium(R) M processor 1.50GHz
-  stepping        : 6
-  cpu MHz         : 599.502
-  cache size      : 2048 KB
-  fdiv_bug        : no
-  hlt_bug         : no
-  f00f_bug        : no
-  coma_bug        : no
-  fpu             : yes
-  fpu_exception   : yes
-  cpuid level     : 2
-  wp              : yes
-  flags           : fpu vme de pse tsc msr mce cx8 sep mtrr pge mca cmov pat clflush dts acpi mmx fxsr sse sse2 ss tm pbe est tm2
-  bogomips        : 1189.47
-
--- Johan
+	Dominik
 
 
 -------------------------------------------------------
