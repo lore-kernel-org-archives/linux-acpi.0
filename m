@@ -1,12 +1,14 @@
-From: Faye Pearson <faye-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org>
-Subject: Fwd: Re: echo -n * > /proc/acpi/sleep has no effect
-Date: Thu, 20 Feb 2003 17:29:28 +0000
+From: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
+Subject: Re: odd irq routing errors?
+Date: 20 Feb 2003 21:36:28 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030220172928.GC7432@clara.net>
+Message-ID: <1045776987.3790.36.camel@irongate.swansea.linux.org.uk>
+References: <20030220124445.GA3709@clara.net>  <87vfzfx8zn.fsf@gnulinux.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <87vfzfx8zn.fsf-VYFdHW3tBKJknbxzx/v8hQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,77 +17,23 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Anders Rune Jensen <anders-VYFdHW3tBKJknbxzx/v8hQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Sorry Thomas, fired that off to you instead of the list.
-It wasn't intended as a personal rant :)
+On Thu, 2003-02-20 at 15:33, Anders Rune Jensen wrote:
+> > PCI: No IRQ known for interrupt pin A of device 00:1f.1 - using IRQ 255
+> > ICH3M: IDE controller at PCI slot 00:1f.1
+> > PCI: Enabling device 00:1f.1 (0005 -> 0007)
+> >  pci_irq-0297 [12] acpi_pci_irq_derive   : Unable to derive IRQ for
+> >  device 00:1f.1
+> > PCI: No IRQ known for interrupt pin A of device 00:1f.1 - using IRQ 255
 
-Thomas Alderweireld [Thomas.Alderweireld-vJEk5272eHo@public.gmane.org] wrote:
-> Linux laptom 2.4.21-pre4 #1 Thu Feb 20 15:49:58 CET 2003 i686 i686 i386 GNU/Linux
-> and acpi-20030218-2.4.21-pre4.diff 
-> 
-> Nevertheless, when I do:
-> echo -n * (*=1,2,3,4)  > /proc/acpi/sleep  does not do 
-> anything. 
+This is the ACPI version of a bug I fixed in 2.4 base. If both channels are
+in legacy mode its wrong to ask the ACPI layer or the PCI BIOS layer or
+indeed anyone in PCI where the chip IRQ is routed. Legacy irq routing doesn't
+go via PCI.
 
-It's not meant to, there is no sleep support in kernel 2.4 (except for
-APM which requires no software support)
-
-> Any idea, what I can do about this......
-
-You may be able to patch with swsusp support and get software suspend to
-disk but it reboots or hangs on resume with my laptop
-
-The problem with 2.4 is that driver writers weren't writing for suspend
-capability, so either someone else has patched it in (if you're lucky)
-or it's doesn't suspend at all, so may be in indeterminate state before
-or after suspend.
-
-You can try a kernel 2.5 kernel but there are no guarantees there either.
-It will at least do "something" although that something may be to hard
-crash your laptop requiring removal of battery and mains to restart
-(along with potential dataloss).
-
-People are only just starting to change drivers to support suspension
-and the first step is to have a plain motherboard, keyboard, ide and
-display enabled kernel suspend properly on every laptop.
-
-I follow the developer discussion here and try a suspend every time
-someone mentions something new which may make a difference - changes to
-lcalls, things to make sure are stopped before suspending...  I don't
-expect someone to fix these things for me specifically, but I'm happy to
-try things out when they're done and see if they make a difference.
-
-I am a coder myself, but I don't have any experience of the low level
-debugging which is required, and also the care you must take in using a
-debugging method which doesn't use a device which is supposed to be
-frozen or powered down already.  My guess is that the keyboard
-controller is probably the best tool here, with 3 leds and user
-feedback :)  It's also probably one of the few components which is
-identical across all systems.  I've never seen any led blinking or
-anything during suspend.  I expect that when the developers are ready
-for further testing they'll set various combinations so that people can
-report which stage through the suspend process the system is getting to
-before hanging.
-
-Suspend is not ready for (most) users yet and don't expect it any time
-soon AFAICS.
-
-If suspend support is made a requirement for 2.6 driver validation then
-that will be your best hope.  My advice for now is to be patient.
-
-
-Faye
-
--- 
-Faye Pearson,
-Covert Development
-ClaraNET Ltd.       Tel 020 7903 3000
-
-On Monday mornings I am dedicated to the proposition that all men are
-created jerks.
-		-- H. Allen Smith, "Let the Crabgrass Grow"
 
 
 -------------------------------------------------------
