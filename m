@@ -1,16 +1,15 @@
-From: Patrick Ale <patrick.ale-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: =?gb2312?q?Ois=A8=AAn_Mac_Fheara=A8=AA?= <destynova-iUB+o6dfpG8i1yMB4YHZDQ@public.gmane.org>
 Subject: Re: Acer Aspire 1705SMi LNKx?
-Date: Mon, 25 Oct 2004 21:18:47 +0200
+Date: Mon, 25 Oct 2004 22:47:38 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <8d158e1f04102512187c4ccb1f@mail.gmail.com>
+Message-ID: <200410252247.39042.destynova@esatclear.ie>
 References: <3ACA40606221794F80A5670F0AF15F84041ABFE3@pdsmsx403>
-	 <8d158e1f04102512101b5808e2@mail.gmail.com>
-Reply-To: Patrick Ale <patrick.ale-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_6RXfBXsgE8ZD1U/"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <8d158e1f04102512101b5808e2-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F84041ABFE3@pdsmsx403>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -19,174 +18,254 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: =?ISO-8859-1?Q?Ois=EDn_Mac_Fheara=ED?= <destynova-iUB+o6dfpG8i1yMB4YHZDQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Forget the "last errors fixed" part in my last email. I still see them :(
-Everything seems to work tho so I have no idea what this error is about.
 
-Patrick
+--Boundary-00=_6RXfBXsgE8ZD1U/
+Content-Type: text/plain;
+  charset="gb2312"
+Content-Transfer-Encoding: 8bit
+Content-Disposition: inline
 
-
-On Mon, 25 Oct 2004 21:10:41 +0200, Patrick Ale <patrick.ale-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wro=
-te:
-> Hi,
->=20
-> I can send you the output of a "diff -u5" so you can see what I did if
-> you llike.
-> Next to the DSDT changes I patched my vanilla 2.6.9 kernel with the
-> latest Alax Cox patch (-ac4) which also solved the last errors about
-> the LNKx errors. So my guess is that it is both an DSDT plus an kernel
-> issue.
->=20
-> Maybe Windows has some nifty way of not needing the exact/specific
-> adresses for hardware/functionality, I dunno, I am not a programmer :D
->=20
-> Let me know if you want the diff file and i'll send you right away.
->=20
-> Cheers,
->=20
->=20
->=20
-> Patrick
->=20
-> On Mon, 25 Oct 2004 23:52:27 +0800, Yu, Luming <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrot=
-e:
-> > It's nice to hear that you have fixed the buggy DSDT.
-> > But I want to say MS windows should be ok with
-> > the original DSDT, which breaks linux somehow.
-> > To make sure linux can live with the original one,
-> > I think we need to identify the quirks in the specific box, that
-> > we can take into linux acpi for the sake of compatibility.
-> > So, please give a brief description on what you did.
-> >
-> > Thanks
-> > Luming
-> >
-> >
-> >
-> > >-----Original Message-----
-> > >From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> > >[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of
-> > >Patrick Ale
-> > >Sent: 2004=E5=B9=B410=E6=9C=8825=E6=97=A5 22:31
-> > >To: Ois=C3=ADn Mac Fheara=C3=AD
-> > >Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> > >Subject: Re: [ACPI] Acer Aspire 1705SMi LNKx?
-> > >
-> > >Hello,
-> > >
-> > >I'd be interested in the answer on this question aswell.
-> > >On my Aspire 1703SM battery, temperature reading et all is working now
-> > >(long live boring sundays where one has nothing better to do than
-> > >drinking coffee and try to fix stuff).
-> > >
-> > >If anyone is interested in the modified DSDT I am using now, please
-> > >send me an email and I'll hook you up.
-> > >
-> > >BIG PHAT WARNING: DO NOT, and again I repeat DO NOT use ANY of the
-> > >1703 series DSDT from the repository on acpi.sourceforge.net. The DSDT
-> > >for the SMi and SCME will do stuff that you dont want, like 50 ACPI
-> > >errors in your syslog every second or a temperature that says 255C.
-> > >
-> > >The modifications to the DSDT of the 1703SM ARE the same as the ones
-> > >in the repository, just on different lines of the dsl file.
-> > >
-> > >
-> > >Thanks for all the people that helped me out.
-> > >
-> > >Patrick
-> > >
-> > >
-> > >On Mon, 25 Oct 2004 09:09:41 +0100, Ois=C3=ADn Mac Fheara=C3=AD
-> > ><destynova-iUB+o6dfpG8i1yMB4YHZDQ@public.gmane.org> wrote:
-> > >> I finally got around to compiling in my custom DSDT for my
-> > >Acer Aspire 1705SMi
-> > >> laptop, and have battery giving useful information now.
-> > >>
-> > >> However, there's still some somewhat confusing messages at
-> > >bootup; can anyone
-> > >> shed some light on this - is it bad/fixable?
-> > >>
-> > >> PCI: Ignoring BAR0-3 of IDE controller 0000:00:02.5
-> > >> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-> > >> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.AGPB._PRT]
-> > >>   uteval-0205: *** Error: Return object type is incorrect
-> > >> [\_SB_.PCI0.LPCB.LNKA._CRS] (Node dfdeb7a8), AE_TYPE
-> > >> ACPI: PCI Interrupt Link [LNKA] (IRQs 7 10) *0
-> > >> ACPI: PCI Interrupt Link [LNKB] (IRQs 3) *0, disabled.
-> > >>   uteval-0205: *** Error: Return object type is incorrect
-> > >> [\_SB_.PCI0.LPCB.LNKC._CRS] (Node dfde93a8), AE_TYPE
-> > >> ACPI: PCI Interrupt Link [LNKC] (IRQs 5) *0
-> > >>   uteval-0205: *** Error: Return object type is incorrect
-> > >> [\_SB_.PCI0.LPCB.LNKD._CRS] (Node dfde91a8), AE_TYPE
-> > >> ACPI: PCI Interrupt Link [LNKD] (IRQs 7 10) *0
-> > >>   uteval-0205: *** Error: Return object type is incorrect
-> > >> [\_SB_.PCI0.LPCB.LNKE._CRS] (Node dfdeaea8), AE_TYPE
-> > >> ACPI: PCI Interrupt Link [LNKE] (IRQs 7 10) *0
-> > >>   uteval-0205: *** Error: Return object type is incorrect
-> > >> [\_SB_.PCI0.LPCB.LNKF._CRS] (Node dfdeaca8), AE_TYPE
-> > >> ACPI: PCI Interrupt Link [LNKF] (IRQs 7 10) *0
-> > >>   uteval-0205: *** Error: Return object type is incorrect
-> > >> [\_SB_.PCI0.LPCB.LNKG._CRS] (Node dfdeaaa8), AE_TYPE
-> > >> ACPI: PCI Interrupt Link [LNKG] (IRQs 7 10) *0
-> > >> ACPI: PCI Interrupt Link [LNKH] (IRQs 7 10) *0, disabled.
-> > >>
-> > >> The portions of the DSDT in question are like this (in this
-> > >instance, in
-> > >> Device (LNKA)):
-> > >>
-> > >>                     Method (_CRS, 0, NotSerialized)
-> > >>                     {
-> > >>                         Store (Z00B, Local0)
-> > >>                         CreateWordField (Local0, 0x01, IRA0)
-> > >>                         If (LEqual (And
-> > >(\_SB.PCI0.LPCB.PIRA, 0x80), Zero))
-> > >>                         {
-> > >>                             And (\_SB.PCI0.LPCB.PIRA, 0x0F, Local0)
-> > >>                             ShiftLeft (0x01, Local0, IRA0)
-> > >>                         }
-> > >>                         Else
-> > >>                         {
-> > >>                             Store (0x00, IRA0)
-> > >>                         }
-> > >>
-> > >>                         Return (Local0)
-> > >>                     }
-> > >>
-> > >> Ois=C3=ADn
-> > >>
-> > >> -------------------------------------------------------
-> > >> This SF.net email is sponsored by: IT Product Guide on
-> > >ITManagersJournal
-> > >> Use IT products in your business? Tell us what you think of
-> > >them. Give us
-> > >> Your Opinions, Get Free ThinkGeek Gift Certificates! Click
-> > >to find out more
-> > >> http://productguide.itmanagersjournal.com/guidepromo.tmpl
-> > >> _______________________________________________
-> > >> Acpi-devel mailing list
-> > >> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> > >> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> > >>
-> > >
-> > >
-> > >-------------------------------------------------------
-> > >This SF.net email is sponsored by: IT Product Guide on
-> > >ITManagersJournal
-> > >Use IT products in your business? Tell us what you think of
-> > >them. Give us
-> > >Your Opinions, Get Free ThinkGeek Gift Certificates! Click to
-> > >find out more
-> > >http://productguide.itmanagersjournal.com/guidepromo.tmpl
-> > >_______________________________________________
-> > >Acpi-devel mailing list
-> > >Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> > >https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> > >
-> >
+On Monday 25 October 2004 16:52, Yu, Luming wrote:
+> It's nice to hear that you have fixed the buggy DSDT.
+> But I want to say MS windows should be ok with
+> the original DSDT, which breaks linux somehow.
+> To make sure linux can live with the original one,
+> I think we need to identify the quirks in the specific box, that
+> we can take into linux acpi for the sake of compatibility.
+> So, please give a brief description on what you did.
 >
+> Thanks
+> Luming
+
+The thing that worries me a little about this is, as time goes by and you 
+create workarounds in the ACPI code (as, presumably, Windows has) for machine 
+specific behaviour, will we end up with a constantly growing mess of code to 
+handle them all, or will workarounds be phased out in favour of proper fixes?
+
+I've uploaded the original binary dsdt, disassembled version (which I did 
+using quite an old version of iasl) and fixed version to
+http://www.redbrick.dcu.ie/~exolon/dsdt , /dsdt.dsl and /fixed.dsl 
+respectively.
+
+Here is the -U5 diff for summary. The fixes I used were all standard except 
+for the Z00D problem. I found no references to Z00D in any of the tables 
+supplied by the machine, so using a fixed version uploaded to the dsdt 
+repository, replaced them with Z00C. Robert Moore mentioned that these values 
+may get overwritten anyway and 0 would also have worked, so I suppose it 
+doesn't matter. :)
+
+good luck,
+Ois¨ªn
+
+___
+
+--- dsdt.dsl	2004-10-25 22:11:22.501511136 +0100
++++ fixed.dsl	2004-10-25 22:11:03.349422696 +0100
+@@ -1,10 +1,10 @@
+ /*
+  * Intel ACPI Component Architecture
+- * AML Disassembler version 20040715
++ * AML Disassembler version 20030918
+  *
+- * Disassembly of dsdt, Mon Oct 25 22:11:22 2004
++ * Disassembly of dsdt, Mon Aug 30 08:05:46 2004
+  */
+ DefinitionBlock ("DSDT.aml", "DSDT", 1, "PTLTD ", "650M", 100925440)
+ {
+     OperationRegion (P80G, SystemIO, 0x80, 0x01)
+     Field (P80G, ByteAcc, NoLock, Preserve)
+@@ -19,11 +19,11 @@
+         FANR,   8, 
+         Offset (0x58), 
+         F1CR,   8
+     }
+ 
+-    Scope (_PR)
++    Scope (\_PR)
+     {
+         Processor (CPU0, 0x00, 0x00008010, 0x06) {}
+     }
+ 
+     Name (_S0, Package (0x02)
+@@ -50,11 +50,11 @@
+     Method (_PIC, 1, NotSerialized)
+     {
+         Store (Arg0, PICF)
+     }
+ 
+-    Scope (_SB)
++    Scope (\_SB)
+     {
+         Name (OSTB, Ones)
+         Name (FWSO, "FWSO")
+         Name (ECEN, 0x00)
+         Name (ACST, 0x01)
+@@ -838,10 +838,11 @@
+                             {
+                                 Notify (VGA, 0x80)
+                                 Return (0x00)
+                             }
+                         }
++		    	Return (0x00)
+                     }
+ 
+                     Method (USTA, 0, NotSerialized)
+                     {
+                         If (LEqual (\_SB.PCI0.LPCB.Z000, 0x00))
+@@ -3425,12 +3426,12 @@
+                 "          "
+             })
+             Name (PBST, Package (0x04)
+             {
+                 0x00, 
+-                Z00D, 
+-                Z00D, 
++                Z00C, 
++                Z00C, 
+                 0x2710
+             })
+             Name (ERRC, 0x00)
+             Name (_PCL, Package (0x01)
+             {
+@@ -3719,10 +3720,11 @@
+                         }
+                     }
+                 }
+ 
+                 Decrement (Local1)
++		Return (0x0)
+             }
+         }
+ 
+         Scope (\_TZ)
+         {
+@@ -3829,13 +3831,14 @@
+ 
+         If (LEqual (Arg0, 0x05))
+         {
+             \_SB.PCI0.LPCB.PHSR (0x06, 0x00)
+         }
++	Return(Package(2){0, 0})
+     }
+ 
+-    Scope (_GPE)
++    Scope (\_GPE)
+     {
+         Method (_L17, 0, NotSerialized)
+         {
+             Notify (\_SB.LID, 0x80)
+         }
+
+--Boundary-00=_6RXfBXsgE8ZD1U/
+Content-Type: text/x-diff;
+  charset="gb2312";
+  name="fix1705SMi.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="fix1705SMi.diff"
+
+--- dsdt.dsl	2004-10-25 22:11:22.501511136 +0100
++++ fixed.dsl	2004-10-25 22:11:03.349422696 +0100
+@@ -1,10 +1,10 @@
+ /*
+  * Intel ACPI Component Architecture
+- * AML Disassembler version 20040715
++ * AML Disassembler version 20030918
+  *
+- * Disassembly of dsdt, Mon Oct 25 22:11:22 2004
++ * Disassembly of dsdt, Mon Aug 30 08:05:46 2004
+  */
+ DefinitionBlock ("DSDT.aml", "DSDT", 1, "PTLTD ", "650M", 100925440)
+ {
+     OperationRegion (P80G, SystemIO, 0x80, 0x01)
+     Field (P80G, ByteAcc, NoLock, Preserve)
+@@ -19,11 +19,11 @@
+         FANR,   8, 
+         Offset (0x58), 
+         F1CR,   8
+     }
+ 
+-    Scope (_PR)
++    Scope (\_PR)
+     {
+         Processor (CPU0, 0x00, 0x00008010, 0x06) {}
+     }
+ 
+     Name (_S0, Package (0x02)
+@@ -50,11 +50,11 @@
+     Method (_PIC, 1, NotSerialized)
+     {
+         Store (Arg0, PICF)
+     }
+ 
+-    Scope (_SB)
++    Scope (\_SB)
+     {
+         Name (OSTB, Ones)
+         Name (FWSO, "FWSO")
+         Name (ECEN, 0x00)
+         Name (ACST, 0x01)
+@@ -838,10 +838,11 @@
+                             {
+                                 Notify (VGA, 0x80)
+                                 Return (0x00)
+                             }
+                         }
++		    	Return (0x00)
+                     }
+ 
+                     Method (USTA, 0, NotSerialized)
+                     {
+                         If (LEqual (\_SB.PCI0.LPCB.Z000, 0x00))
+@@ -3425,12 +3426,12 @@
+                 "          "
+             })
+             Name (PBST, Package (0x04)
+             {
+                 0x00, 
+-                Z00D, 
+-                Z00D, 
++                Z00C, 
++                Z00C, 
+                 0x2710
+             })
+             Name (ERRC, 0x00)
+             Name (_PCL, Package (0x01)
+             {
+@@ -3719,10 +3720,11 @@
+                         }
+                     }
+                 }
+ 
+                 Decrement (Local1)
++		Return (0x0)
+             }
+         }
+ 
+         Scope (\_TZ)
+         {
+@@ -3829,13 +3831,14 @@
+ 
+         If (LEqual (Arg0, 0x05))
+         {
+             \_SB.PCI0.LPCB.PHSR (0x06, 0x00)
+         }
++	Return(Package(2){0, 0})
+     }
+ 
+-    Scope (_GPE)
++    Scope (\_GPE)
+     {
+         Method (_L17, 0, NotSerialized)
+         {
+             Notify (\_SB.LID, 0x80)
+         }
+
+--Boundary-00=_6RXfBXsgE8ZD1U/--
 
 
 -------------------------------------------------------
