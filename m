@@ -1,13 +1,12 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Centrino speedstep
-Date: Wed, 29 Dec 2004 11:59:40 +0100
-Message-ID: <20041229105940.GH9606@poupinou.org>
-References: <m2zmzyw4e7.fsf@phoenix.squirrel.nl>
+From: Matthew East <matthew.east-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: battery state on Compaq Presario
+Date: Wed, 29 Dec 2004 11:11:36 +0000
+Message-ID: <3bd911604122903114efc9b77@mail.gmail.com>
+Reply-To: Matthew East <matthew.east-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <m2zmzyw4e7.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,46 +16,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Dec 28, 2004 at 09:32:00PM +0100, Johan Vromans wrote:
-> Hi,
-> 
-> On my Acer Travelmate 4000WLMi, with various 2.6.9 and 2.6.10 kernels
-> and patch sets, I keep getting the following message:
-> 
->   speedstep-centrino: invalid ACPI data
->   speedstep-centrino: no table support for CPU model "Intel(R) Pentium(R) M processor 1.50GHz": 
-> 
-> (Some kernels report "Invalid control/status registers" instead of
-> "invalid ACPI data").
-> 
-> My latest attempt was the stock 2.6.10 kernel, with ACPI patch set
-> acpi-20041210-2.6.10-rc3.diff, and a fixed DSDT. Still no success.
-> 
-> Any help is appreciated.
-> 
+Hi there,
 
-Could you send me the output of acpidmp, please ?
+Since 2.6.9 kernel I have experienced problems with the battery state
+on my Compaq Presario 2104EA laptop. I have noticed the problem when
+running the ubuntu 2.6.8.1 kernel, which I believe is patched with a
+recent acpi release, and the gentoo-dev-sources 2.6.9. I just
+installed a 2.4.26 kernel, and have found that it works perfectly.
 
-wget ftp://ftp.kernel.org//pub/linux/kernel/people/lenb/acpi/utils/pmtools-20031210.tar.bz2
-tar xjvfp pmtools-20031210.tar.bz2
-cd pmtools-20031210/acpidmp
-make
-sudo ./acpidmp > acpidmp.out
-bzip2 acpidmp.out 
+The problems are quite complicated. Essentially when i boot with the
+power adapter plugged in, acpid will give me the correct reading of
+the battery. When there is a CHANGE of AC adapter state (i.e. i unplug
+it), acpid does not give me the correct battery status, which remains
+at the level which it was at. The same problem happens if I start the
+computer without AC power, and plug it in: in this case the battery
+status does not go down as it should.
 
-Then mail me (privately) the acpidmp.out.bz2, or provide a link.
+Can anyone help me with this? I am fairly certain that it is a bug,
+and the results when I tested it with the 2.4 kernel have convinced me
+that this is not a hardware problem.
 
-Cheers,
+I thought that I would email this list before contacting the acpi maintainer.
 
--- 
-Bruno Ducrot
+I would be happy to provide any more information, and I hope i've been clear.
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+Many thanks in advance for your help.
+
+Matt
 
 
 -------------------------------------------------------
