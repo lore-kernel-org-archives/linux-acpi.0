@@ -1,1036 +1,783 @@
-From: Alex Williamson <alex.williamson@hp.com>
-Subject: [PATCH/RFC] exposing ACPI objects in sysfs
-Date: Mon, 20 Sep 2004 15:41:16 -0600
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <1095716476.5360.61.camel@tdi>
+From: Andrew Grover <andy.grover-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Fwd: [RFC/patch] ACPI in linux PnP layer
+Date: Mon, 20 Sep 2004 15:04:55 -0700
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <c0a09e5c040920150413cbc270@mail.gmail.com>
+References: <1094304174.4139c1aeb3e0f@imp4-q.free.fr>
+Reply-To: Andrew Grover <andy.grover-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S267368AbUITVng@vger.kernel.org>
-To: acpi-devel <acpi-devel@lists.sourceforge.net>, linux-kernel <linux-kernel@vger.kernel.org>
+Content-Type: multipart/mixed;
+	boundary="----=_Part_226_29779618.1095717895975"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1094304174.4139c1aeb3e0f-tGfbPE6xMHyksujEA26zIQ@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+------=_Part_226_29779618.1095717895975
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-   I've lost track of how many of these patches I've done, but here's
-the much anticipated next revision ;^)  The purpose of this patch is to
-expose ACPI objects in the already existing namespace in sysfs
-(/sys/firmware/acpi/namespace/ACPI).  There's a lot of information
-currently available in ACPI namespace, but no way to get at it from
-userspace.  What's new in this version:
+Did anyone else see Matthieu's post to lkml a while back and were
+there any comments? Is this going to get applied, or if not why not?
 
-      * Untied from acpi_bus_scan() to be made standalone - loadable as
-        a module now!
-      * Removed some questionable interfaces (arg count, saving and re-
-        loading AML).  If you don't know how many args a method takes,
-        don't call it.  The other stuff was likely far too dangerous
-        anyway.
-      * Re-worked the writing of method parameters.  Now users should
-        write an acpi_object_list structure to the object.  All pointers
-        should be replaced by offsets into the buffer, just like return
-        buffers, packages and strings previously
-      * Added "nonstd" and "dangerous" module options to limit what
-        namespace objects get exposed.  I'm sure these need refinement,
-        but at least a little protection from shooting yourself in the
-        foot.
-      * Numerous fixes and cleanups
+Thanks -- Andy
 
-   Changes to existing kernel code are pretty trivial now.  The major
-change is adding open() and release() functions to the sysfs bin_file
-support.  This allows backing store on a per-open basis, and eliminates
-multiple reader/writer problems.  Besides, it seems reasonable for a
-file entry to able to have a little more control over it's private_data
-structure.
+---------- Forwarded message ----------
+From: castet.matthieu-GANU6spQydw@public.gmane.org <castet.matthieu-GANU6spQydw@public.gmane.org>
+Date: Sat,  4 Sep 2004 15:22:54 +0200
+Subject: [RFC/patch] ACPI in linux PnP layer
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-  The other generic kernel change is to export acpi_os_allocate(). This
-is because I chose to use acpi_buffers for internal management and
-wanted a consistent alloc/free interface for them.  I'd be happy to
-separate these into individual patches if they're acceptable.
+Hi,
 
-   I'll try to make my debug utility available shortly so people can
-poke around on their systems and see what's available.  For a lot of
-things, using xxd to dump the object provides some info and is
-sufficient for _ON/_OFF type methods.  Let me know if you have any
-feedback or bug reports.  Patch is against current bitkeeper, but should
-apply against almost anything recent.  Thanks,
+I have started to plug acpi in PnP layer.
+A first patch add the function acpi_driver_scan, that allow to call a function
+for each acpi device.
+I have to do that because acpi is load before PnP, and it can't add my function
+in acpi_bus_add (driver/acpi/scan.c).
 
-	Alex
+The second patch is the PnP acpi driver.
+It parse possible and activated resources.
+It use acpi_register_gsi to activate irq (is that need ???)
 
-PS - I added a version interface, but please don't consider anything
-stable at this point.
+Also there are no disable/set acpi resource support, nor ADDRESS resource
+support.
 
--- 
-Alex Williamson                             HP Linux & Open Source Lab
+But it work well with drivers that work with pnpbios(parport, serial, ...).
 
- drivers/acpi/Kconfig                |    9 
- drivers/acpi/Makefile               |    1 
- drivers/acpi/acpi_ksyms.c           |    1 
- fs/sysfs/bin.c                      |   13 
- include/linux/sysfs.h               |    2 
- drivers/acpi/acpi_sysfs.c           |  884 ++++++++++++++++++++++++++++++++++++
+What do you think of it ?
+Any comment ?
 
-===== drivers/acpi/Kconfig 1.32 vs edited =====
---- 1.32/drivers/acpi/Kconfig	Mon Apr  5 04:54:30 2004
-+++ edited/drivers/acpi/Kconfig	Tue Sep 14 21:04:15 2004
-@@ -270,5 +270,14 @@
- 	  kernel logs, and/or you are using this on a notebook which
- 	  does not yet have an HPET, you should say "Y" here.
+Matthieu
+
+PS : please CC me since I'm not subscribed to lkml.
+
+------=_Part_226_29779618.1095717895975
+Content-Type: application/octet-stream; name=acpi.patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="acpi.patch"
+
+diff -ruN --exclude='*.cmd' --exclude='*.o' --exclude='*.ko' linux.old/drivers/acpi/scan.c linux-2.6.9/drivers/acpi/scan.c
+--- linux.old/drivers/acpi/scan.c	2004-09-04 14:16:37.000000000 +0200
++++ linux-2.6.9/drivers/acpi/scan.c	2004-09-04 14:39:47.000000000 +0200
+@@ -8,6 +8,7 @@
+ #include <acpi/acpi_drivers.h>
+ #include <acpi/acinterp.h>	/* for acpi_ex_eisa_id_to_string() */
  
-+config ACPI_SYSFS
-+	tristate "ACPI object support in sysfs"
-+	depends on EXPERIMENTAL && ACPI
-+	default m
-+	help
-+	  This driver adds support for exposing ACPI objects in sysfs.
-+	  Reading and writing the objects can preform operations allowing
-+	  userspace to interact with ACPI namespace.
-+       
- endmenu
++#include <linux/module.h>
  
-===== drivers/acpi/Makefile 1.37 vs edited =====
---- 1.37/drivers/acpi/Makefile	Thu May 20 00:36:01 2004
-+++ edited/drivers/acpi/Makefile	Tue Sep 14 21:04:15 2004
-@@ -48,3 +48,4 @@
- obj-$(CONFIG_ACPI_ASUS)		+= asus_acpi.o
- obj-$(CONFIG_ACPI_TOSHIBA)	+= toshiba_acpi.o
- obj-$(CONFIG_ACPI_BUS)		+= scan.o motherboard.o
-+obj-$(CONFIG_ACPI_SYSFS)	+= acpi_sysfs.o
-===== drivers/acpi/acpi_ksyms.c 1.28 vs edited =====
---- 1.28/drivers/acpi/acpi_ksyms.c	Thu Jul 15 02:05:19 2004
-+++ edited/drivers/acpi/acpi_ksyms.c	Tue Sep 14 21:04:15 2004
-@@ -98,6 +98,7 @@
- 
- /* ACPI OS Services Layer (acpi_osl.c) */
- 
-+EXPORT_SYMBOL(acpi_os_allocate);
- EXPORT_SYMBOL(acpi_os_free);
- EXPORT_SYMBOL(acpi_os_printf);
- EXPORT_SYMBOL(acpi_os_sleep);
-===== fs/sysfs/bin.c 1.14 vs edited =====
---- 1.14/fs/sysfs/bin.c	Wed Apr 14 12:26:50 2004
-+++ edited/fs/sysfs/bin.c	Tue Sep 14 21:04:16 2004
-@@ -113,7 +113,11 @@
- 		goto Error;
- 
- 	error = -ENOMEM;
--	file->private_data = kmalloc(PAGE_SIZE, GFP_KERNEL);
-+	if (attr->open)
-+		file->private_data = attr->open(kobj, &attr->attr);
-+	else
-+		file->private_data = kmalloc(PAGE_SIZE, GFP_KERNEL);
-+
- 	if (!file->private_data)
- 		goto Error;
- 
-@@ -137,7 +141,12 @@
- 	if (kobj) 
- 		kobject_put(kobj);
- 	module_put(attr->attr.owner);
--	kfree(buffer);
-+
-+	if (attr->release)
-+		attr->release(kobj, &attr->attr, buffer);
-+	else
-+		kfree(buffer);
-+
- 	return 0;
+ #define _COMPONENT		ACPI_BUS_COMPONENT
+ ACPI_MODULE_NAME		("scan")
+@@ -1070,4 +1071,22 @@
+ 	return_VALUE(result);
  }
  
-===== include/linux/sysfs.h 1.37 vs edited =====
---- 1.37/include/linux/sysfs.h	Thu Jun  3 11:27:09 2004
-+++ edited/include/linux/sysfs.h	Tue Sep 14 21:04:17 2004
-@@ -50,6 +50,8 @@
- 	size_t			size;
- 	ssize_t (*read)(struct kobject *, char *, loff_t, size_t);
- 	ssize_t (*write)(struct kobject *, char *, loff_t, size_t);
-+	char    *(*open)(struct kobject *, struct attribute *);
-+	void    (*release)(struct kobject *, struct attribute *, char *);
- };
++int acpi_driver_scan(void (* handler)(struct acpi_device * dev))
++{
++	struct list_head * node, * next;
++	if (!handler)
++		 return_VALUE(-EINVAL);
++
++	spin_lock(&acpi_device_lock);
++	list_for_each_safe(node, next, &acpi_device_list) {
++		struct acpi_device * dev = container_of(node, struct acpi_device, g_list);
++		spin_unlock(&acpi_device_lock);
++		handler(dev);
++		spin_lock(&acpi_device_lock);
++	}
++	spin_unlock(&acpi_device_lock);
++	return_VALUE(0);
++}
++
+ subsys_initcall(acpi_scan_init);
++EXPORT_SYMBOL(acpi_driver_scan);
+
+------=_Part_226_29779618.1095717895975
+Content-Type: application/octet-stream; name=pnpacpi.patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="pnpacpi.patch"
+
+diff -ruN --exclude='*.cmd' --exclude='*.o' --exclude='*.ko' linux.old/drivers/pnp/Kconfig linux-2.6.9/drivers/pnp/Kconfig
+--- linux.old/drivers/pnp/Kconfig	2004-06-16 07:19:23.000000000 +0200
++++ linux-2.6.9/drivers/pnp/Kconfig	2004-09-04 14:07:46.000000000 +0200
+@@ -35,5 +35,7 @@
  
- struct sysfs_ops {
---- /dev/null	2004-09-20 13:55:57.000000000 -0600
-+++ linux-2.5/drivers/acpi/acpi_sysfs.c	2004-09-20 13:31:25.000000000 -0600
-@@ -0,0 +1,884 @@
+ source "drivers/pnp/pnpbios/Kconfig"
+ 
++source "drivers/pnp/pnpacpi/Kconfig"
++
+ endmenu
+ 
+diff -ruN --exclude='*.cmd' --exclude='*.o' --exclude='*.ko' linux.old/drivers/pnp/Makefile linux-2.6.9/drivers/pnp/Makefile
+--- linux.old/drivers/pnp/Makefile	2004-06-16 07:18:38.000000000 +0200
++++ linux-2.6.9/drivers/pnp/Makefile	2004-09-04 14:12:57.000000000 +0200
+@@ -6,3 +6,4 @@
+ 
+ obj-$(CONFIG_PNPBIOS)		+= pnpbios/
+ obj-$(CONFIG_ISAPNP)		+= isapnp/
++obj-$(CONFIG_PNPACPI)		+= pnpacpi/
+diff -ruN --exclude='*.cmd' --exclude='*.o' --exclude='*.ko' linux.old/drivers/pnp/pnpacpi/core.c linux-2.6.9/drivers/pnp/pnpacpi/core.c
+--- linux.old/drivers/pnp/pnpacpi/core.c	1970-01-01 01:00:00.000000000 +0100
++++ linux-2.6.9/drivers/pnp/pnpacpi/core.c	2004-09-04 14:50:32.000000000 +0200
+@@ -0,0 +1,608 @@
 +/*
-+ * acpi_sysfs.c - support for exposing ACPI namespace objects in sysfs
++ * pnpacpi -- PnP ACPI driver
 + *
-+ * Copyright (C) 2004 Hewlett-Packard Development Company, LP
-+ * Copyright (C) 2004 Alex Williamson <alex.williamson@hp.com>
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or (at
-+ * your option) any later version.
++ * Copyright (c) 2004 Matthieu Castet <castet.matthieu-GANU6spQydw@public.gmane.org>
++ * 
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2, or (at your option) any
++ * later version.
 + *
 + * This program is distributed in the hope that it will be useful, but
 + * WITHOUT ANY WARRANTY; without even the implied warranty of
 + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 + * General Public License for more details.
 + *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, write to the Free Software Foundation, Inc.,
-+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 + */
 +
++/* TODO
++ * adress handling
++ * set/disble device
++ * code cleanning + memleak
++ * hotplug device
++ * remove device
++ */
++ 
++#include <acpi/acpi_bus.h>
 +#include <linux/acpi.h>
-+#include <linux/init.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
++#include <linux/pnp.h>
 +
-+#define ACPI_SYSFS_COMPONENT	0x08000000
-+#define _COMPONENT		ACPI_SYSFS_COMPONENT
-+ACPI_MODULE_NAME		("acpi_sysfs")
++#define MAX_DEVICE 50
++static struct acpi_device * self [MAX_DEVICE] = {[0 ... (MAX_DEVICE-1)] = NULL};
 +
-+static unsigned int acpi_sysfs_nonstd;
-+module_param_named(nonstd, acpi_sysfs_nonstd, bool, 0);
-+MODULE_PARM_DESC(nonstd, "Expose non-standard objects");
-+
-+static unsigned int acpi_sysfs_dangerous;
-+module_param_named(dangerous, acpi_sysfs_dangerous, bool, 0);
-+MODULE_PARM_DESC(dangerous, "Expose \"dangerous\" objects");
-+
-+/* These probably need to go in a header file if this goes live */
-+#define ACPI_SYSFS_MAJOR	0
-+#define ACPI_SYSFS_MINOR	1
-+
-+#define VERSION			0x0
-+#define GET_TYPE		0x1
-+#define GET_PTYPE		0x2
-+
-+static LIST_HEAD(acpi_bin_file_list);
-+static spinlock_t acpi_bin_file_lock = SPIN_LOCK_UNLOCKED;
-+
-+/*
-+ * Keep a list of created bin_attribs, there's a lot of reuse
-+ * potential since common names will be repeated often.  use_count
-+ * should only be touched when holding the lock above, so it doesn't
-+ * need to be an atomic.
-+ */
-+struct acpi_bin_files {
-+	struct list_head	list;
-+	struct bin_attribute	bin_attrib;
-+	u32			use_count;
-+};
-+
-+/*
-+ * A simple page size buffer doesn't cut it for this interface, but
-+ * it needs to be at the top of the structure to stay compatible
-+ * with existing code.  The attribute name gets stuffed in here so
-+ * we don't have to modify the read/write routines.
-+ */
-+struct acpi_private_data {
-+	char			buf[PAGE_SIZE];
-+	char			*name;
-+	struct acpi_buffer	write_buf;
-+	struct acpi_buffer	read_buf;
-+};
-+
-+struct special_cmd {
-+	u32			magic;
-+	unsigned int		cmd;
-+	char			*args;
-+};
-+
-+#define to_acpi_device(n) container_of(n, struct acpi_device, kobj)
-+#define WBUF(x) (&x->write_buf)
-+#define RBUF(x) (&x->read_buf)
-+
-+#define TO_POINTER 0
-+#define TO_OFFSET 1
-+
-+static int
-+range_ok(void *ptr, struct acpi_buffer *range, ssize_t size)
++void *pnpacpi_kmalloc(size_t size, int f)
 +{
-+	ACPI_FUNCTION_TRACE("range_ok");
-+
-+	if ((unsigned long)ptr < (unsigned long)range->pointer)
-+		return 0;
-+	if ((unsigned long)ptr + size >
-+	    (unsigned long)range->pointer + range->length)
-+		return 0;
-+
-+	return 1;
-+}
-+
-+/*
-+ * The next few function are meant to replaces pointers in data structures
-+ * with offsets or vica versa.  It's important to check the range to make
-+ * sure a malicious program doesn't try to send us off somewhere else.
-+ */
-+static void *
-+fixup_pointer(
-+	struct acpi_buffer	*range,
-+	void			*off,
-+	int			direction)
-+{
-+	ACPI_FUNCTION_TRACE("fixup_pointer");
-+
-+	if (direction == TO_POINTER)
-+		return (void *)((unsigned long)range->pointer +
-+		                (unsigned long)off);
++	void *p = kmalloc( size, f );
++	if ( p == NULL )
++		printk(KERN_ERR "PnPACPI: kmalloc() failed\n");
 +	else
-+		return (void *)((unsigned long)off -
-+		                (unsigned long)range->pointer);
++		memset(p, 0, size);
++	return p;
 +}
-+
-+static int
-+fixup_string(
-+	union acpi_object	*obj,
-+	struct acpi_buffer	*range,
-+	int			direction)
-+{
-+	char **pointer = &obj->string.pointer;
-+
-+	ACPI_FUNCTION_TRACE("fixup_string");
-+
-+	if (direction == TO_OFFSET) {
-+		if (!range_ok(*pointer, range, obj->string.length))
-+			return 0;
-+	}
-+
-+	*pointer = fixup_pointer(range, *pointer, direction);
-+
-+	if (direction == TO_POINTER) {
-+		if (!range_ok(*pointer, range, obj->string.length))
-+			return 0;
-+	}
-+	return 1;
-+}
-+
-+static int
-+fixup_buffer(
-+	union acpi_object	*obj,
-+	struct acpi_buffer	*range,
-+	int			direction)
-+{
-+	unsigned char **pointer = &obj->buffer.pointer;
-+
-+	ACPI_FUNCTION_TRACE("fixup_buffer");
-+
-+	if (direction == TO_OFFSET) {
-+		if (!range_ok(*pointer, range, obj->buffer.length))
-+			return 0;
-+	}
-+
-+	*pointer = fixup_pointer(range, *pointer, direction);
-+
-+	if (direction == TO_POINTER) {
-+		if (!range_ok(*pointer, range, obj->buffer.length))
-+			return 0;
-+	}
-+	return 1;
-+}
-+
-+static int fixup_package(union acpi_object *, struct acpi_buffer *, int);
-+
 +/*
-+ * strings, buffers, and packages contain pointers.  These should just
-+ * be pointing further down in the buffer, so before passing to user
-+ * space, change the pointers into offsets from the beginning of the buffer.
++ * Compatible Device IDs
 + */
-+static int
-+fixup_element(
-+	union acpi_object	*obj,
-+	struct acpi_buffer	*range,
-+	int			direction)
++
++void pnpidacpi_to_pnpid(char *id, char *str)
 +{
-+	ACPI_FUNCTION_TRACE("fixup_element");
++	str[0] = id[0];
++	str[1] = id[1];
++	str[2] = id[2];
++	str[3] = tolower(id[3]);
++	str[4] = tolower(id[4]);
++	str[5] = tolower(id[5]);
++	str[6] = tolower(id[6]);
++	str[7] = '\0';
 +
-+	if (!obj)
-+		return 0;
-+
-+	switch (obj->type) {
-+		case ACPI_TYPE_STRING:
-+			return fixup_string(obj, range, direction);
-+		case ACPI_TYPE_BUFFER:
-+			return fixup_buffer(obj, range, direction);
-+		case ACPI_TYPE_PACKAGE:
-+			return fixup_package(obj, range, direction);
-+		default:
-+			/* No fixup necessary */
-+			return 1;
-+	}
-+}
-+
-+static int
-+fixup_package(
-+	union acpi_object	*obj,
-+	struct acpi_buffer	*range,
-+	int			direction)
-+{
-+	int count;
-+	union acpi_object *element = NULL, **pointer = &obj->package.elements;
-+
-+	ACPI_FUNCTION_TRACE("fixup_package");
-+
-+	if (direction == TO_OFFSET) {
-+		element = *pointer;
-+		if (!range_ok(*pointer, range, sizeof(union acpi_object)))
-+			return 0;
-+	}
-+
-+	*pointer = fixup_pointer(range, *pointer, direction);
-+
-+	if (direction == TO_POINTER) {
-+		element = *pointer;
-+		if (!range_ok(*pointer, range, sizeof(union acpi_object)))
-+			return 0;
-+	}
-+
-+	for (count = 0 ; count < obj->package.count ; count++) {
-+		if (!fixup_element(element, range, direction))
-+			return 0;
-+		element++;
-+	}
-+
-+	return 1;
-+}
-+
-+static struct acpi_object_list *
-+fixup_arglist(struct acpi_buffer *buffer)
-+{
-+	struct acpi_object_list *arg_list;
-+	union acpi_object **cur_arg, *tmp;
-+	unsigned int i;
-+
-+	ACPI_FUNCTION_TRACE("fixup_arglist");
-+
-+	if (buffer->length < sizeof(*arg_list))
-+		return NULL;
-+
-+	arg_list = (struct acpi_object_list *)buffer->pointer;
-+
-+	if (buffer->length < sizeof(*arg_list) +
-+	    ((arg_list->count - 1) * sizeof(union acpi_object *)) +
-+	    (arg_list->count * sizeof(union acpi_object)))
-+		return NULL;
-+ 
-+	cur_arg = &arg_list->pointer;
-+
-+	for (i = 0; i < arg_list->count ; i++) {
-+		/* point at next arg */
-+		tmp = (union acpi_object *)((unsigned long)arg_list +
-+		                            (unsigned long)cur_arg[i]);
-+
-+		if (!range_ok(tmp, buffer, sizeof(union acpi_object)))
-+			return NULL;
-+
-+		/* store pointer into list */
-+		cur_arg[i] = tmp;
-+
-+		if (!fixup_element(tmp, buffer, TO_POINTER))
-+			return NULL;
-+	}
-+
-+	return arg_list;
-+}
-+
-+static void
-+acpi_clear_buf(struct acpi_buffer *buf)
-+{
-+	ACPI_FUNCTION_TRACE("acpi_clear_buf");
-+
-+	if (!buf->pointer)
-+		return;
-+
-+	acpi_os_free(buf->pointer);
-+	buf->pointer = NULL;
-+	buf->length = 0;
-+}
-+
-+static ssize_t
-+acpi_sysfs_read_special(
-+	acpi_handle		handle,
-+	char			*attr_name,
-+	struct acpi_buffer	*buffer,
-+	struct acpi_buffer	*cmd)
-+{
-+	struct special_cmd		*special;
-+	acpi_status			status;
-+
-+	ACPI_FUNCTION_TRACE("acpi_sysfs_read_special");
-+
-+	special = (struct special_cmd *)cmd->pointer;
-+
-+	switch (special->cmd) {
-+	/*
-+	 * VERSION: Interface version.  Major followed by minor,
-+	 *          compatibility should not be broken within Major.
-+	 *          Also for synchronizing size of acpi_object with
-+	 *          userspace.
-+	 */
-+	case VERSION:
-+	{
-+		union acpi_object *obj;
-+		obj = acpi_os_allocate(sizeof(union acpi_object));
-+
-+		if (!obj)
-+			return -ENOMEM;
-+
-+		buffer->pointer = obj;
-+		buffer->length = sizeof(union acpi_object);
-+
-+		obj->type = ACPI_TYPE_INTEGER;
-+		obj->integer.value =
-+		                   (ACPI_SYSFS_MAJOR << 16) | ACPI_SYSFS_MINOR;
-+		return buffer->length;
-+	}
-+	/*
-+	 * GET_TYPE: Return the type of an object.
-+	 * GET_PTYPE: Return the type of the parent of an object.
-+	 */
-+	case GET_TYPE:
-+	case GET_PTYPE:
-+	{
-+		acpi_handle	chandle = NULL;
-+
-+		buffer->pointer = acpi_os_allocate(sizeof(acpi_object_type));
-+
-+		if (!buffer->pointer)
-+			return -ENOMEM;
-+			
-+		buffer->length = sizeof(acpi_object_type);
-+
-+		status = acpi_get_handle(handle, attr_name, &chandle);
-+		if (ACPI_FAILURE(status))
-+			return -ENODEV;
-+
-+		if (special->cmd == GET_PTYPE) {
-+			acpi_handle cchandle;
-+
-+			cchandle = chandle;
-+
-+			status = acpi_get_parent(cchandle, &chandle);
-+			if (ACPI_FAILURE(status))
-+				return -ENODEV;
-+		}
-+
-+		status = acpi_get_type(chandle, buffer->pointer);
-+		if (ACPI_FAILURE(status)) {
-+			acpi_clear_buf(buffer);
-+			return -ENODEV;
-+		}
-+		return buffer->length;
-+	}
-+	default:
-+		buffer->length = 0;
-+		return -EINVAL;
-+	}
-+}
-+
-+static ssize_t
-+acpi_sysfs_read(
-+	struct kobject		*kobj,
-+	char			*buf,
-+	loff_t			off,
-+	size_t			length)
-+{
-+	struct acpi_device		*device = to_acpi_device(kobj);
-+	struct acpi_private_data	*data = (struct acpi_private_data *)buf;
-+
-+	ACPI_FUNCTION_TRACE("acpi_sysfs_read");
-+	/*
-+	 * The write buffer may contain a special command or an
-+	 * acpi_object_list to be used for evaluating the object.
-+	 * Special commands are denoted w/ object list count (aka
-+	 * magic) of ACPI_UINT32_MAX.
-+	 */
-+	if (!off && WBUF(data)->length >= sizeof(struct special_cmd)) {
-+		struct special_cmd	*special;
-+		struct acpi_buffer	buffer = {ACPI_ALLOCATE_BUFFER, NULL};
-+		
-+		special = (struct special_cmd *)WBUF(data)->pointer;
-+
-+		if (special->magic == ACPI_UINT32_MAX) {
-+			ssize_t ret_val;
-+			ret_val = acpi_sysfs_read_special(device->handle,
-+			                                  data->name,
-+			                                  &buffer,
-+			                                  WBUF(data));
-+			acpi_clear_buf(WBUF(data));
-+
-+			if (ret_val < 0)
-+				return ret_val;
-+
-+			acpi_clear_buf(RBUF(data));
-+
-+			RBUF(data)->pointer = buffer.pointer;
-+			RBUF(data)->length = buffer.length;
-+
-+			goto return_data;
-+		}
-+	}
-+
-+	/* An offset of zero implies new-read */
-+	if (!off) {
-+		struct acpi_object_list	*arg_list = NULL;
-+		acpi_status		status;
-+		struct acpi_buffer	buffer = {ACPI_ALLOCATE_BUFFER, NULL};
-+
-+		/*
-+		 * We expect to be passed a complete acpi_object_list
-+		 * structure.  A better user interface might be to have each
-+		 * write be an acpi_object strucure which we insert into a
-+		 * acpi_object_list as they come...
-+		 */
-+		arg_list = fixup_arglist(WBUF(data));
-+
-+		if (WBUF(data)->length && !arg_list) {
-+			acpi_clear_buf(WBUF(data));
-+			acpi_clear_buf(RBUF(data));
-+			return -EINVAL;
-+		}
-+		
-+		status = acpi_evaluate_object(device->handle, data->name,
-+		                              arg_list, &buffer);
-+
-+		/* Free up all our buffers */
-+		acpi_clear_buf(WBUF(data));
-+		acpi_clear_buf(RBUF(data));
-+
-+		if (ACPI_FAILURE(status))
-+			return -ENODEV;
-+
-+		fixup_element((union acpi_object *)buffer.pointer,
-+		              &buffer, TO_OFFSET);
-+
-+		RBUF(data)->pointer = buffer.pointer;
-+		RBUF(data)->length = buffer.length;
-+	}
-+
-+return_data:
-+
-+	/* Return only what we're asked for */
-+	if (off > RBUF(data)->length)
-+		return 0;
-+	if (off + length > RBUF(data)->length)
-+		length = RBUF(data)->length - off;
-+
-+	if (length > sizeof(data->buf))
-+		length = sizeof(data->buf);
-+
-+	memcpy(buf, RBUF(data)->pointer + off, length);
-+
-+	return length;
-+}
-+
-+static ssize_t
-+acpi_sysfs_write(
-+	struct kobject		*kobj,
-+	char			*buf,
-+	loff_t			off,
-+	size_t			length)
-+{
-+	struct acpi_private_data	*data = (struct acpi_private_data *)buf;
-+	char				*new_buf;
-+	size_t				new_size;
-+
-+	ACPI_FUNCTION_TRACE("acpi_sysfs_write");
-+
-+	/* Writing always clears anything left in the read buffer */
-+	acpi_clear_buf(RBUF(data));
-+
-+	/* Allow for multiple writes to build up a buffer */
-+	new_size = max(data->write_buf.length, (size_t)(off + length));
-+	new_buf = acpi_os_allocate(new_size);
-+	if (!new_buf)
-+		return -ENOMEM;
-+
-+	memset(new_buf, 0, new_size);
-+	memcpy(new_buf, data->write_buf.pointer, data->write_buf.length);
-+	memcpy(new_buf + off, buf, length);
-+
-+	acpi_clear_buf(WBUF(data));
-+
-+	data->write_buf.pointer = new_buf;
-+	data->write_buf.length = new_size;
-+
-+	return length;
-+}
-+
-+static char *
-+acpi_sysfs_open(
-+	struct kobject		*kobj,
-+	struct attribute	*attr)
-+{
-+	struct acpi_private_data *data;
-+
-+	ACPI_FUNCTION_TRACE("acpi_sysfs_open");
-+ 
-+	if (!try_module_get(THIS_MODULE))
-+		return NULL;
-+
-+	data = kmalloc(sizeof(struct acpi_private_data), GFP_KERNEL);
-+	if (!data)
-+		return NULL;
-+
-+	memset(data, 0, sizeof(struct acpi_private_data));
-+
-+	data->name = kmalloc(strlen(attr->name) + 1, GFP_KERNEL);
-+	if (!data->name) {
-+		kfree(data);
-+		return NULL;
-+	}
-+
-+	strcpy(data->name, attr->name);
-+
-+	return (char *)data;
-+}
-+
-+static void
-+acpi_sysfs_release(
-+	struct kobject		*kobj,
-+	struct attribute	*attr,
-+	char			*buf)
-+{
-+	struct acpi_private_data *data = (struct acpi_private_data *)buf;
-+
-+	ACPI_FUNCTION_TRACE("acpi_sysfs_release");
-+
-+	acpi_clear_buf(WBUF(data));
-+	acpi_clear_buf(RBUF(data));
-+
-+	kfree(data->name);
-+	kfree(data);
-+
-+	module_put(THIS_MODULE);
 +	return;
 +}
 +
-+static struct acpi_bin_files *
-+find_bin_file(char *name) {
-+	struct list_head *node, *next;
-+	struct acpi_bin_files *bin_file;
-+
-+	ACPI_FUNCTION_TRACE("find_bin_file");
-+
-+	list_for_each_safe(node, next, &acpi_bin_file_list) {
-+		bin_file = container_of(node, struct acpi_bin_files, list);
-+
-+		if (!strcmp(name, bin_file->bin_attrib.attr.name))
-+			return bin_file;
-+	}
-+	return NULL;
-+}
++/*
++ * Allocated Resources
++ */
 +
 +static void
-+create_sysfs_files(struct acpi_device *dev)
++pnpacpi_parse_allocated_irqresource(struct pnp_resource_table * res, int irq)
 +{
-+	acpi_handle		chandle = 0;
-+	char			pathname[ACPI_PATHNAME_MAX];
-+	acpi_status		status;
-+	struct acpi_buffer	buffer;
-+	struct bin_attribute	*attrib;
-+	acpi_object_type	type;
-+	struct acpi_bin_files	*bin_file;
-+	int			error;
-+
-+	ACPI_FUNCTION_TRACE("create_sysfs_files");
-+
-+	buffer.length = sizeof(pathname);
-+	buffer.pointer = pathname;
-+
-+	while (ACPI_SUCCESS(acpi_get_next_object(ACPI_TYPE_ANY, dev->handle,
-+	                                         chandle, &chandle))) {
-+
-+		status = acpi_get_type(chandle, &type);
-+		if (ACPI_FAILURE(status))
-+			continue;
-+
-+		switch (type) {
-+			case ACPI_TYPE_INTEGER:
-+			case ACPI_TYPE_STRING:
-+			case ACPI_TYPE_BUFFER:
-+			case ACPI_TYPE_METHOD:
-+				break;
-+			default:
-+				continue;
++	int i = 0;
++	while (!(res->irq_resource[i].flags & IORESOURCE_UNSET) && i < PNP_MAX_IRQ) i++;
++	if (i < PNP_MAX_IRQ) {
++		res->irq_resource[i].flags = IORESOURCE_IRQ;  // Also clears _UNSET flag
++		if (irq == -1) {
++			res->irq_resource[i].flags |= IORESOURCE_DISABLED;
++			return;
 +		}
-+
-+		memset(pathname, 0, sizeof(pathname));
-+
-+		status = acpi_get_name(chandle, ACPI_SINGLE_NAME, &buffer);
-+		if (ACPI_FAILURE(status))
-+			continue;
-+
-+		/* Simple check for standard objects */
-+		if (!acpi_sysfs_nonstd && pathname[0] != '_')
-+			continue;
-+
-+		/*
-+		 * Guess at some bad objects we should hide - likley incomplete
-+		 */
-+		if (!acpi_sysfs_dangerous) {
-+			if ((!strcmp(pathname, "_INI")) ||
-+			    (!strcmp(pathname, "_GL_")) ||
-+			    (!strcmp(pathname, "_GTS")) ||
-+			    (!strcmp(pathname, "_PS0")) ||
-+			    (!strcmp(pathname, "_PS1")) ||
-+			    (!strcmp(pathname, "_PS2")) ||
-+			    (!strcmp(pathname, "_PTS")) ||
-+			    (!strcmp(pathname, "_S0_")) ||
-+			    (!strcmp(pathname, "_S1_")) ||
-+			    (!strcmp(pathname, "_S2_")) ||
-+			    (!strcmp(pathname, "_S3_")) ||
-+			    (!strcmp(pathname, "_S4_")) ||
-+			    (!strcmp(pathname, "_S5_")) ||
-+			    (!strcmp(pathname, "_WAK")))
-+			    continue;
-+		}
-+
-+		spin_lock(&acpi_bin_file_lock);
-+
-+		/*
-+		 * Check if we already have a bin_attribute w/ this name.
-+		 * If so, reuse it and save some memory.
-+		 */
-+		bin_file = find_bin_file(pathname);
-+
-+		if (bin_file) {
-+			attrib = &bin_file->bin_attrib;
-+			bin_file->use_count++;
-+		} else {
-+			bin_file = kmalloc(sizeof(struct acpi_bin_files),
-+			                   GFP_KERNEL);
-+
-+			if (!bin_file)
-+				continue;
-+
-+			attrib = &bin_file->bin_attrib;
-+
-+			memset(attrib, 0, sizeof(struct bin_attribute));
-+
-+			attrib->attr.name = kmalloc(strlen(pathname) + 1,
-+			                            GFP_KERNEL);
-+			if (!attrib->attr.name) {
-+				kfree(bin_file);
-+				continue;
-+			}
-+
-+			strcpy(attrib->attr.name, pathname);
-+
-+			attrib->attr.mode = S_IFREG | S_IRUSR | S_IRGRP |
-+			                    S_IWUSR | S_IWGRP;
-+			attrib->read = acpi_sysfs_read;
-+			attrib->write = acpi_sysfs_write;
-+			attrib->open = acpi_sysfs_open;
-+			attrib->release = acpi_sysfs_release;
-+
-+			INIT_LIST_HEAD(&bin_file->list);
-+			bin_file->use_count = 1;
-+
-+			list_add_tail(&bin_file->list, &acpi_bin_file_list);
-+		}
-+		spin_unlock(&acpi_bin_file_lock);
-+
-+		error = sysfs_create_bin_file(&dev->kobj, attrib);
-+		if (error) {
-+			spin_lock(&acpi_bin_file_lock);
-+			bin_file->use_count--;
-+			if (!bin_file->use_count) {
-+				list_del(&bin_file->list);
-+				kfree(attrib->attr.name);
-+				kfree(bin_file);
-+			}
-+			spin_unlock(&acpi_bin_file_lock);
-+			continue;
-+		}
++		res->irq_resource[i].start =
++		res->irq_resource[i].end = (unsigned long) irq;
 +	}
 +}
 +
 +static void
-+remove_sysfs_files(struct acpi_device *dev)
++pnpacpi_parse_allocated_dmaresource(struct pnp_resource_table * res, int dma)
 +{
-+	acpi_handle		chandle = 0;
-+	char			pathname[ACPI_PATHNAME_MAX];
-+	acpi_status		status;
-+	struct acpi_buffer	buffer;
-+	struct bin_attribute	*old_attrib;
-+	acpi_object_type	type;		
-+	struct acpi_bin_files	*bin_file;
++	int i = 0;
++	while (!(res->dma_resource[i].flags & IORESOURCE_UNSET) && i < PNP_MAX_DMA) i++;
++	if (i < PNP_MAX_DMA) {
++		res->dma_resource[i].flags = IORESOURCE_DMA;  // Also clears _UNSET flag
++		if (dma == -1) {
++			res->dma_resource[i].flags |= IORESOURCE_DISABLED;
++			return;
++		}
++		res->dma_resource[i].start =
++		res->dma_resource[i].end = (unsigned long) dma;
++	}
++}
 +
-+	ACPI_FUNCTION_TRACE("remove_sysfs_files");
++static void
++pnpacpi_parse_allocated_ioresource(struct pnp_resource_table * res, int io, int len)
++{
++	int i = 0;
++	while (!(res->port_resource[i].flags & IORESOURCE_UNSET) && i < PNP_MAX_PORT) i++;
++	if (i < PNP_MAX_PORT) {
++		res->port_resource[i].flags = IORESOURCE_IO;  // Also clears _UNSET flag
++		if (len <= 0 || (io + len -1) >= 0x10003) {
++			res->port_resource[i].flags |= IORESOURCE_DISABLED;
++			return;
++		}
++		res->port_resource[i].start = (unsigned long) io;
++		res->port_resource[i].end = (unsigned long)(io + len - 1);
++	}
++}
 +
-+	buffer.length = sizeof(pathname);
-+	buffer.pointer = pathname;
++static void
++pnpacpi_parse_allocated_memresource(struct pnp_resource_table * res, int mem, int len)
++{
++	int i = 0;
++	while (!(res->mem_resource[i].flags & IORESOURCE_UNSET) && i < PNP_MAX_MEM) i++;
++	if (i < PNP_MAX_MEM) {
++		res->mem_resource[i].flags = IORESOURCE_MEM;  // Also clears _UNSET flag
++		if (len <= 0) {
++			res->mem_resource[i].flags |= IORESOURCE_DISABLED;
++			return;
++		}
++		res->mem_resource[i].start = (unsigned long) mem;
++		res->mem_resource[i].end = (unsigned long)(mem + len - 1);
++	}
++}
 +
-+	spin_lock(&acpi_bin_file_lock);
 +
-+	while (ACPI_SUCCESS(acpi_get_next_object(ACPI_TYPE_ANY, dev->handle,
-+	                                         chandle, &chandle))) {
++static acpi_status acpi_pnp_allocated_resource(struct acpi_resource *res, void *data)
++{
++	struct pnp_resource_table * res_table = (struct pnp_resource_table *)data;
++	//printk("res id %x\n",res->id);
 +
-+		status = acpi_get_type(chandle, &type);
-+		if (ACPI_FAILURE(status))
-+			continue;
++	switch (res->id) {
++	case ACPI_RSTYPE_IRQ:
++		if (res->data.irq.number_of_interrupts > 0)
++			pnpacpi_parse_allocated_irqresource(res_table, 
++				/* is it ok ?
++				 * produce IOAPIC[0]: Invalid reference to IRQ 0
++				 */
++				acpi_register_gsi(res->data.irq.interrupts[0],
++					res->data.irq.edge_level,
++					res->data.irq.active_high_low));
++		break;
 +
-+		switch (type) {
-+			case ACPI_TYPE_INTEGER:
-+			case ACPI_TYPE_STRING:
-+			case ACPI_TYPE_BUFFER:
-+			case ACPI_TYPE_METHOD:
-+				break;
-+			default:
++	case ACPI_RSTYPE_EXT_IRQ:
++		if (res->data.extended_irq.number_of_interrupts > 0)
++			pnpacpi_parse_allocated_irqresource(res_table, 
++				acpi_register_gsi(res->data.extended_irq.interrupts[0],
++					res->data.extended_irq.edge_level,
++					res->data.extended_irq.active_high_low));
++		break;
++	case ACPI_RSTYPE_DMA:
++		if (res->data.dma.number_of_channels > 0)
++			pnpacpi_parse_allocated_dmaresource(res_table, 
++					res->data.dma.channels[0]);
++		break;
++	case ACPI_RSTYPE_IO:
++		pnpacpi_parse_allocated_ioresource(res_table, 
++				res->data.io.min_base_address, 
++				res->data.io.range_length);
++		break;
++	case ACPI_RSTYPE_FIXED_IO:
++		pnpacpi_parse_allocated_ioresource(res_table, 
++				res->data.fixed_io.base_address, 
++				res->data.fixed_io.range_length);
++		break;
++	case ACPI_RSTYPE_MEM24:
++		pnpacpi_parse_allocated_memresource(res_table, 
++				res->data.memory24.min_base_address, 
++				res->data.memory24.range_length);
++		break;
++	case ACPI_RSTYPE_MEM32:
++		pnpacpi_parse_allocated_memresource(res_table, 
++				res->data.memory32.min_base_address, 
++				res->data.memory32.range_length);
++		break;
++	case ACPI_RSTYPE_FIXED_MEM32:
++		pnpacpi_parse_allocated_memresource(res_table, 
++				res->data.fixed_memory32.range_base_address, 
++				res->data.fixed_memory32.range_length);
++		break;
++#if 0
++	case ACPI_RSTYPE_ADDRESS16:
++		pnpacpi_parse_allocated_memresource(res_table, 
++				res->data.address16.min_address_range, 
++				res->data.address16.address_length);
++		break;
++	case ACPI_RSTYPE_ADDRESS32:
++		pnpacpi_parse_allocated_memresource(res_table, 
++				res->data.address32.min_address_range, 
++				res->data.address32.address_length);
++		break;
++	/*
++	case ACPI_RSTYPE_ADDRESS64:
++		pnpacpi_parse_allocated_memresource(res_table, 
++		res->data.address64.min_address_range, 
++		res->data.address64.address_length);
++		break;
++	*/
++#endif
++	default:
++		printk(KERN_WARNING "PnPACPI: Alloc type : %d not handle\n", 
++				res->id);
++	}
++			
++	return AE_OK;
++}
++
++static acpi_status acpi_pnp_parse_allocated_resource(struct acpi_device *device, struct pnp_resource_table * res)
++{
++	/* Blank the resource table values */
++	pnp_init_resource_table(res);
++
++	return acpi_walk_resources(device->handle, METHOD_NAME__CRS, acpi_pnp_allocated_resource, res);
++}
++
++
++static void pnpacpi_parse_dma_option(struct pnp_option *option, struct acpi_resource_dma *p)
++{
++	int i;
++	struct pnp_dma * dma;
++	dma = pnpacpi_kmalloc(sizeof(struct pnp_dma), GFP_KERNEL);
++	if (!dma)
++		return;
++
++	for(i=0; i<p->number_of_channels; i++)
++		dma->map |= 1<<p->channels[i];
++	dma->flags = 0;
++	if (p->bus_master)
++		dma->flags |= IORESOURCE_DMA_MASTER;
++	switch (p->type) {
++	case ACPI_COMPATIBILITY:
++		dma->flags |= IORESOURCE_DMA_COMPATIBLE;
++		break;
++	case ACPI_TYPE_A:
++		dma->flags |= IORESOURCE_DMA_TYPEA;
++		break;
++	case ACPI_TYPE_B:
++		dma->flags |= IORESOURCE_DMA_TYPEB;
++		break;
++	case ACPI_TYPE_F:
++		dma->flags |= IORESOURCE_DMA_TYPEF;
++		break;
++	}
++	switch (p->transfer) {
++	case ACPI_TRANSFER_8:
++		dma->flags |= IORESOURCE_DMA_8BIT;
++		break;
++	case ACPI_TRANSFER_8_16:
++		dma->flags |= IORESOURCE_DMA_8AND16BIT;
++		break;
++	case ACPI_TRANSFER_16:
++		dma->flags |= IORESOURCE_DMA_16BIT;
++		break;
++	}
++
++
++	pnp_register_dma_resource(option,dma);
++	return;
++}
++
++static int irq_flags(int edge_level, int active_high_low)
++{
++	int flag;
++	if (edge_level == ACPI_LEVEL_SENSITIVE) {
++		if(active_high_low == ACPI_ACTIVE_LOW)
++			flag = IORESOURCE_IRQ_LOWLEVEL;
++		else
++			flag = IORESOURCE_IRQ_HIGHLEVEL;
++	}
++	else {
++		if(active_high_low == ACPI_ACTIVE_LOW)
++			flag = IORESOURCE_IRQ_LOWEDGE;
++		else
++			flag = IORESOURCE_IRQ_HIGHEDGE;
++	}
++	return flag;
++}
++	
++static void pnpacpi_parse_irq_option(struct pnp_option *option, struct acpi_resource_irq *p)
++{
++	int i;
++	struct pnp_irq * irq;
++	irq = pnpacpi_kmalloc(sizeof(struct pnp_irq), GFP_KERNEL);
++	if (!irq)
++		return;
++
++	for(i=0; i<p->number_of_interrupts; i++)
++		irq->map |= 1<<p->interrupts[i];
++	irq->flags = irq_flags(p->edge_level, p->active_high_low);
++
++	pnp_register_irq_resource(option,irq);
++	return;
++}
++
++static void pnpacpi_parse_ext_irq_option(struct pnp_option *option, struct acpi_resource_ext_irq *p)
++{
++	int i;
++	struct pnp_irq * irq;
++	irq = pnpacpi_kmalloc(sizeof(struct pnp_irq), GFP_KERNEL);
++	if (!irq)
++		return;
++
++	for(i=0; i<p->number_of_interrupts; i++)
++		irq->map |= 1<<p->interrupts[i];
++	irq->flags = irq_flags(p->edge_level, p->active_high_low);
++
++	pnp_register_irq_resource(option,irq);
++	return;
++}
++
++static void
++pnpacpi_parse_port_option(struct pnp_option *option, struct acpi_resource_io *io)
++{
++	struct pnp_port * port;
++	port = pnpacpi_kmalloc(sizeof(struct pnp_port), GFP_KERNEL);
++	if (!port)
++		return;
++	port->min = io->min_base_address;
++	port->max = io->max_base_address;
++	port->align = io->alignment;
++	port->size = io->range_length;
++	port->flags = ACPI_DECODE_16 == io->io_decode ? PNP_PORT_FLAG_16BITADDR : 0;
++	pnp_register_port_resource(option,port);
++	return;
++}
++
++static void
++pnpacpi_parse_fixed_port_option(struct pnp_option *option, struct acpi_resource_fixed_io *io)
++{
++	struct pnp_port * port;
++	port = pnpacpi_kmalloc(sizeof(struct pnp_port), GFP_KERNEL);
++	if (!port)
++		return;
++	port->min = port->max = io->base_address;
++	port->size = io->range_length;
++	port->align = 0;
++	port->flags = PNP_PORT_FLAG_FIXED;
++	pnp_register_port_resource(option,port);
++	return;
++}
++
++static void
++pnpacpi_parse_mem24_option(struct pnp_option *option, struct acpi_resource_mem24 *p)
++{
++	struct pnp_mem * mem;
++	mem = pnpacpi_kmalloc(sizeof(struct pnp_mem), GFP_KERNEL);
++	if (!mem)
++		return;
++	mem->min = p->min_base_address;
++	mem->max = p->max_base_address;
++	mem->align = p->alignment;
++	mem->size = p->range_length;
++
++	mem->flags = ACPI_READ_WRITE_MEMORY == p->read_write_attribute ?
++			IORESOURCE_MEM_WRITEABLE : 0;
++
++	pnp_register_mem_resource(option,mem);
++	return;
++}
++
++static void
++pnpacpi_parse_mem32_option(struct pnp_option *option, struct acpi_resource_mem32 *p)
++{
++	struct pnp_mem * mem;
++	mem = pnpacpi_kmalloc(sizeof(struct pnp_mem), GFP_KERNEL);
++	if (!mem)
++		return;
++	mem->min = p->min_base_address;
++	mem->max = p->max_base_address;
++	mem->align = p->alignment;
++	mem->size = p->range_length;
++
++	mem->flags = ACPI_READ_WRITE_MEMORY == p->read_write_attribute ?
++			IORESOURCE_MEM_WRITEABLE : 0;
++
++	pnp_register_mem_resource(option,mem);
++	return;
++}
++
++static void
++pnpacpi_parse_fixed_mem32_option(struct pnp_option *option, struct acpi_resource_fixed_mem32 *p)
++{
++	struct pnp_mem * mem;
++	mem = pnpacpi_kmalloc(sizeof(struct pnp_mem), GFP_KERNEL);
++	if (!mem)
++		return;
++	mem->min = mem->max = p->range_base_address;
++	mem->size = p->range_length;
++	mem->align = 0;
++
++	mem->flags = ACPI_READ_WRITE_MEMORY == p->read_write_attribute ?
++			IORESOURCE_MEM_WRITEABLE : 0;
++
++	pnp_register_mem_resource(option,mem);
++	return;
++}
++
++//XXX
++static struct pnp_option *option, *option_independent;
++
++static acpi_status acpi_pnp_option_resource(struct acpi_resource *res, void *data)
++{
++	int priority = 0;
++	struct pnp_dev *dev = (struct pnp_dev *)data;
++	//printk("pos res id %x\n",res->id);
++
++	switch (res->id) {
++		case ACPI_RSTYPE_IRQ:
++			pnpacpi_parse_irq_option(option, &res->data.irq);
++		break;
++		case ACPI_RSTYPE_EXT_IRQ:
++			pnpacpi_parse_ext_irq_option(option, &res->data.extended_irq);
++		break;
++		case ACPI_RSTYPE_DMA:
++			pnpacpi_parse_dma_option(option, &res->data.dma);
++						
++		break;
++		case ACPI_RSTYPE_IO:
++			pnpacpi_parse_port_option(option, &res->data.io);
++			break;
++		case ACPI_RSTYPE_FIXED_IO:
++			pnpacpi_parse_fixed_port_option(option, &res->data.fixed_io);
++			break;
++		case ACPI_RSTYPE_MEM24:
++			pnpacpi_parse_mem24_option(option, &res->data.memory24);
++			break;
++		case ACPI_RSTYPE_MEM32:
++			pnpacpi_parse_mem32_option(option, &res->data.memory32);
++			break;
++		case ACPI_RSTYPE_FIXED_MEM32:
++			pnpacpi_parse_fixed_mem32_option(option, &res->data.fixed_memory32);
++			break;
++		case ACPI_RSTYPE_START_DPF:
++			switch (res->data.start_dpf.compatibility_priority) {
++				case ACPI_GOOD_CONFIGURATION:
++					priority = PNP_RES_PRIORITY_PREFERRED;
++					break;
++					
++				case ACPI_ACCEPTABLE_CONFIGURATION:
++					priority = PNP_RES_PRIORITY_ACCEPTABLE;
++					break;
++
++				case ACPI_SUB_OPTIMAL_CONFIGURATION:
++					priority = PNP_RES_PRIORITY_FUNCTIONAL;
++					break;
++				default:
++					priority = PNP_RES_PRIORITY_INVALID;
++					break;
++			}
++			option = pnp_register_dependent_option(dev, priority);
++			if (!option)
++				return -1;
++			break;
++		case ACPI_RSTYPE_END_DPF:
++			if (option_independent == option)
++				printk(KERN_WARNING "PnPACPI: Missing SMALL_TAG_STARTDEP tag\n");
++			option = option_independent;
++			break;
++		default:
++			printk(KERN_WARNING "PnPACPI: Option type : %d not handle\n", res->id);
++	}
++			
++	return AE_OK;
++}
++
++static int pnpacpi_get_resources(struct pnp_dev * dev, struct pnp_resource_table * res)
++{
++
++	acpi_status status;
++	status = acpi_pnp_parse_allocated_resource(self[dev->number], &dev->res);
++	return ACPI_FAILURE(status)?-ENODEV:0;
++}
++
++static int pnpacpi_set_resources(struct pnp_dev * dev, struct pnp_resource_table * res)
++{
++	printk(KERN_WARNING "PnPACPI: Not implemented\n");
++	return -ENODEV;
++}
++
++static int pnpacpi_disable_resources(struct pnp_dev *dev)
++{
++	printk(KERN_WARNING "PnPACPI: Not implemented\n");
++	return -ENODEV;
++}
++
++struct pnp_protocol pnpacpi_protocol = {
++	.name	= "Plug and Play ACPI",
++	.get	= pnpacpi_get_resources,
++	.set	= pnpacpi_set_resources,
++	.disable = pnpacpi_disable_resources,
++};
++
++static int acpi_pnp_add_device(struct acpi_device *device)
++{
++	acpi_status status;
++	struct pnp_id *dev_id;
++	char id[8];
++	struct pnp_dev *dev;
++
++	static int num = 0;
++
++	if(num>=MAX_DEVICE)
++		return -ENODEV;
++
++	if (strlen(acpi_device_hid(device)) != 7) {
++		//printk("device : hid %s %d\n", id, strlen(id));
++		return -1;
++	}
++	
++	//printk("device : hid %s \n", acpi_device_hid(device));
++	dev =  pnpacpi_kmalloc(sizeof(struct pnp_dev), GFP_KERNEL);
++	if (!dev)
++		return -1;
++
++	dev->number = num++;
++	self[dev->number] = device;
++	strncpy(dev->name ,device->pnp.bus_id, PNP_NAME_LEN);
++
++
++	/* set the initial values for the PnP device */
++	dev_id = pnpacpi_kmalloc(sizeof(struct pnp_id), GFP_KERNEL);
++	if (!dev_id)
++		goto err;
++	pnpidacpi_to_pnpid(acpi_device_hid(device),id);
++	memcpy(dev_id->id,id,7);
++
++	pnp_add_id(dev_id, dev);
++	//parse allocated resource
++	status = acpi_pnp_parse_allocated_resource(device, &dev->res);
++	if (ACPI_FAILURE(status)) {
++		//printk(KERN_DEBUG "METHOD_NAME__CRS faillure\n");
++		dev->active = 0;
++		//return -EIO;
++	}
++	else
++		dev->active = 1;
++
++	option_independent = option = pnp_register_independent_option(dev);
++	if (!option)
++		goto err;
++	status = acpi_walk_resources(device->handle, METHOD_NAME__PRS, acpi_pnp_option_resource, dev);
++	/*if (ACPI_FAILURE(status))
++		printk(KERN_DEBUG "METHOD_NAME__PRS faillure\n");
++		//return -EIO;
++	*/
++
++	if (device->flags.compatible_ids) {
++		struct acpi_compatible_id_list *cid_list = device->pnp.cid_list;
++		int i;
++
++		for (i = 0; i < cid_list->count; i++) {
++			dev_id = pnpacpi_kmalloc(sizeof(struct pnp_id), GFP_KERNEL);
++			if (!dev_id)
 +				continue;
-+		}
 +
-+		memset(pathname, 0, sizeof(pathname));
-+
-+		status = acpi_get_name(chandle, ACPI_SINGLE_NAME, &buffer);
-+		if (ACPI_FAILURE(status))
-+			continue;
-+
-+		bin_file = find_bin_file(pathname);
-+		if (!bin_file)
-+			continue;
-+
-+		old_attrib = &bin_file->bin_attrib;
-+
-+		sysfs_remove_bin_file(&dev->kobj, old_attrib);
-+
-+		bin_file->use_count--;
-+		if (!bin_file->use_count) {
-+			list_del(&bin_file->list);
-+			kfree(old_attrib->attr.name);
-+			kfree(bin_file);
++			memcpy(dev_id->id,cid_list->id[i].value,7);
++			pnp_add_id(dev_id, dev);
 +		}
 +	}
-+	spin_unlock(&acpi_bin_file_lock);
++
++#if 0
++	dev->flags = node->flags;
++	if (!(dev->flags & PNPBIOS_NO_CONFIG))
++		dev->capabilities |= PNP_CONFIGURABLE;
++	if (!(dev->flags & PNPBIOS_NO_DISABLE))
++		dev->capabilities |= PNP_DISABLE;
++	dev->capabilities |= PNP_READ;
++	if (pnpacpi_is_dynamic(dev))
++		dev->capabilities |= PNP_WRITE;
++	if (dev->flags & PNPBIOS_REMOVABLE)
++		dev->capabilities |= PNP_REMOVABLE;
++#endif
++
++	dev->protocol = &pnpacpi_protocol;
++
++	/* clear out the damaged flags */
++	if (!dev->active)
++		pnp_init_resource_table(&dev->res);
++	pnp_add_device(dev);
++	return 0;
++
++err:
++	kfree(dev);
++	return -1;
 +}
 +
-+acpi_status
-+acpi_sysfs_add(
-+	acpi_handle	handle,
-+	u32		level,
-+	void		*context,
-+	void		**return_value)
++static void acpi_pnp_add_device_handler(struct acpi_device *device)
 +{
-+	struct acpi_device	*device;
-+
-+	ACPI_FUNCTION_TRACE("acpi_sysfs_add");
-+
-+	if (acpi_bus_get_device(handle, &device) == 0)
-+		create_sysfs_files(device);
-+
-+	return AE_OK;
++	acpi_pnp_add_device(device);
 +}
-+	
-+acpi_status
-+acpi_sysfs_del(
-+	acpi_handle	handle,
-+	u32		level,
-+	void		*context,
-+	void		**return_value)
++
++//XXX put in a header file...
++extern int acpi_driver_scan(void (* handler)(struct acpi_device * dev));
++
++int __init pnpacpi_init(void)
 +{
-+	struct acpi_device	*device;
-+
-+	ACPI_FUNCTION_TRACE("acpi_sysfs_del");
-+
-+	if (acpi_bus_get_device(handle, &device) == 0)
-+		remove_sysfs_files(device);
-+
-+	return AE_OK;
++	printk(KERN_INFO "PnP ACPI init\n");
++	pnp_register_protocol(&pnpacpi_protocol);
++	return acpi_driver_scan(acpi_pnp_add_device_handler);
 +}
-+	
-+int __init
-+acpi_sysfs_init(void)
-+{
-+	acpi_status	status;
++device_initcall(pnpacpi_init);
 +
-+	ACPI_FUNCTION_TRACE("acpi_sysfs_init");
++EXPORT_SYMBOL(pnpacpi_protocol);
+diff -ruN --exclude='*.cmd' --exclude='*.o' --exclude='*.ko' linux.old/drivers/pnp/pnpacpi/Kconfig linux-2.6.9/drivers/pnp/pnpacpi/Kconfig
+--- linux.old/drivers/pnp/pnpacpi/Kconfig	1970-01-01 01:00:00.000000000 +0100
++++ linux-2.6.9/drivers/pnp/pnpacpi/Kconfig	2004-09-04 14:11:36.000000000 +0200
+@@ -0,0 +1,10 @@
++#
++# Plug and Play ACPI configuration
++#
++config PNPACPI
++	bool "Plug and Play ACPI support (EXPERIMENTAL)"
++	depends on PNP && X86 && ACPI_BUS && EXPERIMENTAL
++	depends on !PNPBIOS
++	default y
++	---help---
++	Todo
+diff -ruN --exclude='*.cmd' --exclude='*.o' --exclude='*.ko' linux.old/drivers/pnp/pnpacpi/Makefile linux-2.6.9/drivers/pnp/pnpacpi/Makefile
+--- linux.old/drivers/pnp/pnpacpi/Makefile	1970-01-01 01:00:00.000000000 +0100
++++ linux-2.6.9/drivers/pnp/pnpacpi/Makefile	2004-09-04 14:37:53.000000000 +0200
+@@ -0,0 +1,5 @@
++#
++# Makefile for the kernel PNPACPI driver.
++#
 +
-+	acpi_sysfs_add(ACPI_ROOT_OBJECT, 0, NULL, NULL);
-+
-+	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
-+	                             ACPI_UINT32_MAX, acpi_sysfs_add,
-+				     NULL, NULL);
-+	if (ACPI_FAILURE(status))
-+		goto cleanup0;
-+
-+	status = acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
-+	                             ACPI_UINT32_MAX, acpi_sysfs_add,
-+				     NULL, NULL);
-+	if (ACPI_FAILURE(status))
-+		goto cleanup1;
-+
-+	status = acpi_walk_namespace(ACPI_TYPE_THERMAL, ACPI_ROOT_OBJECT,
-+	                             ACPI_UINT32_MAX, acpi_sysfs_add,
-+				     NULL, NULL);
-+	if (ACPI_FAILURE(status))
-+		goto cleanup2;
-+
-+	status = acpi_walk_namespace(ACPI_TYPE_POWER, ACPI_ROOT_OBJECT,
-+	                             ACPI_UINT32_MAX, acpi_sysfs_add,
-+				     NULL, NULL);
-+	if (ACPI_FAILURE(status))
-+		goto cleanup3;
-+
-+	return_VALUE(0);
-+
-+cleanup3:
-+	(void)acpi_walk_namespace(ACPI_TYPE_POWER, ACPI_ROOT_OBJECT,
-+	                          ACPI_UINT32_MAX, acpi_sysfs_del,
-+	                          NULL, NULL);
-+cleanup2:
-+	(void)acpi_walk_namespace(ACPI_TYPE_THERMAL, ACPI_ROOT_OBJECT,
-+	                          ACPI_UINT32_MAX, acpi_sysfs_del,
-+	                          NULL, NULL);
-+cleanup1:
-+	(void)acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
-+	                          ACPI_UINT32_MAX, acpi_sysfs_del,
-+	                          NULL, NULL);
-+cleanup0:
-+	(void)acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
-+	                          ACPI_UINT32_MAX, acpi_sysfs_del,
-+	                          NULL, NULL);
-+
-+	acpi_sysfs_del(ACPI_ROOT_OBJECT, 0, NULL, NULL);
-+
-+	return_VALUE(1);
-+}
-+
-+void __exit
-+acpi_sysfs_exit(void)
-+{
-+	struct list_head *node, *next;
-+	struct acpi_bin_files *bin_file;
-+
-+	ACPI_FUNCTION_TRACE("acpi_sysfs_exit");
-+
-+	(void)acpi_walk_namespace(ACPI_TYPE_POWER, ACPI_ROOT_OBJECT,
-+	                          ACPI_UINT32_MAX, acpi_sysfs_del,
-+	                          NULL, NULL);
-+	(void)acpi_walk_namespace(ACPI_TYPE_THERMAL, ACPI_ROOT_OBJECT,
-+	                          ACPI_UINT32_MAX, acpi_sysfs_del,
-+	                          NULL, NULL);
-+	(void)acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
-+	                          ACPI_UINT32_MAX, acpi_sysfs_del,
-+	                          NULL, NULL);
-+	(void)acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
-+	                          ACPI_UINT32_MAX, acpi_sysfs_del,
-+	                          NULL, NULL);
-+
-+	acpi_sysfs_del(ACPI_ROOT_OBJECT, 0, NULL, NULL);
-+
-+	/* List should be empty, but double check.  */
-+	spin_lock(&acpi_bin_file_lock);
-+	list_for_each_safe(node, next, &acpi_bin_file_list) {
-+		bin_file = container_of(node, struct acpi_bin_files, list);
-+
-+		list_del(&bin_file->list);
-+		kfree(bin_file->bin_attrib.attr.name);
-+		kfree(bin_file);
-+	}
-+	spin_unlock(&acpi_bin_file_lock);
-+
-+	return_VOID;
-+}
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Alex Williamson <alex.williamson@hp.com>");
-+MODULE_DESCRIPTION("Exports ACPI namespace objects via sysfs");
-+
-+module_init(acpi_sysfs_init);
-+module_exit(acpi_sysfs_exit);
++obj-y := core.o
+diff -ruN --exclude='*.cmd' --exclude='*.o' --exclude='*.ko' linux.old/drivers/pnp/pnpbios/Kconfig linux-2.6.9/drivers/pnp/pnpbios/Kconfig
+--- linux.old/drivers/pnp/pnpbios/Kconfig	2004-06-16 07:19:44.000000000 +0200
++++ linux-2.6.9/drivers/pnp/pnpbios/Kconfig	2004-09-04 14:11:31.000000000 +0200
+@@ -4,6 +4,8 @@
+ config PNPBIOS
+ 	bool "Plug and Play BIOS support (EXPERIMENTAL)"
+ 	depends on PNP && X86 && EXPERIMENTAL
++	depends on !PNPACPI
++	default n
+ 	---help---
+ 	  Linux uses the PNPBIOS as defined in "Plug and Play BIOS
+ 	  Specification Version 1.0A May 5, 1994" to autodetect built-in
+
+------=_Part_226_29779618.1095717895975--
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: YOU BE THE JUDGE. Be one of 170
+Project Admins to receive an Apple iPod Mini FREE for your judgement on
+who ports your project to Linux PPC the best. Sponsored by IBM.
+Deadline: Sept. 24. Go here: http://sf.net/ppc_contest.php
