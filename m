@@ -1,173 +1,65 @@
-From: Len Brown <len.brown@intel.com>
-Subject: Re: [PATCH 2.6] (5/5) make # of performance states dynamic
-Date: 31 Jan 2004 00:47:43 -0500
-Sender: cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk
-Message-ID: <1075528062.2453.31.camel@dhcppc4>
-References: <20040129105905.GE5372@dominikbrodowski.de>
+From: Greg Sarjeant <greg-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org>
+Subject: Re: PROBLEM: ACPI crashes (2.6.2-rc2-mm1)
+Date: Thu, 29 Jan 2004 07:03:46 -0500
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <1075377825.5640.7.camel@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk>
-In-Reply-To: <20040129105905.GE5372@dominikbrodowski.de>
-List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@www.linux.org.uk?subject=unsubscribe>
-List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq>
-List-Post: <mailto:cpufreq@www.linux.org.uk>
-List-Help: <mailto:cpufreq-request@www.linux.org.uk?subject=help>
-List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@www.linux.org.uk?subject=subscribe>
-Errors-To: cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk
-To: Dominik Brodowski <linux@dominikbrodowski.de>
-Cc: ACPI Developers <acpi-devel@lists.sourceforge.net>, cpufreq@www.linux.org.uk
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Accepted into ACPI test trees
-http://linux-acpi.bkbits.net/linux-acpi-test-2.6.1
-http://linux-acpi.bkbits.net/linux-acpi-test-2.6.2
+Looks like this didn't get through last night. Let me try it again.
 
-This means it will be pulled into AKPM's 2.6 mm tree on the next update,
-and is in the test queue for early 2.6.3.
 
-thanks Dominik,
--Len
 
-On Thu, 2004-01-29 at 05:59, Dominik Brodowski wrote:
-> Make # of performance states dynamic. Fixes (partly) TBD #1.
-> 
->  arch/i386/kernel/cpu/cpufreq/acpi.c |   17 ++++++++++++++++-
->  drivers/acpi/processor.c            |   17 +++++++++--------
->  include/acpi/processor.h            |    4 +---
->  3 files changed, 26 insertions(+), 12 deletions(-)
-> 
-> diff -ruN linux-original/arch/i386/kernel/cpu/cpufreq/acpi.c linux/arch/i386/kernel/cpu/cpufreq/acpi.c
-> --- linux-original/arch/i386/kernel/cpu/cpufreq/acpi.c	2004-01-18 19:13:09.000000000 +0100
-> +++ linux/arch/i386/kernel/cpu/cpufreq/acpi.c	2004-01-29 11:41:10.161508080 +0100
-> @@ -53,7 +53,7 @@
->  
->  struct cpufreq_acpi_io {
->  	struct acpi_processor_performance	acpi_data;
-> -	struct cpufreq_frequency_table		freq_table[ACPI_PROCESSOR_MAX_PERFORMANCE];
-> +	struct cpufreq_frequency_table		*freq_table;
->  };
->  
->  static struct cpufreq_acpi_io	*acpi_io_data[NR_CPUS];
-> @@ -263,6 +263,7 @@
->  	/* capability check */
->  	if (data->acpi_data.state_count <= 1) {
->  		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "No P-States\n"));
-> +		result = -ENODEV;
->  		goto err_unreg;
->  	}
->  	if ((data->acpi_data.control_register.space_id != ACPI_ADR_SPACE_SYSTEM_IO) ||
-> @@ -270,6 +271,14 @@
->  		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Unsupported address space [%d, %d]\n",
->  				  (u32) (data->acpi_data.control_register.space_id),
->  				  (u32) (data->acpi_data.status_register.space_id)));
-> +		result = -ENODEV;
-> +		goto err_unreg;
-> +	}
-> +
-> +	/* alloc freq_table */
-> +	data->freq_table = kmalloc(sizeof(struct cpufreq_frequency_table) * (data->acpi_data.state_count + 1), GFP_KERNEL);
-> +	if (!data->freq_table) {
-> +		result = -ENOMEM;
->  		goto err_unreg;
->  	}
->  
-> @@ -298,6 +307,10 @@
->  	}
->  
->  	result = cpufreq_frequency_table_cpuinfo(policy, &data->freq_table[0]);
-> +	if (result) {
-> +		goto err_freqfree;
-> +	}
-> +		
->  
->  	printk(KERN_INFO "cpufreq: CPU%u - ACPI performance management activated.\n",
->  	       cpu);
-> @@ -310,6 +323,8 @@
->  
->  	return_VALUE(result);
->  
-> + err_freqfree:
-> +	kfree(data->freq_table);
->   err_unreg:
->  	acpi_processor_unregister_performance(&data->acpi_data, cpu);
->   err_free:
-> diff -ruN linux-original/drivers/acpi/processor.c linux/drivers/acpi/processor.c
-> --- linux-original/drivers/acpi/processor.c	2004-01-29 11:02:55.000000000 +0100
-> +++ linux/drivers/acpi/processor.c	2004-01-29 11:41:19.938021824 +0100
-> @@ -23,7 +23,7 @@
->   *
->   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->   *  TBD:
-> - *	1. Make # power/performance states dynamic.
-> + *	1. Make # power states dynamic.
->   *	2. Support duty_cycle values that span bit 4.
->   *	3. Optimize by having scheduler determine business instead of
->   *	   having us try to calculate it here.
-> @@ -986,14 +986,12 @@
->  	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found %d performance states\n", 
->  		pss->package.count));
->  
-> -	if (pss->package.count > ACPI_PROCESSOR_MAX_PERFORMANCE) {
-> -		pr->performance->state_count = ACPI_PROCESSOR_MAX_PERFORMANCE;
-> -		ACPI_DEBUG_PRINT((ACPI_DB_INFO, 
-> -			"Limiting number of states to max (%d)\n", 
-> -			ACPI_PROCESSOR_MAX_PERFORMANCE));
-> +	pr->performance->state_count = pss->package.count;
-> +	pr->performance->states = kmalloc(sizeof(struct acpi_processor_px) * pss->package.count, GFP_KERNEL);
-> +	if (!pr->performance->states) {
-> +		result = -ENOMEM;
-> +		goto end;
->  	}
-> -	else
-> -		pr->performance->state_count = pss->package.count;
->  
->  	for (i = 0; i < pr->performance->state_count; i++) {
->  
-> @@ -1009,6 +1007,7 @@
->  		if (ACPI_FAILURE(status)) {
->  			ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _PSS data\n"));
->  			result = -EFAULT;
-> +			kfree(pr->performance->states);
->  			goto end;
->  		}
->  
-> @@ -1025,6 +1024,7 @@
->  		if (!px->core_frequency) {
->  			ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "core_frequency is 0\n"));
->  			result = -EFAULT;
-> +			kfree(pr->performance->states);
->  			goto end;
->  		}
->  	}
-> @@ -1281,6 +1281,7 @@
->  		return_VOID;
->  	}
->  
-> +	kfree(pr->performance->states);
->  	pr->performance = NULL;
->  
->  	acpi_cpufreq_remove_file(pr);
-> diff -ruN linux-original/include/acpi/processor.h linux/include/acpi/processor.h
-> --- linux-original/include/acpi/processor.h	2004-01-29 11:02:55.000000000 +0100
-> +++ linux/include/acpi/processor.h	2004-01-29 10:57:52.000000000 +0100
-> @@ -9,8 +9,6 @@
->  #define ACPI_PROCESSOR_MAX_C2_LATENCY	100
->  #define ACPI_PROCESSOR_MAX_C3_LATENCY	1000
->  
-> -#define ACPI_PROCESSOR_MAX_PERFORMANCE	8
-> -
->  #define ACPI_PROCESSOR_MAX_THROTTLING	16
->  #define ACPI_PROCESSOR_MAX_THROTTLE	250	/* 25% */
->  #define ACPI_PROCESSOR_MAX_DUTY_WIDTH	4
-> @@ -75,7 +73,7 @@
->  	struct acpi_pct_register control_register;
->  	struct acpi_pct_register status_register;
->  	unsigned int		 state_count;
-> -	struct acpi_processor_px states[ACPI_PROCESSOR_MAX_PERFORMANCE];
-> +	struct acpi_processor_px *states;
->  
->  	/* the _PDC objects passed by the driver, if any */
->  	struct acpi_object_list *pdc;
+Hi,
+
+  Just wanted to add my experience. I was able to suspend to disk and
+resume just fine from a console with the following configuration on the
+Gateway 200X.
+
+kernel 2.6.1
+agpgart module loaded
+intel_agp module loaded
+i830 module loaded
+swsusp compiled into the kernel
+ACPI sleep states compiled into the kernel
+suspend with 'echo 4 > /proc/acpi/sleep'
+
+   When I tried this after starting X with startx, I got the reboot loop
+described by others. I figured I'd give it a shot, since the AGP modules
+didn't interfere with the console suspend/resume. Ah well. 
+
+   Interestingly, starting X and then dropping back into a console
+caused problems, too. I didn't get stuck in a reboot loop, but the
+resume just hung. It did get past the 'Waiting for DMA to settle down'
+message, though. I can't remember now exactly what it said, but it
+seemed to be mostly done. I had to do a hard reboot to get it back, and
+then I had to do the 'noresume; mkswap; swapon' routine.
+
+   I haven't tried unaccelerated X, since the AGP modules seem to be
+loaded regardless of what I do (remove the agpgart alias in
+/etc/modules.conf, remove X from default runlevel, etc) and I cannot
+unload them. I guess I should try compiling a kernel without AGP support
+at all next.
+
+   Thanks,
+    Greg
+
+
+
+-------------------------------------------------------
+The SF.Net email is sponsored by EclipseCon 2004
+Premiere Conference on Open Tools Development and Integration
+See the breadth of Eclipse activity. February 3-5 in Anaheim, CA.
+http://www.eclipsecon.org/osdn
