@@ -1,14 +1,12 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [EXTRA] Regression in 2.4.23 w.r.t. 2.4.22 on i840
-Date: Sun, 30 Nov 2003 01:26:26 -0500
+From: Felipe Alfaro Solana <felipe_alfaro-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+Subject: about held locks in acpi_psx_execute()
+Date: Sun, 30 Nov 2003 22:53:05 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <BF1FE1855350A0479097B3A0D2A80EE0CC887F@hdsmsx402.hd.intel.com>
+Message-ID: <1070229185.2183.5.camel@teapot.felipe-alfaro.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,64 +15,57 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Chris Rankin <rankincj-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Linux Kernel Mailinglist <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hmmm, my copy of iasl couldn't parse this DSDT;-(
+Hi!
 
-Can you attach the /proc/interrupts with these dmesg logs and acpidmp to
-a bug report?
-acpi=3Dforce cases generally aren't the highest priority, but the fact
-that it used to work and then broke makes it interesting.
+While looking at drivers/acpi/parser/psxface.c,I have noticed that the
+acpi_psx_execute(0 function seems to held some structures referrenced
+when an error occurs during its execution:
 
-Also, if you get a chance, it would be good to know if 2.6.0 works
-differently, and if in 2.4.23 the cmdline "acpi_irq_nobalance" makes any
-difference.
 
-Thanks,
--Len
+acpi_status
+acpi_psx_execute (
+        struct acpi_namespace_node      *method_node,
+        union acpi_operand_object       **params,
+        union acpi_operand_object       **return_obj_desc)
+{
+...
+        if (params) {
+                /*
+                 * The caller "owns" the parameters, so give each one an
+extra
+                 * reference
+                 */
+                for (i = 0; params[i]; i++) {
+                        acpi_ut_add_reference (params[i]);
+                }
+        }
 
-How to file a bug against ACPI:
+        /*
+         * 1) Perform the first pass parse of the method to enter any
+         * named objects that it creates into the namespace
+         */
+        ACPI_DEBUG_PRINT ((ACPI_DB_PARSE,
+                "**** Begin Method Parse **** Entry=%p obj=%p\n",
+                method_node, obj_desc));
 
-http://bugzilla.kernel.org/
-Category: Power Management
-Component: ACPI
+        /* Create and init a Root Node */
 
-Please attach the output from dmidecode, available in /usr/sbin/, or
-here:=20
-http://www.nongnu.org/dmidecode/
+        op = acpi_ps_create_scope_op ();
+        if (!op) {
+                return_ACPI_STATUS (AE_NO_MEMORY);
+        }
 
-Please attach the output from acpidmp, available in /usr/sbin/, or in
-here
-http://www.intel.com/technology/iapc/acpi/downloads/pmtools-20010730.tar
-.gz
+As you can see, acpi_psx_execute() will hold a lock for each element of
+the params[] array if there's an error while invoking
+acpi_ps_create_scope_op(), for example.
 
-Please attach /proc/interrupts and the dmesg output showing the failure,
-if possible.
+Is this intentional?
+Thanks!
 
-> -----Original Message-----
-> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
-> [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
-> Chris Rankin
-> Sent: Friday, November 28, 2003 10:06 PM
-> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Subject: [ACPI] [EXTRA] Regression in 2.4.23 w.r.t. 2.4.22 on i840
->=20
->=20
-> Ref: 2.4.23 PCI devices go nuts unless "pci=3Dnoacpi".
->=20
-> Here's the output from acpidmp for my machine. Come to
-> think of it, you'd probably want this.
->=20
-> Cheers,
-> Chris
->=20
-> ______________________________________________________________
-> __________
-> Download Yahoo! Messenger now for a chance to win Live At=20
-> Knebworth DVDs
-> http://www.yahoo.co.uk/robbiewilliams
->=20
 
 
 -------------------------------------------------------
