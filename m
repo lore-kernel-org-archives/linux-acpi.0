@@ -1,11 +1,11 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: RE: Toshiba ACPI battery status - ACPI errors
-Date: Thu, 4 Dec 2003 11:57:53 +0800
+Subject: RE: Tell user when ACPI is killing machine
+Date: Thu, 4 Dec 2003 13:27:17 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720BFA@pdsmsx403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720BFD@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-15"
+	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 content-class: urn:content-classes:message
@@ -17,36 +17,13 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Michael Holzt <kju-+hGXy1KyAyQ@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Aaron Lehmann <aaronl-nCTQwlqzmeJBDgjK7y7TUQ@public.gmane.org>
+Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-If you want, I can do it for you. At first, would you please describe =
-what could prevent you from updating to 2.6?  Is it ACPI-relative issue? =
---Luming
-
-
------Original Message-----
-From: Michael Holzt [mailto:kju-+hGXy1KyAyQ@public.gmane.org]
-Sent: 2003?12?3? 5:45
-To: Yu, Luming
-Cc: ACPI Developers
-Subject: Re: [ACPI] RE: Toshiba ACPI battery status - ACPI errors
-
-
-> I just wrote a patch for this issue. Would you please have it a look, =
-and test it .
-
-I would do so, but it is against the 2.6.x series, and i had some issues
-with this kernel series on my notebook, so for now i stay with 2.4.x. If
-you have a patch against 2.4.x, i can give it a try.
-
-
-Regards
-Michael
-
---=20
-Michael Holzt, DL3KJU, kju-+hGXy1KyAyQ@public.gmane.org, kju@debian.org, kju@IRCNet
+>cpufreq is not connected to acpi thermal subsystem. Dominik has some
+>patches to change that, IIRC.
+Is it merged into ACPI ?
 
 
 -------------------------------------------------------
