@@ -1,47 +1,34 @@
-From: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
-Subject: Re: Located the problem with the VIA KT400 board
-Date: Mon, 14 Jul 2003 16:53:59 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200307141653.59950.adq_dvb@lidskialf.net>
-References: <Pine.LNX.4.33.0307141730001.1166-100000@frog.athome>
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: [ACPI] Linux 2.6-pre1 Does not boot on ASUS L3800C: lock up in acpi while "Executing all Devices _STA and_INIT methods"
+Date: Mon, 14 Jul 2003 18:40:48 +0200
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <20030714164048.GA15445@hell.org.pl>
+References: <3F12AF06.6080004@free.fr>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.33.0307141730001.1166-100000-KnfdeQs3A3X/9pzu0YdTqQ@public.gmane.org>
+Content-Type: text/plain; charset=iso-8859-2
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
-Cc: thunder7-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <3F12AF06.6080004-GANU6spQydw@public.gmane.org>
+To: Eric Valette <eric.valette-GANU6spQydw@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday 14 July 2003 16:32, hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org wrote:
-> Salut Andrew,
-> might it be a good idea to then step back to try creating an normal IRQ
-> resource if the extended one failed?
+Thus wrote Eric Valette:
+> I happily run 2.4.21-pre5 with ACPI enabled and everything works just 
+> fine. I tried today 2.6-pre1 with exactly the same hardware 
+> configuration as the 2.4 one and the laptop does not boot. It hangs 
+> while dispaying : "Executing all Devices _STA and_INIT methods" 
+> allthough it has already printed several '.'
 
-Yeah, I was thinking about that. However, the problem only occurs when you 
-have IRQs > 15, and unfortunately, you cannot specify IRQs > 15 in normal IRQ 
-descriptors.... they're a bitfield aren't they?
+I reported the same on ACPI devel several (18?) hours ago. For now, the
+solution is to compile a kernel without APIC support. No, the noapic option
+doesn't help.
 
-That particular KT400 BIOS only ever returns IRQs > 15 from the _PRS method 
-for those link devices. So I've no idea how it could ever work.
+The problem appeared in 2.5.74, along with changes in handling a
+BIOS-disabled APIC, or so I suppose.
 
-I've really no idea what you should/can do in this case.
+Best regards,
 
-
-
-
--------------------------------------------------------
-This SF.Net email sponsored by: Parasoft
-Error proof Web apps, automate testing & more.
-Download & eval WebKing and get a free book.
-www.parasoft.com/bulletproofapps1
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
