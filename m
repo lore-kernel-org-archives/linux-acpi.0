@@ -1,11 +1,11 @@
 From: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
-Subject: [PATCH] ACPI patch with VIA VT8235 support
-Date: Thu, 4 Sep 2003 03:13:25 +0100
+Subject: [PATCH] acpi picmode patch version 5 + _CRS IRQ0 check
+Date: Thu, 4 Sep 2003 03:31:03 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200309040313.25996.adq_dvb@lidskialf.net>
+Message-ID: <200309040331.03086.adq_dvb@lidskialf.net>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_F/pV/pgVBakFJmm"
+  boundary="Boundary-00=_nPqV/Z+4h94t9nl"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -15,47 +15,29 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: "Nakajima, Jun" <jun.nakajima-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---Boundary-00=_F/pV/pgVBakFJmm
+--Boundary-00=_nPqV/Z+4h94t9nl
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-Right, after a bit of thought and reading of the docs, this patch should/may 
-allow VIA boards with a VT8235 south bridge to work.
+Hi, I do hope you don't mind, but I've added your patch to mine to make this 
+easier for people testing them as they both change the same files. 
 
-Basically, I've modified pci_link.c/acpi_pci_link_set() slightly.
+Also yours was much better than mine :)
 
-Previously, after setting an IRQ link resource, it retrieved the current value 
-and checked it was set to what it expected. 
-
-This fails for VIA devices because certain of the devices have hardcoded IRQs. 
-The _CRS method is also hardcoded to always return 0 for these.
-
-I have assumed it is common practice to use IRQ0 to indicate a case where 
-reading the _CRS value is undefined. 
-
-Therefore, I've modified the IRQ validation slightly. Now, if the _CRS method 
-returns an IRQ of 0, it assumes everything went OK. For all other values 
-however, it still validates the IRQ was set as expected.
-
-The alternative to this is either always using PIC mode, or blacklisting loads 
-of VIA motherboards from using ACPI at all.
-
-Lemme know what happens....
-
---Boundary-00=_F/pV/pgVBakFJmm
+--Boundary-00=_nPqV/Z+4h94t9nl
 Content-Type: text/x-diff;
   charset="us-ascii";
-  name="linux-2.4.22-acpi-picmode-4.patch"
+  name="linux-2.4.22-acpi-picmode-5.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: attachment;
-	filename="linux-2.4.22-acpi-picmode-4.patch"
+	filename="linux-2.4.22-acpi-picmode-5.patch"
 
 
 --- linux-2.4.22.orig/arch/i386/kernel/mpparse.c	2003-08-25 12:44:39.000000000 +0100
@@ -766,8 +748,41 @@ Content-Disposition: attachment;
  	pci_for_each_dev(dev)
  		acpi_pci_irq_enable(dev);
 --- linux-2.4.22.orig/drivers/acpi/pci_link.c	2003-08-25 12:44:41.000000000 +0100
-+++ linux-2.4.22/drivers/acpi/pci_link.c	2003-09-04 02:57:20.221500232 +0100
-@@ -290,7 +290,8 @@
++++ linux-2.4.22/drivers/acpi/pci_link.c	2003-09-04 03:29:07.369569656 +0100
+@@ -277,6 +277,32 @@
+ 
+ 
+ static int
++acpi_pci_link_try_get_current (
++	struct acpi_pci_link *link,
++	int irq)
++{
++	int result;
++
++	ACPI_FUNCTION_TRACE("acpi_pci_link_try_get_current");
++   
++	result = acpi_pci_link_get_current(link);
++	if (result && link->irq.active) 
++	{
++		return_VALUE(result);
++	}
++
++	if (!link->irq.active) 
++	{
++		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "No active IRQ resource found\n"));
++		printk(KERN_WARNING "_CRS returns NULL! Using IRQ %d for device (%s [%s]).\n", irq, acpi_device_name(link->device), acpi_device_bid(link->device));
++		link->irq.active = irq;
++	}
++   
++	return 0;
++}
++
++
++static int
+ acpi_pci_link_set (
+ 	struct acpi_pci_link	*link,
+ 	int			irq)
+@@ -290,7 +316,8 @@
  	struct acpi_buffer	buffer = {sizeof(resource)+1, &resource};
  	int			i = 0;
  	int			valid = 0;
@@ -777,7 +792,7 @@ Content-Disposition: attachment;
  	ACPI_FUNCTION_TRACE("acpi_pci_link_set");
  
  	if (!link || !irq)
-@@ -313,12 +314,23 @@
+@@ -313,12 +340,23 @@
  		}
  	}
  
@@ -802,7 +817,7 @@ Content-Disposition: attachment;
  		resource.res.id = ACPI_RSTYPE_IRQ;
  		resource.res.length = sizeof(struct acpi_resource);
  		resource.res.data.irq.edge_level = link->irq.edge_level;
-@@ -326,8 +338,9 @@
+@@ -326,8 +364,9 @@
  		resource.res.data.irq.shared_exclusive = ACPI_SHARED;
  		resource.res.data.irq.number_of_interrupts = 1;
  		resource.res.data.irq.interrupts[0] = irq;
@@ -814,7 +829,7 @@ Content-Disposition: attachment;
  		resource.res.id = ACPI_RSTYPE_EXT_IRQ;
  		resource.res.length = sizeof(struct acpi_resource);
  		resource.res.data.extended_irq.producer_consumer = ACPI_CONSUMER;
-@@ -337,11 +350,22 @@
+@@ -337,11 +376,22 @@
  		resource.res.data.extended_irq.number_of_interrupts = 1;
  		resource.res.data.extended_irq.interrupts[0] = irq;
  		/* ignore resource_source, it's optional */
@@ -837,23 +852,21 @@ Content-Disposition: attachment;
  	if (ACPI_FAILURE(status)) {
  		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Error evaluating _SRS\n"));
  		return_VALUE(-ENODEV);
-@@ -363,8 +387,13 @@
+@@ -359,11 +409,11 @@
+ 	}
+ 
+ 	/* Make sure the active IRQ is the one we requested. */
+-	result = acpi_pci_link_get_current(link);
++	result = acpi_pci_link_try_get_current(link, irq);
  	if (result) {
  		return_VALUE(result);
  	}
 -   
--	if (link->irq.active != irq) {
 +
-+	/* If the active IRQ is was set to 0 by _CRS, pretend everything worked 
-+	 * correctly. It is likely the BIOS doesn't really support setting the 
-+	 * IRQ, and has been hardcoded to return 0 always */
-+	if (link->irq.active == 0) {
-+		link->irq.active = irq;
-+	} else if (link->irq.active != irq) {
+ 	if (link->irq.active != irq) {
  		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, 
  			"Attempt to enable at IRQ %d resulted in IRQ %d\n", 
- 			irq, link->irq.active));
-@@ -399,23 +428,26 @@
+@@ -399,23 +449,26 @@
   * as 'best bets' for PCI use.
   */
  
@@ -883,7 +896,7 @@ Content-Disposition: attachment;
  	/*
  	 * Update penalties to facilitate IRQ balancing.
  	 */
-@@ -426,7 +458,8 @@
+@@ -426,7 +479,8 @@
  			ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid link context\n"));
  			continue;
  		}
@@ -893,7 +906,7 @@ Content-Disposition: attachment;
  		if (link->irq.active)
  			acpi_irq_penalty[link->irq.active] += 100;
  		else if (link->irq.possible_count) {
-@@ -456,18 +489,18 @@
+@@ -456,18 +510,18 @@
  		irq = link->irq.possible[0];
  	}
  
@@ -921,6 +934,17 @@ Content-Disposition: attachment;
  			acpi_device_name(link->device),
  			acpi_device_bid(link->device));
  		return_VALUE(-ENODEV);
+@@ -573,10 +627,6 @@
+ 		else
+ 			printk(" %d", link->irq.possible[i]);
+ 	}
+-	if (!link->irq.active)
+-		printk(", disabled");
+-	else if (!found)
+-		printk(", enabled at IRQ %d", link->irq.active);
+ 	printk(")\n");
+ 
+ 	/* TBD: Acquire/release lock */
 --- linux-2.4.22.orig/drivers/acpi/bus.c	2003-08-25 12:44:41.000000000 +0100
 +++ linux-2.4.22/drivers/acpi/bus.c	2003-08-31 00:08:20.000000000 +0100
 @@ -1802,7 +1802,7 @@
@@ -985,13 +1009,13 @@ Content-Disposition: attachment;
  #endif /*CONFIG_ACPI_BUS*/
  
 
---Boundary-00=_F/pV/pgVBakFJmm
+--Boundary-00=_nPqV/Z+4h94t9nl
 Content-Type: text/x-diff;
   charset="us-ascii";
-  name="linux-2.6.0-test4-acpi-picmode-4.patch"
+  name="linux-2.6.0-test4-acpi-picmode-5.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: attachment;
-	filename="linux-2.6.0-test4-acpi-picmode-4.patch"
+	filename="linux-2.6.0-test4-acpi-picmode-5.patch"
 
 
 --- linux-2.6.0-test4.orig/arch/i386/kernel/mpparse.c	2003-08-23 00:53:52.000000000 +0100
@@ -1760,8 +1784,41 @@ Content-Disposition: attachment;
  		acpi_pci_irq_enable(dev);
  
 --- linux-2.6.0-test4.orig/drivers/acpi/pci_link.c	2003-08-23 00:52:08.000000000 +0100
-+++ linux-2.6.0-test4/drivers/acpi/pci_link.c	2003-09-04 02:56:52.885655912 +0100
-@@ -294,6 +294,7 @@
++++ linux-2.6.0-test4/drivers/acpi/pci_link.c	2003-09-04 03:29:09.529241336 +0100
+@@ -281,6 +281,32 @@
+ 
+ 
+ static int
++acpi_pci_link_try_get_current (
++	struct acpi_pci_link *link,
++	int irq)
++{
++	int result;
++
++	ACPI_FUNCTION_TRACE("acpi_pci_link_try_get_current");
++   
++	result = acpi_pci_link_get_current(link);
++	if (result && link->irq.active) 
++	{
++		return_VALUE(result);
++	}
++
++	if (!link->irq.active) 
++	{
++		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "No active IRQ resource found\n"));
++		printk(KERN_WARNING "_CRS returns NULL! Using IRQ %d for device (%s [%s]).\n", irq, acpi_device_name(link->device), acpi_device_bid(link->device));
++		link->irq.active = irq;
++	}
++   
++	return 0;
++}
++
++
++static int
+ acpi_pci_link_set (
+ 	struct acpi_pci_link	*link,
+ 	int			irq)
+@@ -294,6 +320,7 @@
  	struct acpi_buffer	buffer = {sizeof(resource)+1, &resource};
  	int			i = 0;
  	int			valid = 0;
@@ -1769,7 +1826,7 @@ Content-Disposition: attachment;
  
  	ACPI_FUNCTION_TRACE("acpi_pci_link_set");
  
-@@ -317,20 +318,32 @@
+@@ -317,20 +344,32 @@
  		}
  	}
  
@@ -1805,7 +1862,7 @@ Content-Disposition: attachment;
  		resource.res.id = ACPI_RSTYPE_EXT_IRQ;
  		resource.res.length = sizeof(struct acpi_resource);
  		resource.res.data.extended_irq.producer_consumer = ACPI_CONSUMER;
-@@ -339,11 +352,21 @@
+@@ -339,11 +378,21 @@
  		resource.res.data.extended_irq.number_of_interrupts = 1;
  		resource.res.data.extended_irq.interrupts[0] = irq;
  		/* ignore resource_source, it's optional */
@@ -1827,21 +1884,16 @@ Content-Disposition: attachment;
  	if (ACPI_FAILURE(status)) {
  		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Error evaluating _SRS\n"));
  		return_VALUE(-ENODEV);
-@@ -366,7 +389,12 @@
+@@ -361,7 +410,7 @@
+ 	}
+ 
+ 	/* Make sure the active IRQ is the one we requested. */
+-	result = acpi_pci_link_get_current(link);
++	result = acpi_pci_link_try_get_current(link, irq);
+ 	if (result) {
  		return_VALUE(result);
  	}
-    
--	if (link->irq.active != irq) {
-+	/* If the active IRQ is was set to 0 by _CRS, pretend everything worked 
-+	 * correctly. It is likely the BIOS doesn't really support setting the 
-+	 * IRQ, and has been hardcoded to return 0 always */
-+	if (link->irq.active == 0) {
-+		link->irq.active = irq;
-+	} else if (link->irq.active != irq) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, 
- 			"Attempt to enable at IRQ %d resulted in IRQ %d\n", 
- 			irq, link->irq.active));
-@@ -401,23 +429,26 @@
+@@ -401,23 +450,26 @@
   * as 'best bets' for PCI use.
   */
  
@@ -1871,7 +1923,7 @@ Content-Disposition: attachment;
  	/*
  	 * Update penalties to facilitate IRQ balancing.
  	 */
-@@ -428,6 +459,7 @@
+@@ -428,6 +480,7 @@
  			ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid link context\n"));
  			continue;
  		}
@@ -1879,7 +1931,7 @@ Content-Disposition: attachment;
  
  		if (link->irq.active)
  			acpi_irq_penalty[link->irq.active] += 100;
-@@ -458,18 +490,18 @@
+@@ -458,18 +511,18 @@
  		irq = link->irq.possible[0];
  	}
  
@@ -1907,6 +1959,17 @@ Content-Disposition: attachment;
  			acpi_device_name(link->device),
  			acpi_device_bid(link->device));
  		return_VALUE(-ENODEV);
+@@ -575,10 +628,6 @@
+ 		else
+ 			printk(" %d", link->irq.possible[i]);
+ 	}
+-	if (!link->irq.active)
+-		printk(", disabled");
+-	else if (!found)
+-		printk(", enabled at IRQ %d", link->irq.active);
+ 	printk(")\n");
+ 
+ 	/* TBD: Acquire/release lock */
 --- linux-2.6.0-test4.orig/drivers/acpi/bus.c	2003-08-23 00:57:08.000000000 +0100
 +++ linux-2.6.0-test4/drivers/acpi/bus.c	2003-08-30 23:23:08.000000000 +0100
 @@ -536,7 +536,7 @@
@@ -1970,7 +2033,7 @@ Content-Disposition: attachment;
  
  #endif /*__ACPI_BUS_H__*/
 
---Boundary-00=_F/pV/pgVBakFJmm--
+--Boundary-00=_nPqV/Z+4h94t9nl--
 
 
 
