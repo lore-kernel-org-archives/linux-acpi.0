@@ -1,15 +1,11 @@
-From: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] Change spinlock mutex to semaphor in ec.c
-Date: Fri, 4 Feb 2005 08:53:40 -0500
-Message-ID: <d120d50005020405534e49dad3@mail.gmail.com>
-References: <3ACA40606221794F80A5670F0AF15F84041AC120@pdsmsx403>
-	 <200502040150.25175.dtor_core@ameritech.net>
-	 <42036527.4030807@bartol.udel.edu>
-Reply-To: dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org
+From: Jeremy Moles <jeremy-9vekgGPT+OA7YuNMryXyOw@public.gmane.org>
+Subject: General Questions:
+Date: Fri, 04 Feb 2005 07:32:34 -0500
+Message-ID: <1107520354.4248.16.camel@localhost>
+Reply-To: jeremy-9vekgGPT+OA7YuNMryXyOw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <42036527.4030807-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,38 +15,42 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
-Cc: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 04 Feb 2005 07:05:59 -0500, Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org> wrote:
-> Dmitry Torokhov wrote:
-> > On Friday 04 February 2005 01:31, Yu, Luming wrote:
-> >
-> >>I have patch set for this issue filed at
-> >> http://bugzilla.kernel.org/show_bug.cgi?id=3851#c28 .
-> >>
-> >>The first patch is from you.
-> >>
-> >
-> >
-> > Oh, I see... this is a newer version though, simplified a bit (I think).
-> >
-> 
-> Hi Dmitry & Luming --
-> 
-> I'm glad to see that better minds than mine have been working on this
-> problem!
-> 
-> However, I can't get either of the patches on the above Bugzilla page to
-> apply cleanly to 2.6.10. Are there any up-to-date versions of the patch?
-> 
+Hello again ACPI gurus! Many thanks for the last tip; I was able to
+decompile and "fix" the DSDT rather easily using the advice from your
+responses.
 
-The patch I sent in e-mail is against post 2.6.11-rc2 pull from Linus
-tree. Not sure if it will apply to 2.6.10 though.
+I have a few questions about batteries:
+
+I was looking around the battery driver code last night trying to find
+out what the battery "alarm" actually does. Unfortuneately (and I only
+spent a few minutes looking), I wasn't able to easily see what the
+function of this feature was. I guess my first question is: does it do
+anything at all? :)
+
+Secondly, would it be beyond of the scope of ACPI for the battery driver
+to generate ACPI events when the power gets low? Or is there already
+something like this that exists that I'm missing? I tried
+watching /proc/acpi/event last as my battery discharged and didn't see
+any unusual activity.
+
+Thirdly, does the kernel have access to the LED lights on a typical
+laptop? That is, does it have the ability to ping the LED and make it
+light up? Or, is that something controlled entirely by hardware? It
+would be rather neat, I think, to use my "bluetooth" LED (since I don't
+have bluetooth) in an arbitrary way.
+
+Anyways. :)
 
 -- 
-Dmitry
+Jeremy L. Moles
+EmperorLinux
+1-888-651-66
+www.EmperorLinux.com
+jeremy-LdSqz1EEwCk7YuNMryXyOw@public.gmane.org
+
 
 
 -------------------------------------------------------
