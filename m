@@ -1,15 +1,14 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Re: [PATCHES] add _CST support
-Date: 23 Dec 2004 00:30:55 -0500
-Message-ID: <1103779855.2577.76.camel@d845pe>
-References: <20041127215118.GA30309@dominikbrodowski.de>
-	 <1103698332.17318.170.camel@d845pe> <1103747852.17331.237.camel@d845pe>
-	 <20041223001830.GC8289@dominikbrodowski.de>
+From: Nico Schottelius <nico-linux-acpi-xuaVFQXs+5hIG4jRRZ66WA@public.gmane.org>
+Subject: [BUG 3876] pdc202xx_new/ACPI: new data
+Date: Thu, 23 Dec 2004 12:47:47 +0100
+Message-ID: <20041223114747.GA22731@schottelius.org>
+References: <20041205211754.GB7695@schottelius.org> <1102286168.2308.13.camel@d845pe> <20041215082732.GA2273@schottelius.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="AqsLC8rIMeq19msA"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041223001830.GC8289-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20041215082732.GA2273-xuaVFQXs+5hIG4jRRZ66WA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,68 +18,58 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2004-12-22 at 19:18, Dominik Brodowski wrote:
-> On Wed, Dec 22, 2004 at 03:37:32PM -0500, Len Brown wrote:
-> > I removed the D600 from the port replicator, and now
-> > it is able to run in C4 w/o any hacks:
-> Glad to hear that. Was the port replicator causing some sort of
-> periodic bus master activity which keeps it out of getting to C4
-> sleep?
 
-Yes, bus-master activity went from always on to sometimes on.
-Maybe there is a USB hub in the port replicator...
+--AqsLC8rIMeq19msA
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> 
-> > So a list of things we need comes to mind:
-> - wait and see if issues appear with the split-up and _CST addition
+Hello again!
 
-I'll push this into 2.6.11 as soon as it opens up,
-so it should get broad exposure quite quickly, and quite
-early in the release cycle.
+I updated the information for this problem on
 
-> - > Enable > C1 on SMP
-> ... this I'd like to delay a short bit until we make the idle state
-> algorithm a bit smarter.
+http://schotteli.us/~nico/linux/acpi/pdc202xx/
 
-Bob and Venki prototyped updated algorithms a while back.
-I'm hopeful that they can port that work to the new code
-and it can make early 2.6.11 also.
+(also uploaded to bugzilla).
 
-> - > max_cstate able to disable C4 w/o disabling C3
-> ... see other post, suggesting max_idle_state instead
-> - > "nocst" flag to compare FADT method w/ _CST
-> - > bm_check code fix -- currently has no clue of HZ
->  >      a 100HZ kernel gets into C4 less than
->  >      a 1000HZ kernel, likely because of this.
-> ... Yes, this is a bug IMHO.
+Perhaps now we can determine the problem more exact.
 
-I think the bug is that our sampling of BM activity ages
-10x faster in the 1000HZ case.
+Greetings,
 
->  Also, if the idle loop hasn't been entered for one
-> (or two? or hundred?) ticks, I think it should re-start at C1-type
-> sleep.
+Nico
 
-Agreed.  The current promote/demote code looks at idleness when it
-should look at busy-ness and system load.
+--=20
+Keep it simple & stupid, use what's available.
+Please use pgp encryption: 8D0E 27A4 is my id.
+http://nico.schotteli.us | http://linux.schottelius.org
 
-> - > tick-less idle loop
-> - _CSD support (depends on _OSC/_PDC framework)
+--AqsLC8rIMeq19msA
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-We need to handle SMP C-states even if the system doesn't
-supply us with _CSD.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
 
-cheers,
--Len
+iQIVAwUBQcqwYbOTBMvCUbrlAQKYAQ/+Pi+xyLKTfC9qpoBHYlGyfqTnezghrZBl
+TemnKclAR+e0oDXWfS7weG4egeP+YwzMZPHR1X24vA3rJ1XFsOcGCxegxR5Jrcu2
+uTcAjD0Mim0nyc+4FAyWjQc2YnILvBuS5TzUUQxHq4hHHKTmv9JZnOYkqXewWZfE
+gOvFB9D4X0ByxKMIQ2Je6IcEzXVD0xpp1gDNrglpV5Yj6Mt5neSVk0UtISCtm5hl
+H95T9qfilKBIqLGCQBWYdQ5COjz+w2xm0LtTE7FEdsrydMTuaClTkzmI+E7mb9h+
+FKAXMqdJTkO4688gZemgVRInZPh0QLcHmFhCZaY9QnDbNG+TUU8s5OkefGZ4E8sm
+eb/IN7mqJVo2VUyyZJofygV+YoBpZi8OtZcufu6VTystEL7AMM8rXL52wStwB5Xy
+dg5zRrWHDpQwfE2cODys4eZKef1Tf3zmoXTJuut1qv/O+Al5BcwJNj+WbUPj8O7b
+6J+Mvz71QH4qsT2W5AaunwRqv/ggKxZf9UgVU193e+WLAlmaiOgWpDorc8lZStVA
+EBkXp+vs3oo7rtW2z5pKXFx0HKhwfzgg5PF6U4cErmvUzBD1cg68epf5lZaiuJaA
+l4gmndOaNw3asHzML0fkCJdpSJab2a/4bYGhsHc+6ZjcZn2Fnxw1WpC8NtXO890/
+Pl7ZppLvAKM=
+=FN2M
+-----END PGP SIGNATURE-----
 
-
-
-
-
+--AqsLC8rIMeq19msA--
 
 
 -------------------------------------------------------
