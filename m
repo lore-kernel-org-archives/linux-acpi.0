@@ -1,15 +1,14 @@
-From: Tim Dijkstra <newsuser-TpnWJeB+oO0hKRfeEwdQzg@public.gmane.org>
-Subject: Re: Re: Should battery generate events?
-Date: Tue, 12 Oct 2004 20:20:10 +0200
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: smpenum patch updated (20041012)
+Date: Tue, 12 Oct 2004 11:40:33 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041012202010.750c98b4@commensaal.drs.p>
-References: <20041004232557.6c342288@commensaal.drs.p>
-	<20041008161046.GC10581@message-id.gmane0305.slipkontur.de>
+Message-ID: <F760B14C9561B941B89469F59BA3A84707CB67B3@orsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041008161046.GC10581-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -21,36 +20,24 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 8 Oct 2004 18:10:46 +0200
-Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org> wrote:
+<http://kernel.org/pub/linux/kernel/people/grover/smp-20041012-2.6.9-rc4
+.diff.bz2>
 
-> On Mon, Oct 04, 2004 at 11:25:57PM +0200, Tim Dijkstra wrote:
->  
-> > I would want to avoid this happening again. Ideally I would want my
-> > laptop to "shutdown -h now" if battery power is to low (well rather
-> > have it go to S3 or softwaresuspend, but it seems hopeless to get
-> > that to work :(  
-> 
-> Well, there are user space tools that will do this for you.
-> SUSE provides powersaved which will poll your battery if it doesn't
-> support events and take apropriate action (default is shutdown if
-> battery is <2%). It is also caching the data so that your battery
-> applet does not have to poll the battery by itself (which is
-> ridiculously expensive on many machines) but it only has to ask
-> powersaved.
+This patch separates MPS and ACPI-specific code used during SMP init.
 
-I could not find a lot about it on the web, then downloaded the src rpm
-from suse. Looks interesting ... I do not use suse myself but maybe I
-can get (parts of it) to work on my system.
+I've updated it to 2.6.9-rc4 and also made the following changes:
 
-> Regarding suwsusp: this should work on most i386 machines out of the
-> box with upcoming SUSE 9.2.
+- Fix the case when neither MPS or ACPI is present. (thx to Stian
+Jordet)
+- Still non-smpenum on x86_64, but fix build errors. (thx to Len Brown)
 
-I find that a bold statement if I look at the number of posts to this
-and the swsusp2 list in which people tell they can't get suspend to
-work. 
+Remaining issues:
 
-grts Tim
+- es7000 subarch doesn't compile due to an mp_irqs dependency.
+- It would be nice if Kconfig could ensure an SMP kernel has either MPS
+or ACPI enabled.
+
+Thanks -- Regards -- Andy
 
 
 -------------------------------------------------------
