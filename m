@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: FW: ACPI breakage in 2.6.2-rc3 (and before)
-Date: Tue, 3 Feb 2004 16:19:50 +0800
+Subject: RE: S3 on a Compaq Evo N610c
+Date: Tue, 3 Feb 2004 15:44:41 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB671@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB66E@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,12 +17,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Nakajima, Jun" <jun.nakajima-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Gabe Sibley <gsibley-DG7SOAwx7rg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> System is a Dell Inspiron 8600.
+>   anyone else see anything like this before?
 >=20
-See http://bugzilla.kernel.org/show_bug.cgi?id=3D1766
+
+I did remember there are several laptops unable to resume from S3.
+And have to take the battery out to reset it. Any conclusion?
+
+I believe any file system issues you mentioned above is caused=20
+by abnormal shutdown.
+
+> On another note, has anywone gotten acpi to *really* work on=20
+> the n610c???
+
+I have the same question for ASUS M2400..
 
 
 -------------------------------------------------------
