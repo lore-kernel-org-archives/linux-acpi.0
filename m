@@ -1,14 +1,13 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: posible bug 2.6.9: allow config to specify custom DSDT (Ulf Dambacher)
-Date: Thu, 21 Oct 2004 22:37:59 -0400
+From: "Elvin Choi" <elvin.choi_np-4hJi8j2Fm/M@public.gmane.org>
+Subject: Order Rolex or other Swiss watches online
+Date: Fri, 22 Oct 2004 02:17:22 -0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3001C104A9@hdsmsx401.amr.corp.intel.com>
+Message-ID: <782e01c4b7e5$e9315d3d$bd29faef@tega.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,33 +16,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: brian-/bzczjCP1d2sTnJN9+BGXg@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Note that CONFIG_ACPI_CUSTOM_DSDT depends on
-CONFIG_STANDALONE=3Dn
+Heya,
 
-The reason is that otherwise the allmodconfig and allyesconfig builds
-break.
+Do you want a rolex watch?
 
-thanks,
--Len
-=20
+In our online store you can buy replicas of Rolex watches. They look
+and feel exactly like the real thing.
 
->-----Original Message-----
->From: Brian Pritchard [mailto:brian-/bzczjCP1d2sTnJN9+BGXg@public.gmane.org]=20
->Sent: Wednesday, October 20, 2004 5:21 PM
->To: Brown, Len
->Subject: posible bug 2.6.9: [ACPI] allow config to specify=20
->custom DSDT (Ulf Dambacher)
->
->Hi,
->in the change log:
->[ACPI] allow config to specify custom DSDT (Ulf Dambacher)
->
->but i can't seem to find this option
->
+- We have 20+ different brands in our selection
+- Free shipping if you order 5 or more
+- Save up to 40% compared to the cost of other replicas
+- Standard Features:
+ - Screw-in crown
+ - Unidirectional turning bezel where appropriate
+ - All the appropriate rolex logos, on crown and dial
+ - Heavy weight
+
+Visit us: http://www.toels.com/replica/rolex/
+
+Best regards,
+Hilton Jones
+
+
+No thanks: http://toels.com/z.php
+
 
 
 -------------------------------------------------------
