@@ -1,8 +1,8 @@
 From: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>
 Subject: Re: [ACPI] Re: 1.1-rc9 acpi_disabled==0x30 on resume
-Date: Sat, 27 Sep 2003 12:16:54 +1200
+Date: Sat, 27 Sep 2003 12:22:26 +1200
 Sender: swsusp-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1064621813.3322.0.camel@laptop-linux>
+Message-ID: <1064622146.3322.2.camel@laptop-linux>
 References: <200309270135.43786.mhf@linuxmail.org>
  <1064606502.5722.2.camel@laptop-linux> <20030927000908.GB8008@hell.org.pl>
 Mime-Version: 1.0
@@ -22,12 +22,9 @@ To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Cc: Michael Frank <mhf-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>, swsusp-devel <swsusp-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Ah. Ok. I was looking at 2.4.22, not my bk tree. Michael, what are you
-running?
+Yes, it is in BK.
 
-Regards.
-
-Nigel
+N.
 
 On Sat, 2003-09-27 at 12:09, Karol Kozimor wrote:
 > Thus wrote Nigel Cunningham:
