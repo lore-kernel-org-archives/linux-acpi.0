@@ -1,11 +1,14 @@
-From: root <ole.rohne-vJEk5272eHo@public.gmane.org>
-Subject: Patch: PCI device RESUME_POWER_ON handler
-Date: 12 Mar 2003 17:33:26 +0100
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: hp xt1260; upgraded bios to 1.05, now no backlight w/batteries
+Date: Mon, 10 Mar 2003 13:06:17 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1y1c35pl.fsf@pcpenn04.cern.ch>
+Message-ID: <20030310120617.GA4471@zaurus.ucw.cz>
+References: <200303051956.h25Ju2N04777@p2.parker.boston.ma.us>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <200303051956.h25Ju2N04777-paYRYfI9b/YMuHHiPFXXZ1fOaUvyCJUZ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,49 +17,30 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Brad Parker <brad-2nKKSigPee+ibv+y4V69FXNtEUiqdi9I@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-The appended patch allows pci-devices to register a handler for
-RESUME_POWER_ON, to be called during S2/S3 resume *before* interrupts
-are enabled. This is necessary eg to revive the Radeon M6 graphics
-adapter on the Fujitsu P2120. (This is not all there is to getting the
-P2120 video to work after resume...)
+Hi!
 
-Now, how can I do the corresponding thing with the keyboard and mouse?
-I don't see any pm related hooks in serio...
+> If I boot the bios upgrade disk and flash the bios, the problem goes
+> away.  Everything works as expected.
+> 
+> I then run linux (2.4.21-pre3-acpi-20030125-swsusp18).  It boots and
+> works fine.  I poweroff and reboot and the problem reoccurs.  Several
+> seconds after the bios comes up, before grub, the backlight shuts off.
+> Pressing the lid button restores the light for a few seconds.  If I
+> plug in the ac and press the lid button is comes back on and stays on.
 
-Ole
-
-diff -Nru -X dontdiff linux-2.5.64/drivers/pci/pci-driver.c linux-p2120/drivers/pci/pci-driver.c
---- linux-2.5.64/drivers/pci/pci-driver.c	2003-03-05 04:29:31.000000000 +0100
-+++ linux-p2120/drivers/pci/pci-driver.c	2003-03-07 10:29:07.000000000 +0100
-@@ -91,11 +91,9 @@
- 	struct pci_dev * pci_dev = to_pci_dev(dev);
- 
- 	if (pci_dev->driver) {
--		/* We may not call PCI drivers resume at
--		   RESUME_POWER_ON because interrupts are not yet
--		   working at that point. Calling resume at
--		   RESUME_RESTORE_STATE seems like solution. */
--		if (level == RESUME_RESTORE_STATE && pci_dev->driver->resume)
-+	        if (level == RESUME_POWER_ON && pci_dev->driver->power_on)
-+			pci_dev->driver->power_on(pci_dev);
-+		else if (level == RESUME_RESTORE_STATE && pci_dev->driver->resume)
- 			pci_dev->driver->resume(pci_dev);
- 	}
- 	return 0;
-diff -Nru -X dontdiff linux-2.5.64/include/linux/pci.h linux-p2120/include/linux/pci.h
---- linux-2.5.64/include/linux/pci.h	2003-03-05 04:29:18.000000000 +0100
-+++ linux-p2120/include/linux/pci.h	2003-03-07 10:29:07.000000000 +0100
-@@ -499,6 +499,7 @@
- 	void (*remove) (struct pci_dev *dev);	/* Device removed (NULL if not a hot-plug capable driver) */
- 	int  (*save_state) (struct pci_dev *dev, u32 state);    /* Save Device Context */
- 	int  (*suspend) (struct pci_dev *dev, u32 state);	/* Device suspended */
-+	int  (*power_on) (struct pci_dev *dev);	                /* Device power on */
- 	int  (*resume) (struct pci_dev *dev);	                /* Device woken up */
- 	int  (*enable_wake) (struct pci_dev *dev, u32 state, int enable);   /* Enable wake event */
- 
+I'd complain to HP. I seen a lot of braindamaged
+notebooks, but so far removing battery
+always did the trick.
+				Pavel,
+who remembers good old days when
+reset *did* reset.
+-- 
+				Pavel
+Written on sharp zaurus, because my Velo1 broke. If you have Velo you don't need...
 
 
 
