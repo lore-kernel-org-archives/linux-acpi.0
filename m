@@ -1,14 +1,11 @@
-From: Alimin Bijosono Oei <alimin-rdE3vRTOlSC6c6uEtOJ/EA@public.gmane.org>
-Subject: Re: dsdt patch
-Date: Wed, 04 Feb 2004 01:58:46 +1100
+From: Design Patterns Source reflector <dpsrc-Tmj1lob9twqVc3sceRu5cw@public.gmane.org>
+Subject: Re:
+Date: Tue, 3 Feb 2004 23:04:56 -0600 (CST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <401FB726.1080105@ihug.com.au>
-References: <401CCB50.6010003@ihug.com.au> <20040202084457.GC8164@fuchi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Message-ID: <200402040504.XAA03056@chip.cs.uiuc.edu>
+References: <200402040504.i1454nSA026612@dcs-server4.cs.uiuc.edu>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040202084457.GC8164-5sK/Rx+du8M@public.gmane.org>
+In-Reply-To: <200402040504.i1454nSA026612-X7uhcDA/9l0r6e4dAyNacUYNSvWw4lR0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,42 +14,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Sebastian Henschel wrote:
-> hello alimin..
-> 
-> * Alimin Bijosono Oei <alimin-rdE3vRTOlSC6c6uEtOJ/EA@public.gmane.org> [2004-02-02 09:12 +0100]:
-> 
->>Just want to ask where can I find a patch that will allow me to use my 
->>own dsdt for kernel 2.4.24? Is there such a patch flying around or is 
->>the kernel itself patched to allow implementation of custom dsdt table?
->>I am sorry if this is the wrong place to ask such a question but I could 
->>not find a mailing list for dsdt itself. I would very much appreciate if 
->>someone can point me to the right direction.
-> 
-> 
-> you might try this:
-> 
-> http://gaugusch.at/kernel.shtml
-> 
-> also dino klein has announced a more generic patch last week or so,
-> check the archives for that version.
-> 
-> hth,
->  sebastian
+To get the source for the Design Patterns book, please send
+a message with "send design pattern source" as the subject.
+If you want a version that is zipped (instead of tarred),
+please use "send zipped" as the subject.  If you want a version
+in German, send "send German design pattern source" as the subject.
 
-Thanks Sebastian. I feel a bit lost after consulting the more generic 
-patch you suggested before. Yes, at the moment I have two choices, one 
-is to use the initrd patch as you pointed out and the other one is to 
-patch osl.c and compile the custom dsdt into the kernel. I just want to 
-know if there is a patch to osl.c for kernel 2.4.24 made available? If 
-there isn't one, then I can always use the initrd patch which I am using 
-at the moment. I am not sure which method is the best though.
+You can also try ftp to st.cs.uiuc.edu in /pub/patterns/dpcat,
+or look at the patterns home page
+(http://st-www.cs.uiuc.edu/patterns/patterns.html)
 
+If you can't get ANYTHING to work, complain to johnson-Tmj1lob9twqeodoxqx+5/w@public.gmane.org
 
+Thanks!
+The source server.
 
 
 -------------------------------------------------------
