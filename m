@@ -1,7 +1,7 @@
 From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 08/12] Fix an issue in ACPI processor and container drivers related  with kobject_hotplug()
-Date: Wed, 23 Feb 2005 01:53:06 -0800
-Message-ID: <200502230953.j1N9rLEx020711@shell0.pdx.osdl.net>
+Subject: [patch 10/12] acpi_power_off bug fix
+Date: Wed, 23 Feb 2005 01:53:09 -0800
+Message-ID: <200502230953.j1N9rNKX020717@shell0.pdx.osdl.net>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -12,81 +12,103 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, marado-oe7qfRrRQfcmha6Ds7sm0l6hYfS7NtTn@public.gmane.org, barryn-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-From: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+From: "Marcos D. Marado Torres" <marado-oe7qfRrRQfcmha6Ds7sm0l6hYfS7NtTn@public.gmane.org>
 
-This is to fix an issue around kobject_hotplug() used in ACPI processor and
-container drivers.  A while ago, the drivers used their own function
-'processor_run_sbin_hotplug() and container_run_sbin_hotplug()' to notify
-the agent script using /sbin/hotplug mechanism.  But, they were changed to
-use kobject_hotplug() instead and this has caused a side effect.
+From: "Barry K. Nathan" <barryn-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>
 
-The container driver was supposed to invoke a container.agent (user mode
-agent script) using /sbin/hotplug mechanism, but after the changes, it is
-not able to call the agent any more and kobject_hotplug() in the
-container.c became to invoke a namespace.agent instead if exists.  So, I
-would like to use the namespace.agent to handle container hotplug event (or
-something else) and let the agent to call proper agent (e.g. 
-container.agent).  But, there is an issue we need to solve.  When the
-namespace.agent is called, a path name of associated kobject is passed as a
-DEVPATH (e.g./sys/firmware/ acpi/namespace/ACPI/_SB/DEV0).  However, the
-agent would not know what device is associated with the DEVPATH nor which
-agents to call since the DEVPATH name depends on platform.  The attached
-patch is to add .hotplug_ops member to acpi_namespace_kset structure and
-let it to set a driver name attached to the target kobject into the envp[]
-variable as a DRV_NAME element.  With this, the namespace.agent can call
-proper agents (e.g.  container.agent) by refering the DRV_NAME.
+On Tue, Feb 08, 2005 at 08:54:06PM -0800, Andrew Morton wrote:
+> "Marcos D. Marado Torres" <marado-oe7qfRrRQfcmha6Ds7sm0l6hYfS7NtTn@public.gmane.org> wrote:
+> >
+> > Please add to -mm the patch in attachment, since it solves the old
+> >  acpi_power_off bug...
+> 
+> What acpi_power_off bug?  And how does it solve it?
 
-Signed-off-by: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Here's the observed bug that the patch is trying to fix:
+http://bugme.osdl.org/show_bug.cgi?id=4041
+
+What Marcos posted is a typo-corrected version of Eric Biederman's
+patch:
+http://marc.theaimsgroup.com/?l=linux-kernel&m=110665542929525&w=2
+
+In Eric's own words, the patch "needs some work before it goes into a
+mainline kernel". AFAICT it's more of a proof-of-concept, just to see if
+Eric's on the right track...
+
+This is the motivation behind the patch:
+http://marc.theaimsgroup.com/?l=linux-kernel&m=110665405402747&w=2
+
+
 Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 ---
 
- 25-akpm/drivers/acpi/scan.c |   25 +++++++++++++++++++++++++
- 1 files changed, 25 insertions(+)
+ 25-akpm/drivers/acpi/sleep/poweroff.c |   23 +++++++++++++++++++++--
+ 25-akpm/drivers/base/power/shutdown.c |    7 +++++++
+ 2 files changed, 28 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/scan.c~fix-an-issue-in-acpi-processor-and-container-drivers-related-with-kobject_hotplug drivers/acpi/scan.c
---- 25/drivers/acpi/scan.c~fix-an-issue-in-acpi-processor-and-container-drivers-related-with-kobject_hotplug	2005-02-23 01:48:05.000000000 -0800
-+++ 25-akpm/drivers/acpi/scan.c	2005-02-23 01:48:05.000000000 -0800
-@@ -81,12 +81,37 @@ static struct kobj_type ktype_acpi_ns = 
- 	.release	= acpi_device_release,
- };
+diff -puN drivers/acpi/sleep/poweroff.c~acpi_power_off-bug-fix drivers/acpi/sleep/poweroff.c
+--- 25/drivers/acpi/sleep/poweroff.c~acpi_power_off-bug-fix	2005-02-23 01:48:08.000000000 -0800
++++ 25-akpm/drivers/acpi/sleep/poweroff.c	2005-02-23 01:48:08.000000000 -0800
+@@ -7,18 +7,37 @@
  
-+static int namespace_hotplug(struct kset *kset, struct kobject *kobj,
-+			     char **envp, int num_envp, char *buffer,
-+			     int buffer_size)
+ #include <linux/pm.h>
+ #include <linux/init.h>
++#include <linux/kernel.h>
+ #include <acpi/acpi_bus.h>
+ #include <linux/sched.h>
+ #include "sleep.h"
+ 
+ static void
++acpi_power_off_prepare(void)
 +{
-+	struct acpi_device *dev = to_acpi_device(kobj);
-+	int i = 0;
-+	int len = 0;
-+
-+	if (!dev->driver)
-+		return 0;
-+
-+	if (add_hotplug_env_var(envp, num_envp, &i, buffer, buffer_size, &len,
-+				"PHYSDEVDRIVER=%s", dev->driver->name))
-+		return -ENOMEM;
-+
-+	envp[i] = NULL;
-+
-+	return 0;
++       if (system_state == SYSTEM_POWER_OFF) {
++               acpi_wakeup_gpe_poweroff_prepare();
++               acpi_enter_sleep_state_prep(ACPI_STATE_S5);
++       }
 +}
 +
-+static struct kset_hotplug_ops namespace_hotplug_ops = {
-+	.hotplug = &namespace_hotplug,
-+};
++void
++do_acpi_power_off_prepare(void)
++{
++       if (!acpi_disabled) {
++               acpi_power_off_prepare();
++       }
++}
 +
- static struct kset acpi_namespace_kset = {
- 	.kobj		= { 
- 		.name = "namespace",
- 	},
- 	.subsys = &acpi_subsys,
- 	.ktype	= &ktype_acpi_ns,
-+	.hotplug_ops = &namespace_hotplug_ops,
- };
++
++static void
+ acpi_power_off (void)
+ {
+ 	printk("%s called\n",__FUNCTION__);
++#if 0	/* This should be made redundant by other patches.. */
+ 	/* Some SMP machines only can poweroff in boot CPU */
+ 	set_cpus_allowed(current, cpumask_of_cpu(0));
+-	acpi_wakeup_gpe_poweroff_prepare();
+-	acpi_enter_sleep_state_prep(ACPI_STATE_S5);
++#endif
+ 	ACPI_DISABLE_IRQS();
+ 	acpi_enter_sleep_state(ACPI_STATE_S5);
+ }
+diff -puN drivers/base/power/shutdown.c~acpi_power_off-bug-fix drivers/base/power/shutdown.c
+--- 25/drivers/base/power/shutdown.c~acpi_power_off-bug-fix	2005-02-23 01:48:08.000000000 -0800
++++ 25-akpm/drivers/base/power/shutdown.c	2005-02-23 01:48:08.000000000 -0800
+@@ -62,6 +62,13 @@ void device_shutdown(void)
+ 	}
+ 	up_write(&devices_subsys.rwsem);
  
++#ifdef CONFIG_ACPI
++	{
++		extern void do_acpi_power_off_prepare(void);
++		do_acpi_power_off_prepare();
++	}
++#endif
++
+ 	sysdev_shutdown();
+ }
  
 _
 
