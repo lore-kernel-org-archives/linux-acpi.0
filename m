@@ -1,10 +1,10 @@
-From: <mrfree-97W46K3QqA41GQ1Ptb7lUw@public.gmane.org>
-Subject: Re: Problem fixing DSDT (parse error)
-Date: Wed, 01 Dec 2004 09:53:59 +0100
-Message-ID: <web-25626849@infinito.it>
+From: Stas Sergeev <stsp-D1TkPCJej5s@public.gmane.org>
+Subject: Re: 2.6.10-rc2-mm4 - power-off doesnt work
+Date: Fri, 03 Dec 2004 22:13:46 +0300
+Message-ID: <41B0BAEA.4040708@aknet.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format="flowed"
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed;
+ boundary="------------060008040705080300000104"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -15,6959 +15,1772 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Cc: Linux kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 30 Nov 2004 17:12:08 +0100
-  Thomas Renninger <mail-smMupaH/RwJM7kwft8N7nw@public.gmane.org> wrote:
-
-> As far as I know this is how it should look like, 
->putting the IF statements into an _INI method (please 
->correct me if I am wrong):
-> 
-
-Thz,
-I've tryed your solution... when I've recompiled the dsl 
-file, iasl reported a parse error on another IF statement 
-and I've applyed the same solution to it; but now I obtain 
-a large number of error:
-dsdt.dsl.mrfree  2468: 
-                                    Store (0x1F, P378)
-Warning  2079 -                             Statement is 
-unreachable ^
-
-dsdt.dsl.mrfree  2473: 
-                                    Store (0x0F, P378)
-Warning  2079 -                             Statement is 
-unreachable ^
-
-dsdt.dsl.mrfree  2615:                 Scope (\_SB.PCI0)
-Warning  2031 -               Internal compiler error ^ 
- (Not using optimized name - did not find node)
-
-dsdt.dsl.mrfree  3014:     Method (_INI, 0, NotSerialized)
-Error    1034 -                       ^ Name already 
-exists in scope (_INI)
-
-dsdt.dsl.mrfree  3041:         Scope (PCI0)
-Error    1020 -                          ^ Object not 
-found or not accessible from scope (PCI0)
-
-dsdt.dsl.mrfree  3041:         Scope (PCI0)
-Error    1081 -                          ^ Forward 
-references from Scope() not allowed (PCI0)
-
-dsdt.dsl.mrfree  3043:             Name (CRS, 
-ResourceTemplate ()
-Error    1021 -                            ^ Object not 
-accessible from this scope (CRS_)
-
-And so on...
-
-This is my ORIGINAL dsdt file (without any patch):
-
-/*
-
-  * Intel ACPI Component Architecture
-
-  * AML Disassembler version 20040527
-
-  *
-
-  * Disassembly of dsdt.dat, Thu Nov 11 19:51:36 2004
-
-  */
-
-DefinitionBlock ("DSDT.aml", "DSDT", 1, "UW____", 
-"FSC_____", 22)
-
-{
-
-     OperationRegion (BIOS, SystemMemory, 0x1FFDF064, 
-0xFF)
-
-     Field (BIOS, ByteAcc, NoLock, Preserve)
-
-     {
-
-         SS1,    1,
-
-         SS2,    1,
-
-         SS3,    1,
-
-         SS4,    1,
-
-         Offset (0x01),
-
-         IOST,   16,
-
-         TOPM,   32,
-
-         ROMS,   32,
-
-         MG1B,   32,
-
-         MG1L,   32,
-
-         MG2B,   32,
-
-         MG2L,   32
-
-     }
-
-
-
-     Name (IO1B, 0x0680)
-
-     Name (IO1L, 0x80)
-
-     Name (PMBS, 0x0400)
-
-     Name (PMLN, 0x80)
-
-     Name (GPBS, 0x0500)
-
-     Name (GPLN, 0x40)
-
-     Name (SMBS, 0x0540)
-
-     Name (SMBL, 0x10)
-
-     Name (SPIO, 0x4E)
-
-     Name (APCB, 0xFEC00000)
-
-     Name (APCL, 0x1000)
-
-     Method (RRIO, 4, NotSerialized)
-
-     {
-
-         Store ("RRIO", Debug)
-
-     }
-
-
-
-     Method (RDMA, 3, NotSerialized)
-
-     {
-
-         Store ("rDMA", Debug)
-
-     }
-
-
-
-     Name (PICM, 0x00)
-
-     Method (_PIC, 1, NotSerialized)
-
-     {
-
-         If (Arg0)
-
-         {
-
-             Store (0xAA, DBG8)
-
-         }
-
-         Else
-
-         {
-
-             Store (0xAC, DBG8)
-
-         }
-
-
-
-         Store (Arg0, PICM)
-
-     }
-
-
-
-     Name (OSVR, Ones)
-
-     Method (OSFL, 0, NotSerialized)
-
-     {
-
-         If (LNot (LEqual (OSVR, Ones)))
-
-         {
-
-             Return (OSVR)
-
-         }
-
-
-
-         If (LEqual (PICM, 0x00))
-
-         {
-
-             Store (0xAC, DBG8)
-
-         }
-
-
-
-         Store (0x01, OSVR)
-
-         If (MCTH (\_OS, "Microsoft Windows NT"))
-
-         {
-
-             If (LEqual (OSVR, 0x01))
-
-             {
-
-                 If (CondRefOf (_OSI, Local0))
-
-                 {
-
-                     If (\_OSI ("Windows 2001"))
-
-                     {
-
-                         Store (0x04, OSVR)
-
-                     }
-
-                 }
-
-                 Else
-
-                 {
-
-                     Store (0x00, OSVR)
-
-                 }
-
-             }
-
-         }
-
-         Else
-
-         {
-
-             If (MCTH (\_OS, "Microsoft WindowsME: 
-Millennium Edition"))
-
-             {
-
-                 Store (0x02, OSVR)
-
-             }
-
-         }
-
-
-
-         Return (OSVR)
-
-     }
-
-
-
-     Method (MCTH, 2, NotSerialized)
-
-     {
-
-         If (LLess (SizeOf (Arg0), SizeOf (Arg1)))
-
-         {
-
-             Return (Zero)
-
-         }
-
-
-
-         Add (SizeOf (Arg0), 0x01, Local0)
-
-         Name (BUF0, Buffer (Local0) {})
-
-         Name (BUF1, Buffer (Local0) {})
-
-         Store (Arg0, BUF0)
-
-         Store (Arg1, BUF1)
-
-         While (Local0)
-
-         {
-
-             Decrement (Local0)
-
-             If (LNot (LEqual (DerefOf (Index (BUF0, 
-Local0)), DerefOf (Index (BUF1, Local0)))))
-
-             {
-
-                 Return (Zero)
-
-             }
-
-         }
-
-
-
-         Return (One)
-
-     }
-
-
-
-     Method (GPRW, 2, NotSerialized)
-
-     {
-
-         Name (PRWP, Package (0x02)
-
-         {
-
-             0x00,
-
-             0x00
-
-         })
-
-         Store (Arg0, Index (PRWP, 0x00))
-
-         Store (Arg1, Index (PRWP, 0x01))
-
-         Store (0x00, Local0)
-
-         Or (Local0, ShiftLeft (SS1, 0x01), Local0)
-
-         Or (Local0, ShiftLeft (SS2, 0x02), Local0)
-
-         Or (Local0, ShiftLeft (SS3, 0x03), Local0)
-
-         Or (Local0, ShiftLeft (SS4, 0x04), Local0)
-
-         If (And (ShiftLeft (0x01, Arg1), Local0)) {}
-
-         Else
-
-         {
-
-             ShiftRight (Local0, 0x01, Local0)
-
-             If (LOr (LEqual (OSFL (), 0x01), LEqual (OSFL 
-(), 0x02)))
-
-             {
-
-                 FindSetLeftBit (Local0, Index (PRWP, 
-0x01))
-
-             }
-
-             Else
-
-             {
-
-                 FindSetRightBit (Local0, Index (PRWP, 
-0x01))
-
-             }
-
-         }
-
-
-
-         Return (PRWP)
-
-     }
-
-
-
-     Name (WAKP, Package (0x02)
-
-     {
-
-         0x00,
-
-         0x00
-
-     })
-
-     OperationRegion (DEB0, SystemIO, 0x0378, 0x01)
-
-     Field (DEB0, ByteAcc, NoLock, Preserve)
-
-     {
-
-         DBG8,   8
-
-     }
-
-
-
-     OperationRegion (DEB1, SystemIO, 0x90, 0x02)
-
-     Field (DEB1, WordAcc, NoLock, Preserve)
-
-     {
-
-         DBG9,   16
-
-     }
-
-
-
-     Scope (\_PR)
-
-     {
-
-         Processor (CPU1, 0x01, 0x00000100, 0x06) {}
-
-         Processor (CPU2, 0x02, 0x00000100, 0x06) {}
-
-     }
-
-
-
-     Scope (\_SB)
-
-     {
-
-         Name (PR00, Package (0x08)
-
-         {
-
-             Package (0x04)
-
-             {
-
-                 0x0001FFFF,
-
-                 0x00,
-
-                 LNKA,
-
-                 0x00
-
-             },
-
-
-
-             Package (0x04)
-
-             {
-
-                 0x0001FFFF,
-
-                 0x01,
-
-                 LNKB,
-
-                 0x00
-
-             },
-
-
-
-             Package (0x04)
-
-             {
-
-                 0x001FFFFF,
-
-                 0x01,
-
-                 LNKB,
-
-                 0x00
-
-             },
-
-
-
-             Package (0x04)
-
-             {
-
-                 0x001FFFFF,
-
-                 0x00,
-
-                 LNKC,
-
-                 0x00
-
-             },
-
-
-
-             Package (0x04)
-
-             {
-
-                 0x001DFFFF,
-
-                 0x00,
-
-                 LNKA,
-
-                 0x00
-
-             },
-
-
-
-             Package (0x04)
-
-             {
-
-                 0x001DFFFF,
-
-                 0x01,
-
-                 LNKD,
-
-                 0x00
-
-             },
-
-
-
-             Package (0x04)
-
-             {
-
-                 0x001DFFFF,
-
-                 0x02,
-
-                 LNKC,
-
-                 0x00
-
-             },
-
-
-
-             Package (0x04)
-
-             {
-
-                 0x001DFFFF,
-
-                 0x03,
-
-                 LNKH,
-
-                 0x00
-
-             }
-
-         })
-
-         Name (AR00, Package (0x08)
-
-         {
-
-             Package (0x04)
-
-             {
-
-                 0x0001FFFF,
-
-                 0x00,
-
-                 0x00,
-
-                 0x10
-
-             },
-
-
-
-             Package (0x04)
-
-             {
-
-                 0x0001FFFF,
-
-                 0x01,
-
-                 0x00,
-
-                 0x11
-
-             },
-
-
-
-             Package (0x04)
-
-             {
-
-                 0x001FFFFF,
-
-                 0x01,
-
-                 0x00,
-
-                 0x11
-
-             },
-
-
-
-             Package (0x04)
-
-             {
-
-                 0x001FFFFF,
-
-                 0x00,
-
-                 0x00,
-
-                 0x12
-
-             },
-
-
-
-             Package (0x04)
-
-             {
-
-                 0x001DFFFF,
-
-                 0x00,
-
-                 0x00,
-
-                 0x10
-
-             },
-
-
-
-             Package (0x04)
-
-             {
-
-                 0x001DFFFF,
-
-                 0x01,
-
-                 0x00,
-
-                 0x13
-
-             },
-
-
-
-             Package (0x04)
-
-             {
-
-                 0x001DFFFF,
-
-                 0x02,
-
-                 0x00,
-
-                 0x12
-
-             },
-
-
-
-             Package (0x04)
-
-             {
-
-                 0x001DFFFF,
-
-                 0x03,
-
-                 0x00,
-
-                 0x17
-
-             }
-
-         })
-
-         Name (PR02, Package (0x03)
-
-         {
-
-             Package (0x04)
-
-             {
-
-                 0x0003FFFF,
-
-                 0x00,
-
-                 LNKB,
-
-                 0x00
-
-             },
-
-
-
-             Package (0x04)
-
-             {
-
-                 0x000CFFFF,
-
-                 0x00,
-
-                 LNKB,
-
-                 0x00
-
-             },
-
-
-
-             Package (0x04)
-
-             {
-
-                 0x000AFFFF,
-
-                 0x00,
-
-                 LNKC,
-
-                 0x00
-
-             }
-
-         })
-
-         Name (AR02, Package (0x03)
-
-         {
-
-             Package (0x04)
-
-             {
-
-                 0x0003FFFF,
-
-                 0x00,
-
-                 0x00,
-
-                 0x11
-
-             },
-
-
-
-             Package (0x04)
-
-             {
-
-                 0x000CFFFF,
-
-                 0x00,
-
-                 0x00,
-
-                 0x11
-
-             },
-
-
-
-             Package (0x04)
-
-             {
-
-                 0x000AFFFF,
-
-                 0x00,
-
-                 0x00,
-
-                 0x12
-
-             }
-
-         })
-
-         Name (PRSA, ResourceTemplate ()
-
-         {
-
-             IRQ (Level, ActiveLow, Shared) 
-{3,4,5,6,7,9,10,11,12,14,15}
-
-         })
-
-         Alias (PRSA, PRSB)
-
-         Alias (PRSA, PRSC)
-
-         Alias (PRSA, PRSD)
-
-         Alias (PRSA, PRSE)
-
-         Alias (PRSA, PRSF)
-
-         Alias (PRSA, PRSG)
-
-         Alias (PRSA, PRSH)
-
-         Device (PCI0)
-
-         {
-
-             Name (_HID, EisaId ("PNP0A03"))
-
-             Name (_ADR, 0x00)
-
-             Name (_BBN, 0x00)
-
-             Name (_UID, 0x00)
-
-             Method (_PRT, 0, NotSerialized)
-
-             {
-
-                 If (PICM)
-
-                 {
-
-                     Return (AR00)
-
-                 }
-
-
-
-                 Return (PR00)
-
-             }
-
-
-
-             Device (P0P2)
-
-             {
-
-                 Name (_ADR, 0x001E0000)
-
-                 Method (_PRW, 0, NotSerialized)
-
-                 {
-
-                     Return (GPRW (0x0B, 0x03))
-
-                 }
-
-
-
-                 Method (_PRT, 0, NotSerialized)
-
-                 {
-
-                     If (PICM)
-
-                     {
-
-                         Return (AR02)
-
-                     }
-
-
-
-                     Return (PR02)
-
-                 }
-
-
-
-                 Device (LAN1)
-
-                 {
-
-                     Name (_ADR, 0x000C0000)
-
-                     Method (_PRW, 0, NotSerialized)
-
-                     {
-
-                         Return (GPRW (0x0B, 0x03))
-
-                     }
-
-                 }
-
-             }
-
-
-
-             Device (MC97)
-
-             {
-
-                 Name (_ADR, 0x001F0006)
-
-                 Method (_PRW, 0, NotSerialized)
-
-                 {
-
-                     Return (GPRW (0x05, 0x03))
-
-                 }
-
-             }
-
-
-
-             Device (IDE0)
-
-             {
-
-                 Name (_ADR, 0x001F0001)
-
-                 Name (REGF, 0x01)
-
-                 Method (_REG, 2, NotSerialized)
-
-                 {
-
-                     If (LEqual (Arg0, 0x02))
-
-                     {
-
-                         Store (Arg1, REGF)
-
-                     }
-
-                 }
-
-
-
-                 OperationRegion (BAR0, PCI_Config, 0x00, 
-0x0100)
-
-                 Field (BAR0, DWordAcc, NoLock, Preserve)
-
-                 {
-
-                     Offset (0x40),
-
-                     TIMP,   16,
-
-                     TIMS,   16,
-
-                     STMP,   4,
-
-                     STMS,   4,
-
-                     Offset (0x48),
-
-                     UDMP,   2,
-
-                     UDMS,   2,
-
-                     Offset (0x4A),
-
-                     UDTP,   6,
-
-                     Offset (0x4B),
-
-                     UDTS,   6,
-
-                     Offset (0x54),
-
-                     PCB0,   2,
-
-                     SCB0,   2,
-
-                     PCA0,   2,
-
-                     SCA0,   2,
-
-                         ,   4,
-
-                     FPB0,   2,
-
-                     FSB0,   2
-
-                 }
-
-
-
-                 Name (TIM0, Package (0x09)
-
-                 {
-
-                     Package (0x04)
-
-                     {
-
-                         0x78,
-
-                         0xB4,
-
-                         0xF0,
-
-                         0x0384
-
-                     },
-
-
-
-                     Package (0x04)
-
-                     {
-
-                         0x23,
-
-                         0x21,
-
-                         0x10,
-
-                         0x00
-
-                     },
-
-
-
-                     Package (0x04)
-
-                     {
-
-                         0x0B,
-
-                         0x09,
-
-                         0x04,
-
-                         0x00
-
-                     },
-
-
-
-                     Package (0x06)
-
-                     {
-
-                         0x70,
-
-                         0x49,
-
-                         0x36,
-
-                         0x27,
-
-                         0x19,
-
-                         0x0F
-
-                     },
-
-
-
-                     Package (0x06)
-
-                     {
-
-                         0x00,
-
-                         0x01,
-
-                         0x02,
-
-                         0x01,
-
-                         0x02,
-
-                         0x01
-
-                     },
-
-
-
-                     Package (0x06)
-
-                     {
-
-                         0x00,
-
-                         0x00,
-
-                         0x00,
-
-                         0x01,
-
-                         0x01,
-
-                         0x01
-
-                     },
-
-
-
-                     Package (0x06)
-
-                     {
-
-                         0x00,
-
-                         0x00,
-
-                         0x00,
-
-                         0x00,
-
-                         0x00,
-
-                         0x01
-
-                     },
-
-
-
-                     Package (0x04)
-
-                     {
-
-                         0x04,
-
-                         0x03,
-
-                         0x02,
-
-                         0x00
-
-                     },
-
-
-
-                     Package (0x04)
-
-                     {
-
-                         0x02,
-
-                         0x01,
-
-                         0x00,
-
-                         0x00
-
-                     }
-
-                 })
-
-                 Name (TMD0, Buffer (0x14) {})
-
-                 CreateDWordField (TMD0, 0x00, PIO0)
-
-                 CreateDWordField (TMD0, 0x04, DMA0)
-
-                 CreateDWordField (TMD0, 0x08, PIO1)
-
-                 CreateDWordField (TMD0, 0x0C, DMA1)
-
-                 CreateDWordField (TMD0, 0x10, CHNF)
-
-                 Name (GTIM, 0x00)
-
-                 Name (GSTM, 0x00)
-
-                 Name (GUDM, 0x00)
-
-                 Name (GUDT, 0x00)
-
-                 Name (GCB0, 0x00)
-
-                 Name (GFB0, 0x00)
-
-                 Device (CHN0)
-
-                 {
-
-                     Name (_ADR, 0x00)
-
-                     Method (_GTM, 0, NotSerialized)
-
-                     {
-
-                         Return (GTM (TIMP, STMP, UDMP, 
-UDTP, PCB0, FPB0))
-
-                     }
-
-
-
-                     Method (_STM, 3, NotSerialized)
-
-                     {
-
-                         Store (Arg0, Debug)
-
-                         Store (Arg0, TMD0)
-
-                         Store (TIMP, GTIM)
-
-                         Store (UDTP, GUDT)
-
-                         If (STM ())
-
-                         {
-
-                             Store (GTIM, TIMP)
-
-                             Store (GSTM, STMP)
-
-                             Store (GUDM, UDMP)
-
-                             Store (GUDT, UDTP)
-
-                             Store (GCB0, PCB0)
-
-                             Store (GFB0, FPB0)
-
-                         }
-
-
-
-                         Store (GTF (0x00, Arg1), ATA0)
-
-                         Store (GTF (0x01, Arg2), ATA1)
-
-                     }
-
-
-
-                     Device (DRV0)
-
-                     {
-
-                         Name (_ADR, 0x00)
-
-                         Method (_GTF, 0, NotSerialized)
-
-                         {
-
-                             Return (RATA (ATA0))
-
-                         }
-
-                     }
-
-
-
-                     Device (DRV1)
-
-                     {
-
-                         Name (_ADR, 0x01)
-
-                         Method (_GTF, 0, NotSerialized)
-
-                         {
-
-                             Return (RATA (ATA1))
-
-                         }
-
-                     }
-
-                 }
-
-
-
-                 Device (CHN1)
-
-                 {
-
-                     Name (_ADR, 0x01)
-
-                     Method (_GTM, 0, NotSerialized)
-
-                     {
-
-                         Return (GTM (TIMS, STMS, UDMS, 
-UDTS, SCB0, FSB0))
-
-                     }
-
-
-
-                     Method (_STM, 3, NotSerialized)
-
-                     {
-
-                         Store (Arg0, Debug)
-
-                         Store (Arg0, TMD0)
-
-                         Store (TIMS, GTIM)
-
-                         Store (UDTS, GUDT)
-
-                         If (STM ())
-
-                         {
-
-                             Store (GTIM, TIMS)
-
-                             Store (GSTM, STMS)
-
-                             Store (GUDM, UDMS)
-
-                             Store (GUDT, UDTS)
-
-                             Store (GCB0, SCB0)
-
-                             Store (GFB0, FSB0)
-
-                         }
-
-
-
-                         Store (GTF (0x00, Arg1), ATA2)
-
-                         Store (GTF (0x01, Arg2), ATA3)
-
-                     }
-
-
-
-                     Device (DRV0)
-
-                     {
-
-                         Name (_ADR, 0x00)
-
-                         Method (_GTF, 0, NotSerialized)
-
-                         {
-
-                             Return (RATA (ATA2))
-
-                         }
-
-                     }
-
-
-
-                     Device (DRV1)
-
-                     {
-
-                         Name (_ADR, 0x01)
-
-                         Method (_GTF, 0, NotSerialized)
-
-                         {
-
-                             Return (RATA (ATA3))
-
-                         }
-
-                     }
-
-                 }
-
-
-
-                 Method (GTM, 6, Serialized)
-
-                 {
-
-                     Store (Ones, PIO0)
-
-                     Store (PIO0, PIO1)
-
-                     Store (PIO0, DMA0)
-
-                     Store (PIO0, DMA1)
-
-                     Store (Zero, CHNF)
-
-                     If (REGF) {}
-
-                     Else
-
-                     {
-
-                         Return (TMD0)
-
-                     }
-
-
-
-                     If (And (Arg0, 0x02))
-
-                     {
-
-                         Or (CHNF, 0x02, CHNF)
-
-                     }
-
-
-
-                     ShiftRight (And (Arg0, 0x3300), 0x08, 
-Local5)
-
-                     Store (Match (DerefOf (Index (TIM0, 
-0x01)), MLE, Local5, MTR, 0x00, 0x00), Local6)
-
-                     Store (DerefOf (Index (DerefOf (Index 
-(TIM0, 0x00)), Local6)), Local7)
-
-                     Store (Local7, DMA0)
-
-                     If (And (Arg0, 0x08))
-
-                     {
-
-                         Store (0x0384, PIO0)
-
-                     }
-
-                     Else
-
-                     {
-
-                         Store (Local7, PIO0)
-
-                     }
-
-
-
-                     If (And (Arg0, 0x20))
-
-                     {
-
-                         Or (CHNF, 0x08, CHNF)
-
-                     }
-
-
-
-                     If (And (Arg0, 0x4000))
-
-                     {
-
-                         Or (CHNF, 0x10, CHNF)
-
-                         Store (Match (DerefOf (Index 
-(TIM0, 0x02)), MLE, Arg1, MTR, 0x00, 0x00), Local5)
-
-                         Store (DerefOf (Index (DerefOf 
-(Index (TIM0, 0x00)), Local5)), Local6)
-
-                         Store (Local6, DMA1)
-
-                         If (And (Arg0, 0x80))
-
-                         {
-
-                             Store (0x0384, PIO1)
-
-                         }
-
-                         Else
-
-                         {
-
-                             Store (Local6, PIO1)
-
-                         }
-
-                     }
-
-
-
-                     If (And (Arg2, 0x01))
-
-                     {
-
-                         And (Arg3, 0x03, Local5)
-
-                         If (LAnd (And (Arg5, 0x01), 
-LEqual (Local5, 0x01)))
-
-                         {
-
-                             Add (Local5, 0x04, Local5)
-
-                         }
-
-                         Else
-
-                         {
-
-                             If (And (Arg4, 0x01))
-
-                             {
-
-                                 Add (Local5, 0x02, 
-Local5)
-
-                             }
-
-                         }
-
-
-
-                         Store (DerefOf (Index (DerefOf 
-(Index (TIM0, 0x03)), Local5)), DMA0)
-
-                         Or (CHNF, 0x01, CHNF)
-
-                     }
-
-
-
-                     If (And (Arg2, 0x02))
-
-                     {
-
-                         And (ShiftRight (Arg3, 0x04), 
-0x03, Local5)
-
-                         If (LAnd (And (Arg5, 0x02), 
-LEqual (Local5, 0x01)))
-
-                         {
-
-                             Add (Local5, 0x04, Local5)
-
-                         }
-
-                         Else
-
-                         {
-
-                             If (And (Arg4, 0x02))
-
-                             {
-
-                                 Add (Local5, 0x02, 
-Local5)
-
-                             }
-
-                         }
-
-
-
-                         Store (DerefOf (Index (DerefOf 
-(Index (TIM0, 0x03)), Local5)), DMA1)
-
-                         Or (CHNF, 0x04, CHNF)
-
-                     }
-
-
-
-                     Store (TMD0, Debug)
-
-                     Return (TMD0)
-
-                 }
-
-
-
-                 Method (STM, 0, Serialized)
-
-                 {
-
-                     If (REGF) {}
-
-                     Else
-
-                     {
-
-                         Return (0x00)
-
-                     }
-
-
-
-                     And (GTIM, 0x8044, GTIM)
-
-                     Store (0x00, GSTM)
-
-                     Store (0x00, GUDM)
-
-                     Store (0x00, GCB0)
-
-                     And (GUDT, 0xCC, GUDT)
-
-                     Store (0x00, GFB0)
-
-                     If (And (CHNF, 0x01))
-
-                     {
-
-                         Store (Match (DerefOf (Index 
-(TIM0, 0x03)), MLE, DMA0, MTR, 0x00, 0x00), Local0)
-
-                         If (LGreater (Local0, 0x05))
-
-                         {
-
-                             Store (0x05, Local0)
-
-                         }
-
-
-
-                         Or (GUDT, DerefOf (Index (DerefOf 
-(Index (TIM0, 0x04)), Local0)), GUDT)
-
-                         Or (GCB0, DerefOf (Index (DerefOf 
-(Index (TIM0, 0x05)), Local0)), GCB0)
-
-                         Or (GFB0, DerefOf (Index (DerefOf 
-(Index (TIM0, 0x06)), Local0)), GFB0)
-
-                         Or (GUDM, 0x01, GUDM)
-
-                     }
-
-                     Else
-
-                     {
-
-                         If (Or (LEqual (PIO0, Ones), 
-LEqual (PIO0, 0x00)))
-
-                         {
-
-                             If (And (LLess (DMA0, Ones), 
-LGreater (DMA0, 0x00)))
-
-                             {
-
-                                 Store (DMA0, PIO0)
-
-                                 Or (GTIM, 0x08, GTIM)
-
-                             }
-
-                         }
-
-                     }
-
-
-
-                     If (And (CHNF, 0x04))
-
-                     {
-
-                         Store (Match (DerefOf (Index 
-(TIM0, 0x03)), MLE, DMA1, MTR, 0x00, 0x00), Local0)
-
-                         If (LGreater (Local0, 0x05))
-
-                         {
-
-                             Store (0x05, Local0)
-
-                         }
-
-
-
-                         Or (GUDT, ShiftLeft (DerefOf 
-(Index (DerefOf (Index (TIM0, 0x04)), Local0)), 0x04), 
-GUDT)
-
-                         Or (GCB0, ShiftLeft (DerefOf 
-(Index (DerefOf (Index (TIM0, 0x05)), Local0)), 0x01), 
-GCB0)
-
-                         Or (GFB0, ShiftLeft (DerefOf 
-(Index (DerefOf (Index (TIM0, 0x06)), Local0)), 0x01), 
-GFB0)
-
-                         Or (GUDM, 0x02, GUDM)
-
-                     }
-
-                     Else
-
-                     {
-
-                         If (Or (LEqual (PIO1, Ones), 
-LEqual (PIO1, 0x00)))
-
-                         {
-
-                             If (And (LLess (DMA1, Ones), 
-LGreater (DMA1, 0x00)))
-
-                             {
-
-                                 Store (DMA1, PIO1)
-
-                                 Or (GTIM, 0x80, GTIM)
-
-                             }
-
-                         }
-
-                     }
-
-
-
-                     If (And (CHNF, 0x02))
-
-                     {
-
-                         Or (GTIM, 0x03, GTIM)
-
-                     }
-
-
-
-                     If (And (CHNF, 0x08))
-
-                     {
-
-                         Or (GTIM, 0x30, GTIM)
-
-                     }
-
-
-
-                     And (Match (DerefOf (Index (TIM0, 
-0x00)), MGE, PIO0, MTR, 0x00, 0x00), 0x03, Local0)
-
-                     Store (DerefOf (Index (DerefOf (Index 
-(TIM0, 0x01)), Local0)), Local1)
-
-                     ShiftLeft (Local1, 0x08, Local2)
-
-                     Or (GTIM, Local2, GTIM)
-
-                     If (And (CHNF, 0x10))
-
-                     {
-
-                         Or (GTIM, 0x4000, GTIM)
-
-                         And (Match (DerefOf (Index (TIM0, 
-0x00)), MGE, PIO1, MTR, 0x00, 0x00), 0x03, Local0)
-
-                         Store (DerefOf (Index (DerefOf 
-(Index (TIM0, 0x02)), Local0)), GSTM)
-
-                     }
-
-
-
-                     Return (0x01)
-
-                 }
-
-
-
-                 Name (AT01, Buffer (0x07)
-
-                 {
-
-                     0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 
-0xEF
-
-                 })
-
-                 Name (AT02, Buffer (0x07)
-
-                 {
-
-                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-0x90
-
-                 })
-
-                 Name (AT03, Buffer (0x07)
-
-                 {
-
-                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-0xC6
-
-                 })
-
-                 Name (AT04, Buffer (0x07)
-
-                 {
-
-                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-0x91
-
-                 })
-
-                 Name (ATA0, Buffer (0x1D) {})
-
-                 Name (ATA1, Buffer (0x1D) {})
-
-                 Name (ATA2, Buffer (0x1D) {})
-
-                 Name (ATA3, Buffer (0x1D) {})
-
-                 Name (ATAB, Buffer (0x1D) {})
-
-                 CreateByteField (ATAB, 0x00, CMDC)
-
-                 Method (GTFB, 3, Serialized)
-
-                 {
-
-                     Multiply (CMDC, 0x38, Local0)
-
-                     Add (Local0, 0x08, Local1)
-
-                     CreateField (ATAB, Local1, 0x38, 
-CMDX)
-
-                     Multiply (CMDC, 0x07, Local0)
-
-                     CreateByteField (ATAB, Add (Local0, 
-0x02), A001)
-
-                     CreateByteField (ATAB, Add (Local0, 
-0x06), A005)
-
-                     Store (Arg0, CMDX)
-
-                     Store (Arg1, A001)
-
-                     Store (Arg2, A005)
-
-                     Increment (CMDC)
-
-                 }
-
-
-
-                 Method (GTF, 2, Serialized)
-
-                 {
-
-                     Store (Arg1, Debug)
-
-                     Store (0x00, CMDC)
-
-                     Name (ID49, 0x0C00)
-
-                     Name (ID59, 0x00)
-
-                     Name (ID53, 0x04)
-
-                     Name (ID63, 0x0F00)
-
-                     Name (ID88, 0x0F00)
-
-                     Name (IRDY, 0x01)
-
-                     Name (PIOT, 0x00)
-
-                     Name (DMAT, 0x00)
-
-                     If (LEqual (SizeOf (Arg1), 0x0200))
-
-                     {
-
-                         CreateWordField (Arg1, 0x62, 
-IW49)
-
-                         Store (IW49, ID49)
-
-                         CreateWordField (Arg1, 0x6A, 
-IW53)
-
-                         Store (IW53, ID53)
-
-                         CreateWordField (Arg1, 0x7E, 
-IW63)
-
-                         Store (IW63, ID63)
-
-                         CreateWordField (Arg1, 0x76, 
-IW59)
-
-                         Store (IW59, ID59)
-
-                         CreateWordField (Arg1, 0xB0, 
-IW88)
-
-                         Store (IW88, ID88)
-
-                     }
-
-
-
-                     Store (0xA0, Local7)
-
-                     If (Arg0)
-
-                     {
-
-                         Store (0xB0, Local7)
-
-                         And (CHNF, 0x08, IRDY)
-
-                         If (And (CHNF, 0x10))
-
-                         {
-
-                             Store (PIO1, PIOT)
-
-                         }
-
-                         Else
-
-                         {
-
-                             Store (PIO0, PIOT)
-
-                         }
-
-
-
-                         If (And (CHNF, 0x04))
-
-                         {
-
-                             If (And (CHNF, 0x10))
-
-                             {
-
-                                 Store (DMA1, DMAT)
-
-                             }
-
-                             Else
-
-                             {
-
-                                 Store (DMA0, DMAT)
-
-                             }
-
-                         }
-
-                     }
-
-                     Else
-
-                     {
-
-                         And (CHNF, 0x02, IRDY)
-
-                         Store (PIO0, PIOT)
-
-                         If (And (CHNF, 0x01))
-
-                         {
-
-                             Store (DMA0, DMAT)
-
-                         }
-
-                     }
-
-
-
-                     If (LAnd (LAnd (And (ID53, 0x04), And 
-(ID88, 0xFF00)), DMAT))
-
-                     {
-
-                         Store (Match (DerefOf (Index 
-(TIM0, 0x03)), MLE, DMAT, MTR, 0x00, 0x00), Local1)
-
-                         If (LGreater (Local1, 0x05))
-
-                         {
-
-                             Store (0x05, Local1)
-
-                         }
-
-
-
-                         GTFB (AT01, Or (0x40, Local1), 
-Local7)
-
-                     }
-
-                     Else
-
-                     {
-
-                         If (LAnd (And (ID63, 0xFF00), 
-PIOT))
-
-                         {
-
-                             And (Match (DerefOf (Index 
-(TIM0, 0x00)), MGE, PIOT, MTR, 0x00, 0x00), 0x03, Local0)
-
-                             Or (0x20, DerefOf (Index 
-(DerefOf (Index (TIM0, 0x08)), Local0)), Local1)
-
-                             GTFB (AT01, Local1, Local7)
-
-                         }
-
-                     }
-
-
-
-                     If (IRDY)
-
-                     {
-
-                         And (Match (DerefOf (Index (TIM0, 
-0x00)), MGE, PIOT, MTR, 0x00, 0x00), 0x03, Local0)
-
-                         Or (0x08, DerefOf (Index (DerefOf 
-(Index (TIM0, 0x07)), Local0)), Local1)
-
-                         GTFB (AT01, Local1, Local7)
-
-                     }
-
-                     Else
-
-                     {
-
-                         If (And (ID49, 0x0400))
-
-                         {
-
-                             GTFB (AT01, 0x01, Local7)
-
-                         }
-
-                     }
-
-
-
-                     If (LAnd (And (ID59, 0x0100), And 
-(ID59, 0xFF)))
-
-                     {
-
-                         GTFB (AT03, And (ID59, 0xFF), 
-Local7)
-
-                     }
-
-
-
-                     Store (ATAB, Debug)
-
-                     Return (ATAB)
-
-                 }
-
-
-
-                 Method (RATA, 1, NotSerialized)
-
-                 {
-
-                     CreateByteField (Arg0, 0x00, CMDN)
-
-                     Multiply (CMDN, 0x38, Local0)
-
-                     CreateField (Arg0, 0x08, Local0, 
-RETB)
-
-                     Store (RETB, Debug)
-
-                     Return (RETB)
-
-                 }
-
-             }
-
-
-
-             Device (USB1)
-
-             {
-
-                 Name (_ADR, 0x001D0000)
-
-                 OperationRegion (BAR0, PCI_Config, 0xC0, 
-0x05)
-
-                 Field (BAR0, ByteAcc, NoLock, Preserve)
-
-                 {
-
-                     UBL1,   16,
-
-                     Offset (0x04),
-
-                     USBW,   8
-
-                 }
-
-
-
-                 Method (_PSW, 1, NotSerialized)
-
-                 {
-
-                     If (Arg0)
-
-                     {
-
-                         Store (0x03, USBW)
-
-                     }
-
-                     Else
-
-                     {
-
-                         Store (0x00, USBW)
-
-                     }
-
-                 }
-
-             }
-
-
-
-             Device (USB2)
-
-             {
-
-                 Name (_ADR, 0x001D0001)
-
-                 OperationRegion (BAR0, PCI_Config, 0xC0, 
-0x05)
-
-                 Field (BAR0, ByteAcc, NoLock, Preserve)
-
-                 {
-
-                     UBL1,   16,
-
-                     Offset (0x04),
-
-                     USBW,   8
-
-                 }
-
-
-
-                 Method (_PSW, 1, NotSerialized)
-
-                 {
-
-                     If (Arg0)
-
-                     {
-
-                         Store (0x03, USBW)
-
-                     }
-
-                     Else
-
-                     {
-
-                         Store (0x00, USBW)
-
-                     }
-
-                 }
-
-             }
-
-
-
-             Device (USB3)
-
-             {
-
-                 Name (_ADR, 0x001D0002)
-
-                 OperationRegion (BAR0, PCI_Config, 0xC0, 
-0x05)
-
-                 Field (BAR0, ByteAcc, NoLock, Preserve)
-
-                 {
-
-                     UBL1,   16,
-
-                     Offset (0x04),
-
-                     USBW,   8
-
-                 }
-
-
-
-                 Method (_PSW, 1, NotSerialized)
-
-                 {
-
-                     If (Arg0)
-
-                     {
-
-                         Store (0x03, USBW)
-
-                     }
-
-                     Else
-
-                     {
-
-                         Store (0x00, USBW)
-
-                     }
-
-                 }
-
-             }
-
-
-
-             Device (SBRG)
-
-             {
-
-                 Name (_ADR, 0x001F0000)
-
-                 Device (PIC)
-
-                 {
-
-                     Name (_HID, EisaId ("PNP0000"))
-
-                     Name (_CRS, ResourceTemplate ()
-
-                     {
-
-                         IO (Decode16, 0x0020, 0x0020, 
-0x00, 0x02)
-
-                         IO (Decode16, 0x00A0, 0x00A0, 
-0x00, 0x02)
-
-                         IRQNoFlags () {2}
-
-                     })
-
-                 }
-
-
-
-                 Device (DMAD)
-
-                 {
-
-                     Name (_HID, EisaId ("PNP0200"))
-
-                     Name (_CRS, ResourceTemplate ()
-
-                     {
-
-                         DMA (Compatibility, BusMaster, 
-Transfer8) {4}
-
-                         IO (Decode16, 0x0000, 0x0000, 
-0x00, 0x10)
-
-                         IO (Decode16, 0x0081, 0x0081, 
-0x00, 0x03)
-
-                         IO (Decode16, 0x0087, 0x0087, 
-0x00, 0x01)
-
-                         IO (Decode16, 0x0089, 0x0089, 
-0x00, 0x03)
-
-                         IO (Decode16, 0x008F, 0x008F, 
-0x00, 0x01)
-
-                         IO (Decode16, 0x00C0, 0x00C0, 
-0x00, 0x20)
-
-                     })
-
-                 }
-
-
-
-                 Device (TMR)
-
-                 {
-
-                     Name (_HID, EisaId ("PNP0100"))
-
-                     Name (_CRS, ResourceTemplate ()
-
-                     {
-
-                         IO (Decode16, 0x0040, 0x0040, 
-0x00, 0x04)
-
-                         IRQNoFlags () {0}
-
-                     })
-
-                 }
-
-
-
-                 Device (RTC0)
-
-                 {
-
-                     Name (_HID, EisaId ("PNP0B00"))
-
-                     Name (_CRS, ResourceTemplate ()
-
-                     {
-
-                         IO (Decode16, 0x0070, 0x0070, 
-0x00, 0x02)
-
-                         IRQNoFlags () {8}
-
-                     })
-
-                 }
-
-
-
-                 Device (SPKR)
-
-                 {
-
-                     Name (_HID, EisaId ("PNP0800"))
-
-                     Name (_CRS, ResourceTemplate ()
-
-                     {
-
-                         IO (Decode16, 0x0061, 0x0061, 
-0x00, 0x01)
-
-                     })
-
-                 }
-
-
-
-                 Device (COPR)
-
-                 {
-
-                     Name (_HID, EisaId ("PNP0C04"))
-
-                     Name (_CRS, ResourceTemplate ()
-
-                     {
-
-                         IO (Decode16, 0x00F0, 0x00F0, 
-0x00, 0x10)
-
-                         IRQNoFlags () {13}
-
-                     })
-
-                 }
-
-
-
-                 Device (RMSC)
-
-                 {
-
-                     Name (_HID, EisaId ("PNP0C02"))
-
-                     Name (_UID, 0x10)
-
-                     Name (CRS0, ResourceTemplate ()
-
-                     {
-
-                         IO (Decode16, 0x0010, 0x0010, 
-0x00, 0x10)
-
-                         IO (Decode16, 0x0022, 0x0022, 
-0x00, 0x1E)
-
-                         IO (Decode16, 0x0044, 0x0044, 
-0x00, 0x1C)
-
-                         IO (Decode16, 0x0063, 0x0063, 
-0x00, 0x01)
-
-                         IO (Decode16, 0x0065, 0x0065, 
-0x00, 0x01)
-
-                         IO (Decode16, 0x0067, 0x0067, 
-0x00, 0x09)
-
-                         IO (Decode16, 0x0072, 0x0072, 
-0x00, 0x0E)
-
-                         IO (Decode16, 0x0080, 0x0080, 
-0x00, 0x01)
-
-                         IO (Decode16, 0x0084, 0x0084, 
-0x00, 0x03)
-
-                         IO (Decode16, 0x0088, 0x0088, 
-0x00, 0x01)
-
-                         IO (Decode16, 0x008C, 0x008C, 
-0x00, 0x03)
-
-                         IO (Decode16, 0x0090, 0x0090, 
-0x00, 0x10)
-
-                         IO (Decode16, 0x00A2, 0x00A2, 
-0x00, 0x1E)
-
-                         IO (Decode16, 0x00E0, 0x00E0, 
-0x00, 0x10)
-
-                         IO (Decode16, 0x04D0, 0x04D0, 
-0x00, 0x02)
-
-                         IO (Decode16, 0x0000, 0x0000, 
-0x00, 0x00)
-
-                         IO (Decode16, 0x0000, 0x0000, 
-0x00, 0x00)
-
-                         Memory32 (ReadOnly, 0xFFE80000, 
-0xFFE80000, 0x00000000, 0x00080000)
-
-                         Memory32 (ReadOnly, 0xFFF80000, 
-0xFFF80000, 0x00000000, 0x00080000)
-
-                         Memory32 (ReadOnly, 0xFEE00400, 
-0xFEE00400, 0x00000000, 0x00DFFC00)
-
-                     })
-
-                     Name (CRS1, ResourceTemplate ()
-
-                     {
-
-                         IO (Decode16, 0x0010, 0x0010, 
-0x00, 0x10)
-
-                         IO (Decode16, 0x0022, 0x0022, 
-0x00, 0x1E)
-
-                         IO (Decode16, 0x0044, 0x0044, 
-0x00, 0x1C)
-
-                         IO (Decode16, 0x0063, 0x0063, 
-0x00, 0x01)
-
-                         IO (Decode16, 0x0065, 0x0065, 
-0x00, 0x01)
-
-                         IO (Decode16, 0x0067, 0x0067, 
-0x00, 0x09)
-
-                         IO (Decode16, 0x0072, 0x0072, 
-0x00, 0x0E)
-
-                         IO (Decode16, 0x0080, 0x0080, 
-0x00, 0x01)
-
-                         IO (Decode16, 0x0084, 0x0084, 
-0x00, 0x03)
-
-                         IO (Decode16, 0x0088, 0x0088, 
-0x00, 0x01)
-
-                         IO (Decode16, 0x008C, 0x008C, 
-0x00, 0x03)
-
-                         IO (Decode16, 0x0090, 0x0090, 
-0x00, 0x10)
-
-                         IO (Decode16, 0x00A2, 0x00A2, 
-0x00, 0x1E)
-
-                         IO (Decode16, 0x00E0, 0x00E0, 
-0x00, 0x10)
-
-                         IO (Decode16, 0x04D0, 0x04D0, 
-0x00, 0x02)
-
-                         IO (Decode16, 0x0000, 0x0000, 
-0x00, 0x00)
-
-                         IO (Decode16, 0x0000, 0x0000, 
-0x00, 0x00)
-
-                     })
-
-                     Method (_CRS, 0, NotSerialized)
-
-                     {
-
-                         If (LEqual (OSFL (), 0x00))
-
-                         {
-
-                             CreateWordField (CRS1, 0x7A, 
-GP00)
-
-                             CreateWordField (CRS1, 0x7C, 
-GP01)
-
-                             CreateByteField (CRS1, 0x7F, 
-GP0L)
-
-                             Store (PMBS, GP00)
-
-                             Store (PMBS, GP01)
-
-                             Store (PMLN, GP0L)
-
-                         }
-
-                         Else
-
-                         {
-
-                             CreateWordField (CRS0, 0x7A, 
-GPX0)
-
-                             CreateWordField (CRS0, 0x7C, 
-GPX1)
-
-                             CreateByteField (CRS0, 0x7F, 
-GPXL)
-
-                             Store (PMBS, GPX0)
-
-                             Store (PMBS, GPX1)
-
-                             Store (PMLN, GPXL)
-
-                         }
-
-
-
-                         If (GPBS)
-
-                         {
-
-                             If (LEqual (OSFL (), 0x00))
-
-                             {
-
-                                 CreateWordField (CRS1, 
-0x82, GP20)
-
-                                 CreateWordField (CRS1, 
-0x84, GP21)
-
-                                 CreateByteField (CRS1, 
-0x87, GP2L)
-
-                                 Store (GPBS, GP20)
-
-                                 Store (GPBS, GP21)
-
-                                 Store (GPLN, GP2L)
-
-                             }
-
-                             Else
-
-                             {
-
-                                 CreateWordField (CRS0, 
-0x82, GX20)
-
-                                 CreateWordField (CRS0, 
-0x84, GX21)
-
-                                 CreateByteField (CRS0, 
-0x87, GX2L)
-
-                                 Store (GPBS, GX20)
-
-                                 Store (GPBS, GX21)
-
-                                 Store (GPLN, GX2L)
-
-                             }
-
-                         }
-
-
-
-                         If (LEqual (OSFL (), 0x00))
-
-                         {
-
-                             Return (CRS1)
-
-                         }
-
-                         Else
-
-                         {
-
-                             Return (CRS0)
-
-                         }
-
-                     }
-
-                 }
-
-
-
-                 Device (OMSC)
-
-                 {
-
-                     Name (_HID, EisaId ("PNP0C02"))
-
-                     Name (_UID, 0x00)
-
-                     Name (CRS, ResourceTemplate ()
-
-                     {
-
-                         IO (Decode16, 0x1100, 0x1100, 
-0x00, 0x40)
-
-                         IO (Decode16, 0x1254, 0x1254, 
-0x00, 0x01)
-
-                         IO (Decode16, 0x12D4, 0x12D4, 
-0x00, 0x01)
-
-                         IO (Decode16, 0x1300, 0x1300, 
-0x00, 0x76)
-
-                         IO (Decode16, 0x1377, 0x1377, 
-0x00, 0x09)
-
-                         IO (Decode16, 0x0000, 0x0000, 
-0x00, 0x00)
-
-                         Memory32Fixed (ReadOnly, 
-0x00000000, 0x00000000)
-
-                         Memory32Fixed (ReadOnly, 
-0x00000000, 0x00000000)
-
-                     })
-
-                     Method (_CRS, 0, NotSerialized)
-
-                     {
-
-                         If (APCB)
-
-                         {
-
-                             If (OSFL ()) {}
-
-                             Else
-
-                             {
-
-                                 CreateDWordField (CRS, 
-0x38, ML01)
-
-                                 CreateDWordField (CRS, 
-0x34, MB01)
-
-                                 CreateDWordField (CRS, 
-0x44, ML02)
-
-                                 CreateDWordField (CRS, 
-0x40, MB02)
-
-                                 Store (APCB, MB01)
-
-                                 Store (APCL, ML01)
-
-                                 Store (0xFEE00000, MB02)
-
-                                 Store (0x1000, ML02)
-
-                             }
-
-                         }
-
-
-
-                         If (OSFL ()) {}
-
-                         Else
-
-                         {
-
-                             CreateWordField (CRS, 0x2A, 
-GP40)
-
-                             CreateWordField (CRS, 0x2C, 
-GP41)
-
-                             CreateByteField (CRS, 0x2F, 
-GP4L)
-
-                             Store (0x1376, GP40)
-
-                             Store (0x1376, GP41)
-
-                             Store (0x01, GP4L)
-
-                         }
-
-
-
-                         Return (CRS)
-
-                     }
-
-
-
-                     Method (_STA, 0, NotSerialized)
-
-                     {
-
-                         If (OSFL ())
-
-                         {
-
-                             Return (0x0F)
-
-                         }
-
-                         Else
-
-                         {
-
-                             Return (0x00)
-
-                         }
-
-                     }
-
-                 }
-
-
-
-                 Device (\_SB.RMEM)
-
-                 {
-
-                     Name (_HID, EisaId ("PNP0C01"))
-
-                     Name (_UID, 0x01)
-
-                     Name (CRS, ResourceTemplate ()
-
-                     {
-
-                         Memory32Fixed (ReadWrite, 
-0x00000000, 0x000A0000)
-
-                         Memory32Fixed (ReadOnly, 
-0x00000000, 0x00000000)
-
-                         Memory32Fixed (ReadOnly, 
-0x000E0000, 0x00020000)
-
-                         Memory32Fixed (ReadWrite, 
-0x00100000, 0x00000000)
-
-                         Memory32Fixed (ReadOnly, 
-0x00000000, 0x00000000)
-
-                     })
-
-                     Method (_STA, 0, NotSerialized)
-
-                     {
-
-                         If (OSFL ())
-
-                         {
-
-                             Return (0x0F)
-
-                         }
-
-                         Else
-
-                         {
-
-                             Return (0x00)
-
-                         }
-
-                     }
-
-
-
-                     Method (_CRS, 0, NotSerialized)
-
-                     {
-
-                         CreateDWordField (CRS, 0x10, 
-BAS1)
-
-                         CreateDWordField (CRS, 0x14, 
-LEN1)
-
-                         CreateDWordField (CRS, 0x1C, 
-BAS2)
-
-                         CreateDWordField (CRS, 0x20, 
-LEN2)
-
-                         CreateDWordField (CRS, 0x2C, 
-LEN3)
-
-                         CreateDWordField (CRS, 0x34, 
-BAS4)
-
-                         CreateDWordField (CRS, 0x38, 
-LEN4)
-
-                         If (OSFL ()) {}
-
-                         Else
-
-                         {
-
-                             If (MG1B)
-
-                             {
-
-                                 If (LGreater (MG1B, 
-0x000C0000))
-
-                                 {
-
-                                     Store (0x000C0000, 
-BAS1)
-
-                                     Subtract (MG1B, BAS1, 
-LEN1)
-
-                                 }
-
-                             }
-
-                             Else
-
-                             {
-
-                                 Store (0x000C0000, BAS1)
-
-                                 Store (0x00020000, LEN1)
-
-                             }
-
-
-
-                             If (Add (MG1B, MG1L, Local0))
-
-                             {
-
-                                 Store (Local0, BAS2)
-
-                                 Subtract (0x00100000, 
-BAS2, LEN2)
-
-                             }
-
-                         }
-
-
-
-                         Subtract (MG2B, 0x00100000, LEN3)
-
-                         Add (MG2B, MG2L, BAS4)
-
-                         Subtract (0x00, BAS4, LEN4)
-
-                         Return (CRS)
-
-                     }
-
-                 }
-
-
-
-                 Device (PS2K)
-
-                 {
-
-                     Name (_HID, EisaId ("PNP030B"))
-
-                     Name (_CID, 0x0B03D041)
-
-                     Method (_STA, 0, NotSerialized)
-
-                     {
-
-                         ShiftLeft (0x01, 0x0A, Local0)
-
-                         If (And (IOST, Local0))
-
-                         {
-
-                             Return (0x0F)
-
-                         }
-
-
-
-                         Return (0x00)
-
-                     }
-
-
-
-                     Name (_CRS, ResourceTemplate ()
-
-                     {
-
-                         IO (Decode16, 0x0060, 0x0060, 
-0x00, 0x01)
-
-                         IO (Decode16, 0x0064, 0x0064, 
-0x00, 0x01)
-
-                         IRQNoFlags () {1}
-
-                     })
-
-                 }
-
-
-
-                 Method (PS2K._PRW, 0, NotSerialized)
-
-                 {
-
-                     Return (GPRW (0x1D, 0x05))
-
-                 }
-
-
-
-                 Device (PS2M)
-
-                 {
-
-                     Name (_HID, EisaId ("PNP0F03"))
-
-                     Name (_CID, 0x130FD041)
-
-                     Method (_STA, 0, NotSerialized)
-
-                     {
-
-                         ShiftLeft (0x01, 0x0C, Local0)
-
-                         If (And (IOST, Local0))
-
-                         {
-
-                             Return (0x0F)
-
-                         }
-
-
-
-                         Return (0x00)
-
-                     }
-
-
-
-                     Name (CRS1, ResourceTemplate ()
-
-                     {
-
-                         IRQNoFlags () {12}
-
-                     })
-
-                     Name (CRS2, ResourceTemplate ()
-
-                     {
-
-                         IO (Decode16, 0x0060, 0x0060, 
-0x00, 0x01)
-
-                         IO (Decode16, 0x0064, 0x0064, 
-0x00, 0x01)
-
-                         IRQNoFlags () {12}
-
-                     })
-
-                     Method (_CRS, 0, NotSerialized)
-
-                     {
-
-                         ShiftLeft (0x01, 0x0A, Local0)
-
-                         If (And (IOST, Local0))
-
-                         {
-
-                             Return (CRS1)
-
-                         }
-
-                         Else
-
-                         {
-
-                             Return (CRS2)
-
-                         }
-
-                     }
-
-                 }
-
-
-
-                 Method (PS2M._PRW, 0, NotSerialized)
-
-                 {
-
-                     Return (GPRW (0x1D, 0x05))
-
-                 }
-
-
-
-                 OperationRegion (WIN1, SystemIO, SPIO, 
-0x02)
-
-                 Field (WIN1, ByteAcc, NoLock, Preserve)
-
-                 {
-
-                     INDX,   8,
-
-                     DATA,   8
-
-                 }
-
-
-
-                 IndexField (INDX, DATA, ByteAcc, NoLock, 
-Preserve)
-
-                 {
-
-                     Offset (0x02),
-
-                     CFG,    8,
-
-                     Offset (0x07),
-
-                     LDN,    8,
-
-                     Offset (0x22),
-
-                         ,   4,
-
-                     PPPD,   1,
-
-                     Offset (0x23),
-
-                     Offset (0x30),
-
-                     ACTR,   8,
-
-                     Offset (0x60),
-
-                     IOAH,   8,
-
-                     IOAL,   8,
-
-                     Offset (0x70),
-
-                     INTR,   8,
-
-                     Offset (0x74),
-
-                     DMCH,   8,
-
-                     Offset (0xF0),
-
-                     OPT0,   8,
-
-                     OPT1,   8,
-
-                     OPT2,   8,
-
-                     OPT3,   8,
-
-                     OPT4,   8,
-
-                     OPT5,   8,
-
-                     OPT6,   8,
-
-                     OPT7,   8
-
-                 }
-
-
-
-                 Method (ENFG, 0, NotSerialized)
-
-                 {
-
-                     Store (0x87, INDX)
-
-                     Store (0x87, INDX)
-
-                 }
-
-
-
-                 Method (EXFG, 0, NotSerialized)
-
-                 {
-
-                     Store (0xAA, INDX)
-
-                 }
-
-
-
-                 Name (LDFD, 0x00)
-
-                 Name (LDLP, 0x01)
-
-                 Name (LDU1, 0x02)
-
-                 Name (LDU2, 0x03)
-
-                 Name (LDIR, 0x0C)
-
-                 Name (LDMD, 0x06)
-
-                 Name (LDGM, 0x07)
-
-                 Method (SIOS, 1, NotSerialized)
-
-                 {
-
-                 }
-
-
-
-                 Method (SIOH, 0, NotSerialized)
-
-                 {
-
-                 }
-
-
-
-                 Method (SIOW, 1, NotSerialized)
-
-                 {
-
-                 }
-
-
-
-                 Name (FDST, 0x00)
-
-                 Name (U1ST, 0x00)
-
-                 Name (U2ST, 0x00)
-
-                 Name (IRST, 0x00)
-
-                 Name (LPST, 0x00)
-
-                 Name (GMST, 0x00)
-
-                 Name (MDST, 0x00)
-
-                 Method (_INI, 0, NotSerialized)
-
-                 {
-
-                     If (LNot (LEqual (GSTA (LDFD), 
-0x00)))
-
-                     {
-
-                         Store (0x01, FDST)
-
-                     }
-
-
-
-                     If (LNot (LEqual (GSTA (LDU1), 
-0x00)))
-
-                     {
-
-                         Store (0x01, U1ST)
-
-                     }
-
-
-
-                     If (LNot (LEqual (GSTA (LDU2), 
-0x00)))
-
-                     {
-
-                         Store (0x01, U2ST)
-
-                     }
-
-
-
-                     If (LNot (LEqual (GSTA (LDIR), 
-0x00)))
-
-                     {
-
-                         Store (0x01, IRST)
-
-                     }
-
-
-
-                     If (LNot (LEqual (GSTA (LDGM), 
-0x00)))
-
-                     {
-
-                         Store (0x01, GMST)
-
-                     }
-
-
-
-                     If (LNot (LEqual (GSTA (LDMD), 
-0x00)))
-
-                     {
-
-                         Store (0x01, MDST)
-
-                     }
-
-
-
-                     ENFG ()
-
-                     Store (LDLP, LDN)
-
-                     If (LNot (LEqual (ACTR, 0x03)))
-
-                     {
-
-                         Store (0x01, LPST)
-
-                     }
-
-
-
-                     EXFG ()
-
-                 }
-
-
-
-                 Device (LPT)
-
-                 {
-
-                     Name (_HID, EisaId ("PNP0400"))
-
-                     Method (_STA, 0, NotSerialized)
-
-                     {
-
-                         If (LPST)
-
-                         {
-
-                             ENFG ()
-
-                             Store (LDLP, LDN)
-
-                             Store (ACTR, Local0)
-
-                             Store (IOAH, Local1)
-
-                             EXFG ()
-
-                             And (Local0, 0x01, Local0)
-
-                             If (LAnd (LNot (Local0), 
-Local1))
-
-                             {
-
-                                 Return (0x0F)
-
-                             }
-
-                         }
-
-
-
-                         Return (Zero)
-
-                     }
-
-
-
-                     Method (_DIS, 0, NotSerialized)
-
-                     {
-
-                         ENFG ()
-
-                         Store (One, PPPD)
-
-                         EXFG ()
-
-                     }
-
-
-
-                     Method (_CRS, 0, NotSerialized)
-
-                     {
-
-                         Name (BUFE, ResourceTemplate ()
-
-                         {
-
-                             IO (Decode16, 0x0378, 0x0378, 
-0x08, 0x08)
-
-                             IRQNoFlags () {7}
-
-                         })
-
-                         CreateWordField (BUFE, 0x02, 
-IMI1)
-
-                         CreateWordField (BUFE, 0x04, 
-IMA1)
-
-                         CreateByteField (BUFE, 0x06, 
-ALN1)
-
-                         CreateByteField (BUFE, 0x07, 
-LEN1)
-
-                         CreateWordField (BUFE, 0x09, 
-IRQ0)
-
-                         ENFG ()
-
-                         Store (LDLP, LDN)
-
-                         Store (IOAH, Local0)
-
-                         ShiftLeft (Local0, 0x02, Local0)
-
-                         Store (Local0, IMI1)
-
-                         Store (Local0, IMA1)
-
-                         If (LEqual (IMI1, 0x03BC))
-
-                         {
-
-                             Store (0x04, ALN1)
-
-                             Store (0x04, LEN1)
-
-                         }
-
-                         Else
-
-                         {
-
-                             Store (0x08, ALN1)
-
-                             Store (0x08, LEN1)
-
-                         }
-
-
-
-                         Store (INTR, Local0)
-
-                         Store (0x01, Local1)
-
-                         ShiftLeft (Local1, Local0, IRQ0)
-
-                         EXFG ()
-
-                         Return (BUFE)
-
-                     }
-
-
-
-                     Method (_SRS, 1, NotSerialized)
-
-                     {
-
-                         CreateWordField (Arg0, 0x02, 
-IOAR)
-
-                         CreateWordField (Arg0, 0x09, 
-IRQ0)
-
-                         ENFG ()
-
-                         Store (LDLP, LDN)
-
-                         Store (ACTR, Local2)
-
-                         Or (Local2, 0x03, Local3)
-
-                         Store (Local3, ACTR)
-
-                         Store (IOAR, Local0)
-
-                         ShiftRight (Local0, 0x02, Local0)
-
-                         Store (Local0, IOAH)
-
-                         FindSetRightBit (IRQ0, Local0)
-
-                         If (LGreater (Local0, 0x00))
-
-                         {
-
-                             Decrement (Local0)
-
-                         }
-
-
-
-                         Store (Local0, INTR)
-
-                         Store (Local2, ACTR)
-
-                         Store (Zero, PPPD)
-
-                         EXFG ()
-
-                     }
-
-
-
-                     Name (_PRS, ResourceTemplate ()
-
-                     {
-
-                         StartDependentFnNoPri ()
-
-                         {
-
-                             IO (Decode16, 0x0378, 0x0378, 
-0x08, 0x08)
-
-                             IRQNoFlags () {5,7}
-
-                         }
-
-                         StartDependentFnNoPri ()
-
-                         {
-
-                             IO (Decode16, 0x0278, 0x0278, 
-0x08, 0x08)
-
-                             IRQNoFlags () {5,7}
-
-                         }
-
-                         StartDependentFnNoPri ()
-
-                         {
-
-                             IO (Decode16, 0x03BC, 0x03BC, 
-0x04, 0x04)
-
-                             IRQNoFlags () {5,7}
-
-                         }
-
-                         EndDependentFn ()
-
-                     })
-
-                 }
-
-
-
-                 Device (ECP)
-
-                 {
-
-                     Name (_HID, EisaId ("PNP0401"))
-
-                     Method (_STA, 0, NotSerialized)
-
-                     {
-
-                         If (LPST)
-
-                         {
-
-                             ENFG ()
-
-                             Store (LDLP, LDN)
-
-                             Store (ACTR, Local0)
-
-                             Store (IOAH, Local1)
-
-                             EXFG ()
-
-                             And (Local0, 0x03, Local0)
-
-                             If (LAnd (LEqual (Local0, 
-0x01), Local1))
-
-                             {
-
-                                 Return (0x0F)
-
-                             }
-
-                         }
-
-
-
-                         Return (Zero)
-
-                     }
-
-
-
-                     Method (_DIS, 0, NotSerialized)
-
-                     {
-
-                         ENFG ()
-
-                         Store (One, PPPD)
-
-                         EXFG ()
-
-                     }
-
-
-
-                     Method (_CRS, 0, NotSerialized)
-
-                     {
-
-                         Name (BUFE, ResourceTemplate ()
-
-                         {
-
-                             IO (Decode16, 0x0378, 0x0378, 
-0x08, 0x08)
-
-                             IO (Decode16, 0x0778, 0x0778, 
-0x04, 0x04)
-
-                             IRQNoFlags () {7}
-
-                             DMA (Compatibility, 
-NotBusMaster, Transfer8) {3}
-
-                         })
-
-                         CreateWordField (BUFE, 0x02, 
-IMI1)
-
-                         CreateWordField (BUFE, 0x04, 
-IMA1)
-
-                         CreateByteField (BUFE, 0x06, 
-ALN1)
-
-                         CreateByteField (BUFE, 0x07, 
-LEN1)
-
-                         CreateWordField (BUFE, 0x0A, 
-IMI2)
-
-                         CreateWordField (BUFE, 0x0C, 
-IMA2)
-
-                         CreateWordField (BUFE, 0x11, 
-IRQ0)
-
-                         CreateByteField (BUFE, 0x14, 
-DMA0)
-
-                         ENFG ()
-
-                         Store (LDLP, LDN)
-
-                         Store (IOAH, Local0)
-
-                         ShiftLeft (Local0, 0x02, Local0)
-
-                         Store (Local0, IMI1)
-
-                         Store (Local0, IMA1)
-
-                         Add (Local0, 0x0400, Local0)
-
-                         Store (Local0, IMI2)
-
-                         Store (Local0, IMA2)
-
-                         If (LEqual (IMI1, 0x03BC))
-
-                         {
-
-                             Store (0x04, ALN1)
-
-                             Store (0x04, LEN1)
-
-                         }
-
-                         Else
-
-                         {
-
-                             Store (0x08, ALN1)
-
-                             Store (0x08, LEN1)
-
-                         }
-
-
-
-                         Store (INTR, Local0)
-
-                         Store (0x01, Local1)
-
-                         ShiftLeft (Local1, Local0, IRQ0)
-
-                         Store (DMCH, Local0)
-
-                         And (Local0, 0x03, Local0)
-
-                         Store (0x01, Local1)
-
-                         ShiftLeft (Local1, Local0, DMA0)
-
-                         EXFG ()
-
-                         Return (BUFE)
-
-                     }
-
-
-
-                     Method (_SRS, 1, NotSerialized)
-
-                     {
-
-                         CreateWordField (Arg0, 0x02, 
-IOAR)
-
-                         CreateWordField (Arg0, 0x11, 
-IRQ0)
-
-                         CreateByteField (Arg0, 0x14, 
-DMA0)
-
-                         ENFG ()
-
-                         Store (LDLP, LDN)
-
-                         Store (ACTR, Local2)
-
-                         Or (Local2, 0x03, Local3)
-
-                         Store (Local3, ACTR)
-
-                         Store (IOAR, Local0)
-
-                         ShiftRight (Local0, 0x02, Local0)
-
-                         Store (Local0, IOAH)
-
-                         FindSetRightBit (IRQ0, Local0)
-
-                         If (LGreater (Local0, 0x00))
-
-                         {
-
-                             Decrement (Local0)
-
-                         }
-
-
-
-                         Store (Local0, INTR)
-
-                         FindSetRightBit (DMA0, Local0)
-
-                         If (LGreater (Local0, 0x00))
-
-                         {
-
-                             Decrement (Local0)
-
-                         }
-
-
-
-                         Store (Local0, DMCH)
-
-                         Store (Local2, ACTR)
-
-                         Store (Zero, PPPD)
-
-                         EXFG ()
-
-                     }
-
-
-
-                     Name (_PRS, ResourceTemplate ()
-
-                     {
-
-                         StartDependentFnNoPri ()
-
-                         {
-
-                             IO (Decode16, 0x0378, 0x0378, 
-0x08, 0x08)
-
-                             IO (Decode16, 0x0778, 0x0778, 
-0x04, 0x04)
-
-                             IRQNoFlags () {5,7}
-
-                             DMA (Compatibility, 
-NotBusMaster, Transfer8) {0,1,3}
-
-                         }
-
-                         StartDependentFnNoPri ()
-
-                         {
-
-                             IO (Decode16, 0x0278, 0x0278, 
-0x08, 0x08)
-
-                             IO (Decode16, 0x0678, 0x0678, 
-0x04, 0x04)
-
-                             IRQNoFlags () {5,7}
-
-                             DMA (Compatibility, 
-NotBusMaster, Transfer8) {0,1,3}
-
-                         }
-
-                         StartDependentFnNoPri ()
-
-                         {
-
-                             IO (Decode16, 0x03BC, 0x03BC, 
-0x04, 0x04)
-
-                             IO (Decode16, 0x07BC, 0x07BC, 
-0x04, 0x04)
-
-                             IRQNoFlags () {5,7}
-
-                             DMA (Compatibility, 
-NotBusMaster, Transfer8) {0,1,3}
-
-                         }
-
-                         EndDependentFn ()
-
-                     })
-
-                 }
-
-
-
-                 Method (GSTA, 1, NotSerialized)
-
-                 {
-
-                     ENFG ()
-
-                     Store (Arg0, LDN)
-
-                     If (ACTR)
-
-                     {
-
-                         Store (0x0F, Local0)
-
-                     }
-
-                     Else
-
-                     {
-
-                         If (IOAH)
-
-                         {
-
-                             Store (0x0D, Local0)
-
-                         }
-
-                         Else
-
-                         {
-
-                             Store (0x00, Local0)
-
-                         }
-
-                     }
-
-
-
-                     EXFG ()
-
-                     Return (Local0)
-
-                 }
-
-
-
-                 Method (DDIS, 1, NotSerialized)
-
-                 {
-
-                     ENFG ()
-
-                     Store (Arg0, LDN)
-
-                     Store (Zero, ACTR)
-
-                     EXFG ()
-
-                 }
-
-
-
-                 Method (DENB, 1, NotSerialized)
-
-                 {
-
-                     ENFG ()
-
-                     Store (Arg0, LDN)
-
-                     Store (One, ACTR)
-
-                     EXFG ()
-
-                 }
-
-
-
-                 Name (CSCP, 0x00)
-
-                 PowerResource (URP1, 0x01, 0x0000)
-
-                 {
-
-                     Method (_STA, 0, NotSerialized)
-
-                     {
-
-                         Return (CSCP)
-
-                     }
-
-
-
-                     Method (_ON, 0, NotSerialized)
-
-                     {
-
-                         Store (0x01, CSCP)
-
-                     }
-
-
-
-                     Method (_OFF, 0, NotSerialized)
-
-                     {
-
-                         Store (0x00, CSCP)
-
-                     }
-
-                 }
-
-
-
-                 PowerResource (URP2, 0x01, 0x0000)
-
-                 {
-
-                     Method (_STA, 0, NotSerialized)
-
-                     {
-
-                         Return (CSCP)
-
-                     }
-
-
-
-                     Method (_ON, 0, NotSerialized)
-
-                     {
-
-                         Store (0x01, CSCP)
-
-                     }
-
-
-
-                     Method (_OFF, 0, NotSerialized)
-
-                     {
-
-                         Store (0x00, CSCP)
-
-                     }
-
-                 }
-
-
-
-                 PowerResource (FDDP, 0x00, 0x0000)
-
-                 {
-
-                     Method (_STA, 0, NotSerialized)
-
-                     {
-
-                         Return (CSCP)
-
-                     }
-
-
-
-                     Method (_ON, 0, NotSerialized)
-
-                     {
-
-                         Store (0x01, CSCP)
-
-                     }
-
-
-
-                     Method (_OFF, 0, NotSerialized)
-
-                     {
-
-                         Store (0x00, CSCP)
-
-                     }
-
-                 }
-
-
-
-                 PowerResource (LPTP, 0x00, 0x0000)
-
-                 {
-
-                     Method (_STA, 0, NotSerialized)
-
-                     {
-
-                         Return (CSCP)
-
-                     }
-
-
-
-                     Method (_ON, 0, NotSerialized)
-
-                     {
-
-                         Store (0x01, CSCP)
-
-                     }
-
-
-
-                     Method (_OFF, 0, NotSerialized)
-
-                     {
-
-                         Store (0x00, CSCP)
-
-                     }
-
-                 }
-
-
-
-                 Name (FCRS, ResourceTemplate ()
-
-                 {
-
-                     IO (Decode16, 0x03F2, 0x03F2, 0x01, 
-0x02)
-
-                     IO (Decode16, 0x03F4, 0x03F4, 0x01, 
-0x02)
-
-                     IO (Decode16, 0x03F7, 0x03F7, 0x01, 
-0x01)
-
-                     IRQNoFlags () {6}
-
-                     DMA (Compatibility, NotBusMaster, 
-Transfer8) {2}
-
-                 })
-
-                 Name (FPRS, ResourceTemplate ()
-
-                 {
-
-                     StartDependentFn (0x00, 0x00)
-
-                     {
-
-                         IO (Decode16, 0x03F2, 0x03F2, 
-0x01, 0x02)
-
-                         IO (Decode16, 0x03F4, 0x03F4, 
-0x01, 0x02)
-
-                         IO (Decode16, 0x03F7, 0x03F7, 
-0x01, 0x01)
-
-                         IRQNoFlags () {6}
-
-                         DMA (Compatibility, NotBusMaster, 
-Transfer8) {2}
-
-                     }
-
-                     EndDependentFn ()
-
-                 })
-
-                 OperationRegion (OPR0, SystemIO, 0x0378, 
-0x80)
-
-                 Field (OPR0, ByteAcc, NoLock, Preserve)
-
-                 {
-
-                     P378,   8
-
-                 }
-
-
-
-                 Field (BIOS, ByteAcc, NoLock, Preserve)
-
-                 {
-
-                     Offset (0x80),
-
-                     BIF0,   16,
-
-                     BIF1,   16,
-
-                     BIF2,   16,
-
-                     BIF3,   16,
-
-                     BIF4,   16,
-
-                     BIF5,   16,
-
-                     BIF6,   16,
-
-                     BIF7,   16,
-
-                     BIF8,   16,
-
-                     BIF9,   64,
-
-                     BIFA,   64,
-
-                     BIFB,   64,
-
-                     BIFC,   64,
-
-                     BST0,   16,
-
-                     BST1,   16,
-
-                     BST2,   16,
-
-                     BST3,   16,
-
-                     BTP0,   16,
-
-                     ACIN,   1,
-
-                         ,   1,
-
-                     BTIN,   1,
-
-                     Offset (0xC0),
-
-                     OSEC,   8,
-
-                     SLPT,   8
-
-                 }
-
-
-
-                 Scope (\_SB.PCI0.SBRG)
-
-                 {
-
-                     Device (EC0)
-
-                     {
-
-                         Name (_HID, EisaId ("PNP0C09"))
-
-                         Name (_CRS, ResourceTemplate ()
-
-                         {
-
-                             IO (Decode16, 0x0062, 0x0062, 
-0x00, 0x01)
-
-                             IO (Decode16, 0x0066, 0x0066, 
-0x00, 0x01)
-
-                         })
-
-                         Name (FGEC, 0x00)
-
-                         Method (_REG, 2, NotSerialized)
-
-                         {
-
-                             If (LEqual (Arg0, 0x03))
-
-                             {
-
-                                 Store (Arg1, FGEC)
-
-                             }
-
-
-
-                             If (LEqual (OSFL (), 0x01))
-
-                             {
-
-                                 Store (0x01, OSEC)
-
-                             }
-
-                             Else
-
-                             {
-
-                                 If (LEqual (OSFL (), 
-0x00))
-
-                                 {
-
-                                     Store (0x02, OSEC)
-
-                                 }
-
-                                 Else
-
-                                 {
-
-                                     If (LEqual (OSFL (), 
-0x02))
-
-                                     {
-
-                                         Store (0x03, 
-OSEC)
-
-                                     }
-
-
-
-                                     If (LEqual (OSFL (), 
-0x04))
-
-                                     {
-
-                                         Store (0x04, 
-OSEC)
-
-                                     }
-
-                                 }
-
-                             }
-
-
-
-                             Store (0xB8, SWI0)
-
-                         }
-
-
-
-                         OperationRegion (ECXP, 
-EmbeddedControl, 0x00, 0x0100)
-
-                         Field (ECXP, ByteAcc, Lock, 
-Preserve)
-
-                         {
-
-                             XIF0,   16,
-
-                             XIF1,   16,
-
-                             XIF2,   16,
-
-                             XIF3,   16,
-
-                             XIF4,   16,
-
-                             XIF5,   16,
-
-                             XIF6,   16,
-
-                             XIF7,   16,
-
-                             XIF8,   16,
-
-                             XIF9,   64,
-
-                             XIFA,   64,
-
-                             XIFB,   64,
-
-                             XIFC,   64,
-
-                             XST0,   16,
-
-                             XST1,   16,
-
-                             XST2,   16,
-
-                             XST3,   16,
-
-                             XTP0,   16,
-
-                             XCIN,   1,
-
-                                 ,   1,
-
-                             XTIN,   1,
-
-                             Offset (0x3D),
-
-                             Offset (0x3E),
-
-                             XHPP,   7,
-
-                             Offset (0x3F),
-
-                             Offset (0x40),
-
-                             XSEC,   8,
-
-                             XLPT,   8
-
-                         }
-
-
-
-                         Name (_GPE, 0x1C)
-
-                         Method (_Q06, 0, NotSerialized)
-
-                         {
-
-                             If (LEqual (OSFL (), 0x03))
-
-                             {
-
-                                 If (BTIN)
-
-                                 {
-
-                                     Notify 
-(\_SB.PCI0.BAT0, 0x01)
-
-                                 }
-
-                                 Else
-
-                                 {
-
-                                     Notify 
-(\_SB.PCI0.BAT0, 0x00)
-
-                                 }
-
-
-
-                                 Notify (\_SB.PCI0.BAT0, 
-0x80)
-
-                             }
-
-
-
-                             If (LEqual (OSFL (), 0x01))
-
-                             {
-
-                                 If (BTIN)
-
-                                 {
-
-                                     Notify 
-(\_SB.PCI0.BAT0, 0x01)
-
-                                 }
-
-                                 Else
-
-                                 {
-
-                                     Notify 
-(\_SB.PCI0.BAT0, 0x00)
-
-                                 }
-
-
-
-                                 Notify (\_SB.PCI0.BAT0, 
-0x80)
-
-                                 Notify (\_SB.PCI0, 0x00)
-
-                             }
-
-
-
-                             If (LEqual (OSFL (), 0x02))
-
-                             {
-
-                                 Store (0x01, FAKE)
-
-                                 Notify (\_SB.PCI0.AC0, 
-0x00)
-
-                                 Store (0x00, FAKE)
-
-                                 Notify (\_SB.PCI0.AC0, 
-0x00)
-
-                                 If (BTIN)
-
-                                 {
-
-                                     Notify 
-(\_SB.PCI0.BAT0, 0x00)
-
-                                 }
-
-                                 Else
-
-                                 {
-
-                                     Notify 
-(\_SB.PCI0.BAT0, 0x03)
-
-                                 }
-
-
-
-                                 Notify (\_SB.PCI0.BAT0, 
-0x81)
-
-                                 Notify (\_SB.PCI0.BAT0, 
-0x80)
-
-                             }
-
-
-
-                             If (LOr (LEqual (OSFL (), 
-0x00), LEqual (OSFL (), 0x04)))
-
-                             {
-
-                                 Sleep (0x01F4)
-
-                                 If 
-(\_SB.PCI0.SBRG.EC0.XTIN)
-
-                                 {
-
-                                     Notify 
-(\_SB.PCI0.BAT0, 0x01)
-
-                                 }
-
-                                 Else
-
-                                 {
-
-                                     Notify 
-(\_SB.PCI0.BAT0, 0x00)
-
-                                 }
-
-
-
-                                 Notify (\_SB.PCI0.BAT0, 
-0x80)
-
-                             }
-
-                         }
-
-
-
-                         Method (_Q07, 0, NotSerialized)
-
-                         {
-
-                             Store (0x07, P378)
-
-                             If (LEqual (OSFL (), 0x01))
-
-                             {
-
-                                 Store (0x00, FAKE)
-
-                                 Notify (\_SB.PCI0.AC0, 
-0x00)
-
-                             }
-
-
-
-                             If (LEqual (OSFL (), 0x02))
-
-                             {
-
-                                 Store (0x00, FAKE)
-
-                                 Notify (\_SB.PCI0.AC0, 
-0x00)
-
-                             }
-
-
-
-                             If (LOr (LEqual (OSFL (), 
-0x00), LEqual (OSFL (), 0x04)))
-
-                             {
-
-                                 Notify (\_SB.PCI0.AC0, 
-0x80)
-
-                                 Notify (\_SB.PCI0.BAT0, 
-0x80)
-
-                             }
-
-                         }
-
-
-
-                         Method (_Q0A, 0, NotSerialized)
-
-                         {
-
-                             Store (0xF1, P378)
-
-                             Notify (\_SB.SLPB, 0x80)
-
-                         }
-
-
-
-                         Method (_Q0B, 0, NotSerialized)
-
-                         {
-
-                             Store (0xF2, P378)
-
-                         }
-
-
-
-                         Method (_Q0C, 0, NotSerialized)
-
-                         {
-
-                             Store (0xF3, P378)
-
-                         }
-
-
-
-                         Method (_Q0D, 0, NotSerialized)
-
-                         {
-
-                             Store (0xF4, P378)
-
-                             If (LEqual 
-(\_SB.PCI0.AGP.VGA.SWIT, 0x00))
-
-                             {
-
-                                 If (LEqual 
-(\_SB.PCI0.AGP.VGA.GDFG, 0x01))
-
-                                 {
-
-                                     Notify 
-(\_SB.PCI0.AGP.VGA, 0x80)
-
-                                     Store (0x00, 
-\_SB.PCI0.AGP.VGA.GDFG)
-
-                                     Sleep (0x07D0)
-
-                                 }
-
-
-
-                                 If (LEqual 
-(\_SB.PCI0.AGP.VGA.GDTS, 0x00))
-
-                                 {
-
-                                     If (LEqual 
-(\_SB.PCI0.AGP.VGA.GDGS, 0x01))
-
-                                     {
-
-                                         Store (0x00, 
-\_SB.PCI0.AGP.VGA.LCD._DGS)
-
-                                         Store (0x01, 
-\_SB.PCI0.AGP.VGA.CRT._DGS)
-
-                                     }
-
-
-
-                                     If (LEqual 
-(\_SB.PCI0.AGP.VGA.GDGS, 0x02))
-
-                                     {
-
-                                         Store (0x01, 
-\_SB.PCI0.AGP.VGA.LCD._DGS)
-
-                                         Store (0x00, 
-\_SB.PCI0.AGP.VGA.CRT._DGS)
-
-                                     }
-
-
-
-                                     If (LEqual 
-(\_SB.PCI0.AGP.VGA.GDGS, 0x03))
-
-                                     {
-
-                                         Store (0x01, 
-\_SB.PCI0.AGP.VGA.LCD._DGS)
-
-                                         Store (0x01, 
-\_SB.PCI0.AGP.VGA.CRT._DGS)
-
-                                     }
-
-
-
-                                     Notify 
-(\_SB.PCI0.AGP.VGA, 0x80)
-
-                                     If (LEqual 
-(\_SB.PCI0.AGP.VGA.GDGS, 0x03))
-
-                                     {
-
-                                         Store (0x01, 
-\_SB.PCI0.AGP.VGA.GDGS)
-
-                                     }
-
-                                     Else
-
-                                     {
-
-                                         Add (0x01, 
-\_SB.PCI0.AGP.VGA.GDGS, \_SB.PCI0.AGP.VGA.GDGS)
-
-                                     }
-
-                                 }
-
-                             }
-
-                         }
-
-
-
-                         Method (_Q0E, 0, NotSerialized)
-
-                         {
-
-                             Store (0xF5, P378)
-
-                             If (LEqual (OSFL (), 0x01))
-
-                             {
-
-                                 Store (0xA4, SWI0)
-
-                             }
-
-                         }
-
-
-
-                         Method (_Q0F, 0, NotSerialized)
-
-                         {
-
-                             Store (0xF6, P378)
-
-                             If (LEqual (OSFL (), 0x01))
-
-                             {
-
-                                 Store (0xA5, SWI0)
-
-                             }
-
-                         }
-
-
-
-                         Method (_Q1C, 0, NotSerialized)
-
-                         {
-
-                             Store (0x1C, P378)
-
-                             If (LEqual (OSFL (), 0x01))
-
-                             {
-
-                                 Store (0xBE, SWI0)
-
-                             }
-
-                         }
-
-
-
-                         Method (_Q1D, 0, NotSerialized)
-
-                         {
-
-                             Store (0x1D, P378)
-
-                             If (LEqual (OSFL (), 0x01))
-
-                             {
-
-                                 Store (0xBF, SWI0)
-
-                             }
-
-                         }
-
-
-
-                         Method (_Q10, 0, NotSerialized)
-
-                         {
-
-                             Store (0xF7, P378)
-
-                             Store (0xA6, SWI0)
-
-                         }
-
-
-
-                         Method (_Q11, 0, NotSerialized)
-
-                         {
-
-                             Store (0xF8, P378)
-
-                             Store (0xA7, SWI0)
-
-                         }
-
-
-
-                         Method (_Q12, 0, NotSerialized)
-
-                         {
-
-                             Store (0xF9, P378)
-
-                         }
-
-
-
-                         Method (_Q13, 0, NotSerialized)
-
-                         {
-
-                             Store (0xFA, P378)
-
-                         }
-
-
-
-                         Method (_Q14, 0, NotSerialized)
-
-                         {
-
-                             Store (0xFB, P378)
-
-                         }
-
-
-
-                         Method (_Q15, 0, NotSerialized)
-
-                         {
-
-                             Store (0xFC, P378)
-
-                         }
-
-
-
-                         Method (_Q16, 0, NotSerialized)
-
-                         {
-
-                             Store (0x16, P378)
-
-                             Store (0x01, LIDS)
-
-                             Notify (\_SB.PCI0.SBRG.LID, 
-0x80)
-
-                         }
-
-
-
-                         Method (_Q19, 0, NotSerialized)
-
-                         {
-
-                             Store (0x19, P378)
-
-                             Store (0x00, LIDS)
-
-                             Notify (\_SB.PCI0.SBRG.LID, 
-0x80)
-
-                         }
-
-
-
-                         Method (_Q1A, 0, NotSerialized)
-
-                         {
-
-                             Store (0x1A, P378)
-
-                             If (LEqual (OSFL (), 0x01))
-
-                             {
-
-                                 Store (0xBC, SWI0)
-
-                             }
-
-                         }
-
-
-
-                         Method (_Q1B, 0, NotSerialized)
-
-                         {
-
-                             Store (0x1B, P378)
-
-                             If (LEqual (OSFL (), 0x01))
-
-                             {
-
-                                 Store (0xBD, SWI0)
-
-                             }
-
-                         }
-
-
-
-                         Method (_Q1E, 0, NotSerialized)
-
-                         {
-
-                             Store (0x1E, P378)
-
-                             Store (0x00, THRT)
-
-                         }
-
-
-
-                         Method (_Q1F, 0, NotSerialized)
-
-                         {
-
-                             Store (0x1F, P378)
-
-                             Store (0x1E, THRT)
-
-                         }
-
-
-
-                         Method (_Q20, 0, NotSerialized)
-
-                         {
-
-                             Store (0x20, P378)
-
-                             Store (0x1C, THRT)
-
-                         }
-
-
-
-                         Method (_Q21, 0, NotSerialized)
-
-                         {
-
-                             Store (0x21, P378)
-
-                             Store (0x1A, THRT)
-
-                         }
-
-
-
-                         Method (_Q22, 0, NotSerialized)
-
-                         {
-
-                             Store (0x22, P378)
-
-                             Store (0x18, THRT)
-
-                         }
-
-
-
-                         Method (_Q23, 0, NotSerialized)
-
-                         {
-
-                             Store (0x23, P378)
-
-                             Store (0x16, THRT)
-
-                         }
-
-
-
-                         Method (_Q24, 0, NotSerialized)
-
-                         {
-
-                             Store (0x24, P378)
-
-                             Store (0x14, THRT)
-
-                         }
-
-
-
-                         Method (_Q25, 0, NotSerialized)
-
-                         {
-
-                             Store (0x25, P378)
-
-                             Store (0xB5, SWI0)
-
-                         }
-
-
-
-                         Method (_Q26, 0, NotSerialized)
-
-                         {
-
-                             Store (0x26, P378)
-
-                             Store (0xB6, SWI0)
-
-                         }
-
-
-
-                         Method (_Q27, 0, NotSerialized)
-
-                         {
-
-                             Store (0x27, P378)
-
-                             Store (0x69, THPP)
-
-                             Notify (\_TZ.THRM, 0x80)
-
-                         }
-
-
-
-                         Device (\_SB.PCI0.BAT0)
-
-                         {
-
-                             Name (_HID, EisaId 
-("PNP0C0A"))
-
-                             Name (_UID, 0x00)
-
-                             Name (_PCL, Package (0x01)
-
-                             {
-
-                                 \_SB.PCI0.SBRG.EC0
-
-                             })
-
-                             Name (PAK1, Package (0x0D)
-
-                             {
-
-                                 0x00,
-
-                                 0x0C56,
-
-                                 0x0C56,
-
-                                 0x00,
-
-                                 0x2A30,
-
-                                 0x013B,
-
-                                 0x9D,
-
-                                 0x10,
-
-                                 0x08,
-
-                                 "755",
-
-                                 "001",
-
-                                 "LiON",
-
-                                 "OEM"
-
-                             })
-
-                             Method (_BIF, 0, 
-NotSerialized)
-
-                             {
-
-                                 Store ("BIf", Debug)
-
-                                 If (LOr (LEqual (OSFL (), 
-0x00), LEqual (OSFL (), 0x04)))
-
-                                 {
-
-                                     Store 
-(\_SB.PCI0.SBRG.EC0.XIF0, Index (PAK1, 0x00))
-
-                                     Store 
-(\_SB.PCI0.SBRG.EC0.XIF1, Index (PAK1, 0x01))
-
-                                     Store 
-(\_SB.PCI0.SBRG.EC0.XIF2, Local0)
-
-                                     Store (Local0, Index 
-(PAK1, 0x02))
-
-                                     Store 
-(\_SB.PCI0.SBRG.EC0.XIF3, Index (PAK1, 0x03))
-
-                                     Store 
-(\_SB.PCI0.SBRG.EC0.XIF4, Index (PAK1, 0x04))
-
-                                     Store (Divide 
-(Local0, 0x0A, ), Index (PAK1, 0x05))
-
-                                     Store (Divide 
-(Local0, 0x14, ), Index (PAK1, 0x06))
-
-                                     Store 
-(\_SB.PCI0.SBRG.EC0.XIF7, Index (PAK1, 0x07))
-
-                                 }
-
-                                 Else
-
-                                 {
-
-                                     Store (0xB9, SWI0)
-
-                                     Store (BIF0, Index 
-(PAK1, 0x00))
-
-                                     Store (BIF1, Index 
-(PAK1, 0x01))
-
-                                     Store (BIF2, Local0)
-
-                                     Store (Local0, Index 
-(PAK1, 0x02))
-
-                                     Store (BIF3, Index 
-(PAK1, 0x03))
-
-                                     Store (BIF4, Index 
-(PAK1, 0x04))
-
-                                     Store (Divide 
-(Local0, 0x0A, ), Index (PAK1, 0x05))
-
-                                     Store (Divide 
-(Local0, 0x14, ), Index (PAK1, 0x06))
-
-                                     Store (BIF7, Index 
-(PAK1, 0x07))
-
-                                 }
-
-
-
-                                 Return (PAK1)
-
-                             }
-
-
-
-                             Name (BFB0, Package (0x04)
-
-                             {
-
-                                 0x00,
-
-                                 0xFFFFFFFF,
-
-                                 0x1034,
-
-                                 0x2A30
-
-                             })
-
-                             Method (_BST, 0, 
-NotSerialized)
-
-                             {
-
-                                 Store ("BST Start", 
-Debug)
-
-                                 If (LOr (LEqual (OSFL (), 
-0x00), LEqual (OSFL (), 0x04)))
-
-                                 {
-
-                                     Store 
-(\_SB.PCI0.SBRG.EC0.XST0, Index (BFB0, 0x00))
-
-                                     Store 
-(\_SB.PCI0.SBRG.EC0.XST2, Index (BFB0, 0x02))
-
-                                     Store 
-(\_SB.PCI0.SBRG.EC0.XST3, Index (BFB0, 0x03))
-
-                                 }
-
-                                 Else
-
-                                 {
-
-                                     Store (0xBA, SWI0)
-
-                                     Store (BST0, Index 
-(BFB0, 0x00))
-
-                                     Store (BST1, Index 
-(BFB0, 0x01))
-
-                                     Store (BST2, Index 
-(BFB0, 0x02))
-
-                                     Store (BST3, Index 
-(BFB0, 0x03))
-
-                                 }
-
-
-
-                                 Store ("BST End", Debug)
-
-                                 Return (BFB0)
-
-                             }
-
-
-
-                             Method (_BTP, 1, 
-NotSerialized)
-
-                             {
-
-                                 If (LOr (LEqual (OSFL (), 
-0x00), LEqual (OSFL (), 0x04)))
-
-                                 {
-
-                                     Store (Arg0, 
-\_SB.PCI0.SBRG.EC0.XTP0)
-
-                                 }
-
-                                 Else
-
-                                 {
-
-                                     Store (Arg0, BTP0)
-
-                                     Store (0x33, SWI0)
-
-                                 }
-
-                             }
-
-
-
-                             Method (_STA, 0, 
-NotSerialized)
-
-                             {
-
-                                 Store ("BAT_STA Start", 
-Debug)
-
-                                 If (LOr (LEqual (OSFL (), 
-0x00), LEqual (OSFL (), 0x04)))
-
-                                 {
-
-                                     If (LEqual 
-(\_SB.PCI0.SBRG.EC0.FGEC, 0x00))
-
-                                     {
-
-                                         Store (0xB8, 
-SWI0)
-
-                                         Store (BTIN, 
-Local0)
-
-                                     }
-
-                                     Else
-
-                                     {
-
-                                         Store 
-(\_SB.PCI0.SBRG.EC0.XTIN, Local0)
-
-                                     }
-
-                                 }
-
-                                 Else
-
-                                 {
-
-                                     Store (0xB8, SWI0)
-
-                                     Store (BTIN, Local0)
-
-                                 }
-
-
-
-                                 If (Local0)
-
-                                 {
-
-                                     Return (0x1F)
-
-                                     Store (0x1F, P378)
-
-                                 }
-
-                                 Else
-
-                                 {
-
-                                     Return (0x0F)
-
-                                     Store (0x0F, P378)
-
-                                 }
-
-
-
-                                 Store ("BAT_STA END", 
-Debug)
-
-                             }
-
-                         }
-
-
-
-                         Device (\_SB.PCI0.AC0)
-
-                         {
-
-                             Name (_HID, "ACPI0003")
-
-                             Name (_PCL, Package (0x01)
-
-                             {
-
-                                 \_SB.PCI0.SBRG.EC0
-
-                             })
-
-                             Method (_PSR, 0, 
-NotSerialized)
-
-                             {
-
-                                 If (LNot (LEqual (FAKE, 
-0x00)))
-
-                                 {
-
-                                     Return (0x00)
-
-                                 }
-
-                                 Else
-
-                                 {
-
-                                     If (LOr (LEqual (OSFL 
-(), 0x00), LEqual (OSFL (), 0x04)))
-
-                                     {
-
-                                         Store 
-(\_SB.PCI0.SBRG.EC0.XCIN, Local0)
-
-                                     }
-
-                                     Else
-
-                                     {
-
-                                         Store (ACIN, 
-Local0)
-
-                                     }
-
-
-
-                                     Return (Local0)
-
-                                 }
-
-                             }
-
-                         }
-
-
-
-                         Scope (\_TZ)
-
-                         {
-
-                             ThermalZone (THRM)
-
-                             {
-
-                                 Method (KELV, 1, 
-NotSerialized)
-
-                                 {
-
-                                     If (LGreater (Arg0, 
-0x7F))
-
-                                     {
-
-                                         XOr (Arg0, 0xFF, 
-Local0)
-
-                                         Add (Local0, 
-0x01, Local0)
-
-                                         Multiply (Local0, 
-0x0A, Local0)
-
-                                         Subtract (0x0AAC, 
-Local0, Local1)
-
-                                     }
-
-                                     Else
-
-                                     {
-
-                                         Multiply (Arg0, 
-0x0A, Local0)
-
-                                         Add (Local0, 
-0x0AAC, Local1)
-
-                                     }
-
-
-
-                                     Return (Local1)
-
-                                 }
-
-
-
-                                 Method (_TMP, 0, 
-NotSerialized)
-
-                                 {
-
-                                     Return (KELV (THPP))
-
-                                 }
-
-
-
-                                 Method (_CRT, 0, 
-NotSerialized)
-
-                                 {
-
-                                     Return (KELV (0x55))
-
-                                 }
-
-                             }
-
-                         }
-
-                     }
-
-                 }
-
-
-
-                 Scope (\_SB)
-
-                 {
-
-                     Method (_INI, 0, NotSerialized)
-
-                     {
-
-                         Store (DCPU, Local0)
-
-                         And (Local0, 0xF7, DCPU)
-
-                     }
-
-
-
-                     Device (\_SB.PCI0.SBRG.LID)
-
-                     {
-
-                         Name (_HID, EisaId ("PNP0C0D"))
-
-                         Method (_LID, 0, NotSerialized)
-
-                         {
-
-                             Return (LIDS)
-
-                         }
-
-                     }
-
-
-
-                     Device (\_SB.SLPB)
-
-                     {
-
-                         Name (_HID, EisaId ("PNP0C0E"))
-
-                         Method (_STA, 0, NotSerialized)
-
-                         {
-
-                             Return (0x0B)
-
-                         }
-
-
-
-                         Method (SBEV, 0, NotSerialized)
-
-                         {
-
-                             If (SLPP)
-
-                             {
-
-                                 Store (0x00, SLPP)
-
-                                 Notify (SLPB, 0x02)
-
-                             }
-
-                             Else
-
-                             {
-
-                                 Store (0x01, SLPP)
-
-                                 Notify (SLPB, 0x80)
-
-                             }
-
-                         }
-
-                     }
-
-
-
-                     Device (\_SB.PCI0.P0P2.CBC0)
-
-                     {
-
-                         Name (_ADR, 0x00030000)
-
-                         Name (_PRW, Package (0x02)
-
-                         {
-
-                             0x0B,
-
-                             0x04
-
-                         })
-
-                         OperationRegion (CBR0, 
-PCI_Config, 0x00, 0xFF)
-
-                         Field (CBR0, DWordAcc, NoLock, 
-Preserve)
-
-                         {
-
-                             Offset (0x44),
-
-                             C044,   32,
-
-                             Offset (0xA4),
-
-                             C0A4,   8,
-
-                             C0A5,   8
-
-                         }
-
-
-
-                         Method (_STA, 0, NotSerialized)
-
-                         {
-
-                             Return (0x0F)
-
-                         }
-
-
-
-                         Method (_INI, 0, NotSerialized)
-
-                         {
-
-                             Store (0x00, 
-\_SB.PCI0.P0P2.CBC0.C044)
-
-                         }
-
-                     }
-
-                 }
-
-
-
-                 Scope (\_SB.PCI0)
-
-                 {
-
-                     Device (AGP)
-
-                     {
-
-                         Name (_ADR, 0x00010000)
-
-                         Device (VGA)
-
-                         {
-
-                             Name (_ADR, 0x00)
-
-                             Method (_DOS, 1, 
-NotSerialized)
-
-                             {
-
-                                 Store (Arg0, SWIT)
-
-                             }
-
-
-
-                             Name (_DOD, Package (0x02)
-
-                             {
-
-                                 0x00010100,
-
-                                 0x00010110
-
-                             })
-
-                             Device (CRT)
-
-                             {
-
-                                 Name (_ADR, 0x0100)
-
-                                 Name (_DCS, 0x1F)
-
-                                 Name (_DGS, 0x01)
-
-                                 Method (_DSS, 1, 
-NotSerialized)
-
-                                 {
-
-                                 }
-
-                             }
-
-
-
-                             Device (LCD)
-
-                             {
-
-                                 Name (_ADR, 0x0110)
-
-                                 Name (_DCS, 0x1F)
-
-                                 Name (_DGS, 0x01)
-
-                                 Method (_DSS, 1, 
-NotSerialized)
-
-                                 {
-
-                                 }
-
-
-
-                                 Method (_BCM, 1, 
-NotSerialized)
-
-                                 {
-
-                                 }
-
-
-
-                                 Name (PBCL, Package 
-(0x07)
-
-                                 {
-
-                                     0x50,
-
-                                     0x32,
-
-                                     0x14,
-
-                                     0x28,
-
-                                     0x3C,
-
-                                     0x50,
-
-                                     0x64
-
-                                 })
-
-                                 Method (_BCL, 0, 
-NotSerialized)
-
-                                 {
-
-                                     Return (PBCL)
-
-                                 }
-
-                             }
-
-
-
-                             Name (SWIT, 0x00)
-
-                             Name (GDCS, 0x02)
-
-                             Name (GDGS, 0x01)
-
-                             Name (GDTS, 0x00)
-
-                             Name (GDFG, 0x01)
-
-                         }
-
-                     }
-
-                 }
-
-             }
-
-         }
-
-
-
-         Scope (\_GPE)
-
-         {
-
-             Method (_L0B, 0, NotSerialized)
-
-             {
-
-                 Notify (\_SB.PCI0.P0P2, 0x02)
-
-                 Notify (\_SB.PCI0.P0P2.LAN1, 0x02)
-
-                 Notify (\_SB.PWRB, 0x02)
-
-             }
-
-
-
-             Method (_L05, 0, NotSerialized)
-
-             {
-
-                 Notify (\_SB.PCI0.MC97, 0x02)
-
-                 Notify (\_SB.PWRB, 0x02)
-
-             }
-
-
-
-             Method (_L1D, 0, NotSerialized)
-
-             {
-
-                 \_SB.PCI0.SBRG.SIOH ()
-
-                 Notify (\_SB.PWRB, 0x02)
-
-             }
-
-         }
-
-
-
-         Device (PWRB)
-
-         {
-
-             Name (_HID, EisaId ("PNP0C0C"))
-
-             Name (_UID, 0x1D)
-
-             Name (_STA, 0x0B)
-
-             Method (_PRW, 0, NotSerialized)
-
-             {
-
-                 Return (GPRW (0x1D, 0x05))
-
-             }
-
-         }
-
-     }
-
-
-
-     Scope (\_SB)
-
-     {
-
-         OperationRegion (\_SB.PCI0.SBRG.IROR, PCI_Config, 
-0x00, 0xFF)
-
-         Field (\_SB.PCI0.SBRG.IROR, ByteAcc, NoLock, 
-Preserve)
-
-         {
-
-             Offset (0x60),
-
-             PIRA,   8,
-
-             PIRB,   8,
-
-             PIRC,   8,
-
-             PIRD,   8,
-
-             Offset (0x68),
-
-             PIRE,   8,
-
-             PIRF,   8,
-
-             PIRG,   8,
-
-             PIRH,   8
-
-         }
-
-
-
-         Name (BUFA, ResourceTemplate ()
-
-         {
-
-             IRQ (Level, ActiveLow, Shared) {15}
-
-         })
-
-         CreateWordField (BUFA, 0x01, ICRS)
-
-         Method (LSTA, 1, NotSerialized)
-
-         {
-
-             And (Arg0, 0x80, Local0)
-
-             If (Local0)
-
-             {
-
-                 Return (0x09)
-
-             }
-
-             Else
-
-             {
-
-                 Return (0x0B)
-
-             }
-
-         }
-
-
-
-         Method (LCRS, 1, NotSerialized)
-
-         {
-
-             And (Arg0, 0x0F, Local0)
-
-             ShiftLeft (0x01, Local0, ICRS)
-
-             Return (BUFA)
-
-         }
-
-
-
-         Method (LSRS, 1, NotSerialized)
-
-         {
-
-             CreateWordField (Arg0, 0x01, ISRS)
-
-             FindSetRightBit (ISRS, Local0)
-
-             Return (Decrement (Local0))
-
-         }
-
-
-
-         Method (LDIS, 1, NotSerialized)
-
-         {
-
-             Return (Or (Arg0, 0x80))
-
-         }
-
-
-
-         Device (LNKA)
-
-         {
-
-             Name (_HID, EisaId ("PNP0C0F"))
-
-             Name (_UID, 0x01)
-
-             Method (_STA, 0, NotSerialized)
-
-             {
-
-                 Return (LSTA (PIRA))
-
-             }
-
-
-
-             Method (_PRS, 0, NotSerialized)
-
-             {
-
-                 Return (PRSA)
-
-             }
-
-
-
-             Method (_DIS, 0, NotSerialized)
-
-             {
-
-                 Store (LDIS (PIRA), PIRA)
-
-             }
-
-
-
-             Method (_CRS, 0, NotSerialized)
-
-             {
-
-                 Return (LCRS (PIRA))
-
-             }
-
-
-
-             Method (_SRS, 1, NotSerialized)
-
-             {
-
-                 Store (LSRS (Arg0), PIRA)
-
-             }
-
-         }
-
-
-
-         Device (LNKB)
-
-         {
-
-             Name (_HID, EisaId ("PNP0C0F"))
-
-             Name (_UID, 0x02)
-
-             Method (_STA, 0, NotSerialized)
-
-             {
-
-                 Return (LSTA (PIRB))
-
-             }
-
-
-
-             Method (_PRS, 0, NotSerialized)
-
-             {
-
-                 Return (PRSB)
-
-             }
-
-
-
-             Method (_DIS, 0, NotSerialized)
-
-             {
-
-                 Store (LDIS (PIRB), PIRB)
-
-             }
-
-
-
-             Method (_CRS, 0, NotSerialized)
-
-             {
-
-                 Return (LCRS (PIRB))
-
-             }
-
-
-
-             Method (_SRS, 1, NotSerialized)
-
-             {
-
-                 Store (LSRS (Arg0), PIRB)
-
-             }
-
-         }
-
-
-
-         Device (LNKC)
-
-         {
-
-             Name (_HID, EisaId ("PNP0C0F"))
-
-             Name (_UID, 0x03)
-
-             Method (_STA, 0, NotSerialized)
-
-             {
-
-                 Return (LSTA (PIRC))
-
-             }
-
-
-
-             Method (_PRS, 0, NotSerialized)
-
-             {
-
-                 Return (PRSC)
-
-             }
-
-
-
-             Method (_DIS, 0, NotSerialized)
-
-             {
-
-                 Store (LDIS (PIRC), PIRC)
-
-             }
-
-
-
-             Method (_CRS, 0, NotSerialized)
-
-             {
-
-                 Return (LCRS (PIRC))
-
-             }
-
-
-
-             Method (_SRS, 1, NotSerialized)
-
-             {
-
-                 Store (LSRS (Arg0), PIRC)
-
-             }
-
-         }
-
-
-
-         Device (LNKD)
-
-         {
-
-             Name (_HID, EisaId ("PNP0C0F"))
-
-             Name (_UID, 0x04)
-
-             Method (_STA, 0, NotSerialized)
-
-             {
-
-                 Return (LSTA (PIRD))
-
-             }
-
-
-
-             Method (_PRS, 0, NotSerialized)
-
-             {
-
-                 Return (PRSD)
-
-             }
-
-
-
-             Method (_DIS, 0, NotSerialized)
-
-             {
-
-                 Store (LDIS (PIRD), PIRD)
-
-             }
-
-
-
-             Method (_CRS, 0, NotSerialized)
-
-             {
-
-                 Return (LCRS (PIRD))
-
-             }
-
-
-
-             Method (_SRS, 1, NotSerialized)
-
-             {
-
-                 Store (LSRS (Arg0), PIRD)
-
-             }
-
-         }
-
-
-
-         Device (LNKE)
-
-         {
-
-             Name (_HID, EisaId ("PNP0C0F"))
-
-             Name (_UID, 0x05)
-
-             Method (_STA, 0, NotSerialized)
-
-             {
-
-                 Return (LSTA (PIRE))
-
-             }
-
-
-
-             Method (_PRS, 0, NotSerialized)
-
-             {
-
-                 Return (PRSE)
-
-             }
-
-
-
-             Method (_DIS, 0, NotSerialized)
-
-             {
-
-                 Store (LDIS (PIRE), PIRE)
-
-             }
-
-
-
-             Method (_CRS, 0, NotSerialized)
-
-             {
-
-                 Return (LCRS (PIRE))
-
-             }
-
-
-
-             Method (_SRS, 1, NotSerialized)
-
-             {
-
-                 Store (LSRS (Arg0), PIRE)
-
-             }
-
-         }
-
-
-
-         Device (LNKF)
-
-         {
-
-             Name (_HID, EisaId ("PNP0C0F"))
-
-             Name (_UID, 0x06)
-
-             Method (_STA, 0, NotSerialized)
-
-             {
-
-                 Return (LSTA (PIRF))
-
-             }
-
-
-
-             Method (_PRS, 0, NotSerialized)
-
-             {
-
-                 Return (PRSF)
-
-             }
-
-
-
-             Method (_DIS, 0, NotSerialized)
-
-             {
-
-                 Store (LDIS (PIRF), PIRF)
-
-             }
-
-
-
-             Method (_CRS, 0, NotSerialized)
-
-             {
-
-                 Return (LCRS (PIRF))
-
-             }
-
-
-
-             Method (_SRS, 1, NotSerialized)
-
-             {
-
-                 Store (LSRS (Arg0), PIRF)
-
-             }
-
-         }
-
-
-
-         Device (LNKG)
-
-         {
-
-             Name (_HID, EisaId ("PNP0C0F"))
-
-             Name (_UID, 0x07)
-
-             Method (_STA, 0, NotSerialized)
-
-             {
-
-                 Return (LSTA (PIRG))
-
-             }
-
-
-
-             Method (_PRS, 0, NotSerialized)
-
-             {
-
-                 Return (PRSG)
-
-             }
-
-
-
-             Method (_DIS, 0, NotSerialized)
-
-             {
-
-                 Store (LDIS (PIRG), PIRG)
-
-             }
-
-
-
-             Method (_CRS, 0, NotSerialized)
-
-             {
-
-                 Return (LCRS (PIRG))
-
-             }
-
-
-
-             Method (_SRS, 1, NotSerialized)
-
-             {
-
-                 Store (LSRS (Arg0), PIRG)
-
-             }
-
-         }
-
-
-
-         Device (LNKH)
-
-         {
-
-             Name (_HID, EisaId ("PNP0C0F"))
-
-             Name (_UID, 0x08)
-
-             Method (_STA, 0, NotSerialized)
-
-             {
-
-                 Return (LSTA (PIRH))
-
-             }
-
-
-
-             Method (_PRS, 0, NotSerialized)
-
-             {
-
-                 Return (PRSH)
-
-             }
-
-
-
-             Method (_DIS, 0, NotSerialized)
-
-             {
-
-                 Store (LDIS (PIRH), PIRH)
-
-             }
-
-
-
-             Method (_CRS, 0, NotSerialized)
-
-             {
-
-                 Return (LCRS (PIRH))
-
-             }
-
-
-
-             Method (_SRS, 1, NotSerialized)
-
-             {
-
-                 Store (LSRS (Arg0), PIRH)
-
-             }
-
-         }
-
-     }
-
-
-
-     Scope (\_SB)
-
-     {
-
-         Scope (PCI0)
-
-         {
-
-             Name (CRS, ResourceTemplate ()
-
-             {
-
-                 WordBusNumber (ResourceProducer, 
-MinFixed, MaxFixed, PosDecode,
-
-                     0x0000,
-
-                     0x0000,
-
-                     0x00FF,
-
-                     0x0000,
-
-                     0x0100)
-
-                 IO (Decode16, 0x0CF8, 0x0CF8, 0x01, 0x08)
-
-                 WordIO (ResourceProducer, MinFixed, 
-MaxFixed, PosDecode, EntireRange,
-
-                     0x0000,
-
-                     0x0000,
-
-                     0x0CF7,
-
-                     0x0000,
-
-                     0x0CF8)
-
-                 WordIO (ResourceProducer, MinFixed, 
-MaxFixed, PosDecode, EntireRange,
-
-                     0x0000,
-
-                     0x0D00,
-
-                     0xFFFF,
-
-                     0x0000,
-
-                     0xF300)
-
-                 DWordMemory (ResourceProducer, PosDecode, 
-MinFixed, MaxFixed, Cacheable, ReadWrite,
-
-                     0x00000000,
-
-                     0x000A0000,
-
-                     0x000BFFFF,
-
-                     0x00000000,
-
-                     0x00020000)
-
-                 DWordMemory (ResourceProducer, PosDecode, 
-MinFixed, MaxFixed, Cacheable, ReadWrite,
-
-                     0x00000000,
-
-                     0x00000000,
-
-                     0x00000000,
-
-                     0x00000000,
-
-                     0x00000000)
-
-                 DWordMemory (ResourceProducer, PosDecode, 
-MinFixed, MaxFixed, Cacheable, ReadWrite,
-
-                     0x00000000,
-
-                     0x00000000,
-
-                     0x00000000,
-
-                     0x00000000,
-
-                     0x00000000)
-
-             })
-
-             CreateDWordField (CRS, 0x5C, MIN5)
-
-             CreateDWordField (CRS, 0x60, MAX5)
-
-             CreateDWordField (CRS, 0x68, LEN5)
-
-             CreateDWordField (CRS, 0x76, MIN6)
-
-             CreateDWordField (CRS, 0x7A, MAX6)
-
-             CreateDWordField (CRS, 0x82, LEN6)
-
-             Method (_CRS, 0, NotSerialized)
-
-             {
-
-                 Store (MG1B, MIN5)
-
-                 Store (MG1L, LEN5)
-
-                 Store (MG1L, Local0)
-
-                 If (Local0)
-
-                 {
-
-                     Add (MIN5, Decrement (Local0), MAX5)
-
-                 }
-
-
-
-                 Store (MG2B, MIN6)
-
-                 Store (MG2L, LEN6)
-
-                 Store (MG2L, Local0)
-
-                 Add (MIN6, Decrement (Local0), MAX6)
-
-                 Return (CRS)
-
-             }
-
-         }
-
-     }
-
-
-
-     If (SS1)
-
-     {
-
-         Name (\_SB.PCI0._S1D, 0x02)
-
-         Name (\_SB.PCI0.P0P2._S1D, 0x02)
-
-         Name (\_SB.PCI0.USB1._S1D, 0x02)
-
-         Name (\_SB.PCI0.USB2._S1D, 0x02)
-
-         Name (\_SB.PCI0.USB3._S1D, 0x02)
-
-     }
-
-
-
-     If (SS3)
-
-     {
-
-         Name (\_SB.PCI0._S3D, 0x02)
-
-         Name (\_SB.PCI0.P0P2._S3D, 0x02)
-
-         Name (\_SB.PCI0.USB1._S3D, 0x02)
-
-         Name (\_SB.PCI0.USB2._S3D, 0x02)
-
-         Name (\_SB.PCI0.USB3._S3D, 0x02)
-
-     }
-
-
-
-     If (SS4)
-
-     {
-
-         Name (\_SB.PCI0._S4D, 0x02)
-
-         Name (\_SB.PCI0.P0P2._S4D, 0x02)
-
-     }
-
-
-
-     Method (_PTS, 1, NotSerialized)
-
-     {
-
-         Store (Arg0, P378)
-
-         PTS (Arg0)
-
-         Store (0x00, Index (WAKP, 0x00))
-
-         Store (0x00, Index (WAKP, 0x01))
-
-     }
-
-
-
-     Method (_WAK, 1, NotSerialized)
-
-     {
-
-         ShiftLeft (Arg0, 0x04, P378)
-
-         WAK (Arg0)
-
-         If (LEqual (Arg0, 0x04))
-
-         {
-
-             Notify (\_SB.PWRB, 0x02)
-
-             If (LEqual (OSFL (), 0x01))
-
-             {
-
-                 Store (0x01, OSEC)
-
-             }
-
-             Else
-
-             {
-
-                 If (LEqual (OSFL (), 0x00))
-
-                 {
-
-                     Store (0x02, OSEC)
-
-                 }
-
-                 Else
-
-                 {
-
-                     If (LEqual (OSFL (), 0x02))
-
-                     {
-
-                         Store (0x03, OSEC)
-
-                     }
-
-                 }
-
-             }
-
-
-
-             Store (0xB8, SWI0)
-
-         }
-
-
-
-         If (DerefOf (Index (WAKP, 0x00)))
-
-         {
-
-             Store (0x00, Index (WAKP, 0x01))
-
-         }
-
-         Else
-
-         {
-
-             Store (Arg0, Index (WAKP, 0x01))
-
-         }
-
-
-
-         Return (WAKP)
-
-     }
-
-
-
-     OperationRegion (PMRG, SystemIO, 0x0400, 0x80)
-
-     Field (PMRG, ByteAcc, NoLock, Preserve)
-
-     {
-
-         Offset (0x04),
-
-         SCIF,   1,
-
-         Offset (0x06),
-
-         RTCS,   8,
-
-         Offset (0x10),
-
-         THRT,   8,
-
-         Offset (0x2D),
-
-         DCPU,   8,
-
-         Offset (0x30),
-
-             ,   4,
-
-         SLPS,   1
-
-     }
-
-
-
-     OperationRegion (OPR1, SystemIO, 0xB2, 0x02)
-
-     Field (OPR1, ByteAcc, NoLock, Preserve)
-
-     {
-
-         SWI0,   8
-
-     }
-
-
-
-     OperationRegion (OPR2, SystemIO, 0x0378, 0x02)
-
-     Field (OPR2, ByteAcc, NoLock, Preserve)
-
-     {
-
-         P378,   8
-
-     }
-
-
-
-     Name (THPP, 0x4B)
-
-     Name (FAKE, 0x00)
-
-     Name (LIDS, 0x01)
-
-     Name (SLPP, 0x00)
-
-     Field (BIOS, ByteAcc, NoLock, Preserve)
-
-     {
-
-         Offset (0x80),
-
-         BIF0,   16,
-
-         BIF1,   16,
-
-         BIF2,   16,
-
-         BIF3,   16,
-
-         BIF4,   16,
-
-         BIF5,   16,
-
-         BIF6,   16,
-
-         BIF7,   16,
-
-         BIF8,   16,
-
-         BIF9,   64,
-
-         BIFA,   64,
-
-         BIFB,   64,
-
-         BIFC,   64,
-
-         BST0,   16,
-
-         BST1,   16,
-
-         BST2,   16,
-
-         BST3,   16,
-
-         BTP0,   16,
-
-         ACIN,   1,
-
-             ,   1,
-
-         BTIN,   1,
-
-         Offset (0xC0),
-
-         OSEC,   8,
-
-         SLPT,   8
-
-     }
-
-
-
-     Name (\_S0, Package (0x04)
-
-     {
-
-         0x00,
-
-         0x00,
-
-         0x00,
-
-         0x00
-
-     })
-
-     If (SS1)
-
-     {
-
-         Name (\S3, Package (0x04)
-
-         {
-
-             0x01,
-
-             0x00,
-
-             0x00,
-
-             0x00
-
-         })
-
-     }
-
-
-
-     If (SS3)
-
-     {
-
-         Name (\_S3, Package (0x04)
-
-         {
-
-             0x05,
-
-             0x00,
-
-             0x00,
-
-             0x00
-
-         })
-
-     }
-
-
-
-     If (SS4)
-
-     {
-
-         Name (\_S4, Package (0x04)
-
-         {
-
-             0x07,
-
-             0x00,
-
-             0x00,
-
-             0x00
-
-         })
-
-     }
-
-
-
-     Name (\_S5, Package (0x04)
-
-     {
-
-         0x07,
-
-         0x00,
-
-         0x00,
-
-         0x00
-
-     })
-
-     Method (PTS, 1, NotSerialized)
-
-     {
-
-         If (Arg0)
-
-         {
-
-             \_SB.PCI0.SBRG.SIOS (Arg0)
-
-         }
-
-     }
-
-
-
-     Method (WAK, 1, NotSerialized)
-
-     {
-
-         \_SB.PCI0.SBRG.SIOW (Arg0)
-
-     }
-
-}
-
-
-
-Can you make a try?
-Thz in advance
-_______________________________________
-Connessione ed e-mail gratuita da 10 mb
-consultabile tramite web e tramite pop.
-www.infinito.it vieni a scoprire tutti 
-i nostri servizi!
-
-http://www.infinito.it/xmail
-
+This is a multi-part message in MIME format.
+--------------060008040705080300000104
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+
+Hello.
+
+Andrew Morton wrote:
+> http://www.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.10-rc2/2.6.10-rc2-mm4/
+It seems like power-off doesn't work
+for me any more. It didn't also in rc2-mm2,
+but it still works with rc2-bk13.
+The last lines I see on the screen,
+are as follows:
+---
+Halting system...
+Shutdown: hda
+Power down.
+acpi_power_off called
+---
+At this point the PC should switch off,
+but this does not happen these days.
+
+Attached are the dmesgs from both
+"working" and "non-working" kernels,
+as well as the configs from both.
+
+Would be nice to get this fixed.
+
+
+--------------060008040705080300000104
+Content-Type: text/plain;
+ name="dmesg-rc2-mm4"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="dmesg-rc2-mm4"
+
+TGludXggdmVyc2lvbiAyLjYuMTAtcmMyLW1tNCAocm9vdEBzdGFzKSAoZ2NjIHZlcnNpb24g
+My4zLjMgMjAwNDA0MTIgKFJlZCBIYXQgTGludXggMy4zLjMtNykpICMyNCBTTVAgRnJpIERl
+YyAzIDExOjI4OjU1IE1TSyAyMDA0CkJJT1MtcHJvdmlkZWQgcGh5c2ljYWwgUkFNIG1hcDoK
+IEJJT1MtZTgyMDogMDAwMDAwMDAwMDAwMDAwMCAtIDAwMDAwMDAwMDAwOWZjMDAgKHVzYWJs
+ZSkKIEJJT1MtZTgyMDogMDAwMDAwMDAwMDA5ZmMwMCAtIDAwMDAwMDAwMDAwYTAwMDAgKHJl
+c2VydmVkKQogQklPUy1lODIwOiAwMDAwMDAwMDAwMGYwMDAwIC0gMDAwMDAwMDAwMDEwMDAw
+MCAocmVzZXJ2ZWQpCiBCSU9TLWU4MjA6IDAwMDAwMDAwMDAxMDAwMDAgLSAwMDAwMDAwMDFm
+ZmYwMDAwICh1c2FibGUpCiBCSU9TLWU4MjA6IDAwMDAwMDAwMWZmZjAwMDAgLSAwMDAwMDAw
+MDFmZmYzMDAwIChBQ1BJIE5WUykKIEJJT1MtZTgyMDogMDAwMDAwMDAxZmZmMzAwMCAtIDAw
+MDAwMDAwMjAwMDAwMDAgKEFDUEkgZGF0YSkKIEJJT1MtZTgyMDogMDAwMDAwMDBmZmIwMDAw
+MCAtIDAwMDAwMDAxMDAwMDAwMDAgKHJlc2VydmVkKQowTUIgSElHSE1FTSBhdmFpbGFibGUu
+CjUxMU1CIExPV01FTSBhdmFpbGFibGUuCk9uIG5vZGUgMCB0b3RhbHBhZ2VzOiAxMzEwNTYK
+ICBETUEgem9uZTogNDA5NiBwYWdlcywgTElGTyBiYXRjaDoxCiAgRE1BMzIgem9uZTogMCBw
+YWdlcywgTElGTyBiYXRjaDoxCiAgTm9ybWFsIHpvbmU6IDEyNjk2MCBwYWdlcywgTElGTyBi
+YXRjaDoxNgogIEhpZ2hNZW0gem9uZTogMCBwYWdlcywgTElGTyBiYXRjaDoxCkRNSSAyLjMg
+cHJlc2VudC4KQUNQSTogUlNEUCAodjAwMCBJbnRlbFIgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICkgQCAweDAwMGY3NWQwCkFDUEk6IFJTRFQgKHYwMDEgSW50ZWxSIEFXUkRB
+Q1BJIDB4NDIzMDJlMzEgQVdSRCAweDAwMDAwMDAwKSBAIDB4MWZmZjMwMDAKQUNQSTogRkFE
+VCAodjAwMSBJbnRlbFIgQVdSREFDUEkgMHg0MjMwMmUzMSBBV1JEIDB4MDAwMDAwMDApIEAg
+MHgxZmZmMzA0MApBQ1BJOiBEU0RUICh2MDAxIElOVEVMUiBBV1JEQUNQSSAweDAwMDAxMDAw
+IE1TRlQgMHgwMTAwMDAwYykgQCAweDAwMDAwMDAwCkFDUEk6IFBNLVRpbWVyIElPIFBvcnQ6
+IDB4NDAwOApCdWlsdCAxIHpvbmVsaXN0cwpMb2NhbCBBUElDIGRpc2FibGVkIGJ5IEJJT1Mg
+LS0gcmVlbmFibGluZy4KRm91bmQgYW5kIGVuYWJsZWQgbG9jYWwgQVBJQyEKbWFwcGVkIEFQ
+SUMgdG8gZmZmZmQwMDAgKGZlZTAwMDAwKQpJbml0aWFsaXppbmcgQ1BVIzAKS2VybmVsIGNv
+bW1hbmQgbGluZTogcm8gcm9vdD0vZGV2L2hkYTEyIGxhcGljIG5taV93YXRjaGRvZz0yCkNQ
+VSAwIGlycXN0YWNrcywgaGFyZD1jMDQyZDAwMCBzb2Z0PWMwNDJiMDAwClBJRCBoYXNoIHRh
+YmxlIGVudHJpZXM6IDIwNDggKG9yZGVyOiAxMSwgMzI3NjggYnl0ZXMpCkRldGVjdGVkIDEx
+MzMuNzQwIE1IeiBwcm9jZXNzb3IuClVzaW5nIHBtdG1yIGZvciBoaWdoLXJlcyB0aW1lc291
+cmNlCkNvbnNvbGU6IGNvbG91ciBWR0ErIDgweDI1CkRlbnRyeSBjYWNoZSBoYXNoIHRhYmxl
+IGVudHJpZXM6IDEzMTA3MiAob3JkZXI6IDcsIDUyNDI4OCBieXRlcykKSW5vZGUtY2FjaGUg
+aGFzaCB0YWJsZSBlbnRyaWVzOiA2NTUzNiAob3JkZXI6IDYsIDI2MjE0NCBieXRlcykKTWVt
+b3J5OiA1MTUxNTJrLzUyNDIyNGsgYXZhaWxhYmxlICgyMTU5ayBrZXJuZWwgY29kZSwgODU4
+NGsgcmVzZXJ2ZWQsIDg1MWsgZGF0YSwgMjA4ayBpbml0LCAwayBoaWdobWVtKQpDaGVja2lu
+ZyBpZiB0aGlzIHByb2Nlc3NvciBob25vdXJzIHRoZSBXUCBiaXQgZXZlbiBpbiBzdXBlcnZp
+c29yIG1vZGUuLi4gT2suCkNhbGlicmF0aW5nIGRlbGF5IGxvb3AuLi4gMjI0NC42MCBCb2dv
+TUlQUyAobHBqPTExMjIzMDQpCk1vdW50LWNhY2hlIGhhc2ggdGFibGUgZW50cmllczogNTEy
+IChvcmRlcjogMCwgNDA5NiBieXRlcykKQ1BVOiBBZnRlciBnZW5lcmljIGlkZW50aWZ5LCBj
+YXBzOiAwMzgzZmJmZiAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAwMApDUFU6IEFmdGVyIHZl
+bmRvciBpZGVudGlmeSwgY2FwczogIDAzODNmYmZmIDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAw
+MDAwCkNQVTogTDEgSSBjYWNoZTogMTZLLCBMMSBEIGNhY2hlOiAxNksKQ1BVOiBMMiBjYWNo
+ZTogMjU2SwpDUFU6IEFmdGVyIGFsbCBpbml0cywgY2FwczogICAgICAgIDAzODNmYmZmIDAw
+MDAwMDAwIDAwMDAwMDAwIDAwMDAwMDQwCkludGVsIG1hY2hpbmUgY2hlY2sgYXJjaGl0ZWN0
+dXJlIHN1cHBvcnRlZC4KSW50ZWwgbWFjaGluZSBjaGVjayByZXBvcnRpbmcgZW5hYmxlZCBv
+biBDUFUjMC4KRW5hYmxpbmcgZmFzdCBGUFUgc2F2ZSBhbmQgcmVzdG9yZS4uLiBkb25lLgpF
+bmFibGluZyB1bm1hc2tlZCBTSU1EIEZQVSBleGNlcHRpb24gc3VwcG9ydC4uLiBkb25lLgpD
+aGVja2luZyAnaGx0JyBpbnN0cnVjdGlvbi4uLiBPSy4KQUNQSTogc2V0dGluZyBFTENSIHRv
+IDAyMDAgKGZyb20gMGUyMCkKQ1BVMDogSW50ZWwoUikgUGVudGl1bShSKSBJSUkgQ1BVICAg
+ICAgICAgICAgIDExMzNNSHogc3RlcHBpbmcgMDEKcGVyLUNQVSB0aW1lc2xpY2UgY3V0b2Zm
+OiA3MzEuNzkgdXNlY3MuCnRhc2sgbWlncmF0aW9uIGNhY2hlIGRlY2F5IHRpbWVvdXQ6IDEg
+bXNlY3MuClNNUCBtb3RoZXJib2FyZCBub3QgZGV0ZWN0ZWQuCnRlc3RpbmcgTk1JIHdhdGNo
+ZG9nIC4uLiBPSy4KQnJvdWdodCB1cCAxIENQVXMKQ1BVMDoKIGRvbWFpbiAwOiBzcGFuIDEK
+ICBncm91cHM6IDEKTkVUOiBSZWdpc3RlcmVkIHByb3RvY29sIGZhbWlseSAxNgpQQ0k6IFBD
+SSBCSU9TIHJldmlzaW9uIDIuMTAgZW50cnkgYXQgMHhmYWZjMCwgbGFzdCBidXM9MgpQQ0k6
+IFVzaW5nIGNvbmZpZ3VyYXRpb24gdHlwZSAxCm10cnI6IHYyLjAgKDIwMDIwNTE5KQpBQ1BJ
+OiBTdWJzeXN0ZW0gcmV2aXNpb24gMjAwNDExMDUKQUNQSTogSW50ZXJwcmV0ZXIgZW5hYmxl
+ZApBQ1BJOiBVc2luZyBQSUMgZm9yIGludGVycnVwdCByb3V0aW5nCkFDUEk6IFBDSSBSb290
+IEJyaWRnZSBbUENJMF0gKDAwOjAwKQpQQ0k6IFByb2JpbmcgUENJIGhhcmR3YXJlIChidXMg
+MDApClBDSTogVHJhbnNwYXJlbnQgYnJpZGdlIC0gMDAwMDowMDoxZS4wCkFDUEk6IFBDSSBJ
+bnRlcnJ1cHQgUm91dGluZyBUYWJsZSBbXF9TQl8uUENJMC5fUFJUXQpBQ1BJOiBQQ0kgSW50
+ZXJydXB0IFJvdXRpbmcgVGFibGUgW1xfU0JfLlBDSTAuSFVCMC5fUFJUXQpBQ1BJOiBQQ0kg
+SW50ZXJydXB0IExpbmsgW0xOS0FdIChJUlFzIDMgNCA1IDYgNyAxMCAqMTEgMTIgMTQgMTUp
+CkFDUEk6IFBDSSBJbnRlcnJ1cHQgTGluayBbTE5LQl0gKElSUXMgMyA0IDUgNiA3IDEwIDEx
+IDEyIDE0IDE1KSAqMCwgZGlzYWJsZWQuCkFDUEk6IFBDSSBJbnRlcnJ1cHQgTGluayBbTE5L
+Q10gKElSUXMgMyA0ICo1IDYgNyAxMCAxMSAxMiAxNCAxNSkKQUNQSTogUENJIEludGVycnVw
+dCBMaW5rIFtMTktEXSAoSVJRcyAzIDQgNSA2IDcgMTAgKjExIDEyIDE0IDE1KQpBQ1BJOiBQ
+Q0kgSW50ZXJydXB0IExpbmsgW0xOS0VdIChJUlFzIDMgNCA1IDYgNyAxMCAxMSAxMiAxNCAx
+NSkgKjAsIGRpc2FibGVkLgpBQ1BJOiBQQ0kgSW50ZXJydXB0IExpbmsgW0xOS0ZdIChJUlFz
+IDMgNCA1IDYgNyAqMTAgMTEgMTIgMTQgMTUpCkFDUEk6IFBDSSBJbnRlcnJ1cHQgTGluayBb
+TE5LMF0gKElSUXMgMyA0IDUgNiA3IDEwIDExIDEyIDE0IDE1KSAqMCwgZGlzYWJsZWQuCkFD
+UEk6IFBDSSBJbnRlcnJ1cHQgTGluayBbTE5LMV0gKElSUXMgMyA0IDUgNiA3IDEwIDExIDEy
+IDE0IDE1KSAqOQpMaW51eCBQbHVnIGFuZCBQbGF5IFN1cHBvcnQgdjAuOTcgKGMpIEFkYW0g
+QmVsYXkKcG5wOiBQblAgQUNQSSBpbml0CnBucDogUG5QIEFDUEk6IGZvdW5kIDEyIGRldmlj
+ZXMKUG5QQklPUzogRGlzYWJsZWQgYnkgQUNQSQpQQ0k6IFVzaW5nIEFDUEkgZm9yIElSUSBy
+b3V0aW5nCioqIFBDSSBpbnRlcnJ1cHRzIGFyZSBubyBsb25nZXIgcm91dGVkIGF1dG9tYXRp
+Y2FsbHkuICBJZiB0aGlzCioqIGNhdXNlcyBhIGRldmljZSB0byBzdG9wIHdvcmtpbmcsIGl0
+IGlzIHByb2JhYmx5IGJlY2F1c2UgdGhlCioqIGRyaXZlciBmYWlsZWQgdG8gY2FsbCBwY2lf
+ZW5hYmxlX2RldmljZSgpLiAgQXMgYSB0ZW1wb3JhcnkKKiogd29ya2Fyb3VuZCwgdGhlICJw
+Y2k9cm91dGVpcnEiIGFyZ3VtZW50IHJlc3RvcmVzIHRoZSBvbGQKKiogYmVoYXZpb3IuICBJ
+ZiB0aGlzIGFyZ3VtZW50IG1ha2VzIHRoZSBkZXZpY2Ugd29yayBhZ2FpbiwKKiogcGxlYXNl
+IGVtYWlsIHRoZSBvdXRwdXQgb2YgImxzcGNpIiB0byBiam9ybi5oZWxnYWFzQGhwLmNvbQoq
+KiBzbyBJIGNhbiBmaXggdGhlIGRyaXZlci4KZnNjYWNoZTogZ2VuZXJhbCBmcyBjYWNoaW5n
+IHJlZ2lzdGVyZWQKQ2FjaGVGUzogZ2VuZXJhbCBmcyBjYWNoaW5nIHYwLjEgcmVnaXN0ZXJl
+ZApwbnA6IHRoZSBkcml2ZXIgJ3N5c3RlbScgaGFzIGJlZW4gcmVnaXN0ZXJlZApwbnA6IG1h
+dGNoIGZvdW5kIHdpdGggdGhlIFBuUCBkZXZpY2UgJzAwOjAwJyBhbmQgdGhlIGRyaXZlciAn
+c3lzdGVtJwpwbnA6IG1hdGNoIGZvdW5kIHdpdGggdGhlIFBuUCBkZXZpY2UgJzAwOjAxJyBh
+bmQgdGhlIGRyaXZlciAnc3lzdGVtJwpNYWNoaW5lIGNoZWNrIGV4Y2VwdGlvbiBwb2xsaW5n
+IHRpbWVyIHN0YXJ0ZWQuCmFwbTogQklPUyB2ZXJzaW9uIDEuMiBGbGFncyAweDA3IChEcml2
+ZXIgdmVyc2lvbiAxLjE2YWMpCmFwbTogb3ZlcnJpZGRlbiBieSBBQ1BJLgphdWRpdDogaW5p
+dGlhbGl6aW5nIG5ldGxpbmsgc29ja2V0IChkaXNhYmxlZCkKYXVkaXQoMTEwMjA3ODQ2Ni4x
+NDY6MCk6IGluaXRpYWxpemVkClRvdGFsIEh1Z2VUTEIgbWVtb3J5IGFsbG9jYXRlZCwgMApW
+RlM6IERpc2sgcXVvdGFzIGRxdW90XzYuNS4xCkRxdW90LWNhY2hlIGhhc2ggdGFibGUgZW50
+cmllczogMTAyNCAob3JkZXIgMCwgNDA5NiBieXRlcykKSW5pdGlhbGl6aW5nIENyeXB0b2dy
+YXBoaWMgQVBJCkFDUEk6IFBvd2VyIEJ1dHRvbiAoRkYpIFtQV1JGXQpBQ1BJOiBTbGVlcCBC
+dXR0b24gKENNKSBbU0xQQl0KQUNQSTogRmFuIFtGQU5dIChvbikKQUNQSTogUHJvY2Vzc29y
+IFtDUFUwXSAoc3VwcG9ydHMgQzEgQzIpCkFDUEk6IFByb2Nlc3NvciBbQ1BVMF0gKHN1cHBv
+cnRzIDIgdGhyb3R0bGluZyBzdGF0ZXMpCkFDUEk6IFRoZXJtYWwgWm9uZSBbVEhSTV0gKDMx
+IEMpCmxwOiBkcml2ZXIgbG9hZGVkIGJ1dCBubyBkZXZpY2VzIGZvdW5kClJlYWwgVGltZSBD
+bG9jayBEcml2ZXIgdjEuMTIKSGFuZ2NoZWNrOiBzdGFydGluZyBoYW5nY2hlY2sgdGltZXIg
+MC41LjAgKHRpY2sgaXMgMTgwIHNlY29uZHMsIG1hcmdpbiBpcyA2MCBzZWNvbmRzKS4KQUNQ
+STogUFMvMiBLZXlib2FyZCBDb250cm9sbGVyIFtQUzJLXSBhdCBJL08gMHg2MCwgMHg2NCwg
+aXJxIDEKQUNQSTogUFMvMiBNb3VzZSBDb250cm9sbGVyIFtQUzJNXSBhdCBpcnEgMTIKc2Vy
+aW86IGk4MDQyIEFVWCBwb3J0IGF0IDB4NjAsMHg2NCBpcnEgMTIKc2VyaW86IGk4MDQyIEtC
+RCBwb3J0IGF0IDB4NjAsMHg2NCBpcnEgMQpTZXJpYWw6IDgyNTAvMTY1NTAgZHJpdmVyICRS
+ZXZpc2lvbjogMS45MCAkIDggcG9ydHMsIElSUSBzaGFyaW5nIGRpc2FibGVkCnR0eVMwIGF0
+IEkvTyAweDNmOCAoaXJxID0gNCkgaXMgYSAxNjU1MEEKdHR5UzEgYXQgSS9PIDB4MmY4IChp
+cnEgPSAzKSBpcyBhIDE2NTUwQQp0dHlTMCBhdCBJL08gMHgzZjggKGlycSA9IDQpIGlzIGEg
+MTY1NTBBCnR0eVMxIGF0IEkvTyAweDJmOCAoaXJxID0gMykgaXMgYSAxNjU1MEEKQUNQSTog
+UENJIEludGVycnVwdCBMaW5rIFtMTktBXSBlbmFibGVkIGF0IElSUSAxMQpQQ0k6IHNldHRp
+bmcgSVJRIDExIGFzIGxldmVsLXRyaWdnZXJlZApBQ1BJOiBQQ0kgaW50ZXJydXB0IDAwMDA6
+MDI6MDAuMFtBXSAtPiBHU0kgMTEgKGxldmVsLCBsb3cpIC0+IElSUSAxMQp0dHlTNDogZGV0
+ZWN0ZWQgY2FwcyAwMDAwMDcwMCBzaG91bGQgYmUgMDAwMDAxMDAKdHR5UzQgYXQgSS9PIDB4
+YTAwMCAoaXJxID0gMTEpIGlzIGEgMTZDOTUwLzk1NAp0dHlTNTogZGV0ZWN0ZWQgY2FwcyAw
+MDAwMDcwMCBzaG91bGQgYmUgMDAwMDAxMDAKdHR5UzUgYXQgSS9PIDB4YTQwMCAoaXJxID0g
+MTEpIGlzIGEgMTZDOTUwLzk1NApwbnA6IHRoZSBkcml2ZXIgJ3NlcmlhbCcgaGFzIGJlZW4g
+cmVnaXN0ZXJlZApwbnA6IG1hdGNoIGZvdW5kIHdpdGggdGhlIFBuUCBkZXZpY2UgJzAwOjA3
+JyBhbmQgdGhlIGRyaXZlciAnc2VyaWFsJwp0dHlTMCBhdCBJL08gMHgzZjggKGlycSA9IDQp
+IGlzIGEgMTY1NTBBCnBucDogbWF0Y2ggZm91bmQgd2l0aCB0aGUgUG5QIGRldmljZSAnMDA6
+MDgnIGFuZCB0aGUgZHJpdmVyICdzZXJpYWwnCnR0eVMxIGF0IEkvTyAweDJmOCAoaXJxID0g
+MykgaXMgYSAxNjU1MEEKcG5wOiB0aGUgZHJpdmVyICdwYXJwb3J0X3BjJyBoYXMgYmVlbiBy
+ZWdpc3RlcmVkCnBucDogbWF0Y2ggZm91bmQgd2l0aCB0aGUgUG5QIGRldmljZSAnMDA6MDkn
+IGFuZCB0aGUgZHJpdmVyICdwYXJwb3J0X3BjJwpwYXJwb3J0OiBQblBCSU9TIHBhcnBvcnQg
+ZGV0ZWN0ZWQuCnBhcnBvcnQwOiBQQy1zdHlsZSBhdCAweDM3OCAoMHg3NzgpLCBpcnEgNywg
+ZG1hIDMgW1BDU1BQLFRSSVNUQVRFLENPTVBBVCxFQ1AsRE1BXQpscDA6IHVzaW5nIHBhcnBv
+cnQwIChpbnRlcnJ1cHQtZHJpdmVuKS4KaW8gc2NoZWR1bGVyIG5vb3AgcmVnaXN0ZXJlZApp
+byBzY2hlZHVsZXIgYW50aWNpcGF0b3J5IHJlZ2lzdGVyZWQKaW8gc2NoZWR1bGVyIGRlYWRs
+aW5lIHJlZ2lzdGVyZWQKaW8gc2NoZWR1bGVyIGNmcSByZWdpc3RlcmVkCkFDUEk6IEZsb3Bw
+eSBDb250cm9sbGVyIFtGREMwXSBhdCBJL08gMHgzZjAtMHgzZjUsIDB4M2Y3IGlycSA2IGRt
+YSBjaGFubmVsIDIKZWxldmF0b3I6IHVzaW5nIGFudGljaXBhdG9yeSBhcyBkZWZhdWx0IGlv
+IHNjaGVkdWxlcgpGbG9wcHkgZHJpdmUocyk6IGZkMCBpcyAxLjQ0TQpGREMgMCBpcyBhIHBv
+c3QtMTk5MSA4MjA3Nwpsb29wOiBsb2FkZWQgKG1heCA4IGRldmljZXMpCm5iZDogcmVnaXN0
+ZXJlZCBkZXZpY2UgYXQgbWFqb3IgNDMKVW5pZm9ybSBNdWx0aS1QbGF0Zm9ybSBFLUlERSBk
+cml2ZXIgUmV2aXNpb246IDcuMDBhbHBoYTIKaWRlOiBBc3N1bWluZyAzM01IeiBzeXN0ZW0g
+YnVzIHNwZWVkIGZvciBQSU8gbW9kZXM7IG92ZXJyaWRlIHdpdGggaWRlYnVzPXh4CklDSDI6
+IElERSBjb250cm9sbGVyIGF0IFBDSSBzbG90IDAwMDA6MDA6MWYuMQpJQ0gyOiBjaGlwc2V0
+IHJldmlzaW9uIDE3CklDSDI6IG5vdCAxMDAlIG5hdGl2ZSBtb2RlOiB3aWxsIHByb2JlIGly
+cXMgbGF0ZXIKICAgIGlkZTA6IEJNLURNQSBhdCAweGYwMDAtMHhmMDA3LCBCSU9TIHNldHRp
+bmdzOiBoZGE6RE1BLCBoZGI6cGlvCiAgICBpZGUxOiBCTS1ETUEgYXQgMHhmMDA4LTB4ZjAw
+ZiwgQklPUyBzZXR0aW5nczogaGRjOkRNQSwgaGRkOnBpbwpQcm9iaW5nIElERSBpbnRlcmZh
+Y2UgaWRlMC4uLgpoZGE6IE1BWFRPUiA2TDA0MEoyLCBBVEEgRElTSyBkcml2ZQppZGUwIGF0
+IDB4MWYwLTB4MWY3LDB4M2Y2IG9uIGlycSAxNApQcm9iaW5nIElERSBpbnRlcmZhY2UgaWRl
+MS4uLgpoZGM6IEFTVVMgQ0QtUzUwMC9BLCBBVEFQSSBDRC9EVkQtUk9NIGRyaXZlCmlkZTEg
+YXQgMHgxNzAtMHgxNzcsMHgzNzYgb24gaXJxIDE1ClByb2JpbmcgSURFIGludGVyZmFjZSBp
+ZGUyLi4uCmlkZTI6IFdhaXQgZm9yIHJlYWR5IGZhaWxlZCBiZWZvcmUgcHJvYmUgIQpQcm9i
+aW5nIElERSBpbnRlcmZhY2UgaWRlMy4uLgppZGUzOiBXYWl0IGZvciByZWFkeSBmYWlsZWQg
+YmVmb3JlIHByb2JlICEKUHJvYmluZyBJREUgaW50ZXJmYWNlIGlkZTQuLi4KaWRlNDogV2Fp
+dCBmb3IgcmVhZHkgZmFpbGVkIGJlZm9yZSBwcm9iZSAhClByb2JpbmcgSURFIGludGVyZmFj
+ZSBpZGU1Li4uCmlkZTU6IFdhaXQgZm9yIHJlYWR5IGZhaWxlZCBiZWZvcmUgcHJvYmUgIQpo
+ZGE6IG1heCByZXF1ZXN0IHNpemU6IDEyOEtpQgpoZGE6IDc4MTc3NzkyIHNlY3RvcnMgKDQw
+MDI3IE1CKSB3LzE4MTlLaUIgQ2FjaGUsIENIUz02NTUzNS8xNi82MywgVURNQSgxMDApCmhk
+YTogY2FjaGUgZmx1c2hlcyBzdXBwb3J0ZWQKIGhkYTogaGRhMSBoZGEyIGhkYTMgaGRhNCA8
+IGhkYTUgaGRhNiBoZGE3IGhkYTggaGRhOSBoZGExMCBoZGExMSBoZGExMiBoZGExMyBoZGEx
+NCBoZGExNSA+CmhkYzogQVRBUEkgNTBYIENELVJPTSBkcml2ZSwgMTI4a0IgQ2FjaGUsIFVE
+TUEoMzMpClVuaWZvcm0gQ0QtUk9NIGRyaXZlciBSZXZpc2lvbjogMy4yMAptaWNlOiBQUy8y
+IG1vdXNlIGRldmljZSBjb21tb24gZm9yIGFsbCBtaWNlCmlucHV0OiBBVCBUcmFuc2xhdGVk
+IFNldCAyIGtleWJvYXJkIG9uIGlzYTAwNjAvc2VyaW8wCmlucHV0OiBJbVBTLzIgR2VuZXJp
+YyBXaGVlbCBNb3VzZSBvbiBpc2EwMDYwL3NlcmlvMQpQbGVhc2UgZW1haWwgdGhlIGZvbGxv
+d2luZyBQRVJGQ1RSIElOSVQgbGluZXMgdG8gbWlrcGVAY3NkLnV1LnNlClRvIHJlbW92ZSB0
+aGlzIG1lc3NhZ2UsIHJlYnVpbGQgdGhlIGRyaXZlciB3aXRoIENPTkZJR19QRVJGQ1RSX0lO
+SVRfVEVTVFM9bgpQRVJGQ1RSIElOSVQ6IHZlbmRvciAwLCBmYW1pbHkgNiwgbW9kZWwgMTEs
+IHN0ZXBwaW5nIDEsIGNsb2NrIDExMzM3NDAga0h6ClBFUkZDVFIgSU5JVDogTklURVIgPT0g
+NjQKUEVSRkNUUiBJTklUOiBsb29wIG92ZXJoZWFkIGlzIDIyMiBjeWNsZXMKUEVSRkNUUiBJ
+TklUOiByZHRzYyBjb3N0IGlzIDM2LjAgY3ljbGVzICgyNTI2IHRvdGFsKQpQRVJGQ1RSIElO
+SVQ6IHJkcG1jIGNvc3QgaXMgMzUuNSBjeWNsZXMgKDI0OTkgdG90YWwpClBFUkZDVFIgSU5J
+VDogcmRtc3IgKGNvdW50ZXIpIGNvc3QgaXMgOTAuNCBjeWNsZXMgKDYwMDggdG90YWwpClBF
+UkZDVFIgSU5JVDogcmRtc3IgKGV2bnRzZWwpIGNvc3QgaXMgNzEuOSBjeWNsZXMgKDQ4MjUg
+dG90YWwpClBFUkZDVFIgSU5JVDogd3Jtc3IgKGNvdW50ZXIpIGNvc3QgaXMgMTAwLjcgY3lj
+bGVzICg2NjY5IHRvdGFsKQpQRVJGQ1RSIElOSVQ6IHdybXNyIChldm50c2VsKSBjb3N0IGlz
+IDk2LjAgY3ljbGVzICg2MzY2IHRvdGFsKQpQRVJGQ1RSIElOSVQ6IHJlYWQgY3I0IGNvc3Qg
+aXMgMS45IGN5Y2xlcyAoMzQ2IHRvdGFsKQpQRVJGQ1RSIElOSVQ6IHdyaXRlIGNyNCBjb3N0
+IGlzIDQyLjIgY3ljbGVzICgyOTI4IHRvdGFsKQpQRVJGQ1RSIElOSVQ6IHdyaXRlIExWVFBD
+IGNvc3QgaXMgNTAuNiBjeWNsZXMgKDM0NjMgdG90YWwpClBFUkZDVFIgSU5JVDogc3luY19j
+b3JlIGNvc3QgaXMgMTI5LjMgY3ljbGVzICg4NTAwIHRvdGFsKQpwZXJmY3RyOiBkcml2ZXIg
+Mi43LjgsIGNwdSB0eXBlIEludGVsIFA2IGF0IDExMzM3NDAga0h6Ck5FVDogUmVnaXN0ZXJl
+ZCBwcm90b2NvbCBmYW1pbHkgMgpJUDogcm91dGluZyBjYWNoZSBoYXNoIHRhYmxlIG9mIDIw
+NDggYnVja2V0cywgMzJLYnl0ZXMKVENQOiBIYXNoIHRhYmxlcyBjb25maWd1cmVkIChlc3Rh
+Ymxpc2hlZCAxNjM4NCBiaW5kIDE2Mzg0KQppcF9jb25udHJhY2sgdmVyc2lvbiAyLjEgKDQw
+OTUgYnVja2V0cywgMzI3NjAgbWF4KSAtIDMxMiBieXRlcyBwZXIgY29ubnRyYWNrCmlwX3Rh
+YmxlczogKEMpIDIwMDAtMjAwMiBOZXRmaWx0ZXIgY29yZSB0ZWFtCmlwdF9yZWNlbnQgdjAu
+My4xOiBTdGVwaGVuIEZyb3N0IDxzZnJvc3RAc25vd21hbi5uZXQ+LiAgaHR0cDovL3Nub3dt
+YW4ubmV0L3Byb2plY3RzL2lwdF9yZWNlbnQvCmFycF90YWJsZXM6IChDKSAyMDAyIERhdmlk
+IFMuIE1pbGxlcgpORVQ6IFJlZ2lzdGVyZWQgcHJvdG9jb2wgZmFtaWx5IDEKTkVUOiBSZWdp
+c3RlcmVkIHByb3RvY29sIGZhbWlseSAxNwpBQ1BJOiAoc3VwcG9ydHMgUzAgUzEgUzQgUzUp
+CkFDUEkgd2FrZXVwIGRldmljZXM6IApTTFBCIFBDSTAgSFVCMCBVU0IwIFVTQjEgVUFSMSBV
+QVIyIApCSU9TIEVERCBmYWNpbGl0eSB2MC4xNiAyMDA0LUp1bi0yNSwgMSBkZXZpY2VzIGZv
+dW5kCkNhY2hlRlM6IFdyb25nIG1hZ2ljIG51bWJlciBvbiBjYWNoZQpFWFQzLWZzOiBtb3Vu
+dGVkIGZpbGVzeXN0ZW0gd2l0aCBvcmRlcmVkIGRhdGEgbW9kZS4KVkZTOiBNb3VudGVkIHJv
+b3QgKGV4dDMgZmlsZXN5c3RlbSkgcmVhZG9ubHkuCkZyZWVpbmcgdW51c2VkIGtlcm5lbCBt
+ZW1vcnk6IDIwOGsgZnJlZWQKa2pvdXJuYWxkIHN0YXJ0aW5nLiAgQ29tbWl0IGludGVydmFs
+IDUgc2Vjb25kcwppYm1fYWNwaTogZWMgb2JqZWN0IG5vdCBmb3VuZAp1c2Jjb3JlOiByZWdp
+c3RlcmVkIG5ldyBkcml2ZXIgdXNiZnMKdXNiY29yZTogcmVnaXN0ZXJlZCBuZXcgZHJpdmVy
+IGh1YgpVU0IgVW5pdmVyc2FsIEhvc3QgQ29udHJvbGxlciBJbnRlcmZhY2UgZHJpdmVyIHYy
+LjIKQUNQSTogUENJIEludGVycnVwdCBMaW5rIFtMTktEXSBlbmFibGVkIGF0IElSUSAxMQpB
+Q1BJOiBQQ0kgaW50ZXJydXB0IDAwMDA6MDA6MWYuMltEXSAtPiBHU0kgMTEgKGxldmVsLCBs
+b3cpIC0+IElSUSAxMQp1aGNpX2hjZCAwMDAwOjAwOjFmLjI6IEludGVsIENvcnAuIDgyODAx
+QkEvQkFNIFVTQiAoSHViICMxKQpQQ0k6IFNldHRpbmcgbGF0ZW5jeSB0aW1lciBvZiBkZXZp
+Y2UgMDAwMDowMDoxZi4yIHRvIDY0CnVoY2lfaGNkIDAwMDA6MDA6MWYuMjogaXJxIDExLCBp
+byBiYXNlIDB4ZDAwMAp1aGNpX2hjZCAwMDAwOjAwOjFmLjI6IG5ldyBVU0IgYnVzIHJlZ2lz
+dGVyZWQsIGFzc2lnbmVkIGJ1cyBudW1iZXIgMQpodWIgMS0wOjEuMDogVVNCIGh1YiBmb3Vu
+ZApodWIgMS0wOjEuMDogMiBwb3J0cyBkZXRlY3RlZApBQ1BJOiBQQ0kgSW50ZXJydXB0IExp
+bmsgW0xOSzFdIGVuYWJsZWQgYXQgSVJRIDEwClBDSTogc2V0dGluZyBJUlEgMTAgYXMgbGV2
+ZWwtdHJpZ2dlcmVkCkFDUEk6IFBDSSBpbnRlcnJ1cHQgMDAwMDowMDoxZi40W0NdIC0+IEdT
+SSAxMCAobGV2ZWwsIGxvdykgLT4gSVJRIDEwCnVoY2lfaGNkIDAwMDA6MDA6MWYuNDogSW50
+ZWwgQ29ycC4gODI4MDFCQS9CQU0gVVNCIChIdWIgIzIpClBDSTogU2V0dGluZyBsYXRlbmN5
+IHRpbWVyIG9mIGRldmljZSAwMDAwOjAwOjFmLjQgdG8gNjQKdWhjaV9oY2QgMDAwMDowMDox
+Zi40OiBpcnEgMTAsIGlvIGJhc2UgMHhkNDAwCnVoY2lfaGNkIDAwMDA6MDA6MWYuNDogbmV3
+IFVTQiBidXMgcmVnaXN0ZXJlZCwgYXNzaWduZWQgYnVzIG51bWJlciAyCmh1YiAyLTA6MS4w
+OiBVU0IgaHViIGZvdW5kCmh1YiAyLTA6MS4wOiAyIHBvcnRzIGRldGVjdGVkCnVzYiAxLTE6
+IG5ldyBmdWxsIHNwZWVkIFVTQiBkZXZpY2UgdXNpbmcgdWhjaV9oY2QgYW5kIGFkZHJlc3Mg
+MgpTQ1NJIHN1YnN5c3RlbSBpbml0aWFsaXplZApJbml0aWFsaXppbmcgVVNCIE1hc3MgU3Rv
+cmFnZSBkcml2ZXIuLi4Kc2NzaTAgOiBTQ1NJIGVtdWxhdGlvbiBmb3IgVVNCIE1hc3MgU3Rv
+cmFnZSBkZXZpY2VzCnVzYmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGRyaXZlciB1c2Itc3RvcmFn
+ZQpVU0IgTWFzcyBTdG9yYWdlIHN1cHBvcnQgcmVnaXN0ZXJlZC4KdXNiLXN0b3JhZ2U6IGRl
+dmljZSBmb3VuZCBhdCAyCnVzYi1zdG9yYWdlOiB3YWl0aW5nIGZvciBkZXZpY2UgdG8gc2V0
+dGxlIGJlZm9yZSBzY2FubmluZwpFWFQzIEZTIG9uIGhkYTEyLCBpbnRlcm5hbCBqb3VybmFs
+CkFkZGluZyA1MzAxMDRrIHN3YXAgb24gL2Rldi9oZGE1LiAgUHJpb3JpdHk6LTEgZXh0ZW50
+czoxCmtqb3VybmFsZCBzdGFydGluZy4gIENvbW1pdCBpbnRlcnZhbCA1IHNlY29uZHMKRVhU
+MyBGUyBvbiBoZGE2LCBpbnRlcm5hbCBqb3VybmFsCkVYVDMtZnM6IG1vdW50ZWQgZmlsZXN5
+c3RlbSB3aXRoIG9yZGVyZWQgZGF0YSBtb2RlLgpram91cm5hbGQgc3RhcnRpbmcuICBDb21t
+aXQgaW50ZXJ2YWwgNSBzZWNvbmRzCkVYVDMgRlMgb24gaGRhMTQsIGludGVybmFsIGpvdXJu
+YWwKRVhUMy1mczogbW91bnRlZCBmaWxlc3lzdGVtIHdpdGggb3JkZXJlZCBkYXRhIG1vZGUu
+Cmtqb3VybmFsZCBzdGFydGluZy4gIENvbW1pdCBpbnRlcnZhbCA1IHNlY29uZHMKRVhUMyBG
+UyBvbiBoZGEzLCBpbnRlcm5hbCBqb3VybmFsCkVYVDMtZnM6IG1vdW50ZWQgZmlsZXN5c3Rl
+bSB3aXRoIG9yZGVyZWQgZGF0YSBtb2RlLgpram91cm5hbGQgc3RhcnRpbmcuICBDb21taXQg
+aW50ZXJ2YWwgNSBzZWNvbmRzCkVYVDMgRlMgb24gaGRhMTEsIGludGVybmFsIGpvdXJuYWwK
+RVhUMy1mczogbW91bnRlZCBmaWxlc3lzdGVtIHdpdGggb3JkZXJlZCBkYXRhIG1vZGUuCmtq
+b3VybmFsZCBzdGFydGluZy4gIENvbW1pdCBpbnRlcnZhbCA1IHNlY29uZHMKRVhUMyBGUyBv
+biBoZGE3LCBpbnRlcm5hbCBqb3VybmFsCkVYVDMtZnM6IG1vdW50ZWQgZmlsZXN5c3RlbSB3
+aXRoIG9yZGVyZWQgZGF0YSBtb2RlLgpram91cm5hbGQgc3RhcnRpbmcuICBDb21taXQgaW50
+ZXJ2YWwgNSBzZWNvbmRzCkVYVDMgRlMgb24gaGRhMTAsIGludGVybmFsIGpvdXJuYWwKRVhU
+My1mczogbW91bnRlZCBmaWxlc3lzdGVtIHdpdGggb3JkZXJlZCBkYXRhIG1vZGUuCmtqb3Vy
+bmFsZCBzdGFydGluZy4gIENvbW1pdCBpbnRlcnZhbCA1IHNlY29uZHMKRVhUMyBGUyBvbiBo
+ZGExMywgaW50ZXJuYWwgam91cm5hbApFWFQzLWZzOiBtb3VudGVkIGZpbGVzeXN0ZW0gd2l0
+aCBvcmRlcmVkIGRhdGEgbW9kZS4Ka2pvdXJuYWxkIHN0YXJ0aW5nLiAgQ29tbWl0IGludGVy
+dmFsIDUgc2Vjb25kcwpFWFQzIEZTIG9uIGhkYTksIGludGVybmFsIGpvdXJuYWwKRVhUMy1m
+czogbW91bnRlZCBmaWxlc3lzdGVtIHdpdGggb3JkZXJlZCBkYXRhIG1vZGUuCkZBVDogdXRm
+OCBpcyBub3QgYSByZWNvbW1lbmRlZCBJTyBjaGFyc2V0IGZvciBGQVQgZmlsZXN5c3RlbXMs
+IGZpbGVzeXN0ZW0gd2lsbCBiZSBjYXNlIHNlbnNpdGl2ZSEKRkFUOiB1dGY4IGlzIG5vdCBh
+IHJlY29tbWVuZGVkIElPIGNoYXJzZXQgZm9yIEZBVCBmaWxlc3lzdGVtcywgZmlsZXN5c3Rl
+bSB3aWxsIGJlIGNhc2Ugc2Vuc2l0aXZlIQpOVEZTIGRyaXZlciAyLjEuMjMtV0lQIFtGbGFn
+czogUi9XIE1PRFVMRV0uCk5URlMgdm9sdW1lIHZlcnNpb24gMy4xLgogIFZlbmRvcjogSmV0
+Rmxhc2ggIE1vZGVsOiBUUzI1Nk1KRjJBICAgICAgICBSZXY6IDEuMDAKICBUeXBlOiAgIERp
+cmVjdC1BY2Nlc3MgICAgICAgICAgICAgICAgICAgICAgQU5TSSBTQ1NJIHJldmlzaW9uOiAw
+Mgp1c2Itc3RvcmFnZTogZGV2aWNlIHNjYW4gY29tcGxldGUKQUNQSTogUENJIGludGVycnVw
+dCAwMDAwOjAyOjA0LjBbQV0gLT4gR1NJIDExIChsZXZlbCwgbG93KSAtPiBJUlEgMTEKM2M1
+OXg6IERvbmFsZCBCZWNrZXIgYW5kIG90aGVycy4gd3d3LnNjeWxkLmNvbS9uZXR3b3JrL3Zv
+cnRleC5odG1sCjAwMDA6MDI6MDQuMDogM0NvbSBQQ0kgM2M5MDVDIFRvcm5hZG8gYXQgMHhj
+MDAwLiBWZXJzIExLMS4xLjE5CkFDUEk6IFBDSSBpbnRlcnJ1cHQgMDAwMDowMjowNC4wW0Fd
+IC0+IEdTSSAxMSAobGV2ZWwsIGxvdykgLT4gSVJRIDExCk5FVDogUmVnaXN0ZXJlZCBwcm90
+b2NvbCBmYW1pbHkgMTAKRGlzYWJsZWQgUHJpdmFjeSBFeHRlbnNpb25zIG9uIGRldmljZSBj
+MDNiNjQ0MChsbykKSVB2NiBvdmVyIElQdjQgdHVubmVsaW5nIGRyaXZlcgpldGgwOiBubyBJ
+UHY2IHJvdXRlcnMgcHJlc2VudAo=
+--------------060008040705080300000104
+Content-Type: text/plain;
+ name="dmesg-rc2-bk13"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="dmesg-rc2-bk13"
+
+TGludXggdmVyc2lvbiAyLjYuMTAtcmMyLWJrMTMgKHJvb3RAc3RhcykgKGdjYyB2ZXJzaW9u
+IDMuMy4zIDIwMDQwNDEyIChSZWQgSGF0IExpbnV4IDMuMy4zLTcpKSAjNTkgU01QIFRodSBE
+ZWMgMiAwOToyMDo1NiBNU0sgMjAwNApCSU9TLXByb3ZpZGVkIHBoeXNpY2FsIFJBTSBtYXA6
+CiBCSU9TLWU4MjA6IDAwMDAwMDAwMDAwMDAwMDAgLSAwMDAwMDAwMDAwMDlmYzAwICh1c2Fi
+bGUpCiBCSU9TLWU4MjA6IDAwMDAwMDAwMDAwOWZjMDAgLSAwMDAwMDAwMDAwMGEwMDAwIChy
+ZXNlcnZlZCkKIEJJT1MtZTgyMDogMDAwMDAwMDAwMDBmMDAwMCAtIDAwMDAwMDAwMDAxMDAw
+MDAgKHJlc2VydmVkKQogQklPUy1lODIwOiAwMDAwMDAwMDAwMTAwMDAwIC0gMDAwMDAwMDAx
+ZmZmMDAwMCAodXNhYmxlKQogQklPUy1lODIwOiAwMDAwMDAwMDFmZmYwMDAwIC0gMDAwMDAw
+MDAxZmZmMzAwMCAoQUNQSSBOVlMpCiBCSU9TLWU4MjA6IDAwMDAwMDAwMWZmZjMwMDAgLSAw
+MDAwMDAwMDIwMDAwMDAwIChBQ1BJIGRhdGEpCiBCSU9TLWU4MjA6IDAwMDAwMDAwZmZiMDAw
+MDAgLSAwMDAwMDAwMTAwMDAwMDAwIChyZXNlcnZlZCkKME1CIEhJR0hNRU0gYXZhaWxhYmxl
+Lgo1MTFNQiBMT1dNRU0gYXZhaWxhYmxlLgpPbiBub2RlIDAgdG90YWxwYWdlczogMTMxMDU2
+CiAgRE1BIHpvbmU6IDQwOTYgcGFnZXMsIExJRk8gYmF0Y2g6MQogIE5vcm1hbCB6b25lOiAx
+MjY5NjAgcGFnZXMsIExJRk8gYmF0Y2g6MTYKICBIaWdoTWVtIHpvbmU6IDAgcGFnZXMsIExJ
+Rk8gYmF0Y2g6MQpETUkgMi4zIHByZXNlbnQuCkFDUEk6IFJTRFAgKHYwMDAgSW50ZWxSICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICApIEAgMHgwMDBmNzVkMApBQ1BJOiBSU0RU
+ICh2MDAxIEludGVsUiBBV1JEQUNQSSAweDQyMzAyZTMxIEFXUkQgMHgwMDAwMDAwMCkgQCAw
+eDFmZmYzMDAwCkFDUEk6IEZBRFQgKHYwMDEgSW50ZWxSIEFXUkRBQ1BJIDB4NDIzMDJlMzEg
+QVdSRCAweDAwMDAwMDAwKSBAIDB4MWZmZjMwNDAKQUNQSTogRFNEVCAodjAwMSBJTlRFTFIg
+QVdSREFDUEkgMHgwMDAwMTAwMCBNU0ZUIDB4MDEwMDAwMGMpIEAgMHgwMDAwMDAwMApBQ1BJ
+OiBQTS1UaW1lciBJTyBQb3J0OiAweDQwMDgKQnVpbHQgMSB6b25lbGlzdHMKS2VybmVsIGNv
+bW1hbmQgbGluZTogcm8gcm9vdD0vZGV2L2hkYTEyIGxhcGljIG5taV93YXRjaGRvZz0yCkxv
+Y2FsIEFQSUMgZGlzYWJsZWQgYnkgQklPUyAtLSByZWVuYWJsaW5nLgpGb3VuZCBhbmQgZW5h
+YmxlZCBsb2NhbCBBUElDIQptYXBwZWQgQVBJQyB0byBmZmZmZDAwMCAoZmVlMDAwMDApCklu
+aXRpYWxpemluZyBDUFUjMApDUFUgMCBpcnFzdGFja3MsIGhhcmQ9YzA0MTAwMDAgc29mdD1j
+MDQwZTAwMApQSUQgaGFzaCB0YWJsZSBlbnRyaWVzOiAyMDQ4IChvcmRlcjogMTEsIDMyNzY4
+IGJ5dGVzKQpEZXRlY3RlZCAxMTMzLjc0MCBNSHogcHJvY2Vzc29yLgpVc2luZyBwbXRtciBm
+b3IgaGlnaC1yZXMgdGltZXNvdXJjZQpDb25zb2xlOiBjb2xvdXIgVkdBKyA4MHgyNQpEZW50
+cnkgY2FjaGUgaGFzaCB0YWJsZSBlbnRyaWVzOiAxMzEwNzIgKG9yZGVyOiA3LCA1MjQyODgg
+Ynl0ZXMpCklub2RlLWNhY2hlIGhhc2ggdGFibGUgZW50cmllczogNjU1MzYgKG9yZGVyOiA2
+LCAyNjIxNDQgYnl0ZXMpCk1lbW9yeTogNTE1MTQway81MjQyMjRrIGF2YWlsYWJsZSAoMjA1
+OGsga2VybmVsIGNvZGUsIDg0ODRrIHJlc2VydmVkLCA4MzdrIGRhdGEsIDIwOGsgaW5pdCwg
+MGsgaGlnaG1lbSkKQ2hlY2tpbmcgaWYgdGhpcyBwcm9jZXNzb3IgaG9ub3VycyB0aGUgV1Ag
+Yml0IGV2ZW4gaW4gc3VwZXJ2aXNvciBtb2RlLi4uIE9rLgpDYWxpYnJhdGluZyBkZWxheSBs
+b29wLi4uIDIyNDQuNjAgQm9nb01JUFMgKGxwaj0xMTIyMzA0KQpNb3VudC1jYWNoZSBoYXNo
+IHRhYmxlIGVudHJpZXM6IDUxMiAob3JkZXI6IDAsIDQwOTYgYnl0ZXMpCkNQVTogQWZ0ZXIg
+Z2VuZXJpYyBpZGVudGlmeSwgY2FwczogMDM4M2ZiZmYgMDAwMDAwMDAgMDAwMDAwMDAgMDAw
+MDAwMDAKQ1BVOiBBZnRlciB2ZW5kb3IgaWRlbnRpZnksIGNhcHM6ICAwMzgzZmJmZiAwMDAw
+MDAwMCAwMDAwMDAwMCAwMDAwMDAwMApDUFU6IEwxIEkgY2FjaGU6IDE2SywgTDEgRCBjYWNo
+ZTogMTZLCkNQVTogTDIgY2FjaGU6IDI1NksKQ1BVOiBBZnRlciBhbGwgaW5pdHMsIGNhcHM6
+ICAgICAgICAwMzgzZmJmZiAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDA0MApJbnRlbCBtYWNo
+aW5lIGNoZWNrIGFyY2hpdGVjdHVyZSBzdXBwb3J0ZWQuCkludGVsIG1hY2hpbmUgY2hlY2sg
+cmVwb3J0aW5nIGVuYWJsZWQgb24gQ1BVIzAuCkVuYWJsaW5nIGZhc3QgRlBVIHNhdmUgYW5k
+IHJlc3RvcmUuLi4gZG9uZS4KRW5hYmxpbmcgdW5tYXNrZWQgU0lNRCBGUFUgZXhjZXB0aW9u
+IHN1cHBvcnQuLi4gZG9uZS4KQ2hlY2tpbmcgJ2hsdCcgaW5zdHJ1Y3Rpb24uLi4gT0suCkFD
+UEk6IHNldHRpbmcgRUxDUiB0byAwMjAwIChmcm9tIDBlMjApCkNQVTA6IEludGVsKFIpIFBl
+bnRpdW0oUikgSUlJIENQVSAgICAgICAgICAgICAxMTMzTUh6IHN0ZXBwaW5nIDAxCnBlci1D
+UFUgdGltZXNsaWNlIGN1dG9mZjogNzMxLjc5IHVzZWNzLgp0YXNrIG1pZ3JhdGlvbiBjYWNo
+ZSBkZWNheSB0aW1lb3V0OiAxIG1zZWNzLgpTTVAgbW90aGVyYm9hcmQgbm90IGRldGVjdGVk
+Lgp0ZXN0aW5nIE5NSSB3YXRjaGRvZyAuLi4gT0suCkJyb3VnaHQgdXAgMSBDUFVzCkNQVTA6
+CiBkb21haW4gMDogc3BhbiAxCiAgZ3JvdXBzOiAxCk5FVDogUmVnaXN0ZXJlZCBwcm90b2Nv
+bCBmYW1pbHkgMTYKUENJOiBQQ0kgQklPUyByZXZpc2lvbiAyLjEwIGVudHJ5IGF0IDB4ZmFm
+YzAsIGxhc3QgYnVzPTIKUENJOiBVc2luZyBjb25maWd1cmF0aW9uIHR5cGUgMQptdHJyOiB2
+Mi4wICgyMDAyMDUxOSkKQUNQSTogU3Vic3lzdGVtIHJldmlzaW9uIDIwMDQxMTA1CkFDUEk6
+IEludGVycHJldGVyIGVuYWJsZWQKQUNQSTogVXNpbmcgUElDIGZvciBpbnRlcnJ1cHQgcm91
+dGluZwpBQ1BJOiBQQ0kgUm9vdCBCcmlkZ2UgW1BDSTBdICgwMDowMCkKUENJOiBQcm9iaW5n
+IFBDSSBoYXJkd2FyZSAoYnVzIDAwKQpQQ0k6IFRyYW5zcGFyZW50IGJyaWRnZSAtIDAwMDA6
+MDA6MWUuMApBQ1BJOiBQQ0kgSW50ZXJydXB0IFJvdXRpbmcgVGFibGUgW1xfU0JfLlBDSTAu
+X1BSVF0KQUNQSTogUENJIEludGVycnVwdCBSb3V0aW5nIFRhYmxlIFtcX1NCXy5QQ0kwLkhV
+QjAuX1BSVF0KQUNQSTogUENJIEludGVycnVwdCBMaW5rIFtMTktBXSAoSVJRcyAzIDQgNSA2
+IDcgMTAgKjExIDEyIDE0IDE1KQpBQ1BJOiBQQ0kgSW50ZXJydXB0IExpbmsgW0xOS0JdIChJ
+UlFzIDMgNCA1IDYgNyAxMCAxMSAxMiAxNCAxNSkgKjAsIGRpc2FibGVkLgpBQ1BJOiBQQ0kg
+SW50ZXJydXB0IExpbmsgW0xOS0NdIChJUlFzIDMgNCAqNSA2IDcgMTAgMTEgMTIgMTQgMTUp
+CkFDUEk6IFBDSSBJbnRlcnJ1cHQgTGluayBbTE5LRF0gKElSUXMgMyA0IDUgNiA3IDEwICox
+MSAxMiAxNCAxNSkKQUNQSTogUENJIEludGVycnVwdCBMaW5rIFtMTktFXSAoSVJRcyAzIDQg
+NSA2IDcgMTAgMTEgMTIgMTQgMTUpICowLCBkaXNhYmxlZC4KQUNQSTogUENJIEludGVycnVw
+dCBMaW5rIFtMTktGXSAoSVJRcyAzIDQgNSA2IDcgKjEwIDExIDEyIDE0IDE1KQpBQ1BJOiBQ
+Q0kgSW50ZXJydXB0IExpbmsgW0xOSzBdIChJUlFzIDMgNCA1IDYgNyAxMCAxMSAxMiAxNCAx
+NSkgKjAsIGRpc2FibGVkLgpBQ1BJOiBQQ0kgSW50ZXJydXB0IExpbmsgW0xOSzFdIChJUlFz
+IDMgNCA1IDYgNyAxMCAxMSAxMiAxNCAxNSkgKjkKTGludXggUGx1ZyBhbmQgUGxheSBTdXBw
+b3J0IHYwLjk3IChjKSBBZGFtIEJlbGF5CnBucDogUG5QIEFDUEkgaW5pdApwbnA6IFBuUCBB
+Q1BJOiBmb3VuZCAxMiBkZXZpY2VzClBuUEJJT1M6IERpc2FibGVkIGJ5IEFDUEkKU0NTSSBz
+dWJzeXN0ZW0gaW5pdGlhbGl6ZWQKUENJOiBVc2luZyBBQ1BJIGZvciBJUlEgcm91dGluZwoq
+KiBQQ0kgaW50ZXJydXB0cyBhcmUgbm8gbG9uZ2VyIHJvdXRlZCBhdXRvbWF0aWNhbGx5LiAg
+SWYgdGhpcwoqKiBjYXVzZXMgYSBkZXZpY2UgdG8gc3RvcCB3b3JraW5nLCBpdCBpcyBwcm9i
+YWJseSBiZWNhdXNlIHRoZQoqKiBkcml2ZXIgZmFpbGVkIHRvIGNhbGwgcGNpX2VuYWJsZV9k
+ZXZpY2UoKS4gIEFzIGEgdGVtcG9yYXJ5CioqIHdvcmthcm91bmQsIHRoZSAicGNpPXJvdXRl
+aXJxIiBhcmd1bWVudCByZXN0b3JlcyB0aGUgb2xkCioqIGJlaGF2aW9yLiAgSWYgdGhpcyBh
+cmd1bWVudCBtYWtlcyB0aGUgZGV2aWNlIHdvcmsgYWdhaW4sCioqIHBsZWFzZSBlbWFpbCB0
+aGUgb3V0cHV0IG9mICJsc3BjaSIgdG8gYmpvcm4uaGVsZ2Fhc0BocC5jb20KKiogc28gSSBj
+YW4gZml4IHRoZSBkcml2ZXIuCk1hY2hpbmUgY2hlY2sgZXhjZXB0aW9uIHBvbGxpbmcgdGlt
+ZXIgc3RhcnRlZC4KYXBtOiBCSU9TIHZlcnNpb24gMS4yIEZsYWdzIDB4MDcgKERyaXZlciB2
+ZXJzaW9uIDEuMTZhYykKYXBtOiBvdmVycmlkZGVuIGJ5IEFDUEkuCmF1ZGl0OiBpbml0aWFs
+aXppbmcgbmV0bGluayBzb2NrZXQgKGRpc2FibGVkKQphdWRpdCgxMTAyMDc3OTEwLjgwMTow
+KTogaW5pdGlhbGl6ZWQKVG90YWwgSHVnZVRMQiBtZW1vcnkgYWxsb2NhdGVkLCAwCkluaXRp
+YWxpemluZyBDcnlwdG9ncmFwaGljIEFQSQpBQ1BJOiBQb3dlciBCdXR0b24gKEZGKSBbUFdS
+Rl0KQUNQSTogU2xlZXAgQnV0dG9uIChDTSkgW1NMUEJdCkFDUEk6IEZhbiBbRkFOXSAob24p
+CkFDUEk6IFByb2Nlc3NvciBbQ1BVMF0gKHN1cHBvcnRzIEMxIEMyKQpBQ1BJOiBQcm9jZXNz
+b3IgW0NQVTBdIChzdXBwb3J0cyAyIHRocm90dGxpbmcgc3RhdGVzKQpBQ1BJOiBUaGVybWFs
+IFpvbmUgW1RIUk1dICgzMSBDKQppc2FwbnA6IFNjYW5uaW5nIGZvciBQblAgY2FyZHMuLi4K
+aXNhcG5wOiBObyBQbHVnICYgUGxheSBkZXZpY2UgZm91bmQKbHA6IGRyaXZlciBsb2FkZWQg
+YnV0IG5vIGRldmljZXMgZm91bmQKUmVhbCBUaW1lIENsb2NrIERyaXZlciB2MS4xMgpIYW5n
+Y2hlY2s6IHN0YXJ0aW5nIGhhbmdjaGVjayB0aW1lciAwLjUuMCAodGljayBpcyAxODAgc2Vj
+b25kcywgbWFyZ2luIGlzIDYwIHNlY29uZHMpLgpzZXJpbzogaTgwNDIgQVVYIHBvcnQgYXQg
+MHg2MCwweDY0IGlycSAxMgpzZXJpbzogaTgwNDIgS0JEIHBvcnQgYXQgMHg2MCwweDY0IGly
+cSAxClNlcmlhbDogODI1MC8xNjU1MCBkcml2ZXIgJFJldmlzaW9uOiAxLjkwICQgOCBwb3J0
+cywgSVJRIHNoYXJpbmcgZGlzYWJsZWQKdHR5UzAgYXQgSS9PIDB4M2Y4IChpcnEgPSA0KSBp
+cyBhIDE2NTUwQQp0dHlTMSBhdCBJL08gMHgyZjggKGlycSA9IDMpIGlzIGEgMTY1NTBBCnR0
+eVMwIGF0IEkvTyAweDNmOCAoaXJxID0gNCkgaXMgYSAxNjU1MEEKdHR5UzEgYXQgSS9PIDB4
+MmY4IChpcnEgPSAzKSBpcyBhIDE2NTUwQQpBQ1BJOiBQQ0kgSW50ZXJydXB0IExpbmsgW0xO
+S0FdIGVuYWJsZWQgYXQgSVJRIDExClBDSTogc2V0dGluZyBJUlEgMTEgYXMgbGV2ZWwtdHJp
+Z2dlcmVkCkFDUEk6IFBDSSBpbnRlcnJ1cHQgMDAwMDowMjowMC4wW0FdIC0+IEdTSSAxMSAo
+bGV2ZWwsIGxvdykgLT4gSVJRIDExCnR0eVM0OiBkZXRlY3RlZCBjYXBzIDAwMDAwNzAwIHNo
+b3VsZCBiZSAwMDAwMDEwMAp0dHlTNCBhdCBJL08gMHhhMDAwIChpcnEgPSAxMSkgaXMgYSAx
+NkM5NTAvOTU0CnR0eVM1OiBkZXRlY3RlZCBjYXBzIDAwMDAwNzAwIHNob3VsZCBiZSAwMDAw
+MDEwMAp0dHlTNSBhdCBJL08gMHhhNDAwIChpcnEgPSAxMSkgaXMgYSAxNkM5NTAvOTU0CnR0
+eVMwIGF0IEkvTyAweDNmOCAoaXJxID0gNCkgaXMgYSAxNjU1MEEKdHR5UzEgYXQgSS9PIDB4
+MmY4IChpcnEgPSAzKSBpcyBhIDE2NTUwQQpwYXJwb3J0OiBQblBCSU9TIHBhcnBvcnQgZGV0
+ZWN0ZWQuCnBhcnBvcnQwOiBQQy1zdHlsZSBhdCAweDM3OCAoMHg3NzgpLCBpcnEgNywgZG1h
+IDMgW1BDU1BQLFRSSVNUQVRFLENPTVBBVCxFQ1AsRE1BXQpscDA6IHVzaW5nIHBhcnBvcnQw
+IChpbnRlcnJ1cHQtZHJpdmVuKS4KaW8gc2NoZWR1bGVyIG5vb3AgcmVnaXN0ZXJlZAppbyBz
+Y2hlZHVsZXIgYW50aWNpcGF0b3J5IHJlZ2lzdGVyZWQKaW8gc2NoZWR1bGVyIGRlYWRsaW5l
+IHJlZ2lzdGVyZWQKaW8gc2NoZWR1bGVyIGNmcSByZWdpc3RlcmVkCmVsZXZhdG9yOiB1c2lu
+ZyBhbnRpY2lwYXRvcnkgYXMgZGVmYXVsdCBpbyBzY2hlZHVsZXIKRmxvcHB5IGRyaXZlKHMp
+OiBmZDAgaXMgMS40NE0KRkRDIDAgaXMgYSBwb3N0LTE5OTEgODIwNzcKbG9vcDogbG9hZGVk
+IChtYXggOCBkZXZpY2VzKQpuYmQ6IHJlZ2lzdGVyZWQgZGV2aWNlIGF0IG1ham9yIDQzClVu
+aWZvcm0gTXVsdGktUGxhdGZvcm0gRS1JREUgZHJpdmVyIFJldmlzaW9uOiA3LjAwYWxwaGEy
+CmlkZTogQXNzdW1pbmcgMzNNSHogc3lzdGVtIGJ1cyBzcGVlZCBmb3IgUElPIG1vZGVzOyBv
+dmVycmlkZSB3aXRoIGlkZWJ1cz14eApJQ0gyOiBJREUgY29udHJvbGxlciBhdCBQQ0kgc2xv
+dCAwMDAwOjAwOjFmLjEKSUNIMjogY2hpcHNldCByZXZpc2lvbiAxNwpJQ0gyOiBub3QgMTAw
+JSBuYXRpdmUgbW9kZTogd2lsbCBwcm9iZSBpcnFzIGxhdGVyCiAgICBpZGUwOiBCTS1ETUEg
+YXQgMHhmMDAwLTB4ZjAwNywgQklPUyBzZXR0aW5nczogaGRhOkRNQSwgaGRiOnBpbwogICAg
+aWRlMTogQk0tRE1BIGF0IDB4ZjAwOC0weGYwMGYsIEJJT1Mgc2V0dGluZ3M6IGhkYzpETUEs
+IGhkZDpwaW8KUHJvYmluZyBJREUgaW50ZXJmYWNlIGlkZTAuLi4KaGRhOiBNQVhUT1IgNkww
+NDBKMiwgQVRBIERJU0sgZHJpdmUKaWRlMCBhdCAweDFmMC0weDFmNywweDNmNiBvbiBpcnEg
+MTQKUHJvYmluZyBJREUgaW50ZXJmYWNlIGlkZTEuLi4KaGRjOiBBU1VTIENELVM1MDAvQSwg
+QVRBUEkgQ0QvRFZELVJPTSBkcml2ZQppZGUxIGF0IDB4MTcwLTB4MTc3LDB4Mzc2IG9uIGly
+cSAxNQpQcm9iaW5nIElERSBpbnRlcmZhY2UgaWRlMi4uLgppZGUyOiBXYWl0IGZvciByZWFk
+eSBmYWlsZWQgYmVmb3JlIHByb2JlICEKUHJvYmluZyBJREUgaW50ZXJmYWNlIGlkZTMuLi4K
+aWRlMzogV2FpdCBmb3IgcmVhZHkgZmFpbGVkIGJlZm9yZSBwcm9iZSAhClByb2JpbmcgSURF
+IGludGVyZmFjZSBpZGU0Li4uCmlkZTQ6IFdhaXQgZm9yIHJlYWR5IGZhaWxlZCBiZWZvcmUg
+cHJvYmUgIQpQcm9iaW5nIElERSBpbnRlcmZhY2UgaWRlNS4uLgppZGU1OiBXYWl0IGZvciBy
+ZWFkeSBmYWlsZWQgYmVmb3JlIHByb2JlICEKaGRhOiBtYXggcmVxdWVzdCBzaXplOiAxMjhL
+aUIKaGRhOiA3ODE3Nzc5MiBzZWN0b3JzICg0MDAyNyBNQikgdy8xODE5S2lCIENhY2hlLCBD
+SFM9NjU1MzUvMTYvNjMsIFVETUEoMTAwKQpoZGE6IGNhY2hlIGZsdXNoZXMgc3VwcG9ydGVk
+CiBoZGE6IGhkYTEgaGRhMiBoZGEzIGhkYTQgPCBoZGE1IGhkYTYgaGRhNyBoZGE4IGhkYTkg
+aGRhMTAgaGRhMTEgaGRhMTIgaGRhMTMgaGRhMTQgaGRhMTUgPgpoZGM6IEFUQVBJIDUwWCBD
+RC1ST00gZHJpdmUsIDEyOGtCIENhY2hlLCBVRE1BKDMzKQpVbmlmb3JtIENELVJPTSBkcml2
+ZXIgUmV2aXNpb246IDMuMjAKbGliYXRhIHZlcnNpb24gMS4xMCBsb2FkZWQuCm1pY2U6IFBT
+LzIgbW91c2UgZGV2aWNlIGNvbW1vbiBmb3IgYWxsIG1pY2UKaW5wdXQ6IEFUIFRyYW5zbGF0
+ZWQgU2V0IDIga2V5Ym9hcmQgb24gaXNhMDA2MC9zZXJpbzAKaW5wdXQ6IEltUFMvMiBHZW5l
+cmljIFdoZWVsIE1vdXNlIG9uIGlzYTAwNjAvc2VyaW8xCk5FVDogUmVnaXN0ZXJlZCBwcm90
+b2NvbCBmYW1pbHkgMgpJUDogcm91dGluZyBjYWNoZSBoYXNoIHRhYmxlIG9mIDIwNDggYnVj
+a2V0cywgMzJLYnl0ZXMKVENQOiBIYXNoIHRhYmxlcyBjb25maWd1cmVkIChlc3RhYmxpc2hl
+ZCAxNjM4NCBiaW5kIDIxODQ1KQppcF9jb25udHJhY2sgdmVyc2lvbiAyLjEgKDQwOTUgYnVj
+a2V0cywgMzI3NjAgbWF4KSAtIDMwOCBieXRlcyBwZXIgY29ubnRyYWNrCmlwX3RhYmxlczog
+KEMpIDIwMDAtMjAwMiBOZXRmaWx0ZXIgY29yZSB0ZWFtCmlwdF9yZWNlbnQgdjAuMy4xOiBT
+dGVwaGVuIEZyb3N0IDxzZnJvc3RAc25vd21hbi5uZXQ+LiAgaHR0cDovL3Nub3dtYW4ubmV0
+L3Byb2plY3RzL2lwdF9yZWNlbnQvCmFycF90YWJsZXM6IChDKSAyMDAyIERhdmlkIFMuIE1p
+bGxlcgpORVQ6IFJlZ2lzdGVyZWQgcHJvdG9jb2wgZmFtaWx5IDEKTkVUOiBSZWdpc3RlcmVk
+IHByb3RvY29sIGZhbWlseSAxNwpBQ1BJOiAoc3VwcG9ydHMgUzAgUzEgUzQgUzUpCkFDUEkg
+d2FrZXVwIGRldmljZXM6IApTTFBCIFBDSTAgSFVCMCBVU0IwIFVTQjEgVUFSMSBVQVIyIApC
+SU9TIEVERCBmYWNpbGl0eSB2MC4xNiAyMDA0LUp1bi0yNSwgMSBkZXZpY2VzIGZvdW5kCkVY
+VDMtZnM6IG1vdW50ZWQgZmlsZXN5c3RlbSB3aXRoIG9yZGVyZWQgZGF0YSBtb2RlLgpWRlM6
+IE1vdW50ZWQgcm9vdCAoZXh0MyBmaWxlc3lzdGVtKSByZWFkb25seS4KRnJlZWluZyB1bnVz
+ZWQga2VybmVsIG1lbW9yeTogMjA4ayBmcmVlZApram91cm5hbGQgc3RhcnRpbmcuICBDb21t
+aXQgaW50ZXJ2YWwgNSBzZWNvbmRzCmlibV9hY3BpOiBlYyBvYmplY3Qgbm90IGZvdW5kCnVz
+YmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGRyaXZlciB1c2Jmcwp1c2Jjb3JlOiByZWdpc3RlcmVk
+IG5ldyBkcml2ZXIgaHViClVTQiBVbml2ZXJzYWwgSG9zdCBDb250cm9sbGVyIEludGVyZmFj
+ZSBkcml2ZXIgdjIuMgpBQ1BJOiBQQ0kgSW50ZXJydXB0IExpbmsgW0xOS0RdIGVuYWJsZWQg
+YXQgSVJRIDExCkFDUEk6IFBDSSBpbnRlcnJ1cHQgMDAwMDowMDoxZi4yW0RdIC0+IEdTSSAx
+MSAobGV2ZWwsIGxvdykgLT4gSVJRIDExCnVoY2lfaGNkIDAwMDA6MDA6MWYuMjogSW50ZWwg
+Q29ycC4gODI4MDFCQS9CQU0gVVNCIChIdWIgIzEpClBDSTogU2V0dGluZyBsYXRlbmN5IHRp
+bWVyIG9mIGRldmljZSAwMDAwOjAwOjFmLjIgdG8gNjQKdWhjaV9oY2QgMDAwMDowMDoxZi4y
+OiBpcnEgMTEsIGlvIGJhc2UgMHhkMDAwCnVoY2lfaGNkIDAwMDA6MDA6MWYuMjogbmV3IFVT
+QiBidXMgcmVnaXN0ZXJlZCwgYXNzaWduZWQgYnVzIG51bWJlciAxCmh1YiAxLTA6MS4wOiBV
+U0IgaHViIGZvdW5kCmh1YiAxLTA6MS4wOiAyIHBvcnRzIGRldGVjdGVkCkFDUEk6IFBDSSBJ
+bnRlcnJ1cHQgTGluayBbTE5LMV0gZW5hYmxlZCBhdCBJUlEgMTAKUENJOiBzZXR0aW5nIElS
+USAxMCBhcyBsZXZlbC10cmlnZ2VyZWQKQUNQSTogUENJIGludGVycnVwdCAwMDAwOjAwOjFm
+LjRbQ10gLT4gR1NJIDEwIChsZXZlbCwgbG93KSAtPiBJUlEgMTAKdWhjaV9oY2QgMDAwMDow
+MDoxZi40OiBJbnRlbCBDb3JwLiA4MjgwMUJBL0JBTSBVU0IgKEh1YiAjMikKUENJOiBTZXR0
+aW5nIGxhdGVuY3kgdGltZXIgb2YgZGV2aWNlIDAwMDA6MDA6MWYuNCB0byA2NAp1aGNpX2hj
+ZCAwMDAwOjAwOjFmLjQ6IGlycSAxMCwgaW8gYmFzZSAweGQ0MDAKdWhjaV9oY2QgMDAwMDow
+MDoxZi40OiBuZXcgVVNCIGJ1cyByZWdpc3RlcmVkLCBhc3NpZ25lZCBidXMgbnVtYmVyIDIK
+aHViIDItMDoxLjA6IFVTQiBodWIgZm91bmQKaHViIDItMDoxLjA6IDIgcG9ydHMgZGV0ZWN0
+ZWQKdXNiIDEtMTogbmV3IGZ1bGwgc3BlZWQgVVNCIGRldmljZSB1c2luZyB1aGNpX2hjZCBh
+bmQgYWRkcmVzcyAyCkluaXRpYWxpemluZyBVU0IgTWFzcyBTdG9yYWdlIGRyaXZlci4uLgpz
+Y3NpMCA6IFNDU0kgZW11bGF0aW9uIGZvciBVU0IgTWFzcyBTdG9yYWdlIGRldmljZXMKdXNi
+Y29yZTogcmVnaXN0ZXJlZCBuZXcgZHJpdmVyIHVzYi1zdG9yYWdlClVTQiBNYXNzIFN0b3Jh
+Z2Ugc3VwcG9ydCByZWdpc3RlcmVkLgp1c2Itc3RvcmFnZTogZGV2aWNlIGZvdW5kIGF0IDIK
+dXNiLXN0b3JhZ2U6IHdhaXRpbmcgZm9yIGRldmljZSB0byBzZXR0bGUgYmVmb3JlIHNjYW5u
+aW5nCkVYVDMgRlMgb24gaGRhMTIsIGludGVybmFsIGpvdXJuYWwKQWRkaW5nIDUzMDEwNGsg
+c3dhcCBvbiAvZGV2L2hkYTUuICBQcmlvcml0eTotMSBleHRlbnRzOjEKa2pvdXJuYWxkIHN0
+YXJ0aW5nLiAgQ29tbWl0IGludGVydmFsIDUgc2Vjb25kcwpFWFQzIEZTIG9uIGhkYTYsIGlu
+dGVybmFsIGpvdXJuYWwKRVhUMy1mczogbW91bnRlZCBmaWxlc3lzdGVtIHdpdGggb3JkZXJl
+ZCBkYXRhIG1vZGUuCmtqb3VybmFsZCBzdGFydGluZy4gIENvbW1pdCBpbnRlcnZhbCA1IHNl
+Y29uZHMKRVhUMyBGUyBvbiBoZGExNCwgaW50ZXJuYWwgam91cm5hbApFWFQzLWZzOiBtb3Vu
+dGVkIGZpbGVzeXN0ZW0gd2l0aCBvcmRlcmVkIGRhdGEgbW9kZS4Ka2pvdXJuYWxkIHN0YXJ0
+aW5nLiAgQ29tbWl0IGludGVydmFsIDUgc2Vjb25kcwpFWFQzIEZTIG9uIGhkYTMsIGludGVy
+bmFsIGpvdXJuYWwKRVhUMy1mczogbW91bnRlZCBmaWxlc3lzdGVtIHdpdGggb3JkZXJlZCBk
+YXRhIG1vZGUuCmtqb3VybmFsZCBzdGFydGluZy4gIENvbW1pdCBpbnRlcnZhbCA1IHNlY29u
+ZHMKRVhUMyBGUyBvbiBoZGExMSwgaW50ZXJuYWwgam91cm5hbApFWFQzLWZzOiBtb3VudGVk
+IGZpbGVzeXN0ZW0gd2l0aCBvcmRlcmVkIGRhdGEgbW9kZS4Ka2pvdXJuYWxkIHN0YXJ0aW5n
+LiAgQ29tbWl0IGludGVydmFsIDUgc2Vjb25kcwpFWFQzIEZTIG9uIGhkYTcsIGludGVybmFs
+IGpvdXJuYWwKRVhUMy1mczogbW91bnRlZCBmaWxlc3lzdGVtIHdpdGggb3JkZXJlZCBkYXRh
+IG1vZGUuCmtqb3VybmFsZCBzdGFydGluZy4gIENvbW1pdCBpbnRlcnZhbCA1IHNlY29uZHMK
+RVhUMyBGUyBvbiBoZGExMCwgaW50ZXJuYWwgam91cm5hbApFWFQzLWZzOiBtb3VudGVkIGZp
+bGVzeXN0ZW0gd2l0aCBvcmRlcmVkIGRhdGEgbW9kZS4Ka2pvdXJuYWxkIHN0YXJ0aW5nLiAg
+Q29tbWl0IGludGVydmFsIDUgc2Vjb25kcwpFWFQzIEZTIG9uIGhkYTEzLCBpbnRlcm5hbCBq
+b3VybmFsCkVYVDMtZnM6IG1vdW50ZWQgZmlsZXN5c3RlbSB3aXRoIG9yZGVyZWQgZGF0YSBt
+b2RlLgpram91cm5hbGQgc3RhcnRpbmcuICBDb21taXQgaW50ZXJ2YWwgNSBzZWNvbmRzCkVY
+VDMgRlMgb24gaGRhOSwgaW50ZXJuYWwgam91cm5hbApFWFQzLWZzOiBtb3VudGVkIGZpbGVz
+eXN0ZW0gd2l0aCBvcmRlcmVkIGRhdGEgbW9kZS4KRkFUOiB1dGY4IGlzIG5vdCBhIHJlY29t
+bWVuZGVkIElPIGNoYXJzZXQgZm9yIEZBVCBmaWxlc3lzdGVtcywgZmlsZXN5c3RlbSB3aWxs
+IGJlIGNhc2Ugc2Vuc2l0aXZlIQpGQVQ6IHV0ZjggaXMgbm90IGEgcmVjb21tZW5kZWQgSU8g
+Y2hhcnNldCBmb3IgRkFUIGZpbGVzeXN0ZW1zLCBmaWxlc3lzdGVtIHdpbGwgYmUgY2FzZSBz
+ZW5zaXRpdmUhCk5URlMgZHJpdmVyIDIuMS4yMiBbRmxhZ3M6IFIvVyBNT0RVTEVdLgpOVEZT
+IHZvbHVtZSB2ZXJzaW9uIDMuMS4KICBWZW5kb3I6IEpldEZsYXNoICBNb2RlbDogVFMyNTZN
+SkYyQSAgICAgICAgUmV2OiAxLjAwCiAgVHlwZTogICBEaXJlY3QtQWNjZXNzICAgICAgICAg
+ICAgICAgICAgICAgIEFOU0kgU0NTSSByZXZpc2lvbjogMDIKdXNiLXN0b3JhZ2U6IGRldmlj
+ZSBzY2FuIGNvbXBsZXRlCkFDUEk6IFBDSSBpbnRlcnJ1cHQgMDAwMDowMjowNC4wW0FdIC0+
+IEdTSSAxMSAobGV2ZWwsIGxvdykgLT4gSVJRIDExCjNjNTl4OiBEb25hbGQgQmVja2VyIGFu
+ZCBvdGhlcnMuIHd3dy5zY3lsZC5jb20vbmV0d29yay92b3J0ZXguaHRtbAowMDAwOjAyOjA0
+LjA6IDNDb20gUENJIDNjOTA1QyBUb3JuYWRvIGF0IDB4YzAwMC4gVmVycyBMSzEuMS4xOQpO
+RVQ6IFJlZ2lzdGVyZWQgcHJvdG9jb2wgZmFtaWx5IDEwCkRpc2FibGVkIFByaXZhY3kgRXh0
+ZW5zaW9ucyBvbiBkZXZpY2UgYzAzOWJlNjAobG8pCklQdjYgb3ZlciBJUHY0IHR1bm5lbGlu
+ZyBkcml2ZXIKZXRoMDogbm8gSVB2NiByb3V0ZXJzIHByZXNlbnQK
+--------------060008040705080300000104
+Content-Type: text/plain;
+ name="config-rc2-mm4"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="config-rc2-mm4"
+
+IwojIEF1dG9tYXRpY2FsbHkgZ2VuZXJhdGVkIG1ha2UgY29uZmlnOiBkb24ndCBlZGl0CiMg
+TGludXgga2VybmVsIHZlcnNpb246IDIuNi4xMC1yYzItbW00CiMgRnJpIERlYyAgMyAxMDoy
+Nzo0MiAyMDA0CiMKQ09ORklHX1g4Nj15CkNPTkZJR19NTVU9eQpDT05GSUdfVUlEMTY9eQpD
+T05GSUdfR0VORVJJQ19JU0FfRE1BPXkKQ09ORklHX0dFTkVSSUNfSU9NQVA9eQoKIwojIENv
+ZGUgbWF0dXJpdHkgbGV2ZWwgb3B0aW9ucwojCkNPTkZJR19FWFBFUklNRU5UQUw9eQojIENP
+TkZJR19DTEVBTl9DT01QSUxFIGlzIG5vdCBzZXQKQ09ORklHX0JST0tFTj15CkNPTkZJR19C
+Uk9LRU5fT05fU01QPXkKQ09ORklHX0xPQ0tfS0VSTkVMPXkKCiMKIyBHZW5lcmFsIHNldHVw
+CiMKQ09ORklHX0xPQ0FMVkVSU0lPTj0iIgpDT05GSUdfU1dBUD15CkNPTkZJR19TWVNWSVBD
+PXkKQ09ORklHX1BPU0lYX01RVUVVRT15CkNPTkZJR19CU0RfUFJPQ0VTU19BQ0NUPXkKIyBD
+T05GSUdfQlNEX1BST0NFU1NfQUNDVF9WMyBpcyBub3Qgc2V0CkNPTkZJR19TWVNDVEw9eQpD
+T05GSUdfQVVESVQ9eQpDT05GSUdfQVVESVRTWVNDQUxMPXkKQ09ORklHX0xPR19CVUZfU0hJ
+RlQ9MTcKQ09ORklHX0hPVFBMVUc9eQpDT05GSUdfS09CSkVDVF9VRVZFTlQ9eQpDT05GSUdf
+SUtDT05GSUc9eQpDT05GSUdfSUtDT05GSUdfUFJPQz15CiMgQ09ORklHX0VNQkVEREVEIGlz
+IG5vdCBzZXQKQ09ORklHX0tBTExTWU1TPXkKIyBDT05GSUdfS0FMTFNZTVNfQUxMIGlzIG5v
+dCBzZXQKIyBDT05GSUdfS0FMTFNZTVNfRVhUUkFfUEFTUyBpcyBub3Qgc2V0CkNPTkZJR19G
+VVRFWD15CkNPTkZJR19FUE9MTD15CiMgQ09ORklHX0NQVVNFVFMgaXMgbm90IHNldAojIENP
+TkZJR19DQ19PUFRJTUlaRV9GT1JfU0laRSBpcyBub3Qgc2V0CkNPTkZJR19TSE1FTT15CkNP
+TkZJR19DQ19BTElHTl9GVU5DVElPTlM9MApDT05GSUdfQ0NfQUxJR05fTEFCRUxTPTAKQ09O
+RklHX0NDX0FMSUdOX0xPT1BTPTAKQ09ORklHX0NDX0FMSUdOX0pVTVBTPTAKIyBDT05GSUdf
+VElOWV9TSE1FTSBpcyBub3Qgc2V0CgojCiMgTG9hZGFibGUgbW9kdWxlIHN1cHBvcnQKIwpD
+T05GSUdfTU9EVUxFUz15CkNPTkZJR19NT0RVTEVfVU5MT0FEPXkKQ09ORklHX01PRFVMRV9G
+T1JDRV9VTkxPQUQ9eQpDT05GSUdfT0JTT0xFVEVfTU9EUEFSTT15CiMgQ09ORklHX01PRFZF
+UlNJT05TIGlzIG5vdCBzZXQKIyBDT05GSUdfTU9EVUxFX1NSQ1ZFUlNJT05fQUxMIGlzIG5v
+dCBzZXQKQ09ORklHX0tNT0Q9eQpDT05GSUdfU1RPUF9NQUNISU5FPXkKCiMKIyBQcm9jZXNz
+b3IgdHlwZSBhbmQgZmVhdHVyZXMKIwpDT05GSUdfWDg2X1BDPXkKIyBDT05GSUdfWDg2X0VM
+QU4gaXMgbm90IHNldAojIENPTkZJR19YODZfVk9ZQUdFUiBpcyBub3Qgc2V0CiMgQ09ORklH
+X1g4Nl9OVU1BUSBpcyBub3Qgc2V0CiMgQ09ORklHX1g4Nl9TVU1NSVQgaXMgbm90IHNldAoj
+IENPTkZJR19YODZfQklHU01QIGlzIG5vdCBzZXQKIyBDT05GSUdfWDg2X1ZJU1dTIGlzIG5v
+dCBzZXQKIyBDT05GSUdfWDg2X0dFTkVSSUNBUkNIIGlzIG5vdCBzZXQKIyBDT05GSUdfWDg2
+X0VTNzAwMCBpcyBub3Qgc2V0CiMgQ09ORklHX00zODYgaXMgbm90IHNldAojIENPTkZJR19N
+NDg2IGlzIG5vdCBzZXQKIyBDT05GSUdfTTU4NiBpcyBub3Qgc2V0CiMgQ09ORklHX001ODZU
+U0MgaXMgbm90IHNldAojIENPTkZJR19NNTg2TU1YIGlzIG5vdCBzZXQKIyBDT05GSUdfTTY4
+NiBpcyBub3Qgc2V0CiMgQ09ORklHX01QRU5USVVNSUkgaXMgbm90IHNldApDT05GSUdfTVBF
+TlRJVU1JSUk9eQojIENPTkZJR19NUEVOVElVTU0gaXMgbm90IHNldAojIENPTkZJR19NUEVO
+VElVTTQgaXMgbm90IHNldAojIENPTkZJR19NSzYgaXMgbm90IHNldAojIENPTkZJR19NSzcg
+aXMgbm90IHNldAojIENPTkZJR19NSzggaXMgbm90IHNldAojIENPTkZJR19NQ1JVU09FIGlz
+IG5vdCBzZXQKIyBDT05GSUdfTUVGRklDRU9OIGlzIG5vdCBzZXQKIyBDT05GSUdfTVdJTkNI
+SVBDNiBpcyBub3Qgc2V0CiMgQ09ORklHX01XSU5DSElQMiBpcyBub3Qgc2V0CiMgQ09ORklH
+X01XSU5DSElQM0QgaXMgbm90IHNldAojIENPTkZJR19NQ1lSSVhJSUkgaXMgbm90IHNldAoj
+IENPTkZJR19NVklBQzNfMiBpcyBub3Qgc2V0CiMgQ09ORklHX1g4Nl9HRU5FUklDIGlzIG5v
+dCBzZXQKQ09ORklHX1g4Nl9DTVBYQ0hHPXkKQ09ORklHX1g4Nl9YQUREPXkKQ09ORklHX1g4
+Nl9MMV9DQUNIRV9TSElGVD01CkNPTkZJR19SV1NFTV9YQ0hHQUREX0FMR09SSVRITT15CkNP
+TkZJR19HRU5FUklDX0NBTElCUkFURV9ERUxBWT15CkNPTkZJR19YODZfV1BfV09SS1NfT0s9
+eQpDT05GSUdfWDg2X0lOVkxQRz15CkNPTkZJR19YODZfQlNXQVA9eQpDT05GSUdfWDg2X1BP
+UEFEX09LPXkKQ09ORklHX1g4Nl9HT09EX0FQSUM9eQpDT05GSUdfWDg2X0lOVEVMX1VTRVJD
+T1BZPXkKQ09ORklHX1g4Nl9VU0VfUFBST19DSEVDS1NVTT15CkNPTkZJR19IUEVUX1RJTUVS
+PXkKQ09ORklHX0hQRVRfRU1VTEFURV9SVEM9eQpDT05GSUdfU01QPXkKQ09ORklHX05SX0NQ
+VVM9MgojIENPTkZJR19TQ0hFRF9TTVQgaXMgbm90IHNldApDT05GSUdfUFJFRU1QVD15CkNP
+TkZJR19QUkVFTVBUX0JLTD15CkNPTkZJR19YODZfTE9DQUxfQVBJQz15CkNPTkZJR19YODZf
+SU9fQVBJQz15CkNPTkZJR19YODZfVFNDPXkKQ09ORklHX1g4Nl9NQ0U9eQpDT05GSUdfWDg2
+X01DRV9OT05GQVRBTD15CkNPTkZJR19YODZfTUNFX1A0VEhFUk1BTD15CiMgQ09ORklHX1RP
+U0hJQkEgaXMgbm90IHNldAojIENPTkZJR19JOEsgaXMgbm90IHNldApDT05GSUdfTUlDUk9D
+T0RFPW0KQ09ORklHX1g4Nl9NU1I9bQpDT05GSUdfWDg2X0NQVUlEPW0KCiMKIyBGaXJtd2Fy
+ZSBEcml2ZXJzCiMKQ09ORklHX0VERD15CiMgQ09ORklHX05PSElHSE1FTSBpcyBub3Qgc2V0
+CkNPTkZJR19ISUdITUVNNEc9eQojIENPTkZJR19ISUdITUVNNjRHIGlzIG5vdCBzZXQKQ09O
+RklHX0hJR0hNRU09eQpDT05GSUdfSElHSFBURT15CiMgQ09ORklHX01BVEhfRU1VTEFUSU9O
+IGlzIG5vdCBzZXQKQ09ORklHX01UUlI9eQojIENPTkZJR19FRkkgaXMgbm90IHNldApDT05G
+SUdfSVJRQkFMQU5DRT15CkNPTkZJR19IQVZFX0RFQ19MT0NLPXkKQ09ORklHX1JFR1BBUk09
+eQoKIwojIFBlcmZvcm1hbmNlLW1vbml0b3JpbmcgY291bnRlcnMgc3VwcG9ydAojCkNPTkZJ
+R19QRVJGQ1RSPXkKQ09ORklHX1BFUkZDVFJfSU5JVF9URVNUUz15CkNPTkZJR19QRVJGQ1RS
+X1ZJUlRVQUw9eQpDT05GSUdfUEVSRkNUUl9JTlRFUlJVUFRfU1VQUE9SVD15CkNPTkZJR19Q
+RVJGQ1RSX0NQVVNfRk9SQklEREVOX01BU0s9eQpDT05GSUdfS0VSTl9QSFlTX09GRlNFVD0x
+CiMgQ09ORklHX0tFWEVDIGlzIG5vdCBzZXQKCiMKIyBQb3dlciBtYW5hZ2VtZW50IG9wdGlv
+bnMgKEFDUEksIEFQTSkKIwpDT05GSUdfUE09eQojIENPTkZJR19QTV9ERUJVRyBpcyBub3Qg
+c2V0CkNPTkZJR19TT0ZUV0FSRV9TVVNQRU5EPXkKQ09ORklHX1BNX1NURF9QQVJUSVRJT049
+IiIKCiMKIyBBQ1BJIChBZHZhbmNlZCBDb25maWd1cmF0aW9uIGFuZCBQb3dlciBJbnRlcmZh
+Y2UpIFN1cHBvcnQKIwpDT05GSUdfQUNQST15CkNPTkZJR19BQ1BJX0JPT1Q9eQpDT05GSUdf
+QUNQSV9JTlRFUlBSRVRFUj15CkNPTkZJR19BQ1BJX1NMRUVQPXkKQ09ORklHX0FDUElfU0xF
+RVBfUFJPQ19GUz15CkNPTkZJR19BQ1BJX0FDPXkKQ09ORklHX0FDUElfQkFUVEVSWT15CkNP
+TkZJR19BQ1BJX0JVVFRPTj15CkNPTkZJR19BQ1BJX1ZJREVPPW0KQ09ORklHX0FDUElfRkFO
+PXkKQ09ORklHX0FDUElfUFJPQ0VTU09SPXkKQ09ORklHX0FDUElfVEhFUk1BTD15CiMgQ09O
+RklHX0FDUElfQVNVUyBpcyBub3Qgc2V0CkNPTkZJR19BQ1BJX0lCTT1tCiMgQ09ORklHX0FD
+UElfVE9TSElCQSBpcyBub3Qgc2V0CkNPTkZJR19BQ1BJX0JMQUNLTElTVF9ZRUFSPTAKIyBD
+T05GSUdfQUNQSV9ERUJVRyBpcyBub3Qgc2V0CkNPTkZJR19BQ1BJX0JVUz15CkNPTkZJR19B
+Q1BJX0VDPXkKQ09ORklHX0FDUElfUE9XRVI9eQpDT05GSUdfQUNQSV9QQ0k9eQpDT05GSUdf
+QUNQSV9TWVNURU09eQpDT05GSUdfWDg2X1BNX1RJTUVSPXkKQ09ORklHX0FDUElfQ09OVEFJ
+TkVSPW0KCiMKIyBBUE0gKEFkdmFuY2VkIFBvd2VyIE1hbmFnZW1lbnQpIEJJT1MgU3VwcG9y
+dAojCkNPTkZJR19BUE09eQojIENPTkZJR19BUE1fSUdOT1JFX1VTRVJfU1VTUEVORCBpcyBu
+b3Qgc2V0CiMgQ09ORklHX0FQTV9ET19FTkFCTEUgaXMgbm90IHNldApDT05GSUdfQVBNX0NQ
+VV9JRExFPXkKIyBDT05GSUdfQVBNX0RJU1BMQVlfQkxBTksgaXMgbm90IHNldAojIENPTkZJ
+R19BUE1fUlRDX0lTX0dNVCBpcyBub3Qgc2V0CkNPTkZJR19BUE1fQUxMT1dfSU5UUz15CiMg
+Q09ORklHX0FQTV9SRUFMX01PREVfUE9XRVJfT0ZGIGlzIG5vdCBzZXQKCiMKIyBDUFUgRnJl
+cXVlbmN5IHNjYWxpbmcKIwojIENPTkZJR19DUFVfRlJFUSBpcyBub3Qgc2V0CgojCiMgQnVz
+IG9wdGlvbnMgKFBDSSwgUENNQ0lBLCBFSVNBLCBNQ0EsIElTQSkKIwpDT05GSUdfUENJPXkK
+IyBDT05GSUdfUENJX0dPQklPUyBpcyBub3Qgc2V0CiMgQ09ORklHX1BDSV9HT01NQ09ORklH
+IGlzIG5vdCBzZXQKIyBDT05GSUdfUENJX0dPRElSRUNUIGlzIG5vdCBzZXQKQ09ORklHX1BD
+SV9HT0FOWT15CkNPTkZJR19QQ0lfQklPUz15CkNPTkZJR19QQ0lfRElSRUNUPXkKQ09ORklH
+X1BDSV9NTUNPTkZJRz15CiMgQ09ORklHX1BDSV9NU0kgaXMgbm90IHNldApDT05GSUdfUENJ
+X0xFR0FDWV9QUk9DPXkKQ09ORklHX1BDSV9OQU1FUz15CkNPTkZJR19JU0E9eQojIENPTkZJ
+R19FSVNBIGlzIG5vdCBzZXQKIyBDT05GSUdfTUNBIGlzIG5vdCBzZXQKIyBDT05GSUdfU0N4
+MjAwIGlzIG5vdCBzZXQKIyBDT05GSUdfSE9UUExVR19DUFUgaXMgbm90IHNldAoKIwojIFBD
+Q0FSRCAoUENNQ0lBL0NhcmRCdXMpIHN1cHBvcnQKIwojIENPTkZJR19QQ0NBUkQgaXMgbm90
+IHNldAoKIwojIFBDLWNhcmQgYnJpZGdlcwojCkNPTkZJR19QQ01DSUFfUFJPQkU9eQoKIwoj
+IFBDSSBIb3RwbHVnIFN1cHBvcnQKIwojIENPTkZJR19IT1RQTFVHX1BDSSBpcyBub3Qgc2V0
+CgojCiMgRXhlY3V0YWJsZSBmaWxlIGZvcm1hdHMKIwpDT05GSUdfQklORk1UX0VMRj15CkNP
+TkZJR19CSU5GTVRfQU9VVD1tCkNPTkZJR19CSU5GTVRfTUlTQz15CgojCiMgRGV2aWNlIERy
+aXZlcnMKIwoKIwojIEdlbmVyaWMgRHJpdmVyIE9wdGlvbnMKIwpDT05GSUdfU1RBTkRBTE9O
+RT15CkNPTkZJR19QUkVWRU5UX0ZJUk1XQVJFX0JVSUxEPXkKIyBDT05GSUdfRldfTE9BREVS
+IGlzIG5vdCBzZXQKIyBDT05GSUdfREVCVUdfRFJJVkVSIGlzIG5vdCBzZXQKCiMKIyBNZW1v
+cnkgVGVjaG5vbG9neSBEZXZpY2VzIChNVEQpCiMKIyBDT05GSUdfTVREIGlzIG5vdCBzZXQK
+CiMKIyBQYXJhbGxlbCBwb3J0IHN1cHBvcnQKIwpDT05GSUdfUEFSUE9SVD15CkNPTkZJR19Q
+QVJQT1JUX1BDPXkKQ09ORklHX1BBUlBPUlRfUENfQ01MMT15CiMgQ09ORklHX1BBUlBPUlRf
+U0VSSUFMIGlzIG5vdCBzZXQKQ09ORklHX1BBUlBPUlRfUENfRklGTz15CiMgQ09ORklHX1BB
+UlBPUlRfUENfU1VQRVJJTyBpcyBub3Qgc2V0CkNPTkZJR19QQVJQT1JUX09USEVSPXkKQ09O
+RklHX1BBUlBPUlRfMTI4ND15CgojCiMgUGx1ZyBhbmQgUGxheSBzdXBwb3J0CiMKQ09ORklH
+X1BOUD15CkNPTkZJR19QTlBfREVCVUc9eQoKIwojIFByb3RvY29scwojCiMgQ09ORklHX0lT
+QVBOUCBpcyBub3Qgc2V0CkNPTkZJR19QTlBCSU9TPXkKQ09ORklHX1BOUEJJT1NfUFJPQ19G
+Uz15CkNPTkZJR19QTlBBQ1BJPXkKCiMKIyBCbG9jayBkZXZpY2VzCiMKQ09ORklHX0JMS19E
+RVZfRkQ9eQojIENPTkZJR19CTEtfREVWX1hEIGlzIG5vdCBzZXQKIyBDT05GSUdfUEFSSURF
+IGlzIG5vdCBzZXQKIyBDT05GSUdfQkxLX0NQUV9EQSBpcyBub3Qgc2V0CiMgQ09ORklHX0JM
+S19DUFFfQ0lTU19EQSBpcyBub3Qgc2V0CiMgQ09ORklHX0JMS19ERVZfREFDOTYwIGlzIG5v
+dCBzZXQKIyBDT05GSUdfQkxLX0RFVl9VTUVNIGlzIG5vdCBzZXQKQ09ORklHX0JMS19ERVZf
+TE9PUD15CiMgQ09ORklHX0JMS19ERVZfQ1JZUFRPTE9PUCBpcyBub3Qgc2V0CkNPTkZJR19C
+TEtfREVWX05CRD15CiMgQ09ORklHX0JMS19ERVZfU1g4IGlzIG5vdCBzZXQKIyBDT05GSUdf
+QkxLX0RFVl9VQiBpcyBub3Qgc2V0CkNPTkZJR19CTEtfREVWX1JBTT1tCkNPTkZJR19CTEtf
+REVWX1JBTV9DT1VOVD0xNgpDT05GSUdfQkxLX0RFVl9SQU1fU0laRT00MDk2CkNPTkZJR19J
+TklUUkFNRlNfU09VUkNFPSIiCkNPTkZJR19MQkQ9eQpDT05GSUdfQ0RST01fUEtUQ0RWRD1t
+CkNPTkZJR19DRFJPTV9QS1RDRFZEX0JVRkZFUlM9OApDT05GSUdfQ0RST01fUEtUQ0RWRF9X
+Q0FDSEU9eQoKIwojIElPIFNjaGVkdWxlcnMKIwpDT05GSUdfSU9TQ0hFRF9OT09QPXkKQ09O
+RklHX0lPU0NIRURfQVM9eQpDT05GSUdfSU9TQ0hFRF9ERUFETElORT15CkNPTkZJR19JT1ND
+SEVEX0NGUT15CgojCiMgQVRBL0FUQVBJL01GTS9STEwgc3VwcG9ydAojCkNPTkZJR19JREU9
+eQpDT05GSUdfQkxLX0RFVl9JREU9eQoKIwojIFBsZWFzZSBzZWUgRG9jdW1lbnRhdGlvbi9p
+ZGUudHh0IGZvciBoZWxwL2luZm8gb24gSURFIGRyaXZlcwojCiMgQ09ORklHX0JMS19ERVZf
+SURFX1NBVEEgaXMgbm90IHNldAojIENPTkZJR19CTEtfREVWX0hEX0lERSBpcyBub3Qgc2V0
+CkNPTkZJR19CTEtfREVWX0lERURJU0s9eQpDT05GSUdfSURFRElTS19NVUxUSV9NT0RFPXkK
+Q09ORklHX0JMS19ERVZfSURFQ0Q9eQojIENPTkZJR19CTEtfREVWX0lERVRBUEUgaXMgbm90
+IHNldAojIENPTkZJR19CTEtfREVWX0lERUZMT1BQWSBpcyBub3Qgc2V0CiMgQ09ORklHX0JM
+S19ERVZfSURFU0NTSSBpcyBub3Qgc2V0CkNPTkZJR19JREVfVEFTS19JT0NUTD15CgojCiMg
+SURFIGNoaXBzZXQgc3VwcG9ydC9idWdmaXhlcwojCkNPTkZJR19JREVfR0VORVJJQz15CkNP
+TkZJR19CTEtfREVWX0NNRDY0MD15CiMgQ09ORklHX0JMS19ERVZfQ01ENjQwX0VOSEFOQ0VE
+IGlzIG5vdCBzZXQKIyBDT05GSUdfQkxLX0RFVl9JREVQTlAgaXMgbm90IHNldApDT05GSUdf
+QkxLX0RFVl9JREVQQ0k9eQpDT05GSUdfSURFUENJX1NIQVJFX0lSUT15CiMgQ09ORklHX0JM
+S19ERVZfT0ZGQk9BUkQgaXMgbm90IHNldApDT05GSUdfQkxLX0RFVl9HRU5FUklDPXkKIyBD
+T05GSUdfQkxLX0RFVl9PUFRJNjIxIGlzIG5vdCBzZXQKQ09ORklHX0JMS19ERVZfUloxMDAw
+PXkKQ09ORklHX0JMS19ERVZfSURFRE1BX1BDST15CiMgQ09ORklHX0JMS19ERVZfSURFRE1B
+X0ZPUkNFRCBpcyBub3Qgc2V0CkNPTkZJR19JREVETUFfUENJX0FVVE89eQojIENPTkZJR19J
+REVETUFfT05MWURJU0sgaXMgbm90IHNldAojIENPTkZJR19CTEtfREVWX0FFQzYyWFggaXMg
+bm90IHNldAojIENPTkZJR19CTEtfREVWX0FMSTE1WDMgaXMgbm90IHNldAojIENPTkZJR19C
+TEtfREVWX0FNRDc0WFggaXMgbm90IHNldAojIENPTkZJR19CTEtfREVWX0FUSUlYUCBpcyBu
+b3Qgc2V0CiMgQ09ORklHX0JMS19ERVZfQ01ENjRYIGlzIG5vdCBzZXQKIyBDT05GSUdfQkxL
+X0RFVl9UUklGTEVYIGlzIG5vdCBzZXQKIyBDT05GSUdfQkxLX0RFVl9DWTgyQzY5MyBpcyBu
+b3Qgc2V0CiMgQ09ORklHX0JMS19ERVZfQ1M1NTIwIGlzIG5vdCBzZXQKIyBDT05GSUdfQkxL
+X0RFVl9DUzU1MzAgaXMgbm90IHNldAojIENPTkZJR19CTEtfREVWX0hQVDM0WCBpcyBub3Qg
+c2V0CiMgQ09ORklHX0JMS19ERVZfSFBUMzY2IGlzIG5vdCBzZXQKIyBDT05GSUdfQkxLX0RF
+Vl9TQzEyMDAgaXMgbm90IHNldApDT05GSUdfQkxLX0RFVl9QSUlYPXkKIyBDT05GSUdfQkxL
+X0RFVl9OUzg3NDE1IGlzIG5vdCBzZXQKIyBDT05GSUdfQkxLX0RFVl9QREMyMDJYWF9PTEQg
+aXMgbm90IHNldAojIENPTkZJR19CTEtfREVWX1BEQzIwMlhYX05FVyBpcyBub3Qgc2V0CiMg
+Q09ORklHX0JMS19ERVZfU1ZXS1MgaXMgbm90IHNldAojIENPTkZJR19CTEtfREVWX1NJSU1B
+R0UgaXMgbm90IHNldAojIENPTkZJR19CTEtfREVWX1NJUzU1MTMgaXMgbm90IHNldAojIENP
+TkZJR19CTEtfREVWX1NMQzkwRTY2IGlzIG5vdCBzZXQKIyBDT05GSUdfQkxLX0RFVl9UUk0y
+OTAgaXMgbm90IHNldAojIENPTkZJR19CTEtfREVWX1ZJQTgyQ1hYWCBpcyBub3Qgc2V0CiMg
+Q09ORklHX0lERV9BUk0gaXMgbm90IHNldAojIENPTkZJR19JREVfQ0hJUFNFVFMgaXMgbm90
+IHNldApDT05GSUdfQkxLX0RFVl9JREVETUE9eQojIENPTkZJR19JREVETUFfSVZCIGlzIG5v
+dCBzZXQKQ09ORklHX0lERURNQV9BVVRPPXkKIyBDT05GSUdfQkxLX0RFVl9IRCBpcyBub3Qg
+c2V0CgojCiMgU0NTSSBkZXZpY2Ugc3VwcG9ydAojCkNPTkZJR19TQ1NJPW0KQ09ORklHX1ND
+U0lfUFJPQ19GUz15CgojCiMgU0NTSSBzdXBwb3J0IHR5cGUgKGRpc2ssIHRhcGUsIENELVJP
+TSkKIwpDT05GSUdfQkxLX0RFVl9TRD1tCiMgQ09ORklHX0NIUl9ERVZfU1QgaXMgbm90IHNl
+dAojIENPTkZJR19DSFJfREVWX09TU1QgaXMgbm90IHNldAojIENPTkZJR19CTEtfREVWX1NS
+IGlzIG5vdCBzZXQKQ09ORklHX0NIUl9ERVZfU0c9bQoKIwojIFNvbWUgU0NTSSBkZXZpY2Vz
+IChlLmcuIENEIGp1a2Vib3gpIHN1cHBvcnQgbXVsdGlwbGUgTFVOcwojCiMgQ09ORklHX1ND
+U0lfTVVMVElfTFVOIGlzIG5vdCBzZXQKIyBDT05GSUdfU0NTSV9DT05TVEFOVFMgaXMgbm90
+IHNldAojIENPTkZJR19TQ1NJX0xPR0dJTkcgaXMgbm90IHNldAoKIwojIFNDU0kgVHJhbnNw
+b3J0IEF0dHJpYnV0ZXMKIwojIENPTkZJR19TQ1NJX1NQSV9BVFRSUyBpcyBub3Qgc2V0CiMg
+Q09ORklHX1NDU0lfRkNfQVRUUlMgaXMgbm90IHNldAojIENPTkZJR19TQ1NJX0lTQ1NJX0FU
+VFJTIGlzIG5vdCBzZXQKCiMKIyBTQ1NJIGxvdy1sZXZlbCBkcml2ZXJzCiMKIyBDT05GSUdf
+QkxLX0RFVl8zV19YWFhYX1JBSUQgaXMgbm90IHNldAojIENPTkZJR19TQ1NJXzNXXzlYWFgg
+aXMgbm90IHNldAojIENPTkZJR19TQ1NJXzcwMDBGQVNTVCBpcyBub3Qgc2V0CiMgQ09ORklH
+X1NDU0lfQUNBUkQgaXMgbm90IHNldAojIENPTkZJR19TQ1NJX0FIQTE1MlggaXMgbm90IHNl
+dAojIENPTkZJR19TQ1NJX0FIQTE1NDIgaXMgbm90IHNldAojIENPTkZJR19TQ1NJX0FBQ1JB
+SUQgaXMgbm90IHNldAojIENPTkZJR19TQ1NJX0FJQzdYWFggaXMgbm90IHNldAojIENPTkZJ
+R19TQ1NJX0FJQzdYWFhfT0xEIGlzIG5vdCBzZXQKIyBDT05GSUdfU0NTSV9BSUM3OVhYIGlz
+IG5vdCBzZXQKIyBDT05GSUdfU0NTSV9EUFRfSTJPIGlzIG5vdCBzZXQKIyBDT05GSUdfU0NT
+SV9BRFZBTlNZUyBpcyBub3Qgc2V0CiMgQ09ORklHX1NDU0lfSU4yMDAwIGlzIG5vdCBzZXQK
+IyBDT05GSUdfTUVHQVJBSURfTkVXR0VOIGlzIG5vdCBzZXQKIyBDT05GSUdfTUVHQVJBSURf
+TEVHQUNZIGlzIG5vdCBzZXQKQ09ORklHX1NDU0lfU0FUQT15CiMgQ09ORklHX1NDU0lfU0FU
+QV9BSENJIGlzIG5vdCBzZXQKIyBDT05GSUdfU0NTSV9TQVRBX1NWVyBpcyBub3Qgc2V0CkNP
+TkZJR19TQ1NJX0FUQV9QSUlYPXkKIyBDT05GSUdfU0NTSV9TQVRBX05WIGlzIG5vdCBzZXQK
+IyBDT05GSUdfU0NTSV9TQVRBX1BST01JU0UgaXMgbm90IHNldAojIENPTkZJR19TQ1NJX1NB
+VEFfU1g0IGlzIG5vdCBzZXQKIyBDT05GSUdfU0NTSV9TQVRBX1NJTCBpcyBub3Qgc2V0CiMg
+Q09ORklHX1NDU0lfU0FUQV9TSVMgaXMgbm90IHNldAojIENPTkZJR19TQ1NJX1NBVEFfVUxJ
+IGlzIG5vdCBzZXQKIyBDT05GSUdfU0NTSV9TQVRBX1ZJQSBpcyBub3Qgc2V0CiMgQ09ORklH
+X1NDU0lfU0FUQV9WSVRFU1NFIGlzIG5vdCBzZXQKIyBDT05GSUdfU0NTSV9CVVNMT0dJQyBp
+cyBub3Qgc2V0CiMgQ09ORklHX1NDU0lfQ1BRRkNUUyBpcyBub3Qgc2V0CiMgQ09ORklHX1ND
+U0lfRE1YMzE5MUQgaXMgbm90IHNldAojIENPTkZJR19TQ1NJX0RUQzMyODAgaXMgbm90IHNl
+dAojIENPTkZJR19TQ1NJX0VBVEEgaXMgbm90IHNldAojIENPTkZJR19TQ1NJX0VBVEFfUElP
+IGlzIG5vdCBzZXQKIyBDT05GSUdfU0NTSV9GVVRVUkVfRE9NQUlOIGlzIG5vdCBzZXQKIyBD
+T05GSUdfU0NTSV9HRFRIIGlzIG5vdCBzZXQKIyBDT05GSUdfU0NTSV9HRU5FUklDX05DUjUz
+ODAgaXMgbm90IHNldAojIENPTkZJR19TQ1NJX0dFTkVSSUNfTkNSNTM4MF9NTUlPIGlzIG5v
+dCBzZXQKIyBDT05GSUdfU0NTSV9JUFMgaXMgbm90IHNldAojIENPTkZJR19TQ1NJX0lOSVRJ
+TyBpcyBub3Qgc2V0CiMgQ09ORklHX1NDU0lfSU5JQTEwMCBpcyBub3Qgc2V0CiMgQ09ORklH
+X1NDU0lfUFBBIGlzIG5vdCBzZXQKIyBDT05GSUdfU0NTSV9JTU0gaXMgbm90IHNldAojIENP
+TkZJR19TQ1NJX05DUjUzQzQwNkEgaXMgbm90IHNldAojIENPTkZJR19TQ1NJX1NZTTUzQzhY
+WF8yIGlzIG5vdCBzZXQKIyBDT05GSUdfU0NTSV9JUFIgaXMgbm90IHNldAojIENPTkZJR19T
+Q1NJX1BBUzE2IGlzIG5vdCBzZXQKIyBDT05GSUdfU0NTSV9QQ0kyMDAwIGlzIG5vdCBzZXQK
+IyBDT05GSUdfU0NTSV9QQ0kyMjIwSSBpcyBub3Qgc2V0CiMgQ09ORklHX1NDU0lfUFNJMjQw
+SSBpcyBub3Qgc2V0CiMgQ09ORklHX1NDU0lfUUxPR0lDX0ZBUyBpcyBub3Qgc2V0CiMgQ09O
+RklHX1NDU0lfUUxPR0lDX0lTUCBpcyBub3Qgc2V0CiMgQ09ORklHX1NDU0lfUUxPR0lDX0ZD
+IGlzIG5vdCBzZXQKIyBDT05GSUdfU0NTSV9RTE9HSUNfMTI4MCBpcyBub3Qgc2V0CkNPTkZJ
+R19TQ1NJX1FMQTJYWFg9bQojIENPTkZJR19TQ1NJX1FMQTIxWFggaXMgbm90IHNldAojIENP
+TkZJR19TQ1NJX1FMQTIyWFggaXMgbm90IHNldAojIENPTkZJR19TQ1NJX1FMQTIzMDAgaXMg
+bm90IHNldAojIENPTkZJR19TQ1NJX1FMQTIzMjIgaXMgbm90IHNldAojIENPTkZJR19TQ1NJ
+X1FMQTYzMTIgaXMgbm90IHNldAojIENPTkZJR19TQ1NJX1FMQTYzMjIgaXMgbm90IHNldAoj
+IENPTkZJR19TQ1NJX1NFQUdBVEUgaXMgbm90IHNldAojIENPTkZJR19TQ1NJX1NZTTUzQzQx
+NiBpcyBub3Qgc2V0CiMgQ09ORklHX1NDU0lfREMzOTV4IGlzIG5vdCBzZXQKIyBDT05GSUdf
+U0NTSV9EQzM5MFQgaXMgbm90IHNldAojIENPTkZJR19TQ1NJX1QxMjggaXMgbm90IHNldAoj
+IENPTkZJR19TQ1NJX1UxNF8zNEYgaXMgbm90IHNldAojIENPTkZJR19TQ1NJX1VMVFJBU1RP
+UiBpcyBub3Qgc2V0CiMgQ09ORklHX1NDU0lfTlNQMzIgaXMgbm90IHNldAojIENPTkZJR19T
+Q1NJX0RFQlVHIGlzIG5vdCBzZXQKCiMKIyBPbGQgQ0QtUk9NIGRyaXZlcnMgKG5vdCBTQ1NJ
+LCBub3QgSURFKQojCiMgQ09ORklHX0NEX05PX0lERVNDU0kgaXMgbm90IHNldAoKIwojIE11
+bHRpLWRldmljZSBzdXBwb3J0IChSQUlEIGFuZCBMVk0pCiMKIyBDT05GSUdfTUQgaXMgbm90
+IHNldAoKIwojIEZ1c2lvbiBNUFQgZGV2aWNlIHN1cHBvcnQKIwojIENPTkZJR19GVVNJT04g
+aXMgbm90IHNldAoKIwojIElFRUUgMTM5NCAoRmlyZVdpcmUpIHN1cHBvcnQKIwojIENPTkZJ
+R19JRUVFMTM5NCBpcyBub3Qgc2V0CgojCiMgSTJPIGRldmljZSBzdXBwb3J0CiMKQ09ORklH
+X0kyTz1tCkNPTkZJR19JMk9fQ09ORklHPW0KQ09ORklHX0kyT19CTE9DSz1tCkNPTkZJR19J
+Mk9fU0NTST1tCkNPTkZJR19JMk9fUFJPQz1tCgojCiMgTmV0d29ya2luZyBzdXBwb3J0CiMK
+Q09ORklHX05FVD15CgojCiMgTmV0d29ya2luZyBvcHRpb25zCiMKQ09ORklHX1BBQ0tFVD15
+CkNPTkZJR19QQUNLRVRfTU1BUD15CkNPTkZJR19ORVRMSU5LX0RFVj1tCkNPTkZJR19VTklY
+PXkKIyBDT05GSUdfTkVUX0tFWSBpcyBub3Qgc2V0CkNPTkZJR19JTkVUPXkKQ09ORklHX0lQ
+X01VTFRJQ0FTVD15CiMgQ09ORklHX0lQX0FEVkFOQ0VEX1JPVVRFUiBpcyBub3Qgc2V0CiMg
+Q09ORklHX0lQX1BOUCBpcyBub3Qgc2V0CkNPTkZJR19ORVRfSVBJUD1tCkNPTkZJR19ORVRf
+SVBHUkU9bQpDT05GSUdfTkVUX0lQR1JFX0JST0FEQ0FTVD15CiMgQ09ORklHX0lQX01ST1VU
+RSBpcyBub3Qgc2V0CiMgQ09ORklHX0FSUEQgaXMgbm90IHNldAojIENPTkZJR19TWU5fQ09P
+S0lFUyBpcyBub3Qgc2V0CiMgQ09ORklHX0lORVRfQUggaXMgbm90IHNldAojIENPTkZJR19J
+TkVUX0VTUCBpcyBub3Qgc2V0CiMgQ09ORklHX0lORVRfSVBDT01QIGlzIG5vdCBzZXQKQ09O
+RklHX0lORVRfVFVOTkVMPW0KQ09ORklHX0lQX1RDUERJQUc9eQojIENPTkZJR19JUF9UQ1BE
+SUFHX0lQVjYgaXMgbm90IHNldAoKIwojIElQOiBWaXJ0dWFsIFNlcnZlciBDb25maWd1cmF0
+aW9uCiMKIyBDT05GSUdfSVBfVlMgaXMgbm90IHNldApDT05GSUdfSVBWNj1tCkNPTkZJR19J
+UFY2X1BSSVZBQ1k9eQpDT05GSUdfSU5FVDZfQUg9bQpDT05GSUdfSU5FVDZfRVNQPW0KQ09O
+RklHX0lORVQ2X0lQQ09NUD1tCkNPTkZJR19JTkVUNl9UVU5ORUw9bQpDT05GSUdfSVBWNl9U
+VU5ORUw9bQpDT05GSUdfTkVURklMVEVSPXkKIyBDT05GSUdfTkVURklMVEVSX0RFQlVHIGlz
+IG5vdCBzZXQKQ09ORklHX0JSSURHRV9ORVRGSUxURVI9eQoKIwojIElQOiBOZXRmaWx0ZXIg
+Q29uZmlndXJhdGlvbgojCkNPTkZJR19JUF9ORl9DT05OVFJBQ0s9eQojIENPTkZJR19JUF9O
+Rl9DVF9BQ0NUIGlzIG5vdCBzZXQKIyBDT05GSUdfSVBfTkZfQ09OTlRSQUNLX01BUksgaXMg
+bm90IHNldAojIENPTkZJR19JUF9ORl9DVF9QUk9UT19TQ1RQIGlzIG5vdCBzZXQKIyBDT05G
+SUdfSVBfTkZfRlRQIGlzIG5vdCBzZXQKIyBDT05GSUdfSVBfTkZfSVJDIGlzIG5vdCBzZXQK
+IyBDT05GSUdfSVBfTkZfVEZUUCBpcyBub3Qgc2V0CiMgQ09ORklHX0lQX05GX0FNQU5EQSBp
+cyBub3Qgc2V0CkNPTkZJR19JUF9ORl9RVUVVRT15CkNPTkZJR19JUF9ORl9JUFRBQkxFUz15
+CkNPTkZJR19JUF9ORl9NQVRDSF9MSU1JVD15CkNPTkZJR19JUF9ORl9NQVRDSF9JUFJBTkdF
+PXkKQ09ORklHX0lQX05GX01BVENIX01BQz15CkNPTkZJR19JUF9ORl9NQVRDSF9QS1RUWVBF
+PXkKQ09ORklHX0lQX05GX01BVENIX01BUks9eQpDT05GSUdfSVBfTkZfTUFUQ0hfTVVMVElQ
+T1JUPXkKQ09ORklHX0lQX05GX01BVENIX1RPUz15CkNPTkZJR19JUF9ORl9NQVRDSF9SRUNF
+TlQ9eQpDT05GSUdfSVBfTkZfTUFUQ0hfRUNOPXkKQ09ORklHX0lQX05GX01BVENIX0RTQ1A9
+eQpDT05GSUdfSVBfTkZfTUFUQ0hfQUhfRVNQPXkKQ09ORklHX0lQX05GX01BVENIX0xFTkdU
+SD15CkNPTkZJR19JUF9ORl9NQVRDSF9UVEw9eQpDT05GSUdfSVBfTkZfTUFUQ0hfVENQTVNT
+PXkKQ09ORklHX0lQX05GX01BVENIX0hFTFBFUj15CkNPTkZJR19JUF9ORl9NQVRDSF9TVEFU
+RT15CkNPTkZJR19JUF9ORl9NQVRDSF9DT05OVFJBQ0s9eQpDT05GSUdfSVBfTkZfTUFUQ0hf
+T1dORVI9eQojIENPTkZJR19JUF9ORl9NQVRDSF9QSFlTREVWIGlzIG5vdCBzZXQKIyBDT05G
+SUdfSVBfTkZfTUFUQ0hfQUREUlRZUEUgaXMgbm90IHNldAojIENPTkZJR19JUF9ORl9NQVRD
+SF9SRUFMTSBpcyBub3Qgc2V0CiMgQ09ORklHX0lQX05GX01BVENIX1NDVFAgaXMgbm90IHNl
+dAojIENPTkZJR19JUF9ORl9NQVRDSF9DT01NRU5UIGlzIG5vdCBzZXQKIyBDT05GSUdfSVBf
+TkZfTUFUQ0hfSEFTSExJTUlUIGlzIG5vdCBzZXQKQ09ORklHX0lQX05GX0ZJTFRFUj15CkNP
+TkZJR19JUF9ORl9UQVJHRVRfUkVKRUNUPXkKQ09ORklHX0lQX05GX1RBUkdFVF9MT0c9eQpD
+T05GSUdfSVBfTkZfVEFSR0VUX1VMT0c9eQpDT05GSUdfSVBfTkZfVEFSR0VUX1RDUE1TUz15
+CkNPTkZJR19JUF9ORl9OQVQ9eQpDT05GSUdfSVBfTkZfTkFUX05FRURFRD15CkNPTkZJR19J
+UF9ORl9UQVJHRVRfTUFTUVVFUkFERT15CkNPTkZJR19JUF9ORl9UQVJHRVRfUkVESVJFQ1Q9
+eQpDT05GSUdfSVBfTkZfVEFSR0VUX05FVE1BUD15CkNPTkZJR19JUF9ORl9UQVJHRVRfU0FN
+RT15CiMgQ09ORklHX0lQX05GX05BVF9MT0NBTCBpcyBub3Qgc2V0CiMgQ09ORklHX0lQX05G
+X05BVF9TTk1QX0JBU0lDIGlzIG5vdCBzZXQKQ09ORklHX0lQX05GX01BTkdMRT15CkNPTkZJ
+R19JUF9ORl9UQVJHRVRfVE9TPXkKQ09ORklHX0lQX05GX1RBUkdFVF9FQ049eQpDT05GSUdf
+SVBfTkZfVEFSR0VUX0RTQ1A9eQpDT05GSUdfSVBfTkZfVEFSR0VUX01BUks9eQpDT05GSUdf
+SVBfTkZfVEFSR0VUX0NMQVNTSUZZPXkKIyBDT05GSUdfSVBfTkZfUkFXIGlzIG5vdCBzZXQK
+Q09ORklHX0lQX05GX0FSUFRBQkxFUz15CkNPTkZJR19JUF9ORl9BUlBGSUxURVI9eQpDT05G
+SUdfSVBfTkZfQVJQX01BTkdMRT15CgojCiMgSVB2NjogTmV0ZmlsdGVyIENvbmZpZ3VyYXRp
+b24KIwojIENPTkZJR19JUDZfTkZfUVVFVUUgaXMgbm90IHNldAojIENPTkZJR19JUDZfTkZf
+SVBUQUJMRVMgaXMgbm90IHNldAoKIwojIEJyaWRnZTogTmV0ZmlsdGVyIENvbmZpZ3VyYXRp
+b24KIwojIENPTkZJR19CUklER0VfTkZfRUJUQUJMRVMgaXMgbm90IHNldApDT05GSUdfWEZS
+TT15CiMgQ09ORklHX1hGUk1fVVNFUiBpcyBub3Qgc2V0CgojCiMgU0NUUCBDb25maWd1cmF0
+aW9uIChFWFBFUklNRU5UQUwpCiMKIyBDT05GSUdfSVBfU0NUUCBpcyBub3Qgc2V0CiMgQ09O
+RklHX0FUTSBpcyBub3Qgc2V0CkNPTkZJR19CUklER0U9bQojIENPTkZJR19WTEFOXzgwMjFR
+IGlzIG5vdCBzZXQKIyBDT05GSUdfREVDTkVUIGlzIG5vdCBzZXQKQ09ORklHX0xMQz1tCkNP
+TkZJR19MTEMyPW0KQ09ORklHX0lQWD1tCkNPTkZJR19JUFhfSU5URVJOPXkKIyBDT05GSUdf
+QVRBTEsgaXMgbm90IHNldAojIENPTkZJR19YMjUgaXMgbm90IHNldAojIENPTkZJR19MQVBC
+IGlzIG5vdCBzZXQKIyBDT05GSUdfTkVUX0RJVkVSVCBpcyBub3Qgc2V0CiMgQ09ORklHX0VD
+T05FVCBpcyBub3Qgc2V0CiMgQ09ORklHX1dBTl9ST1VURVIgaXMgbm90IHNldAoKIwojIFFv
+UyBhbmQvb3IgZmFpciBxdWV1ZWluZwojCiMgQ09ORklHX05FVF9TQ0hFRCBpcyBub3Qgc2V0
+CiMgQ09ORklHX05FVF9DTFNfUk9VVEUgaXMgbm90IHNldAoKIwojIE5ldHdvcmsgdGVzdGlu
+ZwojCkNPTkZJR19ORVRfUEtUR0VOPW0KIyBDT05GSUdfS0dEQk9FIGlzIG5vdCBzZXQKQ09O
+RklHX05FVFBPTEw9eQojIENPTkZJR19ORVRQT0xMX1JYIGlzIG5vdCBzZXQKIyBDT05GSUdf
+TkVUUE9MTF9UUkFQIGlzIG5vdCBzZXQKQ09ORklHX05FVF9QT0xMX0NPTlRST0xMRVI9eQoj
+IENPTkZJR19IQU1SQURJTyBpcyBub3Qgc2V0CiMgQ09ORklHX0lSREEgaXMgbm90IHNldAoj
+IENPTkZJR19CVCBpcyBub3Qgc2V0CkNPTkZJR19ORVRERVZJQ0VTPXkKQ09ORklHX0RVTU1Z
+PW0KIyBDT05GSUdfQk9ORElORyBpcyBub3Qgc2V0CiMgQ09ORklHX0VRVUFMSVpFUiBpcyBu
+b3Qgc2V0CkNPTkZJR19UVU49bQojIENPTkZJR19FVEhFUlRBUCBpcyBub3Qgc2V0CiMgQ09O
+RklHX05FVF9TQjEwMDAgaXMgbm90IHNldAoKIwojIEFSQ25ldCBkZXZpY2VzCiMKIyBDT05G
+SUdfQVJDTkVUIGlzIG5vdCBzZXQKCiMKIyBFdGhlcm5ldCAoMTAgb3IgMTAwTWJpdCkKIwpD
+T05GSUdfTkVUX0VUSEVSTkVUPXkKQ09ORklHX01JST1tCiMgQ09ORklHX0hBUFBZTUVBTCBp
+cyBub3Qgc2V0CiMgQ09ORklHX1NVTkdFTSBpcyBub3Qgc2V0CkNPTkZJR19ORVRfVkVORE9S
+XzNDT009eQojIENPTkZJR19FTDEgaXMgbm90IHNldAojIENPTkZJR19FTDIgaXMgbm90IHNl
+dAojIENPTkZJR19FTFBMVVMgaXMgbm90IHNldAojIENPTkZJR19FTDE2IGlzIG5vdCBzZXQK
+IyBDT05GSUdfRUwzIGlzIG5vdCBzZXQKIyBDT05GSUdfM0M1MTUgaXMgbm90IHNldApDT05G
+SUdfVk9SVEVYPW0KIyBDT05GSUdfVFlQSE9PTiBpcyBub3Qgc2V0CiMgQ09ORklHX0xBTkNF
+IGlzIG5vdCBzZXQKIyBDT05GSUdfTkVUX1ZFTkRPUl9TTUMgaXMgbm90IHNldAojIENPTkZJ
+R19ORVRfVkVORE9SX1JBQ0FMIGlzIG5vdCBzZXQKCiMKIyBUdWxpcCBmYW1pbHkgbmV0d29y
+ayBkZXZpY2Ugc3VwcG9ydAojCiMgQ09ORklHX05FVF9UVUxJUCBpcyBub3Qgc2V0CiMgQ09O
+RklHX0FUMTcwMCBpcyBub3Qgc2V0CiMgQ09ORklHX0RFUENBIGlzIG5vdCBzZXQKIyBDT05G
+SUdfSFAxMDAgaXMgbm90IHNldAojIENPTkZJR19ORVRfSVNBIGlzIG5vdCBzZXQKIyBDT05G
+SUdfTkVUX1BDSSBpcyBub3Qgc2V0CiMgQ09ORklHX05FVF9QT0NLRVQgaXMgbm90IHNldAoK
+IwojIEV0aGVybmV0ICgxMDAwIE1iaXQpCiMKIyBDT05GSUdfQUNFTklDIGlzIG5vdCBzZXQK
+IyBDT05GSUdfREwySyBpcyBub3Qgc2V0CiMgQ09ORklHX0UxMDAwIGlzIG5vdCBzZXQKIyBD
+T05GSUdfTlM4MzgyMCBpcyBub3Qgc2V0CiMgQ09ORklHX0hBTUFDSEkgaXMgbm90IHNldAoj
+IENPTkZJR19ZRUxMT1dGSU4gaXMgbm90IHNldAojIENPTkZJR19SODE2OSBpcyBub3Qgc2V0
+CiMgQ09ORklHX1NLOThMSU4gaXMgbm90IHNldAojIENPTkZJR19USUdPTjMgaXMgbm90IHNl
+dAoKIwojIEV0aGVybmV0ICgxMDAwMCBNYml0KQojCiMgQ09ORklHX0lYR0IgaXMgbm90IHNl
+dAojIENPTkZJR19TMklPIGlzIG5vdCBzZXQKCiMKIyBUb2tlbiBSaW5nIGRldmljZXMKIwoj
+IENPTkZJR19UUiBpcyBub3Qgc2V0CgojCiMgV2lyZWxlc3MgTEFOIChub24taGFtcmFkaW8p
+CiMKIyBDT05GSUdfTkVUX1JBRElPIGlzIG5vdCBzZXQKCiMKIyBXYW4gaW50ZXJmYWNlcwoj
+CiMgQ09ORklHX1dBTiBpcyBub3Qgc2V0CiMgQ09ORklHX0ZEREkgaXMgbm90IHNldAojIENP
+TkZJR19ISVBQSSBpcyBub3Qgc2V0CiMgQ09ORklHX1BMSVAgaXMgbm90IHNldApDT05GSUdf
+UFBQPW0KQ09ORklHX1BQUF9NVUxUSUxJTks9eQpDT05GSUdfUFBQX0ZJTFRFUj15CkNPTkZJ
+R19QUFBfQVNZTkM9bQpDT05GSUdfUFBQX1NZTkNfVFRZPW0KQ09ORklHX1BQUF9ERUZMQVRF
+PW0KQ09ORklHX1BQUF9CU0RDT01QPW0KQ09ORklHX1BQUE9FPW0KIyBDT05GSUdfU0xJUCBp
+cyBub3Qgc2V0CiMgQ09ORklHX05FVF9GQyBpcyBub3Qgc2V0CiMgQ09ORklHX1NIQVBFUiBp
+cyBub3Qgc2V0CkNPTkZJR19ORVRDT05TT0xFPW0KCiMKIyBJU0ROIHN1YnN5c3RlbQojCiMg
+Q09ORklHX0lTRE4gaXMgbm90IHNldAoKIwojIFRlbGVwaG9ueSBTdXBwb3J0CiMKIyBDT05G
+SUdfUEhPTkUgaXMgbm90IHNldAoKIwojIElucHV0IGRldmljZSBzdXBwb3J0CiMKQ09ORklH
+X0lOUFVUPXkKCiMKIyBVc2VybGFuZCBpbnRlcmZhY2VzCiMKQ09ORklHX0lOUFVUX01PVVNF
+REVWPXkKQ09ORklHX0lOUFVUX01PVVNFREVWX1BTQVVYPXkKQ09ORklHX0lOUFVUX01PVVNF
+REVWX1NDUkVFTl9YPTEwMjQKQ09ORklHX0lOUFVUX01PVVNFREVWX1NDUkVFTl9ZPTc2OAoj
+IENPTkZJR19JTlBVVF9KT1lERVYgaXMgbm90IHNldAojIENPTkZJR19JTlBVVF9UU0RFViBp
+cyBub3Qgc2V0CkNPTkZJR19JTlBVVF9FVkRFVj15CiMgQ09ORklHX0lOUFVUX0VWQlVHIGlz
+IG5vdCBzZXQKCiMKIyBJbnB1dCBJL08gZHJpdmVycwojCiMgQ09ORklHX0dBTUVQT1JUIGlz
+IG5vdCBzZXQKQ09ORklHX1NPVU5EX0dBTUVQT1JUPXkKQ09ORklHX1NFUklPPXkKQ09ORklH
+X1NFUklPX0k4MDQyPXkKQ09ORklHX1NFUklPX1NFUlBPUlQ9bQojIENPTkZJR19TRVJJT19D
+VDgyQzcxMCBpcyBub3Qgc2V0CiMgQ09ORklHX1NFUklPX1BBUktCRCBpcyBub3Qgc2V0CkNP
+TkZJR19TRVJJT19QQ0lQUzI9eQpDT05GSUdfU0VSSU9fTElCUFMyPXkKIyBDT05GSUdfU0VS
+SU9fUkFXIGlzIG5vdCBzZXQKCiMKIyBJbnB1dCBEZXZpY2UgRHJpdmVycwojCkNPTkZJR19J
+TlBVVF9LRVlCT0FSRD15CkNPTkZJR19LRVlCT0FSRF9BVEtCRD15CiMgQ09ORklHX0tFWUJP
+QVJEX1NVTktCRCBpcyBub3Qgc2V0CiMgQ09ORklHX0tFWUJPQVJEX0xLS0JEIGlzIG5vdCBz
+ZXQKQ09ORklHX0tFWUJPQVJEX1hUS0JEPXkKIyBDT05GSUdfS0VZQk9BUkRfTkVXVE9OIGlz
+IG5vdCBzZXQKQ09ORklHX0lOUFVUX01PVVNFPXkKQ09ORklHX01PVVNFX1BTMj15CkNPTkZJ
+R19NT1VTRV9TRVJJQUw9eQojIENPTkZJR19NT1VTRV9JTlBPUlQgaXMgbm90IHNldAojIENP
+TkZJR19NT1VTRV9MT0dJQk0gaXMgbm90IHNldAojIENPTkZJR19NT1VTRV9QQzExMFBBRCBp
+cyBub3Qgc2V0CiMgQ09ORklHX01PVVNFX1ZTWFhYQUEgaXMgbm90IHNldAojIENPTkZJR19J
+TlBVVF9KT1lTVElDSyBpcyBub3Qgc2V0CiMgQ09ORklHX0lOUFVUX1RPVUNIU0NSRUVOIGlz
+IG5vdCBzZXQKQ09ORklHX0lOUFVUX01JU0M9eQpDT05GSUdfSU5QVVRfUENTUEtSPW0KQ09O
+RklHX0lOUFVUX1VJTlBVVD1tCgojCiMgQ2hhcmFjdGVyIGRldmljZXMKIwpDT05GSUdfVlQ9
+eQpDT05GSUdfVlRfQ09OU09MRT15CkNPTkZJR19IV19DT05TT0xFPXkKIyBDT05GSUdfU0VS
+SUFMX05PTlNUQU5EQVJEIGlzIG5vdCBzZXQKCiMKIyBTZXJpYWwgZHJpdmVycwojCkNPTkZJ
+R19TRVJJQUxfODI1MD15CkNPTkZJR19TRVJJQUxfODI1MF9DT05TT0xFPXkKQ09ORklHX1NF
+UklBTF84MjUwX0FDUEk9eQpDT05GSUdfU0VSSUFMXzgyNTBfTlJfVUFSVFM9NAojIENPTkZJ
+R19TRVJJQUxfODI1MF9FWFRFTkRFRCBpcyBub3Qgc2V0CgojCiMgTm9uLTgyNTAgc2VyaWFs
+IHBvcnQgc3VwcG9ydAojCkNPTkZJR19TRVJJQUxfQ09SRT15CkNPTkZJR19TRVJJQUxfQ09S
+RV9DT05TT0xFPXkKQ09ORklHX1VOSVg5OF9QVFlTPXkKQ09ORklHX0xFR0FDWV9QVFlTPXkK
+Q09ORklHX0xFR0FDWV9QVFlfQ09VTlQ9MjU2CkNPTkZJR19QUklOVEVSPXkKIyBDT05GSUdf
+TFBfQ09OU09MRSBpcyBub3Qgc2V0CkNPTkZJR19QUERFVj1tCiMgQ09ORklHX1RJUEFSIGlz
+IG5vdCBzZXQKCiMKIyBJUE1JCiMKIyBDT05GSUdfSVBNSV9IQU5ETEVSIGlzIG5vdCBzZXQK
+CiMKIyBXYXRjaGRvZyBDYXJkcwojCkNPTkZJR19XQVRDSERPRz15CiMgQ09ORklHX1dBVENI
+RE9HX05PV0FZT1VUIGlzIG5vdCBzZXQKCiMKIyBXYXRjaGRvZyBEZXZpY2UgRHJpdmVycwoj
+CkNPTkZJR19TT0ZUX1dBVENIRE9HPW0KIyBDT05GSUdfQUNRVUlSRV9XRFQgaXMgbm90IHNl
+dAojIENPTkZJR19BRFZBTlRFQ0hfV0RUIGlzIG5vdCBzZXQKIyBDT05GSUdfQUxJTTE1MzVf
+V0RUIGlzIG5vdCBzZXQKIyBDT05GSUdfQUxJTTcxMDFfV0RUIGlzIG5vdCBzZXQKIyBDT05G
+SUdfU0M1MjBfV0RUIGlzIG5vdCBzZXQKIyBDT05GSUdfRVVST1RFQ0hfV0RUIGlzIG5vdCBz
+ZXQKIyBDT05GSUdfSUI3MDBfV0RUIGlzIG5vdCBzZXQKIyBDT05GSUdfV0FGRVJfV0RUIGlz
+IG5vdCBzZXQKIyBDT05GSUdfSThYWF9UQ08gaXMgbm90IHNldAojIENPTkZJR19TQzEyMDBf
+V0RUIGlzIG5vdCBzZXQKIyBDT05GSUdfU0N4MjAwX1dEVCBpcyBub3Qgc2V0CiMgQ09ORklH
+XzYwWFhfV0RUIGlzIG5vdCBzZXQKIyBDT05GSUdfQ1BVNV9XRFQgaXMgbm90IHNldAojIENP
+TkZJR19XODM2MjdIRl9XRFQgaXMgbm90IHNldAojIENPTkZJR19XODM4NzdGX1dEVCBpcyBu
+b3Qgc2V0CiMgQ09ORklHX01BQ0haX1dEVCBpcyBub3Qgc2V0CgojCiMgSVNBLWJhc2VkIFdh
+dGNoZG9nIENhcmRzCiMKIyBDT05GSUdfUENXQVRDSERPRyBpcyBub3Qgc2V0CiMgQ09ORklH
+X01JWENPTVdEIGlzIG5vdCBzZXQKIyBDT05GSUdfV0RUIGlzIG5vdCBzZXQKCiMKIyBQQ0kt
+YmFzZWQgV2F0Y2hkb2cgQ2FyZHMKIwojIENPTkZJR19QQ0lQQ1dBVENIRE9HIGlzIG5vdCBz
+ZXQKIyBDT05GSUdfV0RUUENJIGlzIG5vdCBzZXQKCiMKIyBVU0ItYmFzZWQgV2F0Y2hkb2cg
+Q2FyZHMKIwojIENPTkZJR19VU0JQQ1dBVENIRE9HIGlzIG5vdCBzZXQKIyBDT05GSUdfSFdf
+UkFORE9NIGlzIG5vdCBzZXQKQ09ORklHX05WUkFNPW0KQ09ORklHX1JUQz15CiMgQ09ORklH
+X0RUTEsgaXMgbm90IHNldAojIENPTkZJR19SMzk2NCBpcyBub3Qgc2V0CiMgQ09ORklHX0FQ
+UExJQ09NIGlzIG5vdCBzZXQKIyBDT05GSUdfU09OWVBJIGlzIG5vdCBzZXQKCiMKIyBGdGFw
+ZSwgdGhlIGZsb3BweSB0YXBlIGRldmljZSBkcml2ZXIKIwojIENPTkZJR19GVEFQRSBpcyBu
+b3Qgc2V0CkNPTkZJR19BR1A9bQojIENPTkZJR19BR1BfQUxJIGlzIG5vdCBzZXQKIyBDT05G
+SUdfQUdQX0FUSSBpcyBub3Qgc2V0CiMgQ09ORklHX0FHUF9BTUQgaXMgbm90IHNldAojIENP
+TkZJR19BR1BfQU1ENjQgaXMgbm90IHNldApDT05GSUdfQUdQX0lOVEVMPW0KIyBDT05GSUdf
+QUdQX0lOVEVMX01DSCBpcyBub3Qgc2V0CiMgQ09ORklHX0FHUF9OVklESUEgaXMgbm90IHNl
+dAojIENPTkZJR19BR1BfU0lTIGlzIG5vdCBzZXQKIyBDT05GSUdfQUdQX1NXT1JLUyBpcyBu
+b3Qgc2V0CiMgQ09ORklHX0FHUF9WSUEgaXMgbm90IHNldAojIENPTkZJR19BR1BfRUZGSUNF
+T04gaXMgbm90IHNldApDT05GSUdfRFJNPW0KIyBDT05GSUdfRFJNX1RERlggaXMgbm90IHNl
+dAojIENPTkZJR19EUk1fR0FNTUEgaXMgbm90IHNldAojIENPTkZJR19EUk1fUjEyOCBpcyBu
+b3Qgc2V0CiMgQ09ORklHX0RSTV9SQURFT04gaXMgbm90IHNldAojIENPTkZJR19EUk1fSTgx
+MCBpcyBub3Qgc2V0CiMgQ09ORklHX0RSTV9JODMwIGlzIG5vdCBzZXQKIyBDT05GSUdfRFJN
+X0k5MTUgaXMgbm90IHNldApDT05GSUdfRFJNX01HQT1tCiMgQ09ORklHX0RSTV9TSVMgaXMg
+bm90IHNldAojIENPTkZJR19NV0FWRSBpcyBub3Qgc2V0CiMgQ09ORklHX1JBV19EUklWRVIg
+aXMgbm90IHNldApDT05GSUdfSFBFVD15CiMgQ09ORklHX0hQRVRfUlRDX0lSUSBpcyBub3Qg
+c2V0CkNPTkZJR19IUEVUX01NQVA9eQpDT05GSUdfSEFOR0NIRUNLX1RJTUVSPXkKCiMKIyBJ
+MkMgc3VwcG9ydAojCkNPTkZJR19JMkM9bQpDT05GSUdfSTJDX0NIQVJERVY9bQoKIwojIEky
+QyBBbGdvcml0aG1zCiMKQ09ORklHX0kyQ19BTEdPQklUPW0KQ09ORklHX0kyQ19BTEdPUENG
+PW0KQ09ORklHX0kyQ19BTEdPUENBPW0KCiMKIyBJMkMgSGFyZHdhcmUgQnVzIHN1cHBvcnQK
+IwojIENPTkZJR19JMkNfQUxJMTUzNSBpcyBub3Qgc2V0CiMgQ09ORklHX0kyQ19BTEkxNTYz
+IGlzIG5vdCBzZXQKIyBDT05GSUdfSTJDX0FMSTE1WDMgaXMgbm90IHNldAojIENPTkZJR19J
+MkNfQU1ENzU2IGlzIG5vdCBzZXQKIyBDT05GSUdfSTJDX0FNRDgxMTEgaXMgbm90IHNldAoj
+IENPTkZJR19JMkNfRUxFS1RPUiBpcyBub3Qgc2V0CiMgQ09ORklHX0kyQ19JODAxIGlzIG5v
+dCBzZXQKQ09ORklHX0kyQ19JODEwPW0KQ09ORklHX0kyQ19JU0E9bQojIENPTkZJR19JMkNf
+TkZPUkNFMiBpcyBub3Qgc2V0CiMgQ09ORklHX0kyQ19QQVJQT1JUIGlzIG5vdCBzZXQKIyBD
+T05GSUdfSTJDX1BBUlBPUlRfTElHSFQgaXMgbm90IHNldApDT05GSUdfSTJDX1BJSVg0PW0K
+IyBDT05GSUdfSTJDX1BST1NBVkFHRSBpcyBub3Qgc2V0CiMgQ09ORklHX0kyQ19TQVZBR0U0
+IGlzIG5vdCBzZXQKIyBDT05GSUdfU0N4MjAwX0FDQiBpcyBub3Qgc2V0CiMgQ09ORklHX0ky
+Q19TSVM1NTk1IGlzIG5vdCBzZXQKIyBDT05GSUdfSTJDX1NJUzYzMCBpcyBub3Qgc2V0CiMg
+Q09ORklHX0kyQ19TSVM5NlggaXMgbm90IHNldAojIENPTkZJR19JMkNfU1RVQiBpcyBub3Qg
+c2V0CiMgQ09ORklHX0kyQ19WSUEgaXMgbm90IHNldAojIENPTkZJR19JMkNfVklBUFJPIGlz
+IG5vdCBzZXQKIyBDT05GSUdfSTJDX1ZPT0RPTzMgaXMgbm90IHNldAojIENPTkZJR19JMkNf
+UENBX0lTQSBpcyBub3Qgc2V0CgojCiMgSGFyZHdhcmUgU2Vuc29ycyBDaGlwIHN1cHBvcnQK
+IwojIENPTkZJR19JMkNfU0VOU09SIGlzIG5vdCBzZXQKIyBDT05GSUdfU0VOU09SU19BRE0x
+MDIxIGlzIG5vdCBzZXQKIyBDT05GSUdfU0VOU09SU19BRE0xMDI1IGlzIG5vdCBzZXQKIyBD
+T05GSUdfU0VOU09SU19BRE0xMDI2IGlzIG5vdCBzZXQKIyBDT05GSUdfU0VOU09SU19BRE0x
+MDMxIGlzIG5vdCBzZXQKIyBDT05GSUdfU0VOU09SU19BU0IxMDAgaXMgbm90IHNldAojIENP
+TkZJR19TRU5TT1JTX0RTMTYyMSBpcyBub3Qgc2V0CiMgQ09ORklHX1NFTlNPUlNfRlNDSEVS
+IGlzIG5vdCBzZXQKIyBDT05GSUdfU0VOU09SU19HTDUxOFNNIGlzIG5vdCBzZXQKIyBDT05G
+SUdfU0VOU09SU19JVDg3IGlzIG5vdCBzZXQKIyBDT05GSUdfU0VOU09SU19MTTYzIGlzIG5v
+dCBzZXQKIyBDT05GSUdfU0VOU09SU19MTTc1IGlzIG5vdCBzZXQKIyBDT05GSUdfU0VOU09S
+U19MTTc3IGlzIG5vdCBzZXQKIyBDT05GSUdfU0VOU09SU19MTTc4IGlzIG5vdCBzZXQKIyBD
+T05GSUdfU0VOU09SU19MTTgwIGlzIG5vdCBzZXQKIyBDT05GSUdfU0VOU09SU19MTTgzIGlz
+IG5vdCBzZXQKIyBDT05GSUdfU0VOU09SU19MTTg1IGlzIG5vdCBzZXQKIyBDT05GSUdfU0VO
+U09SU19MTTg3IGlzIG5vdCBzZXQKIyBDT05GSUdfU0VOU09SU19MTTkwIGlzIG5vdCBzZXQK
+IyBDT05GSUdfU0VOU09SU19NQVgxNjE5IGlzIG5vdCBzZXQKIyBDT05GSUdfU0VOU09SU19Q
+Qzg3MzYwIGlzIG5vdCBzZXQKIyBDT05GSUdfU0VOU09SU19TTVNDNDdNMSBpcyBub3Qgc2V0
+CiMgQ09ORklHX1NFTlNPUlNfVklBNjg2QSBpcyBub3Qgc2V0CiMgQ09ORklHX1NFTlNPUlNf
+VzgzNzgxRCBpcyBub3Qgc2V0CiMgQ09ORklHX1NFTlNPUlNfVzgzTDc4NVRTIGlzIG5vdCBz
+ZXQKIyBDT05GSUdfU0VOU09SU19XODM2MjdIRiBpcyBub3Qgc2V0CgojCiMgT3RoZXIgSTJD
+IENoaXAgc3VwcG9ydAojCiMgQ09ORklHX1NFTlNPUlNfRUVQUk9NIGlzIG5vdCBzZXQKIyBD
+T05GSUdfU0VOU09SU19QQ0Y4NTc0IGlzIG5vdCBzZXQKIyBDT05GSUdfU0VOU09SU19QQ0Y4
+NTkxIGlzIG5vdCBzZXQKIyBDT05GSUdfU0VOU09SU19SVEM4NTY0IGlzIG5vdCBzZXQKIyBD
+T05GSUdfSTJDX0RFQlVHX0NPUkUgaXMgbm90IHNldAojIENPTkZJR19JMkNfREVCVUdfQUxH
+TyBpcyBub3Qgc2V0CiMgQ09ORklHX0kyQ19ERUJVR19CVVMgaXMgbm90IHNldAojIENPTkZJ
+R19JMkNfREVCVUdfQ0hJUCBpcyBub3Qgc2V0CgojCiMgRGFsbGFzJ3MgMS13aXJlIGJ1cwoj
+CiMgQ09ORklHX1cxIGlzIG5vdCBzZXQKCiMKIyBNaXNjIGRldmljZXMKIwojIENPTkZJR19J
+Qk1fQVNNIGlzIG5vdCBzZXQKCiMKIyBNdWx0aW1lZGlhIGRldmljZXMKIwojIENPTkZJR19W
+SURFT19ERVYgaXMgbm90IHNldAoKIwojIERpZ2l0YWwgVmlkZW8gQnJvYWRjYXN0aW5nIERl
+dmljZXMKIwojIENPTkZJR19EVkIgaXMgbm90IHNldAoKIwojIEdyYXBoaWNzIHN1cHBvcnQK
+IwojIENPTkZJR19GQiBpcyBub3Qgc2V0CkNPTkZJR19WSURFT19TRUxFQ1Q9eQoKIwojIENv
+bnNvbGUgZGlzcGxheSBkcml2ZXIgc3VwcG9ydAojCkNPTkZJR19WR0FfQ09OU09MRT15CiMg
+Q09ORklHX01EQV9DT05TT0xFIGlzIG5vdCBzZXQKQ09ORklHX0RVTU1ZX0NPTlNPTEU9eQoK
+IwojIFNvdW5kCiMKQ09ORklHX1NPVU5EPW0KCiMKIyBBZHZhbmNlZCBMaW51eCBTb3VuZCBB
+cmNoaXRlY3R1cmUKIwpDT05GSUdfU05EPW0KQ09ORklHX1NORF9USU1FUj1tCkNPTkZJR19T
+TkRfUENNPW0KQ09ORklHX1NORF9IV0RFUD1tCkNPTkZJR19TTkRfUkFXTUlEST1tCkNPTkZJ
+R19TTkRfU0VRVUVOQ0VSPW0KQ09ORklHX1NORF9TRVFfRFVNTVk9bQpDT05GSUdfU05EX09T
+U0VNVUw9eQpDT05GSUdfU05EX01JWEVSX09TUz1tCkNPTkZJR19TTkRfUENNX09TUz1tCkNP
+TkZJR19TTkRfU0VRVUVOQ0VSX09TUz15CkNPTkZJR19TTkRfUlRDVElNRVI9bQojIENPTkZJ
+R19TTkRfVkVSQk9TRV9QUklOVEsgaXMgbm90IHNldAojIENPTkZJR19TTkRfREVCVUcgaXMg
+bm90IHNldAoKIwojIEdlbmVyaWMgZGV2aWNlcwojCkNPTkZJR19TTkRfTVBVNDAxX1VBUlQ9
+bQpDT05GSUdfU05EX09QTDNfTElCPW0KQ09ORklHX1NORF9EVU1NWT1tCkNPTkZJR19TTkRf
+VklSTUlEST1tCiMgQ09ORklHX1NORF9NVFBBViBpcyBub3Qgc2V0CiMgQ09ORklHX1NORF9T
+RVJJQUxfVTE2NTUwIGlzIG5vdCBzZXQKQ09ORklHX1NORF9NUFU0MDE9bQoKIwojIElTQSBk
+ZXZpY2VzCiMKIyBDT05GSUdfU05EX0FEMTg0OCBpcyBub3Qgc2V0CiMgQ09ORklHX1NORF9D
+UzQyMzEgaXMgbm90IHNldAojIENPTkZJR19TTkRfQ1M0MjMyIGlzIG5vdCBzZXQKIyBDT05G
+SUdfU05EX0NTNDIzNiBpcyBub3Qgc2V0CiMgQ09ORklHX1NORF9FUzE2ODggaXMgbm90IHNl
+dAojIENPTkZJR19TTkRfRVMxOFhYIGlzIG5vdCBzZXQKIyBDT05GSUdfU05EX0dVU0NMQVNT
+SUMgaXMgbm90IHNldAojIENPTkZJR19TTkRfR1VTRVhUUkVNRSBpcyBub3Qgc2V0CiMgQ09O
+RklHX1NORF9HVVNNQVggaXMgbm90IHNldAojIENPTkZJR19TTkRfSU5URVJXQVZFIGlzIG5v
+dCBzZXQKIyBDT05GSUdfU05EX0lOVEVSV0FWRV9TVEIgaXMgbm90IHNldAojIENPTkZJR19T
+TkRfT1BUSTkyWF9BRDE4NDggaXMgbm90IHNldAojIENPTkZJR19TTkRfT1BUSTkyWF9DUzQy
+MzEgaXMgbm90IHNldAojIENPTkZJR19TTkRfT1BUSTkzWCBpcyBub3Qgc2V0CiMgQ09ORklH
+X1NORF9TQjggaXMgbm90IHNldAojIENPTkZJR19TTkRfU0IxNiBpcyBub3Qgc2V0CiMgQ09O
+RklHX1NORF9TQkFXRSBpcyBub3Qgc2V0CiMgQ09ORklHX1NORF9XQVZFRlJPTlQgaXMgbm90
+IHNldAojIENPTkZJR19TTkRfQ01JODMzMCBpcyBub3Qgc2V0CiMgQ09ORklHX1NORF9PUEwz
+U0EyIGlzIG5vdCBzZXQKIyBDT05GSUdfU05EX1NHQUxBWFkgaXMgbm90IHNldAojIENPTkZJ
+R19TTkRfU1NDQVBFIGlzIG5vdCBzZXQKCiMKIyBQQ0kgZGV2aWNlcwojCiMgQ09ORklHX1NO
+RF9BTEk1NDUxIGlzIG5vdCBzZXQKIyBDT05GSUdfU05EX0FUSUlYUCBpcyBub3Qgc2V0CiMg
+Q09ORklHX1NORF9BVElJWFBfTU9ERU0gaXMgbm90IHNldAojIENPTkZJR19TTkRfQVU4ODEw
+IGlzIG5vdCBzZXQKIyBDT05GSUdfU05EX0FVODgyMCBpcyBub3Qgc2V0CiMgQ09ORklHX1NO
+RF9BVTg4MzAgaXMgbm90IHNldAojIENPTkZJR19TTkRfQVpUMzMyOCBpcyBub3Qgc2V0CiMg
+Q09ORklHX1NORF9CVDg3WCBpcyBub3Qgc2V0CiMgQ09ORklHX1NORF9DUzQ2WFggaXMgbm90
+IHNldAojIENPTkZJR19TTkRfQ1M0MjgxIGlzIG5vdCBzZXQKIyBDT05GSUdfU05EX0VNVTEw
+SzEgaXMgbm90IHNldAojIENPTkZJR19TTkRfS09SRzEyMTIgaXMgbm90IHNldAojIENPTkZJ
+R19TTkRfTUlYQVJUIGlzIG5vdCBzZXQKIyBDT05GSUdfU05EX05NMjU2IGlzIG5vdCBzZXQK
+IyBDT05GSUdfU05EX1JNRTMyIGlzIG5vdCBzZXQKIyBDT05GSUdfU05EX1JNRTk2IGlzIG5v
+dCBzZXQKIyBDT05GSUdfU05EX1JNRTk2NTIgaXMgbm90IHNldAojIENPTkZJR19TTkRfSERT
+UCBpcyBub3Qgc2V0CiMgQ09ORklHX1NORF9UUklERU5UIGlzIG5vdCBzZXQKIyBDT05GSUdf
+U05EX1lNRlBDSSBpcyBub3Qgc2V0CiMgQ09ORklHX1NORF9BTFM0MDAwIGlzIG5vdCBzZXQK
+Q09ORklHX1NORF9DTUlQQ0k9bQojIENPTkZJR19TTkRfRU5TMTM3MCBpcyBub3Qgc2V0CiMg
+Q09ORklHX1NORF9FTlMxMzcxIGlzIG5vdCBzZXQKIyBDT05GSUdfU05EX0VTMTkzOCBpcyBu
+b3Qgc2V0CiMgQ09ORklHX1NORF9FUzE5NjggaXMgbm90IHNldAojIENPTkZJR19TTkRfTUFF
+U1RSTzMgaXMgbm90IHNldAojIENPTkZJR19TTkRfRk04MDEgaXMgbm90IHNldAojIENPTkZJ
+R19TTkRfSUNFMTcxMiBpcyBub3Qgc2V0CiMgQ09ORklHX1NORF9JQ0UxNzI0IGlzIG5vdCBz
+ZXQKIyBDT05GSUdfU05EX0lOVEVMOFgwIGlzIG5vdCBzZXQKIyBDT05GSUdfU05EX0lOVEVM
+OFgwTSBpcyBub3Qgc2V0CiMgQ09ORklHX1NORF9TT05JQ1ZJQkVTIGlzIG5vdCBzZXQKIyBD
+T05GSUdfU05EX1ZJQTgyWFggaXMgbm90IHNldAojIENPTkZJR19TTkRfVlgyMjIgaXMgbm90
+IHNldAoKIwojIFVTQiBkZXZpY2VzCiMKIyBDT05GSUdfU05EX1VTQl9BVURJTyBpcyBub3Qg
+c2V0CiMgQ09ORklHX1NORF9VU0JfVVNYMlkgaXMgbm90IHNldAoKIwojIE9wZW4gU291bmQg
+U3lzdGVtCiMKIyBDT05GSUdfU09VTkRfUFJJTUUgaXMgbm90IHNldAoKIwojIFVTQiBzdXBw
+b3J0CiMKQ09ORklHX1VTQj1tCiMgQ09ORklHX1VTQl9ERUJVRyBpcyBub3Qgc2V0CgojCiMg
+TWlzY2VsbGFuZW91cyBVU0Igb3B0aW9ucwojCkNPTkZJR19VU0JfREVWSUNFRlM9eQpDT05G
+SUdfVVNCX0JBTkRXSURUSD15CiMgQ09ORklHX1VTQl9EWU5BTUlDX01JTk9SUyBpcyBub3Qg
+c2V0CkNPTkZJR19VU0JfU1VTUEVORD15CiMgQ09ORklHX1VTQl9PVEcgaXMgbm90IHNldApD
+T05GSUdfVVNCX0FSQ0hfSEFTX0hDRD15CkNPTkZJR19VU0JfQVJDSF9IQVNfT0hDST15Cgoj
+CiMgVVNCIEhvc3QgQ29udHJvbGxlciBEcml2ZXJzCiMKQ09ORklHX1VTQl9FSENJX0hDRD1t
+CkNPTkZJR19VU0JfRUhDSV9TUExJVF9JU089eQpDT05GSUdfVVNCX0VIQ0lfUk9PVF9IVUJf
+VFQ9eQojIENPTkZJR19VU0JfT0hDSV9IQ0QgaXMgbm90IHNldApDT05GSUdfVVNCX1VIQ0lf
+SENEPW0KCiMKIyBVU0IgRGV2aWNlIENsYXNzIGRyaXZlcnMKIwojIENPTkZJR19VU0JfQVVE
+SU8gaXMgbm90IHNldAojIENPTkZJR19VU0JfQkxVRVRPT1RIX1RUWSBpcyBub3Qgc2V0CiMg
+Q09ORklHX1VTQl9NSURJIGlzIG5vdCBzZXQKIyBDT05GSUdfVVNCX0FDTSBpcyBub3Qgc2V0
+CkNPTkZJR19VU0JfUFJJTlRFUj1tCgojCiMgTk9URTogVVNCX1NUT1JBR0UgZW5hYmxlcyBT
+Q1NJLCBhbmQgJ1NDU0kgZGlzayBzdXBwb3J0JyBtYXkgYWxzbyBiZSBuZWVkZWQ7IHNlZSBV
+U0JfU1RPUkFHRSBIZWxwIGZvciBtb3JlIGluZm9ybWF0aW9uCiMKQ09ORklHX1VTQl9TVE9S
+QUdFPW0KIyBDT05GSUdfVVNCX1NUT1JBR0VfREVCVUcgaXMgbm90IHNldApDT05GSUdfVVNC
+X1NUT1JBR0VfUldfREVURUNUPXkKIyBDT05GSUdfVVNCX1NUT1JBR0VfREFUQUZBQiBpcyBu
+b3Qgc2V0CiMgQ09ORklHX1VTQl9TVE9SQUdFX0ZSRUVDT00gaXMgbm90IHNldAojIENPTkZJ
+R19VU0JfU1RPUkFHRV9JU0QyMDAgaXMgbm90IHNldAojIENPTkZJR19VU0JfU1RPUkFHRV9E
+UENNIGlzIG5vdCBzZXQKIyBDT05GSUdfVVNCX1NUT1JBR0VfSFA4MjAwZSBpcyBub3Qgc2V0
+CiMgQ09ORklHX1VTQl9TVE9SQUdFX1NERFIwOSBpcyBub3Qgc2V0CiMgQ09ORklHX1VTQl9T
+VE9SQUdFX1NERFI1NSBpcyBub3Qgc2V0CiMgQ09ORklHX1VTQl9TVE9SQUdFX0pVTVBTSE9U
+IGlzIG5vdCBzZXQKCiMKIyBVU0IgSW5wdXQgRGV2aWNlcwojCkNPTkZJR19VU0JfSElEPW0K
+Q09ORklHX1VTQl9ISURJTlBVVD15CiMgQ09ORklHX0hJRF9GRiBpcyBub3Qgc2V0CiMgQ09O
+RklHX1VTQl9ISURERVYgaXMgbm90IHNldAoKIwojIFVTQiBISUQgQm9vdCBQcm90b2NvbCBk
+cml2ZXJzCiMKIyBDT05GSUdfVVNCX0tCRCBpcyBub3Qgc2V0CiMgQ09ORklHX1VTQl9NT1VT
+RSBpcyBub3Qgc2V0CiMgQ09ORklHX1VTQl9BSVBURUsgaXMgbm90IHNldAojIENPTkZJR19V
+U0JfV0FDT00gaXMgbm90IHNldAojIENPTkZJR19VU0JfS0JUQUIgaXMgbm90IHNldAojIENP
+TkZJR19VU0JfUE9XRVJNQVRFIGlzIG5vdCBzZXQKIyBDT05GSUdfVVNCX01UT1VDSCBpcyBu
+b3Qgc2V0CiMgQ09ORklHX1VTQl9FR0FMQVggaXMgbm90IHNldAojIENPTkZJR19VU0JfWFBB
+RCBpcyBub3Qgc2V0CiMgQ09ORklHX1VTQl9BVElfUkVNT1RFIGlzIG5vdCBzZXQKCiMKIyBV
+U0IgSW1hZ2luZyBkZXZpY2VzCiMKIyBDT05GSUdfVVNCX01EQzgwMCBpcyBub3Qgc2V0CiMg
+Q09ORklHX1VTQl9NSUNST1RFSyBpcyBub3Qgc2V0CiMgQ09ORklHX1VTQl9IUFVTQlNDU0kg
+aXMgbm90IHNldAoKIwojIFVTQiBNdWx0aW1lZGlhIGRldmljZXMKIwojIENPTkZJR19VU0Jf
+REFCVVNCIGlzIG5vdCBzZXQKCiMKIyBWaWRlbzRMaW51eCBzdXBwb3J0IGlzIG5lZWRlZCBm
+b3IgVVNCIE11bHRpbWVkaWEgZGV2aWNlIHN1cHBvcnQKIwoKIwojIFVTQiBOZXR3b3JrIEFk
+YXB0ZXJzCiMKIyBDT05GSUdfVVNCX0NBVEMgaXMgbm90IHNldAojIENPTkZJR19VU0JfS0FX
+RVRIIGlzIG5vdCBzZXQKIyBDT05GSUdfVVNCX1BFR0FTVVMgaXMgbm90IHNldAojIENPTkZJ
+R19VU0JfUlRMODE1MCBpcyBub3Qgc2V0CiMgQ09ORklHX1VTQl9VU0JORVQgaXMgbm90IHNl
+dAoKIwojIFVTQiBwb3J0IGRyaXZlcnMKIwojIENPTkZJR19VU0JfVVNTNzIwIGlzIG5vdCBz
+ZXQKCiMKIyBVU0IgU2VyaWFsIENvbnZlcnRlciBzdXBwb3J0CiMKIyBDT05GSUdfVVNCX1NF
+UklBTCBpcyBub3Qgc2V0CgojCiMgVVNCIE1pc2NlbGxhbmVvdXMgZHJpdmVycwojCiMgQ09O
+RklHX1VTQl9FTUk2MiBpcyBub3Qgc2V0CiMgQ09ORklHX1VTQl9FTUkyNiBpcyBub3Qgc2V0
+CiMgQ09ORklHX1VTQl9USUdMIGlzIG5vdCBzZXQKIyBDT05GSUdfVVNCX0FVRVJTV0FMRCBp
+cyBub3Qgc2V0CiMgQ09ORklHX1VTQl9SSU81MDAgaXMgbm90IHNldAojIENPTkZJR19VU0Jf
+TEVHT1RPV0VSIGlzIG5vdCBzZXQKIyBDT05GSUdfVVNCX0xDRCBpcyBub3Qgc2V0CiMgQ09O
+RklHX1VTQl9MRUQgaXMgbm90IHNldAojIENPTkZJR19VU0JfQ1lUSEVSTSBpcyBub3Qgc2V0
+CiMgQ09ORklHX1VTQl9QSElER0VUS0lUIGlzIG5vdCBzZXQKIyBDT05GSUdfVVNCX1BISURH
+RVRTRVJWTyBpcyBub3Qgc2V0CiMgQ09ORklHX1VTQl9URVNUIGlzIG5vdCBzZXQKCiMKIyBV
+U0IgQVRNL0RTTCBkcml2ZXJzCiMKCiMKIyBVU0IgR2FkZ2V0IFN1cHBvcnQKIwojIENPTkZJ
+R19VU0JfR0FER0VUIGlzIG5vdCBzZXQKCiMKIyBGaWxlIHN5c3RlbXMKIwpDT05GSUdfRVhU
+Ml9GUz15CiMgQ09ORklHX0VYVDJfRlNfWEFUVFIgaXMgbm90IHNldApDT05GSUdfRVhUM19G
+Uz15CkNPTkZJR19FWFQzX0ZTX1hBVFRSPXkKQ09ORklHX0VYVDNfRlNfUE9TSVhfQUNMPXkK
+IyBDT05GSUdfRVhUM19GU19TRUNVUklUWSBpcyBub3Qgc2V0CkNPTkZJR19KQkQ9eQojIENP
+TkZJR19KQkRfREVCVUcgaXMgbm90IHNldApDT05GSUdfRlNfTUJDQUNIRT15CiMgQ09ORklH
+X1JFSVNFUkZTX0ZTIGlzIG5vdCBzZXQKIyBDT05GSUdfSkZTX0ZTIGlzIG5vdCBzZXQKQ09O
+RklHX0ZTX1BPU0lYX0FDTD15CiMgQ09ORklHX1hGU19GUyBpcyBub3Qgc2V0CiMgQ09ORklH
+X01JTklYX0ZTIGlzIG5vdCBzZXQKIyBDT05GSUdfUk9NRlNfRlMgaXMgbm90IHNldApDT05G
+SUdfUVVPVEE9eQojIENPTkZJR19RRk1UX1YxIGlzIG5vdCBzZXQKQ09ORklHX1FGTVRfVjI9
+bQpDT05GSUdfUVVPVEFDVEw9eQpDT05GSUdfRE5PVElGWT15CiMgQ09ORklHX0FVVE9GU19G
+UyBpcyBub3Qgc2V0CkNPTkZJR19BVVRPRlM0X0ZTPXkKCiMKIyBDYWNoZXMKIwpDT05GSUdf
+RlNDQUNIRT15CkNPTkZJR19DQUNIRUZTPXkKCiMKIyBDRC1ST00vRFZEIEZpbGVzeXN0ZW1z
+CiMKQ09ORklHX0lTTzk2NjBfRlM9eQpDT05GSUdfSk9MSUVUPXkKQ09ORklHX1pJU09GUz15
+CkNPTkZJR19aSVNPRlNfRlM9eQpDT05GSUdfVURGX0ZTPXkKQ09ORklHX1VERl9OTFM9eQoK
+IwojIERPUy9GQVQvTlQgRmlsZXN5c3RlbXMKIwpDT05GSUdfRkFUX0ZTPXkKQ09ORklHX01T
+RE9TX0ZTPW0KQ09ORklHX1ZGQVRfRlM9eQpDT05GSUdfRkFUX0RFRkFVTFRfQ09ERVBBR0U9
+NDM3CkNPTkZJR19GQVRfREVGQVVMVF9JT0NIQVJTRVQ9InV0ZjgiCkNPTkZJR19OVEZTX0ZT
+PW0KIyBDT05GSUdfTlRGU19ERUJVRyBpcyBub3Qgc2V0CkNPTkZJR19OVEZTX1JXPXkKCiMK
+IyBQc2V1ZG8gZmlsZXN5c3RlbXMKIwpDT05GSUdfUFJPQ19GUz15CkNPTkZJR19QUk9DX0tD
+T1JFPXkKQ09ORklHX1NZU0ZTPXkKIyBDT05GSUdfREVWRlNfRlMgaXMgbm90IHNldApDT05G
+SUdfREVWUFRTX0ZTX1hBVFRSPXkKIyBDT05GSUdfREVWUFRTX0ZTX1NFQ1VSSVRZIGlzIG5v
+dCBzZXQKQ09ORklHX1RNUEZTPXkKIyBDT05GSUdfVE1QRlNfWEFUVFIgaXMgbm90IHNldApD
+T05GSUdfSFVHRVRMQkZTPXkKQ09ORklHX0hVR0VUTEJfUEFHRT15CkNPTkZJR19SQU1GUz15
+CgojCiMgTWlzY2VsbGFuZW91cyBmaWxlc3lzdGVtcwojCiMgQ09ORklHX0FERlNfRlMgaXMg
+bm90IHNldAojIENPTkZJR19BRkZTX0ZTIGlzIG5vdCBzZXQKIyBDT05GSUdfSEZTX0ZTIGlz
+IG5vdCBzZXQKIyBDT05GSUdfSEZTUExVU19GUyBpcyBub3Qgc2V0CiMgQ09ORklHX0JFRlNf
+RlMgaXMgbm90IHNldAojIENPTkZJR19CRlNfRlMgaXMgbm90IHNldAojIENPTkZJR19FRlNf
+RlMgaXMgbm90IHNldAojIENPTkZJR19DUkFNRlMgaXMgbm90IHNldAojIENPTkZJR19WWEZT
+X0ZTIGlzIG5vdCBzZXQKIyBDT05GSUdfSFBGU19GUyBpcyBub3Qgc2V0CiMgQ09ORklHX1FO
+WDRGU19GUyBpcyBub3Qgc2V0CiMgQ09ORklHX1NZU1ZfRlMgaXMgbm90IHNldAojIENPTkZJ
+R19VRlNfRlMgaXMgbm90IHNldAoKIwojIE5ldHdvcmsgRmlsZSBTeXN0ZW1zCiMKQ09ORklH
+X05GU19GUz1tCiMgQ09ORklHX05GU19WMyBpcyBub3Qgc2V0CiMgQ09ORklHX05GU19WNCBp
+cyBub3Qgc2V0CiMgQ09ORklHX05GU19ESVJFQ1RJTyBpcyBub3Qgc2V0CkNPTkZJR19ORlNE
+PW0KIyBDT05GSUdfTkZTRF9WMyBpcyBub3Qgc2V0CiMgQ09ORklHX05GU0RfVENQIGlzIG5v
+dCBzZXQKQ09ORklHX0xPQ0tEPW0KQ09ORklHX0VYUE9SVEZTPW0KQ09ORklHX1NVTlJQQz1t
+CiMgQ09ORklHX1JQQ1NFQ19HU1NfS1JCNSBpcyBub3Qgc2V0CiMgQ09ORklHX1JQQ1NFQ19H
+U1NfU1BLTTMgaXMgbm90IHNldApDT05GSUdfU01CX0ZTPW0KQ09ORklHX1NNQl9OTFNfREVG
+QVVMVD15CkNPTkZJR19TTUJfTkxTX1JFTU9URT0iY3A4NjYiCkNPTkZJR19DSUZTPW0KQ09O
+RklHX0NJRlNfU1RBVFM9eQpDT05GSUdfQ0lGU19YQVRUUj15CkNPTkZJR19DSUZTX1BPU0lY
+PXkKIyBDT05GSUdfTkNQX0ZTIGlzIG5vdCBzZXQKIyBDT05GSUdfQ09EQV9GUyBpcyBub3Qg
+c2V0CiMgQ09ORklHX0FGU19GUyBpcyBub3Qgc2V0CgojCiMgUGFydGl0aW9uIFR5cGVzCiMK
+IyBDT05GSUdfUEFSVElUSU9OX0FEVkFOQ0VEIGlzIG5vdCBzZXQKQ09ORklHX01TRE9TX1BB
+UlRJVElPTj15CgojCiMgTmF0aXZlIExhbmd1YWdlIFN1cHBvcnQKIwpDT05GSUdfTkxTPXkK
+Q09ORklHX05MU19ERUZBVUxUPSJrb2k4LXIiCkNPTkZJR19OTFNfQ09ERVBBR0VfNDM3PXkK
+IyBDT05GSUdfTkxTX0NPREVQQUdFXzczNyBpcyBub3Qgc2V0CiMgQ09ORklHX05MU19DT0RF
+UEFHRV83NzUgaXMgbm90IHNldAojIENPTkZJR19OTFNfQ09ERVBBR0VfODUwIGlzIG5vdCBz
+ZXQKIyBDT05GSUdfTkxTX0NPREVQQUdFXzg1MiBpcyBub3Qgc2V0CiMgQ09ORklHX05MU19D
+T0RFUEFHRV84NTUgaXMgbm90IHNldAojIENPTkZJR19OTFNfQ09ERVBBR0VfODU3IGlzIG5v
+dCBzZXQKIyBDT05GSUdfTkxTX0NPREVQQUdFXzg2MCBpcyBub3Qgc2V0CiMgQ09ORklHX05M
+U19DT0RFUEFHRV84NjEgaXMgbm90IHNldAojIENPTkZJR19OTFNfQ09ERVBBR0VfODYyIGlz
+IG5vdCBzZXQKIyBDT05GSUdfTkxTX0NPREVQQUdFXzg2MyBpcyBub3Qgc2V0CiMgQ09ORklH
+X05MU19DT0RFUEFHRV84NjQgaXMgbm90IHNldAojIENPTkZJR19OTFNfQ09ERVBBR0VfODY1
+IGlzIG5vdCBzZXQKQ09ORklHX05MU19DT0RFUEFHRV84NjY9bQojIENPTkZJR19OTFNfQ09E
+RVBBR0VfODY5IGlzIG5vdCBzZXQKIyBDT05GSUdfTkxTX0NPREVQQUdFXzkzNiBpcyBub3Qg
+c2V0CiMgQ09ORklHX05MU19DT0RFUEFHRV85NTAgaXMgbm90IHNldAojIENPTkZJR19OTFNf
+Q09ERVBBR0VfOTMyIGlzIG5vdCBzZXQKIyBDT05GSUdfTkxTX0NPREVQQUdFXzk0OSBpcyBu
+b3Qgc2V0CiMgQ09ORklHX05MU19DT0RFUEFHRV84NzQgaXMgbm90IHNldAojIENPTkZJR19O
+TFNfSVNPODg1OV84IGlzIG5vdCBzZXQKIyBDT05GSUdfTkxTX0NPREVQQUdFXzEyNTAgaXMg
+bm90IHNldAojIENPTkZJR19OTFNfQ09ERVBBR0VfMTI1MSBpcyBub3Qgc2V0CiMgQ09ORklH
+X05MU19BU0NJSSBpcyBub3Qgc2V0CkNPTkZJR19OTFNfSVNPODg1OV8xPW0KIyBDT05GSUdf
+TkxTX0lTTzg4NTlfMiBpcyBub3Qgc2V0CiMgQ09ORklHX05MU19JU084ODU5XzMgaXMgbm90
+IHNldAojIENPTkZJR19OTFNfSVNPODg1OV80IGlzIG5vdCBzZXQKQ09ORklHX05MU19JU084
+ODU5XzU9bQojIENPTkZJR19OTFNfSVNPODg1OV82IGlzIG5vdCBzZXQKIyBDT05GSUdfTkxT
+X0lTTzg4NTlfNyBpcyBub3Qgc2V0CiMgQ09ORklHX05MU19JU084ODU5XzkgaXMgbm90IHNl
+dAojIENPTkZJR19OTFNfSVNPODg1OV8xMyBpcyBub3Qgc2V0CiMgQ09ORklHX05MU19JU084
+ODU5XzE0IGlzIG5vdCBzZXQKIyBDT05GSUdfTkxTX0lTTzg4NTlfMTUgaXMgbm90IHNldApD
+T05GSUdfTkxTX0tPSThfUj15CiMgQ09ORklHX05MU19LT0k4X1UgaXMgbm90IHNldApDT05G
+SUdfTkxTX1VURjg9eQoKIwojIFByb2ZpbGluZyBzdXBwb3J0CiMKQ09ORklHX1BST0ZJTElO
+Rz15CkNPTkZJR19PUFJPRklMRT1tCgojCiMgS2VybmVsIGhhY2tpbmcKIwpDT05GSUdfREVC
+VUdfS0VSTkVMPXkKQ09ORklHX01BR0lDX1NZU1JRPXkKIyBDT05GSUdfU0NIRURTVEFUUyBp
+cyBub3Qgc2V0CkNPTkZJR19ERUJVR19TTEFCPXkKQ09ORklHX0RFQlVHX1BSRUVNUFQ9eQpD
+T05GSUdfREVCVUdfU1BJTkxPQ0s9eQpDT05GSUdfREVCVUdfU1BJTkxPQ0tfU0xFRVA9eQoj
+IENPTkZJR19ERUJVR19LT0JKRUNUIGlzIG5vdCBzZXQKQ09ORklHX0RFQlVHX0hJR0hNRU09
+eQpDT05GSUdfREVCVUdfQlVHVkVSQk9TRT15CkNPTkZJR19ERUJVR19JTkZPPXkKQ09ORklH
+X0ZSQU1FX1BPSU5URVI9eQpDT05GSUdfRUFSTFlfUFJJTlRLPXkKQ09ORklHX0RFQlVHX1NU
+QUNLT1ZFUkZMT1c9eQpDT05GSUdfS1BST0JFUz15CkNPTkZJR19ERUJVR19TVEFDS19VU0FH
+RT15CiMgQ09ORklHX0RFQlVHX1BBR0VBTExPQyBpcyBub3Qgc2V0CkNPTkZJR180S1NUQUNL
+Uz15CkNPTkZJR19YODZfRklORF9TTVBfQ09ORklHPXkKQ09ORklHX1g4Nl9NUFBBUlNFPXkK
+CiMKIyBTZWN1cml0eSBvcHRpb25zCiMKIyBDT05GSUdfS0VZUyBpcyBub3Qgc2V0CiMgQ09O
+RklHX1NFQ1VSSVRZIGlzIG5vdCBzZXQKCiMKIyBDcnlwdG9ncmFwaGljIG9wdGlvbnMKIwpD
+T05GSUdfQ1JZUFRPPXkKQ09ORklHX0NSWVBUT19ITUFDPXkKQ09ORklHX0NSWVBUT19OVUxM
+PW0KIyBDT05GSUdfQ1JZUFRPX01ENCBpcyBub3Qgc2V0CkNPTkZJR19DUllQVE9fTUQ1PW0K
+Q09ORklHX0NSWVBUT19TSEExPW0KQ09ORklHX0NSWVBUT19TSEEyNTY9bQpDT05GSUdfQ1JZ
+UFRPX1NIQTUxMj1tCiMgQ09ORklHX0NSWVBUT19XUDUxMiBpcyBub3Qgc2V0CkNPTkZJR19D
+UllQVE9fREVTPW0KIyBDT05GSUdfQ1JZUFRPX0JMT1dGSVNIIGlzIG5vdCBzZXQKIyBDT05G
+SUdfQ1JZUFRPX1RXT0ZJU0ggaXMgbm90IHNldAojIENPTkZJR19DUllQVE9fU0VSUEVOVCBp
+cyBub3Qgc2V0CiMgQ09ORklHX0NSWVBUT19BRVNfNTg2IGlzIG5vdCBzZXQKIyBDT05GSUdf
+Q1JZUFRPX0NBU1Q1IGlzIG5vdCBzZXQKIyBDT05GSUdfQ1JZUFRPX0NBU1Q2IGlzIG5vdCBz
+ZXQKIyBDT05GSUdfQ1JZUFRPX1RFQSBpcyBub3Qgc2V0CiMgQ09ORklHX0NSWVBUT19BUkM0
+IGlzIG5vdCBzZXQKIyBDT05GSUdfQ1JZUFRPX0tIQVpBRCBpcyBub3Qgc2V0CiMgQ09ORklH
+X0NSWVBUT19BTlVCSVMgaXMgbm90IHNldApDT05GSUdfQ1JZUFRPX0RFRkxBVEU9bQojIENP
+TkZJR19DUllQVE9fTUlDSEFFTF9NSUMgaXMgbm90IHNldApDT05GSUdfQ1JZUFRPX0NSQzMy
+Qz1tCiMgQ09ORklHX0NSWVBUT19URVNUIGlzIG5vdCBzZXQKCiMKIyBMaWJyYXJ5IHJvdXRp
+bmVzCiMKQ09ORklHX0NSQ19DQ0lUVD1tCkNPTkZJR19DUkMzMj1tCkNPTkZJR19MSUJDUkMz
+MkM9bQpDT05GSUdfWkxJQl9JTkZMQVRFPXkKQ09ORklHX1pMSUJfREVGTEFURT1tCkNPTkZJ
+R19HRU5FUklDX0hBUkRJUlFTPXkKQ09ORklHX0dFTkVSSUNfSVJRX1BST0JFPXkKQ09ORklH
+X1g4Nl9TTVA9eQpDT05GSUdfWDg2X0hUPXkKQ09ORklHX1g4Nl9CSU9TX1JFQk9PVD15CkNP
+TkZJR19YODZfVFJBTVBPTElORT15CkNPTkZJR19QQz15Cg==
+--------------060008040705080300000104
+Content-Type: text/plain;
+ name="config-rc2-bk13"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="config-rc2-bk13"
+
+IwojIEF1dG9tYXRpY2FsbHkgZ2VuZXJhdGVkIG1ha2UgY29uZmlnOiBkb24ndCBlZGl0CiMg
+TGludXgga2VybmVsIHZlcnNpb246IDIuNi4xMC1yYzItYmsxMwojIFdlZCBEZWMgIDEgMDk6
+MTk6NDYgMjAwNAojCkNPTkZJR19YODY9eQpDT05GSUdfTU1VPXkKQ09ORklHX1VJRDE2PXkK
+Q09ORklHX0dFTkVSSUNfSVNBX0RNQT15CkNPTkZJR19HRU5FUklDX0lPTUFQPXkKCiMKIyBD
+b2RlIG1hdHVyaXR5IGxldmVsIG9wdGlvbnMKIwpDT05GSUdfRVhQRVJJTUVOVEFMPXkKIyBD
+T05GSUdfQ0xFQU5fQ09NUElMRSBpcyBub3Qgc2V0CkNPTkZJR19CUk9LRU49eQpDT05GSUdf
+QlJPS0VOX09OX1NNUD15CkNPTkZJR19MT0NLX0tFUk5FTD15CgojCiMgR2VuZXJhbCBzZXR1
+cAojCkNPTkZJR19MT0NBTFZFUlNJT049IiIKQ09ORklHX1NXQVA9eQpDT05GSUdfU1lTVklQ
+Qz15CkNPTkZJR19QT1NJWF9NUVVFVUU9eQpDT05GSUdfQlNEX1BST0NFU1NfQUNDVD15CiMg
+Q09ORklHX0JTRF9QUk9DRVNTX0FDQ1RfVjMgaXMgbm90IHNldApDT05GSUdfU1lTQ1RMPXkK
+Q09ORklHX0FVRElUPXkKQ09ORklHX0FVRElUU1lTQ0FMTD15CkNPTkZJR19MT0dfQlVGX1NI
+SUZUPTE3CkNPTkZJR19IT1RQTFVHPXkKQ09ORklHX0tPQkpFQ1RfVUVWRU5UPXkKQ09ORklH
+X0lLQ09ORklHPXkKQ09ORklHX0lLQ09ORklHX1BST0M9eQojIENPTkZJR19FTUJFRERFRCBp
+cyBub3Qgc2V0CkNPTkZJR19LQUxMU1lNUz15CiMgQ09ORklHX0tBTExTWU1TX0FMTCBpcyBu
+b3Qgc2V0CiMgQ09ORklHX0tBTExTWU1TX0VYVFJBX1BBU1MgaXMgbm90IHNldApDT05GSUdf
+RlVURVg9eQpDT05GSUdfRVBPTEw9eQojIENPTkZJR19DQ19PUFRJTUlaRV9GT1JfU0laRSBp
+cyBub3Qgc2V0CkNPTkZJR19TSE1FTT15CkNPTkZJR19DQ19BTElHTl9GVU5DVElPTlM9MApD
+T05GSUdfQ0NfQUxJR05fTEFCRUxTPTAKQ09ORklHX0NDX0FMSUdOX0xPT1BTPTAKQ09ORklH
+X0NDX0FMSUdOX0pVTVBTPTAKIyBDT05GSUdfVElOWV9TSE1FTSBpcyBub3Qgc2V0CgojCiMg
+TG9hZGFibGUgbW9kdWxlIHN1cHBvcnQKIwpDT05GSUdfTU9EVUxFUz15CkNPTkZJR19NT0RV
+TEVfVU5MT0FEPXkKQ09ORklHX01PRFVMRV9GT1JDRV9VTkxPQUQ9eQpDT05GSUdfT0JTT0xF
+VEVfTU9EUEFSTT15CiMgQ09ORklHX01PRFZFUlNJT05TIGlzIG5vdCBzZXQKIyBDT05GSUdf
+TU9EVUxFX1NSQ1ZFUlNJT05fQUxMIGlzIG5vdCBzZXQKQ09ORklHX0tNT0Q9eQpDT05GSUdf
+U1RPUF9NQUNISU5FPXkKCiMKIyBQcm9jZXNzb3IgdHlwZSBhbmQgZmVhdHVyZXMKIwpDT05G
+SUdfWDg2X1BDPXkKIyBDT05GSUdfWDg2X0VMQU4gaXMgbm90IHNldAojIENPTkZJR19YODZf
+Vk9ZQUdFUiBpcyBub3Qgc2V0CiMgQ09ORklHX1g4Nl9OVU1BUSBpcyBub3Qgc2V0CiMgQ09O
+RklHX1g4Nl9TVU1NSVQgaXMgbm90IHNldAojIENPTkZJR19YODZfQklHU01QIGlzIG5vdCBz
+ZXQKIyBDT05GSUdfWDg2X1ZJU1dTIGlzIG5vdCBzZXQKIyBDT05GSUdfWDg2X0dFTkVSSUNB
+UkNIIGlzIG5vdCBzZXQKIyBDT05GSUdfWDg2X0VTNzAwMCBpcyBub3Qgc2V0CiMgQ09ORklH
+X00zODYgaXMgbm90IHNldAojIENPTkZJR19NNDg2IGlzIG5vdCBzZXQKIyBDT05GSUdfTTU4
+NiBpcyBub3Qgc2V0CiMgQ09ORklHX001ODZUU0MgaXMgbm90IHNldAojIENPTkZJR19NNTg2
+TU1YIGlzIG5vdCBzZXQKIyBDT05GSUdfTTY4NiBpcyBub3Qgc2V0CiMgQ09ORklHX01QRU5U
+SVVNSUkgaXMgbm90IHNldApDT05GSUdfTVBFTlRJVU1JSUk9eQojIENPTkZJR19NUEVOVElV
+TU0gaXMgbm90IHNldAojIENPTkZJR19NUEVOVElVTTQgaXMgbm90IHNldAojIENPTkZJR19N
+SzYgaXMgbm90IHNldAojIENPTkZJR19NSzcgaXMgbm90IHNldAojIENPTkZJR19NSzggaXMg
+bm90IHNldAojIENPTkZJR19NQ1JVU09FIGlzIG5vdCBzZXQKIyBDT05GSUdfTUVGRklDRU9O
+IGlzIG5vdCBzZXQKIyBDT05GSUdfTVdJTkNISVBDNiBpcyBub3Qgc2V0CiMgQ09ORklHX01X
+SU5DSElQMiBpcyBub3Qgc2V0CiMgQ09ORklHX01XSU5DSElQM0QgaXMgbm90IHNldAojIENP
+TkZJR19NQ1lSSVhJSUkgaXMgbm90IHNldAojIENPTkZJR19NVklBQzNfMiBpcyBub3Qgc2V0
+CiMgQ09ORklHX1g4Nl9HRU5FUklDIGlzIG5vdCBzZXQKQ09ORklHX1g4Nl9DTVBYQ0hHPXkK
+Q09ORklHX1g4Nl9YQUREPXkKQ09ORklHX1g4Nl9MMV9DQUNIRV9TSElGVD01CkNPTkZJR19S
+V1NFTV9YQ0hHQUREX0FMR09SSVRITT15CkNPTkZJR19YODZfV1BfV09SS1NfT0s9eQpDT05G
+SUdfWDg2X0lOVkxQRz15CkNPTkZJR19YODZfQlNXQVA9eQpDT05GSUdfWDg2X1BPUEFEX09L
+PXkKQ09ORklHX1g4Nl9HT09EX0FQSUM9eQpDT05GSUdfWDg2X0lOVEVMX1VTRVJDT1BZPXkK
+Q09ORklHX1g4Nl9VU0VfUFBST19DSEVDS1NVTT15CkNPTkZJR19IUEVUX1RJTUVSPXkKQ09O
+RklHX0hQRVRfRU1VTEFURV9SVEM9eQpDT05GSUdfU01QPXkKQ09ORklHX05SX0NQVVM9Mgoj
+IENPTkZJR19TQ0hFRF9TTVQgaXMgbm90IHNldApDT05GSUdfUFJFRU1QVD15CkNPTkZJR19Y
+ODZfTE9DQUxfQVBJQz15CkNPTkZJR19YODZfSU9fQVBJQz15CkNPTkZJR19YODZfVFNDPXkK
+Q09ORklHX1g4Nl9NQ0U9eQpDT05GSUdfWDg2X01DRV9OT05GQVRBTD15CkNPTkZJR19YODZf
+TUNFX1A0VEhFUk1BTD15CiMgQ09ORklHX1RPU0hJQkEgaXMgbm90IHNldAojIENPTkZJR19J
+OEsgaXMgbm90IHNldApDT05GSUdfTUlDUk9DT0RFPW0KQ09ORklHX1g4Nl9NU1I9bQpDT05G
+SUdfWDg2X0NQVUlEPW0KCiMKIyBGaXJtd2FyZSBEcml2ZXJzCiMKQ09ORklHX0VERD15CiMg
+Q09ORklHX05PSElHSE1FTSBpcyBub3Qgc2V0CkNPTkZJR19ISUdITUVNNEc9eQojIENPTkZJ
+R19ISUdITUVNNjRHIGlzIG5vdCBzZXQKQ09ORklHX0hJR0hNRU09eQpDT05GSUdfSElHSFBU
+RT15CiMgQ09ORklHX01BVEhfRU1VTEFUSU9OIGlzIG5vdCBzZXQKQ09ORklHX01UUlI9eQoj
+IENPTkZJR19FRkkgaXMgbm90IHNldApDT05GSUdfSVJRQkFMQU5DRT15CkNPTkZJR19IQVZF
+X0RFQ19MT0NLPXkKQ09ORklHX1JFR1BBUk09eQoKIwojIFBvd2VyIG1hbmFnZW1lbnQgb3B0
+aW9ucyAoQUNQSSwgQVBNKQojCkNPTkZJR19QTT15CiMgQ09ORklHX1BNX0RFQlVHIGlzIG5v
+dCBzZXQKQ09ORklHX1NPRlRXQVJFX1NVU1BFTkQ9eQpDT05GSUdfUE1fU1REX1BBUlRJVElP
+Tj0iIgoKIwojIEFDUEkgKEFkdmFuY2VkIENvbmZpZ3VyYXRpb24gYW5kIFBvd2VyIEludGVy
+ZmFjZSkgU3VwcG9ydAojCkNPTkZJR19BQ1BJPXkKQ09ORklHX0FDUElfQk9PVD15CkNPTkZJ
+R19BQ1BJX0lOVEVSUFJFVEVSPXkKQ09ORklHX0FDUElfU0xFRVA9eQpDT05GSUdfQUNQSV9T
+TEVFUF9QUk9DX0ZTPXkKQ09ORklHX0FDUElfQUM9eQpDT05GSUdfQUNQSV9CQVRURVJZPXkK
+Q09ORklHX0FDUElfQlVUVE9OPXkKQ09ORklHX0FDUElfVklERU89bQpDT05GSUdfQUNQSV9G
+QU49eQpDT05GSUdfQUNQSV9QUk9DRVNTT1I9eQpDT05GSUdfQUNQSV9USEVSTUFMPXkKIyBD
+T05GSUdfQUNQSV9BU1VTIGlzIG5vdCBzZXQKQ09ORklHX0FDUElfSUJNPW0KIyBDT05GSUdf
+QUNQSV9UT1NISUJBIGlzIG5vdCBzZXQKQ09ORklHX0FDUElfQkxBQ0tMSVNUX1lFQVI9MAoj
+IENPTkZJR19BQ1BJX0RFQlVHIGlzIG5vdCBzZXQKQ09ORklHX0FDUElfQlVTPXkKQ09ORklH
+X0FDUElfRUM9eQpDT05GSUdfQUNQSV9QT1dFUj15CkNPTkZJR19BQ1BJX1BDST15CkNPTkZJ
+R19BQ1BJX1NZU1RFTT15CkNPTkZJR19YODZfUE1fVElNRVI9eQoKIwojIEFQTSAoQWR2YW5j
+ZWQgUG93ZXIgTWFuYWdlbWVudCkgQklPUyBTdXBwb3J0CiMKQ09ORklHX0FQTT15CiMgQ09O
+RklHX0FQTV9JR05PUkVfVVNFUl9TVVNQRU5EIGlzIG5vdCBzZXQKIyBDT05GSUdfQVBNX0RP
+X0VOQUJMRSBpcyBub3Qgc2V0CkNPTkZJR19BUE1fQ1BVX0lETEU9eQojIENPTkZJR19BUE1f
+RElTUExBWV9CTEFOSyBpcyBub3Qgc2V0CiMgQ09ORklHX0FQTV9SVENfSVNfR01UIGlzIG5v
+dCBzZXQKQ09ORklHX0FQTV9BTExPV19JTlRTPXkKIyBDT05GSUdfQVBNX1JFQUxfTU9ERV9Q
+T1dFUl9PRkYgaXMgbm90IHNldAoKIwojIENQVSBGcmVxdWVuY3kgc2NhbGluZwojCiMgQ09O
+RklHX0NQVV9GUkVRIGlzIG5vdCBzZXQKCiMKIyBCdXMgb3B0aW9ucyAoUENJLCBQQ01DSUEs
+IEVJU0EsIE1DQSwgSVNBKQojCkNPTkZJR19QQ0k9eQojIENPTkZJR19QQ0lfR09CSU9TIGlz
+IG5vdCBzZXQKIyBDT05GSUdfUENJX0dPTU1DT05GSUcgaXMgbm90IHNldAojIENPTkZJR19Q
+Q0lfR09ESVJFQ1QgaXMgbm90IHNldApDT05GSUdfUENJX0dPQU5ZPXkKQ09ORklHX1BDSV9C
+SU9TPXkKQ09ORklHX1BDSV9ESVJFQ1Q9eQpDT05GSUdfUENJX01NQ09ORklHPXkKIyBDT05G
+SUdfUENJX01TSSBpcyBub3Qgc2V0CkNPTkZJR19QQ0lfTEVHQUNZX1BST0M9eQpDT05GSUdf
+UENJX05BTUVTPXkKQ09ORklHX0lTQT15CiMgQ09ORklHX0VJU0EgaXMgbm90IHNldAojIENP
+TkZJR19NQ0EgaXMgbm90IHNldAojIENPTkZJR19TQ3gyMDAgaXMgbm90IHNldAoKIwojIFBD
+Q0FSRCAoUENNQ0lBL0NhcmRCdXMpIHN1cHBvcnQKIwojIENPTkZJR19QQ0NBUkQgaXMgbm90
+IHNldAoKIwojIFBDLWNhcmQgYnJpZGdlcwojCkNPTkZJR19QQ01DSUFfUFJPQkU9eQoKIwoj
+IFBDSSBIb3RwbHVnIFN1cHBvcnQKIwojIENPTkZJR19IT1RQTFVHX1BDSSBpcyBub3Qgc2V0
+CgojCiMgRXhlY3V0YWJsZSBmaWxlIGZvcm1hdHMKIwpDT05GSUdfQklORk1UX0VMRj15CkNP
+TkZJR19CSU5GTVRfQU9VVD1tCkNPTkZJR19CSU5GTVRfTUlTQz15CgojCiMgRGV2aWNlIERy
+aXZlcnMKIwoKIwojIEdlbmVyaWMgRHJpdmVyIE9wdGlvbnMKIwpDT05GSUdfU1RBTkRBTE9O
+RT15CkNPTkZJR19QUkVWRU5UX0ZJUk1XQVJFX0JVSUxEPXkKIyBDT05GSUdfRldfTE9BREVS
+IGlzIG5vdCBzZXQKIyBDT05GSUdfREVCVUdfRFJJVkVSIGlzIG5vdCBzZXQKCiMKIyBNZW1v
+cnkgVGVjaG5vbG9neSBEZXZpY2VzIChNVEQpCiMKIyBDT05GSUdfTVREIGlzIG5vdCBzZXQK
+CiMKIyBQYXJhbGxlbCBwb3J0IHN1cHBvcnQKIwpDT05GSUdfUEFSUE9SVD15CkNPTkZJR19Q
+QVJQT1JUX1BDPXkKQ09ORklHX1BBUlBPUlRfUENfQ01MMT15CiMgQ09ORklHX1BBUlBPUlRf
+U0VSSUFMIGlzIG5vdCBzZXQKQ09ORklHX1BBUlBPUlRfUENfRklGTz15CiMgQ09ORklHX1BB
+UlBPUlRfUENfU1VQRVJJTyBpcyBub3Qgc2V0CkNPTkZJR19QQVJQT1JUX09USEVSPXkKQ09O
+RklHX1BBUlBPUlRfMTI4ND15CgojCiMgUGx1ZyBhbmQgUGxheSBzdXBwb3J0CiMKQ09ORklH
+X1BOUD15CiMgQ09ORklHX1BOUF9ERUJVRyBpcyBub3Qgc2V0CgojCiMgUHJvdG9jb2xzCiMK
+Q09ORklHX0lTQVBOUD15CkNPTkZJR19QTlBCSU9TPXkKQ09ORklHX1BOUEJJT1NfUFJPQ19G
+Uz15CkNPTkZJR19QTlBBQ1BJPXkKCiMKIyBCbG9jayBkZXZpY2VzCiMKQ09ORklHX0JMS19E
+RVZfRkQ9eQojIENPTkZJR19CTEtfREVWX1hEIGlzIG5vdCBzZXQKIyBDT05GSUdfUEFSSURF
+IGlzIG5vdCBzZXQKIyBDT05GSUdfQkxLX0NQUV9EQSBpcyBub3Qgc2V0CiMgQ09ORklHX0JM
+S19DUFFfQ0lTU19EQSBpcyBub3Qgc2V0CiMgQ09ORklHX0JMS19ERVZfREFDOTYwIGlzIG5v
+dCBzZXQKIyBDT05GSUdfQkxLX0RFVl9VTUVNIGlzIG5vdCBzZXQKQ09ORklHX0JMS19ERVZf
+TE9PUD15CiMgQ09ORklHX0JMS19ERVZfQ1JZUFRPTE9PUCBpcyBub3Qgc2V0CkNPTkZJR19C
+TEtfREVWX05CRD15CiMgQ09ORklHX0JMS19ERVZfU1g4IGlzIG5vdCBzZXQKIyBDT05GSUdf
+QkxLX0RFVl9VQiBpcyBub3Qgc2V0CkNPTkZJR19CTEtfREVWX1JBTT1tCkNPTkZJR19CTEtf
+REVWX1JBTV9TSVpFPTQwOTYKQ09ORklHX0lOSVRSQU1GU19TT1VSQ0U9IiIKQ09ORklHX0xC
+RD15CiMgQ09ORklHX0NEUk9NX1BLVENEVkQgaXMgbm90IHNldAoKIwojIElPIFNjaGVkdWxl
+cnMKIwpDT05GSUdfSU9TQ0hFRF9OT09QPXkKQ09ORklHX0lPU0NIRURfQVM9eQpDT05GSUdf
+SU9TQ0hFRF9ERUFETElORT15CkNPTkZJR19JT1NDSEVEX0NGUT15CgojCiMgQVRBL0FUQVBJ
+L01GTS9STEwgc3VwcG9ydAojCkNPTkZJR19JREU9eQpDT05GSUdfQkxLX0RFVl9JREU9eQoK
+IwojIFBsZWFzZSBzZWUgRG9jdW1lbnRhdGlvbi9pZGUudHh0IGZvciBoZWxwL2luZm8gb24g
+SURFIGRyaXZlcwojCiMgQ09ORklHX0JMS19ERVZfSURFX1NBVEEgaXMgbm90IHNldAojIENP
+TkZJR19CTEtfREVWX0hEX0lERSBpcyBub3Qgc2V0CkNPTkZJR19CTEtfREVWX0lERURJU0s9
+eQpDT05GSUdfSURFRElTS19NVUxUSV9NT0RFPXkKQ09ORklHX0JMS19ERVZfSURFQ0Q9eQoj
+IENPTkZJR19CTEtfREVWX0lERVRBUEUgaXMgbm90IHNldAojIENPTkZJR19CTEtfREVWX0lE
+RUZMT1BQWSBpcyBub3Qgc2V0CkNPTkZJR19CTEtfREVWX0lERVNDU0k9bQpDT05GSUdfSURF
+X1RBU0tfSU9DVEw9eQoKIwojIElERSBjaGlwc2V0IHN1cHBvcnQvYnVnZml4ZXMKIwpDT05G
+SUdfSURFX0dFTkVSSUM9eQpDT05GSUdfQkxLX0RFVl9DTUQ2NDA9eQojIENPTkZJR19CTEtf
+REVWX0NNRDY0MF9FTkhBTkNFRCBpcyBub3Qgc2V0CiMgQ09ORklHX0JMS19ERVZfSURFUE5Q
+IGlzIG5vdCBzZXQKQ09ORklHX0JMS19ERVZfSURFUENJPXkKQ09ORklHX0lERVBDSV9TSEFS
+RV9JUlE9eQojIENPTkZJR19CTEtfREVWX09GRkJPQVJEIGlzIG5vdCBzZXQKQ09ORklHX0JM
+S19ERVZfR0VORVJJQz15CiMgQ09ORklHX0JMS19ERVZfT1BUSTYyMSBpcyBub3Qgc2V0CkNP
+TkZJR19CTEtfREVWX1JaMTAwMD15CkNPTkZJR19CTEtfREVWX0lERURNQV9QQ0k9eQojIENP
+TkZJR19CTEtfREVWX0lERURNQV9GT1JDRUQgaXMgbm90IHNldApDT05GSUdfSURFRE1BX1BD
+SV9BVVRPPXkKIyBDT05GSUdfSURFRE1BX09OTFlESVNLIGlzIG5vdCBzZXQKIyBDT05GSUdf
+QkxLX0RFVl9BRUM2MlhYIGlzIG5vdCBzZXQKIyBDT05GSUdfQkxLX0RFVl9BTEkxNVgzIGlz
+IG5vdCBzZXQKIyBDT05GSUdfQkxLX0RFVl9BTUQ3NFhYIGlzIG5vdCBzZXQKIyBDT05GSUdf
+QkxLX0RFVl9BVElJWFAgaXMgbm90IHNldAojIENPTkZJR19CTEtfREVWX0NNRDY0WCBpcyBu
+b3Qgc2V0CiMgQ09ORklHX0JMS19ERVZfVFJJRkxFWCBpcyBub3Qgc2V0CiMgQ09ORklHX0JM
+S19ERVZfQ1k4MkM2OTMgaXMgbm90IHNldAojIENPTkZJR19CTEtfREVWX0NTNTUyMCBpcyBu
+b3Qgc2V0CiMgQ09ORklHX0JMS19ERVZfQ1M1NTMwIGlzIG5vdCBzZXQKIyBDT05GSUdfQkxL
+X0RFVl9IUFQzNFggaXMgbm90IHNldAojIENPTkZJR19CTEtfREVWX0hQVDM2NiBpcyBub3Qg
+c2V0CiMgQ09ORklHX0JMS19ERVZfU0MxMjAwIGlzIG5vdCBzZXQKQ09ORklHX0JMS19ERVZf
+UElJWD15CiMgQ09ORklHX0JMS19ERVZfTlM4NzQxNSBpcyBub3Qgc2V0CiMgQ09ORklHX0JM
+S19ERVZfUERDMjAyWFhfT0xEIGlzIG5vdCBzZXQKIyBDT05GSUdfQkxLX0RFVl9QREMyMDJY
+WF9ORVcgaXMgbm90IHNldAojIENPTkZJR19CTEtfREVWX1NWV0tTIGlzIG5vdCBzZXQKIyBD
+T05GSUdfQkxLX0RFVl9TSUlNQUdFIGlzIG5vdCBzZXQKIyBDT05GSUdfQkxLX0RFVl9TSVM1
+NTEzIGlzIG5vdCBzZXQKIyBDT05GSUdfQkxLX0RFVl9TTEM5MEU2NiBpcyBub3Qgc2V0CiMg
+Q09ORklHX0JMS19ERVZfVFJNMjkwIGlzIG5vdCBzZXQKIyBDT05GSUdfQkxLX0RFVl9WSUE4
+MkNYWFggaXMgbm90IHNldAojIENPTkZJR19JREVfQVJNIGlzIG5vdCBzZXQKIyBDT05GSUdf
+SURFX0NISVBTRVRTIGlzIG5vdCBzZXQKQ09ORklHX0JMS19ERVZfSURFRE1BPXkKIyBDT05G
+SUdfSURFRE1BX0lWQiBpcyBub3Qgc2V0CkNPTkZJR19JREVETUFfQVVUTz15CiMgQ09ORklH
+X0JMS19ERVZfSEQgaXMgbm90IHNldAoKIwojIFNDU0kgZGV2aWNlIHN1cHBvcnQKIwpDT05G
+SUdfU0NTST15CkNPTkZJR19TQ1NJX1BST0NfRlM9eQoKIwojIFNDU0kgc3VwcG9ydCB0eXBl
+IChkaXNrLCB0YXBlLCBDRC1ST00pCiMKQ09ORklHX0JMS19ERVZfU0Q9bQojIENPTkZJR19D
+SFJfREVWX1NUIGlzIG5vdCBzZXQKIyBDT05GSUdfQ0hSX0RFVl9PU1NUIGlzIG5vdCBzZXQK
+IyBDT05GSUdfQkxLX0RFVl9TUiBpcyBub3Qgc2V0CkNPTkZJR19DSFJfREVWX1NHPW0KCiMK
+IyBTb21lIFNDU0kgZGV2aWNlcyAoZS5nLiBDRCBqdWtlYm94KSBzdXBwb3J0IG11bHRpcGxl
+IExVTnMKIwojIENPTkZJR19TQ1NJX01VTFRJX0xVTiBpcyBub3Qgc2V0CiMgQ09ORklHX1ND
+U0lfQ09OU1RBTlRTIGlzIG5vdCBzZXQKIyBDT05GSUdfU0NTSV9MT0dHSU5HIGlzIG5vdCBz
+ZXQKCiMKIyBTQ1NJIFRyYW5zcG9ydCBBdHRyaWJ1dGVzCiMKIyBDT05GSUdfU0NTSV9TUElf
+QVRUUlMgaXMgbm90IHNldAojIENPTkZJR19TQ1NJX0ZDX0FUVFJTIGlzIG5vdCBzZXQKCiMK
+IyBTQ1NJIGxvdy1sZXZlbCBkcml2ZXJzCiMKIyBDT05GSUdfQkxLX0RFVl8zV19YWFhYX1JB
+SUQgaXMgbm90IHNldAojIENPTkZJR19TQ1NJXzNXXzlYWFggaXMgbm90IHNldAojIENPTkZJ
+R19TQ1NJXzcwMDBGQVNTVCBpcyBub3Qgc2V0CiMgQ09ORklHX1NDU0lfQUNBUkQgaXMgbm90
+IHNldAojIENPTkZJR19TQ1NJX0FIQTE1MlggaXMgbm90IHNldAojIENPTkZJR19TQ1NJX0FI
+QTE1NDIgaXMgbm90IHNldAojIENPTkZJR19TQ1NJX0FBQ1JBSUQgaXMgbm90IHNldAojIENP
+TkZJR19TQ1NJX0FJQzdYWFggaXMgbm90IHNldAojIENPTkZJR19TQ1NJX0FJQzdYWFhfT0xE
+IGlzIG5vdCBzZXQKIyBDT05GSUdfU0NTSV9BSUM3OVhYIGlzIG5vdCBzZXQKIyBDT05GSUdf
+U0NTSV9EUFRfSTJPIGlzIG5vdCBzZXQKIyBDT05GSUdfU0NTSV9BRFZBTlNZUyBpcyBub3Qg
+c2V0CiMgQ09ORklHX1NDU0lfSU4yMDAwIGlzIG5vdCBzZXQKIyBDT05GSUdfTUVHQVJBSURf
+TkVXR0VOIGlzIG5vdCBzZXQKIyBDT05GSUdfTUVHQVJBSURfTEVHQUNZIGlzIG5vdCBzZXQK
+Q09ORklHX1NDU0lfU0FUQT15CiMgQ09ORklHX1NDU0lfU0FUQV9BSENJIGlzIG5vdCBzZXQK
+IyBDT05GSUdfU0NTSV9TQVRBX1NWVyBpcyBub3Qgc2V0CkNPTkZJR19TQ1NJX0FUQV9QSUlY
+PXkKIyBDT05GSUdfU0NTSV9TQVRBX05WIGlzIG5vdCBzZXQKIyBDT05GSUdfU0NTSV9TQVRB
+X1BST01JU0UgaXMgbm90IHNldAojIENPTkZJR19TQ1NJX1NBVEFfU1g0IGlzIG5vdCBzZXQK
+IyBDT05GSUdfU0NTSV9TQVRBX1NJTCBpcyBub3Qgc2V0CiMgQ09ORklHX1NDU0lfU0FUQV9T
+SVMgaXMgbm90IHNldAojIENPTkZJR19TQ1NJX1NBVEFfVUxJIGlzIG5vdCBzZXQKIyBDT05G
+SUdfU0NTSV9TQVRBX1ZJQSBpcyBub3Qgc2V0CiMgQ09ORklHX1NDU0lfU0FUQV9WSVRFU1NF
+IGlzIG5vdCBzZXQKIyBDT05GSUdfU0NTSV9CVVNMT0dJQyBpcyBub3Qgc2V0CiMgQ09ORklH
+X1NDU0lfQ1BRRkNUUyBpcyBub3Qgc2V0CiMgQ09ORklHX1NDU0lfRE1YMzE5MUQgaXMgbm90
+IHNldAojIENPTkZJR19TQ1NJX0RUQzMyODAgaXMgbm90IHNldAojIENPTkZJR19TQ1NJX0VB
+VEEgaXMgbm90IHNldAojIENPTkZJR19TQ1NJX0VBVEFfUElPIGlzIG5vdCBzZXQKIyBDT05G
+SUdfU0NTSV9GVVRVUkVfRE9NQUlOIGlzIG5vdCBzZXQKIyBDT05GSUdfU0NTSV9HRFRIIGlz
+IG5vdCBzZXQKIyBDT05GSUdfU0NTSV9HRU5FUklDX05DUjUzODAgaXMgbm90IHNldAojIENP
+TkZJR19TQ1NJX0dFTkVSSUNfTkNSNTM4MF9NTUlPIGlzIG5vdCBzZXQKIyBDT05GSUdfU0NT
+SV9JUFMgaXMgbm90IHNldAojIENPTkZJR19TQ1NJX0lOSVRJTyBpcyBub3Qgc2V0CiMgQ09O
+RklHX1NDU0lfSU5JQTEwMCBpcyBub3Qgc2V0CiMgQ09ORklHX1NDU0lfUFBBIGlzIG5vdCBz
+ZXQKIyBDT05GSUdfU0NTSV9JTU0gaXMgbm90IHNldAojIENPTkZJR19TQ1NJX05DUjUzQzQw
+NkEgaXMgbm90IHNldAojIENPTkZJR19TQ1NJX1NZTTUzQzhYWF8yIGlzIG5vdCBzZXQKIyBD
+T05GSUdfU0NTSV9JUFIgaXMgbm90IHNldAojIENPTkZJR19TQ1NJX1BBUzE2IGlzIG5vdCBz
+ZXQKIyBDT05GSUdfU0NTSV9QQ0kyMDAwIGlzIG5vdCBzZXQKIyBDT05GSUdfU0NTSV9QQ0ky
+MjIwSSBpcyBub3Qgc2V0CiMgQ09ORklHX1NDU0lfUFNJMjQwSSBpcyBub3Qgc2V0CiMgQ09O
+RklHX1NDU0lfUUxPR0lDX0ZBUyBpcyBub3Qgc2V0CiMgQ09ORklHX1NDU0lfUUxPR0lDX0lT
+UCBpcyBub3Qgc2V0CiMgQ09ORklHX1NDU0lfUUxPR0lDX0ZDIGlzIG5vdCBzZXQKIyBDT05G
+SUdfU0NTSV9RTE9HSUNfMTI4MCBpcyBub3Qgc2V0CkNPTkZJR19TQ1NJX1FMQTJYWFg9eQoj
+IENPTkZJR19TQ1NJX1FMQTIxWFggaXMgbm90IHNldAojIENPTkZJR19TQ1NJX1FMQTIyWFgg
+aXMgbm90IHNldAojIENPTkZJR19TQ1NJX1FMQTIzMDAgaXMgbm90IHNldAojIENPTkZJR19T
+Q1NJX1FMQTIzMjIgaXMgbm90IHNldAojIENPTkZJR19TQ1NJX1FMQTYzMTIgaXMgbm90IHNl
+dAojIENPTkZJR19TQ1NJX1FMQTYzMjIgaXMgbm90IHNldAojIENPTkZJR19TQ1NJX1NFQUdB
+VEUgaXMgbm90IHNldAojIENPTkZJR19TQ1NJX1NZTTUzQzQxNiBpcyBub3Qgc2V0CiMgQ09O
+RklHX1NDU0lfREMzOTV4IGlzIG5vdCBzZXQKIyBDT05GSUdfU0NTSV9EQzM5MFQgaXMgbm90
+IHNldAojIENPTkZJR19TQ1NJX1QxMjggaXMgbm90IHNldAojIENPTkZJR19TQ1NJX1UxNF8z
+NEYgaXMgbm90IHNldAojIENPTkZJR19TQ1NJX1VMVFJBU1RPUiBpcyBub3Qgc2V0CiMgQ09O
+RklHX1NDU0lfTlNQMzIgaXMgbm90IHNldAojIENPTkZJR19TQ1NJX0RFQlVHIGlzIG5vdCBz
+ZXQKCiMKIyBPbGQgQ0QtUk9NIGRyaXZlcnMgKG5vdCBTQ1NJLCBub3QgSURFKQojCiMgQ09O
+RklHX0NEX05PX0lERVNDU0kgaXMgbm90IHNldAoKIwojIE11bHRpLWRldmljZSBzdXBwb3J0
+IChSQUlEIGFuZCBMVk0pCiMKIyBDT05GSUdfTUQgaXMgbm90IHNldAoKIwojIEZ1c2lvbiBN
+UFQgZGV2aWNlIHN1cHBvcnQKIwojIENPTkZJR19GVVNJT04gaXMgbm90IHNldAoKIwojIElF
+RUUgMTM5NCAoRmlyZVdpcmUpIHN1cHBvcnQKIwojIENPTkZJR19JRUVFMTM5NCBpcyBub3Qg
+c2V0CgojCiMgSTJPIGRldmljZSBzdXBwb3J0CiMKQ09ORklHX0kyTz1tCkNPTkZJR19JMk9f
+Q09ORklHPW0KQ09ORklHX0kyT19CTE9DSz1tCkNPTkZJR19JMk9fU0NTST1tCkNPTkZJR19J
+Mk9fUFJPQz1tCgojCiMgTmV0d29ya2luZyBzdXBwb3J0CiMKQ09ORklHX05FVD15CgojCiMg
+TmV0d29ya2luZyBvcHRpb25zCiMKQ09ORklHX1BBQ0tFVD15CkNPTkZJR19QQUNLRVRfTU1B
+UD15CkNPTkZJR19ORVRMSU5LX0RFVj1tCkNPTkZJR19VTklYPXkKIyBDT05GSUdfTkVUX0tF
+WSBpcyBub3Qgc2V0CkNPTkZJR19JTkVUPXkKQ09ORklHX0lQX01VTFRJQ0FTVD15CiMgQ09O
+RklHX0lQX0FEVkFOQ0VEX1JPVVRFUiBpcyBub3Qgc2V0CiMgQ09ORklHX0lQX1BOUCBpcyBu
+b3Qgc2V0CkNPTkZJR19ORVRfSVBJUD1tCkNPTkZJR19ORVRfSVBHUkU9bQpDT05GSUdfTkVU
+X0lQR1JFX0JST0FEQ0FTVD15CiMgQ09ORklHX0lQX01ST1VURSBpcyBub3Qgc2V0CiMgQ09O
+RklHX0FSUEQgaXMgbm90IHNldAojIENPTkZJR19TWU5fQ09PS0lFUyBpcyBub3Qgc2V0CiMg
+Q09ORklHX0lORVRfQUggaXMgbm90IHNldAojIENPTkZJR19JTkVUX0VTUCBpcyBub3Qgc2V0
+CiMgQ09ORklHX0lORVRfSVBDT01QIGlzIG5vdCBzZXQKQ09ORklHX0lORVRfVFVOTkVMPW0K
+Q09ORklHX0lQX1RDUERJQUc9eQojIENPTkZJR19JUF9UQ1BESUFHX0lQVjYgaXMgbm90IHNl
+dAoKIwojIElQOiBWaXJ0dWFsIFNlcnZlciBDb25maWd1cmF0aW9uCiMKIyBDT05GSUdfSVBf
+VlMgaXMgbm90IHNldApDT05GSUdfSVBWNj1tCkNPTkZJR19JUFY2X1BSSVZBQ1k9eQpDT05G
+SUdfSU5FVDZfQUg9bQpDT05GSUdfSU5FVDZfRVNQPW0KQ09ORklHX0lORVQ2X0lQQ09NUD1t
+CkNPTkZJR19JTkVUNl9UVU5ORUw9bQpDT05GSUdfSVBWNl9UVU5ORUw9bQpDT05GSUdfTkVU
+RklMVEVSPXkKIyBDT05GSUdfTkVURklMVEVSX0RFQlVHIGlzIG5vdCBzZXQKQ09ORklHX0JS
+SURHRV9ORVRGSUxURVI9eQoKIwojIElQOiBOZXRmaWx0ZXIgQ29uZmlndXJhdGlvbgojCkNP
+TkZJR19JUF9ORl9DT05OVFJBQ0s9eQojIENPTkZJR19JUF9ORl9DVF9BQ0NUIGlzIG5vdCBz
+ZXQKIyBDT05GSUdfSVBfTkZfQ09OTlRSQUNLX01BUksgaXMgbm90IHNldAojIENPTkZJR19J
+UF9ORl9DVF9QUk9UT19TQ1RQIGlzIG5vdCBzZXQKIyBDT05GSUdfSVBfTkZfRlRQIGlzIG5v
+dCBzZXQKIyBDT05GSUdfSVBfTkZfSVJDIGlzIG5vdCBzZXQKIyBDT05GSUdfSVBfTkZfVEZU
+UCBpcyBub3Qgc2V0CiMgQ09ORklHX0lQX05GX0FNQU5EQSBpcyBub3Qgc2V0CkNPTkZJR19J
+UF9ORl9RVUVVRT15CkNPTkZJR19JUF9ORl9JUFRBQkxFUz15CkNPTkZJR19JUF9ORl9NQVRD
+SF9MSU1JVD15CkNPTkZJR19JUF9ORl9NQVRDSF9JUFJBTkdFPXkKQ09ORklHX0lQX05GX01B
+VENIX01BQz15CkNPTkZJR19JUF9ORl9NQVRDSF9QS1RUWVBFPXkKQ09ORklHX0lQX05GX01B
+VENIX01BUks9eQpDT05GSUdfSVBfTkZfTUFUQ0hfTVVMVElQT1JUPXkKQ09ORklHX0lQX05G
+X01BVENIX1RPUz15CkNPTkZJR19JUF9ORl9NQVRDSF9SRUNFTlQ9eQpDT05GSUdfSVBfTkZf
+TUFUQ0hfRUNOPXkKQ09ORklHX0lQX05GX01BVENIX0RTQ1A9eQpDT05GSUdfSVBfTkZfTUFU
+Q0hfQUhfRVNQPXkKQ09ORklHX0lQX05GX01BVENIX0xFTkdUSD15CkNPTkZJR19JUF9ORl9N
+QVRDSF9UVEw9eQpDT05GSUdfSVBfTkZfTUFUQ0hfVENQTVNTPXkKQ09ORklHX0lQX05GX01B
+VENIX0hFTFBFUj15CkNPTkZJR19JUF9ORl9NQVRDSF9TVEFURT15CkNPTkZJR19JUF9ORl9N
+QVRDSF9DT05OVFJBQ0s9eQpDT05GSUdfSVBfTkZfTUFUQ0hfT1dORVI9eQojIENPTkZJR19J
+UF9ORl9NQVRDSF9QSFlTREVWIGlzIG5vdCBzZXQKIyBDT05GSUdfSVBfTkZfTUFUQ0hfQURE
+UlRZUEUgaXMgbm90IHNldAojIENPTkZJR19JUF9ORl9NQVRDSF9SRUFMTSBpcyBub3Qgc2V0
+CiMgQ09ORklHX0lQX05GX01BVENIX1NDVFAgaXMgbm90IHNldAojIENPTkZJR19JUF9ORl9N
+QVRDSF9DT01NRU5UIGlzIG5vdCBzZXQKIyBDT05GSUdfSVBfTkZfTUFUQ0hfSEFTSExJTUlU
+IGlzIG5vdCBzZXQKQ09ORklHX0lQX05GX0ZJTFRFUj15CkNPTkZJR19JUF9ORl9UQVJHRVRf
+UkVKRUNUPXkKQ09ORklHX0lQX05GX1RBUkdFVF9MT0c9eQpDT05GSUdfSVBfTkZfVEFSR0VU
+X1VMT0c9eQpDT05GSUdfSVBfTkZfVEFSR0VUX1RDUE1TUz15CkNPTkZJR19JUF9ORl9OQVQ9
+eQpDT05GSUdfSVBfTkZfTkFUX05FRURFRD15CkNPTkZJR19JUF9ORl9UQVJHRVRfTUFTUVVF
+UkFERT15CkNPTkZJR19JUF9ORl9UQVJHRVRfUkVESVJFQ1Q9eQpDT05GSUdfSVBfTkZfVEFS
+R0VUX05FVE1BUD15CkNPTkZJR19JUF9ORl9UQVJHRVRfU0FNRT15CiMgQ09ORklHX0lQX05G
+X05BVF9MT0NBTCBpcyBub3Qgc2V0CiMgQ09ORklHX0lQX05GX05BVF9TTk1QX0JBU0lDIGlz
+IG5vdCBzZXQKQ09ORklHX0lQX05GX01BTkdMRT15CkNPTkZJR19JUF9ORl9UQVJHRVRfVE9T
+PXkKQ09ORklHX0lQX05GX1RBUkdFVF9FQ049eQpDT05GSUdfSVBfTkZfVEFSR0VUX0RTQ1A9
+eQpDT05GSUdfSVBfTkZfVEFSR0VUX01BUks9eQpDT05GSUdfSVBfTkZfVEFSR0VUX0NMQVNT
+SUZZPXkKIyBDT05GSUdfSVBfTkZfUkFXIGlzIG5vdCBzZXQKQ09ORklHX0lQX05GX0FSUFRB
+QkxFUz15CkNPTkZJR19JUF9ORl9BUlBGSUxURVI9eQpDT05GSUdfSVBfTkZfQVJQX01BTkdM
+RT15CgojCiMgSVB2NjogTmV0ZmlsdGVyIENvbmZpZ3VyYXRpb24KIwojIENPTkZJR19JUDZf
+TkZfUVVFVUUgaXMgbm90IHNldAojIENPTkZJR19JUDZfTkZfSVBUQUJMRVMgaXMgbm90IHNl
+dAoKIwojIEJyaWRnZTogTmV0ZmlsdGVyIENvbmZpZ3VyYXRpb24KIwojIENPTkZJR19CUklE
+R0VfTkZfRUJUQUJMRVMgaXMgbm90IHNldApDT05GSUdfWEZSTT15CiMgQ09ORklHX1hGUk1f
+VVNFUiBpcyBub3Qgc2V0CgojCiMgU0NUUCBDb25maWd1cmF0aW9uIChFWFBFUklNRU5UQUwp
+CiMKIyBDT05GSUdfSVBfU0NUUCBpcyBub3Qgc2V0CiMgQ09ORklHX0FUTSBpcyBub3Qgc2V0
+CkNPTkZJR19CUklER0U9bQojIENPTkZJR19WTEFOXzgwMjFRIGlzIG5vdCBzZXQKIyBDT05G
+SUdfREVDTkVUIGlzIG5vdCBzZXQKQ09ORklHX0xMQz1tCkNPTkZJR19MTEMyPW0KQ09ORklH
+X0lQWD1tCkNPTkZJR19JUFhfSU5URVJOPXkKIyBDT05GSUdfQVRBTEsgaXMgbm90IHNldAoj
+IENPTkZJR19YMjUgaXMgbm90IHNldAojIENPTkZJR19MQVBCIGlzIG5vdCBzZXQKIyBDT05G
+SUdfTkVUX0RJVkVSVCBpcyBub3Qgc2V0CiMgQ09ORklHX0VDT05FVCBpcyBub3Qgc2V0CiMg
+Q09ORklHX1dBTl9ST1VURVIgaXMgbm90IHNldAoKIwojIFFvUyBhbmQvb3IgZmFpciBxdWV1
+ZWluZwojCiMgQ09ORklHX05FVF9TQ0hFRCBpcyBub3Qgc2V0CiMgQ09ORklHX05FVF9DTFNf
+Uk9VVEUgaXMgbm90IHNldAoKIwojIE5ldHdvcmsgdGVzdGluZwojCkNPTkZJR19ORVRfUEtU
+R0VOPW0KQ09ORklHX05FVFBPTEw9eQojIENPTkZJR19ORVRQT0xMX1JYIGlzIG5vdCBzZXQK
+IyBDT05GSUdfTkVUUE9MTF9UUkFQIGlzIG5vdCBzZXQKQ09ORklHX05FVF9QT0xMX0NPTlRS
+T0xMRVI9eQojIENPTkZJR19IQU1SQURJTyBpcyBub3Qgc2V0CiMgQ09ORklHX0lSREEgaXMg
+bm90IHNldAojIENPTkZJR19CVCBpcyBub3Qgc2V0CkNPTkZJR19ORVRERVZJQ0VTPXkKQ09O
+RklHX0RVTU1ZPW0KIyBDT05GSUdfQk9ORElORyBpcyBub3Qgc2V0CiMgQ09ORklHX0VRVUFM
+SVpFUiBpcyBub3Qgc2V0CkNPTkZJR19UVU49bQojIENPTkZJR19FVEhFUlRBUCBpcyBub3Qg
+c2V0CiMgQ09ORklHX05FVF9TQjEwMDAgaXMgbm90IHNldAoKIwojIEFSQ25ldCBkZXZpY2Vz
+CiMKIyBDT05GSUdfQVJDTkVUIGlzIG5vdCBzZXQKCiMKIyBFdGhlcm5ldCAoMTAgb3IgMTAw
+TWJpdCkKIwpDT05GSUdfTkVUX0VUSEVSTkVUPXkKQ09ORklHX01JST1tCiMgQ09ORklHX0hB
+UFBZTUVBTCBpcyBub3Qgc2V0CiMgQ09ORklHX1NVTkdFTSBpcyBub3Qgc2V0CkNPTkZJR19O
+RVRfVkVORE9SXzNDT009eQojIENPTkZJR19FTDEgaXMgbm90IHNldAojIENPTkZJR19FTDIg
+aXMgbm90IHNldAojIENPTkZJR19FTFBMVVMgaXMgbm90IHNldAojIENPTkZJR19FTDE2IGlz
+IG5vdCBzZXQKIyBDT05GSUdfRUwzIGlzIG5vdCBzZXQKIyBDT05GSUdfM0M1MTUgaXMgbm90
+IHNldApDT05GSUdfVk9SVEVYPW0KIyBDT05GSUdfVFlQSE9PTiBpcyBub3Qgc2V0CiMgQ09O
+RklHX0xBTkNFIGlzIG5vdCBzZXQKIyBDT05GSUdfTkVUX1ZFTkRPUl9TTUMgaXMgbm90IHNl
+dAojIENPTkZJR19ORVRfVkVORE9SX1JBQ0FMIGlzIG5vdCBzZXQKCiMKIyBUdWxpcCBmYW1p
+bHkgbmV0d29yayBkZXZpY2Ugc3VwcG9ydAojCiMgQ09ORklHX05FVF9UVUxJUCBpcyBub3Qg
+c2V0CiMgQ09ORklHX0FUMTcwMCBpcyBub3Qgc2V0CiMgQ09ORklHX0RFUENBIGlzIG5vdCBz
+ZXQKIyBDT05GSUdfSFAxMDAgaXMgbm90IHNldAojIENPTkZJR19ORVRfSVNBIGlzIG5vdCBz
+ZXQKIyBDT05GSUdfTkVUX1BDSSBpcyBub3Qgc2V0CiMgQ09ORklHX05FVF9QT0NLRVQgaXMg
+bm90IHNldAoKIwojIEV0aGVybmV0ICgxMDAwIE1iaXQpCiMKIyBDT05GSUdfQUNFTklDIGlz
+IG5vdCBzZXQKIyBDT05GSUdfREwySyBpcyBub3Qgc2V0CiMgQ09ORklHX0UxMDAwIGlzIG5v
+dCBzZXQKIyBDT05GSUdfTlM4MzgyMCBpcyBub3Qgc2V0CiMgQ09ORklHX0hBTUFDSEkgaXMg
+bm90IHNldAojIENPTkZJR19ZRUxMT1dGSU4gaXMgbm90IHNldAojIENPTkZJR19SODE2OSBp
+cyBub3Qgc2V0CiMgQ09ORklHX1NLOThMSU4gaXMgbm90IHNldAojIENPTkZJR19USUdPTjMg
+aXMgbm90IHNldAoKIwojIEV0aGVybmV0ICgxMDAwMCBNYml0KQojCiMgQ09ORklHX0lYR0Ig
+aXMgbm90IHNldAojIENPTkZJR19TMklPIGlzIG5vdCBzZXQKCiMKIyBUb2tlbiBSaW5nIGRl
+dmljZXMKIwojIENPTkZJR19UUiBpcyBub3Qgc2V0CgojCiMgV2lyZWxlc3MgTEFOIChub24t
+aGFtcmFkaW8pCiMKIyBDT05GSUdfTkVUX1JBRElPIGlzIG5vdCBzZXQKCiMKIyBXYW4gaW50
+ZXJmYWNlcwojCiMgQ09ORklHX1dBTiBpcyBub3Qgc2V0CiMgQ09ORklHX0ZEREkgaXMgbm90
+IHNldAojIENPTkZJR19ISVBQSSBpcyBub3Qgc2V0CiMgQ09ORklHX1BMSVAgaXMgbm90IHNl
+dApDT05GSUdfUFBQPW0KQ09ORklHX1BQUF9NVUxUSUxJTks9eQpDT05GSUdfUFBQX0ZJTFRF
+Uj15CkNPTkZJR19QUFBfQVNZTkM9bQpDT05GSUdfUFBQX1NZTkNfVFRZPW0KQ09ORklHX1BQ
+UF9ERUZMQVRFPW0KQ09ORklHX1BQUF9CU0RDT01QPW0KQ09ORklHX1BQUE9FPW0KIyBDT05G
+SUdfU0xJUCBpcyBub3Qgc2V0CiMgQ09ORklHX05FVF9GQyBpcyBub3Qgc2V0CiMgQ09ORklH
+X1NIQVBFUiBpcyBub3Qgc2V0CkNPTkZJR19ORVRDT05TT0xFPW0KCiMKIyBJU0ROIHN1YnN5
+c3RlbQojCiMgQ09ORklHX0lTRE4gaXMgbm90IHNldAoKIwojIFRlbGVwaG9ueSBTdXBwb3J0
+CiMKIyBDT05GSUdfUEhPTkUgaXMgbm90IHNldAoKIwojIElucHV0IGRldmljZSBzdXBwb3J0
+CiMKQ09ORklHX0lOUFVUPXkKCiMKIyBVc2VybGFuZCBpbnRlcmZhY2VzCiMKQ09ORklHX0lO
+UFVUX01PVVNFREVWPXkKQ09ORklHX0lOUFVUX01PVVNFREVWX1BTQVVYPXkKQ09ORklHX0lO
+UFVUX01PVVNFREVWX1NDUkVFTl9YPTEwMjQKQ09ORklHX0lOUFVUX01PVVNFREVWX1NDUkVF
+Tl9ZPTc2OAojIENPTkZJR19JTlBVVF9KT1lERVYgaXMgbm90IHNldAojIENPTkZJR19JTlBV
+VF9UU0RFViBpcyBub3Qgc2V0CkNPTkZJR19JTlBVVF9FVkRFVj15CiMgQ09ORklHX0lOUFVU
+X0VWQlVHIGlzIG5vdCBzZXQKCiMKIyBJbnB1dCBJL08gZHJpdmVycwojCiMgQ09ORklHX0dB
+TUVQT1JUIGlzIG5vdCBzZXQKQ09ORklHX1NPVU5EX0dBTUVQT1JUPXkKQ09ORklHX1NFUklP
+PXkKQ09ORklHX1NFUklPX0k4MDQyPXkKIyBDT05GSUdfU0VSSU9fU0VSUE9SVCBpcyBub3Qg
+c2V0CiMgQ09ORklHX1NFUklPX0NUODJDNzEwIGlzIG5vdCBzZXQKIyBDT05GSUdfU0VSSU9f
+UEFSS0JEIGlzIG5vdCBzZXQKIyBDT05GSUdfU0VSSU9fUENJUFMyIGlzIG5vdCBzZXQKIyBD
+T05GSUdfU0VSSU9fUkFXIGlzIG5vdCBzZXQKCiMKIyBJbnB1dCBEZXZpY2UgRHJpdmVycwoj
+CkNPTkZJR19JTlBVVF9LRVlCT0FSRD15CkNPTkZJR19LRVlCT0FSRF9BVEtCRD15CiMgQ09O
+RklHX0tFWUJPQVJEX1NVTktCRCBpcyBub3Qgc2V0CiMgQ09ORklHX0tFWUJPQVJEX0xLS0JE
+IGlzIG5vdCBzZXQKQ09ORklHX0tFWUJPQVJEX1hUS0JEPXkKIyBDT05GSUdfS0VZQk9BUkRf
+TkVXVE9OIGlzIG5vdCBzZXQKQ09ORklHX0lOUFVUX01PVVNFPXkKQ09ORklHX01PVVNFX1BT
+Mj15CkNPTkZJR19NT1VTRV9TRVJJQUw9eQojIENPTkZJR19NT1VTRV9JTlBPUlQgaXMgbm90
+IHNldAojIENPTkZJR19NT1VTRV9MT0dJQk0gaXMgbm90IHNldAojIENPTkZJR19NT1VTRV9Q
+QzExMFBBRCBpcyBub3Qgc2V0CiMgQ09ORklHX01PVVNFX1ZTWFhYQUEgaXMgbm90IHNldAoj
+IENPTkZJR19JTlBVVF9KT1lTVElDSyBpcyBub3Qgc2V0CiMgQ09ORklHX0lOUFVUX1RPVUNI
+U0NSRUVOIGlzIG5vdCBzZXQKQ09ORklHX0lOUFVUX01JU0M9eQpDT05GSUdfSU5QVVRfUENT
+UEtSPW0KQ09ORklHX0lOUFVUX1VJTlBVVD1tCgojCiMgQ2hhcmFjdGVyIGRldmljZXMKIwpD
+T05GSUdfVlQ9eQpDT05GSUdfVlRfQ09OU09MRT15CkNPTkZJR19IV19DT05TT0xFPXkKIyBD
+T05GSUdfU0VSSUFMX05PTlNUQU5EQVJEIGlzIG5vdCBzZXQKCiMKIyBTZXJpYWwgZHJpdmVy
+cwojCkNPTkZJR19TRVJJQUxfODI1MD15CkNPTkZJR19TRVJJQUxfODI1MF9DT05TT0xFPXkK
+Q09ORklHX1NFUklBTF84MjUwX0FDUEk9eQpDT05GSUdfU0VSSUFMXzgyNTBfTlJfVUFSVFM9
+NAojIENPTkZJR19TRVJJQUxfODI1MF9FWFRFTkRFRCBpcyBub3Qgc2V0CgojCiMgTm9uLTgy
+NTAgc2VyaWFsIHBvcnQgc3VwcG9ydAojCkNPTkZJR19TRVJJQUxfQ09SRT15CkNPTkZJR19T
+RVJJQUxfQ09SRV9DT05TT0xFPXkKQ09ORklHX1VOSVg5OF9QVFlTPXkKQ09ORklHX0xFR0FD
+WV9QVFlTPXkKQ09ORklHX0xFR0FDWV9QVFlfQ09VTlQ9MjU2CkNPTkZJR19QUklOVEVSPXkK
+IyBDT05GSUdfTFBfQ09OU09MRSBpcyBub3Qgc2V0CkNPTkZJR19QUERFVj1tCiMgQ09ORklH
+X1RJUEFSIGlzIG5vdCBzZXQKCiMKIyBJUE1JCiMKIyBDT05GSUdfSVBNSV9IQU5ETEVSIGlz
+IG5vdCBzZXQKCiMKIyBXYXRjaGRvZyBDYXJkcwojCkNPTkZJR19XQVRDSERPRz15CiMgQ09O
+RklHX1dBVENIRE9HX05PV0FZT1VUIGlzIG5vdCBzZXQKCiMKIyBXYXRjaGRvZyBEZXZpY2Ug
+RHJpdmVycwojCkNPTkZJR19TT0ZUX1dBVENIRE9HPW0KIyBDT05GSUdfQUNRVUlSRV9XRFQg
+aXMgbm90IHNldAojIENPTkZJR19BRFZBTlRFQ0hfV0RUIGlzIG5vdCBzZXQKIyBDT05GSUdf
+QUxJTTE1MzVfV0RUIGlzIG5vdCBzZXQKIyBDT05GSUdfQUxJTTcxMDFfV0RUIGlzIG5vdCBz
+ZXQKIyBDT05GSUdfU0M1MjBfV0RUIGlzIG5vdCBzZXQKIyBDT05GSUdfRVVST1RFQ0hfV0RU
+IGlzIG5vdCBzZXQKIyBDT05GSUdfSUI3MDBfV0RUIGlzIG5vdCBzZXQKIyBDT05GSUdfV0FG
+RVJfV0RUIGlzIG5vdCBzZXQKIyBDT05GSUdfSThYWF9UQ08gaXMgbm90IHNldAojIENPTkZJ
+R19TQzEyMDBfV0RUIGlzIG5vdCBzZXQKIyBDT05GSUdfU0N4MjAwX1dEVCBpcyBub3Qgc2V0
+CiMgQ09ORklHXzYwWFhfV0RUIGlzIG5vdCBzZXQKIyBDT05GSUdfQ1BVNV9XRFQgaXMgbm90
+IHNldAojIENPTkZJR19XODM2MjdIRl9XRFQgaXMgbm90IHNldAojIENPTkZJR19XODM4NzdG
+X1dEVCBpcyBub3Qgc2V0CiMgQ09ORklHX01BQ0haX1dEVCBpcyBub3Qgc2V0CgojCiMgSVNB
+LWJhc2VkIFdhdGNoZG9nIENhcmRzCiMKIyBDT05GSUdfUENXQVRDSERPRyBpcyBub3Qgc2V0
+CiMgQ09ORklHX01JWENPTVdEIGlzIG5vdCBzZXQKIyBDT05GSUdfV0RUIGlzIG5vdCBzZXQK
+CiMKIyBQQ0ktYmFzZWQgV2F0Y2hkb2cgQ2FyZHMKIwojIENPTkZJR19QQ0lQQ1dBVENIRE9H
+IGlzIG5vdCBzZXQKIyBDT05GSUdfV0RUUENJIGlzIG5vdCBzZXQKCiMKIyBVU0ItYmFzZWQg
+V2F0Y2hkb2cgQ2FyZHMKIwojIENPTkZJR19VU0JQQ1dBVENIRE9HIGlzIG5vdCBzZXQKIyBD
+T05GSUdfSFdfUkFORE9NIGlzIG5vdCBzZXQKIyBDT05GSUdfTlZSQU0gaXMgbm90IHNldApD
+T05GSUdfUlRDPXkKIyBDT05GSUdfRFRMSyBpcyBub3Qgc2V0CiMgQ09ORklHX1IzOTY0IGlz
+IG5vdCBzZXQKIyBDT05GSUdfQVBQTElDT00gaXMgbm90IHNldAojIENPTkZJR19TT05ZUEkg
+aXMgbm90IHNldAoKIwojIEZ0YXBlLCB0aGUgZmxvcHB5IHRhcGUgZGV2aWNlIGRyaXZlcgoj
+CiMgQ09ORklHX0ZUQVBFIGlzIG5vdCBzZXQKQ09ORklHX0FHUD1tCiMgQ09ORklHX0FHUF9B
+TEkgaXMgbm90IHNldAojIENPTkZJR19BR1BfQVRJIGlzIG5vdCBzZXQKIyBDT05GSUdfQUdQ
+X0FNRCBpcyBub3Qgc2V0CiMgQ09ORklHX0FHUF9BTUQ2NCBpcyBub3Qgc2V0CkNPTkZJR19B
+R1BfSU5URUw9bQojIENPTkZJR19BR1BfSU5URUxfTUNIIGlzIG5vdCBzZXQKIyBDT05GSUdf
+QUdQX05WSURJQSBpcyBub3Qgc2V0CiMgQ09ORklHX0FHUF9TSVMgaXMgbm90IHNldAojIENP
+TkZJR19BR1BfU1dPUktTIGlzIG5vdCBzZXQKIyBDT05GSUdfQUdQX1ZJQSBpcyBub3Qgc2V0
+CiMgQ09ORklHX0FHUF9FRkZJQ0VPTiBpcyBub3Qgc2V0CkNPTkZJR19EUk09eQojIENPTkZJ
+R19EUk1fVERGWCBpcyBub3Qgc2V0CiMgQ09ORklHX0RSTV9HQU1NQSBpcyBub3Qgc2V0CiMg
+Q09ORklHX0RSTV9SMTI4IGlzIG5vdCBzZXQKIyBDT05GSUdfRFJNX1JBREVPTiBpcyBub3Qg
+c2V0CiMgQ09ORklHX0RSTV9JODEwIGlzIG5vdCBzZXQKIyBDT05GSUdfRFJNX0k4MzAgaXMg
+bm90IHNldAojIENPTkZJR19EUk1fSTkxNSBpcyBub3Qgc2V0CkNPTkZJR19EUk1fTUdBPW0K
+IyBDT05GSUdfRFJNX1NJUyBpcyBub3Qgc2V0CiMgQ09ORklHX01XQVZFIGlzIG5vdCBzZXQK
+IyBDT05GSUdfUkFXX0RSSVZFUiBpcyBub3Qgc2V0CkNPTkZJR19IUEVUPXkKIyBDT05GSUdf
+SFBFVF9SVENfSVJRIGlzIG5vdCBzZXQKQ09ORklHX0hQRVRfTU1BUD15CkNPTkZJR19IQU5H
+Q0hFQ0tfVElNRVI9eQoKIwojIEkyQyBzdXBwb3J0CiMKQ09ORklHX0kyQz1tCkNPTkZJR19J
+MkNfQ0hBUkRFVj1tCgojCiMgSTJDIEFsZ29yaXRobXMKIwpDT05GSUdfSTJDX0FMR09CSVQ9
+bQpDT05GSUdfSTJDX0FMR09QQ0Y9bQpDT05GSUdfSTJDX0FMR09QQ0E9bQoKIwojIEkyQyBI
+YXJkd2FyZSBCdXMgc3VwcG9ydAojCiMgQ09ORklHX0kyQ19BTEkxNTM1IGlzIG5vdCBzZXQK
+IyBDT05GSUdfSTJDX0FMSTE1NjMgaXMgbm90IHNldAojIENPTkZJR19JMkNfQUxJMTVYMyBp
+cyBub3Qgc2V0CiMgQ09ORklHX0kyQ19BTUQ3NTYgaXMgbm90IHNldAojIENPTkZJR19JMkNf
+QU1EODExMSBpcyBub3Qgc2V0CiMgQ09ORklHX0kyQ19FTEVLVE9SIGlzIG5vdCBzZXQKIyBD
+T05GSUdfSTJDX0k4MDEgaXMgbm90IHNldApDT05GSUdfSTJDX0k4MTA9bQpDT05GSUdfSTJD
+X0lTQT1tCiMgQ09ORklHX0kyQ19ORk9SQ0UyIGlzIG5vdCBzZXQKIyBDT05GSUdfSTJDX1BB
+UlBPUlQgaXMgbm90IHNldAojIENPTkZJR19JMkNfUEFSUE9SVF9MSUdIVCBpcyBub3Qgc2V0
+CkNPTkZJR19JMkNfUElJWDQ9bQojIENPTkZJR19JMkNfUFJPU0FWQUdFIGlzIG5vdCBzZXQK
+IyBDT05GSUdfSTJDX1NBVkFHRTQgaXMgbm90IHNldAojIENPTkZJR19TQ3gyMDBfQUNCIGlz
+IG5vdCBzZXQKIyBDT05GSUdfSTJDX1NJUzU1OTUgaXMgbm90IHNldAojIENPTkZJR19JMkNf
+U0lTNjMwIGlzIG5vdCBzZXQKIyBDT05GSUdfSTJDX1NJUzk2WCBpcyBub3Qgc2V0CiMgQ09O
+RklHX0kyQ19TVFVCIGlzIG5vdCBzZXQKIyBDT05GSUdfSTJDX1ZJQSBpcyBub3Qgc2V0CiMg
+Q09ORklHX0kyQ19WSUFQUk8gaXMgbm90IHNldAojIENPTkZJR19JMkNfVk9PRE9PMyBpcyBu
+b3Qgc2V0CiMgQ09ORklHX0kyQ19QQ0FfSVNBIGlzIG5vdCBzZXQKCiMKIyBIYXJkd2FyZSBT
+ZW5zb3JzIENoaXAgc3VwcG9ydAojCiMgQ09ORklHX0kyQ19TRU5TT1IgaXMgbm90IHNldAoj
+IENPTkZJR19TRU5TT1JTX0FETTEwMjEgaXMgbm90IHNldAojIENPTkZJR19TRU5TT1JTX0FE
+TTEwMjUgaXMgbm90IHNldAojIENPTkZJR19TRU5TT1JTX0FETTEwMzEgaXMgbm90IHNldAoj
+IENPTkZJR19TRU5TT1JTX0FTQjEwMCBpcyBub3Qgc2V0CiMgQ09ORklHX1NFTlNPUlNfRFMx
+NjIxIGlzIG5vdCBzZXQKIyBDT05GSUdfU0VOU09SU19GU0NIRVIgaXMgbm90IHNldAojIENP
+TkZJR19TRU5TT1JTX0dMNTE4U00gaXMgbm90IHNldAojIENPTkZJR19TRU5TT1JTX0lUODcg
+aXMgbm90IHNldAojIENPTkZJR19TRU5TT1JTX0xNNjMgaXMgbm90IHNldAojIENPTkZJR19T
+RU5TT1JTX0xNNzUgaXMgbm90IHNldAojIENPTkZJR19TRU5TT1JTX0xNNzcgaXMgbm90IHNl
+dAojIENPTkZJR19TRU5TT1JTX0xNNzggaXMgbm90IHNldAojIENPTkZJR19TRU5TT1JTX0xN
+ODAgaXMgbm90IHNldAojIENPTkZJR19TRU5TT1JTX0xNODMgaXMgbm90IHNldAojIENPTkZJ
+R19TRU5TT1JTX0xNODUgaXMgbm90IHNldAojIENPTkZJR19TRU5TT1JTX0xNODcgaXMgbm90
+IHNldAojIENPTkZJR19TRU5TT1JTX0xNOTAgaXMgbm90IHNldAojIENPTkZJR19TRU5TT1JT
+X01BWDE2MTkgaXMgbm90IHNldAojIENPTkZJR19TRU5TT1JTX1BDODczNjAgaXMgbm90IHNl
+dAojIENPTkZJR19TRU5TT1JTX1NNU0M0N00xIGlzIG5vdCBzZXQKIyBDT05GSUdfU0VOU09S
+U19WSUE2ODZBIGlzIG5vdCBzZXQKIyBDT05GSUdfU0VOU09SU19XODM3ODFEIGlzIG5vdCBz
+ZXQKIyBDT05GSUdfU0VOU09SU19XODNMNzg1VFMgaXMgbm90IHNldAojIENPTkZJR19TRU5T
+T1JTX1c4MzYyN0hGIGlzIG5vdCBzZXQKCiMKIyBPdGhlciBJMkMgQ2hpcCBzdXBwb3J0CiMK
+IyBDT05GSUdfU0VOU09SU19FRVBST00gaXMgbm90IHNldAojIENPTkZJR19TRU5TT1JTX1BD
+Rjg1NzQgaXMgbm90IHNldAojIENPTkZJR19TRU5TT1JTX1BDRjg1OTEgaXMgbm90IHNldAoj
+IENPTkZJR19TRU5TT1JTX1JUQzg1NjQgaXMgbm90IHNldAojIENPTkZJR19JMkNfREVCVUdf
+Q09SRSBpcyBub3Qgc2V0CiMgQ09ORklHX0kyQ19ERUJVR19BTEdPIGlzIG5vdCBzZXQKIyBD
+T05GSUdfSTJDX0RFQlVHX0JVUyBpcyBub3Qgc2V0CiMgQ09ORklHX0kyQ19ERUJVR19DSElQ
+IGlzIG5vdCBzZXQKCiMKIyBEYWxsYXMncyAxLXdpcmUgYnVzCiMKIyBDT05GSUdfVzEgaXMg
+bm90IHNldAoKIwojIE1pc2MgZGV2aWNlcwojCiMgQ09ORklHX0lCTV9BU00gaXMgbm90IHNl
+dAoKIwojIE11bHRpbWVkaWEgZGV2aWNlcwojCiMgQ09ORklHX1ZJREVPX0RFViBpcyBub3Qg
+c2V0CgojCiMgRGlnaXRhbCBWaWRlbyBCcm9hZGNhc3RpbmcgRGV2aWNlcwojCiMgQ09ORklH
+X0RWQiBpcyBub3Qgc2V0CgojCiMgR3JhcGhpY3Mgc3VwcG9ydAojCiMgQ09ORklHX0ZCIGlz
+IG5vdCBzZXQKQ09ORklHX1ZJREVPX1NFTEVDVD15CgojCiMgQ29uc29sZSBkaXNwbGF5IGRy
+aXZlciBzdXBwb3J0CiMKQ09ORklHX1ZHQV9DT05TT0xFPXkKIyBDT05GSUdfTURBX0NPTlNP
+TEUgaXMgbm90IHNldApDT05GSUdfRFVNTVlfQ09OU09MRT15CgojCiMgU291bmQKIwpDT05G
+SUdfU09VTkQ9bQoKIwojIEFkdmFuY2VkIExpbnV4IFNvdW5kIEFyY2hpdGVjdHVyZQojCkNP
+TkZJR19TTkQ9bQpDT05GSUdfU05EX1RJTUVSPW0KQ09ORklHX1NORF9QQ009bQpDT05GSUdf
+U05EX0hXREVQPW0KQ09ORklHX1NORF9SQVdNSURJPW0KQ09ORklHX1NORF9TRVFVRU5DRVI9
+bQpDT05GSUdfU05EX1NFUV9EVU1NWT1tCkNPTkZJR19TTkRfT1NTRU1VTD15CkNPTkZJR19T
+TkRfTUlYRVJfT1NTPW0KQ09ORklHX1NORF9QQ01fT1NTPW0KQ09ORklHX1NORF9TRVFVRU5D
+RVJfT1NTPXkKQ09ORklHX1NORF9SVENUSU1FUj1tCiMgQ09ORklHX1NORF9WRVJCT1NFX1BS
+SU5USyBpcyBub3Qgc2V0CiMgQ09ORklHX1NORF9ERUJVRyBpcyBub3Qgc2V0CgojCiMgR2Vu
+ZXJpYyBkZXZpY2VzCiMKQ09ORklHX1NORF9NUFU0MDFfVUFSVD1tCkNPTkZJR19TTkRfT1BM
+M19MSUI9bQpDT05GSUdfU05EX0RVTU1ZPW0KQ09ORklHX1NORF9WSVJNSURJPW0KIyBDT05G
+SUdfU05EX01UUEFWIGlzIG5vdCBzZXQKIyBDT05GSUdfU05EX1NFUklBTF9VMTY1NTAgaXMg
+bm90IHNldApDT05GSUdfU05EX01QVTQwMT1tCgojCiMgSVNBIGRldmljZXMKIwojIENPTkZJ
+R19TTkRfQUQxODE2QSBpcyBub3Qgc2V0CiMgQ09ORklHX1NORF9BRDE4NDggaXMgbm90IHNl
+dAojIENPTkZJR19TTkRfQ1M0MjMxIGlzIG5vdCBzZXQKIyBDT05GSUdfU05EX0NTNDIzMiBp
+cyBub3Qgc2V0CiMgQ09ORklHX1NORF9DUzQyMzYgaXMgbm90IHNldAojIENPTkZJR19TTkRf
+RVM5NjggaXMgbm90IHNldAojIENPTkZJR19TTkRfRVMxNjg4IGlzIG5vdCBzZXQKIyBDT05G
+SUdfU05EX0VTMThYWCBpcyBub3Qgc2V0CiMgQ09ORklHX1NORF9HVVNDTEFTU0lDIGlzIG5v
+dCBzZXQKIyBDT05GSUdfU05EX0dVU0VYVFJFTUUgaXMgbm90IHNldAojIENPTkZJR19TTkRf
+R1VTTUFYIGlzIG5vdCBzZXQKIyBDT05GSUdfU05EX0lOVEVSV0FWRSBpcyBub3Qgc2V0CiMg
+Q09ORklHX1NORF9JTlRFUldBVkVfU1RCIGlzIG5vdCBzZXQKIyBDT05GSUdfU05EX09QVEk5
+MlhfQUQxODQ4IGlzIG5vdCBzZXQKIyBDT05GSUdfU05EX09QVEk5MlhfQ1M0MjMxIGlzIG5v
+dCBzZXQKIyBDT05GSUdfU05EX09QVEk5M1ggaXMgbm90IHNldAojIENPTkZJR19TTkRfU0I4
+IGlzIG5vdCBzZXQKIyBDT05GSUdfU05EX1NCMTYgaXMgbm90IHNldAojIENPTkZJR19TTkRf
+U0JBV0UgaXMgbm90IHNldAojIENPTkZJR19TTkRfV0FWRUZST05UIGlzIG5vdCBzZXQKIyBD
+T05GSUdfU05EX0FMUzEwMCBpcyBub3Qgc2V0CiMgQ09ORklHX1NORF9BWlQyMzIwIGlzIG5v
+dCBzZXQKIyBDT05GSUdfU05EX0NNSTgzMzAgaXMgbm90IHNldAojIENPTkZJR19TTkRfRFQw
+MTlYIGlzIG5vdCBzZXQKIyBDT05GSUdfU05EX09QTDNTQTIgaXMgbm90IHNldAojIENPTkZJ
+R19TTkRfU0dBTEFYWSBpcyBub3Qgc2V0CiMgQ09ORklHX1NORF9TU0NBUEUgaXMgbm90IHNl
+dAoKIwojIFBDSSBkZXZpY2VzCiMKIyBDT05GSUdfU05EX0FMSTU0NTEgaXMgbm90IHNldAoj
+IENPTkZJR19TTkRfQVRJSVhQIGlzIG5vdCBzZXQKIyBDT05GSUdfU05EX0FUSUlYUF9NT0RF
+TSBpcyBub3Qgc2V0CiMgQ09ORklHX1NORF9BVTg4MTAgaXMgbm90IHNldAojIENPTkZJR19T
+TkRfQVU4ODIwIGlzIG5vdCBzZXQKIyBDT05GSUdfU05EX0FVODgzMCBpcyBub3Qgc2V0CiMg
+Q09ORklHX1NORF9BWlQzMzI4IGlzIG5vdCBzZXQKIyBDT05GSUdfU05EX0JUODdYIGlzIG5v
+dCBzZXQKIyBDT05GSUdfU05EX0NTNDZYWCBpcyBub3Qgc2V0CiMgQ09ORklHX1NORF9DUzQy
+ODEgaXMgbm90IHNldAojIENPTkZJR19TTkRfRU1VMTBLMSBpcyBub3Qgc2V0CiMgQ09ORklH
+X1NORF9LT1JHMTIxMiBpcyBub3Qgc2V0CiMgQ09ORklHX1NORF9NSVhBUlQgaXMgbm90IHNl
+dAojIENPTkZJR19TTkRfTk0yNTYgaXMgbm90IHNldAojIENPTkZJR19TTkRfUk1FMzIgaXMg
+bm90IHNldAojIENPTkZJR19TTkRfUk1FOTYgaXMgbm90IHNldAojIENPTkZJR19TTkRfUk1F
+OTY1MiBpcyBub3Qgc2V0CiMgQ09ORklHX1NORF9IRFNQIGlzIG5vdCBzZXQKIyBDT05GSUdf
+U05EX1RSSURFTlQgaXMgbm90IHNldAojIENPTkZJR19TTkRfWU1GUENJIGlzIG5vdCBzZXQK
+IyBDT05GSUdfU05EX0FMUzQwMDAgaXMgbm90IHNldApDT05GSUdfU05EX0NNSVBDST1tCiMg
+Q09ORklHX1NORF9FTlMxMzcwIGlzIG5vdCBzZXQKIyBDT05GSUdfU05EX0VOUzEzNzEgaXMg
+bm90IHNldAojIENPTkZJR19TTkRfRVMxOTM4IGlzIG5vdCBzZXQKIyBDT05GSUdfU05EX0VT
+MTk2OCBpcyBub3Qgc2V0CiMgQ09ORklHX1NORF9NQUVTVFJPMyBpcyBub3Qgc2V0CiMgQ09O
+RklHX1NORF9GTTgwMSBpcyBub3Qgc2V0CiMgQ09ORklHX1NORF9JQ0UxNzEyIGlzIG5vdCBz
+ZXQKIyBDT05GSUdfU05EX0lDRTE3MjQgaXMgbm90IHNldAojIENPTkZJR19TTkRfSU5URUw4
+WDAgaXMgbm90IHNldAojIENPTkZJR19TTkRfSU5URUw4WDBNIGlzIG5vdCBzZXQKIyBDT05G
+SUdfU05EX1NPTklDVklCRVMgaXMgbm90IHNldAojIENPTkZJR19TTkRfVklBODJYWCBpcyBu
+b3Qgc2V0CiMgQ09ORklHX1NORF9WWDIyMiBpcyBub3Qgc2V0CgojCiMgVVNCIGRldmljZXMK
+IwojIENPTkZJR19TTkRfVVNCX0FVRElPIGlzIG5vdCBzZXQKIyBDT05GSUdfU05EX1VTQl9V
+U1gyWSBpcyBub3Qgc2V0CgojCiMgT3BlbiBTb3VuZCBTeXN0ZW0KIwojIENPTkZJR19TT1VO
+RF9QUklNRSBpcyBub3Qgc2V0CgojCiMgVVNCIHN1cHBvcnQKIwpDT05GSUdfVVNCPW0KIyBD
+T05GSUdfVVNCX0RFQlVHIGlzIG5vdCBzZXQKCiMKIyBNaXNjZWxsYW5lb3VzIFVTQiBvcHRp
+b25zCiMKQ09ORklHX1VTQl9ERVZJQ0VGUz15CkNPTkZJR19VU0JfQkFORFdJRFRIPXkKIyBD
+T05GSUdfVVNCX0RZTkFNSUNfTUlOT1JTIGlzIG5vdCBzZXQKQ09ORklHX1VTQl9TVVNQRU5E
+PXkKIyBDT05GSUdfVVNCX09URyBpcyBub3Qgc2V0CkNPTkZJR19VU0JfQVJDSF9IQVNfSENE
+PXkKQ09ORklHX1VTQl9BUkNIX0hBU19PSENJPXkKCiMKIyBVU0IgSG9zdCBDb250cm9sbGVy
+IERyaXZlcnMKIwpDT05GSUdfVVNCX0VIQ0lfSENEPW0KQ09ORklHX1VTQl9FSENJX1NQTElU
+X0lTTz15CkNPTkZJR19VU0JfRUhDSV9ST09UX0hVQl9UVD15CiMgQ09ORklHX1VTQl9PSENJ
+X0hDRCBpcyBub3Qgc2V0CkNPTkZJR19VU0JfVUhDSV9IQ0Q9bQoKIwojIFVTQiBEZXZpY2Ug
+Q2xhc3MgZHJpdmVycwojCiMgQ09ORklHX1VTQl9BVURJTyBpcyBub3Qgc2V0CiMgQ09ORklH
+X1VTQl9CTFVFVE9PVEhfVFRZIGlzIG5vdCBzZXQKIyBDT05GSUdfVVNCX01JREkgaXMgbm90
+IHNldAojIENPTkZJR19VU0JfQUNNIGlzIG5vdCBzZXQKQ09ORklHX1VTQl9QUklOVEVSPW0K
+Q09ORklHX1VTQl9TVE9SQUdFPW0KIyBDT05GSUdfVVNCX1NUT1JBR0VfREVCVUcgaXMgbm90
+IHNldApDT05GSUdfVVNCX1NUT1JBR0VfUldfREVURUNUPXkKIyBDT05GSUdfVVNCX1NUT1JB
+R0VfREFUQUZBQiBpcyBub3Qgc2V0CiMgQ09ORklHX1VTQl9TVE9SQUdFX0ZSRUVDT00gaXMg
+bm90IHNldAojIENPTkZJR19VU0JfU1RPUkFHRV9JU0QyMDAgaXMgbm90IHNldAojIENPTkZJ
+R19VU0JfU1RPUkFHRV9EUENNIGlzIG5vdCBzZXQKIyBDT05GSUdfVVNCX1NUT1JBR0VfSFA4
+MjAwZSBpcyBub3Qgc2V0CiMgQ09ORklHX1VTQl9TVE9SQUdFX1NERFIwOSBpcyBub3Qgc2V0
+CiMgQ09ORklHX1VTQl9TVE9SQUdFX1NERFI1NSBpcyBub3Qgc2V0CiMgQ09ORklHX1VTQl9T
+VE9SQUdFX0pVTVBTSE9UIGlzIG5vdCBzZXQKCiMKIyBVU0IgSW5wdXQgRGV2aWNlcwojCkNP
+TkZJR19VU0JfSElEPW0KQ09ORklHX1VTQl9ISURJTlBVVD15CiMgQ09ORklHX0hJRF9GRiBp
+cyBub3Qgc2V0CiMgQ09ORklHX1VTQl9ISURERVYgaXMgbm90IHNldAoKIwojIFVTQiBISUQg
+Qm9vdCBQcm90b2NvbCBkcml2ZXJzCiMKIyBDT05GSUdfVVNCX0tCRCBpcyBub3Qgc2V0CiMg
+Q09ORklHX1VTQl9NT1VTRSBpcyBub3Qgc2V0CiMgQ09ORklHX1VTQl9BSVBURUsgaXMgbm90
+IHNldAojIENPTkZJR19VU0JfV0FDT00gaXMgbm90IHNldAojIENPTkZJR19VU0JfS0JUQUIg
+aXMgbm90IHNldAojIENPTkZJR19VU0JfUE9XRVJNQVRFIGlzIG5vdCBzZXQKIyBDT05GSUdf
+VVNCX01UT1VDSCBpcyBub3Qgc2V0CiMgQ09ORklHX1VTQl9FR0FMQVggaXMgbm90IHNldAoj
+IENPTkZJR19VU0JfWFBBRCBpcyBub3Qgc2V0CiMgQ09ORklHX1VTQl9BVElfUkVNT1RFIGlz
+IG5vdCBzZXQKCiMKIyBVU0IgSW1hZ2luZyBkZXZpY2VzCiMKIyBDT05GSUdfVVNCX01EQzgw
+MCBpcyBub3Qgc2V0CiMgQ09ORklHX1VTQl9NSUNST1RFSyBpcyBub3Qgc2V0CiMgQ09ORklH
+X1VTQl9IUFVTQlNDU0kgaXMgbm90IHNldAoKIwojIFVTQiBNdWx0aW1lZGlhIGRldmljZXMK
+IwojIENPTkZJR19VU0JfREFCVVNCIGlzIG5vdCBzZXQKCiMKIyBWaWRlbzRMaW51eCBzdXBw
+b3J0IGlzIG5lZWRlZCBmb3IgVVNCIE11bHRpbWVkaWEgZGV2aWNlIHN1cHBvcnQKIwoKIwoj
+IFVTQiBOZXR3b3JrIEFkYXB0ZXJzCiMKIyBDT05GSUdfVVNCX0NBVEMgaXMgbm90IHNldAoj
+IENPTkZJR19VU0JfS0FXRVRIIGlzIG5vdCBzZXQKIyBDT05GSUdfVVNCX1BFR0FTVVMgaXMg
+bm90IHNldAojIENPTkZJR19VU0JfUlRMODE1MCBpcyBub3Qgc2V0CiMgQ09ORklHX1VTQl9V
+U0JORVQgaXMgbm90IHNldAoKIwojIFVTQiBwb3J0IGRyaXZlcnMKIwojIENPTkZJR19VU0Jf
+VVNTNzIwIGlzIG5vdCBzZXQKCiMKIyBVU0IgU2VyaWFsIENvbnZlcnRlciBzdXBwb3J0CiMK
+IyBDT05GSUdfVVNCX1NFUklBTCBpcyBub3Qgc2V0CgojCiMgVVNCIE1pc2NlbGxhbmVvdXMg
+ZHJpdmVycwojCiMgQ09ORklHX1VTQl9FTUk2MiBpcyBub3Qgc2V0CiMgQ09ORklHX1VTQl9F
+TUkyNiBpcyBub3Qgc2V0CiMgQ09ORklHX1VTQl9USUdMIGlzIG5vdCBzZXQKIyBDT05GSUdf
+VVNCX0FVRVJTV0FMRCBpcyBub3Qgc2V0CiMgQ09ORklHX1VTQl9SSU81MDAgaXMgbm90IHNl
+dAojIENPTkZJR19VU0JfTEVHT1RPV0VSIGlzIG5vdCBzZXQKIyBDT05GSUdfVVNCX0xDRCBp
+cyBub3Qgc2V0CiMgQ09ORklHX1VTQl9MRUQgaXMgbm90IHNldAojIENPTkZJR19VU0JfQ1lU
+SEVSTSBpcyBub3Qgc2V0CiMgQ09ORklHX1VTQl9QSElER0VUS0lUIGlzIG5vdCBzZXQKIyBD
+T05GSUdfVVNCX1BISURHRVRTRVJWTyBpcyBub3Qgc2V0CiMgQ09ORklHX1VTQl9URVNUIGlz
+IG5vdCBzZXQKCiMKIyBVU0IgQVRNL0RTTCBkcml2ZXJzCiMKCiMKIyBVU0IgR2FkZ2V0IFN1
+cHBvcnQKIwojIENPTkZJR19VU0JfR0FER0VUIGlzIG5vdCBzZXQKCiMKIyBGaWxlIHN5c3Rl
+bXMKIwpDT05GSUdfRVhUMl9GUz15CiMgQ09ORklHX0VYVDJfRlNfWEFUVFIgaXMgbm90IHNl
+dApDT05GSUdfRVhUM19GUz15CkNPTkZJR19FWFQzX0ZTX1hBVFRSPXkKQ09ORklHX0VYVDNf
+RlNfUE9TSVhfQUNMPXkKIyBDT05GSUdfRVhUM19GU19TRUNVUklUWSBpcyBub3Qgc2V0CkNP
+TkZJR19KQkQ9eQojIENPTkZJR19KQkRfREVCVUcgaXMgbm90IHNldApDT05GSUdfRlNfTUJD
+QUNIRT15CiMgQ09ORklHX1JFSVNFUkZTX0ZTIGlzIG5vdCBzZXQKIyBDT05GSUdfSkZTX0ZT
+IGlzIG5vdCBzZXQKQ09ORklHX0ZTX1BPU0lYX0FDTD15CiMgQ09ORklHX1hGU19GUyBpcyBu
+b3Qgc2V0CiMgQ09ORklHX01JTklYX0ZTIGlzIG5vdCBzZXQKIyBDT05GSUdfUk9NRlNfRlMg
+aXMgbm90IHNldAojIENPTkZJR19RVU9UQSBpcyBub3Qgc2V0CkNPTkZJR19ETk9USUZZPXkK
+IyBDT05GSUdfQVVUT0ZTX0ZTIGlzIG5vdCBzZXQKQ09ORklHX0FVVE9GUzRfRlM9eQoKIwoj
+IENELVJPTS9EVkQgRmlsZXN5c3RlbXMKIwpDT05GSUdfSVNPOTY2MF9GUz15CkNPTkZJR19K
+T0xJRVQ9eQpDT05GSUdfWklTT0ZTPXkKQ09ORklHX1pJU09GU19GUz15CkNPTkZJR19VREZf
+RlM9eQpDT05GSUdfVURGX05MUz15CgojCiMgRE9TL0ZBVC9OVCBGaWxlc3lzdGVtcwojCkNP
+TkZJR19GQVRfRlM9eQpDT05GSUdfTVNET1NfRlM9eQpDT05GSUdfVkZBVF9GUz15CkNPTkZJ
+R19GQVRfREVGQVVMVF9DT0RFUEFHRT00MzcKQ09ORklHX0ZBVF9ERUZBVUxUX0lPQ0hBUlNF
+VD0iaXNvODg1OS0xIgpDT05GSUdfTlRGU19GUz1tCiMgQ09ORklHX05URlNfREVCVUcgaXMg
+bm90IHNldApDT05GSUdfTlRGU19SVz15CgojCiMgUHNldWRvIGZpbGVzeXN0ZW1zCiMKQ09O
+RklHX1BST0NfRlM9eQpDT05GSUdfUFJPQ19LQ09SRT15CkNPTkZJR19TWVNGUz15CiMgQ09O
+RklHX0RFVkZTX0ZTIGlzIG5vdCBzZXQKQ09ORklHX0RFVlBUU19GU19YQVRUUj15CiMgQ09O
+RklHX0RFVlBUU19GU19TRUNVUklUWSBpcyBub3Qgc2V0CkNPTkZJR19UTVBGUz15CiMgQ09O
+RklHX1RNUEZTX1hBVFRSIGlzIG5vdCBzZXQKQ09ORklHX0hVR0VUTEJGUz15CkNPTkZJR19I
+VUdFVExCX1BBR0U9eQpDT05GSUdfUkFNRlM9eQoKIwojIE1pc2NlbGxhbmVvdXMgZmlsZXN5
+c3RlbXMKIwojIENPTkZJR19BREZTX0ZTIGlzIG5vdCBzZXQKIyBDT05GSUdfQUZGU19GUyBp
+cyBub3Qgc2V0CiMgQ09ORklHX0hGU19GUyBpcyBub3Qgc2V0CiMgQ09ORklHX0hGU1BMVVNf
+RlMgaXMgbm90IHNldAojIENPTkZJR19CRUZTX0ZTIGlzIG5vdCBzZXQKIyBDT05GSUdfQkZT
+X0ZTIGlzIG5vdCBzZXQKIyBDT05GSUdfRUZTX0ZTIGlzIG5vdCBzZXQKIyBDT05GSUdfQ1JB
+TUZTIGlzIG5vdCBzZXQKIyBDT05GSUdfVlhGU19GUyBpcyBub3Qgc2V0CiMgQ09ORklHX0hQ
+RlNfRlMgaXMgbm90IHNldAojIENPTkZJR19RTlg0RlNfRlMgaXMgbm90IHNldAojIENPTkZJ
+R19TWVNWX0ZTIGlzIG5vdCBzZXQKIyBDT05GSUdfVUZTX0ZTIGlzIG5vdCBzZXQKCiMKIyBO
+ZXR3b3JrIEZpbGUgU3lzdGVtcwojCkNPTkZJR19ORlNfRlM9bQojIENPTkZJR19ORlNfVjMg
+aXMgbm90IHNldAojIENPTkZJR19ORlNfVjQgaXMgbm90IHNldAojIENPTkZJR19ORlNfRElS
+RUNUSU8gaXMgbm90IHNldApDT05GSUdfTkZTRD1tCiMgQ09ORklHX05GU0RfVjMgaXMgbm90
+IHNldAojIENPTkZJR19ORlNEX1RDUCBpcyBub3Qgc2V0CkNPTkZJR19MT0NLRD1tCkNPTkZJ
+R19FWFBPUlRGUz1tCkNPTkZJR19TVU5SUEM9bQojIENPTkZJR19SUENTRUNfR1NTX0tSQjUg
+aXMgbm90IHNldAojIENPTkZJR19SUENTRUNfR1NTX1NQS00zIGlzIG5vdCBzZXQKQ09ORklH
+X1NNQl9GUz1tCkNPTkZJR19TTUJfTkxTX0RFRkFVTFQ9eQpDT05GSUdfU01CX05MU19SRU1P
+VEU9ImNwODY2IgpDT05GSUdfQ0lGUz1tCkNPTkZJR19DSUZTX1NUQVRTPXkKQ09ORklHX0NJ
+RlNfWEFUVFI9eQpDT05GSUdfQ0lGU19QT1NJWD15CiMgQ09ORklHX05DUF9GUyBpcyBub3Qg
+c2V0CiMgQ09ORklHX0NPREFfRlMgaXMgbm90IHNldAojIENPTkZJR19BRlNfRlMgaXMgbm90
+IHNldAoKIwojIFBhcnRpdGlvbiBUeXBlcwojCiMgQ09ORklHX1BBUlRJVElPTl9BRFZBTkNF
+RCBpcyBub3Qgc2V0CkNPTkZJR19NU0RPU19QQVJUSVRJT049eQoKIwojIE5hdGl2ZSBMYW5n
+dWFnZSBTdXBwb3J0CiMKQ09ORklHX05MUz15CkNPTkZJR19OTFNfREVGQVVMVD0ia29pOC1y
+IgpDT05GSUdfTkxTX0NPREVQQUdFXzQzNz15CiMgQ09ORklHX05MU19DT0RFUEFHRV83Mzcg
+aXMgbm90IHNldAojIENPTkZJR19OTFNfQ09ERVBBR0VfNzc1IGlzIG5vdCBzZXQKIyBDT05G
+SUdfTkxTX0NPREVQQUdFXzg1MCBpcyBub3Qgc2V0CiMgQ09ORklHX05MU19DT0RFUEFHRV84
+NTIgaXMgbm90IHNldAojIENPTkZJR19OTFNfQ09ERVBBR0VfODU1IGlzIG5vdCBzZXQKIyBD
+T05GSUdfTkxTX0NPREVQQUdFXzg1NyBpcyBub3Qgc2V0CiMgQ09ORklHX05MU19DT0RFUEFH
+RV84NjAgaXMgbm90IHNldAojIENPTkZJR19OTFNfQ09ERVBBR0VfODYxIGlzIG5vdCBzZXQK
+IyBDT05GSUdfTkxTX0NPREVQQUdFXzg2MiBpcyBub3Qgc2V0CiMgQ09ORklHX05MU19DT0RF
+UEFHRV84NjMgaXMgbm90IHNldAojIENPTkZJR19OTFNfQ09ERVBBR0VfODY0IGlzIG5vdCBz
+ZXQKIyBDT05GSUdfTkxTX0NPREVQQUdFXzg2NSBpcyBub3Qgc2V0CkNPTkZJR19OTFNfQ09E
+RVBBR0VfODY2PW0KIyBDT05GSUdfTkxTX0NPREVQQUdFXzg2OSBpcyBub3Qgc2V0CiMgQ09O
+RklHX05MU19DT0RFUEFHRV85MzYgaXMgbm90IHNldAojIENPTkZJR19OTFNfQ09ERVBBR0Vf
+OTUwIGlzIG5vdCBzZXQKIyBDT05GSUdfTkxTX0NPREVQQUdFXzkzMiBpcyBub3Qgc2V0CiMg
+Q09ORklHX05MU19DT0RFUEFHRV85NDkgaXMgbm90IHNldAojIENPTkZJR19OTFNfQ09ERVBB
+R0VfODc0IGlzIG5vdCBzZXQKIyBDT05GSUdfTkxTX0lTTzg4NTlfOCBpcyBub3Qgc2V0CiMg
+Q09ORklHX05MU19DT0RFUEFHRV8xMjUwIGlzIG5vdCBzZXQKIyBDT05GSUdfTkxTX0NPREVQ
+QUdFXzEyNTEgaXMgbm90IHNldAojIENPTkZJR19OTFNfQVNDSUkgaXMgbm90IHNldApDT05G
+SUdfTkxTX0lTTzg4NTlfMT1tCiMgQ09ORklHX05MU19JU084ODU5XzIgaXMgbm90IHNldAoj
+IENPTkZJR19OTFNfSVNPODg1OV8zIGlzIG5vdCBzZXQKIyBDT05GSUdfTkxTX0lTTzg4NTlf
+NCBpcyBub3Qgc2V0CkNPTkZJR19OTFNfSVNPODg1OV81PW0KIyBDT05GSUdfTkxTX0lTTzg4
+NTlfNiBpcyBub3Qgc2V0CiMgQ09ORklHX05MU19JU084ODU5XzcgaXMgbm90IHNldAojIENP
+TkZJR19OTFNfSVNPODg1OV85IGlzIG5vdCBzZXQKIyBDT05GSUdfTkxTX0lTTzg4NTlfMTMg
+aXMgbm90IHNldAojIENPTkZJR19OTFNfSVNPODg1OV8xNCBpcyBub3Qgc2V0CiMgQ09ORklH
+X05MU19JU084ODU5XzE1IGlzIG5vdCBzZXQKQ09ORklHX05MU19LT0k4X1I9eQojIENPTkZJ
+R19OTFNfS09JOF9VIGlzIG5vdCBzZXQKQ09ORklHX05MU19VVEY4PXkKCiMKIyBQcm9maWxp
+bmcgc3VwcG9ydAojCkNPTkZJR19QUk9GSUxJTkc9eQpDT05GSUdfT1BST0ZJTEU9bQoKIwoj
+IEtlcm5lbCBoYWNraW5nCiMKQ09ORklHX0RFQlVHX0tFUk5FTD15CkNPTkZJR19NQUdJQ19T
+WVNSUT15CiMgQ09ORklHX1NDSEVEU1RBVFMgaXMgbm90IHNldApDT05GSUdfREVCVUdfU0xB
+Qj15CkNPTkZJR19ERUJVR19TUElOTE9DSz15CkNPTkZJR19ERUJVR19TUElOTE9DS19TTEVF
+UD15CiMgQ09ORklHX0RFQlVHX0tPQkpFQ1QgaXMgbm90IHNldApDT05GSUdfREVCVUdfSElH
+SE1FTT15CkNPTkZJR19ERUJVR19JTkZPPXkKQ09ORklHX0ZSQU1FX1BPSU5URVI9eQpDT05G
+SUdfRUFSTFlfUFJJTlRLPXkKQ09ORklHX0RFQlVHX1NUQUNLT1ZFUkZMT1c9eQpDT05GSUdf
+S1BST0JFUz15CkNPTkZJR19ERUJVR19TVEFDS19VU0FHRT15CiMgQ09ORklHX0RFQlVHX1BB
+R0VBTExPQyBpcyBub3Qgc2V0CkNPTkZJR180S1NUQUNLUz15CkNPTkZJR19YODZfRklORF9T
+TVBfQ09ORklHPXkKQ09ORklHX1g4Nl9NUFBBUlNFPXkKCiMKIyBTZWN1cml0eSBvcHRpb25z
+CiMKIyBDT05GSUdfS0VZUyBpcyBub3Qgc2V0CiMgQ09ORklHX1NFQ1VSSVRZIGlzIG5vdCBz
+ZXQKCiMKIyBDcnlwdG9ncmFwaGljIG9wdGlvbnMKIwpDT05GSUdfQ1JZUFRPPXkKQ09ORklH
+X0NSWVBUT19ITUFDPXkKIyBDT05GSUdfQ1JZUFRPX05VTEwgaXMgbm90IHNldAojIENPTkZJ
+R19DUllQVE9fTUQ0IGlzIG5vdCBzZXQKQ09ORklHX0NSWVBUT19NRDU9bQpDT05GSUdfQ1JZ
+UFRPX1NIQTE9bQojIENPTkZJR19DUllQVE9fU0hBMjU2IGlzIG5vdCBzZXQKIyBDT05GSUdf
+Q1JZUFRPX1NIQTUxMiBpcyBub3Qgc2V0CiMgQ09ORklHX0NSWVBUT19XUDUxMiBpcyBub3Qg
+c2V0CkNPTkZJR19DUllQVE9fREVTPW0KIyBDT05GSUdfQ1JZUFRPX0JMT1dGSVNIIGlzIG5v
+dCBzZXQKIyBDT05GSUdfQ1JZUFRPX1RXT0ZJU0ggaXMgbm90IHNldAojIENPTkZJR19DUllQ
+VE9fU0VSUEVOVCBpcyBub3Qgc2V0CiMgQ09ORklHX0NSWVBUT19BRVNfNTg2IGlzIG5vdCBz
+ZXQKIyBDT05GSUdfQ1JZUFRPX0NBU1Q1IGlzIG5vdCBzZXQKIyBDT05GSUdfQ1JZUFRPX0NB
+U1Q2IGlzIG5vdCBzZXQKIyBDT05GSUdfQ1JZUFRPX1RFQSBpcyBub3Qgc2V0CiMgQ09ORklH
+X0NSWVBUT19BUkM0IGlzIG5vdCBzZXQKIyBDT05GSUdfQ1JZUFRPX0tIQVpBRCBpcyBub3Qg
+c2V0CiMgQ09ORklHX0NSWVBUT19BTlVCSVMgaXMgbm90IHNldApDT05GSUdfQ1JZUFRPX0RF
+RkxBVEU9bQojIENPTkZJR19DUllQVE9fTUlDSEFFTF9NSUMgaXMgbm90IHNldAojIENPTkZJ
+R19DUllQVE9fQ1JDMzJDIGlzIG5vdCBzZXQKIyBDT05GSUdfQ1JZUFRPX1RFU1QgaXMgbm90
+IHNldAoKIwojIExpYnJhcnkgcm91dGluZXMKIwpDT05GSUdfQ1JDX0NDSVRUPW0KQ09ORklH
+X0NSQzMyPW0KQ09ORklHX0xJQkNSQzMyQz1tCkNPTkZJR19aTElCX0lORkxBVEU9eQpDT05G
+SUdfWkxJQl9ERUZMQVRFPW0KQ09ORklHX0dFTkVSSUNfSEFSRElSUVM9eQpDT05GSUdfR0VO
+RVJJQ19JUlFfUFJPQkU9eQpDT05GSUdfWDg2X1NNUD15CkNPTkZJR19YODZfSFQ9eQpDT05G
+SUdfWDg2X0JJT1NfUkVCT09UPXkKQ09ORklHX1g4Nl9UUkFNUE9MSU5FPXkKQ09ORklHX1BD
+PXkK
+--------------060008040705080300000104--
 
 
 -------------------------------------------------------
