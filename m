@@ -1,13 +1,13 @@
-From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
-Subject: Re: [PATHC] Relaxed syntax for the processor PBLK length
-Date: Mon, 31 Jan 2005 19:53:08 +0100
-Message-ID: <20050131185308.GA8700@dominikbrodowski.de>
-References: <41FD3E02.8010701@tremplin-utc.net> <20050131145836.GA1145@poupinou.org> <41FE4ABF.9040100@tremplin-utc.net> <20050131152931.GC1145@poupinou.org> <20050131155917.GA4416@dominikbrodowski.de> <20050131163603.GE1145@poupinou.org>
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: DSDT from within windows?
+Date: Mon, 31 Jan 2005 13:18:41 -0800
+Message-ID: <971FCB6690CD0E4898387DBF7552B90E7129AB@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20050131163603.GE1145-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,38 +17,83 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: Eric Piel <Eric.Piel-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org>, Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Starikovskiy, Alexey Y" <alexey.y.starikovskiy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bernard Blackham <bernard-4vSAtV5O1nc0n/F98K4Iww@public.gmane.org>, Jing Su <gargamel.su-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Walz, Michael" <michael.walz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jan 31, 2005 at 05:36:03PM +0100, Bruno Ducrot wrote:
-> On Mon, Jan 31, 2005 at 04:59:17PM +0100, Dominik Brodowski wrote:
-> > On Mon, Jan 31, 2005 at 04:29:31PM +0100, Bruno Ducrot wrote:
-> > > On Mon, Jan 31, 2005 at 04:11:59PM +0100, Eric Piel wrote:
-> > > > Why? Actually this patch is especially designed to allow C3 state to be 
-> > > > used on my computer. This works for more than 6 months without any 
-> > > > appearent problem, is there anything I'm not aware of?
-> > > 
-> > > I thought some BIOS devellopers wanted to use a size for the
-> > > pblk of 5 just to not allow C3 (which correspond to the sixth io
-> > > register).
-> > > 
-> > > I'm not alone to think this.
-> > > 
-> > > Nate: FreeBSD allow only C2 in this case.  What do you think about this
-> > > report?
-> > > Do you have an example of some kind of malfunction when enabling C3?
-> > 
-> > IIRC my desktop has a pblk of 5, and enabling _C2_ causes random lockups.
-> > 
-> 
-> Does your desktop support throttling?
+Seems like the SSDT(s) are not present in the registry, at least with
+XP.
 
-brodo@mondschein ~ $ cat /proc/acpi/processor/CPU0/throttling
-<not supported>
+iASL -g will grab these tables out of the registry;  I have not seen an
+SSDT under HKEY_LOCAL_MACHINE\HARDWARE\ACPI, however.
 
-:)
-	Dominik
+> -----Original Message-----
+> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
+> admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Starikovskiy, Alexey Y
+> Sent: Monday, January 31, 2005 2:12 AM
+> To: Bernard Blackham; Jing Su
+> Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: RE: [ACPI] DSDT from within windows?
+>=20
+> It's in registry, with all other ACPI tables:
+>=20
+> HKEY_LOCAL_MACHINE\HARDWARE\ACPI\DSDT
+>=20
+>=20
+> Regards,
+> 	Alex.
+> >-----Original Message-----
+> >From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
+> >admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Bernard Blackham
+> >Sent: Monday, January 31, 2005 5:55 AM
+> >To: Jing Su
+> >Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> >Subject: Re: [ACPI] DSDT from within windows?
+> >
+> >On Sun, Jan 30, 2005 at 09:41:03PM -0500, Jing Su wrote:
+> >> I wondered if maybe Windows also allows OEMs to over-ride the
+> >> DSDT.  Maybe the hardware guys only had limited time to
+> >> provide a hacked up version, and their driver writers  provide a
+> >> patched one later.
+> >>
+> >> I've tried some googling, but found no hits thus far.  Anyone know
+if
+> >> it's possible to pull the active DSDT from a running Windows XP
+> >> session?
+> >
+> >I've no idea how to get it from a live session, but perhaps you
+> >could grep the windows folder for the string "DSDT" to see what
+> >turns up?
+> >
+> >Bernard.
+> >
+> >--
+> > Bernard Blackham <bernard at blackham dot com dot au>
+> >
+> >
+> >-------------------------------------------------------
+> >This SF.Net email is sponsored by: IntelliVIEW -- Interactive
+Reporting
+> >Tool for open source databases. Create drag-&-drop reports. Save time
+> >by over 75%! Publish reports on the web. Export to DOC, XLS, RTF,
+etc.
+> >Download a FREE copy at http://www.intelliview.com/go/osdn_nl
+> >_______________________________________________
+> >Acpi-devel mailing list
+> >Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> >https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>=20
+>=20
+> -------------------------------------------------------
+> This SF.Net email is sponsored by: IntelliVIEW -- Interactive
+Reporting
+> Tool for open source databases. Create drag-&-drop reports. Save time
+> by over 75%! Publish reports on the web. Export to DOC, XLS, RTF, etc.
+> Download a FREE copy at http://www.intelliview.com/go/osdn_nl
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
