@@ -1,76 +1,59 @@
-From: Vernon Mauery <vernux-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Simply a question
-Date: Mon, 13 Sep 2004 11:13:09 -0700
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1095091619.24292.9.camel@localhost.localdomain>
-References: <I3ZCVM$29288463650BED0B5BA0CE522E48D1CB@libero.it>
+From: Alex Williamson <alex.williamson@hp.com>
+Subject: [PATCH] restore _OS object to "Linux" for ia64
+Date: Mon, 13 Sep 2004 12:27:48 -0600
+Sender: linux-ia64-owner@vger.kernel.org
+Message-ID: <1095100068.20631.30.camel@tdi>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <I3ZCVM$29288463650BED0B5BA0CE522E48D1CB-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Gaetano Sferra <gaesferr-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org>
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <linux-ia64-owner@vger.kernel.org>
+To: linux-ia64@vger.kernel.org, acpi-devel <acpi-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2004-09-13 at 05:47, Gaetano Sferra wrote:
-> I'm a newsbie to the ACPI system and I've a simple question: 
-> What can happen to my CPU if I turn off the acpi support in the kernel?
 
-ACPI is the new way of having the hardware and software work together to
-deal with power/thermal/configuration issues.  In the old way (APM),
-BIOS would simply tell the kernel, "the battery is too low, I am
-suspending" and then do it.  ACPI offers a way to move the policy out
-into kernel land (and even sometimes userland) so the hardware simply
-reports events and stuff.  Then, the kernel or app can respond
-appropriately to the events and keep the system working in the best
-possible way.
+   A recent change to ACPI made the _OS object falsely report the OS as
+"Microsoft Windows NT".  This seems like a slippery slope, and I'd
+rather not go down it for ia64.  I think all of the ia64 OEMs are
+involved enough with Linux that this isn't necessary and the change
+limits the options should ACPI firmware need to make an OS specific work
+around.  The patch below will make all ia64 boxes report a default _OS
+of "Linux".  Thanks,
 
-The message that says your machine will be damaged might be a bit
-misleading, but in some cases it is true.  Some newer machines are
-legacy free (meaning no APM) and MUST have ACPI support in the kernel to
-work properly.  So, if you can determine if your machine can use APM or
-not, this would tell you if you can disable ACPI support.  However, ACPI
-seems to work quite well on many newer machines, even to the point that
-you can use it instead of APM.
+	Alex
 
---Vernon
+-- 
+Signed-off-by: Alex Williamson <alex.williamson@hp.com>
 
-> The reason of this "strange" or "stipid" question is the help message in the
-> kernel help regards the thermal control: "If you use a laptop you should say Y
-> here, otherwise your CPU can be damaged". If it is true then it implies that the
-> ACPI software command the on/off of the cooling fan or something similar but
-> isn't it an unsafe behavior? Shouldn't be the BIOS or some hardware to control
-> this stuffs?
-> 
-> Thank you for explainations.
-> Gaetano Sferra
-> 
-> 
-> 
-> -------------------------------------------------------
-> This SF.Net email is sponsored by: YOU BE THE JUDGE. Be one of 170
-> Project Admins to receive an Apple iPod Mini FREE for your judgement on
-> who ports your project to Linux PPC the best. Sponsored by IBM. 
-> Deadline: Sept. 13. Go here: http://sf.net/ppc_contest.php
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> 
+===== arch/ia64/kernel/acpi.c 1.74 vs edited =====
+--- 1.74/arch/ia64/kernel/acpi.c	Thu Aug  5 22:40:29 2004
++++ edited/arch/ia64/kernel/acpi.c	Mon Sep 13 09:32:46 2004
+@@ -629,6 +629,13 @@
+ #endif
+ 	/* Make boot-up look pretty */
+ 	printk(KERN_INFO "%d CPUs available, %d CPUs total\n", available_cpus, total_cpus);
++
++	/*
++	 * Make the _OS object report the right name, ia64 Linux has
++	 * enough OEM support that we shouldn't need to fake another OS.
++	 */
++	acpi_os_name_setup("Linux");
++
+ 	return 0;
+ }
+ 
+===== include/acpi/acpiosxf.h 1.34 vs edited =====
+--- 1.34/include/acpi/acpiosxf.h	Fri Jul 16 23:37:53 2004
++++ edited/include/acpi/acpiosxf.h	Mon Sep 13 09:38:55 2004
+@@ -313,6 +313,10 @@
+ 	u32                             function,
+ 	void                            *info);
+ 
++int __init
++acpi_os_name_setup (
++	char				*str);
++
+ /*
+  * Debug print routines
+  */
 
 
-
--------------------------------------------------------
-This SF.Net email is sponsored by: YOU BE THE JUDGE. Be one of 170
-Project Admins to receive an Apple iPod Mini FREE for your judgement on
-who ports your project to Linux PPC the best. Sponsored by IBM. 
-Deadline: Sept. 13. Go here: http://sf.net/ppc_contest.php
