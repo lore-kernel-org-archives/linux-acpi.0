@@ -1,14 +1,12 @@
-From: Alan Cox <alan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: mpparse.c APIC/ACPI support
-Date: Tue, 4 Mar 2003 16:24:14 -0500 (EST)
+From: Matthew Tippett <matthew.tippett-rieW9WUcm8FFJ04o6PK0Fg@public.gmane.org>
+Subject: ACPI namespace dump.
+Date: Tue, 04 Mar 2003 21:59:39 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200303042124.h24LOE916749@devserv.devel.redhat.com>
-References: <000001c2e27f$74ae2910$0200a8c0@brutzler>
+Message-ID: <3E65681B.2080401@sympatico.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <000001c2e27f$74ae2910$0200a8c0-IGm5bqYn3xw@public.gmane.org> from "DPR" at Mar 04, 2003 07:54:10 PM
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,22 +15,30 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: info-IGm5bqYn3xwb1SvskN2V4Q@public.gmane.org
-Cc: 'Grover Andrew' <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "\"'Cagle, John (ISS-Houston)'\"" <john.cagle-VXdhtT5mjnY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, alan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> <4>PCI: No IRQ known for interrupt pin A of device 00:11.1 - using IRQ 255
-> <4>PCI: No IRQ known for interrupt pin A of device 00:12.0
-> 
-> The devices 00:10.0 up to 00:10.3 are my USB 1.1/2.0 controllers, device 00:11.1 is my EIDE
-> controller and device 00:12.0 is my ethernet adapter.
+Hello,
 
-There is deep magic to beware of in the IDE case. I recently fixed this
-for 2.4 (and sent Linus a patch for 2.5). If the IDE controller channels
-are in legacy mode then the IRQ is 14/15 and ISA style. In that case we
-shouldn't be looking up the IRQ line in the ACPI and PC BIOS cases at least.
+I am looking at investigating more fully how ACPI is supported on my 
+Dell i8200.
 
-For some non PC platforms it may be more complex
+First step, IMHO is to examining the kernel view of the ACPI namespace 
+and compare that to what a decompiled DSDT provides.  Do people prefer a 
+/proc entry that provides the dump, or a userland tool that interacts 
+with some data structures within the kernel.
+
+I would prefer to not decompile the DSDT to provide it, but rather deal 
+with the data structures from there kernel.
+
+Regards,
+
+Matthew
+-- 
+Matthew Tippett - matthew.tippett-rieW9WUcm8FFJ04o6PK0Fg@public.gmane.org - (416) 435-4118
+http://www.technology-forum.org/ - http://www.commercialos.org/
+Know your self, and know others; Sun Tzu - Art of War
+
 
 
 -------------------------------------------------------
