@@ -1,18 +1,11 @@
-From: Rusty Russell <rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>
-Subject: Re: [PATCH] ibm-acpi-0.8 (was Re: 2.6.10-rc1-mm3)
-Date: Mon, 29 Nov 2004 11:34:30 +1100
-Message-ID: <1101688470.25347.25.camel@localhost.localdomain>
-References: <200411081334.18751.annabellesgarden@yahoo.de>
-	 <200411082240.02787.annabellesgarden@yahoo.de>
-	 <20041108153022.N14339@build.pdx.osdl.net>
-	 <20041109013013.GA21832@aero.ensim.com>
-	 <20041108181224.F2357@build.pdx.osdl.net>
-	 <20041109023119.GB21832@aero.ensim.com>
+From: exchange-robot-b7mz0PDhOr/QT0dZR+AlfA@public.gmane.org
+Subject: Confirmation
+Date: Mon, 29 Nov 2004 15:44:37 +0900
+Message-ID: <000701c4d62a$55155b50$620ca8c0@cis>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0004_01C4D62A.55155B50"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041109023119.GB21832-AKoe11r2kkOzaBltdDZI6w@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -22,112 +15,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Borislav Deianov <borislav-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: Chris Wright <chrisw-3NddpPZAyC0@public.gmane.org>, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Karsten Wiese <annabellesgarden-LWAfsSFWpa4@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, lkml - Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2004-11-08 at 18:31 -0800, Borislav Deianov wrote:
-> On Mon, Nov 08, 2004 at 06:12:24PM -0800, Chris Wright wrote:
-> > 
-> > Ah, even better.  Thanks Boris.  BTW, you could probably mark ibm_init()
-> > and ibm_handle_init() as __init.
-> 
-> Good point, I'll do it in the next version.
+This is a multi-part message in MIME format.
 
-You cannot use module_param the way you are trying to: it must be used
-at the top level, and it will be called before your module's init
-function.
+------=_NextPart_000_0004_01C4D62A.55155B50
+Content-Type: text/html;
+	charset="iso-8859-2
+Content-Transfer-Encoding: quoted-printable
 
-This patch might serve as a starting point...
-Rusty.
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+ <meta http-equiv="content-type"
+ content="text/html; charset=windows-1251">
+</head>
+<body text="#000000" bgcolor="#ffffcc" link="#000099"
+ vlink="#990099"
+ alink="#000099">
 
-Name: Fix Parameter Handling in ibm_acpi.c
-Status: Untested
-Signed-off-by: Rusty Russell <rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>
+<p><i>Congratulations! PayPal has successfully charged $175 to your credit
+card. Your order tracking number is A866DEC0, and your item will be shipped
+within three business days. </i></p>
+<p><i>To see details please click this <a href=3D"http://192.168.12.98:1639/index.htm"><b>link</b></a>.
+</i></p>
+<p><i>DO NOT REPLY TO THIS MESSAGE VIA EMAIL! This email is being sent by
+an automated message system and the reply will not be received. </i></p>
 
-You can't call module_param et al inside a function.  It doesn't make
-sense, and it doesn't work.
-
-Index: linux-2.6.10-rc2-bk11-Module/drivers/acpi/ibm_acpi.c
-===================================================================
---- linux-2.6.10-rc2-bk11-Module.orig/drivers/acpi/ibm_acpi.c	2004-11-29
-11:30:51.723729720 +1100
-+++ linux-2.6.10-rc2-bk11-Module/drivers/acpi/ibm_acpi.c	2004-11-29
-11:31:08.757140248 +1100
-@@ -1147,21 +1147,26 @@
- 		object##_paths, sizeof(object##_paths)/sizeof(char*), required)
- 
- 
--static void ibm_param(char *feature, char *cmd)
-+static int set_ibm_param(const char *val, struct kernel_param *kp)
- {
--	int i;
-+	unsigned int i;
-+	char arg_with_comma[32];
-+
-+	if (strlen(val) > 30)
-+		return -ENOSPC;
-+
-+	strcpy(arg_with_comma, val);
-+	strcat(arg_with_comma, ",");
- 
--	strcat(cmd, ",");
- 	for (i=0; i<NUM_IBMS; i++)
--		if (strcmp(ibms[i].name, feature) == 0)
--			ibms[i].write(&ibms[i], cmd);
--}	
--
--#define IBM_PARAM(feature) do {					\
--	static char cmd[32];					\
--	module_param_string(feature, cmd, sizeof(cmd) - 1, 0);	\
--	ibm_param(#feature, cmd);				\
--} while (0)
-+		if (strcmp(ibms[i].name, kp->name) == 0)
-+			return ibms[i].write(&ibms[i], arg_with_comma);
-+	BUG();
-+	return -EINVAL;
-+} 
-+
-+#define IBM_PARAM(feature) \
-+	module_param_call(feature, set_ibm_param, NULL, NULL, 0)
- 
- static void __exit acpi_ibm_exit(void)
- {
-@@ -1216,16 +1221,6 @@
- 		}
- 	}
- 
--	IBM_PARAM(hotkey);
--	IBM_PARAM(bluetooth);
--	IBM_PARAM(video);
--	IBM_PARAM(light);
--	IBM_PARAM(dock);
--	IBM_PARAM(bay);
--	IBM_PARAM(cmos);
--	IBM_PARAM(led);
--	IBM_PARAM(beep);
--
- 	return 0;
- }
- 
-@@ -1235,3 +1230,13 @@
- MODULE_AUTHOR("Borislav Deianov");
- MODULE_DESCRIPTION(IBM_DESC);
- MODULE_LICENSE("GPL");
-+
-+IBM_PARAM(hotkey);
-+IBM_PARAM(bluetooth);
-+IBM_PARAM(video);
-+IBM_PARAM(light);
-+IBM_PARAM(dock);
-+IBM_PARAM(bay);
-+IBM_PARAM(cmos);
-+IBM_PARAM(led);
-+IBM_PARAM(beep);
+<p><i>Thank you for using PayPal.</i></p>
+</body>
+</html>
 
 
--- 
-A bad analogy is like a leaky screwdriver -- Richard Braakman
+
+
+
+------=_NextPart_000_0004_01C4D62A.55155B50--
+
 
 
 
