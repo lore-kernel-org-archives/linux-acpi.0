@@ -1,15 +1,11 @@
-From: ole.rohne-vJEk5272eHo@public.gmane.org
-Subject: Re: Suspend-to-RAM on Sony Vaios
-Date: Thu, 04 Nov 2004 14:49:58 +0100
-Message-ID: <yzok6t14tbt.fsf@cern.ch>
-References: <88056F38E9E48644A0F562A38C64FB60033E4DDC@scsmsx403.amr.corp.intel.com> <20041103155217.GH24195@wotan.suse.de>
- <yzosm7q97q2.fsf@cern.ch> <20041103172120.GB18092@wotan.suse.de>
- <1099504898.31687.31.camel@elrond.flymine.org>
- <20041104041525.GE21211@wotan.suse.de>
- <1099564754.10723.24.camel@tyrosine>
- <20041104105848.GB27533@wotan.suse.de>
+From: "Bridgett Feldman" <bridgett_feldmangk-BsYMu4rsKKs/3JD76VFdUQ@public.gmane.org>
+Subject: New! Vìagra soft tabs.
+Date: Thu, 04 Nov 2004 12:47:05 -0400
+Message-ID: <b63c01c4c28d$62662da7$accc3c66@alv.kth.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -23,25 +19,20 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Andi> I heard other people use LED on parport hacks, which probably works.
+Hello!
 
-Modern laptops don't have parports either...
+We would like to offer V_I_A_G_R_A soft tabs,
 
-Anyway, my real objections to purely userspace POSTing are:
+These pills are just like regular Vìagra but they are specially formulated 
+to be soft and dissolvable under the tongue. The pill is absorbed at the 
+mouth and enters the bloodstream directly instead of going through the stomach. 
+This results in a faster more powerful effect which lasts as long as the normal.
 
-(1) it is hard to get it to work reliably (some method work with X11
-    but not with text mode console, other methods work without DRM etc)
-(2) the previous point goes to show that hardware sourcery belongs in
-    kernel space (or before), as this is the only way to ensure proper
-    ordering, bus mastering disable etc
+Soft Tabs also have less sidebacks (you can drive or mix alcohol drinks with them).
 
-Andi> Anyways, this thread doesn't seem to serve any useful purpose
-Andi> anymore so I won't post to it anymore.
+You can get it at: http://a1medz.com/st/?coupon
 
-???
-
-Ole
-
+No thanks: http://a1medz.com/rr.php
 
 
 
