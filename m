@@ -1,15 +1,14 @@
-From: "Carlo E. Prelz" <fluido-1XNsQiTun9D1P9xLtpHBDw@public.gmane.org>
-Subject: Re: Acpi slows down my new Asus portable quite a lot
-Date: Wed, 16 Jul 2003 08:42:27 +0200
+From: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
+Subject: Re: Performance states
+Date: Wed, 16 Jul 2003 08:14:30 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030716064227.GD4920@casa.fluido.as>
-References: <20030715142915.GB4920@casa.fluido.as> <20030715221027.GA9900@hell.org.pl>
+Message-ID: <20030716061430.GA1173@brodo.de>
+References: <1058306533.1488.3.camel@LNX.iNES.RO>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20030715221027.GA9900-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+In-Reply-To: <1058306533.1488.3.camel-oUgHV0DytZclPyoCK6TguA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,68 +17,32 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Dumitru Ciobarcianu <Dumitru.Ciobarcianu-6Lf+m/H07rc@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-	Subject: Re: [ACPI] Acpi slows down my new Asus portable quite a lot
-	Date: Wed, Jul 16, 2003 at 12:10:27AM +0200
-
-Quoting Karol Kozimor (sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org):
-
-> Thus wrote Carlo E. Prelz:
-> > It is a Centrino-based N3700N. Using a kernel with only APM, the audio
+On Wed, Jul 16, 2003 at 01:02:13AM +0300, Dumitru Ciobarcianu wrote:
 > 
-> Though I can't unfortunately help much, I must say...
+> Hello,
 > 
-> Wow, there's some really interesting stuff in your DSDT. It seems that the
-> nice people from ASUS decided to make their users' (and my) life easier, by
-> implementing frequency control methods for their driver. Since I'm leaving
-> in a couple of days, this won't probably be implemented for some time yet
-> (unless Julien gets to work on it), but look forward to getting basic
-> support for your laptop in the tomorrow's acpi4asus CVS.
+> While trying to test 2.6-test1 kernel I found that I don't have anymore
+> the performance management for my CPU.
+> 
+> Is is something I forgot to enable (triplechecked first....) ?
+> 
+> >From 2.4+acpi patch dmesg: 
+> ACPI: Processor [CPU0] (supports C1 C2 C3, 2 performance states)
+> 
+> >From 2.6-test1 dmesg:
+> ACPI: Processor [CPU0] (supports C1 C2 C3)
+> 
+> Where did the performance states went ? :)
 
-I'll keep track of it. I have some updates. After turning the portable
-off last night, I turned it on this morning, and the problem seemed to
-have disappeared... the process was not eating cpu anymore. I started
-X, and the fan started working briefly, then stopped when I left X. I
-did a reboot, and things were still OK. Then, when I started a 'make
-menuconfig,' the fan started working again, and exactly then the
-process began again to eat 99.9% of the CPU timæ.
+They went to CONFIG_CPU_FREQ and CONFIG_X86_ACPI_CPUFREQ. However, there are
+a few bugs in the X86_ACPI_CPUFREQ driver which I'll try to solve the next
+few days.
 
-The problem is really connected with fan operation: if I go look at
-/proc/acpi/fan/FN00/status, I find
-
-status:       off
-
-while the fan is instead very much in operation. If I do
-
-echo 'on' > state
-
-the content changes to 
-
-status:       on
-
-but if I then try to write 'off', mothing changes. Can this all be
-useful for tracking down the problem? 
-
-> BTW: Have you tried recompiling your DSDT? The MXN DSDT's oddly contain
-> some trivial-to-fix errors (like the If(SSn) statements in your case),
-> there's even an updated DSDT at http://acpi.sf.net.
-
-I read something (and I am under deadline for my work... grgrgr) about
-all this, but I could not learn enough to be confident with the
-process. 
-
-Maybe later...
-
-Thanks in all cases
-
-Carlo
-
--- 
-  *         Se la Strada e la sua Virtu' non fossero state messe da parte,
-* K * Carlo E. Prelz - fluido-1XNsQiTun9D1P9xLtpHBDw@public.gmane.org             che bisogno ci sarebbe
-  *               di parlare tanto di amore e di rettitudine? (Chuang-Tzu)
+	Dominik
 
 
 -------------------------------------------------------
