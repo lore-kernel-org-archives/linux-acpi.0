@@ -1,11 +1,14 @@
-From: Vladimir Volcko <konference-X2ABGLaSPc4@public.gmane.org>
-Subject: A30-303 - acpi-20040211-2.4.25 - battery state error
-Date: Sun, 29 Feb 2004 20:50:38 +0100
+From: Dieter Rohlfing <u490248-uKKRHEr75Vc@public.gmane.org>
+Subject: Re: Laptop does not reboot
+Date: Sun, 29 Feb 2004 16:53:14 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4042428E.8000702@pcs.cz>
+Message-ID: <40420AEA.63D1586C@imail.de>
+References: <403E59FF.990E2CD0@imail.de>
+ <200402270209.04355.bernd-schubert@web.de>
+Reply-To: u490248-uKKRHEr75Vc@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,39 +18,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bernd Schubert <bernd-schubert-S0/GAf8tV78@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello all!!
+Hi Bernd,
 
-  On my Toshiba A30-303 - vanilla kernel 2.4.25 (acpi 20040116) or 
-kernel 2.4.25 + acpi-20040211-2.4.25.diff.bz2
-or kernel 2.4.24 + acpi-20040211-2.4.24.diff.bz2 I have problem with 
-battery state monitoring ...  aproximately after 15-45 minutes of 
-computer running I don't get right battery state. For monitoring I am 
-using KDE Kapacity program, which check state of battery each 60 s. 
-(errors described below)
+> maybe you should also give 2.6.x a try? Well, woody is too old for that, you
+> would have to upgrade to unstable (don't know if there are already backports
+> or if all required stuff is also already in Sarge).
 
-[root-BuUY8psAA2Y@public.gmane.org /]# cat /proc/acpi/battery/BAT1/state
-present:                 yes
-ERROR: Unable to read battery status
+Yesterday I made a try with Knoppix 3.4 (c't edition), it has kernel
+2.6.1. And ... the laptop properly rebooted. So, I'll give the latest
+2.6.x a chance. As far as I know I have to update my module utilities
+too.
 
-/var/log/messages is full of folowing messages:
-Feb 29 19:13:22 sys kernel: acpi_battery-0195 [998] 
-acpi_battery_get_statu: Error evaluating _BST
-Feb 29 19:13:42 sys kernel:  dswload-0279: *** Error: Looking up [PBST] 
-in namespace, AE_ALREADY_EXISTS
-Feb 29 19:13:42 sys kernel:  psparse-0588 [1005] ps_parse_loop         : 
-During name lookup/catalog, AE_ALREADY_EXISTS
+> Mayby even the reboot command from the sysvinit package is too old, don't
+> know. IMHO woody is too much outdated and shouldn't be used for anything
+> except servers any more.
 
-I found thread with similar problem (2.6.3 + D600 + battery state + 
-BUG?? [Was] Battery status sometimes missing), but no solution.
+I don't think, it's a matter of the reboot command in woody. This
+command just tells the kernel to reboot or to halt. The necessary
+commands in order to reboot/halt are sent by the kernel. That's my
+conclusion from a look into the kernel sources.
 
-Any idea what is wrong?
+> PS: Whats about giving Knoppix a try, if it works there, then its either a
+> problem with too much outdated woody packages or wrong kernel configuration.
 
-With regard Vladimir Volcko
+See above. Wrong kernel configuration: that's a suspicion I have too.
+The kernel in question is a 'one-fits-all' kernel for all my PCs, so it
+contains some drivers for devices, which are not in my laptop. As
+another try a built a kernel, which included only the necessary drivers
+for my laptop. Result: no proper rebooting.
 
-PS: sorry for my english ;-)
+I must confess, I'm really at my wit's end. :-(
+
+Dieter
+
+-- 
+Every mail not from this mailing list will be deleted.
 
 
 
