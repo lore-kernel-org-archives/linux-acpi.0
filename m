@@ -1,8 +1,8 @@
-From: Phil Short <justswitch-ihVZJaRskl1bRRN4PJnoQQ@public.gmane.org>
-Subject: What should visible in /proc/acpi?
-Date: Fri, 26 Jul 2002 13:38:53 -0500 (CDT)
+From: Andy Grover <agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org>
+Subject: [PATCH] ACPI compile fix
+Date: Fri, 26 Jul 2002 11:42:47 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020726131505.D82573-100000@Grayswandir.cygnet_hq>
+Message-ID: <Pine.LNX.4.44.0207261130250.11912-100000@dexter.groveronline.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,44 +14,90 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-What files/directories should be visible in /proc/acpi?
+Hi Linus,
 
-The system is a stock Toshiba 1005-S157, which has a 1.06Ghz Celeron, with
-BIOS changed to Rev 2.1.
+This fixes the ACPI_DEBUG compile issue that turned up.
 
-Using 2.4.18+acpi-20020709+nocorruption.2.patch+swsusp9 (and hand-patching
-CONFIG_ACPI_SLEEP in the appropriate location) the following entries
-appear in the /proc/acpi directory:
+(acpi-devel people, I'll be updating sf.net patches with this asap)
 
-alarm battery button debug_layer debug_level dsdt embedded_conroller
-event fadt info processor sleep
+Regards -- Andy
 
-In particular there is nothing related to the ac_adaptor, fan or thermal
-functions.  Also, the sleep functions do not appear to work, and events
-(power button and lid switch) appear to work intermittently.  The only
-function that appears to work cleanly is the battery state reporting
-function (and of course the various info functions).  There do not appear
-to be any IRQ routing problems (at least all of the laptop hardware
-appears to work).  There is one apparent acpi-related error message in the
-dmesg output:
-
- exfldio-0110 [280] Ex_setup_region   : Field [ACPW] Base+Offset+Width
-38+0+4 is beyond end of region [GPIO] (length 3B)
- acpi-ac-0082 [266] acpi_ac_get_state : Error reading AC Adapter State
-
-Similar results are obtained with 2.4.18+20020725 (after commenting out
-each debug that were causing compile errors).
-
-How closely does this relate to what it should be on a working system? Do
-I need to provide more info?
-
---
-
-Phil
-
+diff -Naur -X bin/dontdiff acpi-old/drivers/acpi/include/aclocal.h linux/drivers/acpi/include/aclocal.h
+--- acpi-old/drivers/acpi/include/aclocal.h	Fri Jul 26 11:27:34 2002
++++ linux/drivers/acpi/include/aclocal.h	Fri Jul 26 11:20:05 2002
+@@ -1,7 +1,7 @@
+ /******************************************************************************
+  *
+  * Name: aclocal.h - Internal data types used across the ACPI subsystem
+- *       $Revision: 172 $
++ *       $Revision: 173 $
+  *
+  *****************************************************************************/
+ 
+@@ -567,7 +567,7 @@
+  */
+ typedef struct acpi_opcode_info
+ {
+-#ifdef ACPI_DISASSEMBLER
++#if defined(ACPI_DISASSEMBLER) || defined(ACPI_DEBUG)
+ 	NATIVE_CHAR             *name;          /* Opcode name (disassembler/debug only) */
+ #endif
+ 	u32                     parse_args;     /* Grammar/Parse time arguments */
+diff -Naur -X bin/dontdiff acpi-old/drivers/acpi/include/acmacros.h linux/drivers/acpi/include/acmacros.h
+--- acpi-old/drivers/acpi/include/acmacros.h	Fri Jul 26 11:27:34 2002
++++ linux/drivers/acpi/include/acmacros.h	Fri Jul 26 11:20:05 2002
+@@ -1,7 +1,7 @@
+ /******************************************************************************
+  *
+  * Name: acmacros.h - C macros for the entire subsystem.
+- *       $Revision: 125 $
++ *       $Revision: 126 $
+  *
+  *****************************************************************************/
+ 
+@@ -287,11 +287,15 @@
+ /*
+  * Macros for the master AML opcode table
+  */
+-#ifdef ACPI_DISASSEMBLER
++#if defined(ACPI_DISASSEMBLER) || defined (ACPI_DEBUG)
+ #define ACPI_OP(name,Pargs,Iargs,obj_type,class,type,flags)    {name,Pargs,Iargs,flags,obj_type,class,type}
+-#define ACPI_DISASM_ONLY_MEMBERS(a)      a;
+ #else
+ #define ACPI_OP(name,Pargs,Iargs,obj_type,class,type,flags)    {Pargs,Iargs,flags,obj_type,class,type}
++#endif
++
++#ifdef ACPI_DISASSEMBLER
++#define ACPI_DISASM_ONLY_MEMBERS(a)      a;
++#else
+ #define ACPI_DISASM_ONLY_MEMBERS(a)
+ #endif
+ 
+diff -Naur -X bin/dontdiff acpi-old/drivers/acpi/parser/psutils.c linux/drivers/acpi/parser/psutils.c
+--- acpi-old/drivers/acpi/parser/psutils.c	Fri Jul 26 11:27:34 2002
++++ linux/drivers/acpi/parser/psutils.c	Fri Jul 26 11:20:05 2002
+@@ -1,7 +1,7 @@
+ /******************************************************************************
+  *
+  * Module Name: psutils - Parser miscellaneous utilities (Parser only)
+- *              $Revision: 53 $
++ *              $Revision: 54 $
+  *
+  *****************************************************************************/
+ 
+@@ -88,7 +88,7 @@
+ 	op->common.data_type = ACPI_DESC_TYPE_PARSER;
+ 	op->common.aml_opcode = opcode;
+ 
+-	ACPI_DEBUG_ONLY_MEMBERS (ACPI_STRNCPY (op->common.aml_op_name,
++	ACPI_DISASM_ONLY_MEMBERS (ACPI_STRNCPY (op->common.aml_op_name,
+ 			(acpi_ps_get_opcode_info (opcode))->name, sizeof (op->common.aml_op_name)));
+ }
+ 
 
 
 
