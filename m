@@ -1,14 +1,12 @@
-From: Jeroen Wijnhout <Jeroen.Wijnhout-sVbgdUKTYbrR7s880joybQ@public.gmane.org>
-Subject: Re: network card buzzing
-Date: Thu, 09 Dec 2004 18:02:41 +0100
-Message-ID: <200412091802.41329.Jeroen.Wijnhout@kdemail.net>
-References: <41B86243.7090507@mega.ist.utl.pt>
+From: Benjamin Schindler <bschindler-oe7qfRrRQfdfcPYw/2PL0g@public.gmane.org>
+Subject: Standby and Suspend-to-ram
+Date: Thu, 09 Dec 2004 18:37:57 +0100
+Message-ID: <1102613877.15033.6.camel@234-27-251-64.serverpronto.com>
+Reply-To: bschindler-oe7qfRrRQfdfcPYw/2PL0g@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <41B86243.7090507-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,24 +19,32 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday 09 December 2004 15:33, Pedro Venda wrote:
-> hi everyone
->
-> I tought it was normal to have a buzzing on the network card while it
-> transmits/receives high quanitities of data and using almost all of it's
-> bandwidth... I had such a network card on my desktop and now my laptop does
-> the same.
->
-> the laptop is a (smart-battery powered) acer travelmate 4001 WLMi and the
-> network card is a broadcom (b44) 10/100Mbps.
+Hi
 
-I have exactly the same laptop, never heard any buzzing, not with LAN or WLAN.
+I've got a IBM Thinkpad T42 and I've already got Software-Suspend2
+working, but suspend and suspend-to-ram wouldn't work.
+I'm working with a 2.6.9-gentoo-r9 kernel (Though I'm trying in parallel
+with a very henimal vanilla 2.6.9)
+First, before I do any suspend, I unload all modules, so I don't get a
+conflict there. I've got standby working once... but it stayed once: As
+soon the screen blanks, it wakes back up. I unloaded all the
+usb-modules. I heard they could cause problems. 
+Also, suspend-to-ram wouldn't do... I can enter the sleep-state
+perfectly, no problem there. However, when resuming, the computer seems
+to start, but the screen stays blank, no matter whether xorg is started
+or not. With my minimal-vanilla kernel, I get a different thing however:
+The resume procedure would start (See harddisk-activity), but the
+computer then suddenly dies (A kernel panic?) I'll try again with
+minimal vanilla, but that's all I have been able to produce.
+Any way to fix this? (I've got programming experience, so just tell me
+what you want me to do ;))
 
-best,
-Jeroen
--- 
-Kile - an Integrated LaTeX Environment for KDE
-http://kile.sourceforge.net
+Thanks
+Benjamin Schindler
+
+P.s. I'm not subscribed to this list, so would you mind CC'ing me?
+Thanks
+
 
 
 -------------------------------------------------------
