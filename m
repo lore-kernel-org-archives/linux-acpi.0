@@ -1,7 +1,7 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Re: [PATCH] Don't disable interrupts during EC access
-Date: Wed, 17 Nov 2004 18:56:07 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC091@pdsmsx403>
+Subject: RE: Dell laptop problem with acpid
+Date: Wed, 17 Nov 2004 19:09:17 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC092@pdsmsx403>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,21 +17,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: "Fu, Michael" <michael.fu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+>Thus wrote Cederik de Leon:
+>>    I want to check if ACPID reports the actions (like LID switch, PW
+>> Button etc), the daemon is up and running on my DEBIAN system, when i
+>> close the computer i spect a message into acpid log, but nothing's
+>> happend... some times the actions was logged, (LID SW) -for example,
+>> but it's erratic and unpredictable- I'm running 2.6.9 Kernel. And the
+>> acpitool reports the general status of the computer.
 
->=20
->> And the event polling can take several ms, there is just no way=20
->> to do this during runtime with interrupts off. Especially since
->> thermal will do this every few seconds. With my patch at least=20
->> only kacpid is blocked for that long, not the whole system.
+Usually, Notify op in AML method can cause event generated through
+/proc/acpi/event
+
 >
->may this also help the awfully slow battery polling on some machines
->(e.g. Dell D600) or is this a completely different case?
->--=20
+>There is a regression in event handling visible on some=20
+>hardware (Maxdata
+>pro8000x here, but there's been other reports, even on this ml).
+>Basically, the ACPI SCI seems to be raised correctly according to
+>/proc/interrupts, but the events are reported erratically or=20
+>not reported
+>at all. As a sidenote: kacpid doesn't spin when that happens.=20
+>Any hints=20
+>on how to debug this further?
 
-I'm not sure before you clearly describe your specific problem.
+First, check Notify op is existed in AML method,=20
+then, verify acpi_*_notify are installed.
+Intuitively,  Notify op was executed conditionally.
+
+Thanks,
+Luming
 
 
 -------------------------------------------------------
