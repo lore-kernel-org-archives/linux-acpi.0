@@ -1,14 +1,14 @@
-From: "SIVAKUMAR SUBRAMANI" <sivakumar.subramani-uxC5H9eHYlcAvxtiuMwx3w@public.gmane.org>
-Subject: RE: System poweroff
-Date: Mon, 30 Jun 2003 19:34:53 +0530
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Acpica problem?
+Date: Mon, 30 Jun 2003 16:49:13 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <0376387B0FD00341BC5F806F53607209274A04@blr-ec-msg02.wipro.com>
+Message-ID: <20030630144913.GC7796@poupinou.org>
+References: <200306301237.07932.hrvoje.habjanic@zg.htnet.hr>
 Mime-Version: 1.0
-Content-Type: text/html;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <200306301237.07932.hrvoje.habjanic-+VD6v/bdhRf0NTdHYsHBKg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,56 +17,32 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Yaroslav Rastrigin <yarick-343whMTK1pU@public.gmane.org>, ACPI-Devel mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Hrvoje Habjanic <hrvoje.habjanic-+VD6v/bdhRf0NTdHYsHBKg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-PE1FVEEgSFRUUC1FUVVJVj0iQ29udGVudC1UeXBlIiBDT05URU5UPSJ0ZXh0L2h0bWw7IGNoYXJz
-ZXQ9dXRmLTgiPg0KPCFET0NUWVBFIEhUTUwgUFVCTElDICItLy9XM0MvL0RURCBIVE1MIDMuMi8v
-RU4iPg0KPEhUTUw+DQo8SEVBRD4NCg0KPE1FVEEgTkFNRT0iR2VuZXJhdG9yIiBDT05URU5UPSJN
-UyBFeGNoYW5nZSBTZXJ2ZXIgdmVyc2lvbiA2LjAuNjI0OS4xIj4NCjxUSVRMRT5SZTogW0FDUEld
-IFN5c3RlbSBwb3dlcm9mZjwvVElUTEU+DQo8L0hFQUQ+DQo8Qk9EWSBkaXI9bHRyPg0KPERJVj5Z
-ZXMsIFlvdXIgcmlnaHQuIEkgbmVlZCBleGFjdGx5IHRoZSBzYW1lIHRoaW5nLCBqdXN0IGEga2Vy
-bmVsIG1vZHVsZSB0aGF0IA0KaGVscHMgbWUgdG8gc2h1dGRvd24gbXkgUEMuIFNpbmNlIEkgYW0g
-bm90IHVzaW5nIGxhcHRvcCwgSSBhbSBub3QgbXVjaCB3b3JyaWVkIA0KYWJvdXQgdGhlIHBvd2Vy
-IHNhdmluZy4gSSBqdXN0IHdhbnQgdG8gZG8gYSBjb21wbGV0ZSBwb3dlcm9mZiwgd2hpbGUgSSBp
-c3N1ZSBhIA0KcG93ZXJvZmYgY29tbWFuZC4gPC9ESVY+DQo8RElWPiZuYnNwOzwvRElWPg0KPERJ
-Vj5MZXQgbWUmbmJzcDt0cnkgb3V0IHRoZSBSZXZlcnNlIGVuZ2luZWVyaW5nIHBvbGljeSB0byZu
-YnNwO3dyaXRlIGEga2VybmVsIA0KbW9kdWxlIHRoYXQganVzdCBoZWxwcyBtZSB0byBwb3dlci1v
-ZmYgdGhlIHN5c3RlbSB3aXRoIG91dCBoYXZpbmcgdGhlIHN1cHBvcnQgb2YgDQphcG0gaW4gdGhl
-IGtlcm5lbC48L0RJVj4NCjxESVY+Jm5ic3A7PC9ESVY+DQo8RElWPkFueSBoZWxwIHdpdGggcmVn
-YXJkIHRvIHRoaXMgYXJlIHdlbGNvbWVkLjwvRElWPg0KPERJVj4mbmJzcDs8L0RJVj4NCjxESVY+
-VGhhbmtzLDwvRElWPg0KPERJVj5TaXZhPC9ESVY+DQo8RElWPiZuYnNwOzwvRElWPg0KPEJMT0NL
-UVVPVEUgZGlyPWx0ciBzdHlsZT0iTUFSR0lOLVJJR0hUOiAwcHgiPg0KICA8RElWPjxGT05UIHNp
-emU9Mj4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLSA8QlI+PEI+RnJvbTo8L0I+IERhdmlkIFdv
-b2Rob3VzZSANCiAgW21haWx0bzpkd213MkBpbmZyYWRlYWQub3JnXSA8QlI+PEI+U2VudDo8L0I+
-IE1vbiA2LzMwLzIwMDMgNjowOCBQTSANCiAgPEJSPjxCPlRvOjwvQj4gU0lWQUtVTUFSIFNVQlJB
-TUFOSSA8QlI+PEI+Q2M6PC9CPiBZYXJvc2xhdiBSYXN0cmlnaW47IA0KICBBQ1BJLURldmVsIG1h
-aWxpbmcgbGlzdCA8QlI+PEI+U3ViamVjdDo8L0I+IFJlOiBbQUNQSV0gU3lzdGVtIA0KICBwb3dl
-cm9mZjxCUj48QlI+PC9GT05UPjwvRElWPg0KICA8UD48Rk9OVCBzaXplPTI+T24gTW9uLCAyMDAz
-LTA2LTMwIGF0IDEzOjIxLCBzaXZhIHdyb3RlOjxCUj4mZ3Q7IA0KICBIaS48QlI+Jmd0OzxCUj4m
-Z3Q7IFRoYW5rcyBmb3IgdGhlIHJlcGx5LjxCUj4mZ3Q7PEJSPiZndDsgSSBkbyBub3Qgd2FudCB0
-byB1c2UgDQogIGFsbCB0aGUgZmVhdHVyZXMgb2YgdGhlIEFQTSAoc3VjaCBzdXNwZW5kIHN0YXRl
-cykgLi4uSTxCUj4mZ3Q7IGp1c3Qgd2FudCB0byANCiAgdXNlIHRoZSBmZWF0dXJlIG9mIHBvd2Vy
-aW5nIG9mZiB0aGUgc3lzdGVtIGNvbXBsZXRlbHkgd2hpbGUgcnVuPEJSPiZndDsgdGhlIA0KICAi
-cG93ZXJvZmYgLyBoYWx0IC1wIiBjb21tYW5kcy48QlI+Jmd0OyBTbyBpdCBpcyBwb3NzaWJsZSB0
-byBkbyB0aGlzIHdpdGhvdXQgDQogIGVuYWJsaW5nIHRoZSBBUE0gL0FDUEksIGp1c3QgYnkgYWRk
-aW5nPEJSPiZndDsgc29tZSBsaW5lcyBvZiBjb2RlIGluIHRoZSANCiAgS2VybmVsLjxCUj48QlI+
-WWVzLCB5b3UgY2FuIGRvIHRoaXMgaWYgeW91IHJlYWxseSB3YW50IHRvLCBidXQgeW91IG5lZWQg
-DQogIHN1ZmZpY2llbnQ8QlI+ZG9jdW1lbnRhdGlvbiBmb3IgeW91ciBtb3RoZXJib2FyZCBhbmQg
-Y2hpcHNldC4gWW91IG5lZWQgdG8gd29yayANCiAgb3V0IGhvdzxCUj50byBtYWtlIGl0IHRlbGwg
-dGhlIFBTVSB0byB0dXJuIGl0c2VsZiBvZmYuPEJSPjxCUj5Zb3UgbWF5IGJlIGFibGUgDQogIHRv
-IHdvcmsgdGhpcyBvdXQgYnkgcmV2ZXJzZS1lbmdpbmVlcmluZyB0aGUgQVBNIEJJT1Mgb3I8QlI+
-QUNQSSBieXRlY29kZS4gDQogIFRoZXJlJ3Mgbm90aGluZyBfc3BlY2lhbF8gYWJvdXQgdGhlbSB0
-aGF0IG1ha2VzIHRoZW0gYWJsZTxCUj50byB0dXJuIHRoZSANCiAgbWFjaGluZSBvZmYgLS0gdGhl
-eSdyZSBvbmx5IHNvZnR3YXJlLCBpdCdzIGp1c3QgdGhhdCB0aGV5J3JlPEJSPmJpbmFyeS1vbmx5
-IA0KICBzb2Z0d2FyZSB0byB3aGljaCB3ZSBkb24ndCBoYXZlIHRoZSBzb3VyY2UuPEJSPjxCUj5U
-aGVyZSdzIG5vIGZ1bmRhbWVudGFsIA0KICByZWFzb24gd2h5IHlvdSBzaG91bGRuJ3QgYmUgYWJs
-ZSB0byB3cml0ZSBhPEJSPnByb3BlciBMaW51eCBkcml2ZXI7IGl0J3MganVzdCANCiAgdGhhdCBs
-aWtlIHNvIG1hbnkgb3RoZXIgdGhpbmdzIHdpdGggb25seTxCUj5iaW5hcnktb25seSBkcml2ZXIg
-Y29kZSwgd2UgZG9uJ3QgDQogIHNlZW0gdG8gYmUgYWJsZSB0byBnZXQgc3VmZmljaWVudDxCUj5k
-b2N1bWVudGF0aW9uIGZvciANCiAgaXQuPEJSPjxCUj4tLTxCUj5kd213MjxCUj48QlI+PC9GT05U
-PjwvUD48L0JMT0NLUVVPVEU+DQoNCjwvQk9EWT4NCjwvSFRNTD4=
+On Mon, Jun 30, 2003 at 12:37:07PM +0200, Hrvoje Habjanic wrote:
+> 
+> [root@xxx acpi]# ./acpica-unix-20030619/compiler/iasl -g
+> 
+> Intel ACPI Component Architecture
+> ASL Optimizing Compiler / AML Disassembler version 20030619 [Jun 30 2003]
+> Copyright (C) 2000 - 2003 Intel Corporation
+> Supports ACPI Specification Revision 2.0b
+> 
+> Core dump
+> 
+> I'm dooing something wrong?
+> 
+
+No.  Just that '-g' is broken for age.  Apparently, nobody care to
+fix it..
+
+-- 
+Ducrot Bruno
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
