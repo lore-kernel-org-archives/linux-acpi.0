@@ -1,100 +1,59 @@
-From: Nick Bower <nick@nickbower.com>
-Subject: Re: ibm-acpi-0.10
-Date: Mon, 17 Jan 2005 10:21:56 +0100
-Message-ID: <1105953716.17542.0.camel@localhost.localdomain>
-References: <20040916102610.GU20883@aero.ensim.com>
-	 <20050116234108.GK25275@aero.ensim.com>
-Reply-To: linux-thinkpad@linux-thinkpad.org
+From: Fionn Behrens <fionn-ZPjJJ+sDHmfddJNmlsFzeA@public.gmane.org>
+Subject: Re: first shoot for smartbattery
+Date: Mon, 17 Jan 2005 10:31:21 +0100
+Message-ID: <1105954283.12359.25.camel@laptop>
+References: <20041231092156.GA612@phys.ethz.ch>
+	 <20041231181628.GL19199@poupinou.org> <20050101082605.GA24896@phys.ethz.ch>
+	 <m2acrth375.fsf@phoenix.squirrel.nl> <20050103143902.GQ19199@poupinou.org>
+	 <41D97AF3.7000409@arrakis.dhis.org> <41D98251.9020002@arrakis.dhis.org>
+	 <20050103180219.GX19199@poupinou.org> <41D9A1F5.1060508@arrakis.dhis.org>
+	 <m2mzvq5k7u.fsf@phoenix.squirrel.nl>
+	 <47e0449d05011304446094c8b@mail.gmail.com>
+	  <m2fz11gl3c.fsf@phoenix.squirrel.nl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-tadHy2Wzs/r+AiHQCHy7"
-Return-path: <linux-thinkpad-admin@linux-thinkpad.org>
-In-Reply-To: <20050116234108.GK25275@aero.ensim.com>
-Sender: linux-thinkpad-admin@linux-thinkpad.org
-Errors-To: linux-thinkpad-admin@linux-thinkpad.org
-List-Help: <mailto:linux-thinkpad-request@linux-thinkpad.org?subject=help>
-List-Post: <mailto:linux-thinkpad@linux-thinkpad.org>
-List-Subscribe: <http://mailman.linux-thinkpad.org/mailman/listinfo/linux-thinkpad>,
-	<mailto:linux-thinkpad-request@linux-thinkpad.org?subject=subscribe>
-List-Unsubscribe: <http://mailman.linux-thinkpad.org/mailman/listinfo/linux-thinkpad>,
-	<mailto:linux-thinkpad-request@linux-thinkpad.org?subject=unsubscribe>
-List-Archive: <http://mailman.linux-thinkpad.org/pipermail/linux-thinkpad/>
-To: linux-thinkpad@linux-thinkpad.org
-Cc: acpi-devel@lists.sourceforge.net
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <m2fz11gl3c.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On 16.01.2005, 21:44 +0100 Johan Vromans wrote:
+> Johannes Kuhlmann <jkuhlmann-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> writes:
+> >> PS: I hacked a kernel module to control the email led on this (and
+> >> maybe other) TravelMate. Will post soon.
+> > Hi,
+> >
+> > that would be pretty cool, if you could post it.
+> 
+> It's on http://www.squirrel.nl/people/jvromans/
+> 
+>   Articles -> TravelMate 4000 -> General Hacks
 
---=-tadHy2Wzs/r+AiHQCHy7
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+I believe this functionality can already be found in the acerhk kernel
+module (http://www.informatik.hu-berlin.de/~tauber/acerhk/)
 
-Thanks as always Borislav.  Do the fan/temperature features introduce
-risk to the hardware?
-
-On Sun, 2005-01-16 at 15:41 -0800, Borislav Deianov wrote:
-> Hi,
->=20
-> It's been a couple of months and ibm-acpi was getting stale.
-> Especially with module parameters not working in 2.6.10, it was really
-> starting to stink up was the house... :-). So there you go, an update:
->=20
-> This is the 10th - oh let's call it beta - release of my ACPI driver
-> for IBM Thinkpad laptops. The features currently supported are:
->=20
-> 	- Fn key combinations
-> 	- Bluetooth enable and disable
-> 	- video output switching, expansion control=09
-> 	- ThinkLight on and off
-> 	- limited docking and undocking
-> 	- UltraBay eject
-> 	- CMOS control
-> 	- LED control
-> 	- ACPI sounds
-> 	- Experimental: temperatures and fan speed
-> 	- Experimental: embedded controller register dump
->=20
-> Changes since 0.8 (the version included in 2.6.10):
->=20
->         - support for the 570, R30 and R31
->         - ultrabay support for the A22p and A3x
->         - drop experimental status from cmos, led and beep functions
->         - fix module parameter passing
->         - modified blank.sh should work with X on Debian and Fedora
->         - default radio.sh script uses ipw2100 RF kill switch
->         - default blank and hibernate events use the swsusp2 hibernate.sh
->         - experimental temperatures and fan speed
->         - experimental embedded controller register dump
->=20
-> The major new experimental feature is the temperature and fan speed
-> display. Some models (T and X series, maybe others) can show several
-> temperature readings (in addition to CPU temperature) and the current
-> fan speed. Three models (X31, X40 and 570) can control the fan speed
-> to a certain degree. See the README for the full details.
->=20
-> I still have a few things in my backlog, namely support for the 240,
-> 600e, 770x and G41. Coming soon, I just needed to get something out
-> the door (I've been sitting on the 0.10 stuff for a while...).
->=20
-> http://ibm-acpi.sf.net/
->=20
-> Enjoy,
-> Boris
---=20
-Nick Bower <nick@nickbower.com>
-
---=-tadHy2Wzs/r+AiHQCHy7
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQBB64O0sQtYH7YXyrgRAs96AKC6oQTNw0iUnErwWvNUr3z2t65SKQCeMM+p
-kPWGCavfype6xRTCCqA2Plc=
-=KAyd
------END PGP SIGNATURE-----
-
---=-tadHy2Wzs/r+AiHQCHy7--
-
+br,
+	Fionn
 -- 
-The linux-thinkpad mailing list home page is at:
-http://mailman.linux-thinkpad.org/mailman/listinfo/linux-thinkpad
+Software patents    -  not allowed in Europe | See whats going on:
+Archiving Email     -  patented in Europe    | http://freepatents.org/
+E-Shopping Baskets  -  patented in Europe    | Become active easily:
+Cross-compiling     -  patented in Europe    | http://aktiv.ffii.org/eubsa/en
+
+
+
+
+-------------------------------------------------------
+The SF.Net email is sponsored by: Beat the post-holiday blues
+Get a FREE limited edition SourceForge.net t-shirt from ThinkGeek.
+It's fun and FREE -- well, almost....http://www.thinkgeek.com/sfshirt
