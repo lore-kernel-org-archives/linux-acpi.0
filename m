@@ -1,13 +1,14 @@
-From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Subject: Re: [patch 4/4] CONFIG_ACPI=n build fix
-Date: Tue, 5 Apr 2005 00:22:36 -0700
-Message-ID: <20050405002236.1b29451a.akpm@osdl.org>
-References: <200504050657.j356vG0I032687@shell0.pdx.osdl.net>
+From: Zwane Mwaikambo <zwane-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Subject: Re: [RFC 1/6]SEP initialization rework
+Date: Tue, 5 Apr 2005 02:00:16 -0600 (MDT)
+Message-ID: <Pine.LNX.4.61.0504050159590.2566@montezuma.fsmlabs.com>
+References: <1112580349.4194.331.camel@sli10-desk.sh.intel.com>
+ <Pine.LNX.4.61.0504041235001.30273@montezuma.fsmlabs.com>
+ <1112662825.17861.4.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200504050657.j356vG0I032687-bipKiLWnuIsyyg0EjBt7GtHuzzzSOjJt@public.gmane.org>
+In-Reply-To: <1112662825.17861.4.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,42 +18,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-akpm-3NddpPZAyC0@public.gmane.org wrote:
->
->  
->  -static inline int acpi_boot_init(void)
->  -{
->  -	return 0;
->  -}
->  -
->  -static inline int acpi_boot_table_init(void)
->  -{
->  -	return 0;
->  -}
->  -
->   #endif 	/*!CONFIG_ACPI_BOOT*/
->   
->   unsigned int acpi_register_gsi (u32 gsi, int edge_level, int active_high_low);
->  @@ -539,4 +529,15 @@ static inline int acpi_get_pxm(acpi_hand
->   extern int pnpacpi_disabled;
->   
->   #endif	/* CONFIG_ACPI */
->  +
->  +static inline int acpi_boot_init(void)
->  +{
->  +	return 0;
->  +}
->  +
->  +static inline int acpi_boot_table_init(void)
->  +{
->  +	return 0;
->  +}
->  +
+On Tue, 5 Apr 2005, Li Shaohua wrote:
 
-Nope, that's no good.
+> On Tue, 2005-04-05 at 03:10, Zwane Mwaikambo wrote:
+> > On Mon, 4 Apr 2005, Li Shaohua wrote:
+> > 
+> > >  linux-2.6.11-root/arch/i386/kernel/smpboot.c           |    6 ++++++
+> > >  linux-2.6.11-root/arch/i386/kernel/sysenter.c          |   10 ++++++----
+> > >  linux-2.6.11-root/arch/i386/mach-voyager/voyager_smp.c |    6 ++++++
+> > >  3 files changed, 18 insertions(+), 4 deletions(-)
+> > > 
+> > > diff -puN arch/i386/kernel/sysenter.c~sep_init_cleanup arch/i386/kernel/sysenter.c
+> > > --- linux-2.6.11/arch/i386/kernel/sysenter.c~sep_init_cleanup	2005-03-28 09:32:30.936304248 +0800
+> > > +++ linux-2.6.11-root/arch/i386/kernel/sysenter.c	2005-03-28 09:58:20.703703792 +0800
+> > > @@ -26,6 +26,11 @@ void enable_sep_cpu(void *info)
+> > >  	int cpu = get_cpu();
+> > >  	struct tss_struct *tss = &per_cpu(init_tss, cpu);
+> > >  
+> > > +	if (!boot_cpu_has(X86_FEATURE_SEP)) {
+> > > +		put_cpu();
+> > > +		return;
+> > > +	}
+> > > +
+> > 
+> > Do you have systems like this? Is it really skipping SEP if the boot 
+> > processor doesn't have SEP?
+> No, I haven't such system. This is the logic of original SEP
+> initialization. If the CPU hasn't SEP, original logic doesn't call
+> 'on_each_cpu(enable_sep_cpu,...)'.
+
+Got it, so i misread.
+
+Thanks,
+	Zwane
+
 
 
 -------------------------------------------------------
