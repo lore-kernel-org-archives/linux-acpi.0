@@ -1,14 +1,14 @@
-From: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
-Subject: RE: help needed with invalid method in GPE block
-Date: 18 Mar 2003 09:51:14 +0100
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Eternal S3 and \_WAK method
+Date: Tue, 18 Mar 2003 13:20:36 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1047977474.2189.16.camel@dutidad>
-References: <F760B14C9561B941B89469F59BA3A84725A201@orsmsx401.jf.intel.com>
+Message-ID: <20030318122036.GS8319@poup.poupinou.org>
+References: <20030317184143.GA31878@dutidad.twi.tudelft.nl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <F760B14C9561B941B89469F59BA3A84725A201-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20030317184143.GA31878-V1rPnKwUOrA59+mn7qD7y50iERQUc4G+@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,57 +17,51 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2003-03-18 at 01:34, Grover, Andrew wrote:
-> > From: Charl P. Botha [mailto:c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org] 
-> > My frikking sleep button is still not waking my laptop up 
-> > though.  I would
-> > appreciate any other tips for debugging that problem.
+On Mon, Mar 17, 2003 at 07:41:43PM +0100, Charl P. Botha wrote:
+> Dear list (and ACPI gurus),
 > 
-> I would guess that we are disabling your sleep button's GPE when we are
-> sleeping.
+> Could it be that the fact that my \_WAK method returns no value is
+> preventing my system waking up from S3?  I can get it into S3, but I can
+> never get it out... no amount of button pushing, mouse moving or shouting
+> seems to help: that durn suspend-led just continues flashing.
+> 
+> The ACPI spec says:
+> "After the system wakes from a sleeping state, it will invoke the \_WAK
+> method and pass the sleeping state value that has ended."
+> which implies that this method is called AFTER wake-up, from which one can
+> draw the conclusion that the return value isn't that important.
+> 
+> However, further down it comments about the result code for this call, with
+> possibilities like: "0x00000001 Wake was signaled but failed due to lack of
+> power." which implies that the \_WAK method could be involved in a failed
+> state transition.
 
-Yes!  After going to bed last night, I remembered reading about the
-various wake-up capable devices being enabled or disabled.
+ACPI4Linux currently do not check the return of the _WAK method ;
+but a _WAK method is mainly used by laptops manufacturer (especially
+ancient models which claims to be 1.0b compliant) in order to
 
-> To verify this, you might try calling _PRW from the button driver (or
-> just look at the ASL), and then using that GPE number call
-> acpi_enable_gpe(gpe_num, NULL, ACPI_EVENT_WAKE_ENABLE).
+o call a SMIC interface for doing 'strange' things by the BIOS (and is
+most of the time dependant of the \_OS value),
+o 'Notify' other components (AC, Battery, VGA, etc.) of the system
+in order to check their status, reconfigure, etc.
 
-Hmmm, there are several other wake-up devices writing to GPE bit 0x1D,
-e.g.:
+o some manufacturers (in rare case though) also call explicitely
+_INI methods (I prefer to not give any comment).
 
-Device (LID)
-{
-   Name (_HID, EisaId ("PNP0C0D"))
-   Name (_PRW, Package (0x02)
-   {
-      0x1D, 
-      0x03
-   })
-...
+Most of the time (in the laptops word), I do not see any
+'return' statements in their ASL.
 
-but the corresponding method in the _GPE namespace, _L1D(), Notify()s
-the OS about wakeup (event 0x02) and sends only the button object along.
-
-If I do acpe_enable_gpe(0x1D, NULL, ACPI_EVENT_WAKE_ENABLE), will it
-mean that all these other devices will also be able to wake the laptop
-up from S3?  My DSDT is at http://cpbotha.net/thingies/dsdt.asl.original
-
-> This is not the correct long-term solution but it should at least verify
-> the root cause of the problem...
-
-Great.  I will try this tonight, thank you very much.  What would be the
-Right Way(tm) of fixing this?
-
-Thanks again,
-Charl
+Cheers,
 
 -- 
-charl p. botha http://cpbotha.net/ http://visualisation.tudelft.nl/
+Ducrot Bruno
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
