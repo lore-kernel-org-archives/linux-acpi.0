@@ -1,56 +1,43 @@
-From: Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
-Subject: Re: [PATCH 2.6] new sony_acpi driver
-Date: Thu, 22 Jul 2004 10:59:15 +0200
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040722085915.GB3372__20675.8802793503$1090496650$gmane$org@crusoe.alcove-fr>
-References: <20040721150008.GF3560@crusoe.alcove-fr> <20040722044417.GE1545@alpha.home.local>
-Reply-To: Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Video memory corruption during suspend
+Date: Thu, 22 Jul 2004 18:10:47 +0200
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <20040722161047.GB15145@atrey.karlin.mff.cuni.cz>
+References: <20040718225247.GA30971@hell.org.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S266701AbUGVQKt@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20040722044417.GE1545-HkMpAodKYdnXX8ko2wsARw@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Willy Tarreau <willy-tRhHnHjXm5DYtjvyW6yDsg@public.gmane.org>
-Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <20040718225247.GA30971@hell.org.pl>
+To: linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jul 22, 2004 at 06:44:17AM +0200, Willy Tarreau wrote:
-> Hi Stelian,
+Hi!
+
+> My setup is:
+> ASUS L3800C laptop, Radeon M7, i845 chipset, using DRI and radeonfb.
 > 
-> On Wed, Jul 21, 2004 at 05:00:09PM +0200, Stelian Pop wrote:
->  
-> > The screen is one of the most important power consumers in a laptop,
-> > so being able to set its brightness is very important for many users, 
-> > making this driver useful even if it does only that.
+> Note that this is not specific to the kernel used, as I've been seeing 
+> similar corruption every now and then, most recently under 2.6.7 +
+> ACPICA20040715 + swsusp2.0.0.100 (S3, S4), but also under 2.4 with S1 (but 
+> not with S4/swsusp2).
 > 
-> It's more than welcome, but too late for me. 
+> I have a very simple script I use to suspend (i.e. basically echo $arg >
+> /proc/acpi/sleep), which is usually started by acpid. Once the script is
+> triggered (by pressing power / sleep button) and an X session is running, 
+> various red and green patches appear on the screen (the background image
+> and the tinted terminal emulator), followed by the VT switch the PM code
+> does. After resume and subsequent VT switch by the PM code the corruption
+> is still visible. The screen is properly restored by a manual VT switch.
+> The corruption is clearly related to the existing background pixmap, as
+> moving the windows does not change its pattern. Oddly enough, starting a GL
+> app such as glxgears and moving it into and out of focus also properly
+> restores the screen.
 
-You mean sonypi didn't work for you ?
+So what happens on 2.6.7 with swsusp1? Can you try vesafb (and fbdev
+Xserver)?
 
-> My vaio's backlight finally
-> died after 18 months of daily use at full brightness.
-
-I guess it depends on the model, but I use my laptop daily too,
-with the brightness close to maximum, and it still works after
-3 years of use... (but the brightness is not very powerful on this
-model - a PCG-C1VE, maybe this explains the longer life... or I am 
-just being lucky).
-
-Stelian.
+								Pavel
 -- 
-Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>    
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by BEA Weblogic Workshop
-FREE Java Enterprise J2EE developer tools!
-Get your free copy of BEA WebLogic Workshop 8.1 today.
-http://ads.osdn.com/?ad_id=4721&alloc_id=10040&op=click
+Horseback riding is like software...
+...vgf orggre jura vgf serr.
