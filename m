@@ -1,14 +1,11 @@
-From: Nick Lidakis <nlidakis-H+0wwilmMs3R7s880joybQ@public.gmane.org>
-Subject: Re: Desktop and S3 suspend the Holy Grail of ACPI?
-Date: Wed, 03 Mar 2004 19:51:39 -0500
+From: Jeff Chua <jeff89-xU4+foPaXuB6NlgSsqhgrkEOCMrvLtNR@public.gmane.org>
+Subject: _slooow acpi suspend to disk
+Date: Thu, 4 Mar 2004 09:09:31 +0800 (SGT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40467D9B.2030405@verizon.net>
-References: <4038F499.2060302@verizon.net> <20040225182030.GG1214@elf.ucw.cz> <40410A69.3070800@verizon.net> <20040228220435.GD10530@elf.ucw.cz> <4041136B.9000904@verizon.net> <20040228230941.GA488@elf.ucw.cz> <4043ECB4.7080203@verizon.net> <20040302101904.GA303@elf.ucw.cz> <404501D8.8090506@verizon.net> <20040302223446.GG1225@elf.ucw.cz> <40467B8E.7060709@verizon.net>
+Message-ID: <Pine.LNX.4.58.0403040858470.23978@boston.corp.fedex.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <40467B8E.7060709-H+0wwilmMs3R7s880joybQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,20 +14,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nick Lidakis <nlidakis-H+0wwilmMs3R7s880joybQ@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Acpi Development <Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Nick Lidakis wrote:
-S4 takes takes more than couple of minutes longer to compete with the 
-vanillas kernel
 
-Thats was a typo, the Debian kernel is faster, and the vanilla kernel w/ 
-acpi 2.6.3 patch takes significantly longer to finish the swsusp, but it 
-does finish it.
+I noticed that the first (from fresh linux boot) suspend to disk runs
+extremely slow (3 minutes) saving from memory to disk.
+
+After the first suspense, subsequence suspenses are very fast ... less
+than 15 seconds.
+
+System is Linux 2.6.4-rc1, 1GB Ram (but highmem disabled), IBM X30 1.4GHz,
+gcc 2.95.3, glibc 2.2.5-34.
+
+Command to suspend ... "echo 4 >/proc/acpi/sleep".
+
+Tried with/without preemptive, and even applied acpi-20040220-2.6.4.diff.
 
 
-Nick
+Another problem I noticed is vmware-4.0.5 runs very slowly with
+"processor" module loaded, and runs fine without "processor".
+
+
+
+Thanks,
+Jeff
 
 
 -------------------------------------------------------
