@@ -1,11 +1,14 @@
-From: Zaerc <laptop-5i3f5mHTS3sAvxtiuMwx3w@public.gmane.org>
-Subject: keventd running wild on an asus m2400n
-Date: Wed, 7 May 2003 07:51:04 +0200 (CEST)
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: Re: Intel Centrino and Linux
+Date: Wed, 7 May 2003 08:46:22 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.10.10305070529120.17162-100000@Adrameleck.home.Zaerc.com>
+Message-ID: <20030507064622.GB20583@hell.org.pl>
+References: <200305031848.04583.nbellm@gmx.de> <1051979022.24562.24.camel@dhcp22.swansea.linux.org.uk> <m21xzb9vig.fsf_-_@tnuctip.rychter.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <m21xzb9vig.fsf_-_-dTJq59+VGzkkCw8IV3R6h0EOCMrvLtNR@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,56 +17,24 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Jan Rychter <jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Thus wrote Jan Rychter:
+> I'm facing this kind of decision (buying a new laptop soon, possibly the
+> Toshiba DynaBook SS S7/290LNKW) -- so, does the above mean that Intel
+> Centrino is not Linux friendly?
+> 
+> Andy, Bob, could you please comment on this?
 
-Hello,
+More specifically, if I can add my $0.02 here, are these problems due to
+the general lack of support for the platform, or just mediocre DSDTs?
+Best regards,
 
-
-I'm trying to install Mandrake-9.1 on an ASUS M2400N laptop for a friend.
-But after a short while, keventd starts eating up all the available cpu
-time, only when ACPI is enabled.  
-
-Because Mandrake tend to use weirdly patched kernels I've decided to patch
-up my own, trying linux-2.4.21-rc1 with the acpi-20030424-2.4.21-rc1 patch
-with the same results...  
-
-An odd side effect is that ALSA wont be able to initialize the soundcard
-when ACPI is disabled with acpi=off.  
-
-Apart from these problems power management seems to be working just fine.
-The only thing similar I could find while searching the web were a few
-mails which sugested this ocured because the cpu gets hot, I'm refering to
-the "[ACPI] C1VN, ACPI and ESD/ASD = const CPU" thread on this mailing
-list on 2002.08.27.  BTW I haven't seen a dramatic increase in acpi
-interrupts (/proc/interrupts), or any events (/proc/acpi/event)
-
-I also tried linux-2.4.20 with the acpi-20021212-2.4.20 patch which had a 
-similar problem only this time the troubling process was kacpidpc and it 
-seems to die and restart very fast thus resulting in 100% cpu utilization 
-as well.
-
-To cut a long story short, I'm sort of at the end of my rope here.  I have
-little hope of getting this working since I'll have to return the laptop
-tomorow so it can be lobotomized with another OS (you know the one).
-Meanwhile I'd like to be of some assistance to you developers, just in
-case you might be interested.
-
-The laptop is an ASUS M2400N with an 1.3 GHz Intel Pentium M processor
-(centrino), AMIBIOS Date: 03/26/03 Version: 0203 (although when you enter
-the bios setup it says v02.33) and the thing that really baffles me is
-that it says "EVALUATION COPY, NOT FOR SALE" for a few seconds when
-booting up?!?  So I wouldn't be surprised if that is the root of all these
-problems.
-
-If anyone has more suggestions on things to try or if someone would like
-more info please let me know, a CC would be nice (and probably quicker)
-since I'm not on the mailinglist.
-
-
-With kind regards, Zaerc.
-
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
