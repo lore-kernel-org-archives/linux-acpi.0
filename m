@@ -1,12 +1,14 @@
-From: Vladislav Yasevich <vladislav.yasevich-VXdhtT5mjnY@public.gmane.org>
-Subject: Using dsdt initrd override with 2.6.6 kernels
-Date: Wed, 26 May 2004 15:41:22 -0400
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: acpi-devel list archive & acpi.sf.net
+Date: Wed, 26 May 2004 15:50:36 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40B4F2E2.5020308@hp.com>
+Message-ID: <29AC424F54821A4FB5D7CBE081922E408ABAEA@hdsmsx403.hd.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,29 +17,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Sebastian Henschel <shensche-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi
+Sebastian,
+Although sourceforge provides the actual acpi-devel list,
+the list archive on that site is notoriously unreliable.
 
-I am trying to use the initrd patch for the DSDT override with
-2.6.6 kernel and noticed that the DSDT is not being overridden.
+Perhaps you can mention these alternative archives on the acpi.sf.net
+web page:
 
-I've tracked it down to a change in init/main.c where
-populate_rootfs() call has moved to the init() function.
+http://news.gmane.org/gmane.linux.acpi.devel
+http://marc.theaimsgroup.com/?l=3Dacpi4linux
 
-Does anyone know why this was made and what's the right fix?
-
-I am just put the call back into start_kernel() and that
-fixed everything, but I am not sure if that's OK or if I am
-breaking something.
-
-Thanks
--vlad
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-Vladislav Yasevich		Linux and Open Source Lab
-Hewlett Packard 		Tel: (603) 884-1079
-Nashua, NH 03062		ZKO3-3/T07
+thanks,
+-Len
 
 
 -------------------------------------------------------
