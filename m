@@ -1,32 +1,27 @@
-From: "Cezar Halmagean" <cezar-WE3S9J525UShKNWrAYCRhA@public.gmane.org>
-Subject: HP NC6000 sleep
-Date: Thu, 3 Mar 2005 17:17:15 +0200
-Message-ID: <20050303151620.M29426@mixandgo.ro>
+From: Stefan Seyfried <seife@suse.de>
+Subject: Re: Call for help: list of machines with working S3
+Date: Thu, 03 Mar 2005 17:51:53 +0100
+Message-ID: <422740A9.1010407@suse.de>
+References: <20050214211105.GA12808@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=utf-8
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+In-Reply-To: <20050214211105.GA12808@elf.ucw.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@suse.cz>
+Cc: ACPI mailing list <acpi-devel@lists.sourceforge.net>, kernel list <linux-kernel@vger.kernel.org>, rjw@sisk.pl
 List-Id: linux-acpi@vger.kernel.org
 
-anyone got this working ? prefferably on gentoo !?
+Pavel Machek wrote:
 
---
-Cezar Halmagean
-Mix & Go
+> Table of known working systems:
+>=20
+> Model                           hack (or "how to do it")
+> ---------------------------------------------------------------------=
+---------
+IBM Thinkpad X40 (Type 2371-7JG)  acpi_sleep=3Ds3_bios,s3_mode
+--=20
+Stefan Seyfried, QA / R&D Team Mobile Devices, SUSE LINUX N=FCrnberg.
 
-
-
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+"Any ideas, John?"
+"Well, surrounding them's out."
