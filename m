@@ -1,13 +1,13 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 3/5] processor: always demote to next lower state
-Date: 23 Dec 2004 15:10:03 -0500
-Message-ID: <1103832603.4385.19.camel@d845pe>
-References: <20041223140747.GC7973@dominikbrodowski.de>
+Subject: Re: [PATCH 4/5] processor: nocst module parameter
+Date: 23 Dec 2004 15:10:15 -0500
+Message-ID: <1103832613.4379.21.camel@d845pe>
+References: <20041223140809.GD7973@dominikbrodowski.de>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041223140747.GC7973-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+In-Reply-To: <20041223140809.GD7973-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -26,34 +26,68 @@ Applied.
 thanks,
 -Len
 
-On Thu, 2004-12-23 at 09:07, Dominik Brodowski wrote:
-> Let C4 demote to C3, not directly to C2.
+On Thu, 2004-12-23 at 09:08, Dominik Brodowski wrote:
+> Add a "nocst" module parameter which blocks _CST parsing and
+> always uses FADT info instead.
 > 
 > Signed-off-by: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
 > ---
 > 
->  drivers/acpi/processor_idle.c |    5 +----
->  1 files changed, 1 insertion(+), 4 deletions(-)
+>  drivers/acpi/processor_idle.c |   13 ++++++++++---
+>  1 files changed, 10 insertions(+), 3 deletions(-)
 > 
 > Index: linux-2.6.10-rc3+bk-acpi/drivers/acpi/processor_idle.c
 > ===================================================================
 > --- linux-2.6.10-rc3+bk-acpi.orig/drivers/acpi/processor_idle.c
-> 2004-12-23 14:25:23.854099002 +0100
-> +++ linux-2.6.10-rc3+bk-acpi/drivers/acpi/processor_idle.c     
 > 2004-12-23 14:25:28.737417644 +0100
-> @@ -425,10 +425,7 @@
->                                 cx->demotion.threshold.bm = 0x0F;
->                 }
+> +++ linux-2.6.10-rc3+bk-acpi/drivers/acpi/processor_idle.c     
+> 2004-12-23 14:25:32.385908579 +0100
+> @@ -55,7 +55,10 @@
+>  #define C3_OVERHEAD                    4       /* 1us (3.579 ticks
+> per us) */
 > 
-> -               /* from C3 we always demote to C2, even if there are
-> multiple
-> -                * states of type C3 available. */
-> -               if (cx->type < ACPI_STATE_C3)
-> -                       lower = cx;
-> +               lower = cx;
+>  static void (*pm_idle_save)(void);
+> -module_param_named(max_cstate, max_cstate, uint, 0644);
+> +module_param(max_cstate, uint, 0644);
+> +
+> +static unsigned int nocst = 0;
+> +module_param(nocst, uint, 0000);
+> 
+>  /*
+> --------------------------------------------------------------------------
+>                                  Power Management
+> @@ -506,6 +509,10 @@
+> 
+>         if (errata.smp)
+>                 return_VALUE(-ENODEV);
+> +
+> +       if (nocst)
+> +               return_VALUE(-ENODEV);
+> +
+>         pr->power.count = 0;
+>         for (i = 0; i < ACPI_PROCESSOR_MAX_POWER; i++)
+>                 memset(pr->power.states, 0, sizeof(struct
+> acpi_processor_cx));
+> @@ -800,7 +807,7 @@
+>         if (!pr)
+>                 return_VALUE(-EINVAL);
+> 
+> -       if (errata.smp) {
+> +       if (errata.smp || nocst) {
+>                 return_VALUE(-ENODEV);
 >         }
 > 
->         /* promotion */
+> @@ -917,7 +924,7 @@
+>                 first_run++;
+>         }
+> 
+> -       if (!errata.smp && (pr->id == 0) && acpi_fadt.cst_cnt) {
+> +       if (!errata.smp && (pr->id == 0) && acpi_fadt.cst_cnt &&
+> !nocst) {
+>                 status = acpi_os_write_port(acpi_fadt.smi_cmd,
+> acpi_fadt.cst_cnt, 8);
+>                 if (ACPI_FAILURE(status)) {
+>                         ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
 > 
 > 
 
