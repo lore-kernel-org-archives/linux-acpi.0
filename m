@@ -1,12 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: acpi-thermal: fix confusing define
-Date: Wed, 20 Oct 2004 20:12:21 +0200
+From: Hiroshi 2 Itoh <HIROIT-JE5g2YyFxFHQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] GDT table patch for resume only reboots problem
+Date: Thu, 21 Oct 2004 03:36:52 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041020181221.GA25015@elf.ucw.cz>
+Message-ID: <OF713F042E.6095AA90-ON49256F33.00637EC8-49256F33.0065C963@jp.ibm.com>
+References: <1098233908.4032.12.camel@tyrosine>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1098233908.4032.12.camel@tyrosine>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -15,49 +16,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Rusty trivial patch monkey Russell <trivial-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>, Andrew Morton <akpm-LJ1TwQYPT6cQrrorzV6ljw@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
 
-We have PASSIVE, ACTIVE and CRT cooling policies... Ouch, the last one
-should probably be called CRITICAL otherwise everyone thinks
-"TV?". This patch fixes it, please apply,
-								Pavel
 
---- foo/drivers/acpi/thermal.c	9 Oct 2004 04:09:18 -0000	1.27
-+++ foo/drivers/acpi/thermal.c	20 Oct 2004 17:53:41 -0000
-@@ -60,8 +60,8 @@
- #define ACPI_THERMAL_NOTIFY_HOT		0xF1
- #define ACPI_THERMAL_MODE_ACTIVE	0x00
- #define ACPI_THERMAL_MODE_PASSIVE	0x01
--#define ACPI_THERMAL_MODE_CRT   	0xff
-+#define ACPI_THERMAL_MODE_CRITICAL		0xff
- #define ACPI_THERMAL_PATH_POWEROFF	"/sbin/poweroff"
- 
- #define ACPI_THERMAL_MAX_ACTIVE	10
- 
-@@ -953,7 +964,7 @@
- 		seq_puts(seq, "<setting not supported>\n");
- 	}
- 
--	if ( tz->cooling_mode == ACPI_THERMAL_MODE_CRT )
-+	if ( tz->cooling_mode == ACPI_THERMAL_MODE_CRITICAL )
- 		seq_printf(seq, "cooling mode:	critical\n");
- 	else
- 		seq_printf(seq, "cooling mode:	%s\n",
-@@ -1262,7 +1276,7 @@
- 			tz->cooling_mode = ACPI_THERMAL_MODE_ACTIVE;
- 		} else {
- 			/* _ACx and _PSV are optional, but _CRT is required */
--			tz->cooling_mode = ACPI_THERMAL_MODE_CRT;
-+			tz->cooling_mode = ACPI_THERMAL_MODE_CRITICAL;
- 		}
- 	}
- 
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+
+
+>I'm testing this patch plus the wakeup address one on an EiSystem 3001
+>(some random cheap VIA-based system). Suspend appears to work correctly
+>- if I use Pavel's BEEP code in do_suspend_lowevel I get a tone
+>immediately before the machine shuts down. The sleep light then comes
+>on. Hitting the power button results in the machine rebooting
+>immediately - putting a BEEP at the start of wakeup_start doesn't result
+>in any tone. Are there any further useful details I can send?
+
+>(This machine is of sufficiently poor quality that its DMI table claims
+>it's a desktop, but it suspends correctly under Windows XP...)
+
+Beep is not always audible. The timer registers should be initialized to
+get a certain clock and the output of the beep may be controlled via
+buttons,
+sliders, or other software controllable registers. We cannot assume that
+all of BIOS can do this kind of minimum POST setup from wakeup. It is not
+a significant problem when the resume code can come back under OS control
+to
+re-initialize.
+
+Instead, I test my machine to write a byte value on I/O port 0x3bc. This
+is the parallel port's output register to be latched and observable if you
+have a simple hardware decoder with 7 segment LEDs. <- do it yourself work
+is required. :-)
+
+The port write is very simple one instruction using dx and al registers
+without any stack help. So It's nice for our suspend/resume debug.
+
+- Hiro
+
 
 
 -------------------------------------------------------
