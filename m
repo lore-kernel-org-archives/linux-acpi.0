@@ -1,12 +1,17 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: S3 suspend and serial console
-Date: Sat, 5 Feb 2005 23:06:19 +0100
-Message-ID: <20050205220619.GA30739@message-id.gmane0305.slipkontur.de>
-References: <42023083.8030508@gmx.net> <4204CA50.8090906@gmx.net> <20050205155845.GA20131@hell.org.pl>
+From: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
+Subject: Re: Re: Legacy IO spaces (was Re: [RFC] Reliable video
+	POSTing on resume)
+Date: Sun, 06 Feb 2005 09:42:32 +1100
+Message-ID: <1107643352.30270.26.camel@gaston>
+References: <20050122134205.GA9354@wsc-gmbh.de>
+	 <200502041010.13220.jbarnes@engr.sgi.com>
+	 <9e4733910502041459500ae8d3@mail.gmail.com>
+	 <200502041534.03004.jbarnes@engr.sgi.com>
+	 <9e47339105020416486cf19738@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20050205155845.GA20131-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <9e47339105020416486cf19738-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,26 +21,42 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Jesse Barnes <jbarnes-UzQTBcouhwxWk0Htik3J/w@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Feb 05, 2005 at 04:58:45PM +0100, Karol Kozimor wrote:
- 
-> echo > /dev/ttyS0 will echo a single '\n'. I guess echo -n would be more
 
-only "> /dev/ttyS0", no echo. This basically does...
+> If they all point to the same space, I can't tell whether I have three
+> legacy spaces or one. I need to know how many legacy spaces there are
+> in order to know how many VGA cards can simultaneously be enabled.
 
-open("/dev/tty", O_WRONLY|O_CREAT|O_TRUNC|O_LARGEFILE, 0666) = 3
-fcntl64(1, F_GETFD)                     = 0
-fcntl64(1, F_DUPFD, 10)                 = 10
-fcntl64(1, F_GETFD)                     = 0
-fcntl64(10, F_SETFD, FD_CLOEXEC)        = 0
-dup2(3, 1)                              = 1
-close(3)                                = 0
+You don't need to care about this, at least in userland. All you need
+is proper primitives for locking/unlocking access to a given device.
+Wether you have another one to arbitrate with on the same PCI bus or not
+is almost irrelevant. That is, it is the job of the kernel driver that
+ultimately will do this arbitration (we really need that), and we can
+prefectly well survive a long time with a very simple implementation
+taht always disable all other VGA devies in the system, not caring about
+"simultaneous" access. That implementation can be then improved on
+later.
 
-so it is pretty equivalent to "echo -n > /dev/ttyS0"
--- 
-Stefan Seyfried
+My point is what we really need to define is the in-kernel and userland
+API to do this basic VGA access arbitration in the first place. I though
+you did something like that a while ago Jon, didn't you ?
+
+I think it could be as simple as an additional sysfs entry
+"legacy_enabled" added to all "VGA" devices in the system at the PCI
+layer level. Toggling it triggers the "untoggling" of all others,
+including VGA forwarding on bridges, and enables the path to that
+device. For in-kernel users, a pci_* API would work.
+
+The problem I see though is that it should all be synchronous &
+spinlocked since the vgacon could want to grab at interrupt time (unless
+it's locked by userland, in which case, vgacon should cache & trigger an
+update later).
+
+Ben.
+
 
 
 
