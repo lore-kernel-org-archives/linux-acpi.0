@@ -1,56 +1,32 @@
-From: Ivor Hewitt <ivor-rtBon1mkn18@public.gmane.org>
-Subject: Z600 screen restore
-Date: Mon, 27 Sep 2004 18:49:16 +0000
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200409271849.16833.ivor@ivor.org>
+From: Dmitry Torokhov <dtor_core@ameritech.net>
+Subject: Re: [ACPI] PATCH-ACPI based CPU hotplug[2/6]-ACPI Eject interface support
+Date: Mon, 27 Sep 2004 13:09:17 -0500
+Sender: linux-ia64-owner@vger.kernel.org
+Message-ID: <200409271309.17756.dtor_core@ameritech.net>
+References: <20040920092520.A14208@unix-os.sc.intel.com> <200409270112.29422.dtor_core@ameritech.net> <20040927095348.A29594@unix-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <20040927095348.A29594@unix-os.sc.intel.com>
 Content-Disposition: inline
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
+Cc: Len Brown <len.brown@intel.com>, acpi-devel@lists.sourceforge.net, LHNS list <lhns-devel@lists.sourceforge.net>, Linux IA64 <linux-ia64@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-I have a Sony vaio Z600-hek (same as US model Z505). Which I've been trying to 
-get working with ACPI for a while....
+On Monday 27 September 2004 11:53 am, Keshavamurthy Anil S wrote:
+> =A0=A0=A0=A0=A0=A0=A0=A0I just wanted to have a single function i.e s=
+etup_sys_fs_device_files() for both
+> creating and removing sysfs files.
 
-On S3 restore the screen would power up and flash briefly and then power down 
-immediately although the machine was now up and running. 
+Ah, I see... Makes sense, especially when there is additional logic inv=
+olved
+in creating some of the attributes, which is the case with ACPI.
 
-using "acpi_sleep=s3_mode" makes no difference.
-"acpi_sleep=s3_bios" causes the machine to crash on s3 restore.
-
-but if I comment out the two tests:-
-
-#       testl   $1, video_flags - wakeup_code
-#       jz      1f
-and
-#       testl   $2, video_flags - wakeup_code
-#       jz      1f
-
-the machine restores from s3 successfully and the screen powers up... so that 
-appears to be the area of the problem...
-any suggestions what the 'correct' fix for this would be?
-
-Cheers,
-
--- 
-Ivor Hewitt.
-http://www.ivor.it - tech | http://www.ivor.org - hedge
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: YOU BE THE JUDGE. Be one of 170
-Project Admins to receive an Apple iPod Mini FREE for your judgement on
-who ports your project to Linux PPC the best. Sponsored by IBM.
-Deadline: Sept. 24. Go here: http://sf.net/ppc_contest.php
+--=20
+Dmitry
+-
+To unsubscribe from this list: send the line "unsubscribe linux-ia64" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
