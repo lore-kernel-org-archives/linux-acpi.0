@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
 Subject: Re: suspend.c vs driver-model.txt
-Date: Tue, 30 Jul 2002 21:00:41 +0200
+Date: Tue, 30 Jul 2002 21:11:27 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020730190041.GH7567@atrey.karlin.mff.cuni.cz>
-References: <20020730184442.GE7567@atrey.karlin.mff.cuni.cz> <Pine.LNX.4.44.0207301148350.22697-100000@cherise.pdx.osdl.net>
+Message-ID: <20020730191127.GB11531@atrey.karlin.mff.cuni.cz>
+References: <20020730190041.GH7567@atrey.karlin.mff.cuni.cz> <Pine.LNX.4.44.0207301202250.22697-100000@cherise.pdx.osdl.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0207301148350.22697-100000-yZQdDDOm3n9ZQn2sFP3R7eTW4wlIGRCZ@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.44.0207301202250.22697-100000-yZQdDDOm3n9ZQn2sFP3R7eTW4wlIGRCZ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -23,37 +23,15 @@ List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> > I believe we should ease the pain of driver maintainers by
-> > guaranteeing:
-> > 
-> > when driver_suspend() / driver_resume() is called
-> > 
-> > 1) userspace is stopped.
+> > I believe shutting down CPUs should be done outside device_suspend()
+> > so all device_suspends() run on just one CPU...
 > 
-> I thought that was a given ;)
+> Right. But, the subsystem notification would presumably happen outside of 
+> that.
 
-Benjamin Herrenschmidt was arguing for doing driver_suspend() while
-userspace is still running. If you assumed stopped userspace, you
-don't have to add semaphore into device read() etc...
+Okay, I can live with that.
 
-> > 2) we are running with just one active CPU.
-> 
-> Sure. We can tie that into subsystem notification, like this:
-> 
-> - The level at which we want to stop requests appears to be at the device 
->   class level. 
-> 
-> - Device classes are coming RSN. 
-> 
-> - CPUs belong to a device class.
-> 
-> - We can integrate PM notication into device classes.
-> 
-> - The CPU device class can shut off all APs (application processors [silly 
->   Intel term]).
-
-I believe shutting down CPUs should be done outside device_suspend()
-so all device_suspends() run on just one CPU...
+[So we are getting "struct subsystem { }" ?]
 								Pavel
 -- 
 Casualities in World Trade Center: ~3k dead inside the building,
