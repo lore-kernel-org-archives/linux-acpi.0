@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: ACPI patch flow
-Date: Tue, 3 Feb 2004 13:28:33 +0100
+Subject: Re: ACPI state 4
+Date: Tue, 3 Feb 2004 13:32:29 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040203122832.GA1405@elf.ucw.cz>
-References: <1075747579.2394.108.camel@dhcppc4>
+Message-ID: <20040203123229.GB1405@elf.ucw.cz>
+References: <80712959.1075733001@HELPDESK-PC13.fdl.pitt.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1075747579.2394.108.camel-D2Zvc0uNKG8@public.gmane.org>
+In-Reply-To: <80712959.1075733001-GZumfx3jmlwhxhjGrziYQKfZQGhMgmcGN7jzCyCsa88@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,41 +17,42 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Henry Umansky <hmust2+-fYq5UfK3d1k@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> In an effort to make sure the latest ACPI patch is widely available, I
-> currently publish it both as bk trees and plain patches
-> http://linux-acpi.bkbits.net/
-> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/
+> I just compiled Linux kernel 2.6.1 with ACPI support and I wanted to test 
+> out the different sleep states.  So I ran the command:
 > 
-> against 7 releases:
-> 
-> 2.4.22
-> 2.4.23
-> 2.4.24
-> 2.4.25
-> 
-> 2.6.0
-> 2.6.1
-> 2.6.2
-> 
-> I'd like to stop maintaining (and delete) 2.4.23 -- with the release of
-> 2.4.24, I doubt anybody is using 2.4.23.
-> 
-> I'd like to stop maintaining (and delete) 2.6.0 -- with the release of
-> 2.6.1, I doubt anybody is using 2.6.0.  Also, 2.6.1 has diverged
-> somewhat from 2.6.0, so maintaining 2.6.0 has become problematic.
-> 
-> let me know if you have any issues with this.
+> $echo 4 > /proc/acpi/sleep
 
-I do not see any problems with that.
+I suggest doing 
 
-For 2.6, if I were you, I'd drop 2.6.1, too. People should upgrade to
-latest if they have problems..
+sync; echo 4 > sleep
+
+...just to be safe.
+
+> And it started freeing up memory and everything looked like it worked. 
+> Then my computer shut off.  When I pressed the power button, it started up 
+> and I started my linux kernel with the following GRUB commands:
+> 
+> root (hd0,0)
+> kernel /vmlinuz resume=/dev/hda2
+> 
+> And it looks like ACPI attempts to read the state from the swap partition 
+> (/dev/hda2) but then it reboots all of a sudden.  This happens everytime I 
+> try to recover.  When I try to boot normally, most of my files are corrupt. 
+> I'm guessing that when I entered the S4 sleep state, everything in the swap 
+> partition didn't sync with my hard drive, because a lot of my text files 
+> are corrupt and can't be read anymore.  I apologize if I didn't include 
+> enough information, because I'm new to this mailing list and this is the 
+> first "real" time I've messed with ACPI.  Let me know if you need anymore 
+> information.
+
+AGP likes to do this. Try without that one.
+								Pavel 
 
 -- 
 When do you have a heart between your knees?
