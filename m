@@ -1,14 +1,15 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Re: suspend/resume support for driver requires an external firmware
-Date: Thu, 23 Sep 2004 20:32:49 +0800
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: About DSDT fixing and debugging
+Date: Thu, 23 Sep 2004 14:37:51 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <16A54BF5D6E14E4D916CE26C9AD305752F9D4D@pdsmsx402.ccr.corp.intel.com>
+Message-ID: <20040923123751.GA29424@poupinou.org>
+References: <I4HK00$27530FB661DF79A95160CDA9EDFBAE18@libero.it> <20040923125525.GA19982@laptop> <4152B880.6050001@pca.it>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <4152B880.6050001-wlebWZzHoyE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,27 +18,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Zhu, Yi" <yi.zhu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Patrick Mochel <mochel-og82NyAXoxR0I81aPRRTmR2eb7JE58TQ@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, ipw2100-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-I guess S3 also suffers the same problem, the patch should not just for
-'swsusp'.
+> Hello,
+> 
+> on 09/23/04 14:55, Andreas Leppert wrote:
+> > just want to say that these are exactly the same problems i have with my fujitsu amilo D 7830!
+> > no throttling (always C1 = 12%), no cooling (always 75° C). i have already disassembled with a few 
+> > errors, but couldn't fix it correctly.
+> about the C1 states: does your DSDT have a PBLK_lenght != [0|6]? Please
+> see post [1] on ACPI-devel (sorry, I don't know how you can see the
+> whole thread with gmane.com) and the first integration _CST method [2].
+> 
 
--Shaohua
+I think OP meant s/C1/T1 ;)
 
->-----Original Message-----
->From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
->admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Zhu, Yi
->Sent: Thursday, September 23, 2004 3:46 PM
->To: Zhu, Yi
->Cc: Patrick Mochel; Pavel Machek; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org;
->ipw2100-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: [ACPI] Re: suspend/resume support for driver requires an
-external
->firmware
->
->Thu, 23 Sep 2004 15:46:11 +0800 (CST)
+-- 
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
