@@ -1,13 +1,11 @@
 From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: Shutting down PCI devices on suspend
-Date: Sat, 11 Dec 2004 22:41:33 +0000
-Message-ID: <1102804893.5984.23.camel@tyrosine>
-References: <1102779460.5984.17.camel@tyrosine>  <41BB4F70.9060606@root.org>
+Subject: ACPI failures on non-Intel hardware
+Date: Sat, 11 Dec 2004 22:47:59 +0000
+Message-ID: <1102805280.5984.30.camel@tyrosine>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41BB4F70.9060606-Y6VGUYTwhu0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,35 +15,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, 2004-12-11 at 11:50 -0800, Nate Lawson wrote:
-> In FreeBSD, we do this at the bus layer.  So the ACPI and PCI bus code 
-> is responsible for powering down/up children.  We currently do it:
-> 
-> 1. When no driver is attached and on reprobe
-> 2. When suspending/resuming, based on evaluating _SxD
-> 
-> See this commit for details:
-> http://docs.freebsd.org/cgi/getmsg.cgi?fetch=1604853+0+archive/2004/cvs-all/20041205.cvs-all
+http://bugzilla.kernel.org/show_bug.cgi?id=3691 describes a fairly
+serious ACPI failure. Attempting to wake up from S3 suspend seems to
+result in the system rebooting without any wakeup code being run. I've
+seen this behaviour on two machines, and had it described to me on a
+third. Interestingly, all the machines in question were non-Intel
+hardware - one is a VIA C3, and the other two are Athlon XPs (not
+Athlon64s). On the test machine I have here, FreeBSD behaves identically
+to Linux (seemingly successful suspend, reboot on wake) and Windows
+suspends and resumes correctly.
 
-Does _SxD represent the "desired" mode for the hardware, or merely the
-highest state it can be left in? A mail from Len earlier this year
-suggested that if S3D returned 0x2, that meant that either D3 or D2 were
-acceptable.
-
-Is there any reason why adding something like
-
-if (state==3) {
-	pci_set_power_state(dev,ACPI_STATE_D3COLD)
-}
-
-to pci_device_suspend in the non-driver path and reenabling it in
-pci_default_resume would result in things breaking?
-
-(Possibly with sanity checks as to whether it's a bridge or not)
+The fact that I've only seen this on systems that didn't have Intel
+motherboard chipsets makes me wonder whether there's something going
+wrong during the suspend code that happens to work by chance on Intel
+(and a few other) chipsets, or alternatively whether these chipsets
+manage to fall outside the specs slightly. Any ideas?
 
 -- 
 Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
