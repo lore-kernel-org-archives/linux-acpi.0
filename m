@@ -1,14 +1,12 @@
-From: Alfonso =?ISO-8859-1?Q?Mu=F1oz-Pomer?= Fuentes <etinarcadiaego-pCzzcW6XgXY@public.gmane.org>
-Subject: Re: Re: Application
-Date: 06 Jun 2003 13:49:22 +0200
+From: jbarnes-sJ/iWh9BUns@public.gmane.org (Jesse Barnes)
+Subject: [PATCH] handle fadt->si_cmd == 0
+Date: Fri, 6 Jun 2003 10:17:30 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1054900162.439.25.camel@roamer>
-References: <E19OF56-0006o5-00@sc8-sf-list1.sourceforge.net>
+Message-ID: <20030606171730.GD1349@sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <E19OF56-0006o5-00-ek0oC1U1TqrdOcd1oGYhBqQD96bmaF075NbjCUgZEJk@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,18 +15,32 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: dany.stamant-rieW9WUcm8FFJ04o6PK0Fg@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2003-06-06 at 12:59, dany.stamant-rieW9WUcm8FFJ04o6PK0Fg@public.gmane.org wrote:
-> Please see the attached file.
+In reading the spec, it looks like if a particular ACPI implementation
+leaves fadt->si_cmd equal to 0, that means the platform doesn't support
+system management mode, which seems legal.  I needed this patch for my
+system.  With the patch applied, I'm able to see /proc/acpi and the
+interpreter appears to start.  Is this legal?
 
-Someone got a virus?
+Thanks,
+Jesse
 
--- 
-Alfonso Muñoz-Pomer Fuentes <etinarcadiaego-pCzzcW6XgXY@public.gmane.org>
 
+--- /usr/tmp/TmpDir.30375-0/linux/drivers/acpi/hardware/hwacpi.c_1.10	Fri Jun  6 10:24:23 2003
++++ linux/drivers/acpi/hardware/hwacpi.c	Tue Jun  3 10:48:31 2003
+@@ -180,6 +180,10 @@
+ 
+ 	ACPI_FUNCTION_TRACE ("Hw_get_mode");
+ 
++	/* If there's no smi_cmd port, then it's ACPI only hw */
++	if (!acpi_gbl_FADT->smi_cmd)
++		return_VALUE (ACPI_SYS_MODE_ACPI);
++
+ 	status = acpi_get_register (ACPI_BITREG_SCI_ENABLE, &value, ACPI_MTX_LOCK);
+ 	if (ACPI_FAILURE (status)) {
+ 		return_VALUE (ACPI_SYS_MODE_LEGACY);
 
 
 -------------------------------------------------------
