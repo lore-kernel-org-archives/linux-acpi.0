@@ -1,11 +1,10 @@
-From: =?ISO-8859-1?Q?H=F6r=F0ur_Kristinn_Hei=F0arsson?= <eight-Mwv65WCbCGn1P9xLtpHBDw@public.gmane.org>
-Subject: ACPI patch on Mandrake 9.2
-Date: Tue, 09 Dec 2003 16:04:02 +0000
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: [Bug 1656] Merge FreeBSD local changes into vendor dist (fwd)
+Date: Tue, 9 Dec 2003 09:22:17 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3FD5F272.4020104@simnet.is>
+Message-ID: <20031209092116.V42588@root.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,19 +14,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello
+!#@$@!#$#@!$ This is the second time this has happened.  Can we either 1.
+get an acpi-ca bug tracking system or 2. tell the admins to leave me
+alone?
 
-I'm trying to patch my Mandrake kernel with the ACPI patch, but there 
-are some conflicts. Does anyone know how to do this?
-The kernel version is 2.4.22-21mdk
+-Nate
+
+---------- Forwarded message ----------
+Date: Tue, 9 Dec 2003 08:02:55 -0800
+From: bugme-daemon-3NddpPZAyC0@public.gmane.org
+To: nate-Y6VGUYTwhu0@public.gmane.org
+Subject: [Bug 1656] Merge FreeBSD local changes into vendor dist
+
+http://bugme.osdl.org/show_bug.cgi?id=1656
+
+mbligh-/CzTsIfkJEdBDgjK7y7TUQ@public.gmane.org changed:
+
+           What    |Removed                     |Added
+----------------------------------------------------------------------------
+             Status|NEW                         |REJECTED
+         Resolution|                            |INVALID
 
 
-Regards,
-Hordur Heidarsson
 
+------- Additional Comments From mbligh-/CzTsIfkJEdBDgjK7y7TUQ@public.gmane.org  2003-12-09 08:02 -------
+This is a Linux database, for mainline kernels.
+No such file exists.
+
+------- You are receiving this mail because: -------
+You reported the bug, or are watching the reporter.
 
 
 -------------------------------------------------------
