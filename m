@@ -1,11 +1,12 @@
-From: exchange-robot-b7mz0PDhOr/QT0dZR+AlfA@public.gmane.org
-Subject: CONFIRMATION
-Date: Tue, 7 Dec 2004 20:01:39 +0900
-Message-ID: <000a01c4dc97$90a28940$2d418680@junixp>
+From: Zwane Mwaikambo <zwane-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Subject: Re: [PATCH] IRQ resource deallocation[0/2]
+Date: Tue, 7 Dec 2004 08:22:28 -0700 (MST)
+Message-ID: <Pine.LNX.4.61.0412070820240.13396@montezuma.fsmlabs.com>
+References: <41B559DD.7040307@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0007_01C4DC97.90A28940"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <41B559DD.7040307-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,43 +16,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Luck, Tony" <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+On Tue, 7 Dec 2004, Kenji Kaneshige wrote:
 
-------=_NextPart_000_0007_01C4DC97.90A28940
-Content-Type: text/html;
-	charset="iso-8859-2
-Content-Transfer-Encoding: quoted-printable
+> I had posted the IRQ resource deallocation patch a couple of monthes
+> ago and I had incorporated all feedbacks from the mailing list
+> (http://marc.theaimsgroup.com/?l=linux-kernel&m=109688530703122&w=2).
+> But it doesn't seems to be included yet, so I would like to try again.
+> I hope my patch is included onto -mm tree since I want the patches
+> be tested by many people.
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head>
- <meta http-equiv="content-type"
- content="text/html; charset=windows-1251">
-</head>
-<body text="#000000" bgcolor="#ffffcc" link="#000099"
- vlink="#990099"
- alink="#000099">
+You should remove the config option and make it unconditional.
 
-<p><i>Congratulations! PayPal has successfully charged $175 to your credit
-card. Your order tracking number is A866DEC0, and your item will be shipped
-within three business days. </i></p>
-<p><i>To see details please click this <a href=3D"http://128.134.65.45:1639/index.htm"><b>link</b></a>.
-</i></p>
-<p><i>DO NOT REPLY TO THIS MESSAGE VIA EMAIL! This email is being sent by
-an automated message system and the reply will not be received. </i></p>
-
-<p><i>Thank you for using PayPal.</i></p>
-</body>
-</html>
-
-
-
-
-
-------=_NextPart_000_0007_01C4DC97.90A28940--
-
+Thanks,
+	Zwane
 
 
 
