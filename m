@@ -1,14 +1,14 @@
-From: "Craig Whitmore" <lennon-q3Ck4f9/EBK9koe0gwxAeg@public.gmane.org>
-Subject: Re: ACPI patches updated (20021111)
-Date: Wed, 13 Nov 2002 19:31:50 +1300
+From: Ciro Mattia Gonano <lestat-oqfuaKpTAUt/+UGKtYOvpA@public.gmane.org>
+Subject: ACPI Battery status on Acer TravelMate a-550XV
+Date: Wed, 13 Nov 2002 11:54:05 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <003101c28ade$590b70d0$6df058db@PC2>
-References: <Pine.LNX.4.44.0211130026080.6089-100000@tweek.neosouth.net>
+Message-ID: <20021113105405.GA1994@amaranthum.com>
+Reply-To: lestat-oqfuaKpTAUt/+UGKtYOvpA@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="tKW2IUtsqtDRztdT"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,153 +17,89 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: andy-gRfBfDTKyCbR7s880joybQ@public.gmane.org, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Apart from my other errors , that other people are looking into at the
-moment.
 
-I am getting repeated
+--tKW2IUtsqtDRztdT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
- utmisc-0700 [-91] Ut_acquire_mutex      : Thread 2CA could not acquire
-Mutex [ACPI_MTX_Caches] AE_ERROR
+Hi all.
+I'm quite a newbie in kernel hacking, and the same (and maybe more ;) ) in =
+acpi
+hacking.
+So, that's my problem: with vanilla kernel acpi support I was not able to s=
+ee my
+laptop's battery status, and for acpi AC Adapter was online all the time (it
+showed me on-line also if really the cable was not on).
+So, I tried to apply acpi-20021101-2.4.20-rc1.diff.gz to a 2.4.20-rc1 kerne=
+l,
+and something seemed to have changed...
+The AC Adapter status works fine (it reflects the real status on/off-line o=
+f the
+cable), the power button also works fine, but the battery still doesn't wor=
+k :(
+I use "acpi" cmd to view the status, and, while the first time I run it, it
+always outputs me:
 
-in my syslog
+lilith:~# acpi -V
+     Battery 1: charging, 98%, charging at zero rate - will never fully cha=
+rge.
+     Thermal 1: ok, 37.0 degrees C
+  AC Adapter 1: on-line
 
-Thanks
-Craig
+starting from the second time, it outputs me the real status, something like
+this:
 
------ Original Message -----
-From: <andy-gRfBfDTKyCbR7s880joybQ@public.gmane.org>
-To: <acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org>
-Sent: Wednesday, November 13, 2002 6:33 PM
-Subject: Re: [ACPI] ACPI patches updated (20021111)
+lilith:~# acpi -V
+     Thermal 1: ok, 50.0 degrees C
+  AC Adapter 1: off-line
 
+=2E.and the battery couldn't be viewed anymore.
+I tried to unplug the battery, and then replug in (while the laptop was on =
+AC,
+obviously), and I received some error messages:
 
-> On Tue, 12 Nov 2002, andy-gRfBfDTKyCbR7s880joybQ@public.gmane.org wrote:
->
-> > On my Compaq Presario 2700T (currently running 2.5.47), it makes the
-ACPI
-> > actually work correctly with the stock (bogus) DSDT. I can actually see
-> > the battery and thermal zone now. Previously the battery would not show
-up
-> > and often the thermal zone initialization croaked on an uninitialized
-> > variable.
->
-> Well I jinxed it. On one reboot, it froze during initialization (_STA and
-> _INI methods, I think).  On another, it was back to it's old behavior. Is
-> it possible that some of the initialization occurs in a non-deterministic
-> order?
->
-> DSDT at http://neosouth.net/compaq-presario-2700T-dsdt
->
-> ACPI: RSDP (v000 PTLTD                      ) @ 0x000f6180
-> ACPI: RSDT (v001 PTLTD  RSDT   01540.00000) @ 0x0ff6d127
-> ACPI: FADT (v001 INTEL  Almador  01540.00000) @ 0x0ff73b64
-> ACPI: BOOT (v001 PTLTD  $SBFTBL$ 01540.00000) @ 0x0ff73bd8
-> ACPI: DSDT (v001  INTEL  ALMADOR 01540.00000) @ 0x00000000
-> ACPI: BIOS passes blacklist
-> ACPI: MADT not present
-> ...
-> ACPI: Subsystem revision 20021111
->  tbxface-0099 [03] Acpi_load_tables      : ACPI Tables successfully
-acquired
-> Parsing
-Methods:....................................................................
-............................................................................
-............................................................................
-.
-> Table [DSDT] - 679 Objects with 57 Devices 221 Methods 25 Regions
-> ACPI Namespace successfully loaded at root c0449bdc
-> evxfevnt-0074 [04] Acpi_enable           : Transition to ACPI mode
-successful
->  evevent-0508: *** Info: GPE Block0 defined as GPE0 to GPE15
->  evevent-0508: *** Info: GPE Block1 defined as GPE16 to GPE31
-> Executing all Device _STA and_INI
-methods:.........................................................
-> 57 Devices found containing: 57 _STA, 5 _INI methods
-> Completing Region/Field/Buffer/Package
-initialization:.............................................................
-...........
-> Initialized 16/25 Regions 0/0 Fields 28/28 Buffers 28/28 Packages (679
-nodes)
-> ACPI: Interpreter enabled
-> ACPI: Using PIC for interrupt routing
-> ACPI: (supports S0 S3 S4 S5)
-> ACPI: PCI Root Bridge [PCI0] (00:00)
-> PCI: Probing PCI hardware (bus 00)
-> Transparent bridge - Intel Corp. 82801BAM/CAM PCI Bridge
-> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.AGPB._PRT]
-> [ACPI Debug] Buffer: Length 06
-> ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 7 *9 10 11 12 14 15)
-> ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 *5 7 9 10 11 12 14 15)
-> ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 7 *9 10 11 12 14 15)
-> ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 7 9 10 *11 12 14 15)
-> ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 7 9 *10 11 12 14 15)
-> ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 7 9 10 11 12 14 15, disabled)
-> ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 5 7 9 10 11 12 14 15, disabled)
-> ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 7 9 10 11 12 14 15, disabled)
-> ACPI: Embedded Controller [EC0] (gpe 29)
-> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.HUB_._PRT]
-> ACPI: Power Resource [PLPC] (on)
-> pci_bind-0191 [17] acpi_pci_bind         : Device 00:00:1f.06 not present
-in PCI namespace
-> block request queues:
->  128 requests per read queue
->  128 requests per write queue
->  8 requests per batch
->  enter congestion at 31
->  exit congestion at 33
-> ACPI: PCI Interrupt Link [LNKF] enabled at IRQ 11
-> ACPI: PCI Interrupt Link [LNKG] enabled at IRQ 10
-> ACPI: PCI Interrupt Link [LNKH] enabled at IRQ 5
-> PCI: Using ACPI for IRQ routing
-> PCI: if you experience problems, try using option 'pci=noacpi' or even
-'acpi=off'
-> ...
-> [ACPI Debug] String: INIT BATO in acad.psr
-> [ACPI Debug] String: INIT BATO in acad.psr
-> ACPI: AC Adapter [ACAD] (on-line)
-> ACPI: Battery Slot [BAT1] (battery absent)
-> ACPI: Battery Slot [BAT2] (battery absent)
-> ACPI: Power Button (FF) [PWRF]
-> ACPI: Sleep Button (CM) [SLPB]
-> ACPI: Lid Switch [LID]
-> ACPI: Processor [CPU0] (supports C1 C2)
-> [ACPI Debug] String: ========= BAT1 UPBI =========
-> dsmthdat-0433 [34] Ds_method_data_get_val: Uninitialized Local[3] at node
-cfecc950
->  psparse-1155: *** Error: Method execution failed,
-AE_AML_UNINITIALIZED_LOCAL
-> Method pathname:  \_TZ_.THRM._TMP (Node cfeb6dec)
-> pty: 256 Unix98 ptys configured
-> Floppy drive(s): fd0 is 1.44M
-> [ACPI Debug] Integer: 0000000000000014
-> [ACPI Debug] String: BATD=
-> [ACPI Debug] Integer: 00000000000010F1
-> [ACPI Debug] String: BATO=
-> [ACPI Debug] Integer: 00000000000000C0
-> [ACPI Debug] String: Notify Bat1 00
-> [ACPI Debug] String: Skip init BATO
-> [ACPI Debug] String: Skip init BATO
-> [ACPI Debug] String: ========= BAT1 UPBI =========
->
->
->
->
-> -------------------------------------------------------
-> This sf.net email is sponsored by: Are you worried about
-> your web server security? Click here for a FREE Thawte
-> Apache SSL Guide and answer your Apache SSL security
-> needs: http://www.gothawte.com/rd523.html
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
->
->
+    ACPI-0251: *** Error: Looking up [STAT] in namespace, AE_ALREADY_EXISTS
 
+=2E.and obviously the battery still doesn't exists, for acpi.
+I tried to look in the drivers/acpi/ dir, and to work around the error, but=
+ I
+couldn't be able to do much... :(
+Some hints?
+
+My laptop's an Acer TravelMate a-550XV, some OLD informations about what I =
+done
+on it can be found on http://www.CS.UniBO.It/~gonano/a-550XV.htm , and at t=
+he
+moment I run on it Debian unstable, with acpid-1.0.1 and acpi 0.06.
+
+Thanks in advance...
+
+Adieu,
+--=20
+Lestat de Lioncourt  -- a.k.a --  Ciro Mattia Gonano
+ Undergraduate student in Computer Science at University of Bologna
+ IHGGer #1049   <=3D>  ICQ#: 52631406   <=3D>   URL: http://www.CS.UniBO.It=
+/~gonano
+ Debian admin at Students.CS.UniBO.It <=3D> look at headers for my JabberID=
+ & GPG
+
+--tKW2IUtsqtDRztdT
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
+
+iD8DBQE90i9NcioIad74aSURAosRAJ9hhO31wOxO+1UYFnMinEINPJpngQCfSjdx
+sricL/Fy/LTqfJT/Eo7K45A=
+=Q31T
+-----END PGP SIGNATURE-----
+
+--tKW2IUtsqtDRztdT--
 
 
 -------------------------------------------------------
