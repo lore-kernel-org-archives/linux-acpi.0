@@ -1,15 +1,13 @@
-From: Damian Kolkowski <damian-8hv6UaVLA0HLQ3KC8Z2sWkB+6BGkLq7r@public.gmane.org>
-Subject: Re: [BUG] - Thermal or BIOS on VIA_kt-400
-Date: Tue, 23 Dec 2003 10:02:03 +0100
+From: "Monroe Mcconnell" <kjsn98zb-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: US STOCK MARKET - CYPM Acquisition - To Compete With DISNEY & PIXAR...clifton
+Date: Tue, 23 Dec 2003 02:21:23 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031223090203.ALLYOURBASEAREBELONGTOUS.A32273@kolkowski.no-ip.org>
-References: <3ACA40606221794F80A5670F0AF15F8401720C4E@PDSMSX403.ccr.corp.intel.com> <20031223084458.ALLYOURBASEAREBELONGTOUS.A30110@kolkowski.no-ip.org>
+Message-ID: <t4i6$-6-3igi$ng-6$r@r63.xd9>
+Reply-To: "Monroe Mcconnell" <kjsn98zb-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="3V7upXqbjpZ4EhLz"
+Content-Type: multipart/alternative;
+	boundary="_E3_D56_C_603DBD.AC79C"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20031223084458.ALLYOURBASEAREBELONGTOUS.A30110-8hv6UaVLA0HLQ3KC8Z2sWkB+6BGkLq7r@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,42 +16,217 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: openberg-announces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---3V7upXqbjpZ4EhLz
-Content-Type: text/plain; charset=iso-8859-2
-Content-Disposition: inline
+--_E3_D56_C_603DBD.AC79C
+Content-Type: text/plain;
 Content-Transfer-Encoding: quoted-printable
 
-* Damian Kolkowski <damian-8hv6UaVLA0HLQ3KC8Z2sWkB+6BGkLq7r@public.gmane.org> [2003-12-23 09:56]:
-> > > my _thermal_ module shows always "40 C" - why?
-> > Maybe this is a bug relative to DSDT.
->=20
-> So how can I use my own dsdt table and is this a fix, or how can I fix th=
-at
-> dsdt bug, so my thermal.o can work correct?
+US Stock Market - Stock Profile of the Week
 
-So answer for my questions is on http://acpi.sf.net/dsdt/; I'll read it :-)
+Symbol: CYPM
+Market: OTCBB
+Sector: 3D Animation
 
---=20
-# Damian *dEiMoS* Ko=B3kowski # http://kolkowski.no-ip.org/ #
 
---3V7upXqbjpZ4EhLz
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+BREAKING NEWS - CYPM Acquires Profitable Joongang Movie Entertainment...CY=
+PM To Compete With Pixar & Disney
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
+NEW YORK---PRIMEZONE---Cyper Media, Inc. (OTCBB: CYPM), a 3D animation stu=
+dio currently producing ``The 5th Glacial Epoch,'' a 15 million dollar fea=
+ture, has acquired Joongang Movie Entertainment Co., Ltd., a producer of a=
+nimated content for the world-famous Pokemon series. Joongang is a profita=
+ble 13-year-old animation company with more than 60 different clients amon=
+g OEM Japanese TV shows, and which also has numerous clients in Europe.
 
-iD8DBQE/6ASLzbCEkrLF3gMRAk2qAKCYQ147zKd0vFS9E7apZeksBazu6wCfbVRo
-vgafWYwUTDGRvIuBhJ4vmEU=
-=tNcm
------END PGP SIGNATURE-----
+Duk Jin Jang, CEO of Cyper said, ``Cyper will now be able to offer our com=
+bined clients traditional 2D along with 3D animation content, enabling the=
+ Company to compete profitably with world class animators such as Pixar an=
+d Disney.''
 
---3V7upXqbjpZ4EhLz--
+
+
+STOCK PROFILE OF THE WEEK
+
+We are very excited about our newest stock profile, Cyper Media, Inc. (OTC=
+BB: CYPM).  Not only has CYPM received a conditional commitment letter for=
+ 4 million of the 15 million dollar production budget for its CGI Animatio=
+n Feature, "The 5th Glacial Epoch," it has also entered into a commitment =
+for a 5 million dollar advance from an electronic game publisher. The mone=
+y for its latest venture seems to be pouring in, but mere financing is jus=
+t the beginning.
+
+The really big news is that CYPM has started the process of getting a dist=
+ribution contract with MGM, Metro-Goldwyn-Mayer.  The 4 million dollar com=
+mitment letter from Global Marine is subject to a letter of a conditional =
+Distribution Letter from a major distributor, which CYPM has now secured.
+
+Cyper Media  is looking to become a leading producer of 3D digital animati=
+on entertainment products for the world broadcast entertainment market.
+
+Cyper Media develops and produces 3D digital animation for television, sho=
+rt films, CGI feature films, home video, music video and multi-media appli=
+cations such as video games. Cyper Media produces 3D digital animation by =
+applying advanced hardware and software technology using computer systems =
+throughout the production process.
+
+
+
+LICENSING & MERCHANDISING RIGHTS
+
+The Company intends to exploit the licensing and merchandising of its prop=
+rietary characters in order to generate revenue and to highten the popular=
+ity of its characters and programs. By licensing its proprietary character=
+s to select manufacturers and distributors of consumer products such as to=
+ys, apparel, school supplies, house wares and books, the Company seeks to =
+capture a portion of the growing licensing and merchandising market which =
+features entertainment properties, such as animated characters.  In 1995, =
+this segment of the merchandising and licensing market had retail sales in=
+ the United States and Canada in excess of 16 billion dollars.
+
+
+
+OUTLINING THE THE OPPORTUNITIES
+
+The demand for animation programming and the business of animation product=
+ion have expanded dramatically over the past decade. The revival of Disney=
+'s feature animation production in the 1990s, and the advent of new entran=
+ts like Paramount and DreamWorks SKG, have produced some of the biggest ev=
+er box office hits.
+
+The television market has also expanded, offering producers a voracious an=
+d lucrative market. Thanks to programs like The Simpsons and South Park, a=
+nimation has started to become a staple element of prime-time television p=
+rogramming.  Animation is an attractive investment because of its longevit=
+y, its ability to travel, and the potential to create ancillary revenue st=
+reams from home video, publishing, toys and other licensing activities.
+
+As well, the Academy Awards now recognizes Animation in a major category a=
+ll its own.
+
+
+
+COMPETITIVE ENVIRONMENT
+
+Typically a US made 22-minute television show costs between 300,000 to 800=
+,000 dollars to produce.  Cyper can produce the same for a minimum of 80,0=
+00.  This means many U.S.-based producers of animated programming such as =
+Film Roman now have to subcontract some of the less creative and more labo=
+r-intensive components of its production process to animation studios loca=
+ted in low-cost labor countries, such as Korea. As the number of animated =
+feature films and animated television programs expands, the demand for the=
+ services of overseas studios has expanded likewise. This demand may lead =
+overseas studios to raise their fees, which may result in a rise in produc=
+tion costs, or an inability to contract with the Company's preferred overs=
+eas studios.
+
+
+
+HOW MUCH MONEY IS IN THIS INDUSTRY?
+
+The list of Top Ten grossing animated movies is impressive.  The Lion King=
+ is at number one with a total gross of 312.8 million dollars.  Shrek brin=
+gs up second place with a whopping 267.6 million, and Monsters, Inc. takes=
+ third with 255.3 million.  The other seven rounding out the list post an =
+impressive Billion-plus.
+
+But the most recent animated feature that comes to mind is playing in thea=
+ters now.  "Finding Nemo," sold about 70.6 million worth of tickets in its=
+ first three days, setting a new opening record for a cartoon, surpassing =
+the 62.5 million bow of "Monsters, Inc." in November 2001. And although Ne=
+mo is a Walt Disney production, Disney no longer has a monopoly on animate=
+d features.  In fact, of the Top 10 grossing animated features of all time=
+, 4 are Walt Disney productions while Pixar, a newcomer in comparison, als=
+o has 4, with Fox and DreamWorks rounding out the list.
+
+But earnings for such movies don't stop at the box office.  Just the oppos=
+ite--they are only beginning.  Merchandising from these movies, everything=
+ from lunch boxes to video games to DVD sales, from Wal-mart to McDonald's=
+ to Burger King, range in the billions of dollars--and never forget about =
+the impending sequels.  Sales are huge, and CYPM through Cyper (now with f=
+inancing on the way and MGM on their side) is poised to make the climb to =
+the top.  It's only a matter of time.
+
+
+
+
+Find out more about CYPM @ www.cypermedia.com.
+
+
+
+Please note that Cyper Media had absolutley nothing to do with this report=
+ and is not a participant in any way.
+
+
+
+
+
+
+
+
+
+No more advertisements: www.esavingsplus.com/Unsubscribe.asp?unsub=3D10010=
+000861997576
+
+
+
+
+
+
+
+
+Stock Market Watcher is an independent research firm. This report is based=
+ on Stock Market Watcher's independent analysis but also relies on informa=
+tion supplied by sources believed to be reliable. This report may not be t=
+he opinion of CYPM management. Stock Market Watcher has also been retained=
+ to research and issue reports on CYPM. Stock Market Watcher may from time=
+ to time purchase or sell CYPM common shares in the open market without no=
+tice. The information contained in this report shall not constitute, an of=
+fer to sell or solicitation of any offer to purchase any security. It is i=
+ntended for information only. Some statements may contain so-called "forwa=
+rd-looking statements". Many factors could cause actual results to differ.=
+ Investors should consult with their Investment Advisor concerning CYPM. C=
+opyright 2003 =A9 Stock Market Watcher Ltd. All Rights Reserved. This news=
+letter was distributed by MMS, Inc. MMS was paid one hundred fifty thousan=
+d shares CYPM stock to distribute this report. MMS is not affiiated with S=
+tock Market Watcher and is not responsible for newsletter content.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ptv asgfg
+jvrtw oyhiwd ymacmrbr darprj
+
+--_E3_D56_C_603DBD.AC79C--
+
 
 
 -------------------------------------------------------
