@@ -1,31 +1,43 @@
-From: Jon Smirl <jonsmirl@gmail.com>
-Subject: Re: [RFC] Reliable video POSTing on resume
-Date: Thu, 10 Feb 2005 16:28:52 -0500
-Message-ID: <9e47339105021013285e390e2a@mail.gmail.com>
-References: <1107695583.14847.167.camel@localhost.localdomain>
-	 <420BB267.8060108@tmr.com> <20050210192554.GA15726@sci.fi>
-	 <1108066096.4085.69.camel@tyrosine>
-	 <9e473391050210121756874a84@mail.gmail.com>
-	 <1108067388.4085.74.camel@tyrosine>
-	 <9e47339105021012341c94c441@mail.gmail.com>
-	 <420BC814.4050102@scitechsoft.com> <1108069596.4085.78.camel@tyrosine>
-Reply-To: Jon Smirl <jonsmirl@gmail.com>
+From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
+Subject: Re: Speedstep-centrino problems
+Date: Thu, 10 Feb 2005 22:33:01 +0100
+Message-ID: <m2zmycp0c2.fsf@phoenix.squirrel.nl>
+References: <0FEA36BB2ABDF44FAAFEB7A75367C07A0117D810@alaska.condis.es>
+	<200502100630.10529.galin@platformis.com>
+	<420B4E31.6020306@bartol.udel.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <1108069596.4085.78.camel@tyrosine>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Kendall Bennett <kendallb@scitechsoft.com>, =?ISO-8859-1?Q?Ville_Syrj=E4l=E4?= <syrjala@sci.fi>, Bill Davidsen <davidsen@tmr.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Pavel Machek <pavel@ucw.cz>, ncunningham@linuxmail.org, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>, ACPI List <acpi-devel@lists.sourceforge.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+In-Reply-To: <420B4E31.6020306-OBnUx95tOyn10jlvfTC4gA@public.gmane.org> (Rich Townsend's message of
+ "Thu, 10 Feb 2005 07:06:09 -0500")
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 10 Feb 2005 21:06:36 +0000, Matthew Garrett <mjg59@srcf.ucam.org> wrote:
-> On Thu, 2005-02-10 at 12:46 -0800, Kendall Bennett wrote:
-> 
-> > So perhaps this problem is something similar?
+Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org> writes:
 
-What type of computer has the problem? Who makes it's video chips?
+> Each
+> variant has a different set of voltage characteristics, but
+> unforutnately there is no way to tell which variant one has installed
+> (is this actually true? How about a visual inspection?)
 
--- 
-Jon Smirl
-jonsmirl@gmail.com
+Dominik once gave a program called msr_is32_perf_status that reveals the
+current CPU speed and voltage. I used it to find the 'real' speeds my
+CPU ran (the DSDT contained wrong values).
+Would that program be helpful here?
+
+-- Johan
+
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
