@@ -1,14 +1,16 @@
-From: Jens Axboe <axboe-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: [ACPI Debug] String: Length 0x0F, "Entering RTMP()"
-Date: Wed, 15 Sep 2004 08:06:15 +0200
+From: Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+Subject: Re: acpi patch for 2.6.7
+Date: Wed, 15 Sep 2004 16:29:07 +1000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040915060615.GB2304@suse.de>
-References: <20040914061641.GD2336@suse.de> <1095197368.5430.8.camel@d845pe>
+Message-ID: <1095229747.13132.139.camel@laptop.cunninghams>
+References: <200409061331.28311@geromy>  <20040907135637.GC3647@fuchi>
+	 <1094606130.9577.41.camel@neuromancer.home.net>
+Reply-To: ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1095197368.5430.8.camel@d845pe>
+In-Reply-To: <1094606130.9577.41.camel-/ZsuMndpQpsb5wn6fCfWY+TW4wlIGRCZ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,42 +19,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
+Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Sep 14 2004, Len Brown wrote:
-> On Tue, 2004-09-14 at 02:16, Jens Axboe wrote:
-> > Hi,
-> > 
-> > 2.6.9-rc2 is throwing a lot of these errors on my system:
-> > 
-> > [ACPI Debug] String: Length 0x0F, "Entering RTMP()"
-> > [ACPI Debug] String: Length 0x0F, "Entering TIN2()"
-> > [ACPI Debug] String: Length 0x0F, "Existing RTMP()"
-> > 
-> > About 450 of these three lines repeated so far, seem to get one every
-> > 5
-> > seconds or so. Box is an Athlon64 solo, let me know if you want more
-> > info (and what).
-> > 
-> > --
-> > Jens Axboe
-> 
-> These are due to debug statements in your BIOS AML code.
-> The Linux AML interpreter recognizes them and sends
-> them to the console.
-> 
-> Start by checking that you're running a production BIOS.
+Hi.
 
-I'm not
+On Wed, 2004-09-08 at 11:15, Ow Mun Heng wrote:
+> rm1-mm2, suspend code/something causes a need for a keyboard press to
+> start writing to swap. -rc1-mm3 does not compile at "make
 
-> echo 0 >/proc/acpi/debug_level should make them go away.
+Which version of suspend? You might try adding kdb in then breaking at
+the pause and getting a backtrace for the process that's suspending.
 
-Ah thanks, yes that works!
+Regards,
 
+Nigel
 -- 
-Jens Axboe
+Nigel Cunningham
+Pastoral Worker
+Christian Reformed Church of Tuggeranong
+PO Box 1004, Tuggeranong, ACT 2901
+
+Many today claim to be tolerant. True tolerance, however, can cope with others
+being intolerant.
 
 
 
