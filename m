@@ -1,8 +1,8 @@
 From: "Adachi, Kenichi" <aileenja-dTzOdQ2U+/YAvxtiuMwx3w@public.gmane.org>
 Subject: RE: SSDT on Sony VAIO
-Date: Fri, 17 Jan 2003 02:19:44 +0900
+Date: Fri, 17 Jan 2003 02:22:42 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <000e01c2bd83$79f88210$134425db@sayonara>
+Message-ID: <000f01c2bd83$e0c50950$134425db@sayonara>
 References: <20030116165128.GA13608@bungled.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
