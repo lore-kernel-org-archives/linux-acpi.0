@@ -1,15 +1,14 @@
-From: mizu <michal-VaXaUECoPuY@public.gmane.org>
-Subject: Re: ACER 632 notebook reboots instead of poweroff
-Date: Wed, 27 Oct 2004 16:18:33 +0200
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFC] dev_acpi: support for userspace access to acpi
+Date: Thu, 28 Oct 2004 01:17:36 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041027141833.GC8443@zimen.sk>
-References: <20041026194029.GA10954@pooh>
+Message-ID: <3ACA40606221794F80A5670F0AF15F84041ABFF8@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="NKoe5XOeduwbEQHU"
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20041026194029.GA10954@pooh>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,152 +17,195 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>
+Cc: linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+  If don't use acpi_early_init , acpi is initialized in do_basic_setup() =
+in kernel thread --init.
+It is very close to launch first user space process(/sbin/init ..). So, =
+if we can invent=20
+acpi_later_init, it is possible to move interpreter out of kernel.
 
---NKoe5XOeduwbEQHU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+  The difficulty for inventing userspace interpreter is to eliminate the =
+ACPI-interpreter dependency=20
+of drivers for booting. But this dependency is not mandatory. Once =
+kernel booted to be able
+to launch /sbin/init, it is also able to launch =
+/sbin/user_space_interpreter, then kernel can enjoy
+acpi from then on, despite the acpi interpreter is a user space daemon, =
+we just need to invent
+or user a communication method between kernel and user space daemon.
 
-Hi,
+  But, Not sure what's the evil consequence from this approach. Say, if =
+kernel need service
+from ACPI interpreter, ACPI interpreter should be get scheduled.  Is it =
+racy?
 
-  the same problem is with my ACER 632 too.
+Thanks
+Luming=20
 
-  I've tried disable wakeup devices /proc/acpi/wakeup, but with no success.
-
- =20
-
-  Sia
-                        mizu
-
-On Tue, Oct 26, 2004 at 09:40:29PM +0200, Laszlo 'GCS' Boszormenyi wrote:
-> Hi,
->=20
->  I have a Gericom 1st supersonic (PIII 1.2Ghz) laptop, running Debian
-> Sarge (up-to-date). I have it since ~2.4.14, and until 2.6.8.1 the
-> 'halt' command shut down the machine correctly. Starting with 2.6.8.1-bk1
-> it reboots. :( I realize that -bk1 has a big ACPI update, which may be
-> the problem IMHO.
->  I have tried to look into existing bugreports, but could not find any
-> similar to this on the Kernel Bugzilla nor in the ACPI Bugzilla. All I
-> could found some note that Local APIC can cause problems, but even if I
-> disable that, the problem remains. Asked LKML without any reply; hope
-> here I can get some help, so if you need more information about it,
-> please let me know.
-> Some maybe relevant bits from the machine:
-> 0000:00:00.0 Host bridge: VIA Technologies, Inc. VT82C693A/694x [Apollo P=
-RO133x] (rev c4)
->         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParEr=
-r- Stepping- SERR- FastB2B-
->         Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=3Dmedium >TAbort=
-- <TAbort- <MAbort+ >SERR- <PERR+
->         Latency: 0
->         Region 0: Memory at e8000000 (32-bit, prefetchable) [size=3D128M]
->         Capabilities: [a0] AGP version 2.0
->                 Status: RQ=3D32 Iso- ArqSz=3D0 Cal=3D0 SBA+ ITACoh- GART6=
-4- HTrans- 64bit- FW- AGP3- Rate=3Dx1,x2,x4
->                 Command: RQ=3D1 ArqSz=3D0 Cal=3D0 SBA+ AGP+ GART64- 64bit=
-- FW- Rate=3Dx1
->         Capabilities: [c0] Power Management version 2
->                 Flags: PMEClk- DSI- D1- D2- AuxCurrent=3D0mA PME(D0-,D1-,=
-D2-,D3hot-,D3cold-)
->                 Status: D0 PME-Enable- DSel=3D0 DScale=3D0 PME-
->=20
-> 0000:00:01.0 PCI bridge: VIA Technologies, Inc. VT82C598/694x [Apollo
-> MVP3/Pro133x AGP] (prog-if 00 [Normal decode])
->         Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParEr=
-r- Stepping- SERR- FastB2B-
->         Status: Cap+ 66MHz+ UDF- FastB2B- ParErr- DEVSEL=3Dmedium >TAbort=
-- <TAbort- <MAbort+ >SERR- <PERR-
->         Latency: 0
->         Bus: primary=3D00, secondary=3D01, subordinate=3D01, sec-latency=
-=3D0
->         I/O behind bridge: 00009000-00009fff
->         Memory behind bridge: e0000000-e00fffff
->         Prefetchable memory behind bridge: f0000000-f7ffffff
->         BridgeCtl: Parity- SERR- NoISA+ VGA+ MAbort- >Reset- FastB2B-
->         Capabilities: [80] Power Management version 2
->                 Flags: PMEClk- DSI- D1- D2- AuxCurrent=3D0mA PME(D0-,D1-,=
-D2-,D3hot-,D3cold-)
->                 Status: D0 PME-Enable- DSel=3D0 DScale=3D0 PME-
->=20
->=20
-> A dmesg between a working 2.6.8.1 and 2.6.8.1-bk1 reveals only minor(?)
-> things:
->  Mount-cache hash table entries: 512 (order: 0, 4096 bytes)
-> -CPU: After generic identify, caps: 0383fbff 00000000 00000000 00000000
-> -CPU: After vendor identify, caps:  0383fbff 00000000 00000000 00000000
-> +CPU: After generic identify, caps: 0383f9ff 00000000 00000000 00000000
-> +CPU: After vendor identify, caps:  0383f9ff 00000000 00000000 00000000
->  CPU: L1 I cache: 16K, L1 D cache: 16K
->  CPU: L2 cache: 256K
-> -CPU: After all inits, caps:        0383fbff 00000000 00000000 00000040
-> +CPU: After all inits, caps:        0383f9ff 00000000 00000000 00000040
->  Intel machine check architecture supported.
-> [...]
-> -enabled ExtINT on CPU#0
-> -ESR value before enabling vector: 00000000
-> -ESR value after enabling vector: 00000000
-> -Using local APIC timer interrupts.
-> -calibrating APIC timer ...
-> -..... CPU clock speed is 1199.0574 MHz.
-> -..... host bus clock speed is 133.0285 MHz.
-> +ACPI: IRQ9 SCI: Edge set to Level Trigger.
->  NET: Registered protocol family 16
->  PCI: PCI BIOS revision 2.10 entry at 0xfd84e, last bus=3D1
->  PCI: Using configuration type 1
->  mtrr: v2.0 (20020519)
-> -ACPI: Subsystem revision 20040326
-> -ACPI: IRQ9 SCI: Edge set to Level Trigger.
-> +ACPI: Subsystem revision 20040715
-> [...]
->  Initializing Cryptographic API
-> -PCI: Disabling Via external APIC routing
->  PCI: Via IRQ fixup for 0000:00:07.5, from 255 to 5
->=20
-> Anyone have at least a shot what can cause this problem?
-> I would be happy to try out patches or back out ones from -bk1 if
-> needed.
->=20
-> Any help is greatly appreciated in advance,
-> Laszlo/GCS
->=20
->=20
->=20
-> -------------------------------------------------------
-> This SF.Net email is sponsored by:
-> Sybase ASE Linux Express Edition - download now for FREE
-> LinuxWorld Reader's Choice Award Winner for best database on Linux.
-> http://ads.osdn.com/?ad_id=3D5588&alloc_id=3D12065&op=3Dclick
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-
---=20
-              mizu
-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D
-[-> E-mail:michal_AT_zimen_DOT_sk   =20
-[-> ICQ:97165392
-[-> WWW: http://michal.zimen.sk
-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D
-
---NKoe5XOeduwbEQHU
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQFBf6459kFXwDL4DRkRAu5kAKCWjCe9BKUbznpvVGaOV09ffMR/twCffQMP
-F4KBLs4Z5TI5zrniAR3oiYQ=
-=Ny6D
------END PGP SIGNATURE-----
-
---NKoe5XOeduwbEQHU--
+>-----Original Message-----
+>From: Alex Williamson [mailto:alex.williamson-VXdhtT5mjnY@public.gmane.org]=20
+>Sent: 2004=C4=EA10=D4=C227=C8=D5 11:27
+>To: Yu, Luming
+>Cc: linux-kernel; acpi-devel
+>Subject: RE: [ACPI] [RFC] dev_acpi: support for userspace=20
+>access to acpi
+>
+>
+>   The kernel certainly needs an ACPI interpreter and it needs=20
+>it before
+>userspace is launched.  Handing off the interpreter to userspace or
+>managing two interpreters poking ACPI at the same time seems=20
+>like a much
+>more complicated problem.  The kernel is the primary consumer, I think
+>it would just shift the problem elsewhere to consider moving it.
+>
+>  The problems quoted below were from the previous sysfs=20
+>interface I was
+>developing.  I think these problems are fixed with this current device
+>file interface.  I'm hoping dev_acpi is already more clean.  Thanks,
+>
+>	Alex
+>
+>On Wed, 2004-10-27 at 10:30 +0800, Yu, Luming wrote:
+>> If you want to have a full access to acpi subsystem from userspace,
+>> why not firstly move ACPI interpreter out of kernel?
+>> Then, you can play with the whole ACPI subsystem with minimal cost of
+>> troubling kernel  in userspace.  Say, you can forget "=20
+>> ioctl, read issues on files, complex data for sysfs, file per
+>> operation, etc...".  Is it a more clean way ?
+>> =20
+>> Thanks
+>> Luming=20
+>>=20
+>> >-----Original Message-----
+>> >From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
+>> >[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
+>> >Alex Williamson
+>> >Sent: 2004=C4=EA10=D4=C227=C8=D5 4:55
+>> >To: linux-kernel
+>> >Cc: acpi-devel
+>> >Subject: [ACPI] [RFC] dev_acpi: support for userspace access to acpi
+>> >
+>> >
+>> >   Announcing the next revision of dev_acpi.  The dev_acpi module
+>> >provides userspace access to ACPI namespace using a simple character
+>> >device file.  For further discussion of the interface, see=20
+>the README
+>> >file in the tarball.  The current release is available here:
+>> >
+>> >http://free.linux.hp.com/~awilliam/acpi/dev_acpi/dev_acpi-20041
+>> >026.tar.bz2
+>> >
+>> >(it's a little big to post here raw, but if requested I'd=20
+>be happy to
+>> >post the driver by itself)
+>> >
+>> >   I've been tossing around sysfs and device file interfaces=20
+>> >to the ACPI
+>> >namespace for a while now.  The idea is that there's way too much
+>> >information in namespace to not provide a userspace interface to it.
+>> >Examples include projects springing up to support ACPI features on
+>> >various laptops, increasing dependence on developing code=20
+>using ACPI,
+>> >extracting system/platform information from ACPI namespace.=20
+> In short,
+>> >there are a lot of really simple things that userspace=20
+>could use ACPI
+>> >namespace for, but there's currently no way to get to it.
+>> >
+>> >   Previous iterations using sysfs looked pretty, but never really
+>> >achieved the full potential of the interface (no ioctl,=20
+>read issues on
+>> >files, complex data for sysfs, file per operation, etc...).=20
+> The device
+>> >file interface provides a more comprehensive yet compact interface,
+>> >along with a 32bit compatibility layer, and sane read=20
+>semantics on the
+>> >file.
+>> >
+>> >   This revision cleans up quite a bit of code, adds some=20
+>documentation
+>> >in the README file, adds a number of interfaces, and adds=20
+>several more
+>> >example program, with the intent of sparking more interest.  I've
+>> >updated the acpitree program to list a bit more data, but it's=20
+>> >basically
+>> >the same.  For anyone trying to wrap their head around ACPI=20
+>namespace,
+>> >it's a great tool for getting a simple visual representation=20
+>> >of the data
+>> >available.  I added a tool called acpivideo that will hopefully be
+>> >interesting to laptop users.  It's able to set the active=20
+>video output
+>> >device, much like the hotkey on most laptops (but from=20
+>command line).
+>> >It also has a daemon mode that sets up a notify handler (yes, from
+>> >userspace) and listens for events on the VGA device.  When=20
+>an event is
+>> >received, it evaluates the requested state change and pokes=20
+>ACPI to do
+>> >it.  See the README for more info.  If anyone knows how to=20
+>> >poke X to not
+>> >block the switch it'd be interesting to add the hooks=20
+>(currently only
+>> >seems to work from a vt).
+>> >
+>> >   I added another simple program called acpiundock.  If you have a
+>> >laptop docking station with an electo-mechanical eject (like the
+>> >omnibook 500), this one should be fun.  There are no option,=20
+>> >just run it
+>> >and see what happens (please be prepared for it to work... it just
+>> >might).
+>> >
+>> >   Another fun developer tool/hack is eventwatch.  This program is
+>> >simply a version of acpitree that tries to install notify=20
+>handlers on
+>> >every device in namespace.  It then sits and waits for something to
+>> >happen.  If you've wondered if that hotkey on your box does=20
+>something,
+>> >try this, it just might.
+>> >
+>> >   I skimmed though the ibm-acpi module and tried to provide enough
+>> >interfaces in this version of dev_acpi that the entire=20
+>ibm-acpi could
+>> >potentially be done in userspace.  I don't have an IBM laptop to
+>> >experiment with, but I'd be interested to hear if someone tries.
+>> >
+>> >   Anyway, please give this interface a shot.  It builds as a=20
+>> >standalone
+>> >module and should work on any 2.6 kernel with headers=20
+>available.  I've
+>> >tested this version quite a bit more than the version I=20
+>posted a couple
+>> >weeks ago, especially the 32bit app on 64bit kernel code (ia64 and
+>> >x86_64).  Bug reports, feedback, opinions gladly welcomed.  Thanks,
+>> >
+>> >	Alex
+>> >
+>> >--=20
+>> >Alex Williamson                             HP Linux & Open=20
+>Source Lab
+>> >
+>> >
+>> >
+>> >-------------------------------------------------------
+>> >This SF.Net email is sponsored by:
+>> >Sybase ASE Linux Express Edition - download now for FREE
+>> >LinuxWorld Reader's Choice Award Winner for best database on Linux.
+>> >http://ads.osdn.com/?ad_id=3D5588&alloc_id=3D12065&op=3Dclick
+>> >_______________________________________________
+>> >Acpi-devel mailing list
+>> >Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>> >https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>> >
+>>=20
+>--=20
+>Alex Williamson                             HP Linux & Open Source Lab
+>
+>
 
 
 -------------------------------------------------------
