@@ -1,12 +1,14 @@
-From: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Subject: Field unit is not handled correctly
-Date: Tue, 10 Aug 2004 17:42:56 +0900
+From: Michael Wahlbrink <linux.wali-Mmb7MZpHnFY@public.gmane.org>
+Subject: Re: ibm-acpi-0.1
+Date: Tue, 10 Aug 2004 10:43:49 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <41188A90.2040100@jp.fujitsu.com>
+Message-ID: <41188AC5.2070805@gmx.de>
+References: <20040810080826.GD28939@aero.ensim.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20040810080826.GD28939-AKoe11r2kkOzaBltdDZI6w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -19,34 +21,40 @@ To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi,
+Borislav Deianov wrote:
+> Hi,
+> 
+> This is the first public release of my ACPI driver for IBM ThinkPad
+> laptops. The features currently supported are:
+> 
+> - hot keys (Fn key combinations)
 
-I have a problem that field unit is not handled correctly.
-For example, when I try the following method, the Local0
-have a value '0x3FFFFF', while my expectation is '0x3FFF'.
+all working with my R32 without any special driver ;-)
 
-/*
- * Note: Region ABCD is filled with 0xF
- */
-OperationRegion (ABCD, SystemMemory, 0x100000, 0x1000)
-Field (ABCD, AnyAcc, NoLock, WriteAsZeros) {
-	AAAA, 14,
-	BBBB, 1
-}
-Method (TEST, 0, NotSerialized) {
-	Store (AAAA, Local0)
-	Store (Local0, Debug)
-}
+> - docking and undocking
+> - some basic fan speed control
 
+seems to work too with the basic acpi stuff in 2.6 kernels
 
-I don't know the implementation of ACPI core subsystem very
-much, but I suspect that there are something wrong in 
-acpi_ex_extract_from_field().
+> 
+> Note that I've only tested on a ThinkPad X40 with the X4 UltraBase. I
+> suspect many other recent models are sufficiently similar to work with
+> this driver but I have no such reports yet.
 
-Does anyone have the information about that?
+Ok, I've a IBM ThinkPad R32 but no docking station, so I can't test it.
 
-Thanks,
-Kenji Kaneshige
+> I'll release this on the linux-thinkpad list as well, but I thought
+> I'd get some comments here first. This is my first foray into the ACPI
+> code, so do let me know if I'm doing something horribly wrong. :-)
+> 
+> (Sorry, no web page yet. One thing at a time.)
+Dont care, keep on hacking,
 
+> 
+> Thanks,
+> Boris
+hth&cu
+micha (who's glad to obviously don't need a special driver)
 
 
 -------------------------------------------------------
