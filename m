@@ -1,14 +1,15 @@
-From: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
-Subject: Re: Re: Compaq Presario 2800T
-Date: Tue, 6 Aug 2002 10:16:19 +0200
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Tablet PC + 2.4.18 + acpi 20020726 + swsup11 working !
+Date: Tue, 6 Aug 2002 11:13:04 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020806081618.GA7148@dutidad.twi.tudelft.nl>
-References: <200208010551.BAA23125@biohazard-cafe.mit.edu> <20020803220614.21895.qmail@scrye.com> <1028528792.7332.14.camel@anodyne.mandal> <20020805150428.10039.qmail@scrye.com> <1028614416.4553.3.camel@localhost.localdomain>
+Message-ID: <20020806091304.GA15963@poup.poupinou.org>
+References: <3D4F7B2A.2090602@symplon.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1028614416.4553.3.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+In-Reply-To: <3D4F7B2A.2090602-y2s3ugBAdl9BDgjK7y7TUQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,30 +18,56 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Robert =?iso-8859-1?Q?W=F6rle?= <robert.woerle-y2s3ugBAdl9BDgjK7y7TUQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Aug 06, 2002 at 02:13:32AM -0400, Sourav K. Mandal wrote:
-> On Mon, 2002-08-05 at 11:04, Kevin Fenzi wrote: 
-> Yeah, trying it out myself it seems like a DRI thing.  Try 
-> turning off DRI in your XF86Config and see if it helps. You might have
-> to reboot ... DRI doesn't work when coming back from suspend, and some
-> things don't work once you run DRI.  For me, once I run DRI the
-> backlight refuses to turn off on lid close -- reboot fixes this. 
+On Tue, Aug 06, 2002 at 09:30:50AM +0200, Robert Wörle wrote:
 > 
-> If that doesn't work, try switching to a text console.
+> Hi Folks
 > 
-> I have yet to apply Charl's patch, and so I alternate between DRI and
-> no-DRI XF86Configs.  I don't know if the patch fixes the backlight thing
-> ... 
+> Im a smurf reader of this list and i ve been trying ACPI now for more 
+> than 5 months .
+> The device i want to have ACPI running is the worlds first Tablet PC 
+> called  "Pacebook" .
+> As i am pretty much the only linux enthusiastic at our company , im 
+> "porting " linux to that Tablet .
+> 
+> Until now ACPI was quite good working : I can read the battery state , 
+> see if im plugged or not , get the temperatur of the TRANSMETA (!) and 
+> all that minor stuff , BUT i had no chance to use S3 S4 ---until 
+> yesterday when i tried the mentioned patches and now can S4 very good !!
+> --YES it is working ! __ icantbelievethat _
 
-FWIW, my dim/bright keys (Fn-F6 and Fn-F6) always work and the brightness
-level is even retained across reboots.  The binaries on
-http://cpbotha.net/dri_reinit.html have been updated, although I doubt that
-thet changes have to do with your brightness settings.
+> Things TODO now :
+> try to get S3 also working ( to have this , ive to implement a function 
+> to turn off the backlight )
+> i ve the spec`s and I/O Port to do that  ,but im still expierencing 
+> problems at starting to write this driver , since
+> a device called pic2 is loaded at the needed I/O Port  ( 0xB1-0xB2) ...
+
+If I remember well, those ports are actually used by the AML with some
+mutex.  If you use ACPI and the "still need to be written" driver for your
+tablet at the same time, you must to take into account this fact.
+
+> 
+> When i ve finished that driver ive to find a way , where the ACPI 
+> Subsystem can call that backlight_off function.
+
+It should be called by a Method if the AML is well written.  So, in a
+perfect world, you should not take care about that if S3 work.  Of course,
+the world is not so perfect, but who knows :)
+
+> 
+> What is the supposed procedure to implement such "thirdparty" functions 
+> into ACPI ?
+
+Try to see if something like John Belmonte have already written for a skeleton.
 
 -- 
-charl p. botha http://cpbotha.net/ http://visualisation.tudelft.nl/
+Ducrot Bruno
+http://www.poupinou.org        Page profaissionelle
+http://toto.tu-me-saoules.com  Haume page
 
 
 -------------------------------------------------------
