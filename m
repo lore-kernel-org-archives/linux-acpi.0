@@ -1,8 +1,8 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: RE: need debugging help
-Date: Mon, 14 Jul 2003 11:49:12 -0700
+Subject: RE: Linux 2.6-pre1 Does not boot on ASUS L3800C: lock up in acpi while  "Executing all Devices _STA and_INIT methods"
+Date: Mon, 14 Jul 2003 11:56:17 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A8470255EE89@orsmsx401.jf.intel.com>
+Message-ID: <F760B14C9561B941B89469F59BA3A847E9702C@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,35 +17,20 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
-Cc: Chander Kant <ck-cFQ2QR18kktMdczFR1vadtBPR1lH4CV8@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: eric.valette-GANU6spQydw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Alan Cox [mailto:alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org]=20
-> BTW Andrew - do you think we can also safely fix up the
->=20
-> 	Load a variable with itself when its undefined being load 0
->=20
-> 	Implied returns stuff
->=20
-> with the same kind of option ?
+> From: Eric Valette [mailto:eric.valette-GANU6spQydw@public.gmane.org]=20
+> I happily run 2.4.21-pre5 with ACPI enabled and everything works just=20
+> fine. I tried today 2.6-pre1 with exactly the same hardware=20
+> configuration as the 2.4 one and the laptop does not boot. It hangs=20
+> while dispaying : "Executing all Devices _STA and_INIT methods"=20
+> allthough it has already printed several '.'
 
-Look, I'm sure you know I hate compatibility hacks. Slippery slope, and
-here we start slipping down it. The only reason I can bring bear the
-opregion bounds hack is because it's extremely localized (and BTW it
-went to Marcelo through you, not me, although now that it's there it
-would be very rude for me to remove it.)
+That's weird. They should have the same version of the ACPI code...
 
-Bob looked at how hard it would be to implement an implicit return
-workaround and it was very ugly. If you or whoever originally wrote the
-relaxed AML patch wanted to give it a shot then great.
-
-Len Brown is working on improving the blacklist to use DMI and BIOS
-date. If the machines who need these things have older BIOSes then I
-would love it if we could say no ACPI for them and keep things clean for
-more recent machines.
-
-Regards -- Andy
+-- Andy
 
 
 -------------------------------------------------------
