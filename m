@@ -1,8 +1,8 @@
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: [ACPI] [PATCH] 1 of 6 sync mpparse
-Date: Tue, 9 Mar 2004 16:24:50 -0700
+Subject: Re: [ACPI] [PATCH] 2 of 6 add acpi_irq_to_vector for x86_64
+Date: Tue, 9 Mar 2004 16:25:37 -0700
 Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <200403091624.50746.bjorn.helgaas@hp.com>
+Message-ID: <200403091625.37344.bjorn.helgaas@hp.com>
 References: <200403091619.04333.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
@@ -15,77 +15,48 @@ To: acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org
 Cc: Andi Kleen <ak@suse.de>, "Nakajima, Jun" <jun.nakajima@intel.com>, "Brown, Len" <len.brown@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-i386, x86_64: sync mpparse.c slightly
+x86_64: Add acpi_irq_to_vector() to follow i386
 
-This cleans up a little whitespace and a couple typos to remove
-needless differences between mpparse.c for i386 and x86_64.
-
-diff -Nru a/arch/i386/kernel/mpparse.c b/arch/i386/kernel/mpparse.c
---- a/arch/i386/kernel/mpparse.c	Tue Mar  9 13:13:20 2004
-+++ b/arch/i386/kernel/mpparse.c	Tue Mar  9 13:13:20 2004
-@@ -1,5 +1,5 @@
- /*
-- *	Intel Multiprocessor Specificiation 1.1 and 1.4
-+ *	Intel Multiprocessor Specification 1.1 and 1.4
-  *	compliant MP-table parsing routines.
-  *
-  *	(c) 1995 Alan Cox, Building #3 <alan@redhat.com>
-@@ -1158,19 +1158,19 @@
+diff -Nru a/arch/x86_64/kernel/acpi/boot.c b/arch/x86_64/kernel/acpi/boot.c
+--- a/arch/x86_64/kernel/acpi/boot.c	Tue Mar  9 13:21:53 2004
++++ b/arch/x86_64/kernel/acpi/boot.c	Tue Mar  9 13:21:53 2004
+@@ -323,6 +323,15 @@
+ 
+ #endif /* CONFIG_ACPI_BUS */
+ 
++#ifdef CONFIG_X86_IO_APIC
++int acpi_irq_to_vector(u32 irq)
++{
++	if (use_pci_vector() && !platform_legacy_irq(irq))
++ 		irq = IO_APIC_VECTOR(irq);
++	return irq;
++}
++#endif
++
+ static unsigned long __init
+ acpi_scan_rsdp (
+ 	unsigned long		start,
+diff -Nru a/arch/x86_64/kernel/mpparse.c b/arch/x86_64/kernel/mpparse.c
+--- a/arch/x86_64/kernel/mpparse.c	Tue Mar  9 13:21:53 2004
++++ b/arch/x86_64/kernel/mpparse.c	Tue Mar  9 13:21:53 2004
+@@ -998,17 +998,13 @@
  		if ((1<<bit) & mp_ioapic_routing[ioapic].pin_programmed[idx]) {
  			Dprintk(KERN_DEBUG "Pin %d-%d already programmed\n",
  				mp_ioapic_routing[ioapic].apic_id, ioapic_pin);
-- 			entry->irq = acpi_irq_to_vector(irq);
+- 			if (use_pci_vector() && !platform_legacy_irq(irq))
+- 				irq = IO_APIC_VECTOR(irq);
+-			entry->irq = irq;
 +			entry->irq = acpi_irq_to_vector(irq);
  			continue;
  		}
  
  		mp_ioapic_routing[ioapic].pin_programmed[idx] |= (1<<bit);
- 
  		if (!io_apic_set_pci_routing(ioapic, ioapic_pin, irq, edge_level, active_high_low)) {
-- 			entry->irq = acpi_irq_to_vector(irq);
-- 		}
+- 			if (use_pci_vector() && !platform_legacy_irq(irq))
+- 				irq = IO_APIC_VECTOR(irq);
+-			entry->irq = irq;
 +			entry->irq = acpi_irq_to_vector(irq);
-+		}
+ 		}
  		printk(KERN_DEBUG "%02x:%02x:%02x[%c] -> %d-%d -> IRQ %d\n",
--			entry->id.segment, entry->id.bus, 
--			entry->id.device, ('A' + entry->pin), 
--			mp_ioapic_routing[ioapic].apic_id, ioapic_pin, 
-+			entry->id.segment, entry->id.bus,
-+			entry->id.device, ('A' + entry->pin),
-+			mp_ioapic_routing[ioapic].apic_id, ioapic_pin,
- 			entry->irq);
- 	}
- 
-diff -Nru a/arch/x86_64/kernel/mpparse.c b/arch/x86_64/kernel/mpparse.c
---- a/arch/x86_64/kernel/mpparse.c	Tue Mar  9 13:13:20 2004
-+++ b/arch/x86_64/kernel/mpparse.c	Tue Mar  9 13:13:20 2004
-@@ -9,7 +9,7 @@
-  *		Erich Boleyn	:	MP v1.4 and additional changes.
-  *		Alan Cox	:	Added EBDA scanning
-  *		Ingo Molnar	:	various cleanups and rewrites
-- *	Maciej W. Rozycki	:	Bits for default MP configurations
-+ *		Maciej W. Rozycki:	Bits for default MP configurations
-  *		Paul Diefenbaugh:	Added full ACPI support
-  */
- 
-@@ -1009,14 +1009,14 @@
-  			if (use_pci_vector() && !platform_legacy_irq(irq))
-  				irq = IO_APIC_VECTOR(irq);
- 			entry->irq = irq;
-- 		}
--		printk(KERN_DEBUG "%02x:%02x:%02x[%c] -> %d-%d"
--			" -> IRQ %d\n", entry->id.segment, entry->id.bus, 
--			entry->id.device, ('A' + entry->pin), 
-+		}
-+		printk(KERN_DEBUG "%02x:%02x:%02x[%c] -> %d-%d -> IRQ %d\n",
-+			entry->id.segment, entry->id.bus,
-+			entry->id.device, ('A' + entry->pin),
- 			mp_ioapic_routing[ioapic].apic_id, ioapic_pin,
- 			entry->irq);
- 	}
--	
-+
- 	print_IO_APIC();
- 
- 	return;
+ 			entry->id.segment, entry->id.bus,
 
