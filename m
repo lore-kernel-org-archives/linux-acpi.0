@@ -1,13 +1,13 @@
-From: liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
-Subject: Re: smart battery on acer extensa 3002
-Date: Tue, 14 Dec 2004 11:59:11 +0100 (CET)
-Message-ID: <Pine.LNX.4.60.0412141152230.1198@frog.athome>
-References: <200412022121.00582.olli.zimmermann@gmx.net>
-Reply-To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: [ACPI][2.6.10-rc3][SUSPEND] S3 mode - Cannot resume from PCI devices
+Date: Tue, 14 Dec 2004 12:06:48 +0100
+Message-ID: <20041214110648.GA2291@elf.ucw.cz>
+References: <200412100315.21725.shawn.starr@rogers.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-1463811592-734084964-1103021951=:1198"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200412022121.00582.olli.zimmermann-hi6Y0CQ0nG0@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <200412100315.21725.shawn.starr-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,54 +17,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Oliver Zimmermann <olli.zimmermann-hi6Y0CQ0nG0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Shawn Starr <shawn.starr-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi!
 
----1463811592-734084964-1103021951=:1198
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
-X-MIME-Autoconverted: from 8bit to quoted-printable by post.webmailer.de id iBEAxU9R022634
+> I have netconsole configured I can see kernel messages on a remote machine, but when I suspend the laptop it goes into S3.
+> I am unable to capture the (oops) the laptop when bringing it out of S3. It remains in a half suspended-unsuspended state.
+> (the crescent moon LED is solidly on, video is back on (can see the 'Back to C!' string), cannot use sysctl key combos, 
+> netconsole doesn't display the output since no PCI devices resume (the video is AGP onboard).
+> 
+> Is there any way I can capture this output somehow? I don't think even serial would work (it would be a USB to serial converter which would be PCI)
+> or even trying to get this to print to lp0 since the laptop is totally unresponsive in its state.
+> 
+> I booted into single and sh for init, mounted /proc /sys and with no kernel modules it would fail to resume after suspending.
+> 
+> This isn't a nice regression.
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+So what was the last kernel where it worked?
+										Pavel
 
-Salut Oliver,
-On Thu, 2 Dec 2004, Oliver Zimmermann wrote:
-> i bought an acer extensa 3002 laptop and install SuSE 9.1 with Kernel 2=
-.6.5 to
-> 2.6.10-rc1.
-...
-> notebook without battery informations is . . . and i don=B4t want to fa=
-ll back
-> to windows.
-I wrote last week an email to ACER-Germany to help their coleagues in=20
-Poland to lend Mr. Kosimor an smart-batterie laptop to support the=20
-development. I pointed out, that my laptop is nearly 3 years old, and wil=
-l=20
-need replacement next year. They told me, that they do not care about=20
-Linux.
-Though you are in a weaker position, as you allready bought the computer,=
-=20
-but I will ask you, to ask the ACER-sales-persons for your country for=20
-support.
-Cheers hartwig :-(
-
-- --=20
-1024D/339FD693 Hartwig Felger <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
-Key fingerprint =3D FB2F 3EE9 345A D55B 6FF2  0EC1 F5B0 684F 339F D693
-For the pulic keys, please visit my page.
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-
-iD8DBQFBvseF9bBoTzOf1pMRAlW9AJ9idaxmrxFDexgKFGba43jMMgWVVgCfa5EY
-0kdd3aoo8wIbMhrhpin0GOA=3D
-=3DktxS
------END PGP SIGNATURE-----
----1463811592-734084964-1103021951=:1198--
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
