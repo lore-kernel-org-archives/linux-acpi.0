@@ -1,39 +1,28 @@
-From: Richard Dawe <rich-fbHbV8X007REJxKfswctSdBc4/FLrbF6@public.gmane.org>
-Subject: Latest dmidecode at savannah, but not at kernel.org
-Date: Sun, 16 Jan 2005 16:32:34 +0000
-Message-ID: <41EA9722.4010609@phekda.gotadsl.co.uk>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: [2.6 patch] i386/x86_64: acpi/sleep.c: kill unused acpi_save_state_disk
+Date: Sun, 16 Jan 2005 19:53:51 +0100
+Message-ID: <20050116185351.GA2757@elf.ucw.cz>
+References: <20050116073927.GU4274@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262567AbVAPSyq@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20050116073927.GU4274@stusta.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Adrian Bunk <bunk@stusta.de>
+Cc: len.brown@intel.com, acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org, ak@suse.de, discuss@x86-64.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello.
+Hi!
 
-It appears that dmidecode 2.5 can be downloaded from savannah, but not 
-kernel.org. Perhaps you could upload dmidecode to kernel.org too?
+> acpi_save_state_disk does nothing and is completely unused.
+> 
+> Unless some usage is planned in the near future, I'm therefore proposing 
+> the patch below to kill it.
 
-Thanks, bye, Rich =]
+Good idea.
+									Pavel
 
 -- 
-Richard Dawe [ http://homepages.nildram.co.uk/~phekda/richdawe/ ]
-
-"You can't evaluate a man by logic alone."
-   -- McCoy, "I, Mudd", Star Trek
-
-
--------------------------------------------------------
-The SF.Net email is sponsored by: Beat the post-holiday blues
-Get a FREE limited edition SourceForge.net t-shirt from ThinkGeek.
-It's fun and FREE -- well, almost....http://www.thinkgeek.com/sfshirt
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
