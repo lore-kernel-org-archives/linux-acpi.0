@@ -1,10 +1,10 @@
-From: wwp <subscript-GANU6spQydw@public.gmane.org>
-Subject: ACPI status in 2.4 tree
-Date: Wed, 19 Nov 2003 13:52:03 +0100
+From: Guillaume Pothier <gpothier-GANU6spQydw@public.gmane.org>
+Subject: S1 sleep mode on Dell Inspiron 8100
+Date: Wed, 19 Nov 2003 11:16:30 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031119135203.373043b0.subscript@free.fr>
+Message-ID: <3FBB975E.30801@free.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,18 +18,19 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi ACPI guyz,
+Hi!
 
+I am trying configure ACPI on my Inspiron 8100. I am using the custom 
+dsdt table, with acpi-patched kernel 2.4.22 . This is much better than 
+what I had with my original Mandrake 9.2 install (my system wouldn't 
+power off, hanged whenever I unplugged the AC adapter or tried to go 
+into sleep mode). Now it powers off properly when I press the power 
+button and handles AC unplug. However, I cannot have it go into S1 sleep 
+mode. When I do echo 1 >/proc/acpi/sleep, the computer freezes, but the 
+screen remains on, hdd too. Then if I press the power button it goes 
+back normal. Is there something more to do to enter sleep mode?
+Guillaume
 
-are 2.4's release candidates sync'ed w/ ACPI?
-IOW, if I get 2.4.23-rc2, will it include the latest ACPI code from acpi.sf.net
-(except the test patches) or will I have to get'n'apply a patch?
-
-
-TIA,
-
--- 
-wwp
 
 
 -------------------------------------------------------
