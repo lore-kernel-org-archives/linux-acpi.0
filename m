@@ -1,11 +1,14 @@
-From: jidong <jidongzhai-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: what i will do next?
-Date: Mon, 14 Apr 2003 06:19:29 -0700 (PDT)
+From: "Randy.Dunlap" <rddunlap-3NddpPZAyC0@public.gmane.org>
+Subject: Re: acpi data parser
+Date: Mon, 14 Apr 2003 07:03:35 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030414131929.32599.qmail@web20511.mail.yahoo.com>
+Message-ID: <20030414070335.43ddfa89.rddunlap@osdl.org>
+References: <506C3D7B14CDD411A52C00025558DED60ED3B8@mtlex01.yok.mtl.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative; boundary="0-703510476-1050326369=:30333"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <506C3D7B14CDD411A52C00025558DED60ED3B8-fvWgJdYFe9KA5yaOxrpyo0EOCMrvLtNR@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,28 +17,34 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
---0-703510476-1050326369=:30333
-Content-Type: text/plain; charset=us-ascii
+On Mon, 14 Apr 2003 11:14:43 +0300 Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org> wrote:
 
-I have recompiled  my kernel ,now it support acpi .I also install acpid .i wantto  make my system to be S5 state ,then what i will do ?only i run 'shutdown -h now ',then OK ? I have see many mails .but i haven't get answer,please give me some advice .thank you in advance 
+| Hi,
+| is there any tool that can get the acpi data in a system and parse it in a
+| convenient way. Particularly the interrupt routing information.
+| thanks
+| Eli
 
+Hi,
 
----------------------------------
-Do you Yahoo!?
-Yahoo! Tax Center - File online, calculators, forms, and more
---0-703510476-1050326369=:30333
-Content-Type: text/html; charset=us-ascii
+There are several such tools.
 
-<DIV>I have recompiled&nbsp; my kernel ,now it support acpi .I also install acpid .</DIV>
-<DIV>i wantto&nbsp; make my system to be S5 state ,then what i will do ?</DIV>
-<DIV>only i run 'shutdown -h now ',then OK ? I have see many mails .but </DIV>
-<DIV>i haven't get answer,please give me some advice .</DIV>
-<DIV>thank you in advance </DIV><p><br><hr size=1>Do you Yahoo!?<br>
-<a href="http://us.rd.yahoo.com/finance/mailsig/*http://tax.yahoo.com">Yahoo! Tax Center</a> - File online, calculators, forms, and more
---0-703510476-1050326369=:30333--
+At the acpi sf project, there are "pmtools" in CVS (only at the
+moment).  See http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/acpi/ .
+
+There is an Intel disassembler (IASL) that I haven't used.
+I think it's in the Unix Build Environment tarball here:
+http://developer.intel.com/technology/iapc/acpi/downloads.htm
+
+and there could be another one soon.
+
+HTH.
+--
+~Randy   ["in English any noun can be verbed."  bah!]
 
 
 -------------------------------------------------------
