@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: Re: Still problems with ACPI sleep state
-Date: Tue, 29 Jun 2004 23:31:15 +0200
+Subject: Re: No APIC interrupts after ACPI suspend
+Date: Tue, 29 Jun 2004 23:19:39 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040629213114.GM698@openzaurus.ucw.cz>
-References: <200406251547.21050.mailinglisten@merula.de> <1088172763.1918.1.camel@camel> <20040625211440.P5510@root.org> <opr96uc8fj4evsfm@smtp.pacific.net.th> <20040625232835.R6228@root.org> <20040626145551.GA2146@message-id.gmane0305.slipkontur.de>
+Message-ID: <20040629211939.GL698@openzaurus.ucw.cz>
+References: <1088160505.3702.4.camel@tyrosine> <1088268145.14987.248.camel@zion.2good.net> <40DDBA7A.6010404@travellingkiwi.com> <40DF0A98.9040604@travellingkiwi.com> <1088362159.2163.38.camel@djinn>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040626145551.GA2146-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
+In-Reply-To: <1088362159.2163.38.camel-l85cmlzfk8I@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,19 +17,19 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+To: Herman Sheremetyev <mlists-6MNMYbGzEYJWk0Htik3J/w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> i *believe* that acpi_sleep=s3_bios just invokes a hack to call some BIOS
-> routines to reinitialize the video card since the drivers often cannot
-> do this themselves ("warm booting" the card).
+> Also, after an S3 resume, I only see 'inu' in yellow on black letters on
+> the screen, the ASM in wakeup.S is pretty impenetrable to me so I don't
+> know if this indicates a problem or not.  My laptop also does not reboot
+> properly after an S3, just hangs there after saying it's about to
+> restart, but again I'm not sure it that's related or not.
 
-Correct.
-				Pavel
-
+Its trying to say Linux! and that should be normal.
 -- 
 64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
 
