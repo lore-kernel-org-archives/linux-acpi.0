@@ -1,14 +1,14 @@
 From: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
 Subject: Re: suspend.c vs driver-model.txt
-Date: Tue, 30 Jul 2002 09:53:29 +0200
+Date: Tue, 30 Jul 2002 09:57:40 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020730075329.26474@192.168.4.1>
-References: <20020729190219.GD13729@elf.ucw.cz>
+Message-ID: <20020730075740.8854@192.168.4.1>
+References: <20020729191146.GE13729@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20020729190219.GD13729-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <20020729191146.GE13729-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,86 +18,70 @@ List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
 To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+Cc: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>, Lyle <lwspm-RAHWjsxJnJUdnm+yROfE0A@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->I believe you are putting *way* too much responsibility to the
->drivers. With your model each driver needs to be able to stop its
->users. Ouch. Remember -- there's lot of drivers. You do not want to
->add crap^Wcode to them. Better just stop all user programs so that
->drivers don't have to care.
+>Stopping processes is needed (and being used) by suspend-to-ram,
+>because anything else is too hard for the drivers (I believe).
 
-Well, you do have to deal with drivers. Users programs is not enough,
-drivers can be kicked by things going on in the kernel as well.
- 
-Also, in most case, it's not that difficult to implement.
+I don't agree, and I have this working fairly well on pmac's today,
+though that is a limited set of drivers used on these laptops I had
+to fix.
 
- - Network drivers just need to drop packets, pretty easily done
- - Block drivers just need to stop their queue
- - Things like serial drivers usually don't have to do anything
-   terrific, just stop the chip interrupt and users will be blocked
-   (or will timeout, but that is not a problem at this point)
- - For pmac sound driver, I choose to have a mutex that cause users
-   to be blocked, but that was the "easy" way to quickly get that
-   done, a more subtle mecanism could be done, dropping samples at
-   approximately the output rate. The mutex makes it easy to make
-   the whole driver SMP safe as well regarding mixer tweaks though.
-
-I implemented this in a whole bunch of drivers used on Apple laptops
-and in the end, the most code is _not_ doing the above properly in
-drivers, but doing the actual state save/suspend & resume on the
-chip (here you have to deal with broken HW, subtle timing issues, etc...)
-
-So drivers _has_ to be done the right way. If a driver doesn't, then
-it will be unsuitable for PM (be it suspend to RAM or to disk). No
-problem with that ;)
-
->>  3) suspend (IRQs off) Or optionally 4 steps with 3) suspend_irq_on
->>     and 4) suspend_irq_off.
->> 
->> Then suspend-to-disk would need to call steps 1 and 2 normally,
->> but not 3 for devices on the storage chain. Then, after the
+>> Actually, I'm considering we could probably do both :) That is
+>> suspend-to-disk is actually a superset of suspend-to-RAM. So
+>> we could suspend-to-RAM-and-disk, basically allowing us to
+>> wakeup fast from RAM, but still be able to wakeup from disk
+>> if battery is exhausted.
 >
->It is hard to tell which devices are on the storage chain. And it
->should *not* be neccessary to treat them differently.
+>Good idea. Thinkpads could do that, it was called RediSafe or
+>something like that. Disadvantage is that suspend then takes quite
+>long time.
 
-Well... I would prefer then broadcasting a "save_state/block" to
-all of them, then no suspend, and a wakeup. That keeps the existing
-semantics valid.
+Well, if done to a swap partition, with the average throughput of
+recent U/DMA disks on things like my laptop, that is about 14Mb/sec,
+suspending would indeed take about 20 seconds, which is long, but
+still realistic.
 
->Hehe, I believe I have semantics right, too, and have written it down
->in kernel/suspend.c ;-)))).
-
-Hrm... not sure about those ;) Anyway, Patrick will probably write down
-something precising what we came up with during OLS.
-
->> (*note about device mem alloc): Some devices need to allocate memory
->> to be able to save sate. That can be a significant amount of memory
->> (some framebuffer may want to backup the fb content, huge !). 
+>> Anyway, in your scheme, the main thing I'm currently concerned
+>> about is the free_some_memory/do_suspend_sync/driver_suspend
+>> thing which is nasty. How do you deal with memory beeing
+>> re-allocated after free_some_memory ? (typically driver needing
+>> RAM for saving state or a non-filesystem-related daemon doing
+>> a kmalloc (or a driver from a tasklet). 
 >
->After free_some_memory(), there's very likely *plenty* of memory
->available. If framebuffer wants to backup the fb content, and it runs
->out of memory, tough, and suspend fails.
+>I free as much memory as possible. So, if driver allocation fails, it
+>would fail on running system, too. If there was anything that could be
+>swapped out, I'd already swapped it out.
 >
->[BTW you don't need/want to backup fb content; either its X or its
->text console. Text console knows how to repaint itself. X knows how to
->repaint itself.]
-
-Sure, though some fb apps don't. Though here, I agree we need those to
-get notified as part of the process (which I do on pmac before doing the
-device notification, as part of my /dev/apm_bios emulation) so they can
-actually do that repainting properly.
-
->> So in your case, I beleive you should probably first send the notification
->> of step 1 (prepare for sleep) to drivers, then do your memory-crunching
->> thing, then call step 2 and step 3 for all but swap device.
+>> Also, do you push
+>> as much as possible to swap ? 
 >
->If I do memory-freeing, step 1, step 2, step 3, memory-copy it should
->be equivalent, AFAICS. That's what I'm doing (but for all devices).
+>Yes.
+>
+>> Or may such an allocation still
+>> cause more swap activity ? 
+>
+>No.
+>
+>> This can be nasty especially since
+>> swap here can be an mmap'd file, or a swap file, thus possibly
+>> racing with the fact you stopped filesystem specific daemons.
+>
+>swsusp actually suspends right into swap *partition*. So I indeed need
+>swap partition and not swap file.
+>
+>> Then, finally, the drivers_suspend() state must be broken in
+>> pieces, that is needed for both suspend-to-RAM and -to-disk,
+>> (see my other email).
+>
+>Well, if you are willing to live with ugly-but-harmless
+>spindown-then-spinup and blank-then-unblank, its actually possible to
+>keep current system.
 
-Not sure. step 1 will affect memory allocation, swap etc... I'd rather
-have that done before you start doing the memory freeing. Well, that's
-mostly a matter of taste though.
+Well... why not improve things then ? We are trying to get the proper
+semantics of the various suspend steps thrown at drivers and then drivers
+fixed, I'd rather see swsusp make use of this as well :)
 
 Ben.
 
