@@ -1,120 +1,40 @@
-From: Stefan Behnel <behnel_ml-8NdywcgfOMlWMvVl7B+zuCEWGD4kr0XT@public.gmane.org>
-Subject: ACPI-Errors with battery, ac_adapter, thermal
-Date: Tue, 21 Jan 2003 19:16:52 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3E2D8E94.2050301@gkec.tu-darmstadt.de>
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] SMP parsing rewrite, phase 1
+Date: Tue, 21 Jan 2003 10:36:46 -0800
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <F760B14C9561B941B89469F59BA3A84725A12B@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain;
+	charset="ISO-8859-1"
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+content-class: urn:content-classes:message
+To: "Martin J. Bligh" <mbligh-/CzTsIfkJEdBDgjK7y7TUQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org, mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+> From: Martin J. Bligh [mailto:mbligh-/CzTsIfkJEdBDgjK7y7TUQ@public.gmane.org] 
 
-*I only subscribed to the list yesterday, so I don't know if this mail
-(that I sent before subscribing) actually got there. Sorry if it did.*
+> Would be a lot easier to read if you could seperate out the
+> renames from the rest of the patch that actually does things.
+> It all makes me slightly nervous as this stuff is really easy
+> to break ... and it breaks wierd machines that are hard to test
+> for (been there, done that ;-)).
 
+Exactly why I wanted to clean up the code - too fragile! :)
 
-I have a problem with my laptop (Samsung P10, P4, i845). I use the
-lates ACPI-Patches and kernel 2.4.20/2.4.21-pre3.
+Anyways, I will take a stab at redoing the changesets the way you
+describe.
 
-In /proc/acpi, the directories ac_adapter, battery and thermal_zone
-are empty (so I can't find out about the battery state, etc.) and
-dmesg shows related errors:
+> +static u8 raw_phys_apicid[NR_CPUS] = { [0 ... NR_CPUS-1] = 
+> BAD_APICID };
+> 
+> Looks odd. May have merged forward badly, that got renamed in 2.5.59
+> to bios_cpu_apicid or something. 
 
-----------------------------------------------------
+You are right. I'll fix that.
 
-evregion-0235 [22] ev_address_space_dispa: no handler for
-region(c12f4c28) [embedded_control]
+> Anyway, I'll give it a spin on my wierdo box, and see what happens.
 
-     exfldio-0216 [21] ex_access_region      : Region embedded_control(3)
-has no handler
+Cool, thanks.
 
-     dswexec-0402 [14] ds_exec_end_op        : [LEqual]: Could not
-resolve operands, AE_NOT_EXIST
-
-dswstate-0251 [16] ds_result_pop_from_bot: No result objects!
-State=cff67828
-
-     dsutils-0494 [16] ds_create_operand     : Missing or null operand,
-AE_AML_NO_RETURN_VALUE
-
-     psparse-1102: *** Error: Method execution failed [\_SB_.ADP1._STA]
-(Node c12f8228), AE_AML_NO_RETURN_VALUE
-
-
-evregion-0235 [22] ev_address_space_dispa: no handler for
-region(c12f4c28) [embedded_control]
-
-     exfldio-0216 [21] ex_access_region      : Region embedded_control(3)
-has no handler
-
-     dswexec-0402 [14] ds_exec_end_op        : [LEqual]: Could not
-resolve operands, AE_NOT_EXIST
-
-dswstate-0251 [16] ds_result_pop_from_bot: No result objects!
-State=cff67828
-
-     dsutils-0494 [16] ds_create_operand     : Missing or null operand,
-AE_AML_NO_RETURN_VALUE
-
-     psparse-1102: *** Error: Method execution failed [\_SB_.BAT1._STA]
-(Node c12f8c28), AE_AML_NO_RETURN_VALUE
-
-
-evregion-0322: *** Error: Handler for [embedded_control] returned
-AE_BAD_PARAMETER
-
-     dswexec-0402 [20] ds_exec_end_op        : [Store]: Could not resolve
-operands, AE_BAD_PARAMETER
-
-     psparse-1102: *** Error: Method execution failed [\_TZ_.THRM._TMP]
-(Node c12fa128), AE_BAD_PARAMETER
-
-----------------------------------------------------
-
-
-I do actually get the ACPI interrupts, /proc/interrupts increments
-when I pull out the AC plug or while the battery discharges. While on
-battery, the syslog fills up with
-
------------------------
-kernel:     ACPI-0322: *** Error: Handler for [embedded_control]
-returned AE_BAD_PARAMETER
-kernel:     ACPI-1102: *** Error: Method execution failed
-[\_SB_.BAT1.BAST] (Node c12fb680), AE_BAD_PARAMETER
-kernel:     ACPI-1102: *** Error: Method execution failed
-[\_SB_.PCI0.LPCB.H_EC._Q66] (Node c12f49c0), AE_BAD_PARAMETER
------------------------
-
-
-Any hints how I could get that stuff running ?
-
-
-Oh, and, BTW: Running the kernel (tried with 2.4.21-pre3) with
-ACPI-debug compiled in tends to throw Oopses that kill the keyboard
-(nothing else) when an event occurs...
-
-
-Thanks in advance for any help,
-Stefan Behnel
-
-
-
-
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: Scholarships for Techies!
-Can't afford IT training? All 2003 ictp students receive scholarships.
-Get hands-on training in Microsoft, Cisco, Sun, Linux/UNIX, and more.
-www.ictp.com/training/sourceforge.asp
+Regards -- Andy
