@@ -1,14 +1,12 @@
-From: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
-Subject: Re: About dsdt of clevo 5600N
-Date: Sat, 17 May 2003 13:05:12 +0200
+From: John Belmonte <jvb-ZFKsivP1bGvOQU1ULcgDhA@public.gmane.org>
+Subject: [PATCH] Toshiba ACPI Extras 0.15
+Date: Sat, 17 May 2003 11:40:13 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030517110512.GA3820@dutidad.twi.tudelft.nl>
-References: <20030516021732.69eca85d.XaRz69@terra.es> <20030516035605.18dc60b8.XaRz69@terra.es> <Pine.LNX.4.53.0305160752340.5724@dynast.gaugusch.at> <1053074691.1189.6.camel@dutidad> <20030516230144.GB22394@hell.org.pl> <20030516231823.GB2355@dutidad.twi.tudelft.nl> <20030517085410.GA13867@hell.org.pl>
+Message-ID: <3EC657DD.5040502@prairienet.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+ boundary="------------090607090408010908000803"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20030517085410.GA13867-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,31 +15,110 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel <acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, May 17, 2003 at 10:54:10AM +0200, Karol Kozimor wrote:
-> Thus wrote Charl P. Botha:
-> > acpi_sleep=s3_bios is one way to repost and comes down to exactly what Ole
-> > Rohne did with the int10 module of XFree86.  This does not work on all
-> > implementations.  The Right Way is to have the necessary specifications for
-> > the chip for correct wake-up from device D3 state, or whatever is relevant
-> > for system S3.  These specs are NOT available for the Radeon M7.
-> 
-> Did you check the newer radeonfb driver versions? There is some power
-> management code in there, but apparently only meant for Apple laptops.
-> Maybe it would be possible to use that code? Disclaimer: I know virtually
-> nothing about PCI power management, so there is a chance I don't have any
-> clue on what I am talking about.
-> Best regards,
+This is a multi-part message in MIME format.
+--------------090607090408010908000803
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-A while back I posted a link to this code (by Benjamin Herrenschmidt and ATI
-engineers) to the acpi-devel list.  The code supports device D2 and not D3.
-Even Ben has his doubts (as posted to mailing lists) about sleep support on
-graphics chips.
+Hello Andy,
+
+This is a patch for version 0.15 of my driver.  Please apply it to both the 2.5 
+and 2.4 trees.
+
+Changes:
+
+     * Workaround sporatic problem on some machines where hotkey status stops
+       working
+
+     * Minor cleanup
+
+
+Regards,
+-John
+
+
 
 -- 
-charl p. botha http://cpbotha.net/ http://visualisation.tudelft.nl/
+http:// if   l .o  /
+
+
+--------------090607090408010908000803
+Content-Type: text/plain;
+ name="toshiba_acpi_0.15-linux_2.5.69.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="toshiba_acpi_0.15-linux_2.5.69.patch"
+
+--- toshiba_acpi.c.old	2003-05-17 11:15:06.000000000 -0400
++++ toshiba_acpi.c	2003-05-17 11:21:11.000000000 -0400
+@@ -33,7 +33,7 @@
+  *
+  */
+ 
+-#define TOSHIBA_ACPI_VERSION	"0.14"
++#define TOSHIBA_ACPI_VERSION	"0.15"
+ #define PROC_INTERFACE_VERSION	1
+ 
+ #include <linux/kernel.h>
+@@ -172,9 +172,7 @@
+ 	for (i = 0; i < HCI_WORDS; ++i) {
+ 		in_objs[i].type = ACPI_TYPE_INTEGER;
+ 		in_objs[i].integer.value = in[i];
+-		/*printk("%04x ", in[i]);*/
+ 	}
+-	/*printk("\n");*/
+ 
+ 	results.length = sizeof(out_objs);
+ 	results.pointer = out_objs;
+@@ -184,9 +182,7 @@
+ 	if ((status == AE_OK) && (out_objs->package.count <= HCI_WORDS)) {
+ 		for (i = 0; i < out_objs->package.count; ++i) {
+ 			out[i] = out_objs->package.elements[i].integer.value;
+-			/*printk("%04x ", out[i]);*/
+ 		}
+-		/*printk("\n");*/
+ 	}
+ 
+ 	return status;
+@@ -226,7 +222,7 @@
+ 
+ typedef struct _ProcItem
+ {
+-	char* name;
++	const char* name;
+ 	char* (*read_func)(char*);
+ 	unsigned long (*write_func)(const char*, unsigned long);
+ } ProcItem;
+@@ -284,10 +280,8 @@
+ write_lcd(const char* buffer, unsigned long count)
+ {
+ 	int value;
+-	/*int byte_count;*/
+ 	u32 hci_result;
+ 
+-	/* ISSUE: %i doesn't work with hex values as advertised */
+ 	if (snscanf(buffer, count, " brightness : %i", &value) == 1 &&
+ 			value >= 0 && value < HCI_LCD_BRIGHTNESS_LEVELS) {
+ 		value = value << HCI_LCD_BRIGHTNESS_SHIFT;
+@@ -414,6 +408,11 @@
+ 			last_key_event = value;
+ 		} else if (hci_result == HCI_EMPTY) {
+ 			/* better luck next time */
++		} else if (hci_result == HCI_NOT_SUPPORTED) {
++			/* This is a workaround for an unresolved issue on
++			 * some machines where system events sporadically
++			 * become disabled. */
++			hci_write1(HCI_SYSTEM_EVENT, 1, &hci_result);
+ 		} else {
+ 			p += sprintf(p, "ERROR\n");
+ 			goto end;
+
+--------------090607090408010908000803--
+
 
 
 -------------------------------------------------------
