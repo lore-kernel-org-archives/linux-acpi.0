@@ -1,12 +1,14 @@
-From: "Eric L. Schott" <eschott-KNIoUGFsjeKVc3sceRu5cw@public.gmane.org>
-Subject: ACPI & Thinkpad T40
-Date: 19 Aug 2003 08:46:05 -0400
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: [Acpi4asus-user] ASUS M2400N / M3700N / S1300N temperature
+Date: Tue, 19 Aug 2003 16:03:34 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1061297164.3172.13.camel@sinai.arl.psu.edu>
+Message-ID: <20030819140334.GB4265@hell.org.pl>
+References: <20030814025858.GA16098@hell.org.pl> <1060944604.1760.1.camel@M2400N> <20030815142258.GA2643@hell.org.pl> <1060959167.2144.19.camel@Home> <20030815205541.GB25102@hell.org.pl> <1061221384.1996.6.camel@M2400N>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1061221384.1996.6.camel-m6aJA0iQrH4@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,39 +17,82 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Mads Paulin <paulin-/w0Os/Ss2Sh/SzgSGea1oA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I have a Thinkpad T40 and have had mixed success with ACPI.  I have
-found that revision 20030328 works well.  I can see the battery, etc. 
-However, with any latter releases, I have problems.  For example, with
-20030619, I have
+Thus wrote Mads Paulin:
+> I have an ASUS M2400N and is trying to get the fan control right. Karol
+> solved the temperature reading problem, but due to wron thermal trip
 
-Aug 19 08:22:55 eric kernel:     ACPI-0345: *** Error: Handler for
-[EmbeddedControl] returned AE_TIME
-Aug 19 08:22:55 eric kernel:     ACPI-1121: *** Error: Method execution
-failed [\_SB_.PCI0.LPC_.EC__.BAT0._STA] (Node f7ff3200), AE_TIME
-Aug 19 08:22:55 eric kernel:     ACPI-0345: *** Error: Handler for
-[EmbeddedControl] returned AE_TIME
-Aug 19 08:22:55 eric kernel:     ACPI-1121: *** Error: Method execution
-failed [\_SB_.PCI0.LPC_.EC__.BAT1._STA] (Node f7ff3380), AE_TIME
-Aug 19 08:22:55 eric kernel:     ACPI-0345: *** Error: Handler for
-[EmbeddedControl] returned AE_TIME
-Aug 19 08:22:55 eric kernel:     ACPI-1121: *** Error: Method execution
-failed [\_SB_.PCI0.LPC_.EC__.AC__._PSR] (Node f7ff3480), AE_TIME
-Aug 19 08:22:55 eric kernel:     ACPI-0345: *** Error: Handler for
-[EmbeddedControl] returned AE_TIME
-Aug 19 08:22:55 eric kernel:     ACPI-1121: *** Error: Method execution
-failed [\_PR_.CPU_._PPC] (Node f7fca9c0), AE_TIME
-Aug 19 08:22:55 eric kernel:     ACPI-0345: *** Error: Handler for
-[EmbeddedControl] returned AE_TIME
-Aug 19 08:22:55 eric kernel:     ACPI-1121: *** Error: Method execution
-failed [\_TZ_.THM0._TMP] (Node c1c1dfa0), AE_TIME
+Did I really? From what you said before, I understood it didn't work.
+Let's look at the code:
+#v+
+    Method (_TMP, 0, NotSerialized)
+    {
+        Store (0x05, Local1)
+        While (Local1)
+        {
+            Store (RTMP (), Local0)
+            If (LGreater (Local0, TCRT))
+            {
+                Decrement (Local1)
+            }
+            Else
+            {
+                Store (0x00, Local1)
+            }
+        }
 
-I would appreciate any patches that I can test.
+        Return (KELV (Local0))
+    }
+[...]
+    Method (RTMP, 0, NotSerialized)
+    {
+        Store (RBYT (TSAD, 0x01), Local0)
+        If (Not (Local0))
+        {
+            Store (Local0, LTMP)
+        }
 
-Eric.
+        Return (LTMP)
+    }
+#v-
 
+This is the original one. If the (RBYT (TSAD, 0x01) is supposed to return
+temperature, it should rather not be zero. Thus, the condition in RTMP
+always fails. Since LTMP is initialized with 0x3c (60d), the _TMP method
+always returns (KELV (60)), and also, since RTMP is also used internally,
+the fan keeps spinning at the same speed. 
+
+Now, if the aforementioned condition is changed to If (Local0), which looks
+fairly more reasonable, strange things begin to happen (like those trip
+points and temperature being reported as 255 degrees). There is nothing in
+the trip point code that would support such a behaviour, unless the change
+causes some random memory scribbling, or something similarly nasty.
+
+> By the way, the fan is capable of rotationg at several different rpm's.
+> Have any of you gotten this rigt ? On my laptop, the fan starts at max
+> rpms and then turns completely off. The only way I can get it to rotate
+> at low RPMS is by rebooting the machine when the processor temperature
+> is in the interval giving low rpm's. The bios will then put the fan in
+> low rpm state.
+> 
+> This leads me to think, that the fan is not controlled by acpi at all
+> (possibly due to a buggy DSDT)
+
+The fan is, and should be, controled by ACPI, though not in the way the
+specification says. The \_TZ.TCHG method compares the actual temperature
+adn stores appropriate values in the fan registers, causing it to change
+its speed. A very similar thermal system exists in ASUS L3800C, where it
+works quite well.
+
+Could someone take a look in the M2400N DSDT and suggest a way to debug it?
+Best regards,
+
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
