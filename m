@@ -1,15 +1,16 @@
-From: Chander Kant <ck-cFQ2QR18kktMdczFR1vadtBPR1lH4CV8@public.gmane.org>
-Subject: RE: need debugging help
-Date: Sun, 13 Jul 2003 17:04:13 -0700
+From: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
+Subject: Re: [Patch] ACPI IO-APIC IRQ parameter configuration#1
+Date: Mon, 14 Jul 2003 01:28:14 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <5.1.0.14.0.20030713170300.02dc44f8@linuxcertified.com>
-References: <F760B14C9561B941B89469F59BA3A847E97021@orsmsx401.jf.intel.
- com>
+Message-ID: <200307140128.14189.adq_dvb@lidskialf.net>
+References: <200307132239.06760.adq_dvb@lidskialf.net> <1058137496.4509.9.camel@darkstar.portugal>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <F760B14C9561B941B89469F59BA3A847E97021@orsmsx401.jf.intel.
- com>
+In-Reply-To: <1058137496.4509.9.camel-4/PLUo9XfK/yXfm4dIG/yWZHpeb/A1Y/@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,78 +19,17 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: =?iso-8859-1?q?S=E9rgio=20Monteiro=20Basto?= <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Jurriaan <thunder7-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Monday 14 July 2003 00:04, S=E9rgio Monteiro Basto wrote:
+> Hi
+> In attachment  this patch for kernel 2.4.21,
+> I don't have acknowledgments to know if it is good code, but can be
+> applied to kernel 2.4.x
 
-Unfortunately I don't have a way of changing the System BIOS. Can you 
-please provide a link to the patch you mention below, and any instructions 
-on how to apply it.
-
-thanks
-
-At 05:04 PM 13/07/2003 -0700, Grover, Andrew wrote:
->Hi, sorry for the delay.
->
->So do you have the ability to change your systems' BIOS? If so it is an
->easy fix. If not, then there is a Relaced AML patch to workaround this
->issue, but the ideal situation would be to fix the firmware.
->
->Regards -- Andy
->
-> > -----Original Message-----
-> > From: Chander Kant [mailto:ck-cFQ2QR18kktMdczFR1vadtBPR1lH4CV8@public.gmane.org]
-> > Sent: Tuesday, July 01, 2003 5:13 PM
-> > To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> > Cc: Grover, Andrew; ck-cFQ2QR18kktMdczFR1vadtBPR1lH4CV8@public.gmane.org
-> > Subject: need debugging help
-> >
-> >
-> >
-> > Thanks Andrew. I am moving the discussion to the acpi-devel list:
-> >
-> > All,
-> >
-> > I am attaching the output of "iasl -d dsdt" (in zipped format).
-> >
-> > Please let me know if we can do anything on this system to
-> > get rid of the problem mentioned below.
-> >
-> > Thanks,
-> > Chander
-> >
-> >
-> > "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote ..
-> > > > When we bring up a recent Linux kernel (2.4.20) with ACPI
-> > > > patch on our laptop. We get following error messages
-> > > > continously from the kernel:
-> > > >
-> > > > Jul  2 04:31:16 localhost kernel:     ACPI-1103: *** Error:
-> > > > Method execution failed [\_SB_.PCI0.SBRG.EC0_._Q1E] (Node
-> > > > c33b1380), AE_AML_REGION_LIMIT
-> > > >
-> > > > Besides filling up the log files, and making the console
-> > > > windows, I think it is also hampering ACPI functionality to
-> > > > work, as I do not see and battery file in the /proc/acpi
-> > directory.
-> > > >
-> > > > I have seen other folks in user groups and lists getting
-> > > > these errors, but so far I have not seen a good response as
-> > > > far as a fix or workaround.
-> > >
-> > > It's most likely an AML error. This particular error is not
-> > uncommon.
-> > >
-> > > Do you have the ASL for this machine? If not, get iasl from
-> > >
-> > http://developer.intel.com/technology/iapc/acp> i/downloads.htm and
->feed
-> > > your DSDT into it (from /proc/acpi/dsdt). with the -d
-> > option. Then, go
-> > > take a look at the _Q1E method.
-> > >
-> > >
-> >
+Cool! Out of interest, does the patch solve or create any problems for you?
 
 
 
