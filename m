@@ -1,8 +1,8 @@
 From: Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
-Subject: Battery status wrong from 2.6.7 when running on batteries
-Date: Thu, 28 Oct 2004 13:59:53 +0100
+Subject: Laptop does not halt or reboot anymore
+Date: Thu, 28 Oct 2004 14:06:28 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <16768.60745.952949.338093@aber.ac.uk>
+Message-ID: <16768.61140.778090.570927@aber.ac.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -20,20 +20,20 @@ List-Id: linux-acpi@vger.kernel.org
 
 All,
 
-Back on the list after a long-ish absence.
+My laptop does not halt (reboots straight away) or reboot (just hangs at
+the last stage of the shutdown process) since 2.6.7 (see my other message
+on battery status).
 
-I have been upgrading my kernel regularly and since 2.6.7 (included), the
-battery status is wrong, but apparently only when I run on the battery, not
-when on AC.  It starts off alright and after a while it is just not updated
-anymore.  It seems that the temperature does the same.
+I have seen another post on a similar issue, but without any reply.
 
-Works fine under 2.6.6.
+My machine is an ACER TM636.
 
 Any idea?
 
 Cheers,
 
 Fred
+
 
 
 
