@@ -1,15 +1,14 @@
-From: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
-Subject: Re: b44 driver suspend/resume (was Re: Re: Re: various problems
- with Acer TM654, suspend, ACAD, radeon)
-Date: Wed, 25 Aug 2004 10:53:18 -0400
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: Re: Acer TM 661 does not wake up from STR
+Date: Wed, 25 Aug 2004 10:17:12 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <412CA7DE.8050706@optonline.net>
-References: <20040820161911.GA24510@gamma.logic.tuwien.ac.at> <20040823070534.GD24853@message-id.gmane0305.slipkontur.de> <20040823103515.GH8635@gamma.logic.tuwien.ac.at> <20040824233153.GA15474@message-id.gmane0305.slipkontur.de> <20040825131109.GD6119@gamma.logic.tuwien.ac.at> <412C9980.803@optonline.net> <412CA0F5.4@optonline.net> <20040825144038.GA17522@gamma.logic.tuwien.ac.at>
+Message-ID: <412CC998.2020603@root.org>
+References: <412CA779.8000602@gmx.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040825144038.GA17522-DqSSrKF0TaySnEC3TeqHn5dqbFPxfnh/@public.gmane.org>
+In-Reply-To: <412CA779.8000602-hi6Y0CQ0nG0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,36 +17,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>
-Cc: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-net-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mirko Werneke <mirko.werneke-hi6Y0CQ0nG0@public.gmane.org>
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Norbert Preining wrote:
-> Hi Nathan!
-> 
-> On Mit, 25 Aug 2004, Nathan Bryant wrote:
->>
->>Oops, never mind that. That's just because you hadn't ifup'd the device 
-> 
-> 
-> I did.
+I forgot that we also need to call \_BFS immediately, not after _SST and 
+the S0 write.  (I was mistaken in my previous email, acpi-ca does do the 
+\_S0 stuff).
 
-Before you ran cat /proc/interrupts after resume? Are you sure? eth0 
-didn't appear anywhere in there...
+7.3.1:  "_BFS is an optional control method. If it exists, OSPM must 
+execute the _BFS method immediately following wake from any sleeping 
+state S1, S2, S3, or S4. _BFS allows ACPI system firmware to perform
+any required system specific functions when returning a system sleep 
+state. OSPM will execute the _BFS control method before performing any 
+other physical I/O or enabling any interrupt servicing upon returning
+from a sleeping state."
 
-> 
-> 
->>yet. But I still suspect a driver issue; your IRQ routing looks like it 
->>should be OK, but somebody is sending repeated interrupts. You could 
->>test with "acpi=noirq", but I don't think that will help.
-> 
-> 
-> It worked!!!! Yes, no problems. Booting with acpi=noirq and loading the
-> b44 module let it find irq 5 and it is working. I am writing this email
-> from after a resume, even X worked out of the box.
-
-Back to the drawing board. :( That means there's still something wrong 
-with pci_link.c
+-- 
+Nate
 
 
 -------------------------------------------------------
