@@ -1,13 +1,9 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: network card buzzing
-Date: Fri, 10 Dec 2004 22:25:33 +0100
-Message-ID: <20041210212532.GA1066@elf.ucw.cz>
-References: <41B86243.7090507@mega.ist.utl.pt> <20041209171138.GA3105@openzaurus.ucw.cz> <20041210194641.GA26799@hell.org.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Unknown <unknown@unknown.invalid>
+Subject: Virus Detected by Network Associates, Inc. Webshield SMTP V4.5 MR1a
+Date: Sat, 11 Dec 2004 01:39:49 +0000 (UTC)
+Message-ID: <E1CcwDJ-0004Ag-QW@sc8-sf-mx2.sourceforge.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20041210194641.GA26799-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+From: <>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,23 +13,13 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Date: Fri Dec 10 20:35:56 2004
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-
-> > > is this a problem? hardware issue? software issue? acpi? plain bad 
-> > > luck? what is happening here?
-> > Sining capacitors? See archives. idle=poll should fix it (evil grin).
-> 
-> Now you couldn't have possibly meant 'sinning'? (even more evil grin)
-
-You are right, I meant "singing capacitors". I tried to look "sinning
-capacitors" using google, and it really was not helpfull.
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Network Associates WebShield SMTP V4.5 MR1a on ibixmaila detected virus
+W32/Bagle.bd@MM in attachment Price.cpl from <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org> and it was
+Deleted.
 
 
 -------------------------------------------------------
