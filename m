@@ -1,12 +1,11 @@
-From: David Sterratt <david.c.sterratt-5WhEfG1TI8k@public.gmane.org>
-Subject: Re: Temperature reported wrongly?
-Date: Fri, 18 Feb 2005 22:00:18 +0000
-Message-ID: <1108764018.7311.15.camel@chickenrun>
-References: <1107531994.23192.2056.camel@canonmills.inf.ed.ac.uk>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: [PATCH] ACPI: print PCI root names the same way the rest of the
+ kernel does
+Date: Fri, 18 Feb 2005 16:15:08 -0700
+Message-ID: <1108768508.25491.44.camel@eeyore>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <1107531994.23192.2056.camel-n5vp7pYcALv/CiYq7C4egV5eyrv7yTFU@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,46 +15,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2005-02-04 at 15:46 +0000, David Sterratt wrote:
-> There appears to be a discrepancy between the temperature reported by
-> ACPI and the temperature reported by the "health check" in my BIOS, just
-> over a minute after rebooting. The value reported by
-> /proc/acpi/thermal_zone/THRM/temperature is 73 degC as opposed to 51
-> degC from the BIOS. I'm working on the assumption that the CPU core
-> can't cool down by 22 degC in under a minute.
-> 
-> Is that assumption likely to be correct?  If so, I suppose it implies a
-> bug in acpi, I've looked in the bugzilla and googled, but couldn't find
-> anything similar. 
-> 
-> I'm running a stock 2.6.8 kernel as supplied by Debian. My motherboard
-> is an MSI MS-6390 with an Athlon XP1800+ CPU and a winbond W83697HF
-> sensor chip. The temperature sensor is a diode. The BIOS is AWARD v
-> 6.00PG (v1.2) and APIC is disabled in the BIOS (to solve some other
-> problems with 2.6.x kernels).  
-> 
-> I've considered upgrading the BIOS. There was a problem in earlier
-> versions of the BIOS about reporting incorrect temperature, but that
-> seems to have been fixed in my minor version (v1.2)
-> (http://members.driverguide.com/driver/detail.php?driverid=149547) There
-> are no changes after v1.2 that might correct the temperature reporting
-> (http://www.msicomputer.com/support/bios_result.asp; and then select AMD
-> platform and MSI-6390 -- MSI site won't give sane URL). I'm reluctant to
-> flash my BIOS, but if people think it might be worth a try I might take
-> the risk.
-> 
-> I've tried using lm_senosrs, but that gives me the same temperature
-> (unless I tweak it in sensors.conf).
+The rest of the kernel uses %04x:%02x for PCI domain:bus;
+ACPI should do the same.
 
-I've just discovered (by accident) that this actually appears to be an
-lm_sensors problem -- when I don't have the lm_sensors modules in the
-kernel, ACPI seems to report the CPU temperature fine. I'll mail the
-relevant lm_sensors list. Sorry for the noise.
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 
-David. 
+===== drivers/acpi/pci_root.c 1.23 vs edited =====
+--- 1.23/drivers/acpi/pci_root.c	2004-11-11 23:29:46 -07:00
++++ edited/drivers/acpi/pci_root.c	2005-02-15 14:10:14 -07:00
+@@ -258,7 +258,7 @@
+  	/* TBD: Locking */
+  	list_add_tail(&root->node, &acpi_pci_roots);
+ 
+-	printk(KERN_INFO PREFIX "%s [%s] (%02x:%02x)\n", 
++	printk(KERN_INFO PREFIX "%s [%s] (%04x:%02x)\n", 
+ 		acpi_device_name(device), acpi_device_bid(device),
+ 		root->id.segment, root->id.bus);
+ 
+@@ -272,7 +272,7 @@
+ 	root->bus = pci_acpi_scan_root(device, root->id.segment, root->id.bus);
+ 	if (!root->bus) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, 
+-			"Bus %02x:%02x not present in PCI namespace\n", 
++			"Bus %04x:%02x not present in PCI namespace\n", 
+ 			root->id.segment, root->id.bus));
+ 		result = -ENODEV;
+ 		goto end;
+
 
 
 
