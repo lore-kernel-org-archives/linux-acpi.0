@@ -1,8 +1,8 @@
-From: "Francis Patton" <francis_pattonjk-WNTcXVno9sTTUHJjOHCk4A@public.gmane.org>
-Subject: $91823
-Date: Tue, 22 Jun 2004 01:11:30 -0700
+From: "Petra N. Dennis" <petra_ndennis_cx-aFXYPP8W9pI@public.gmane.org>
+Subject: Get $200 bonus at our Casino!
+Date: Tue, 22 Jun 2004 14:02:07 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <2b9e01c45830$c7794242$9ed2f0a5@stadt-hagen.de>
+Message-ID: <643f01c45861$36580362$26938a53@icgroup.it>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -19,22 +19,23 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
-I sent you an email a few days ago, because you now qualify for a new mortgage.
-You could get $300,000 for as little as $700 a month!
-Bad credit is no problem, you can pull cash out or refinance.
+Hi, 
+I have a special offer available for you at our casino.
 
-Please click on this link:
-http://www.refifast.biz/aff/affiliate.php?uid=71
+$20 to try our internet casino, no deposit is necessary!
+At the casino software's cashier enter bonus code: FR93P
 
-Best Regards,
-Steve Morris
+$200 bonus on your first deposit!
+At the casino software's cashier enter bonus code: FMJKU
 
+Allow us to show you our quality operation, fast payouts,
+generous bonuses, and super friendly around-the-clock
+customer support.
 
----- system information ----
-following generic Because XML could incomplete archive dates 
-important nearly of indicate could set exposed place 
-zones means To Collation template been note environments 
+Click here: http://gozealgaming.com
+
+Best regards,
+Jamie Zawinsky
 
 
 
