@@ -1,12 +1,13 @@
-From: =?ISO-8859-15?Q?Peter_M=FCnster?= <pmlists-GANU6spQydw@public.gmane.org>
-Subject: RE: system does not wake up sometimes
-Date: Mon, 31 Jan 2005 23:21:28 +0100 (CET)
-Message-ID: <Pine.LNX.4.58.0501312317420.31879@gaston.free.fr>
-References: <16A54BF5D6E14E4D916CE26C9AD3057501168084@pdsmsx402.ccr.corp.intel.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: New SmartBattery DSDT-based controller
+Date: Mon, 31 Jan 2005 23:59:08 +0100
+Message-ID: <20050131225908.GA1731@elf.ucw.cz>
+References: <41FBDDE2.1050403@bartol.udel.edu> <1107097154.25905.22.camel@tyrosine>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD3057501168084-4yWAQGcml66iAffOGbnezLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1107097154.25905.22.camel@tyrosine>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,39 +17,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, aj-l3A5Bk7waGM@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 31 Jan 2005, Li, Shaohua wrote:
+Hi!
 
-> >very often, my system does not wake up at the specified time. I need to
-> >press a key to resume.
-> >The system goes to sleep the day before at about 22h30 with the following
-> >commands:
-> >modprobe genrtc
-> >sleep 5
-> >echo 2005-01-28 11:10:00 >/proc/acpi/alarm
-> >sleep 5
-> >echo 1 >/proc/acpi/sleep
-> >
-> >What could be wrong?
-> >I'm using Linux-2.6.10 and ASUS A7N8X-X ACPI BIOS Rev 1006.
-> >
-> >Thanks in advance for any help! Please tell me, if you need more
-> >information.
+> > Eventually, the modified DSDTs can be put back into the ACPI4Linux 
+> > database; but I'm more interested at the moment in ironing out any 
+> > glitches in the code.
 > 
-> did you mean alarm can't work only the specific time? Is there any rule?
+> While this is a neat hack, there's no real way that distributions are
+> ever going to adopt this approach - DSDTs are copyrighted by the
+> vendors, and without permission they're not going to be distributed by
+> the Linux vendors. The alternative approach of modifying the user's DSDT
+> on the fly is likely to be excessively fragile. The only reasonable
+> solution is to provide a mechanism to read the battery directly.
 
-No, I didn't find any rule. Sometimes the system really wakes up the right
-time (Jan 22 11:10:00 gaston kernel: Back to C!), but very often it does
-not. And this is not so good, because some cron-jobs don't get started at
-the right time...
-
-Greetings, Peter
-
+Actually, it is now time to call Acer saying "hey, Linux community
+actually did the work for you; add this to your BIOS and your
+batteries will start to work under Linux as control-method
+batteries". It would help if you could release that DSDT part
+under public domain; it is unlikely that Acer is going to put GPLed
+part into their BIOS.
+								Pavel
 -- 
-http://pmrb.free.fr/contact/
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
