@@ -1,13 +1,13 @@
-From: "Jeremy Gleason" <jgleason_cs-jNDFPZUTrfRLetTUFGgy3VAUjnlXr6A1@public.gmane.org>
-Subject: New! Vìagra soft tabs.
-Date: Mon, 25 Oct 2004 05:56:09 -0500
+From: "Amit Choudhary" <Amit_Choudhary-MyfdzN0ulLNWk0Htik3J/w@public.gmane.org>
+Subject: Is there a list of devices that could not be powered off while interrupts are enabled.
+Date: Mon, 25 Oct 2004 19:20:33 +0530
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <61ea01c4ba81$eff2885d$1bd6d60b@ulsrud.vgs.no>
+Message-ID: <5959EA4638D8734599AB75EAAFBB6FEF018899FA@mtv01ex04.mindtree.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_7CA0_01C4BAC7.B344B820"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -19,21 +19,53 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello!
+This is a multi-part message in MIME format.
 
-We would like to offer V_I_A_G_R_A soft tabs,
+------=_NextPart_000_7CA0_01C4BAC7.B344B820
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-These pills are just like regular Vìagra but they are specially formulated 
-to be soft and dissolvable under the tongue. The pill is absorbed at the 
-mouth and enters the bloodstream directly instead of going through the stomach. 
-This results in a faster more powerful effect which lasts as long as the normal.
 
-Soft Tabs also have less sidebacks (you can drive or mix alcohol drinks with them).
+Hi,
 
-You can get it at: http://rxand-more.com/st/?coupon
+I was planning to migrate ACPI framework (only the framework) to ARM =
+based
+arhitectures. I just wanted to know what kind of devices could not be =
+powered
+down while interrupts are enabled.
 
-No thanks: http://rxand-more.com/rm.html
+Regards,
+Amit
 
+------=_NextPart_000_7CA0_01C4BAC7.B344B820
+Content-Type: text/plain;
+	name="disclaimer.txt"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+	filename="disclaimer.txt"
+
+-------------------------------------------------------------------------=
+----------------------------------------------------
+Disclaimer
+-------------------------------------------------------------------------=
+----------------------------------------------------
+
+"This message(including attachment if any)is confidential and may be =
+privileged.Before opening attachments please check them
+for viruses and defects.MindTree Consulting Private Limited =
+(MindTree)will not be responsible for any viruses or defects or
+any forwarded attachments emanating either from within MindTree or =
+outside.If you have received this message by mistake please notify the =
+sender by return  e-mail and delete this message from your system. Any =
+unauthorized use or dissemination of this message in whole or in part is =
+strictly prohibited.  Please note that e-mails are susceptible to change =
+and MindTree shall not be liable for any improper, untimely or =
+incomplete transmission."
+
+-------------------------------------------------------------------------=
+----------------------------------------------------
+------=_NextPart_000_7CA0_01C4BAC7.B344B820--
 
 
 -------------------------------------------------------
