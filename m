@@ -1,12 +1,12 @@
 From: Ondrej Zary <linux-ZCIryABCsrmttCpgsWEBFmD2FQJk+8+b@public.gmane.org>
 Subject: Re: [RFC] Reliable video POSTing on resume
-Date: Sat, 05 Feb 2005 12:35:00 +0100
-Message-ID: <4204AF64.9060201@rainbow-software.org>
-References: <e796392205020221387d4d8562@mail.gmail.com> <420217DB.709@gmx.net> <4202A972.1070003@gmx.net> <20050203225410.GB1110@elf.ucw.cz> <1107474198.5727.9.camel@desktop.cunninghams> <4202DF7B.2000506@gmx.net> <1107485504.5727.35.camel@desktop.cunninghams> <9e4733910502032318460f2c0c@mail.gmail.com> <20050204074454.GB1086@elf.ucw.cz> <9e473391050204093837bc50d3@mail.gmail.com> <20050205093550.GC1158@elf.ucw.cz>
+Date: Sat, 05 Feb 2005 12:53:37 +0100
+Message-ID: <4204B3C1.80706@rainbow-software.org>
+References: <20050122134205.GA9354@wsc-gmbh.de>	 <1107474198.5727.9.camel@desktop.cunninghams> <4202DF7B.2000506@gmx.net>	 <9e47339105020321031ccaabb@mail.gmail.com> <420367CF.7060206@gmx.net>	 <20050204163019.GC1290@elf.ucw.cz>	 <9e4733910502040931955f5a6@mail.gmail.com>	 <1107569089.8575.35.camel@tyrosine>	 <9e4733910502041809738017a7@mail.gmail.com>	 <1107569842.8575.44.camel@tyrosine>	 <9e47339105020418306a4c2c93@mail.gmail.com> <1107591336.8575.51.camel@tyrosine>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <20050205093550.GC1158-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <1107591336.8575.51.camel@tyrosine>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,42 +16,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Cc: Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Pavel Machek wrote:
-> Hi!
+Matthew Garrett wrote:
+> On Fri, 2005-02-04 at 21:30 -0500, Jon Smirl wrote:
 > 
 > 
->>>We already try to do that, but it hangs on 70% of machines. See
->>>Documentation/power/video.txt.
->>
->>We know that all of these ROMs are run at power on so they have to
->>work. This implies that there must be something wrong with the
->>environment the ROM are being run in. Video ROMs make calls into the
->>INT vectors of the system BIOS. If these haven't been set up yet
->>running the VBIOS is sure to hang.  Has someone with ROM source and
->>the appropriate debugging tools tried to debug one of these hangs?
->>Alternatively code could be added to wakeup.S to try and set these up
->>or dump the ones that are there and see if they are sane.
+>>I suspect the problem in that case is a compressed VBIOS. Some laptops
+>>compress the VBIOS and the system BIOS into a single ROM and then
+>>expand them at power on. Sounds like this is not happening on resume.
+>>To get around the problem copy the image from C000:0 before suspend to
+>>a place in preserved RAM where wakeup.S can find it and then copy it
+>>back to C000:0 on resume. To test for this checksum C000:0 before
+>>suspend and after and see if it has changed.
 > 
 > 
-> Rumors say that notebooks no longer have video bios at C000h:0; rumors
-> say that video BIOS on notebooks is simply integrated into main system
-> BIOS. I personaly do not know if rumors are true, but PCs are ugly
-> machines....
+> No, that's not what's happening. If you disassemble the code at
+> c000:blah in a laptop, you'll often find that it jumps off to a
+> completely different section of address space. During POST, that
+> contains video BIOS. After POST, it may be something like USB boot
+> support. Without reading it directly out of flash, it's not possible to
+> recover that code.
 
-On systems with integrated graphics chips, there is no separate ROM chip 
-for Video BIOS. Instead, it's integrated into system BIOS (this is true 
-for onboard SCSI and pseudo-RAID controllerss too). During early 
-initialization, system BIOS decompresses and initializes these BIOSes 
-(if these is a PCI vendor ID and device ID match). (There is nothing 
-wrong with this - BIOSes on PCI cards should not be run directly from 
-the card's ROM but copied to RAM and executed from there instead 
-according to PCI spec.)
-After the POST is complete, the BIOSes are shadowed in RAM so Video BIOS 
-is at C000:0 - so you can run DOS for example.
+I wonder how this can work:
+a motherboard with i815 chipset (integrated VGA), Video BIOS is 
+integrated into system BIOS
+a PCI card inserted into one of the PCI slots, configured as primary in 
+system BIOS
+
+During POST, the PCI card BIOS is initialized. I boot Windows 98SE - 
+then the onboard VGA initializes and I can use 2 monitors.
+So either:
+1. The driver can initialize the onboard VGA on its own (without VGA BIOS)
+or
+2. There is a way how to get the onboard VGA BIOS code from system BIOS
+
 
 -- 
 Ondrej Zary
