@@ -1,11 +1,11 @@
 From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Fwd: Acer Extensa 3001 battery problem (smart battery)
-Date: Mon, 13 Sep 2004 09:15:26 +0800
+Subject: RE: Battery rate on Acer TM 292
+Date: Mon, 13 Sep 2004 09:20:53 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <16A54BF5D6E14E4D916CE26C9AD305751B66C2@pdsmsx402.ccr.corp.intel.com>
+Message-ID: <16A54BF5D6E14E4D916CE26C9AD305751B66D5@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
+	charset="US-ASCII"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-class: urn:content-classes:message
@@ -17,63 +17,48 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Johannes Schanda <johannes.schanda-1R9WWMedIqeELgA04lAiVw@public.gmane.org>
-Cc: =?iso-8859-1?Q?David_G=F3mez?= <david-0d+f1cuTMnnk1uMJSBkQmQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Stefan Tomanek <stefan-Q4Z/ui9EqVxM7kwft8N7nw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Johannes Schanda wrote:
->Hi everyone,
+Stefan Tomanek wrote:
+>Hello,
+>I've got an Acer Travelmate 292 (It's been sold under the name Extensa
+2902,
+>but
+>it's essentially an TM292), and there are 3 issues with its ACPI
+>implementation:
 >
->Ok, previous message was too big, I've changed the attachments to urls. =
-If
->the
->other message comes through later, sorry about the double post.
+>1) ACPI only reports 2 frequencies (600 and 1500 Mhz) for the Dothan, I
+>already
+>adressed this to the cpufreq guys
 >
->I have a problem with my Acer Extensa 3001 laptop. The battery and ac
->adaptor
->are not detected, i.e. the /proc/acpi/battery and /proc/acpi/ac_adaptor
->directories are empty. I've already tried fixing my dsdt (it contained =
-3
->warnings), applying the ecdt fix from bugzilla.kernel.org and setting
->acpi_os_name boot paramter.
->
->After investigating my dsdt I'm pretty sure that I actually have a =
-smart
->battery, I even tracked down the dsdt code for it:
->
->Device (EC0)
->                {
->                    Name (_HID, EisaId ("PNP0C09"))
->                    Name (_CRS, ResourceTemplate ()
->                    {
->                        IO (Decode16, 0x0062, 0x0062, 0x01, 0x01)
->                        IO (Decode16, 0x0066, 0x0066, 0x01, 0x01)
->                    })
->                    Name (_GPE, 0x1D)
->                    Name (OSEJ, 0x00)
->                    Device (SMBC)
->                    {
->                        Name (_HID, "ACPI0001")
->                        Name (_EC, 0x1820)
->                        Device (SBS0)
->                        {
->                            Name (_HID, "ACPI0002")
->                            Name (_SBS, 0x02)
->                        }
->                    }
->
-The DSDT is the same as David G=F3mez's. Looks like many Acer notebook =
-provide smart battery system.
+>2) the ac adapter does not send any events, but's that's not much
+trouble
+>since
+>it's status is reported properly, and battery events are sent instead
+It's possibly a BIOS issue.
 
->This section looks nearly identical to the smart battery example from =
-the
->acpi 2.0 spec. Now my question is this: Is there anything left I can =
-try,
->or
->does acpi4linux not support smart batteries yet? As far as I understand =
-the
-Linux doesn't support smart battery yet. Smart battery is more =
-complicated than control method battery.
+>
+>3) the rate of charging or discharging is always 0, makes it hard to
+guess
+>when
+>we are running out of power :-)
+>
+>stefan@nano:~$ acpi
+>     Battery 1: discharging, 99%, charging at zero rate
+>  - will never fully charge.
+>stefan@nano:~$ cat /proc/acpi/battery/BAT1/state
+>present:                 yes
+>capacity state:          ok
+>charging state:          discharging
+>present rate:            0 mA
+>remaining capacity:      3960 mAh
+>present voltage:         16376 mV
+Please don't trust 'present rate'. In many systems, 'present rate' are
+always 0. If you want to estimate the power of the battery, please use
+remaining capacity. I'd like the user daemon use 'remaining capacity' to
+calculate the rate.
 
 Thanks,
 Shaohua
