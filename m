@@ -1,13 +1,15 @@
-From: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
-Subject: Power button events unavailable after resume
-Date: Tue, 12 Oct 2004 13:43:24 -0400
+From: Tim Dijkstra <newsuser-TpnWJeB+oO0hKRfeEwdQzg@public.gmane.org>
+Subject: Re: Re: Should battery generate events?
+Date: Tue, 12 Oct 2004 20:20:10 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200410121343.31099.barr.156@osu.edu>
-Content-Type: text/plain;
-  charset="us-ascii"
+Message-ID: <20041012202010.750c98b4@commensaal.drs.p>
+References: <20041004232557.6c342288@commensaal.drs.p>
+	<20041008161046.GC10581@message-id.gmane0305.slipkontur.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20041008161046.GC10581-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -19,31 +21,36 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Fri, 8 Oct 2004 18:10:46 +0200
+Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org> wrote:
 
-Recently, I have been unable to get power button events from my notebook after 
-a Software Suspend 2 (version 2.1-rc1) resume without removing and 
-re-inserting the ACPI button driver. Pressing the power button has no effect, 
-but pressing it and then reloading the driver causes an event to be 
-triggered. It is like the events are "queued", and are written 
-to /proc/acpi/event after I reload the driver. My BIOS has not changed in a 
-long time, this behavior started a long time after my last BIOS upgrade. I am 
-using the latest ACPI patch (20040816) to kernel 2.6.8.1. Does anyone know 
-what could be causing this, or, better yet, what I can do to fix it?
+> On Mon, Oct 04, 2004 at 11:25:57PM +0200, Tim Dijkstra wrote:
+>  
+> > I would want to avoid this happening again. Ideally I would want my
+> > laptop to "shutdown -h now" if battery power is to low (well rather
+> > have it go to S3 or softwaresuspend, but it seems hopeless to get
+> > that to work :(  
+> 
+> Well, there are user space tools that will do this for you.
+> SUSE provides powersaved which will poll your battery if it doesn't
+> support events and take apropriate action (default is shutdown if
+> battery is <2%). It is also caching the data so that your battery
+> applet does not have to poll the battery by itself (which is
+> ridiculously expensive on many machines) but it only has to ask
+> powersaved.
 
-Andrew
+I could not find a lot about it on the web, then downloaded the src rpm
+from suse. Looks interesting ... I do not use suse myself but maybe I
+can get (parts of it) to work on my system.
 
-P.S. My DSDT is for BIOS A07 of the Dell Inspiron 300m, available at:
-http://acpi.sourceforge.net/dsdt/view.php?id=218
+> Regarding suwsusp: this should work on most i386 machines out of the
+> box with upcoming SUSE 9.2.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.6 (GNU/Linux)
+I find that a bold statement if I look at the number of posts to this
+and the swsusp2 list in which people tell they can't get suspend to
+work. 
 
-iD8DBQFBbBfDhuM+Z62a52oRAhd/AKCSrTCPqSSsta28BhheWoCtMF4ieACcD+Ta
-5pq5AUip3Wz9yDrCKD7hVB8=
-=XWpK
------END PGP SIGNATURE-----
+grts Tim
 
 
 -------------------------------------------------------
