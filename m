@@ -1,13 +1,12 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: IBM Thinkpad A31 | News
-Date: Tue, 21 Jan 2003 14:24:50 -0800
+From: <big-eamqYeEjE/g@public.gmane.org>
+Subject: Re: Document
+Date: Wed, 22 Jan 2003 13:09:23 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A847137F98@orsmsx401.jf.intel.com>
+Message-ID: <E18bD93-0000FV-00@sc8-sf-list1.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: multipart/mixed;
+	boundary="CSmtpMsgPart123X456_000_007F4738"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,17 +15,19 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Christian Zoz <zoz-l3A5Bk7waGM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Christian Zoz [mailto:zoz-l3A5Bk7waGM@public.gmane.org] 
-> I got a reply from IBM. They know this bug and they have a fix. But
-> they roll all the fixes into one package, and test and release them
-> once a quarter.
+This is a multipart message in MIME format
 
-Great news!
+--CSmtpMsgPart123X456_000_007F4738
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 
--- Andy
+Attached file:
+--CSmtpMsgPart123X456_000_007F4738--
+
 
 
 -------------------------------------------------------
