@@ -1,15 +1,14 @@
-From: Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
+From: Gilberto Ficara <g.ficara-3ibPxRg+o6HAUvMvb8FJ8A@public.gmane.org>
 Subject: Re: Is it possibile that ACPi messes my battery ...
-Date: Wed, 02 Oct 2002 23:24:01 +0200
+Date: Wed, 2 Oct 2002 18:05:21 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1033593841.360.35.camel@bacchus.gpphy.uni-duesseldorf.de>
+Message-ID: <20021002180521.50011a7f.g.ficara@linuxpratico.com>
 References: <20021001001656.GC9965@geolandia.home>
- <200210021557.22805.fdc10056@students.fct.unl.pt>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <200210021557.22805.fdc10056-9geRo0GdX4mLEkmxylLn4tBQ+izJFF1I@public.gmane.org>
+In-Reply-To: <20021001001656.GC9965-CwhMdJBTcbtgNr7TIQy98w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,48 +17,55 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: Francisco Castanheiro <fdc10056-9geRo0GdX4mLEkmxylLn4tBQ+izJFF1I@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, antonio-OL5acaPONM41GQ1Ptb7lUw@public.gmane.org
+To: antonio-OL5acaPONM41GQ1Ptb7lUw@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Am Mit, 2002-10-02 um 16.57 schrieb Francisco Castanheiro:
-> Does anyone else with a presario (or not) notice this?
+In data astrale Tue, 1 Oct 2002 02:16:56 +0200,
+il tenente "Antonio G. - Geotronix" <antonio-OL5acaPONM41GQ1Ptb7lUw@public.gmane.org> della Flotta Stellare,
+nel messaggio cifrato 20021001001656.GC9965-CwhMdJBTcbtgNr7TIQy98w@public.gmane.org ([ACPI] Is it possibile that ACPi messes my battery ...), ha scritto:
 
-Hmm...in the last few weeks my vaios battery seems to have lost
-capacity. Tough it shows a value around designed cap for the last full
-cap it looses all power after about 20 minutes...
+> I don't know if something like this is possible however I don't think so
+> but yet I will ask the same. I have noticed that in a few month, without
+> any heavy duty, my Li-ion battery for my Preassrio 710EA has declined in
+> full capacity. While the cat of /proc/acpi/battery/BAT0/state has always
+> told me that "design capacity: 53280 mWh" the "last full capcity:" has
+> declined from "43200 mWh" to the now "26669 mWh".
 
-> > a) because the battery is faulted (most presumable)
-> I don't even want to think if compaq denies the replacement of the battery...
+velenux@ares:~$ cat /proc/acpi/battery/BAT0/info  
+present:                 yes
+design capacity:         53280 mWh
+last full capacity:      15969 mWh
+battery technology:      rechargeable
+design voltage:          14800 mV
+design capacity warning: 1583 mWh
+design capacity low:     0 mWh
+capacity granularity 1:  1480 mWh
+capacity granularity 2:  1480 mWh
+model number:            6000
+serial number:           1
+battery type:            4
+OEM info:                 COMPAQ 
 
-In Germany in the first year of the warranty the manufacturer has to
-prove that it is your fault in case they want to deny replacement. I
-assume thats the same EU-wide...you should check that for your country.
-I do not think they are able to prove acpi did kill your battery
+same problem.
+The notebook is a Compaq EVO N115 (pretty similar to the presario 700
+series, I think).
 
-> 
-> > b) bad ACPI (old pathes, the june-july patches) messed the battery?????
-> Can someone tell if this is possible?
+can anyone help or explain ?
 
-I did not think so until now...I will have a look into it if no one else
-knows better.
-
--Knut
+G.
 
 -- 
-Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
-Physikalische Grundpraktika - Heinrich-Heine Universitaet Duesseldorf
-Raum 25.33.01.63  -   Universitaetsstrasse 1   -  D-40225 Duesseldorf
-fon: +49-211-81-11314                           fax: +49-211-81-13105
+Gilberto "Velenux" Ficara
+http://velenux.oltrelinux.com
+<g.ficara-kbMWSTjsVoGjGiRLkfLokA@public.gmane.org>
 
-
-
-
-
-
-
-
-
+------BEGIN GEEKCODE BLOCK------
+Version: 3.12
+GPA/GTW dpu s+:+ a-- C++++ UL++++ P+++ !E W+++
+N++ o? K? w--- O? M-- V? PS+++ PE- Y+ PGP t+
+5? X+ R* tv- b+++ DI? D++ G++ e++ h* r-- z?
+------END GEEK CODE BLOCK------
 
 
 -------------------------------------------------------
