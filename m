@@ -1,14 +1,10 @@
-From: Alistair John Strachan <s0348365-Y3tGgqFSo3OFxr2TtlUqVg@public.gmane.org>
-Subject: Re: Re: Call for help: list of machines with working S3
-Date: Tue, 15 Feb 2005 17:42:55 +0000
-Message-ID: <200502151742.55362.s0348365@sms.ed.ac.uk>
-References: <20050214211105.GA12808@elf.ucw.cz> <1108482083.12031.10.camel@elrond.flymine.org> <42122054.8010408@colitti.com>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: [PATCH] ACPI: associate PCI devices with interrupt link devices
+Date: Tue, 15 Feb 2005 11:07:07 -0700
+Message-ID: <1108490827.15848.8.camel@eeyore>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <42122054.8010408-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,191 +14,168 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Lorenzo Colitti <lorenzo-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>
-Cc: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, seife-l3A5Bk7waGM@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org
+To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday 15 Feb 2005 16:16, Lorenzo Colitti wrote:
-[snip]
->
-> Ok, here is the output from dmidecode (Debian package) and from lspci. I
-> don't have acpidmp and I don't know where to get it, but if you think
-> it's necessary I can download it if you tell me where to find it.
+Make PCI device -> interrupt link associations explicit, i.e.,
 
-Find below a diff of my dmidecode output versus Lorenzo's. Nothing much
-to call home about.
+    ACPI: PCI Interrupt 0000:00:0f.2[A] -> Link [IUSB] -> GSI 10 (level, low) -> IRQ 10
 
-[alistair] 17:40 [~/dmidecode-2.5] diff -Nudr -U3 lorenzo dmiout
---- lorenzo     2005-02-15 17:37:36.091770768 +0000
-+++ dmiout      2005-02-15 17:40:08.801555352 +0000
-@@ -1,13 +1,13 @@
- # dmidecode 2.5
- SMBIOS 2.3 present.
- 31 structures occupying 1354 bytes.
--Table at 0x000FF2EB.
-+Table at 0x000FA1EE.
- Handle 0x0000
-        DMI type 0, 20 bytes.
-        BIOS Information
-                Vendor: Hewlett-Packard
--               Version: 68BDD Ver. F.0F
--               Release Date: 07/23/2004
-+               Version: 68BDD Ver. F.11
-+               Release Date: 11/22/2004
-                Address: 0xE0000
-                Runtime Size: 128 kB
-                ROM Size: 1024 kB
-@@ -37,10 +37,10 @@
-        DMI type 1, 25 bytes.
-        System Information
-                Manufacturer: Hewlett-Packard
--               Product Name: HP Compaq nc6000 (DJ254A#ABB)
--               Version: F.0F
--               Serial Number: XXXXXXXXXX
--               UUID: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
-+               Product Name: HP Compaq nc6000 (PK522PS#UUF)
-+               Version: F.11
-+               Serial Number: <censored>
-+               UUID: <censored>
-                Wake-up Type: Power Switch
- Handle 0x0002
-        DMI type 2, 8 bytes.
-@@ -52,11 +52,11 @@
- Handle 0x0003
-        DMI type 3, 13 bytes.
-        Chassis Information
--               Manufacturer: Hewlett-Packard
-+               Manufacturer: Hewlett-Packard
-                Type: Notebook
-                Lock: Not Present
-                Version: Not Specified
--               Serial Number: XXXXXXXXXX
-+               Serial Number: <censored>
-                Asset Tag:
-                Boot-up State: Safe
-                Power Supply State: Safe
-@@ -69,8 +69,8 @@
-                Type: Central Processor
-                Family: Pentium M
-                Manufacturer: Intel(R)
--               ID: XX XX XX XX XX XX XX XX
--               Signature: Type 0, Family 6, Model 9, Stepping 5
-+               ID: D6 06 00 00 BF F9 E9 AF
-+               Signature: Type 0, Family 6, Model 13, Stepping 6
-                Flags:
-                        FPU (Floating-point unit on-chip)
-                        VME (Virtual mode extension)
-@@ -93,13 +93,14 @@
-                        FXSR (Fast floating-point save and restore)
-                        SSE (Streaming SIMD extensions)
-                        SSE2 (Streaming SIMD extensions 2)
-+                       SS (Self-snoop)
-                        TM (Thermal monitor supported)
-                        SBF (Signal break on FERR)
--               Version: Intel(R) Pentium(R) M processor 1400MHz
-+               Version: Intel(R) Pentium(R) M processor 1.60GHz
-                Voltage: 1.8 V
-                External Clock: 100 MHz
--               Max Speed: 1400 MHz
--               Current Speed: 1400 MHz
-+               Max Speed: 1600 MHz
-+               Current Speed: 1600 MHz
-                Status: Populated, Enabled
-                Upgrade: None
-                L1 Cache Handle: 0x0005
-@@ -131,8 +132,8 @@
-                Configuration: Enabled, Not Socketed, Level 2
-                Operational Mode: Write Back
-                Location: External
--               Installed Size: 1024 KB
--               Maximum Size: 1024 KB
-+               Installed Size: 2048 KB
-+               Maximum Size: 2048 KB
-                Supported SRAM Types:
-                        Burst
-                Installed SRAM Type: Burst
-@@ -194,7 +195,7 @@
-                Form Factor: SODIMM
-                Set: None
-                Locator: DIMM #1
--               Bank Locator: 030B2C25
-+               Bank Locator: 6605F934
-                Type: DDR
-                Type Detail: Synchronous
-                Speed: 142 MHz (7.0 ns)
-@@ -213,12 +214,12 @@
-                Form Factor: SODIMM
-                Set: None
-                Locator: DIMM #2
--               Bank Locator: 051FD180
-+               Bank Locator: 0322BB20
-                Type: DDR
-                Type Detail: Synchronous
-                Speed: 142 MHz (7.0 ns)
-                Manufacturer: Not Specified
--               Serial Number: XXXXXXXXXXXX-XXXXX
-+               Serial Number: <censored>
-                Asset Tag: Not Specified
-                Part Number: Not Specified
- Handle 0x000E
-@@ -294,8 +295,8 @@
-        Portable Battery
-                Location: Primary
-                Manufacturer: Hewlett-Packard
--               Manufacture Date: 12/12/2003
--               Serial Number: 00001
-+               Manufacture Date: 08/20/2004
-+               Serial Number: 01726
-                Name: Not Specified
-                Chemistry: Lithium Ion
-                Design Capacity: 2700 mWh
-@@ -357,11 +358,11 @@
-        DMI type 133, 34 bytes.
-        OEM-specific Type
-                Header and Data:
--                       85 22 85 00 01 30 11 1F 0D CE 0B 02 00 6E 00 15
--                       00 24 30 B2 00 5C 2B 02 80 00 00 00 0D 10 13 10
--                       05 10
-+                       85 22 85 00 01 30 11 84 0E 84 0E 04 00 20 00 17
-+                       00 C8 2F 91 F8 5C 2B 02 C0 00 00 00 F2 0F F7 0F
-+                       DF 0F
-                Strings:
--                       00001 12/12/2003
-+                       01726 08/20/2004
-                        HP
- Handle 0x0086
-        DMI type 126, 34 bytes.
+Previously, you could sometimes infer an association based on the output
+when an interrupt link is enabled, but when interrupt links are shared
+among several PCI devices, you could only make the inference for the first
+device to be enabled.
 
-[root] 17:41 [/home/alistair/dmidecode-2.5] lspci
-00:00.0 Host bridge: Intel Corp. 82855PM Processor to I/O Controller (rev 03)
-00:01.0 PCI bridge: Intel Corp. 82855PM Processor to AGP Controller (rev 03)
-00:1d.0 USB Controller: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) USB UHCI Controller #1 (rev 03)
-00:1d.1 USB Controller: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) USB UHCI Controller #2 (rev 03)
-00:1d.2 USB Controller: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) USB UHCI Controller #3 (rev 03)
-00:1d.7 USB Controller: Intel Corp. 82801DB/DBM (ICH4/ICH4-M) USB2 EHCI Controller (rev 03)
-00:1e.0 PCI bridge: Intel Corp. 82801 Mobile PCI Bridge (rev 83)
-00:1f.0 ISA bridge: Intel Corp. 82801DBM (ICH4-M) LPC Interface Bridge (rev 03)
-00:1f.1 IDE interface: Intel Corp. 82801DBM (ICH4-M) IDE Controller (rev 03)
-00:1f.3 SMBus: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) SMBus Controller (rev 03)
-00:1f.5 Multimedia audio controller: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) AC'97 Audio Controller (rev 03)
-00:1f.6 Modem: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) AC'97 Modem Controller (rev 03)
-01:00.0 VGA compatible controller: ATI Technologies Inc RV350 [Mobility Radeon 9600 M10]
-02:04.0 Network controller: Intel Corp. PRO/Wireless 2200BG (rev 05)
-02:06.0 CardBus bridge: O2 Micro, Inc. OZ711M3 SmartCardBus MultiMediaBay Controller
-02:06.1 CardBus bridge: O2 Micro, Inc. OZ711M3 SmartCardBus MultiMediaBay Controller
-02:06.2 System peripheral: O2 Micro, Inc. OZ711Mx MultiMediaBay Accelerator
-02:06.3 CardBus bridge: O2 Micro, Inc. OZ711M3 SmartCardBus MultiMediaBay Controller
-02:0e.0 Ethernet controller: Broadcom Corporation NetXtreme BCM5705M_2 Gigabit Ethernet (rev 03)
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 
--- 
-Cheers,
-Alistair.
+===== drivers/acpi/pci_irq.c 1.36 vs edited =====
+--- 1.36/drivers/acpi/pci_irq.c	2005-01-20 22:02:15 -07:00
++++ edited/drivers/acpi/pci_irq.c	2005-02-15 09:37:51 -07:00
+@@ -281,7 +281,8 @@
+ 	int			device,
+ 	int			pin,
+ 	int			*edge_level,
+-	int			*active_high_low)
++	int			*active_high_low,
++	char			**link)
+ {
+ 	struct acpi_prt_entry	*entry = NULL;
+ 	int segment = pci_domain_nr(bus);
+@@ -301,7 +302,8 @@
+ 	}
+ 	
+ 	if (entry->link.handle) {
+-		irq = acpi_pci_link_get_irq(entry->link.handle, entry->link.index, edge_level, active_high_low);
++		irq = acpi_pci_link_get_irq(entry->link.handle,
++			entry->link.index, edge_level, active_high_low, link);
+ 		if (irq < 0) {
+ 			ACPI_DEBUG_PRINT((ACPI_DB_WARN, "Invalid IRQ link routing entry\n"));
+ 			return_VALUE(-1);
+@@ -327,7 +329,8 @@
+ 	struct pci_dev		*dev,
+ 	int			pin,
+ 	int			*edge_level,
+-	int			*active_high_low)
++	int			*active_high_low,
++	char			**link)
+ {
+ 	struct pci_dev		*bridge = dev;
+ 	int			irq = -1;
+@@ -360,7 +363,7 @@
+ 		}
+ 
+ 		irq = acpi_pci_irq_lookup(bridge->bus, PCI_SLOT(bridge->devfn),
+-			pin, edge_level, active_high_low);
++			pin, edge_level, active_high_low, link);
+ 	}
+ 
+ 	if (irq < 0) {
+@@ -389,6 +392,7 @@
+ 	int			edge_level = ACPI_LEVEL_SENSITIVE;
+ 	int			active_high_low = ACPI_ACTIVE_LOW;
+ 	extern int		via_interrupt_line_quirk;
++	char			*link = NULL;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_pci_irq_enable");
+ 
+@@ -411,21 +415,23 @@
+ 	 * First we check the PCI IRQ routing table (PRT) for an IRQ.  PRT
+ 	 * values override any BIOS-assigned IRQs set during boot.
+ 	 */
+- 	irq = acpi_pci_irq_lookup(dev->bus, PCI_SLOT(dev->devfn), pin, &edge_level, &active_high_low);
++ 	irq = acpi_pci_irq_lookup(dev->bus, PCI_SLOT(dev->devfn), pin,
++		&edge_level, &active_high_low, &link);
+ 
+ 	/*
+ 	 * If no PRT entry was found, we'll try to derive an IRQ from the
+ 	 * device's parent bridge.
+ 	 */
+ 	if (irq < 0)
+- 		irq = acpi_pci_irq_derive(dev, pin, &edge_level, &active_high_low);
++ 		irq = acpi_pci_irq_derive(dev, pin, &edge_level,
++			&active_high_low, &link);
+  
+ 	/*
+ 	 * No IRQ known to the ACPI subsystem - maybe the BIOS / 
+ 	 * driver reported one, then use it. Exit in any case.
+ 	 */
+ 	if (irq < 0) {
+-		printk(KERN_WARNING PREFIX "PCI interrupt %s[%c]: no GSI",
++		printk(KERN_WARNING PREFIX "PCI Interrupt %s[%c]: no GSI",
+ 			pci_name(dev), ('A' + pin));
+ 		/* Interrupt Line values above 0xF are forbidden */
+ 		if (dev->irq >= 0 && (dev->irq <= 0xF)) {
+@@ -443,9 +449,13 @@
+ 
+ 	dev->irq = acpi_register_gsi(irq, edge_level, active_high_low);
+ 
+-	printk(KERN_INFO PREFIX "PCI interrupt %s[%c] -> GSI %u "
+-		"(%s, %s) -> IRQ %d\n",
+-		pci_name(dev), 'A' + pin, irq,
++	printk(KERN_INFO PREFIX "PCI Interrupt %s[%c] -> ",
++		pci_name(dev), 'A' + pin);
++
++	if (link)
++		printk("Link [%s] -> ", link);
++
++	printk("GSI %u (%s, %s) -> IRQ %d\n", irq,
+ 		(edge_level == ACPI_LEVEL_SENSITIVE) ? "level" : "edge",
+ 		(active_high_low == ACPI_ACTIVE_LOW) ? "low" : "high",
+ 		dev->irq);
+===== drivers/acpi/pci_link.c 1.39 vs edited =====
+--- 1.39/drivers/acpi/pci_link.c	2004-12-21 20:08:55 -07:00
++++ edited/drivers/acpi/pci_link.c	2005-02-15 09:16:53 -07:00
+@@ -522,9 +522,11 @@
+ 
+ static int acpi_irq_balance;	/* 0: static, 1: balance */
+ 
+-static int acpi_pci_link_allocate(struct acpi_pci_link* link) {
+-	int irq;
+-	int i;
++static int acpi_pci_link_allocate(
++	struct acpi_pci_link	*link)
++{
++	int			irq;
++	int			i;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_pci_link_allocate");
+ 
+@@ -597,8 +599,9 @@
+ acpi_pci_link_get_irq (
+ 	acpi_handle		handle,
+ 	int			index,
+-	int*			edge_level,
+-	int*			active_high_low)
++	int			*edge_level,
++	int			*active_high_low,
++	char			**name)
+ {
+ 	int                     result = 0;
+ 	struct acpi_device	*device = NULL;
+@@ -634,6 +637,7 @@
+ 
+ 	if (edge_level) *edge_level = link->irq.edge_level;
+ 	if (active_high_low) *active_high_low = link->irq.active_high_low;
++	if (name) *name = acpi_device_bid(link->device);
+ 	return_VALUE(link->irq.active);
+ }
+ 
+===== include/acpi/acpi_drivers.h 1.21 vs edited =====
+--- 1.21/include/acpi/acpi_drivers.h	2004-09-24 16:26:17 -06:00
++++ edited/include/acpi/acpi_drivers.h	2005-02-15 08:46:08 -07:00
+@@ -56,7 +56,8 @@
+ /* ACPI PCI Interrupt Link (pci_link.c) */
+ 
+ int acpi_irq_penalty_init (void);
+-int acpi_pci_link_get_irq (acpi_handle handle, int index, int* edge_level, int* active_high_low);
++int acpi_pci_link_get_irq (acpi_handle handle, int index, int *edge_level,
++	int *active_high_low, char **name);
+ 
+ /* ACPI PCI Interrupt Routing (pci_irq.c) */
+ 
 
-personal:   alistair()devzero!co!uk
-university: s0348365()sms!ed!ac!uk
-student:    CS/CSim Undergraduate
-contact:    1F2 55 South Clerk Street,
-            Edinburgh. EH8 9PP.
+
 
 
 -------------------------------------------------------
