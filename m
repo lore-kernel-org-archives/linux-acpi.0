@@ -1,15 +1,15 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: ACPI; S5 state; powerbutton->clean shutdown
-Date: Fri, 07 Jan 2005 12:46:33 +0000
-Message-ID: <1105101993.8674.104.camel@tyrosine>
-References: <20050107005652.GA17647@squash.dsto.defence.gov.au>
-	 <1105061056.8674.91.camel@tyrosine>
-	 <20050107013051.GF17647@squash.dsto.defence.gov.au>
+From: liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
+Subject: Re: Wrong temperature and battery status when running on
+ battery (bug 3678)
+Date: Fri, 7 Jan 2005 13:59:58 +0100 (CET)
+Message-ID: <Pine.LNX.4.60.0501071356230.4084@frog.athome>
+References: <16861.5954.584694.204594@aber.ac.uk> <Pine.LNX.4.60.0501071144470.1259@frog.athome>
+ <16862.32512.874723.4759@aber.ac.uk>
+Reply-To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050107013051.GF17647-670g5dPm81kHVWjHP2o3SMhQixhbPYnYEK66K81epY8@public.gmane.org>
+In-Reply-To: <16862.32512.874723.4759-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,28 +19,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2005-01-07 at 12:00 +1030, Wilkinson, Alex wrote:
->     0n Fri, Jan 07, 2005 at 01:24:16AM +0000, Matthew Garrett wrote: 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
->     >Linux has no in-kernel policy for acpi events. The userspace acpid (SuSE
->     >have something with a different name) receives the events and can be
->     >configured to do anything in response.
-> 
-> man page ?
-> Tool to disassemble DSDT into ASL ?
+Salut Fred,
+On Fri, 7 Jan 2005, Fred Labrosse wrote:
+> It happens to me between 1min and 1hour following the change in scaling
+> governor.  Did you wait a bit?
+yes I did. For being really sure, I startet a kernel-build, to see, if the 
+temprature would have been risssen and fallen afterwards. Hours later I 
+shut down the computer. Especially for you I resisted to close the lid, to 
+really see, if it would shutdown by itself. It did!
 
-I'm not quite sure what you're asking. You can check if the power button
-will generate an ACPI event by checking whether it's present
-in /proc/acpi/buttons/ - you shouldn't need to touch the DSDT. acpid
-seems to have a manpage. Intel's ACPI compiler includes a disassemble
-option.
+Cheers
+   hartwig felger
 
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+Hartwig Felger informatics
 
+- -- 
+1024D/339FD693 Hartwig Felger <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
+Key fingerprint = FB2F 3EE9 345A D55B 6FF2  0EC1 F5B0 684F 339F D693
+For the pulic keys, please visit my page.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2 (GNU/Linux)
+
+iD8DBQFB3ofT9bBoTzOf1pMRAjDoAKCBoOM2hlel1U/QrwVfh+SBl8dhtwCfcqIU
+EKY23Oa+EqqfrCWQ1IkPpfE=
+=Aphh
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
