@@ -1,14 +1,12 @@
-From: Graham Clark <gcla-EV+3HxjRgXN4piUD7e9S/g@public.gmane.org>
-Subject: Re: Compaq 1700, 2.4.18, acpi-7,24 - SUCCESS (I think)
-Date: Wed, 14 Aug 2002 15:26:32 -0500 (CDT)
+From: "H. Brunsting" <h_brunsting-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: ACPI, klaptopdaemon patch - battery status in KDE3
+Date: Wed, 14 Aug 2002 17:16:34 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <15706.48376.457358.298696@chaos.crhc.uiuc.edu>
-References: <3974778@toto.iv>
+Message-ID: <20020815001634.36933.qmail@web14203.mail.yahoo.com>
+Reply-To: h_brunsting-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3974778-Vqs2seESaO4@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,21 +15,67 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hello,
 
-Hi HK,
+Just some information from a user experience:
 
-I'm using a 1700T, 2.4.18 and acpi-20020726. When I boot, the laptop
-locks up early on, after two "PCI Interrupt Link [LNKC] enabled"
-messages (with ACPI debug messages turned on). I'm new to linux ACPI,
-but understand the 1700 series ACPI firmware may be buggy. Can you
-provide some details on what you did to make things work with your
-1700? Which ACPI features work for you?
+I installed acpi on my Sony Vaio Laptop, and my
+/proc/acpi system was
+working fine - I could read most things using the
+'cat' command. However,
+the Power Control settings tab in KDE 3 still reported
+acpi to be installed,
+but missing modules for batteries and ac-adapters. I
+patched klaptopdaemon
+using Robert Parrott's patch
+(http://www.fas.harvard.edu/~parrott/klaptopdaemon-portable.cpp.diff),
+but
+still it didn't work. I started to examine
+portable.cpp from the
+klaptopdaemon package and I discovered some
+differences between my acpi proc
+system and the ones pointed to in the source:
 
-Thanks very much,
-Graham
+In 2 instances of the source code, the patch adds a
+check for the new Intel
+acpi system, this is the first one:
+
+if (!f) f = fopen("/proc/acpi/ac_adapter/AC/state",
+"r"); /* INTEL ACPI
+version. REPADDED */
+
+It refers to proc/acpi/ac_adapter/AC/state, and on my
+system this entry
+shows up as proc/acpi/ac_adapter/ACAD/state - ACAD
+instead of AC. I don't
+know if this is being caused by my laptop not
+conforming to the standard or
+the standard acpi software, either case it's worth
+noting, because I am sure
+I am not the only one having this problem (which is
+now solved by editing
+the source of portable.cpp). I'm not really a cpp
+coder, but I'm sure
+another line checking proc/acpi/ac_adapter/ACAD/state
+in the same way as it
+is done with AC will solve the problem for most
+people.
+
+I hope I have informed you about something useful, if
+not, consider this
+mail to be junkmail :)
+
+Best regards,
+
+H.Brunsting
+
+__________________________________________________
+Do You Yahoo!?
+HotJobs - Search Thousands of New Jobs
+http://www.hotjobs.com
 
 
 -------------------------------------------------------
