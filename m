@@ -1,14 +1,15 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: Re: kern 2.6.1 - suspend/resume still malfunctioning
-Date: Fri, 16 Jan 2004 20:39:01 +0100
+From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Subject: Re: Problems with AMD Athlon XP mobile, ALi 1533 Chipset, ATI IGP 320M Northbridge?
+Date: Fri, 16 Jan 2004 23:41:05 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040116193901.GC924@elf.ucw.cz>
-References: <40069161.4040703@lorenz.eu.org> <20040115135532.GA11298@message-id.gmane0305.slipkontur.de> <4006A96F.1020502@lorenz.eu.org> <4006B0DD.4020801@lorenz.eu.org>
+Message-ID: <20040116224105.GA4868@dominikbrodowski.de>
+References: <25593.1074286212@www41.gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="cWoXeonUoKmBZSoM"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4006B0DD.4020801-2WKW0nu+7nMiq3RsQ1AnAw@public.gmane.org>
+In-Reply-To: <25593.1074286212-WTkpkIMATaBmcu3hnIyYJQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,50 +18,52 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Martin Lorenz <martin-2WKW0nu+7nMiq3RsQ1AnAw@public.gmane.org>
-Cc: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Lukas Schrangl <schrangl-hi6Y0CQ0nG0@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
 
-> >>>Dear all,
-> >>>
-> >>>well I am playing around to get suspend/resume working on my PC-MM10 for
-> >>>quite a while now, and have run from one failing into the next...
-> >>
-> >>
-> >>>all the data, i reported about my laptop is recorded with bug #1773
-> >>>http://bugme.osdl.org/show_bug.cgi?id=1773
-> >>
-> >>
-> >>have you tried S4, e.g. "echo 4 > /proc/acpi/sleep"?
-> >>S3 is probably harder to get working than S4, so try S4 first.
-> >>
-> > 
-> > well...
-> > 
-> > with S4 i get a message, saying that my drive was not ready for that
-> > command and it keeps telling me (lines by lines and never ending)
-> > 
-> > end_request: I/O error, dev hda, sector 1596164
+--cWoXeonUoKmBZSoM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-What about few lines before this?  mdelay(1000) into printk if you
-must.
+On Fri, Jan 16, 2004 at 09:50:12PM +0100, Lukas Schrangl wrote:
+> I will send my dmidecode- output as soon as possible (rem: from other sit=
+es
+> I know that my laptop is very similar to the eMachines - e.g. the same bi=
+os-
+> updates work with both).
+>=20
+> I decided to send my request to acpi-devel, because after some research I
+> found out that there are P- States in my SSDT and cpufreq and powernow-k7=
+ do
+> not work.
+>=20
+> I really wonder why acpi doesn't work either although the acpi- tables se=
+em
+> to be correct.
 
-> > so i it doesent even go to suspend(off)
-> > 
-> 
-> just tried to boot into /bin/bash and gave it another chance there
-> guess what: it suspended to ram and resumed without any
-> jinxes and oopses :-)
-> 
-> but what is this going to tell me as a kernel-imbecile???
+Probably because the P-States mentioned in the SSDT use the "FFixedHW"
+resource type, and the ACPI processor module cannot know what this means in
+real life. However, the info in the SSDT/DSDT can and will be used by the
+powernow-k7 module in future.
 
-Well, search which process breaks that.
-								Pavel
--- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+	Dominik
+
+--cWoXeonUoKmBZSoM
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFACGiBZ8MDCHJbN8YRAhOWAKCOK0we320MUjM9H2/rTu9pO1ip4QCgg7Vs
+LCUG8ExP/13bXeF7Od/vCJA=
+=9sq4
+-----END PGP SIGNATURE-----
+
+--cWoXeonUoKmBZSoM--
 
 
 -------------------------------------------------------
