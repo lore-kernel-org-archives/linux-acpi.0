@@ -1,14 +1,14 @@
-From: Arjen Verweij <A.Verweij2-V356GuK0og6dIhEUFHOBvg@public.gmane.org>
-Subject: Re: RE: ACPI -- Workaround for broken DSDT
-Date: Wed, 4 Feb 2004 08:49:27 +0100 (MET)
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: VIA KT333 acpi DSDT bug
+Date: Wed, 4 Feb 2004 10:57:37 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.GHP.4.44.0402040847080.21747-100000@elektron.its.tudelft.nl>
-References: <BF1FE1855350A0479097B3A0D2A80EE0CC8A9F@hdsmsx402.hd.intel.com>
-Reply-To: a.verweij-oe7qfRrRQfeEZXFvZSAUrfP6llvjuJOh@public.gmane.org
+Message-ID: <20040204095737.GG882@poupinou.org>
+References: <3ACA40606221794F80A5670F0AF15F8401CBB66C@PDSMSX403.ccr.corp.intel.com> <200402031758.03901.chp.dekker@hsdrenthe.nl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <BF1FE1855350A0479097B3A0D2A80EE0CC8A9F-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <200402031758.03901.chp.dekker-OdOgJZujJHXcqV2Q6a4srg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,22 +17,67 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: "CHP.Dekker" <chp.dekker-OdOgJZujJHXcqV2Q6a4srg@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> Indeed, I'm not confident that fixing DSDTs for vendors is always a good
-> idea -- particularly if the vendors don't take the feedback.  I'd rather
-> see Linux users able to vote with their dollars to support vendors that
-> best support Linux.
+On Tue, Feb 03, 2004 at 05:58:03PM +0100, CHP.Dekker wrote:
+> I couldn't help but to see that the source file is incomplete, I don't know 
+> how it can be because I send the whole thing, if some one is willing to fix 
+> my DSDT file than please mail me so that I can send it.
+> 
+> On Tuesday 03 February 2004 08:24, Yu, Luming wrote:
+> > > I use a VIA KT333 motherboard.
+> > >
+> > > It hase some bugs in the DSDT file and I don't know how to fix them.
+> > > Once when I had xp installed on it (2 days long ;) I had S0
+> > > t/m S5 (Ofcourse
+> > > not called that way by M$cro)
+> > > No ACPI (sleep) say I only have S0 S3 S4 S5
+> > > Some time none of them work becuase "one process didn't stop"
+> > > But now it "at
+> > > least I can "use S3", all that it does is putting my computer
+> > > in 1/10000 sec
+> > > to sleep (S3) mode and can be re-awakend. The lid switch
+> > > doesn't do any
+> > > thing.
+> >
+> > Do you have any hints to let us know this kind of symptom is due
+> > to DSDT bug?
+> >
+> 
+> Well the thing is compile by the micros..  compiler and it has 2 error's
+> 
+>                     Name (_PCL, Package (0x01)
+>                     {
+>                         \_SB.PCI0.SBRG.EC0
+>                     })
+> It says that I doesn't know the object EC0 from the line \_SB.PCI0.SBRG.EC0
+> The 2nd error (identical I think)
+> 
+>                     Name (_PCL, Package (0x01)
+>                     {
+>                         \_SB.PCI0.SBRG.EC0
+>                     })
 
-What was that about Intel Centrino platforms and Linux :D
+There is good luck then that the EC0 is implemented in a SSDT table,
+not in the DSDT table.
 
-OK, that was below the belt maybe, sorry I couldn't resist. AFAIK Intel
-has pledged to remedy the situation with a closed source driver and an
-open source one over 8(?) months or so.
+Note that system sleep states are still developpement stuff (even
+though that seems to be more and more stable), so your problem may be
+not related to DSDT.  Speaking for myself, I don't care yet for bug reports
+about hacking DSDT in order to get Sx states transition support.
 
-Arjen
+> and 1 warning saying that a function doesn't return something every time.
 
+Sometimes iasl report 'false positive' for that, but sometime this
+may be a real problem.
+
+-- 
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
