@@ -1,16 +1,16 @@
-From: Andre Eisenbach <andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org>
-Subject: Re: _PTS call hangs system
-Date: Thu, 16 Sep 2004 10:33:51 -0700
+From: Dave Hansen <haveblue-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] /sys/firmware/acpi/memory/ for showing info of ACPI
+ memory object
+Date: Thu, 16 Sep 2004 10:55:11 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200409161033.51581.andre@eisenbach.com>
-References: <6EDC9204B3704C4C8522539D5C1185E5244239@mssmsx403.ccr.corp.intel.com>
+Message-ID: <1095357311.5380.253.camel@localhost>
+References: <D36CE1FCEFD3524B81CA12C6FE5BCAB007B6FA60@fmsmsx406.amr.corp.intel.com>
+	 <20040917014611.000055db.tokunaga.keiich@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <6EDC9204B3704C4C8522539D5C1185E5244239-g/v8ENnfjb4gGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20040917014611.000055db.tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -19,26 +19,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: "Starikovskiy, Alexey Y" <alexey.y.starikovskiy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Cc: Matthew E Tolentino <matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lhms <lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Am Donnerstag 16 September 2004 04:23 schrieb Starikovskiy, Alexey Y:
-> Have you tried to disable the call to _SST? It is at the end of same
-> function acpi_enter_sleep_state_prep(). Can it be that kernel hangs
-> _after_ the call to _PTS?
+On Thu, 2004-09-16 at 09:46, Keiichiro Tokunaga wrote:
+> Sorry, I sent the email in the middle of writing...
+> 
+> On Thu, 16 Sep 2004 07:07:07 -0700, Tolentino, Matthew E wrote:
+> > >I have changed the patch to create directories and files in
+> > >/sys/firmware/acpi/memory/ from Dave's comments.  The files are
+> > >to export the following stuffs of each ACPI memory object for the
+> > >first version.
+> > 
+> > Hmm.  I thought Dave's suggestion was to create an arch-agnostic
+> > viewpoint of physical memory and dump it into 
+> > /sys/devices/system/memory in order to gain consistency between
+> > arches...  
+> 
+> Yes, that is also his suggestion.  I think we have agreed that there
+> are arch-specific and agnostic directories.  The agnostic one would
+> consist of some files that the specific one provides.  Actually, the
+> patch is to create just the arch-specific directory.  Then I would
+> turn into the agnostic stuffs.
 
-I hadn't tried it before, so I just did. Disabling _SST and leaving in _PTS 
-still hangs the system. In the DSDT, _SST is empty (except some Debug 
-messages) also.
+Could you explain what each of those fields means?
 
-Thanks for the tip though. I apreciate you guy's help!
+-- Dave
 
-Does anybody know how I can get the DSDT Debug messages onto the console 
-somehow?
-
-Cheers,
-  Andre
 
 
 -------------------------------------------------------
