@@ -1,14 +1,12 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Handler for [EmbeddedControl] returned AE_TIME in 2.6.1/20040116
-Date: Wed, 4 Feb 2004 11:32:26 +0100
+From: "Lukas Schrangl" <schrangl-hi6Y0CQ0nG0@public.gmane.org>
+Subject: Build PST for AthlonXP
+Date: Wed, 4 Feb 2004 11:45:25 +0100 (MET)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040204103226.GI882@poupinou.org>
-References: <20040203172413.GA1299@joehill.bostoncoop.net> <20040203143906.B33512@root.org> <20040203234141.GA8327@bostoncoop.net>
+Message-ID: <11695.1075891525@www14.gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040203234141.GA8327-/J5p37YCQWYytDrLOV7HaA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,37 +15,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Adam Kessel <adam-/J5p37YCQWYytDrLOV7HaA@public.gmane.org>
-Cc: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Feb 03, 2004 at 06:41:41PM -0500, Adam Kessel wrote:
-> On Tue, Feb 03, 2004 at 02:40:16PM -0800, Nate Lawson wrote:
-> > We moved to a 100 ms timeout on EC requests for FreeBSD because some
-> > devices just couldn't respond quicker.  But I think there's a larger issue
-> > somewhere here where interrupts are being lost.
-> 
-> Is FreeBSD using the same ACPI code base?
+Hi!
 
-For EC I tend to say 'no'.
+I don't know wether this is the right mailinglist for my problem, but at
+least I think here are some people who can help me.
 
-> Is there an easy patch to apply
-> to test to see if this eliminates or mitigates the problem?
+Maybe someone remembers my problem: I have a AMD Athlon XP 2600+ mobile CPU
+but neither ACPI- performance states nor cpufreq/powernow-k7 (no PST matching
+this cpuid) do work.
 
-Under driver/acpi/ec.c
-you have a
-#define ACPI_EC_UDELAY_COUNT	1000
+Recently I browsed a bit through the powernow-k7 source and have now an idea
+how it works. It shouldn't be too difficult to set up my own PST for my CPU,
+should it?
+I know about FIDs and VIDs and what they are good for, but can anyone
+explain me the structure of a PST and the PSB (links to some documents, ...)?
+The second thing: I could get the cpu- frequences that seem work (for my
+FIDs) from my SSDT, but how can I calculate the voltage (for the VIDs) matching
+the frequency, if there are only the mW given in the SSDT?
 
-Try with
-#define ACPI_EC_UDELAY_COUNT	10000
-
-That should give you a 100ms timeout.
+-Lukas-
 
 -- 
-Bruno Ducrot
+GMX ProMail (250 MB Mailbox, 50 FreeSMS, Virenschutz, 2,99 EUR/Monat...)
+jetzt 3 Monate GRATIS + 3x DER SPIEGEL +++ http://www.gmx.net/derspiegel +++
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
 
 
 -------------------------------------------------------
