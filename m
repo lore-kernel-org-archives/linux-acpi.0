@@ -1,11 +1,12 @@
-From: Sebastian Henschel <shensche-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
-Subject: database for DSDTs - beta testers needed
-Date: Fri, 7 Mar 2003 15:57:42 +0100
+From: "Shawn P. Garbett" <listman-qZIqNUI/gJRAfugRpC6u6w@public.gmane.org>
+Subject: 2.5.64 kernel bug
+Date: Fri, 7 Mar 2003 11:49:33 -0600
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030307145742.GA14602@enigma.daemon.sh>
+Message-ID: <200303071149.33553.listman@garbett.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="YZ5djTAD1cGYuMQK"
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,43 +20,32 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+I just got a P2120 laptop and really really want ACPI working. I grabbed the 
+2.5.64 kernel and it didn't compile. Looking back through the archives of 
+this list I found nothing related to this. 
 
---YZ5djTAD1cGYuMQK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I'm a proficient programmer, but have never done any serious kernel work under 
+linux. 
 
-hi folks...
+Here's what I changed to make it compile: 
 
-there is now a first version of this database online at:
-http://acpi.sf.net/dsdt/index.php
+sputnik:/usr/src/linux# diff drivers/cpufreq/userspace.c.orig 
+drivers/cpufreq/userspace.c
+514c514
+<               device_create_file (policy->intf.dev, 
+&dev_attr_scaling_setspeed );
+---
+>               device_create_file (policy->dev, &dev_attr_scaling_setspeed);
+523c523
+<               device_remove_file (policy->intf.dev, 
+&dev_attr_scaling_setspeed
+);
+---
+>               device_remove_file (policy->dev, &dev_attr_scaling_setspeed);
 
-i would like you to test it as much as possible and report any
-errors/wishes/comments to shensche-Rn4VEauK+AKRv+LV9MX5uti2KpX7p8Fi@public.gmane.org
 
-hopefully, it is already stable enuff that the existing DSDTs (yours and
-the ones taken from the wiki) can stay even after the test phase.
 
-have fun,
- sebastian
---=20
-::: sebastian henschel
-::: kodeaffe
-::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
-
---YZ5djTAD1cGYuMQK
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.0 (GNU/Linux)
-
-iD8DBQE+aLNmreHfL3pi+bQRAmotAJ0SX52hzr8J8J9XqIvqlyLKREQl0ACeNn6P
-RPrAtr/M+3EUHtZo89fiAvM=
-=Y3zP
------END PGP SIGNATURE-----
-
---YZ5djTAD1cGYuMQK--
+Shawn
 
 
 -------------------------------------------------------
