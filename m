@@ -1,10 +1,12 @@
-From: Zaher Salman <zaher-K9O0zq5Arhf3fQ9qLvQP4Q@public.gmane.org>
-Subject: Hibernate on Presario 2100
-Date: Fri, 04 Feb 2005 10:21:55 -0800
-Message-ID: <4203BD43.1040302@triumf.ca>
+From: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+Subject: Re: [PATCH] Change spinlock mutex to semaphor in ec.c
+Date: Fri, 04 Feb 2005 13:26:49 -0500
+Message-ID: <4203BE69.50004@bartol.udel.edu>
+References: <4202C0A4.1020700@bartol.udel.edu> <200502040055.53765.dtor_core@ameritech.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
+In-Reply-To: <200502040055.53765.dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,27 +16,42 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>, Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Dmitry Torokhov wrote:
+> On Thursday 03 February 2005 19:24, Rich Townsend wrote:
+> 
+>>Hi all --
+>>
+>>Attached is a patch against the 2.6.10 kernel, to convert the mutexing 
+>>in the embdedded controller driver from a spinlock to a semaphore. The 
+>>rationale behind this is to permit sleeping inside the acpi_ec_wait() 
+>>polling routine.
+>>
+> 
+> 
+> Hi,
+> 
+> Last time such patch was proposed there were some concerns regarding
+> possible interrupt storm, see the follwing thread:
+> 
+> http://marc.theaimsgroup.com/?l=acpi4linux&m=110055992814866&w=2
+> 
+> I have an alternative patch that tries to address these concerns,
+> unfortunately I do not have a box with EC controller so it is
+> completely untested.
+> 
 
-I have a Presario 2197CA with mandrake 10.0 and kernel 2.6.10. I have 
-been trying to get hibernate to work on it. The way I do it is by going 
-from X to text mode (ctrl+alt+F1), and then typing
+I've just tried your patch out on 2.6.11-rc3 (with acpi-dsdt-initrd and 
+swsusp2 patches), and it causes a kernel oops when the EC is accessed at 
+boot time. Unfortunately, the backtrace is too long to see where the 
+oops arises; I'm sure there's a way of capturing the oops output, but I 
+don't know it yet (suggestions welcome).
 
-echo -n disk > /sys/power/state
+cheers,
 
-There is no problem to get the laptop to wake up and get back to text 
-mode, but whenever I try to switch to X (ctrl+alt+F7), or if I go to 
-hibernate from X, the laptop hangs and I have to reboot it. When it 
-hangs a few things still work like the thouchpad so I can mover the 
-mouse and the function keys work. However, is seems that the keyboard 
-does not respond (like CapsLock, ctrl+alt+Backspace), and there is no 
-network. Any idea why this is happening?
-
-thanks
-Zaher
+Rich
 
 
 -------------------------------------------------------
