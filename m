@@ -1,13 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: ACPI failures on non-Intel hardware
-Date: Mon, 13 Dec 2004 11:39:42 +0100
-Message-ID: <20041213103942.GA7340@elf.ucw.cz>
-References: <1102805280.5984.30.camel@tyrosine> <20041212164141.GC6286@elf.ucw.cz> <1102870780.5984.34.camel@tyrosine> <20041212171554.GD6272@elf.ucw.cz> <1102893561.5984.38.camel@tyrosine>
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: Shutting down PCI devices on suspend
+Date: Mon, 13 Dec 2004 11:52:29 +0100
+Message-ID: <20041213105229.GL6272@elf.ucw.cz>
+References: <1102779460.5984.17.camel@tyrosine> <20041212164422.GD6286@elf.ucw.cz> <1102870863.5984.36.camel@tyrosine> <20041212171521.GC6272@elf.ucw.cz> <1102893820.5984.42.camel@tyrosine>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1102893561.5984.38.camel@tyrosine>
+In-Reply-To: <1102893820.5984.42.camel@tyrosine>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -23,17 +23,19 @@ List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> > > I thought that case crashed /inside/ the wakeup code, rather than
-> > > rebooting before any of it was run?
-> > 
-> > I saw some Acer (do not recall model #, sorry, and it was probably
-> > prototype, anyway) where it died before wakeup.
+> > * legacy, like VGA or IDE -- okay, we need drivers for those. You need
+> > to reinit them on resume, anyway, so....
+> 							
+> The current situation is that we can reinit /most/ VGA hardware from
+> userspace, but it's less than trivial to make sure that the appropriate
+> devices are shut down. Surely the situation is more like the following:
 > 
-> Do you remember whether it had an Intel motherboard chipset, or was an
-> Intel CPU on something like an ATI chipset?
+> 1) Some devices don't have drivers. In most cases, it doesn't matter
+> what power state they're in. Therefore, setting them to D3 (or whatever
+> SxD says) shouldn't be a problem.
 
-I think it was centrino (=> Intel chipset), but it was quite long
-ago. Another Acer should pop up around me in ~1 month...
+Agreed, if device has no driver, doing some default action is
+possible.
 								Pavel
 -- 
 People were complaining that M$ turns users into beta-testers...
