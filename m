@@ -1,11 +1,14 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Device power for suspend/resume
-Date: Mon, 12 Apr 2004 17:38:45 -0700 (PDT)
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: deleting 2.4.22 and 2.4.24 ACPI patches
+Date: 13 Apr 2004 14:23:58 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040412172333.Y71599@root.org>
+Message-ID: <1081880638.2253.638.camel@dhcppc4>
+References: <1079504678.2559.48.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1079504678.2559.48.camel-D2Zvc0uNKG8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -14,61 +17,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: acpi-h+KGxgPPiopAfugRpC6u6w@public.gmane.org
+To: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-I'm soliciting some comments on proper steps to take with device power on
-the suspend/resume path.  There are some complications like _SxD and none
-of us support them yet.  Here are the abbreviated steps as I see them
-(only device power code, not general sleep steps):
+On Wed, 2004-03-17 at 01:24, Brown, Len wrote:
 
-1. All devices put in power state inferred by power resource
-   ... except if _SxD exists, put them in that state instead
-   ... except if enabling for wake, put in state in _PRW
-2. Turn off all power resources no longer referenced
-3. Enable wake for all devices that have _PRW
+> So I'd like to delete 2.4.22 and 2.4.24 support.  When 2.4.26 closes,
+> I'll delete 2.4.25 too.
 
-[suspend/resume]
 
-4. Turn on all power resources
-5. Turn on all devices
-6. Run _S0D on devices and put them in the corresponding power state
-7. Turn off devices previously off before suspend
-8. Turn off all power resources no longer referenced
+Okay, now we're down to
+2.4.25
+2.4.26
 
-While examining how to implement this, I ran into some confusing
-questions.
+2.6.5
+2.6.6
 
-A. _S0D is not referenced in the spec but it appears some ASL uses this
-for docking connectors.  It returns 3 for when a bus isn't connected to
-anything (undocked) and 0 when it is present.  I'm guessing this should be
-run on resume after everything is running to see if we can power down a
-device that is not available (step 7 above).
+Which corresponds to the latest released, plus the bleeding edge.
+If you run something older, you'll need to back-port yourself.
 
-B. The requirement to turn on power resources referenced in _PRW appears
-to be the overriding factor in the suspend path.  That's why I do it last
-above.
+thanks,
+-Len
 
-C. It's not clear how _SxD overrides the power resource Sx value since a
-device can't be in a higher state than its power resource.  This appears
-to be a minor issue since most devices that have _SxD that is higher than
-the desired sleep state do not have a power resource.
 
-D. If a device has _PSx methods but no power resource, should it be put in
-a state equal to its Sx state unless there is an overriding _SxD?  For
-example, all devices should be put in D3 for S3, then power off
-unreferenced power resources.  What if you're going to S1 but there's no
-_PS1?  Leave it in _PS0 unless there is an _S1D saying otherwise?
 
-One other issue:  there's a bug in hwsleep.c where we don't clear WAK_STS
-in the S5 path.  That should be changed.
-
-Comments will help everyone get suspend/resume working better since it
-appears devices in the wrong power states affect stability here.
-
-Thanks,
--Nate
 
 
 -------------------------------------------------------
