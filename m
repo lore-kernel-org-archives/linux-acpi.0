@@ -1,12 +1,14 @@
 From: William Morgan <wmorgan-acpi-devel-xW3KcqxHEMnk1uMJSBkQmQ@public.gmane.org>
-Subject: acpi on new gateway laptops
-Date: Wed, 12 Nov 2003 18:23:15 -0500
+Subject: Re: acpi on new gateway laptops
+Date: Wed, 12 Nov 2003 18:33:28 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031112232315.GD430@masanjin.net>
+Message-ID: <20031112233328.GE430@masanjin.net>
+References: <20031112232315.GD430@masanjin.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20031112232315.GD430-xW3KcqxHEMnk1uMJSBkQmQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,74 +17,48 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Casey Harkins <charkins-TFaeeA7fOO6Gwcnyzrk3/w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-It looks like the Gateway support site contains nothing about the 200X
-or 200XL models. Great. Do they support ACPI 1.0 or 2.0 or what? No
-idea... I'm assuming ACPI 1.0.
+Heh. Didn't mean to hit send quite so fast. :)
 
-I started looking at the ACPI spec. It contains two pages specifically
-about the ECDT, pp128--129.
+For context, the two threads are:
+http://sourceforge.net/mailarchive/message.php?msg_id=6229363 and
+http://sourceforge.net/mailarchive/message.php?msg_id=6319180
 
-I don't quite understand the text of the first page:
+In both cases /proc/battery is empty and it has been suggested that we
+are missing an ECDT table and should (somehow) provide one.
 
-  "This optional table provides the processor-relative, translated
-  resources of an Embedded Controller. The presence of this table allows
-  OSPM to provide Embedded Controller operation region space access
-  before the namespace has been evaluated. If this table is not
-  provided, the Embedded Controller region space will not be available
-  until the Embedded Controller device in the AML namespace has been
-  discovered and enumerated. The availability of the region space can be
-  detected by providing a _REG method object underneath the Embedded
-  Controller device."
+For those in the know about ACPI, comments would be greatly appreciated
+on these two issues:
 
-(that's the entirety of it.)
+First:
 
-It seems like having an ECDT is an optional feature? If that's so, then
-what's the problem? Why isn't Linux simply "discovering and enumerating"
-the "Embedded Controller device in the AML namespace"?
+ [According to the ACPI spec] It seems like having an ECDT is an
+ optional feature? If that's so, then what's the problem? Why isn't
+ Linux simply "discovering and enumerating" the "Embedded Controller
+ device in the AML namespace"?
 
-(BTW, it looks like ECDT actually stands for "Embedded Controller Boot
- Resources Table". Hm.)
+Second, does this scenario make any sense:
 
-The next page describes the contents of the table. Basically it involves
-a bunch of deep hardware information, like "The bit assignment of the
-SCI interrupt within the GPEx_STS register of a GPE block described in
-the FADT that the embedded controller triggers."
+ There's an Embedded Controller region (In the BIOS? In the DSDT?). One
+ cannot access a region until registering it, by calling
+ _REG(RegionSpace, 1). There's an exception to this, however, when using
+ an ECDT, which describes "controllers" (?) to access the Embedded
+ Controller region. If you have an ECDT you can then access this region
+ before registering it. So I think that's what the DSDT is doing, but
+ without providing an ECDT?
 
-It goes on to state that "ACPI 1.0 OSPM implementation will not
-recognize or make use of the ECDT".
+Third, would this solution work?
 
-Shaohua Li said something that I didn't quite get either, in his first
-response:
+ Rather than provide an ECDT, we can alternately try and fix the DSDT.
+ Since it's buggy anyways, that might conserve some effort, and has the
+ nice advantage of not forcing an upgrade to ACPI 2.0.
 
-> The reason is BIOS of Gateway 400VTX lacks ECDT table.  And before
-> initialize EC device, DSDT use ec space region when execute some ASL
-> init methods. This will cause that battery can't be initializing.
-
-So, what I *think* is happening, based on that, and on pp.203--204, is:
-
-There's an Embedded Controller region (In the BIOS? In the DSDT?). One
-cannot access a region until registering it, by calling
-_REG(RegionSpace, 1). There's an exception to this, however, when using
-an ECDT, which describes "controllers" (?) to access the Embedded
-Controller region. If you have an ECDT you can then access this region
-before registering it. So I think that's what the DSDT is doing, but
-without providing an ECDT?
-
-Re-examining the dmesg output, I *think* this makes sense.
-
-So. This implies that rather than provide an ECDT, we can alternately
-try and fix the DSDT. Since it's buggy anyways, that might conserve some
-effort, and has the nice advantage of not forcing an upgrade to ACPI 2.0.
-(Assuming I am ACPI 1.0 like you.)
-
-I may send some of this to acpi-devel, if only to harass them.
+Sorry for all the clutter. My thanks in advance.
 
 -- 
-William <wmorgan-xW3KcqxHEMnk1uMJSBkQmQ@public.gmane.org>
+William
 
 
 -------------------------------------------------------
