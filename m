@@ -1,14 +1,14 @@
-From: YhLu <YhLu-NmV4wUZxxR8@public.gmane.org>
-Subject: =?gb2312?B?tPC4tDogW0FDUEldIFNwdXJpb3VzIEFDUEkgaW50ZXJydXB0cyBv?=
- =?gb2312?B?biAyLjYuNA==?=
-Date: Thu, 18 Mar 2004 19:51:13 -0800
+From: "Manpreet Singh" <Manpreet.Singh-IrU4XInhIXM@public.gmane.org>
+Subject: RE: Spurious ACPI interrupts on 2.6.4
+Date: Thu, 18 Mar 2004 22:15:07 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3174569B9743D511922F00A0C94314230466D57E@TYANWEB>
+Message-ID: <EB6B0A91B0F6AC44842492A8F6852CDE0C4504@fcexmb01.efi.internal>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="gb2312"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,8 +17,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Manpreet Singh <Manpreet.Singh-IrU4XInhIXM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: YhLu <YhLu-NmV4wUZxxR8@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
+
+Yes, I did that. The interrupts are still present.
+
+Thanks,
+Manpreet.
+
+
+-----Original Message-----
+From: YhLu [mailto:YhLu-NmV4wUZxxR8@public.gmane.org]
+Sent: Thursday, March 18, 2004 7:51 PM
+To: Manpreet Singh; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: ??: [ACPI] Spurious ACPI interrupts on 2.6.4
+
 
 Did you disable the USB device from BIOS SETUP?
 
