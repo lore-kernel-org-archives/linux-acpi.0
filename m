@@ -1,12 +1,14 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+From: Stefan =?iso-8859-15?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
 Subject: Re: Call for help: list of machines with working S3
-Date: Thu, 17 Feb 2005 21:42:47 +0100
-Message-ID: <20050217204247.GA2386@elf.ucw.cz>
-References: <20050214211105.GA12808@elf.ucw.cz> <1108621005.2096.412.camel@d845pe> <1108638021.4085.143.camel@tyrosine> <4214C3B8.30502@gmx.net> <20050217195456.GA5963@openzaurus.ucw.cz> <4214FFCE.4080703@gmx.net>
+Date: Thu, 17 Feb 2005 21:58:54 +0100
+Message-ID: <200502172158.56721.stefandoesinger@gmx.at>
+References: <20050214211105.GA12808@elf.ucw.cz> <200502152038.00401.stefandoesinger@gmx.at> <20050217190815.GC4925@gamma.logic.tuwien.ac.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20050217190815.GC4925-DqSSrKF0TaySnEC3TeqHn5dqbFPxfnh/@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4214FFCE.4080703-hi6Y0CQ0nG0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,44 +18,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
-Cc: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, seife-l3A5Bk7waGM@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org
+To: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, seife-l3A5Bk7waGM@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-> >>4. Include a mandantory description of video bringup after resume
-> > 
-> > That sounds overcomplicated. Simply add this to the specs:
-> 
-> You have to start to think like a vendor with a long legacy. Then my
-> spec draft will make more sense. Basically, you can't tell a vendor
-> that his hardware is broken or he will ignore your efforts from that
-> point on. "It's a question of honour." If, on the other hand, a
-> vendor can claim his products are conforming to the spec by issuing
-> a software update for broken hardware, it is much more likely that
-> the spec gets accepted.
+Am Donnerstag, 17. Februar 2005 20:08 schrieb Norbert Preining:
+> On Die, 15 Feb 2005, Stefan D=F6singer wrote:
+> > > - DRI must be disabled I guess?! Even with newer X server (x.org)?
+> >
+> > Do you use the fglrx driver? This doesn't work with any type of suspend
+> > so far. If you use the radeon driver try a driver update.
+>
+> Ok, I installed xlibmesa-gl1-dri-trunk, xserver-xfree86-dri-trunk and
+> compiled linux-2.6.11-rc4 and drm modules from drm-trunk-module-src, all
+> from http://www.nixnuts.net/files/
+>
+> But I had no success whatsoever. With this (Xorg server, current dri/drm
+> stuff, ..) the laptop not even wakes up from sleep!
+Sorry, no Idea. What about 2.6.11-rc3-mm2 + Xorg 6.8.1.99? Did you test thi=
+s=20
+combination?
+Am I right with assuming that resumeworked after the X upgrade if X wasn't=
+=20
+started before suspend?
 
-Well, whether you POST video or not is still only
-software... anyway...
-
-Your _WAK idea could work for notebooks (but if you did it in _WAK
-you'd break windows, so you'd have to call it _VWK (VideoWaK) or
-something), but for desktop where user can plug in any video card he
-buys... I do not see how you can get away with something other than
-normal POST.
-
-> > BIOS must do that during normal boot; this should be very little
-> > additional work.
-> 
-> Not necessarily. Some BIOSes stay in graphics mode during the whole
-> bootup (at least it seems so) and would have to include additional
-> code to enter 80x25 text mode.
-
-??? When grub is launched, you are in 80x25 text mode.
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Stefan
 
 
 -------------------------------------------------------
