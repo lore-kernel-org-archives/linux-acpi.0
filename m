@@ -1,15 +1,14 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Subject: Re: [PATCH] clean up ACPI GSI/IRQ conversions (i386 part)
-Date: Sat, 13 Mar 2004 17:38:01 +0000
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: [rfc] generic testing ACPI module
+Date: Sat, 13 Mar 2004 15:00:59 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1079199480.3569.2.camel@darkstar>
-References: <200403121548.39784.bjorn.helgaas@hp.com>
-Reply-To: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
+Message-ID: <20040313140059.GA3764@openzaurus.ucw.cz>
+References: <1079038411.18351.25.camel@t40> <20040311211005.GM2148@parcelfarce.linux.theplanet.co.uk> <1079041694.5429.58.camel@t40> <20040311225032.GN28592@poupinou.org> <20040312144241.GA1236@openzaurus.ucw.cz> <1079185271.5429.169.camel@t40>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200403121548.39784.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1079185271.5429.169.camel-LjAuIDrFwz0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,17 +17,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Paul Ionescu <paul-f7LjuT9/YZU@public.gmane.org>
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This have any chance to be applied on kernels 2.4.x ?
+Hi!
 
-On Fri, 2004-03-12 at 22:48, Bjorn Helgaas wrote:
+> > Does not work; what if two people attempt to run the method
+> > at same time?
+> Well, my proposal was not for production kernels, it was simply a
+> testing module that would help people play with various ACPI
+> methods/events on their machines to find out what works and what not,
 
-
---=20
-S=E9rgio M. B.
+Well, if your goal is quick hack, then you should not bother 
+with requesting comments ([RFC]) and just post a patch...
+-- 
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
 
 
 
