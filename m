@@ -1,11 +1,18 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: _S0D and \_S0?
-Date: Tue, 11 May 2004 18:02:19 -0700 (PDT)
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] fix(Fix _STA checking in acpi_bus_add)
+Date: 12 May 2004 00:40:06 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040511174800.K78445@root.org>
+Message-ID: <1084336805.12353.143.camel@dhcppc4>
+References: <Pine.LNX.4.58.0404281525160.30907@daphne.frec.bull.fr>
+	 <20040428142557.GB22558@parcelfarce.linux.theplanet.co.uk>
+	 <Pine.A41.4.53.0404281637220.37100@isabelle.frec.bull.fr>
+	 <200404280934.26381.bjorn.helgaas@hp.com>
+	 <Pine.A41.4.53.0404291005470.37100@isabelle.frec.bull.fr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <Pine.A41.4.53.0404291005470.37100-uSTK/MBzOD2tas8oWxsmKKkcovwApn/9@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -14,49 +21,74 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, imp-uzTCJ5RojNnQT0dZR+AlfA@public.gmane.org
+To: Simon Derr <Simon.Derr-6ktuUTfB/bM@public.gmane.org>
+Cc: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>, Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-After doing some more analysis, on ASL, it appears some systems (Dell)
-have _S0D methods under devices.  It appears the OSPM should run those
-at runtime when deciding to change the power state for a device.  Here's
-an example:
+As this is needed by more than just Big Sur,
+I'm okay with applying Bjorn's workaround to acpi-test
+(and thus -mm) while we wait for definitive word
+from the spec writers.  We can always back it out
+or make it system specific later.  I have no fear
+that we'll break docking stations, because at this
+point we have no docking station support...
 
-            Device (USB3)
-                Method (_S0D, 0, NotSerialized)
-                {
-                    Store (SMI (0x85, 0x00), Local0)
-                    And (Local0, 0x01, Local0)
-                    If (LEqual (Local0, 0x00))
-                    {
-                        Return (0x03)
-                    }
-                    Else
-                    {
-                        Return (0x00)
-                    }
-                }
-                Name (_S1D, 0x02)
-                Name (_S3D, 0x02)
+thanks,
+-Len
 
-This appears to say "if transitioning to another power state and the
-system is up and running (i.e. S0), the device must always be powered off
-(0x03) if bit 0 of SMI 0x85 is clear.  Otherwise, any power state is fine
-(0x00)".
+On Thu, 2004-04-29 at 04:18, Simon Derr wrote:
+> On Wed, 28 Apr 2004, Bjorn Helgaas wrote:
+> 
+> > Is your box based on Intel chipsets and/or firmware?  You might be
+> Indeed.
+> 
+> > suffering from the problem I described here:
+> >
+> >     https://sourceforge.net/mailarchive/message.php?msg_id=6923358
+> >
+> > Intel firmware seems to describe the PCI root bridge where chipset
+> > configuration space lives with _STA==0x8.  The spec says this means
+> > "functional, but not present".  The current Linux code ignores things
+> > that are "not present".
+> 
+> I tried your patch and it works perfectly. Thank you.
+> This chipset/firmware is probably very common in the ia64 world so I think
+> it might be a good idea to include your patch in the stock Linux kernel.
+> 
+> 	Simon.
+> 
+> This is just your patch with updated line offsets, applies cleanly to
+> Linux 2.6.5:
+> 
+> --- linux-2.6.5-vanilla/drivers/acpi/bus.c	Sun Apr  4 05:37:24 2004
+> +++ linux-2.6.5/drivers/acpi/bus.c	Thu Apr 29 09:43:14 2004
+> @@ -112,6 +112,14 @@
+>  	else
+>  		STRUCT_TO_INT(device->status) = 0x0F;
+> 
+> +	if (device->status.functional && !device->status.present) {
+> +		printk(KERN_WARNING PREFIX "Device [%s] status [%08x]: "
+> +			"functional but not present; setting present\n",
+> +			device->pnp.bus_id,
+> +			(u32) STRUCT_TO_INT(device->status));
+> +		device->status.present = 1;
+> +	}
+> +
+>  	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] status [%08x]\n",
+>  		device->pnp.bus_id, (u32) STRUCT_TO_INT(device->status)));
+> 
+> 
+> 
+> -------------------------------------------------------
+> This SF.Net email is sponsored by: Oracle 10g
+> Get certified on the hottest thing ever to hit the market... Oracle 10g. 
+> Take an Oracle 10g class now, and we'll give you the exam FREE.
+> http://ads.osdn.com/?ad_id=3149&alloc_id=8166&op=click
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
-Additionally, some machines have non-zero values for \_S0.  Should we be
-writing these values to the wake register at some point?
-
-asl/vaio.asl:Name(_S0_, Package(0x4) {
-asl/vaio.asl-    0x5,
-asl/vaio.asl-    0x5,
-asl/vaio.asl-    0x0,
-asl/vaio.asl-    0x0,
-
-Comments welcome.
-
--Nate
 
 
 -------------------------------------------------------
