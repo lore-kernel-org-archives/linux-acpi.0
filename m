@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: S3 wakeup code
-Date: Wed, 30 Jul 2003 20:22:51 +0200
+From: Patrick Dreker <patrick-G8S07CpUG8qzQB+pC5nmwQ@public.gmane.org>
+Subject: Nforce2 Patch by Andrew de Quincey
+Date: Wed, 30 Jul 2003 20:27:56 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030730182250.GL10276@atrey.karlin.mff.cuni.cz>
-References: <20030723152809.GA591@paradigm.rfc822.org> <20030723162423.GD9013@atrey.karlin.mff.cuni.cz> <1059041888.19684.8.camel@bacchus.gpphy.uni-duesseldorf.de> <20030724104518.GA12041@paradigm.rfc822.org> <20030724110048.GA312@elf.ucw.cz> <1059588521.539.3.camel@localhost>
+Message-ID: <200307302028.03463.patrick@dreker.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1059588521.539.3.camel-bi+AKbBUZKZeoWH0uzbU5w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,38 +17,60 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
-Cc: Florian Lohoff <flo-BCn6idZOOBwdnm+yROfE0A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+=2D----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> > I don't remember code for beeping... To send data to the paralel port,
-> > 
-> > 	movb	$0x12, %al
-> > 	movw	$0x378, %dx
-> > 	outb	%al, %dx
-> 
-> Ok. I actually got myself up and created a parallel port plug with Leds
-> - works fine with test program. Nothing on resume/wakeup (I put the
-> above code into first place in wakeup.S, is that supposed to work?)...so
-> obviously the computers now for sure never jumps to wakeup address, so
-> either somethings wrong with that wakeup address or with
-> pre-jump-to-wakeup-address-stuff. Any idea?
+Hello...
 
-1st try to putting this code followed by 
+By sheer coincidence I found the patch metioned in the subject in the=20
+Mailinglist Archives on sourceforge=20
+(http://sourceforge.net/mailarchive/forum.php?thread_id=3D2844765&forum_id=
+=3D6102).=20
+As I have some massive troubles getting ACPI to work on my Asus A7N8X I wou=
+ld=20
+like to give this patch a try. Unfortunately the patch in the ML archives i=
+s=20
+mangled (whitespace and linebreaks) and is truncated and the authors eMail=
+=20
+address is truncated too. I am now currently using a forward ported version=
+=20
+of the 2.4.21 backport of the patch which seems to work more or less. :-/
 
-1:	jmp 1b
+All devices get assigned an IRQ, which wasn't the case before (only 2 out o=
+f 3=20
+USB ports e.g.). Unfortunately the machine is very prone to lock-ups now, s=
+o=20
+I'd like to give the "original" patch a try, to exclude the possibility of =
+me=20
+having made an error in "re-forward-porting" the patch.
 
-into, say, powerdown code (or maybe suspend_save_state?) to make sure
-the code works as expected. Then send me diff -u wakeup.S.old
-wakeup.S. You might want to add that jmp there, too. Not sure if
-parport should be powered up at that point, but if not even parport is
-powered, I don't know how to debug that.
-								Pavel
--- 
-Horseback riding is like software...
-...vgf orggre jura vgf serr.
+Could someone (the original author?) be so kind to mail the patch to me, or=
+=20
+give an URL, where I can find a working (i.e. non mangled) version of the=20
+patch?=20
+As a side note: Is it possible to apply the patch to 2.6.0-test2 instead of=
+=20
+2.5.75 or are there any reasons not to do so (other than failing hunks whic=
+h=20
+have to applied "by hand")?
+
+Thanks in advance.
+=2D --=20
+Patrick Dreker
+
+GPG KeyID  : 0xFCC2F7A7 (Patrick Dreker)
+=46ingerprint: 7A21 FC7F 707A C498 F370  1008 7044 66DA FCC2 F7A7
+Key available from keyservers or http://www.dreker.de/pubkey.asc
+=2D----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2 (GNU/Linux)
+
+iD8DBQE/KA4zcERm2vzC96cRAl01AJ411jRkOGgbK9Uy+hnirJUjERu6awCeIfoR
+LBK6ngZ1kwgtuwJcngOdBB4=3D
+=3DHwq+
+=2D----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
