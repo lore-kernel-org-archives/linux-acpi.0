@@ -1,14 +1,14 @@
-From: David G Hamblen <dave-RfZrpLcwWZ/QT0dZR+AlfA@public.gmane.org>
-Subject: Re: S3 wakeup code
-Date: Fri, 25 Jul 2003 14:04:02 -0400 (EDT)
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: BUG: iasl segfaults
+Date: Fri, 25 Jul 2003 13:21:52 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0307251356530.1520-100000@puppy.afrinc.com>
-References: <20030725175625.GC1526@hell.org.pl>
-Reply-To: dave-wr1Qx4d9ef7QT0dZR+AlfA@public.gmane.org
+Message-ID: <F760B14C9561B941B89469F59BA3A847E9707D@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030725175625.GC1526-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,41 +17,35 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Florian Lohoff <flo-BCn6idZOOBwdnm+yROfE0A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Jan Rychter <jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 25 Jul 2003, Karol Kozimor wrote:
+> From: Jan Rychter [mailto:jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org]=20
+> [11:24] tnuctip:/tmp/toshiba/acpi>iasl -d dsdt.toshiba=20
+>=20
+> Intel ACPI Component Architecture
+> ASL Optimizing Compiler / AML Disassembler version 20030522=20
+> [May 23 2003]
+> Copyright (C) 2000 - 2003 Intel Corporation
+> Supports ACPI Specification Revision 2.0b
+>=20
+> Loading Acpi table from file dsdt.toshiba
+> Acpi table [DSDT] successfully installed and loaded
+> Could not open output file
+> Pass 1 parse of [DSDT]
+> Pass 2 parse of [DSDT]
+> Parsing Deferred Opcodes (Methods/Buffers/Packages/Regions)
+> ..............................................................
+> ..............................................................
+> ..............................................................
+> ..................................................
+> Parsing completed
+> Segmentation fault
 
-> Thus wrote David G Hamblen:
-> > standby properly; so I assume that the ACPI tables can be driven by the
-> > OS.  Perhaps something along the lines of the asus_acpi code?
->
-> The asus_acpi module uses the ASUS-specific DSDT methods to handle the
-> backlight switching. I have quite the same problem with S1 on my machine,
-> but I get around it by doing echo 0 > /proc/acpi/asus/lcd; echo 1 >
-> /proc/acpi/sleep; echo 1 > /proc/acpi/asus/lcd. You may want to look for
-> the relevant methods in your DSDT and write a kernel interface to call
-> them, so that you could then activate it prior to suspending. I suppose
-> that's exactly what the Windows drivers do. You may also try something
-> video-specific, i.e. radeontool.
->
-> BTW: Pavel: will there be a place in the new PM interface for functions
-> that drivers could bind onto, i.e. something like a generic
-> disable_backlight(), assigned to
-> {asus,dell,toshiba,nvidia,radeon,etc.}_disable_backlight()? I think this
-> could solve some important problems.
+Thanks for the heads-up. Did you have a patch? The latest iasl source
+should be on developer.intel.com, does it still have this problem?
 
-The /linux/drivers/skeletonfb.c file has some potential sample hooks for
-this kind of thing.  Several of the drivers in that directory have code
-drive the various power states.  When I get a chance, I might try hacking
-the vesafb driver.  I don't know if I can get any hints out of the nv
-driver for XF86.
-
-
-Dave
-
-
+Thanks -- Andy
 
 
 -------------------------------------------------------
