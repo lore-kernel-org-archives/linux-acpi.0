@@ -1,11 +1,11 @@
-From: =?iso-8859-1?Q?=C9ric?= Brunet <Eric.Brunet-l5PIGlIYzrxGWvitb5QawA@public.gmane.org>
-Subject: linux 2.5.67, no suspend state
-Date: Sat, 19 Apr 2003 10:06:05 +0200
+From: Fabio Sirna <farnis-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org>
+Subject: Acer travelmate 210 txr
+Date: Sun, 20 Apr 2003 13:24:31 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030419080605.GA20694@lps.ens.fr>
+Message-ID: <20030420112431.GA2719@thecrow.it>
+Reply-To: farnis-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -16,62 +16,29 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
+I've the laptop in subject.
+I patched the kernel 2.4.0 with the patch that I've found on
+acpi.sf.net. The battery is found, and battstat works well.
+I've problems with sleep and stand-by.
+If I do 
 
-I have a shuttle xpc sb51G (intel chipset) with redhat 9 + kernel 2.5.67
-with a patch to drivers/net/8139too.c to help S3 working (the patch was
-found on this list. It consists in one call to refrigerator and two calls
-to pci_set_p=F4wer_state.)
+echo S1 > /proc/acpi/sleep
 
-When I try to go S1, it looks like the computer goes into sleep state and
-wakes up immediately. Here is an extract of the logs:
+the laptop goes in standby with a white screen with many horizontal line.
+If I try to wake-up it, the keyboard doesn't work.
+I read on acpi.sf.net about the DSDT table, but I don't understand very
+well, and I didn't find any DSDT table for my laptop.
+If you have any suggestion, please help me.
 
-[...]
-=3Dzsh entered refrigerator
-=3Dsu entered refrigerator
-=3Danacron entered refrigerator
-=3D|
-Suspending devices
-Suspending device c03730cc
-Suspending devices
-Suspending device c03730cc
-suspending: hda <0>Suspending devices
-uhci-hcd 00:1d.0: suspend to state 1
-uhci-hcd 00:1d.1: suspend to state 1
-uhci-hcd 00:1d.2: suspend to state 1
-ehci-hcd 00:1d.7: suspend to state 1
-Suspending device c03730cc
- hwsleep-0257 [18] acpi_enter_sleep_state: Entering sleep state [S1]
-Back to C!
-Devices Resumed
-   evgpe-0396: *** Error: acpi_ev_gpe_dispatch: No handler or method for
-GPE[ 0], disabling event
-eth0: Setting half-duplex based on auto-negotiated partner ability 0000.
-ehci-hcd 00:1d.7: resume
-uhci-hcd 00:1d.2: resume
-PCI: Setting latency timer of device 00:1d.2 to 64
-uhci-hcd 00:1d.1: resume
-PCI: Setting latency timer of device 00:1d.1 to 64
-uhci-hcd 00:1d.0: resume
-PCI: Setting latency timer of device 00:1d.0 to 64
-Devices Resumed
-Restarting tasks... done
-init left refrigerator
-[...]
+-- 
+Fabio
+_____________________________________________________________________
+Envie de discuter en "live" avec vos amis ? Télécharger MSN Messenger
+http://www.ifrance.com/_reloc/m la 1ère messagerie instantanée de France
 
-I have no idea what is this device c03730cc.
-
-With S3 sleeping state, things are more complicated. It worked sometimes
-with the 2.5.63+acpi patch kernel I was using, but, most of the times,
-the computer hung at suspend time at various places. I have not yet
-managed to have it working with the current kernel. I will do some tests
-and make a real bug report. But is it worth reporting S3 not working when
-even S1 does not work ?
-
-=C9ric Brunet
 
 
 -------------------------------------------------------
