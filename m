@@ -1,8 +1,8 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: RE: help needed with invalid method in GPE block
-Date: Tue, 18 Mar 2003 09:21:15 -0800
+Date: Tue, 18 Mar 2003 13:54:11 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A847E96D1A@orsmsx401.jf.intel.com>
+Message-ID: <F760B14C9561B941B89469F59BA3A84725A203@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="ISO-8859-1"
@@ -21,23 +21,46 @@ Cc: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi
 List-Id: linux-acpi@vger.kernel.org
 
 > From: Charl P. Botha [mailto:c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org] 
-> > To verify this, you might try calling _PRW from the button 
-> driver (or
-> > just look at the ASL), and then using that GPE number call
-> > acpi_enable_gpe(gpe_num, NULL, ACPI_EVENT_WAKE_ENABLE).
+> > > I was planning on adding this just after the
+> > > status = acpi_hw_enable_gpe (gpe_event_info);
+> > > call in the acpi_ev_save_method_info() function of 
+> evgpeblk.c IF the
+> > > gpe_num is 0x1D.  Is this okay for verifying?
+> > 
+> > I would think so, but there's only one way to find out...
 > 
-> Can I assume that you mean:
-> acpe_enable_event(gpe_num, ACPI_EVENT_GPE, ACPI_EVENT_WAKE_ENABLE);
-> where gpe_num is in my case 0x1D (the method in the asl is _L1D)?
+> Yay, my frikking sleep button is now waking the laptop from 
+> sleep! Nevermind
+> the fact that everything else is still dead (these problems 
+> seem a tad more
+> tractable), the BUTTON IS WORKING.
 
-Hehe yes. Did I mention the next version will change that interface? :)
+Great.
 
-> I was planning on adding this just after the
-> status = acpi_hw_enable_gpe (gpe_event_info);
-> call in the acpi_ev_save_method_info() function of evgpeblk.c IF the
-> gpe_num is 0x1D.  Is this okay for verifying?
+> Through printk()s all over, it seems that the acpi code never 
+> explicitly
+> enables the 0x1D event on my machine at all, nevermind enabling it for
+> waking.  Is this a problem with my firmware/dsdt or with the 
+> acpi kernel
+> code?
 
-I would think so, but there's only one way to find out...
+Are you sure? We should be calling acpi_ev_save_method_info for each
+_Lxx or _Exx entry under _GPE scope, and that function enables the GPE.
+Please let me know if this is not the case.
+
+> I ran into some *cough* Microsoft documents *cough* online 
+> that claimed that
+> *cough* Windows *cough* enabled/disabled certain devices for waking.
+> According to these documents, the sleep button was always 
+> enabled.  Should
+> Linux ACPI be doing the same?
+
+Yes. The button driver should be enabling its devices for wakeup. I
+think the ACPI bus code should  export a function that makes this easy
+to do.
+
+I am going to stick this in kernel.bugzilla.org so we don't forget about
+it, and I will add you to the CC list.
 
 Regards -- Andy
 
