@@ -1,13 +1,13 @@
-From: "Pedro I. Sanchez" <pedro.sanchez-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Help with the DSDT for an Acer Ferrari 3400 laptop
-Date: Tue, 28 Dec 2004 21:51:06 -0500
-Message-ID: <41D21B9A.4020409@rogers.com>
-References: <41D0F15D.8000201@rogers.com> <20041228105611.GF9606@poupinou.org>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI - DOS - 2.6.10
+Date: Wed, 29 Dec 2004 10:56:51 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F8406A73C1E@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="UTF-8"
+Content-Transfer-Encoding: base64
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041228105611.GF9606-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,97 +17,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Lukas Hejtmanek <xhejtman-IGZnsrowxP9fmBTHTHKXmQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-
-
-Bruno Ducrot wrote:
-> On Tue, Dec 28, 2004 at 12:38:37AM -0500, Pedro I. Sanchez wrote:
-> 
->>Hello,
->>
->>I'm new to this ACPI world and I'd like your help to fix the dsdt.dsl 
->>file that I got with this laptop. I followed the steps in the ACPI FAQ 
->>to disassemble the bin file and ended up with a source file that 
->>compiles with 8 errors and 1 warning using the Intel ASL compiler.
->>
->>For your reference the problem I want to fix is that I have no control 
->>over the fan which is always on, quite annoying. Even though my Linux 
->>kernel has compiled ACPI fan support the directory /proc/acpi/fan is 
->>empty. I'm running vanilla kernel 2.6.10 with Debian-AMD64.
->>
->>The good news is that the 8 errors are actually the same one spread all 
->>over the source file. So fixing it once will fix the whole file. The bad 
->>news is that I don't know how to fix it :|
->>
->>The Error
->>---------
->>dsdt.dsl  4480:           If (LLess (\_PR.CPU0._PPC, Local1))
->>Error    1022 -             Object does not exist ^  (\_PR.CPU0._PPC)
->>
->>The error is repeated every time the object \_PR.CPU0._PPC appears in 
->>the code. I read in the FAQ that one possible solution is to use the 
->>statement
->>
->>	External(\_PR.CPU0._PPC)
->>
->>to tell the compiler that this is an external object. However I don't 
->>understand where this External statement should go. I've tried putting 
->>it at the beginning of the file and inside the Scope(\_PR) section which 
->>simply reads
->>
->>	Scope (\_PR)
->>	{
->>	   Processor (CPU0, 0x00, 0x00004010, 0x06) {}
->>	}
->>
->>In both cases the compiler complains. So, where shall this External 
->>statement go?
-> 
-> 
-> They go to a SSDT table likely.  If you do something like:
-> sudo ./acpidmp SSDT > ssdt
-> and
-> iasl -d ssdt
-> you should get those external statements.
-> 
-
-I'm looking for acpidmp in my Debian box but I can't find it, it's not 
-in the pmtools package. And I can't find it in the Intel's download page 
-either (http://www.intel.com/technology/iapc/acpi/downloads.htm). Where 
-can I get it?
-
-Also, what am I supposed to do after disassembling the ssdt?
-
-> 
->>The Warning
->>-----------
->>dsdt.dsl  4287: Method (SMSL, 0, NotSerialized)
->>Warning  2019 -            ^ Not all control paths return a value (SMSL)
->>
->>I added a Return (0x00) statement at the very end of the method and the 
->>warning disappeared. But, is this right? Following my signature you will 
->>find the code of the offending method including my extra line.
-> 
-> 
-> Could you send me the original DSDT please (or better the full acpidmp)
-> or even better provide a link?
-> 
-
-You will find the DSDT and some other files at http://www.colcan.biz
-
-> I don't think it's very problematic, but I need to look a little bit
-> further to be sure.  This method is "internal" and is called by other
-> methods, so need to check what those methods do with the return value.
-> 
-> Cheers,
-> 
-Thank you for your follow up.
-
--- 
-Pedro
+VGhlIERTRFQgc2hvd3MgdGhhdDoNCkluIF9ET1M6DQogICAgICAgICAgICAgICAgICAgICBJZiAo
+TE5vdCAoTExlc3MgKE9TWVMsIDB4MDdEMCkpKQ0KICAgICAgICAgICAgICAgICAgICB7DQogICAg
+ICAgICAgICAgICAgICAgICAgICBTdG9yZSAoMHgwMCwgRFNFTikNCiAgICAgICAgICAgICAgICAg
+ICAgfQ0KQW5kIGluIF9RMEUsICBpZiBEU0VOIGlzIDEgdGhlbiwgQklPUyB3aWxsIGF1dG9tYXRp
+Y2FsbHkgaGFuZGxlICBkaXNwYWx5IHN3aXRjaCwNCm90aGVyd2lzZSwgaXQganVzdCBnZW5lcmF0
+ZSBOb3RpZnkgZXZlbnQgdG8gT1NQTSwgYW5kIHJlbHkgb24gZHJpdmVyIHRvIGhhbmRsZSBpdC4N
+Ckhvd2V2ZXIsIHRoZXJlIGRvbid0IGhhdmUgX0RTUyBpbiBEU0RUICwgd2hpY2ggaXMgcmVxdXJl
+ZCBmb3IgYWNwaSB2aWRlbyBkcml2ZXIgdG8gaGFuZGxlIGRpc3BsYXkgc3dpdGNoLg0KDQpDb3Vs
+ZCB5b3UgdHJ5IGtlcm5lbCBvcHRpb24gImFjcGlfb3NpPSIgDQoNClRoYW5rcywNCkx1bWluZw0K
+DQoNCg0KLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCkZyb206IGFjcGktZGV2ZWwtYWRtaW5A
+bGlzdHMuc291cmNlZm9yZ2UubmV0IFttYWlsdG86YWNwaS1kZXZlbC1hZG1pbkBsaXN0cy5zb3Vy
+Y2Vmb3JnZS5uZXRdIE9uIEJlaGFsZiBPZiBMdWthcyBIZWp0bWFuZWsNClNlbnQ6IDIwMDTlubQx
+MuaciDI35pelIDc6MDgNClRvOiBhY3BpLWRldmVsQGxpc3RzLnNvdXJjZWZvcmdlLm5ldA0KU3Vi
+amVjdDogW0FDUEldIEFDUEkgLSBET1MgLSAyLjYuMTANCg0KSGVsbG8sDQoNCnNpbmNlIDIuNi4x
+MC1yYzEgZGlzcGxheSBzd2l0Y2ggYnV0dG9uIHN0b3BlZCB0byB3b3JrLiBJIGhhdmUgQUNQSSB2
+aWRlbw0KY29tcGlsZWQgaW4sIGl0IGRpc3BsYXlzOiBET1Mgc2V0dGluZzogPDE+DQoNCkFueSB2
+YWx1ZSB3cml0dGVuIHRvIHRoaXMgZmlsZSBkb2VzIG5vdCBnZXQgaXQgd29yay4gQUNQSSBldmVu
+dCBpcyBnZW5lcmF0ZWQ6DQpbTW9uIERlYyAyNyAwMDowNzozMiAyMDA0XSByZWNlaXZlZCBldmVu
+dCAidmlkZW8gVkdBIDAwMDAwMDgwIDAwMDAwMDAwIg0KDQpBbnkgc3VnZ2VzdGlvbnM/IEkgY2Fu
+IHByb3ZpZGUgL3Byb2MvYWNwaS9kc2R0IGlmIGl0IGhlbHBzLg0KDQotLSANCkx1a8OhxaEgSGVq
+dG3DoW5law0KDQoNCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0NClNGIGVtYWlsIGlzIHNwb25zb3JlZCBieSAtIFRoZSBJVCBQcm9kdWN0IEd1
+aWRlDQpSZWFkIGhvbmVzdCAmIGNhbmRpZCByZXZpZXdzIG9uIGh1bmRyZWRzIG9mIElUIFByb2R1
+Y3RzIGZyb20gcmVhbCB1c2Vycy4NCkRpc2NvdmVyIHdoaWNoIHByb2R1Y3RzIHRydWx5IGxpdmUg
+dXAgdG8gdGhlIGh5cGUuIFN0YXJ0IHJlYWRpbmcgbm93LiANCmh0dHA6Ly9wcm9kdWN0Z3VpZGUu
+aXRtYW5hZ2Vyc2pvdXJuYWwuY29tLw0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18NCkFjcGktZGV2ZWwgbWFpbGluZyBsaXN0DQpBY3BpLWRldmVsQGxpc3Rz
+LnNvdXJjZWZvcmdlLm5ldA0KaHR0cHM6Ly9saXN0cy5zb3VyY2Vmb3JnZS5uZXQvbGlzdHMvbGlz
+dGluZm8vYWNwaS1kZXZlbA0K
 
 
 -------------------------------------------------------
