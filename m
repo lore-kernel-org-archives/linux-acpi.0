@@ -1,58 +1,49 @@
-From: Bjorn Helgaas <bjorn_helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: [ACPI] [PATCH] 1/3 ACPI resource handling
-Date: Tue, 25 Feb 2003 09:57:44 -0700
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: [ACPI] PaceBlade broken acpi/memory map
+Date: Tue, 25 Feb 2003 18:44:49 +0100
 Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <200302250957.44409.bjorn_helgaas@hp.com>
-References: <B9ECACBD6885D5119ADC00508B68C1EA0D19BB1A@orsmsx107.jf.intel.com>
+Message-ID: <20030225174449.GD12028@atrey.karlin.mff.cuni.cz>
+References: <20030220172144.GA15016@elf.ucw.cz> <20030224164209.GD13404@poup.poupinou.org> <20030224183955.GC517@atrey.karlin.mff.cuni.cz> <20030225143505.GH13404@poup.poupinou.org> <3E5B835E.7050601@symplon.com> <20030225151341.GI13404@poup.poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <B9ECACBD6885D5119ADC00508B68C1EA0D19BB1A-LkGsggTGxVmSsB6bSF6DdVDQ4js95KgL@public.gmane.org>
-To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Pavel Machek' <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Walz, Michael" <michael.walz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, t-kochi-UDFczIW9X1d8UrSeD/g0lQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Disposition: inline
+In-Reply-To: <20030225151341.GI13404-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: Robert <robert.woerle-y2s3ugBAdl9BDgjK7y7TUQ@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Robert Woerle <robert-fPtsKRK0pHxl57MIdRCFDg@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Good grief.  If people would actually read and think about the
-change instead of having a knee-jerk reaction to seeing
-"#define", they would see that inline functions will not work
-in this particular application.  The macros were used to
-factor code that was identical except that it operated on
-different structure types.  Inline functions obviously require
-explicit argument declarations, while macros don't, so macros
-are the only choice for this type of factoring.
+Hi!
 
-In any case, this horse has been long dead.  I've posted versions of
-acpi_resource_to_address64() both with and without the macros, and
-haven't heard any substantial objections, so I'm assuming the ACPI
-folks will either ignore them or pick the one they like best and
-we can move on.
-
-Bjorn
-
-On Monday 24 February 2003 3:48 pm, Moore, Robert wrote:
-> Yes, as long as the code is used more than once (which it appears to be),
-> then of course it should be procedurized.
-> Bob
-> 
-> -----Original Message-----
-> From: Pavel Machek [mailto:pavel-+ZI9xUNit7I@public.gmane.org] 
-> Sent: Sunday, February 23, 2003 2:55 PM
-> To: Moore, Robert
-> Cc: 'Bjorn Helgaas'; Grover, Andrew; Walz, Michael; t-kochi-UDFczIW9X1d8UrSeD/g0lQ@public.gmane.org;
-> linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; acpi-devel@lists.sourceforge.net
-> Subject: Re: [ACPI] [PATCH] 1/3 ACPI resource handling
-> 
-> Hi!
-> 
-> > 1) This seems like a good idea to simplify the parsing of the resource
-> lists
+> > >>>>I have PaceBlade here, and its memory map is wrong, which leads to
+> > >>>>ACPI refusing to load. [It does not mention "ACPI data" in the memory
+> > >>>>map at all!]
+> > >>>>       
+> > >>>>
+> > >>>I have made those patches to workaround that.  I have no time
+> > >>>     
+> > >>>
+> > >>Yes, I have seen those... I also made a patch that enables you to do
+> > >>that workaround from mem= options at kernel command line.
+> > >>
+> > >>   
+> > >>
+> > >
+> > >I doubt you received the latest one, since I have not make it public
+> > >unless this day.
+> > > 
+> > >
+> > i did sent it to him since he recieved our machine from Suse Nuernberg
 > > 
-> > 2) I'm not convinced that this buys a whole lot -- it just hides the code
-> > behind a macro (something that's not generally liked in the Linux world.)
-> > Would this procedure be called from more than one place?
 > 
-> Well, reducing code duplication *is* liked in Linux world. Use inline
-> function instead of macro if possible, through.
-> 	
-> Pavel
+> Ah, OK.  Wasn't aware of that.  But why then making a mem= opitons in
+> that case.  I have take care to *not* use any mem= at all because that
+> can make things worse.
+
+I've received it after I made my patch, and I think that more machine
+with broken tables will be created in future...
+
+								Pavel
+-- 
+Horseback riding is like software...
+...vgf orggre jura vgf serr.
