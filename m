@@ -1,10 +1,12 @@
-From: Z F <mail4me9999-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: can not access battery status
-Date: Thu, 24 Jun 2004 19:56:29 -0700 (PDT)
+From: "Judson Hartman" <judson.hartmanxu-V5Ji+mNUXWoQrrorzV6ljw@public.gmane.org>
+Subject: $23221
+Date: Fri, 25 Jun 2004 01:50:56 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040625025629.66989.qmail@web20416.mail.yahoo.com>
+Message-ID: <00ea01c45a78$33975ffe$2def3280@metzger.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,47 +16,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello eveybody,
+Hello,
+I sent you an email a few days ago, because you now qualify for a new mortgage.
+You could get $300,000 for as little as $700 a month!
+Bad credit is no problem, you can pull cash out or refinance.
 
-Could someone help me to resolve this problem.
+Please click on this link:
+http://onlinerefi.biz/a1/ke.php?bks=71
 
-I have a Dell Latitude X300 and I get this error when the battery
-module
-is loaded:
-
-    ACPI-0347: *** Error: Handler for [EmbeddedControl] returned
-AE_BAD_PARAMETER
-    ACPI-1133: *** Error: Method execution failed [\_SB_.BAT1._STA]
-(Node c1151240), AE_AML_NO_RETURN_VALUE
-    ACPI-0347: *** Error: Handler for [EmbeddedControl] returned
-AE_BAD_PARAMETER
-    ACPI-1133: *** Error: Method execution failed [\_SB_.BAT2._STA]
-(Node c1151480), AE_AML_NO_RETURN_VALUE
+Best Regards,
+Steve Morris
 
 
-Also, when I load  the ac module, I get this:
-    ACPI-0347: *** Error: Handler for [EmbeddedControl] returned
-AE_BAD_PARAMETER
-    ACPI-1133: *** Error: Method execution failed [\_SB_.ADP1._PSR]
-(Node c1153e40), AE_BAD_PARAMETER
+---- system information ----
+has non-Java applications Language development locale-determined geographic
+fall 
+class draft no interoperability nearly numbers disclose term 
+complex sounds progress behaviors contrast progress dictionary covered
 
 
-This looks like there is a common problem. I do not know where to start
-to look for the solution. Any suggestion is highly appreciated.
-
-Thank you very much
-
-Lazar
-
-
-		
-__________________________________
-Do you Yahoo!?
-Yahoo! Mail Address AutoComplete - You start. We finish.
-http://promotions.yahoo.com/new_mail 
 
 
 -------------------------------------------------------
