@@ -1,14 +1,12 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: S4 reboots on resume
-Date: Mon, 12 Jan 2004 21:17:12 +0100
+From: Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>
+Subject: [PATCH] 2.4/2.6 use xdsdt to print table header
+Date: Mon, 12 Jan 2004 17:32:16 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040112201712.GA24073@hell.org.pl>
-References: <1073935225.2106.15.camel@localhost>
+Message-ID: <1073953935.6497.173.camel@patsy.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1073935225.2106.15.camel-bi+AKbBUZKZeoWH0uzbU5w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,26 +15,52 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dirk Meul <dirk.meul-vA1bhqPz9FBZXbeN9DUtxg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Dirk Meul:
-> Hello List.
-> 
-> I tested S4 (pmdisk) with 2.6.1-mm2. After approximately 10 minutes the
-> computer powered off. When i resume it will reboot after reading the
-> pages from swap and force a journal recovering. Is there a patch i can
-> try? This happened with 2.6.x kernel before too.
 
-If you use X, don't.
-Alternatively, you can try Nigel's patches, read swsusp.sf.net for more
-info.
-Best regards,
+   I'm resending this patch to get it into the main ACPI source.  This
+fixes a problem where the DSDT pointer in the FADT is NULL because it
+uses the 64bit XDSDT instead.  The current code is happy to map a NULL
+address and return success to the caller.  This can crash the system or
+printout garbage headers to the console.  It's a simple matter to check
+table revision and use the XDSDT in favor of the DSDT.  This has been
+living happily in both the 2.4 and 2.6 ia64 tree for some time.  Please
+accept.  Thanks,
+
+	Alex
 
 -- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+Alex Williamson                             HP Linux & Open Source Lab
+
+diff -Nru a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+--- a/drivers/acpi/tables.c	Mon Jan 12 15:37:12 2004
++++ b/drivers/acpi/tables.c	Mon Jan 12 15:37:12 2004
+@@ -262,10 +262,17 @@
+ 
+ 	/* Map the DSDT header via the pointer in the FADT */
+ 	if (id == ACPI_DSDT) {
+-		struct acpi_table_fadt *fadt = (struct acpi_table_fadt *) *header;
++		struct fadt_descriptor_rev2 *fadt = (struct fadt_descriptor_rev2 *) *header;
++
++		if (fadt->revision == 3 && fadt->Xdsdt) {
++			*header = (void *) __acpi_map_table(fadt->Xdsdt,
++					sizeof(struct acpi_table_header));
++		} else if (fadt->V1_dsdt) {
++			*header = (void *) __acpi_map_table(fadt->V1_dsdt,
++					sizeof(struct acpi_table_header));
++		} else
++			*header = 0;
+ 
+-		*header = (void *) __acpi_map_table(fadt->dsdt_addr,
+-				sizeof(struct acpi_table_header));
+ 		if (!*header) {
+ 			printk(KERN_WARNING PREFIX "Unable to map DSDT\n");
+ 			return -ENODEV;
+
+
+
 
 
 -------------------------------------------------------
