@@ -1,15 +1,14 @@
-From: Bob McElrath <mcelrath-/+vdk8Lzq6wBYXXUC76CrNADJCGDAxhI@public.gmane.org>
-Subject: Re: Several problems on a toshiba S3000-X11
-Date: Mon, 30 Sep 2002 11:33:24 -0500
+From: "P. Christeas" <p_christ-U04EIuiosng@public.gmane.org>
+Subject: Sleeping pills for the 2.5.39 Insomnia ..
+Date: Mon, 30 Sep 2002 19:32:16 +0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020930163324.GF25319@draal.physics.wisc.edu>
-References: <20020927142320.GB2821@lps.ens.fr> <20020927154542.GH7904@poup.poupinou.org> <20020930155044.GA21015@lps.ens.fr>
+Message-ID: <200209301932.16677.p_christ@hol.gr>
+References: <200209301541.47910.p_christ@hol.gr> <200209301612.28344.p_christ@hol.gr> <1033400645.7338.17.camel@bacchus.gpphy.uni-duesseldorf.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Zs/RYxT/hKAHzkfQ"
+Content-Type: Multipart/Mixed;
+  boundary="------------Boundary-00=_S9F936OAAJEG5W7JAF46"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20020930155044.GA21015-l5PIGlIYzrxGWvitb5QawA@public.gmane.org>
+In-Reply-To: <1033400645.7338.17.camel-s1IKGncK6J2OERECOqmV57dB6IYNvbhm87tLKu7D3g4@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,98 +17,103 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: ?ric Brunet <ebrunet-l5PIGlIYzrxGWvitb5QawA@public.gmane.org>
-Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---Zs/RYxT/hKAHzkfQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+--------------Boundary-00=_S9F936OAAJEG5W7JAF46
+Content-Type: text/plain;
+  charset="iso-8859-7"
+Content-Transfer-Encoding: 8bit
 
-?ric Brunet [ebrunet-l5PIGlIYzrxGWvitb5QawA@public.gmane.org] wrote:
-> On Fri, Sep 27, 2002 at 05:45:42PM +0200, Ducrot Bruno wrote:
-> > > When I read the battery state for the first couple of times, the
-> > > /proc/acpi files claim that I have two batteries present, and that bo=
-th
-> > > batteries have a charge of 2040 mAh (capacity is 4000 mAh). After a
-> > > couple of readings, I have the truth (only one battery and whatever
-> > > capacity I have left.) That's annoying, and it didn't happen with my
-> > > previous kernel. I don't now if it comes from the patched DSDT or from
-> > > the new version of the acpi patch.
-> >=20
-> > This is a trouble with the original AML, and I have not corrected it.
-> >=20
-> Are you sure ? Bob McElrath and I never had this problem with the
-> original DSDT; it appeared when I used your hand-tuned version. It looks
-> that the problem lies into your correction...
+> Since software_suspend() gets called from there and IIRC thats not part
+> of the acpi subsytem I wonder why S4 would not work in case state is
+> correctly set there...
+>
+> Anyway, thats only a quick shot assumption so do not flame in case
+> I am plain wrong ;)
+>
 
-Also note that I am using a Compal DSDT.  You guys probably have Toshiba
-DSDT's.  My native DSDT correctly reports battery status.  (although
-when plugged in with a full battery it says 'charging state: unknown')
-But discharge reporting works fine.
+I already solved the bug. Don't try any more..
 
-> > Only the restore should be made.  Actually, the
-> It is noted, I will try that. But I hope that it will go mainstream in a
-> future version.
-> >=20
-> > > So the computer shuts down, without warning, while it is not particul=
-ary
-> > > hot, with nothing written in the logs, while the user was just using =
-vim
-> > > in a xterm, at irregular times, and it can happen two or three times =
-in
-> > > an afternoon.
-> > >=20
-> >=20
-> > Yes, I have this trouble with some version of ACPI now.  I think that I=
- need
-> > to incorporate now more smoothly with ACPI (that is, I need to use
-> > the function acpi_ec_read() etc. instead of providing them in the modul=
-e,
-> > and so I avoid some possible races..)
->=20
-> So you confirm that it is ACPI related ? Do you think I can get rid of
-> that problem by disabling parts of ACPI ? (I guess I could boot with no
-> acpi at all, but that means no battery readings, no software shutdown and
-> no S1. That would be a sad world...)
+To A.Grover: please apply the patch (or just the '!' yourself).
+I'd like the two extra messages to be always logged. It's your call to keep 
+them.
 
-Once upon a time I was able to keep my computer up and running for over
-a week by using acpi=3Dnoacpi on the kernel's command line.  This was
-sometime in July (probably with the July ACPI code).  I have tried it
-since then and been unable to reproduce this behavior.  (I unwisely
-nuked that kernel)
+Can you give me a one-line explanation for those messages I get with S4? Is 
+the S1 warning of any importance?
 
-However, as my computer normally stays up for ~1 day on average
-(sometimes two), I could believe a statistical fluctuation that stayed
-up for a week.  ;)
+--------------Boundary-00=_S9F936OAAJEG5W7JAF46
+Content-Type: text/x-diff;
+  charset="iso-8859-7";
+  name="sleep.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="sleep.diff"
 
-Cheers,
--- Bob
+diff -bBaur ./drivers/acpi/sleep.c /usr/src/linux/drivers/acpi/sleep.c
+--- ./drivers/acpi/sleep.c	2002-09-28 14:05:32.000000000 +0300
++++ /usr/src/linux/drivers/acpi/sleep.c	2002-09-30 19:11:58.000000000 +0300
+@@ -329,8 +329,9 @@
+ 	state_string[count] = '\0';
 
-Bob McElrath (rsmcelrath-9geRo0GdX4mkVGS65fRQmodd74u8MsAO@public.gmane.org)=20
-Univ. of Wisconsin at Madison, Department of Physics
+ 	state = simple_strtoul(state_string, NULL, 0);
++	printk(KERN_INFO PREFIX "sleep: S%d written\n", state);
 
-    "The purpose of separation of church and state is to keep forever from
-    these shores the ceaseless strife that has soaked the soil of Europe in
-    blood for centuries." -- James Madison
+-	if (sleep_states[state])
++	if (!sleep_states[state])
+ 		return_VALUE(-ENODEV);
+
+ #ifdef CONFIG_SOFTWARE_SUSPEND
+@@ -341,6 +342,8 @@
+ #endif
+ 	status = acpi_suspend(state);
+
++	printk(KERN_INFO PREFIX "sleep: S%d resumed w. status 0x%x\n", state, status);
++
+ 	if (ACPI_FAILURE(status))
+ 		return_VALUE(-ENODEV);
+
+@@ -665,7 +668,7 @@
+ 	if (acpi_disabled)
+ 		return_VALUE(0);
+
+-	printk(KERN_INFO PREFIX "(supports");
++	printk(KERN_INFO PREFIX "Sleep supports");
+ 	for (i=0; i<ACPI_S_STATE_COUNT; i++) {
+ 		u8 type_a, type_b;
+ 		status = acpi_get_sleep_type_data(i, &type_a, &type_b);
+@@ -674,7 +677,7 @@
+ 			printk(" S%d", i);
+ 		}
+ 	}
+-	printk(")\n");
++	printk("\n");
 
 
---Zs/RYxT/hKAHzkfQ
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+ 	/* 'sleep' [R/W]*/
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
 
-iEYEARECAAYFAj2YfNQACgkQjwioWRGe9K2I5QCgkJh4mUGiQPwHW3NI/unZd0hl
-0S0An0gbNTmsK4ySfjbl6udDtKTNz38w
-=0adC
------END PGP SIGNATURE-----
+--------------Boundary-00=_S9F936OAAJEG5W7JAF46
+Content-Type: application/x-bzip2;
+  name="messages.bz2"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="messages.bz2"
 
---Zs/RYxT/hKAHzkfQ--
+QlpoOTFBWSZTWVSq/A8AAZxfgEAQYO//8q+iWoA/79/kQAKKuGxtrbQkoCGgp6anoZQyGmjRoA0N
+A0EiSYSMmkNTT1MAhoB6AI9TMhgAAAAAAAAAAEUiIaaTyTT0IyNBoAANAGmeuBtLbdvtwbvOOcmf
+DQ2bJ9QjPRnZVwh5uVJBvRahJ47ahLRMF4jRMnCqDSJMNsYmTiXn1TojQhKTjTLThrjZUwkGO99G
+TdFPLmll1IWlFTnvOJ7oBX1a+xtoabG022NjefjDT1HZS/NcxaUbmiXrM14k+kx7a0XAlvDCJqSZ
+7lBKhFuki2PlYizJlINM84VQB3zRbpSrvap8fdbSDBhkgQiVaMdArk393kIhJ6JAaWAnBHMEk1se
+rI6NxAsTeRbAcmHNIuYIhIIx7Jvz5hID0i8QTVi9QcIf6akJOAjsz/CxMQ+9gYTC5C5peSbh+2Ef
+RH26ENKaxRS3k0XjGZ2oDBDNkopUJFJEH69loHXYV9c91lTMX6pBmIi/hHahZyUpJCtSxCDDjQlR
+WN+5IVsW0ZBB7FE2wcss18LfsZkggtQuGW3NnRdgV1heTEi2syEvyJOpccslYcb1lO5plqVaQpBS
+DJ0hOMhhdhMqZBQRWg1cuIye/VcKjVxCpikKEF1shYhGBIeOv3ISvurQlmdrI1oSrBi1SWhHX+MI
+GYTQZQnVgzn9JaUXFrL6jPSRlmFULARxlCJMwL5tg1UGpSQUNcyCaYhhyRuqROCYMTnBImgZpy2x
+4tQyJOWKkQykKTAJtIRKBtsrVKaWxoSwxOLfd7i7kinChIKlV+B4
+
+--------------Boundary-00=_S9F936OAAJEG5W7JAF46--
+
 
 
 -------------------------------------------------------
