@@ -1,17 +1,13 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: HP/Compaq NC6120 ACPI problems
-Date: Sun, 20 Mar 2005 23:46:56 +0000
-Message-ID: <1111362416.8136.225.camel@tyrosine>
-References: <20050317200052.686d683f.andrej.prsa@guest.arnes.si>
-	 <1111088904.11380.36.camel@eeyore>
-	 <20050317215635.1c788c09.andrej.prsa@guest.arnes.si>
-	 <1111104319.8136.182.camel@tyrosine>
-	 <20050318192300.629e2148.andrej.prsa@guest.arnes.si>
-	 <1111202374.8136.210.camel@tyrosine>
+From: Jason Dagit <dagit-LP0vGzdgvNwj5TC/SZClsA@public.gmane.org>
+Subject: Re: Resume from mem state == Reboot (Averatec)
+Date: Sun, 20 Mar 2005 22:45:54 -0800
+Message-ID: <87eke94hul.fsf@www.codersbase.com>
+References: <87k6oaug4a.fsf@www.codersbase.com>
+	<1110840337.8136.82.camel@tyrosine>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <1111202374.8136.210.camel@tyrosine>
+Content-Type: text/plain; charset=us-ascii
+In-Reply-To: <1110840337.8136.82.camel@tyrosine> (Matthew Garrett's message
+ of "Mon, 14 Mar 2005 22:45:36 +0000")
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,36 +17,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, 2005-03-19 at 03:19 +0000, Matthew Garrett wrote:
+Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org> writes:
 
-> Hmm. Yes, I can now repeat this with a 6220, though most of the time I
-> manage it it seems to be linked to a suspend to disk beforehand. I
-> suspect this /may/ be linked to the fact that on the 6120, only the
-> first lid event is received. I'll see if I can track this down over the
-> weekend.
+> This is likely to be the same problem as
+> http://bugzilla.kernel.org/show_bug.cgi?id=3691
 
-Ha. Yes, progress, of sorts. On the 6120, you need to do
+Has anyone made progress on this bug?  I've been trying various things
+on my system to get an understanding of the problem.  But I don't
+really know what I'm doing and I could really use some guidance.
 
-setpci -s 1f.0 bb.b=84
+What sort of information would be useful in troubleshooting this?
+I've attached all the diagnostic output I know how to generate to the
+bug listed above, but there must be something else I can do or try.
 
-after every lid event in order to get any more. I /think/ this is a bug
-with the HP BIOS (the 6220 doesn't do this) - I'm in touch with HP over
-it now. As for the high kacpid load, I'm only able to trigger this after
-a suspend to disk, and using the platform option (to ensure the _WAK
-methods are called) /seems/ to avoid it. Could you try building a kernel
-with acpi debug support, set the output level fairly high (echo -n
-0x0000ffff >/proc/acpi/debug_level) and see what sort of output you get?
+Today when I was poking around I did discover in tbconvert.c inside
+the function acpi_tb_build_common_facs that
+acpi_gbl_common_fACS.firmware_waking_vector is 0x0de8000c.  But in
+acpi_pm_prepare the function acpi_set_firmware_waking_vector is given
+a physical address of 0x00001000, which comes from a virtual address
+of 0xc0001000.  Is there something I can inspect or disassemble to
+find out what the firmware_waking_vector should be?
 
-Warning - there'll be huge amounts of it. Really huge amounts. The stuff
-we're interested in is whatever appears after kacpid has begun taking up
-all the processor time.
-
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
-
+Thanks,
+Jason
 
 
 -------------------------------------------------------
