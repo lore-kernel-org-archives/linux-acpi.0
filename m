@@ -1,13 +1,18 @@
-From: Ionut Georgescu <george-cKfDX2Cm9aJzjjYyZSa4kQ4jNU5vUVPG@public.gmane.org>
-Subject: incomplete power off on sony z1rmp
-Date: Wed, 31 Mar 2004 23:39:59 +0200
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [BUG 2.6.5-rc2-bk5 and 2.6.5-rc2-mm3] ACPI seems to be broken
+Date: 31 Mar 2004 18:54:08 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040331213958.GD23349@physik.tu-cottbus.de>
+Message-ID: <1080777248.31346.71.camel@dhcppc4>
+References: <A6974D8E5F98D511BB910002A50A6647615F6523@hdsmsx402.hd.intel.com>
+	 <1080278805.755.157.camel@dhcppc4>
+	 <1080284583.2439.8.camel@lade.trondhjem.org>
+	 <1080287755.757.194.camel@dhcppc4>
+	 <1080326310.2448.2.camel@lade.trondhjem.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=unknown-8bit
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1080326310.2448.2.camel-SyLVLa/KEI9HwK5hSS5vWB2eb7JE58TQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,35 +21,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Trond Myklebust <trond.myklebust-41N18TsMXrtuMpJDpNschA@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
+On Fri, 2004-03-26 at 13:38, Trond Myklebust wrote:
 
-reading the archives I saw that it is common that Sony VAIO laptops
-don't shutdown properly. My Z1RMP hangs at
-drivers/acpi/hardware/hwsleep.c:338 in  acpi_hw_register_write(), right
-after ACPI_FLUSH_CPU_CACHE() .
+> Here's the revised output. Note that all devices now appear to be
+> working (including that sound driver that was failing to work when only
+> doing "noapic")...
 
-Is there anything I can do to solve this ? I'd be more than happy to
-start dealing with it, but I have no idea about kernel programming. I
-can do C, but only for myself :) Is there a recommended way to learn
-more about this stuff ?
+Trond,
+Can you test the fix here:
 
-The kernel is debian patched 2.6.4 + acpi-20040311-2.6.4.diff + swsusp2
-+ kdb.
+http://bugzilla.kernel.org/show_bug.cgi?id=2408
 
-Thanks a lot.
-IonuÅ
+It should make this bogus duplicate IRQ->pin mapping go away on IRQ5.
 
--- 
-***************
-* Ionut Georgescu
-* http://www.physik.tu-cottbus.de/~george/
-* Registered Linux User #244479
-*
-* "In Windows you can do everything Microsoft wants you to do; in Unix you
-*                can do anything the computer is able to do."
+thanks,
+-Len
+
+---
+
+IRQ to pin mappings:
+IRQ0 -> 0:2
+IRQ1 -> 0:1
+IRQ3 -> 0:3
+IRQ4 -> 0:4
+IRQ5 -> 0:5-> 0:5
 
 
 
