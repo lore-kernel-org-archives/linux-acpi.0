@@ -1,14 +1,14 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: iasl
-Date: Wed, 14 May 2003 16:23:08 +0800
+From: sjb <ottaky-XuTx12Z7TonQT0dZR+AlfA@public.gmane.org>
+Subject: Re: iasl
+Date: Wed, 14 May 2003 08:39:45 +0000 (UTC)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8427230C@pdsmsx403.ccr.corp.intel.com>
+Message-ID: <3ECE53FC.3090107@ottaky.com>
+References: <3ACA40606221794F80A5670F0AF15F8427230C@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8427230C-4yWAQGcml64gGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,41 +17,20 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: sjb <ottaky-XuTx12Z7TonQT0dZR+AlfA@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Date: Fri, 23 May 2003 17:01:48 +0000
+Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Could you please describe the symptom that you are trying to fix.
+Yu, Luming wrote:
 
-Thanks,
-Luming
------Original Message-----
-From: sjb [mailto:ottaky-XuTx12Z7TonQT0dZR+AlfA@public.gmane.org]
-Sent: 2003?5?12? 23:05
-To: ACPI List
-Subject: Re: [ACPI] iasl
+> Could you please describe the symptom that you are trying to fix.
 
-
-Ducrot Bruno wrote:
-
-> Ok.  It is a classic M1533.  Then 0x74 for this
-> southbridge have to be acceded as byte, not as double word (may be
-> different in an intel chip)
-
-I'll give it a go .. thanks.
+I'm not trying to fix anything - I'm intending to upgrade the U1 in the 
+near future (to SuSE 8.2) and I want to make sure I have everything I 
+need to make sure the ACPI is working properly.
 
 sjb
 
-
-
--------------------------------------------------------
-Enterprise Linux Forum Conference & Expo, June 4-6, 2003, Santa Clara
-The only event dedicated to issues related to Linux enterprise solutions
-www.enterpriselinuxforum.com
-
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
