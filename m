@@ -1,14 +1,11 @@
-From: "Wang, Zhenyu Z" <zhenyu.z.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Re: [BKPATCH] ACPI for 2.6
-Date: Fri, 25 Jun 2004 10:13:56 +0800
+From: Z F <mail4me9999-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: can not access battery status
+Date: Thu, 24 Jun 2004 19:56:29 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <6E0C289723A0564F9A8279E236E8565F07A9E170@pdsmsx402.pd.intel.com>
+Message-ID: <20040625025629.66989.qmail@web20416.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-2022-jp"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,35 +14,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hello eveybody,
 
-Fine. It is simple.
-How about to change " int active[9]; " 
-to 
-"int active[ACPI_THERMAL_MAX_ACTIVE];" ?
+Could someone help me to resolve this problem.
 
--zhen
------Original Message-----
-From: Stefan Seyfried [mailto:seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org] 
-Sent: 2004年6月25日 4:16
-To: Wang, Zhenyu Z
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: Re: [ACPI] Re: [BKPATCH] ACPI for 2.6
+I have a Dell Latitude X300 and I get this error when the battery
+module
+is loaded:
 
-On Thu, Jun 24, 2004 at 12:22:14PM +0800, Wang, Zhenyu Z wrote:
->  
-> The patch there needs to be reviewed...not enough time to do it now.
-> Thanks for pointing it out.
+    ACPI-0347: *** Error: Handler for [EmbeddedControl] returned
+AE_BAD_PARAMETER
+    ACPI-1133: *** Error: Method execution failed [\_SB_.BAT1._STA]
+(Node c1151240), AE_AML_NO_RETURN_VALUE
+    ACPI-0347: *** Error: Handler for [EmbeddedControl] returned
+AE_BAD_PARAMETER
+    ACPI-1133: *** Error: Method execution failed [\_SB_.BAT2._STA]
+(Node c1151480), AE_AML_NO_RETURN_VALUE
 
-Pavel Machek sanity-checked it (my version, the simpler one in
-http://bugzilla.kernel.org/attachment.cgi?id=2730&action=view) so
-i believe it is not that bad :-))
--- 
-Stefan Seyfried
 
+Also, when I load  the ac module, I get this:
+    ACPI-0347: *** Error: Handler for [EmbeddedControl] returned
+AE_BAD_PARAMETER
+    ACPI-1133: *** Error: Method execution failed [\_SB_.ADP1._PSR]
+(Node c1153e40), AE_BAD_PARAMETER
+
+
+This looks like there is a common problem. I do not know where to start
+to look for the solution. Any suggestion is highly appreciated.
+
+Thank you very much
+
+Lazar
+
+
+		
+__________________________________
+Do you Yahoo!?
+Yahoo! Mail Address AutoComplete - You start. We finish.
+http://promotions.yahoo.com/new_mail 
 
 
 -------------------------------------------------------
