@@ -1,17 +1,14 @@
-From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
-Subject: Re: S3 resume broken in 2.6.
-Date: Tue, 22 Jun 2004 12:19:19 +0000
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: [PATCH] thermal active cooling step
+Date: Tue, 22 Jun 2004 19:37:08 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200406221219.20439.stefandoesinger@gmx.at>
-References: <GMail.1087700004.208457790.35614235518@brewt.org> <200406211539.48269.stefandoesinger@gmx.at> <20040621141227.GD14607@wotan.suse.de>
-Reply-To: stefandoesinger-RbZlAiThDcE@public.gmane.org
+Message-ID: <20040622173707.GA26555@elf.ucw.cz>
+References: <6E0C289723A0564F9A8279E236E8565F078052FF@pdsmsx402.pd.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040621141227.GD14607-B4tOwbsTzaBolqkO4TVVkw@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <6E0C289723A0564F9A8279E236E8565F078052FF-4yWAQGcml64divtuJNk2fFDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,29 +17,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+To: "Wang, Zhenyu Z" <zhenyu.z.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Qiang, Mike" <mike.qiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Zhu, Yi" <yi.zhu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> Which driver does your sound card drive? Better would be to give
-> this driver an empty suspend/resume method that does nothing.
-i810_audio or snd_intel8x0.
-In my system, there's at least one other card which causes the same problem.
-> > I attached a path which undoes the change described above and should make
-> > S3 work again.
->
-> Overall the pci config space save/restore fixes much more resume
-> problems than it causes new one, so this sledgehammer is the wrong
-> solution.
-I agree. I'd prefer a solution for the pci_write config fix.
-The strange thing is that I can fix the PCI configuration with setpci after 
-resume.
+Hi!
 
-Disabling the default resume is a quick help for my system.
+> I have a question about thermal active cooling process that we do 
+> in acpi_thermal_active. 
+> For example, if _AC0 is lower than current temperature, we set maxtemp
+> to _AC0's temperature then turn it on. Next step is checking _AC1, if
+> _AC1 
+> is also lower than current, we turn it on by ignore maxtemp in current
+> code.
+> 
+> According to the Spec, _AC0 should be greater than _AC1's cooling
+> strength.
+> (If two fans are in system, AC0 includes both two and AC1 may include
+> one of them)
+> So i think the variable maxtemp seems not be used properly here.
+> 
+> Pls, see my patch attached. And correct me if I am wrong.
 
-I can provide further information if necessary.
+At least indentation is very wrong. Plus please include patches in the
+text, *not* as attachments.
+								Pavel
 
-Stefan
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
