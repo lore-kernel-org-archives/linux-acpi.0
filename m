@@ -1,15 +1,13 @@
-From: Jochen Reinwand <jbr.1-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Re: Vaio PGC-FXA47 Troubles
-Date: Mon, 19 Aug 2002 10:52:55 +0200
+From: Jari Ruusu <jari.ruusu-+kynuGyeZW3HOG6cAo2yLw@public.gmane.org>
+Subject: Re: ACPI + loop(AES) + swsusp
+Date: Mon, 19 Aug 2002 19:44:00 +0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200208191052.55710.jbr.1@gmx.net>
-References: <200208182302.01068.andre@masella.dynodns.net>
+Message-ID: <3D612050.F980C545@pp.inet.fi>
+References: <Pine.SOL.4.44.0208181454300.2717-100000@mimosa.csv.warwick.ac.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200208182302.01068.andre-C0YGx8wpusqlKpGPh6I4hdHuzzzSOjJt@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,33 +16,35 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: Andre Masella <andre-C0YGx8wpusqlKpGPh6I4hdHuzzzSOjJt@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "John J. Lee" <jjl-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>
+Cc: Robert Stark <rstark-viLzafFedAGELgA04lAiVw@public.gmane.org>, Linux Mailinglists <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-crypto-qDhp9YYfzQpg9hUCZPvPmw@public.gmane.org, swsusp-LcL5texQODR2DW0IdvIQ2g@public.gmane.org, Sean Neakums <sneakums-iTLVOByc1N8@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-2.4.19 is no good idea for a notebook that requires ACPI! The ACPI part of the 
-kernel is totally out of date. There are a lot of bug fixes in the newer 
-patches, that I really need to get my Vaio running at all.
-There's currently no patch against 2.4.19. The current release will be put 
-into 2.4.20. At the moment the best is to use a 2.4.18 and fetch the newest 
-patch from http://sourceforge.net/projects/acpi/.
+"John J. Lee" wrote:
+> Given your point about security, wouldn't it be nice if there were yet
+> another flag to indicate that encrypted partitions should just be
+> turned off on suspend?
+> 
+> This is more useful than it sounds -- not all partitions are mounted all
+> the time.  It might actually be convenient if you don't want to
+> accidentally leave a partition accessible when you walk away from a
+> machine and forget to losetup -d, or whatever.
 
-Most likely you will NOT get a working suspend with that combination. There 
-are a lot of problems with suspend. The major work is currently done in 2.5.
-But you will be able to use more features of ACPI with the patch. E.g. I can 
-throttle my CPU via /proc/acpi/processor/CPU0/throttling. It's a lot of fun 
-having a 1GHz notebook running at the speed of an old 386 ;-)
+Like Sean Neakums pointed out in earlier post to linux-crypto list, just
+forcing unmount or losetup -d is not really an option. Maybe just checking
+for encrypted loops in userspace _before_ starting suspend is a better
+solution. Something like this:
 
-regards
-Jochen
+#!/bin/bash
+if losetup -a | grep -q -s "AES" ; then
+    echo "Found active encrypted loops, suspend aborted"
+    exit 1
+fi
+echo "now suspending..."
+echo "1 0 0" > /proc/sys/kernel/swsusp
 
-> I just got a Vaio FXA47 notebook and am having two seperate problems. I am
-> running Gentoo with a Linux 2.4.19 kernel (from kernel.org -- not patched)
-> and acpid 1.0.1
-> The first is I cannot suspend the system. The /proc/acpi/sleep file
-> contains "S0 S3 S4 S5" but using 0, 4, or 5 powers off the system. 3 seems
-> to suspend it, but then it cannot be resumed. Is there a working suspend?
-> The /proc/acpi/battery/ directory is empty. There is a battery in the
-> system, but it doesn't show up in that directory. What's wrong?
+Regards,
+Jari Ruusu <jari.ruusu-+kynuGyeZW3HOG6cAo2yLw@public.gmane.org>
 
 
 
