@@ -1,14 +1,14 @@
-From: "KOCHI, Takayoshi" <t-kouchi-dPjYVeZdYcz+G+EEi5ephHgSJqDPrsil@public.gmane.org>
+From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
 Subject: Re: 2.4 patch updated
-Date: Wed, 21 Aug 2002 14:53:50 -0700
+Date: Wed, 21 Aug 2002 23:02:23 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020822065349.GAHNC0A82650.6C9EC293@mvf.biglobe.ne.jp>
-References: <EDC461A30AC4D511ADE10002A5072CAD0236DDBF@orsmsx119.jf.intel.com> <20020821221314.M29958@parcelfarce.linux.theplanet.co.uk>
+Message-ID: <20020821230223.O29958@parcelfarce.linux.theplanet.co.uk>
+References: <EDC461A30AC4D511ADE10002A5072CAD0236DDBF@orsmsx119.jf.intel.com> <20020821221314.M29958@parcelfarce.linux.theplanet.co.uk> <20020822065349.GAHNC0A82650.6C9EC293@mvf.biglobe.ne.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20020821221314.M29958-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20020822065349.GAHNC0A82650.6C9EC293-dPjYVeZdYcz+G+EEi5ephHgSJqDPrsil@public.gmane.org>; from t-kouchi-dPjYVeZdYcz+G+EEi5ephHgSJqDPrsil@public.gmane.org on Wed, Aug 21, 2002 at 02:53:50PM -0700
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,37 +17,25 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: "KOCHI, Takayoshi" <t-kouchi-dPjYVeZdYcz+G+EEi5ephHgSJqDPrsil@public.gmane.org>
+Cc: willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Matthew,
+On Wed, Aug 21, 2002 at 02:53:50PM -0700, KOCHI, Takayoshi wrote:
+> At least one here:)
+> I've just started to do the same thing.  If you already have one,
+> could you send a copy to me?
 
-On Wed, 21 Aug 2002 22:13:14 +0100
-Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org> wrote:
+Sure.  I'll generate it now.
 
-> On Wed, Aug 21, 2002 at 01:00:56PM -0700, Grover, Andrew wrote:
-> > > From: Shane Wegner [mailto:shane-Fc3cphJJY5I@public.gmane.org] 
-> > > Getting this working under 2.4.19(vanilla) is trivial and
-> > > involves a minor merge in i386/setup.c.  For those who need
-> > > it, patch is at:
-> > > <http://www.cm.nu/~shane/acpi-20020821-2.4.19.diff.gz>
-> > 
-> > Cool! Unless you have any objections I'll stick this up on sf.net as well.
-> 
-> fwiw, i have 2.5.31-20020815 merged into the ia64 2.4.18-20020722 patch.
-> nobody's shown any particular interest in it before, so i haven't bothered
-> asking for it to be posted ... is there interest?
+> Did you send it to David / Bjorn to include in 2.4.19 ia64 patch?
 
-At least one here:)
-I've just started to do the same thing.  If you already have one,
-could you send a copy to me?
+Nope -- Bjorn has access to the same source tree I commit the acpi
+patches to.  David didn't want to introduce a new revision of ACPI if
+he could avoid it, but I'm not sure what Bjorn will do.
 
-Did you send it to David / Bjorn to include in 2.4.19 ia64 patch?
-
-Thanks,
 -- 
-KOCHI, Takayoshi <t-kouchi-f7IHDacdhdx8UrSeD/g0lQ@public.gmane.org/t-kouchi>
-
+Revolutions do not require corporate support.
 
 
 -------------------------------------------------------
