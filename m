@@ -1,7 +1,7 @@
 From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
 Subject: Re: Machine no longer enters C3 on 2.6.11-rc1-bk
-Date: Thu, 20 Jan 2005 12:01:56 +0100
-Message-ID: <20050120110156.GG1452@elf.ucw.cz>
+Date: Thu, 20 Jan 2005 12:06:28 +0100
+Message-ID: <20050120110628.GH1452@elf.ucw.cz>
 References: <20050120104033.GA25889@elf.ucw.cz> <16879.36609.94551.926755@aber.ac.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -32,12 +32,14 @@ Hi!
 > beginning, since 2.6.10.  It has always been like that up to 2.6.6, became
 > better from 2.6.7 (but had other problems with that).
 > 
+> Fred
+> 
 > P.S.  I didn't check bus master activity.  How do you do that?
 
-There's something wrong with bus master activity indicator: it seems
-to be updated every HZ or something like that... that results in a bad
-stuff if HZ=100... activiy is now non-zero and machine refuses to go
-C3.
+can you try to kill all bm_activity++ things in
+drivers/acpi/processor.c and see what it does to your power
+consumption. (Warning: it may do bad stuff to your performance).
+
 								Pavel
 -- 
 People were complaining that M$ turns users into beta-testers...
