@@ -1,13 +1,15 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Re: [SoftwareSuspend-devel] One more ACPI event glitch
-Date: Fri, 19 Nov 2004 15:03:17 -0800
-Message-ID: <37F890616C995246BE76B3E6B2DBE05502B3AA0B@orsmsx403.amr.corp.intel.com>
+From: Meelis Roos <mroos-Y27EyoLml9s@public.gmane.org>
+Subject: Re: [PATCH] smsc-ircc2: Add PnP support.
+Date: Sat, 20 Nov 2004 01:09:36 +0200 (EET)
+Message-ID: <Pine.SOC.4.61.0411200102580.12992@math.ut.ee>
+References: <E1CVAfT-0002n9-Rn@rhn.tartu-labor> <419E16E5.1000601@free.fr>
+ <419E17FF.1000503@free.fr> <Pine.SOC.4.61.0411191822030.9059@math.ut.ee>
+ <419E2D2B.4020804@free.fr> <Pine.SOC.4.61.0411191934070.29328@math.ut.ee>
+ <419E3B7A.4000904@free.fr>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <419E3B7A.4000904-GANU6spQydw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,133 +19,151 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, =?iso-8859-1?Q?Sebastian_K=FCgler?= <lists-rLvmVVbSMWNg9hUCZPvPmw@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: SoftwareSuspend Development <softwaresuspend-devel-0fE9KPoRgkgATYTw5x5z8w@public.gmane.org>
+To: matthieu castet <castet.matthieu-GANU6spQydw@public.gmane.org>
+Cc: Linux Kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jean Tourrilhes <jt-yAE0UhLNZJawPNPzzlOzwdBPR1lH4CV8@public.gmane.org>, Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-> > ACPI-0681: *** Error: acpi_ev_gpe_dispatch: Unable to queue handler =
-for
-> > GPE[ 0], event is disabled
+I tried it with pnpbios (acpi=off) and it started to work after auto and 
+activate (but not with auto alone):
 
+nartsiss:/# modprobe smsc-ircc2
+found SMC SuperIO Chip (devid=0x5a rev=00 base=0x002e): LPC47N227
+smsc_superio_flat(): IrDA not enabled
+smsc_superio_flat(): fir: 0x00, sir: 0x00, dma: 15, irq: 0, mode: 0x02
+FATAL: Error inserting smsc_ircc2 (/lib/modules/2.6.10-rc2/kernel/drivers/net/irda/smsc-ircc2.ko): No such device
+nartsiss:/# echo activate > resources
+pnp: Device 00:0f activated.
+nartsiss:/# modprobe smsc-ircc2
+found SMC SuperIO Chip (devid=0x5a rev=00 base=0x002e): LPC47N227
+smsc_superio_flat(): fir: 0x2e8, sir: 0x100, dma: 03, irq: 5, mode: 0x0e
+SMsC IrDA Controller found
+  IrCC version 2.0, firport 0x2e8, sirport 0x100 dma=3, irq=5
+No transceiver found. Defaulting to Fast pin select
+IrDA: Registered device irda0
 
-This message happens if there is an exception returned from =
-AcpiOsQueueForExecution.
+>>> Could you send me the result of : "for i in /sys/bus/pnp/devices/*; do cat 
+>>> $i/id $i/options; done" in order to see if other devices have missing 
+>>> resources ?
 
-I'll change the error message to print the exact exception code.
+The output with pnpbios is below for comparision.
 
-Bob
+>> PNP0c01
+>> PNP0200
+>> PNP0800
+>> PNP0c04
+>> PNP0303
+>> PNP0f13
+>> PNP0b00
+>> PNP0c02
+>> PNP0700
+>> port 0x3f0-0x3f0, align 0x0, size 0x6, 16-bit address decoding
+>> port 0x3f7-0x3f7, align 0x0, size 0x1, 16-bit address decoding
+>> irq 6 High-Edge
+>> dma 2 8-bit compatible
+> floppy : seem ok
+>> PNP0501
+>> Dependent: 01 - Priority acceptable
+>>    port 0x3f8-0x3f8, align 0x0, size 0x8, 16-bit address decoding
+>> Dependent: 02 - Priority acceptable
+>>    port 0x2f8-0x2f8, align 0x0, size 0x8, 16-bit address decoding
+>> Dependent: 03 - Priority acceptable
+>>    port 0x2e8-0x2e8, align 0x0, size 0x8, 16-bit address decoding
+>> Dependent: 04 - Priority acceptable
+>>    port 0x3e8-0x3e8, align 0x0, size 0x8, 16-bit address decoding
+> serial miss irq
+>> SMCf010
+>> Dependent: 01 - Priority acceptable
+>>    port 0x3f8-0x3f8, align 0x0, size 0x8, 16-bit address decoding
+>> Dependent: 02 - Priority acceptable
+>>    port 0x2e8-0x2e8, align 0x0, size 0x8, 16-bit address decoding
+>> Dependent: 03 - Priority acceptable
+>>    port 0x2f8-0x2f8, align 0x0, size 0x8, 16-bit address decoding
+>> Dependent: 04 - Priority acceptable
+>>    port 0x3e8-0x3e8, align 0x0, size 0x8, 16-bit address decoding
+> irda : miss io,irq,dma
+>> PNP0401
+>> Dependent: 01 - Priority acceptable
+>>    port 0x378-0x378, align 0x0, size 0x3, 16-bit address decoding
+>>    port 0x778-0x778, align 0x0, size 0x3, 16-bit address decoding
+>>    irq 7 High-Edge
+>> Dependent: 02 - Priority acceptable
+>>    port 0x278-0x278, align 0x0, size 0x3, 16-bit address decoding
+>>    port 0x678-0x678, align 0x0, size 0x3, 16-bit address decoding
+>>    irq 5 High-Edge
+>> Dependent: 03 - Priority acceptable
+>>    port 0x3bc-0x3bc, align 0x0, size 0x3, 16-bit address decoding
+>>    port 0x7bc-0x7bc, align 0x0, size 0x3, 16-bit address decoding
+>>    irq 7 High-Edge
+> parallel port: miss dma
+>> TOS6200
+>>
 
+PNP0c01
+PNP0200
+PNP0000
+PNP0100
+PNP0800
+PNP0c04
+PNP0303
+PNP0f13
+irq 12 High-Edge
+PNP0b00
+PNP0c02
+PNP0700
+port 0x3f0-0x3f0, align 0x0, size 0x6, 16-bit address decoding
+port 0x3f7-0x3f7, align 0x0, size 0x1, 16-bit address decoding
+irq 6 High-Edge
+dma 2 8-bit byte-count compatible
+PNP0501
+irq 3,4,5,7,10,11 High-Edge
+Dependent: 01 - Priority acceptable
+    port 0x3f8-0x3f8, align 0x0, size 0x8, 16-bit address decoding
+Dependent: 02 - Priority acceptable
+    port 0x2f8-0x2f8, align 0x0, size 0x8, 16-bit address decoding
+Dependent: 03 - Priority acceptable
+    port 0x2e8-0x2e8, align 0x0, size 0x8, 16-bit address decoding
+Dependent: 04 - Priority acceptable
+    port 0x3e8-0x3e8, align 0x0, size 0x8, 16-bit address decoding
+SMCf010
+PNP0510
+port 0x100-0x130, align 0xf, size 0x8, 16-bit address decoding
+irq 3,4,5,7,10,11 High-Edge
+dma 1,2,3 16-bit byte-count compatible
+Dependent: 01 - Priority acceptable
+    port 0x3f8-0x3f8, align 0x0, size 0x8, 16-bit address decoding
+Dependent: 02 - Priority acceptable
+    port 0x2e8-0x2e8, align 0x0, size 0x8, 16-bit address decoding
+Dependent: 03 - Priority acceptable
+    port 0x2f8-0x2f8, align 0x0, size 0x8, 16-bit address decoding
+Dependent: 04 - Priority acceptable
+    port 0x3e8-0x3e8, align 0x0, size 0x8, 16-bit address decoding
+PNP0401
+dma 1,2,3 8-bit byte-count compatible
+Dependent: 01 - Priority acceptable
+    port 0x378-0x378, align 0x0, size 0x3, 16-bit address decoding
+    port 0x778-0x778, align 0x0, size 0x3, 16-bit address decoding
+    irq 7 High-Edge
+Dependent: 02 - Priority acceptable
+    port 0x278-0x278, align 0x0, size 0x3, 16-bit address decoding
+    port 0x678-0x678, align 0x0, size 0x3, 16-bit address decoding
+    irq 5 High-Edge
+Dependent: 03 - Priority acceptable
+    port 0x3bc-0x3bc, align 0x0, size 0x3, 16-bit address decoding
+    port 0x7bc-0x7bc, align 0x0, size 0x3, 16-bit address decoding
+    irq 7 High-Edge
+PNP0a03
+PNP0e03
+PNP0e00
+Dependent: 01 - Priority acceptable
+    port 0x3e0-0x3e0, align 0x0, size 0x2, 16-bit address decoding
+    irq <none> High-Edge
+Dependent: 02 - Priority acceptable
+    port 0x3e0-0x3e0, align 0x0, size 0x2, 16-bit address decoding
+    irq 3,4,5,7,10,11 High-Edge
 
-> -----Original Message-----
-> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
-> admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Nigel Cunningham
-> Sent: Friday, November 19, 2004 2:29 PM
-> To: Sebastian K=FCgler; ACPI List
-> Cc: SoftwareSuspend Development
-> Subject: [ACPI] Re: [SoftwareSuspend-devel] One more ACPI event glitch
->=20
-> Hi.
->=20
-> On Sat, 2004-11-20 at 04:41, Sebastian K=FCgler wrote:
-> > Hi!
-> >
-> > I got hangs during resume, every second or third time I try to. =
-Enabling
-> > debugging show the following error written over and over again:
-> > ----------
-> > ACPI-0681: *** Error: acpi_ev_gpe_dispatch: Unable to queue handler =
-for
-> > GPE[ 0], event is disabled
-> > ----------
-> > Usually, if I hard-reset, then try to resume again, telling suspend2 =
-not
-> > to wipe out the image but resume from it, it works fine.
-> >
-> > Is there something I can do about it?
->=20
-> I suppose the simple solution for the moment is to comment out the =
-error
-> line in drivers/acpi/events/evgpe.c. ACPI guys, is there a better
-> solution? (Should we be hitting this line in the first place?).
->=20
-> > Should I bug the ACPI people?
->=20
-> Done :>
->=20
-> > Might this even be [1] in yet another fashion?
->=20
-> I'll leave that one to the ACPI guys :>
->=20
-> > Should 2.1.5.6 fix this problem?
->=20
-> It won't make a difference.
->=20
-> > Here's my debug_info:
-> > - SUSPEND core   : 2.1.5
-> > - Kernel Version : 2.6.9-ck3-suspend2
-> > - Compiler vers. : 3.3
-> > - Modules loaded : uhci_hcd usb_storage snd_pcm_oss snd_mixer_oss =
-ipv6
-> > ipt_state ipt_limit ipt_REJECT ipt_LOG ipt_MASQUERADE iptable_mangle
-> > iptable_nat ip_conntrack iptable_filter ip_tables eth1394 ohci1394
-> > ieee1394 snd_intel8x0 snd_ac97_codec snd_pcm snd_timer =
-snd_page_alloc
-> > snd_mpu401_uart snd_rawmidi snd_seq_device snd usbhid intel_agp =
-joydev
-> > evdev orinoco_cs ds orinoco hermes yenta_socket pcmcia_core radeon
-> > agpgart
-> > - Attempt number : 16
-> > - Parameters     : 0 2048 0 0 400 8192 5
-> > - Limits         : 131066 pages RAM. Initial boot: 126835.
-> > - Overall expected compression percentage: 0.
-> > - LZF Compressor enabled.
-> >   Compressed 418541568 bytes into 204863655 (51 percent =
-compression).
-> > - Swapwriter active.
-> >   Swap available for image: 204936 pages.
-> > - Debugging compiled in.
-> > - I/O speed: Write 29 MB/s, Read 33 MB/s.
-> >
-> > (I've also patched my kernel with Con Kolivas patchset [2], as you =
-might
-> > notice, also bootsplash is used. My .config can be found at [3])
-> >
-> > [1] http://bugme.osdl.org/show_bug.cgi?id=3D1847
-> > [2] http://members.optusnet.com.au/ckolivas/kernel/
-> > [3] http://vizzzion.org/~sebas/config.gz
->=20
-> Regards,
->=20
-> Nigel
-> --
-> Nigel Cunningham
-> Pastoral Worker
-> Christian Reformed Church of Tuggeranong
-> PO Box 1004, Tuggeranong, ACT 2901
->=20
-> You see, at just the right time, when we were still powerless, Christ
-> died for the ungodly.		-- Romans 5:6
-> --
-> Nigel Cunningham
-> Pastoral Worker
-> Christian Reformed Church of Tuggeranong
-> PO Box 1004, Tuggeranong, ACT 2901
->=20
-> You see, at just the right time, when we were still powerless, Christ
-> died for the ungodly.		-- Romans 5:6
->=20
->=20
->=20
-> -------------------------------------------------------
-> This SF.Net email is sponsored by: InterSystems CACHE
-> FREE OODBMS DOWNLOAD - A multidimensional database that combines
-> robust object and relational technologies, making it a perfect match
-> for Java, C++,COM, XML, ODBC and JDBC. www.intersystems.com/match8
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+-- 
+Meelis Roos (mroos-Y27EyoLml9s@public.gmane.org)
 
 
 -------------------------------------------------------
