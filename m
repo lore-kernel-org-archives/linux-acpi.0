@@ -1,10 +1,11 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [BK PATCH] ACPI updates (resend #1)
-Date: Mon, 7 Oct 2002 13:08:34 -0700
+From: =?iso-8859-1?Q?Ville_Syrj=E4l=E4?= <syrjala-ORSVBvAovxo@public.gmane.org>
+Subject: [PATCH] IRQ derive fix
+Date: Tue, 8 Oct 2002 01:53:51 +0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DF08@orsmsx119.jf.intel.com>
+Message-ID: <20021008015351.A16060@sci.fi>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -14,93 +15,28 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus, please do a
+This fixes the IRQ routing for my AGP slot. I'm not sure it's correct but
+at least it works and the IO APIC code does things this way. Now my G400
+get's the IRQ assigned by the BIOS.
 
-	bk pull http://linux-acpi.bkbits.net/linux-acpi
+--- linux-2.4.20-pre7/drivers/acpi/pci_irq.c~   Thu Sep 19 17:17:58 2002
++++ linux-2.4.20-pre7/drivers/acpi/pci_irq.c    Tue Oct  8 01:45:29 2002
+@@ -285,7 +285,7 @@
+         * PCI interrupt routing entry (a.k.a. the "bridge swizzle").
+         */
+        while (!irq && (bridge = bridge->bus->self)) {
+-               pin = (pin + PCI_SLOT(bridge->devfn)) % 4;
++               pin = (pin + PCI_SLOT(dev->devfn)) % 4;
+                irq = acpi_pci_irq_lookup(0, bridge->bus->number, PCI_SLOT(bridge->devfn), pin);
+        }
 
-This will update the following files:
-
- arch/i386/kernel/mpparse.c         |    6 +
- drivers/acpi/acpi_ksyms.c          |    4 -
- drivers/acpi/blacklist.c           |    2 
- drivers/acpi/dispatcher/dsfield.c  |   17 ++--
- drivers/acpi/dispatcher/dsobject.c |   24 +-----
- drivers/acpi/dispatcher/dsutils.c  |   16 +---
- drivers/acpi/dispatcher/dswload.c  |  133
-+++++++++++++++++++------------------
- drivers/acpi/dispatcher/dswscope.c |    6 -
- drivers/acpi/events/evevent.c      |   16 ++--
- drivers/acpi/executer/exconvrt.c   |   15 ++--
- drivers/acpi/executer/excreate.c   |   65 ++++++++++++++----
- drivers/acpi/executer/exdump.c     |   10 ++
- drivers/acpi/executer/exoparg2.c   |   67 ++++++++++++++++--
- drivers/acpi/executer/exresnte.c   |   13 +++
- drivers/acpi/executer/exresop.c    |   92 ++++++++++++-------------
- drivers/acpi/executer/exstore.c    |    8 +-
- drivers/acpi/executer/exstorob.c   |   21 +++--
- drivers/acpi/include/acconfig.h    |    4 -
- drivers/acpi/include/acmacros.h    |    4 -
- drivers/acpi/include/acnamesp.h    |   10 ++
- drivers/acpi/include/acutils.h     |    2 
- drivers/acpi/namespace/nsdump.c    |   13 ++-
- drivers/acpi/namespace/nsutils.c   |   50 +++++++++++++
- drivers/acpi/osl.c                 |   19 +----
- drivers/acpi/pci_irq.c             |    6 +
- drivers/acpi/processor.c           |    3 
- drivers/acpi/sleep.c               |    2 
- drivers/acpi/tables/tbxface.c      |    4 -
- drivers/acpi/thermal.c             |   64 ++++++++++++++---
- drivers/acpi/utilities/utmisc.c    |    2 
- drivers/acpi/utils.c               |    2 
- 31 files changed, 453 insertions(+), 247 deletions(-)
-
-through these ChangeSets:
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/10/02 1.593)
-   ACPI: Interpreter update to 200201002
-   - Fix problem where a store/copy of a string did not set string length
-properly.
-   - Fix ToString operator
-   - Fix CopyObject not updating internal node type
-   - Fix a memory leak during implicit operand source conversion
-   - Enhanced error messages for namespace lookup problems
-   - Revamped Alias support
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/10/01 1.590)
-   ACPI: Initialize thermal driver's timer before it is used (Knut Neumann)
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/10/01 1.589)
-   ACPI: Add another cast to Bjoern's MADT walking fix to silence warning
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/10/01 1.588)
-   ACPI: Allow handling negative celsius values (Kochi Takayoshi)
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/10/01 1.587)
-   ACPI: Fix thermal management and make trip points R/W (Pavel Machek)
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/10/01 1.586)
-   ACPI: Fix /proc/acpi/sleep (P. Christeas)
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/10/01 1.585)
-   ACPI: IA64 fixes (David Mosberger)
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/10/01 1.584)
-   ACPI: Fix reversed logic in blacklist code (Sergio Monteiro Basto)
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/09/20 1.565.10.1)
-   ACPI: Replace ACPI_DEBUG define with ACPI_DEBUG_OUTPUT (Dominik
-Brodowski)
-
-
------------------------------
-Andrew Grover
-Intel Labs / Mobile Architecture
-andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-
+-- 
+Ville Syrjälä
+syrjala-ORSVBvAovxo@public.gmane.org
+http://www.sci.fi/~syrjala/
 
 
 -------------------------------------------------------
