@@ -1,14 +1,15 @@
-From: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
-Subject: Re: "irq 11: nobody cared" after S3
-Date: Mon, 02 Aug 2004 22:21:07 -0400
+From: Alison <alisonnbalter-kUR9hslMjh2rG/iDocfnWg@public.gmane.org>
+Subject: RE: Status (verification)
+Date: Mon, 02 Aug 2004 21:54:33 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <410EF693.1000009@optonline.net>
-References: <B44D37711ED29844BEA67908EAF36F03768BD0@pdsmsx401.ccr.corp.intel.com>
+Message-ID: <17121493.1091508873539.JavaMail.root@m10>
+References: <200408030452.AAA11914@isis.cnchost.com>
+Reply-To: Alison <alison-pDz3VWC6uHqjhi1xp7yX0pSV8f8jLKVU0E9HWUfgJXw@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7BIT
+Content-Type: multipart/alternative;
+	boundary="----=_Part_626033_12133480.1091508873537"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <B44D37711ED29844BEA67908EAF36F03768BD0-4yWAQGcml65pB2pF5aRoyrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-reply-to: <200408030452.AAA11914-xeavmENZdMnX2evXmvM/hg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,44 +18,154 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: stefandoesinger-RbZlAiThDcE@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Li, Shaohua wrote:
+------=_Part_626033_12133480.1091508873537
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
->I don't think your patch works, and even it works for your system, it
->will break other systems. The goal of 'setonboot' is to prevent setting
->LINK device's IRQ every time, which we added last year. Without it, many
->systems will break. IIRC, its goal is to resolve a bug in bugzilla. But
->currently I don't remember the exact bug number.
->  
->
-Hi, Shaohua,
+Alison here,
 
-I did some research on this, and came up with the original ChangeSet 
-that introduced setonboot:
+I'm protecting myself from receiving junk mail.
 
-ChangeSet 1.1046.1.424 2003/07/29 13:28:32 agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org
-  ACPI: Allow irqs > 15 to use interrupt semantics other than PCI's standard
-  active-low, level trigger. Make other changes as required for this.  
-(Andrew de Quincey)
 
-It looks like the setonboot flag was only introduced because calling the 
-BIOS again might reset the edge/level and low/high flags. Judging by the 
-ChangeSet message, the extra BIOS calls were not originally a problem, 
-but getting rid of them was required for the additional edge/level feature.
+Just this once, click the link below so I can receive your emails.
+You won't have to do this again.
 
-If I can write my patch in such away that the link reconfiguration only 
-gets called ONCE upon S3 resume, with interrupts disabled, and then 
-resets the edge/level flags before re-enabling interrupts, will this be 
-OK with you? This would save lots of work on several different low-level 
-drivers. It might also fix the regressions that people are reporting 
-with the ELCR save/restore patch.
+http://spamarrest.com/a2?AmNlAGN2Bwb6LJAjnF1xMKMyoROfnKA0pl5mo3IlL2Izo3WaMF5hMKDj
 
-This should be less of a "workaround" -- not at all of one, I hope ;)
 
-Nathan
+
+
+Spam Arrest - Take control of your inbox!
+http://spamarrest.com/affl?702506
+
+------------------------------------------------------------
+You are receiving this message in response to your email to
+Alison, a Spam Arrest customer.
+
+Spam Arrest requests that senders verify themselves before
+their email is delivered.
+
+When you click the above link, you will be taken to a page
+with a graphic on it. Simply read the word in the graphic,
+type it into the form, and you're verified.
+
+You will only need to do this once per Spam Arrest customer.
+------------------------------------------------------------
+
+Webmasters help stop spam and make 50%.
+http://spamarrest.com/affl?702506/affiliates/index.jsp 
+
+------------------------------------------------------------
+
+------=_Part_626033_12133480.1091508873537
+Content-Type: text/html; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+<html>
+<head>
+
+<!--
+
+Alison here,
+
+I'm protecting myself from receiving junk mail.
+
+
+Just this once, click the link below so I can receive your emails.
+You won't have to do this again.
+
+http://spamarrest.com/a2?AmNlAGN2Bwb6LJAjnF1xMKMyoROfnKA0pl5mo3IlL2Izo3WaMF5hMKDj
+
+
+
+Spam Arrest - Take control of your inbox!
+http://spamarrest.com/affl?702506
+
+------------------------------------------------------------
+You are receiving this message in response to your email to 
+Alison, a Spam Arrest customer.
+
+Spam Arrest requests that senders verify themselves before 
+their email is delivered.  
+
+When you click the above link, you will be taken to a page 
+with a graphic on it. Simply read the word in the graphic, 
+type it into the form, and you're verified.
+
+You will only need to do this once per Spam Arrest customer.
+------------------------------------------------------------
+
+Webmasters help stop spam and make 50%.
+http://spamarrest.com/affl?702506/affiliates/index.jsp 
+
+------------------------------------------------------------
+
+
+-->
+
+
+<title>Spam Arrest Sender Verification</title>
+<style type='text/css'>
+body, p, td {
+    font-family : Verdana, Arial, Geneva, Helvetica, sans-serif;
+    font-size : 12px;
+}
+
+.smallgray {
+    font-family : Verdana, Arial, Geneva, Helvetica, sans-serif;
+    font-size : 9px;
+    color: #333333;
+}
+
+.formtip {
+    font-family : Verdana, Arial, Geneva, Helvetica, sans-serif;
+    font-size : 10px;
+    color: #999999;
+}
+</style>
+</head>
+<body bgcolor="#ffffff">
+Alison here,<br><br>I'm protecting myself from receiving junk mail.<br>
+<br><br>
+Just this once, click the link below so I can receive your emails.
+You won't have to do this again.
+<br><br>
+<a href="http://spamarrest.com/a2?AmNlAGN2BwcuL3OcYJEyqzIfDTkcp3EmYaAiqKWwMJMipzqyYz5yqQcOoTymo24j">http://spamarrest.com/a2?AmNlAGN2BwcuL3OcYJEyqzIfDTkcp3EmYaAiqKWwMJMipzqyYz5yqQcOoTymo24j</a>
+<p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<img src="http://img.spamarrest.com/img/emailfooter.gif" height=33 width=122 border=0>
+<!-- http://spamarrest.com/affl?702506 -->
+<p class="smallgray">
+You are receiving this message in response to your email to 
+Alison, a Spam Arrest customer.
+</p>
+<p class="smallgray">
+Spam Arrest requests that senders verify themselves before 
+their email is delivered.  
+</p>
+<p class="smallgray">
+When you click the above link, you will be taken to a page 
+with a graphic on it. Simply read the word in the graphic, 
+type it into the form, and you're verified.
+</p>
+<p class="smallgray">
+You will only need to do this once per Spam Arrest customer.
+</p>
+<p>
+Webmasters help stop spam and make 50%.<br>
+<a href="http://spamarrest.com/affl?702506/affiliates/index.jsp">http://spamarrest.com/affiliates</a>
+</p>
+
+------------------------------------------------------------
+</body>
+</html>
+
+------=_Part_626033_12133480.1091508873537--
+
 
 
 -------------------------------------------------------
