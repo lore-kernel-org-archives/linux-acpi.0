@@ -1,14 +1,16 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ACPI battery issue - Dell Inspiron 4150 - 2.6.1-rc1-mm2
-Date: Tue, 13 Jan 2004 11:31:13 +0800
+From: Jacek Blizinski <azidog-SDTLKeebBdLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Please Help!
+Date: Mon, 12 Jan 2004 23:11:00 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CBE@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <200401122311.00158.azidog@nyc.rr.com>
+References: <3ACA40606221794F80A5670F0AF15F8401720CBD@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401720CBD-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,41 +19,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Valdis.Kletnieks-PjAqaU27lzQ@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Monday 12 January 2004 21:46, you wrote:
+> All this features seems to need support from
+> other module like asus_acpi.c.
 
-> > # cp /proc/acpi/dsdt /tmp/dsdt.dat
-> > # iasl -d dsdt.dat
->=20
-> OK, after hunting down iasl, I've attached the output from=20
-> it.  Hopefully
-> you can figure out where the "unknown"s come from:
->=20
-> [~]2 cat /proc/acpi/battery/BAT1/state
-> present:                 yes
-> capacity state:          ok
-> charging state:          unknown
+There is a kernel driver written for the P2120 which works for the most part 
+except the volume control. This is because it relies on a GVOL And SVOL in 
+the P2120 dsdt that is not included in the P5010D. They are located in 
+DEVICE(FJEX) and the method names are Method(RVOL), Method(GVOL), 
+Method(SVOL,1) and I need help integrating them into the P5010D DSDT.
 
-Hmm, according to ACPI spec 2.0b 11.2.2.2 _BST ,
-the charging bit and the discharging bit are mutually
-exclusive and must not both set at the same time.
+Here is the volume code from the kernel module:
+http://www.openjacek.org/dsdt/volumesnip
 
-Currently ACPI coulde will return unknown if _BST
-return value break above rule.
+Here is the P2120 DSDT
+http://www.openjacek.org/dsdt/fuji2120.dsl
 
-Could you verify whether this is a BIOS bug that
-just as AML method expected, return wrong value,
-Or acpi interpreter mis-executed AML code.
+Here is the P5010D DSDT
+http://www.openjacek.org/dsdt/fujidsdt.dsl
 
-> present rate:            unknown
+Again thank you for any time you may spare.
 
-ACPI spec defined 0xFFFFFFFF as Unknown rate.
-So it seems to be reasonable to display "unknown".
-If you suspect this is issue, you can just verify it=20
-from _BST method.
-
+--Jacek Blizinski
 
 
 -------------------------------------------------------
