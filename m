@@ -1,15 +1,15 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: _OSI boot hang
-Date: 13 Mar 2004 03:22:31 -0500
+Subject: Re: latest ACPI CA Patch (20040311) - Where??
+Date: 13 Mar 2004 03:37:45 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1079166150.2168.94.camel@dhcppc4>
-References: <3ACA40606221794F80A5670F0AF15F8401CBB748@PDSMSX403.ccr.corp.intel.com>
-	 <20040311200031.J67848@root.org>  <1079073556.3868.37.camel@dhcppc4>
+Message-ID: <1079167065.2168.101.camel@dhcppc4>
+References: <C386328088ED7F4E9F81AFBABDDF60DA04A92629@wdmyexch02.my.asia.wdc.com>
+	 <1079143284.4097.10.camel@darkstar>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1079073556.3868.37.camel-D2Zvc0uNKG8@public.gmane.org>
+In-Reply-To: <1079143284.4097.10.camel-4/PLUo9XfK8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,52 +18,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Cc: Luming Yu <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
+Cc: Ow Mun Heng <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-_OSI is in the ACPI patch on kernel.org and bkbits right now.
+ACPICA 20040311 is how in all 12 trees here:
+http://linux-acpi.bkbits.net/
+and is in all 6 release directories under here:
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/
 
-However, I find that on my Toshiba Satellite Pro, it causes boot to hang
-at Executing all Device _STA and_INI methods.
+and the individual patch for it is here:
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/test/2.6.4/20040313021825-ACPICA20040311.patch
 
->From ACPICA, it comes this way:
-drivers/acpi/utilities/utglobal.c
-const char                         
-*acpi_gbl_valid_osi_strings[ACPI_NUM_OSI_STRINGS] = {
-                       "Linux",
-                       "Windows 2000",
-                       "Windows 2001",
-                       "Windows 2001.1"};
+Please let me know how it goes.
 
-
-I find that it is the match on "Windows 2001" that hangs my laptop...
-
-clues?
-
+thanks,
 -Len
 
-ACPI: Subsystem revision 20040311
- tbxface-0117 [03] acpi_load_tables      : ACPI Tables successfully
-acquired
-Parsing all Control
-Methods:...................................................................................................
-Table [DSDT](id F005) - 682 Objects with 72 Devices 183 Methods 6
-Regions
-Parsing all Control Methods:.....................
-Table [SSDT](id F003) - 46 Objects with 6 Devices 21 Methods 0 Regions
-ACPI Namespace successfully loaded at root c04b717c
-ACPI: IRQ9 SCI: Level Trigger.
-evxfevnt-0093 [04] acpi_enable           : Transition to ACPI mode
-successful
-evgpeblk-0747 [06] ev_create_gpe_block   : GPE 00 to 31 [_GPE] 4 regs at
-000000000000D828 on int 9
-Completing Region/Field/Buffer/Package
-initialization:......................................................
-Initialized 6/6 Regions 0/0 Fields 18/18 Buffers 30/30 Packages (736
-nodes)
-Executing all Device _STA and_INI
-methods:..................................................
 
 
 
