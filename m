@@ -1,13 +1,14 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/4] properly create kobjects in acpi/scan.c
-Date: 24 Aug 2004 15:50:44 -0400
+Subject: Re: Oops when loading ac
+Date: 24 Aug 2004 16:22:15 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1093377043.18588.268.camel@dhcppc4>
-References: <200408240134.16962.dtor_core@ameritech.net>
+Message-ID: <1093378935.17222.270.camel@dhcppc4>
+References: <412B86A9.80404@drzeus.cx>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-0aV3qh4uuSkotP1AOwjU"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200408240134.16962.dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
+In-Reply-To: <412B86A9.80404-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -16,149 +17,69 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
+To: Pierre Ossman <drzeus-list-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org>
 Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+no idea.
+does compiling the module static or disabling PREEMPT
+or disabling DEBUG_PAGEALLOC have any effect?
 
---=-0aV3qh4uuSkotP1AOwjU
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-
-On Tue, 2004-08-24 at 02:34, Dmitry Torokhov wrote:
-> Hi,
+On Tue, 2004-08-24 at 14:19, Pierre Ossman wrote:
+> Somewhere between 2.6.7 + acpi_20040715 and 2.6.8.1 (still present in 
+> 2.6.9-rc1) there appeared a bug that causes the ac module to crash when 
+> loading. I had no problems with the ac module before this. Any ideas on 
+> what has been changed and what to do about it?
 > 
-> I have a bunch of patches that I would like you to take a look at:
+> Rgds
+> Pierre
 > 
-> 01-acpi-scan-kobject.patch
-> 	- properly create/register kobjects - take reference to the parent
-> 	  since kobject_unregister will try dropping it potentially
-> 	  (if ACPI was ever to release created devices) causing parent be
-> 	  destroyed early) and use kobject_set_name to properly set name.
-
-I'll take a look.
-
-> 02-acpi-event-code.patch
-> 	- move event (userspace signalling) code from acpi/bus.c to
->           acpi/event.c as too many implementation details were exported,
-> 	  plus some additional fixes to the event handling code.
-
-I'll take a look.
-
-> 03-acpi-use-rwsem.patch
-> 	- kill brandead usage of acpi_device_lock & list_for_eacj_safe.
-> 	  list_for_each_safe is only safe in the sense that current
-> 	  element can be safely removed by the same thread that is using
-> 	  list_for_each_safe. List still has to be protected from other
-> 	  threads for entire duration of list traversal.
-> 	  Use acpi_subsys.rwsem instead of acpi_device_lock to protect
-> 	  lists.
-
-sounds like a bug.
-
-> Btw, why don't we just convert ACPI to be standard driver core bus with
-> standard drivers and devices? I could cook up something... The
-> /sys/firmware/acpi hierarchy is not populated with any useful data yet
-> so there should be no concern of breakign userspace interface (I am mot
-> talking about removing /proc/acpi part at the moment).
-
-Funny you should mention it.
-
-My current opinion is that /sys/firmware/acpi should probably
-not exist at all, and that there should be a single
-/sys/devices including both ACPI-enumerated and pci-enumerated
-devices.  Adam and I have been ganging up on Patrick on this,
-but we don't have him convinced yet...
-
-> 04-acpi-multiple-readers.patch
-> 	- allow multiple readrs access /proc/acpi/event, every event is
-> 	  delivered to all readers. Also limit number of pending events
-> 	  to 64 (per reader) so if reader is stuck ACPI does not consume
-> 	  all memory.
+>  From dmesg:
 > 
-> 	  Can be user by various daemons, I could see cpufreqd listening
-> 	  for battery insertion/removal events and debugging is much
-> 	  easier too.
-
-others have been frustrated by this also, so I tend to agree that
-we should probably address it.  Somebody can still contact acpid if they
-want to...  At some point, of course, we're going to have to move this
-out of /proc...
-
-> The patches are against last night pull from Linus repo.
-
-Note that if you did individual file comments, then I can preserve your
-comments if you export with bjorn's bkexport script (attached).
-
-thanks,
--Len
-
-
-
-
---=-0aV3qh4uuSkotP1AOwjU
-Content-Disposition: attachment; filename=bkimport
-Content-Type: text/plain; name=bkimport; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-#!/bin/sh
-
-# Import a bitkeeper patch, preserving author and per-file comments
-
-_import() {
-    PATCH=$1
-
-    FROM=`grep '^#### AUTHOR' $PATCH`
-    export BK_USER=`echo $FROM | sed -e 's/^#### AUTHOR //' -e 's/@.*//'`
-    export BK_HOST=`echo $FROM | sed -e 's/.*@//'`
-
-    echo Importing $PATCH from $BK_USER@$BK_HOST
-
-    #bk import -tpatch -qR $PATCH .
-    bk import -tpatch -vR $PATCH .
-    if [ $? -ne 0 ]; then
-	echo $PATCH: import failed
-	exit 0
-    fi
-    cat $PATCH |\
-	awk "/#### COMMENT START/ {p=1; next}; /#### COMMENT END/ {exit}; p==1" |\
-	bk comments -
-}
-
-for P in $@; do
-    _import $P
-done
-
---=-0aV3qh4uuSkotP1AOwjU
-Content-Disposition: attachment; filename=bkexport
-Content-Type: text/plain; name=bkexport; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-#!/bin/sh
-
-# Export a bitkeeper patch, adding author and per-file comments
-
-if [ $# -gt 1 ]; then
-	CSET=`bk r2c $*`
-	CSET="-r$CSET"
-else
-	CSET=$1
-fi
-
-echo -n "#### AUTHOR "
-bk cset $CSET |\
-    awk -F\| "{printf \"bk prs -r%s -h -d '\$if(:DPN:=ChangeSet){:USER:@:HOST:\\n}' %s\n\", \$2, \$1}" |\
-    sh
-echo "#### COMMENT START"
-bk cset $CSET |\
-    awk -F\| "{printf \"bk prs -r%s -h -d '### Comments for :DPN:\\n\$each(:C:){(:C:)\\n}' %s\n\", \$2, \$1}" |\
-    sh
-echo "#### COMMENT END"
-echo
-
-bk export -tpatch -du $CSET
-
---=-0aV3qh4uuSkotP1AOwjU--
+> Unable to handle kernel paging request at virtual address c0452440
+>  printing eip:
+> c0233162
+> *pde = 00488027
+> *pte = 00452000
+> Oops: 0002 [#1]
+> PREEMPT DEBUG_PAGEALLOC
+> Modules linked in: ac radeon ipv6 xfs
+> CPU:    0
+> EIP:    0060:[<c0233162>]    Not tainted VLI
+> EFLAGS: 00010246   (2.6.9-rc1)
+> EIP is at acpi_bus_register_driver+0xd4/0x169
+> eax: c0452440   ebx: e0903b40   ecx: e090336b   edx: ffffffed
+> esi: dd468000   edi: e0903c80   ebp: c03cec60   esp: dd469f84
+> ds: 007b   es: 007b   ss: 0068
+> Process insmod (pid: 573, threadinfo=dd468000 task=dd4909f0)
+> Stack: c03ceca0 e0905031 e0903b40 c014c54b c0469884 00000001 e0903c80 
+> 4003edfa
+>        0001120e bffffeec 00000004 40010008 00000000 00000000 dd468000 
+> c0106b79
+>        40010008 0002edf2 0807a008 00000000 00000000 bfffcef8 00000080 
+> 0000007b
+> Call Trace:
+>  [<e0905031>] init_module+0x31/0x52 [ac]
+>  [<c014c54b>] sys_init_module+0x1ab/0x370
+>  [<c0106b79>] sysenter_past_esp+0x52/0x71
+> Code: 00 00 00 a1 6c 75 3d c0 c7 05 f8 74 3d c0 7c f2 39 c0 c7 05 fc 74 
+> 3d c0 bd 01 00 00 89 1d 6c 75 3d c0 c7 03 68 75 3d c0 89 43 04 <89> 18 
+> 81 3d e8 74 3d c0 3c 4b 24 1d 74 1c 68 e8 74 3d c0 68 bf
+>  <6>note: insmod[573] exited with preempt_count 1
+> drivers/acpi/scan.c:445: spin_lock(drivers/acpi/scan.c:c03d74e8) already 
+> locked by drivers/acpi/scan.c/445
+> 
+> 
+> 
+> -------------------------------------------------------
+> SF.Net email is sponsored by Shop4tech.com-Lowest price on Blank Media
+> 100pk Sonic DVD-R 4x for only $29 -100pk Sonic DVD+R for only $33
+> Save 50% off Retail on Ink & Toner - Free Shipping and Free Gift.
+> http://www.shop4tech.com/z/Inkjet_Cartridges/9_108_r285
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 
