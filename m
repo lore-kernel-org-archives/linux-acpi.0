@@ -1,8 +1,10 @@
-From: admin-D+rt/XdnsX9sbIuE7sb01tBPR1lH4CV8@public.gmane.org
-Subject: Virus Detected by Network Associates, Inc. Webshield SMTP V4.5 MR1a
-Date: Sat, 31 Jan 2004 03:14:21 +0000 (UTC)
+From: clameter-Nz555wIdDUc3uPMLIKxrzw@public.gmane.org
+Subject: test
+Date: Thu, 29 Jan 2004 18:40:08 +0530
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E1AmlaN-0006zL-00@deer.gmane.org>
+Message-ID: <E1AmlpO-0007YU-00@deer.gmane.org>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; 	boundary="----=_NextPart_000_0007_31D4212F.57B7F796"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -12,13 +14,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-Date: Wed Jan 28 23:14:10 2004
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Network Associates WebShield SMTP V4.5 MR1a on lightning detected virus W32/Mydoom-TkFRTFPJOQk@public.gmane.org
-in attachment text.zip from <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org> and it was Deleted
-and Quarantined.
+This is a multi-part message in MIME format.
+
+
+------=_NextPart_000_0007_31D4212F.57B7F796
+Content-Type: text/plain; 	charset="Windows-1252"
+Content-Transfer-Encoding: 7bit
+
+
+
+
+
+
+------=_NextPart_000_0007_31D4212F.57B7F796
+Content-Type: text/plain;
+	name="InterScan_SafeStamp.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="InterScan_SafeStamp.txt"
+
+****** Message from InterScan E-Mail VirusWall NT ******
+
+** WARNING! Attached file readme.zip contains:
+
+     WORM_MIMAIL.R virus in compressed file readme.txt                                                                      .exe
+
+   Attempted to clean the file but it is not cleanable.
+   It has been deleted.
+
+This mail contains virus
+*****************     End of message     ***************
+
+
+------=_NextPart_000_0007_31D4212F.57B7F796--
+
 
 
 -------------------------------------------------------
