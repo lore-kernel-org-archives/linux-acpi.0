@@ -1,9 +1,12 @@
-From: Unknown <unknown@unknown.invalid>
-Subject: Virus Detected by Network Associates, Inc. Webshield SMTP V4.5 MR1a
-Date: Sat, 11 Dec 2004 01:39:49 +0000 (UTC)
-Message-ID: <E1CcwDK-0005Po-GC@sc8-sf-mx1.sourceforge.net>
+From: "Wilfredo H. Mathews" <w.mathewsif-LuRf1m3Sj+Xk/MXRxeQz+Q@public.gmane.org>
+Subject: Order Royal Replica Watches Online
+Date: Sat, 11 Dec 2004 06:03:19 -0600
+Message-ID: <4d4901c4df79$0805c800$fbcee34a@pggm.nl>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-From: <>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -13,13 +16,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-Date: Fri Dec 10 20:35:56 2004
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Network Associates WebShield SMTP V4.5 MR1a on ibixmaila detected virus
-W32/Bagle!eml.gen in attachment unknown from <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org> and it was
-deleted.
+Get the Finest Rolex Watch Replica!
+
+We only sell premium watches. There's no battery in these replicas just
+like the real ones since they charge themselves as you move. The second hand
+moves JUST like the real ones, too. These original watches sell in stores
+for thousands of dollars. We sell them for much less. 
+
+- Replicated to the Smallest Detail
+- 98% Perfectly Accurate Markings 
+- Signature Green Sticker w/ Serial Number on Watch Back
+- Magnified Quickset Date
+- Includes all Proper Markings
+
+Visit us: http://www.bhex.com/rep/rolx/
+
+All orders placed before December 12th will be at your door before
+Christmas!
+
+No thanks: http://www.bhex.com/z.php
+
 
 
 -------------------------------------------------------
