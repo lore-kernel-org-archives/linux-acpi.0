@@ -1,12 +1,12 @@
-From: Lorenzo Colitti <lorenzo-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: ACPI thermal event causes brief freeze
-Date: Fri, 25 Feb 2005 14:48:58 +0100
-Message-ID: <421F2CCA.1080001@colitti.com>
-References: <421E6D6C.2090906@colitti.com> <421EFF31.9060002@suse.de>
+From: Jos Delbar <jos.delbar-Cru1EgDzd7c@public.gmane.org>
+Subject: Re: strange buzzing sound after the 2.6.10 patch
+Date: Fri, 25 Feb 2005 12:03:28 +0100
+Message-ID: <200502251203.28438.jos.delbar@ugent.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <421EFF31.9060002-l3A5Bk7waGM@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,22 +16,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thomas Renninger wrote:
->> since I upgraded to kernel 2.6.11-rc4, every time there is a thermal 
->> event my machine (HP/compaq NC6000) freezes for about 1 second.
-> 
-> Have you enabled ACPI_DEBUG?
-> If yes, try again without.
+Jing,
 
-Wow, that seems to work like a charm. Thanks!
+Chances are that your laptop has imperfect electrical components that will 
+oscillate and cause a buzzing sound under certain conditions. An example of 
+such a condition is when ACPI promotes the processor to a higher C state in 
+order to save power. This is why you only notice the buzzing sound when the 
+processor is idle.
 
+With recent ACPI patches you can control the maximum C state through 
+the /sys/module/processor/parameters/max_cstate file. For example:
 
-Cheers,
-Lorenzo
+echo 2 > /sys/module/processor/parameters/max_cstate
+
+To get an idea of which C states are causing the buzzing sound, watch the 
+"usage" fields in the /proc/acpi/processor/CPU0/power file.
+
+You can also set the limit using the processor module parameter max_cstate at 
+boot time (or module load time).
+
+-- 
+
+- Jos Delbar
+  jos.delbar-Cru1EgDzd7c@public.gmane.org
 
 
 -------------------------------------------------------
