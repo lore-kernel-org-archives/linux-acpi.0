@@ -1,13 +1,16 @@
-From: dev_zero <dev_xor-eZNTXLQAfP4@public.gmane.org>
-Subject: RE: kacpid problems
-Date: Mon, 8 Nov 2004 21:41:54 +0100 (CET)
-Message-ID: <20041108204154.61643.qmail@web25304.mail.ukl.yahoo.com>
-References: <3ACA40606221794F80A5670F0AF15F84041AC02D@pdsmsx403>
+From: Johannes Kuhlmann <jkuhlmann-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Re: No battery information on a ACER Travelmate 4001LMi
+Date: Mon, 8 Nov 2004 22:05:58 +0100
+Message-ID: <47e0449d041108130567c6a40c@mail.gmail.com>
+References: <418A81FC.9030001@tiscali.be> <418A8315.50208@tiscali.be>
+	 <47e0449d04110705534dd09447@mail.gmail.com>
+	 <418F90F9.40602@mega.ist.utl.pt> <418F9587.9050108@mega.ist.utl.pt>
+Reply-To: Johannes Kuhlmann <jkuhlmann-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F84041AC02D@pdsmsx403>
+In-Reply-To: <418F9587.9050108-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,62 +23,16 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-You can download my DSDT table from my website or from
-this site:
-http://acpi.sourceforge.net/dsdt/view.php?id=224
-website: http://home.no.net/pusleole/#dsdt
+On Mon, 08 Nov 2004 15:49:27 +0000, Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org> wrote:
+> Absolutely no intention to criticise! just stating I did not see such
+> post. On the other hand, I joined the list after Li, so he probably said
+> that before i joined.
 
-I get some double emails from this mailinglist. When
-you guys send me replys you send to my email and a CC
-to the mailinglist. Because of this I get some
-messages two times. When I send a reply to someone
-lets say luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, should I send both a
-reply to this email and a CC to the mailinglist, or
-should I send the reply to just the mailinglist?
+No problem. I was actually referring to this post:
+http://sourceforge.net/mailarchive/message.php?msg_id=9485814
 
-> I'd like to see your box's DSDT to have a idea of
-> what's going on in your box.
-> 
-> Thanks
-> Luming 
-> 
-> >-----Original Message-----
-> >From: Laszlo 'GCS' Boszormenyi [mailto:gcs-gKC9iF2I70U@public.gmane.org] 
-> >Sent: 2004Äê11ÔÂ8ÈÕ 11:18
-> >To: Yu, Luming
-> >Cc: dev_zero; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> >Subject: Re: [ACPI] kacpid problems
-> >
-> >* Laszlo 'GCS' Boszormenyi <gcs-gKC9iF2I70U@public.gmane.org> [2004-11-08
-> 03:48:59 +0100]:
-> >
-> >> > Could you verify if killing kacpid can make the
-> thing better?
-> >>  This just happened to me again. I did
-> /etc/init.d/acpid stop, and it
-> >> did, but issuing halt left me with the
-> acpi_power_off called message.
-> >> I think some memory corruption may happen in
-> kernel space, 
-> >or it is just
-> >> ACPI failing for some reason.
-> > OK, just happened again, so update: I did
-> /etc/init.d/acpid stop; but
-> >as I saw CPU usage went to half kernel space, half
-> user space. But(!)
-> >now I can confirm that kacpid with pid 5 stuck in a
-> D state, 
-> >tried to do
-> >something, but the box was so crawling that I chose
-> to pull 
-> >out the cord
-> >instead.
-> >
-> >HTH,
-> >Laszlo
-> >
-> >
->  
+Regards,
+Johannes
 
 
 -------------------------------------------------------
