@@ -1,12 +1,14 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: APCI poweroff panic on shutdown
-Date: Fri, 25 Mar 2005 09:30:17 +0800
-Message-ID: <16A54BF5D6E14E4D916CE26C9AD305750178B71D@pdsmsx402.ccr.corp.intel.com>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: ACPI on hp Tablet TC1100
+Date: Fri, 25 Mar 2005 04:11:26 +0000
+Message-ID: <1111723887.11677.33.camel@tyrosine>
+References: <Pine.LNX.4.58.0503241657510.4376@dashnine>
+	 <1111704587.11677.27.camel@tyrosine>
+	 <Pine.LNX.4.58.0503241901440.4867@dashnine>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Content-class: urn:content-classes:message
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <Pine.LNX.4.58.0503241901440.4867@dashnine>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,73 +18,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Tom Duffy <tduffy-xsfywfwIY+M@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+On Thu, 2005-03-24 at 19:24 -0500, Joshua Wise wrote:
 
->I am seeing this panic when I poweroff my x86_64 machine.  It looks
-like
->ACPI is not quite right in this BIOS, but it shouldn't panic the
-kernel.
->
->acpi_power_off called
->    ACPI-0352: *** Error: Looking up [\_SB_.PCI0.NPTS] in namespace,
->AE_NOT_FOUND
->search_node ffff81003ffe65b8 start_node ffff81003ffe65b8 return_node
->0000000000000000
->    ACPI-1138: *** Error: Method execution failed [\PTS_] (Node
->ffff81003ffe65b8), AE_NOT_FOUND
->    ACPI-1138: *** Error: Method execution failed [\_PTS] (Node
->ffff8100bffccd48), AE_NOT_FOUND
->NMI Watchdog detected LOCKUP on CPU0CPU 0
->Modules linked in: ipmi_devintf ipmi_watchdog ipmi_poweroff
-ipmi_msghandler
->mptscsih(U) scsi_mod mptbase(U) e1000(U) parport_pc lp parport autofs4
-md5
->ipv6 sunrpc pcmcia yenta_socket rsrc_nonstatic pcmcia_core video button
->battery ac ohci_hcd ehci_hcd i2c_nforce2 i2c_core forcedeth dm_snapshot
->dm_zero dm_mirror ext3 jbd dm_mod
->Pid: 18326, comm: halt Not tainted 2.6.11-1.1191_FC4smp
->RIP: 0010:[<ffffffff8022f113>] <ffffffff8022f113>{acpi_os_read_port+44}
->RSP: 0018:ffff810036d11d60  EFLAGS: 00000046
->RAX: ffff810036d10011 RBX: ffffffff80446978 RCX: ffff8100400049a4
->RDX: 0000000000004000 RSI: ffff810036d11dac RDI: 0000000000004000
->RBP: 0000000000000001 R08: 0000000000000010 R09: 0000000000000001
->R10: 0000000000000001 R11: 0000000000000001 R12: 0000000000000000
->R13: ffff810036d11dec R14: 0000000000000000 R15: 0000000000000000
->FS:  00002aaaaaade3a0(0000) GS:ffffffff80505080(0000)
->knlGS:00000000f7fc66c0
->CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
->CR2: 0000003695c2c728 CR3: 000000007170b000 CR4: 00000000000006e0
->Process halt (pid: 18326, threadinfo ffff810036d10000, task
->ffff81013fa5b7c0)
->Stack: 0000000000000010 0000000000000010 ffffffff8023ad6a
-ffffffff8038aed9
->       ffffffff8023affd 0000000000004000 ffffffff8023ade7
-0000000000004023
->       0000000000000010 0000000000000000
->Call Trace:<ffffffff8023ad6a>{acpi_hw_low_level_read+126}
-><ffffffff8023affd>{acpi_hw_low_level_write+120}
->       <ffffffff8023ade7>{acpi_hw_register_read+116}
-><ffffffff8023af4a>{acpi_get_register+80}
->       <ffffffff8023b120>{acpi_hw_register_write+282}
-><ffffffff8023b671>{acpi_enter_sleep_state+427}
->       <ffffffff80148c02>{sys_reboot+434}
-><ffffffff8014660e>{group_send_sig_info+126}
->       <ffffffff80161991>{audit_syscall_entry+369}
-><ffffffff80111bec>{syscall_trace_enter+92}
->       <ffffffff8010ead6>{tracesys+113}
-<ffffffff8010eb36>{tracesys+209}
-This looks quite like a bug I observed in one VIA chipset based system,
-mine is a HT system. The system hangs when read one io port. Could you
-please add some log in 'acpi_os_read_port' to see which io port caused
-the bug? Could you please tell me your chipset information?
-In my test, it seems a BIOS specific issue, I can workaround the issue
-by a tricky method, but no real root cause found.
+> With those two, I get my console back after resuming, but no USB. If I had
+> actually remembered to plug the access point back in, I'm pretty sure
+> wireless would work.
 
-Thanks,
-Shaohua
+Unload USB modules before suspend, and reload them after resume. You
+probably want to write a script to do this.
+
+> I guess I should try starting X and doing a susp/res from there as the
+> logical next step. Testing... Hangs up on resume, no wifi on resume... dunno
+> if that's an artifact of nvidia just being initialized (and hence hanging)
+> first, or what.
+
+Seriously, give up on the nvidia driver if you want working ACPI. It
+just doesn't work properly. If I had the source code I'd try to debug
+it, but, well...
+
+> By the way, I noticed you're on freenode IRC -- you might be intereted in
+> #acpi4linux, a channel presently consisting of, er, me, but hopefully soon
+> others. (Or is there an IRC chan elsewhere that I didn't otherwise know of?)
+
+Sounds like a good plan. I'm heading away for the weekend - I'll see
+about this next week.
+
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+
 
 
 -------------------------------------------------------
