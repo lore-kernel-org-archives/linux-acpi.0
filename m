@@ -1,13 +1,13 @@
 From: Romano Giannetti <romanol-qvIf60buks8@public.gmane.org>
-Subject: Re: [PATCH, new ACPI driver] new sony_acpi driver
-Date: Wed, 16 Feb 2005 16:40:07 +0100
-Message-ID: <20050216154007.GA2142@pern.dea.icai.upco.es>
-References: <20050210161809.GK3493@crusoe.alcove-fr> <E1D0dqo-00041G-00@chiark.greenend.org.uk> <20050214105837.GE3233@crusoe.alcove-fr> <20050214203211.GA8007@ucw.cz> <20050215161412.GC20951@pern.dea.icai.upco.es> <20050216144156.GA4372@crusoe.alcove-fr>
+Subject: Re: Call for help: list of machines with working S3
+Date: Wed, 16 Feb 2005 17:10:00 +0100
+Message-ID: <20050216161000.GA3381@pern.dea.icai.upco.es>
+References: <20050214211105.GA12808@elf.ucw.cz> <20050215125555.GD16394@gamma.logic.tuwien.ac.at> <42121EC5.8000004@gmx.net> <20050215170837.GA6336@gamma.logic.tuwien.ac.at> <20050216093454.GC22816@pern.dea.icai.upco.es> <42135EAE.8030407@gmx.net>
 Reply-To: romano-1BxYRfzsdQW8A8a7gxElqg@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-15
 Content-Disposition: inline
-In-Reply-To: <20050216144156.GA4372-KwDxFO93HejPHUqn3ntIkQ@public.gmane.org>
+In-Reply-To: <42135EAE.8030407-hi6Y0CQ0nG0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,57 +17,58 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>, Vojtech Pavlik <vojtech-AlSwsSmVLrQ@public.gmane.org>, Matthew Garrett <mgarrett-QGMSyCZBOSwv4zxTlrOuLwNdhmdF6hFW@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
+Cc: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, seife-l3A5Bk7waGM@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Feb 16, 2005 at 03:41:59PM +0100, Stelian Pop wrote:
-> On Tue, Feb 15, 2005 at 05:14:12PM +0100, Romano Giannetti wrote:
-
-> > http://bugme.osdl.org/show_bug.cgi?id=4124
+On Wed, Feb 16, 2005 at 03:54:38PM +0100, Carl-Daniel Hailfinger wrote:
+> Romano Giannetti schrieb:
+> > 
+> > I tried with my Sony Vaio FX701. No luck. It goes S3 ok, but it will never
+> > come back (blank screen, HDD led fixed on). 
+> > 
+> > I am wishing to help, imply tell me what I have to do.
 > 
-> Strange indeed.
-> 
-> First thing to test is to disable sonypi (either rebuild a kernel
-> without it or rename the module so it will not get loaded again),
-> then reboot and see if you still have problems.
->
+> Please tell us about your graphics chipset, your .config, your
+> dmesg and the modules loaded. Then we my be able to help.
 
-I have it compiled in, but it is not loaded: on a freshly booted kernel, 
-dmesg | grep sonypi results in nothing, and if I try to load it manually:
+Oops, sorry, I should have added the info before. My apologies. 
 
-# modprobe sonypi
-FATAL: Error inserting sonypi (/lib/modules/2.6.11-rc1/kernel/drivers/char/sonypi.ko): No such device
+Here will find all the info (if you need more, tell me). Note that I tried
+with and without ndiswrapper driver loaded, and I have the same hang on
+resume (blank screen, HDD light fixed on, and no answer to wireless pings). 
 
-and in syslog:
+One more note: the ndiswrapper *did* survive OK to a disk suspend cycle. 
 
-sonypi: request_region failed
+I am running an up-to-date Mandrake 10.0 distribution, with 
+a kernel 2.6.11-rc1 (Linus tree), on a Sony Vaio PGC-FX701 which is almost
+working perfectly. 
 
-which is correct, because this laptop doesn't have a sonypi devive, it is
-a PCG-FX701. I will nuke the module and try to reboot, but I do not think it
-will make any difference.
+* Patch applied: 
+  - a little patch for ALPS pad detection.
+  http://www.dea.icai.upco.es/romano/linux/alps-detection-2611rc1.txt
 
-> If you do, the problem is ACPI/input related.
-> 
-> If you don't, the strangeness comes from some interraction with
-> sonypi.
+* .config:
+  http://www.dea.icai.upco.es/romano/linux/config-2.6.11rc1.txt
 
-It's happened between 2.6.7 and 2.6.9; the only differences I can see in the
-.config are the following: 
+* lsmod after boot: 
+  http://www.dea.icai.upco.es/romano/linux/lsmod.txt
 
-+CONFIG_ACPI_BLACKLIST_YEAR=0
-+CONFIG_SERIO_RAW=m
+* lspci -vv
+  http://www.dea.icai.upco.es/romano/linux/lspci.txt
 
-... but I do not think they could make any difference. I will compile a
-2.6.11-rc4 and try, but... 
+* dmesg
+  http://www.dea.icai.upco.es/romano/linux/dmesg.txt
 
-Anyway, I have put the dsdt from cat /proc/acpi/dsdt in
+* /proc/acpi/dsdt
+  http://www.dea.icai.upco.es/romano/linux/mydsdt.bin
 
-http://www.dea.icai.upco.es/romano/linux/mydsdt.bin
+More data on http://perso.wanadoo.es/r_mano/vaio/vaio.html
 
-Thank you for the help. 
+Thanks again,
+             Romano
 
-          Romano
-          
+
 -- 
 Romano Giannetti             -  Univ. Pontificia Comillas (Madrid, Spain)
 Electronic Engineer - phone +34 915 422 800 ext 2416  fax +34 915 596 569
