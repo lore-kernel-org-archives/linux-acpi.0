@@ -1,14 +1,13 @@
 From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Re: X86_PM_TIMER: /proc/cpuinfo doesn't get updated
-Date: Wed, 17 Mar 2004 14:56:27 -0800 (PST)
+Subject: RE: _OSI boot hang
+Date: Wed, 17 Mar 2004 14:58:30 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040317145312.X3595@root.org>
-References: <16471.43776.178128.198317@wombat.chubb.wattle.id.au>
- <200403162340.57546.dtor_core@ameritech.net> <20040317095314.GB14983@dominikbrodowski.de>
+Message-ID: <20040317145746.B3595@root.org>
+References: <CFF522B18982EA4481D3A3E23B83141C01F3FD59@orsmsx407.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040317095314.GB14983-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+In-Reply-To: <CFF522B18982EA4481D3A3E23B83141C01F3FD59-sBd4vmA9Se6SsB6bSF6DdVDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,53 +16,68 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
-Cc: Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>, Peter Chubb <peter-LkDQP0DxSMGxwJ88Py/mJxCuuivNXqWP@public.gmane.org>, Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, john stultz <johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 17 Mar 2004, Dominik Brodowski wrote:
-> On Tue, Mar 16, 2004 at 11:40:57PM -0500, Dmitry Torokhov wrote:
-> > On Tuesday 16 March 2004 08:33 pm, Peter Chubb wrote:
-> > > >>>>> "Dmitry" == Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org> writes:
-> > >
-> > > Dmitry> On Tuesday 16 March 2004 07:13 pm, Karol Kozimor wrote:
-> > > >> Thus wrote john stultz: > Hmm. This is untested, but I think this
-> > > >> should do the trick.
-> > > >>
-> > > >> Hmm... without the patch, neither cpu MHz nor bogomips are updated,
-> > > >> with the patch cpu MHz value seems correct (both using acpi.ko and
-> > > >> speedstep-ich.ko, but the bogomips is still at its initial value.
-> > > >> Best regards,
-> > > >>
-> > >
-> > > Dmitry> Karol, do you have a P4? AFAIK P4's TSC is stable even if core
-> > > Dmitry> frequence changes so loop_per_juffy (== bogomips) need not be
-> > > Dmitry> updated.
-> > >
-> > > The TSC is variable rate for Pentium-IV if you're using clock
-> > > modulation.
-> > >
-> > > Peter C
-> > >
-> >
-> > I understand that by clock modulation you mean throttling as opposed to
-> > true SpeedStep... OK, that means that for P4+ we somehow need to figure
-> > out whether the CPU is throttled or not to correctly calculate delays.
-> > Is there a clean way to get this data?
->
-> Hm, will have one patch to test it ready later today -- and a basic patch to
-> do this distinction is in the hiding of my notebook's harddisk already...
-> who's willing to do some testing on his SpeedStep-capable Pentium 4 - Mobile.
-
-Instead of all this gymnastics, how about:
-
-1. If using Px states, state is unknown until first "set" event.
-
-2. Implement priorities for time source selection and a generic timer API.
-This gets around the need to get the clock rate correct to have system
-timers work.  On FreeBSD, this is /sys/kern/kern_tc.c
+You're correct.  On a second check, I only found Windows 2001 and above in
+terms of ASL checking for OSI strings.
 
 -Nate
+
+On Wed, 17 Mar 2004, Moore, Robert wrote:
+> Not according to the MS white paper on OSI.
+>
+> http://www.microsoft.com/whdc/hwdev/tech/onnow/_OSI-method.mspx
+>
+>
+> Yes, \_OS used strings like "Microsoft Windows NT", but apparently not
+> OSI
+>
+> Bob
+>
+>
+> -----Original Message-----
+> From: Nate Lawson [mailto:nate-Y6VGUYTwhu0@public.gmane.org]
+> Sent: Wednesday, March 17, 2004 2:36 PM
+> To: Brown, Len
+> Cc: Moore, Robert; ACPI Developers
+> Subject: Re: [ACPI] _OSI boot hang
+>
+> On Sat, 13 Mar 2004, Len Brown wrote:
+> > _OSI is in the ACPI patch on kernel.org and bkbits right now.
+> >
+> > However, I find that on my Toshiba Satellite Pro, it causes boot to
+> hang
+> > at Executing all Device _STA and_INI methods.
+> >
+> > >From ACPICA, it comes this way:
+> > drivers/acpi/utilities/utglobal.c
+> > const char
+> > *acpi_gbl_valid_osi_strings[ACPI_NUM_OSI_STRINGS] = {
+> >                        "Linux",
+> >                        "Windows 2000",
+> >                        "Windows 2001",
+> >                        "Windows 2001.1"};
+>
+> That's not the right string for Win2k.  It's:
+>   "Microsoft Windows NT"
+>
+> Since this is the most popular string, not emulating it is probably
+> causing some people problems.
+>
+> -Nate
+>
+>
+> -------------------------------------------------------
+> This SF.Net email is sponsored by: IBM Linux Tutorials
+> Free Linux tutorial presented by Daniel Robbins, President and CEO of
+> GenToo technologies. Learn everything from fundamentals to system
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>
 
 
 -------------------------------------------------------
