@@ -1,10 +1,10 @@
-From: <joerg.beyer-htSm2yLGOjU@public.gmane.org>
-Subject: Re: RE: Re: making progress with ACPI was: ACPI small patch up date
-Date: Wed, 30 Oct 2002 08:12:25 +0100
+From: Sergey Bykov <bykov_sergey-+Zw0RrPzbwfQT0dZR+AlfA@public.gmane.org>
+Subject: Question about CPU cooler
+Date: Wed, 30 Oct 2002 10:14:11 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200210300712.g9U7CPX05667@mailgate5.cinetic.de>
+Message-ID: <3DBF94D3.3010908@fromru.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=KOI8-U; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,19 +18,13 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Huw Hawkins <hrhawk-JGs/UdohzUI@public.gmane.org> schrieb am 30.10.02 02:22:01:
-> 
-> I've given this some though. What you're trying to say, basically, is
-> the sf bugtracker isn't suitable because you need at least a DSDT/dmesg
-> with the bug report and preferably access to ask further questions, so
-> unless someone has that implimented in a bug-track system (with hosting
-> to match) it's a nightmarish task.  
+Hello all!
 
-sourceforges bug tracker allows to attach files to a report.  The submitter
-is know with it's email address.
+In WinXP CPU's cooler take lower RPM when OS loaded.
+Are this feature builtin in Linux's ACPI driver? If no then when it will be?
 
-    yours
-    Joerg
+Thanks, beforehand!
+Sorry for my bad English.
 
 
 
