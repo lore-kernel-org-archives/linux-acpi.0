@@ -1,25 +1,33 @@
-From: Andrew Morton <akpm-LL/9OlyS9hIAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [BK PATCH] acpismp=force fix
-Date: Mon, 23 Jun 2003 00:58:57 -0700
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20030623005857.06c76dbd.akpm@digeo.com>
-References: <F760B14C9561B941B89469F59BA3A84725A302@orsmsx401.jf.intel.com>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: CONFIG_IOSAPIC (problem 3 of thread [ Re: patch for updating IA64 ACPI fixs into Andy's  ACPI 2.5 tree])
+Date: Mon, 23 Jun 2003 16:01:36 +0800
+Sender: linux-ia64-admin-WygotPe7DYIabbyE177sbg@public.gmane.org
+Message-ID: <3ACA40606221794F80A5670F0AF15F84272380@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <F760B14C9561B941B89469F59BA3A84725A302-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-ia64-admin-WygotPe7DYIabbyE177sbg@public.gmane.org>
+content-class: urn:content-classes:message
+Errors-To: linux-ia64-admin-WygotPe7DYIabbyE177sbg@public.gmane.org
+List-Help: <mailto:linux-ia64-request-WygotPe7DYL3TpFAQG+J+JSyx/Wj9/Chdaaq/uiDbmg@public.gmane.org>
+List-Post: <mailto:linux-ia64-WygotPe7DYIabbyE177sbg@public.gmane.org>
+List-Subscribe: <http://lists.linuxia64.org/lists/listinfo/linux-ia64>,
+	<mailto:linux-ia64-request-WygotPe7DYL3TpFAQG+J+EfZv34bSr6CyrRgqdI+6y4@public.gmane.org>
+List-Unsubscribe: <http://lists.linuxia64.org/lists/listinfo/linux-ia64>,
+	<mailto:linux-ia64-request-WygotPe7DYL3TpFAQG+J+I4vVymAtk2CuCKOA6ERizqzQB+pC5nmwQ@public.gmane.org>
+List-Archive: <http://lists.linuxia64.org/archives//linux-ia64/>
+To: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-ia64-WygotPe7DYIabbyE177sbg@public.gmane.org, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Mallick, Asit K" <asit.k.mallick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-"Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->
-> Does anyone have a reason why acpismp=force should be in 2.5/6?
+> +#ifdef CONFIG_IOSAPIC
+> +	if (acpi_irq_model =3D=3D ACPI_IRQ_MODEL_IOSAPIC)
+> +		iosapic_enable_intr(dev->irq);
+>  #endif
 
-I can't think of one.
+I don't know whether CONFIG_IOSAPIC could be a valid option to IA32.=20
+If yes, I think the above code is ok.
 
-> If not I'll go ahead and zap it (again)
-
-zap away.  Dave Jones is maintaining a "stuff which changed" document. 
-Please send him a paragraph.
+Thanks,
+Luming
