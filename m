@@ -1,13 +1,12 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: system does not wake up sometimes
-Date: Mon, 31 Jan 2005 09:01:39 +0800
-Message-ID: <16A54BF5D6E14E4D916CE26C9AD3057501168084@pdsmsx402.ccr.corp.intel.com>
+From: Jing Su <gargamel.su-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: DSDT from within windows?
+Date: Sun, 30 Jan 2005 21:41:03 -0500
+Message-ID: <f11de95f0501301841e88ebe9@mail.gmail.com>
+Reply-To: Jing Su <gargamel.su-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,31 +16,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?iso-8859-1?Q?Peter_M=FCnster?= <pmlists-GANU6spQydw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
->Hello,
->very often, my system does not wake up at the specified time. I need to
->press a key to resume.
->The system goes to sleep the day before at about 22h30 with the =
-following
->commands:
->modprobe genrtc
->sleep 5
->echo 2005-01-28 11:10:00 >/proc/acpi/alarm
->sleep 5
->echo 1 >/proc/acpi/sleep
->
->What could be wrong?
->I'm using Linux-2.6.10 and ASUS A7N8X-X ACPI BIOS Rev 1006.
->
->Thanks in advance for any help! Please tell me, if you need more
->information.
-did you mean alarm can't work only the specific time? Is there any rule?
+Hello All,
+
+After taking a look at (and trying to fix) the broken DSDT for my Acer
+TravelMate 382 laptop, I wondered if maybe Windows also allows OEMs to
+over-ride the DSDT.  Maybe the hardware guys only had limited time to
+provide a hacked up version, and their driver writers  provide a
+patched one later.
+
+I've tried some googling, but found no hits thus far.  Anyone know if
+it's possible to pull the active DSDT from a running Windows XP
+session?  If it's possible, I might be willing to put Windows back on
+my laptop (which I'm proud to say is single-boot Linux) just to grab
+it and see.
+
+I doubt I'm the first one to think of this, so if there's info about
+this being attempted before, let me know.
 
 Thanks,
-Shaohua
+-Jing
 
 
 -------------------------------------------------------
