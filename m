@@ -1,11 +1,13 @@
-From: Jurgen Kramer <gtm.kramer-c1aixF9oqgPk1uMJSBkQmQ@public.gmane.org>
-Subject: 2.6.10 and acpi_get_possible_resources?
-Date: Fri, 14 Jan 2005 15:40:21 +0100
-Message-ID: <1105713621.10664.8.camel@paragon.slim>
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: Radeon M7 and resuming from suspend-to-ram
+Date: Fri, 14 Jan 2005 17:24:00 +0100
+Message-ID: <20050114162359.GA22184@hell.org.pl>
+References: <41E7D334.6060003@sllpilots.fi>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <41E7D334.6060003-y4dnIKzCb/d9YMlOZIriJw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,29 +17,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Tomi Kallio <tomi-y4dnIKzCb/d9YMlOZIriJw@public.gmane.org>
+Cc: gentoo-user-cnFmAm88PdgLnqt3yJz4RQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I am trying to get the WACOM ACPI patches working on 2.6.10 but it bails
-out on a missing function "acpi_get_possible_resources". On 2.6.9 the
-needed symbol is exported by acpi_ksyms.c but this file no longer exists
-in 2.6.10. 
+Thus wrote Tomi Kallio:
+> I'm running gentoo on Compaq Evo N800V laptop with radeon M7. At the 
 
-What is the best way to get the acpi_get_possible_resources function
-exported properly? It is defined in <acpi/acpxf.h> but adding this to
-the wacom source files did not help.
+acpi_sleep=s3_bios helps here (ASUS L3C, Radeon M7), have you checked
+Documentation/power/video.txt?
+Best regards,
 
-The 2.6.9 version of the wacom patches are from:
-
-http://www.theory.bham.ac.uk/staff/schofield/linux/tc1100/linux-2.6.9-
-wacom_acpi.patch
-
-
-Thanks,
-
-Jurgen
 -- 
-
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
