@@ -1,32 +1,61 @@
-From: Akos Maroy <darkeye@tyrell.hu>
-Subject: Re: [ACPI] Re: since 2.6.9 reboots instead
- of poweroff (solved)
-Date: Tue, 23 Nov 2004 05:22:33 +0100
-Message-ID: <41A2BB09.7050201@tyrell.hu>
-References: <16A54BF5D6E14E4D916CE26C9AD305759993D0@pdsmsx402.ccr.corp.intel.com>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: system slow since ~ 2.6.7
+Date: 23 Nov 2004 00:04:52 -0500
+Message-ID: <1101186291.20008.247.camel@d845pe>
+References: <Pine.LNX.4.60.0411180115490.941@poirot.grange>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <softwaresuspend-help-admin@lists.berlios.de>
-In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD305759993D0@pdsmsx402.ccr.corp.intel.com>
-Sender: softwaresuspend-help-admin@berlios.de
-Errors-To: softwaresuspend-help-admin@berlios.de
-List-Help: <mailto:softwaresuspend-help-request@lists.berlios.de?subject=help>
-List-Post: <mailto:softwaresuspend-help@lists.berlios.de>
-List-Subscribe: <http://lists.berlios.de/mailman/listinfo/softwaresuspend-help>,
-	<mailto:softwaresuspend-help-request@lists.berlios.de?subject=subscribe>
-List-Unsubscribe: <http://lists.berlios.de/mailman/listinfo/softwaresuspend-help>,
-	<mailto:softwaresuspend-help-request@lists.berlios.de?subject=unsubscribe>
-List-Archive: <http://lists.berlios.de/pipermail/softwaresuspend-help/>
-To: "Li, Shaohua" <shaohua.li@intel.com>
-Cc: Bernard Blackham <bernard@blackham.com.au>, Sebastian Kr?mer <spambouncer@skraemer.de>, softwaresuspend-help@lists.berlios.de, acpi-devel@lists.sourceforge.net
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.60.0411180115490.941-J+lI668vivfmY97RW1zN3Q@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Guennadi Liakhovetski <g.liakhovetski-Mmb7MZpHnFY@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Li, Shaohua wrote:
-> It has been fixed there:
-> http://bugme.osdl.org/show_bug.cgi?id=3669
+On Wed, 2004-11-17 at 19:25, Guennadi Liakhovetski wrote:
+> "Slow" means just running top alone in a vt it takes 1.6% CPU. Under
+> 2.6.3 it takes 0.2% (Duron 900MHz). Another peculiarity with 2.6.7 and
+> 2.6.9 is that the power LED is blinking with about 1Hz frequency. It's
+> an ASUS A7VI-VM motherboard. In the manual there's nothing about
+> error-codes. I played with various APIC settings - no change. Related
+> or not - if running with LAPIC enabled (2.6.7), I get quite a few ERR
+> in /proc/interrupts.
 
-thanks! this patch has really fixed this problem..
+PCI: Disabling Via external APIC routing
+
+Curiously, this line appears in 2.6.3, but not in 2.6.7 or 2.6.9 dmesg
+-- even though all the configs build in IOAPIC support.
+
+Can you forward the /proc/interrupts from 2.6.3, and from 2.6.9 with and
+without acpi=off?  do you see a significant change in /proc/interrupts
+before and after the sensor-provoked slowness starts?
+
+if you build 2.6.9 w/o the CONFIG_ACPI_PROCESSOR and boot w/o cmdline
+params, do you still see slowness?
+
+if you boot 2.6.9 with these parameters, do you see any additional dmesg
+lines?
+
+acpi_dbg_level=0xF acpi_dbg_layer=0xFFFF3FFF
 
 
-now only if swsusp would work with the factory ATI drivers...
+thanks,
+-Len
+
+
+
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now. 
+http://productguide.itmanagersjournal.com/
