@@ -1,16 +1,14 @@
-From: Marc Giger <gigerstyle-OI3hZJvNYWs@public.gmane.org>
-Subject: Re: ACPI high interrupt rate with vanilla 2.4.22
-Date: Wed, 27 Aug 2003 09:43:20 +0200
+From: Bas Mevissen <ml-Y9IUUvl1dgU0Iwp8Nzs06g@public.gmane.org>
+Subject: Re: strange behavior of ArgX variables in a ASL method
+Date: Wed, 27 Aug 2003 10:53:13 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030827094320.5048717b.gigerstyle@gmx.ch>
-References: <20030826124405.2b6635f2.gigerstyle@gmx.ch>
-	<3F4C443E.80207@sbox.tugraz.at>
-	<3F4C59E3.1050603@sbox.tugraz.at>
+Message-ID: <3F4C7179.7000000@basmevissen.nl>
+References: <Pine.LNX.4.44.0308261730040.17349-100000@pc8-142>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3F4C59E3.1050603-ArvQUR6U0fYD0fefG/KofA@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.44.0308261730040.17349-100000-BCD3+5vRDT8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,30 +17,30 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Gerfried Maier <moali-ArvQUR6U0fYD0fefG/KofA@public.gmane.org>
+To: Pierre Letouzey <Pierre.Letouzey-CYrOEBX6jiM@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 27 Aug 2003 09:12:35 +0200
-Gerfried Maier <moali-ArvQUR6U0fYD0fefG/KofA@public.gmane.org> wrote:
+Pierre Letouzey wrote:
 
-> Gerfried Maier wrote:
 > 
-> > Marc Giger wrote:
-> >
-> >> [...]
-> >> Another thing is /proc/acpi/processor/
-> >> There are 2 CPU entries...?!?
-> >>
-> > Do you have a P4 with the "mulithreading" feature? This appears
-> > under Linux as a second CPU.
+> Hello all
 > 
->                                                ^^^^^^^^^^
-> Sorry, I meant hyperthreading, of course.  Please excuse the
-> confusion...
+> (after patching my radeon
+> driver according to http://cpbotha.net/dri_resume.html).
+> 
 
-No problem. And no it's not a P4 with HT, but the Board (Asus
-P4T533-C) is HT capable. AFAIK every P4 processor has the ht flag...
+According to the creator of those files, the latest version(s) on 
+dri.sf.net already contain suspend stuff. So this package is obsolete now.
+
+(Actually, I use them and they look OK)
+
+Regards,
+
+Bas.
+
+
+
 
 
 -------------------------------------------------------
