@@ -1,14 +1,12 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Backlight doesn't come back on after resume
-Date: Mon, 2 Jun 2003 19:51:03 +0200
+From: <adrianp-Ua2wos9bJ7xG9g4XcDO2/w@public.gmane.org>
+Subject: Re: 45443-343556
+Date: Tue, 3 Jun 2003 8:58:23 --500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030602175103.GA764@elf.ucw.cz>
-References: <20030529150833.GA32147@srcf.ucam.org>
+Message-ID: <E19NCJ0-0008UX-00@panoramix.vasoftware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+	boundary="CSmtpMsgPart123X456_000_020ABE3E"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20030529150833.GA32147-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,25 +15,19 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+This is a multipart message in MIME format
 
-> Until recently, I was able to get video working again after resume if I 
-> passed acpi_sleep=s3_mode and had a script that changed away from and 
-> back to my X session (the framebuffer was screwed afterwards, but never 
-> mind). This seems to have stopped working recently - in 2.5.70, I end up 
-> with a machine that pings, but no video. I've tried all permutations of 
-> acpi_sleep and using or not using the framebuffer. It worked in 2.5.65. 
-> Anyone have any idea what might have changed?
+--CSmtpMsgPart123X456_000_020ABE3E
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 
-Try to find out which change broke it.
-								Pavel
--- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+Please see the attached file.
+--CSmtpMsgPart123X456_000_020ABE3E--
+
 
 
 -------------------------------------------------------
