@@ -1,47 +1,175 @@
-From: "Yu, Luming" <luming.yu@intel.com>
-Subject: RE: the patch of restore-pci-config-space-on-resume break S1 onASUS2400 NE
-Date: Tue, 28 Dec 2004 12:01:04 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F8406A730C0@pdsmsx403>
+From: "Pedro I. Sanchez" <pedro.sanchez-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>
+Subject: Help with the DSDT for an Acer Ferrari 3400 laptop
+Date: Tue, 28 Dec 2004 00:38:37 -0500
+Message-ID: <41D0F15D.8000201@rogers.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=GB2312
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262060AbUL1EBh@vger.kernel.org>
-Content-class: urn:content-classes:message
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>, "Brown, Len" <len.brown@intel.com>
-Cc: Arjan van de Ven <arjanv@redhat.com>, Pavel Machek <pavel@ucw.cz>, "Li, Shaohua" <shaohua.li@intel.com>, "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, acpi-devel@lists.sourceforge.net, "Fu, Michael" <michael.fu@intel.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-the idea in post
-http://sourceforge.net/mailarchive/message.php?msg_id=3D9091508
-cure S1 resume hang for my ASUS2400NE.
+Hello,
 
-I guess Len will accept it.
+I'm new to this ACPI world and I'd like your help to fix the dsdt.dsl 
+file that I got with this laptop. I followed the steps in the ACPI FAQ 
+to disassemble the bin file and ended up with a source file that 
+compiles with 8 errors and 1 warning using the Intel ASL compiler.
 
-Does it imply IDE DMA  could be started too early in the original resum=
-e code?
+For your reference the problem I want to fix is that I have no control 
+over the fan which is always on, quite annoying. Even though my Linux 
+kernel has compiled ACPI fan support the directory /proc/acpi/fan is 
+empty. I'm running vanilla kernel 2.6.10 with Debian-AMD64.
 
-Thanks,
-Luming
+The good news is that the 8 errors are actually the same one spread all 
+over the source file. So fixing it once will fix the whole file. The bad 
+news is that I don't know how to fix it :|
 
------Original Message-----
-=46rom: Alan Cox [mailto:alan@lxorguk.ukuu.org.uk]=20
-Sent: 2004=C4=EA12=D4=C227=C8=D5 21:45
-To: Yu, Luming
-Cc: Arjan van de Ven; Pavel Machek; Brown, Len; Li, Shaohua; Pallipadi,=
- Venkatesh; Linux Kernel Mailing List; acpi-devel@lists.sourceforge.net=
-; Fu, Michael
-Subject: RE: the patch of restore-pci-config-space-on-resume break S1 o=
-nASUS2400 NE
+The Error
+---------
+dsdt.dsl  4480:           If (LLess (\_PR.CPU0._PPC, Local1))
+Error    1022 -             Object does not exist ^  (\_PR.CPU0._PPC)
 
-On Llu, 2004-12-27 at 10:14, Yu, Luming wrote:
->  Actually, the kernel (after removing restore-pci-config-space-on-res=
-ume patch) with option "ide=3Dnodma"=20
-> can work with S1 suspend/resume without any hang so far.
->   So my suggestion for IDE driver is to disable DMA before entering S=
-1, and enable
-> DMA after resuming from S1 if DMA was enabled.  I need help from IDE =
-guys to confirm it.
+The error is repeated every time the object \_PR.CPU0._PPC appears in 
+the code. I read in the FAQ that one possible solution is to use the 
+statement
 
-The IDE layer has no problem doing this, although it raises interesting
-questions about why it would be neccessary.=20
+	External(\_PR.CPU0._PPC)
+
+to tell the compiler that this is an external object. However I don't 
+understand where this External statement should go. I've tried putting 
+it at the beginning of the file and inside the Scope(\_PR) section which 
+simply reads
+
+	Scope (\_PR)
+	{
+	   Processor (CPU0, 0x00, 0x00004010, 0x06) {}
+	}
+
+In both cases the compiler complains. So, where shall this External 
+statement go?
+
+The Warning
+-----------
+dsdt.dsl  4287: Method (SMSL, 0, NotSerialized)
+Warning  2019 -            ^ Not all control paths return a value (SMSL)
+
+I added a Return (0x00) statement at the very end of the method and the 
+warning disappeared. But, is this right? Following my signature you will 
+find the code of the offending method including my extra line.
+
+
+Thanks in advance for any advice you can give me.
+
+-- 
+Pedro
+
+
+
+                     Name (ACFL, 0x00)
+                     Method (SMSL, 0, NotSerialized)
+                     {
+                         Store ("CMBatt - SMSL", Debug)
+                         If (LEqual (\_SB.ECOK, 0x00))
+                         {
+                             Return (0xFF)
+                         }
+
+                         Acquire (\_SB.PCI0.PIB.EC0.MUT1, 0xFFFF)
+                         If (LNot (\_SB.PCI0.PIB.EC0.SMRD (0x09, 0x14, 
+0x01, RefOf (Local0))))
+                         {
+                             Store (Local0, SEL0)
+                             Store (SEL0, Debug)
+                             If (LEqual (ALRT, 0x01))
+                             {
+                                 \_SB.BAT1.IVBI ()
+                                 \_SB.BAT1.IVBS ()
+                                 Store (0x00, ALRT)
+                             }
+
+                             Store (\_SB.ACAD.CHAC (SEL0), Local1)
+                             Store (\_SB.BAT1.CHBP (SEL0), Local2)
+                             Or (SEL0, 0x0FFF, Local0)
+                             SMWR (0x08, 0x14, 0x01, Local0)
+                             If (LAnd (Local1, \_SB.ACAD.ACP))
+                             {
+                                 Store ("CMBatt - Notify(ACAD,0x80): 
+AC_Inserted", Debug)
+                                 Notify (\_SB.ACAD, 0x80)
+                                 Store (0x02, ACFL)
+                             }
+
+                             If (And (0x04, Local2))
+                             {
+                                 \_SB.BAT1.B1CK ()
+                             }
+
+                             If (And (0x02, Local2))
+                             {
+                                 \_SB.BAT1.B1ST ()
+                             }
+
+                             If (And (0x01, Local2))
+                             {
+                                 \_SB.BAT1.B1IF ()
+                             }
+
+                             If (LAnd (Local1, LNot (\_SB.ACAD.ACP)))
+                             {
+                                 Store ("CMBatt - Notify(ACAD, 0x80): 
+AC_Removed", Debug)
+                                 Notify (\_SB.ACAD, 0x80)
+                                 Store (0x01, ACFL)
+                             }
+                         }
+
+                         Store (0x3C, Local4)
+                         If (\_SB.BAT1.REPT)
+                         {
+                             Store (0x02, Local4)
+                         }
+
+                         If (BFLG)
+                         {
+                             Store (0x01, Local5)
+                             While (LNot (And (BFLG, 0x01)))
+                             {
+                                 Increment (Local5)
+                                 ShiftRight (BFLG, 0x01, BFLG)
+                             }
+
+                             ShiftRight (BFLG, 0x01, BFLG)
+                             If (LGreater (Local4, Local5))
+                             {
+                                 Store (Local5, Local4)
+                             }
+                         }
+
+                         Store (Local4, BPD)
+                         BPOL ()
+                         Release (\_SB.PCI0.PIB.EC0.MUT1)
+                         If (ACFL)
+                         {
+                             Decrement (ACFL)
+                             Store (0x00, ACFL)
+                         }
+                         Return (0x00)
+                     }
+
+
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now. 
+http://productguide.itmanagersjournal.com/
