@@ -1,359 +1,223 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: [PATCH 4/4] acpi4asus update: make hotk struct global
-Date: Thu, 9 Sep 2004 00:54:15 +0200
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040908225415.GD9953@hell.org.pl>
-References: <20040908223807.GA9953@hell.org.pl>
+From: "Li, Shaohua" <shaohua.li@intel.com>
+Subject: RE: [ACPI] Re: [PATCH] Oops and panic while unloading holder of pm_idle
+Date: Thu, 9 Sep 2004 08:52:58 +0800
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <16A54BF5D6E14E4D916CE26C9AD305751210A8@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040908224831.GC9953-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: multipart/mixed;
+	boundary="----_=_NextPart_001_01C49607.5AA37C24"
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S269255AbUIIAxe@vger.kernel.org>
+Content-class: urn:content-classes:message
+To: Zwane Mwaikambo <zwane@linuxpower.ca>
+Cc: BlaisorBlade <blaisorblade_spam@yahoo.it>, acpi-devel@lists.sourceforge.net, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-This patch makes the hotk struct used throughout the driver a global
-variable. This cleans the code up a bit, but mainly allows most functions
-to be called externally when need (read: video driver) arises.
-Please apply, TIA
+This is a multi-part message in MIME format.
 
-Signed-off-by: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+------_=_NextPart_001_01C49607.5AA37C24
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 
-Index: asus_core.c
-===================================================================
-RCS file: /cvsroot/acpi4asus/acpi4asus/driver/asus_core.c,v
-retrieving revision 1.106
-retrieving revision 1.107
-diff -u -r1.106 -r1.107
---- a/drivers/acpi/asus_acpi.c	7 Sep 2004 23:00:29 -0000	1.106
-+++ b/drivers/acpi/asus_acpi.c	8 Sep 2004 22:18:26 -0000	1.107
-@@ -390,6 +390,9 @@
-  */
- static struct acpi_table_header *asus_info;
- 
-+/* The actual device the driver binds to */
-+static struct asus_hotk *hotk;
-+
- /*
-  * The hotkey driver declaration
-  */
-@@ -454,7 +457,6 @@
+On Wednesday, September 08, 2004, Zwane Mwaikambo wrote:
+
+>Please try and inline your patches in future, i know it may be hard
+with
+>your mail client but it makes commenting on patches easier.
+>
+>		while (!need_resched()) {
+>+			void (*idle)(void) =3D NULL;
+>+
+>
+>You don't need to initialise variable `idle` here. Otherwise the rest
+>looks fine with me.
+Thanks Zwane. I updated the patch as you suggested. I'm sorry if the
+line wrapped in below patch.
+
+Thanks,
+Shaohua
+
+
+=3D=3D=3D=3D=3D arch/i386/kernel/apm.c 1.67 vs edited =3D=3D=3D=3D=3D
+--- 1.67/arch/i386/kernel/apm.c	2004-08-24 17:08:47 +08:00
++++ edited/arch/i386/kernel/apm.c	2004-09-08 08:48:12 +08:00
+@@ -2362,8 +2362,13 @@ static void __exit apm_exit(void)
  {
- 	int len = 0;
- 	int temp;
--	struct asus_hotk *hotk = (struct asus_hotk *) data;
- 	char buf[16];		//enough for all info
- 	/*
- 	 * We use the easy way, we don't care of off and count, so we don't set eof
-@@ -513,7 +515,7 @@
- 
- /* Generic LED functions */
- static int
--read_led(struct asus_hotk *hotk, const char *ledname, int ledmask)
-+read_led(const char *ledname, int ledmask)
- {
- 	if (ledname) {
- 		int led_status;
-@@ -544,7 +546,7 @@
- 
- /* FIXME: kill extraneous args so it can be called independently */
- static int
--write_led(const char __user *buffer, unsigned long count, struct asus_hotk *hotk, 
-+write_led(const char __user *buffer, unsigned long count,
-           char *ledname, int ledmask, int invert)
- {
- 	int value;
-@@ -574,8 +576,7 @@
- proc_read_mled(char *page, char **start, off_t off, int count, int *eof,
- 	       void *data)
- {
--	struct asus_hotk *hotk = (struct asus_hotk *) data;
--	return sprintf(page, "%d\n", read_led(hotk, hotk->methods->mled_status, MLED_ON));
-+	return sprintf(page, "%d\n", read_led(hotk->methods->mled_status, MLED_ON));
- }
- 
- 
-@@ -583,8 +584,7 @@
- proc_write_mled(struct file *file, const char __user *buffer,
- 		unsigned long count, void *data)
- {
--	struct asus_hotk *hotk = (struct asus_hotk *) data;
--	return write_led(buffer, count, hotk, hotk->methods->mt_mled, MLED_ON, 1);
-+	return write_led(buffer, count, hotk->methods->mt_mled, MLED_ON, 1);
- }
- 
- /*
-@@ -594,16 +594,14 @@
- proc_read_wled(char *page, char **start, off_t off, int count, int *eof,
- 	       void *data)
- {
--	struct asus_hotk *hotk = (struct asus_hotk *) data;
--	return sprintf(page, "%d\n", read_led(hotk, hotk->methods->wled_status, WLED_ON));
-+	return sprintf(page, "%d\n", read_led(hotk->methods->wled_status, WLED_ON));
- }
- 
- static int
- proc_write_wled(struct file *file, const char __user *buffer,
- 		unsigned long count, void *data)
- {
--	struct asus_hotk *hotk = (struct asus_hotk *) data;
--	return write_led(buffer, count, hotk, hotk->methods->mt_wled, WLED_ON, 0);
-+	return write_led(buffer, count, hotk->methods->mt_wled, WLED_ON, 0);
- }
- 
- /*
-@@ -613,20 +611,18 @@
- proc_read_tled(char *page, char **start, off_t off, int count, int *eof,
- 	       void *data)
- {
--	struct asus_hotk *hotk = (struct asus_hotk *) data;
--	return sprintf(page, "%d\n", read_led(hotk, hotk->methods->tled_status, TLED_ON));
-+	return sprintf(page, "%d\n", read_led(hotk->methods->tled_status, TLED_ON));
- }
- 
- static int
- proc_write_tled(struct file *file, const char __user *buffer,
- 		unsigned long count, void *data)
- {
--	struct asus_hotk *hotk = (struct asus_hotk *) data;
--	return write_led(buffer, count, hotk, hotk->methods->mt_tled, TLED_ON, 0);
-+	return write_led(buffer, count, hotk->methods->mt_tled, TLED_ON, 0);
- }
- 
- 
--static int get_lcd_state(struct asus_hotk *hotk)
-+static int get_lcd_state(void)
- {
- 	int lcd = 0;
- 
-@@ -667,13 +663,13 @@
- 	return (lcd & 1);
- }
- 
--static int set_lcd_state(struct asus_hotk *hotk, int value)
-+static int set_lcd_state(int value)
- {
- 	int lcd = 0;
- 	acpi_status status = 0;
- 
- 	lcd = value ? 1 : 0;
--	if (lcd != get_lcd_state(hotk)) {
-+	if (lcd != get_lcd_state()) {
- 		/* switch */
- 		if (hotk->model != L3H) {
- 			status =
-@@ -696,7 +692,7 @@
- proc_read_lcd(char *page, char **start, off_t off, int count, int *eof,
- 	      void *data)
- {
--	return sprintf(page, "%d\n", get_lcd_state((struct asus_hotk *) data));
-+	return sprintf(page, "%d\n", get_lcd_state());
- }
- 
- 
-@@ -705,16 +701,15 @@
- 	       unsigned long count, void *data)
- {
- 	int value;
--	struct asus_hotk *hotk = (struct asus_hotk *) data;
- 	
- 	count = parse_arg(buffer, count, &value);
- 	if (count > 0)
--		set_lcd_state(hotk, value);
-+		set_lcd_state(value);
- 	return count;
- }
- 
- 
--static int read_brightness(struct asus_hotk *hotk)
-+static int read_brightness(void)
- {
- 	int value;
- 	
-@@ -734,7 +729,7 @@
- /*
-  * Change the brightness level
-  */
--static void set_brightness(int value, struct asus_hotk *hotk)
-+static void set_brightness(int value)
- {
- 	acpi_status status = 0;
- 
-@@ -747,7 +742,7 @@
+ 	int	error;
+=20
+-	if (set_pm_idle)
++	if (set_pm_idle) {
+ 		pm_idle =3D original_pm_idle;
++		/* Wait the idle thread to read the new value,=20
++		 * otherwise we Oops.
++		 */
++		synchronize_kernel();
++	}
+ 	if (((apm_info.bios.flags & APM_BIOS_DISENGAGED) =3D=3D 0)
+ 	    && (apm_info.connection_version > 0x0100)) {
+ 		error =3D apm_engage_power_management(APM_DEVICE_ALL, 0);
+=3D=3D=3D=3D=3D arch/i386/kernel/process.c 1.75 vs edited =
+=3D=3D=3D=3D=3D
+--- 1.75/arch/i386/kernel/process.c	2004-08-24 17:08:44 +08:00
++++ edited/arch/i386/kernel/process.c	2004-09-08 09:00:06 +08:00
+@@ -142,6 +142,10 @@ void cpu_idle (void)
+ 	/* endless idle loop with no priority at all */
+ 	while (1) {
+ 		while (!need_resched()) {
++			/* If pm_idle is in a module and is preempted,
++			 * oops occurs. Disable preempt.
++			 */
++			rcu_read_lock();
+ 			void (*idle)(void) =3D pm_idle;
+=20
+ 			if (!idle)
+@@ -149,6 +153,7 @@ void cpu_idle (void)
+=20
+ 			irq_stat[smp_processor_id()].idle_timestamp =3D
+jiffies;
+ 			idle();
++			rcu_read_unlock();
+ 		}
+ 		schedule();
  	}
- 
- 	/* No SPLV method if we are here, act as appropriate */
--	value -= read_brightness(hotk);
-+	value -= read_brightness();
- 	while (value != 0) {
- 		status = acpi_evaluate_object(NULL, (value > 0) ? 
- 					      hotk->methods->brightness_up : 
-@@ -764,8 +759,7 @@
- proc_read_brn(char *page, char **start, off_t off, int count, int *eof,
- 	      void *data)
+=3D=3D=3D=3D=3D arch/ia64/kernel/process.c 1.62 vs edited =
+=3D=3D=3D=3D=3D
+--- 1.62/arch/ia64/kernel/process.c	2004-07-27 13:26:50 +08:00
++++ edited/arch/ia64/kernel/process.c	2004-09-08 09:04:58 +08:00
+@@ -228,18 +228,24 @@ cpu_idle (void *unused)
+=20
+ 	/* endless idle loop with no priority at all */
+ 	while (1) {
+-		void (*idle)(void) =3D pm_idle;
+-		if (!idle)
+-			idle =3D default_idle;
+-
+ #ifdef CONFIG_SMP
+ 		if (!need_resched())
+ 			min_xtp();
+ #endif
+ 		while (!need_resched()) {
++			void (*idle)(void);
++		=09
+ 			if (mark_idle)
+ 				(*mark_idle)(1);
++			/* If pm_idle is in a module and is preempted,
++			 * oops occurs. Disable preempt.
++			 */
++			rcu_read_lock();
++			idle=3D pm_idle;
++			if (!idle)
++				idle =3D default_idle;
+ 			(*idle)();
++			rcu_read_unlock();
+ 		}
+=20
+ 		if (mark_idle)
+=3D=3D=3D=3D=3D arch/x86_64/kernel/process.c 1.35 vs edited =
+=3D=3D=3D=3D=3D
+--- 1.35/arch/x86_64/kernel/process.c	2004-08-24 17:08:44 +08:00
++++ edited/arch/x86_64/kernel/process.c	2004-09-08 09:04:31 +08:00
+@@ -130,11 +130,18 @@ void cpu_idle (void)
  {
--	struct asus_hotk *hotk = (struct asus_hotk *) data;
--	return sprintf(page, "%d\n", read_brightness(hotk));
-+	return sprintf(page, "%d\n", read_brightness());
- }
- 
- static int
-@@ -773,13 +767,12 @@
- 	       unsigned long count, void *data)
- {
- 	int value;
--	struct asus_hotk *hotk = (struct asus_hotk *) data;
- 
- 	count = parse_arg(buffer, count, &value);
- 	if (count > 0) {
- 		value = (0 < value) ? ((15 < value) ? 15 : value) : 0;
- 			/* 0 <= value <= 15 */
--		set_brightness(value, hotk);
-+		set_brightness(value);
- 	} else if (count < 0) {
- 		printk(KERN_WARNING "Asus ACPI: Error reading user input\n");
+ 	/* endless idle loop with no priority at all */
+ 	while (1) {
+-		void (*idle)(void) =3D pm_idle;
+-		if (!idle)
+-			idle =3D default_idle;
+-		while (!need_resched())
++		while (!need_resched()) {
++			void (*idle)(void);
++			/* If pm_idle is in a module and is preempted,
++			 * oops occurs. Disable preempt.
++			 */
++			rcu_read_lock();
++			idle =3D pm_idle;
++			if (!idle)
++				idle =3D default_idle;
+ 			idle();
++			rcu_read_unlock();
++		}
+ 		schedule();
  	}
-@@ -787,7 +780,7 @@
- 	return count;
  }
- 
--static void set_display(int value, struct asus_hotk *hotk)
-+static void set_display(int value)
- {
- 	/* no sanity check needed for now */
- 	if (!write_acpi_int(hotk->handle, hotk->methods->display_set, 
-@@ -805,7 +798,6 @@
- 	      void *data)
- {
- 	int value = 0;
--	struct asus_hotk *hotk = (struct asus_hotk *) data;
- 	
- 	if (!read_acpi_int(hotk->handle, hotk->methods->display_get, &value))
- 		printk(KERN_WARNING "Asus ACPI: Error reading display status\n");
-@@ -824,11 +816,10 @@
- 	       unsigned long count, void *data)
- {
- 	int value;
--	struct asus_hotk *hotk = (struct asus_hotk *) data;
- 
- 	count = parse_arg(buffer, count, &value);
- 	if (count > 0)
--		set_display(value, hotk);
-+		set_display(value);
- 	else if (count < 0)
- 		printk(KERN_WARNING "Asus ACPI: Error reading user input\n");
- 
-@@ -863,7 +854,6 @@
- static int __init asus_hotk_add_fs(struct acpi_device *device)
- {
- 	struct proc_dir_entry *proc;
--	struct asus_hotk *hotk = acpi_driver_data(device);
- 	mode_t mode;
- 	
- 	/*
-@@ -928,9 +918,6 @@
- 
- static int asus_hotk_remove_fs(struct acpi_device* device)
- {
--	struct asus_hotk* hotk = acpi_driver_data(device);
--
--
- 	if(acpi_device_dir(device)) {
- 		remove_proc_entry(PROC_INFO,acpi_device_dir(device));
- 		if (hotk->methods->mt_wled)
-@@ -953,11 +940,7 @@
- 
- static void asus_hotk_notify(acpi_handle handle, u32 event, void *data)
- {
--	/* TODO Find a better way to handle events count. Here, in data, we receive
--	 * the hotk, so we can do anything!
--	 */
--	struct asus_hotk *hotk = (struct asus_hotk *) data;
--
-+	/* TODO Find a better way to handle events count.*/
- 	if (!hotk)
- 		return;
- 
-@@ -977,7 +960,7 @@
-  * This function is used to initialize the hotk with right values. In this
-  * method, we can make all the detection we want, and modify the hotk struct
-  */
--static int __init asus_hotk_get_info(struct asus_hotk *hotk)
-+static int __init asus_hotk_get_info(void)
- {
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
- 	struct acpi_buffer dsdt = { ACPI_ALLOCATE_BUFFER, NULL };
-@@ -1113,19 +1096,16 @@
- }
- 
- 
--static int __init asus_hotk_check(struct asus_hotk *hotk)
-+static int __init asus_hotk_check(void)
- {
- 	int result = 0;
- 
--	if (!hotk)
--		return(-EINVAL);
--
- 	result = acpi_bus_get_status(hotk->device);
- 	if (result)
- 		return(result);
- 
- 	if (hotk->device->status.present) {
--		result = asus_hotk_get_info(hotk);
-+		result = asus_hotk_get_info();
- 	} else {
- 		printk(KERN_ERR "  Hotkey device not present, aborting\n");
- 		return(-EINVAL);
-@@ -1137,7 +1117,6 @@
- 
- static int __init asus_hotk_add(struct acpi_device *device)
- {
--	struct asus_hotk *hotk = NULL;
- 	acpi_status status = AE_OK;
- 	int result;
- 
-@@ -1160,7 +1139,7 @@
- 	hotk->device = device;
- 
- 
--	result = asus_hotk_check(hotk);
-+	result = asus_hotk_check();
- 	if (result)
- 		goto end;
- 
-@@ -1205,13 +1184,10 @@
- static int asus_hotk_remove(struct acpi_device *device, int type)
- {
- 	acpi_status status = 0;
--	struct asus_hotk *hotk = NULL;
- 
- 	if (!device || !acpi_driver_data(device))
- 		return(-EINVAL);
- 
--	hotk = (struct asus_hotk *) acpi_driver_data(device);
--
- 	status = acpi_remove_notify_handler(hotk->handle, ACPI_SYSTEM_NOTIFY,
- 					    asus_hotk_notify);
- 	if (ACPI_FAILURE(status))
- 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+=3D=3D=3D=3D=3D drivers/acpi/processor.c 1.61 vs edited =3D=3D=3D=3D=3D
+--- 1.61/drivers/acpi/processor.c	2004-08-31 23:27:29 +08:00
++++ edited/drivers/acpi/processor.c	2004-09-08 09:12:34 +08:00
+@@ -2419,6 +2419,9 @@ acpi_processor_remove (
+ 	/* Unregister the idle handler when processor #0 is removed. */
+ 	if (pr->id =3D=3D 0) {
+ 		pm_idle =3D pm_idle_save;
++		/* Wait the idle thread to read the new value,
++		 * otherwise we Oops.
++		 */
+ 		synchronize_kernel();
+ 	}
 
+ <<idle.patch>>=20
 
--------------------------------------------------------
-This SF.Net email is sponsored by BEA Weblogic Workshop
-FREE Java Enterprise J2EE developer tools!
-Get your free copy of BEA WebLogic Workshop 8.1 today.
-http://ads.osdn.com/?ad_id=5047&alloc_id=10808&op=click
+------_=_NextPart_001_01C49607.5AA37C24
+Content-Type: application/octet-stream;
+	name="idle.patch"
+Content-Transfer-Encoding: base64
+Content-Description: idle.patch
+Content-Disposition: attachment;
+	filename="idle.patch"
+
+PT09PT0gYXJjaC9pMzg2L2tlcm5lbC9hcG0uYyAxLjY3IHZzIGVkaXRlZCA9PT09PQotLS0gMS42
+Ny9hcmNoL2kzODYva2VybmVsL2FwbS5jCTIwMDQtMDgtMjQgMTc6MDg6NDcgKzA4OjAwCisrKyBl
+ZGl0ZWQvYXJjaC9pMzg2L2tlcm5lbC9hcG0uYwkyMDA0LTA5LTA4IDA4OjQ4OjEyICswODowMApA
+QCAtMjM2Miw4ICsyMzYyLDEzIEBAIHN0YXRpYyB2b2lkIF9fZXhpdCBhcG1fZXhpdCh2b2lkKQog
+ewogCWludAllcnJvcjsKIAotCWlmIChzZXRfcG1faWRsZSkKKwlpZiAoc2V0X3BtX2lkbGUpIHsK
+IAkJcG1faWRsZSA9IG9yaWdpbmFsX3BtX2lkbGU7CisJCS8qIFdhaXQgdGhlIGlkbGUgdGhyZWFk
+IHRvIHJlYWQgdGhlIG5ldyB2YWx1ZSwgCisJCSAqIG90aGVyd2lzZSB3ZSBPb3BzLgorCQkgKi8K
+KwkJc3luY2hyb25pemVfa2VybmVsKCk7CisJfQogCWlmICgoKGFwbV9pbmZvLmJpb3MuZmxhZ3Mg
+JiBBUE1fQklPU19ESVNFTkdBR0VEKSA9PSAwKQogCSAgICAmJiAoYXBtX2luZm8uY29ubmVjdGlv
+bl92ZXJzaW9uID4gMHgwMTAwKSkgewogCQllcnJvciA9IGFwbV9lbmdhZ2VfcG93ZXJfbWFuYWdl
+bWVudChBUE1fREVWSUNFX0FMTCwgMCk7Cj09PT09IGFyY2gvaTM4Ni9rZXJuZWwvcHJvY2Vzcy5j
+IDEuNzUgdnMgZWRpdGVkID09PT09Ci0tLSAxLjc1L2FyY2gvaTM4Ni9rZXJuZWwvcHJvY2Vzcy5j
+CTIwMDQtMDgtMjQgMTc6MDg6NDQgKzA4OjAwCisrKyBlZGl0ZWQvYXJjaC9pMzg2L2tlcm5lbC9w
+cm9jZXNzLmMJMjAwNC0wOS0wOCAwOTowMDowNiArMDg6MDAKQEAgLTE0Miw2ICsxNDIsMTAgQEAg
+dm9pZCBjcHVfaWRsZSAodm9pZCkKIAkvKiBlbmRsZXNzIGlkbGUgbG9vcCB3aXRoIG5vIHByaW9y
+aXR5IGF0IGFsbCAqLwogCXdoaWxlICgxKSB7CiAJCXdoaWxlICghbmVlZF9yZXNjaGVkKCkpIHsK
+KwkJCS8qIElmIHBtX2lkbGUgaXMgaW4gYSBtb2R1bGUgYW5kIGlzIHByZWVtcHRlZCwKKwkJCSAq
+IG9vcHMgb2NjdXJzLiBEaXNhYmxlIHByZWVtcHQuCisJCQkgKi8KKwkJCXJjdV9yZWFkX2xvY2so
+KTsKIAkJCXZvaWQgKCppZGxlKSh2b2lkKSA9IHBtX2lkbGU7CiAKIAkJCWlmICghaWRsZSkKQEAg
+LTE0OSw2ICsxNTMsNyBAQCB2b2lkIGNwdV9pZGxlICh2b2lkKQogCiAJCQlpcnFfc3RhdFtzbXBf
+cHJvY2Vzc29yX2lkKCldLmlkbGVfdGltZXN0YW1wID0gamlmZmllczsKIAkJCWlkbGUoKTsKKwkJ
+CXJjdV9yZWFkX3VubG9jaygpOwogCQl9CiAJCXNjaGVkdWxlKCk7CiAJfQo9PT09PSBhcmNoL2lh
+NjQva2VybmVsL3Byb2Nlc3MuYyAxLjYyIHZzIGVkaXRlZCA9PT09PQotLS0gMS42Mi9hcmNoL2lh
+NjQva2VybmVsL3Byb2Nlc3MuYwkyMDA0LTA3LTI3IDEzOjI2OjUwICswODowMAorKysgZWRpdGVk
+L2FyY2gvaWE2NC9rZXJuZWwvcHJvY2Vzcy5jCTIwMDQtMDktMDggMDk6MDQ6NTggKzA4OjAwCkBA
+IC0yMjgsMTggKzIyOCwyNCBAQCBjcHVfaWRsZSAodm9pZCAqdW51c2VkKQogCiAJLyogZW5kbGVz
+cyBpZGxlIGxvb3Agd2l0aCBubyBwcmlvcml0eSBhdCBhbGwgKi8KIAl3aGlsZSAoMSkgewotCQl2
+b2lkICgqaWRsZSkodm9pZCkgPSBwbV9pZGxlOwotCQlpZiAoIWlkbGUpCi0JCQlpZGxlID0gZGVm
+YXVsdF9pZGxlOwotCiAjaWZkZWYgQ09ORklHX1NNUAogCQlpZiAoIW5lZWRfcmVzY2hlZCgpKQog
+CQkJbWluX3h0cCgpOwogI2VuZGlmCiAJCXdoaWxlICghbmVlZF9yZXNjaGVkKCkpIHsKKwkJCXZv
+aWQgKCppZGxlKSh2b2lkKTsKKwkJCQogCQkJaWYgKG1hcmtfaWRsZSkKIAkJCQkoKm1hcmtfaWRs
+ZSkoMSk7CisJCQkvKiBJZiBwbV9pZGxlIGlzIGluIGEgbW9kdWxlIGFuZCBpcyBwcmVlbXB0ZWQs
+CisJCQkgKiBvb3BzIG9jY3Vycy4gRGlzYWJsZSBwcmVlbXB0LgorCQkJICovCisJCQlyY3VfcmVh
+ZF9sb2NrKCk7CisJCQlpZGxlPSBwbV9pZGxlOworCQkJaWYgKCFpZGxlKQorCQkJCWlkbGUgPSBk
+ZWZhdWx0X2lkbGU7CiAJCQkoKmlkbGUpKCk7CisJCQlyY3VfcmVhZF91bmxvY2soKTsKIAkJfQog
+CiAJCWlmIChtYXJrX2lkbGUpCj09PT09IGFyY2gveDg2XzY0L2tlcm5lbC9wcm9jZXNzLmMgMS4z
+NSB2cyBlZGl0ZWQgPT09PT0KLS0tIDEuMzUvYXJjaC94ODZfNjQva2VybmVsL3Byb2Nlc3MuYwky
+MDA0LTA4LTI0IDE3OjA4OjQ0ICswODowMAorKysgZWRpdGVkL2FyY2gveDg2XzY0L2tlcm5lbC9w
+cm9jZXNzLmMJMjAwNC0wOS0wOCAwOTowNDozMSArMDg6MDAKQEAgLTEzMCwxMSArMTMwLDE4IEBA
+IHZvaWQgY3B1X2lkbGUgKHZvaWQpCiB7CiAJLyogZW5kbGVzcyBpZGxlIGxvb3Agd2l0aCBubyBw
+cmlvcml0eSBhdCBhbGwgKi8KIAl3aGlsZSAoMSkgewotCQl2b2lkICgqaWRsZSkodm9pZCkgPSBw
+bV9pZGxlOwotCQlpZiAoIWlkbGUpCi0JCQlpZGxlID0gZGVmYXVsdF9pZGxlOwotCQl3aGlsZSAo
+IW5lZWRfcmVzY2hlZCgpKQorCQl3aGlsZSAoIW5lZWRfcmVzY2hlZCgpKSB7CisJCQl2b2lkICgq
+aWRsZSkodm9pZCk7CisJCQkvKiBJZiBwbV9pZGxlIGlzIGluIGEgbW9kdWxlIGFuZCBpcyBwcmVl
+bXB0ZWQsCisJCQkgKiBvb3BzIG9jY3Vycy4gRGlzYWJsZSBwcmVlbXB0LgorCQkJICovCisJCQly
+Y3VfcmVhZF9sb2NrKCk7CisJCQlpZGxlID0gcG1faWRsZTsKKwkJCWlmICghaWRsZSkKKwkJCQlp
+ZGxlID0gZGVmYXVsdF9pZGxlOwogCQkJaWRsZSgpOworCQkJcmN1X3JlYWRfdW5sb2NrKCk7CisJ
+CX0KIAkJc2NoZWR1bGUoKTsKIAl9CiB9Cj09PT09IGRyaXZlcnMvYWNwaS9wcm9jZXNzb3IuYyAx
+LjYxIHZzIGVkaXRlZCA9PT09PQotLS0gMS42MS9kcml2ZXJzL2FjcGkvcHJvY2Vzc29yLmMJMjAw
+NC0wOC0zMSAyMzoyNzoyOSArMDg6MDAKKysrIGVkaXRlZC9kcml2ZXJzL2FjcGkvcHJvY2Vzc29y
+LmMJMjAwNC0wOS0wOCAwOToxMjozNCArMDg6MDAKQEAgLTI0MTksNiArMjQxOSw5IEBAIGFjcGlf
+cHJvY2Vzc29yX3JlbW92ZSAoCiAJLyogVW5yZWdpc3RlciB0aGUgaWRsZSBoYW5kbGVyIHdoZW4g
+cHJvY2Vzc29yICMwIGlzIHJlbW92ZWQuICovCiAJaWYgKHByLT5pZCA9PSAwKSB7CiAJCXBtX2lk
+bGUgPSBwbV9pZGxlX3NhdmU7CisJCS8qIFdhaXQgdGhlIGlkbGUgdGhyZWFkIHRvIHJlYWQgdGhl
+IG5ldyB2YWx1ZSwKKwkJICogb3RoZXJ3aXNlIHdlIE9vcHMuCisJCSAqLwogCQlzeW5jaHJvbml6
+ZV9rZXJuZWwoKTsKIAl9CiAK
+
+------_=_NextPart_001_01C49607.5AA37C24--
