@@ -1,15 +1,13 @@
-From: Lyle Seaman <lws-RAHWjsxJnJUdnm+yROfE0A@public.gmane.org>
-Subject: Re: AW: Re: [PATCH] S4bios for 2.5.52.
-Date: Thu, 19 Dec 2002 10:05:55 -0500
+From: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
+Subject: Re: latest acpi: new behavior of the UPBI method
+Date: Thu, 19 Dec 2002 16:15:29 +0100 (CET)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021219150600.C5DBE1480A@o-o.yi.org>
-References: <Herbert.Nachtnebel@tuwien.ac.at>
+Message-ID: <Pine.LNX.4.50.0212191612540.10665-100000@dynast.gaugusch.at>
+References: <3E01E193.3040406@eavr.u-strasbg.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: Message from "Herbert Nachtnebel" <Herbert.Nachtnebel-8zxNtbQCHXIjuwv8T7myQQ@public.gmane.org>
-   of "Thu, 19 Dec 2002 10:49:06 +0100." <B900970C7DD9474C972986EB3EC7C58F0D404E-PWLG29+z7hEKeIAE67mlpo2P0GrZ+RbP@public.gmane.org>
+In-Reply-To: <3E01E193.3040406-gXTsMEhN/Y091FlJP1ih0VAUjnlXr6A1@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,54 +16,32 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Herbert Nachtnebel <Herbert.Nachtnebel-8zxNtbQCHXIjuwv8T7myQQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel <acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Dec 19, Jacques GANGLOFF <jacques-gXTsMEhN/Y091FlJP1ih0VAUjnlXr6A1@public.gmane.org> wrote:
+> On my VAIO FX702, I have a recurrent problem
+> with the battery info:
+>
+> * the time needed to dump /proc/acpi/battery/BAT1/info
+> is about 0.5s and during this time the box is frozen.
+> * the last entries in info are corrupted, i.e. model number,
+> serial number, battery type and OEM info.
+Robert Moore from Intel is working on this issue (I help him by trying his
+patches).
 
-> but that sounds like a unpluged block queue which get flushed every 5 s=
-econds (or 30 seconds) by the bdflush daemon. There are two things which =
-counters this, 1st: swsusp works on ide and there aren't such problems si=
-nce aeons and 2nd Pavel knows that :-)
-> Hence, apologies for this hip shot.
+> As reported by another VAIO user on this list, my feeling is
+> that these problems are linked.
+No, they are not. The bad writte model number should be fixed in the next
+version. Don't know about the large delay, but probably this isn't fixed
+yet.
 
-I'm not sure I understand what you're saying, Herbert.  =
-
-
-There was something broken in yield() or schedule() back around 2.5.20 - =
-
-2.5.40 that made rw_swap_page_sync EXCRUTIATINGLY slow, but that's been f=
-ixed.
-
-Still, writing pages synchronously, one at a time, is going to be slow no=
- =
-
-matter what you do.  *Especially* on slow laptop drives.
-
-What I sent Nigel was a little patch to write them 20 at a time, which re=
-duced =
-
-my suspend times from nearly 60 seconds to something around 2 seconds.  I=
- =
-
-stopped at 20 because going beyond that was chasing diminishing returns a=
-nd I =
-
-didn't think that chewing up a huge chunk of stack was justified for a =
-
-one-second reduction in suspend times.
-
-I didn't send it on to the rest of the list because I figure Nigel's othe=
-r =
-
-changes will be coming along as well, and I didn't want to make merging t=
-oo =
-
-difficult for everyone.
-
-
-
-
+Markus
+-- 
+__________________    /"\
+Markus Gaugusch       \ /    ASCII Ribbon Campaign
+markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org     X     Against HTML Mail
+                      / \
 
 
 -------------------------------------------------------
