@@ -1,13 +1,15 @@
 From: Keshavamurthy Anil S <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 0/6] ACPI based physical cpu hotplug
-Date: Wed, 8 Sep 2004 18:16:54 -0700
+Subject: Re: [PATCH 1/6]ACPI based Physical CPU hotplug
+Date: Wed, 8 Sep 2004 18:21:12 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040908181654.A7287@unix-os.sc.intel.com>
+Message-ID: <20040908182112.B7287@unix-os.sc.intel.com>
+References: <44BDAFB888F59F408FAE3CC35AB47041B17999@orsmsx409>
 Reply-To: Keshavamurthy Anil S <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <44BDAFB888F59F408FAE3CC35AB47041B17999@orsmsx409>; from anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org on Wed, Sep 08, 2004 at 06:10:50PM -0700
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -16,44 +18,459 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: LHNS list <lhns-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, ACPI Developer <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: "Keshavamurthy, Anil S" <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, LHNS list <lhns-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, ACPI Developer <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 
-Hi All,
-	As everybody knows that we have logical cpu online/offline support in the kernel, the following set of patches extends this feature to provide ACPI based physical CPU hotplug and I am asking this set of patches to be included in the acpi-test tree. 
+This is the core acpi enhancements to support any ACPI 
+based physical hotplug especially to support physical removal.
+---
+Name:acpi_core.patch
+Status: Tested on 2.6.9-rc1-mm2
+Signed-off-by: Anil S Keshavamurthy <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Depends: None	
+Version: applies on 2.6.9-rc1-mm2	
 
-Please let me know if anyone see any issues or comments or even flames welcome:). 
+Description:
+This patch provides core hotplug support in acpi by providing
+acpi_bus_trim(), acpi_bus_remove() and acpi_pci_unbind()
+which does exactly reverse of acpi_bus_scan(), acpi_bus_add()
+and acpi_pci_bind(). 
+---
 
-Complete patches which applies cleanly on to 2.6.8.1-rc1-mm2 follows this mail.
+ linux-2.6.9-rc1-mm2-askeshav/drivers/acpi/acpi_ksyms.c   |    3 
+ linux-2.6.9-rc1-mm2-askeshav/drivers/acpi/bus.c          |    4 
+ linux-2.6.9-rc1-mm2-askeshav/drivers/acpi/pci_bind.c     |   45 ++++++
+ linux-2.6.9-rc1-mm2-askeshav/drivers/acpi/pci_irq.c      |   42 +++++
+ linux-2.6.9-rc1-mm2-askeshav/drivers/acpi/scan.c         |  109 +++++++++++++--
+ linux-2.6.9-rc1-mm2-askeshav/include/acpi/acpi_bus.h     |    9 +
+ linux-2.6.9-rc1-mm2-askeshav/include/acpi/acpi_drivers.h |    2 
+ 7 files changed, 196 insertions(+), 18 deletions(-)
 
-Context:
---------
-This set of patches supports physical CPU hotplug notification happening directly on ACPI_PROCESSOR_HID in which case the notification is services within the processor driver or  if the processor is described within the ACPI container object(i.e ACPI004 or PNP0A05 or PNP0A06) and hotplug notifications happens on the Container object then the container driver(which is a new additional driver, patch 6/6) will service this request.
-
-The interaction between the container driver and the processor driver is implicit i.e when the container driver is notified about the hotadd as a result of notification happening on ACPI container object(i.e ACPI004 or PNP0A05 or PNP0A06), the container driver will call acpi_bus_scan() api which will add the individual devices within its namespace and the respective driver's .add routine will be called in this case acpi_processor_add() routine gets called which will handle the setting up of new processor.
-
-For Hotadd case, the kernel mode just initializes the minimal data structures (like mapping between acpiid<->apicid<->logical_cpu_number) and populates the sysfs entries(/sys/devices/system/cpu/cpuX/online) and issues an /sbin/hotplug notification to user mode agent script at which point the hotadded CPU will be in logical offline state. User mode agent script will turn the CPU online. This is designed as kernel/usermode (i.e setting up things in kernel and actual onlining from usermode agent) because at some point in future for the Container device which contains both CPU and Memory then there needs to some order in which you can bring up the child devices of the container(i.e all memory devices first and then the cpu devices). Also if it is in user mode, the script can implement the policy whether to continue onlineing of the devices if one fails etc.
-
-For Hotremove case, the kernel mode again just sends the notification to user land and the agent script is responsible for offlining the devices and then calling "echo "\_SB_.LSB0" > /sys/firmware/acpi/eject". This eject is a new interface which has been designed to handle this hotremove. With this kind of an interface user mode initiated hotremoval is also possible if that is required for some platform. Again in this user mode initiated hotremoval the agent script can offline the devices and then can echo the acpi_handle name onto the eject file.
-
-Some of the contribution to this patches has come from multiple people from with in Intel and also from Fujitsu's who are also involved in this work and Fujitsu has also hosted lhns.sourceforge.net opensource project specifically to address hotplug work and I am cc'ing lhns mail-list from where I borrowed the initial design concepts.
-Thanks to all for those who participated in bringing the code to this quality.
-
-All the testing has been done in an emulation environment and for more information on setting up the emulation environment for the hotplug testing please visit lhns.sourceforge.net.
-
-TBD - Works that needs to be done:
-1) Full NUMA based systems
-2) Arch specific acpi enhancements for IA32 platforms to support physical CPU hotplug.
-
-Thanks,
-
--Anil Keshavamurthy
-Sr. Software Engineer
-Linux OS Technology Team
-Intel Corp.
-(w) 503-712-4476
+diff -puN include/acpi/acpi_bus.h~acpi_core include/acpi/acpi_bus.h
+--- linux-2.6.9-rc1-mm2/include/acpi/acpi_bus.h~acpi_core	2004-09-08 16:42:13.443282044 -0700
++++ linux-2.6.9-rc1-mm2-askeshav/include/acpi/acpi_bus.h	2004-09-08 16:42:13.561446105 -0700
+@@ -104,6 +104,7 @@ typedef int (*acpi_op_suspend)	(struct a
+ typedef int (*acpi_op_resume)	(struct acpi_device *device, int state);
+ typedef int (*acpi_op_scan)	(struct acpi_device *device);
+ typedef int (*acpi_op_bind)	(struct acpi_device *device);
++typedef int (*acpi_op_unbind)	(struct acpi_device *device);
+ 
+ struct acpi_device_ops {
+ 	acpi_op_add		add;
+@@ -115,6 +116,7 @@ struct acpi_device_ops {
+ 	acpi_op_resume		resume;
+ 	acpi_op_scan		scan;
+ 	acpi_op_bind		bind;
++	acpi_op_unbind		unbind;
+ };
+ 
+ struct acpi_driver {
+@@ -313,7 +315,8 @@ extern struct subsystem acpi_subsys;
+  * External Functions
+  */
+ 
+-int acpi_bus_get_device(acpi_handle, struct acpi_device **device);
++int acpi_bus_get_device(acpi_handle handle, struct acpi_device **device);
++void acpi_bus_data_handler(acpi_handle handle, u32 function, void *context);
+ int acpi_bus_get_status (struct acpi_device *device);
+ int acpi_bus_get_power (acpi_handle handle, int *state);
+ int acpi_bus_set_power (acpi_handle handle, int state);
+@@ -325,6 +328,10 @@ int acpi_bus_unregister_driver (struct a
+ int acpi_create_dir(struct acpi_device *);
+ void acpi_remove_dir(struct acpi_device *);
+ 
++int acpi_bus_scan (struct acpi_device *start);
++void acpi_bus_trim(struct acpi_device *start, int rmdevice);
++int acpi_bus_add (struct acpi_device **child, struct acpi_device *parent, acpi_handle handle, int type);
++
+ #endif /* CONFIG_ACPI */
+ 
+ #endif /*__ACPI_BUS_H__*/
+diff -puN drivers/acpi/acpi_ksyms.c~acpi_core drivers/acpi/acpi_ksyms.c
+--- linux-2.6.9-rc1-mm2/drivers/acpi/acpi_ksyms.c~acpi_core	2004-09-08 16:42:13.449141419 -0700
++++ linux-2.6.9-rc1-mm2-askeshav/drivers/acpi/acpi_ksyms.c	2004-09-08 16:42:13.562422667 -0700
+@@ -129,6 +129,9 @@ EXPORT_SYMBOL(acpi_bus_generate_event);
+ EXPORT_SYMBOL(acpi_bus_receive_event);
+ EXPORT_SYMBOL(acpi_bus_register_driver);
+ EXPORT_SYMBOL(acpi_bus_unregister_driver);
++EXPORT_SYMBOL(acpi_bus_scan);
++EXPORT_SYMBOL(acpi_bus_trim);
++EXPORT_SYMBOL(acpi_bus_add);
+ 
+ 
+ /* ACPI PCI Driver (pci_irq.c) */
+diff -puN drivers/acpi/scan.c~acpi_core drivers/acpi/scan.c
+--- linux-2.6.9-rc1-mm2/drivers/acpi/scan.c~acpi_core	2004-09-08 16:42:13.454024231 -0700
++++ linux-2.6.9-rc1-mm2-askeshav/drivers/acpi/scan.c	2004-09-08 16:42:13.564375792 -0700
+@@ -57,6 +57,7 @@ static void acpi_device_register(struct 
+ 	INIT_LIST_HEAD(&device->children);
+ 	INIT_LIST_HEAD(&device->node);
+ 	INIT_LIST_HEAD(&device->g_list);
++	INIT_LIST_HEAD(&device->wakeup_list);
+ 
+ 	spin_lock(&acpi_device_lock);
+ 	if (device->parent) {
+@@ -64,6 +65,8 @@ static void acpi_device_register(struct 
+ 		list_add_tail(&device->g_list,&device->parent->g_list);
+ 	} else
+ 		list_add_tail(&device->g_list,&acpi_device_list);
++	if (device->wakeup.flags.valid)
++		list_add_tail(&device->wakeup_list,&acpi_wakeup_device_list);
+ 	spin_unlock(&acpi_device_lock);
+ 
+ 	kobject_init(&device->kobj);
+@@ -80,6 +83,20 @@ acpi_device_unregister (
+ 	struct acpi_device	*device, 
+ 	int			type)
+ {
++	spin_lock(&acpi_device_lock);
++	if (device->parent) {
++		list_del(&device->node);
++		list_del(&device->g_list);
++	} else
++		list_del(&device->g_list);
++
++	if ((device->flags.wake_capable) &&
++	    (device->wakeup.flags.valid))
++		list_del(&device->wakeup_list);
++
++	spin_unlock(&acpi_device_lock);
++
++	acpi_detach_data(device->handle, acpi_bus_data_handler);
+ 	kobject_unregister(&device->kobj);
+ 	return 0;
+ }
+@@ -269,12 +286,6 @@ acpi_bus_get_wakeup_device_flags (
+ 	if (!acpi_match_ids(device, "PNP0C0D,PNP0C0C,PNP0C0E"))
+ 		device->wakeup.flags.run_wake = 1;
+ 
+-	/* TBD: lock */
+-	INIT_LIST_HEAD(&device->wakeup_list);
+-	spin_lock(&acpi_device_lock);
+-	list_add_tail(&device->wakeup_list, &acpi_wakeup_device_list);
+-	spin_unlock(&acpi_device_lock);
+-
+ end:
+ 	if (ACPI_FAILURE(status))
+ 		device->flags.wake_capable = 0;
+@@ -315,7 +326,6 @@ acpi_bus_match (
+ 	return acpi_match_ids(device, driver->ids);
+ }
+ 
+-
+ /**
+  * acpi_bus_driver_init 
+  * --------------------
+@@ -721,9 +731,10 @@ int acpi_device_set_context(struct acpi_
+ void acpi_device_get_debug_info(struct acpi_device * device, acpi_handle handle, int type)
+ {
+ #ifdef CONFIG_ACPI_DEBUG_OUTPUT
++
+ 	char		*type_string = NULL;
+ 	char		name[80] = {'?','\0'};
+-	acpi_buffer	buffer = {sizeof(name), name};
++	struct acpi_buffer	buffer = {sizeof(name), name};
+ 
+ 	switch (type) {
+ 	case ACPI_BUS_TYPE_DEVICE:
+@@ -760,7 +771,56 @@ void acpi_device_get_debug_info(struct a
+ #endif /*CONFIG_ACPI_DEBUG_OUTPUT*/
+ }
+ 
+-static int 
++
++int
++acpi_bus_remove (
++	struct acpi_device *dev,
++	int rmdevice)
++{
++	int 			result = 0;
++	struct acpi_driver	*driver;
++	
++	ACPI_FUNCTION_TRACE("acpi_bus_remove");
++
++	if (!dev)
++		return_VALUE(-EINVAL);
++
++	driver = dev->driver;
++
++	if ((driver) && (driver->ops.remove)) {
++
++		if (driver->ops.stop) {
++			result = driver->ops.stop(dev, ACPI_BUS_REMOVAL_EJECT);
++			if (result)
++				return_VALUE(result);
++		}
++
++		result = dev->driver->ops.remove(dev, ACPI_BUS_REMOVAL_EJECT);
++		if (result) {
++			if (driver->ops.start)
++				driver->ops.start(dev);
++			return_VALUE(result);
++		}
++
++		atomic_dec(&dev->driver->references);
++		dev->driver = NULL;
++		acpi_driver_data(dev) = NULL;
++	}
++
++	if (!rmdevice)
++		return_VALUE(0);
++
++	if (dev->flags.bus_address) {
++		if ((dev->parent) && (dev->parent->ops.unbind))
++			dev->parent->ops.unbind(dev);
++	}
++	
++	acpi_device_unregister(dev, ACPI_BUS_REMOVAL_EJECT);
++
++	return_VALUE(0);
++}
++
++int
+ acpi_bus_add (
+ 	struct acpi_device	**child,
+ 	struct acpi_device	*parent,
+@@ -907,7 +967,7 @@ end:
+ 
+ 
+ 
+-static int acpi_bus_scan (struct acpi_device	*start)
++int acpi_bus_scan (struct acpi_device	*start)
+ {
+ 	acpi_status		status = AE_OK;
+ 	struct acpi_device	*parent = NULL;
+@@ -1009,6 +1069,35 @@ static int acpi_bus_scan (struct acpi_de
+ 	return_VALUE(0);
+ }
+ 
++void
++acpi_bus_trim(struct acpi_device	*start,
++		int rmdevice)
++{
++	acpi_status		status = AE_OK;
++	struct acpi_device	*parent = NULL;
++	struct acpi_device	*child = NULL;
++	acpi_handle		phandle = 0;
++	acpi_handle		chandle = 0;
++
++	parent  = start;
++	phandle = start->handle;
++
++	/*
++	 * NOTE: must be freed in a depth-first manner.
++	 */
++	while (1)	{
++		status = acpi_get_next_object(ACPI_TYPE_ANY, phandle,
++			chandle, &chandle);
++		if (ACPI_SUCCESS(status) && chandle != NULL)	{
++			if (acpi_bus_get_device(chandle, &child) == 0)
++				acpi_bus_trim(child, 1);
++		} else {
++			/* this is a leaf */
++			acpi_bus_remove(parent, rmdevice);
++			break;
++		}
++	}
++}
+ 
+ static int
+ acpi_bus_scan_fixed (
+diff -puN include/acpi/acpi_drivers.h~acpi_core include/acpi/acpi_drivers.h
+--- linux-2.6.9-rc1-mm2/include/acpi/acpi_drivers.h~acpi_core	2004-09-08 16:42:13.460860168 -0700
++++ linux-2.6.9-rc1-mm2-askeshav/include/acpi/acpi_drivers.h	2004-09-08 16:42:13.564375792 -0700
+@@ -61,12 +61,14 @@ int acpi_pci_link_get_irq (acpi_handle h
+ /* ACPI PCI Interrupt Routing (pci_irq.c) */
+ 
+ int acpi_pci_irq_add_prt (acpi_handle handle, int segment, int bus);
++void acpi_pci_irq_del_prt (int segment, int bus);
+ 
+ /* ACPI PCI Device Binding (pci_bind.c) */
+ 
+ struct pci_bus;
+ 
+ int acpi_pci_bind (struct acpi_device *device);
++int acpi_pci_unbind (struct acpi_device *device);
+ int acpi_pci_bind_root (struct acpi_device *device, struct acpi_pci_id *id, struct pci_bus *bus);
+ 
+ /* Arch-defined function to add a bus to the system */
+diff -puN drivers/acpi/pci_irq.c~acpi_core drivers/acpi/pci_irq.c
+--- linux-2.6.9-rc1-mm2/drivers/acpi/pci_irq.c~acpi_core	2004-09-08 16:42:13.465742981 -0700
++++ linux-2.6.9-rc1-mm2-askeshav/drivers/acpi/pci_irq.c	2004-09-08 16:42:13.565352355 -0700
+@@ -43,7 +43,7 @@
+ ACPI_MODULE_NAME		("pci_irq")
+ 
+ struct acpi_prt_list		acpi_prt;
+-
++spinlock_t acpi_prt_lock = SPIN_LOCK_UNLOCKED;
+ 
+ /* --------------------------------------------------------------------------
+                          PCI IRQ Routing Table (PRT) Support
+@@ -68,18 +68,20 @@ acpi_pci_irq_find_prt_entry (
+ 	 * Parse through all PRT entries looking for a match on the specified
+ 	 * PCI device's segment, bus, device, and pin (don't care about func).
+ 	 *
+-	 * TBD: Acquire/release lock
+ 	 */
++	spin_lock(&acpi_prt_lock);
+ 	list_for_each(node, &acpi_prt.entries) {
+ 		entry = list_entry(node, struct acpi_prt_entry, node);
+ 		if ((segment == entry->id.segment) 
+ 			&& (bus == entry->id.bus) 
+ 			&& (device == entry->id.device)
+ 			&& (pin == entry->pin)) {
++			spin_unlock(&acpi_prt_lock);
+ 			return_PTR(entry);
+ 		}
+ 	}
+ 
++	spin_unlock(&acpi_prt_lock);
+ 	return_PTR(NULL);
+ }
+ 
+@@ -141,14 +143,29 @@ acpi_pci_irq_add_entry (
+ 		entry->id.segment, entry->id.bus, entry->id.device, 
+ 		('A' + entry->pin), prt->source, entry->link.index));
+ 
+-	/* TBD: Acquire/release lock */
++	spin_lock(&acpi_prt_lock);
+ 	list_add_tail(&entry->node, &acpi_prt.entries);
+ 	acpi_prt.count++;
++	spin_unlock(&acpi_prt_lock);
+ 
+ 	return_VALUE(0);
+ }
+ 
+ 
++static void
++acpi_pci_irq_del_entry (
++	int				segment,
++	int				bus,
++	struct acpi_prt_entry		*entry)
++{
++	if (segment == entry->id.segment && bus == entry->id.bus){
++		acpi_prt.count--;
++		list_del(&entry->node);
++		kfree(entry);
++	}
++}
++
++
+ int
+ acpi_pci_irq_add_prt (
+ 	acpi_handle		handle,
+@@ -222,7 +239,26 @@ acpi_pci_irq_add_prt (
+ 	return_VALUE(0);
+ }
+ 
++void
++acpi_pci_irq_del_prt (int segment, int bus)
++{
++	struct list_head        *node = NULL, *n = NULL;
++	struct acpi_prt_entry   *entry = NULL;
++
++	if (!acpi_prt.count)    {
++		return;
++	}
+ 
++	printk(KERN_DEBUG "ACPI: Delete PCI Interrupt Routing Table for %x:%x\n",
++		segment, bus);
++	spin_lock(&acpi_prt_lock);
++	list_for_each_safe(node, n, &acpi_prt.entries) {
++		entry = list_entry(node, struct acpi_prt_entry, node);
++
++		acpi_pci_irq_del_entry(segment, bus, entry);
++	}
++	spin_unlock(&acpi_prt_lock);
++}
+ /* --------------------------------------------------------------------------
+                           PCI Interrupt Routing Support
+    -------------------------------------------------------------------------- */
+diff -puN drivers/acpi/pci_bind.c~acpi_core drivers/acpi/pci_bind.c
+--- linux-2.6.9-rc1-mm2/drivers/acpi/pci_bind.c~acpi_core	2004-09-08 16:42:13.471602356 -0700
++++ linux-2.6.9-rc1-mm2-askeshav/drivers/acpi/pci_bind.c	2004-09-08 16:42:13.566328917 -0700
+@@ -214,6 +214,7 @@ acpi_pci_bind (
+ 			data->id.device, data->id.function));
+ 		data->bus = data->dev->subordinate;
+ 		device->ops.bind = acpi_pci_bind;
++		device->ops.unbind = acpi_pci_unbind;
+ 	}
+ 
+ 	/*
+@@ -257,6 +258,49 @@ end:
+ 	return_VALUE(result);
+ }
+ 
++int acpi_pci_unbind(
++	struct acpi_device      *device)
++{
++	int                     result = 0;
++	acpi_status             status = AE_OK;
++	struct acpi_pci_data    *data = NULL;
++	char                    pathname[ACPI_PATHNAME_MAX] = {0};
++	struct acpi_buffer      buffer = {ACPI_PATHNAME_MAX, pathname};
++
++	ACPI_FUNCTION_TRACE("acpi_pci_unbind");
++
++	if (!device || !device->parent)
++		return_VALUE(-EINVAL);
++
++	acpi_get_name(device->handle, ACPI_FULL_PATHNAME, &buffer);
++	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Unbinding PCI device [%s]...\n",
++		pathname));
++
++	status = acpi_get_data(device->handle, acpi_pci_data_handler, (void**)&data);
++	if (ACPI_FAILURE(status)) {
++		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
++			"Unable to get data from device %s\n",
++			acpi_device_bid(device)));
++		result = -ENODEV;
++		goto end;
++	}
++
++	status = acpi_detach_data(device->handle, acpi_pci_data_handler);
++	if (ACPI_FAILURE(status)) {
++		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
++			"Unable to detach data from device %s\n",
++			acpi_device_bid(device)));
++		result = -ENODEV;
++		goto end;
++	}
++	if (data->dev->subordinate) {
++		acpi_pci_irq_del_prt(data->id.segment, data->bus->number);
++	}
++	kfree(data);
++
++end:
++	return_VALUE(result);
++}
+ 
+ int 
+ acpi_pci_bind_root (
+@@ -283,6 +327,7 @@ acpi_pci_bind_root (
+ 	data->id = *id;
+ 	data->bus = bus;
+ 	device->ops.bind = acpi_pci_bind;
++	device->ops.unbind = acpi_pci_unbind;
+ 
+ 	acpi_get_name(device->handle, ACPI_FULL_PATHNAME, &buffer);
+ 
+diff -puN drivers/acpi/bus.c~acpi_core drivers/acpi/bus.c
+--- linux-2.6.9-rc1-mm2/drivers/acpi/bus.c~acpi_core	2004-09-08 16:42:13.475508606 -0700
++++ linux-2.6.9-rc1-mm2-askeshav/drivers/acpi/bus.c	2004-09-08 16:42:13.567305480 -0700
+@@ -53,10 +53,6 @@ struct proc_dir_entry		*acpi_root_dir;
+                                 Device Management
+    -------------------------------------------------------------------------- */
+ 
+-extern void acpi_bus_data_handler (
+-	acpi_handle		handle,
+-	u32			function,
+-	void			*context);
+ int
+ acpi_bus_get_device (
+ 	acpi_handle		handle,
+_
 
 
 -------------------------------------------------------
