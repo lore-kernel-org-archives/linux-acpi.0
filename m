@@ -1,58 +1,78 @@
-From: "Brown, Len" <len.brown@intel.com>
-Subject: RE: [ACPI] [PATCH] add acpi_interrupt_to_irq
-Date: Thu, 22 Jan 2004 12:41:10 -0500
-Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <BF1FE1855350A0479097B3A0D2A80EE0CC8A2D@hdsmsx402.hd.intel.com>
+From: Mikael Pettersson <mikpe-gJWeRRR3xd2zQB+pC5nmwQ@public.gmane.org>
+Subject: Re: Re: PROBLEM: ACPI freezes 2.6.1 on boot
+Date: Thu, 22 Jan 2004 18:49:26 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <16400.3366.286902.721704@alkaid.it.uu.se>
+References: <7F740D512C7C1046AB53446D3720017361885C@scsmsx402.sc.intel.com>
+	<m3u12pgfpr.fsf@reason.gnu-hamburg>
+	<m3ptddgckg.fsf@reason.gnu-hamburg>
+	<20040122120854.GB3534@hell.org.pl>
+	<16399.55109.244040.516731@alkaid.it.uu.se>
+	<Pine.LNX.4.58.0401220900510.2123@home.osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-ia64-owner@vger.kernel.org>
-content-class: urn:content-classes:message
-To: Bjorn Helgaas <bjorn.helgaas@hp.com>, "Nakajima, Jun" <jun.nakajima@intel.com>, acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.58.0401220900510.2123-Xqd2YWsQM6mXDw4h08c5KA@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
+Cc: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>, "Nakajima, Jun" <jun.nakajima-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Martin Loschwitz <madkiss-R0iKqZn4BxJAfugRpC6u6w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Bjorn,
+Linus Torvalds writes:
+ > 
+ > 
+ > On Thu, 22 Jan 2004, Mikael Pettersson wrote:
+ > 
+ > > Karol Kozimor writes:
+ > >  > 
+ > >  > diff -Bru linux-2.6.0-test8/arch/i386/kernel/apic.c patched/arch/i386/kernel/apic.c
+ > >  > --- linux-2.6.0-test8/arch/i386/kernel/apic.c	2003-10-18 05:43:36.000000000 +0800
+ > >  > +++ patched/arch/i386/kernel/apic.c	2003-10-30 23:17:50.000000000 +0800
+ > >  > @@ -836,8 +836,8 @@
+ > >  >  {
+ > >  >  	unsigned int lvtt1_value, tmp_value;
+ > >  >  
+ > >  > -	lvtt1_value = SET_APIC_TIMER_BASE(APIC_TIMER_BASE_DIV) |
+ > >  > -			APIC_LVT_TIMER_PERIODIC | LOCAL_TIMER_VECTOR;
+ > >  > +	lvtt1_value = APIC_LVT_TIMER_PERIODIC | LOCAL_TIMER_VECTOR;
+ > >  > +
+ > >  >  	apic_write_around(APIC_LVTT, lvtt1_value);
+ > > 
+ > > What is the purpose of this change?
+ > > I don't remember seeing this before on LKML. (I don't have time to read bugzilla.)
+ > 
+ > Hmm.. It does seem to fix things for a couple of people, so it looks 
+ > interesting.
+ > 
+ > As far as I can tell, the _only_ thing it does is to change the timer base
+ > from "DIV" to "CLKIN". I seem to have misplaced my ia-32 "volume 3" thing, 
+ > but I have an old one for a pentium, and that one doesn't actually
+ > haev the timer-base thing at all - and marks those bits as "reserved".
+ > 
+ > So it is entirely possible that the only safe value to write there is 0.
 
-> irq = acpi_irq_to_vector(irq);
+Confirmed. Those bits (18 and 19 in LVTT) are marked reserved in the
+latest IA32 Volume 3. I have no idea where this APIC_TIMER_BASE came
+from (maybe some ancient discrete LAPIC thing?), but we almost certainly
+shouldn't write anything but zero to them.
 
-Yeah, this name is totally bogus; and your comments are absolutely
-right.  I thank you for taking the time to address it.
+ > So I'm inclined to apply the patch, but it would be better if somebody who 
 
-When I first saw this I said to myself, "hmm, shouldn't it be
-acpi_irq_to_irq()?", nah, that seems even more stupid!";-)
+I agree. The patch should be applied.
 
-Looks like this is only used for the SCI listed in the FADT.  So maybe
-we should just call it something like acpi_fadt_sci_to_irq()?
+/Mikael
 
-Thanks,
--Len
 
-> -----Original Message-----
-> From: Bjorn Helgaas [mailto:bjorn.helgaas@hp.com] 
-> Sent: Thursday, January 22, 2004 11:38 AM
-> To: Nakajima, Jun; acpi-devel@lists.sourceforge.net; 
-> linux-ia64@vger.kernel.org
-> Cc: Brown, Len
-> Subject: Re: [ACPI] [PATCH] add acpi_interrupt_to_irq
-> 
-> 
-> On Wednesday 21 January 2004 8:36 pm, Nakajima, Jun wrote:
-> 
-> > > 	(b) is "acpi_interrupt_to_irq" a better name than
-> > > 	    "acpi_irq_to_vector"?
-> > 
-> > I don't know what people imagine by "interrupt", but to me 
-> it implies an
-> > "event". 
-> 
-> Are you saying that you think "acpi_irq_to_vector" is the right name?
-> What does "vector" mean?  The return value of that function is in
-> fact a Linux IRQ, and is passed to request_irq() and free_irq().  So
-> I think the correct name is "acpi_SOMETHING_to_irq".  If you don't
-> like "interrupt", you can propose something else.  I just think it's
-> misleading for the name to contain "to_vector", when it's really
-> doing "to_irq".
-> 
-> 
-> 
+-------------------------------------------------------
+The SF.Net email is sponsored by EclipseCon 2004
+Premiere Conference on Open Tools Development and Integration
+See the breadth of Eclipse activity. February 3-5 in Anaheim, CA.
+http://www.eclipsecon.org/osdn
