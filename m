@@ -1,13 +1,14 @@
-From: support-MYdkbc4KblJDPfheJLI6IQ@public.gmane.org
-Subject: Re: Re: Protected Mail System
-Date: Mon, 7 Jun 2004 21:15:09 -0700 (PDT)
+From: wwp <subscript-GANU6spQydw@public.gmane.org>
+Subject: Re: ACPI: Battery information?
+Date: Tue, 8 Jun 2004 09:20:45 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40C53D4D.000001.13324@websc-utils01.int.rightnowtech.com>
-Reply-To: support-MYdkbc4KblJDPfheJLI6IQ@public.gmane.org
+Message-ID: <20040608092045.72e15c4c@tethys.solarsys.org>
+References: <40C4FD27.7000805@users.xeroprj.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <40C4FD27.7000805-BC6XjCpM3eF0abU8S3f8Vti2O/JbrIOy@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -19,37 +20,30 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Response
----------------------------------------------------------------
-Dear Customer,
+Hello Binary Xerroz,
 
-Your question has NOT been submitted.
 
-To submit a question to Lantronix Support, please click one of the links =
-below:
-Post-Sales:
-http://ltxfaq.custhelp.com/cgi-bin/ltxfaq.cfg/php/enduser/ask.php=20
+On Mon, 07 Jun 2004 16:41:27 -0700 Binary Xerroz <xerroz-BC6XjCpM3eF0abU8S3f8Vti2O/JbrIOy@public.gmane.org> wrote:
 
-Pre-Sales:
-http://www.lantronix.com/howtobuy/salesinfo/index.html=20
+> Forgive me if this is off topic in anyway, that said; I am curious how 
+> ACPI detects batteries, I assume its done while the kernel is 
+> initializing, is this true? Also, how is a battery detected? via tables 
+> such as the DSDT or equivalent? One last thing, could someone point me 
+> to the file where the batteries are listed and detected, I have spent 
+> some time looking through the code and have yet to find it.
+> Thank you for your help.
 
-You may also call our Technical Support Department during our normal busi=
-ness hours (between 6:00 am 5:30 pm Pacific Time, Monday through Friday) =
-at 800-422-7044 (U.S. & Canada) or 949-453-3990 (worldwide).
+16 lines, 640 bytes, nice obfuscated signature (no chance that it is displayed
+correctly if displayed w/ a variable-width font). Couldn't you pack the binary
+representation to 80 ASCII chars instead (even if still not RFC compliant)?
 
-You may also find the answer to your questions in our Technical FAQ secti=
-on of our WebSite at:
-http://www.lantronix.com/support=20
+:-p
 
-To download a manual for your Lantronix product, click the link below:
-http://www.lantronix.com/support/docs/=20
 
 Regards,
-Lantronix Technical Services
----------------------------------------------------------------
-***************************************************************
 
-
+-- 
+wwp
 
 
 -------------------------------------------------------
