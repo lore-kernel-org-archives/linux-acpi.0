@@ -1,16 +1,14 @@
-From: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>
-Subject: Re: [PATCH] s3_bios and lcall $0xc000,$3
-Date: Tue, 18 Feb 2003 07:13:46 +1300
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: s3_bios and lcall $0xc000,$3
+Date: Mon, 17 Feb 2003 19:19:12 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1045505626.5596.20.camel@laptop-linux.cunninghams>
+Message-ID: <20030217181912.GA25947@poup.poupinou.org>
 References: <Pine.LNX.4.33.0302171423290.21415-100000@godzilla.axis.se>
- <Pine.LNX.4.33.0302171647410.21415-100000@godzilla.axis.se>
- <20030217171610.GC25625@poup.poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <20030217171610.GC25625-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.33.0302171423290.21415-100000-Hi2dXqvvzfEtpH44vsTDoQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,21 +17,32 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: Bjorn Wesen <bjorn.wesen-VrBV9hrLPhE@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+To: Bjorn Wesen <bjorn.wesen-VrBV9hrLPhE@public.gmane.org>
+Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2003-02-18 at 06:16, Ducrot Bruno wrote:
-> Pavel, really, we need to provide a better way to reinitialize
-> the VGA subsystem.
+On Mon, Feb 17, 2003 at 04:38:18PM +0100, Bjorn Wesen wrote:
+> Ok.. just checking: what exactly is the lcall $0xc000,$3 call supposed to do 
+> in the wakeup.S code ? It seems to be the only way to actually activate the 
+> TFT on the acer travelmate notebook, and I can print characters on the 
+> screen after the call, but when the code tries to load CR4, the CPU freezes 
+> (or at least it can't print characters anymore..).
+> 
+> I'm guessing that the bios call corrupt some data segment pointers, because 
+> if I print out any of the real_save_* values, they are all zero! WHich 
+> obviously causes a crash when you load up a zero GDT, zero CR0, zero CR4 
+> etc... 
+> 
+> I've tried to find the description of this bios call on the net somewhere 
+> but turned up zero..
 
-And you need to make no assumptions about the state - on an i830 (and
-others, no doubt), S4 == S5 for the video subsystem.
+Just google for 'ralph brown list'.
 
-Regards,
+-- 
+Ducrot Bruno
 
-Nigel
-
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
