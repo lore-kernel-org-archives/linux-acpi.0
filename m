@@ -1,11 +1,11 @@
-From: James Courtier-Dutton <James-l7zRWeYnyd2TY6FTCsQk+9Bc4/FLrbF6@public.gmane.org>
-Subject: IO-APIC IRQ setting fails: VT8235 - Sth Bridge / VT 400 - Nth Bridge
-Date: Sat, 18 Oct 2003 16:26:17 +0100
+From: nicolas.olivero-39ZsbGIQGT5GWvitb5QawA@public.gmane.org
+Subject: acpi on medion laptop
+Date: Sat, 18 Oct 2003 16:19:22 +0200 (CEST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3F915B99.7000307@superbug.demon.co.uk>
+Message-ID: <8359593.1066486762312.JavaMail.www@wwinf0103>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------020708060104050309030606"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -18,116 +18,118 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------020708060104050309030606
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-
-Hi,
-
-I have opserved that the current linux 2.6test7 totally fails to 
-correctly set the IO-APIC IRQs.
-Even in just PIC mode, it cannot change and IRQs. It just has to stay 
-with whatever the bios set.
-
-I attach output from the serial console during boot.
-
-Can anyone give me a URL for the VT8235/VT400 chipsets, so that I could 
-implement correct IO-APIC settting for Motherboards based on this.
-
-Cheers
-James
-
---------------020708060104050309030606
-Content-Type: application/octet-stream;
- name="VIA-IO-APIC-Fails.tar.bz2"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="VIA-IO-APIC-Fails.tar.bz2"
-
-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
-XnO7VFIhfub32qq3uR7jtRRciyUeJSGxqSiMUyiYa3Ioj63BHsH+mUHcvUaEwaH2uY0vbsPM
-51MLkbvI4PKiJSitFJSSuR8AqoewpCOKY+RfznQmOpilHFqh1tspRc1tq+fVLVEYtL9CjNdD
-El6PH3+RHQk2LMTFEZNvWq+ja97aPlzaWoaGR2lyKQ4xxqVbfeuhVvWzhKKuvlUC5MelyGBD
-C5KjNmwZoyGExEouYKIlExMRKWClIlEkkxKZSSSlEslFCS5RRraYO0wjFeJGmKKkksGhoiR2
-oS8kSVSVSixRJpPNTTENBiHmS0CLjQaNKUOmJkklLJHWjW1rR2RWFGTGIjBRERklnI1KEomF
-0VXNiIURChZEySf1r5aTRi8CxiiSWTDJ2lVjB1sqr34vnVXll0G5mojuowXOVcjSrRDg6CVD
-MbddDVEcD6lW6WEf6/5QhzGA1wbGIq0Rp9gaNsa0pTEo7m9iZLKNCMkVTHasNcfqmCTB0pYK
-RY0r9YlcsM1WZJzyeE3r06NCYiJbE4qlZLBJUszUbUxgvooVd65pMVl7zq1RkeRfRY1b0wWs
-xi5Gg1IushZuudCy4iN4vlGbN42pc2FojUlwTG6LIuzSshrdVWpKqipXkmUxuUUV5XcqxiDU
-uZvLkjMwYMJgvglKO1coV7DdGpxhjsetwL4vSvMRLfZtRRZVlrXRqbXXm4Hcl1JSnJ5V70Ry
-sy6Ia0utFCrSmNKIXO+NZKSjUHgMYf8WhrdCHKXF8JiHIWocoqSURpIXxVDEtEVQooohZ1vi
-We85Yow2CiJSslyHSjSk0PlhENSXzpVTBFyntXI7CzpS4t51qpUKNlIqooSJPC2VO46RiiPt
-Q0kXj64I/i7kinChIfAgUKg=
---------------020708060104050309030606--
-
+Hello,
+I have some problems to make work acpi on my new laptop.
+I have just install mandrake9.2.
+In order to have acpi, i compile my own kernel 2.4.22 with the last
+patch acpi.
+ 
+extraxt of my .config :
+#
+# ACPI Support
+#
+CONFIG_ACPI=y
+CONFIG_ACPI_BOOT=y
+CONFIG_ACPI_BUS=y
+CONFIG_ACPI_INTERPRETER=y
+CONFIG_ACPI_EC=y
+CONFIG_ACPI_POWER=y
+CONFIG_ACPI_PCI=y
+CONFIG_ACPI_SLEEP=y
+CONFIG_ACPI_SYSTEM=y
+CONFIG_ACPI_AC=y
+CONFIG_ACPI_BATTERY=y
+CONFIG_ACPI_BUTTON=y
+CONFIG_ACPI_FAN=y
+CONFIG_ACPI_PROCESSOR=y
+CONFIG_ACPI_THERMAL=y
+# CONFIG_ACPI_ASUS is not set
+# CONFIG_ACPI_TOSHIBA is not set
+CONFIG_ACPI_DEBUG=y
+# CONFIG_ACPI_RELAXED_AML is not set
+ 
+After booting on my new kernel, i notice that my fan works less often
+than before and as i can't see the temperature i'm anxious for my laptop....
+ 
+The good thing is that now i can see the level of my battery .
+ 
+[root@localhost han]# acpi -V
+     Battery 1: charging, 88%, 00:50:20 until charged
+No support for device type: thermal
+  AC Adapter 1: on-line
+ 
+[root@localhost han]# acpid
+acpid: can't open /proc/acpi/event: Device or resource busy
+ 
+[root@localhost han]# modprobe thermal
+modprobe: Can't locate module thermal
+ 
+ 
+But i can't see the temperature of my computer...
+How can i make this work fine?
+ 
+Here is my dmesg log
+ 
+Thanks for any help.
+ 
+[root@localhost han]# dmesg | grep ACPI
+ BIOS-e820: 000000000dff0000 - 000000000dffffc0 (ACPI data)
+ BIOS-e820: 000000000dffffc0 - 000000000e000000 (ACPI NVS)
+ACPI: have wakeup address 0xc0001000
+ACPI: RSDP (v000 OID_00                                    ) @ 0x000e5010
+ACPI: RSDT (v001 INSYDE RSDT_000 0x00000001 _CSI 0x00010100) @ 0x0dfffbc0
+ACPI: FADT (v001 INSYDE FACP_000 0x00000100 _CSI 0x00010100) @ 0x0dfffac0
+ACPI: BOOT (v001 INSYDE SYS_BOOT 0x00000100 _CSI 0x00010100) @ 0x0dfffb50
+ACPI: DBGP (v001 INSYDE DBGP_000 0x00000100 _CSI 0x00010100) @ 0x0dfffb80
+ACPI: DSDT (v001 INSYDE   VT8372 0x00001000 INTL 0x02002025) @ 0x00000000
+ACPI: Subsystem revision 20030918
+ tbxface-0117 [03] acpi_load_tables      : ACPI Tables successfully acquired
+ACPI Namespace successfully loaded at root c02d6e7c
+evxfevnt-0093 [04] acpi_enable           : Transition to ACPI mode successful
+Executing all Device _STA and_INI methods:...................................... [ACPI Debug] String: LPT_STA
+.[ACPI Debug] String: ECP_STA
+.[ACPI Debug] String: FIR_STA
+ACPI: Interpreter enabled
+ACPI: Using PIC for interrupt routing
+ACPI: System [ACPI] (supports S0 S3 S4 S5)
+ACPI: PCI Root Bridge [PCI0] (00:00)
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+[ACPI Debug] String: LPT_STA
+[ACPI Debug] String: ECP_STA
+[ACPI Debug] String: ECP_STA
+[ACPI Debug] String: FIR_STA
+[ACPI Debug] String: FIR_STA
+ACPI: Embedded Controller [EC0] (gpe 5)
+ACPI: PCI Interrupt Link [LNKA] (IRQs *10)
+ACPI: PCI Interrupt Link [LNKB] (IRQs *11)
+ACPI: PCI Interrupt Link [LNKC] (IRQs *5)
+ACPI: PCI Interrupt Link [LNKD] (IRQs *11)
+[ACPI Debug] Integer: 0000000000000001
+ACPI: AC Adapter [AC] (on-line)
+[ACPI Debug] Integer: 000000000000001F
+[ACPI Debug] Package: Elements Ptr - c12aa6e8
+ACPI: Battery Slot [BAT0] (battery present)
+ACPI: Power Button (FF) [PWRF]
+ACPI: Sleep Button (CM) [SBTN]
+ACPI: Lid Switch [LID]
+ACPI: Processor [CPU0] (supports C1 C2)
+[ACPI Debug] Package: Elements Ptr - c12d49e8
+[ACPI Debug] Package: Elements Ptr - c12d49e8
+[ACPI Debug] Package: Elements Ptr - cb574c68
+[ACPI Debug] Package: Elements Ptr - cb5743e8
+[ACPI Debug] Package: Elements Ptr - c12d49e8
+[ACPI Debug] Package: Elements Ptr - c12d49e8
+[ACPI Debug] Package: Elements Ptr - cb574ce8
+[ACPI Debug] Package: Elements Ptr - cb5749e8
+[ACPI Debug] Package: Elements Ptr - c12d49e8
+[ACPI Debug] Package: Elements Ptr - c12d49e8
+[ACPI Debug] Package: Elements Ptr - cb5749e8
+[ACPI Debug] Package: Elements Ptr - cb5743e8
+[ACPI Debug] Package: Elements Ptr - c12d49e8
+[ACPI Debug] Package: Elements Ptr - c12d49e8
+[ACPI Debug] Package: Elements Ptr - cb5749e8
+[ACPI Debug] Package: Elements Ptr - cb574ce8
+[ACPI Debug] Integer: 0000000000000001
 
 
 -------------------------------------------------------
