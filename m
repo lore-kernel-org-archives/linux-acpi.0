@@ -1,13 +1,14 @@
-From: Sergey Vlasov <vsu-u2l5PoMzF/Uox3rIn2DAYQ@public.gmane.org>
-Subject: Re: ACPI stops working after memory upgrade vpr Matrix 175b4
-Date: Wed, 4 Feb 2004 19:18:08 +0300
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Thinkpad T40 Fan
+Date: Wed, 4 Feb 2004 21:44:14 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040204191808.2e23df00.vsu@altlinux.ru>
-References: <20040204073941.05d71e0b.rddunlap@osdl.org>
+Message-ID: <BF1FE1855350A0479097B3A0D2A80EE0CC8AB5@hdsmsx402.hd.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,23 +17,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ben lamothe <blamothe-DPNOqEs/LNQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 4 Feb 2004 07:39:41 -0800 Randy.Dunlap wrote:
+>> This behavior is not exibited in Windows,
+>> on the contrary, the fan is almost never on.
 
-> < Recompile your DSDT. Since the amount of RAM changed and you're probably
-> < using old DSDT containing wrong addresses, no wonder you're hitting
-> < errors.
-> 
-> Is this correct?  If a user adds or removes memory, then the
-> DSDT must be rebuilt?  Sheesh!!  That's bad if this is correct.
+> ACPI can't control fan in many IBM systems,
+> including T40. DSDT of T40 has no fan device defined.
 
-Many BIOSes patch the DSDT according to the system configuration (e.g.
-rename \_S3 to something other if Suspend to RAM is disabled in the
-setup).  Probably some BIOSes put the memory size into DSDT this
-way...
+Hmm, how can Windows keep the fan off but Linux can't?
 
+As there is no ACPI fan device, there must be a different method to
+control the fan on this box.
+
+1. It may be some i2c device that Windows knows about but Linux does
+not?
+   Maybe IBM ships some platform specific software with windows?
+   Would be interesting to know if a from-scratch install of the
+   generic non-IBM windows was still able to keep the fan off.
+
+2. It may be some BIOS code using SMM that Linux somehow breaks?
+
+3. It may be done entirely in hardware without the knowledge of the OS?
+
+I'm hopeful that it is #3, and that Windows is simply doing better
+passive cooling than Linux -- and perhaps we can perhaps improve our
+passive cooling...
+
+Can you run some experiments?  Maybe you can monitor the temperature in
+windows to see if it really is cooler.  Perhaps you can experiment with
+the power management policy settings such that it is in high-power mode
+instead of maximum battery mode and observe the temperature rises, and
+at what temperature the fan starts running?
+
+Thanks,
+-Len
 
 
 -------------------------------------------------------
