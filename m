@@ -1,14 +1,13 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: PCI power state mapping
-Date: Thu, 29 Jul 2004 14:26:00 +0200
+From: "Srinivas G." <srinivasg-Jm4/bz9WyEB0+Iju73vM4Za1ZnGqkzdq@public.gmane.org>
+Subject: Unable to resume after powersave --standby
+Date: Thu, 29 Jul 2004 18:49:12 +0530
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040729122600.GI9718@elf.ucw.cz>
-References: <B44D37711ED29844BEA67908EAF36F036BCB8C@pdsmsx401.ccr.corp.intel.com> <41069C59.5020603@drzeus.cx> <20040729084154.GH21889@openzaurus.ucw.cz> <4108D5BC.8040302@drzeus.cx> <20040729105251.GB9718@elf.ucw.cz> <4108DC59.4050409@drzeus.cx> <20040729112359.GD9718@elf.ucw.cz> <4108E365.30204@drzeus.cx>
+Message-ID: <4EE0CBA31942E547B99B3D4BFAB34811067A2C@mail.esn.co.in>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/alternative;
+	boundary="----_=_NextPart_001_01C4756E.A382B250"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4108E365.30204-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,55 +16,214 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pierre Ossman <drzeus-list-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org>
-Cc: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+This is a multi-part message in MIME format.
 
-> >>  Suspend to disk works fine. It's just the ram-bit that won't work.
-> >>  There is an earlier thread about this with more details (search for
-> >>  "suspend-to-ram hangs on HP NX7010"). I haven't bothered making a
-> >>  patch of my changes since they do not add any functionality. If you
-> >>  have a look at pci_device_suspend() it's fairly easy to change it.
-> >>  It's a very compact and obvious function.
-> >>   
-> >>
-> >
-> >Why do you think it is a driver problem? I have nx5000 here, it fails
-> >to suspend, too, but I suspect some ACPI weirdness. Similar problem is
-> >there on compaq 620c, btw.
-> >
-> That depends on how you define a problem. But as I see it there can only 
-> be two reasons that the suspend fails. Either the ACPI implementation or 
-> one of the drivers is not up to spec. or the system relies on some 
-> "feature" present in Windows. Not being bug-for-bug compatible with 
-> Windows might not constitute a problem in the driver per se but can 
-> still cause undesired behavior.
-> 
-> Suspending all devices, not just those with well behaved drivers, was 
-> one thing that seemed reasonable to try. The next step would be manually 
-> putting devices into the states specified in the _SxD fields. But I 
-> haven't got the "state" files under sysfs to work yet...
+------_=_NextPart_001_01C4756E.A382B250
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 
-Aha, okay, I see now.
+Hi,
 
-I believe it is "ACPI implementation is not up to spec or or the
-system relies on some "feature" present in Windows.". It might make
-sense to try noapic (but it does not help here).
+=20
 
-Hmm, strange.
+We are running SuSE 9.1 with kernel version 2.6.5-7.71 on Compaq nx5000
+HP laptop.
 
-My nx5k has "interesting" bios feature when it enters some kind of
-bios-based-suspend-to-RAM upon pressing fn-F3... But it only works as
-long as you keep accessing disk (yes, strange!). It works at grub
-prompt, too (even without disk accessing). If disk is not accessed,
-normally nothing will happen, but with "noapic nolapic" it will freeze
-machine in similar way "echo 3 > /proc/acpi/sleep" will.
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+=20
+
+My laptop entered into standby mode using the following command.
+
+=20
+
+#powersave --standby
+
+=20
+
+The command worked fine. After 2 to 3 seconds it was entered into
+standby mode. But I was unable to find the way to resume back my laptop.
+Only I was able get the system back by doing power off and on.
+
+=20
+
+Please tell me is there any way to resume my laptop without power off
+and on after entering into the standby mode.=20
+
+=20
+
+Please help me in this regard.
+
+=20
+
+Thanks and regards,
+
+=20
+
+Srinivas G
+
+=20
+
+
+------_=_NextPart_001_01C4756E.A382B250
+Content-Type: text/html;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+
+<head>
+<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
+charset=3Dus-ascii">
+
+
+<meta name=3DGenerator content=3D"Microsoft Word 10 (filtered)">
+
+<style>
+<!--
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0in;
+	margin-bottom:.0001pt;
+	font-size:12.0pt;
+	font-family:"Times New Roman";}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;}
+p.srinu, li.srinu, div.srinu
+	{margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:Arial;
+	color:blue;}
+span.EmailStyle18
+	{font-family:Arial;
+	color:windowtext;}
+@page Section1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.25in 1.0in 1.25in;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
+
+</head>
+
+<body lang=3DEN-US link=3Dblue vlink=3Dpurple>
+
+<div class=3DSection1>
+
+<p class=3DMsoNormal style=3D'text-autospace:none'><font size=3D2 =
+face=3D"Courier New"><span
+style=3D'font-size:10.0pt;font-family:"Courier =
+New"'>Hi,</span></font></p>
+
+<p class=3DMsoNormal style=3D'text-autospace:none'><font size=3D2 =
+face=3D"Courier New"><span
+style=3D'font-size:10.0pt;font-family:"Courier =
+New"'>&nbsp;</span></font></p>
+
+<p class=3DMsoNormal style=3D'text-autospace:none'><font size=3D2 =
+face=3D"Courier New"><span
+style=3D'font-size:10.0pt;font-family:"Courier New"'>We are running SuSE =
+9.1 with
+kernel version 2.6.5-7.71 on Compaq nx5000 HP laptop.</span></font></p>
+
+<p class=3DMsoNormal style=3D'text-autospace:none'><font size=3D2 =
+face=3D"Courier New"><span
+style=3D'font-size:10.0pt;font-family:"Courier =
+New"'>&nbsp;</span></font></p>
+
+<p class=3DMsoNormal style=3D'text-autospace:none'><font size=3D2 =
+face=3D"Courier New"><span
+style=3D'font-size:10.0pt;font-family:"Courier New"'>My laptop entered =
+into
+standby mode using the following command.</span></font></p>
+
+<p class=3DMsoNormal style=3D'text-autospace:none'><font size=3D2 =
+face=3D"Courier New"><span
+style=3D'font-size:10.0pt;font-family:"Courier =
+New"'>&nbsp;</span></font></p>
+
+<p class=3DMsoNormal style=3D'text-autospace:none'><font size=3D2 =
+face=3D"Courier New"><span
+style=3D'font-size:10.0pt;font-family:"Courier New"'>#powersave =
+--standby</span></font></p>
+
+<p class=3DMsoNormal style=3D'text-autospace:none'><font size=3D2 =
+face=3D"Courier New"><span
+style=3D'font-size:10.0pt;font-family:"Courier =
+New"'>&nbsp;</span></font></p>
+
+<p class=3DMsoNormal style=3D'text-autospace:none'><font size=3D2 =
+face=3D"Courier New"><span
+style=3D'font-size:10.0pt;font-family:"Courier New"'>The command worked =
+fine.
+After 2 to 3 seconds it was entered into standby mode. But I was unable =
+to find
+the way to resume back my laptop. Only I was able get the system back by =
+doing
+power off and on.</span></font></p>
+
+<p class=3DMsoNormal style=3D'text-autospace:none'><font size=3D2 =
+face=3D"Courier New"><span
+style=3D'font-size:10.0pt;font-family:"Courier =
+New"'>&nbsp;</span></font></p>
+
+<p class=3DMsoNormal style=3D'text-autospace:none'><font size=3D2 =
+face=3D"Courier New"><span
+style=3D'font-size:10.0pt;font-family:"Courier New"'>Please tell me is =
+there any
+way to resume my laptop without power off and on after entering into the
+standby mode. </span></font></p>
+
+<p class=3DMsoNormal style=3D'text-autospace:none'><font size=3D2 =
+face=3D"Courier New"><span
+style=3D'font-size:10.0pt;font-family:"Courier =
+New"'>&nbsp;</span></font></p>
+
+<p class=3DMsoNormal style=3D'text-autospace:none'><font size=3D2 =
+face=3D"Courier New"><span
+style=3D'font-size:10.0pt;font-family:"Courier New"'>Please help me in =
+this
+regard.</span></font></p>
+
+<p class=3DMsoNormal style=3D'text-autospace:none'><font size=3D2 =
+face=3D"Courier New"><span
+style=3D'font-size:10.0pt;font-family:"Courier =
+New"'>&nbsp;</span></font></p>
+
+<p class=3DMsoNormal style=3D'text-autospace:none'><font size=3D2 =
+face=3D"Courier New"><span
+style=3D'font-size:10.0pt;font-family:"Courier New"'>Thanks and =
+regards,</span></font></p>
+
+<p class=3DMsoNormal style=3D'text-autospace:none'><font size=3D2 =
+face=3D"Courier New"><span
+style=3D'font-size:10.0pt;font-family:"Courier =
+New"'>&nbsp;</span></font></p>
+
+<p class=3DMsoNormal style=3D'text-autospace:none'><font size=3D2 =
+face=3D"Courier New"><span
+style=3D'font-size:10.0pt;font-family:"Courier New"'>Srinivas =
+G</span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>&nbsp;</span></font></p>
+
+</div>
+
+</body>
+
+</html>
+
+------_=_NextPart_001_01C4756E.A382B250--
 
 
 -------------------------------------------------------
