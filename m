@@ -1,14 +1,14 @@
-From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Subject: Re: [BK PATCH] ACPICA 20031002 for 2.4
-Date: Mon, 13 Oct 2003 03:18:20 +0100
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Applications & ACPI events
+Date: Mon, 13 Oct 2003 15:10:22 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031013021820.GN27861@parcelfarce.linux.theplanet.co.uk>
-References: <1065851355.4118.75.camel@dhcppc4> <20031011162310.GA29058@hell.org.pl>
+Message-ID: <20031013131022.GN11391@poupinou.org>
+References: <20030930173646.GF11391@poupinou.org> <20031003193814.GE205@openzaurus.ucw.cz> <20031006124935.GQ11391@poupinou.org> <20031006130533.GA311@elf.ucw.cz> <20031008102745.GF11391@poupinou.org> <20031008191610.GB1035@elf.ucw.cz> <20031008215342.GE1920@fairlite.demon.co.uk> <20031008215850.GF1238@elf.ucw.cz> <20031009140648.GH1922@fairlite.demon.co.uk> <20031009213504.GC365@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20031011162310.GA29058-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+In-Reply-To: <20031009213504.GC365-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,21 +17,57 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZQ39yzSjRtAkw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: Alan Hourihane <alanh-ASBjxr/nLg+TY6FTCsQk+9Bc4/FLrbF6@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Oct 11, 2003 at 06:23:10PM +0200, Karol Kozimor wrote:
-> Len, Marcelo,
-> The compile fix was for 2.6 only, 2.4 still needs modversions.h I believe.
-> Best regards,
+On Thu, Oct 09, 2003 at 11:35:05PM +0200, Pavel Machek wrote:
+> Hi!
+> 
+> > > > > IMO X should do full save and restore, on every console switch. That
+> > > > > way it is safe to killall -9 X when you are on console, and I think I
+> > > > > like it that way. I do not think console switching is i386-only, I
+> > > > > know that sparc64's had consoles, too.
+> > > >  
+> > > > Doing a kill -9 on any application doesn't allow the application to
+> > > > catch the signal. Thus X cannot restore itself, and neither can any
+> > > > application that gets it. If you kill -9 anything then suffer the 
+> > > > consequences of it not cleaning up.
+> > > 
+> > > I should be able to kill -9 any task and keep my system running (I'm
+> > > not complaining about stale lock files etc). Unfortunately that is not
+> > > true with X. It would be nice if at kill -9 would be safe at least
+> > > when kernel has control of display.
+> >  
+> > You said 'X should do full save and restore, on every console switch'.
+> > The fact is that X can only do a full save/restore (and it does!) on
+> > the VT that it owns. If you really want to do a kill -9, then the
+> > kernel has no choice but to clean up and restore itself which is impossible
+> > as it knows nothing about some of the intricasies of the some of the graphics
+> > engines out there.
+> 
+> Thats okay, I do not want to kill -9 X when it owns console.
+> 
+> X does _not_ do full save/restore, at least not for all
+> drivers. vesafb does no saving, and generic vga driver is also
+> incapable of full save/restore. Not sure about others.
 
-I don't believe 2.4 has ever needed modversions.h -- it merely wasn't
-harmful to include it.  It's not a bug to remove it.
+That exactly my point.  And I think it should not do full save/restore
+on only VT switch, but we may try to have a better fine grained stuff for,
+something like 'hey, X we have to go S3, please consider'.
+
+Again, the nv driver do not properly work after a resume (in fact, S4bios),
+some of his accelerated 2D funcitons do not work any more (but rework after
+something like 30 to 40 seconds), but work like a charm if VT switch only.
+(of course, there is a VT switch in-between).
+
+PS: I have not tryed the newer nv driver though.
 
 -- 
-"It's not Hollywood.  War is real, war is primarily not about defeat or
-victory, it is about death.  I've seen thousands and thousands of dead bodies.
-Do you think I want to have an academic debate on this subject?" -- Robert Fisk
+Ducrot Bruno
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
