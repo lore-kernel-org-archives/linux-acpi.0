@@ -1,10 +1,10 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Error starting acpi with 2.4.19
-Date: Wed, 4 Sep 2002 14:43:32 -0700
+From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>
+Subject: important [PATCH] for kernels 2.4.20-pre5 and 2.4.19
+Date: 04 Sep 2002 23:34:38 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <B9ECACBD6885D5119ADC00508B68C1EA0D19B756@orsmsx107.jf.intel.com>
+Message-ID: <1031196882.1388.11.camel@darkstar.portugal>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/mixed; boundary="=-XKRhEGgThjLhDA8B9M8c"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -14,87 +14,47 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: 'John M Trostel' <john.trostel-+vhbC7un7QRBDgjK7y7TUQ@public.gmane.org>, ACPI-list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 
-This sounds like your machine has bad ASL of the form:
-
-Name (DEB, 4)
-Scope (DEB)
-{
-}
-
-DEB can't be both an Integer and a Scope.
-
-What type of machine is this?
-Bob
+--=-XKRhEGgThjLhDA8B9M8c
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
 
------Original Message-----
-From: John M Trostel [mailto:john.trostel-+vhbC7un7QRBDgjK7y7TUQ@public.gmane.org] 
-Sent: Wednesday, September 04, 2002 1:26 PM
-To: ACPI-list
-Subject: [ACPI] Error starting acpi with 2.4.19
+if (!acpi_pci_irq_init()) and  if (acpi_pci_irq_init() > 0)
 
-I am having problems getting ACPI started using the latest SGI XFS
-kernel (2.4.19) with patches sergiomb added. 
-
-I get the following output on bootup: 
-
-
-ACPI: Subsystem revision 20020829 
-PCI: PCI BIOS revision 2.10 entry at 0xfdb31, last bus=1 
-PCI: Using configuration type 1 
-tbxface-0099 [03] Acpi_load_tables      : ACPI Tables successfully
-loaded 
-dswload-0210: *** Error: Invalid type (Integer) for target of Scope
-operator [DEB_] 
-psparse-0570 [10] Ps_parse_loop         : During name lookup/catalog,
-AE_AML_OPERAND_TYPE 
-tbxface-0107: *** Error: Acpi_load_tables: Could not load namespace:
-AE_AML_OPERAND_TYPE 
-tbxface-0116: *** Error: Acpi_load_tables: Could not load tables:
-AE_AML_OPERAND_TYPE 
-ACPI: Unable to load the System Description Tables 
-PCI: Probing PCI hardware 
-PCI: ACPI tables contain no PCI IRQ routing entries 
-PCI: Probing PCI hardware (bus 00) 
-PCI: Discovered primary peer bus 01 [IRQ] 
-Linux NET4.0 for Linux 2.4 
-
-later in the boot process I see: 
-
-Starting acpid: acpid: can't open /proc/acpi/event: No such file or
-directory 
-[FAILED] 
-
-Which is unfortunate, as I would like to use acpid ;-> 
-
-I see no acpi(d) process running and there is no /proc/acpi subdirectory
-created... What do I need to do to debug this situation 
-
--- 
-John M. Trostel
-Senior Software Engineer
-Quantum Corp.
-john.trostel-+vhbC7un7QRBDgjK7y7TUQ@public.gmane.org
--- 
-John M. Trostel
-Senior Software Engineer
-Quantum Corp.
-john.trostel-+vhbC7un7QRBDgjK7y7TUQ@public.gmane.org
+looks the same but it is the inverse,
+in patch from acpi-20020611-2.4.18.diff.gz 
+we have: acpi_pci_irq_init() > 0 
+since then we have: !acpi_pci_irq_init()
+so if it is one error this error exist since
+acpi-20020709-2.4.18.diff.gz
+so Andrew what do you think ?
 
 
+--=-XKRhEGgThjLhDA8B9M8c
+Content-Disposition: attachment; filename=patchacpi_2.4.20-pre5
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; name=patchacpi_2.4.20-pre5; charset=ISO-8859-1
 
--------------------------------------------------------
-This sf.net email is sponsored by: OSDN - Tired of that same old
-cell phone?  Get a new here for FREE!
-https://www.inphonic.com/r.asp?r=sourceforge1&refcode1=vs3390
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
+--- linux-2.4.20-pre5/arch/i386/kernel/pci-pc.c.orig	Sun Sep  1 20:36:50 20=
+02
++++ linux-2.4.20-pre5/arch/i386/kernel/pci-pc.c	Wed Sep  4 22:10:00 2002
+@@ -1409,7 +1409,7 @@
+=20
+ 	printk(KERN_INFO "PCI: Probing PCI hardware\n");
+ #ifdef CONFIG_ACPI_PCI
+-	if (!acpi_pci_irq_init())
++	if (acpi_pci_irq_init() > 0)
+ 		pci_using_acpi_prt =3D 1;
+ #endif
+ 	if (!pci_using_acpi_prt) {
+
+--=-XKRhEGgThjLhDA8B9M8c--
+
 
 
 -------------------------------------------------------
