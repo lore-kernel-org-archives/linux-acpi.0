@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: dsdt
-Date: Tue, 23 Dec 2003 13:50:54 +0800
+Subject: RE: Gateway 200x - trouble supplying ECDT table
+Date: Tue, 23 Dec 2003 14:07:22 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C4C@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C4D@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,15 +17,15 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Vince Herried <vherried-rEckef8uG3NTGrOy2lmfZw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Greg Sarjeant <greg-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->Some time back someone posted a request for dsdt(s)
-What kind of problem they have?
+There is a patch at http://bugzilla.kernel.org/show_bug.cgi?id=3D1690
+trying to solve ec._INI failure due to lacking ECDT.     =20
+But it's not a generic solution.  Since you are faking ECDT using data
+of EC device, why not do it automatically?
 
->I've got one from a Dell Lattitude C810
-File it with problem description on bugzilla.
-
+--Luming                                                           =20
 
 
 -------------------------------------------------------
