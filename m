@@ -1,62 +1,45 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Re: DSDT Change (Compaq Presario 2100)
-Date: Mon, 28 Jun 2004 23:34:09 +0200
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040628213409.GA19468@elf.ucw.cz>
-References: <200405280621.29874.andre@eisenbach.com> <c9am7j$nng$1@sea.gmane.org> <200405291345.51712.andre@eisenbach.com>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: [ACPI] Re: swsusp and ac status
+Date: Mon, 28 Jun 2004 22:29:36 +0200
+Sender: swsusp-devel-admin@lists.sourceforge.net
+Message-ID: <20040628202936.GJ698@openzaurus.ucw.cz>
+References: <200406250701.i5P71GKC006204@fermat.unipv.it> <opr95d71ln4evsfm@smtp.pacific.net.th> <20040627222842.GB1816@hell.org.pl> <opr992vyyr4evsfm@smtp.pacific.net.th>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <swsusp-devel-admin@lists.sourceforge.net>
 Content-Disposition: inline
-In-Reply-To: <200405291345.51712.andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andre Eisenbach <andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Erik Meitner <usenet-cuDg6iFcrsRAfugRpC6u6w@public.gmane.org>
+In-Reply-To: <opr992vyyr4evsfm@smtp.pacific.net.th>
+Errors-To: swsusp-devel-admin@lists.sourceforge.net
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/swsusp-devel>,
+	<mailto:swsusp-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Post: <mailto:swsusp-devel@lists.sourceforge.net>
+List-Help: <mailto:swsusp-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/swsusp-devel>,
+	<mailto:swsusp-devel-request@lists.sourceforge.net?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=swsusp-devel>
+To: Michael Frank <mhf@linuxmail.org>
+Cc: Karol Kozimor <sziwan@hell.org.pl>, Daniele Boffi <boffi@dimat.unipv.it>, acpi-devel@lists.sourceforge.net, Software Suspend - Mailing Lists <swsusp-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> > > and errors, I stumbled across this (in method SMSL
-> > >
-> > > If (0x01)
-> > > {
-> > > 	Store (\_SB.PCI0.ISA.EC0.TTDC, TRDC)
-> > > 	Store ("AC remove! Set Throttle Duty Cycle ---: ", Debug)
-> > > 	Store (TRDC, Debug)
-> > > 	Store (0x01, TREN)
-> > > }
+> >As far as I know, there is no need to reinitialize the AC module, as 
+> >it
+> >does not cache the results -- upon read, it calls the appropriate 
+> >_PSR
+> >method which is supposed to return the correct AC adapter state, as 
+> >simple
+> >as it gets. This way, any problems would indicate a faulty BIOS.
+> >Best regards,
 > >
-> > The DSDT for my laptop has the exact same code.
 > 
-> That piece of code is the state cange code (i.e. when you unplug the AC cord). 
-> There is another place you need to change, which initializes the behaviour 
-> when you boot with the power cable already unplugged.
-> 
-> The method is _REG. Here is the code
-> 
->                                 Store (0x01, \_SB.PCI0.PMU.CRUN)
->                                 If (0x01)
->                                 {
->                                     Store (\_SB.PCI0.ISA.EC0.TTDC, TRDC)
->                                     Store (0x01, TREN)
->                                 }
-> 
-> Once again change "If (0x01)" to "If (0x00)".
+> Sorry, the BIOS does not know about suspend.
 
-Try your machine on battery, with full load. Monitor battery
-temperature. If it gets hot, your battery was not really designed for
-this, and forget this...
-								Pavel
+Hacky solution is to call _WAK so that BIOS updates is caches...
+				Pavel
 -- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+
 
 
 -------------------------------------------------------
