@@ -1,56 +1,38 @@
-From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: S3/S4 doesn't work, no-one cares, it's a mess Re: ACPI S3 wake
- howto was: RE: [BKPATCH] ACPI for 2.6
-Date: Wed, 31 Mar 2004 14:51:47 +0200
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040331145147.59f3b49a.ak@suse.de>
-References: <7105F2BD9451D7479B4B3A99A2B72FAC062C08C7@exchange1.ssd.fsi.com>
-	<20040330233155.463A.COUNT0@localnet.com>
-	<1080732363.4883.964.camel@localhost>
+From: Bill Davidsen <davidsen@tmr.com>
+Subject: Re: [ACPI] Re: Linux 2.4.26-rc1 (cmpxchg vs 80386 build)
+Date: Wed, 31 Mar 2004 08:04:10 -0500 (EST)
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <Pine.LNX.3.96.1040331075620.11879A-100000@gatekeeper.tmr.com>
+References: <Pine.LNX.4.55.0403311305000.24584@jurand.ds.pg.gda.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1080732363.4883.964.camel-bi+AKbBUZKZeoWH0uzbU5w@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
-Cc: count0-tC47gz4GrgtWk0Htik3J/w@public.gmane.org, harryr-qMhjF6E6u3VBDgjK7y7TUQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.55.0403311305000.24584@jurand.ds.pg.gda.pl>
+To: "Maciej W. Rozycki" <macro@ds2.pg.gda.pl>
+Cc: Len Brown <len.brown@intel.com>, Chris Friesen <cfriesen@nortelnetworks.com>, Willy Tarreau <willy@w.ods.org>, "Richard B. Johnson" <root@chaos.analogic.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arkadiusz Miskiewicz <arekm@pld-linux.org>, Marcelo Tosatti <marcelo.tosatti@cyclades.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Developers <acpi-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 31 Mar 2004 13:26:04 +0200
-Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org> wrote:
+On Wed, 31 Mar 2004, Maciej W. Rozycki wrote:
 
+> On Tue, 30 Mar 2004, Bill Davidsen wrote:
+> 
+> > Is there no reasonable way to avoid using it in ACPI? It's not as if 
+> > performance was critical there, or the code gets run often. Too bad it 
+> > can't just be emulated like floating point, but I don't think it can on SMP.
+> 
+>  Well, "cmpxchg", "xadd", etc. can be easily emulated with an aid of a
+> spinlock.  With SMP operation included.
 
-> So take my word: If I can with my limited experience in PM and x86
-> hacking be of any help and someone can guide me to a point where I can
-> start, I will try my very best to improve the situation - at least for
-> the hardware I have access to.
+Clearly they can be replaced with inline code, as for catching the ill-op
+fault and emulating inline, I want to think about that a bit on SMP, in
+the case where multiple CPUs are accessing different locations, one is in
+kernel and one in user mode, etc.
 
+If it can be emulated safely in all cases, then that provides an out for
+the 386 case. To be useful it would have to be correct for all
+combinations of SMP, preempt and an interrupt and any point.
 
-Assuming you really want to help and not just complain:
-
-Make sure everytime you see an oops or other problem that you file a bug 
-in bugme.kernel.org. For oopses this must include the oops log, so 
-make yourself familiar with serial consoles and netconsoles.
-
-If possible take a look at the driver when you see an oops or problem
-and try to fix it yourself an submit a patch.
-
-If you do this for all hardware you have access to the problems may 
-actually get fixed.
-
--Andi
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: IBM Linux Tutorials
-Free Linux tutorial presented by Daniel Robbins, President and CEO of
-GenToo technologies. Learn everything from fundamentals to system
-administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
+-- 
+bill davidsen <davidsen@tmr.com>
+  CTO, TMR Associates, Inc
+Doing interesting things with little computers since 1979.
