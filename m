@@ -1,10 +1,10 @@
-From: Maggio <voloterreno-nc/lrvXPQ4s@public.gmane.org>
-Subject: MSI KT4 , thanks (very late) for the DSDT
-Date: Thu, 26 Feb 2004 20:53:13 +0100
+From: "=?iso-8859-1?q?G=F6ran_Uddeborg?=" <goeran-No6iOTKVpN0wFerOooGFRg@public.gmane.org>
+Subject: Reporting error as requested by kernel messages
+Date: Thu, 26 Feb 2004 22:41:30 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <403E4EA9.1020302@tin.it>
+Message-ID: <16446.26634.836472.508635@mimmi.uddeborg.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,41 +18,17 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi ,
+When booting a machine where I recently installed Fedora Core 1, I
+discovered I get the message below in /var/log/messages.  It asks me
+to report to this list, which I do here.
 
-I've emailed to this list a bit of time ago about ACPI Issues with an 
-MSI KT4 Ultra Motherboard .
+I guess you need some additional information about my system, but I'm
+not sure exactly what.  Please ask me what you would want.  (In direct
+mail, I'm not a member of the list.)
 
-Bruno Ducrot has helped me and have created a patch for the DSDT table , 
-but at that time a was simply a NooB on linux, and I wasn't be able to 
-override this table in the Kernel , now that I have more confidence I've 
-retried this operation , this time successful :)
-
-The DSDT table seems to work correctly , and I'm able to use the Suspend 
-function for the S1 state (I haven't tried S3 , because on Gentoo 2.4.22 
-kernel doesn't seem to be implemented yet) without enable the "Relaxed 
-AML Checking" feature in the Kernel (Only by using that I could in the 
-past get the Suspend to work) .
-
-I want to thank Bruno Ducrot and all the ACPI team for your help :-) I'm 
-also nagging MSI to make them solve this bug.
-
-Another thing at the end .
-
-The Suspend S1 works Ok, but I get anyway this message :
-
-  ACPI-0398: *** Error: acpi_ev_gpe_dispatch: No handler or method for 
-GPE[ 2], disabling event
-keyboard: unrecognized scancode (70) - ignored
-    ACPI-0398: *** Error: acpi_ev_gpe_dispatch: No handler or method for 
-GPE[ 2], disabling event
-
-
-Doesn't seem to be something to worry about, but I ask you anyway :)
-
-Thanks
-
-Marcello
+Feb 25 20:14:26 musse kernel:     ACPI-1120: *** Error: Method execution failed [\_SB_.LNUS._SRS] (Node f7fbe980), AE_AML_BUFFER_LIMIT
+Feb 25 20:14:26 musse kernel: ACPI: Retrying with extended IRQ descriptor
+Feb 25 20:14:26 musse kernel: ACPI: Unable to set IRQ for PCI Interrupt Link [LNUS] (likely buggy ACPI BIOS, please report to acpi-devel!)
 
 
 -------------------------------------------------------
