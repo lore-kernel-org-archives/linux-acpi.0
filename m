@@ -1,11 +1,16 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergio-qOf5bGQp09kptuEoxK/DLR2eb7JE58TQ@public.gmane.org>
-Subject: Re: Re: [BKPATCH] ACPI for 2.6.12-rc1
-Date: Sat, 19 Mar 2005 03:19:00 +0000
-Message-ID: <423B9A24.4020206@sergiomb.no-ip.org>
-References: <1111127024.9332.157.camel@d845pe>	<20050318150129.GB22887@pern.dea.icai.upco.es> <20050318152122.7994965b.akpm@osdl.org>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: HP/Compaq NC6120 ACPI problems
+Date: Sat, 19 Mar 2005 03:19:34 +0000
+Message-ID: <1111202374.8136.210.camel@tyrosine>
+References: <20050317200052.686d683f.andrej.prsa@guest.arnes.si>
+	 <1111088904.11380.36.camel@eeyore>
+	 <20050317215635.1c788c09.andrej.prsa@guest.arnes.si>
+	 <1111104319.8136.182.camel@tyrosine>
+	 <20050318192300.629e2148.andrej.prsa@guest.arnes.si>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
+In-Reply-To: <20050318192300.629e2148.andrej.prsa-zs/Xt9NzJtxxh+DGd0HQrg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,32 +20,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Cc: romano-1BxYRfzsdQW8A8a7gxElqg@public.gmane.org, romanol-qvIf60buks8@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Andrew Morton wrote:
+On Fri, 2005-03-18 at 19:23 +0100, Andrej Prsa wrote:
 
->Romano Giannetti <romanol-qvIf60buks8@public.gmane.org> wrote:
->
->>Could I humble advocating pushing the patch 
->> http://bugme.osdl.org/attachment.cgi?id=4516&action=view ,please? It fixed a
->> very bad regression in hotkey event from 2.6.9...
->>
->What bug number is that actually
->attached to?  
->
-http://bugme.osdl.org/show_bug.cgi?id=3851
+> Tried it, unfortunately the outcome is still the same; I used the patch
+> against 2.6.11.4 kernel *without* any other ACPI patch. Should I use the
+> patch you provided over the ACPI patch or was it supposed to fix the fan
+> issue by itself? Seemingly the problem is the fan; is there a way to
+> test this to be sure?
 
->There seems to be no way to go backwards from the URL.
->
-search for id=4516 on Description/Comment:
-on ACPI with all componenets and all status .
+Hmm. Yes, I can now repeat this with a 6220, though most of the time I
+manage it it seems to be linked to a suspend to disk beforehand. I
+suspect this /may/ be linked to the fact that on the 6120, only the
+first lid event is received. I'll see if I can track this down over the
+weekend.
 
-
-thanks,
-
->
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
 
 
