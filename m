@@ -1,14 +1,14 @@
-From: "Randy.Dunlap" <rddunlap-3NddpPZAyC0@public.gmane.org>
-Subject: Re: Re: making progress with ACPI was: ACPI small patch up
- date
-Date: Tue, 29 Oct 2002 22:09:19 -0800 (PST)
+From: Jens Haug <haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org>
+Subject: Re: Re: making progress with ACPI was: ACPI small patch update
+Date: Wed, 30 Oct 2002 08:12:14 +0100 (MET)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.33L2.0210292207560.16850-100000@dragon.pdx.osdl.net>
-References: <200210300708.37599.earny@net4u.de>
+Message-ID: <200210300712.g9U7CFD04441@ikffws2.ikff.uni-stuttgart.de>
+Reply-To: Jens Haug <haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: TEXT/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200210300708.37599.earny-euM3SP4ZHrg@public.gmane.org>
+Content-MD5: J1p+JQMLtbVc6v4w54AOCg==
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,33 +17,33 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ernst Herzberg <earny-euM3SP4ZHrg@public.gmane.org>
-Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: eric.valette-GANU6spQydw@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 30 Oct 2002, Ernst Herzberg wrote:
 
-| On Mittwoch, 30. Oktober 2002 00:50, Grover, Andrew wrote:
-|
-| > We can fix bugs, the problem is *diagnosing* the issue. There's only so
-| > much diagnosis that can be done without the hardware. If you say "line 444
-| > of ec.c is acquiring a semaphore at interrupt level" that's probably
-| > enough. If you post a patch, we'll apply it. If you just say "my system
-| > hangs" then it's a lot harder. Sometimes the dmesg or DSDT are enough that
-| > other people can suss out what might be the problem -- sometimes not.
-| >
-|
-| Hm. Give me some debugging hints. I'm not a kernel hacker, and i see the need
-| for ACPI, but this stuff is complex. I have not the time and i am not willing
-| to understand every line in the code. But i'm willing to help you to help you
-| to fix problems in the code.
+> I do agree. The more people do not want other to look/critic their code,=
+=20
+> the more they pretend what they do is a kind of black art, and do not=20
+> document it or make design document :-) Fixing bug is annoying, making a=
+=20
+> new release and advising to report a problem on it is so more fun.
 
-That (debug hints) is one of the things that should be on an updated
-ACPI web page IMO, along with DSDT issues, patches, etc.
+I don't think this is about fun. There are people getting paid by
+Intel for this, aren't they? Would you like it if your boss could=20
+have a look at a list of mistakes you made in your job? Man, I sure=20
+am glad there's no list with *my* mistakes! Yes, I know that bugs=20
+are perfectly normal in such projects, no need to be ashamed. But=20
+maybe their boss doesn't know that?
+Just speculating here...
 
--- 
-~Randy
-  "Do you need telco grade soundblaster 16 ?" -- Alan Cox
+
+Jens
+
+--=20
+Jens Haug
+IKFF Universit=E4t Stuttgart              Tel. 0711/685-6422
+Pfaffenwaldring 9                       Fax  0711/685-6356
+70550 Stuttgart=09                haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org
 
 
 
