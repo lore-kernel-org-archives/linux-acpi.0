@@ -1,15 +1,15 @@
-From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
-Subject: Re: Centrino speedstep
-Date: Wed, 29 Dec 2004 21:05:16 +0100
-Message-ID: <m21xd83m6b.fsf@phoenix.squirrel.nl>
-References: <m2zmzyw4e7.fsf@phoenix.squirrel.nl>
-	<20041228212653.GA8436@dominikbrodowski.de>
-	<20041229181834.GA19199@poupinou.org>
+From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+Subject: Re: S3, SuSE Linux 9.1, Dell Dimension 8300
+Date: Wed, 29 Dec 2004 21:09:54 +0100
+Message-ID: <200412292109.55022.stefandoesinger@gmx.at>
+References: <1104275510.41d1e83630f26@webmail.telering.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041229181834.GA19199-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> (Bruno Ducrot's message
- of "Wed, 29 Dec 2004 19:18:34 +0100")
+In-Reply-To: <1104275510.41d1e83630f26-2RFepEojUI04Gyxg+fu0s+Tv7YV0F9Eg@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,39 +20,31 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Stefan Lintner <stefan.lintner-OBssYPn7tLPk7+2FdBfRIA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> writes:
 
-> After looking the DSDT, this laptop do not support the _PDC switch, so
-> the cpufreq-centrino driver will not work.  But it should work with the
-> acpi io driver though.
-
-This seems to be the case.
-
-> Interresting portion:
-> [...]
+> I am using SuSE Linux 9.1 and would like to use S3 on my home Dell
+> Dimension 8300 desktop PC. S3 works fine in WinXP.
 >
-> This also mean there is no way to get the ondemand governor (or any
-> DVS requiring low latency driver) to work with this one
+> Unfortunately the SuSE handbook says that S3 is currently not
+> supported on Intel Pentium 4 HT systems. There are also problems if
+> AGP modules are loaded - I have such a module loaded: \"intel_mch_agp\"
+>
+> System:
+> Dell Dimension 8300, A07 Bios
+> Intel 875P chipset, Intel Pentium 4 HT 2,6GHz
+> 1024MB RAM
+> NVidia GeforceFX 5200
+> Maxtor 6Y080LO HDD
+>
+> If I press the power button the PC shuts down.
+>
+> Is it possible to use S3 on this machine?
+>
+Did you try echo 3  > /proc/acpi/sleep
 
-What exactly does that mean?
-
-> (unless hardcoding a table in the cpufreq-centrino).
-
-Would that be difficult to accomplish?
-
-> There is no _CST also, this means there is no C4 support :(
-
-Nope. I'll have to do with C3...
-
-BTW: To be able to compile my DSDT I needed some fixes, mostly
-trivial, except one: the final return value of Method(_STA) from
-Device(BAY1), around line 3222. Do you have any idea?
-
-Thanks for helping,
-
-       Johan
+Stefan D=F6singer
 
 
 -------------------------------------------------------
