@@ -1,12 +1,17 @@
-From: sjb <ottaky-XuTx12Z7TonQT0dZR+AlfA@public.gmane.org>
-Subject: best acpi solution
-Date: Wed, 21 May 2003 08:46:26 +0000
+From: Gunter Ohrner <G.Ohrner-6V9naDJErT6662+jY7v6MhvVK+yQ3ZXh@public.gmane.org>
+Subject: Re: Re: DSDT in initrd
+Date: Wed, 21 May 2003 10:07:36 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ECB3CE2.5000400@ottaky.com>
+Message-ID: <200305211007.45786@mail.CustomCDROM.de>
+References: <A5974D8E5F98D511BB910002A50A6647054FC40A@hdsmsx103.hd.intel.com> <Pine.LNX.4.53.0305202002180.22586@tweety.gaugusch.at> <baf9df$ro3$1@main.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <baf9df$ro3$1@main.gmane.org>
+Content-Description: clearsigned data
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,40 +20,52 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all,
+=2D----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-I have a Sony Vaio U1 that, until yesterday, was running a Linux distro 
-with functional ACPI. Sadly, the kernel I was using was compiled by 
-somebody else, so I have very little idea what he actually did to make 
-it. Details ..
+Am Mittwoch, 21. Mai 2003 09:23 schrieb Nathan Gray:
+> > Because I'm scanning raw initrd data? Can anybody give me hints or a
+> > better solution? I'm willing to improve it, but I don't think that it is
+> > easy to do.
+> I continue to think that the proper solution is a separate kernel paramet=
+er
+> acpi_tables=3D/boot/tables.??? (with credit to the person who generalized
+> this idea from the dsdt to all tables).  I know you're concerned about fs
+> drivers not being around, but if the kernel can find the initrd on the di=
+sk
+> it should be able to find other files somehow.
 
-http://www.ottaky.com/vaiou1.php
+I cannot. It needs help from the boot loader.
 
-I've just upgraded to SuSE 8.2 (kernel 2.4.20) and the ACPI is broken - 
-it's "partially" installed. All the hardware works (AFAIK), but there's 
-no power management information available through /proc/acpi.
+> guess my next question would be, is there a filesystem in the initrd, and
+> if so can you implement your patch in a way that respects the filesystem
+> abstraction rather than scanning the raw bytes.  I'm not much of a kernel
 
-So .. I'm wondering what the best (easiset) way to get ACPI working is.
+There is, but at the time the DSDT is needed the filesystem drivers probabl=
+y=20
+are not yet initialized so you cannot use them to access the DSDT.
 
-Can I download the 2.4.20 kernel source, apply the 2.4.20 acpi patch 
-from sourceforge and cross my fingers?
+Greetings,
 
-Or use the DSDT in intird patch?
+  Gunter
 
-If there's a walk through somewhere on the interweb for ACPI kernel 
-compiling newbies, a pointer to it would be great ;-)
+=2D --=20
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
++                   PGP-verschl=FCsselte Mails bevorzugt!                 +
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+Lady Ramkin's bosom rose and fell like an empire.        -- (Terry=20
+Pratchett, Guards! Guards!)
++-+-+-+-+-+-+-+-+-+-+-+-+ http://www.lspace.org +-+-+-+-+-+-+-+-+-+-+-+-+
+=2D----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
 
-Many thanks
-
-sjb
-
-
-
-
-
+iD8DBQE+yzPQ0ORHvREo8l8RAneNAJ97y4L7ni+1gMmLIlh+NMrkxHkY7gCeN4oc
++SAL4tHxCxs6v+Bqn/7rdE0=3D
+=3DFHC6
+=2D----END PGP SIGNATURE-----
 
 
 
