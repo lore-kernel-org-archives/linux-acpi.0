@@ -1,12 +1,14 @@
-From: "Praveen C" <praveen-8a50ANe9Mx0/NI2e8YfAcJ/QNRX+jHPU@public.gmane.org>
-Subject: Re:  Re:  acpi on r40e
-Date: Tue, 02 Mar 2004 13:13:19 +0000
+From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
+Subject: Re: ASUS M6800N: processor has only C1
+Date: Tue, 02 Mar 2004 15:43:26 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <W3258911586142361078233199@mail.mailsnare.net>
+Message-ID: <40449D8E.4060402@pca.it>
+References: <404459FD.1000406@pca.it> <20040302110946.GF2869@poupinou.org> <40448169.6090507@pca.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <40448169.6090507-wlebWZzHoyE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,36 +17,129 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Processor module hangup on R40e
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-The problem is with processor power management.
-In function acpi_processor_add
+Hello,
 
-/*
- * Install the idle handler if processor power management is supported.
- * Note that the default idle handler (default_idle) will be used on
- * platforms that only support C1.
- */
+on 03/02/04 13:43, Luca Capello wrote:
+> On the other hand, I got these error when compiling:
+> ======
+>   CC [M]  drivers/acpi/processor.o
+> drivers/acpi/processor.c: In function `acpi_processor_power_activate':
+> drivers/acpi/processor.c:311: error: structure has no member named `type'
+> drivers/acpi/processor.c:315: error: structure has no member named `type'
+> drivers/acpi/processor.c:321: error: structure has no member named `type'
+> drivers/acpi/processor.c: In function `acpi_processor_idle':
+> drivers/acpi/processor.c:409: error: structure has no member named `type'
+> drivers/acpi/processor.c: In function `acpi_processor_set_power_policy':
+> drivers/acpi/processor.c:548: error: structure has no member named `count'
+> drivers/acpi/processor.c:549: error: structure has no member named `type'
+> drivers/acpi/processor.c: In function `acpi_processor_get_power_info_cst':
+> drivers/acpi/processor.c:668: error: structure has no member named `count'
+> drivers/acpi/processor.c:691: error: dereferencing pointer to incomplete type
+> drivers/acpi/processor.c:692: error: dereferencing pointer to incomplete type
+> drivers/acpi/processor.c:695: error: dereferencing pointer to incomplete type
+> drivers/acpi/processor.c:696: error: dereferencing pointer to incomplete type
+> drivers/acpi/processor.c:703: error: structure has no member named `type'
+> drivers/acpi/processor.c:718: error: structure has no member named `type'
+> drivers/acpi/processor.c:818: error: structure has no member named `count'
+> drivers/acpi/processor.c:818: error: structure has no member named `count'
+> drivers/acpi/processor.c:819: error: structure has no member named `count'
+> drivers/acpi/processor.c:823: error: structure has no member named `count'
+> drivers/acpi/processor.c:825: error: structure has no member named `count'
+> drivers/acpi/processor.c:828: error: structure has no member named `count'
+> drivers/acpi/processor.c: In function `acpi_processor_get_power_info_fadt':
+> drivers/acpi/processor.c:892: error: structure has no member named `type'
+> drivers/acpi/processor.c:895: error: structure has no member named `count'
+> drivers/acpi/processor.c:951: error: structure has no member named `type'
+> drivers/acpi/processor.c:955: error: structure has no member named `count'
+> drivers/acpi/processor.c: In function `acpi_processor_get_power_info':
+> drivers/acpi/processor.c:979: error: structure has no member named `type'
+> drivers/acpi/processor.c:991: error: structure has no member named `type'
+> drivers/acpi/processor.c:992: error: structure has no member named `count'
+> drivers/acpi/processor.c:1018: error: structure has no member named `count'
+> drivers/acpi/processor.c: In function `acpi_processor_power_seq_show':
+> drivers/acpi/processor.c:2147: error: structure has no member named `count'
+> drivers/acpi/processor.c:2150: error: structure has no member named `type'
+> drivers/acpi/processor.c: In function `acpi_processor_add':
+> drivers/acpi/processor.c:2603: error: structure has no member named `count'
+> make[3]: *** [drivers/acpi/processor.o] Error 1
+> make[2]: *** [drivers/acpi] Error 2
+> make[1]: *** [drivers] Error 2
+> make[1]: Leaving directory `/usr/src/linux-2.6.4-rc1-test'
+> make: *** [stamp-build] Error 2
+> gismo:/usr/src/linux-2.6.4-rc1-test#
+> =====
+>
+> Should I wait for a patch against 2.6.4 + latest ACPI or should I try the old
+> 2.6.1?
+well, I've tried on the old 2.6.1 (w/o any ACPI patches, as I don't know where I
+could find them) and I got the same errors:
+=====
+  CC [M]  drivers/acpi/processor.o
+drivers/acpi/processor.c: In function `acpi_processor_power_activate':
+drivers/acpi/processor.c:311: error: structure has no member named `type'
+drivers/acpi/processor.c:315: error: structure has no member named `type'
+drivers/acpi/processor.c:321: error: structure has no member named `type'
+drivers/acpi/processor.c: In function `acpi_processor_idle':
+drivers/acpi/processor.c:409: error: structure has no member named `type'
+drivers/acpi/processor.c: In function `acpi_processor_set_power_policy':
+drivers/acpi/processor.c:548: error: structure has no member named `count'
+drivers/acpi/processor.c:549: error: structure has no member named `type'
+drivers/acpi/processor.c: In function `acpi_processor_get_power_info_cst':
+drivers/acpi/processor.c:668: error: structure has no member named `count'
+drivers/acpi/processor.c:691: error: dereferencing pointer to incomplete type
+drivers/acpi/processor.c:692: error: dereferencing pointer to incomplete type
+drivers/acpi/processor.c:695: error: dereferencing pointer to incomplete type
+drivers/acpi/processor.c:696: error: dereferencing pointer to incomplete type
+drivers/acpi/processor.c:703: error: structure has no member named `type'
+drivers/acpi/processor.c:718: error: structure has no member named `type'
+drivers/acpi/processor.c:818: error: structure has no member named `count'
+drivers/acpi/processor.c:818: error: structure has no member named `count'
+drivers/acpi/processor.c:819: error: structure has no member named `count'
+drivers/acpi/processor.c:823: error: structure has no member named `count'
+drivers/acpi/processor.c:825: error: structure has no member named `count'
+drivers/acpi/processor.c:828: error: structure has no member named `count'
+drivers/acpi/processor.c: In function `acpi_processor_get_power_info_fadt':
+drivers/acpi/processor.c:892: error: structure has no member named `type'
+drivers/acpi/processor.c:895: error: structure has no member named `count'
+drivers/acpi/processor.c:951: error: structure has no member named `type'
+drivers/acpi/processor.c:955: error: structure has no member named `count'
+drivers/acpi/processor.c: In function `acpi_processor_get_power_info':
+drivers/acpi/processor.c:979: error: structure has no member named `type'
+drivers/acpi/processor.c:991: error: structure has no member named `type'
+drivers/acpi/processor.c:992: error: structure has no member named `count'
+drivers/acpi/processor.c:1018: error: structure has no member named `count'
+drivers/acpi/processor.c: In function `acpi_processor_power_seq_show':
+drivers/acpi/processor.c:1553: error: structure has no member named `count'
+drivers/acpi/processor.c:1556: error: structure has no member named `type'
+drivers/acpi/processor.c: In function `acpi_processor_add':
+drivers/acpi/processor.c:2023: error: structure has no member named `count'
+make[3]: *** [drivers/acpi/processor.o] Error 1
+make[2]: *** [drivers/acpi] Error 2
+make[1]: *** [drivers] Error 2
+make[1]: Leaving directory `/usr/src/linux-2.6.1'
+make: *** [stamp-build] Error 2
+gismo:/usr/src/linux-2.6.1#
+=====
 
- pr->flags.power=3D0; //My addition to disable power management <=3D=3D=3D=
-=3D=3D=3D=3D
- if ( (pr->id=3D=3D0) && (pr->flags.power) ) {
-    pm_idle_save =3D pm_idle;
-    pm_idle =3D acpi_processor_idle;
- }
+So I can suppose this is not a kernel 2.6.1 or 2.6.4 problem, but something
+other: am I right?
 
-With this modification the processor module does not hang. Thermal can al=
-so be loaded and gives correct temperature. I would still like to know wh=
-y the power management is causing problem and what are the implications o=
-f disabling it the way I have done.
-Thanks
-praveen
-http://www.cpraveen.tk
+Thx, bye,
+Gismo / Luca
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
 
-
+iD8DBQFARJ2NVAp7Xm10JmkRApIIAJ47/P1I3b+aJvWBiHOwD/naXGhLUwCfSUPb
+194T+dov+lgpkxq+Ly2g3Kk=
+=JBCN
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
