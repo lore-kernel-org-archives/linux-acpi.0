@@ -1,57 +1,61 @@
-From: Nigel Cunningham <ncunningham@cyclades.com>
-Subject: Re: [ACPI] Re: Call for help: list of machines with working S3
-Date: Tue, 15 Mar 2005 22:34:04 +1100
-Message-ID: <1110886444.6454.121.camel@desktop.cunningham.myip.net.au>
-References: <20050314080029.GF22635@elf.ucw.cz>
-	 <1110874241.32535.44.camel@sli10-desk.sh.intel.com>
-Reply-To: ncunningham@cyclades.com
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: Re: Call for help: list of machines with working S3
+Date: Tue, 15 Mar 2005 13:04:48 +0100
+Message-ID: <20050315120448.GF1344@elf.ucw.cz>
+References: <20050314080029.GF22635@elf.ucw.cz> <1110874241.32535.44.camel@sli10-desk.sh.intel.com> <1110886444.6454.121.camel@desktop.cunningham.myip.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <1110874241.32535.44.camel@sli10-desk.sh.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Li Shaohua <shaohua.li@intel.com>
-Cc: Pavel Machek <pavel@suse.cz>, Jan De Luyck <lkml@kcore.org>, lkml <linux-kernel@vger.kernel.org>, ACPI mailing list <acpi-devel@lists.sourceforge.net>, seife@suse.de, rjw@sisk.pl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1110886444.6454.121.camel-r49W/1Cwd2ff0s6lnCXPX/uOuaPYTxhvJwvTLr3MMZM@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Nigel Cunningham <ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>
+Cc: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jan De Luyck <lkml-gY0FE6dpLprYtjvyW6yDsg@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, seife-l3A5Bk7waGM@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi.
+Hi!
 
-On Tue, 2005-03-15 at 19:10, Li Shaohua wrote:
-> Hi,
-> On Mon, 2005-03-14 at 16:00, Pavel Machek wrote:
-> > Hi!
-> > 
-> > >   * MySQL (hinders the actual suspension process and kicks the pc
-> > back to 
-> > >     where it was)
-> > 
-> > Try this patch...
-> >                                                                 Pavel
-> > 
-> > --- clean/kernel/signal.c       2005-02-03 22:27:26.000000000 +0100
-> > +++ linux/kernel/signal.c       2005-02-03 22:28:19.000000000 +0100
-> > @@ -2222,6 +2222,7 @@
-> >                         ret = -EINTR;
-> >         }
-> >  
-> > +       try_to_freeze(1);
-> >         return ret;
-> >  }
-> I also encounter a similar issue. syslogd can't be stopped. It's waiting
-> for kjournald to flush some works but kjournald is stopped first. Looks
-> like the kernel thread should be stopped later than user thread just
-> like Nigel's suspend2 patch does.
 
-Pavel, do you have any kernel/power/process.c changes in? If not, I'll
-submit those refrigerator changes.
+> > > >   * MySQL (hinders the actual suspension process and kicks the pc
+> > > back to 
+> > > >     where it was)
+> > > 
+> > > Try this patch...
+> > >                                                                 Pavel
+> > > 
+> > > --- clean/kernel/signal.c       2005-02-03 22:27:26.000000000 +0100
+> > > +++ linux/kernel/signal.c       2005-02-03 22:28:19.000000000 +0100
+> > > @@ -2222,6 +2222,7 @@
+> > >                         ret = -EINTR;
+> > >         }
+> > >  
+> > > +       try_to_freeze(1);
+> > >         return ret;
+> > >  }
+> > I also encounter a similar issue. syslogd can't be stopped. It's waiting
+> > for kjournald to flush some works but kjournald is stopped first. Looks
+> > like the kernel thread should be stopped later than user thread just
+> > like Nigel's suspend2 patch does.
+> 
+> Pavel, do you have any kernel/power/process.c changes in? If not, I'll
+> submit those refrigerator changes.
 
-Regards,
-
-Nigel
+No, process.c was left unchanged for quite a long time.
+								Pavel
 -- 
-Nigel Cunningham
-Software Engineer, Canberra, Australia
-http://www.cyclades.com
-Bus: +61 (2) 6291 9554; Hme: +61 (2) 6292 8028;  Mob: +61 (417) 100 574
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
-Maintainer of Suspend2 Kernel Patches http://suspend2.net
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
