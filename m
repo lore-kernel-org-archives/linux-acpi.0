@@ -1,12 +1,13 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Timer interrupts after CPU speed change
-Date: Wed, 26 Mar 2003 19:06:52 +0000
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: gpe-handler / acpi on ASUSL2400D
+Date: Wed, 26 Mar 2003 10:57:29 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030326190652.GA12645@srcf.ucam.org>
+Message-ID: <F760B14C9561B941B89469F59BA3A84725A22B@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="ISO-8859-1"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,39 +16,44 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Sebastian Thias <post-OXl1b/uZKHizQB+pC5nmwQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-For reasons that (as yet) aren't entirely clear to me, suspending my
-laptop to S3 when it's on battery results in it failing to resume
-correctly (hard drive LED comes on and stays on - it's probably a DMA 
-issue or something similarly entertaining, but I've got no console once 
-it resumes so it's hard to tell). However, booting on battery, 
-connecting it to AC and then suspending allows a resume to work. The 
-problem is as follows:
+> From: Sebastian Thias [mailto:post-OXl1b/uZKHizQB+pC5nmwQ@public.gmane.org] 
+> i'm a newbie on both acpi- and kernel-programming.
+> I've got an ASUSL2400D-laptop and kenel 2.5.65.
 
-When booting on battery, the CPU runs at 133MHz. As far as I've been 
-able to tell, this machine doesn't support Speedstep (it's a mobile PIII 
-500, and the Intel information I've found seems to suggest that 
-Speedstep only appeared with the 600s) and from poking various registers 
-it seems to accomplish this by using throttling (if I force those 
-registers to the values that change when changing between AC and 
-battery, the selected throttling value in /proc/acpi/ changes).
+Sounds like you're a quick learner. :)
 
-Attaching power results in the processor speeding up again (and, though 
-I haven't checked, I /think/ that just starting ACPI when on battery 
-actually results in it running at full speed). If I now suspend, carry 
-my laptop around for a while, attach it to power and resume, the system 
-timer starts firing at 4096Hz rather than 1024Hz with fairly predictable 
-consequences. /proc/cpuinfo continues to say that the processor is 
-133MHz, though it's now running happily at 500 (and was running at 500 
-before being suspended as well).
+> Upon pressing one of my laptops hotkeys, I receive an error 
+> message about
+> a missing gpe-handler.
+> After fiddling a bit, I wrote a module that installs a 
+> gpe-handler for 0x1D 
+> (the one triggered by my hotkeys). The handler calls 
+> "\_GPE._L1D" (using 
+> acpi_evaluate_object ...). Only then can I receive notify-events for 
+> "\_SB_.HOTK" and only then buttons like switching 
+> LCD-Backlights off or 
+> changing the brightness work.
+> 
+> My question: Why do I have to install a gpe-handler by myself 
+> if there is
+> a mehod "\_GPE._L1D" in dsdt. Is that the usual way to do such things?
 
-Is there any obvious fix for this?
+Is the button driver installed?
 
-Thanks,
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+The usual way is that you have a driver (e.g. for the lid button) that
+registers for notifications on the lid device. When the lid button is
+pressed, it generates a GPE, which the lid driver finds out about
+because the core calls the GPE method associated with the GPE (e.g.
+_L1D) and that method does a Notify() on the lid device. The lid device
+gets the notification and tells power policy via /proc/acpi/event.
+
+I'm not quite clear what is happening in your case. Can you elaborate
+further?
+
+Regards -- Andy
 
 
 -------------------------------------------------------
