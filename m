@@ -1,43 +1,55 @@
-From: Rajesh Shah <rajesh.shah@intel.com>
-Subject: [patch 08/12] Remove hot-plugged devices that could not be allocated resources
-Date: Fri, 18 Mar 2005 14:14:15 -0800
-Message-ID: <20050318141415.H1145@unix-os.sc.intel.com>
+From: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [patch 09/12] Read bridge resources when fixing up the bus
+Date: Fri, 18 Mar 2005 14:16:30 -0800
+Message-ID: <20050318141630.I1145@unix-os.sc.intel.com>
 References: <20050318133856.A878@unix-os.sc.intel.com>
-Reply-To: Rajesh Shah <rajesh.shah@intel.com>
+Reply-To: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20050318133856.A878@unix-os.sc.intel.com>; from rajesh.shah@intel.com on Fri, Mar 18, 2005 at 01:38:57PM -0800
-Sender: linux-ia64-owner@vger.kernel.org
-To: gregkh@suse.de, tony.luck@intel.com, len.brown@intel.com
-Cc: linux-pci@atrey.karlin.mff.cuni.cz, linux-kernel@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net, linux-ia64@vger.kernel.org, acpi-devel@lists.sourceforge.net
+In-Reply-To: <20050318133856.A878-39QZ/XbsZ5/mO6KZMuUCQVaTQe2KTcn/@public.gmane.org>; from rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org on Fri, Mar 18, 2005 at 01:38:57PM -0800
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: gregkh-l3A5Bk7waGM@public.gmane.org, tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pcihpd-discuss-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-When hot-plugging an I/O hierarchy that contains many bridges
-and leaf devices, it's possible that there are not enough 
-resources to start all the device present. If we fail to assign
-a resource, clear the corresponding value in the pci_dev structure,
-so other code can take corrective action.
+Read bridge io/mem/pfmem ranges when fixing up the bus so that 
+bus resources are tracked. This is required to properly support
+pci end device and bridge hotplug.
 
-Signed-off-by: Rajesh Shah <rajesh.shah@intel.com>
+Signed-off-by: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 
- linux-2.6.11-mm4-iohp-rshah1/drivers/pci/setup-bus.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletion(-)
+ linux-2.6.11-mm4-iohp-rshah1/arch/ia64/pci/pci.c |    4 ++++
+ 1 files changed, 4 insertions(+)
 
-diff -puN drivers/pci/setup-bus.c~discard_no_resource_devs drivers/pci/setup-bus.c
---- linux-2.6.11-mm4-iohp/drivers/pci/setup-bus.c~discard_no_resource_devs	2005-03-16 13:07:26.557944717 -0800
-+++ linux-2.6.11-mm4-iohp-rshah1/drivers/pci/setup-bus.c	2005-03-16 13:07:26.666343153 -0800
-@@ -72,7 +72,10 @@ pbus_assign_resources_sorted(struct pci_
- 	for (list = head.next; list;) {
- 		res = list->res;
- 		idx = res - &list->dev->resource[0];
--		pci_assign_resource(list->dev, idx);
-+		if (pci_assign_resource(list->dev, idx)) {
-+			res->start = 0;
-+			res->flags = 0;
-+		}
- 		tmp = list;
- 		list = list->next;
- 		kfree(tmp);
+diff -puN arch/ia64/pci/pci.c~ia64-read_bridge_bases arch/ia64/pci/pci.c
+--- linux-2.6.11-mm4-iohp/arch/ia64/pci/pci.c~ia64-read_bridge_bases	2005-03-16 13:07:30.503257168 -0800
++++ linux-2.6.11-mm4-iohp-rshah1/arch/ia64/pci/pci.c	2005-03-16 13:07:30.612632167 -0800
+@@ -436,6 +436,10 @@ pcibios_fixup_bus (struct pci_bus *b)
+ {
+ 	struct pci_dev *dev;
+ 
++	if (b->self) {
++		pci_read_bridge_bases(b);
++		pcibios_fixup_device_resources(b->self);
++	}
+ 	list_for_each_entry(dev, &b->devices, bus_list)
+ 		pcibios_fixup_device_resources(dev);
+ 
 _
+
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
