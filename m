@@ -1,54 +1,99 @@
-From: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
-Subject: Re: [PATCH][0/4] NUMA node handling support for ACPI container driver
-Date: Thu, 23 Sep 2004 09:38:58 -0700
+From: Keiichiro Tokunaga <tokunaga.keiich@jp.fujitsu.com>
+Subject: [PATCH][4/4] Add NUMA node handling to the container driver
+Date: Fri, 24 Sep 2004 01:36:42 +0900
 Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <20040923093858.A12852@unix-os.sc.intel.com>
-References: <20040920092520.A14208@unix-os.sc.intel.com> <20040920094719.H14208@unix-os.sc.intel.com> <20040924012301.000007c6.tokunaga.keiich@jp.fujitsu.com>
-Reply-To: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
+Message-ID: <20040924013642.00003b08.tokunaga.keiich@jp.fujitsu.com>
+References: <20040920092520.A14208@unix-os.sc.intel.com>
+	<20040920094719.H14208@unix-os.sc.intel.com>
+	<20040924012301.000007c6.tokunaga.keiich@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-ia64-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20040924012301.000007c6.tokunaga.keiich@jp.fujitsu.com>; from tokunaga.keiich@jp.fujitsu.com on Fri, Sep 24, 2004 at 01:23:01AM +0900
-To: Keiichiro Tokunaga <tokunaga.keiich@jp.fujitsu.com>
-Cc: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>, len.brown@intel.com, acpi-devel@lists.sourceforge.net, lhns-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20040924012301.000007c6.tokunaga.keiich@jp.fujitsu.com>
+To: anil.s.keshavamurthy@intel.com
+Cc: len.brown@intel.com, acpi-devel@lists.sourceforge.net, lhns-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, Keiichiro Tokunaga <tokunaga.keiich@jp.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Sep 24, 2004 at 01:23:01AM +0900, Keiichiro Tokunaga wrote:
-> On Mon, 20 Sep 2004 09:47:19 -0700, Keshavamurthy Anil S wrote:
-> > Changes from previous release:
-> > 1) Typo fix- ACPI004 to ACPI0004
-> > 2) Added depends on EXPERIMENTAL in Kconfig file
-> > 
-> > ---
-> > Name:container_drv.patch
-> > Status: Tested on 2.6.9-rc1
-> > Signed-off-by: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-> > Depends:	
-> > Version: applies on 2.6.9-rc1
-> > Description:
-> > This is the very early version on the Container driver which supports
-> > hotplug notifications on ACPI0004, PNP0A05 and PNP0A06 devices.
-> > 	Changes from previous release:
-> > 	1) Mergerd the typo fix patch which changes "ACPI004" to "ACPI0004"
-> > ---
-> 
-> I have made a patchset to add 'NUMA node handling support' to
-> your patchset.  If a container that is identical to NUMA node is
-> hotplugged, this handles NUMA related stuffs.  For instance,
-> creating/deleting sysfs directories and files of node, data structures,
-> and etc...
 
-Great!!! 
-> 
->   - numa_hp_base.patch
->   - numa_hp_ia64.patch
->   - acpi_numa_hp.patch
->   - container_for_numa.patch
-I will take a look at all of the above patches and will get back to you soon.
-> 
-> Status: Tested on 2.6.9-rc2 including your patchset posted earlier.
-Sounds good.
+Name: container_for_numa.patch
+Status: Tested on 2.6.9-rc2
+Signed-off-by: Keiichiro Tokunaga <tokunaga.keiich@jp.fujitsu.com>
+Description:
+Add NUMA node handling to the container driver.
 
-thanks,
-Anil Keshavamurthy
+Thanks,
+Keiichiro Tokunaga
+---
+
+ linux-2.6.9-rc2-fix-kei/drivers/acpi/container.c |   11 +++++++++++
+ linux-2.6.9-rc2-fix-kei/include/acpi/container.h |   15 ++++++++++++++-
+ 2 files changed, 25 insertions(+), 1 deletion(-)
+
+diff -puN drivers/acpi/container.c~container_for_numa drivers/acpi/container.c
+--- linux-2.6.9-rc2-fix/drivers/acpi/container.c~container_for_numa	2004-09-24 00:45:56.781826629 +0900
++++ linux-2.6.9-rc2-fix-kei/drivers/acpi/container.c	2004-09-24 01:38:09.774323452 +0900
+@@ -104,6 +104,8 @@ acpi_container_add(struct acpi_device *d
+ 	container = kmalloc(sizeof(struct acpi_container), GFP_KERNEL);
+ 	if(!container)
+ 		return_VALUE(-ENOMEM);
++
++	container_numa_init(device->handle);
+ 	
+ 	memset(container, 0, sizeof(struct acpi_container));
+ 	container->handle = device->handle;
+@@ -123,6 +125,14 @@ acpi_container_remove(struct acpi_device
+ {
+ 	acpi_status		status = AE_OK;
+ 	struct acpi_container	*pc = NULL;
++	if (type == ACPI_BUS_REMOVAL_EJECT) {
++		if (!device->flags.ejectable)
++			return(-EINVAL);
++
++		container_numa_remove(device->handle);
++	}
++
++	container_numa_detach_data(device->handle);
+ 	pc = (struct acpi_container*) acpi_driver_data(device);
+ 
+ 	if (pc)
+@@ -198,6 +208,7 @@ container_device_add(struct acpi_device 
+ 	if (acpi_bus_add(device, pdev, handle, ACPI_BUS_TYPE_DEVICE)) {
+ 		return_VALUE(-ENODEV);
+ 	}
++	container_numa_add((*device)->handle);
+ 
+ 	result = acpi_bus_scan(*device);
+ 
+diff -puN include/acpi/container.h~container_for_numa include/acpi/container.h
+--- linux-2.6.9-rc2-fix/include/acpi/container.h~container_for_numa	2004-09-24 00:45:56.783779765 +0900
++++ linux-2.6.9-rc2-fix-kei/include/acpi/container.h	2004-09-24 00:45:56.786709469 +0900
+@@ -2,12 +2,25 @@
+ #define __ACPI_CONTAINER_H
+ 
+ #include <linux/kernel.h>
+-
+ struct acpi_container {
+ 	acpi_handle handle;
+ 	unsigned long sun;
+ 	int state;
+ };
+ 
++#ifdef CONFIG_ACPI_NUMA
++#include <acpi/numa.h>
++#define container_numa_init(handle)	acpi_numa_node_init(handle)
++#define container_numa_add(handle)	acpi_numa_node_add(handle)
++#define container_numa_remove(handle)	acpi_numa_node_remove(handle)
++#define container_numa_detach_data(handle) acpi_numa_node_data_detach(handle)
++#define is_numa_node(handle) is_numa_node_device(acpi_handle handle)
++#else
++#define container_numa_init(handle)
++#define container_numa_add(handle)
++#define container_numa_remove(handle)
++#define container_numa_detach_data(handle)
++#define is_numa_node(handle) (0)
++#endif
+ #endif /* __ACPI_CONTAINER_H */
+ 
+
+_
