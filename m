@@ -1,35 +1,40 @@
-From: Rik van Riel <riel-KCZ47A4bww4P48s/oLjRZg@public.gmane.org>
-Subject: Re: Code obfuscation in acpi
-Date: Sun, 19 Jan 2003 23:44:10 -0200 (BRST)
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <Pine.LNX.4.50L.0301192333100.18171-100000@imladris.surriel.com>
-References: <20030118213134.GA8968@elf.ucw.cz>
+From: x545 <x545-hi6Y0CQ0nG0@public.gmane.org>
+Subject: Re: WARN: please read if you applyied 00_thinkpad_workaround.diff (Re: IBM Thinkpad A31 | News)
+Date: Mon, 20 Jan 2003 14:42:27 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <200301201442.27358.x545@gmx.net>
+References: <200301171947.54174.dom@wahuu.at> <20030118164525.GD12516@poup.poupinou.org> <20030118170844.GE12516@poup.poupinou.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20030118213134.GA8968-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20030118170844.GE12516-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Dominik Bartenstein <dom-K271P2BsTd0@public.gmane.org>
+Cc: ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, 18 Jan 2003, Pavel Machek wrote:
+I get many Errors, all the same in osl.c, line 
+234,241,243,244,248,250,251,266,290: dereferencing pointer to incomplete 
+type
+Can you please give short instructions what's wrong or send a complete 
+working diff?
 
-> #define acpi_driver_data(d)     ((d)->driver_data)
->
-> ... very nice for obfuscating code ...
+Thanks in advance
 
-This is usually called "abstraction" and allows you to change
-the data structures (when needed) without breaking all the code.
 
-You can learn from this.  If swsusp used abstractions it wouldn't
-need to have to stick its nose into the code and data structures
-from other subsystems and it might even stop breaking every other
-release.
 
-cheers,
 
-Rik
--- 
-Bravely reimplemented by the knights who say "NIH".
-http://www.surriel.com/		http://guru.conectiva.com/
-Current spamtrap:  <a href=mailto:"october-ebMLmSuQjDVBDgjK7y7TUQ@public.gmane.org">october@surriel.com</a>
+-------------------------------------------------------
+This SF.NET email is sponsored by: FREE  SSL Guide from Thawte
+are you planning your Web Server Security? Click here to get a FREE
+Thawte SSL guide and find the answers to all your  SSL security issues.
+http://ads.sourceforge.net/cgi-bin/redirect.pl?thaw0026en
