@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: Re: Status of ACPI on IBM T40p
-Date: Thu, 19 Feb 2004 16:33:01 +0100
+Subject: Re: ACPI_STRICT_COMPLIANCE (was RE: RE: ACPI -- Workaround forbroken DSDT)
+Date: Thu, 19 Feb 2004 23:48:35 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040219153300.GE467@openzaurus.ucw.cz>
-References: <200402041507.33902@zodiac.zodiac.dnsalias.org> <c01bt1_tj7_1@sea.gmane.org>
+Message-ID: <20040219224834.GH467@openzaurus.ucw.cz>
+References: <C50AB9511EE59B49B2A503CB7AE1ABD10661123D@cceexc19.americas.cpqcorp.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <c01bt1_tj7_1@sea.gmane.org>
+In-Reply-To: <C50AB9511EE59B49B2A503CB7AE1ABD10661123D-Iar2LzuD2f6P0FQRY6S+e9kSKC0Mw0DFJ8am2ALHCgk@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,28 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ari Pollak <ajp-vB92YU/q1whiLUuM0BA3LQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Cagle, John (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>
+Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, "Scott T. Smith" <scott-j3vAvQ9dNB9ByuSxxbvQtw@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> active state:            C2
-> default state:           C1
-> bus master activity:     02000008
-> states:
->     C1:                  promotion[C2] demotion[--] latency[000] 
-> usage[00000010]
-> *C2:                  promotion[C3] demotion[C1] latency[001] 
-> usage[01048795]
-> C3:                  promotion[--] demotion[C2] latency[085] 
-> usage[01977750]
+> > think we can put under this umbrella also.
 > 
-> As you can see, my Thinkpad T41 rarely goes higher than C2, even when 
-> a program is using 100% or compiling or something along those lines.
+> I agree.  This should make a lot of users happy, since the distro's will
+> work out-of-the-box without modification (at least on those machines
+> with known workarounds implemented in the ACPI driver), yet the OEMs can
+> still test for strict compliance by recompiling the kernel.  Better than
+> that would be a kernel command line option to do the same thing.
+> ACPI_STRICT=ON?
 
-That's okay: if your C2 takes 1usec to enter, there's little point in using C1.
-So during compilation you are using C0 and C2. Seems ok.
+You know how OEMs test their hardware? They stick distro
+CD in, and if it boots, it must be okay :-(.
+At least command line option would be good, we can't
+really expect oems to recompile.
 				Pavel
 -- 
 64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
