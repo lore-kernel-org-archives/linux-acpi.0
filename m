@@ -1,14 +1,13 @@
-From: Brian Perkins <bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org>
-Subject: Re: wake event?
-Date: Thu, 11 Dec 2003 22:26:59 -0500
+From: "Amie Clemons" <iqvlh9-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Boost Your  Car's Gas Mileage 27%+.....chastity
+Date: Fri, 12 Dec 2003 08:32:02 +0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3FD93583.1000307@netspace.org>
-References: <3ACA40606221794F80A5670F0AF15F8401720C24@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <ror9b8523-5w$bn-1@pd2098c0>
+Reply-To: "Amie Clemons" <iqvlh9-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/alternative;
+	boundary="E65.C40C4F19_D32"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401720C24-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,31 +16,74 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: javamusictag-cvs-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, libpal-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Yu, Luming wrote:
-> Could you please give me some detail about your power management client?
-> 
 
-Well, one is good old (bad old) battstat, which has been recently 
-patched to use the acpid unix socket to receive battery and AC events, 
-instead of polling once per second.  This is a pretty big win on my 
-machine, and an even bigger win on other machines.
+--E65.C40C4F19_D32
+Content-Type: text/plain;
+Content-Transfer-Encoding: quoted-printable
 
-I also wrote a simple perl script to manage cpufreq transitions based on 
-AC status, mostly for fun.
+FUEL SAVER PRO
 
-If the laptop is unplugged while sleeping, the battstat applet is 
-incorrect on waking, and my cpufreq daemon doesn't go to low power mode.
+This revolutionary device Boosts Gas Mileage 27%+ by helping fuel burn bet=
+ter using three patented processes from General Motors.
+www.iqkm.org?axel=3D49
 
-I can't think of a way of dealing with this, other than polling, which 
-is dumb and bad.
+PROVEN TECHNOLOGY
+A certified U.S. Environmental Protection Agency (EPA) laboratory recently=
+ completed tests on the new Fuel Saver. The results were astounding! Maste=
+r Service, a subsidiary of Ford Motor Company, also conducted extensive em=
+issions testing and obtained similar, unheard of results. The achievements=
+ of the Fuel Saver is so noteworthy to the environmental community, that C=
+ommercial News has featured it as their cover story in their June, 2000 ed=
+ition.
 
-I suppose this could be considered a userspace problem, but the current 
-design seems to make this a little complicated, since acpid doesn't 
-really know what its actions do.
+Take a test drive Today - www.iqkm.org?axel=3D49
+
+
+
+
+
+
+No more advertisements, thanks - http://www.evkm.org/out5s/pre-rem2e.asp
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ji zw 
+g teelchr y
+j yr jzdtioin
+
+--E65.C40C4F19_D32--
+
 
 
 -------------------------------------------------------
