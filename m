@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ACPI directories still exist with acpi off
-Date: Wed, 14 Jan 2004 09:33:32 +0800
+Subject: RE: Processor C states and USB problem
+Date: Wed, 14 Jan 2004 10:10:39 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CC8@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CC9@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,16 +17,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Diego SANTA CRUZ <dsanta-W/9V78bTXrinCNX9eg9BBA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->=20
-> Include acpi support into the kernel, but pass acpi=3Doff on the =
-command
-> line. Somehow, acpi still manages to create its directories, but not
-> in /proc/acpi but in /proc directly. Ouch.
-How about this one:
-http://bugme.osdl.org/attachment.cgi?id=3D1696&action=3Dview
+> > > I picked up this thread and I'm interested in knowing a=20
+> bit more about
+> > > bus mastering and C3, as my laptop never goes into C3. I=20
+> own a Dell
+> > > Inspiron 8500 (details at
+> > > http://ltswww.epfl.ch/~dsanta/resources/dell-i8500-linux).
+> > >=20
+
+How did you know your processor never transition to C3 mode?
+
+> > > This is what I get for the power states:
+> > > # cat /proc/acpi/processor/CPU0/power
+> > > active state:            C2
+> > > default state:           C1
+> > > bus master activity:     ffffffff
+> > > states:
+> > >     C1:                  promotion[C2] demotion[--]=20
+> > > latency[000] usage[00039800]
+> > >    *C2:                  promotion[C3] demotion[C1]=20
+> > > latency[050] usage[00573330]
+> > >     C3:                  promotion[--] demotion[C2]=20
+> > > latency[050] usage[00000004]
+> > >=20
+
+Usage of C3 is 4.=20
+
 
 
 -------------------------------------------------------
