@@ -1,12 +1,10 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: C2/C3 don't do anything
-Date: Fri, 4 Feb 2005 22:34:07 +0100
-Message-ID: <20050204213407.GA26515@hell.org.pl>
-References: <20050203034639.GA29164@atomide.com> <20050204203026.GA8049@dominikbrodowski.de>
+From: Thomas Renninger <mail-smMupaH/RwJM7kwft8N7nw@public.gmane.org>
+Subject: AML parser modifications - 2.6.10 - 2.6.10-bk7 - AE_AML_BUFFER_LIMIT
+Date: Fri, 04 Feb 2005 22:35:12 +0100
+Message-ID: <4203EA90.6020005@renninger.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Disposition: inline
-In-Reply-To: <20050204203026.GA8049-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,39 +14,129 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Dominik Brodowski:
-> > I've done an idle module few years ago that enables C2 for dual
-> > Athlon boxes [3], and that involved enabling it in the southbridge.
-> > 
-> > I thought the current ACPI code enables this already? But it does
-> > not seem to be the case?
-> 
-> AFAIK, if there is no initialization method included in the ACPI table, the
-> ACPI code does _not_ currently enables some special, vendor-specific bit in 
-> southbridges.
-> 
-> > Should we have some extra code to scan the southbridges,
-> 
-> Definitely. There is already some "errata" handling in the processor module,
-> possibly this could get extended.
+Hi,
 
-I'm still using the patch to enable C3 on ICHx-M I once posted. Basically,
-it provided a valid PM2_CNT_BLK address in case the OEM had forgotten to do
-that, which in turn enabled C3 by providing a valid ARB_DIS address
-(provided P_LVL3_LAT is valid).
+I have a machine booting with 2.6.10 not booting any more with 2.6.10-bk7 .
 
-It might be worthwile to add some quirks, possibly opt-in by a commandline
-option.
+The error during boot is (sorry for the bad formatting):
 
-Best regards,
+Executing all Device _STA and_INI methods:.....exoparg2-0436 [14] 
+ex_opcode_2A_1T_1R    : Index value (14) beyond end of buffer (14)
+  psparse-1138: *** Error: Method execution failed [\STRC] (Node 
+ffff8100018b5130), AE_AML_BUFFER_LIMIT psparse-1138: *** Error: Method 
+execution failed [\_SB_.PCI0._INI] (Node ffff8100018a00b0), 
+AE_AML_BUFFER_LIMIT  nsinit-0414 [06] ns_init_one_device    : 
+\_SB_.PCI0._INI._INI failed: AE_AML_BUFFER_LIMIT
+...................................................
+56 Devices found containing: 56 _STA, 1 _INI methods
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+
+The error is thrown in a kind of "strcmp" function \_STRC that compares 
+the operating system string:
+
+     Method (STRC, 2, NotSerialized)
+     {
+         If (LNot (LEqual (SizeOf (Arg0), SizeOf (Arg1))))
+         {
+             Return (0x00)
+         }
+         Add (SizeOf (Arg0), 0x01, Local0)
+         Name (BUF0, Buffer (Local0) {})
+         Name (BUF1, Buffer (Local0) {})
+         Store (Arg0, BUF0)
+         Store (Arg1, BUF1)
+         While (Local0)
+         {
+             Decrement (Local0)
+             If (LNot (LEqual (DerefOf (Index (BUF0, Local0)), DerefOf 
+(Index (BUF1, Local0)))))
+             {
+                 Return (Zero)
+             }
+         }
+         Return (One)
+     }
+_______________________________________________________________________
+
+Adding these addtional debug statements:
+
+     Method (STRC, 2, NotSerialized)
+     {
+         Store (Arg0, Debug)
+         Store (Arg1, Debug)
+	Store (sizeof(Arg0), Debug)
+	Store (sizeof(Arg1), Debug)
+         If (LNot (LEqual (SizeOf (Arg0), SizeOf (Arg1))))
+         {
+             Return (0x00)
+         }
+         Store ("Strings should have the same size", Debug)
+         Add (SizeOf (Arg0), 0x01, Local0)
+         Name (BUF0, Buffer (Local0) {})
+         Add (SizeOf (Arg1), 0x01, Local0)
+         Name (BUF1, Buffer (Local0) {})
+         Store (Arg0, BUF0)
+         Store (Arg1, BUF1)
+         While (Local0)
+         {
+             Decrement (Local0)
+	    Store (Local0, Debug)
+             If (LNot (LEqual (DerefOf (Index (BUF0, Local0)), DerefOf 
+(Index (BUF1, Local0)))))
+             {
+                 Return (Zero)
+             }
+         }
+
+         Return (One)
+     }
+
+
+Gave me this output:
+
+
+
+Completing Region/Field/Buffer/Package 
+initialization:........................................................
+..............................
+Initialized 36/36 Regions 18/18 Fields 19/19 Buffers 13/23 Packages (681 
+nodes)
+Executing all Device _STA and_INI methods:.....[ACPI Debug] String: 
+[0x14] "Microsoft Windows NT"
+[ACPI Debug] String: [0x11] "Microsoft Windows"
+[ACPI Debug] Integer: 0x00000014
+[ACPI Debug] Integer: 0x00000011
+[ACPI Debug] String: [0x14] "Microsoft Windows NT"
+[ACPI Debug] String: [0x14] "Microsoft Windows NT"
+[ACPI Debug] Integer: 0x00000014
+[ACPI Debug] Integer: 0x00000014
+[ACPI Debug] String: [0x21] "Strings should have the same size"
+[ACPI Debug] Integer: 0x00000014
+exoparg2-0436 [14] ex_opcode_2A_1T_1R    : Index value (14) beyond end 
+of buffer (14)
+  psparse-1138: *** Error: Method execution failed [\STRC] (Node 
+ffff81001fce5130), AE_AML_BUFFER_LIMIT
+  psparse-1138: *** Error: Method execution failed [\_SB_.PCI0._INI] 
+(Node ffff81001fcd00b0), AE_AML_BUFFER_LIM
+IT
+   nsinit-0414 [06] ns_init_one_device    : \_SB_.PCI0._INI._INI failed: 
+AE_AML_BUFFER_LIMIT
+
+__________________________________________________________________________
+
+Seems as if accessing BUF0[20] (C style) the kernel thinks the index is 
+out of bounds, but it shouldn't ?!?
+Is this a regression in the kernel, or was the dsdt code/syntax always 
+wrong, but accepted by previous kernels?
+
+Tell me if you need more info.
+
+Thanks,
+
+         Thomas
 
 
 -------------------------------------------------------
