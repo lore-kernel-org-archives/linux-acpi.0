@@ -1,10 +1,11 @@
-From: Pierre Ossman <drzeus-list-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org>
-Subject: ACPI to driver connection
-Date: Mon, 06 Sep 2004 23:27:18 +0200
+From: Tom <gmane.20.thinkinginbinary-w1QkCcy0X+Ct7aBEGUsviw@public.gmane.org>
+Subject: Re: Enhanced SpeedStep on Asus M2400Ne with Pentium-M Dothan
+Date: Tue, 7 Sep 2004 00:25:44 +0000 (UTC)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <413CD636.6090409@drzeus.cx>
+Message-ID: <loom.20040907T022325-175@post.gmane.org>
+References: <loom.20040906T011917-422@post.gmane.org> <20040906023044.GA22049@message-id.gmane0305.slipkontur.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -15,19 +16,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI devel list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I'm currently writing a driver for a sd card reader. This reader is 
-present in the ACPI DSDT tree and can be identified there using the EISA 
-PNP id. I'm not all too familiar with exactly how ACPI works and even 
-less how ACPI works on linux so my question is this. Is there anything 
-my driver should do to associate the entries in the DSDT with the 
-device? Perhaps there are methods that should be called or similar? I do 
-not have the time to study ACPI in detail so I'd appreciate any help.
+Stefan Seyfried <seife@...> writes:
+> Maybe you have to turn the speedstep feature on in the BIOS? Just a guess,
+> but i thik i read about some BIOSen which just renamed the corresponding
+> methods when the feature was switched off.
 
-Rgds
-Pierre Ossman
+Nope.  There's a SpeedStep option in the BIOS, but it doesn't change the
+invalid DSDT table.
+
+Any other ideas, anyone?  I've emailed Asus support but I'm not sure
+how Linux-friendly they are.
+
+--Tom
+
 
 
 -------------------------------------------------------
