@@ -1,15 +1,14 @@
-From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
-Subject: Re: ACPI + 3c556 - the saga continues
-Date: Wed, 16 Jul 2003 13:21:40 +0200
+From: Alvaro Lopes <alvieboy-JkNoWtNHh5AAvxtiuMwx3w@public.gmane.org>
+Subject: Re: System time compensation after suspend
+Date: Wed, 16 Jul 2003 13:06:15 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030716112140.GE4313@enigma.daemon.sh>
-References: <3F152331.9080803@relex.ru>
+Message-ID: <3F153FB7.30508@alvie.com>
+References: <3F1526CA.5070008@alvie.com> <200307161818.33978.mflt1@micrologica.com.hk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="JBi0ZxuS5uaEhkUZ"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3F152331.9080803-343whMTK1pU@public.gmane.org>
+In-Reply-To: <200307161818.33978.mflt1-DTdK3Ks6N5kHTnRCetW4+N0b+6lKrnBL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,62 +17,30 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI-Devel mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Michael Frank <mflt1-DTdK3Ks6N5kHTnRCetW4+N0b+6lKrnBL@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Michael Frank wrote:
 
---JBi0ZxuS5uaEhkUZ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+>hwclock --hctosys
+>
+>How does S3 work on your machine?
+> =20
+>
+Pretty well. It's a Toshiba Satellite S1410. The only drawback (I use=20
+the proprietary nvidia drivers) is having to switch to console before=20
+suspend, otherwise the display goes completly nuts.
 
-hello yaroslav..
+=C1lvaro
 
-* Yaroslav Rastrigin <yarick-343whMTK1pU@public.gmane.org> [2003-07-16 12:42 +0200]:
+>Regards
+>Michael
+>
+> =20
+>
 
-> What conditions should be met for ACPI event to appear in /proc/acpi/even=
-t=20
-> ?
-> When I'm manually triggering LID microswitch ,f.e,  I'm seeing lot's of=
-=20
-> ACPI
-> activity in logs (with upped debug level), and I could see _LID method
-> executed, but nothing appears in /proc/acpi/event, and I can't make acpid
-> to suspend machine when LID is closed.
-> Moreover, there are no events in /proc/acpi/event at all, alhough ACPI
-> subsystem notices and handles them. Did I screwed something in my setup ,=
-=20
-> and
-> if yes, then what to look for ?
 
-do you know of acpid? check
-http://acpid.sourceforge.net
-this daemon usually logs output from /proc/acpi/event to /var/log/acpid
-(among other things).
-
-and how did you try to access p/a/event? a "tail -f" does not work, but
-"cat" does.
-
-hth,
- sebastian
---=20
-::: sebastian henschel
-::: kodeaffe
-::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
-
---JBi0ZxuS5uaEhkUZ
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQE/FTVEreHfL3pi+bQRAhXlAJ92Bbe1fsy2tDzxAYklua6UW0AL0gCghYWA
-bV4oBM8fPILPTUXoskluVVo=
-=4fcG
------END PGP SIGNATURE-----
-
---JBi0ZxuS5uaEhkUZ--
 
 
 -------------------------------------------------------
