@@ -1,12 +1,13 @@
-From: boltmelots <boltmelots-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Error-5 Could not suspend Device 0000: 00: ld. 7
-Date: Thu, 2 Dec 2004 17:45:04 +1100
-Message-ID: <9ed79ee0041201224525d402cd@mail.gmail.com>
-Reply-To: boltmelots <boltmelots-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Matthias Hentges <mailinglisten-H4PcyxPeSRnR7s880joybQ@public.gmane.org>
+Subject: Re: Radeon Resuming from S3: Try 2
+Date: Thu, 02 Dec 2004 10:59:10 +0100
+Message-ID: <1101981551.20007.7.camel@mhcln03>
+References: <200412012033.05893.barr.156@osu.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200412012033.05893.barr.156-ZbGKxL/pcrQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,37 +17,50 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all:
+Am Mittwoch, den 01.12.2004, 20:33 -0500 schrieb Andrew Barr:
+> Given the recent positive developments and success stories concerning resuming 
+> ATI hardware from S3 suspend, I thought I'd give suspending my desktop PC to 
+> S3. Briefly, relevant parts of my hardware:
 
-I have just recently after much trouble installed acpi with kernel
-2.6.7 running debian unstable.  The laptop is Dell inspiron 500m.
+[...]
 
-I am having trouble putting the thing on standby.  I try 
+> It appears I have two options: the s3_late_bios patch 
+> or dummydriver/resume-finish-split. What do I need to do to try each one? For 
+> example, I know I need to pass acpi_sleep=s3_late_bios to my kernel to use 
+> that patch. 
 
-           'echo 1 > /proc/acpi/sleep'
+correct
 
-but it produces the following message and just comes back to normal. 
-Does anyone know what it means and how I can fix it.  I will
-appreciate any suggestions I can try.
+> It's unclear to me what I need to do with the dummydriver or 
+> resume-finish-split patches.
 
-PM: Preparing system for suspend
-Stopping tasks: =====================================================|
-PCI: Setting latency timer of device 0000:00:1d.7 to 64
-Could not suspend device 0000:00:1d.7: error -5
-PCI: Enabling device 0000:00:1f.5 (0000 -> 0003)
-i810_audio: Primary codec has ID 0
-ac97_codec: AC97 Audio codec, id: 0x8384:0x7650 (Unknown)
-PCI: Setting latency timer of device 0000:00:1f.6 to 64
-e100: eth1: e100_watchdog: link up, 100Mbps, full-duplex
-Restarting tasks... done
-apm: BIOS not found
+Nothing. They don't need any kernel options to work. The dummydriver
+only works
+for two specific devices identified by their PCI-ID (or whatever you
+call that).
+It will *not* work for other devices.
 
-Thanks and Kind Regards,
---
-Bolt.
+You'll have better luck using resume-finish-split as I didn't see
+anything device specific in there (well, I didn't look very long heh).
+
+These two patches don't help resuming your Radeon, they just prevent a
+freeze during resume caused by *other* devices.
+
+HTH
+
+-- 
+Matthias Hentges 
+Cologne / Germany
+
+[www.hentges.net] -> PGP welcome, HTML tolerated
+ICQ: 97 26 97 4   -> No files, no URL's
+
+My OS: Debian SID. Geek by Nature, Linux by Choice
+
 
 
 -------------------------------------------------------
