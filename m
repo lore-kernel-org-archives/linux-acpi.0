@@ -1,15 +1,15 @@
 From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
-Subject: Re: acpi patch for 2.6.7
-Date: Tue, 7 Sep 2004 15:56:37 +0200
+Subject: Re: Re: Enhanced SpeedStep on Asus M2400Ne with Pentium-M Dothan
+Date: Tue, 7 Sep 2004 16:01:19 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040907135637.GC3647@fuchi>
-References: <200409061331.28311@geromy>
+Message-ID: <20040907140119.GD3647@fuchi>
+References: <loom.20040906T011917-422@post.gmane.org> <20040906023044.GA22049@message-id.gmane0305.slipkontur.de> <loom.20040907T022325-175@post.gmane.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="vEao7xgI/oilGqZ+"
+	protocol="application/pgp-signature"; boundary="PHCdUe6m4AxPMzOu"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200409061331.28311@geromy>
+In-Reply-To: <loom.20040907T022325-175-eS7Uydv5nfjZ+VzJOa5vwg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -22,29 +22,34 @@ To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---vEao7xgI/oilGqZ+
-Content-Type: text/plain; charset=iso-8859-1
+--PHCdUe6m4AxPMzOu
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-hello S=F6nke..
+hello tom...
 
-* S=F6nke <s.huels-hi6Y0CQ0nG0@public.gmane.org> [2004-09-07 15:29 +0200]:
+* Tom <gmane.20.thinkinginbinary-w1QkCcy0X+Ct7aBEGUsviw@public.gmane.org> [2004-09-07 15:30 +0200]:
+> Stefan Seyfried <seife@...> writes:
+> > Maybe you have to turn the speedstep feature on in the BIOS? Just a gue=
+ss,
+> > but i thik i read about some BIOSen which just renamed the corresponding
+> > methods when the feature was switched off.
 >=20
-> I'm looking for the last acpi patch for kernel 2.6.7=20
-> (acpi-20040715-2.6.7-diff), but I could not find it on the kernel.org ftp=
-=20
-> server.=20
-> Could anyone please tell me to a location to download it, if it is still=
-=20
-> availiable somewhere?
+> Nope.  There's a SpeedStep option in the BIOS, but it doesn't change the
+> invalid DSDT table.
+>=20
+> Any other ideas, anyone?  I've emailed Asus support but I'm not sure
+> how Linux-friendly they are.
 
-i fear, it is not officially available anymore. you could try to
-integrate the ACPI stuff from 2.6.8 into your 2.6.7. or ping me again
-next week when i will have access to my backup harddisk which should
-have a copy of the patch on it.
+i have installed an ASUS M2400Neb two weeks ago and Enhanced SpeedStep
+worked then, i believe. i can mail you the owner's email address in
+private, if you (and he) want(s).
 
-bye,
+did you install the latest BIOS from ASUS?
+ftp://ftp.asus.com/pub/ASUS/nb/M2Ne/m2ne_0203.zip
+
+hth,
  sebastian
 --=20
 ::: .O.
@@ -52,7 +57,7 @@ bye,
 ::: OOO
 ::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
 
---vEao7xgI/oilGqZ+
+--PHCdUe6m4AxPMzOu
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -60,12 +65,12 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFBPb4UreHfL3pi+bQRAj0JAJ9RGC5bRhnGT7bjPAkL8vGpMeHlYgCbB/1F
-940AjPtDDIBnw/RN25XOwU8=
-=FWfb
+iD8DBQFBPb8vreHfL3pi+bQRAl/FAJ9EFm5p05SGQz6P1jc2zLHFwn9KVwCfSRAe
+0qqwem6CnrbdcyqGFSO1LH8=
+=VIxb
 -----END PGP SIGNATURE-----
 
---vEao7xgI/oilGqZ+--
+--PHCdUe6m4AxPMzOu--
 
 
 -------------------------------------------------------
