@@ -1,13 +1,13 @@
-From: NoZizzing OrDripping <nozizzingordripping-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Re: ACPI trouble (AC module, etc.) with Toshiba 1115-S103
-Date: Tue, 10 Dec 2002 22:58:26 -0800 (PST)
+From: Juan Quintela <quintela-7Aj/b8uzpy6AmYF/tR2SNQ@public.gmane.org>
+Subject: Re: new DRI resume binary snapshots and patches available
+Date: 11 Dec 2002 10:38:19 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021211065826.5869.qmail@web14503.mail.yahoo.com>
-References: <20021210092357.GA29390@poup.poupinou.org>
+Message-ID: <m2el8oopys.fsf@demo.mitica>
+References: <20021203232507.GA1723@dutidad.twi.tudelft.nl>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="0-1486973803-1039589906=:4445"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20021210092357.GA29390-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
+In-Reply-To: <20021203232507.GA1723-V1rPnKwUOrA59+mn7qD7y50iERQUc4G+@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,223 +16,45 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: swsusp-LcL5texQODR2DW0IdvIQ2g@public.gmane.org
+Cc: dri-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
---0-1486973803-1039589906=:4445
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+>>>>> "charl" == Charl P Botha <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org> writes:
 
---- Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> wrote:
-> On Mon, Dec 09, 2002 at 10:59:22PM -0800, NoZizzing
-> OrDripping wrote:
-> > 
-> > Status report for Toshiba Satellite 1115-S103
-> laptop....
-> > 
-> > 	$ root modprobe ac; dmesg
-> > 
-> > 	exfldio-0122 [31] Ex_setup_region       : Field
-> [ACPW] Base+Offset+Width 38+0+4 is beyond end of
-> region [GPIO] (length 3B)
-> > 	psparse-1103: *** Error: Method execution failed
-> [\_SB_.PCI0.LPCB.ACAD._PSR] (Node c1671948),
-> AE_AML_REGION_LIMIT
-> > 	acpi_ac-0083 [15] acpi_ac_get_state     : Error
-> reading AC Adapter state
-> > 
-> 
-> Known issue with most of the Toshiba Satellite
-> series with a Phoenix
-> BIOS.  I guess that Toshiba (or in fact Compal)
-> still don't
-> know how to debug correctly their ASLs.
-> 
-> You need a patched DSDT for this model.  Please send
-> me your DSDT.
+Hi
 
-OK, I went thru the process of creating a modified
-ASL (diffs from the original attached) for this
-laptop.
-Basically, I cleaned up the original so that the
-errors
-from "iasl" went away.
+charl> New binary snapshots of the DRI suspend/resume modified Radeon drivers are
+charl> available at http://cpbotha.net/dri_resume.html - these are the first DRI
+charl> suspend/resume driver snapshots since the merge of XFree86 HEAD into the DRI
+charl> tree. The updated patches are of course also available at the mentioned URL.
 
-I now have a working AC module.
+        could you told me what X version against are your dri
+        patches?
 
-This is a stopgap measure though, correct?  The goal
-should be for the Linux kernel to support the existing
-AML in flash (the AML apparently comes from Microsoft)
-on these laptops.  The BIOS on these machines is about
-as fresh as it gets (Nov, 2002).  It seems to me that
-the Intel ASL compiler and interpreter needs to be
-changed/relaxed to accomodate what has become a
-defacto
-(de-gates-o) standard here.
+I am having a bad time (not being an XFree hacker) to merge the X part
+of your patch (the kernel patch was a no brainer).
 
-As a practical matter, I can't imagine non-programmer
-types having to modify their ASL code to make Linux
-work on their laptops, and I can't imagine that Ducrot
-wants to be the single, worldwide point, for modified
-ASL code.
+Basically my problem is that there is not:
+- ati/radeon_common.h file (and I didn't found any of the other
+  DRM_RADEON_* diffs).
+- in the radeon_dri.c::RADEONDRIResume() has a call to
+  +    _ret = drmCommandNone(info->drmFD, DRM_RADEON_CP_RESUME); 
 
-Would the ACPI developers be receptive if I made the
-changes necessary to allow the kernel ACPI code to
-accept the existing AML in my laptop as-is?
+  I am completely unable to find that command in my XFree tree :(
 
--Rick Richardson
-rickr-EySxSuIQeMUAvxtiuMwx3w@public.gmane.org
+I am using XFree86-4.2.1-11mdk.  We used the gatos patch, but old ati
+code don't have either that function :(
 
-__________________________________________________
-Do you Yahoo!?
-Yahoo! Mail Plus - Powerful. Affordable. Sign up now.
-http://mailplus.yahoo.com
---0-1486973803-1039589906=:4445
-Content-Type: application/octet-stream; name="tosh1115-s103.asl.diff"
-Content-Transfer-Encoding: base64
-Content-Description: tosh1115-s103.asl.diff
-Content-Disposition: attachment; filename="tosh1115-s103.asl.diff"
+Any help or advice on where can I found the CVS change where the
+drmCommandNone was introduced is welcome.  I looked at the Changelogs
+and see no mention of that changes :(
 
-LS0tIHRvc2gxMTE1LXMxMDMtb3JpZy5hc2wJMjAwMi0xMi0xMSAwMDoyNzow
-My4wMDAwMDAwMDAgLTA2MDAKKysrIHRvc2gxMTE1LXMxMDMtbGludXguYXNs
-CTIwMDItMTItMTEgMDA6Mjc6NDEuMDAwMDAwMDAwIC0wNjAwCkBAIC0xLDQg
-KzEsNCBAQAotCisvKgogCiBBRCAtIEFDUEkgRHVtcC4gVmVyc2lvbiAwLjkx
-LiBKYW4gMDkgMjAwMgogQ29weXJpZ2h0IChDKSAyMDAxIGJ5IFBob2VuaXgg
-VGVjaG5vbG9naWVzLCBMdGQuIEFsbCBSaWdodHMgUmVzZXJ2ZWQuCkBAIC0x
-Myw3ICsxMyw3IEBACiBDcmVhdG9yIElEOiAgICAgICAnTVNGVCcKIENyZWF0
-b3IgUmV2aXNpb246IDB4MDEwMDAwMEQKIAotCisqLwogRGVmaW5pdGlvbkJs
-b2NrKCJEU0RULkFNTCIsIkRTRFQiLDEsIlRPU0NQTCIsIkJUSzIwICAgIiww
-eDYwNDAwMDApCiB7CiAgICAgT3BlcmF0aW9uUmVnaW9uKFBPUlQsU3lzdGVt
-SW8sMHg4MCwweDAxKQpAQCAtNDA4LDYgKzQwOCw3IEBACiAgICAgICAgICAg
-ICAgICAgXF9TQi5QQ0kwLkxQQ0IuUEhTUygweDBGKQogICAgICAgICAgICAg
-fQogICAgICAgICB9CisJUmV0dXJuKFBhY2thZ2UoMikgezAsIDB9KQogICAg
-IH0KICAgICBTY29wZShfR1BFKQogICAgIHsKQEAgLTYyNCw3ICs2MjUsNyBA
-QAogICAgICAgICAgICAgICAgIEZUVCwxCiAgICAgICAgICAgICB9CiAgICAg
-ICAgICAgICBPcGVyYXRpb25SZWdpb24oRUNSLEVtYmVkZGVkQ29udHJvbCww
-eDAwLDB4RkYpCi0gICAgICAgICAgICBGaWVsZChFQ1IgLyogXF9TQi5FUFdS
-LkVDUiAqLyxBbnlBY2MsTG9jayxQcmVzZXJ2ZSkKKyAgICAgICAgICAgIEZp
-ZWxkKEVDUiAvKiBcX1NCLkVQV1IuRUNSICovLC8qUkVSIEFueUFjYyovQnl0
-ZUFjYyxMb2NrLFByZXNlcnZlKQogICAgICAgICAgICAgewogICAgICAgICAg
-ICAgICAgIE9mZnNldCgweDlFKSwKICAgICAgICAgICAgICAgICAsNCwKQEAg
-LTY4NCwxNCArNjg1LDE0IEBACiAgICAgICAgICAgICB9CiAgICAgICAgICAg
-ICBNZXRob2QoQkFUQywxLE5vdFNlcmlhbGl6ZWQpCiAgICAgICAgICAgICB7
-Ci0gICAgICAgICAgICAgICAgRGl2aWRlKDB4MEZBMCwweDY0LCxMb2NhbDEp
-CisgICAgICAgICAgICAgICAgRGl2aWRlKDB4MEZBMCwweDY0LExvY2FsMSkK
-ICAgICAgICAgICAgICAgICBJZihMRXF1YWwoQXJnMCwweDAwKSkKICAgICAg
-ICAgICAgICAgICB7Ci0gICAgICAgICAgICAgICAgICAgIERpdmlkZShcX1NC
-LlBDSTAuTFBDQi5FQzAuQlJDMCxMb2NhbDEsLExvY2FsMikKKyAgICAgICAg
-ICAgICAgICAgICAgRGl2aWRlKFxfU0IuUENJMC5MUENCLkVDMC5CUkMwLExv
-Y2FsMSxMb2NhbDIpCiAgICAgICAgICAgICAgICAgfQogICAgICAgICAgICAg
-ICAgIEVsc2UKICAgICAgICAgICAgICAgICB7Ci0gICAgICAgICAgICAgICAg
-ICAgIERpdmlkZShcX1NCLlBDSTAuTFBDQi5FQzAuQlJDMSxMb2NhbDEsLExv
-Y2FsMikKKyAgICAgICAgICAgICAgICAgICAgRGl2aWRlKFxfU0IuUENJMC5M
-UENCLkVDMC5CUkMxLExvY2FsMSxMb2NhbDIpCiAgICAgICAgICAgICAgICAg
-fQogICAgICAgICAgICAgICAgIFJldHVybihMb2NhbDIpCiAgICAgICAgICAg
-ICB9CkBAIC03NzAsMTQgKzc3MSwxNCBAQAogICAgICAgICAgICAgfQogICAg
-ICAgICAgICAgTWV0aG9kKEJBVDAsMCxOb3RTZXJpYWxpemVkKQogICAgICAg
-ICAgICAgewotICAgICAgICAgICAgICAgIERpdmlkZSgweDBGQTAsMHg2NCws
-TG9jYWwxKQotICAgICAgICAgICAgICAgIERpdmlkZShcX1NCLlBDSTAuTFBD
-Qi5FQzAuQlJDMCxMb2NhbDEsLExvY2FsMikKKyAgICAgICAgICAgICAgICBE
-aXZpZGUoMHgwRkEwLDB4NjQsTG9jYWwxKQorICAgICAgICAgICAgICAgIERp
-dmlkZShcX1NCLlBDSTAuTFBDQi5FQzAuQlJDMCxMb2NhbDEsTG9jYWwyKQog
-ICAgICAgICAgICAgICAgIFJldHVybihMb2NhbDIpCiAgICAgICAgICAgICB9
-CiAgICAgICAgICAgICBNZXRob2QoQkFUMSwwLE5vdFNlcmlhbGl6ZWQpCiAg
-ICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAgTXVsdGlwbHkoXF9TQi5Q
-Q0kwLkxQQ0IuRUMwLkJSQzEsMHg2NCxMb2NhbDEpCi0gICAgICAgICAgICAg
-ICAgRGl2aWRlKExvY2FsMSwweDExOTQsLExvY2FsMikKKyAgICAgICAgICAg
-ICAgICBEaXZpZGUoTG9jYWwxLDB4MTE5NCxMb2NhbDIpCiAgICAgICAgICAg
-ICAgICAgUmV0dXJuKExvY2FsMikKICAgICAgICAgICAgIH0KICAgICAgICAg
-ICAgIE1ldGhvZChJU1RBLDEsTm90U2VyaWFsaXplZCkKQEAgLTE3MzMsNyAr
-MTczNCw3IEBACiAgICAgICAgICAgICAgICAgICAgICAgICAvLyAgICAgICAg
-ICAgICAgICAgICAgICAgICAgcHJvcGVybHkKICAgICAgICAgICAgICAgICAg
-ICAgICAgIC8vICAgICAgICAgICAgICAgICAgIFs0XSAgICAxID0gRGV2aWNl
-IGlzIGF0dGFjaGVkCiAgICAgICAgICAgICAgICAgICAgICAgICAvLyAgICAg
-ICAgICAgICAgICAgICAgICAgICAgCi1bMzE6NV0JUmVzZXJ2ZWQuCisvL1sz
-MTo1XQlSZXNlcnZlZC4KICAgICAgICAgICAgICAgICAgICAgICAgIC8vCiAg
-ICAgICAgICAgICAgICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgXF9TQi5QQ0kwLkxQQ0IuUEhTUygweDBDKQpAQCAtMTg3Nyw3
-ICsxODc4LDcgQEAKICAgICAgICAgICAgICAgICAgICAgICAgIC8vICAgICAg
-ICAgICAgICAgICAgICAgICAgICBwcm9wZXJseQogICAgICAgICAgICAgICAg
-ICAgICAgICAgLy8gICAgICAgICAgICAgICAgICAgWzRdICAgIDEgPSBEZXZp
-Y2UgaXMgYXR0YWNoZWQKICAgICAgICAgICAgICAgICAgICAgICAgIC8vICAg
-ICAgICAgICAgICAgICAgICAgICAgICAKLVszMTo1XQlSZXNlcnZlZC4KKy8v
-WzMxOjVdCVJlc2VydmVkLgogICAgICAgICAgICAgICAgICAgICAgICAgLy8K
-ICAgICAgICAgICAgICAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICBTdG9yZSgiTENEIC0tX0RDUyIsRGVidWcpCkBAIC0yMDEx
-LDcgKzIwMTIsNyBAQAogICAgICAgICAgICAgICAgICAgICAgICAgLy8gICAg
-ICAgICAgICAgICAgICAgICAgICAgIHByb3Blcmx5CiAgICAgICAgICAgICAg
-ICAgICAgICAgICAvLyAgICAgICAgICAgICAgICAgICBbNF0gICAgMSA9IERl
-dmljZSBpcyBhdHRhY2hlZAogICAgICAgICAgICAgICAgICAgICAgICAgLy8g
-ICAgICAgICAgICAgICAgICAgICAgICAgIAotWzMxOjVdCVJlc2VydmVkLgor
-Ly9bMzE6NV0JUmVzZXJ2ZWQuCiAgICAgICAgICAgICAgICAgICAgICAgICAv
-LwogICAgICAgICAgICAgICAgICAgICAgICAgewogICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgIFxfU0IuUENJMC5MUENCLlBIU1MoMHgwQykKQEAgLTIy
-MTgsNyArMjIxOSw3IEBACiAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-U3RvcmUoT25lLFRWQUEgLyogXF9TQi5QQ0kwLkFHUEIuVkdBLlRWQUEgKi8p
-CiAgICAgICAgICAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICAg
-ICAgICAgICAvLyBOb3RpZnkgMHg4MCAtIAotICoqKiogdW5rbm93biBvYmpl
-Y3Qgbm90aWZpYXRpb24gdmFsdWUgCisvLyAqKioqIHVua25vd24gb2JqZWN0
-IG5vdGlmaWF0aW9uIHZhbHVlIAogICAgICAgICAgICAgICAgICAgICAgICAg
-Tm90aWZ5KFxfU0IuUENJMC5BR1BCLlZHQSwweDgwKQogICAgICAgICAgICAg
-ICAgICAgICB9CiAgICAgICAgICAgICAgICAgfQpAQCAtMjczNiw3ICsyNzM3
-LDcgQEAKICAgICAgICAgICAgICAgICAgICAgUE1FRSwxLAogICAgICAgICAg
-ICAgICAgICAgICBVUzNFLDEKICAgICAgICAgICAgICAgICB9Ci0gICAgICAg
-ICAgICAgICAgT3BlcmF0aW9uUmVnaW9uKEdQSU8sU3lzdGVtSW8sMHgxMTgw
-LDB4M0IpCisgICAgICAgICAgICAgICAgT3BlcmF0aW9uUmVnaW9uKEdQSU8s
-U3lzdGVtSW8sMHgxMTgwLC8qUkVSIDB4M0IqLyAweDNDKQogICAgICAgICAg
-ICAgICAgIEZpZWxkKEdQSU8gLyogXF9TQi5QQ0kwLkxQQ0IuR1BJTyAqLyxX
-b3JkQWNjLExvY2ssUHJlc2VydmUpCiAgICAgICAgICAgICAgICAgewogICAg
-ICAgICAgICAgICAgICAgICBBY2Nlc3NBcyhEV29yZEFjYywweDAwKSwKQEAg
-LTcyNjcsNyArNzI2OCw3IEBACiAgICAgICAgICAgICAgICAgICAgICAgICB9
-CiAgICAgICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgICAgICAg
-T3BlcmF0aW9uUmVnaW9uKEVSQU0sRW1iZWRkZWRDb250cm9sLDB4MDAsMHhG
-RikKLSAgICAgICAgICAgICAgICAgICAgRmllbGQoRVJBTSAvKiBcX1NCLlBD
-STAuTFBDQi5FQzAuRVJBTSAqLyxBbnlBY2MsTG9jayxQcmVzZXJ2ZSkKKyAg
-ICAgICAgICAgICAgICAgICAgRmllbGQoRVJBTSAvKiBcX1NCLlBDSTAuTFBD
-Qi5FQzAuRVJBTSAqLywvKlJFUiBBbnlBY2MqL0J5dGVBY2MsTG9jayxQcmVz
-ZXJ2ZSkKICAgICAgICAgICAgICAgICAgICAgewogICAgICAgICAgICAgICAg
-ICAgICAgICAgT2Zmc2V0KDB4MkUpLAogICAgICAgICAgICAgICAgICAgICAg
-ICAgUlNNVCwxNiwKQEAgLTczNzksNyArNzM4MCw3IEBACiAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgUEhTUyAvKiBcX1NCLlBDSTAuTFBDQi5QSFNT
-ICovKDB4MDgpCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgU3RvcmUo
-MHgwMCxcX1NCLlBDSTAuTFBDQi5FQzAuQlJHVCkKICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAvLyBOb3RpZnkgMHg4MSAtIAotICoqKiogdW5rbm93
-biBvYmplY3Qgbm90aWZpYXRpb24gdmFsdWUgCisvLyAqKioqIHVua25vd24g
-b2JqZWN0IG5vdGlmaWF0aW9uIHZhbHVlIAogICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIE5vdGlmeShFUFdSIC8qIFxfU0IuRVBXUiAqLywweDgxKQog
-ICAgICAgICAgICAgICAgICAgICAgICAgfQogICAgICAgICAgICAgICAgICAg
-ICB9CkBAIC03NDIzLDcgKzc0MjQsNyBAQAogICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIH0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICBTdG9y
-ZSgweDAwLFxfU0IuUENJMC5MUENCLkVDMC5TS0VZKQogICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgIC8vIE5vdGlmeSAweDgyIC0gCi0gKioqKiB1bmtu
-b3duIG9iamVjdCBub3RpZmlhdGlvbiB2YWx1ZSAKKy8vICoqKiogdW5rbm93
-biBvYmplY3Qgbm90aWZpYXRpb24gdmFsdWUgCiAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgTm90aWZ5KEVQV1IgLyogXF9TQi5FUFdSICovLDB4ODIp
-CiAgICAgICAgICAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICAg
-ICAgIH0KQEAgLTc0NzQsNyArNzQ3NSw3IEBACiAgICAgICAgICAgICAgICAg
-ICAgICAgICBUU1RTLDEKICAgICAgICAgICAgICAgICAgICAgfQogICAgICAg
-ICAgICAgICAgICAgICBPcGVyYXRpb25SZWdpb24oRUNSTSxFbWJlZGRlZENv
-bnRyb2wsMHgwMCwweEZGKQotICAgICAgICAgICAgICAgICAgICBGaWVsZChF
-Q1JNIC8qIFxfU0IuUENJMC5MUENCLkVDMC5FQ1JNICovLEFueUFjYyxMb2Nr
-LFByZXNlcnZlKQorICAgICAgICAgICAgICAgICAgICBGaWVsZChFQ1JNIC8q
-IFxfU0IuUENJMC5MUENCLkVDMC5FQ1JNICovLC8qUkVSIEFueUFjYyovQnl0
-ZUFjYyxMb2NrLFByZXNlcnZlKQogICAgICAgICAgICAgICAgICAgICB7CiAg
-ICAgICAgICAgICAgICAgICAgICAgICBPZmZzZXQoMHhBRSksCiAgICAgICAg
-ICAgICAgICAgICAgICAgICBQVFZMLDMsCkBAIC04MzE3LDYgKzgzMTgsNyBA
-QAogICAgICAgICAgICAgICAgICAgICAgICAgUmV0dXJuKEJ1ZmZlcigweDE0
-KXsweDc4LDB4MDAsMHgwMCwweDAwLDB4MDgsMHgwMCwweDAwLDB4MDAsCiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDB4NzgsMHgwMCwweDAw
-LDB4MDAsMHgwOCwweDAwLDB4MDAsMHgwMCwKICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgMHgxRiwweDAwLDB4MDAsMHgwMH0pCisJCQkvKiBS
-RVI6IFdhcm5pbmcgaGVyZSBpcyBPSyAqLwogICAgICAgICAgICAgICAgICAg
-ICAgICAgTmFtZShQQlVGLEJ1ZmZlcigweDE0KXsweDAwLDB4MDAsMHgwMCww
-eDAwLDB4MDAsMHgwMCwweDAwLDB4MDAsCiAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgIDB4MDAsMHgwMCwweDAwLDB4MDAsMHgwMCwweDAwLDB4
-MDAsMHgwMCwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgMHgw
-MCwweDAwLDB4MDAsMHgwMH0pCg==
+Later, Juan.
 
---0-1486973803-1039589906=:4445--
+-- 
+In theory, practice and theory are the same, but in practice they 
+are different -- Larry McVoy
 
 
 -------------------------------------------------------
