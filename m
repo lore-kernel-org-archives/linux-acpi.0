@@ -1,15 +1,12 @@
-From: Eric Valette <eric.valette-GANU6spQydw@public.gmane.org>
-Subject: Re: Losing lid events after resume (2.6.6)
-Date: Mon, 17 May 2004 20:52:03 +0200
+From: Emma Jane Hogbin <emmajane-MHIYrZpDPrNWk0Htik3J/w@public.gmane.org>
+Subject: ACPI HOWTO
+Date: Mon, 17 May 2004 15:01:37 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40A909D3.1080009@free.fr>
-References: <20040513181051.GA29398@cs.ucla.edu> <20040517103818.GA1669@elf.ucw.cz> <20040517170424.GA19417@cs.ucla.edu>
-Reply-To: eric.valette-GANU6spQydw@public.gmane.org
+Message-ID: <20040517190137.GD5547@smeagol>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040517170424.GA19417-764C0pRuGfqVc3sceRu5cw@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,33 +15,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Kevin Eustice <kfe-764C0pRuGfqVc3sceRu5cw@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Hello,
 
-> Yup. After going to standby mode, ACPI no longer registers any event
-> other than the powerbutton events.
+I've just published an updated version of the ACPI HOWTO. It is available
+at:
+	http://www.tldp.org/HOWTO/ACPI-HOWTO/index.html
+I know everyone's busy...but I was hoping that I could get a few eyes on
+the text at some point. I'd like to create a section that has "gotchas"
+listed by kernel version, but I haven't quite decided where to put that
+information yet (perhaps as an appendix?). I've already moved the patch
+information to an appendix as it shouldn't be relevant once the bugs
+are ironed out of the 2.6.x series kernel...right?
 
-You are not alone and a similar bug with several proposed patches is 
-already open (for months now) at :
-
-http://bugme.osdl.org/show_bug.cgi?id=2321
-
-Note that apparently, the rewrite of the GPE handling is underway and 
-things should be fixed soon (at least that is what len says...)
+emma
 
 -- 
-    __
-   /  `                   	Eric Valette
-  /--   __  o _.          	6 rue Paul Le Flem
-(___, / (_(_(__         	35740 Pace
-
-Tel: +33 (0)2 99 85 26 76	Fax: +33 (0)2 99 85 26 76
-E-mail: eric.valette-GANU6spQydw@public.gmane.org
-
-
-
+Emma Jane Hogbin
+[[ 416 417 2868 ][ www.xtrinsic.com ]]
 
 
 -------------------------------------------------------
