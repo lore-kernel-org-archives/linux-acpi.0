@@ -1,11 +1,13 @@
-From: "Hyung K. Kim \(±èÇü±Ô\)" <hyungkk-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Compaq 1700, 2.4.18, acpi-7,24 - SUCCESS (I think)
-Date: Mon, 12 Aug 2002 07:49:07 -0700 (PDT)
+From: Prabhakar Reddy Gudla Venkata Siva <reddyg-3+M4TpyeDAP2fBVCVOL8/A@public.gmane.org>
+Subject: Compaq 1720US, 2.4.18, acpi-7,24 - Help
+Date: Mon, 12 Aug 2002 23:02:37 -0400 (EDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020812144907.30057.qmail@web11102.mail.yahoo.com>
+Message-ID: <Pine.GSO.4.21.0208122148460.7266-100000@sediment.umd.edu>
+References: <20020812144907.30057.qmail@web11102.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20020812144907.30057.qmail-2nHsiZiiNUuA/QwVtaZbd3CJp6faPEW9@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,49 +19,57 @@ List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
 To: acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hi list,
 
-Thanks to the people on the list, I was able to get
-most of ACPI(features I care about)to work with my
-laptop.
+I have compiled acpi-pacth-20020724 for kernel 2.4.18 on a compaq presario
+1720US (running Red Hat 7.3). However, the acpi-patched kernel no longer
+boots. I just get a blank screen on bootup. FYI, I do run some of the
+earlier acpi-patched kernel.
 
-I had to modify the DSDT. (Very little)
+I have done the following:
 
-I am pretty sure I didn't correct all the errors.  I
-am getting some error messages in the
-/var/log/messages like
+1) On a old kernel (2.4.18-5 Redhat Stock Update)
+<prompt>acpidump > acpi_dsdt.asl
 
-Aug 12 10:24:33 dhcp--210-156 kernel: Executing all
-Device _STA and_INI methods:....... dswexec-0117 [14]
-Ds_get_predicate_value: Bad predicate (not a number)
-Obj_desc=cffe07e8 State=c143e028 Type=2
+2)Corrected the acpi_dsdt.asl for some errors
 
-and
+3)Compiled the modified acpi_dsdt.asl using "iasl"
+<prompt>iasl -tc acpi_dsdt.asl
 
-Aug 12 10:24:33 dhcp--210-156 kernel:
-..................  uteval-0432 [07] Ut_execute_STA   
-    : No object was returned from _STA
+4)Got the kernel 2.4.18 and applied the acpi-patch-20020724
 
+5)Copied the acpi_dsdt.hex to /usr/src/linux/drivers/acpi/tables
+<prompt> cp acpi_dsdt.hex <kernel-src>/drivers/acpi/tables/acpi_dsdt.c
 
-I am guessing this has to be with my battery capacity.
-
-I had to hack the battstat_applet to hard code the
-capacity.  It was reading Unknown.  Actually, I had to
-hack it so that it didn't read
-/proc/acpi/battery/CMB0/info.  Prior to doing this, my
-laptop would lock up about 10 minutes after the applet
-is started.
-
-HK
+6)complied the kernel with all options of ACPI as modules (I did turn off
+APM options).
 
 
-__________________________________________________
-Do You Yahoo!?
-HotJobs - Search Thousands of New Jobs
-http://www.hotjobs.com
+Is there some step that I am missing ? Do I need to change something in
+the acpi code to override the new dsdt table ? Any help appreciated.
+
+TIA
+-- 
+
+*******************************--------------**********************************
+GVS Prabhakar Reddy
+Research Assistant
+
+Model Analysis Lab (GIS Lab)
+Dept. of Biological Resources Engineering 
+University of Maryland 
+College Park, MD, 20742.
+
+tel: 301-405-0109 (o)
+   : 301-982-7148 (r)
+fax: 301-314-9023
+
+email: reddyg-0KJXeWapumv2fBVCVOL8/A@public.gmane.org
+**************************--------------------*********************************
+
 
 
 -------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
+This sf.net email is sponsored by: Dice - The leading online job board
+for high-tech professionals. Search and apply for tech jobs today!
+http://seeker.dice.com/seeker.epl?rel_code=31
