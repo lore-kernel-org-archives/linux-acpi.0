@@ -1,38 +1,64 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: [ACPI] [2.6.0-test5-mm1] Suspend to RAM problems
-Date: Wed, 10 Sep 2003 19:11:39 +0200
+From: Daniel Egger <degger-Gv7zc1CdiNM@public.gmane.org>
+Subject: Re: [PATCH] 2.4.23-pre3 ACPI fixes series (1/3)
+Date: Wed, 10 Sep 2003 17:31:21 +0200
 Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20030910171139.GB2764@elf.ucw.cz>
-References: <20030910103142.GA1053@rootdir.de> <20030910111312.GA847@rootdir.de> <20030910143837.GC2589@elf.ucw.cz> <20030910154702.GB1507@rootdir.de>
+Message-ID: <1063207880.7657.1.camel@sonja>
+References: <200309051958.02818.adq_dvb@lidskialf.net>
+	 <200309060016.16545.adq_dvb@lidskialf.net> <3F590E28.6090101@pobox.com>
+	 <200309060115.24340.adq_dvb@lidskialf.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-KeEGG+OvUDx0iu/mawmN"
 Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20030910154702.GB1507-YJlxJerscEeELgA04lAiVw@public.gmane.org>
-To: Claas Langbehn <claas-YJlxJerscEeELgA04lAiVw@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew de Quincey <adq-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <200309060115.24340.adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
+To: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
+Cc: Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>, torvalds-3NddpPZAyC0@public.gmane.org, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
 
-> > > APIC error on CPU0: 08(08)
-> > > 
-> > > ...and it repeats endlessly :(
-> > > 
-> > > my keyboard is dead afterwards.
-> > 
-> > Can you test on -test3 kernel?
-> 
-> Ok, I will later today.
-> 
-> 
-> BTW: when I suspend from X11 with the nvidia-drivers, then
-> the screen looks even worse :(
+--=-KeEGG+OvUDx0iu/mawmN
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Nvidia is binary only, right? I can't help with that.
+Am Sam, 2003-09-06 um 02.15 schrieb Andrew de Quincey:
 
-							Pavel
+> This patch allows ACPI to drop back to PIC mode if ACPI mode setup fails.
 
--- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+Those patches work miracles for me. Finally I can use my ECS L7VTA with
+KT400 chipset with IO-APIC in ACPI mode.
+
+egger@alex:/proc$ cat /proc/interrupts
+           CPU0
+  0:     119774    IO-APIC-edge  timer
+  1:        881    IO-APIC-edge  keyboard
+  2:          0          XT-PIC  cascade
+  8:          1    IO-APIC-edge  rtc
+  9:          0    IO-APIC-edge  acpi
+ 14:          7    IO-APIC-edge  ide0
+ 15:         39    IO-APIC-edge  ide1
+ 16:         57   IO-APIC-level  ohci1394
+ 17:          0   IO-APIC-level  eth1
+ 19:          2   IO-APIC-level  ymfpci
+ 21:          0   IO-APIC-level  usb-uhci, usb-uhci, usb-uhci, ehci_hcd
+ 23:     253525   IO-APIC-level  eth0
+NMI:          0
+LOC:     119715
+ERR:          0
+MIS:          0
+
+--=20
+Servus,
+       Daniel
+
+--=-KeEGG+OvUDx0iu/mawmN
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Dies ist ein digital signierter Nachrichtenteil
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQA/X0PIchlzsq9KoIYRAsHyAJ9WSEkn9d3InzndOoziHL25O242DACgynpk
+GUQ01q1oYmD40Ak2x6Im+c0=
+=2CHn
+-----END PGP SIGNATURE-----
+
+--=-KeEGG+OvUDx0iu/mawmN--
