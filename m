@@ -1,16 +1,15 @@
-From: Greg Sarjeant <greg-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org>
-Subject: Re: broken power button
-Date: Fri, 06 Feb 2004 07:46:21 -0500
+From: "Nick Bartos" <spam99-1EIjRwF9Gc5s5w19saIqfg@public.gmane.org>
+Subject: Re: acpi=force safe?
+Date: Fri, 6 Feb 2004 06:54:36 -0600 (CST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1076071581.5785.15.camel@localhost>
-References: <1076036158.4792.12.camel@tinny.home.foo>
-	 <1076038435.5849.8.camel@localhost>
-	 <1076044045.4744.10.camel@tinny.home.foo>
+Message-ID: <41685.65.28.18.238.1076072076.squirrel@mail.diamondcpu.com>
+References: <40678.65.28.18.238.1076044455.squirrel@mail.diamondcpu.com>
+    <20040206064023.2a80a4dd.ak@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1076044045.4744.10.camel-3lu5YwujmwObGSPjaX/RoA@public.gmane.org>
+In-Reply-To: <20040206064023.2a80a4dd.ak-l3A5Bk7waGM@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -19,36 +18,40 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Scott T. Smith" <scott-j3vAvQ9dNB9ByuSxxbvQtw@public.gmane.org>
-Cc: "acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2004-02-06 at 00:07, Scott T. Smith wrote:
-> I applied the patch; I think ACPI should report a warning in this case. 
-> According to p63, there are 2 bits of information (4 choices) but only 2
-> legal possibilities.  Windows must be ignoring the PWR_BUTTON field and
-> just checking for the existance of PWRB.  ACPI should complain if
-> PWR_BUTTON is not set and PWRB exists, or if PWR_BUTTON is set and PWRB
-> doesn't exist.
-> 
-> Similarly, if SLP_BUTTON is not set and SLPB exists, ACPI should throw a
-> warning too.
-> 
-You're probably right.  I am hopeful that we can find a more robust
-solution to the problem. This is an admittedly sloppy (and hopefully
-temporary) workaround that just saves me the trouble of commenting out
-those three whole lines of code in future kernels. :)
+So if I have a /proc/acpi dir then it is safe?  What is the worst that
+could happen if the acpi is broken in the board and I force it?  Just
+courious, what if I forced it for a really old board that didn't have acp=
+i
+at all and thus technically couldn't work anyway (I wouldn't do that but =
+I
+do wonder)?  Would the acpi files in proc still exist or not?
 
-> Unfortunately, while this lets me receive PWRB notifications, it doesn't
-> solve the lockup on suspend.  Ugh.
-> 
-Ah, drat. For what it's worth, I have similar issues with suspend,
-though I haven't tried suspending to RAM for a while, which was when I
-saw the behavior you describe. I have been able to suspend to disk from
-a console, and others have reported doing so from unaccelerated X. I've
-never managed to resume successfully from X, however.
 
-Greg
+> On Thu, 5 Feb 2004 23:14:15 -0600 (CST)
+> "Nick Bartos" <spam99-1EIjRwF9Gc5s5w19saIqfg@public.gmane.org> wrote:
+>
+>> I can do acpi=3Dforce, but I worry about causing stability issues.
+>
+> If the machine works with that it is safe. However many older boards
+> have broken ACPI, that is why it is disabled by default for older board=
+s.
+>
+> -Andi
+>
+>
+> -------------------------------------------------------
+> The SF.Net email is sponsored by EclipseCon 2004
+> Premiere Conference on Open Tools Development and Integration
+> See the breadth of Eclipse activity. February 3-5 in Anaheim, CA.
+> http://www.eclipsecon.org/osdn
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>
 
 
 
