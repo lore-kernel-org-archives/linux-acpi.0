@@ -1,8 +1,8 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Battery "design capacity" incorrect
-Date: Mon, 3 Mar 2003 09:16:49 -0800
+Subject: RE: ACPI patches updated (20030228)
+Date: Mon, 3 Mar 2003 10:25:32 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A84725A1C3@orsmsx401.jf.intel.com>
+Message-ID: <F760B14C9561B941B89469F59BA3A84725A1C4@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -16,32 +16,26 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Keller <mgkeller-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Matthew Keller [mailto:mgkeller-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] 
-> Below is the output
-> (/proc/acpi/batter/BAT1/info) for the battery in my Gateway 
-> Solo 1450X.
-> The design capacity should be right around what the "last 
-> full capacity"
-> says. I've confirmed this on Sanyo's site. I would like to note that
-> everything is **perfect** with a different Sanyo model 
-> battery that is a
-> "extra capacity" battery. Is there any source I can diddle? 
-> Proc entries
-> I can echo some magic number into? etc? Thanks!
+> From: Markus Gaugusch [mailto:markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org] 
+> On Feb 28, Grover, Andrew <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> > This includes a LOT of fixes for longstanding bugs. If you have had
+> > issues in the past with long delays or oopses on reads from 
+> the battery
+> > [...] please try this patch.
+> I didn't have oopses, but reading the battery on my Sony Vaio 
+> FX405 took
+> 0.1 secs kernel time. Unfortunately it is still the same :(
+> This is 2.4.21pre4 with 20030228 patch.
 > 
-> present:                 yes
-> design capacity:         5400 mWh
-> last full capacity:      3864 mWh
+> Anyway, thanks for your effort!
 
-So it always returns 5400 mWh, no matter what, is what I think you're
-saying, yes?
+Is 0.1 sec at all better than it was before?
 
-If this isn't a problem on Windows, I think we can assume it is using
-the last full capacity when generating percent full numbers. Maybe we
-should do the same?
+What does your machine's _BST look like? I wonder if it is calling
+Stall() or something.
 
 Regards -- Andy
 
