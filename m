@@ -1,19 +1,16 @@
-From: "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>
-Subject: Re: [Fwd: Re: [PROBLEM] 2.6.3-rc1: still no suspend/resume
- on Centrino notebook (contains agp, lapic, swsusp)]
-Date: Wed, 11 Feb 2004 15:48:05 +0100
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: ACPI_STRICT_COMPLIANCE (was RE: RE: ACPI -- Workaround for
+	broken DSDT)
+Date: 11 Feb 2004 11:37:08 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <m3k72ty8nu.fsf@reason.gnu-hamburg>
-References: <3ACA40606221794F80A5670F0AF15F8401CBB68A@PDSMSX403.ccr.corp.intel.com>
-	<20040211105531.GA30647@hell.org.pl>
-	<20040211110154.GJ12634@redhat.com>
-	<20040211112505.GE30647@hell.org.pl>
+Message-ID: <1076517428.12955.32.camel@dhcppc4>
+References: <BF1FE1855350A0479097B3A0D2A80EE0CC8AB6@hdsmsx402.hd.intel.com>
+	 <1075964148.5017.7.camel@tinny.home.foo>  <20040209122256.K74314@root.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="==-=-=";
-	micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040211112505.GE30647-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org> (Karol Kozimor's message
- of "Wed, 11 Feb 2004 12:25:05 +0100")
+In-Reply-To: <20040209122256.K74314-Y6VGUYTwhu0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -22,292 +19,53 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dave Jones <davej-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Cc: "Scott T. Smith" <scott-j3vAvQ9dNB9ByuSxxbvQtw@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
---==-=-=
-Content-Type: multipart/mixed; boundary="=-=-="
+On Mon, 2004-02-09 at 15:29, Nate Lawson wrote:
 
---=-=-=
+> We're doing something slightly different with ACPI on FreeBSD.  We add
+> hacks^Wworkarounds for buggy DSDT whenever possible but they are under a
+> kernel option, #ifndef ACPICA_PEDANTIC.  The default is for this option to
+> give maximum compatibility with the stock DSDT, at the expense of spec
+> correctness.  However, by adding that option and compiling a kernel, OEMs
+> could test against ACPI-CA as a reference implementation while ordinary
+> users get maximum compatibility.
+> 
+> I think the ACPI-CA developers should take a similar tact.  Len, who is on
+> the Linux side, could suggest distribution maintainers use the option that
+> gives maximum Windows compatibility when shipping a distro.  Bob, who is
+> on the ACPI-CA side, could encourage OEMs to test with the option
+> disabled.  It might even make sense for a Linux distro maintainer to
+> partner with ACPI-CA to provide a reference ISO that OEMs could boot that
+> had a /sbin/init that tests the various APIs for correctness.  Both Andy
+> and I thought this was a good direction to go and perhaps people are
+> already making progress in that area.
 
- || On Wed, 11 Feb 2004 12:25:05 +0100
- || Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org> wrote: 
+Nate,
+I think you're right, practical compatibility must be the default, and a
+single config option should allow an OEM to disable the out-of-spec
+warnings and workarounds.
 
- kk> That's especially strange as Nigel's swsusp2 survives the
- kk> suspend. Here's how it looks currently on my system [1]:
+CONFIG_ACPI_STRICT_COMPLIANCE seems to be a good choice for the config
+option.  Disabled by default, enabled by OEMs for testing their
+platforms.
 
- kk> 				pmdisk	swsusp	swsusp2
- kk> intel-agp not loaded		OK	OK	OK
- kk> intel-agp loaded, not in use	(?)	reboot	OK
- kk> intel-agp in use		reboot	reboot	OK
+Right now, CONFIG_ACPI_RELAXED AML would be replaced by this.  This will
+fix the issue that RELAXED_AML is not currently enabled by default.
 
-That is interesting. Did you have X running while doing that?
+We have some warnings and workarounds that gum-up various dmesg that I
+think we can put under this umbrella also.
 
-I just ran a similar series with a Kernel 2.6.2 + ACPI 20040116 + the
-ACPI/LAPIC patch + swsusp2 on my machine [1]. LAPIC compiled in --
-otherwise it won't link, see other mail -- but always booted with
-"nolapic" to disable "instant crash" button FN+F8.
-
-Results:
-
-agpgart   intel-agp   i830(DRI)   X11            Result of suspend
-                                                 to disk and resume
-
-  -           -          -       without DRI           OK
-
-  *           -          -       without DRI           OK
-
-  *           *          -       without DRI           OK
-
-  *           *          *       without DRI           OK
-
-  *           *          *         with DRI       hung upon resume
-
-
-So the mere presence of the AGP and DRM/DRI structures doesn't seem to
-create the conditions for things to fail. 
-
-Only running an X Server that makes use of DRM/DRI does.
+thanks,
+-Len
 
 
-But the intel-agp module is not without fault, either. Because when I
-load the i830 DRM/DRI, run the X server on it, turn X off, unload i830
-DRM/DRI, the intel_agp still claims to be used by 1.
-
-Also, I tried S3 (suspend to ram) for the hell of it while running X11
-without DRM/DRI but with agpgart module loaded.
-
-It showed the typical behaviour (suspends well, resumes very much
-successfully with many lines complaining about codec_semaphore (syslog
-attached), but very much functional (I can type on the keyboard to
-bring up the network and log in remotely). 
-
-Unfortunately, the screen is entirely dead.
-
-I can toggle the /proc/acpi/asus/{brn,lcd} switches as much as I want
-without any change. (Un)loading agpgart doesn't change anything
-either.
-
-But when doing "modprobe intel-agp" now, the command just simply
-hangs. No reaction on that console... no output in dmesg, either.
-
-Trying a shutdown -r, the machine seems to be hanging somewhere, but
-since network is dead by then and the screen is dead, it is hard to
-tell where.
-
-Having the intel-agp module already loaded while trying S3 doesn't
-change the behaviour.
-
-
-Hope this helps someone to get a clearer idea what might be broken or
-missing,
-
-Regards,
-Georg
-
-
-
-[1] ASUS M2N Intel 855GM Centrio, more details at
-    http://bugzilla.kernel.org/show_bug.cgi?id=1774
-
-
---=-=-=
-Content-Disposition: attachment
-
-Feb 11 15:31:33 myhost kernel: Back to C!
-Feb 11 15:31:33 myhost kernel: atkbd.c: Unknown key pressed (translated set 2, code 0x61 on isa0060/serio0).
-Feb 11 15:31:33 myhost kernel: atkbd.c: Use 'setkeycodes 61 <keycode>' to make it known.
-Feb 11 15:31:33 myhost kernel: PM: Finishing up.
-Feb 11 15:31:33 myhost kernel: PCI: Enabling device 0000:00:1f.5 (0005 -> 0007)
-Feb 11 15:31:33 myhost kernel: PCI: Setting latency timer of device 0000:00:1f.5 to 64
-Feb 11 15:31:33 myhost kernel: AC'97 warm reset still in progress? [0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 0: semaphore is not ready for register 0x26
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 0: semaphore is not ready for register 0x0
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 0: semaphore is not ready for register 0x26
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 0: semaphore is not ready for register 0x20
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 0: semaphore is not ready for register 0x26
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 0: semaphore is not ready for register 0x2
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 0: semaphore is not ready for register 0x2
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 0: semaphore is not ready for register 0x2
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 0: semaphore is not ready for register 0x2
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 0: semaphore is not ready for register 0x2
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 0: semaphore is not ready for register 0x2
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 0: semaphore is not ready for register 0x2
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 0: semaphore is not ready for register 0x2
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 0: semaphore is not ready for register 0x2
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 0: semaphore is not ready for register 0x2
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 0: semaphore is not ready for register 0x2
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 0: semaphore is not ready for register 0x2
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 0: semaphore is not ready for register 0x2
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 0: semaphore is not ready for register 0x4
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 0: semaphore is not ready for register 0x4
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 0: semaphore is not ready for register 0x6
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 0: semaphore is not ready for register 0xa
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 0: semaphore is not ready for register 0xa
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 0: semaphore is not ready for register 0xc
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 0: semaphore is not ready for register 0xc
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 0: semaphore is not ready for register 0xe
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 0: semaphore is not ready for register 0xe
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 0: semaphore is not ready for register 0x10
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 0: semaphore is not ready for register 0x10
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 0: semaphore is not ready for register 0x12
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 0: semaphore is not ready for register 0x12
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 0: semaphore is not ready for register 0x14
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 0: semaphore is not ready for register 0x14
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 0: semaphore is not ready for register 0x16
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 0: semaphore is not ready for register 0x16
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 0: semaphore is not ready for register 0x18
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 0: semaphore is not ready for register 0x18
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 0: semaphore is not ready for register 0x1a
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 0: semaphore is not ready for register 0x1a
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 0: semaphore is not ready for register 0x1c
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 0: semaphore is not ready for register 0x1c
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 0: semaphore is not ready for register 0x20
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 0: semaphore is not ready for register 0x20
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 0: semaphore is not ready for register 0x22
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 0: semaphore is not ready for register 0x22
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 0: semaphore is not ready for register 0x2a
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 0: semaphore is not ready for register 0x2a
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 0: semaphore is not ready for register 0x2c
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 0: semaphore is not ready for register 0x2c
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 0: semaphore is not ready for register 0x32
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 0: semaphore is not ready for register 0x32
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 0: semaphore is not ready for register 0x3a
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 0: semaphore is not ready for register 0x3a
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 0: semaphore is not ready for register 0x2a
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 0: semaphore is not ready for register 0x2a
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 0: semaphore is not ready for register 0x3a
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 0: semaphore is not ready for register 0x2a
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 1: semaphore is not ready for register 0x26
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 1: semaphore is not ready for register 0x0
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 1: semaphore is not ready for register 0x26
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 1: semaphore is not ready for register 0x20
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 1: semaphore is not ready for register 0x26
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 1: semaphore is not ready for register 0x2
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 1: semaphore is not ready for register 0x2
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 1: semaphore is not ready for register 0x2
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 1: semaphore is not ready for register 0x2
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 1: semaphore is not ready for register 0x2
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 1: semaphore is not ready for register 0x2
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 1: semaphore is not ready for register 0x2
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 1: semaphore is not ready for register 0x2
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 1: semaphore is not ready for register 0x2
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 1: semaphore is not ready for register 0x2
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 1: semaphore is not ready for register 0x2
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_write 1: semaphore is not ready for register 0x1c
-Feb 11 15:31:33 myhost kernel: codec_semaphore: semaphore is not ready [0xff][0xffffffff]
-Feb 11 15:31:33 myhost kernel: codec_read 1: semaphore is not ready for register 0x1c
-Feb 11 15:31:33 myhost kernel: hda: Wakeup request inited, waiting for !BSY...
-Feb 11 15:31:33 myhost kernel: hda: start_power_step(step: 1000)
-Feb 11 15:31:33 myhost kernel: blk: queue df4f3400, I/O limit 4095Mb (mask 0xffffffff)
-Feb 11 15:31:33 myhost kernel: hda: completing PM request, resume
-Feb 11 15:31:33 myhost kernel: hdc: Wakeup request inited, waiting for !BSY...
-Feb 11 15:31:33 myhost kernel: hdc: start_power_step(step: 1000)
-Feb 11 15:31:33 myhost kernel: hdc: completing PM request, resume
-
---=-=-=
-Content-Disposition: inline
-
-
--- 
-Georg C. F. Greve                                       <greve-mXXj517/zsQ@public.gmane.org>
-Free Software Foundation Europe	                 (http://fsfeurope.org)
-Brave GNU World	                           (http://brave-gnu-world.org)
-
---=-=-=--
-
---==-=-=
-Content-Type: application/pgp-signature
-
------BEGIN PGP MESSAGE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-Comment: Processed by Mailcrypt 3.5.8 <http://mailcrypt.sourceforge.net/>
-
-iD8DBQFAKkClbvivwoZXSsoRAkToAJ47CaXBgJDwyhwroUclOFF+jZGH4ACeN+T6
-7/PT9aZJfMnCF8Zsxg9FZvA=
-=GU4+
------END PGP MESSAGE-----
---==-=-=--
 
 
 -------------------------------------------------------
-The SF.Net email is sponsored by EclipseCon 2004
-Premiere Conference on Open Tools Development and Integration
-See the breadth of Eclipse activity. February 3-5 in Anaheim, CA.
-http://www.eclipsecon.org/osdn
+SF.Net is sponsored by: Speed Start Your Linux Apps Now.
+Build and deploy apps & Web services for Linux with
+a free DVD software kit from IBM. Click Now!
+http://ads.osdn.com/?ad_id=1356&alloc_id=3438&op=click
