@@ -1,13 +1,16 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [BK PATCH] ACPI update
-Date: Mon, 12 May 2003 11:37:13 -0700
+From: Oeystein Olsen <oystein.olsen-rcBQPNaXqvV2YatnTvQNog@public.gmane.org>
+Subject: Re: Acpi on compaq evo N1000v
+Date: Mon, 12 May 2003 20:47:30 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A847E96E6F@orsmsx401.jf.intel.com>
+Message-ID: <200305122047.30846.oystein.olsen@astro.uio.no>
+References: <3ACA40606221794F80A5670F0AF15F842722F4@pdsmsx403.ccr.corp.intel.com>
+Reply-To: oystein.olsen-rcBQPNaXqvV2YatnTvQNog@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="ISO-8859-1"
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F842722F4-4yWAQGcml64gGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,143 +19,96 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus, please do a
+On Monday 12 May 2003 09:50, Yu, Luming wrote:
+> On this mailing list, I saw some similar battery issues on various Compaq
+> laptop, such as (Presario 1500, 1505us, 2800T). I'm interested in the dsdt
+> tables that can make battery status work on your presario 2800T. Would you
+> please share it with us? To let us better understand the original problme
+> you ran into, would you please send me the orginal DSDT on N800v as well as
+> the fixed one. I hope guys who were defeated by battery could absorb some
+> useful information from your experience.  :) If you still have problem,
+> please file it on bugzilla.kernel.org.
+>
+> Thanks
+> Luming
 
-	bk pull http://linux-acpi.bkbits.net/linux-acpi
+Sorry, I probably wasn't very clear. Since the Compaq Evo N1000v, Evo N800v 
+and the Presario 2800T are very similar laptops, I tested dsdt-tables from 
+the Evo N800v and the Presario on the Evo N1000v. (Probably not a very 
+sensible thing to do, but I had a bad hangover and was bored.) If you look at 
+the dsdt-table from the Evo N1000v, it actually claims that the laptop is an 
+Evo N800v. Anyway, neither the Evo N800v nor the the Presario worked very 
+well, but the presario-table managed to get battery-status on the Evo N1000v. 
 
-This will update the following files:
+Since the only knowledge I have about dsdt-tables and how they are 
+written/work is what I've been able to deduce from looking at few tables, it 
+required a few attempts to get a working dsdt-table. [ Don't expect the 
+changes to be very well written either:-) ] The original table (version 000) 
+and my current (version 007) can be downloaded from 
 
- drivers/acpi/dispatcher/dsinit.c   |    4 
- drivers/acpi/dispatcher/dsopcode.c |    6 
- drivers/acpi/ec.c                  |   22 -
- drivers/acpi/events/evgpe.c        |    4 
- drivers/acpi/events/evgpeblk.c     |    4 
- drivers/acpi/events/evmisc.c       |   24 +-
- drivers/acpi/events/evregion.c     |  279 +++++++++++--------------
- drivers/acpi/events/evrgnini.c     |  166 ++++++++------
- drivers/acpi/events/evxface.c      |   62 ++---
- drivers/acpi/events/evxfevnt.c     |    4 
- drivers/acpi/events/evxfregn.c     |   96 +++++---
- drivers/acpi/executer/exconfig.c   |    8 
- drivers/acpi/executer/exdump.c     |   38 +--
- drivers/acpi/hardware/hwgpe.c      |   24 +-
- drivers/acpi/hardware/hwregs.c     |  120 +++++-----
- drivers/acpi/hardware/hwtimer.c    |    2 
- drivers/acpi/namespace/nsalloc.c   |   40 +++
- drivers/acpi/namespace/nsload.c    |   18 -
- drivers/acpi/namespace/nsparse.c   |    3 
- drivers/acpi/namespace/nsutils.c   |   21 -
- drivers/acpi/osl.c                 |    2 
- drivers/acpi/parser/pswalk.c       |    2 
- drivers/acpi/parser/psxface.c      |    2 
- drivers/acpi/resources/rsxface.c   |   12 -
- drivers/acpi/scan.c                |    2 
- drivers/acpi/tables/tbconvrt.c     |  114 +++++++---
- drivers/acpi/tables/tbget.c        |   14 -
- drivers/acpi/tables/tbgetall.c     |    2 
- drivers/acpi/tables/tbinstal.c     |  195 ++++++-----------
- drivers/acpi/tables/tbutils.c      |   17 -
- drivers/acpi/tables/tbxface.c      |   20 -
- drivers/acpi/utilities/utdelete.c  |   71 ++----
- drivers/acpi/utilities/utglobal.c  |   36 +--
- drivers/acpi/utilities/utmisc.c    |   46 ++--
- drivers/acpi/utilities/utxface.c   |   64 +++--
- include/acpi/acconfig.h            |    4 
- include/acpi/acevents.h            |    2 
- include/acpi/acexcep.h             |    6 
- include/acpi/acglobal.h            |   20 -
- include/acpi/achware.h             |    6 
- include/acpi/aclocal.h             |   19 -
- include/acpi/acmacros.h            |   20 -
- include/acpi/acnamesp.h            |    5 
- include/acpi/acobject.h            |   12 -
- include/acpi/acpiosxf.h            |    4 
- include/acpi/actables.h            |   10 
- include/acpi/actypes.h             |    4 
- 47 files changed, 848 insertions(+), 808 deletions(-)
+http://folk.uio.no/oeysteio/Compaq/DSDT/
 
-through these ChangeSets:
+The current version has been uploaded to the dsdt-section at 
+http://acpi.sourceforge.net. I've also added a comment about the one error 
+message I still get a boot. The dsdt-tables for the Evo N800v and the 
+Presario 2800T were downloaded from acpi.sourceforge.net. 
 
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/05/12 1.1083.3.4)
-   ACPI: Interpreter update to 20030509
-   Changed the subsystem initialization sequence to hold off
-installation of
-   address space handlers until the hardware has been initialized and
-the
-   system has entered ACPI mode.  This is because the installation of
-space
-   handlers can cause _REG methods to be run.  Previously, the _REG
-methods
-   could potentially be run before ACPI mode was enabled.
-   
-   Fixed some memory leak issues related to address space handler and
-notify
-   handler installation.  There were some problems with the reference
-count
-   mechanism caused by the fact that the handler objects are shared
-across
-   several namespace objects.
-   
-   Fixed a reported problem where reference counts within the namespace
-were
-   not properly updated when named objects created by method execution
-were
-   deleted.
-   
-   Fixed a reported problem where multiple SSDTs caused a deletion issue
-   during subsystem termination.  Restructured the table data structures
-   to simplify the linked lists and the related code.
-   
-   Fixed a problem where the table ID associated with secondary tables
-(SSDTs)
-   was not being propagated into the namespace objects created by those
-   tables.  This would only present a problem for tables that are
-unloaded
-   at run-time, however.
-   
-   Updated AcpiOsReadable and AcpiOsWritable to use the ACPI_SIZE type
-as
-   the length parameter (instead of UINT32).
-   
-   Solved a long-standing problem where an ALREADY_EXISTS error appears
-on
-   various systems.  This problem could happen when there are multiple
-   PCI_Config operation regions under a single PCI root bus.  This
-doesnt
-   happen very frequently, but there are some systems that do this in
-the
-   ASL.
-   
-   Fixed a reported problem where the internal DeleteNode function was
-   incorrectly handling the case where a namespace node was the first in
-   the parents child list, and had additional peers (not the only child,
-   but first in the list of children.)
+I've just noticed that I get the following messages when I remove or insert 
+the ac-adapter. If anybody has any suggestions, I would welcome those.
 
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/05/12 1.1083.3.3)
-   ACPI: Allow ":" in OS override string (Ducrot Bruno)
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/05/12 1.1083.3.2)
-   ACPI: kobject fix (Greg KH)
-   Here's a small patch that fixes the logic of the kobject creation and
-   registration in the acpi code (since we use kobject_init(), we need
-to
-   use kobject_add(), not kobject_register() to add the kobject to the
-   kernel systems).
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/04/24 1.1042.42.4)
-   ACPI: Update to 20030424
-   - Remove an unused parameter from lowlevel read/write functions
-   - FADT initialization cleanups
+acpi_processor-0842 [691] acpi_processor_get_pla: Error evaluation _PPC
+[ACPI Debug] Integer: 0000000000000D9A
+[ACPI Debug] Integer: 0000000000000D36
+[ACPI Debug] Integer: 0000000000000D04
+[ACPI Debug] Integer: 0000000000000CD2
+[ACPI Debug] Integer: 0000000000000C3C
+[ACPI Debug] Integer: 0000000000000DFE
+[ACPI Debug] Integer: 0000000000000D68
+[ACPI Debug] Integer: 0000000000000D04
+[ACPI Debug] Integer: 0000000000000C6E
 
 
------------------------------
-Andrew Grover
-Intel Labs / Mobile Architecture
-andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+
+> -----Original Message-----
+> From: Oeystein Olsen [mailto:oystein.olsen-rcBQPNaXqvV2YatnTvQNog@public.gmane.org]
+> Sent: 2003?5?11? 0:02
+> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: Re: [ACPI] Acpi on compaq evo N1000v
+>
+>
+> Followup to my own post now.
+>
+> I've finally gotten battery status on my laptop:-) Acpi seems to fully
+> functional now. I solved my last problems by looking at how dsdt-table from
+> evo N800v and presario 2800T loaded. I was rather suprised to see that the
+> presario-table produced battery-status. Hence I rewrote parts of my
+> original dsdt-table to reflect the battery part in the presario table and
+> bingo! I
+>
+> still get these errors at boot though:
+> > psparse-1121: *** Error: Method execution failed
+> > [\_SB_.C03B.C04E.C0CF.C0D3] (Node c185e728), AE_NOT_EXIST
+> >
+> > Method execution failed [\_SB_.C03B.C04E.C0CF._INI] (Node c185b6a8),
+> > AE_NOT_EXIST
+> >
+> > nsinit-0397 [06] ns_init_one_device    : \_SB_.C03B.C04E.C0CF._INI
+> > failed: AE_NOT_EXIST
+> >
+> >  .........................................evrgnini-0261: *** Error: Could
+> > not install pci_config handler for C03B, AE_ALREADY_EXISTS
+>
+> but I'm happy for now.
+
+-- 
+Øystein Olsen, oystein.olsen-rcBQPNaXqvV2YatnTvQNog@public.gmane.org, http://folk.uio.no/oeysteio
+Institute of Theoretical Astrophysics, http://www.astro.uio.no
+University of Oslo, Norway
+
 
 
 
