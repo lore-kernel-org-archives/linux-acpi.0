@@ -1,13 +1,13 @@
 From: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
 Subject: Re: Re: Smart Battery System driver
-Date: Tue, 18 Jan 2005 10:46:21 -0500
-Message-ID: <41ED2F4D.6040703@bartol.udel.edu>
-References: <41E81C2C.8010809@bartol.udel.edu>	 <1105747983.7368.3.camel@tyrosine>	 <47e0449d05011419037877f931@mail.gmail.com>	 <m2fz13x8mw.fsf@phoenix.squirrel.nl> <41EA2C1D.3030909@bartol.udel.edu>	 <41EBE769.7050107@arrakis.dhis.org>  <41EC6829.1070901@bartol.udel.edu> <1106046662.7368.22.camel@tyrosine>
+Date: Tue, 18 Jan 2005 10:39:36 -0500
+Message-ID: <41ED2DB8.70707@bartol.udel.edu>
+References: <41E81C2C.8010809@bartol.udel.edu> <1105747983.7368.3.camel@tyrosine> <47e0449d05011419037877f931@mail.gmail.com> <m2fz13x8mw.fsf@phoenix.squirrel.nl> <41EA2C1D.3030909@bartol.udel.edu> <41EC7C7D.1070003@bartol.udel.edu> <20050118102635.GV19199@poupinou.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1106046662.7368.22.camel@tyrosine>
+In-Reply-To: <20050118102635.GV19199-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,49 +17,53 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Matthew Garrett wrote:
-> On Mon, 2005-01-17 at 20:36 -0500, Rich Townsend wrote:
+Bruno Ducrot wrote:
+> On Mon, Jan 17, 2005 at 10:03:25PM -0500, Rich Townsend wrote:
+> 
+>>What could be going wrong? Some thoughts:
+>>*) maybe there is already a driver registered for SMBus alarms, that 
+>>prevents them from getting through?
+>>*) I'm assuming its already there, but maybe the functionality described 
+>>in 5.6.2.2.2 actually needs to be implemented in the i2c-acpi-ec code?
 > 
 > 
->>But I'm not sure why this is happening with the revised version of the 
->>code (20050116); this version contains #ifndef directives to prevent the 
->>legacy interfaces being compiled in if they are already in the kernel. 
->>Are you sure your kernel configuration matches your currently-running 
->>kernel?
-> 
-> 
->>From a distribution point of view, it would be nice to:
-> 
-> a) Not have to rewrite every acpi battery applet to use the sbs
-> interface directly, and
-> b) Not have to have a database of hardware that has a smart battery
-> 
-> Is there any way to provide the legacy interface even if standard
-> battery support is built in, or alternatively some way of probing the
-> system to determine which battery module should be loaded?
+> Exactly.  This must be implemented in i2c-acpi-ec, and a event notifier
+> sohuld be done in order to pass this to the children.  Also I have to
+> modify i2c-acpi-ec in order to make this driver event driven (we write to
+> the PCRTL, then wait for an event (query number will be 0x20 in this
+> perticular case) from the EC before processing further), and in the
+> handler, if the alarm bit is set, then notify the child.
+> That what I meant in a previous mail with 'overriden the _Q20',
+> by the fact that I think its only a dummy alarm ack in order to be
+> sure the smbus is still functionnal even if the OS do not provide
+> a driver for accessing the smbus.  I never meant to do this in DSDT.
+> I'm sorry for the confusion.
 
-We can't have the legacy interface (/proc/acpi/battery) if standard 
-battery support is built in, since standard battery support *defines* 
-the legacy interface! The legacy interfaces in acpi-sbs only exist to 
-fake the existence of a standard (i.e., control method, CM) battery.
+OK, thanks for the clarification. Out of interest, how do I install 
+event handlers for the EC? A quick look through ec.c doesn't show any 
+obvious way to do it.
 
-Regarding auto-loading of the correct module, it is likely that at some 
-point in the future there may be some sort of merge between the SBS work 
-done by myself and Bruno Ducrot, and the standard battery code 
-battery.c. This will involve quite a bit of design effort, since the 
-ACPI spec considers SBS and CM batteries to be totally different beasts 
-(I don't know why they didn't define a unified interface for batteries).
+> 
+> 
+>>*) perhaps the battery simply isn't generating the alarms?
+> 
+> 
+> This may be another trouble.
 
-But at the moment we're still at the phase of getting the SBS system 
-working properly.
+Yeah, I think that may be the real problem. Even without proper alarm 
+handling in i2c-acpi-ec, the alarms sent by the battery should still 
+show up in the _Q20 method I hacked into my DSDT. Is it possible to fake 
+an SMBus alarm, to track whether it is getting through the EC driver 
+code properly
 
 cheers,
 
 Rich
+
 
 
 -------------------------------------------------------
