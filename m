@@ -1,17 +1,14 @@
-From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
-Subject: Re: [PATCH][RFC] fix ACPI IRQ routing after S3 suspend
-Date: Fri, 20 Aug 2004 22:17:25 +0200
+From: "Rockefeller, Harry" <harryr-UjZhlPPWhclBDgjK7y7TUQ@public.gmane.org>
+Subject: acpid doesn't log all ACPI events
+Date: Fri, 20 Aug 2004 15:22:25 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200408202217.26399.stefandoesinger@gmx.at>
-References: <88056F38E9E48644A0F562A38C64FB6002A934AC@scsmsx403.amr.corp.intel.com> <41265443.9050800@optonline.net>
-Reply-To: stefandoesinger-RbZlAiThDcE@public.gmane.org
+Message-ID: <B774920D825C2D4880A3C1B0D6EF941801CEEA87@ssdmx.ssd.fsi.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41265443.9050800-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -21,16 +18,33 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>, "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux Kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+I am running acpi and kernel 2.6.8.1 and acpid version 1.0.3.
 
-> Maybe it's time to look at the suspend/resume callbacks on the ipw2100
-> driver, anyway.
-I changed LNKD to irq 7. This hit the b44 ethernet and broke S3 resume. Looks 
-like it's not an ipw2100 problem.
+I get ACPI debug messages at the system terminal when I change
+my notebook power from AC to battery and vice versa, i.e.,
 
-Stefan
+[ACPI Debug] String: Length 0x09, "AC Change".
+
+Also /proc/acpi/ac_adapter/AC0/state reports the power change
+properly.
+
+However, acpid never records ac_adapter events.
+
+FWIW acpid does report all three button events:
+button/lid, button/power, and button/sleep.
+These also get logged to /var/log/acpid.
+
+I don't know if the ac_adapter event ever reaches
+/proc/acpi/event.  If not, I would suspect this to be
+an ACPI bug.  If yes, then perhaps it's an acpid
+bug, i.e., not getting communicated to /var/log/acpid.
+
+Can anyone explain what is going on?  I'll be happy to
+provide more information if needed.
+
+Thanks.
 
 
 -------------------------------------------------------
