@@ -1,12 +1,12 @@
-From: "Mj" <mj-+ZI9xUNit7I@public.gmane.org>
-Subject: Re:
-Date: Mon, 19 Jul 2004 15:29:27 +0800
+From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Subject: ignore invalid AccessType if RegionType only allows for one AccessType?
+Date: Mon, 19 Jul 2004 10:53:29 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <yntgpmbvxugzwsnosiq@lists.sourceforge.net>
+Message-ID: <20040719085329.GA21143@dominikbrodowski.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-        boundary="--------tifcnbzkczkbwsxdqhvq"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,44 +15,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-----------tifcnbzkczkbwsxdqhvq
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Hi!
 
-------------------  Virus Warning Message (on the network)
+The DSDTs of many Samsung notebooks contain one bug which forces users to
+use a "DSDT override":
 
-Found virus WORM_BAGLE.AG in file Garry.com
-The file Garry.com can not be moved because /var/quarantine/virus/virJWWjgUxMt: No space left on device.
-
-This is a machine-generated message, please do not reply via e-mail. If you have questions, please contact the Lucent Help Desk at +1 888 300 0770.
-
----------------------------------------------------------
-
-----------tifcnbzkczkbwsxdqhvq
-Content-Type: text/html; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-
-<html><body>
-The  snake<br><br>
-
-<br>
-</body></html>
-
-----------tifcnbzkczkbwsxdqhvq
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+                    OperationRegion (ECR, EmbeddedControl, 0x00, 0xFF)
+                    Field (ECR, DWordAcc, Lock, Preserve)
 
 
-------------------  Virus Warning Message (on the network)
+As can be seen in table 15-6 of ACPI spec 1.0b and in table 16-6 of ACPI 
+spec 2.0, TypeRegion EmbeddedControl only allows for "ByteAcc", not 
+"DWordAcc". iasl also says the same:
 
-Garry.com is removed from here because it contains a virus.
+../dsdt.dsl  2660:                     Field (ECR, DWordAcc, Lock, Preserve)
+Error    1048 -                                 ^ Host Operation Region requires ByteAcc access
 
----------------------------------------------------------
-----------tifcnbzkczkbwsxdqhvq--
+Given the fact that EmbeddedControl _only_ allows ByteAcc, how about
+"ignoring" DWordAcc or any other (invalid) AccType in this case if
+!acpi_strict, and "assuming" a value of ByteAcc instead?
 
+Thanks,
+	Dominik
 
 
 -------------------------------------------------------
