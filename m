@@ -1,12 +1,14 @@
-From: =?ISO-8859-1?Q?Lu=EDs_Neves?= <lneves-3+EeCmRbAIqyvGiigdSjEg@public.gmane.org>
-Subject: Error compiling iasl
-Date: Mon, 13 Sep 2004 17:29:27 +0100
+From: "S, Naveen B" <naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] ACPI based Memory Hotplug Driver Patch
+Date: Mon, 13 Sep 2004 23:20:10 +0530
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4145CAE7.90709@estg.ipleiria.pt>
+Message-ID: <FEB6C4E97F6CAF41978FB2059D5454180F3802@bgsmsx402.gar.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -15,51 +17,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Tolentino, Matthew E" <matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "S, Naveen B" <naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi everybody,
+Thanks Keiichiro Tokunaga
 
-I downloaded acpica-unix-20040715.tar.gz in order to compile iasl but I=20
-got an error compiling:
+> This is nice:)  I would like to suggest just one thing.
+>=20
+> 'acpi_memory_enable/disable_device()' seem to call generic
+> (not ACPI specific) hotplug functions 'add/remove_memory()' directly.
+> I think the generic hotplug functions should not be called directly
+> inside kernel, but from the userland for two reasons.
+>=20
+In the hotadd case, add_memory is invoked to notify the VM that there is
+change in physical memory and it's up to the VM, not the acpi driver to
+determine where and when that the new memory region should be onlined.
+Currently the VM leaves the onlining decision to userspace and when
+add_memory is invoked the required initialization is done, but the pages
+are not available for allocation. So the policy of onlining the memory
+is still left to userland.=20
+As mentioned in the code, user notification is still TBD in the
+hot-remove code path, as hot-remove support isn't there fully in the
+kernel yet.
 
-pln:/usr/src/acpica-unix-20040715/compiler# make
-yacc -v -d -y -pAslCompiler aslcompiler.y
-conflicts: 33 shift/reduce, 47 reduce/reduce
-aslcompiler.y:882.7-81: warning: rule never reduced because of=20
-conflicts: TermArg: Type2IntegerOpcode
-aslcompiler.y:883.7-81: warning: rule never reduced because of=20
-conflicts: TermArg: Type2StringOpcode
-aslcompiler.y:884.7-81: warning: rule never reduced because of=20
-conflicts: TermArg: Type2BufferOpcode
-aslcompiler.y:885.7-81: warning: rule never reduced because of=20
-conflicts: TermArg: Type2BufferOrStringOpcode
-aslcompiler.y:1473.7-38: warning: rule never reduced because of=20
-conflicts: CaseTermList: CaseTerm
-aslcompiler.y:1482.7-38: warning: rule never reduced because of=20
-conflicts: DefaultTermList: CaseTerm
-cp y.tab.c aslcompilerparse.c
-cp y.tab.h aslcompiler.y.h
-cc -Wall -O2 -Wstrict-prototypes -D_LINUX -D_ACPI_ASL_COMPILER=20
--I../include    -c -o aslcompilerparse.o aslcompilerparse.c
-flex -i -PAslCompiler -oaslcompilerlex.c aslcompiler.l
-cc -Wall -O2 -Wstrict-prototypes -D_LINUX -D_ACPI_ASL_COMPILER=20
--I../include    -c -o aslcompilerlex.o aslcompilerlex.c
-aslcompiler.l: In function `comment':
-aslcompiler.l:837: error: `yytext_ptr' undeclared (first use in this=20
-function)
-aslcompiler.l:837: error: (Each undeclared identifier is reported only on=
-c
-aslcompiler.l:837: error: for each function it appears in.)
-make: *** [aslcompilerlex.o] Error 1
+Thanks
+--Naveen
 
-Can anyone help me? I have a Debian Sarge (testing), gcc 3.3.4, flex=20
-2.5.31, bison 1.875a. I need iasl to decompile my HP pavilion zt3240=20
-DSDT as I currently have no thermal_zone contents in /proc.
-
-Best regards,
-
-Lu=EDs Neves
 
 
 -------------------------------------------------------
