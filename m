@@ -1,14 +1,14 @@
-From: Grant Grundler <grundler-6jwH94ZQLHl74goWV3ctuw@public.gmane.org>
-Subject: Re: pci bridge suspend/resume (Re: PCI not restored correctly after suspend to ram)
-Date: Wed, 31 Mar 2004 08:28:31 -0700
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: PCI not restored correctly after suspend to ram
+Date: Wed, 31 Mar 2004 18:15:38 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040331152831.GA1869@colo.lackof.org>
-References: <200403180935.09436.stefan.doesinger@gym-leoben.asn-graz.ac.at> <1079761564.7274.730.camel@dhcppc4> <405C00C6.3010805@pobox.com> <20040320134542.GV25059@parcelfarce.linux.theplanet.co.uk> <20040320181000.GA8272@kroah.com> <20040322223425.GB3213@neo.rr.com> <20040324013557.GB21477@kroah.com> <20040324090746.A13095@flint.arm.linux.org.uk> <20040330214941.L85074@root.org> <20040331082834.B27804@flint.arm.linux.org.uk>
+Message-ID: <20040331161538.GA7762@elf.ucw.cz>
+References: <200403180935.09436.stefan.doesinger@gym-leoben.asn-graz.ac.at> <1079719856.7278.30.camel@dhcppc4>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040331082834.B27804-f404yB8NqCZvn6HldHNs0ANdhmdF6hFW@public.gmane.org>
+In-Reply-To: <1079719856.7278.30.camel-D2Zvc0uNKG8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,31 +17,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Russell King <rmk-pci-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Cc: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, stefan.doesinger-dYJrdcitkgg0+Ua9VpOLR6Q1ief8SNuKXqFh9Ls21Oc@public.gmane.org, "linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org" <linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: stefan.doesinger-dYJrdcitkgg0+Ua9VpOLR6Q1ief8SNuKXqFh9Ls21Oc@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Mar 31, 2004 at 08:28:34AM +0100, Russell King wrote:
-> Also, if what you say is true, these device drivers can only ever be
-> inserted and never removed and re-inserted - which would be a driver
-> bug.
+Hi!
 
-We could call it a driver bug if we like. But reality is we don't
-know what magic BIOS is doing and can't fix the problem. Trying
-to get gfx cards working on parisc-linux is an example of that.
+> ...
+> > I can get most devices devies to work by setting the pci registers with setpci 
+> > after resume. I use the attached fixpci.sh script to do so. I can get my 
+> > soundcard, the ethernet card(02:02.0) and the wireless(02:04.0) to work. I 
+> > have not tested firewire(02:07.0). The secound Cardbus bride(02:06.1) seems 
+> > to have more problems, it's not even listed correctly.
+> > The file "lspci_after_suspend_fix" contains the output of lspci -vvx after 
+> > running fixpci.sh
+> > 
+> > Restoring the pci registers is a workaround, but I'd like the kernel to handle 
+> > this so I don't have to unload and reload all modules, especially the 
+> > soundcard driver.
+> > 
+> > It this a acpi bug, a bug in the pci driver or a bug in the drivers for the 
+> > devices?
+> 
+> Stefan,
+> Bruno is correct, the PCI config space should be saved and restored by
+> the driver's suspend and resume routines.  suspend/resume routines
+> typically do other hardware dependent stuff, but your debugging suggests
+> that at least for some of these devices, simply saving and restoring pci
+> config space (pci_save_state()/pci_restore_state()) may be sufficient.
+> 
+> Time to take a look at the drivers for those devices...
 
-Can someone provide a cleaner example than PCI-PCI Bridge of generic 
-class driver?
-Maybe from serial or LAN cards? (eg 16550 or tulip chip support)
-Talking about a concrete example(s) might define the problem(s) better.
+Perhaps doing it once in PCI layer is better, then?
 
-PCI-PCI Bridge class support is integrated in the generic PCI bus
-enumeration in order to walk PCI config space and ultimately configure
-devices behind the PCI-PCI bridge. A seperate PCI-PCI Bridge "class"
-driver could do some other house-keeping stuff to support hot plug.
+								Pavel
 
-thanks,
-grant
+-- 
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
 
 
 -------------------------------------------------------
