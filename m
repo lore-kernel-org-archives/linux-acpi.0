@@ -1,14 +1,15 @@
-From: Faye Pearson <faye-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org>
-Subject: Re: constant processor 0x80 events
-Date: Thu, 2 Jan 2003 22:03:09 +0000
+From: "=?iso-8859-1?B?SvZyZyBI5G5zZWw=?=" <joerg.haensel-S0/GAf8tV78@public.gmane.org>
+Subject: AW: Re: IBM Thinkpad A31 | ACPI problems
+Date: Sat, 2 Feb 2002 23:20:46 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030102220309.GA10618@clara.net>
-References: <20030102135937.GA9257@clara.net> <000201c2b284$89a033c0$232202d3@sayonara>
+Message-ID: <KPENLHNHFELICEMNHPFKAEOACAAA.joerg.haensel@web.de>
+References: <200301022254.55856.dom@wahuu.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <000201c2b284$89a033c0$232202d3-F8JvWDuGsZU@public.gmane.org>
+In-Reply-To: <200301022254.55856.dom-K271P2BsTd0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,52 +18,110 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Adachi, Kenichi" <aileenja-dTzOdQ2U+/YAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Adachi, Kenichi [aileenja-dTzOdQ2U+/YAvxtiuMwx3w@public.gmane.org] wrote:
-> Do you mean, because of your hack in DSDT, your processor is forced to
-> be in P1 upon GPE0 and it saves you from turbulent storm of event
-> handlings by cooling your box? And after your processor is relatively
-> chilled, you (manually?) initiate P-State transition to P0 (by
-> autospeedstep?), since your processor stays in P1? 
-> Interesting...
+Dear Dom,
+I have a Thinkpad R32 and the same problem (could not use EDCT). I hope that
+IBM will release a new BIOS since ACPI does not work perfectly in Windows
+2000 and XP as well.
+(Meanwhile I am using APM instead.)
+When I load the ospm modules (battery, etc.) there is no subdirectory acpi
+under /proc but "battery" occurs directly under /proc and is empty.
 
-GPE0, L00 method is called, it only does anything if THRT is false.
-if THRT is false, it is set to one, and stops the flood of 0x80
-processor events.
-
-The event is received by the OS which calls _PPC method.  This checks
-the state of THRT and if 1, it is reset and returns one, setting the
-processor to P1.
-
-Autospeedstep sets the state to P0 if the load is above 70% but only
-once it has set the load to P1 itself.
-
-> Can you take a look at "BIOS-provided physical RAM map" in your dmesg
-> and verify MNVS OpRegion (0x20 bytes starting from 0x1FF73E7D) is within
-> ACPI NVS Memory? ACPI NVS is saved/restored across system sleep/wake
-> cycle and if THRT is in this range, any possible side effects are less
-> harmful, as it's not mapped to critical hardware resource. 
-
- BIOS-e820: 000000001ff73c00 - 000000001ff80000 (ACPI NVS)
-
-That's good news.
-
-I'll run with this for a while and see how it goes.
-
-I had some messages a while back from someone who said he was in touch
-with the BIOS people.  I'll see if I can get back in touch and find out
-what they actually intended!
-
-Thanks for all your help.
+Bye,
+Jörg
 
 
-Faye
+-----Ursprüngliche Nachricht-----
+Von: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org]Im Auftrag von Dom
+Gesendet: Donnerstag, 2. Januar 2003 22:55
+An: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Betreff: Re: [ACPI] Re: IBM Thinkpad A31 | ACPI problems
 
--- 
-Mount St. Helens should have used earth control.
+
+Dear Sandro,
+
+I posted the following message to the "Thinkpad A20,A21,A22,A30,A31" forum
+at
+IBM. Currently it looks like the posting has not been opened to public yet?
+I
+hope that IBM will provide a patch or that we can assist in creating a work
+around for the buggy bios. I know several friends who are running Linux on
+their A31's. Currently we all stick to kernel 2.4.19 + acpi-20020918 patch.
+This combination provides at least some support for ACPI.
+
+Thanks to the hard-working acpi-development team!
+Dom
+
+--------
+Topic:      ACPI Linux (1 of 1), Read 10 times
+Conf: ThinkPad A20,A21,A22,A30,A31
+From: bartenst
+Date: Thursday, January 02, 2003 03:07 PM
+
+Hi all!
+
+I am successfully running Gentoo Linux
+(http://www.gentoo.org) on my new A31. Unfortunately
+ACPI is not getting initialized properly with the new
+acpi-patch from 20021212 ( + vanilla 2.4.20). I consulted
+the acpi developers (http://acpi.sf.net) who told me that the
+problem is the buggy BIOS! Is IBM aware of that problem
+and are there any ongoing efforts to solve this problem?
+
+Thanks!
+Dom
+
+p.s.
+http://marc.theaimsgroup.com/?l=acpi4linux&m=103643408113691&w=2
+summary:
+"In short, ECDT -> EC_ID is supposed to be the full path
+name of your EC device in ACPI Namespace like
+"\_SB.PCI0.LPC.EC", but __NOT__ in your BIOS. You
+can work around your problem by adding hack code, but it
+makes OS
+code dirty to save broken BIOSes and it allows BIOS
+vendor not to fix their problem."
+----------
+
+On Thursday 02 January 2003 22:31, you wrote:
+> > sorry - i did not see Andy Grover's reply to Sandro earlier on. So the
+>
+> problem
+>
+> > is a bug in the BIOS implementation. I have already contacted IBM via
+> > "Ask
+>
+> an
+>
+> > expert" and posted a message to http://www7.pc.ibm.com/~Thinkpad and I
+>
+> really
+>
+> > hope that they will reply. I will keep you up to date.
+>
+> Uh!
+> I didn't know that IBM has a forum. Where is your question located (I
+can't
+> find it)? Can you please email me if you find a solution for the whole
+> prob? I also questioned IBM about that prob a few days ago, but via
+support
+> - no answer so far.
+>
+> Sandro
+
+
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
+_______________________________________________
+Acpi-devel mailing list
+Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+https://lists.sourceforge.net/lists/listinfo/acpi-devel
+
 
 
 -------------------------------------------------------
