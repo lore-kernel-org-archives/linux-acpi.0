@@ -1,14 +1,14 @@
-From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Subject: Re: SYM53c8xx 2.6.0-test1-ac3 ACPI IRQ mismatch?
-Date: Sun, 27 Jul 2003 22:47:29 +0100
+From: David G Hamblen <dave-RfZrpLcwWZ/QT0dZR+AlfA@public.gmane.org>
+Subject: Re: S3 wakeup code
+Date: Fri, 25 Jul 2003 09:39:34 -0400 (EDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030727214729.GV1485@parcelfarce.linux.theplanet.co.uk>
-References: <20030725203921.GA13042@phobe.internal.pelicanmanufacturing.com.au>
+Message-ID: <Pine.LNX.4.44.0307250936080.3334-100000@puppy.afrinc.com>
+References: <20030725133800.GB668@laptop.6bone.nl>
+Reply-To: dave-wr1Qx4d9ef7QT0dZR+AlfA@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20030725203921.GA13042-1eOMRhGqMgJKbeVm7HAN69qV54RzO4zVaO4olKTeY8PqSFzvm+Tz3BCuuivNXqWP@public.gmane.org>
+In-Reply-To: <20030725133800.GB668-ScjxTogt4I4lGuH5DXb43w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,29 +17,32 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: James Bromberger <james-Q/PxBS77Xz0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Mark Santcroos <marks-h3GR0owD+wQ@public.gmane.org>
+Cc: "M. Warner Losh" <imp-uzTCJ5RojNnQT0dZR+AlfA@public.gmane.org>, pavel-+ZI9xUNit7I@public.gmane.org, flo-BCn6idZOOBwdnm+yROfE0A@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Jul 26, 2003 at 04:39:22AM +0800, James Bromberger wrote:
-> I've been trying to get the SMB53C5XX scsi driver to detect my 
-> LSI 1010-66 scsi adapter, and found that it fails to detect it completely
-> under 2.6.0-test1-ac3 with the SMB53C8XX driver and ACPI turned on,
-> however, it appears to work with ACPI disabled. Would anyone like any
-> specific information from the card/logs? The controller has my root
-> filesystem on an attached disk, so when it fails, I get an obvious
-> kernel panic with root FS not found.
+On Fri, 25 Jul 2003, Mark Santcroos wrote:
 
-fwiw, the sym53c8xx driver is deprecated; can you try sym2 instead?
+> On Fri, Jul 25, 2003 at 07:25:04AM -0600, M. Warner Losh wrote:
+> > In message: <Pine.LNX.4.44.0307250755460.2827-100000-zmH7q5lE+0tBz13eCZem0Q@public.gmane.org>
+> >             David G Hamblen <dave-RfZrpLcwWZ/QT0dZR+AlfA@public.gmane.org> writes:
+> > : S3 refrigerates everything and suspends, leaving the display white.
+> > : Resuming turns the backlight off.  I can retrieve the backlight with the
+> > : LCD/CRT button.
+> >
+> > I've seen exactly the same problem under FreeBSD which has supported
+> > S3 state for a long time.  I've seen the problem going back at least 9
+> > months.
+>
+> This needs to be handled by the video driver afaik.
 
-not that i think this will fix the problem ... so can you send the
-output of cat /proc/interrupts with acpi enabled and disabled?  you may
-wish to use NFS root to get to userspace ;-)
+I'm using the vesafb driver; I also tried with non-framebuffer VGA console
+with the same behavior.  I'm not running XF86 for these experiments.
+Should I look into the vesafb code?
 
--- 
-"It's not Hollywood.  War is real, war is primarily not about defeat or
-victory, it is about death.  I've seen thousands and thousands of dead bodies.
-Do you think I want to have an academic debate on this subject?" -- Robert Fisk
+
+	dave
+
 
 
 -------------------------------------------------------
