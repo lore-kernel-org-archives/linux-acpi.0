@@ -1,14 +1,15 @@
-From: Arndt Schoenewald <abs-SA7OhAOe25xnNxvc45mVi0K323yFvGpRdefyYXQ/eNw@public.gmane.org>
-Subject: Re: Re: Administration Wishlist
-Date: Sun, 25 Aug 2002 13:47:31 +0200
+From: Cajus Pollmeier <C.Pollmeier-hi6Y0CQ0nG0@public.gmane.org>
+Subject: Re: 2.4.19 acpi-patch hang while reading battery-info
+Date: Sun, 25 Aug 2002 15:32:33 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020825114731.GD23319@schiggy.intern.quelltext.com>
-References: <1029975625.6527.86.camel@U414> <20020822020139.S29958@parcelfarce.linux.theplanet.co.uk> <20020822104308.GA26754@digda.intern.quelltext.com> <m2n0rf2e13.fsf@tnuctip.rychter.com>
+Message-ID: <200208251532.37787.C.Pollmeier@gmx.net>
+References: <20020824161858.GA747@forwiss.uni-passau.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <m2n0rf2e13.fsf-dTJq59+VGzkkCw8IV3R6h0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <20020824161858.GA747-lZu+MM92cjpLAL2HIaAueF+bQBQzH1XS@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,36 +21,18 @@ List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Aug 22, 2002 at 03:56:08PM +0200, Jan Rychter wrote:
-> >>>>> "Arndt" == Arndt Schoenewald <abs-SA7OhAOe25xnNxvc45mVi0K323yFvGpRdefyYXQ/eNw@public.gmane.org>:
-> 
->  Arndt> [...] I second his [Huw's] proposal that we would benefit from
->  Arndt> using a bug tracking system.
-> 
-> Indeed.
-> 
-> I have reported many problems with ACPI and I've been trying my best to
-> do it precisely. Most of those were forgotten or lost somewhere. Some
-> things eventually got fixed, some did not and are still broken for me.
-> 
-> I've given up on reporting bugs after the last time, when I tried to
-> help with the issue of my fans not working. The issue apparently got
-> lost.
-> 
-> I don't know much about ACPI, but in the software projects that I
-> manage, properly tracked bug reports are very valuable and are not to be
-> thrown away lightly.
+On Samstag, 24. August 2002 18:18, M G Berberich wrote:
+> Hello,
+>
+> I just tried the acpi-patch for 2.4.19, and I got the following
+> problem (Sony Vaio FX502):
+>
+> every time /proc/acpi/battery/BAT1/info is read, the system hangs for
+> a short period. The battstat-applets read it ever second, ... :(
 
-Yes. We want people to report bugs, and we don't want bugs to be
-reported more than once. The BTS helps to achieve both, and with
-a low administrative overhead.
+I've this problem since 2.4.18 on my Dell Latitude C800, too.
 
-If it's okay for the "guys in charge" who are doing the programming
-work (Andy, Pavel, David, Dominik et al?!), I suggest we just start
-using the SourceForge bug tracker to a larger extent and then we'll
-see what comes out of it.
-
-Arndt
+-Cajus
 
 
 -------------------------------------------------------
