@@ -1,11 +1,14 @@
-From: Peter.Zeipelt-zqRNUXuvxA0b1SvskN2V4Q@public.gmane.org
-Subject: Re: No network after S3
-Date: Mon, 16 Feb 2004 12:02:29 +0100 (CET)
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Re: ACPI_STRICT_COMPLIANCE (was RE: RE: ACPI -- Workaround forbroken DSDT)
+Date: Mon, 16 Feb 2004 13:49:46 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1076928345.40309f590d1ab@webmail.t-online.de>
-References: <BF1FE1855350A0479097B3A0D2A80EE0025A6344@hdsmsx402.hd.intel.com>
+Message-ID: <20040216124946.GO13262@poupinou.org>
+References: <C50AB9511EE59B49B2A503CB7AE1ABD106611260@cceexc19.americas.cpqcorp.net> <20040213005043.GE13262@poupinou.org> <20040216083435.GA23640@message-id.gmane0305.slipkontur.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <BF1FE1855350A0479097B3A0D2A80EE0025A6344-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20040216083435.GA23640-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -14,97 +17,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Yes, it's right.
-The mentioned NIC's are working under normal condition.
-Of course, the first ping took almost a second.
-But that isn't such a great problem for me,  that I have to look for
-the reason now.
-But again.
-Before S3 the NIC is working.
-Unloading the module before and reloading it after  suspending 
-brings no success.
-Even if the module isn't loaded before S3 and loaded after the wakeup
-makes no difference.
-And the problem is only after S3.
-If I send the system to S4 and wake it up, the NIC is working.
-But for the things I want to do (i.e. Fax-Services and answering
-machine) the boottime
-after S4 is to long.
-And as mentioned in my first posting.
-It makes no difference, if the NIC-driver is a module or compiled into
-the kernel.
-And the problem isn't specific on the ABIT-board with via chipset.
-The same problem appears on an ASUS board with nforce2.
-Unfortunately if have no modern board with  Intel chipset.
+On Mon, Feb 16, 2004 at 09:34:35AM +0100, Stefan Seyfried wrote:
+> On Fri, Feb 13, 2004 at 01:50:43AM +0100, Bruno Ducrot wrote:
+>  
+> > The 'toshiba return bug' is something like that:
+> > 
+> > Method(FOO) {
+> > 	return (0)
+> > }
+> > 
+> > Method(BAR) {
+> > 	FOO()
+> > }
+> > 
+> > If ACPI is pedantic, BAR return nothing.
+> 
+> Well, but it is a bug, so it _should_ fail with "acpi=strict", shouldn't it?
 
-I hope, these informations are useful.
-Many thanks for your help
+Yes.
 
-Peter
+> If "acpi=strict" is omitted, the bug can be worked around and the buyers of
+> this crap can be happy.
 
-Brown, Len schrieb:
-> >I tried pci=noacpi. No diference.
-> >If I understand you right, I should wait a little bit
-> before dealing
-> >with this powersaving stuff.
-> 
-> If the NIC were now working before attempting
-> suspend/resume, then we'd
-> need to get that fixed first.  However, I think you're
-> saying that the
-> NIC _does_ work under normal conditions, and the failure
-> is only after
-> returning from S3. yes?
-> 
-> So this seems suspend/resume specific, and your use of
-> pci=noacpi
-> further suggests it has nothing to do with the initial
-> interrupt
-> assignments.
-> 
-> We've got a number of post-resume failures, and this
-> issue is rising on
-> the priority list -- so I expect we'll spend some time
-> looking at it
-> soon.
-> 
-> Here's a bugzilla query of component=ACPI with the word
-> "suspend".  I
-> apologize in advance if outlook wraps this url on you...
-> 
->
-http://bugzilla.kernel.org/buglist.cgi?short_desc_type=allwordssubstr&sh
->
-ort_desc=&component=ACPI&long_desc_type=allwordssubstr&long_desc=suspend
->
-&kernel_version_type=allwordssubstr&kernel_version=&bug_status=NEW&bug_s
->
-tatus=ASSIGNED&bug_status=RESOLVED&emailassigned_to1=1&emailtype1=substr
->
-ing&email1=&emailassigned_to2=1&emailreporter2=1&emailcc2=1&emailtype2=s
->
-ubstring&email2=&bugidtype=include&bug_id=&changedin=&chfieldfrom=&chfie
->
-ldto=Now&chfieldvalue=&cmdtype=doit&namedcmd=component%3DACPI&newqueryna
->
-me=&order=Reuse+same+sort+as+last+time&field0-0-0=noop&type0-0-0=noop&va
-> lue0-0-0=
-> 
-> 
-> -------------------------------------------------------
-> SF.Net is sponsored by: Speed Start Your Linux Apps Now.
-> Build and deploy apps & Web services for Linux with
-> a free DVD software kit from IBM. Click Now!
-> http://ads.osdn.com/?ad_id56&alloc_id438&oplick
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
->
+Problem is that I don't know for what flavour of the no-named AML
+interpreter that bug will be hit.  So at least the acpi=not_strict need
+to be more fine grained.
+
+-- 
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
