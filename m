@@ -1,13 +1,13 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Re: what is the worst laptop atm?
-Date: Sat, 1 Jan 2005 18:36:11 +0100
-Message-ID: <20050101173611.GB2630@elf.ucw.cz>
-References: <20041227165207.GB9606@poupinou.org> <41D06CA6.30607@mega.ist.utl.pt> <20041228103019.GD9606@poupinou.org> <m2is6mzaip.fsf@phoenix.squirrel.nl>
+Subject: Re: what is the worst laptop atm?
+Date: Sat, 1 Jan 2005 18:33:59 +0100
+Message-ID: <20050101173359.GA2630@elf.ucw.cz>
+References: <20041227165207.GB9606@poupinou.org> <200412271800.31064.wijnhout@science.uva.nl> <20041227171202.GC9606@poupinou.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <m2is6mzaip.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
+In-Reply-To: <20041227171202.GC9606-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,21 +17,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: Jeroen Wijnhout <wijnhout-FT9nftu9LUxX9el/+yt6TA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> > Indeed.  The fact that Linux do not support smartbattery yet is not ACER
-> > fault.
+> > > Due to hw failure, I'm thinking buying a new laptop.  I would like
+> > > to know what is the worst laptop with ACPI atm?
+> > 
+> > Well, that is certainly an interesting thought! Usually people want to have a 
+> > good working laptop ;-)
 > 
-> Actually, I've been told that ACER is payed by Microsoft for not
-> helping Linux support. Yes, it's hearsay but it sounded reliable to me
-> at the time.
+> It's not interresting if all work as expected ;)
+> 
+> > I'm using a Acer 4001WLmi (supposedly with a smart-battery). I would be so 
+> > delighted if I could finally see my battery status. Besides, it is a good buy 
+> > (after all you do want to have a working computer, right?).
+> 
+> Does that one fail S3 btw?
 
-I do not think above is true. Acer wants to have their batteries
-working in linux, they just do not want to hack their BIOSen.
+I've seen other Acer notebooks, and they failed not only S3 but also
+S4 (aka swsusp platform). Only S5 worked.
+
+Other interesting machines are "compaq evo n620c" (thermal problems,
+no S3, no S4, and probably lots of others.
 
 								Pavel
 -- 
