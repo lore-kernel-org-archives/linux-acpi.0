@@ -1,13 +1,15 @@
-From: Greg Alexander <gre-VobwYXd2LmVM656bX5wj8A@public.gmane.org>
-Subject: IASL bug with big constants?
-Date: Sat, 2 Oct 2004 12:12:32 -0500
+From: David =?iso-8859-15?Q?G=F3mez?= <david-0d+f1cuTMnnk1uMJSBkQmQ@public.gmane.org>
+Subject: Re: smart battery on acer travelmate 4001
+Date: Sun, 3 Oct 2004 11:40:08 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041002171232.GA11585@goonies.be>
+Message-ID: <20041003094008.GA20789@fargo>
+References: <415DD4D6.2080402@mega.ist.utl.pt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <415DD4D6.2080402-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -16,93 +18,62 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi -
+Hi Pedro ;),
 
-I hope this hasn't already been addressed.  I skimmed the logs and the
-buggy version appears to still be on Intel's site...
+> i found out recently that i have one of those laptops with a smart
+> battery. mine is an acer travelmate 4001 wlmi.
 
-I see the trouble in constants in OperationRegions generally getting
-cut to one-byte.  i.e.:
+Same as mine.
 
----
-DefinitionBlock ("DSDT.aml", "DSDT", 1, "VIA", "VIA_K7", 4096)
-{
-    ....
-    OperationRegion (M4D0, SystemMemory, 0x04D0, 0x0B)
-    Field (M4D0, ByteAcc, NoLock, Preserve)
-    {
-        ....
-    }
-}
----
+> i would like to ask you for some information:
 
-when I assembled then disassembled that with the 20040715 version of
-iasl, I got:
+I'm nothing as far a an ACPI expert, just an user ;), but i'll try to hel=
+p you.
 
----
-DefinitionBlock ("DSDT.aml", "DSDT", 1, "VIA", "VIA_K7", 4096)
-{
-    ....
-    OperationRegion (M4D0, SystemMemory, 0xD0, 0x0B)	/* should be 0x04D0 */
-    Field (M4D0, ByteAcc, NoLock, Preserve)
-    {
-        ....
-    }
-}
----
+> 1. where do the smart batteries differ from "regular" batteries;
 
-Note the 0xD0 where 0x04D0 is expected!  My laptop manufacturer put
-NVRAM at 0x4D0.  They did not put it at 0xD0.
+They're a different kind of batteries in the ACPI specification. It
+defines two types, control-method batteries and smart batteries. Currentl=
+y
+ACPI only supports the first type.
 
-I tracked it down to the following code in
-acpica/compiler/aslopcodes.c line 209 in OpcSetOptimalIntegerSize(),
-at the very beginning:
+> 2. what are the advantages/disadvantages of a smart battery vs "regular=
+"
+> battery
 
----
-    if (Op->Asl.Parent &&
-        Op->Asl.Parent->Asl.Parent &&
-        (Op->Asl.Parent->Asl.Parent->Asl.ParseOpcode == PARSEOP_DEFINITIONBLOCK))
-    {
-        return 0;
-    }
----
+>From what i understand, a smart battery can 'offer' some information abou=
+t
+its state, voltage, composition, etc... This leads to the ACPI subsystem
+to a more efficient power management. In short, they last longer, or at
+least that is what manufacturers say ;).
 
-The parent is the OperationRegion, the parent's parent is the
-DefinitionBlock, so it doesn't generate a size for the opcode.  
-So it gets the default from aslmap.c line 520:
+> 3. i read that acpi4linux does not support smart batteries yet. what ca=
+n
+> i do to help?
 
-   /* INTEGER */ OP_TABLE_ENTRY (AML_BYTE_OP, 0, 0, ACPI_BTYPE_INTEGER),
+I cannot answer to that. I downloaded the ACPI specification from
+http://www.acpi.info, i tried to learn a bit more about ACPI and smart
+batteries, but i'm far from being able to write a driver :-/
 
-It defaults to a byte!  I looked in the changelog and I suspect this
-corresponds to the following entry:
+> note: i do not code in the kernel, i am unable to write the drivers
+> myself... yet... but i am fully available to supply every bit of
+> necessary information to help others develop/test new drivers.
 
-   Eliminated optimization messages for "_T_x" objects and small
-   constants within the DefinitionBlock operator.
+Great ;). I'm avaliable too to do any kind of testing and help with
+information if someone starts to develop linux acpi support for smart
+batteries.
 
-Why don't you want to optimize small constants within the
-DefinitionBlock operator?  Why only when it's nested?  Why not test a
-change at least once before sending it to customers?  Since the
-change is both broken and meaningless to me, I simply removed the
-offending piece of code and now OpcSetOptimalIntegerSize() does its
-job appropriately and my DSDT works.  If we really don't want to
-optimize them, perhaps we should set a better default, like
-AML_DWORD_OP?
+cheers,
 
-This is a MOST frustrating bug to track down -- I had so little faith
-in my BIOS vendor that I thought they had enough non-standard crap
-jammed in there that recompiling my DSDT was expected to fail.
+--=20
+David G=F3mez
 
-Sure takes the joy out of bashing the Microsoft compiler.
-
-Nonetheless, thanks for the tools.  I never could have fixed my laptop
-without iasl.
-
-
-Cheers,
-- Greg
+"The question of whether computers can think is just like the question of
+whether submarines can swim." -- Edsger W. Dijkstra
 
 
 -------------------------------------------------------
