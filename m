@@ -1,8 +1,8 @@
 From: Willy Tarreau <willy-tRhHnHjXm5DYtjvyW6yDsg@public.gmane.org>
 Subject: Re: Re: fix ACPI poweroff in 2.4.25-rc2
-Date: Sat, 6 Mar 2004 09:52:22 +0100
+Date: Sat, 6 Mar 2004 10:16:45 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040306085222.GA6996@alpha.home.local>
+Message-ID: <20040306091645.GA7048@alpha.home.local>
 References: <200403031117.25937.bjorn.helgaas@hp.com> <20040303194656.GV25779@parcelfarce.linux.theplanet.co.uk> <20040303202027.GA30084@alpha.home.local> <1078554086.12991.3191.camel@dhcppc4>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -28,22 +28,36 @@ On Sat, Mar 06, 2004 at 01:21:26AM -0500, Len Brown wrote:
 > 
 > http://bugzilla.kernel.org/show_bug.cgi?id=1141
 
-Great ! I didn't know that set_cpus_allowed() was so easy to use !
-Unfortunately I cannot test it anymore on the P4 HT because it's been
-racked at a colo. But I'll try this right here on my dual athlon at least
-to confirm that it still works.
+OK, just tested it on the dual athlon, and it still works OK. SysRQ-O works
+OK too. And since I've read at least 2 or 3 reports on bugzilla stating that
+it fixed some P4 HTs, I suppose it's OK too for mine.
 
-BTW, I've seen in the machine_restart() code that there were some cases
-were the authors prefered to use boot_cpu instead of CPU 0, perhaps because
-of particular machines which boot on another CPU. Wouldn't it be better to
-use boot_cpu here, since we know for sure that it can access ACPI without
-problem ?
+Here's the 2.4 backport against your latest BK patch :
 
-Another thing : if we do a AltGr-SysRq-O, is 'current' valid, and can we
-schedule ? or are we just in an interrupt handler ? I'll try this right
-here anyway.
+ 
+--- ./drivers/acpi/system.c.old	Sat Mar  6 10:22:25 2004
++++ ./drivers/acpi/system.c	Sat Mar  6 10:22:31 2004
+@@ -40,6 +40,7 @@
+ #include <asm/acpi.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
++#include <linux/sched.h>
+ 
+ #ifdef CONFIG_X86
+ #ifdef CONFIG_ACPI_SLEEP
+@@ -95,6 +96,10 @@
+ {
+ 	if (unlikely(in_interrupt())) 
+ 		BUG();
++#ifdef CONFIG_SMP
++	/* Some SMP machines only can poweroff in boot CPU */
++	set_cpus_allowed(current, cpumask_of_cpu(0));
++#endif
+ 	acpi_system_save_state(ACPI_STATE_S5);
+ 	acpi_enter_sleep_state_prep(ACPI_STATE_S5);
+ 	ACPI_DISABLE_IRQS();
 
-Thanks for the good news,
+Cheers,
 Willy
 
 
