@@ -1,14 +1,15 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: [20030321] Failed to acquire semaphore
-Date: Wed, 26 Mar 2003 21:35:55 +0100
+From: Sebastian Thias <post-OXl1b/uZKHizQB+pC5nmwQ@public.gmane.org>
+Subject: Re: gpe-handler / acpi on ASUSL2400D
+Date: Wed, 26 Mar 2003 22:30:39 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030326203555.GA4090@hell.org.pl>
-References: <B9ECACBD6885D5119ADC00508B68C1EA0D19BBFF@orsmsx107.jf.intel.com>
+Message-ID: <200303262230.39993.post@sthias.de>
+References: <F760B14C9561B941B89469F59BA3A84725A22B@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <B9ECACBD6885D5119ADC00508B68C1EA0D19BBFF-LkGsggTGxVmSsB6bSF6DdVDQ4js95KgL@public.gmane.org>
+In-Reply-To: <F760B14C9561B941B89469F59BA3A84725A22B-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,24 +18,74 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "'bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org'" <bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Moore, Robert:
-> We understand what the problem is and we are working to fix it.  In the
-> meantime, it doesn't cause any issues other than a flurry of messages on
-> machines that use the EC heavily.
+Am Mittwoch 26 März 2003 19:57 schrieben Sie:
+> > From: Sebastian Thias [mailto:post-OXl1b/uZKHizQB+pC5nmwQ@public.gmane.org]
+> > i'm a newbie on both acpi- and kernel-programming.
+> > I've got an ASUSL2400D-laptop and kenel 2.5.65.
+>
+> Sounds like you're a quick learner. :)
 
-Well, it depends what do you mean by an "issue". On my machine, this
-prevents the acpid from noticing any events / notifies. While I agree that 
-it is not critical, yet it's certainly not a case of only generating
-messages. Yet thank you very much for showing interest in that :)
-Best regards,
+Well, to be honest I started yesterday at noon. After a couple of dozens of
+kernel-crashes things started to get working :-)
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+>
+> > Upon pressing one of my laptops hotkeys, I receive an error
+> > message about
+> > a missing gpe-handler.
+> > After fiddling a bit, I wrote a module that installs a
+> > gpe-handler for 0x1D
+> > (the one triggered by my hotkeys). The handler calls
+> > "\_GPE._L1D" (using
+> > acpi_evaluate_object ...). Only then can I receive notify-events for
+> > "\_SB_.HOTK" and only then buttons like switching
+> > LCD-Backlights off or
+> > changing the brightness work.
+> >
+> > My question: Why do I have to install a gpe-handler by myself
+> > if there is
+> > a mehod "\_GPE._L1D" in dsdt. Is that the usual way to do such things?
+>
+> Is the button driver installed?
+
+Yes. Powerbutton works. I compiled all drivers into the kernel. Lid state is 
+also reported correctly, but I don't receive Lid events. If I try to install 
+a notify-handler for the lid, I get returned, that there is already a handler 
+present.
+
+>
+> The usual way is that you have a driver (e.g. for the lid button) that
+> registers for notifications on the lid device. When the lid button is
+> pressed, it generates a GPE, which the lid driver finds out about
+> because the core calls the GPE method associated with the GPE (e.g.
+> _L1D) and that method does a Notify() on the lid device. The lid device
+> gets the notification and tells power policy via /proc/acpi/event.
+>
+> I'm not quite clear what is happening in your case. Can you elaborate
+> further?
+>
+> Regards -- Andy
+
+As I said before, the only "button-like" thing that is working, is the 
+power-button. Any other button produces:
+   "acpi_ev_gpe_dispatch[...] No handler present for GPE[00], disabling 
+event."
+(the gpe number is incorrect. The dispatch code always tells "00", regardless 
+which gpe has really been triggered)
+
+If I install my gpe-handler that calls _L1D "manually", I can also receive 
+sleep-button events in /proc/acpi/events. The other hotkeys also work then 
+(when a "\_SB_.HOTK" notify-handler is installed). Lid-events are still not
+reported.
+  If I interpret your answer correctly, it seems that the core does NOT call
+the _L1D method. What could be the reason for this? Do you want to see
+my dsdt?
+
+Greetings
+      Sebastian
+
 
 
 -------------------------------------------------------
