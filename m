@@ -1,8 +1,8 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] Acpica-20030619 and "-g" option
-Date: Sun, 13 Jul 2003 16:57:17 -0700
+Subject: RE: acpica 20030619 duplicate token in yacc code
+Date: Sun, 13 Jul 2003 16:59:44 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A847E9701F@orsmsx401.jf.intel.com>
+Message-ID: <F760B14C9561B941B89469F59BA3A847E97020@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,51 +17,26 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Hrvoje Habjanic <hrvoje.habjanic-+VD6v/bdhRf0NTdHYsHBKg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bernhard Rosenkraenzer <bero-9zdaV+82baBg9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Hrvoje,
+Sure looks like it. Did that fix it for you?
 
-Well that's what I get for replying to 2 week old email without reading
-everything first. Glad to see you took up the challenge.
-
-However, it should be possible to add this support without modifying any
-files *except* osunixxf.c. I don't mean to be too demanding but if you
-wouldn't mind considering that approach, I'd appreciate it.
-
-Thanks -- Regards -- Andy
+Regards -- Andy
 
 > -----Original Message-----
-> From: Hrvoje Habjanic [mailto:hrvoje.habjanic-+VD6v/bdhRf0NTdHYsHBKg@public.gmane.org]=20
-> Sent: Tuesday, July 01, 2003 3:34 AM
+> From: Bernhard Rosenkraenzer [mailto:bero-9zdaV+82baBg9hUCZPvPmw@public.gmane.org]=20
+> Sent: Tuesday, July 01, 2003 5:11 AM
 > To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Subject: [ACPI] [PATCH] Acpica-20030619 and "-g" option
+> Subject: [ACPI] acpica 20030619 duplicate token in yacc code
 >=20
 >=20
+> aslcompiler.y defines PARSEOP_ACCESSATTRIB_WORD_CALL twice=20
+> (lines 186 and=20
+> 190), which is a fatal error in bison 1.875
 >=20
-> Well, hello again ... ;-)
->=20
->=20
-> After few hours of grep/vi/grep , i've finally made this to=20
-> work (that is,=20
-> ./iasl -g to dump DSDT tables).
->=20
-> Looking at it now, it seems very easy - mmap-ing memory was=20
-> the most trickier=20
-> part because of page aligement ....
->=20
-> Patch is attached ... it will work on x86 (32bit) - for=20
-> others - i'm not=20
-> shure.
->=20
-> And another thing. It currently dumps ONLY DSDT table, but, i=20
-> think it could=20
-> be nice to dump all tables ... maybe later.
->=20
->=20
-> Hrvoje
->=20
->=20
+> Is replacing PARSEOP_ACCESSATTRIB_WORD_CALL in line 186 with=20
+> PARSEOP_ACCESSATTRIB_BYTE_CALL the correct fix?
 
 
 -------------------------------------------------------
