@@ -1,12 +1,17 @@
-From: asu <asubedi-crMJuEk9IMvltQq4i4S/Dg@public.gmane.org>
-Subject: broken DSDT on sony vaio pcg-grx500
-Date: Fri, 26 Mar 2004 03:25:26 -0500
+From: Hartwig Felger <liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
+Subject: Re: [PATCH] ACPI poweroff fixes for 2.4.26-pre2
+Date: Fri, 26 Mar 2004 09:53:38 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <87u10c5821.fsf@depauw.edu>
+Message-ID: <200403260953.46691.liste@hgfelger.de>
+References: <20040309233325.GA22953@alpha.home.local> <20040325230037.GK2179@elf.ucw.cz> <20040326055547.GA26599@alpha.home.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20040326055547.GA26599-HkMpAodKYdnXX8ko2wsARw@public.gmane.org>
+Content-Description: clearsigned data
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,44 +20,66 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Willy Tarreau <willy-tRhHnHjXm5DYtjvyW6yDsg@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Compiling the decompiled DSDT gives me two errors. One error was that
-it required ByteAcc access which I fixed easily. The other error is:
+=2D----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-dsdt.dsl    16:                 Return (DCST)
-Error    1022 -      Object does not exist ^  (DCST)
+Salut Willy, Pavel and S=E9rgio,
+I have a problem coming through on this list, altough I am subscribed...
 
+Am Freitag, 26. M=E4rz 2004 06:55 schrieb Willy Tarreau:
+> >...
+> > IIRC there was patch that made acpi_system_save_state() do nothing at
+> > all if !CONFIG_ACPI_SLEEP. I'm arguing thats very wrong.
+>
+> I 100% agree that it's dirty to call a fake function instead of not
+> calling it at all. Indeed, one of my proposed patches removed the
+> dependency on CONFIG_ACPI_SLEEP through a simple replacement of
+> acpi_system_save_state() with two calls to pm_send_all() which does
+> not depend on CONFIG_ACPI_SLEEP. I believe it was cleaner, but it's
+> not what is included in BK right now... Here it is for reference.
 
-The region of code it corresponds to is:
+The regression started with the vanilla-kernels 2.4.25 and 2.6.3, and did n=
+ot=20
+happen with the versions 2.4.24 and 2.6.2.
+So I started to look at the differences and found out, that reverting this =
+3=20
+lines did revert the regression. I did not try to understand, what I did.
 
-DefinitionBlock ("DSDT.aml", "DSDT", 1, "SONY", "B0", 537002772)
-{
-    Scope (_PR)
-    {
-        Processor (CPU0, 0x00, 0x00001010, 0x06) {}
-        Scope (\_PR.CPU0)
-        {
-            Method (_CST, 0, NotSerialized)
-            {
-                Return (DCST)
-            }
-        }
+Andy Kleen started recently a new thread "Re: [ACPI] [PATCH] Handle disable=
+d=20
+local apic better" that made me think... I compiled a vanilla 2.6.4 (withou=
+t=20
+my patch, and with APIC disabled in config), et voila, everything is happy=
+=20
+again.
 
+So we need not to look at my patch. I think it would be better to drive=20
+forward Andy's work on handling APIC-disable in a correct manner.
 
-Changing DCST to _CST and compiling it gives me segmentation fault
-while compiling. Realizing that it is dangerous, I tried various
-things like DSDT, \_CST, etc. Changing it to 0x0 did not give me any
-errors or warnings. Then I changed it to 0x033 which also did not give
-me any error. So, I think changing it to 0x0 or 0x033 is incorrect.
+Thanks for your discussion ;-)
 
-I am using iasl-linux-20030918 to compile my dsl file. 
+http://bugme.osdl.org/show_bug.cgi?id=3D2183
 
-Can anyone point me to the solution to this error?
+Cheers
+  hartwig felger
 
-Thanks,
-asubedi
+Hartwig Felger informatics
+
+=2D --=20
+1024D/339FD693 Hartwig Felger <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
+Key fingerprint =3D FB2F 3EE9 345A D55B 6FF2  0EC1 F5B0 684F 339F D693
+=46or the pulic keys, please visit my page.
+=2D----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFAY++Y9bBoTzOf1pMRAupCAKCSRV0jjisoVYqqn3M17tQgtCMEEwCbBISe
+HeQ2UNdvEbmqSkj4v9T/w3o=3D
+=3DkBdT
+=2D----END PGP SIGNATURE-----
 
 
 
