@@ -1,14 +1,14 @@
-From: Greg Sarjeant <greg-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org>
-Subject: RE: Gateway 200X (again) - No power button events
-Date: Tue, 20 Jan 2004 19:07:32 -0500
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: [PATCH] add acpi_register_interrupt
+Date: Tue, 20 Jan 2004 17:12:12 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1074643651.5488.14.camel@localhost>
-References: <F760B14C9561B941B89469F59BA3A8470255EFE4@orsmsx401.jf.intel.com>
+Message-ID: <200401201712.12441.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <F760B14C9561B941B89469F59BA3A8470255EFE4-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,66 +17,190 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2004-01-20 at 18:27, Grover, Andrew wrote:
-> That is correct. So, the code ignores a CM power button if a FF button
-> is found. There is a bit in the FADT that declares if the power button
-> is fixed or control-method.
-> 
-> PWR_BUTTON A zero indicates the power button is handled as a fixed
-> feature programming model; a one indicates the power
-> button is handled as a control method device. If the system
-> does not have a power button, this value would be "1" and
-> no sleep button device would be present.
-> 
-> (I think that "sleep" should be "power" but anyways...)
-> 
-> So the FF pwr button gets priority. You can comment out a few lines in
-> scan.c acpi_bus_scan_fixed(), and it should not register the FF power
-> button. That might be interesting to try.
-> 
-> Regards -- Andy
+This patch is against 2.6.1 + the previous "acpi_interrupt_to_irq" patch.
+It adds another generic function needed to remove a couple more
+IA64 #ifdefs.
 
-Aha! That did the trick.
+ arch/i386/kernel/acpi/boot.c   |    8 ++++++++
+ arch/ia64/kernel/acpi.c        |   14 +++++++-------
+ arch/x86_64/kernel/acpi/boot.c |    8 ++++++++
+ drivers/serial/8250_acpi.c     |   18 ++++--------------
+ drivers/serial/8250_hcdp.c     |    6 +-----
+ include/asm-i386/acpi.h        |    2 ++
+ include/asm-ia64/acpi.h        |    2 +-
+ include/asm-x86_64/acpi.h      |    2 ++
+ 8 files changed, 33 insertions(+), 27 deletions(-)
 
-I commented out these three lines:
+ACPI: Add acpi_register_interrupt().
 
-	if (acpi_fadt.pwr_button == 0)
-		result = acpi_bus_add(&device, acpi_root, 
-			NULL, ACPI_BUS_TYPE_POWER_BUTTON);
+For interrupts not described by PCI routing tables, we need a platform
+hook to set up the IOSAPIC.  We've been using "acpi_register_irq" on
+IA64, but I think that's a bit of a misnomer because we supply an ACPI
+interrupt (either an ISA IRQ or a GSI) and get back a Linux IRQ.
 
+So this patch adds acpi_register_interrupt() for ia64, i386, and
+x86_64, and removes a couple IA64 #ifdefs.
 
-And now dmesg reports:
-
-ACPI: Processor [CPU0] (supports C1 C2 C3, 8 throttling states)
-ACPI: Lid Switch [LID0]
-ACPI: Sleep Button (CM) [SLPB]
-ACPI: Power Button (CM) [PWRB]
-ACPI: AC Adapter [ADP1] (on-line)
-ACPI: Battery Slot [BAT1] (battery present)
-[ACPI Debug] String: Not Support
-ACPI: Thermal Zone [THRM] (50 C)
-ACPI: Fan [FAN0] (on)
-
-So, it is picking up the Control Method Power Button, and I get events
-from it now. Outstanding.
-
-When I was googling around, I saw a lot of references to a patch for 2.4
-that ignores Fixed Feature buttons when Control Method buttons are
-found. For example:
-
-http://www.funet.fi/pub/Linux/PEOPLE/Linus/v2.4/patch-html/patch-2.4.14/linux_drivers_acpi_ospm_button_bn_osl.c.html
-
-Hm - now that I look at it again, the author name is familiar :)
-
-Is this something that might find its way into the main kernel tree?
-Should I submit a bug for this behavior?
-
-Thanks for the suggestion!
-Greg
+diff -Nru a/arch/i386/kernel/acpi/boot.c b/arch/i386/kernel/acpi/boot.c
+--- a/arch/i386/kernel/acpi/boot.c	Tue Jan 20 17:02:44 2004
++++ b/arch/i386/kernel/acpi/boot.c	Tue Jan 20 17:02:44 2004
+@@ -528,3 +528,11 @@
+ 
+ 	return 0;
+ }
++
++unsigned int
++acpi_register_interrupt(u32 interrupt, u32 polarity, u32 trigger)
++{
++	return interrupt;
++}
++
++EXPORT_SYMBOL(acpi_register_interrupt);
+diff -Nru a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
+--- a/arch/ia64/kernel/acpi.c	Tue Jan 20 17:02:44 2004
++++ b/arch/ia64/kernel/acpi.c	Tue Jan 20 17:02:44 2004
+@@ -515,7 +515,7 @@
+ 	if (fadt->iapc_boot_arch & BAF_LEGACY_DEVICES)
+ 		acpi_legacy_devices = 1;
+ 
+-	acpi_register_irq(fadt->sci_int, ACPI_ACTIVE_LOW, ACPI_LEVEL_SENSITIVE);
++	acpi_register_interrupt(fadt->sci_int, ACPI_ACTIVE_LOW, ACPI_LEVEL_SENSITIVE);
+ 	return 0;
+ }
+ 
+@@ -629,16 +629,16 @@
+ 	return 0;
+ }
+ 
+-int
+-acpi_register_irq (u32 gsi, u32 polarity, u32 trigger)
++unsigned int
++acpi_register_interrupt (u32 interrupt, u32 polarity, u32 trigger)
+ {
+-	if (has_8259 && gsi < 16)
+-		return isa_irq_to_vector(gsi);
++	if (has_8259 && interrupt < 16)
++		return isa_irq_to_vector(interrupt);
+ 
+-	return iosapic_register_intr(gsi,
++	return iosapic_register_intr(interrupt,
+ 			(polarity == ACPI_ACTIVE_HIGH) ? IOSAPIC_POL_HIGH : IOSAPIC_POL_LOW,
+ 			(trigger == ACPI_EDGE_SENSITIVE) ? IOSAPIC_EDGE : IOSAPIC_LEVEL);
+ }
+-EXPORT_SYMBOL(acpi_register_irq);
++EXPORT_SYMBOL(acpi_register_interrupt);
+ 
+ #endif /* CONFIG_ACPI_BOOT */
+diff -Nru a/arch/x86_64/kernel/acpi/boot.c b/arch/x86_64/kernel/acpi/boot.c
+--- a/arch/x86_64/kernel/acpi/boot.c	Tue Jan 20 17:02:44 2004
++++ b/arch/x86_64/kernel/acpi/boot.c	Tue Jan 20 17:02:44 2004
+@@ -502,5 +502,13 @@
+ 	return 0;
+ }
+ 
++unsigned int
++acpi_register_interrupt(u32 interrupt, u32 polarity, u32 trigger)
++{
++	return interrupt;
++}
++
++EXPORT_SYMBOL(acpi_register_interrupt);
++
+ #endif /*CONFIG_ACPI_BOOT*/
+ 
+diff -Nru a/drivers/serial/8250_acpi.c b/drivers/serial/8250_acpi.c
+--- a/drivers/serial/8250_acpi.c	Tue Jan 20 17:02:44 2004
++++ b/drivers/serial/8250_acpi.c	Tue Jan 20 17:02:44 2004
+@@ -58,28 +58,18 @@
+ static acpi_status acpi_serial_ext_irq(struct serial_struct *req,
+ 				       struct acpi_resource_ext_irq *ext_irq)
+ {
+-	if (ext_irq->number_of_interrupts > 0) {
+-#ifdef CONFIG_IA64
+-		req->irq = acpi_register_irq(ext_irq->interrupts[0],
++	if (ext_irq->number_of_interrupts > 0)
++		req->irq = acpi_register_interrupt(ext_irq->interrupts[0],
+ 	                  ext_irq->active_high_low, ext_irq->edge_level);
+-#else
+-		req->irq = ext_irq->interrupts[0];
+-#endif
+-	}
+ 	return AE_OK;
+ }
+ 
+ static acpi_status acpi_serial_irq(struct serial_struct *req,
+ 				   struct acpi_resource_irq *irq)
+ {
+-	if (irq->number_of_interrupts > 0) {
+-#ifdef CONFIG_IA64
+-		req->irq = acpi_register_irq(irq->interrupts[0],
++	if (irq->number_of_interrupts > 0)
++		req->irq = acpi_register_interrupt(irq->interrupts[0],
+ 	                  irq->active_high_low, irq->edge_level);
+-#else
+-		req->irq = irq->interrupts[0];
+-#endif
+-	}
+ 	return AE_OK;
+ }
+ 
+diff -Nru a/drivers/serial/8250_hcdp.c b/drivers/serial/8250_hcdp.c
+--- a/drivers/serial/8250_hcdp.c	Tue Jan 20 17:02:44 2004
++++ b/drivers/serial/8250_hcdp.c	Tue Jan 20 17:02:44 2004
+@@ -179,12 +179,8 @@
+ 			printk(KERN_WARNING"warning: No support for PCI serial console\n");
+ 			return;
+ 		}
+-#ifdef CONFIG_IA64
+-		port.irq = acpi_register_irq(gsi, ACPI_ACTIVE_HIGH,
++		port.irq = acpi_register_interrupt(gsi, ACPI_ACTIVE_HIGH,
+ 				ACPI_EDGE_SENSITIVE);
+-#else
+-		port.irq = gsi;
+-#endif
+ 		port.flags = UPF_SKIP_TEST | UPF_BOOT_AUTOCONF | UPF_RESOURCES;
+ 		if (gsi)
+ 			port.flags |= ASYNC_AUTO_IRQ;
+diff -Nru a/include/asm-i386/acpi.h b/include/asm-i386/acpi.h
+--- a/include/asm-i386/acpi.h	Tue Jan 20 17:02:44 2004
++++ b/include/asm-i386/acpi.h	Tue Jan 20 17:02:44 2004
+@@ -139,6 +139,8 @@
+ 
+ #endif
+ 
++unsigned int acpi_register_interrupt(u32 interrupt, u32 polarity, u32 trigger);
++
+ static inline int acpi_interrupt_to_irq(u32 interrupt, unsigned int *irq)
+ {
+ 	*irq = interrupt;
+diff -Nru a/include/asm-ia64/acpi.h b/include/asm-ia64/acpi.h
+--- a/include/asm-ia64/acpi.h	Tue Jan 20 17:02:44 2004
++++ b/include/asm-ia64/acpi.h	Tue Jan 20 17:02:44 2004
+@@ -90,7 +90,7 @@
+ 
+ const char *acpi_get_sysname (void);
+ int acpi_request_vector (u32 int_type);
+-int acpi_register_irq (u32 gsi, u32 polarity, u32 trigger);
++unsigned int acpi_register_interrupt (u32 gsi, u32 polarity, u32 trigger);
+ int acpi_interrupt_to_irq (u32 interrupt, unsigned int *irq);
+ 
+ #ifdef CONFIG_ACPI_NUMA
+diff -Nru a/include/asm-x86_64/acpi.h b/include/asm-x86_64/acpi.h
+--- a/include/asm-x86_64/acpi.h	Tue Jan 20 17:02:44 2004
++++ b/include/asm-x86_64/acpi.h	Tue Jan 20 17:02:44 2004
+@@ -120,6 +120,8 @@
+ 
+ #endif /*CONFIG_ACPI_BOOT*/
+ 
++unsigned int acpi_register_interrupt(u32 interrupt, u32 polarity, u32 trigger);
++
+ static inline int acpi_interrupt_to_irq(u32 interrupt, unsigned int *irq)
+ {
+ 	*irq = interrupt;
 
 
 
