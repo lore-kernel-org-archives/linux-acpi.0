@@ -1,14 +1,12 @@
-From: Bernd Schubert <bernd.schubert-VNq4CFrKgK+dPOQpRHQ53DeJuz7u0hKX@public.gmane.org>
-Subject: Re: Call for help: list of machines with working S3
-Date: Tue, 15 Feb 2005 15:35:39 +0100
-Message-ID: <200502151535.41058.bernd.schubert@pci.uni-heidelberg.de>
-References: <20050214211105.GA12808@elf.ucw.cz>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] Panasonic ACPI driver
+Date: 15 Feb 2005 10:05:25 -0500
+Message-ID: <1108479925.2098.35.camel@d845pe>
+References: <1108066047.32630.5.camel@nouse.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <20050214211105.GA12808-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1108066047.32630.5.camel-dCxI//HcOdFeoWH0uzbU5w@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,25 +16,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+To: Timo Hoenig <thoenig-l3A5Bk7waGM@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Pavel,
+We should not include this driver in the kernel.
 
-> Stefan provided me initial list of machines where S3 works (including
-> video). If you have machine that is not on the list, please send me a
-> diff. If you have eMachines... I'd like you to try playing with
-> vbetool (it worked for me), and if it works for you supplying right
-> model numbers.
+Rather than adding additional platform-specific drivers,
+we should be migrating away from those that we already have
+to simpler generic drivers for video and hot-keys -- where
+the platform-dependent (naming) is done in user-space where
+it is more extensible and supportable.
 
-we just tested our group IBM Thinkpad A31:
+We've already got video.c, and I believe that we should start
+to migrate to something like Luming's hot-key driver (see
+earlier acpi-devel posts) in 2.6.12.
 
-IBM TP A31 / Type 2652-M5G     s3_mode (3)
+If a platform has some unique feature that no other platform
+in the world has, then that justifies a platform specific driver
+for that unique feature.  But for the common features, the
+community will be better served by the simpler generic kernel
+drivers that work on more systems.
+
+thanks,
+-Len
 
 
-Cheers,
- Bernd
 
 
 -------------------------------------------------------
