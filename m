@@ -1,12 +1,16 @@
-From: "Rockefeller, Harry" <harryr-UjZhlPPWhclBDgjK7y7TUQ@public.gmane.org>
-Subject: RE: Battery alarm ->  was General Questions:
-Date: Fri, 4 Feb 2005 14:20:58 -0600
-Message-ID: <B774920D825C2D4880A3C1B0D6EF94180341518F@ssdmx.ssd.fsi.com>
+From: Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC] Reliable video POSTing on resume
+Date: Fri, 4 Feb 2005 15:29:45 -0500
+Message-ID: <9e473391050204122942da8aa7@mail.gmail.com>
+References: <20050122134205.GA9354@wsc-gmbh.de>
+	 <20050204163019.GC1290@elf.ucw.cz>
+	 <9e4733910502040931955f5a6@mail.gmail.com>
+	 <200502041010.13220.jbarnes@engr.sgi.com>
+Reply-To: Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Content-class: urn:content-classes:message
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <200502041010.13220.jbarnes-UzQTBcouhwxWk0Htik3J/w@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,101 +20,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
+To: Jesse Barnes <jbarnes-UzQTBcouhwxWk0Htik3J/w@public.gmane.org>
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-We all need a good laugh once in a while.
-Just in case the humor is missed ...
+On Fri, 4 Feb 2005 10:10:12 -0800, Jesse Barnes <jbarnes-UzQTBcouhwxWk0Htik3J/w@public.gmane.org> wrote:
+> Jon does your emulator sit on top of the new legacy I/O and memory APIs?  I
+> added them for this very reason, though atm only ia64 supports them.  There's
+> documentation in Documentation/filesystems/sysfs-pci.txt if you want to take
 
-[Grin] and another [Grin]
+The link I am posting is to the original scitech code which is free to
+use. I have a bunch of versions on my local machine but none are up to
+using all of the new sysfs APIs. Looking at the sysfs calls it is
+simple to convert the reset app to use them. The reset app is already
+trapping the io/out instructions.
 
-> -----Original Message-----
-> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
-> [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
-> Jeremy Moles
-> Sent: Friday, February 04, 2005 12:14 PM
-> To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
-> Subject: Re: [ACPI] Battery alarm -> was General Questions:
->=20
-> I'm not trying to hijack or anything, but since I posted=20
-> "part" of whats
-> being pinged, I thought I might try and jump in on the good offers!
->=20
-> I have two _BPT, one per battery. This is the Method:
->=20
-> Method (_BTP, 1, NotSerialized) {
->   SX10 ()
->   SX30 (0x03)
->   SX30 (0x01)
->   SX32 (Arg0)
->   SX11 ()
->   SX12 ()
->   Sleep (0xFA)
-> }
->=20
-> I have the spec PDF, I just haven't had time to really read=20
-> through it.
-> Can anyone tell offhand what is wrong w/ mine that would=20
-> cause it to not
-> generate noise when the battery is low? :)
->=20
-> I'm sure I'll get around to eventually, though. I plan on printing the
-> spec PDF this weekend, 4 pages per page, double sided. :)
->=20
-> > Rockefeller, Harry wrote:
-> >=20
-> > <snip>
-> >=20
-> > >=20
-> > > My notebook, Uniwill N351S1, is - supposedly - both APM=20
-> and ACPI 2.0
-> > > supported.  Would something as important as battery alarm=20
-> simply not
-> > > be implemented in ACPI?
-> >=20
-> > Certainly. Many manufacturers have broken ACPI=20
-> implementations; as far=20
-> > as they're concerned, if it works with Windows, then it=20
-> "works". It's=20
-> > probably the case that Windows polls the battery, rather=20
-> than relying on=20
-> > the alarm, so that broken implementations will still function.
-> >=20
-> > > FWIW, /proc/acpi/battery/BAT0/info gives both design=20
-> capacity warning
-> > > and low data.
-> >=20
-> > These are fixed (non-settable) quantities, that have little=20
-> to do with=20
-> > the alarm.
-> >=20
-> > >=20
-> > > A 'grep BTP dsdt.dsl' turns up:      BTP0,     16,
-> >=20
-> > But no _BTP, which means no alarm.
-> >=20
-> > >=20
-> > > Can I modify dsdt.dsl to add this ACPI function myself?
-> >=20
-> > In principle, yes. If you like, I can have a look at your=20
-> DSDT to see=20
-> > how easy it would be to add in _BTP.
-> >=20
-> > cheers,
-> >=20
-> > Rich
+Instead I have been concentrating on feeding new babies and getting
+the last two pieces of kernel support in. We still need a solution for
+VGA routing (I posted on but the design needs work) and making the
+initial user space call out.
 
-[snip]
-=20
-> Jeremy L. Moles
-> EmperorLinux
-> 1-888-651-66
-> www.EmperorLinux.com
-> jeremy-LdSqz1EEwCk7YuNMryXyOw@public.gmane.org
+I would prefer to use hotplug for the user space call out but when I
+do I run into the framebuffer and DRM drivers. This having multiple
+drivers for the same piece of hardware is a pain. So hotplug on the
+standard device is not an option.
 
-[snip]
+Other options would be to directly call_usermodehelper() or create a
+temporary class device for each VGA card as it is found. The temp VGA
+device would trigger the reset app. They would be temp since there may
+be multiple ones.
 
-Go ahead and help Jeremy, his job may depend on it. ;-)
+-- 
+Jon Smirl
+jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 
 
 -------------------------------------------------------
