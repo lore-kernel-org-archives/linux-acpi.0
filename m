@@ -1,10 +1,10 @@
-From: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
-Subject: smart battery on acer travelmate 4001
-Date: Fri, 01 Oct 2004 23:06:14 +0100
+From: Yokota Hiroshi <yokota-clLcdqhGaiqhL56FKahb/Dp3QUdN9ktZ@public.gmane.org>
+Subject: proc fs interface template for "seq_file.h"
+Date: Sat, 02 Oct 2004 17:32:32 +0900 (JST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <415DD4D6.2080402@mega.ist.utl.pt>
+Message-ID: <20041002.173232.74723807.yokota@netlab.is.tsukuba.ac.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,39 +18,30 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+ Hi. I'm working on "pcc_acpi", and I use "linux/seq_file.h" for
+proc fs interface that uses "pcc_acpi".
 
-hi everyone,
+ Seq file interface is simple and nice. But there is one
+inconvenience about "struct file_operations". Seq file must have one
+"struct file_operations" and its similar open fs function for each
+file. This is the one deplorable point of the seq interface.
 
-i found out recently that i have one of those laptops with a smart
-battery. mine is an acer travelmate 4001 wlmi.
+ So, I make and propose seq file interface template. This template
+creates "struct file_operations", open fs function, and some
+function prototypes from one preprocessor macro.
 
-i would like to ask you for some information:
+ And I make "seq template" version of ACPI "ac", "button", "power",
+"processor", "thermal" and also "toshiba_acpi" driver.
 
-1. where do the smart batteries differ from "regular" batteries;
-2. what are the advantages/disadvantages of a smart battery vs "regular"
-battery
-3. i read that acpi4linux does not support smart batteries yet. what can
-i do to help?
+ I wish my proposal makes your help.
+And my files can available from:
 
-note: i do not code in the kernel, i am unable to write the drivers
-myself... yet... but i am fully available to supply every bit of
-necessary information to help others develop/test new drivers.
+http://www.netlab.is.tsukuba.ac.jp/~yokota/izumi/panasonic_acpi/
+http://www.netlab.is.tsukuba.ac.jp/~yokota/archive/pcc_acpi-0.8-hy20040929.tar.gz
 
-thank you very much for your time and congratulations for your widely
-used absolutely critical acpi drivers.
-
-regards,
-pedro venda.
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (MingW32)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
-
-iD8DBQFBXdTWeRy7HWZxjWERAkBCAJ9j1rrR9DKKtbRyTDpV4oGcW0cPSQCg5Y25
-sYQ+yvI99Q/pITv0tornMyI=
-=nfkr
------END PGP SIGNATURE-----
+---
+E-mail: yokota (at) netlab (dot) is (dot) tsukuba (dot) ac (dot) jp
+WWW:    http://www.netlab.is.tsukuba.ac.jp/~yokota/
 
 
 -------------------------------------------------------
