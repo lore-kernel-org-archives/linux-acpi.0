@@ -1,17 +1,14 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Subject: Re: RV: differences between acpidump and disassembling
-Date: Tue, 20 Apr 2004 20:09:43 +0100
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] fix IRQ / GPEs restore on wake
+Date: Tue, 20 Apr 2004 12:50:08 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1082488182.28680.14.camel@darkstar>
-References: <000701c425f8$6157aef0$0301a8c0@portatil>
-	 <200404191309.45870.emejia@ieee.org> <1082409395.11663.63.camel@darkstar>
-	 <200404200024.18432.emejia@ieee.org>
-Reply-To: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
+Message-ID: <37F890616C995246BE76B3E6B2DBE05571648F@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200404200024.18432.emejia-EkmVulN54Sk@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,39 +17,103 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: emejia-EkmVulN54Sk@public.gmane.org
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: eric.valette-GANU6spQydw@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Your DSDT don't have any problem just one warning, that can be
-ignored, so you don't need override your DSDT because DSDT it is
-correct.
-My laptop have the same warning.
 
-Try last kernel 2.4.26=20
+Please explain the reasoning behind this change.
 
-And don't forget disable all APICs to work with ACPI :)
+It looks as though you want to enable the runtime GPEs before executing
+_SST, _BFS, and _WAK.  Is this correct?  Why?
 
-regards,=20
+Bob
 
-On Mon, 2004-04-19 at 23:24, Emilio Mejia Fernandez de Velasco wrote:
-> Hello,
-> here I send you the binary file using pmtools.
-> By the way, the computer is a Microstar (also known as Medion) model MD 9=
-648
-> I have found pages about similar models explaining the configuration, and=
- they=20
-> say that it's necessary to use acpi, but they have been luckier than me.
-> Here are some links:
-> http://www.david-guembel.de/linux-md9630.html
-> http://www.linuxstuff.de/md-9631-en.htm
+
+> -----Original Message-----
+> From: Eric Valette [mailto:eric.valette-GANU6spQydw@public.gmane.org]
+> Sent: Sunday, April 18, 2004 5:30 AM
+> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Cc: Moore, Robert
+> Subject: Re: [ACPI] [PATCH] fix IRQ / GPEs restore on wake
 >=20
-> > let me know what computer we are talking about ?
-> > and send me the binary in a gz (acpidmp DSDT )
-> >
-> > regards,
---=20
-S=E9rgio M. B.
+>=20
+> --- a/drivers/acpi/hardware/hwsleep.c	2004-04-17 22:57:11.000000000
+> +0200
+> +++ b/drivers/acpi/hardware/hwsleep.c	2004-04-17 23:12:08.000000000
+> +0200
+> @@ -512,6 +512,16 @@ acpi_leave_sleep_state (
+>=20
+>   	acpi_gbl_sleep_type_a =3D ACPI_SLEEP_TYPE_INVALID;
+>=20
+> +	/*
+> +	 * Restore the GPEs:
+> +	 * 1) Disable all wakeup GPEs
+> +	 * 2) Enable all runtime GPEs
+> +	 */
+> +	status =3D acpi_hw_restore_gpes_on_wake ();
+> +	if (ACPI_FAILURE (status)) {
+> +		ACPI_REPORT_ERROR(("Could not enable non wakeup GPEs,
+%s\n",
+> acpi_format_exception (status)));
+> +	}
+> +
+>   	/* Setup parameter object */
+>=20
+>   	arg_list.count =3D 1;
+> @@ -538,16 +548,6 @@ acpi_leave_sleep_state (
+>   	}
+>   	/* TBD: _WAK "sometimes" returns stuff - do we want to look at
+it?
+> */
+>=20
+> -	/*
+> -	 * Restore the GPEs:
+> -	 * 1) Disable all wakeup GPEs
+> -	 * 2) Enable all runtime GPEs
+> -	 */
+> -	status =3D acpi_hw_restore_gpes_on_wake ();
+> -	if (ACPI_FAILURE (status)) {
+> -		return_ACPI_STATUS (status);
+> -	}
+> -
+>   	/* Enable power button */
+>=20
+>=20
+>
+acpi_set_register(acpi_gbl_fixed_event_info[ACPI_EVENT_POWER_BUTTON].ena
+bl
+> e_register_id,
+> --- a/drivers/acpi/sleep/main.c	2004-04-17 22:55:12.000000000
++0200
+> +++ b/drivers/acpi/sleep/main.c	2004-04-17 23:09:45.000000000
++0200
+> @@ -107,7 +107,6 @@ static int acpi_pm_enter(u32 state)
+>   	default:
+>   		return -EINVAL;
+>   	}
+> -	local_irq_restore(flags);
+>   	printk(KERN_DEBUG "Back to C!\n");
+>=20
+>   	/* restore processor state
+> @@ -118,6 +117,8 @@ static int acpi_pm_enter(u32 state)
+>   	if (state > PM_SUSPEND_STANDBY)
+>   		acpi_restore_state_mem();
+>=20
+> +	acpi_leave_sleep_state(state);
+> +	local_irq_restore(flags);
+>=20
+>   	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
+>   }
+> @@ -133,8 +134,6 @@ static int acpi_pm_enter(u32 state)
+>=20
+>   static int acpi_pm_finish(u32 state)
+>   {
+> -	acpi_leave_sleep_state(state);
+> -
+>   	/* reset firmware waking vector */
+>   	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
+>=20
 
 
 
