@@ -1,90 +1,48 @@
-From: Aragorn <g.cioffi-KGm45+8e4WzOeuqD6ShaSA@public.gmane.org>
-Subject: Unresolved symbols and exported symbols version
-Date: Sat, 28 Dec 2002 16:35:48 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021228163548.B1679@Thorin>
+From: Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>
+Subject: Re: acpi_os_queue_for_execution()
+Date: Sat, 28 Dec 2002 15:27:16 -0500
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <20021228202716.GA28570@gtf.org>
+References: <20021223181747.GA10363@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <20021223181747.GA10363-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello all,
+On Mon, Dec 23, 2002 at 07:17:48PM +0100, Pavel Machek wrote:
+> Hi!
+> 
+> Acpi seems to create short-lived kernel threads, and I don't quite
+> understand why. 
+> 
+> In thermal.c
+> 
+> 
+>                         tz->timer.data = (unsigned long) tz;
+>                         tz->timer.function = acpi_thermal_run;
+>                         tz->timer.expires = jiffies + (HZ * sleep_time) / 1000;
+>                         add_timer(&(tz->timer));
+> 
+> and acpi_thermal_run creates kernel therad that runs
+> acpi_thermal_check. Why is not acpi_thermal_check called directly? I
+> don't like idea of thread being created every time thermal zone needs
+> to be polled...
 
-  I've got  a stock 2.4.20 kernel  upon which I applied  the latest ACPI
-patch (acpi-20021212-2.4.20.diff.gz). After recompiling it together with
-the modules, rebooting, ``modprobe  battery'' complains about unresolved
-symbols. I lookup  these symbols in ``System.map'' and  they seem indeed
-present! A  deeper investigation  in /proc/ksyms  shows some  oddity (at
-least  for me)  in  kernel symbol  versioning. I've  been  able to  work
-around  the  issue  by  exporting the  symbols  in  ``acpi_ksyms.c''  as
-``EXPORT_SYMBOL_NOVERS''.
+This is the standard way to get process context [i.e. somewhere where
+you can sleep].  The new delayed-work workqueue code in 2.5.x does
+something almost exactly like that under the covers.
 
-  The following transcript shows  the difference between the unversioned
-symbols vs. versioned ones:
+That said, it sounds like you found something to fix in ACPI:
 
-------------8<------------8<------------8<------------8<------------
-Script started on Sat Dec 28 15:50:51 2002
-[root@Thorin:~root@Thorin root]# cat /proc/ksyms
-[.. these are versioned ..]
-c017fdb0 acpi_get_handle_R__ver_acpi_get_handle
-c01800b0 acpi_get_parent_R__ver_acpi_get_parent
-c0180040 acpi_get_type_R__ver_acpi_get_type
-c017fe80 acpi_get_name_R__ver_acpi_get_name
-c017ff20 acpi_get_object_info_R__ver_acpi_get_object_info
-[.. whereas a typical versioned symbol looks like : ..]
-c0217f80 rb_insert_color_Raa2b5a22
-[..]
-[.. these are my messed up EXPORT_SYMBOL_NOVERS ones ..]
-c01888e0 acpi_bus_get_device
-c0188920 acpi_bus_get_status
-c0188990 acpi_bus_get_power
-c0188a50 acpi_bus_set_power
-[..]
+In 2.4.x ACPI, it should be using schedule_task(), and in 2.5.x it should
+be using schedule_work(), if this is truly the intention of the ACPI
+subsystem.
 
-[root@Thorin root]# depmod -ae
-depmod: *** Unresolved symbols in /lib/modules/2.4.20/kernel/drivers/acpi/ac.o
-depmod: 	acpi_install_notify_handler
-depmod: 	acpi_evaluate_integer
-depmod: 	acpi_remove_notify_handler
-depmod: *** Unresolved symbols in /lib/modules/2.4.20/kernel/drivers/acpi/battery.o
-depmod: 	acpi_os_free
-depmod: 	acpi_install_notify_handler
-depmod: 	acpi_extract_package
-depmod: 	acpi_evaluate_object
-depmod: 	acpi_get_handle
-[..]
-[root@Thorin root]# exit
-Script done on Sat Dec 28 15:51:25 2002
-------------8<------------8<------------8<------------8<------------
+There shouldn't be much reason to continually spawn single-run threads
+when there is already an API for doing so.
 
-  Note  that if  I  do ``depmod  -F  System.map -ae''  I  don't get  any
-error...
-
-  In short:  if I replace  every EXPORT_SYMBOL in  ``acpi_ksyms.c'' with
-EXPORT_SYMBOL_NOVERS, the  unresolved symbols go away,  the modules load
-and everything seems to work right.
-
-  My modutils/binutils, etc. meet the requirements of this kernel.
-
-  I  don't  know if  this  is  a non-issue,  maybe  that's  just me  not
-understanding enough of how modules' versions work... :)
-
-thanks,
--- 
-Aragorn
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
+	Jeff
