@@ -1,14 +1,14 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: ACPI S1 problem
-Date: Fri, 8 Oct 2004 18:00:34 +0200
+From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Subject: Re: ACPI processor module enhancements
+Date: Fri, 8 Oct 2004 22:26:12 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041008160034.GB10581@message-id.gmane0305.slipkontur.de>
-References: <1096813379.2753.9.camel@tiger>
+Message-ID: <20041008202612.GA10952@dominikbrodowski.de>
+References: <F7DC2337C7631D4386A2DF6E8FB22B3001A19151@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="UugvWAfsgieZRqgk"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1096813379.2753.9.camel@tiger>
+In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B3001A19151-N2PTB0HCzHKkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,72 +17,136 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Len,
 
---UugvWAfsgieZRqgk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> Re: ACPI 3.0 features
+> I think the ACPI 3.0 features will be evolutional.
+> I'll be most comfortable with new ACPI 3.0 code when
+> there are systems available to test that we got it right.
+> I'm not very eager to ship Linux code written to the spec just to
+> discover
+> later that the BIOS writers read the spec a different way;
+> but I know that is a risk we need to take sometimes.
 
-On Sun, Oct 03, 2004 at 04:22:59PM +0200, Kenneth Johansson wrote:
+Agreed, though I'd want to take 3.0 into consideration when deciding on "big
+issues" like interfaces and so on.
 
- 
-> For some reason  mysql do not want to play 
-> --
-> kernel: Stopping tasks: ===================================================================================
-> kernel:  stopping tasks failed (1 tasks remaining)
-> kernel: Restarting tasks...<6> Strange, mysqld not stopped
-> --
+> >1.) utilize pstate_cnt to notify the BIOS that a P-State 
+> >driver is present
+> >This has already been brought up on this list, last in this thread:
+> >http://marc.theaimsgroup.com/?l=acpi4linux&m=109428989121089&w=2
 > 
-> After stopping mysql by hand I still have problem. 
+> Do you think we've reached the end of that discussion
+> and we should put the patch in the release for broader testing?
 
-Pavel sent a patch for this to lkml (works with swsusp), i'll attach it.
+Hm, if you see need for discussion, I'd like to hear about the issues you
+see. Otherwise, I'd like it to get broader testing in a month or so when
+cpufreq-bk has stabilized again.
 
-> kernel: Stopping tasks: ======================================================================|
-> kernel: NVRM: ACPI: device not initialized!
-> kernel: Could not suspend device 0000:01:00.0: error -1
-> kernel: Restarting tasks... done
-> --
-> That device is the graphics card. 
-> 0000:01:00.0 VGA compatible controller: nVidia Corporation: Unknown device 0045 (rev a1)
+> >3.) improved CPU power state selection algorithm
+> >Some ideas are in my patch 
+> >http://bugme.osdl.org/show_bug.cgi?id=1958 , it
+> >needs adaption to TODO#2 and further evaluation, though.
 > 
-> I have seen that others have this working with nvidia card why dose it not work for me?
+> Do you refer to C-states or P-states here?
+C-States
 
-get rid of the binary only NVidia driver if you want suspend/standby now.
-They are working on it but this may take some time, you know.
--- 
-Stefan Seyfried
+> We have a couple of things we need to fix on C-states.
+> eg. Bob Moore is testing a patch to fix the bus-master activity part.
 
---UugvWAfsgieZRqgk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="swsusp-mysql.patch"
+ipw2x00-users will love that. Other than that, I was thinking of a better
+algorithm which decides which C-State to implement at a given time. 
 
---- clean/kernel/signal.c	2004-08-15 19:15:06.000000000 +0200
-+++ linux/kernel/signal.c	2004-08-15 19:35:44.000000000 +0200
-@@ -1433,9 +1433,7 @@
- 	int why, status;
- 	struct sighand_struct *psig;
- 
--	if (sig == -1)
--		BUG();
--
-+	BUG_ON(sig == -1);
- 	BUG_ON(tsk->group_leader != tsk && tsk->group_leader->state != TASK_ZOMBIE && !tsk->ptrace);
- 	BUG_ON(tsk->group_leader == tsk && !thread_group_empty(tsk) && !tsk->ptrace);
- 
-@@ -2162,6 +2160,8 @@
- 		if (timeout)
- 			ret = -EINTR;
- 	}
-+	if (current->flags & PF_FREEZE)
-+		refrigerator(1);
- 
- 	return ret;
- }
+> >4.) _OSC / _PDC framework
+> >The _PDC / _OSC methods added in ACPI v. 3.0 are a bit tricky to handle
+> >because of the modularization in Linux. Basically we need a 
+> >
+> >unsigned int acpi_processor_osc_update()
+> >
+> >which only adds something to a saved buffer. If the driver 
+> >requests some
+> >"control" by calling acpi_processor_osc_update(), the latter 
+> >should lock the
+> >driver by "try_module_get()".
+> 
+> We do see _PDC in the field, but I haven't seen _OSC yet.
 
---UugvWAfsgieZRqgk--
+Well, if we do support CPU domain awareness in C- and T-States as well, we
+need some sort of coordination for _PDC == _OSC. And as _OSC seems to be the
+way to go in future, I'd name it after OSC and already provide capability
+for _OSC.
 
+> >5.) _{P,T,C}SD groundwork
+> >some 
+> >
+> >acpi_status acpi_processor_get_domain(..., cpumask_t *cpus, u8 *type);
+> >
+> >is needed which a) determines the domain of the CPU passed as argument,
+> >b) walks through all detected processor objects and looks for 
+> >the other CPUs
+> >in this domain [this asserts that all CPUs are initialized as 
+> >required by
+> >ACPI spec v.3.0 p.273], c) converts the ACPI CPU numbers to 
+> >Linux kernel CPU
+> >numbers, and d) converts this to a cpumask_t
+> 
+> I think we'll only get this right when we can test it on hardware that
+> supports this.  I expect we'll see that hardware in 2005.
+
+-> delayed.
+
+> >7.) Support for C2-type sleep on multiprocessor systems.
+> >
+> >Already previous versions of the ACPI specification can support that in
+> >theory, though SMT awareness requires _CSD handling.
+> 
+> I haven't seen any HT or MP systems that support C2.
+> Maybe those p4-based laptops do?  I agree that MP/MT
+> support is important.  However, I'm not sure that
+> software coordination of C-states is mandatory.
+
+It's definitely something necessary for those dual-core Pentium Ms which
+have been announced by Intel.
+
+> >8.) Support for WBINVD-based C3
+> >
+> >Only enabled on UP if users explicitely requests it, but 
+> >always available
+> >on multiprocessor systems.
+> 
+> IIR Luming was looking into this area.
+
+Excellent.
+
+> >11.) [or maybe much much earlier?] split up drivers/acpi/processor.c in
+> >     individual files and modules:
+> >	- core
+> >	- C-States handling
+> >	- T-States handling
+> >	- ACPI perflib
+> 
+> I agree with Venki that if this list is prioritized, that this one
+> should be at the top instead of the bottom -- it doesn't depend
+> on any new specs or any new hardware.
+> For a long time I've wanted processor.c to be split up into
+> separate source files, as different parts have nothing to do
+> with each other.  (I want "idle" to be in the file name for c-states;-)
+> I hadn't thought about splitting it into different modules.
+> On systems with broken c-states and working p-states it would
+> certainly be handy to be able to unload c-states w/o unloading
+> p-states...
+
+... but splitting it up in source files as a first step would be much
+easier. I'll prepare a patch which does exactly that over the weekend. Then
+it'll be easier and cleaner to handle this large list of updates and issues;
+though some patches will break in between...
+
+Thanks,
+	Dominik
 
 
 -------------------------------------------------------
