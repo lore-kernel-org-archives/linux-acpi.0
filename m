@@ -1,9 +1,14 @@
-From: postmaster-lX1WLSqV685oZSuCWFJQuMGzyFzmqZ/k@public.gmane.org
-Subject: InterScan NT Alert
-Date: Wed, 28 Jan 2004 14:18:45 +0530
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: List noise.
+Date: Wed, 28 Jan 2004 17:29:45 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200401280857.i0S8vHoh029634@semsoftindia-samsung.com>
+Message-ID: <20040128162944.GA1200@elf.ucw.cz>
+References: <BF1FE1855350A0479097B3A0D2A80EE0CC8A62@hdsmsx402.hd.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <BF1FE1855350A0479097B3A0D2A80EE0CC8A62-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -12,37 +17,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Dave Jones <davej-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Sender, InterScan has detected virus(es) in your e-mail attachment.
+Hi!
 
-Date:  	Wed, 28 Jan 2004 14:18:45 +0530
-Method:	Mail
-From:  	<acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-To:    	<mec-WqBc5aa1uDFeoWH0uzbU5w@public.gmane.org>
-File:  	doc.scr
-Action:	clean failed - deleted
-Virus: 	WORM_MIMAIL.R 
+> Sure, I'm open to moving the list off sourceforge if there is clearly a
+> better choice.  Two other problems we've seen on sf are
+> 1. latency is sometimes huge
+> 2. archives sometimes unavailable, and not indexed by google.
+> 
+> In the mean-time, here are the mailman spam filters I've got on SF, a
+> couple I've added in the last 30-minutes.  It doesn't look like it can
+> search for a _missing_ field -- only positive matches.  I'm sure open to
+> suggestions for further improvement.
 
-begin 666 InterScan_Disclaimer.txt
-M5&AE(&EN9F]R;6%T:6]N(&-O;G1A:6YE9"!I;B!T:&ES(&5L96-T<F]N:6,@
-M;65S<V%G92!A;F0-0q2iP0p74hk@public.gmane.org(&%T=&%C:&UE;G1S('1O('1H:7,@;65S<V%G92!A
-M<F4@#0II;G1E;F1E9"!F;W(@=&AE(&5X8VQU<VEV92!U<V4@;V8@=&AE(&%D
-M9')E<W-E92AS*2!A;F0@;6%Y(&-O;G1A:6X-2ZHtrH1AIUU@public.gmane.org]N9FED96YT:6%L(&]R('!R
-M:79I;&5G960@:6YF;W)M871I;VXN#0I)9B!Y;W4-4u3rHeVEGOc@public.gmane.org)E(&YO="!T:&4@:6YT
-M96YD960@<F5C:7!I96YT+"!P;&5A<V4@;F]T:69Y('1H92!S96YD97(@870@
-M4V%M<W5N9R!%;&5C=')O($UE8VAA;FEC<R!O<@T*861M:6Y <V5M<V]F=&EN
-M9&EA+7-A;7-U;F<N8V]M(&EM;65D:6%T96QY(&%N9"!D97-T<F]Y(&%L;"!C
-M;W!I97,@;V8@=&AI<R!M97-S86=E(&%N9"!A;GD-Yg1PUgpZdv8@public.gmane.org;65N=',N#0I!
-M;GD@=6YA=71H;W)I>F5D(')E=FEE=RP@=7-E+"!D:7-C;&]S=7)E+"!D:7-S
-M96UI;F%T:6]N+"!F;W)W87)D:6YG+"!P<FEN=&EN9R!O<B!C;W!Y:6YG(&]F
-M('1H:7,@96UA:6P@;W(@86YY#0IA8W1I;VX@=&%K96X@:6X@<F5L:6%N8V4@
-M;VX@=&AI<R!E+6UA:6P@:7,@<W1R:6-T;'D@<')O:&EB:71E9"!A;F0@;6%Y
-5(&)E('5N;&%W9G5L+-wPuJ0ROkVbw@public.gmane.org*#0H-"@T*
-end
+What about linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org? kernel list has good filters
+against spam, anyway, and that should really not be a problem.
 
+Oh and you forgot 
 
+3. advertising
+
+									Pavel
+
+-- 
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
 
 
 -------------------------------------------------------
