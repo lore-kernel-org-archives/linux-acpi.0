@@ -1,13 +1,13 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 4/5] processor: nocst module parameter
-Date: 23 Dec 2004 15:10:15 -0500
-Message-ID: <1103832613.4379.21.camel@d845pe>
-References: <20041223140809.GD7973@dominikbrodowski.de>
+Subject: Re: [PATCH 5/5] processor: jiffies-based bm_check, bugfixes
+Date: 23 Dec 2004 15:11:24 -0500
+Message-ID: <1103832683.4376.24.camel@d845pe>
+References: <20041223140849.GE7973@dominikbrodowski.de>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041223140809.GD7973-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+In-Reply-To: <20041223140849.GE7973-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,73 +21,103 @@ To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
 Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Applied.
+Applied the promotion/demotion bugfix part.
+
+Didn't apply the jiffies part yet.
 
 thanks,
 -Len
 
+
+
 On Thu, 2004-12-23 at 09:08, Dominik Brodowski wrote:
-> Add a "nocst" module parameter which blocks _CST parsing and
-> always uses FADT info instead.
+> Make the bm_activity depend on "jiffies", instead of numbers
+> of the check being called. This means bus mastering activity
+> is assumed if bm_check isn't called; and multiple calls during
+> one jiffy will be |='ed.
+> 
+> Also, two fixups where promotion and demotion were mixed up.
 > 
 > Signed-off-by: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
 > ---
 > 
->  drivers/acpi/processor_idle.c |   13 ++++++++++---
->  1 files changed, 10 insertions(+), 3 deletions(-)
+>  drivers/acpi/processor_idle.c |   19 ++++++++++++++++---
+>  include/acpi/processor.h      |    1 +
+>  2 files changed, 17 insertions(+), 3 deletions(-)
 > 
 > Index: linux-2.6.10-rc3+bk-acpi/drivers/acpi/processor_idle.c
 > ===================================================================
 > --- linux-2.6.10-rc3+bk-acpi.orig/drivers/acpi/processor_idle.c
-> 2004-12-23 14:25:28.737417644 +0100
-> +++ linux-2.6.10-rc3+bk-acpi/drivers/acpi/processor_idle.c     
 > 2004-12-23 14:25:32.385908579 +0100
-> @@ -55,7 +55,10 @@
->  #define C3_OVERHEAD                    4       /* 1us (3.579 ticks
-> per us) */
+> +++ linux-2.6.10-rc3+bk-acpi/drivers/acpi/processor_idle.c     
+> 2004-12-23 14:39:58.360081349 +0100
+> @@ -193,8 +193,18 @@
+>          */
+>         if (pr->flags.bm_check) {
+>                 u32             bm_status = 0;
+> +               unsigned long   diff = jiffies -
+> pr->power.bm_check_timestamp;
 > 
->  static void (*pm_idle_save)(void);
-> -module_param_named(max_cstate, max_cstate, uint, 0644);
-> +module_param(max_cstate, uint, 0644);
+> -               pr->power.bm_activity <<= 1;
+> +               if (diff > 32)
+> +                       diff = 32;
 > +
-> +static unsigned int nocst = 0;
-> +module_param(nocst, uint, 0000);
+> +               while (diff) {
+> +                       /* if we didn't get called, assume there was
+> busmaster activity */
+> +                       diff--;
+> +                       if (diff)
+> +                               pr->power.bm_activity |= 0x1;
+> +                       pr->power.bm_activity <<= 1;
+> +               }
 > 
->  /*
-> --------------------------------------------------------------------------
->                                  Power Management
-> @@ -506,6 +509,10 @@
-> 
->         if (errata.smp)
->                 return_VALUE(-ENODEV);
+>                 acpi_get_register(ACPI_BITREG_BUS_MASTER_STATUS,
+>                         &bm_status, ACPI_MTX_DO_NOT_LOCK);
+> @@ -213,6 +223,9 @@
+>                                 || (inb_p(errata.piix4.bmisx + 0x0A) &
+> 0x01))
+>                                 pr->power.bm_activity++;
+>                 }
 > +
-> +       if (nocst)
-> +               return_VALUE(-ENODEV);
+> +               pr->power.bm_check_timestamp = jiffies;
 > +
->         pr->power.count = 0;
->         for (i = 0; i < ACPI_PROCESSOR_MAX_POWER; i++)
->                 memset(pr->power.states, 0, sizeof(struct
-> acpi_processor_cx));
-> @@ -800,7 +807,7 @@
->         if (!pr)
->                 return_VALUE(-EINVAL);
+>                 /*
+>                  * Apply bus mastering demotion policy.  Automatically
+> demote
+>                  * to avoid a faulty transition.  Note that the
+> processor
+> @@ -439,13 +452,13 @@
 > 
-> -       if (errata.smp) {
-> +       if (errata.smp || nocst) {
->                 return_VALUE(-ENODEV);
->         }
+>                 if (higher) {
+>                         cx->promotion.state  = higher;
+> -                       cx->demotion.threshold.ticks =
+> cx->latency_ticks;
+> +                       cx->promotion.threshold.ticks =
+> cx->latency_ticks;
+>                         if (cx->type >= ACPI_STATE_C2)
+>                                 cx->promotion.threshold.count = 4;
+>                         else
+>                                 cx->promotion.threshold.count = 10;
+>                         if (higher->type == ACPI_STATE_C3)
+> -                               cx->demotion.threshold.bm = 0x0F;
+> +                               cx->promotion.threshold.bm = 0x0F;
+>                 }
 > 
-> @@ -917,7 +924,7 @@
->                 first_run++;
->         }
+>                 higher = cx;
+> Index: linux-2.6.10-rc3+bk-acpi/include/acpi/processor.h
+> ===================================================================
+> --- linux-2.6.10-rc3+bk-acpi.orig/include/acpi/processor.h     
+> 2004-12-23 13:21:12.000000000 +0100
+> +++ linux-2.6.10-rc3+bk-acpi/include/acpi/processor.h   2004-12-23
+> 14:41:47.558845116 +0100
+> @@ -54,6 +54,7 @@
 > 
-> -       if (!errata.smp && (pr->id == 0) && acpi_fadt.cst_cnt) {
-> +       if (!errata.smp && (pr->id == 0) && acpi_fadt.cst_cnt &&
-> !nocst) {
->                 status = acpi_os_write_port(acpi_fadt.smi_cmd,
-> acpi_fadt.cst_cnt, 8);
->                 if (ACPI_FAILURE(status)) {
->                         ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
+>  struct acpi_processor_power {
+>         struct acpi_processor_cx *state;
+> +       unsigned long           bm_check_timestamp;
+>         u32                     default_state;
+>         u32                     bm_activity;
+>         int                     count;
 > 
 > 
 
