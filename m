@@ -1,12 +1,13 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Re: Call for help: list of machines with working S3
-Date: Tue, 15 Feb 2005 17:09:41 +0100
-Message-ID: <42121EC5.8000004@gmx.net>
-References: <20050214211105.GA12808@elf.ucw.cz> <20050215125555.GD16394@gamma.logic.tuwien.ac.at>
+From: Romano Giannetti <romanol-qvIf60buks8@public.gmane.org>
+Subject: Re: Repost: BUG 2.6.11-rc1: ACPI keys events: only "arrive" after 8 of them.
+Date: Tue, 15 Feb 2005 17:09:51 +0100
+Message-ID: <20050215160951.GB20951@pern.dea.icai.upco.es>
+References: <20050214182112.GA11686@pern.dea.icai.upco.es> <20050214210528.GA11884@hell.org.pl>
+Reply-To: romano-1BxYRfzsdQW8A8a7gxElqg@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <20050215125555.GD16394-DqSSrKF0TaySnEC3TeqHn5dqbFPxfnh/@public.gmane.org>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Disposition: inline
+In-Reply-To: <20050214210528.GA11884-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,102 +17,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>
-Cc: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, seife-l3A5Bk7waGM@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Norbert Preining schrieb:
-> On Mon, 14 Feb 2005, Pavel Machek wrote:
+On Mon, Feb 14, 2005 at 10:05:28PM +0100, Karol Kozimor wrote:
+> Thus wrote Romano Giannetti:
+> >      I'm stymied. If anyone can help me with this, or simply tell me how to
+> >      have more data on this, I will try to obtain all the data I can. 
+> >      I'm using a vanilla 2.6.11-rc1, which config is available here: 
 > 
->>(1) systems where video state is preserved over S3.
->>
->>(2) systems where it is possible to call video bios during S3
->>  resume. Unfortunately, it is not correct to call video BIOS at that
->>  point, but it happens to work on some machines. Use
->>  acpi_sleep=s3_bios.
->>
->>(3) systems that initialize video card into vga text mode and where BIOS
->>  works well enough to be able to set video mode. Use
->>  acpi_sleep=s3_mode on these.
->>
->>(4) on some systems s3_bios kicks video into text mode, and
->>  acpi_sleep=s3_bios,s3_mode is needed.
->>
->>(5) radeon systems, where X can soft-boot your video card. You'll need
->>  patched X, and plain text console (no vesafb or radeonfb), see
->>  http://www.doesi.gmxhome.de/linux/tm800s3/s3.html.
->>
->>(6) other radeon systems, where vbetool is enough to bring system back
->>  to life. Do vbetool vbestate save > /tmp/delme; echo 3 > /proc/acpi/sleep;
->>  vbetool post; vbetool vbestate restore < /tmp/delme; setfont
->>  <whatever>, and your video should work.
->>
->>Acer TM 800			vga=normal, X patches, see webpage (5)
+> See http://bugme.osdl.org/show_bug.cgi?id=4124 -- sounds similar, but you
+> seem to experience some regularities that I think I ruled out in my case.
+> Best regards,
 > 
-> 
-> 
-> Acer TM 650 (Radeon M7)
-> 
-> vga=normal plus boot-radeon (webpage(5)) works to get text console
-> back. But switching to X freezes the computer completely.
 
-Please try method (6). It should work perfectly because it is the successor
-for method (5) and works even without special patches for X.
+I have added a comment to the bug. I am available for whatever test. The
+thing is really annoying... 
 
+Romano
 
-> X from debian sid. 
-> XFree86 Version 4.3.0.1 (Debian 4.3.0.dfsg.1-10 20041215174925 fabbione-hi90JgxQ6n/k1uMJSBkQmQ@public.gmane.org)
-> Release Date: 15 August 2003
-> X Protocol Version 11, Revision 0, Release 6.6
-> Build Operating System: Linux 2.4.26 i686 [ELF] 
-> Build Date: 15 December 2004
-> 
-> 
-> I would like to get X running to, but there are no traces in the logfile
-> whatsoever to be seen. Pity.
-
-First, boot into X and run the following script ONCE:
-#!/bin/bash
-statedir=/root/s3/state
-mkdir -p $statedir
-chvt 2
-sleep 1
-vbetool vbestate save >$statedir/vbe
-
-
-To suspend and resume properly, call the following script as root:
-#!/bin/bash
-statedir=/root/s3/state
-curcons=`fgconsole`
-fuser /dev/tty$curcons 2>/dev/null|xargs ps -o comm= -p|grep -q X && chvt 2
-cat /dev/vcsa >$statedir/vcsa
-sync
-echo 3 >/proc/acpi/sleep
-sync
-vbetool post
-vbetool vbestate restore <$statedir/vbe
-cat $statedir/vcsa >/dev/vcsa
-rckbd restart
-chvt $[curcons%6+1]
-chvt $curcons
-
-
-Unless you change your grahics card or other hardware configuration,
-the state once saved will be OK for every resume afterwards.
-NOTE: The "rckbd restart" command may be different for your
-distribution. Simply replace it with the command you would use to
-set the fonts on screen.
-
-
-> So it seems that my laptop does not fall in any of these categories.
-
-Please try my scripts and resport back.
-
-
-Regards,
-Carl-Daniel
 -- 
-http://www.hailfinger.org/
+Romano Giannetti             -  Univ. Pontificia Comillas (Madrid, Spain)
+Electronic Engineer - phone +34 915 422 800 ext 2416  fax +34 915 596 569
 
 
 -------------------------------------------------------
