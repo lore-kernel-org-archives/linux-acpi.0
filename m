@@ -1,15 +1,14 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: ACPI patch flow
-Date: 03 Feb 2004 08:01:29 -0500
+From: Alimin Bijosono Oei <alimin-rdE3vRTOlSC6c6uEtOJ/EA@public.gmane.org>
+Subject: Re: dsdt patch
+Date: Wed, 04 Feb 2004 01:40:42 +1100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1075813288.13729.45.camel@dhcppc4>
-References: <1075747579.2394.108.camel@dhcppc4>
-	 <20040203122832.GA1405@elf.ucw.cz>
+Message-ID: <401FB2EA.7000304@ihug.com.au>
+References: <3ACA40606221794F80A5670F0AF15F8401CBB674@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040203122832.GA1405-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401CBB674-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,36 +17,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> > I'd like to stop maintaining (and delete) 2.4.23 -- with the release of
-> > 2.4.24, I doubt anybody is using 2.4.23.
-> > 
-> > I'd like to stop maintaining (and delete) 2.6.0 -- with the release of
-> > 2.6.1, I doubt anybody is using 2.6.0.  Also, 2.6.1 has diverged
-> > somewhat from 2.6.0, so maintaining 2.6.0 has become problematic.
-> > 
-> > let me know if you have any issues with this.
+Yu, Luming wrote:
+>>Just want to ask where can I find a patch that will allow me 
+>>to use my 
+>>own dsdt for kernel 2.4.24? 
 > 
-> I do not see any problems with that.
 > 
-> For 2.6, if I were you, I'd drop 2.6.1, too. People should upgrade to
-> latest if they have problems..
+> Can you let me know what exact error need be fixed in DSDT?
+> 
+> 
 
-Encourage upgrades to the latest -- I agree.  The downside, however, is
-when the latest causes new problems -- so I'll keep 2.6.1 around for
-comparisons until after 2.6.2 comes out. (or until divergence makes it a
-pain to maintain;-)
-
-Also, when we reach the point that distros base a release on 2.6, it is
-useful to have a tree of the same vintage to make patching the distro
-tree viable.
-
-thanks,
--Len
-
+I am using a Compaq Presario 1500AP notebook and so far I have been 
+using the fixed dsdt of Compaq EVO N1000V and it works just fine. The 
+only problem I have was that I upgrade from kernel 2.4.22 to 2.4.24 and 
+I can't find any patch for 2.4.24 that will allow me to patch osl.c so 
+that I can implement the fixed dsdt. When using 2.4.22 before, I got a 
+patch for osl.c from 
+http://cabibbo.physics.wm.edu/~bryan/computer/dsdt.patch_2.4.22
+The author was using Dell Inspiron, but the patch works for me.
 
 
 
