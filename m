@@ -1,13 +1,12 @@
-From: Michael Notforyou <sqfreak-goaWJWIt5zpWk0Htik3J/w@public.gmane.org>
-Subject: Re: thermal module and tzp
-Date: Mon, 02 Sep 2002 16:07:42 -0400
+From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>
+Subject: Last acpi patch against 2.4.18 and 2.4.19 released
+Date: 03 Sep 2002 01:05:31 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <5.1.0.14.0.20020902160705.0341edf0@pop-server.triad.rr.com>
-References: <200209021837.g82IbtX28267@mailgate5.cinetic.de>
+Message-ID: <1031029533.1420.60.camel@darkstar.portugal>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200209021837.g82IbtX28267-pb599fR3TxVkExQqqHjIK3sFFmKitW5W@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,47 +15,39 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, acpi support <acpi-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: Alberto Ornaghi <alor-G/4Acn03FKk@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-My computer doesn't have thermal zones - I can't help.
+Hi(gh)
 
+So I had update my web site with last acpi patches for kernel 2.4.18 and
+kernel 2.4.19 since some people have been asked for it.
 
-At 08:37 PM 9/2/2002 +0200, you wrote:
-><joerg.beyer-htSm2yLGOjU@public.gmane.org> schrieb am 02.09.02 19:57:55:
-> > Hi,
-> >
-> > I use linux-2.4.20-pre5 and latest acpi patches. If I build thermal 
-> (and the
-> > other parts of acpi, where it is possible) as module and set the tzp 
-> paramter,
-> > e.g. modprobe thermal tzp=20 then I get a kernel panic. Does anybody else
-> > see this?
->
->because I saw Michael Notforyou's hint not to compile acpi as module (in
->another thread) I tried the same with setting tzp=20 (and 50 on another try)
->and compile the whole acpi part direct in the kernel. The effect was the same.
->
->Does anybody else see this?
->
->
->     Joerg
->
->
->
->-------------------------------------------------------
->This sf.net email is sponsored by: OSDN - Tired of that same old
->cell phone?  Get a new here for FREE!
->https://www.inphonic.com/r.asp?r=sourceforge1&refcode1=vs3390
->_______________________________________________
->Acpi-devel mailing list
->Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->https://lists.sourceforge.net/lists/listinfo/acpi-devel
+http://codecs.home.sapo.pt/acpi/index.html
 
-*Michael Notforyou*
+the concept now is different because under linux/drivers/acpi the source
+is the same for all kernel-2.4.x, this I call it: acpisubsystem.=20
+The rest is the integration of the new acpi in kernel.
+So, now you just have to apply the integration patch for the proper
+kernel. After this, delete drivers/acpi directory and replace to new
+acpisubsystem, in this case is acpisubsystem20020829.tar.gz, with this
+and expecting the new patches just have changes in subsystem, can be
+more easy upgrade acpi releases because we just have to replace the
+drivers/acpi directory.
 
-"My God, I'm full of stars!"
-Darmok and Jalad at Tanagra!
+This time the sources are completely copy from the official sources,
+and have the small patch made by KOCHI, Takayoshi.
+
+So it is one suggestion that all source under drivers/acpi for kernel
+2.4.x and 2.5.x be release or accessibly from sf.net site, with CVS or
+downloading. Will be great because will be more easy integrated in other
+kernels like -ac kernels or redhat kernels, unfortunately I don't have
+much time to do it but maybe I will try to do it.
+
+Thanks=20
+S=E9rgiomb =20
+
 
 
 
