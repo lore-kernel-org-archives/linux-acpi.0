@@ -1,11 +1,13 @@
-From: Robert Stacy <uktxaxkjlfaor-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: re[17]:
-Date: Fri, 10 Dec 2004 18:59:02 +0200
-Message-ID: <E1CciZJ-0005Qq-1C@sc8-sf-mx1.sourceforge.net>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: network card buzzing
+Date: Thu, 9 Dec 2004 18:11:38 +0100
+Message-ID: <20041209171138.GA3105@openzaurus.ucw.cz>
+References: <41B86243.7090507@mega.ist.utl.pt>
 Mime-Version: 1.0
-Content-Type: multipart/related;
- boundary="------------070805060703070304040005"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <41B86243.7090507-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,120 +17,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070805060703070304040005
-Content-Type: text/html; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Hi!
 
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"></head><body bgcolor="#FFFFFF" text="#035834"><p><a href="http://www.xmasrefinance.com/x/loan.php?id=b7"><IMG SRC="cid:part1.06030403.04020100@sklxabf-/E1597aS9LQAvxtiuMwx3w@public.gmane.org" border="0" ALT=""></a></p><p><font color="#FFFFF3">Good. Tour de France Mad Cow Disease in 1894</font></p><p><font color="#FFFFFC">Friends in 1905</font></p></body></html>
+> I tought it was normal to have a buzzing on the network card while it 
+> transmits/receives high quanitities of data and using almost all of 
+> it's bandwidth... I had such a network card on my desktop and now my 
+> laptop does the same.
+> 
+> the laptop is a (smart-battery powered) acer travelmate 4001 WLMi and 
+> the network card is a broadcom (b44) 10/100Mbps.
+> 
+> after rejecting the idea, I decided to try the same on another OS... 
+> windows. it doesn't buzz while transmiting/receiving at 80Mbps 
+> whereas on linux it does. one can hear exactly when there is activity 
+> and when there isn't.
+> 
+> is this a problem? hardware issue? software issue? acpi? plain bad 
+> luck? what is happening here?
 
---------------070805060703070304040005
-Content-Type: image/gif;
- name="umbilici.GIF"
-Content-Transfer-Encoding: base64
-Content-ID: <part1.06030403.04020100@sklxabf-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Content-Disposition: inline;
- filename="umbilici.GIF"
-
-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
-
---------------070805060703070304040005--
+Sining capacitors? See archives. idle=poll should fix it (evil grin).
+				Pavel
+-- 
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
 
 
 
