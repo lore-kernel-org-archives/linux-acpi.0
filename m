@@ -1,13 +1,13 @@
-From: Jeff Pitman <symbiont-tdrK/OAtAx2ELgA04lAiVw@public.gmane.org>
-Subject: High Pitch Sound From Thermal Unit
-Date: Sun, 5 Dec 2004 22:44:06 +0800
-Message-ID: <200412052244.06211.symbiont@berlios.de>
+From: Richard Jelinek <rj-SPYDw57wZyZBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: Multiple problems on Thinkpad A31p
+Date: Sun, 5 Dec 2004 16:20:29 +0100
+Message-ID: <20041205162029.A994@petamem.com>
+References: <20041204124734.A22065@petamem.com> <1102212367.9384.5.camel@tyrosine>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <1102212367.9384.5.camel@tyrosine>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,37 +17,51 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all:
+Hi Garett,
 
-I tried this on the fedora list and didn't get much response, so I have=20
-"escalated" it, so to speak, here to see what others have "heard" and=20
-have done to overcome this.
+thanks for your answer.
 
-ACPI causes some wierd interaction with possibly a capacitor near the=20
-CPU fan which makes it vibrate at a frequency that the human ear can=20
-detect. =C2=A0Course, if your Air Conditioner is on, you're in the office,=
-=20
-outside, etc. you're not going to hear it or care. =C2=A0But, when you'd=20
-like to retreat to a quiet setting to hack on some stuff it gets tr=C3=A8s=
-=20
-annoying with this thing whining at you. (Like, you already get enough=20
-of that from others during the day...)
+On Sun, Dec 05, 2004 at 02:06:07AM +0000, Matthew Garrett wrote:
+> Not all hardware seems to switch the backlight off sensibly on entering
+> ACPI suspend. Your suspend script probably tries to trigger the X DPMS
+> call, which will blank the screen - the kernel then switches back to a
+> console and turns the backlight on again. Can you try the program
+> attached to 
+> http://bugzilla.kernel.org/show_bug.cgi?id=2576 ?
 
-The sound doesn't exist with APM.  I have yet to try to do the rmmod=20
-thermal trick that Dell users have found because the stock Fedora=20
-kernel compiles statically for "safety" reasons.
+downloaded, renamed (comes as attachement.cgi with Firefox 1.0)
 
-Anyway, I have done the DSDT thing with iasl and found one error, but I=20
-serious doubt it has anything to do with the buzz.
+standby, suspend & off: switch the display off completely - no backlight
+reduced: no effect
+on: switches screen on again
 
-Let me know what you think...
+Don't know whether there should be more parameters, the syntax
+description doesn't end with a ']'
 
-thanks,
-=2D-=20
-=2Djeff
+What do the results tell us?
+
+> 2.6.9 has better USB power management.
+
+Hopefully it handles then Unplug (DVD-RAM) & Plug (USB-Craddle for
+Palm) of the Ultrabay as good as the 2.4.26 did: without freezing the
+machine. ;-)
+
+> I think this has been fixed, but I don't know whether it'll hit 2.6.10.
+> Adding hwclock --hctosys in the resume script ought to work around it.
+
+Ok.
+
+-- 
+best regards,
+
+     Dipl.-Inf. Richard Jelinek
+
+     - The PetaMem Group - Prague/Nuremberg - www.petamem.com -
+		       -= 3394928 Mind Units =-
 
 
 -------------------------------------------------------
