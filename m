@@ -1,58 +1,69 @@
-From: Ducrot Bruno <poup@poupinou.org>
-Subject: Re: [ACPI] RE: Toshiba ACPI battery status - ACPI errors
-Date: Tue, 25 Nov 2003 11:47:48 +0100
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20031125104748.GB7375@poupinou.org>
-References: <7F740D512C7C1046AB53446D37200173618752@scsmsx402.sc.intel.com> <20031124225539.GA22718@fqdn.org>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Dell D600: teaching radeonfb how to wake up...
+Date: Tue, 25 Nov 2003 13:04:43 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20031125120443.GA297@elf.ucw.cz>
+References: <20031119180119.GB22307@tate.loria.fr> <20031120111315.GB432@openzaurus.ucw.cz> <1069370504.705.32.camel@gaston> <20031120234708.GA431@elf.ucw.cz> <20031121155010.C19564@loria2.loria.fr> <1069637387.723.112.camel@gaston> <20031124173603.GA298@elf.ucw.cz> <1069725771.876.296.camel@gaston>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20031124225539.GA22718@fqdn.org>
-To: Michael Holzt <kju@fqdn.org>
-Cc: "Nakajima, Jun" <jun.nakajima@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Developers <acpi-devel@lists.sourceforge.net>, "Brown, Len" <len.brown@intel.com>
+In-Reply-To: <1069725771.876.296.camel-ZSGxbZoyBwc@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
+Cc: Emmanuel Thome <Emmanuel.Thome+acpi-/zGXu1G9BXs@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Nov 24, 2003 at 11:55:39PM +0100, Michael Holzt wrote:
-> > I suspect this is a known issue with AML code from Toshiba. 
+Hi!
+
+> > > In the meantime, if we can (not sure about it) call back into the BIOS
+> > > when waking up (Andi seemed to imply we are in real mode when getting
+> > > out of sleep), we may just use int10 to hard re-POST video cards at this
+> > > point. We must also make sure we do that for the AGP bridge if
+> > > possible.
+> > 
+> > Look at arch/i386/kernel/acpi/wakeup.S code. It attempts to do
+> > real-mode reinitialization (if you pass right acpi_sleep= paramater),
+> > but it only works for some people.
+> > 
+> > If it is possible to improve that real-mode code to work more people,
+> > feel free to send patches.
+> > 
+> > [I now have another machine -- arima notebook -- where none of current
+> > methods works. I'll need to look at it closely.]
 > 
-> Sorry, but unfortunately your guess is wrong (would have been too easy). A
-> few days ago i reported about the Tecra S1 problems on the acpi-devel list
-> as well, maybe you missed my post, which can be found in the archives here:
-> 
->   http://sourceforge.net/mailarchive/forum.php?thread_id=3511931&forum_id=6102
+> Well, I did a quick look only, I'm a bit dumb with x86 assembly, but
+> it looks you are only trying to call VESA for setting a mode, not
+> doing a full POST of the card
 
-Sorry, I missed your post.
+Yes, that's what I'm optionaly doing, but I'm also (optionally) doing:
 
-> 
-> Included was a link to the disassembled dsdt, which can be found here:
-> 
->   http://www.kju.de/data/dsdt.dsl
-> 
-> As you can see, the _STA-Methods of both BAT0 and BAT1 do proper return
-> calls. I'm sorry, but i'm do not have any knowledge about acpi or dsdts to
-> debug this myself. The DSDT has some other errors as well.
+        testl   $1, video_flags - wakeup_code
+        jz      1f
+        lcall   $0xc000,$3
+        movw    %cs, %ax
+        movw    %ax, %ds                                        # Bios
+might have played with that
+        movw    %ax, %ss
+1:
 
-I posted last week at acpi-devel a patch which fake a ECDT.  That should
-at least fix your embedded error you encounter.
-
-http://sourceforge.net/mailarchive/message.php?msg_id=6561311
-
-Looking your DSDT, the parameter you have to pass at boot are:
-
-ecdt_fake=0x66:0x62:0x10:-1:\\_SB.PCI0.LPCB.EC0
-
-I hope that at least that will correct some obivous errors.
-
-> 
-> It is somewhat strange, that toshiba as one of the core members of ACPI
-> seems to be unable to provide sane DSDTs for years now. Something is real
-> wrong with this company.
-
-Indeed.  They should change their ODM.
+...that should be POST(?)
+								Pavel
 
 -- 
-Ducrot Bruno
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+
+-------------------------------------------------------
+This SF.net email is sponsored by: SF.net Giveback Program.
+Does SourceForge.net help you be more productive?  Does it
+help you create better code?  SHARE THE LOVE, and help us help
+YOU!  Click Here: http://sourceforge.net/donate/
