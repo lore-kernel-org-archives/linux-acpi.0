@@ -1,48 +1,82 @@
 From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Subject: [Fwd: [ACPI] How to control IRQ polarities on PCI devices?]
-Date: 26 Jul 2003 18:45:11 +0100
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <1059241512.1585.16.camel@darkstar.portugal>
+Subject: Re: [PATCH] acpica-20030714 and "-g"
+Date: 26 Jul 2003 18:38:19 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <1059241099.1585.9.camel@darkstar.portugal>
+References: <F760B14C9561B941B89469F59BA3A847E9701F@orsmsx401.jf.intel.com>
+	 <200307201917.44668.hrvoje.habjanic@zg.htnet.hr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-To: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200307201917.44668.hrvoje.habjanic-+VD6v/bdhRf0NTdHYsHBKg@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Hrvoje Habjanic <hrvoje.habjanic-+VD6v/bdhRf0NTdHYsHBKg@public.gmane.org>
+Cc: Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi
-I think this questions in not only ACPI related, and should be asked in
-kernel mailing list so...
+Hi I test this patch and works pretty well, and option -g produced this
+files :
+SSDT_POWERNOW.dat
+FADT_.dat
+FACS_.dat
+dsdt_EAGLES.dsl
+DSDT_EAGLES.dat
 
------Forwarded Message-----
+
+On Sun, 2003-07-20 at 18:17, Hrvoje Habjanic wrote:
 >=20
-> Hi, I've just tested what Windows XP programs my IO-APIC to with my w=
-avelan=20
-> card (using Softice to interrogate the IO-APIC by hand :)
+> Hi all!
 >=20
-> It turns out that with my latest patch, I am programming the IO-APIC =
-the same=20
-> way it is set up under windows.
+> As you all noticed, "-g" isn't working in latest acpica release. I've man=
+aged=20
+> to fix that.
 >=20
-> Thing is, the IO-APIC is set up to active high, level trigger. This i=
-s how it=20
-> is setup under windows as well (the device works under windows).
+> (Andy, i know that it would be "nicer" to put everything in osunixxf.c, b=
+ut=20
+> use of AcpiOverrideTable is, among other things, causing circular calling=
+. It=20
+> becomes quite complicated to write "clean" code. I think that suggested=20
+> modifications are minimal, and they make disassembler work more like some=
+=20
+> kernel based on this code.)
 >=20
-> I'm assuming the device is by default expecting PCI standard IRQs whi=
-ch are=20
-> active LOW, level polarity... which is why I either get no IRQs, or l=
-ots of=20
-> rubbish ones.
+> Still, there is room for improvements, so ....
 >=20
-> Is there a standard way of controlling the polarity of IRQs generated=
- by PCI=20
-> devices? This looks like the last issue to be resolved under linux.
+> And another note; currently SSDT tables ONLY get saved, and not disassemb=
+led.=20
+> It would be nice to get them disassembled (maybe someone with more knowle=
+dge=20
+> of this code/parsing ...)
+
+yes
+
 >=20
+> Hrvoje
 >=20
-Please CC me=20
+> p.s. Sorry on bad english... >:-)
+sorry on bad english too :)
+> ----
+>=20
+
+
 --=20
 S=E9rgioMB
 email: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
 
 Who gives me one shell, give me everything.
+
+
+
+-------------------------------------------------------
+This SF.Net email sponsored by: Free pre-built ASP.NET sites including
+Data Reports, E-commerce, Portals, and Forums are available now.
+Download today and enter to win an XBOX or Visual Studio .NET.
+http://aspnet.click-url.com/go/psa00100003ave/direct;at.aspnet_072303_01/01
