@@ -1,11 +1,12 @@
-From: "Geoffrey Hausheer" <iw3r96f6j1h-jEt0PViQLFVB+phRjrLsidBPR1lH4CV8@public.gmane.org>
-Subject: can't trigger sleep modes.
-Date: Thu, 15 Aug 2002 05:16:12 -0700
+From: Martin Platter <mxp1-hi6Y0CQ0nG0@public.gmane.org>
+Subject: Re: No events when pressing power button
+Date: Thu, 15 Aug 2002 15:42:45 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <A5974D8E5F98D511BB910002A50A664704303C4A@hdsmsx103.hd.intel.com>
+Message-ID: <3D5BAFD5.2030500@gmx.net>
+References: <EDC461A30AC4D511ADE10002A5072CAD0236DD85@orsmsx119.jf.intel.com> <20020813210108.GA11105@digda.intern.quelltext.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -15,67 +16,110 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-I'm quite new to the whole ACPI thing, so perhaps I'm going about this
-completely wrong.
+Arndt Schoenewald wrote:
 
-I'm trying to put my laptop to sleep using ACPI, but to no avail.
+>Hi Andy,
+>
+>nice to hear you're back from vacation! (Hum, well, not quite as nice
+>for yourself, I guess...!)
+>
+>On Tue, Aug 13, 2002 at 11:33:56AM -0700, Grover, Andrew wrote:
+>  
+>
+>>>From: Sérgio Monteiro Basto [mailto:sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org] 
+>>>      
+>>>
+>>>>I patched my kernel (2.4.18) today with latest version of 
+>>>>        
+>>>>
+>>>acpi-patch 
+>>>      
+>>>
+>>>>(acpi-20020726-2.4.18.diff). My power button gets detected 
+>>>>        
+>>>>
+>>>but I dont get 
+>>>      
+>>>
+>>>>any events from it. I have a ABit BP6 with dual celeron processors.
+>>>>ACPI: Power Button (FF) [PWRF]
+>>>>What could be wrong? I tried latest acpid rpm and 'cat 
+>>>>        
+>>>>
+>>>/proc/acpi/event' 
+>>>      
+>>>
+>>>>without results. Acpid doesn't write nothing to 
+>>>>        
+>>>>
+>>>/var/log/acpid when I 
+>>>      
+>>>
+>>>>press power button. 
+>>>>
+>>>>        
+>>>>
+>>>had you try kacpid patch 
+>>>that detects lost acpi events
+>>>      
+>>>
+>>Hi,
+>>
+>>The problem *may* be that the ACPI interrupt is not being set to active-low,
+>>level-triggered properly (we do this for PCI irqs but not our own ;-)
+>>
+>>Is your acpi interrupt shared with any PCI devices? If the above hypothesis
+>>is true, the answer should be "no".
+>>
+>>    
+>>
+>
+>AHA!
+>
+>I own one of those machines that need eisa_set_level_irq() for some
+>builtin devices, and I have never seen any events coming out of
+>/var/log/acpid so far. The ACPI interrupt is not shared with anything.
+>
+>So I really guess you are right and eisa_set_level_irq(9) might be
+>needed to turn ACPI interrupt reporting on. I'll add this call next
+>time I build a kernel.
+>
+>Arndt
+>
+Hi!
 
-Using a clean 2.4.19 tree, doing 'echo -n 1 > /proc/acpi/sleep' hangs the
-machine.
-doing 'echo -n 4 > /proc/acpi/sleep' shutdown the machine immediately
-I've tried this with and without acpid running.
+It works on my Gericom M6T. I have added "eisa_set_level_irq(9);" in the 
+pci_irq.c at line 365.
+Now I get events from LID, Powerbutton and I can even use the special 
+function keys to set the backlight :-)
 
-So I pulled the latest code from the bk repository (linux-2.4-acpi), and now
-doing 'echo -n $i > /proc/acpi/sleep' does nothing (just returns the
-prompt).
-where $i is any of 0,1,4,or 5
+Martin
 
-cat /proc/acpi/sleep yields:
-S0 S1 S4 S5
+>>I don't know about people's comfort level with the code, but you might try
+>>adding a call to eisa_set_level_irq(<ACPI irq #>) and seeing if that gets
+>>interrupts happening properly. kacpid should not be necessary but obviously
+>>until SCIs work 100% it remains useful for some people.
+>>
+>>Regards -- Andy
+>>    
+>>
+>
+>
+>-------------------------------------------------------
+>This sf.net email is sponsored by: Dice - The leading online job board
+>for high-tech professionals. Search and apply for tech jobs today!
+>http://seeker.dice.com/seeker.epl?rel_code=31
+>_______________________________________________
+>Acpi-devel mailing list
+>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>  
+>
 
-with acpid disabled, when I cat /proc/acpi/events, I can see events being
-detected.  The sleep button, power button, and lid-close all seem to get
-detected correctly, as does inserting and removing the battery.
 
-the battery, ac_adapter, and processor subdirectories all contain useful and
-correct looking info.
-/var/log/syslog shows the following on startup:
-ACPI: AC Adapter [AC0] (on-line)
-ACPI: Battery Slot [BAT0] (battery absent) <--this is correct (I took out
-the
-battery)
-ACPI: Power Button (FF) [PWRF]
-ACPI: Lid Switch [LIDD]
-ACPI: Sleep Button (CM) [SLPB]
-ACPI: Processor [CPU1] (supports C1, C2, 8 throttling states)
-
-monitoring /proc/acpi/events for each button yields:
-SLPB 00000080 00000001
-LIDD 00000080 00000001  <---close
-LIDD 00000080 00000002  <---open
-PWRF 00000080 00000001
-
-I could try installing the swsusp patch, but it is my understanding that
-this
-just fakes hibernation (suspend to disk), while I am trying to get suspend
-to
-ram working (also getting the hardware suspend working would be nice too)
-
-I have compiled in the extra debugging messages, but am not seeing anything
- in /var/log/syslog (or any other log directory).  I do see debug_layer and
- debug_level in /proc/acpi but I have no idea what to do with these.
-
-By the way, the laptop is a twinhead n2380 which uses the sis630st chipset,
-and has a PIII (tualatin) mobile processor.
-
-Am I doing something wrong?  Is there something I can do to provide more
-information?
-
-Thanks,
-Geoff
 
 
 -------------------------------------------------------
