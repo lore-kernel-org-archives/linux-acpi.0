@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: RE: K7 CPU disconnect & system lock
-Date: Mon, 19 Jan 2004 22:43:42 +0100
+Subject: Re: FW: ACPI too sensitive about critical temperature
+Date: Mon, 19 Jan 2004 23:02:52 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040119214342.GC380@elf.ucw.cz>
-References: <21180.1074446641@www44.gmx.net>
+Message-ID: <20040119220251.GD380@elf.ucw.cz>
+References: <F760B14C9561B941B89469F59BA3A84702C9321E@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <21180.1074446641-oa/r6l4+J3Zmcu3hnIyYJQ@public.gmane.org>
+In-Reply-To: <F760B14C9561B941B89469F59BA3A84702C9321E-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,28 +17,69 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Thomas Herrmann <ollo.diab-Mmb7MZpHnFY@public.gmane.org>
-Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> the K7 cpu disconnect feature is a power save mode, where the CPU
-> disconnects from the north bridge and goes into sleep mode. Any interrupt will wake-up
-> the CPU which then needs to connect to the north bridge again to transfer
-> data. While CPU disconnect enabled the idle temperature of the CPU drops from
-> around 52C to 27C on my systems. On certain systems this feature can be enabled
-> via BIOS, but there is also a tool called "athcool" which sets the
-> configuration register.
+> I didn't want to bug the whole lkml with this, so I'm sending this to 
+> you guys who wrote "drivers/acpi/thermal.c". I hope that's okay...
 > 
-> I have attached the requested logs. As you will see while acpi=off certain
-> devices (like USB) are not available due to no IRQ routing. All devices work
-> fine with acpi enabled.
+> A friend of mine has a mainboard (I can find out the specific type if 
+> you want to know) which reports inaccurately high temperature "peaks" 
+> from time to time.
+> Looking at /proc/acpi/thermal_zone/THR1/temperature every second might 
+> look something like this: 45, 43, 47, 42, 90, 43, 41, 45
 
-I believe that was traced to hw problem, see kernel list for nforce2
-info.
+Try this one.
 
 								Pavel
+
+--- clean/drivers/acpi/thermal.c	2003-07-27 22:31:09.000000000 +0200
++++ linux/drivers/acpi/thermal.c	2004-01-13 22:33:49.000000000 +0100
+@@ -223,8 +223,11 @@
+ 	tz->last_temperature = tz->temperature;
+ 
+ 	status = acpi_evaluate_integer(tz->handle, "_TMP", NULL, &tz->temperature);
+-	if (ACPI_FAILURE(status))
++	if (ACPI_FAILURE(status)) {
++		if (tz->temperature != tz->last_temperature)
++			printk(KERN_ERR "temperature damaged while processing\n");
+ 		return -ENODEV;
++	}
+ 
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Temperature is %lu dK\n", tz->temperature));
+ 
+@@ -457,7 +460,17 @@
+ 		return_VALUE(-EINVAL);
+ 
+ 	if (tz->temperature >= tz->trips.critical.temperature) {
++		long old_temperature = tz->temperature;
+ 		ACPI_DEBUG_PRINT((ACPI_DB_WARN, "Critical trip point\n"));
++
++		result = acpi_thermal_get_temperature(tz);
++		if (!result) {
++			if (tz->temperature < (tz->trips.critical.temperature - 100)) {
++				printk(KERN_ALERT "ACPI changed its mind about temperature, was %ld C, now %ld C", 
++				       KELVIN_TO_CELSIUS(old_temperature), KELVIN_TO_CELSIUS(tz->temperature));
++				return_VALUE(0);
++			}
++		}
+ 		tz->trips.critical.flags.enabled = 1;
+ 	}
+ 	else if (tz->trips.critical.flags.enabled)
+@@ -467,8 +480,8 @@
+ 	if (result)
+ 		return_VALUE(result);
+ 
++	printk(KERN_EMERG "Critical temperature reached (%ld C), shutting down.\n", KELVIN_TO_CELSIUS(tz->temperature));
+ 	acpi_bus_generate_event(device, ACPI_THERMAL_NOTIFY_CRITICAL, tz->trips.critical.flags.enabled);
+-
+ 	acpi_thermal_call_usermode(ACPI_THERMAL_PATH_POWEROFF);
+ 
+ 	return_VALUE(0);
+
 -- 
 When do you have a heart between your knees?
 [Johanka's followup: and *two* hearts?]
