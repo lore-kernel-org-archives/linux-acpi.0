@@ -1,14 +1,16 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Re: ACPI_STRICT_COMPLIANCE (was RE: RE: ACPI -- Workaround forbroken DSDT)
-Date: Mon, 16 Feb 2004 13:49:46 +0100
+From: Thorsten Zachmann <t.zachmann-c61pB8mzqkY@public.gmane.org>
+Subject: Re: No network after S3
+Date: Mon, 16 Feb 2004 14:17:42 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040216124946.GO13262@poupinou.org>
-References: <C50AB9511EE59B49B2A503CB7AE1ABD106611260@cceexc19.americas.cpqcorp.net> <20040213005043.GE13262@poupinou.org> <20040216083435.GA23640@message-id.gmane0305.slipkontur.de>
+Message-ID: <200402161417.42755.t.zachmann@zagge.de>
+References: <BF1FE1855350A0479097B3A0D2A80EE0025A6344@hdsmsx402.hd.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <BF1FE1855350A0479097B3A0D2A80EE0025A6344-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040216083435.GA23640-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,41 +19,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Feb 16, 2004 at 09:34:35AM +0100, Stefan Seyfried wrote:
-> On Fri, Feb 13, 2004 at 01:50:43AM +0100, Bruno Ducrot wrote:
->  
-> > The 'toshiba return bug' is something like that:
-> > 
-> > Method(FOO) {
-> > 	return (0)
-> > }
-> > 
-> > Method(BAR) {
-> > 	FOO()
-> > }
-> > 
-> > If ACPI is pedantic, BAR return nothing.
-> 
-> Well, but it is a bug, so it _should_ fail with "acpi=strict", shouldn't it?
+Hello 
+On Monday 16 February 2004 07:10, Brown, Len wrote:
+> >I tried pci=noacpi. No diference.
+> >If I understand you right, I should wait a little bit before dealing
+> >with this powersaving stuff.
+>
+> If the NIC were now working before attempting suspend/resume, then we'd
+> need to get that fixed first.  However, I think you're saying that the
+> NIC _does_ work under normal conditions, and the failure is only after
+> returning from S3. yes?
+>
 
-Yes.
+It looks like I have the same problem on my Tecra S1. After a suspend (S3) the 
+network and sound are no longer working. 
+A ethereal trace shows that the interface still sends arp requests but is 
+unable to receive something. If I look at /proc/interrupts the counter for 
+the interrupt where the network card is connected is no longer incremented.
 
-> If "acpi=strict" is omitted, the bug can be worked around and the buyers of
-> this crap can be happy.
+> So this seems suspend/resume specific, and your use of pci=noacpi
+> further suggests it has nothing to do with the initial interrupt
+> assignments.
 
-Problem is that I don't know for what flavour of the no-named AML
-interpreter that bug will be hit.  So at least the acpi=not_strict need
-to be more fine grained.
+pci=noacpi also didn't change the situation.
 
--- 
-Bruno Ducrot
+> We've got a number of post-resume failures, and this issue is rising on
+> the priority list -- so I expect we'll spend some time looking at it
+> soon.
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+I tried out the patches from bug report 1409 and 1661 but nothing changed.
+
+Please let me know if there is any information that I can provide to track the 
+problem down?
+
+Thorsten
+
 
 
 -------------------------------------------------------
