@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: _blank_ after resume
-Date: Mon, 8 Mar 2004 21:46:08 +0100
+Subject: Re: Re: fix ACPI poweroff in 2.4.25-rc2
+Date: Mon, 8 Mar 2004 21:54:44 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040308204608.GA494@elf.ucw.cz>
-References: <Pine.LNX.4.58.0403071321080.873@boston.corp.fedex.com>
+Message-ID: <20040308205444.GH484@elf.ucw.cz>
+References: <20040308163452.GE5352@openzaurus.ucw.cz> <Pine.LNX.4.44.0403081515190.10436-100000@dmt.cyclades> <20040308183228.GD484@elf.ucw.cz> <20040308201411.GA18636@alpha.home.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0403071321080.873-2K9XAwmnW1wYQUuIRqa960M9+F4ksjoh@public.gmane.org>
+In-Reply-To: <20040308201411.GA18636-HkMpAodKYdnXX8ko2wsARw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,27 +17,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jeff Chua <jeff89-xU4+foPaXuB6NlgSsqhgrkEOCMrvLtNR@public.gmane.org>
-Cc: ACPI Development <Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Willy Tarreau <willy-tRhHnHjXm5DYtjvyW6yDsg@public.gmane.org>
+Cc: Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> I got a blank screen with keyboard frozen after resume.
+> > there's broken machine where calling acpi_system_save_state() with
+> > invalid argument fixes it by accident.
 > 
-> Running on IBM Thinkpad X30
-> Linux 2.6.4-rc2 with patch acpi-20040220-2.6.4.diff.bz2
-> XFree86 Version 4.4.0
-> 
-> Problem only occurs if suspends from X11. Shutting down X11 first will
-> resume properly.
-> 
-> So, it is possible to resume back to X11 without shutting down X11 before
-> suspending?
+> In fact it does not fix it by accident, it's the previous code which
+> broke it by accident. Older ACPI poweroff code has been working well
+> on this machine, and suddenly stopped working. So i looked at what
+> changed and noticed that the acpi_poweroff() function changed from
+> _I don't remember what function_ to acpi_suspend(S5), and that
+> acpi_system_save_state(), which was called implicitly in the previous
+> function got lost during the change. Taking it back fixed my problem,
+> but I cannot say for sure that it will not break anything else, but its
+> use seems legitimate at first glance.
 
-Teach X to pretend to shutdown :-).
-								Pavel
+Can you replace
 
+acpi_system_save_state() with
+
+        pm_send_all(PM_SAVE_STATE, (void *)3);
+        pm_send_all(PM_SUSPEND, (void *)3);
+
+?
+
+That should fix it, too, and does not depend on CONFIG_ACPI_SLEEP.
+
+							Pavel
 -- 
 When do you have a heart between your knees?
 [Johanka's followup: and *two* hearts?]
