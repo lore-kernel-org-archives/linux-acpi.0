@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: acpi on r40e
-Date: Fri, 13 Feb 2004 12:22:14 +0800
+Subject: RE: ACPI_STRICT_COMPLIANCE (was RE: RE: ACPI -- Workaroundforbroken DSDT)
+Date: Fri, 13 Feb 2004 12:36:39 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB6B0@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB6B1@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,26 +17,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, Praveen C <cpravn-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Cagle, John  \"\"(ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>, Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, "Scott T. Smith" <scott-j3vAvQ9dNB9ByuSxxbvQtw@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+> > 1. A kernel option such as ACPI_STRICT=3DON will mess up ACPI=20
+> CA code at
+> > run-time.
+> > For example, a small change to ACPI interpreter without strict
+> > regression test could break
+> > other part of ASL codes wich comply to ACPI spec.=20
 >=20
-> On Thu, 12 Feb 2004, [iso-8859-1] Praveen C wrote:
-> > I removed all HKEY related stuff and assembled dsdt.dsl using iasl.
-> > Then I used the DSDT initrd patch together with the new=20
-> DSDT table. I
-> > STILL cant get the volume and brightness buttons to work.
-> > praveen
->=20
-> Apparently you didn't read my reply to you.  If you want the=20
-> buttons, use
-> APM and disable ACPI.
->=20
+> The only regression test we us today is to ship changes to=20
+> the community
+> and see if systems run better or run worse.  I don't see this=20
+> changing.
 
->From hardware point of view, User interface can trigger SMI# and SCI# ,
-So, maybe it's possible that Hot key feature handled by SMM code
-can work with ACPI. I'm not sure, it is just my imagination.
+I think the strict regression test against ACPI CA interpreter=20
+is feasible.  Maybe Bob has already had such kind of testing.
+
+My main concern about ACPI_STRICT option is around here.
+How to make regression test tolerate workarounds that is
+obviously breaking ASL rule? =20
 
 --Luming
 
