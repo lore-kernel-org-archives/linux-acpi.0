@@ -1,67 +1,31 @@
-From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: Battery change in sleep mode breaks battery support
-Date: Fri, 11 Feb 2005 12:54:45 +0100
-Message-ID: <420C9D05.2030500@suse.de>
-References: <420A224B.9050308@colitti.com> <420A6144.5050501@suse.de> <420BA4D5.6090107@colitti.com>
+From: Pekka Enberg <penberg@gmail.com>
+Subject: Re: [PATCH, new ACPI driver] new sony_acpi driver
+Date: Fri, 11 Feb 2005 14:02:19 +0200
+Message-ID: <84144f02050211040253e33dab@mail.gmail.com>
+References: <20050210161809.GK3493@crusoe.alcove-fr>
+	 <20050211113636.GI3263@crusoe.alcove-fr>
+Reply-To: Pekka Enberg <penberg@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <420BA4D5.6090107-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Lorenzo Colitti <lorenzo-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262122AbVBKMCW@vger.kernel.org>
+In-Reply-To: <20050211113636.GI3263@crusoe.alcove-fr>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stelian Pop <stelian@popies.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, acpi-devel@lists.sourceforge.net, Jean Delvare <khali@linux-fr.org>, Pekka Enberg <penberg@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Lorenzo Colitti wrote:
-> Thomas Renninger wrote:
-> 
->>> I am having problems with battery monitoring and sleep mode: if I 
->>> plug in or unplug the battery while the machine is asleep, when it 
->>> wakes up the change has not been registered and no further changes 
->>> are logged.
->>> [..]
->>> Any ideas?
->>>
->> I expect that your _WAK function does not work properly.
->> Does S3 invoke the _WAK function after wake up?
-> 
-> 
-> I don't know, how do I find out? Do I have to (attempt to) read the 
-> decompiled dsdt or can I just use the acpi debugging options?
-> 
-Hmm, don't know.
-Putting a:
-Store ("_WAK invoked", Debug)
-into the _WAK function of your DSDT.
+On Fri, 11 Feb 2005 12:36:37 +0100, Stelian Pop <stelian@popies.net> wrote:
+> +static int __init sony_acpi_add(struct acpi_device *device)
+> +{
+> +       acpi_status status = AE_OK;
+> +       struct sony_snc *snc = NULL;
+> +       int result;
+> +
+> +       snc = kmalloc(sizeof(struct sony_snc), GFP_KERNEL);
+> +       if (!snc)
+> +               return -ENOMEM;
+> +       memset(snc, 0, sizeof(struct sony_snc));
 
-But maybe it won't be printed because the kernel logger won't run at 
-this moment?
+Nitpick: use kcalloc() instead of kmalloc() and memset().
 
-Hoped that some of the suspend guys comments on this, sorry.
-
-You should disassemble and recompile your dsdt:
-cp /proc/acpi/dsdt /tmp
-iasl -d /tmp/dsdt
-iasl -sa /tmp/dsdt.dsl
-
-maybe you even find an error inside this function.
-Send me your DSDT if iasl -sa /tmp/dsdt.dsl throws errors, maybe just 
-adjusting some lines help.
-
-        Thomas
-
-
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+                                 Pekka
