@@ -1,54 +1,54 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: ACPI sleep: stupid bug reintroduced
-Date: Tue, 1 Oct 2002 23:40:45 +0200
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20021001214045.GA1178@elf.ucw.cz>
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: Several problems on a toshiba S3000-X11
+Date: Mon, 30 Sep 2002 02:21:46 +0000
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20020930022146.D35@toy.ucw.cz>
+References: <20020927142320.GB2821@lps.ens.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-To: Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Rusty trivial patch monkey Russell <trivial-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20020927142320.GB2821-l5PIGlIYzrxGWvitb5QawA@public.gmane.org>; from ebrunet-l5PIGlIYzrxGWvitb5QawA@public.gmane.org on Fri, Sep 27, 2002 at 04:23:20PM +0200
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
+To: =?iso-8859-1?Q?=C9ric_Brunet?= <ebrunet-l5PIGlIYzrxGWvitb5QawA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, mcelrath-/+vdk8Lzq6wBYXXUC76CrNADJCGDAxhI@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-There's extremely stupid bug in sleep.c -- it will only alow user to
-enter *unsupported* states. What's even worse that I remember fixing
-that once before, and *it was merged to mainline*.
+> So the computer shuts down, without warning, while it is not particulary
+> hot, with nothing written in the logs, while the user was just using vim
+> in a xterm, at irregular times, and it can happen two or three times in
+> an afternoon.
+> 
+> That's a major nuisance. By the way, I can confirm that ext3 works very
+> nicely at recovering a filesystem.
+> 
+> I have an hypothesis; somehow I think there is something wrong in the
+> reading of the temperature. When I read the temperature, there are some
+> very unnatural pics; the computer was at 53 degree, then jumps 3 seconds
+> at 60 and comes back at 53. I believe that, some time to time, this
+> unnatural jump goes over the critical trippoint and the computer shuts
+> down in emergency.
 
-Please, really merge it to all copies so it is not reintroduced again.
-
-[Oh, at it also makes S4 transition fail when SWSUSP support is not
-there.]
-
+Emergency shutdown implemented in kernel calls /sbin/halt or similar. This
+must be something else.
 								Pavel
-
---- clean/drivers/acpi/sleep.c	2002-09-22 23:46:56.000000000 +0200
-+++ linux-swsusp/drivers/acpi/sleep.c	2002-10-01 23:38:48.000000000 +0200
-@@ -329,8 +329,8 @@
- 	state_string[count] = '\0';
- 	
- 	state = simple_strtoul(state_string, NULL, 0);
--	
--	if (sleep_states[state])
-+
-+	if (!sleep_states[state])
- 		return_VALUE(-ENODEV);
- 
- #ifdef CONFIG_SOFTWARE_SUSPEND
-@@ -338,7 +338,10 @@
- 		software_suspend();
- 		return_VALUE(count);
- 	}
-+#else
-+	return_VALUE(-ENODEV);
- #endif
-+
- 	status = acpi_suspend(state);
- 
- 	if (ACPI_FAILURE(status))
 
 
 -- 
-Worst form of spam? Adding advertisment signatures ala sourceforge.net.
-What goes next? Inserting advertisment *into* email?
+Philips Velo 1: 1"x4"x8", 300gram, 60, 12MB, 40bogomips, linux, mutt,
+details at http://atrey.karlin.mff.cuni.cz/~pavel/velo/index.html.
+
+
+
+-------------------------------------------------------
+This sf.net email is sponsored by: DEDICATED SERVERS only $89!
+Linux or FreeBSD, FREE setup, FAST network. Get your own server 
+today at http://www.ServePath.com/indexfm.htm
