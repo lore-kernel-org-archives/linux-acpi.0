@@ -1,14 +1,14 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: CUR-DLS blacklisted? + IRQ trouble
-Date: 17 Feb 2004 23:47:49 -0500
+Subject: Re: Does Linux make use of the S3D methods?
+Date: 18 Feb 2004 00:44:24 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1077079669.4948.24.camel@dhcppc4>
-References: <402F823D.6070702@mega.ist.utl.pt>
+Message-ID: <1077083063.4932.73.camel@dhcppc4>
+References: <200401191354.36354.jak97@doc.ic.ac.uk>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <402F823D.6070702-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
+In-Reply-To: <200401191354.36354.jak97-CezfXpuMXD6Fxr2TtlUqVg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,88 +17,86 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
+To: John Knottenbelt <jak97-CezfXpuMXD6Fxr2TtlUqVg@public.gmane.org>
 Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Pedro,
-We got that entry from UnitedLinux last August.
+On Mon, 2004-01-19 at 08:54, John Knottenbelt wrote:
+> Hi
+> 
+> I have been inspecting my DSDT and I noticed this:
+> 
+> Scope(\_SB_) {
+>     Device(PWRB) {
+>         Name(_HID, 0x0c0cd041)
+>         Method(_STA) {
+>             Return(0xb)
+>         }
+>     }
+>     Device(PCI0) {
+>         Name(_HID, 0x030ad041)
+>         Name(_ADR, 0x0)
+>         Name(_BBN, 0x0)
+>         Method(_S3D) {
+>             If(OSFL) {
+>                 Return(0x2)
+>             }
+>             Else {
+>                 Return(0x3)
+>             }
+>         }
+> 
+> The ACPI spec says that the _S3D method returns the highest power saving level 
+> that the device can be put into.
 
-It is quite possible that the system is unjustly blacklisted, or that it
-was blacklisted out of convenience b/c nobody could figure out exactly
-what was wrong when ACPI on that system failed.
+Actually the spec says that _S3D returns the HIGHEST POWER (not highest
+power saving) state that the device can be put into during S3.  This
+corresponds to the lowest D-state number (D0 being full power) available
+during S3.
 
-I'll be happy to look into it if you're willing to file a bug and help
-me debug to make a proper diagnosis.
+So for NT, OSFL is 0, and _S3D returns 3, meaning that the device can't
+be left in any state higher than D3 (full off).  However, the other
+Windows return OSFL !=0, and thus the device could be kept in D2 --
+which consumes more power.
 
-thanks,
+
+>  As you can see from the above (and other 
+> similar S3D methods) the result depends on the OSFL variable, which is 
+> defined with:
+> 
+>          Method(_INI) {
+>             \_SB_.PCI0.SBRG.IODT()
+>             If(MCTH(\_OS_, "Microsoft Windows NT")) {
+>                 Store(0x0, OSFL)
+>             }
+>             Else {
+>                 If(MCTH(\_OS_, "Microsoft Windows")) {
+>                     Store(0x1, OSFL)
+>                 }
+>                 Else {
+>                     If(MCTH(\_OS_, "Microsoft WindowsME: Millennium Edition"))
+>                    {
+>                         Store(0x2, OSFL)
+>                     }
+>                     Else {
+>                         Store(0x3, OSFL)
+>                     }
+>                 }
+>             }
+>         }
+> 
+> So for under Linux, the OSFL will be 3, and _S3D methods will return 2. My 
+> question is, does the kernel make use of this information at all? Is it worth 
+> editing the DSDT so that OSFL=0 (i.e. Windows NT) ?
+
+I don't think so.  I don't see any reference to _S3D in Linux.
+
+Of course, _OS_ returns ACPI_OS_NAME as defined in aclinux.h, so
+you could change that and see if it makes any difference;-)
+
+cheers,
 -Len
----
-How to file a bug against ACPI:
 
-http://bugzilla.kernel.org/ Category: Power Management, Component: ACPI
-
-Please attach dmesg -s40000 output (or serial console log if dmesg
-unavailable)
-Please attach copy of /proc/interrupts if possible
-
-Please attach the output from acpidmp, available in /usr/sbin/, or in
-pmtools:
-http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
-
-Please attach the output from dmidecode, available in /usr/sbin/, or
-here:
-http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
-
-Please attach the output from lspci -v
-
-
-
-On Sun, 2004-02-15 at 09:29, Pedro Venda wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
-> 
-> hi everyone,
-> 
-> i have two questions to which i haven't found answers anywhere, so i am
-> asking here.
-> 
-> - - i have an ASUS CUR-DLS motherboard (dual P3) and the 2.4 and 2.6
-> kernels both say: "ASUS CUR-DLS detected: force use of acpi=ht" when
-> starting disabling ACPI. i must do a acpi=force in order to be able to
-> use it, which consequences i don't know. i looked through the acpi
-> documentation and this board is NOT on the blacklist. i am asking why
-> does the kernel disable ACPI on my mb by default? what's wrong with it?
-> are there any known problems?
-> 
-> - - on the same machine, i have 2 nics. one of them is onboard (intel
-> eepro/100) and the other is a realtek 8139. they used to work ok with
-> some versions of the kernel, but now they only work together without
-> ACPI. with acpi, the realtek displays the famous SIOCIFADDR "device is
-> busy...". is this normal? what can be happening here?
-> 
-> thanks for your time.
-> regards,
-> pedro.
-> -----BEGIN PGP SIGNATURE-----
-> Version: GnuPG v1.2.1 (MingW32)
-> Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
-> 
-> iD8DBQFAL4I9eRy7HWZxjWERAl2jAJ9RTPnvBG2dkUuyAeCKunGPXppAJACgyNWc
-> 6dcQRdyMzFUpnr+nZXwwJmM=
-> =Zyfj
-> -----END PGP SIGNATURE-----
-> 
-> 
-> -------------------------------------------------------
-> SF.Net is sponsored by: Speed Start Your Linux Apps Now.
-> Build and deploy apps & Web services for Linux with
-> a free DVD software kit from IBM. Click Now!
-> http://ads.osdn.com/?ad_id=1356&alloc_id=3438&op=click
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 
