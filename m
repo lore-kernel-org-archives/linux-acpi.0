@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Inspiron 5150
-Date: Wed, 31 Dec 2003 18:01:55 +0800
+Subject: RE: interesting bug i have been fighting
+Date: Wed, 31 Dec 2003 18:28:10 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C67@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C68@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,17 +17,13 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Michael McCaskill <mjmccask-wFL5RxzaCDUeF4Ui59n7hQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Steven Michalske <hardkrash-vsIoIIaCAUzCfDggNXIi3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->I hear talks about the Inspiron 5150's DSDT being broken, like most
-Dells.
->My ACP (specifically button and lid) do not operate in 2.6.0 series but
->did in 2.4.0 series. Does the DSDT have anything to do with this? Is
-there
->being any work on creating a new DSDT for the 5150?
+>attached is the log.
+I cannot find the interesting "osl-0892 [1952] os_wait_semaphore     :
+Failed to acquire" in this log.
 
-Please provide kernel version that doesn't work for you.
 
 
 -------------------------------------------------------
