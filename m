@@ -1,10 +1,11 @@
-From: NortonAV-0PqAHbyqU04@public.gmane.org
-Subject: NAV hat einen Virus in einem Ihrer Dokumente gefunden.
-Date: Sat, 30 Aug 2003 23:46:30 +0200
+From: administrator-PjAqaU27lzQ@public.gmane.org
+Subject: Virus Warning
+Date: Sat, 30 Aug 2003 19:22:24 -0400 (EDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <OFD45BCBF5.D1CD33E7-ONC1256D92.00779D2E@ars.de>
+Message-ID: <200308302322.BWE03035@zidane.cc.vt.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -17,16 +18,8 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Wenden Sie sich an den Systemadministrator.
 
-
-The infected component in the scanned document was deleted.
-
-
-Violation Information:
-The attachment thank_you.pif contained the virus W32.Sobig.F@mm and was deleted.
-
-
+The message you emailed to dweand-PjAqaU27lzQ@public.gmane.org, dated 08/30/03 19:22:24, contains the W32/Sobig-F virus in the document_all.pif attachment. The action taken was: deleted the attachment.
 
 
 
