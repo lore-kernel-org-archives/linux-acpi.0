@@ -1,13 +1,12 @@
-From: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
-Subject: Re: swsusp needs clock corrected | 8193too needs reload
-Date: Mon, 16 Sep 2002 11:25:06 +0200 (CEST)
+From: Brad Parker <brad-2nKKSigPee+ibv+y4V69FXNtEUiqdi9I@public.gmane.org>
+Subject: Re: 2.5.34?
+Date: Mon, 16 Sep 2002 07:30:50 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0209161123420.12600-100000@dynast.gaugusch.at>
-References: <3D85998F.7090101@symplon.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Message-ID: <200209161130.g8GBUo024143@p2.parker.boston.ma.us>
+References: <willy@debian.org>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3D85998F.7090101-y2s3ugBAdl9BDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: Message from Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+   of "Mon, 16 Sep 2002 01:25:06 BST." <20020916012506.G10583-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,28 +15,33 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI-Devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Cc: Gustavo Sverzut Barbieri <gsbarbieri-/E1597aS9LRfJ/NunPodnw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sep 16, Robert <robert.woerle-y2s3ugBAdl9BDgjK7y7TUQ@public.gmane.org> wrote:
-> Only 2 things are not fully working with swsusp
-> after i resume from S4 , my clock is still at the time when it was
-> suspended.
-Run hwclock --hctosys after resume (and preferable hwclock --systohc
-before)
 
-> the secound thing is that i need to rmmod my 8139too Realtek eth0 chip
-> and reinsert it by hand . although i get the correct messages at resume
-> : " setting up half dupley 10/100 ...."
-I only used to to ifconfig eth0 down and up - this also renewed my DHCP
-address - very fine :-)
+Matthew Wilcox wrote:
+...
+>you could grab a nightly snapshot if you can't wait for 2.5.35:
+>http://www.kernel.org/pub/linux/kernel/people/jgarzik/snap/2.5/patch-2.5.34-bk
+>6.bz2
 
-Markus
--- 
-__________________    /"\
-Markus Gaugusch       \ /    ASCII Ribbon Campaign
-markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org     X     Against HTML Mail
-                      / \
+Hi,
+
+This link doesn't work; there's no .../jgarzik/snap directory.
+
+Can anyone provide a coherent description of the S3 support in 2.5.34?
+Is it close?  does it need patches (like the one above?)
+
+I'm willing to put some work into it but I'd benefit from whom ever is
+closest to it giving a quick status.
+
+It seems like if S4 can be made to work, S3 should be straightforward
+(heh).  If tried it in a stock 2.5.34 and found no difference from the
+2.2.x acpi patched kernels I use...
+
+-brad
+
 
 
 
