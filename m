@@ -1,14 +1,16 @@
-From: Nick Lidakis <nlidakis-H+0wwilmMs3R7s880joybQ@public.gmane.org>
-Subject: Re: Desktop and S3 suspend the Holy Grail of ACPI?
-Date: Tue, 24 Feb 2004 00:06:20 -0500
+From: Thorsten Zachmann <t.zachmann-c61pB8mzqkY@public.gmane.org>
+Subject: Re: No network after S3
+Date: Tue, 24 Feb 2004 07:41:30 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <403ADBCC.9060108@verizon.net>
-References: <4038F499.2060302@verizon.net> <1077517907.12673.43.camel@dhcppc4>
+Message-ID: <200402240741.30530.t.zachmann@zagge.de>
+References: <BF1FE1855350A0479097B3A0D2A80EE0025A6344@hdsmsx402.hd.intel.com> <1077000806.2515.46.camel@dhcppc4> <200402170856.42059.t.zachmann@zagge.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1077517907.12673.43.camel-D2Zvc0uNKG8@public.gmane.org>
+In-Reply-To: <200402170856.42059.t.zachmann-c61pB8mzqkY@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -21,40 +23,39 @@ To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Len Brown wrote:
+Hello Len,
 
->>    
->>
+> On Tuesday 17 February 2004 07:53, Len Brown wrote:
+> > > Please let me know if there is any information that I can provide to
+> > > track the problem down?
+> >
+> > need /proc/interrupts -- PIC or APIC mode?  network interrupt shared
+> > with ACPI, other devices, or dedicated interrupt?
 >
->I've got a laptop running Fedora Core 2 out of the box, and all I do is
+> I think I use APIC mode. The interrupts for the network are not shared with
+> another device as far as I can tell. /proc/interrupts only show eth0 on
+> interrupt 6.
 >
-># echo 3 >/proc/acpi/sleep
->and I use the power button to wake it up.
+> I have attached a file containing the output of /proc/interrupts, dmesg
+> and /var/log/boot.msg.
 >
->I've also got a D875PBZ, however
+> > We'll probably have
+> > to dump out the state of the interrupt controller after resume.  for
+> > IOAPIC we can do that with print_IO_APIC.  for PIC mode we'll need
+> > something else.
 >
->[root-BJIgRQarj28@public.gmane.org /]# echo -n 3 >/proc/acpi/sleep
->Stopping tasks: ==============================
-> stopping tasks failed (1 tasks remaining)
->Restarting tasks...<6> Strange, katad-1 not stopped
-> done
->[root-BJIgRQarj28@public.gmane.org /]#
->
->which I guess is due to its SATA boot drive.
->Do you have a regular PATA drive?
->
->cheers,
->-Len
->
->
->
->  
->
-Yes I do have regular PATA drives. Could you give me the details on your 
-configuration? Other hardware, kernel and patches applied?
+> just tell me what I have to do. Where do I have to call print_IO_APIC?
 
-Thanks.
+I had a look in my kernel config and IO-APIC is enabled. Can you tell me where 
+I have to call print_IO_APIC.  
 
+is there any infomation I can send you, or any tests I can make to locate the 
+source of the problem. I really like this bug fixed, as this is one of the 
+features I need most on my notebook.
+
+Thanks for you  help, have a nice day
+
+Thorsten 
 
 
 -------------------------------------------------------
