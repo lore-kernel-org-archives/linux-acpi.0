@@ -1,39 +1,58 @@
-From: David Mosberger <davidm@napali.hpl.hp.com>
-Subject: Re: [ACPI] ACPI global lock macros
-Date: Tue, 9 Dec 2003 11:03:15 -0800
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <16342.7283.350878.950554@napali.hpl.hp.com>
-References: <F760B14C9561B941B89469F59BA3A8470255EFB3@orsmsx401.jf.intel.com>
-	<3FD61CA5.6050203@google.com>
-Reply-To: davidm@hpl.hp.com
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: RE: [Bug 1656] Merge FreeBSD local changes into vendor dist
+ (fwd)
+Date: Tue, 9 Dec 2003 14:32:34 -0800 (PST)
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20031209142631.F43549@root.org>
+References: <F760B14C9561B941B89469F59BA3A8470255EFB2@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-In-Reply-To: <3FD61CA5.6050203@google.com>
-To: Paul Menage <menage@google.com>
-Cc: "Grover, Andrew" <andrew.grover@intel.com>, linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <F760B14C9561B941B89469F59BA3A8470255EFB2-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->>>>> On Tue, 09 Dec 2003 11:04:05 -0800, Paul Menage <menage@google.com> said:
+On Tue, 9 Dec 2003, Grover, Andrew wrote:
+> > From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> > [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of
+> > Nate Lawson
+> > !#@$@!#$#@!$ This is the second time this has happened.  Can
+> > we either 1.
+> > get an acpi-ca bug tracking system or 2. tell the admins to leave me
+> > alone?
+>
+> This should go to Bob directly. If the non-Linux ACPI CA bug volume gets
+> high them maybe we can discuss other options, but until then I think
+> that's the right thing to do.
+>
+> Regards -- Andy
+>
+> PS Bob is on acpi-jp IIRC...
 
-  Paul> Grover, Andrew wrote:
+My main worry is losing track of patches sent to Bob and the mailing
+lists.  No offense, but I've gotten much better response out of bugs
+submitted to bugme than to the mailing list.  And I'm less likely to lose
+them as well.
 
-  >> BTW, i386, x86_64 and ia64 all have this macro, so these all might need
-  >> to be looked at.
+I believe my solution will be to obfuscate any non-Linux identifying
+features from future bug submissions to keep them out of sight of the
+pedants^H^H^H^H^H^H^H admins who have nothing better to do than cancel
+legitimate bug reports.
+
+-Nate
 
 
-  Paul> Yes, it was the differences between the i386 and x86_64
-  Paul> versions that made me notice this problem. The ia64 version is
-  Paul> in C, so looks safer.  Ideally there would be a common C
-  Paul> definition - the only arch-specific part should be the locked
-  Paul> cmpxchg, unless this lock is likely to be taken/released so
-  Paul> often that it's performance critical.
-
-As far as ia64 is concerned, you could replace ia64_cmpxchg4_acq()
-with cmpxchg().  That should just work.  Of course, as you point out,
-that wouldn't work on x86 UP because of the missing "lock" prefix.
-Sounds like you'd need to add something along the lines of
-device_atomic_cmpxchg() or something like that...
-
-	--david
+-------------------------------------------------------
+This SF.net email is sponsored by: SF.net Giveback Program.
+Does SourceForge.net help you be more productive?  Does it
+help you create better code?  SHARE THE LOVE, and help us help
+YOU!  Click Here: http://sourceforge.net/donate/
