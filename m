@@ -1,14 +1,12 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: Can set all but active[2] temperature via trip_points
-Date: Tue, 27 Apr 2004 11:08:14 +0200
+From: Stefan Lutz <Operating-Systems-Team1-/ixSogHR0HOS/tZ4Wjpou0EOCMrvLtNR@public.gmane.org>
+Subject: list of events
+Date: Tue, 27 Apr 2004 12:07:51 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040427090814.GA1787@message-id.gmane0305.slipkontur.de>
-References: <20040425055737.GA7358@home.larve.net> <20040426112550.GB23616@fuchi> <20040426214213.GA10794@message-id.gmane0305.slipkontur.de>
+Message-ID: <408E30F7.2020008@fujitsu-siemens.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040426214213.GA10794-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -22,11 +20,15 @@ List-Id: linux-acpi@vger.kernel.org
 
 Hi,
 
-I attached this patch to http://bugme.osdl.org/show_bug.cgi?id=2588
-where another implementation from Hugo can be found.
--- 
-Stefan Seyfried
+is there any list of events (maybe with a short additional info) of 
+all possible acpi events the acpid daemon can handle? I am currently 
+experimenting with thos daemon and it is a little bit tricky to find 
+out how this events are named and where they are place inside the 
+hierarchy. Thank you for any help.
 
+Yours,
+
+Stefan
 
 
 -------------------------------------------------------
