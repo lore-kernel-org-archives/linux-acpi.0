@@ -1,8 +1,8 @@
 From: wwp <subscript-GANU6spQydw@public.gmane.org>
 Subject: Re: 2.4.24 patch apply failed on vanilla kernel
-Date: Wed, 7 Jan 2004 22:54:56 +0100
+Date: Wed, 7 Jan 2004 22:56:50 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040107225456.67c53238@tethys>
+Message-ID: <20040107225650.388f96d4@tethys>
 References: <20040107134658.5afa9142.acpi@thermoman.de>
 	<20040107155325.5bfceba0@tethys>
 	<20040107163907.391c146e.acpi@thermoman.de>
@@ -33,7 +33,8 @@ On 07 Jan 2004 20:01:17 +0000 S=E9rgio Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd
 > I think=20
 > Full version of kernel2.4.24 have all apci patches updated=20
 
-So why is there an acpi-2.4.24 patch??
+Forgotten to say that 2.4.24 doesn't include any change around acpi since
+2.4.23, it was only a security fix release (see the Changelog).
 
 
 Regards,
