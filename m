@@ -1,14 +1,13 @@
-From: Maciek Gorniak <mago-StWSBrfNG1XVItvQsEIGlw@public.gmane.org>
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
 Subject: Re: CALL FOR TESTING
-Date: 22 Sep 2002 22:36:22 +0200
+Date: Wed, 18 Sep 2002 05:54:57 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1032726982.516.8.camel@vabanque>
-References: <EDC461A30AC4D511ADE10002A5072CAD0236DE80@orsmsx119.jf.intel.com>
+Message-ID: <20020918055456.H202@toy.ucw.cz>
+References: <EDC461A30AC4D511ADE10002A5072CAD0236DE80@orsmsx119.jf.intel.com> <1032435715.338.5.camel@bacchus.gpphy.uni-duesseldorf.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD0236DE80-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
+In-Reply-To: <1032435715.338.5.camel-s1IKGncK6J2OERECOqmV57dB6IYNvbhm87tLKu7D3g4@public.gmane.org>; from knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org on Thu, Sep 19, 2002 at 01:41:55PM +0200
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,31 +16,25 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
+Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On czw, 2002-09-19 at 08:27, Grover, Andrew wrote:
-> I wanted to make a special request for testing of the 2.4 patch (or should I
-> say, MEGA-patch).
+Hi!
 
-HP Pavilion n5415
-kernel 2.4.20pre7
+> > - DOES IT BOOT?
+> 
+> No. This is a Gigabyte 7IXE4 with an Athlon 1,3 GHz. It throws two
+> oopses (NULL pointer deref at 0..04) just after providing information
+> about thermal zone. I can write them down, type them in and send them if
+> necessary.
 
-> - DOES IT BOOT?
-
-Yes! RSDT mapping finally works out of the box (for the first time)!
-
-> - DOES IT ASSIGN INTERRUPTS PROPERLY?
-
-It seems so! USB, sound both work.
-Additionally S1 state works and all /proc/acpi reports seem to be ok.
-Good job!
-Thanks
-
+HP Omnibook oopses if CPU is too hot during boot. Can you try booting from
+cold system?
+								Pavel
 -- 
-Maciek Gorniak
-
+Philips Velo 1: 1"x4"x8", 300gram, 60, 12MB, 40bogomips, linux, mutt,
+details at http://atrey.karlin.mff.cuni.cz/~pavel/velo/index.html.
 
 
 
