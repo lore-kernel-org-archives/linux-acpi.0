@@ -1,12 +1,14 @@
 From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Subject: Patches version problem
-Date: Sat, 06 Mar 2004 14:12:47 +0100
+Subject: Re: [PATCH] bug in acpi_os_wait_semaphore
+Date: Sat, 06 Mar 2004 14:34:49 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4049CE4F.9090409@pca.it>
+Message-ID: <4049D379.3000107@pca.it>
+References: <20040303143725.GA1657@ergo.gotdns.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20040303143725.GA1657-nlVyBo/8EO9N0TnZuCh8vA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -23,32 +25,27 @@ Hash: SHA1
 
 Hello,
 
-I download again the latest patches for 2.6.3 and 2.6.4 and I've a funny (and
-IMHO *very-problematic*) situation:
+on 03/03/04 15:37, Sebastian Seifert wrote:
+> I have found a tiny bug in acpi_os_wait_semaphore, which has caused my mutex
+> problems. If Acquire is called on a mutex with a non-zero, non-infinity
+> timeout, a bad return value check will cause the timeout to expire instantly.
+I've a problem with 'acpi_os_wait_semaphore':
 =====
-gismo:/usr/src# ls -l kernel/v2.6/acpi-20040220-2.6.*
-- -rw-r--r--    1 luca     luca         9470 Mar  1 08:15
-kernel/v2.6/acpi-20040220-2.6.3.diff.bz2
-- -rw-r--r--    1 luca     luca        12582 Mar  2 12:24
-kernel/v2.6/acpi-20040220-2.6.4.diff.bz2
-gismo:/usr/src#
-
-gismo:/usr/src# ls -l /home/luca/download/acpi-20040220-2.6.*
-- -rw-------    1 luca     luca        15554 Mar  6 13:56
-/home/luca/download/acpi-20040220-2.6.3.diff.bz2
-- -rw-r--r--    1 luca     luca        12569 Mar  6 13:56
-/home/luca/download/acpi-20040220-2.6.4.diff.bz2
-gismo:/usr/src#
+luca-HSB4nKSusd8@public.gmane.org:/usr/src$ dmesg | tail -n 5
+     osl-0909 [1212919] os_wait_semaphore     : Failed to acquire
+semaphore[dff3e600|1|0], AE_TIME
+     osl-0909 [1213627] os_wait_semaphore     : Failed to acquire
+semaphore[dff3e600|1|0], AE_TIME
+     osl-0909 [1213649] os_wait_semaphore     : Failed to acquire
+semaphore[dff3e600|1|0], AE_TIME
+     osl-0909 [1219462] os_wait_semaphore     : Failed to acquire
+semaphore[dff3e600|1|0], AE_TIME
+     osl-0909 [1219483] os_wait_semaphore     : Failed to acquire
+semaphore[dff3e600|1|0], AE_TIME
+luca-HSB4nKSusd8@public.gmane.org:/usr/src$
 =====
 
-So, there're 2 different patches with the same name and this can cause
-inconsistency: if you release a patch at 20040305 (the last nigth), why do you
-call it 'acpi-20040220'??? I mean, I use 'acpi-20040220' since 20040301 (as from
-the 'ls -l') and now I'll use 'acpi-20040220' from 20040305: they are different,
-as the size suggests, but from a 'cat /proc/acpi/info' I don't have any way to
-know which one I'm using (the 20040301 or 20040305).
-
-Again, why the same name?
+Could your patch solve it?
 
 Thx, bye,
 Gismo / Luca
@@ -56,9 +53,9 @@ Gismo / Luca
 Version: GnuPG v1.2.4 (GNU/Linux)
 Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
 
-iD8DBQFASc5OVAp7Xm10JmkRAiqqAJ4twhxRmJlrLVubOR/NeYmnYx+5agCfQ+te
-RbZlgJiAeXpcddzwTFluz2I=
-=s3uL
+iD8DBQFASdN4VAp7Xm10JmkRAu3oAJwLev6mvIlrkNsEWHM+HwmybuVtqACfWeHp
+UayMAyMXnm5xF08cn2FXqeI=
+=cXYE
 -----END PGP SIGNATURE-----
 
 
