@@ -1,15 +1,14 @@
-From: Keshavamurthy Anil S <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Re: [PATCH 5/6]ACPI based Physical CPU hotplug
-Date: Thu, 9 Sep 2004 14:18:10 -0700
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: acpi_serialize not working?
+Date: Thu, 9 Sep 2004 15:55:13 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040909141809.A16106@unix-os.sc.intel.com>
-References: <44BDAFB888F59F408FAE3CC35AB47041B17999@orsmsx409> <20040908184011.C7384@unix-os.sc.intel.com> <4140BFA3.1070508@kolumbus.fi>
-Reply-To: Keshavamurthy Anil S <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Message-ID: <37F890616C995246BE76B3E6B2DBE05501F537BE@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4140BFA3.1070508-9Aww8k/80nUxHbG02/KK1g@public.gmane.org>; from mika.penttila-9Aww8k/80nUxHbG02/KK1g@public.gmane.org on Thu, Sep 09, 2004 at 11:40:03PM +0300
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,26 +17,70 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Mika Penttil? <mika.penttila-9Aww8k/80nUxHbG02/KK1g@public.gmane.org>
-Cc: Keshavamurthy Anil S <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, LHNS list <lhns-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, ACPI Developer <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Andreas Dieling <snow-1pFVYSAoaJAREI5ypv3d1g@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Sep 09, 2004 at 11:40:03PM +0300, Mika Penttil? wrote:
-> I don't see how the acpi_processor_start() stuff (which was formerly in 
-> acpi_processor_add()) gets executed in the plain non-hotplug case. It's 
-> only called from the hotplug notifications.
-Hi Mika,
-	Firstly thanks for your time looking at the code and let me clarify you concerns.
-If you look at acpi_bus_driver_init() function from where the ops.add() is getting called, 
-once the ops.add() gets passed, and if the driver has .start function defined 
-then ops.start() is called. In our case the processor driver is setting
-.start to acpi_processor_start function in its acpi_processor_driver structure.
+The implementation of the forced serialization is straightforward:
 
-Let me know if you have any other concerns.
+    if (AcpiGbl_AllMethodsSerialized)
+    {
+        ObjDesc->Method.Concurrency =3D 1;
+        ObjDesc->Method.MethodFlags |=3D AML_METHOD_SERIALIZED;
+    }
 
-Thanks,
-Anil Keshavamurthy
+I would be interested in more information on the failure.
 
+
+> -----Original Message-----
+> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
+> admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Andreas Dieling
+> Sent: Thursday, September 09, 2004 6:15 AM
+> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: [ACPI] acpi_serialize not working?
+>=20
+> Hi,
+>=20
+> i have an Asus M6N notebook. Me and other M6N users have the problem
+that
+> the
+> fan sometimes stops working which results in an overheating of the
+system.
+> The problem occurs under Linux and under Windows.
+>=20
+> After much investigation i could figure out the problem:
+>=20
+> It is a problem with concurrently appearing acpi events. If i am
+reading
+> cpu
+> temperature via acpi in an endless loop and the fan is switching on
+> collateral the fan controll and temperature readout is crashing and
+left
+> non-functional.
+>=20
+> After i patched the dsdt and marked all aml methods as "Serialized"
+the
+> problem doesn't occur anymore :-)
+>=20
+> Since other M6N users may not want to patch their dsdt i tested
+> acpi_serialize
+> as a kernel option. I thought it should have the same effect, but it
+> doesn't
+> seem to work because the fan/temperatur problem occured again...
+>=20
+> Is this a bug or has the acpi_serialize option a different purpose?
+>=20
+> thx Andreas
+>=20
+>=20
+> -------------------------------------------------------
+> This SF.Net email is sponsored by BEA Weblogic Workshop
+> FREE Java Enterprise J2EE developer tools!
+> Get your free copy of BEA WebLogic Workshop 8.1 today.
+> http://ads.osdn.com/?ad_id=3D5047&alloc_id=3D10808&op=3Dclick
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
