@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: acpi on thinkpad r40e
-Date: Fri, 6 Feb 2004 23:43:16 +0800
+Subject: RE: VIA KT333 acpi DSDT bug
+Date: Fri, 6 Feb 2004 23:54:14 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB683@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB684@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,20 +17,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Praveen C <praveen-8a50ANe9Mx0/NI2e8YfAcJ/QNRX+jHPU@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: chp.dekker-OdOgJZujJHXcqV2Q6a4srg@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> I am running linux 2.6.1 on thinkpad r40e with acpi 20040116.
-> Acpi partly works. I can get battery and ac adapter status.=20
-> But thermal
-> and processor modules cause the system to hang and I have to then
-> poweroff. I cannot even connect from another computer when it hangs.
+> I didn't see this before (because fglrx act's like a semafore=20
+> error generator=20
+> for last 10 weeks) but it looks like my computer doesn't resolve=20
+> \_SB.PCI0.SBRG.EC0.
 >=20
-Did you deselect thermal and processor modules to be able to boot
-without hang?
-But we need boot log of kernel with thermal and processor modules, and
-don't forget
-to get acpi debug option selected.
+
+We can verify it in DSDT.
+
+>=20
+> ACPI: Subsystem revision 20031203
+
+This version is a little bit older .
 
 --Luming
 
