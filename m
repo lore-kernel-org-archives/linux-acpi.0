@@ -1,43 +1,57 @@
-From: Greg <gonufer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: s3_late_bios
-Date: Mon, 8 Nov 2004 15:09:09 -0800
-Message-ID: <3195717504110815096a527710@mail.gmail.com>
-References: <20041108144947.GA31267@tate.loria.fr>
-Reply-To: Greg <gonufer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Li Shaohua <shaohua.li@intel.com>
+Subject: Re: [PATCH/RFC 1/4]device core changes
+Date: Tue, 09 Nov 2004 08:50:18 +0800
+Message-ID: <1099961418.15294.11.camel@sli10-desk.sh.intel.com>
+References: <1099887071.1750.243.camel@sli10-desk.sh.intel.com>
+	 <20041108225810.GB16197@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041108144947.GA31267-xkTd+U360DcAs8EywTwl9A@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?ISO-8859-1?Q?Emmanuel_Thom=E9?= <emmanuel.thome-MZpvjPyXg2s@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, ole.rohne-vJEk5272eHo@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261325AbUKIBDn@vger.kernel.org>
+In-Reply-To: <20041108225810.GB16197@kroah.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: ACPI-DEV <acpi-devel@lists.sourceforge.net>, lkml <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, Patrick Mochel <mochel@digitalimplant.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> Sorry I've been off for a week. Here is the version of the s3_late_bios
-> patch with the segment info coded in C.
+On Tue, 2004-11-09 at 06:58, Greg KH wrote:
+> On Mon, Nov 08, 2004 at 12:11:11PM +0800, Li Shaohua wrote:
+> > Hi,
+> > This is the device core change required. Add .platform_bind method for
+> > bus_type, so platform can do addition things when add a new device. A
+> > case is ACPI, we want to utilize some ACPI methods for physical devices.
+> > 1. Why doesn't use 'platform_notify'?
+> > Current device core has a 'platform_notify' mechanism, but it's not
+> > sufficient for this. Only sepcific bus type know how to parse dev.bus_id
+> > and know how to encode specific device's address into ACPI _ADR syntax.
+> 
+> I don't see why platform_notify is not sufficient.  This is the exact
+> reason it was added to the code.
+As I said in the email, we need know the bus type to decode and encode
+address. If you use platform_notify, you must do something like this:
+switch (dev->bus)
+{
+case pci_bus_type:
+bind PCI devices with ACPI devices
+break;
+case ide_bus_type:
+bind IDE devices with ACPI devices
+break;
+....
+}
+But note this method requires all bus types are build-in. If a bus type
+is in a loadable module (such as IDE bus), the method will failed. I
+searched current tree, only ARM implemented 'platform_notify', but ARM
+only cares PCI bus, ACPI cares about all bus types.
+> 
+> > 2. Why adds new 'handle' in 'struct device'?
+> > 'Platform_data' is the best candidate, but a search shows some drivers
+> > have used it. We can remove 'handle' after the drivers changes their
+> > behavior.
+> 
+> No, fix the drivers.  Don't add something that you are going to remove
+> later.
+Ok, I'll try to fix them.
 
-This only works on my Sony VAIO Z1 if the PIC IMR is saved and
-restored around the VGA POST.  For some reason, when returning from
-the BIOS, bit 0 of the IMR is set.  That masks further clock
-interrupts so sleeping waits hang the machine after that point (for
-instance when resuming the pci devices on bus #2 like the e100). 
-Reading the IMR before and after the real-mode POST shows that only
-bit 0 is different.
-
-Cheers!greg
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by:
-Sybase ASE Linux Express Edition - download now for FREE
-LinuxWorld Reader's Choice Award Winner for best database on Linux.
-http://ads.osdn.com/?ad_id=5588&alloc_id=12065&op=click
+Thanks,
+Shaohua
