@@ -1,14 +1,14 @@
-From: "Dino Klein" <dinoklein-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+From: Ian Pilcher <i.pilcher-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Subject: Re: Via 694X based SMB boards (Apollo Pro133A)
-Date: Thu, 15 Jan 2004 17:36:28 -0500
+Date: Thu, 15 Jan 2004 16:50:17 -0600
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Law11-OE71YaEv1Kq2E0000cace@hotmail.com>
-References: <LAW11-OE34hRDT6Z3Ls000131c1@hotmail.com> <20040115141018.F72769@root.org>
+Message-ID: <40071929.1050600@comcast.net>
+References: <LAW11-OE34hRDT6Z3Ls000131c1@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <LAW11-OE34hRDT6Z3Ls000131c1-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,21 +17,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+To: Dino Klein <dinoklein-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> If you're looking to do throttling, some SMP boards support it.  The most
-> common way is with a shared P_BLK.  Either both Processor objects in the
-> ASL will have the same P_BLK or one will have it and the other will have a
-> NULL entry.  Either way, setting throttling through the P_BLK _ONCE_ (not
-> once per processor) sets the throttling level.
+Dino Klein wrote:
+> Hello everybody,
+> 
+> I'm playing around with my Abit VP6 board - trying to get it into S3, and monkeying around with the Cx states.
+> I'm having a problem figuring out how the Via VT82C686B chipset works with two processors, since a datasheet I found for it
+> specifies only one P_BLK. Perhaps I have an older datasheet...
+> 
+> Anyway, unless someone tells me that a the Apollo Pro133A chipset doesn't properly support SMP, I would like to ask other people out
+> there who have 694X(DP) SMP board to take a look at their DSDT and send me the lines containing the processors definitions. If you
+> don't know how to find it, just send me the whole thing, and I'll figure it out; maybe this way I'll figure out the address of the
+> other P_BLK.
+> 
 
+I'll be glad to help any way I can.  You may want to see the "Plea for
+help" thread, to see some problems that ACPI exposes on my VP6.
 
-Actually, I did play with the throttling, but not through the ACPI driver. I wrote directly to the register, and the system was
-reduced to  ~5% (according to the datasheets) of it's former glory. I did that with both CPUs on the board, which makes me wonder -
-is there some way to figure out what is the clock speed of a particular CPU? maybe this way I can figure out whether my actions
-operate on both CPUs or only one one.
+How do I extract/interpret the DSDT?
+
+-- 
+========================================================================
+Ian Pilcher                                        i.pilcher-Wuw85uim5zDR7s880joybQ@public.gmane.org
+========================================================================
+
 
 
 -------------------------------------------------------
