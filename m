@@ -1,15 +1,15 @@
-From: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
-Subject: Re: Re: Re: various problems with Acer TM654, suspend, ACAD,
- radeon
-Date: Wed, 25 Aug 2004 09:52:00 -0400
+From: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>
+Subject: Re: Re: Re: various problems with Acer TM654, suspend, ACAD, radeon
+Date: Wed, 25 Aug 2004 15:59:00 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <412C9980.803@optonline.net>
-References: <20040820161911.GA24510@gamma.logic.tuwien.ac.at> <20040823070534.GD24853@message-id.gmane0305.slipkontur.de> <20040823103515.GH8635@gamma.logic.tuwien.ac.at> <20040824233153.GA15474@message-id.gmane0305.slipkontur.de> <20040825131109.GD6119@gamma.logic.tuwien.ac.at>
+Message-ID: <20040825135900.GF6119@gamma.logic.tuwien.ac.at>
+References: <20040820161911.GA24510@gamma.logic.tuwien.ac.at> <20040823070534.GD24853@message-id.gmane0305.slipkontur.de> <20040823103515.GH8635@gamma.logic.tuwien.ac.at> <20040824233153.GA15474@message-id.gmane0305.slipkontur.de> <20040825131109.GD6119@gamma.logic.tuwien.ac.at> <20040825135213.GA27584@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040825131109.GD6119-DqSSrKF0TaySnEC3TeqHn5dqbFPxfnh/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20040825135213.GA27584-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,22 +18,61 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>
-Cc: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Norbert Preining wrote:
+On Mit, 25 Aug 2004, Karol Kozimor wrote:
+> > AND: If you are in kicking the engenieers: Could you please ask them WHY
+> > ON EARTH did they set the latency limit of the C2 state to 101, effectively
+> > disabling the usage of C2?
+> 
+> Well, you've just answered yourself :)
+> Seriously though, they might have overreacted / misread the erratum. ICH3-M
+> does not like to enter C2/C3 when in IO-APIC mode, that's for sure.
 
-> But: I cannot load b44 module, I always get this treadfull error, see
-> other thread about 
-> 	b44: Error, poll already scheduled
+??? Sorry for my complete lack of understanding: What does this mean? Do
+you say that my laptop shouldn't run at all or have problems?
 
-Right now this looks like a driver issue, since the driver isn't 
-claiming the interrupt after resume. (From your /proc/interrupts in your 
-previous email.)
+My /proc/acpi/processor/CPU0/power says:
+active state:            C2
+default state:           C1
+bus master activity:     00000000
+states:
+    C1:                  promotion[C2] demotion[--] latency[000] usage[00352530]
+   *C2:                  promotion[--] demotion[C1] latency[101] usage[10009625]
+    C3:                  <not supported>
 
-Somebody needs to check if there is some code path that could prevent 
-b44 from calling request_irq()...
+So it is working.
+
+AND: I had suspend2disk run with the pmdisk code (before it was
+merged/ripped out) without any problems, even with the b44 driver
+loaded.
+
+AND: Problems only arise with suspend2disk, not in normal operation.
+
+So should I undo the C2 fix? Do you say that this is dangerous for the
+laptop?
+
+> Karol 'sziwan' Kozimor
+> himself running on forced C3
+
+;-)
+
+
+Best wishes
+
+Norbert
+
+-------------------------------------------------------------------------------
+Norbert Preining <preining AT logic DOT at>         Technische Universität Wien
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
+-------------------------------------------------------------------------------
+BURTON COGGLES
+A bunch of keys found in a drawer whose purpose has long been
+forgotten, and which can therefore now be used only for dropping down
+people's backs as a cure for nose-bleeds.
+			--- Douglas Adams, The Meaning of Liff
 
 
 -------------------------------------------------------
