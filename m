@@ -1,8 +1,8 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: mpparse.c APIC/ACPI support
-Date: Mon, 3 Mar 2003 09:02:49 -0800
+Subject: RE: Battery "design capacity" incorrect
+Date: Mon, 3 Mar 2003 09:16:49 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A84725A1C2@orsmsx401.jf.intel.com>
+Message-ID: <F760B14C9561B941B89469F59BA3A84725A1C3@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -16,32 +16,34 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Cagle, John (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>, info-IGm5bqYn3xwb1SvskN2V4Q@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: alan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: Matthew Keller <mgkeller-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Cagle, John (ISS-Houston) [mailto:john.cagle-VXdhtT5mjnY@public.gmane.org] 
-> I'm glad you got your system working with ACPI again.  Regarding
-> Windows, I've heard that it may|will remap just about 
-> everything to its
-> liking, so it doesn't surprise me that it's different.
+> From: Matthew Keller [mailto:mgkeller-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] 
+> Below is the output
+> (/proc/acpi/batter/BAT1/info) for the battery in my Gateway 
+> Solo 1450X.
+> The design capacity should be right around what the "last 
+> full capacity"
+> says. I've confirmed this on Sanyo's site. I would like to note that
+> everything is **perfect** with a different Sanyo model 
+> battery that is a
+> "extra capacity" battery. Is there any source I can diddle? 
+> Proc entries
+> I can echo some magic number into? etc? Thanks!
 > 
-> I'm not an expert on APICs, but it seems that the
-> mp_config_acpi_legacy_irqs() routine shouldn't blindly set 
-> IRQs 0..15 to
-> ISA conforming mode (edge triggered).  I know for a fact that many
-> systems will have PCI devices using/sharing these IRQs, which will
-> require the IRQ to be level-triggered.
+> present:                 yes
+> design capacity:         5400 mWh
+> last full capacity:      3864 mWh
 
-In theory, ACPI comes through later and changes the irqs < 15 with
-possible PCI devices by calling io_apic_set_pci_routing.
+So it always returns 5400 mWh, no matter what, is what I think you're
+saying, yes?
 
-So *in theory* it should work ok. Obviously something is not right.
+If this isn't a problem on Windows, I think we can assume it is using
+the last full capacity when generating percent full numbers. Maybe we
+should do the same?
 
 Regards -- Andy
-
-PS Paul and Ingo seem to have moved on to greener pastures, so I am not
-copying them.
 
 
 -------------------------------------------------------
