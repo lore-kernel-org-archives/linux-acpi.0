@@ -1,34 +1,48 @@
-From: Juan Quintela <quintela-vTSrGsn2Cd4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [BK PATCH] acpismp=force fix
-Date: Mon, 30 Jun 2003 17:42:29 +0200
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <863chrshay.fsf@trasno.mitica>
-References: <A5974D8E5F98D511BB910002A50A66470B981205@hdsmsx103.hd.intel.com>
+From: David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: System poweroff
+Date: Mon, 30 Jun 2003 16:46:43 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <1056988002.25574.614.camel@passion.cambridge.redhat.com>
+References: <0ee801c33efa$cd80eaf0$2a0806c0@wiproxcoio3398>
+	 <200306301339.45845.m.c.p@gmx.net> <3F0028B5.40400@relex.ru>
+	 <0f3001c33f02$254b4440$2a0806c0@wiproxcoio3398>
+	 <1056976699.25574.324.camel@passion.cambridge.redhat.com>
+	 <20030630145309.GD7796@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <A5974D8E5F98D511BB910002A50A66470B981205-MgY+aF+eRfZviC08c4yzC1DQ4js95KgL@public.gmane.org> (Len
- Brown's message of "Thu, 26 Jun 2003 14:37:11 -0700")
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: 'Arjan van de Ven' <arjanv-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hugh Dickins <hugh-DTz5qymZ9yRBDgjK7y7TUQ@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-LL/9OlyS9hIAvxtiuMwx3w@public.gmane.org>, torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20030630145309.GD7796-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: siva <sivakumar.subramani-uxC5H9eHYlcAvxtiuMwx3w@public.gmane.org>, Yaroslav Rastrigin <yarick-343whMTK1pU@public.gmane.org>, ACPI-Devel mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
->>>>> "brown," == Brown, Len <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> writes:
+On Mon, 2003-06-30 at 15:53, Ducrot Bruno wrote:
+> > You may be able to work this out by reverse-engineering the APM BIOS or
+> > ACPI bytecode. There's nothing _special_ about them that makes them able
+> > to turn the machine off -- they're only software, it's just that they're
+> > binary-only software to which we don't have the source.
+> 
+> For ACPI, you are wrong.
 
-Hi
-
-brown,> To disable HT on a uni-processor, wouldn't it be preferable to simply run
-brown,> the UP kernel rather than the SMP kernel with HT disabled?  That leaves SMP
-brown,> systems, where either the BIOS could disable it (it is a BIOS bug if it
-brown,> can't), or as a last resort CONFIG_X86_HT (2.5) could be config'd out of the
-brown,> kernel.  I guess I've talked myself into not missing "noht" also.
-
-noht is very useful for distributions, we already have to do a lot of
-kernels,  any option that "mandates" to compile a different kernel is
-just bad (IMHO).
-
-Later, Juan.
+Would you care to elaborate upon that rather terse contradiction of
+common sense?
 
 -- 
-In theory, practice and theory are the same, but in practice they 
-are different -- Larry McVoy
+dwmw2
+
+
+
+-------------------------------------------------------
+This SF.Net email sponsored by: Free pre-built ASP.NET sites including
+Data Reports, E-commerce, Portals, and Forums are available now.
+Download today and enter to win an XBOX or Visual Studio .NET.
+http://aspnet.click-url.com/go/psa00100006ave/direct;at.asp_061203_01/01
