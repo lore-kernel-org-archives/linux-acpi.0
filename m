@@ -1,13 +1,12 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: ARB_DIS
-Date: Mon, 7 Apr 2003 11:40:00 -0700
+From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
+Subject: redhat9 and kernel2.4.22 and failed patch for 2.4.20
+Date: 08 Apr 2003 00:01:54 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A847E96DBF@orsmsx401.jf.intel.com>
+Message-ID: <1049756521.1407.16.camel@darkstar.portugal>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,25 +15,24 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ebrunet-l5PIGlIYzrxGWvitb5QawA@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Eric,
+There is no way configure patch kernel with acpi:), because is one
+2.4.21pre3-ac4!?
+and is very difficult configure 2.4.21-pre6 for redhat9 because at
+startup is request many kernel modules like usb modules, iptables
+modules and many things like the new input devices made in ac kernels.=20
+I guess.
+So is not a bad idear put acpi in ac kernels!!!
+bye good week.
+my last try will be with acpi-20021212-2.4.20.diff.gz in 2.4.20-8
 
-So in a patch applied 6 months ago, you added code to restore the
-ARB_DIS bit on resume from S1. In looking more closely, it appears that
-this is a duplicate of code already in acpi_leave_sleep_state. Given
-that the OS should be calling that function after resuming S1, I am
-considering removing that line from acpi_enter_sleep_state, but wanted
-to check with you before I did. Any reason why I should stay?
+--=20
+S=E9rgioMB
+email: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
 
-Thanks -- Regards -- Andy
-
------------------------------
-Andrew Grover
-Intel Labs / Mobile Architecture
-andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Who gives me one shell, give me everything.
 
 
 
