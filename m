@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ACPI and framebuffer related problems with Linux 2.6.1-rc1
-Date: Fri, 2 Jan 2004 15:17:53 +0800
+Subject: RE: ACPI related problems with Linux 2.6.1-rc1-mm1
+Date: Fri, 2 Jan 2004 15:19:52 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C6E@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C6F@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -20,16 +20,9 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Martin Loschwitz <madkiss-R0iKqZn4BxJAfugRpC6u6w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->However, there is a problem with ACPI:
-/proc/acpi/processor/CPU0/performance,=20
->which was there in previous versions of the kernel and allowed me to
-slow the=20
->CPU down in order to save power, disappeared in Linux 2.6.1-rc1. It's
-simply=20
->not there anymore. Was it replaced?=20
+>Is this a known problem and if so is a fix available?
+File this bug on http://bugzilla.kernel.org.
 
-It sounds like a regression. Would you file it on
-http://bugzilla.kernel.org
 
 
 -------------------------------------------------------
