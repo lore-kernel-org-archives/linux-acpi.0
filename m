@@ -1,8 +1,8 @@
-From: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
+From: Andrew de Quincey <adq-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
 Subject: Re: [ACPI] Where do I send APIC victims?
-Date: Wed, 3 Sep 2003 11:23:58 +0100
+Date: Wed, 3 Sep 2003 11:23:36 +0100
 Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <200309031123.58713.adq_dvb@lidskialf.net>
+Message-ID: <200309031123.36839.adq@lidskialf.net>
 References: <20030903080852.GA27649@k3.hellgate.ch>
 Mime-Version: 1.0
 Content-Type: text/plain;
