@@ -1,16 +1,14 @@
-From: Bernd Schubert <bernd-schubert-S0/GAf8tV78@public.gmane.org>
-Subject: Re: Laptop does not reboot
-Date: Fri, 27 Feb 2004 02:09:03 +0100
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Laptop does not reboot
+Date: Fri, 27 Feb 2004 10:56:55 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200402270209.04355.bernd-schubert@web.de>
-References: <403E59FF.990E2CD0@imail.de>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB6F8@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <403E59FF.990E2CD0-uKKRHEr75Vc@public.gmane.org>
-Content-Disposition: inline
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -19,42 +17,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Dieter Rohlfing <u490248-uKKRHEr75Vc@public.gmane.org>
+To: u490248-uKKRHEr75Vc@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> I've deleted the remaining lines, because I think it's not relevant. As
 > you can see, I played with some kernel options. Among those were:
-> acpi=on/off/force/ht, apm=on/off, reboot=[cbhw],
-> pci=bios/nobios/conf1/conf2/nosort/biosirq/noacpi. But whatever
-> combination I tried, I never had success with rebooting the laptop. The
+> acpi=3Don/off/force/ht, apm=3Don/off, reboot=3D[cbhw],
+> pci=3Dbios/nobios/conf1/conf2/nosort/biosirq/noacpi. But whatever
+> combination I tried, I never had success with rebooting the=20
+> laptop. The
 > only way to get a working reboot is with a kernel 2.2.x. Other 2.4.x
-> kernels (x=18,20,22,24,25) always failed to reboot the machine.
->
+> kernels (x=3D18,20,22,24,25) always failed to reboot the machine.
+>=20
+> I hope, you can help me. If you need any further information,=20
+> please ask
+> me. TIA.
 
-Hi,
+I think you need to set up serial console to monitor the kernel message
+of
+rebooting process to sort out valuable clues. I presume that if =
+acpi=3Doff
+doesn't work, then acpi is exempt from any accusation. :)
 
-maybe you should also give 2.6.x a try? Well, woody is too old for that, you 
-would have to upgrade to unstable (don't know if there are already backports 
-or if all required stuff is also already in Sarge).
-
-
-Also, have you already tried to reboot via magic-sysrq (needs to be enabled in 
-kernel configuration, of course). So either <alt+print+b> or 
-"echo "b" > /proc/sysrq-trigger". Of course thats not a clean reboot, but 
-might be interesting for testing.
-
-Mayby even the reboot command from the sysvinit package is too old, don't 
-know. IMHO woody is too much outdated and shouldn't be used for anything 
-except servers any more.
-
-
-Cheers,
-	Bernd
-
-
-PS: Whats about giving Knoppix a try, if it works there, then its either a 
-problem with too much outdated woody packages or wrong kernel configuration.
+--Luming
 
 
 -------------------------------------------------------
