@@ -1,8 +1,8 @@
 From: "S, Naveen B" <naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [Lhms-devel] [PATCH] ACPI based Memory HotplugDriverPatch
-Date: Fri, 10 Sep 2004 18:10:30 +0530
+Subject: RE: [Lhms-devel] [PATCH] ACPI based Memory Hotplug DriverPatch
+Date: Fri, 10 Sep 2004 18:19:50 +0530
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <FEB6C4E97F6CAF41978FB2059D5454180F37F0@bgsmsx402.gar.corp.intel.com>
+Message-ID: <FEB6C4E97F6CAF41978FB2059D5454180F37F2@bgsmsx402.gar.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,28 +17,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Tolentino, Matthew E" <matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dave Hansen <haveblue-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Cc: keith <kmannth-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lhms <lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "S, Naveen B" <naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "Tolentino, Matthew E" <matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dave Hansen <haveblue-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, keith <kmannth-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lhms <lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "S, Naveen B" <naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 
-
-> >> Currently, it names it memory.ko.  Len has also suggested that it
-be
-> >> something more like memory_hotplug.ko or memory_hp.ko or something
-> >> like that, because the ACPI spec does include verbage about the
-> >> system memory map...  As this driver does handle "memory"
-> >> devices, it kinda makes sense, but we're not wed to any particular
-> >> name...  ;-)
-> >
-> >How about including acpi in the name?  acpi_memory.o?
-> >acpi_memhotplug.o?
 >=20
-> Sure, either is fine with me...  Perhaps being as descriptive as
-> possible is best and just go with acpi_memhotplug.o
+> >I think I'd slightly prefer something that looks more like this (same
+> >thing goes for the add function):
+> >
+> >acpi_memory_disable_device(struct acpi_memory_device *mem_device)
+> >{
+> >	int err;
+> >	u64 start =3D mem_device->start_addr;
+> >	u64 len =3D mem_device->end_addr - start + 1;
+> >	unsigned long attr =3D mem_device->read_write_attribute;
+> >
+> >	ACPI_FUNCTION_TRACE("acpi_memory_disable_device");
+> >
+> >	/*
+> >	 * Ask the VM to offline this memory range.
+> >	 */
+> >	err =3D remove_memory(start, len, attr);
+> >
+> >	if (err) {
+> >		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Hot-Remove
+> >failed.\n"));
+> >		return_VALUE(err);
+> >	}
+> >...
+>=20
+> Yeah, that's a little easier to read...
+>=20
+This looks good and easier to read. Thanks for the suggestion, Dave.
 
-I agree with matt. acpi_memhotplug.o is more descriptive and I think
-this should be fine.
+--Naveen
 
 
 -------------------------------------------------------
