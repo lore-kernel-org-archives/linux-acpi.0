@@ -1,14 +1,12 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: List noise.
-Date: Tue, 27 Jan 2004 12:00:43 -0500
+From: System Administrator <postmaster-irZh+ukUSxEybS5Ee8rs3A@public.gmane.org>
+Subject: Undeliverable:
+Date: Tue, 27 Jan 2004 09:10:32 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <BF1FE1855350A0479097B3A0D2A80EE0CC8A62@hdsmsx402.hd.intel.com>
+Message-ID: <EF754679FCD42140AFF09884EE609FC203674A38@imchub1.cosinecom.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed;
+	boundary="----_=_NextPart_000_01C3E4F8.78C57B3A"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,82 +15,80 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Dave Jones <davej-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Sure, I'm open to moving the list off sourceforge if there is clearly a
-better choice.  Two other problems we've seen on sf are
-1. latency is sometimes huge
-2. archives sometimes unavailable, and not indexed by google.
+This message is in MIME format. Since your mail reader does not understand
+this format, some or all of this message may not be legible.
 
-In the mean-time, here are the mailman spam filters I've got on SF, a
-couple I've added in the last 30-minutes.  It doesn't look like it can
-search for a _missing_ field -- only positive matches.  I'm sure open to
-suggestions for further improvement.
+------_=_NextPart_000_01C3E4F8.78C57B3A
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-Thanks,
--Len
+******************  Virus Warning Message (on mgw.cosinecom.com)
 
-# Lines that *start* with a '#' are comments.
-to: friend-6zcLuMBsFRvQT0dZR+AlfA@public.gmane.org
-message-id: relay.comanche.denmark.eu
-message-id *externalmx.vasoftware.com*
-from: list-pJMVowSF+OPQT0dZR+AlfA@public.gmane.org
-from: .*@uplinkpro.com
-X-Spam-Flag: YES
-Content-Type: text/html
-Auto-Submitted: auto-generated
-Precedence: bulk
-Subject: *Returned mail*
-charset=3D"Windows-1252"
+Found virus WORM_MIMAIL.R in file document.pif
+The uncleanable file was deleted.
+
+*********************************************************
+
+------_=_NextPart_000_01C3E4F8.78C57B3A
+Content-Type: text/plain;
+	charset="iso-8859-1"
+
+Your message
+
+  To:      rfrye-irZh+ukUSxEybS5Ee8rs3A@public.gmane.org
+  Subject: 
+  Sent:    Tue, 27 Jan 2004 09:09:35 -0800
+
+did not reach the following recipient(s):
+
+RFRYE-UwdFWuI9Xr8El3j48+jJwQ@public.gmane.org on Tue, 27 Jan 2004 09:09:40 -0800
+    The recipient name is not recognized
+	The MTS-ID of the original message is: c=us;a= ;p=cosine
+communica;l=IMCHUB10401271709CFP9S6PX
+    MSEXCH:IMS:Cosine Communications:COSINE:IMCHUB1 0 (000C05A6) Unknown
+Recipient
 
 
-> -----Original Message-----
-> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
-> [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
-> David Woodhouse
-> Sent: Tuesday, January 27, 2004 10:00 AM
-> To: Dave Jones
-> Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Subject: Re: [ACPI] List noise.
->=20
->=20
-> On Tue, 2004-01-27 at 14:41 +0000, Dave Jones wrote:
-> > On Tue, Jan 27, 2004 at 02:18:05PM +0000, David Woodhouse wrote:
-> >  > All this noise on the list would be so easily avoided if=20
-> the list wasn't
-> >  > accepting messages without a Message-ID, and wasn't=20
-> accepting bounces.
-> >  >=20
-> >  > It's not hard -- it'd take _moments_ to protect the list=20
-> against this.
-> >=20
-> > if you had control over the MTA, yes.
-> > Sourceforget lists don't offer this power sadly.
->=20
-> Mailman lets you filter on certain headers though, and trap=20
-> messages for
-> moderation. Can't you do something like looking for a Message-ID
-> matching ^$ ?=20
->=20
-> Likewise Return-Path matching <>?
->=20
-> --=20
-> dwmw2
->=20
->=20
->=20
-> -------------------------------------------------------
-> The SF.Net email is sponsored by EclipseCon 2004
-> Premiere Conference on Open Tools Development and Integration
-> See the breadth of Eclipse activity. February 3-5 in Anaheim, CA.
-> http://www.eclipsecon.org/osdn
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
->=20
+
+------_=_NextPart_000_01C3E4F8.78C57B3A
+Content-Type: message/rfc822
+
+From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: rfrye-irZh+ukUSxEybS5Ee8rs3A@public.gmane.org
+Subject: 
+Date: Tue, 27 Jan 2004 09:09:35 -0800
+MIME-Version: 1.0
+X-Mailer: Internet Mail Service (5.5.2653.19)
+X-MS-Embedded-Report: 
+Content-Type: multipart/mixed;
+	boundary="----_=_NextPart_002_01C3E4F8.78C57B3A"
+
+
+------_=_NextPart_002_01C3E4F8.78C57B3A
+Content-Type: text/plain;
+	charset="iso-8859-1"
+
+The message contains Unicode characters and has been sent as a binary
+attachment.
+
+
+
+------_=_NextPart_002_01C3E4F8.78C57B3A
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+
+******************  Virus Warning Message (on mgw.cosinecom.com)
+
+document.pif was removed from here because it contained a virus.
+
+*********************************************************
+------_=_NextPart_002_01C3E4F8.78C57B3A--
+
+------_=_NextPart_000_01C3E4F8.78C57B3A--
 
 
 -------------------------------------------------------
