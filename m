@@ -1,14 +1,17 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+From: "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>
 Subject: Re: Re: PROBLEM: ACPI freezes 2.6.1 on boot
-Date: Thu, 22 Jan 2004 15:05:46 +0100
+Date: Thu, 22 Jan 2004 15:08:56 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040122140546.GD5194@hell.org.pl>
-References: <7F740D512C7C1046AB53446D3720017361885C@scsmsx402.sc.intel.com> <m3u12pgfpr.fsf@reason.gnu-hamburg> <m3ptddgckg.fsf@reason.gnu-hamburg> <20040122120854.GB3534@hell.org.pl> <16399.55109.244040.516731@alkaid.it.uu.se>
+Message-ID: <m3browulc7.fsf@reason.gnu-hamburg>
+References: <7F740D512C7C1046AB53446D3720017361885C@scsmsx402.sc.intel.com>
+	<m3u12pgfpr.fsf@reason.gnu-hamburg>
+	<m3ptddgckg.fsf@reason.gnu-hamburg>
+	<20040122120854.GB3534@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <16399.55109.244040.516731-mKzD8scclNAGILsNoAPbNA@public.gmane.org>
+In-Reply-To: <20040122120854.GB3534-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org> (Karol Kozimor's message of
+ "Thu, 22 Jan 2004 13:08:54 +0100")
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,36 +20,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Mikael Pettersson <mikpe-gJWeRRR3xd2zQB+pC5nmwQ@public.gmane.org>
-Cc: "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>, "Nakajima, Jun" <jun.nakajima-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Martin Loschwitz <madkiss-R0iKqZn4BxJAfugRpC6u6w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Nakajima, Jun" <jun.nakajima-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Martin Loschwitz <madkiss-R0iKqZn4BxJAfugRpC6u6w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Mikael Pettersson:
->  > diff -Bru linux-2.6.0-test8/arch/i386/kernel/apic.c patched/arch/i386/kernel/apic.c
->  > --- linux-2.6.0-test8/arch/i386/kernel/apic.c	2003-10-18 05:43:36.000000000 +0800
->  > +++ patched/arch/i386/kernel/apic.c	2003-10-30 23:17:50.000000000 +0800
->  > @@ -836,8 +836,8 @@
->  >  {
->  >  	unsigned int lvtt1_value, tmp_value;
->  >  
->  > -	lvtt1_value = SET_APIC_TIMER_BASE(APIC_TIMER_BASE_DIV) |
->  > -			APIC_LVT_TIMER_PERIODIC | LOCAL_TIMER_VECTOR;
->  > +	lvtt1_value = APIC_LVT_TIMER_PERIODIC | LOCAL_TIMER_VECTOR;
->  > +
->  >  	apic_write_around(APIC_LVTT, lvtt1_value);
-> 
-> What is the purpose of this change?
-> I don't remember seeing this before on LKML. (I don't have time to read bugzilla.)
+ || On Thu, 22 Jan 2004 13:08:54 +0100
+ || Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org> wrote: 
 
-I don't really know. I'm not the author of the patch, I just found it on my
-disk and I remember it allowed me to boot with LAPIC compiled in, as the
-system would otherwise hang during _STA and _INI execution. I don't even
-know if the patch is still correct.
-Best regards,
+ >> So the problem we've been seeing seems to be related to the
+ >> interaction between local APIC support and ACPI.
+
+ kk> We've definitely had those problems before (with ASUS L3800C),
+ kk> there's even a patch fixing this issue (attached below) you might
+ kk> try.  I guess that's another of those lost and forgotten bugzilla
+ kk> bugs :)
+
+Thanks a lot -- this patch fixed the problem for me.
+
+The kernel now found the APIC and initialized ACPI (including
+switching to level trigger) with no problems.
+
+Could we please make sure this doesn't get lost again and makes it
+into the kernel?
+
+Regards,
+Georg
 
 -- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+Georg C. F. Greve                                       <greve-mXXj517/zsQ@public.gmane.org>
+Free Software Foundation Europe	                 (http://fsfeurope.org)
+Brave GNU World	                           (http://brave-gnu-world.org)
 
 
 -------------------------------------------------------
