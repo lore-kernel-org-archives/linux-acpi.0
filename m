@@ -1,8 +1,8 @@
 From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Subject: Re: Bitfield usage in FADT table?
-Date: Tue, 11 Nov 2003 18:55:03 +0100
+Date: Tue, 11 Nov 2003 18:57:30 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031111175503.GF29175@poupinou.org>
+Message-ID: <20031111175730.GG29175@poupinou.org>
 References: <20031111161527.GC23128@sh.epita.fr> <20031111170245.GE29175@poupinou.org> <20031111171845.GA19024@dabelg.epita.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -36,45 +36,11 @@ On Tue, Nov 11, 2003 at 06:18:45PM +0100, maximE bizon wrote:
 > > > 74	0
 > > > 75	0
 > > > [...]
-> > > bit wb_invd is 1
-> > > bit wb_invd_flush is 0
-> > > bit proc_c1 is 0
-> > > bit plvl2_up is 0
-> > > bit pwr_button is 1
-> > > bit sleep_button is 1
-> > > bit fixed_rTC is 1
-> > > bit rtcs4 is 1
-> > > bit tmr_val_ext is 0
-> > > bit dock_cap is 1
-> > > bit reset_reg_sup is 0
-> > > bit sealed_case is 0
-> > > bit headless is 0
-> > > bit cpu_sw_sleep is 1
-> > > 
-> 
-> > > Is it really what it is supposed to be?
-> > 
-> > To be what?
-> 
-> According to the ACPI specs:
-> 
-> value		bit offset
-> =====		==========
-> wb_invd		0
-> wb_invd_flush	1
-> proc_c1		2
-> plvl2_up	3
-> pwr_button	4
-> sleep_button	5
-> [...]
-> 
-> So, for instance, sleep_button should be 0, no ?
 
-No.  This is a double word, so, with endianess issues, you
-actually have overwriten with
-0x7825a2f1
+You also forgot to answer to my second question:
 
-and bit 5 of 0x7825a2f1 is 1.
+What you want to do, exactly?
+
 
 -- 
 Ducrot Bruno
