@@ -1,10 +1,12 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Re: ACPI source patches updated (20021101)
-Date: Mon, 4 Nov 2002 13:17:51 -0800
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI source patches updated (20021101)
+Date: Mon, 4 Nov 2002 16:08:11 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <B9ECACBD6885D5119ADC00508B68C1EA0D19B8BE@orsmsx107.jf.intel.com>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A4AC@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -14,82 +16,72 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: 'Jan Rychter' <jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: =?iso-8859-1?Q?=27Hanno_B=F6ck=27?= <hanno-Mmb7MZpHnFY@public.gmane.org>
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+> From: Hanno B=F6ck [mailto:hanno-Mmb7MZpHnFY@public.gmane.org]=20
+> The Problem I reported in the mail below is still in the=20
+> current version.
+> As I already said, it worked with previous versions. Can=20
+> anyone have a look at it? How can I help you solve the problem.
 
-Jan,
+Wait, it worked in *which* previous version, exactly? This is a pretty
+serious error, and I don't think we changed anything relating to =
+finding the
+RSDP lately...
 
-We have discovered a possible situation where an Acquire() with an infinite
-wait (0xFFFF) could in fact timeout without obtaining the mutex.  This may
-be the root of the problem you are seeing.
+Could you have disabled ACPI in the BIOS?
 
-Andy is preparing a patch.
-Bob
+Regards -- Andy
 
-
------Original Message-----
-From: Jan Rychter [mailto:jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org] 
-Sent: Sunday, November 03, 2002 3:31 AM
-To: andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
-Subject: [ACPI] Re: ACPI source patches updated (20021101)
-
-I wrote:
-> I could then gather the information that Bob and Andy requested,
-> necessary to fix the issues with thermal management on my machine.
-> 
-> Andy, Bob, here's the name of the mutex that causes problems:
-> 
->     ACPI-0242: *** Error: Thread 61D cannot release Mutex [MEC0] acquired
-by thread 6FE
->     ACPI-1154: *** Error: Method execution failed, AE_AML_NOT_OWNER
->     ACPI-0815: *** Error: AE_AML_NOT_OWNER while evaluating GPE18 method
->     ACPI-0242: *** Error: Thread 73F cannot release Mutex [MEC0] acquired
-by thread 44B
->     ACPI-1154: *** Error: Method execution failed, AE_AML_NOT_OWNER
->     ACPI-0815: *** Error: AE_AML_NOT_OWNER while evaluating GPE18 method
->     ACPI-0242: *** Error: Thread 743 cannot release Mutex [MEC0] acquired
-by thread 44B
->     ACPI-1154: *** Error: Method execution failed, AE_AML_NOT_OWNER
->     ACPI-0815: *** Error: AE_AML_NOT_OWNER while evaluating GPE18 method
->     ACPI-0242: *** Error: Thread 744 cannot release Mutex [MEC0] acquired
-by thread 44B
->     ACPI-1154: *** Error: Method execution failed, AE_AML_NOT_OWNER
->     ACPI-0815: *** Error: AE_AML_NOT_OWNER while evaluating GPE18 method
-[...]
-
-To follow up, I get the following at bootup if the fan runs when the box
-is booted:
-
-[...]
-    ACPI-0226: *** Error: Cannot release Mutex [MEC0], not acquired
-    ACPI-1154: *** Error: Method execution failed, AE_AML_MUTEX_NOT_ACQUIRED
-    ACPI-1154: *** Error: Method execution failed, AE_AML_MUTEX_NOT_ACQUIRED
-ACPI: Battery Slot [BAT0] (battery present)
-ACPI: Power Button (FF) [PWRF]
-ACPI: Lid Switch [LID]
-ACPI: Fan [FAN1] (off)
-ACPI: Fan [FAN2] (off)
-ACPI: Fan [FAN3] (off)
-ACPI: Processor [CPU0] (supports C1 C2 C3, 8 throttling states)
-ACPI: Thermal Zone [THRM] (55 C)
-[...]
-
-Maybe this will help.
-
---J.
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: ApacheCon, November 18-21 in
-Las Vegas (supported by COMDEX), the only Apache event to be
-fully supported by the ASF. http://www.apachecon.com
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
+> ---------------------------
+>=20
+> Begin forwarded message:
+>=20
+> Date: Sun, 27 Oct 2002 10:15:23 +0100
+> From: Hanno B=F6ck <hanno-Mmb7MZpHnFY@public.gmane.org>
+> To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+> Subject: [ACPI] Computer with SIS-Chipset doesn't work - worked =
+before
+>=20
+>=20
+> I have a computer with a SIS-Chipset that worked with=20
+> previous versions of the ACPI-Patch, but doesn't work with=20
+> the latest one.
+> (It is the second system i found recently that doesn't work=20
+> and worked with older versions).
+>=20
+> dmesg and lspci output are at
+> www.int21.de/dmesg.txt
+> www.int21.de/lspci.txt
+>=20
+> The important part is probably:
+> ACPI: Subsystem revision 20021022
+> PCI: PCI BIOS revision 2.10 entry at 0xfdb01, last bus=3D1
+> PCI: Using configuration type 1
+> tbxfroot-0305 [04] Acpi_find_root_pointer: RSDP structure not found
+> ACPI: System description tables not found
+>  tbxface-0066: *** Error: Acpi_load_tables: Could not get=20
+> RSDP, AE_NOT_FOUND
+>  tbxface-0116: *** Error: Acpi_load_tables: Could not load=20
+> tables: AE_NOT_FOUND
+> ACPI: Unable to load the System Description Tables
+> PCI: Probing PCI hardware
+> PCI: ACPI tables contain no PCI IRQ routing entries
+> PCI: Probing PCI hardware (bus 00)
+> PCI: Using IRQ router SIS [1039/0008] at 00:01.0
+>=20
+>=20
+> -------------------------------------------------------
+> This SF.net email is sponsored by: ApacheCon, November 18-21 in
+> Las Vegas (supported by COMDEX), the only Apache event to be
+> fully supported by the ASF. http://www.apachecon.com
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>=20
 
 
 -------------------------------------------------------
