@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Processor C states and USB problem
-Date: Sun, 18 Jan 2004 13:57:59 +0800
+Subject: RE: Tarting up my ACER 1703 ACPI spec
+Date: Sun, 18 Jan 2004 14:04:22 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CEB@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CEC@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,17 +17,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Michael Guntsche <mike-Z92qn3yYq0hWk0Htik3J/w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: erico-cz9lu//xMc+vYRxJAoKWRg@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-> Under 2.4 bus master always shows "ffffffff" on my notebook. Sometimes
-> shutting down USB helps, sometimes it doesn't.
-> Running under 2.6 I only get full bus master activity if an USB
-> mouse is plugged in.
+> >http://www.cpqlinux.com/acpi-howto.html#fix_broken_dsdt
+> >http://home.fhtw-berlin.de/~s0502837/r31/
+> >
 
-Could you post output from " cat /proc/acpi/processor/CPU0/power"
-I want to check the usage of C3.
+> I was wondering... has anyone on this list ever thought about=20
+> making a joint effort and writing some tutorials/articles on=20
+> ACPI, hosted on a central place?=20
+>=20
+> Things like a generic explanation on how each ACPI object=20
+> relates to others,
+> the basic functions needed in a DSDT,=20
+
+I think acpi spec will help you. http://www.acpi.info/spec.htm
+
+
+
 
 
 -------------------------------------------------------
