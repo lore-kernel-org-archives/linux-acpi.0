@@ -1,33 +1,142 @@
-From: mru-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org (=?iso-8859-1?q?M=E5ns_Rullg=E5rd?=)
-Subject: Re: [PM][ACPI] No ACPI interrupts after resume from S1
-Date: Mon, 20 Oct 2003 16:32:59 +0200
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <yw1x8yngj7xg.fsf@users.sourceforge.net>
-References: <20031020141512.GA30157@hell.org.pl>
+From: William Morgan <wmorgan-acpi-devel-xW3KcqxHEMnk1uMJSBkQmQ@public.gmane.org>
+Subject: Re: acpi on gateway 200x
+Date: Mon, 20 Oct 2003 10:55:38 -0400
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20031020145538.GA14279@masanjin.net>
+References: <20031019130707.GA7924@masanjin.net> <3F939F19.5040507@namesys.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <3F939F19.5040507-nJ1KrdHEGnBBDgjK7y7TUQ@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org> writes:
+Excerpts (reformatted) from Yury Umanets's mail of 20 Oct 2003 (EDT):
+> Try test8. There were included important fixes to acpi subsystem.
 
-> Suspending and resuming from S1 disables ACPI interrupts for my machi=
-ne
-> (ASUS L3800C laptop). No further interrupts and events are generated,
-> /proc/interrupts shows no change w.r. to ACPI. This happens regardles=
-s of
-> whether the specific IRQ is shared or not.
+Seems to have basically the same behavior (still nothing in
+/proc/acpi/battery or ac_adapter or thermal_zone), though I haven't
+compared the dmesg output line-by-line.
 
-I've got an Asus M2400E laptop, and have seen similar things.  After a
-suspend, the extra buttons (I use them to fire up programs) stop
-working.  Normally, they will generate an ACPI event, that is
-processed by acpid etc.  After a suspend, each button will work once.
-If I then close and open the lid, they will work one more time, and so
-on.  Any way I can help?
+Here's the new dmesg, if it yields any clues.
 
---=20
-M=E5ns Rullg=E5rd
-mru-iA+eEnwkJgzk1uMJSBkQmQ@public.gmane.org
+Linux version 2.6.0-test8 (root@grappelli) (gcc version 3.3.2 20030908 (Debian prerelease)) #10 Sun Oct 19 14:53:36 EDT 2003
+Video mode to be used for restore is f00
+BIOS-provided physical RAM map:
+ BIOS-e820: 0000000000000000 - 000000000009f800 (usable)
+ BIOS-e820: 000000000009f800 - 00000000000a0000 (reserved)
+ BIOS-e820: 00000000000ce000 - 00000000000d0000 (reserved)
+ BIOS-e820: 00000000000d8000 - 00000000000e0000 (reserved)
+ BIOS-e820: 00000000000e4000 - 0000000000100000 (reserved)
+ BIOS-e820: 0000000000100000 - 000000001f6e0000 (usable)
+ BIOS-e820: 000000001f6e0000 - 000000001f6ec000 (ACPI data)
+ BIOS-e820: 000000001f6ec000 - 000000001f700000 (ACPI NVS)
+ BIOS-e820: 000000001f700000 - 0000000020000000 (reserved)
+ BIOS-e820: 00000000fec10000 - 00000000fec20000 (reserved)
+ BIOS-e820: 00000000ff800000 - 00000000ffc00000 (reserved)
+ BIOS-e820: 00000000fffffc00 - 0000000100000000 (reserved)
+502MB LOWMEM available.
+On node 0 totalpages: 128736
+  DMA zone: 4096 pages, LIFO batch:1
+  Normal zone: 124640 pages, LIFO batch:16
+  HighMem zone: 0 pages, LIFO batch:1
+DMI present.
+ACPI: RSDP (v000 PTLTD                                     ) @ 0x000f7c90
+ACPI: RSDT (v001 PTLTD  Montara  0x06040000  LTP 0x00000000) @ 0x1f6e7d39
+ACPI: FADT (v001 INTEL  MONTARA  0x06040000 PTL  0x00000050) @ 0x1f6ebed2
+ACPI: BOOT (v001 PTLTD  $SBFTBL$ 0x06040000  LTP 0x00000001) @ 0x1f6ebfd8
+ACPI: SSDT (v001 INTEL  CPU0CST  0x00000001 INTL 0x20020725) @ 0x1f6e8182
+ACPI: SSDT (v001  INTEL  EISTRef 0x00002000 INTL 0x02012044) @ 0x1f6e7d6d
+ACPI: DSDT (v001 INTEL  MONTARAG 0x06040000 MSFT 0x0100000e) @ 0x00000000
+[...]
+ACPI: Subsystem revision 20031002
+ tbxface-0117 [03] acpi_load_tables      : ACPI Tables successfully acquired
+Parsing all Control Methods:............................................................................................................................................................
+Table [DSDT](id F006) - 521 Objects with 56 Devices 156 Methods 20 Regions
+Parsing all Control Methods:.
+Table [SSDT](id F003) - 1 Objects with 0 Devices 1 Methods 0 Regions
+Parsing all Control Methods:....
+Table [SSDT](id F004) - 7 Objects with 0 Devices 4 Methods 0 Regions
+ACPI Namespace successfully loaded at root c03c5cbc
+evxfevnt-0093 [04] acpi_enable           : Transition to ACPI mode successful
+evgpeblk-0748 [06] ev_create_gpe_block   : GPE 00 to 31 [_GPE] 4 regs at 0000000000001028 on int 9
+Completing Region/Field/Buffer/Package initialization:........................................................
+Initialized 20/20 Regions 0/0 Fields 21/21 Buffers 15/15 Packages (537 nodes)
+Executing all Device _STA and_INI methods:.........................................................
+57 Devices found containing: 57 _STA, 4 _INI methods
+ACPI: Interpreter enabled
+ACPI: Using PIC for interrupt routing
+evregion-0249 [21] ev_address_space_dispa: no handler for region(df667e28) [EmbeddedControl]
+ exfldio-0282 [20] ex_access_region      : Region EmbeddedControl(3) has no handler
+ dswexec-0422 [13] ds_exec_end_op        : [LEqual]: Could not resolve operands, AE_NOT_EXIST
+dswstate-0273 [15] ds_result_pop_from_bot: No result objects! State=df653c28
+ dsutils-0525 [15] ds_create_operand     : Missing or null operand, AE_AML_NO_RETURN_VALUE
+ psparse-1120: *** Error: Method execution failed [\_SB_.ADP1._STA] (Node df66e1a8), AE_AML_NO_RETURN_VALUE
+evregion-0249 [21] ev_address_space_dispa: no handler for region(df667e28) [EmbeddedControl]
+ exfldio-0282 [20] ex_access_region      : Region EmbeddedControl(3) has no handler
+ dswexec-0422 [13] ds_exec_end_op        : [LEqual]: Could not resolve operands, AE_NOT_EXIST
+dswstate-0273 [15] ds_result_pop_from_bot: No result objects! State=df653c28
+ dsutils-0525 [15] ds_create_operand     : Missing or null operand, AE_AML_NO_RETURN_VALUE
+ psparse-1120: *** Error: Method execution failed [\_SB_.BAT1._STA] (Node df66dca8), AE_AML_NO_RETURN_VALUE
+ACPI: PCI Root Bridge [PCI0] (00:00)
+PCI: Probing PCI hardware (bus 00)
+PCI: Ignoring BAR0-3 of IDE controller 0000:00:1f.1
+Transparent bridge - 0000:00:1e.0
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCIB._PRT]
+ACPI: PCI Interrupt Link [LNKA] (IRQs *10)
+ACPI: PCI Interrupt Link [LNKB] (IRQs *10)
+ACPI: PCI Interrupt Link [LNKC] (IRQs *11)
+ACPI: PCI Interrupt Link [LNKD] (IRQs *11)
+ACPI: PCI Interrupt Link [LNKE] (IRQs *5)
+ACPI: PCI Interrupt Link [LNKF] (IRQs 5)
+ACPI: PCI Interrupt Link [LNKG] (IRQs 10)
+ACPI: PCI Interrupt Link [LNKH] (IRQs *10)
+ACPI: Embedded Controller [H_EC] (gpe 28)
+evregion-0345: *** Error: Handler for [EmbeddedControl] returned AE_BAD_PARAMETER
+ dswexec-0422 [30] ds_exec_end_op        : [Store]: Could not resolve operands, AE_BAD_PARAMETER
+ psparse-1120: *** Error: Method execution failed [\_SB_.PCI0.LPCB.H_EC._REG] (Node df663e88), AE_BAD_PARAMETER
+ACPI: Power Resource [PFAN] (on)
+Linux Plug and Play Support v0.97 (c) Adam Belay
+PnPBIOS: Scanning system for PnP BIOS support...
+PnPBIOS: Found PnP BIOS installation structure at 0xc00f7cc0
+PnPBIOS: PnP BIOS version 1.0, entry 0xf0000:0xb820, dseg 0x400
+PnPBIOS: 16 nodes reported by PnP BIOS; 16 recorded by driver
+Linux Kernel Card Services
+  options:  [pci] [cardbus] [pm]
+ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 10
+ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 11
+ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 11
+ACPI: PCI Interrupt Link [LNKH] enabled at IRQ 10
+ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 10
+ACPI: PCI Interrupt Link [LNKE] enabled at IRQ 5
+PCI: Using ACPI for IRQ routing
+PCI: if you experience problems, try using option 'pci=noacpi' or even 'acpi=off'
+[...]
+ACPI: Power Button (FF) [PWRF]
+ACPI: Lid Switch [LID0]
+ACPI: Sleep Button (CM) [SLPB]
+ACPI: Fan [FAN0] (on)
+ACPI: Processor [CPU0] (supports C1 C2 C3, 8 throttling states)
+evregion-0345: *** Error: Handler for [EmbeddedControl] returned AE_BAD_PARAMETER
+ dswexec-0422 [46] ds_exec_end_op        : [Store]: Could not resolve operands, AE_BAD_PARAMETER
+ psparse-1120: *** Error: Method execution failed [\_TZ_.THRM._TMP] (Node df66eec8), AE_BAD_PARAMETER
+
+-- 
+William <wmorgan-xW3KcqxHEMnk1uMJSBkQmQ@public.gmane.org>
+
+
+-------------------------------------------------------
+This SF.net email sponsored by: Enterprise Linux Forum Conference & Expo
+The Event For Linux Datacenter Solutions & Strategies in The Enterprise 
+Linux in the Boardroom; in the Front Office; & in the Server Room 
+http://www.enterpriselinuxforum.com
