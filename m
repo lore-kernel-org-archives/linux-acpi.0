@@ -1,13 +1,14 @@
-From: "greg" <greg-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org>
+From: Jonas Petersson <zap-7RBX4Gk6oWI@public.gmane.org>
 Subject: Re: PROBLEM: ACPI crashes (2.6.2-rc2-mm1)
-Date: Wed, 28 Jan 2004 15:07:19 -0500
+Date: Wed, 28 Jan 2004 21:18:30 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040128200719.M75620@morningdave.org>
-References: <m3n087khfl.fsf@reason.gnu-hamburg> <401811E8.8060003@pca.it>
+Message-ID: <40181916.2050408@xms.se>
+References: <m3n087khfl.fsf@reason.gnu-hamburg> <401811E8.8060003@pca.it> <20040128200719.M75620@morningdave.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <401811E8.8060003-wlebWZzHoyE@public.gmane.org>
+In-Reply-To: <20040128200719.M75620-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,41 +17,56 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>, ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: greg <greg-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, luca-wlebWZzHoyE@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi,
 
----------- Original Message -----------
-From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sent: Wed, 28 Jan 2004 20:47:52 +0100
-Subject: Re: [ACPI] PROBLEM: ACPI crashes (2.6.2-rc2-mm1)
-
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
+greg wrote:
+> From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
+>>on 01/28/04 20:21, Georg C. F. Greve wrote:
+>>>Suspending to disk (S4) suspends just fine. It also finds the file and
+>>>reads the data back into active memory, as well. But when it comes to
+>>>the message
+>>>
+>>> "Waiting for DMAs to settle down."
+>>>
+>>>the machine suddenly crashes (reboot).
+>>
+>>it seems the same on my M3N, I attached some mails I already sent to
+>>this list, which solved the problem for S4, maybe you could give it a
+>>try. IMHO is still an Intel 855GM problem.
 > 
-> Hello Georg,
-> 
-> on 01/28/04 20:21, Georg C. F. Greve wrote:
-> > Suspending to disk (S4) suspends just fine. It also finds the file and
-> > reads the data back into active memory, as well. But when it comes to
-> > the message
-> >
-> >  "Waiting for DMAs to settle down."
-> >
-> > the machine suddenly crashes (reboot).
-> it seems the same on my M3N, I attached some mails I already sent to
-> this list, which solved the problem for S4, maybe you could give it a
-> try. IMHO is still an Intel 855GM problem.
-> 
+> I agree with this. I see exactly the same behavior on my Gateway 200X, which
+> has an Intel 855GM chipset. I'll try the suggestions from the appended emails
+> later to see if they help.
 
-I agree with this. I see exactly the same behavior on my Gateway 200X, which
-has an Intel 855GM chipset. I'll try the suggestions from the appended emails
-later to see if they help.
+For the record: Several of us over on the swsusp list appear to have
+rouchly the same problem: With some effort and fiddling (as described in
+the previous mail), swsusp2 works for console and even from
+unaccelerated X, but whenever DRI ang AGP is enabled it resume will
+crash. Some of us think this is related to the agpgart rewrite for
+2.6.x, but our patching so far have not made any difference. There seem
+to be resume code in the intel-agp plug which we have tried to duplicate
+in sis-agp, but it appears not to be called during resume... Obviously,
+I don't really know enough about how it is supposed to work so we are
+just experimenting for now.
 
-Thanks,
-Greg
+I also seem to have occasional PCMCIA+fan collisions on my ASUS L5800C,
+(mentioned earlier on this list) but I don't really thing that is
+related, but some things certainly more or less woo-doo... ;-)
+
+HW details and some experiences here:
+http://www.xms.se/~zap/linux/asusl5800c.html - drop me a line of you
+want more...
+
+				/ Jonas
+-- 
+Jonas Petersson  |  XMS Penvision  |  mailto:Jonas.Petersson-7RBX4Gk6oWI@public.gmane.org
+Box 3294, Västgötegatan 13, S-600 03 Norrköping | http://www.xms.se/
+Tel: +46 11 400 13 00 | Dir: +46 11 400 13 05 | Fax: +46 11 10 30 50
+
 
 
 -------------------------------------------------------
