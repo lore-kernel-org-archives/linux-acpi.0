@@ -1,12 +1,12 @@
-From: Nikolaus Filus <nfilus-hi6Y0CQ0nG0@public.gmane.org>
-Subject: S1 and S3 not working with ide-scsi on Toshiba 3000
-Date: Tue, 24 Feb 2004 15:17:15 +0100
+From: Thomas Renninger <mail-smMupaH/RwJM7kwft8N7nw@public.gmane.org>
+Subject: iasl source code
+Date: Tue, 24 Feb 2004 16:28:01 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040224141715.GA1376@wsc-gmbh.de>
+Message-ID: <403B6D81.3020501@renninger.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,18 +20,13 @@ List-Id: linux-acpi@vger.kernel.org
 
 Hi,
 
-after beeing too long frustrated about not working standby and suspend
-on my Tosh3k, I checked all possible drivers for ACPI-support.
-Finally I found, that I booted with hdc=ide-scsi and resume was stopping
-on talking with hdc.
-After changing to ide-cd everything is working fine (on console), even
-with uhci-hcd loaded! Tested with 2.6.3.
+where can I find recent sources of the iasl compiler?
+The link on intel's site, 
+http://developer.intel.com/technology/iapc/acpi/downloads.htm to the 
+unix sources is broken.
+Thanks.
 
-Is this a known bug or may I add it to bugzilla?
-
-
-Nikolaus
-
+           Thomas
 
 
 -------------------------------------------------------
