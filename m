@@ -1,14 +1,13 @@
-From: Enrico <enrico_tux-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org>
-Subject: Acer Travelmate 427LC & ACPI....
-Date: Thu, 16 Oct 2003 22:05:17 +0200
+From: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
+Subject: Re: Re: Hardware state saving & X
+Date: Thu, 16 Oct 2003 08:38:56 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200310162205.17499.enrico_tux@libero.it>
+Message-ID: <Pine.LNX.4.44.0310160837460.856-100000@localhost.localdomain>
+References: <20031016001001.GH1921@fairlite.demon.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20031016001001.GH1921-ASBjxr/nLg+TY6FTCsQk+9Bc4/FLrbF6@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,32 +16,32 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Alan Hourihane <alanh-ASBjxr/nLg+TY6FTCsQk+9Bc4/FLrbF6@public.gmane.org>
+Cc: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi everyone, i'm Enry from Italy...
 
-I've an Acer Travelmate 427LC, i run SuSE linux 8.2, and my acpi has some 
-problems...
+> It's never been an issue of what to save/restore for X - that's the drivers
+> responsibility in X. And if it doesn't do it properly now, I'd consider it
+> a bug in the driver and should be fixed.
 
-In fact it can't detect thermal and fan sensors... and also if i unplug the ac 
-adapter it says that there are 0 seconds of power remaining...
+Fair enough. 
 
-Is there a way to make it work correctly?
+> The main question was how to get events from suspend/resume so that we
+> can do this saving and restoring.
+> 
+> If the /sbin/hotplug & DBUS is the recommended route, then I really
+> need to go look at these two pieces of software and craft something up for X.
 
-In my log i found:
+Please go with that. I'll merge the patch with Linus in the next week. If 
+you have any problems with it, please let me know, and I'll be happy to 
+fix them. 
 
-Oct 15 22:42:24 localhost kernel:     ACPI-0165: *** Warning: The ACPI AML in 
-your computer contains errors, please nag the manufacturer to correct it.
-Oct 15 22:42:24 localhost kernel:     ACPI-0168: *** Warning: Allowing relaxed 
-access to fields; turn on CONFIG_ACPI_DEBUG for details.
+Thanks,
 
-when i do acpi -V:
-     Battery 1: unknown, 100%
-No support for device type: thermal
-  AC Adapter 1: on-line
 
-Thanks for your attention..
+	Pat
+
 
 
 -------------------------------------------------------
