@@ -1,47 +1,64 @@
-From: Matthew Wilcox <matthew@wil.cx>
-Subject: Re: [PATCH] GPE block driver [2/2]
-Date: Fri, 12 Nov 2004 13:11:02 +0000
-Message-ID: <20041112131102.GE1108@parcelfarce.linux.theplanet.co.uk>
-References: <16A54BF5D6E14E4D916CE26C9AD3057588EFB6@pdsmsx402.ccr.corp.intel.com>
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: AE_BAD_HEX_CONSTANT
+Date: Fri, 12 Nov 2004 16:20:48 +0100
+Message-ID: <20041112152048.GE31422@poupinou.org>
+References: <20041109193331.930.qmail@web41101.mail.yahoo.com> <41911F58.6020300@root.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ia64-owner@vger.kernel.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD3057588EFB6@pdsmsx402.ccr.corp.intel.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: "Li, Shaohua" <shaohua.li@intel.com>
-Cc: Matthew Wilcox <matthew@wil.cx>, acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org
+In-Reply-To: <41911F58.6020300-Y6VGUYTwhu0@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Cc: Paulo da Silva <pvmagacho78-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Nov 12, 2004 at 04:23:59PM +0800, Li, Shaohua wrote:
-> Hi Matthew,
-> Will you send a sequent patch? I haven't looked at an interrupt handler
-> is registered for the IRQ from GPE block device.
+On Tue, Nov 09, 2004 at 11:49:44AM -0800, Nate Lawson wrote:
+> 
+>                         Name (BT0I, Package (0x0D)
+>                         {
+>                             0x01,
+>                             0x19C8,
+>                             0x19C8,
+>                             0x01,
+>                             0x39D0,
+>                             0x014A,
+>                             0xDC,
+>                             0x012C,
+>                             0x0294,
+>                             "ANA",
+>                             "110",
+>                             "Lion",
+>                             0x00
+>                         })
+> 
+> Looking more carefully, it looks like commenting out just the last line 
+> ("Acer") would suffice.  Index 0xC is actually an integer (0x00) so this 
+> is what triggers the Integer conversion.  I'm not sure how the 
+> conversion rules should be modified to take this into account.
+> 
 
-$ cat /proc/interrupts |grep acpi
- 48:          0          0          0          0          0  IO-SAPIC-level  acpi
-$ sudo modprobe gpe-block
-$ cat /proc/interrupts |grep acpi
- 48:          0          0          0          0          0  IO-SAPIC-level  acpi
- 63:          0          0          0          0          0  IO-SAPIC-level  acpi
-
-The interrupt is registered by this call in evgpeblk.c:
-
-$ find drivers/acpi/ -type f |xargs grep acpi_os_install_interrupt_handler
-drivers/acpi/osl.c:acpi_os_install_interrupt_handler(u32 gsi, acpi_osd_handler handler, void *context)
-drivers/acpi/events/evgpeblk.c:         status = acpi_os_install_interrupt_handler (interrupt_level,
-drivers/acpi/events/evsci.c:    status = acpi_os_install_interrupt_handler ((u32) acpi_gbl_FADT->sci_int,
-
-Note that up to two of the GPE blocks in the ACPI namespace may already be
-registered by virtue of being in the FADT; these will not be registered
-by the gpe-block driver as they don't have a _CRS method (see 9.11 of
-ACPI 3.0).  I suspect 99% of the machines out there do not have additional
-GPE blocks... or someone else would have written this driver by now ;-)
+I suggest to replace the last integer with a string like "Acer".  Since
+anyway BT0I is expected to be a package returned by a _BIF method, it
+must be compatible with ACPI spec (look at 11.2.2.1).
 
 -- 
-"Next the statesmen will invent cheap lies, putting the blame upon 
-the nation that is attacked, and every man will be glad of those
-conscience-soothing falsities, and will diligently study them, and refuse
-to examine any refutations of them; and thus he will by and by convince 
-himself that the war is just, and will thank God for the better sleep 
-he enjoys after this process of grotesque self-deception." -- Mark Twain
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by:
+Sybase ASE Linux Express Edition - download now for FREE
+LinuxWorld Reader's Choice Award Winner for best database on Linux.
+http://ads.osdn.com/?ad_id=5588&alloc_id=12065&op=click
