@@ -1,7 +1,7 @@
-From: Jesse Barnes <jbarnes-UzQTBcouhwxWk0Htik3J/w@public.gmane.org>
-Subject: Re: #define ACPI_MAX_TABLES 256
-Date: Mon, 6 Dec 2004 08:01:18 -0800
-Message-ID: <200412060801.19037.jbarnes@engr.sgi.com>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: RE: #define ACPI_MAX_TABLES 256
+Date: Mon, 6 Dec 2004 09:13:02 -0700
+Message-ID: <200412060913.02910.bjorn.helgaas@hp.com>
 References: <F7DC2337C7631D4386A2DF6E8FB22B300229FE09@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
@@ -19,20 +19,14 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bjorn Helgaas <bjorn_helgaas-VXdhtT5mjnY@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jesse Barnes <jbarnes-sJ/iWh9BUns@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bjorn Helgaas <bjorn_helgaas-VXdhtT5mjnY@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sunday, December 5, 2004 6:37 pm, Brown, Len wrote:
+On Sunday 05 December 2004 7:37 pm, Brown, Len wrote:
 > Okay to reduce ACPI_MAX_TABLES to 64 from 256 for the forseeable future?
->
-> also, looks like acpi_sdt_entry[] can be __init since it is referenced
-> only by code that is __init.
 
-Both are fine by me.
-
-Thanks,
-Jesse
+Sounds OK to me.
 
 
 -------------------------------------------------------
