@@ -1,11 +1,11 @@
-From: "Lee, Jung-Ik" <jung-ik.lee-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: CALL FOR TESTING
-Date: Mon, 23 Sep 2002 16:29:48 -0700
+From: =?iso-8859-1?q?Gustavo=20Sverzut=20Barbieri?= <gsbarbieri-/E1597aS9LRfJ/NunPodnw@public.gmane.org>
+Subject: Re: Switching LCD off on a laptop (or change to CRT)
+Date: Mon, 23 Sep 2002 20:33:00 -0300 (ART)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <72B3FD82E303D611BD0100508BB29735046DFE7E@orsmsx102.jf.intel.com>
+Message-ID: <20020923233300.4604.qmail@web20902.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: multipart/mixed; boundary="0-2115903841-1032823980=:3092"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -15,87 +15,141 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: "'KOCHI, Takayoshi'" <t-kouchi-dPjYVeZdYcz+G+EEi5ephHgSJqDPrsil@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I use the following check to salience the annoying warnings for my PCI Hot
-Plug platform.
-Idea is not to print message if the ACPI device has EJECTABLE property.
+--0-2115903841-1032823980=:3092
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Content-Disposition: inline
 
-thanks,
-J.I.
+Hello,
 
-         if (!data->dev) {
-+	        if (!acpi_device.flags.{ejectable | removable})	// not real
-C
-                 ACPI_DEBUG_PRINT((ACPI_DB_ERROR, 
-                         "Device %02x:%02x:%02x.%02x not present in PCI
-namespace
- \n",
-                         data->id.segment, data->id.bus, 
-                         data->id.device, data->id.function));
+As I have the same problem as the guy has, I'm sending my dsdt file.
+I have one of those cheap "desknote" notebooks
+(http://www.desknote.biz).
+
+I can't get LCD off.
 
 
 
------Original Message-----
-From: KOCHI, Takayoshi [mailto:t-kouchi-dPjYVeZdYcz+G+EEi5ephHgSJqDPrsil@public.gmane.org]
-Sent: Monday, September 23, 2002 4:09 PM
-To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
-Subject: Re: [ACPI] CALL FOR TESTING
+Gustavo
 
 
+_______________________________________________________________________
+Yahoo! GeoCities
+Tudo para criar o seu site: ferramentas fáceis de usar, espaço de sobra e acessórios.
+http://br.geocities.yahoo.com/
+--0-2115903841-1032823980=:3092
+Content-Type: application/x-gzip; name="dsdt.gz"
+Content-Transfer-Encoding: base64
+Content-Description: dsdt.gz
+Content-Disposition: attachment; filename="dsdt.gz"
 
-On Thu, 19 Sep 2002 15:14:16 +0100
-Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org> wrote:
+H4sICG2hjz0AA2RzZHQAxVpNkNtGdu4GQBLT5GhIDmzLsVc7Hm3WWzrYBDly
+5IrjEgmAJMw/mKAirakqgDP6Ge1hjZJVa6kUJdR445+Vqlb27OaMsZm7Dznk
+4IOTY06qnJNaV066xbXZKuuQ8uS9bhKEZiDvTOw4w5ru916/9/rr143X3QRN
+1xyslwihhnvFJYS8tHaS8L88IR23PliEJrXq2AYjWs6DmgabyOaXz3tO3xu+
+kzWcMzrNq4Sk1fOeW/KKTGFEfFBQ4QJ5LljjAmUuOMkFKSHQqqmOMWhK4cJv
+39t878qEkavvbTLqq7Uz9VJB4rUOdbCJguAKsh8/4//CD4vb77yPMp/wWvfJ
+jjwhE5r/9b9K0EvNG2497Zzt11SvaZu56v1cTlvw3EGVTFh2uHWsbZulqGlR
+O+KBgARQuP7Ez7963ms4llbw2rpOAvahs3bKGz7HGJdUQPJRJFkGyRp59/wL
+2Cd6ZePh1p1/kRzDjjpgsupVzT6M36vVulAZfdcr1Bn7+P1FIuX4BOxiQRv0
+Ye5hjqogpzkZRV9B88NcxC/uouJ/vfcUIaKdQBR3d7OCJBKJtXyag5ZF0eDQ
+eAshK7u7v9sV5Be/i7Xkv/g6avlyl9wgw/GgY3Uk5rPU8PaPkKbwr6tQlLGo
+YLGGhaNA4Sqq2692isfzTGIqfPIw2Xn4rAC9Ap/TTMkSCtVYHfQ6HiyBVzuu
+/YZ08wq68G9usqVRQNahXtkIn/ODd95HfyOyfmOdSethZgNquv72eg7X7Ppk
+XWtnOqY1IGEK3e3Y6bCbqrerjQC9IlJYTVendJlJfsRUmDJn1pjq+zcRP1NH
+4ZMjQWbWb0A3K2R945q/4Qc+7yEzwQlbmSCjFQZ1wyXXEEH287+BpaNi34yq
+PbfehrGZimd3bXL+RQWXB64Jt9Zv2D1zEK7gwj/v9VxvsXNl4+qbb7156drK
+2Ss/v/Dm22+tdAdkRw0YRTda0etbDSnMbm8yKbiCHWinPFhC5Fe4jtgvcFIE
+uTVoW90A0aDsGgD9/GukUDxBDe0oPMYQLIYP9QT+SztprHQV6WL1yaeLi0pu
+d5eKRzofcRS4QsRJwBUjDp/2ZcFJwu6piIvZScLuiYhDO01wsrB7UnApwRUj
+js57SAkv+YiT5z2khd1yxNG5ZlrYzTXleQ+ZR0abeQR15pHRZh4ZrSrsChFH
+55qqsJtrol0ew6wX7dWni0/MwjzNHN1WlZFISiNpLSaVIqkRk8qR1JxJpbjf
+Zkya4FeK+63HpHO/1kwqx/02ZtJUXGrEpHQ/slS8t2pMKu9Hlo77NWNSut9D
+Ou437kHejyyTGPVMYnQyiVHPJEZdjfutxaR0vwc17jfuQY4jG259sEUxY/D9
+I4f5XRXtTt+tFrJMLR3/x387eupGTFxLFhvJYjNZbCWL68niRrK4GRcPx459
+riSxKlM4qeOWouRfe11s1rd/9KI8S4+oSB27X4WnBTZwKAwsTHWvlo5aFrbV
+sWhg0VTxzFAtLLD0cTI+Ch1vWQsYzWi3X1K9M7bJqPY0Pw/cxJ7Y2A9T/oQt
+7ChwPtCyCJ9MMMiw5Zu2S24JLSy1n/Dkewe7YRQEJeFiyQ/o6MbIR8kEG7Vn
+Pbfv0jubXMvbwgKOLoGP6lNYtb2wpBis2mNh1WKwahxWLRlW7XCwalNYxl5Y
+cgyW8VhYRgyWwWEZybCMw8EyprDMvbCUGCzzsbDMGCyTwzKTYZmHg2VOYVl7
+YaVisKzHwrJisCwOy0qGZR0OljWFVd8LKx2DVX8srHoMVp3DqifDqh8OVn0K
+q7EXViYGq/FYWI0YrAaH1UiG1TgcrMYUVnMvLDUGq/lYWM0YrCaH1UyG1Twc
+rOZwq/G8+1O3H8GS4CCIeEJ+uJywJbgtqXav3yh00+xnrTzJt1bJsZZJnm1t
+ENq6CP+XyULrKjnSGgP9SyK33of6LtT3QPdj0P0C6nuS2qBjZayQfIPeV+4r
+RGpQosJn3BqrY6Bz8Flp0C/lL2Ui3cA+Xz5VqKnsr/+v+/zbAl5DHuyKf/xT
+yRyH1niCxzm0GQbkDsJiXadjdwXpOJ3qubucdB04AAvpG26kcN6NFDwXD857
+julOp+aiuwALdBbmOAuznKDtgjb6DrBwuTZn2Qr6nmA3Oxa7gxOGKEslQQLK
+kn6Xk9BZuyukgHKmAChnCp4LCskoS6UAC3SGKIEFlAnaAiU0Y+Fybc4CStCe
+YDfDrWZW7OFwc/Ci5Ue1H4jlt3z+RXnmMrYS8a5V6CrstXcXCJ3dTIGGvyP8
+ZirkebxY/lDIP/8aWUF/EaP/G2Zbgbun9qK45vBr3Mqg5+jXYn3jNYffArFh
+gjrDrZfgfC0gZ6v3k54XdFjIs8XWCpFaIZFWsZ/h1kmzU402F2mqtsJ+cCKv
+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
 
-> So the _PRT is describing routing for ISA devices which don't exist... but
-> I wonder if they _might_ exist?  Is it possible that if you plug
-> your laptop into a docking station those devices appear, for example?
-
-The same situation also happens for hot-pluggable PCI slots case.
-A server with more than 100 empty PCI slots will generate very
-annoying massive warning messages on boot (as every slot descrive
-8 ACPI Device's for each function).
-
-> Ah, checking the code:
-> 
->         /* 
->          * Locate PCI Device
->          * -----------------
->          * Locate matching device in PCI namespace.  If it doesn't exist
->          * this typically means that the device isn't currently inserted
->          * (e.g. docking station, port replicator, etc.).
->          */
-> 
->         if (!data->dev) {
->                 ACPI_DEBUG_PRINT((ACPI_DB_ERROR, 
->                         "Device %02x:%02x:%02x.%02x not present in PCI
-namespace
-> \n",
->                         data->id.segment, data->id.bus, 
->                         data->id.device, data->id.function));
-> 
-> Can I suggest we turn that ACPI_DB_ERROR into ACPI_DB_WARN or even
-> ACPI_DB_INFO?  This really isn't an _error_.
-
-Right,
-I think we should ignore the case unless we are debugging ACPI <-> PCI
-device matching.  So I'd vote ACPI_DB_INFO.
-
-Thanks,
--- 
-KOCHI, Takayoshi <t-kouchi-f7IHDacdhdx8UrSeD/g0lQ@public.gmane.org/t-kouchi>
-
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
+--0-2115903841-1032823980=:3092--
 
 
 -------------------------------------------------------
