@@ -1,9 +1,10 @@
-From: Pierre Ossman <drzeus-list-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org>
-Subject: Strange device init (_STA)
-Date: Wed, 02 Feb 2005 16:29:18 +0100
-Message-ID: <4200F1CE.1010500@drzeus.cx>
+From: Jeremy Moles <jeremy-9vekgGPT+OA7YuNMryXyOw@public.gmane.org>
+Subject: RAM > 1GB
+Date: Wed, 02 Feb 2005 11:34:03 -0500
+Message-ID: <1107362043.4512.11.camel@localhost>
+Reply-To: jeremy-9vekgGPT+OA7YuNMryXyOw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -14,34 +15,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI devel list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I'm having problem with a card reader on a laptop (Acer Aspire 1501). 
-The device doesn't get its resources configured properly.
+Hello ACPI gurus. :)
 
-The reader is connected to the LPC bus so there is no standardised way 
-to configure the device. On other laptops the configuration is done via 
-ACPI (_STA & co. in the DSDT). On this laptop these functions don't do a 
-damn thing.
-In Windows this device gets configured through some other means. It's 
-not in the driver (I've disected it to confirm this). But under Linux 
-the device is left unconfigured.
+I have a Dell X300 here using a custom DSDT table appropriate with the
+BIOS version. The trouble is, the system has an "unusual" amount of
+RAM--so much so that it breaks ACPI and prevents a few things from
+working. 128Mb of RAM is built into the motherboard and an additional
+1Gb has been added.
 
-So my question is if anyone has any ideas on how this device gets 
-configured by Windows and possibly how we can get this to work on Linux.
+When the system is booted WITH the additional RAM, I get a number of
+errors. The dmesg file is here:
 
-The reason this is an issue is that one cannot detect all the quirks of 
-the hardware so a PNP solution is prefered. In those cases the 
-manufacturer has chosen resources that work ok.
+http://downloads.emperorlinux.com/research/ACPI/dmesg-bad
 
-For some context: I am the maintainer of the driver for this hardware. I 
-have a laptop where the DSDT properly sets up the hardware. The Acer 
-belongs to some of my users but they are not familiar with the kernel so 
-I'm trying to fix this for them.
+When the system is booted WITHOUT the additional RAM, everything works
+as intended.
 
-Rgds
-Pierre
+http://downloads.emperorlinux.com/research/ACPI/dmesg-good
+
+I've also provided the DSDT table that I'm using, which can be found in
+the same directory as the dmesg files.
+
+I would appreciate any help on fixing this issue if anyone is available.
+At any rate, keep up the good work! You guys make a lot of what we do
+here possible!
+
+>>cheers<<
+
+-- 
+Jeremy L. Moles
+EmperorLinux
+1-888-651-66
+www.EmperorLinux.com
+jeremy-LdSqz1EEwCk7YuNMryXyOw@public.gmane.org
+
 
 
 -------------------------------------------------------
