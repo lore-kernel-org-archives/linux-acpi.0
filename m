@@ -1,16 +1,15 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: current ACPI status in 2.6.7 kernel
-Date: 11 Aug 2004 23:48:16 -0400
+From: ole.rohne-vJEk5272eHo@public.gmane.org
+Subject: Re: Trackpoint (psmouse) dead after suspend/resume (S3)
+Date: 12 Aug 2004 07:13:04 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1092282496.7765.148.camel@dhcppc4>
-References: <411881B1.9000903@ti.com>
-	 <1092132146.2666.3.camel@laptop.cunninghams> <4118D40D.5030404@ti.com>
-	 <4118F918.7070909@optonline.net>  <411A2EA9.6000000@optonline.net>
+Message-ID: <yzo657pym5b.fsf@pb-d-128-141-40-148.cern.ch>
+References: <yzollhfbou5.fsf@localhost.localdomain>
+	<20040811131848.GA1120@openzaurus.ucw.cz>
+	<411A7C39.3050707@optonline.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <411A2EA9.6000000-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
+In-Reply-To: <411A7C39.3050707-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -20,39 +19,31 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
-Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Alexander Sirotkin <demiurg-l0cyMroinI0@public.gmane.org>, ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, vojtech-+ZI9xUNit7I@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Alexander,
-The status of ACPI S3 suspend/resume in 2.6.7 is...
+Ole> 2.5.xx: keyboard and trackpoint dead, reloading psaux module fixes both
+Ole> 2.6.4: both devices work, no reloading necessary
+Ole> 2.6.7: keyboard works, trackpoint dead, reloading psmouse doesn't help
 
-Run the latest ACPI patch on top of 2.6.7
-(indeed, you still need the latest patch for 2.6.8)
+Pavel> See if psmouse.proto=bare helps?
 
-build EHCI as a module, and unload it first
+Nathan> maybe also i8042.reset?
 
-echo 3 >/proc/acpi/sleep
+I had concluded that the track-point hardware was in fact not powered
+up and I was able to work around the problem by telling BIOS I'm
+running some Windows. This makes the S3 resume sequence take notably
+longer - it used to wake up almost promptly but now it spends a few
+seconds flashing various symbols ("LEDs") before it comes back to C.
 
-(yes, it is on the list to move to sysfs...)
+Strangely, it seems that I have to use a custom DSDT where I
+explicitly initialize "Name (TOSS, 0x01)", I'm not able to achieve the
+same effect by means of acpi_osi.
 
-some systems get a double event if wakeup with power button.
-I use the LID to wake up my system and that works fine.
+Strangely as well, 2.6.4 worked (and had the "long" resume
+sequence) with the stock DSDT.
 
-many systems come back up from S3, but don't re-enable
-the LCD, or some re-enable it, but in the wrong mode.
-Sometimes you can wake it up by running X.
-Sometiems you can wake it up by switching
-virtual consoles.
-There is a lot of experimentation in this area, but
-we don't really have fixes for this yet that are
-universally positive -- ie fix platforms w/o breaking others.
-
-in summary, YMMV;-)
-
-cheers,
--Len
-
-
+Thanks, Ole
 
 
 -------------------------------------------------------
