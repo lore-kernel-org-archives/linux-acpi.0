@@ -1,10 +1,12 @@
-From: "James H. Cloos Jr." <cloos-GRsvFm/Gh/pBDgjK7y7TUQ@public.gmane.org>
-Subject: Interupt routing
-Date: 28 Sep 2002 17:54:00 -0400
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] blacklist
+Date: Sat, 28 Sep 2002 17:13:18 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <m3u1k9dblz.fsf@lugabout.jhcloos.org>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DED8@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -14,39 +16,22 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: =?iso-8859-1?Q?=27S=E9rgio_Monteiro_Basto=27?= <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-As I posted, I get the same interupt routing on the acpi 2.4 as I get
-w/o acpi.  But the following fromdmes suggests I can do better:
+> From: S=E9rgio Monteiro Basto [mailto:sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org]=20
+> so this very simple patch, is send to your appreciation,
+>=20
+> I think:
+> if acpi_get_table_header_early can read the table_header=20
+> without errors
+> so it should past to other tests to see if it in blacklist,
+> if acpi_get_table_header_early can't read the table_header or have
+> errors, should past this line and try other line of blacklist.=20
 
-ACPI: Interpreter enabled
-ACPI: Using PIC for interrupt routing
-ACPI: PCI Root Bridge [PCI0] (00:00)
-PCI: Probing PCI hardware (bus 00)
-Transparent bridge - Intel Corp. 82801BAM/CAM PCI Bridge
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 9 10 *11 12 14 15)
-ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 *5 6 7 9 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKC] (IRQs *3 4 5 6 7 9 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 6 7 9 *10 11 12 14 15)
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.AGP_._PRT]
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCIE._PRT]
-PCI: Probing PCI hardware
-PCI: No IRQ known for interrupt pin A of device 08:04.0 - using IRQ 10
-PCI: No IRQ known for interrupt pin A of device 08:08.0 - using IRQ 10
-PCI: Using ACPI for IRQ routing
-PCI: if you experience problems, try using option 'pci=noacpi' or even 'acpi=off'
+Whups, thanks. Will be in the next release.
 
-The problem with the default routing -- even under ExTRA pOKEY -- is
-that irg 10 gets dumped on:  usb, 1394, cardbus^2 and, due to the
-defaulting to 10, eth0 and ltserial.
-
-Is there any way I can move pin A of 08:04.0 and 08:08.0 somewhere
-else?  irq 6 would be nice, as it seems to be empty....
-
--JimC
-
+-- Andy
 
 
 -------------------------------------------------------
