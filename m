@@ -1,44 +1,52 @@
-From: Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
-Subject: Re: [patch 06/12] Link newly created pci child bus to its parent on creation
-Date: Fri, 18 Mar 2005 23:01:18 -0500
-Message-ID: <200503182301.19496.dtor_core@ameritech.net>
-References: <20050318133856.A878@unix-os.sc.intel.com> <20050318140922.F1145@unix-os.sc.intel.com> <200503182300.12924.dtor_core@ameritech.net>
+From: Greg KH <gregkh@suse.de>
+Subject: Re: [patch 07/12] Make the PCI remove routines safe for failed hot-plug
+Date: Fri, 18 Mar 2005 21:14:46 -0800
+Message-ID: <20050319051446.GD21485@suse.de>
+References: <20050318133856.A878@unix-os.sc.intel.com> <20050318141143.G1145@unix-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: base64
-In-Reply-To: <200503182300.12924.dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, gregkh-l3A5Bk7waGM@public.gmane.org, tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pcihpd-discuss-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20050318141143.G1145@unix-os.sc.intel.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Rajesh Shah <rajesh.shah@intel.com>
+Cc: tony.luck@intel.com, len.brown@intel.com, linux-pci@atrey.karlin.mff.cuni.cz, linux-kernel@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net, linux-ia64@vger.kernel.org, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-T24gRnJpZGF5IDE4IE1hcmNoIDIwMDUgMjM6MDAsIERtaXRyeSBUb3Jva2hvdiB3cm90ZToKPiBI
-aSwKPiAKPiBPbiBGcmlkYXkgMTggTWFyY2ggMjAwNSAxNzowOSwgUmFqZXNoIFNoYWggd3JvdGU6
-Cj4gPiAroKCgoKCgoKCgoKCgoKCgaWYgKGRldi0+c3Vib3JkaW5hdGUpIHsKPiA+ICugoKCgoKCg
-oKCgoKCgoKAgoCCgIKAgaWYgKGxpc3RfZW1wdHkoJmRldi0+c3Vib3JkaW5hdGUtPm5vZGUpKSB7
-Cj4gPiAroKCgoKCgoKCgoKCgoKCgoKCgoKCgoKAgoCCgIKAgc3Bpbl9sb2NrKCZwY2lfYnVzX2xv
-Y2spOwo+ID4gK6CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgIKAgoCCgIGxpc3RfYWRkX3RhaWwoJmRl
-di0+c3Vib3JkaW5hdGUtPm5vZGUsCj4gPiAroKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCg
-oKCgoKCgoKCgIKAgoCCgICZkZXYtPmJ1cy0+Y2hpbGRyZW4pOwo+ID4gK6CgoKCgoKCgoKCgoKCg
-oKCgoKCgoKCgIKAgoCCgIHNwaW5fdW5sb2NrKCZwY2lfYnVzX2xvY2spOwo+ID4gK6CgoKCgoKCg
-oKCgoKCgoCCgIKAgoCB9Cj4gCj4gU2hvdWxkJ250IHNwaW5fbG9jay91bmxvY2sgYmUgYXJvdW5k
-IGVudGlyZSAiaWYiIHN0YXRlbWVudD8gbGlzdF9lbXB0eQo+IGNvdWxkIGJlY29tZSBmYWxzZSBh
-ZnRlciBpdCB3YXMgY2hlY2tsZWQgYnV0IGJlZm9yZSBzcGlubG9jayB3YXMgYWNxdWlyZWQuCgpT
-Y3JhdGNoIHRoYXQsIEkgbWlzcmVhZCB0aGUgY29kZSwgc29ycnkuCgotLSAKRG1pdHJ5Cg==
+On Fri, Mar 18, 2005 at 02:11:44PM -0800, Rajesh Shah wrote:
+> diff -puN drivers/pci/remove.c~pci-remove-device-hotplug-safe drivers/pci/remove.c
+> --- linux-2.6.11-mm4-iohp/drivers/pci/remove.c~pci-remove-device-hotplug-safe	2005-03-16 13:07:22.667319764 -0800
+> +++ linux-2.6.11-mm4-iohp-rshah1/drivers/pci/remove.c	2005-03-16 13:07:22.775718200 -0800
+> @@ -26,17 +26,21 @@ static void pci_free_resources(struct pc
+>  
+>  static void pci_destroy_dev(struct pci_dev *dev)
+>  {
+> -	pci_proc_detach_device(dev);
+> -	pci_remove_sysfs_dev_files(dev);
+> -	device_unregister(&dev->dev);
+> +	if (!list_empty(&dev->global_list)) {
+> +		pci_proc_detach_device(dev);
+> +		pci_remove_sysfs_dev_files(dev);
+> +		device_unregister(&dev->dev);
+> +		spin_lock(&pci_bus_lock);
+> +		list_del(&dev->global_list);
+> +		dev->global_list.next = dev->global_list.prev = NULL;
+> +		spin_unlock(&pci_bus_lock);
+> +	}
+>  
+>  	/* Remove the device from the device lists, and prevent any further
+>  	 * list accesses from this device */
+>  	spin_lock(&pci_bus_lock);
+>  	list_del(&dev->bus_list);
+> -	list_del(&dev->global_list);
+>  	dev->bus_list.next = dev->bus_list.prev = NULL;
+> -	dev->global_list.next = dev->global_list.prev = NULL;
+>  	spin_unlock(&pci_bus_lock);
+>  
+>  	pci_free_resources(dev);
 
+I did have a comment about this code at first glance, but in reviewing
+it again, nevermind, it looks fine...
 
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+thanks,
+
+greg k-h
