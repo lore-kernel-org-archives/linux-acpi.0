@@ -1,36 +1,49 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: acpi_ec_remove_space_handler() not working?
-Date: Tue, 15 Jul 2003 09:32:15 -0700 (PDT)
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030715091914.U20199@root.org>
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: ACPI patches updated (20030714)
+Date: Tue, 15 Jul 2003 09:53:02 -0700
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <F760B14C9561B941B89469F59BA3A8470255EE8E@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+content-class: urn:content-classes:message
+To: ACPI-Devel mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I have completed ECDT support for freebsd and it works up to a point.
-After removing the temporary GPE and space handlers and installing the new
-ones (no errors), the old space handler is still called.  This generates a
-panic since our allocator helps by setting freed memory to 0xdeadc0de.  Is
-there some reason why the old space handler is still getting called after
-it was successfully removed?  I'm attaching the temporary one to
-ACPI_ROOT_OBJECT like Linux does, removing it later, and attaching the
-real one to device->handle.
+Hi all,
 
--Nate
+The ACPI patches against 2.4 and 2.5 have been updated, and are now
+available on http://sf.net/projects/acpi . Thanks to the acceptance of
+the ACPI patch in 2.4, they are now both very small.
+
+Regards -- Andy
+
+----------------------------------------
+14 July 2003.  Summary of changes for version 20030619:
+
+1) ACPI CA Core Subsystem:
+
+Parse SSDTs in order discovered, as opposed to reverse order
+(Hrvoje Habjanic)
+
+Fixes from FreeBSD and NetBSD. (Frank van der Linden, Thomas
+Klausner, Nate Lawson)
 
 
--------------------------------------------------------
-This SF.Net email sponsored by: Parasoft
-Error proof Web apps, automate testing & more.
-Download & eval WebKing and get a free book.
-www.parasoft.com/bulletproofapps1
+2) Linux:
+
+Dynamically allocate SDT list (suggested by Andi Kleen)
+
+proc function return value cleanups (Andi Kleen)
+
+Correctly handle NMI watchdog during long stalls (Andrew Morton)
+
+Make it so acpismp=force works (reported by Andrew Morton)
+
+-----------------------------
+Andrew Grover
+Intel Labs / Mobile Architecture
+andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
