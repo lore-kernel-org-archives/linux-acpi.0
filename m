@@ -1,12 +1,12 @@
-From: Alberto <albeclemit-whZMOeQn8C0@public.gmane.org>
-Subject: ACPI S3 resume only reboots
-Date: Mon, 4 Oct 2004 13:33:40 +0200
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Cleanup event.c and warn about bug
+Date: Mon, 4 Oct 2004 14:59:21 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041004133340.76ba05ba.albeclemit@yahoo.it>
+Message-ID: <20041004125921.GA2704@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -15,44 +15,59 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Andrew Morton <akpm-LJ1TwQYPT6cQrrorzV6ljw@public.gmane.org>, Rusty trivial patch monkey Russell <trivial-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi!
 
-Hi list,
+event.c contains some completely unneccessary gotos, and is not
+reentrant as it needs to be. Fix gotos, warn about reentrancy.
+Please apply,
+							Pavel
 
-I'm using kernel 2.6.9-rc3-bk2 + latest acpi + swsusp2
+Index: linux/drivers/acpi/event.c
+===================================================================
+--- linux.orig/drivers/acpi/event.c	2004-10-01 12:24:26.000000000 +0200
++++ linux/drivers/acpi/event.c	2004-06-22 12:37:56.000000000 +0200
+@@ -24,19 +24,14 @@
+ static int
+ acpi_system_open_event(struct inode *inode, struct file *file)
+ {
++	int retval = 0;
+ 	spin_lock_irq (&acpi_system_event_lock);
+-
+-	if(event_is_open)
+-		goto out_busy;
+-
+-	event_is_open = 1;
+-
+-	spin_unlock_irq (&acpi_system_event_lock);
+-	return 0;
+-
+-out_busy:
++	if (event_is_open)
++		retval = -EBUSY;
++	else
++		event_is_open = 1;
+ 	spin_unlock_irq (&acpi_system_event_lock);
+-	return -EBUSY;
++	return retval;
+ }
+ 
+ static ssize_t
+@@ -48,7 +43,7 @@
+ {
+ 	int			result = 0;
+ 	struct acpi_bus_event	event;
+-	static char		str[ACPI_MAX_STRING];
++	static char		str[ACPI_MAX_STRING];		/* That's joke, right?! What if two threads read from it at the same time? */
+ 	static int		chars_remaining = 0;
+ 	static char		*ptr;
+ 
 
-When i do
-cat -n "mem" > /sys/power/state
-the system seems to go down fine in S3 state...
-when i hit the power button it looks like trying to resume (fan starts again, noises from harddisk and cdrom) then it just reboots....
-
-# lspci
-0000:00:00.0 Host bridge: VIA Technologies, Inc. VT8377 [KT400/KT600 AGP] Host Bridge (rev 80)
-0000:00:01.0 PCI bridge: VIA Technologies, Inc. VT8237 PCI Bridge
-0000:00:09.0 FireWire (IEEE 1394): VIA Technologies, Inc. IEEE 1394 Host Controller (rev 80)
-0000:00:0b.0 CardBus bridge: O2 Micro, Inc. OZ6912 Cardbus Controller (rev 20)
-0000:00:10.0 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller (rev 80)
-0000:00:10.1 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller (rev 80)
-0000:00:10.2 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller (rev 80)
-0000:00:10.3 USB Controller: VIA Technologies, Inc. USB 2.0 (rev 82)
-0000:00:11.0 ISA bridge: VIA Technologies, Inc. VT8235 ISA Bridge
-0000:00:11.1 IDE interface: VIA Technologies, Inc. VT82C586A/B/VT82C686/A/B/VT823x/A/C PIPC Bus Master IDE (rev 06)
-0000:00:11.5 Multimedia audio controller: VIA Technologies, Inc. VT8233/A/8235/8237 AC97 Audio Controller (rev 50)
-0000:00:11.6 Communication controller: VIA Technologies, Inc. Intel 537 [AC97 Modem] (rev 80)
-0000:00:12.0 Ethernet controller: VIA Technologies, Inc. VT6102 [Rhine-II] (rev 74)
-0000:01:00.0 VGA compatible controller: ATI Technologies Inc Radeon R250 Lf [Radeon Mobility 9000 M9] (rev 01)
-
-I removed all the modules and tryed from runlevel 1, all the usb devices where unplugged as well...
-
-I googled about it and i found other people with the same KT400/KT600 chipset reporting the same problem.
-
-How could i try to debug this to give you more info?
-
-Thanks,
-
-Alberto Piai
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
