@@ -1,13 +1,13 @@
-From: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
-Subject: Re: Re: What's up with the Embedded Controller driver? [was
- Re: [ACPI] patched sms-cm acpi/ec.c to 2.6.11.5]
-Date: Sun, 27 Mar 2005 19:01:07 -0500
-Message-ID: <42474943.30705@bartol.udel.edu>
-References: <3ACA40606221794F80A5670F0AF15F84041AC159@pdsmsx403>
+From: Shawn Starr <shawn.starr-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>
+Subject: Fwd: [2.6.12-rc1][ACPI][suspend] /proc/acpi/sleep vs /sys/power/state issue - 'standby' on a laptop
+Date: Mon, 28 Mar 2005 03:02:57 -0500
+Message-ID: <200503280302.57640.shawn.starr@rogers.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F84041AC159@pdsmsx403>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,129 +17,46 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Fran?ois Valenduc <fvalenduc-IWqWACnzNjyZIoH1IeqzKA@public.gmane.org>, Pedro Venda <pjvenda-pQd4kjVL+RHfqL7NgpvPWWD2FQJk+8+b@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I've tried the patch from the osdl.org website on a number of occasions,
-and also a variant of the patch created by Dmitry Torokhov (IIRC).
-Always, I get similar problems to the other guys: the EC takes around a
-minute to initialize at boot, and access to the smart battery system
-(via the EC-hosted SMBus) is painfully slow. Why might this be
-happening? And what can be done to fix it?
 
-cheers,
+----------  Forwarded Message  ----------
 
-Rich
+Subject: [2.6.12-rc1][ACPI][suspend] /proc/acpi/sleep vs /sys/power/state 
+issue - 'standby' on a laptop
+Date: March 28, 2005 02:53
+From: Shawn Starr <shawn.starr at rogers d0t com>
+To: Pavel Machek <pavel at suse d0t cz>, Len Brown <len d0t brown at intel d0t 
+com>
 
-Yu, Luming wrote:
-> Do you try latest acpi testing patch?
-> It includes patch filed at http://bugme.osdl.org/show_bug.cgi?id=3D3851
->=20
->=20
-> Thanks
-> Luming=20
->=20
->=20
->>-----Original Message-----
->>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
->>[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
->>Fran?ois Valenduc
->>Sent: 2005=E5=B9=B43=E6=9C=8824=E6=97=A5 3:35
->>To: Rich Townsend
->>Cc: Pedro Venda; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->>Subject: [ACPI] Re: What's up with the Embedded Controller=20
->>driver? [was Re: [ACPI] patched sms-cm acpi/ec.c to 2.6.11.5]
->>
->>
->>
->>>>>it does NOT seem ok. after some more tests with the patch, I found=20
->>>>>out that francois was right about most of the problems:
->>>>>* timeout on boot, just after the boot loader. this is very=20
->>>>>confusing to me...
->>>>>* when I plug in the battery, it takes ages to show information=20
->>>>>about it... more than 1 minute.
->>>>>* about the usb problems, apparently I wasn't affected.
->>>>>
->>>>>could you please tip us about what could be causing these delays?=20
->>>>>especially the boot delay... it really puzzles my mind.
->>>>>
->>>>>regards,
->>>>>pedro venda.
->>>>>
->>>>>
->>>>
->>>>Concerning USB problems, I think it happens because I tried=20
->>
->>the patch=20
->>
->>>>with the 2.6.11 kernel. I have retried with the 2.6.11.5 and there=20
->>>>are no more USB problems. But all the other problems remains.=20
->>>>Concerning the timeout on boot, could it be caused by the=20
->>>>acpi-dsdt-initrd patch made by Markus Gaugausch. Maybe we=20
->>
->>should try=20
->>
->>>>other ways to incorporate the DSDT to the kernel.
->>>>Fran=C3=A7ois Valenduc
->>>
->>>
->>>I doubt it is the DSDT patch; rather, it looks like=20
->>
->>something has gone=20
->>
->>>wrong in the embedded controller driver in going from 2.6.10 to=20
->>>2.6.11.  I've tried out a number of different ways of fixing=20
->>
->>ec event=20
->>
->>>handling, including my own spinlock kludge and Pedro's=20
->>
->>version of it,=20
->>
->>>and also a series of patches by Dmitry Torokhov; but all of=20
->>
->>them seem=20
->>
->>>to have problems with very sluggish EC response and/or EC timeouts=20
->>>(indicated by "Handler for [EmbeddedControl] returned AE_TIME").
->>>
->>>Who currently maintains ec.c? And what exactly has been done to it=20
->>>since 2.6.10?
->>>
->>>cheers,
->>>
->>>Rich
->>>
->>>
->>
->>Just by curiosity I tried the DSDT patches without applying=20
->>any patch on=20
->>the ec.c file and I don't notice any problem yet. I choose for=20
->>a static=20
->>DSDT override and there doesn't seem to be any slowdown of my=20
->>computer.=20
->>If I have well understood I could see "Handler for [EmbeddedControl]=20
->>returned AE_TIME" appearing in kernel messages but it doesn't appear.=20
->>Maybe I am very lucky!
->>
->>Fran=C3=A7ois
->>
->>
->>-------------------------------------------------------
->>This SF.net email is sponsored by Microsoft Mobile & Embedded=20
->>DevCon 2005
->>Attend MEDC 2005 May 9-12 in Vegas. Learn more about the latest Windows
->>Embedded(r) & Windows Mobile(tm) platforms, applications &=20
->>content.  Register
->>by 3/29 & save $300=20
->>http://ads.osdn.com/?ad_id=3D6883&alloc_id=3D15149&op=3Dclick
->>_______________________________________________
->>Acpi-devel mailing list
->>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->>https://lists.sourceforge.net/lists/listinfo/acpi-devel
->>
+Hello,
 
+I've noticed something strange with issuing 'standby' to the system:
+
+when echoing "standby" to /sys/power/state, nothing happens, not even a log
+ or system activity to attempt standby mode.
+
+However, trying echo "1" to /proc/acpi/sleep the system attempts to (standby)
+and aborts:
+
+[4295945.236000] PM: Preparing system for suspend
+[4295946.270000] Stopping tasks:
+=============================================================================
+[4295946.370000] Restarting tasks... done
+
+We get no reason as to why it quickly aborts.
+
+[4294672.065000] ACPI: CPU0 (power states: C1[C1] C2[C2] C3[C3])
+[4294676.827000] ACPI: (supports S0 S3 S4 S5)
+
+What is '1' in /proc/acpi/sleep?  standby mode is not the same as suspend to
+ram? when I put a normal desktop in standby mode its still 'on' but the hard
+disk is put to sleep and the system runs in a lower power mode.
+
+Shawn.
+
+-------------------------------------------------------
 
 
 -------------------------------------------------------
