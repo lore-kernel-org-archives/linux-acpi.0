@@ -1,13 +1,9 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Suggestion for improving the handling of GPE enabling.
-Date: Thu, 10 Mar 2005 11:11:36 +0100
-Message-ID: <20050310101133.GD13444@elf.ucw.cz>
-References: <1110318037.3663.19.camel@desktop.cunningham.myip.net.au> <1110331896.12642.16.camel@sli10-desk.sh.intel.com> <20050309222122.GA32516@elf.ucw.cz> <1110431446.9336.60.camel@d845pe>
+From: Mirko Hessel-von Molo <mirkoh-o02PS0xoJP9Fq/OQ1YuiuFE6Nkaw1PD6@public.gmane.org>
+Subject: end-user support: Battery alarm
+Date: Thu, 10 Mar 2005 12:53:43 +0100 (CET)
+Message-ID: <Pine.LNX.4.44.0503101243230.2656-100000@hessel-lt.uni-paderborn.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
-In-Reply-To: <1110431446.9336.60.camel@d845pe>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,38 +13,46 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On =C4=8Ct 10-03-05 00:10:47, Len Brown wrote:
-> On Wed, 2005-03-09 at 17:21, Pavel Machek wrote:
->=20
-> > > 4. ACPI devices are in many different physical buses. If we just de=
-fine
-> > > an ACPI bus, we possibly can't show the bus hierarchy.
-> >=20
-> > Maybe ACPI device should be "under" real hardware one?
->=20
-> I suspect that the current sysfs device tree hierarchy is largely
-> fiction and that Linux would be better served by taking advantage of th=
-e
-> hierarchy embodied in the DSDT.
 
-Funny, I'd say that DSDT hierarchy is fiction and ... :-).
+Dear all, 
 
-> The "ACPI devices" such as power, sleep, lid as well as the battery are
-> represented at the root level in the DSDT.
+I have a probably stupid question for which I couldn't find the 
+answer anywhere else. 
 
-It probably does not matter where power/sleep/lid are represented, but
-things like ide-disk below ide-controller below pci bus make sense to
-me (and we need that hierarchy for suspend/resume anyway). For devices
-like lid... yeh, there's not much hierarchy there, just select some
-place.
-								Pavel
---=20
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Is it true that a 'battery' event is raised by the kernel when the 
+'current capacity' given in /proc/acpi/battery/BAT0/state goes below 
+the limit defined in /proc/acpi/battery/BAT0/alarm?
+
+I'm trying to use the battery alarm to make my system warn the user
+and shutdown, if necessary. 
+
+My setup is the following: I'm using a Dell Latitude D800 with BIOS A07,
+running under Linux with Kernel 2.6.7 (not the latest one, I know).
+As I 'organically evolved' the system from a RedHat 7.3 base install,
+I'm reluctant to upgrade to some distro which provides acpi support. 
+
+So far, I got pretty much everything to work, ac_adapter and battery events
+are raised when the power supply changes. However, no event is 
+raised when the battery capacity goes below the warn level. I can't remember
+where I have read this, but somehow I got the idea that this should be the
+case.
+
+Does anyone have an idea where my problem could be?
+
+Thanks for any help, 
+
+Mirko
+
+-- 
+-------------------------------------------------------------------------------
+Dipl.-Math. Mirko Hessel-von Molo                       Room : D3.310
+University of Paderborn, Institute for Mathematics      Tel  : +49 5251 60 3774
+Applied Mathematics                                     Fax  : +49 5251 60 4216
+33095 Paderborn                                         Email: mirkoh-yTMzxJmGYpQ@public.gmane.org
+
 
 
 -------------------------------------------------------
