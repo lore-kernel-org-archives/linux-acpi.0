@@ -1,16 +1,12 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Subject: Re: General ACPI/Linux question
-Date: 26 Jan 2003 18:49:41 +0000
+From: Stephan Krings <stephan-6/4LMolCrz7QLMG2gba6HQ@public.gmane.org>
+Subject: CPU performance states on Compaq Evo N800c
+Date: Sun, 26 Jan 2003 22:26:20 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1043606973.1469.42.camel@darkstar.portugal>
-References: <1043546064.14472.9.camel@nefeli>
-	<200301260823.35858.philippe@gcal.net>  <1043596509.1683.8.camel@nefeli>
-	<1043602623.1469.37.camel@darkstar.portugal>
+Message-ID: <15924.21116.735811.815362@hotzenplotz.priv>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1043602623.1469.37.camel-4/PLUo9XfK/yXfm4dIG/yWZHpeb/A1Y/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,143 +15,57 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-Cc: Constantinos Antoniou <costas-DPNOqEs/LNQ@public.gmane.org>, Philippe =?ISO-8859-1?Q?Cl=E9ri=E9?= <philippe-vlmYvWlZpDU@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Prabhakar Reddy Gudla Venkata Siva <reddyg-3+M4TpyeDAP2fBVCVOL8/A@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 2003-01-26 at 17:37, S=E9rgio Monteiro Basto wrote:
-> Compaq presarios 7xx have a problem with APIC (Advance Programmer
-> interrupt control ) that still to be resolved, so if you have a stable
 
-so if you want have a stable
+Hello,
 
-> computer, and work with acpi  you have to disable APIC from kernel.
-> I think this same problem reflexes in compaq presario 17xx.=20
->=20
-> from more information you can read=20
-> http://dude.noc.clara.net/~faye/compaq2701ea/
-> http://www.pps.jussieu.fr/~jch/software/presario/
-> http://wwwhome.cs.utwente.nl/~berensch/compaq.html
-> http://www.geocities.com/adrianturcu/presario724EA.html
-> and my own
-> that gone be move in next days and it out of date
-> http://codecs.home.sapo.pt/
->=20
-> hope saying something new for you
->=20
-> S=E9rgio Basto=20
-> On Sun, 2003-01-26 at 15:55, Constantinos Antoniou wrote:
-> > On Sun, 2003-01-26 at 08:23, Philippe Cl=E9ri=E9 wrote:
-> > > For what it's worth, I have ACPI working fine on a 1700T with=20
-> > > Gentoo Linux and kernel 2.4.20-acpi-r9. As far as I can tell=20
-> > > this kernel is vanilla + acpi 20021212. No modifications were=20
-> > > needed.=20
-> > >=20
-> >=20
-> > This is very nice to hear.=20
-> >=20
-> >=20
-> > > This is the first kernel I have tried that gave me some info on=20
-> > > the battery. klaptop is working and shows a battery icon when=20
-> > > on battery or an AC plug when on AC. And it pops up a message=20
-> > > when battery power is low. But it does not show whether=20
-> > > capacity is at 90, 50 or 20%.=20
-> > >=20
-> >=20
-> > Having the ability to (at least) gracefully shutdown is a "good thing"
-> > (TM)
-> >=20
-> > > I have not checked any of the sleep modes since I don't use them=20
-> > > at all so I can't comment on that.
-> > >=20
-> >=20
-> > Could you or anybody else perhaps provide some feedback on the attached
-> > image? I have compiled a vanilla 2.4.20 with acpi-20021212-2.4.20.diff.
-> > When I try to boot it freezes at the point of the attached (camera
-> > captured - ~280K image) point.
-> >=20
-> > http://mit.edu/costas/www/img_0092.jpg
-> >=20
-> > Please let me know if any other information would help.
-> >=20
-> > Thanks,
-> >=20
-> > Costas
-> >=20
-> >=20
-> >=20
-> >=20
-> > > For the moment I'm happy.
-> > >=20
-> > > Regards,
-> > > Philippe
-> > >=20
-> > > On Saturday, 25 January 2003 20:54, Constantinos Antoniou wrote:
-> > > > Hello,
-> > > >
-> > > > I have a laptop (Compaq Presarion 1700T) and would really
-> > > > really like to have some ACPI support (battery status is very
-> > > > important, suspend to ram or disk - anything faster than
-> > > > reboot- would be very very useful and welcome).
-> > > >
-> > > > I have not tried every possible trick, and in any case I am
-> > > > hoping to get some things working this year... either with
-> > > > the introduction of ACPI in RH8.1 or otherwise (ok, this is
-> > > > not flame-bait. Let me move on
-> > > >
-> > > > :)) This is not a system/problem specific post, however.
-> > > >
-> > > > My question is: One of the most usual things I see in the
-> > > > various newsgroup posts is that DSDT tables are buggy, and
-> > > > people need to disassemble them, edit them, replace them etc
-> > > > etc. However, windows power management on the same machines
-> > > > works. So what is the situation?
-> > > >
-> > > > The way I (don't) understand it, the ACPI implementation
-> > > > expects some things to be defined correctly in the DSDT
-> > > > table. However, some OSes manage to work with whatever is
-> > > > there.
-> > > >
-> > > > And to go one step further, if I change this DSDT thingie,
-> > > > will the ACPI functionality in the other OSes still work? So,
-> > > > would an option be to be more lenient (I understand that
-> > > > there are standards and people should respect them...)
-> > > >
-> > > > Thanks in advance and please be considerate in the replies -
-> > > > IANA ACPI expert.
-> > > >
-> > > > Costas
-> > --=20
-> > Constantinos Antoniou
-> > Ph.D. Candidate
-> > Massachusetts Institute of Technology
-> > Intelligent Transportation Systems Program
-> > 77 Massachusetts Ave., NE20-208, Cambridge, MA 02139
-> > (T) 617-252-1113 * (F) 617-252-1130 * (email) costas-3s7WtUTddSA@public.gmane.org
-> >=20
-> >=20
-> >=20
-> > -------------------------------------------------------
-> > This SF.NET email is sponsored by:
-> > SourceForge Enterprise Edition + IBM + LinuxWorld =3D Something 2 See!
-> > http://www.vasoftware.com
-> > _______________________________________________
-> > Acpi-devel mailing list
-> > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> > https://lists.sourceforge.net/lists/listinfo/acpi-devel
->=20
->=20
->=20
->=20
-> -------------------------------------------------------
-> This SF.NET email is sponsored by:
-> SourceForge Enterprise Edition + IBM + LinuxWorld =3D Something 2 See!
-> http://www.vasoftware.com
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+with a modified DSDT I can get most of the ACPI features in /proc/acpi
+to work for my Evo N800c. However one issue remains: It's not really
+possible to manually toggle the performance states using
+/proc/acpi/processor/C000/performance. This applies to kernel 2.4.20
+and the ACPI patch 20021212. The CPU in this machine is reported as
+"Intel(R) Pentium(R) 4 Mobile CPU 1.80GHz", stepping 4.
 
+The notebooks behaves as follows: When offline from power the CPU will
+automatically switch to state P1. I notice this because the
+temperature of the CPU drops almost immediatly and some programs run
+slightly slower (transcode is nice for monitoring that, because it
+displays a frame rate). However the values in /proc/acpi do not
+reflect this change. They remain at P0. Reenabling power will switch
+the CPU to P0 automatically, again.
 
+When manually toggling the P-states using "echo 1 >
+/proc/acpi/processor/C000/power" strange behaviour occurs: The CPU
+does in fact run slower (as I notice from temperature and frame rate),
+but the ACPI drivers reports:
+
+Jan 26 12:48:50 hotzenplotz kernel: acpi_processor-1095 [62] acpi_processor_set_per: Transition failed
+
+although the transition did in fact work. When looking at the code for
+the processor module I find a loop at the end of
+acpi_processor_set_performance where the code will poll 1 ms for a
+state change. This part doesn't seem to work for me.
+
+Switching state a second time will not work also, but this is because
+of the following check in processor.c:
+
+        if (state == pr->performance.state) {
+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, 
+			"Already at target state (P%d)\n", state));
+		return_VALUE(0);
+	}
+
+So, anyone any idea, why a state change is not recognized for this
+machine?
+
+Apart from that I'm really impressed how much of the ACPI stuff is
+actually working now quite nicely for me. Good work!
+
+Kind regards,
+
+Stephan
 
 
 -------------------------------------------------------
