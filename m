@@ -1,12 +1,11 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: Resume from mem state == Reboot (Averatec)
-Date: Mon, 14 Mar 2005 22:45:36 +0000
-Message-ID: <1110840337.8136.82.camel@tyrosine>
-References: <87k6oaug4a.fsf@www.codersbase.com>
+From: Carlos E Manglano-Villamarin <carlosemanglanov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: acpi related problem on ACER TM 4002WLMi running SuSE 9.2
+Date: Mon, 14 Mar 2005 22:50:25 +0000
+Message-ID: <d49121bb05031414506df19df@mail.gmail.com>
+Reply-To: Carlos E Manglano-Villamarin <carlosemanglanov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <87k6oaug4a.fsf-mMfbam+mt929kzlf/Hu3QdBPR1lH4CV8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,23 +18,31 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2005-03-14 at 12:28 -0800, Jason Dagit wrote:
+Hi everyone,
 
-> I would like to debug/fix this problem.  After a fair bit of googling
-> it would appear than everyone with this model of laptop has the some
-> problem.  I'm not very experienced with debugging the kernel, and I'm
-> even less experienced with acpi.  What should I do to find out more
-> about this?  Are there commands I can run and information to provide
-> the list with to get to the next step in finding the problem?  If I
-> include my dsdt or other information what is the best way to send that
-> info to the list?  Should I use an email attachment?
+my problem is that I cannot manage to have the battery icon showing
+when running 'kpowersave' in the pannel. Only the icon for AC mode
+appears, and the computer thinks it's running under AC :-/
 
-This is likely to be the same problem as
-http://bugzilla.kernel.org/show_bug.cgi?id=3691
+I've tried to download and install some patch from this site but I
+have a serious doubt before messing around with the kernel. Let's go
+step-by-step:
 
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+1) I dowloaded the 'sbs-cm-20050213' patch, extracted it and followed
+the instructions
+2) But when I get to step 8 and go to the webpage recommended 
+http://forums.gentoo.org/viewtopic.php?t=122145
+I read the following line
+"SuSE 9.0 already includes this patch in the default kernel! See
+/etc/sysconfig/kernel for more information (ACPI_DSDT=...)"
 
+I don't know if I should follow all the steps or try a different
+approach to my problem.
+
+Any help, plz?
+
+Thanx in advance for your time
+Carlos
 
 
 -------------------------------------------------------
