@@ -1,96 +1,79 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [BKPATCH] ACPI for 2.4
-Date: 25 Feb 2004 05:01:05 -0500
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1077700687.5912.188.camel@dhcppc4>
+From: Dominik Brodowski <linux@dominikbrodowski.de>
+Subject: Re: [ACPI] [PATCH 1/2] 2.6: use scaling_available_freqs in
+	acpi-cpufreq-ioport driver
+Date: Tue, 24 Feb 2004 15:43:18 +0100
+Sender: cpufreq-bounces@www.linux.org.uk
+Message-ID: <20040224144318.GA9702@dominikbrodowski.de>
+References: <20040220083149.GA10215@dominikbrodowski.de>
+	<20040224125628.GA438@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZQ39yzSjRtAkw@public.gmane.org>
-Cc: Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: multipart/mixed; boundary="===============30532261994827259=="
+Return-path: <cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk>
+In-Reply-To: <20040224125628.GA438@elf.ucw.cz>
+List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@www.linux.org.uk?subject=unsubscribe>
+List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq>
+List-Post: <mailto:cpufreq@www.linux.org.uk>
+List-Help: <mailto:cpufreq-request@www.linux.org.uk?subject=help>
+List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@www.linux.org.uk?subject=subscribe>
+Errors-To: cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk
+To: Pavel Machek <pavel@ucw.cz>
+Cc: acpi-devel@lists.sourceforge.net, cpufreq@www.linux.org.uk
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Marcelo, please do a 
 
-	bk pull bk://linux-acpi.bkbits.net/linux-acpi-release-2.4.26
-
-thanks,
--Len
-
-ps. a plain patch is also available here:
-ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.4.25/acpi-20040211-2.4.25.diff.gz
-
-This will update the following files:
-
- drivers/acpi/Config.in             |    3 --
- drivers/acpi/dispatcher/dsmthdat.c |    9 ++++--
- drivers/acpi/dispatcher/dsobject.c |    5 +++
- drivers/acpi/dispatcher/dsopcode.c |    6 ++--
- drivers/acpi/dispatcher/dsutils.c  |    3 +-
- drivers/acpi/dispatcher/dswstate.c |    2 -
- drivers/acpi/executer/exconvrt.c   |   35 ++++++++++++++++---------
- drivers/acpi/executer/exfldio.c    |    4 +-
- drivers/acpi/executer/exmisc.c     |    8 +++--
- drivers/acpi/executer/exoparg2.c   |    4 ++
- drivers/acpi/executer/exprep.c     |    2 -
- drivers/acpi/executer/exresolv.c   |    6 ++--
- drivers/acpi/executer/exresop.c    |    4 +-
- drivers/acpi/executer/exstore.c    |   29 ++++++++++++++------
- drivers/acpi/executer/exstoren.c   |    8 +++++
- drivers/acpi/namespace/nsaccess.c  |    2 -
- drivers/acpi/parser/psargs.c       |    4 +-
- include/acpi/acconfig.h            |    2 -
- 18 files changed, 87 insertions(+), 49 deletions(-)
-
-through these ChangeSets:
-
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/02/13 1.1063.46.74)
-   [ACPI] ACPICA 20040211 udpate from Bob Moore
-   
-   Completed investigation and implementation of the
-   call-by-reference mechanism for control method arguments.
-   
-   Fixed a problem where a store of an object into an indexed
-   package could fail if the store occurs within a different
-   method than the method that created the package.
-   
-   Fixed a problem where the ToDecimal operator could return
-   incorrect results.
-   
-   Fixed a problem where the CopyObject operator could fail
-   on some of the more obscure objects (e.g., Reference objects.)
-   
-   Improved the output of the Debug object to display buffer,
-   package, and index objects.
-   
-   Fixed a problem where constructs of the form "RefOf (ArgX)"
-   did not return the expected result.
-   
-   Added permanent ACPI_REPORT_ERROR macros for all instances of the
-   ACPI_AML_INTERNAL exception.
-
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/02/13 1.1063.46.73)
-   [ACPI] revert previous AML param patch for ACPICA update
-
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/02/10 1.1063.46.72)
-   [ACPI] CONFIG_ACPI_NUMA depends on CONFIG_IA64
+--===============30532261994827259==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="h31gzZEtNLTqOjlF"
+Content-Disposition: inline
 
 
+--h31gzZEtNLTqOjlF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Tue, Feb 24, 2004 at 01:56:28PM +0100, Pavel Machek wrote:
+> Hi!
+>=20
+> > Export an array of supported frequencies in sysfs
+> > [scaling_available_frequencies]
+>=20
+> Would it be possible to export [frequency/voltage] pairs, and allow
+> user to change it?
+
+IMO, NO! While this might be a necessity for powernow-k7, the generic acpi-=
+io
+driver should stay clean of such overrides et al. If you need to modify the
+ACPI tables, there are other ways.
+
+	Dominik
+
+--h31gzZEtNLTqOjlF
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFAO2MGZ8MDCHJbN8YRAoJlAJwI0z7ED7Y0eMdZC2HNDevULBIf2wCeMN1H
+Xd21LwEyOjqZkcOX/XGmH+w=
+=lrLn
+-----END PGP SIGNATURE-----
+
+--h31gzZEtNLTqOjlF--
 
 
+--===============30532261994827259==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
+_______________________________________________
+Cpufreq mailing list
+Cpufreq@www.linux.org.uk
+http://www.linux.org.uk/mailman/listinfo/cpufreq
 
--------------------------------------------------------
-SF.Net is sponsored by: Speed Start Your Linux Apps Now.
-Build and deploy apps & Web services for Linux with
-a free DVD software kit from IBM. Click Now!
-http://ads.osdn.com/?ad_id=1356&alloc_id=3438&op=click
+--===============30532261994827259==--
