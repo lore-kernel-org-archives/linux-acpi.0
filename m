@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: VIA KT333 acpi DSDT bug
-Date: Fri, 6 Feb 2004 23:54:14 +0800
+Subject: RE: acpi=force safe?
+Date: Sat, 7 Feb 2004 00:17:44 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB684@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB685@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,21 +17,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: chp.dekker-OdOgJZujJHXcqV2Q6a4srg@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Nick Bartos <spam99-1EIjRwF9Gc5s5w19saIqfg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> I didn't see this before (because fglrx act's like a semafore=20
-> error generator=20
-> for last 10 weeks) but it looks like my computer doesn't resolve=20
-> \_SB.PCI0.SBRG.EC0.
+> So if I have a /proc/acpi dir then it is safe?  What is the worst that
+> could happen if the acpi is broken in the board and I force it?  Just
+> courious, what if I forced it for a really old board that=20
+> didn't have acpi
+> at all and thus technically couldn't work anyway (I wouldn't=20
+> do that but I
+> do wonder)?  Would the acpi files in proc still exist or not?
 >=20
 
-We can verify it in DSDT.
-
->=20
-> ACPI: Subsystem revision 20031203
-
-This version is a little bit older .
+It's not safe to determine that ACPI has fully enabled only through the=20
+existence of /proc/acpi.=20
 
 --Luming
 
