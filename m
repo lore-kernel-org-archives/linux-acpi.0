@@ -1,14 +1,14 @@
-From: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
-Subject: Re: CUR-DLS blacklisted? + IRQ trouble
-Date: Tue, 24 Feb 2004 01:40:40 +0000
+From: Nick Lidakis <nlidakis-H+0wwilmMs3R7s880joybQ@public.gmane.org>
+Subject: Re: Desktop and S3 suspend the Holy Grail of ACPI?
+Date: Tue, 24 Feb 2004 00:06:20 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <403AAB98.4050508@mega.ist.utl.pt>
-References: <402F823D.6070702@mega.ist.utl.pt>	<1077079669.4948.24.camel@dhcppc4>	<4039365B.6090105@mega.ist.utl.pt> <20040223112406.116f381e.rddunlap@osdl.org>
+Message-ID: <403ADBCC.9060108@verizon.net>
+References: <4038F499.2060302@verizon.net> <1077517907.12673.43.camel@dhcppc4>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040223112406.116f381e.rddunlap-3NddpPZAyC0@public.gmane.org>
+In-Reply-To: <1077517907.12673.43.camel-D2Zvc0uNKG8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,143 +17,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Len Brown wrote:
 
-hi
+>>    
+>>
+>
+>I've got a laptop running Fedora Core 2 out of the box, and all I do is
+>
+># echo 3 >/proc/acpi/sleep
+>and I use the power button to wake it up.
+>
+>I've also got a D875PBZ, however
+>
+>[root-BJIgRQarj28@public.gmane.org /]# echo -n 3 >/proc/acpi/sleep
+>Stopping tasks: ==============================
+> stopping tasks failed (1 tasks remaining)
+>Restarting tasks...<6> Strange, katad-1 not stopped
+> done
+>[root-BJIgRQarj28@public.gmane.org /]#
+>
+>which I guess is due to its SATA boot drive.
+>Do you have a regular PATA drive?
+>
+>cheers,
+>-Len
+>
+>
+>
+>  
+>
+Yes I do have regular PATA drives. Could you give me the details on your 
+configuration? Other hardware, kernel and patches applied?
 
-i am afraid it is still not working for me, i tried it just now.
+Thanks.
 
-i guess the problem is not with the bug's text size... i get an error
-message in a big red box saying: "A legal Architecture was not set."
-
-just before the red box, i get this message:
-
-Code Error
-
-Bugzilla has suffered an internal error. Please save this page and send
-it to THE MAINTAINER HAS NOT YET BEEN SET with details of what you were
-doing at the time this message appeared.
-
-URL: http://bugzilla.kernel.org/post_bug.cgi
-
-regards,
-pedro.
-
-Randy.Dunlap wrote:
-| On Sun, 22 Feb 2004 23:08:11 +0000 Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
-wrote:
-|
-| | -----BEGIN PGP SIGNED MESSAGE-----
-| | Hash: SHA1
-| |
-| | hi len,
-| |
-| | i tried to file the bug report with no success...
-| |
-| | first it was too long, and then i kept getting "internal server error"
-| | from the bugzilla server, until i quit.
-| |
-| | i have the whole post backed up on my desktop, so i can send it directly
-| | to you... or you can suggest something else.
-|
-| Hi,
-| We would like for the kernel bugzilla server to work also...
-| so if it is still having problems, please let me know and I'll
-| forward them.  However, I just entered a comment into one
-| bugzilla item, so maybe it's working OK now.
-|
-| Thanks,
-| ~Randy
-|
-| | []
-| |
-| | Len Brown wrote:
-| |
-| | | Pedro,
-| | | We got that entry from UnitedLinux last August.
-| | |
-| | | It is quite possible that the system is unjustly blacklisted, or
-that it
-| | | was blacklisted out of convenience b/c nobody could figure out exactly
-| | | what was wrong when ACPI on that system failed.
-| | |
-| | | I'll be happy to look into it if you're willing to file a bug and help
-| | | me debug to make a proper diagnosis.
-| | |
-| | | thanks,
-| | | -Len
-| | | ---
-| | | How to file a bug against ACPI:
-| | |
-| | | http://bugzilla.kernel.org/ Category: Power Management, Component:
-ACPI
-| | |
-| | | Please attach dmesg -s40000 output (or serial console log if dmesg
-| | | unavailable)
-| | | Please attach copy of /proc/interrupts if possible
-| | |
-| | | Please attach the output from acpidmp, available in /usr/sbin/, or in
-| | | pmtools:
-| | | http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
-| | |
-| | | Please attach the output from dmidecode, available in /usr/sbin/, or
-| | | here:
-| | | http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
-| | |
-| | | Please attach the output from lspci -v
-| | |
-| | |
-| | |
-| | | On Sun, 2004-02-15 at 09:29, Pedro Venda wrote:
-| | |
-| | | hi everyone,
-| | |
-| | | i have two questions to which i haven't found answers anywhere, so
-i am
-| | | asking here.
-| | |
-| | | - i have an ASUS CUR-DLS motherboard (dual P3) and the 2.4 and 2.6
-| | | kernels both say: "ASUS CUR-DLS detected: force use of acpi=ht" when
-| | | starting disabling ACPI. i must do a acpi=force in order to be able to
-| | | use it, which consequences i don't know. i looked through the acpi
-| | | documentation and this board is NOT on the blacklist. i am asking why
-| | | does the kernel disable ACPI on my mb by default? what's wrong
-with it?
-| | | are there any known problems?
-| | |
-| | | - on the same machine, i have 2 nics. one of them is onboard (intel
-| | | eepro/100) and the other is a realtek 8139. they used to work ok with
-| | | some versions of the kernel, but now they only work together without
-| | | ACPI. with acpi, the realtek displays the famous SIOCIFADDR "device is
-| | | busy...". is this normal? what can be happening here?
-| | |
-| | | thanks for your time.
-| | | regards,
-| | | pedro.
-|
-|
-| -------------------------------------------------------
-| SF.Net is sponsored by: Speed Start Your Linux Apps Now.
-| Build and deploy apps & Web services for Linux with
-| a free DVD software kit from IBM. Click Now!
-| http://ads.osdn.com/?ad_id=1356&alloc_id=3438&op=click
-| _______________________________________________
-| Acpi-devel mailing list
-| Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-| https://lists.sourceforge.net/lists/listinfo/acpi-devel
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (MingW32)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
-
-iD8DBQFAOquYeRy7HWZxjWERAtFvAJ98wCqfycixsBZ1EQpLHPbXpjW9xQCgs0sy
-Zkl6qSrGveGJxpBLnOkPE9U=
-=fAn+
------END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
