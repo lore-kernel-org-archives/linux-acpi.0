@@ -1,12 +1,14 @@
-From: Stephan Krings <stephan-MC3rjLPHZ0jJ0Y7HFzmx4Q@public.gmane.org>
-Subject: GPE number associated with method _L11 is not valid
-Date: Mon, 10 Mar 2003 10:34:32 +0100
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: Compaq evo n800v
+Date: Mon, 10 Mar 2003 11:08:24 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <15980.23592.270691.101902@hotzenplotz.chateau-neukoelln.de>
+Message-ID: <20030310100824.GB32516@hell.org.pl>
+References: <1047125223.5077.28.camel@localhost.localdomain> <15980.22695.764082.140067@hotzenplotz.chateau-neukoelln.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <15980.22695.764082.140067-/D6BEnooUbBSBwh6+m2SNzw7hsPlABbXrfATN7qnIZ4@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,48 +17,23 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Stephan Krings <stephan-MC3rjLPHZ0jJ0Y7HFzmx4Q@public.gmane.org>
+Cc: Anders Persson <anders.persson-sT6loi8rTDSci/EUP2OQSw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Thus wrote Stephan Krings:
+> Same for me, although the Fn-keys for changing the display brightness
+> no longer work, when DRI is enabled in XFree86. But I guess this has
+> nothing to do with ACPI but is a problem with the XFree86 driver for
+> Radeon cards.
 
-Hello,
+I wouldn't be so sure -- I have an Asus L380C with a Radeon M7 and I've
+had no problems changing brightness so far, be it with, or without DRI.
+Best regards,
 
-when using 2.4.21-pre4 and ACPI patch 20030228 I get the error mentioned
-in the subject. This does not happen with 2.4.20 and 20021212. This is
-on a Compaq Evo N800c with a modified DSDT.
-
-Also the lid switch doesn't work then because this function seems to
-be routed through one of these GPE methods.
-
-Is this a known problem?
-
-Exact log follows:
-
-ACPI Namespace successfully loaded at root c02d815c
-evxfevnt-0092 [04] acpi_enable           : Transition to ACPI mode successful
-   evgpe-0416 [06] ev_create_gpe_block   : GPE Block: 2 registers at 0000000000001028
-   evgpe-0421 [06] ev_create_gpe_block   : GPE Block defined as GPE0 to GPE15
-   evgpe-0138 [08] ev_save_method_info   : GPE number associated with method _L11 is not valid
-   evgpe-0138 [08] ev_save_method_info   : GPE number associated with method _L13 is not valid
-   evgpe-0138 [08] ev_save_method_info   : GPE number associated with method _L14 is not valid
-   evgpe-0138 [08] ev_save_method_info   : GPE number associated with method _L15 is not valid
-   evgpe-0138 [08] ev_save_method_info   : GPE number associated with method _L17 is not valid
-   evgpe-0138 [08] ev_save_method_info   : GPE number associated with method _L18 is not valid
-   evgpe-0138 [08] ev_save_method_info   : GPE number associated with method _L1C is not valid
-   evgpe-0416 [06] ev_create_gpe_block   : GPE Block: 2 registers at 000000000000102C
-   evgpe-0421 [06] ev_create_gpe_block   : GPE Block defined as GPE16 to GPE31
-   evgpe-0138 [08] ev_save_method_info   : GPE number associated with method _L0B is not valid
-   evgpe-0138 [08] ev_save_method_info   : GPE number associated with method _L11 is not valid
-   evgpe-0138 [08] ev_save_method_info   : GPE number associated with method _L13 is not valid
-   evgpe-0138 [08] ev_save_method_info   : GPE number associated with method _L14 is not valid
-   evgpe-0138 [08] ev_save_method_info   : GPE number associated with method _L15 is not valid
-   evgpe-0138 [08] ev_save_method_info   : GPE number associated with method _L17 is not valid
-   evgpe-0138 [08] ev_save_method_info   : GPE number associated with method _L18 is not valid
-   evgpe-0138 [08] ev_save_method_info   : GPE number associated with method _L1C is not valid
-
-Regards,
-
-Stephan
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
