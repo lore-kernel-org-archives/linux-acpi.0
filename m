@@ -1,14 +1,11 @@
-From: Dominik Brodowski <devel-JhLEnvuH02M@public.gmane.org>
-Subject: Re: Administration Wishlist
-Date: Thu, 22 Aug 2002 14:54:48 +0200
+From: SLIVER <sliver-qqXEv8jiLWqhPH1hqNUYSQ@public.gmane.org>
+Subject: Problem with Compaq Evo N110
+Date: Thu, 22 Aug 2002 15:28:24 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020822145448.A909@brodo.de>
-References: <1030017593.779.41.camel@U414>
+Message-ID: <5.1.0.14.2.20020822145413.00aa39f0@mail.olografix.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"; format=flowed
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1030017593.779.41.camel-v8X+xWjPZDc@public.gmane.org>; from hrhawk-JGs/UdohzUI@public.gmane.org on Thu, Aug 22, 2002 at 01:59:53PM +0200
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,23 +14,47 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: Huw Hawkins <hrhawk-JGs/UdohzUI@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Aug 22, 2002 at 01:59:53PM +0200, Huw Hawkins wrote:
-> I'll try my hand at suggesting some updates to get the webpages a little
-> less "under development", as I recall there is already an attempt
-> underway to gather information on the /proc/acpi filesystem which I
-> might be able to contribute something to (if someone would be good
-> enough to remind me where it was).
-Information on the /proc/acpi/processor part can be found at
-http://www.brodo.de/english/pub/acpi/proc/processor.html
+Hello.
+I have a problem to work ACPI on my laptop because the pc doesn't find the 
+battery and other device
+You can download my stuffs at http://nirvana.cuore.org/acpi/ (the dump 
+obtained with pmtools and other information)
+My laptop is Compaq Evo N110 with Slackware Linux 2.4.18 + latest kernel 
+patch (pentium Celeron)
+you can help me? :D
 
-Please note that I do not intend to add documentation for other parts of
-/proc/acpi/.
+Thanks for the support :)
 
-Dominik
+Luca Memini
+ps: Sorry for the my horrible english :|
+
+----// Session Log
+dreams@norad:~$ uname -a
+Linux norad 2.4.18 #4 Thu Aug 8 17:37:03 CEST 2002 i686 unknown
+
+dreams@norad:~$ acpi -V
+No support for device type: battery
+No support for device type: thermal
+No support for device type: ac_adapter
+
+dreams@norad:~$ ls /proc/acpi/
+alarm  button  debug_layer  debug_level  dsdt  embedded_controller  event 
+fadt  info  power_resource  processor  sleep
+---// End
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+L'artista si riconosce perche' a  differenza della gente
+comune  e' riuscito a rimanere bambino.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+HomePage avaible: http://www.olografix.org/sliver
+Webmaster: http://www.cuore.org, http://www.lasintesi.org
+Project: http://disastro.cuore.org/
+PGP Public Key available: http://www.olografix.org/sliver
+
 
 
 -------------------------------------------------------
