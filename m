@@ -1,11 +1,12 @@
-From: jack_chen-oDxavuD6NygHrNJx0XZkJA@public.gmane.org
-Subject: About LCD Brightness Control
-Date: Tue, 11 Mar 2003 14:22:34 +0800
+From: Luís Miguel Pires Neves <luis.p.neves-/UxMdeFaS/k@public.gmane.org>
+Subject: S1bios
+Date: Mon, 10 Mar 2003 22:51:53 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <79FEBAF94044D5119711000255C8544404125C5E@cl-exchange2.cyberlink.com.tw>
+Message-ID: <E18sfx5-0001dg-00@incognito>
+Reply-To: lneves-3+EeCmRbAIo+BYJ/izffpQ@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_001_01C2E796.9A546CD0"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -18,96 +19,52 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This message is in MIME format. Since your mail reader does not understand
-this format, some or all of this message may not be legible.
+Hi!
 
-------_=_NextPart_001_01C2E796.9A546CD0
-Content-Type: text/plain;
-	charset="BIG5"
+This is just a request (desire).
 
-Hi
-      I want to develop an application about LCD brightness control in the
-platform of Windows XP SP1.
-As mentioned in online MSDN which released in February 2003, some APIs, like
-IOCTL_VIDEO_QUERY_DISPLAY_BRIGHTNESS and IOCTL_VIDEO_SET_DISPLAY_BRIGHTNESS,
-can be useful for my development. But the outcome of my application is not 
-desired, which means that the APIs may not work correctly. I have no idea to
-solve this problem, so can anyone give me a hand ??
-Thanks a lot !! 
+As S1 is not completely working (backlight, disks spinning...), I wonder =
+if=20
+one couldn't find a temporary solution similar to S4bios for machines tha=
+t=20
+have S1 in bios.
 
-Jack
+I apologise if what I'm saying is stupid as I'm not a developper, just a=20
+ordinary Linux user who has been following the development of ACPI and sw=
+susp=20
+in order to have it's Laptop with the usual functionality of laptops..
 
-This correspondence is from Cyberlink Corp. and is intended only for use by the recipient named herein, and may contain privileged, proprietary and/or confidential information, and is intended only to be seen and used by named addressee(s). You are notified that any discussion, dissemination, distribution or copying of this correspondence and any attachments, is strictly prohibited, unless otherwise authorized or consented to in writing by the sender. If you have received this correspondence in error, please notify the sender immediately, and please permanently delete the original and any copies of it and any attachment and destroy any related printouts without reading or copying them.
-
-------_=_NextPart_001_01C2E796.9A546CD0
-Content-Type: text/html;
-	charset="BIG5"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
-<HTML>
-<HEAD>
-<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; charset=3DBIG5">
-<META NAME=3D"Generator" CONTENT=3D"MS Exchange Server version 5.5.2653.1=
-2">
-<TITLE>About LCD Brightness Control</TITLE>
-</HEAD>
-<BODY>
-
-<P><FONT SIZE=3D2 FACE=3D"Arial">Hi</FONT>
-<BR><FONT SIZE=3D2 FACE=3D"Arial">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; I want t=
-o develop an application about LCD brightness control in the platform of =
-Windows XP SP1.</FONT>
-<BR><FONT SIZE=3D2 FACE=3D"Arial">As mentioned in online MSDN which relea=
-sed in February 2003, some APIs, like IOCTL_VIDEO_QUERY_DISPLAY_BRIGHTNES=
-S and IOCTL_VIDEO_SET_DISPLAY_BRIGHTNESS</FONT><FONT SIZE=3D2 FACE=3D"Ari=
-al">,</FONT><FONT SIZE=3D2 FACE=3D"Arial"> can be useful for my developme=
-nt. But the outcome of my application is not </FONT></P>
-
-<P><FONT SIZE=3D2 FACE=3D"Arial">desired, which means that the APIs may n=
-ot work correctly. I have no idea to solve this problem, so can anyone gi=
-ve me a hand ??</FONT></P>
-
-<P><FONT SIZE=3D2 FACE=3D"Arial">Thanks a lot !! </FONT>
-</P>
-
-<P><FONT SIZE=3D2 FACE=3D"Arial">Jack</FONT>
-</P>
-
-
-<DIV><FONT face=3DArial size=3D1>   =20
-=20            =20
-=20       =20
-=20            =20
-=20       =20
-=20        =20
-=20           =20
-=20         =20
-=20            =20
-=20    </FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D1>This correspondence is from Cyberlink Co=
-rp. and is=20
-intended only for use by the recipient named herein, and may contain priv=
-ileged,=20
-proprietary and/or confidential information, and is intended only to be s=
-een and=20
-used by named addressee(s). You are notified that any discussion, dissemi=
-nation,=20
-distribution or copying of this correspondence and any attachments, is st=
-rictly=20
-prohibited, unless otherwise authorized or consented to in writing by the=
-=20
-sender. If you have received this correspondence in error, please notify =
+In my first times with Linux in this machine (COMPAQ Presario 12XL515) I=20
+used APM with kernel 2.2.17 (Debian Potato's version) and I had "S1"=20
+behaviour with apm -S. At the time it was the single working function as =
 the=20
-sender immediately, and please permanently delete the original and any co=
-pies of=20
-it and any attachment and destroy any related printouts without reading o=
-r=20
-copying them.</FONT><BR></DIV>
-</BODY>
-</HTML>=
+battery status/information wasn't there, and "S4" seemed also to be absen=
+t (=20
+I know now that it was there but it needed a proper configured partition)=
+=2E=20
+However with more recent kernels, both 2.2 and 2.4  (not patched with Deb=
+ian=20
+patches) I never had the APM sleeping function working again.
 
-------_=_NextPart_001_01C2E796.9A546CD0--
+Anyway I started using ACPI for battery information, and Swsusp for=20
+hibernation purposes, but I still miss the ability of putting the system =
+in a=20
+soft sleep so that I can move it from one place to another, or have a cup=
+ of=20
+coffee without having to wait still some time for a swsusp suspend/resume=
+=20
+cycle.
+
+As S4Bios was created to use the ability of the machines who still have s=
+ome=20
+APM support to overcome the current limitations and difficulties of swsus=
+p,=20
+isn't it possible to do the same with S1?
+
+Best regards,
+
+Lu=EDs Neves
+
 
 
 -------------------------------------------------------
