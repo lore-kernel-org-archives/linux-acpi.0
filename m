@@ -1,14 +1,12 @@
-From: "Cagle, John (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>
-Subject: Evo N610C new ROM
-Date: Wed, 7 May 2003 17:44:01 -0500
+From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
+Subject: kernel rc1 has somthing
+Date: 07 May 2003 23:56:58 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <C50AB9511EE59B49B2A503CB7AE1ABD10440E4FB@cceexc19.americas.cpqcorp.net>
+Message-ID: <1052351819.1468.10.camel@darkstar.portugal>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,26 +15,29 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-For those of you with the Evo N610C, there's a new version of the
-BIOS available, with 'Linux Supports':
+What I think is the problem is in rc1.
 
-http://h18007.www1.hp.com/support/files/evonotebook/us/download/18058.ht
-ml
+the bug tracking is more difficult, if we don't use always the same
+version of the kernel, so my advise is :
+apply acpi 20030424 in kernel 21-pre6 , and then you can take the
+conclusions,
 
-I have not tried this yet, but hopefully it has a more compliant ACPI
-implementation.
+my strange message, in kernel 21-rc1 in a regression in the kernel,
+after a search in google and kernel-archive is a problem with timer bla
+bla so make sense to many problems with hwclock=20
+etc.
 
-Regards,
-John
---------------------------------
-John Cagle     john.cagle-VXdhtT5mjnY@public.gmane.org
-Principal Member Technical Staff
-   Industry Standard Servers
-    Hewlett-Packard Company
-    http://www.hp.com/linux
+lets wait for a new rc of kernel ...
+
+--=20
+S=E9rgioMB
+email: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
+
+Who gives me one shell, give me everything.
+
 
 
 -------------------------------------------------------
