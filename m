@@ -1,13 +1,13 @@
-From: Joshua Wise <joshua-NtISFavHD68j5TC/SZClsA@public.gmane.org>
+From: Dave Jones <davej-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: ACPI on hp tc1100
-Date: Sun, 26 Dec 2004 02:17:00 -0500
-Message-ID: <41CE656C.1050500@joshuawise.com>
-References: <41B2912D.8020105@joshuawise.com> <Pine.LNX.4.60.0412051210070.990@frog.athome> <41B377AE.7080108@joshuawise.com>
+Date: Sun, 26 Dec 2004 02:31:13 -0500
+Message-ID: <20041226073113.GA919@redhat.com>
+References: <41B2912D.8020105@joshuawise.com> <Pine.LNX.4.60.0412051210070.990@frog.athome> <41B377AE.7080108@joshuawise.com> <41CE656C.1050500@joshuawise.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41B377AE.7080108-NtISFavHD68j5TC/SZClsA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <41CE656C.1050500-NtISFavHD68j5TC/SZClsA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,22 +21,26 @@ To: Joshua Wise <joshua-NtISFavHD68j5TC/SZClsA@public.gmane.org>
 Cc: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Joshua Wise wrote:
-> Hm. First, I tried just setting Option "NvAGP" "1" in my XF86Config 
-> without downgrading, and that seemed to do the trick! I am running the 
-> latest NVidia drivers: 6629. However, when the system 'comes back to 
-> life', the wireless is non-functional, as described below. The 
-> wacom-acpi driver also seems to need to be reloaded: on resume, dmesg 
-> reports that ttyS4 failed the LSR safety check.
+On Sun, Dec 26, 2004 at 02:17:00AM -0500, Joshua Wise wrote:
+ > Joshua Wise wrote:
+ > >Hm. First, I tried just setting Option "NvAGP" "1" in my XF86Config 
+ > >without downgrading, and that seemed to do the trick! I am running the 
+ > >latest NVidia drivers: 6629. However, when the system 'comes back to 
+ > >life', the wireless is non-functional, as described below. The 
+ > >wacom-acpi driver also seems to need to be reloaded: on resume, dmesg 
+ > >reports that ttyS4 failed the LSR safety check.
+ > 
+ > Well, digging this out of the archive.... I figured out why NvAGP 1 
+ > "fixed" the problem. It seems that the tc1100's AGP host bridge is in 
+ > fact unsupported by the NVIDIA AGP driver, so when we force the NVIDIA 
+ > driver's AGP mode, we effectively disable AGP and only use PCI. I wonder 
+ > if kernel AGPGART is not doing some sort of appropriate AGP magic before 
+ > the NVIDIA driver comes back up?
 
-Well, digging this out of the archive.... I figured out why NvAGP 1 
-"fixed" the problem. It seems that the tc1100's AGP host bridge is in 
-fact unsupported by the NVIDIA AGP driver, so when we force the NVIDIA 
-driver's AGP mode, we effectively disable AGP and only use PCI. I wonder 
-if kernel AGPGART is not doing some sort of appropriate AGP magic before 
-the NVIDIA driver comes back up?
+What does lspci say about the host/pci bridge ?
 
-joshua
+		Dave
+
 
 
 -------------------------------------------------------
