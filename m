@@ -1,14 +1,16 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Problem with Toshiba 1005-S157 DSDT
-Date: Fri, 16 Aug 2002 12:22:23 +0200
+From: Jason Bowman <jasonb42lists-K2GnTyEPumIAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Which laptops don't work/have problems w/o ACPI
+Date: Thu, 15 Aug 2002 16:36:44 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020816102223.GI10248@poup.poupinou.org>
-References: <B9ECACBD6885D5119ADC00508B68C1EA0D19B6E3@orsmsx107.jf.intel.com>
+Message-ID: <200208151636.45037.jasonb42lists@attbi.com>
+References: <EDC461A30AC4D511ADE10002A5072CAD0236DD96@orsmsx119.jf.intel.com>
+Reply-To: jasonb42lists-K2GnTyEPumIAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <B9ECACBD6885D5119ADC00508B68C1EA0D19B6E3-LkGsggTGxVmSsB6bSF6DdVDQ4js95KgL@public.gmane.org>
+In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD0236DD96-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,60 +19,33 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "'Black, Richard (Hou)'" <Richard.Black-VXdhtT5mjnY@public.gmane.org>, Phil Short <justswitch-ihVZJaRskl1bRRN4PJnoQQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Aug 15, 2002 at 10:02:51AM -0700, Moore, Robert wrote:
-> >> dsdt.asl   281:                 If(\_OSI) {
-> >> Error   1022 -   Object does not exist ^  (\_OSI)
-> 
-> 
-> Add "External (\_OSI)".  The next version of the compiler understands that
-> _OSI is a reserved method name and the External won't be required.
-> 
-> 
-> dsdt.asl   848:                 SRST,   1,
-> Error   1051 -                     ^ Access width of Field Unit extends
-> beyond region limit
-> 
-> 
-> Increase the length of the parent operation region
-> 
-> dsdt.asl  2256:                 Field(ERAM, AnyAcc, Lock, Preserve) {
-> Error   1048 -                           ^ Host Operation Region requires
-> ByteAcc access
-> 
-> Any operation region in EC space must use ByteAcc, change the region
-> declaration
-> 
-> Bob
-> 
-> -----Original Message-----
-> From: Black, Richard (Hou) [mailto:Richard.Black-VXdhtT5mjnY@public.gmane.org] 
-> Sent: Thursday, August 15, 2002 8:53 AM
-> To: Phil Short; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Subject: RE: [ACPI] Problem with Toshiba 1005-S157 DSDT
-> 
-> 1) When you get the following errors:
-> 
-> >> dsdt.asl   134: Method(_WAK, 1) {
-> >> Warning 2026 -            ^ Reserved method must return a value (_WAK)
-> 
-> You should probably add a "Return(0x0)" on a new 
-> line just before the closing curly brace like so:
-> 
-> Method(_WAK, 1) {
-> ... ... ...
-> Return(0x0)
-  ^^^^^^^^^^^
+On Thursday 15 August 2002 12:01 pm, Grover, Andrew wrote:
+> Hi all,
+>
+> I'm trying to compile a list of systems that do not work, or have reduc=
+ed
+> functionality, without ACPI.
+>
+> Would people who have these mind shooting me a quick private email with=
+ the
+> exact make and model, and I'll summarize to the list?
+>
+> Thanks -- Regards -- Andy
+>
 
-Nope, _WAK return a Package of two values.
+HP1100 series (and its european clone the XT1100 series) does not have so=
+und=20
+without ACPI. I have heard that sound may be possible with ALSA v9 but I =
+can=20
+not confirm that. Also you must always do a manual poweroff w/o ACPI b/c=20
+there is no APM support.
 
--- 
-Ducrot Bruno
-http://www.poupinou.org        Page profaissionelle
-http://toto.tu-me-saoules.com  Haume page
+Later,
+Jason B.
+
 
 
 -------------------------------------------------------
