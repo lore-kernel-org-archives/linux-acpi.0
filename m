@@ -1,94 +1,55 @@
-From: Vittorio Ballestra <vittorio.ballestra-w/p7aty22Lb1OrHgBX/NsA@public.gmane.org>
-Subject: Re: Am I burning my Compaq 700EA ?
-Date: Wed, 18 Dec 2002 09:41:06 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200212180941.06499.vittorio.ballestra@infogestnet.it>
-References: <1040197383.2035.6.camel@lgge-pc176.obs.ujf-grenoble.fr>
+From: Ducrot Bruno <poup-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH] S4bios for 2.5.52.
+Date: Wed, 18 Dec 2002 09:59:02 +0100
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <20021218085902.GD1012@poup.poupinou.org>
+References: <EDC461A30AC4D511ADE10002A5072CAD04C7A5B1@orsmsx119.jf.intel.com> <Pine.LNX.4.44.0212171611460.21707-100000@chaos.physics.uiowa.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1040197383.2035.6.camel-EOLtR9nHC0w7VkuvlHBOUdBf7emC4R2pl6ge6I993lI@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Frederic.Parrenin-uJC2I/HWIrG1lNqXp+/2b1AUjnlXr6A1@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <Pine.LNX.4.44.0212171611460.21707-100000-+ltLZMaECS1Ps8vDFOCQiqGgjKF21WCF@public.gmane.org>
+To: Kai Germaschewski <kai-K3FV8rsiL1oTdZ4mcS17cL1bcanuHkqH@public.gmane.org>
+Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Ducrot Bruno' <poup-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Alle 08:43, mercoled=EC 18 dicembre 2002, hai scritto:
-> Hi Vittorio,
->
->
-> I am not an acpi expert, but I had a similar problem with my laptop.
->
-> > Second:
-> > 	/proc/acpi/thermal_zone is there but empty. Is it Ok ?  If not someone
-> > knows how to fix it ? (I'm a bit worried 'bout this).
->
-> For me, it was the battery and ac_adaptatot that were empty. It came
-> from a buggy implementation of acpi in the Bios : my dsdt table was
-> wrong. A nice gye has of the acpi-devel list looked at my
-> /proc/acpi/dsdt file, and he gave me a patch to have acpi fully working.
->
+On Tue, Dec 17, 2002 at 04:14:41PM -0600, Kai Germaschewski wrote:
+> On Tue, 17 Dec 2002, Grover, Andrew wrote:
+> 
+> > > From: Ducrot Bruno [mailto:poup-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org] 
+> > > This patch add s4bios support for 2.5.52.
+> 
+> > > echo 4 > /proc/acpi/sleep is for swsusp;
+> > > echo 4b > /proc/acpi/sleep is for s4bios.
+> > 
+> > I still am not clear on why we would want s4bios in 2.5.x, since we have S4.
+> > Like you said, S4bios is easier to implement, but since Pavel has done much
+> > of the heavy lifting required for S4 proper, I don't see the need.
+> 
+> Let me counter this, I have to admit that I didn't try the patch yet, but
+> my laptop does S4 BIOS, and I'd definitely prefer that to swsusp, since
+> it's much faster and also I somewhat have more faith into S4 BIOS than
+> swsusp (as in: after resuming, it'll most likely either work or crash, but
+> not cause any weird kinds of corruption). Since it does not need not much
+> more to support it than S3, I don't see why you wouldn't want to give
+> users the option?
+> 
 
-Thank you for your hint. I'll try to disassemble the DSDT table and underst=
-and=20
-it, but it will take a long time as I don't have much spare time for it...=
-=20
-hope in the meanwhile I'm not going to cook my compaq... or some other good=
-=20
-guy will give me a hand...
+In fact, I agree with Andrew.  But Pavel insist and want it,
+and since it is really straightforward to have it in 2.5
+because Pavel have already done all the work, why not giving
+him a little gift for Christmas ?
 
-> For your thermal zone, try to charge your CPU and look if the fan work
-> correctly. (What is your processor ? Pentium 4 ?)
->
+A final word:  S4bios is way much _slower_ by nature than S4OS, especially
+at suspend path, which is what we don't want if we have to go to S4 due
+to an emergency.
 
-=46an is working (running mplayer or recompiling the kernel will make it wo=
-rk).=20
-Don't know how well though ...
-Throttling works (manual changing the throttling state will do, don't know =
-if=20
-it will change automatically).
-My processor is an AMD Athlon 4 1500+
+Kai, if you see that S4OS is slower, it is probably a bug that have to be
+fixed in swsusp.
 
-> > Third:
-> > 	acpid is not working (I've not applied the apcpid.patch, thought it was
-> > integrated ...). Is this a real problem or the only side-effect is that
-> > power button will not work ?
->
-> If you try to start acpid, do you have an error message ?
+Cheers,
 
-no, but buttons are not working. I didn't want to recompile only because I'=
-ve=20
-forgotten to apply the acpid.patch that's why I asked if it was important .=
-=2E.
-
->
-> Regards.
->
-> 	Frederic
->
-> > -------------------------------------------------------
-> > This sf.net email is sponsored by:
-> > With Great Power, Comes Great Responsibility
-> > Learn to use your power at OSDN's High Performance Computing Channel
-> > http://hpc.devchannel.org/
-> > _______________________________________________
-> > Acpi-devel mailing list
-> > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> > https://lists.sourceforge.net/lists/listinfo/acpi-devel
-
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:
-With Great Power, Comes Great Responsibility 
-Learn to use your power at OSDN's High Performance Computing Channel
-http://hpc.devchannel.org/
+-- 
+Ducrot Bruno
+http://www.poupinou.org        Page profaissionelle
+http://toto.tu-me-saoules.com  Haume page
