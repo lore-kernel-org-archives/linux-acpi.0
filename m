@@ -1,12 +1,14 @@
-From: Sebastian <admin-HmhXUwHVxSOoYr4blSSd5g@public.gmane.org>
-Subject: Error: Looking up [PBST] in namespace, AE_ALREADY_EXISTS
-Date: Mon, 16 Aug 2004 04:11:38 +0200
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: [Fwd: [Fwd: patch to include a custom dsdt]]
+Date: Mon, 16 Aug 2004 09:20:49 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040816041138.06d239dc.admin@wodkahexe.de>
+Message-ID: <20040816072049.GA25783@elf.ucw.cz>
+References: <1092070755.2217.16.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1092070755.2217.16.camel@dhcppc4>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -15,38 +17,79 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hi!
 
-I'm getting the following problem since 2.6.7 (maybe earlier,
-i don't remember).
+> This looks handy.
+> comments?
 
-There is no problem during boot or while working without X.
+It certainly makes life better for developers.
 
-As soon as I start X, I'm getting the following in dmesg:
+								Pavel
 
-2.6.8.1 (without acpi debug):
+> --- linux-2.6.7/drivers/acpi/Kconfig.orig	2004-07-17 10:34:39.000000000 +0200
+> +++ linux-2.6.7/drivers/acpi/Kconfig	2004-07-17 10:28:11.000000000 +0200
+> @@ -204,6 +204,23 @@
+>  	  If you have a legacy free Toshiba laptop (such as the Libretto L1
+>  	  series), say Y.
+>  
+> +config ACPI_CUSTOM_TABLE
+> +	bool "Include Custom ACPI Table"
+> +	depends on X86
+> +	depends on ACPI_INTERPRETER
+> +	default ""
+> +	help
+> +	  Thist option is to load a custom acpi dsdt table, e.g. for buggy acpi 
+> +	  implementations like on DELL inspiron 5100
+> +
+> +config ACPI_CUSTOM_TABLE_FILE
+> +	string "Custom ACPI Table file to include"
+> +	depends on ACPI_CUSTOM_TABLE
+> +	default ""
+> +	help
+> +	  please enter the full path name to the file wich includes the AmlCode delclaration
+> +
+> +
+>  config ACPI_DEBUG
+>  	bool "Debug Statements"
+>  	depends on ACPI_INTERPRETER
+> --- linux-2.6.7/drivers/acpi/osl.c.orig	2004-07-17 08:39:55.000000000 +0200
+> +++ linux-2.6.7/drivers/acpi/osl.c	2004-07-17 10:31:51.000000000 +0200
+> @@ -55,6 +55,9 @@
+>      void		    *context;
+>  };
+>  
+> +#ifdef CONFIG_ACPI_CUSTOM_TABLE
+> +#include CONFIG_ACPI_CUSTOM_TABLE_FILE
+> +#endif
+>  
+>  #ifdef ENABLE_DEBUGGER
+>  #include <linux/kdb.h>
+> @@ -235,7 +238,14 @@
+>  	if (!existing_table || !new_table)
+>  		return AE_BAD_PARAMETER;
+>  
+> +#ifdef CONFIG_ACPI_CUSTOM_TABLE
+> +	if (strncmp(existing_table->signature, "DSDT", 4) == 0)
+> +		*new_table = (struct acpi_table_header*)AmlCode;
+> +	else
+> +		*new_table = NULL;
+> +#else
+>  	*new_table = NULL;
+> +#endif
+>  	return AE_OK;
+>  }
+>  
 
-atkbd.c: Spurious ACK on isa0060/serio0. Some program, like XFree86, might be trying access hardware directly.
-    ACPI-0279: *** Error: Looking up [PBST] in namespace, AE_ALREADY_EXISTS
-    ACPI-1133: *** Error: Method execution failed [\_SB_.PCI0.LPC0.BAT1._BST] (Node def26f80), AE_ALREADY_EXISTS
 
-2.6.7 (with acpi debug):
 
-atkbd.c: Spurious ACK on isa0060/serio0. Some program, like XFree86, might be trying access hardware directly.
-   dswload-0279: *** Error: Looking up [PBST] in namespace, AE_ALREADY_EXISTS
-   psparse-0597 [1500] ps_parse_loop         : During name lookup/catalog, AE_ALREADY_EXISTS
-   psparse-1133: *** Error: Method execution failed [\_SB_.PCI0.LPC0.BAT1._BST] (Node deec4800), AE_ALREADY_EXISTS
-   acpi_battery-0207 [1493] acpi_battery_get_statu: Error evaluating _BST
-   osl-0895 [2438] os_wait_semaphore     : Failed to acquire semaphore[da55e8a8|1|0], AE_TIME
 
-This only happens, _after_ i started X (Version 4.4.0)
-
-My machine is an Aver Travelmate 291lci with latest bios.
-
-thanks, sebastian
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
