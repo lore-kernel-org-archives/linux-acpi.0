@@ -1,14 +1,15 @@
-From: Barry Dunn <lists-2N9sBa0oe+EDXYZnReoRVg@public.gmane.org>
-Subject: Re: acpi kills boot from usb flash media - 2.6.7 kernel
-Date: Thu, 15 Jul 2004 05:04:48 +0100
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: Why nobody help me?
+Date: Wed, 14 Jul 2004 22:05:36 -0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040715050448.5134f64f@gen.aqui>
-References: <20040712224931.7196f3dd@gen.aqui>
+Message-ID: <20040714220535.GB23861@message-id.gmane0305.slipkontur.de>
+References: <000901c468ec$a4425e40$0800a8c0@SQUADRA> <20040714090418.GA26992@ozelot.stud.ntnu.no> <20040714143514.GJ8906@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040712224931.7196f3dd-lbqlLqOQeoU@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20040714143514.GJ8906-bi+AKbBUZKZeoWH0uzbU5w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,49 +21,21 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 12 Jul 2004 22:49:31 +0100
-Barry Dunn <lists-2N9sBa0oe+EDXYZnReoRVg@public.gmane.org> wrote:
-
-> I'm trying to boot from a usb flash memory stick on my laptop (so I
-> can encrypt the whole drive), it works fine in all the usb ports with
-> acpi=off in the boot parameters, but with acpi enabled it usually
-> hangs at the line "ACPI: Subsystem revision 20040326". I say usually
-> because that's the case in 4 of the 5 usb ports, but curiously it
-> tends to stutter on a bit further in the remaining port, and twice
-> (out of dozens of attempts with different parameters etc) it has
-> successfully booted from that port with acpi enabled. It's random
-> however, and I couldn't reproduce either success.
+On Wed, Jul 14, 2004 at 04:35:14PM +0200, marco ghidinelli wrote:
+> On Wed, Jul 14, 2004 at 11:04:18AM +0200, Øystein Gisnås wrote:
 > 
-> With acpi debug enabled, in the 'good' port it hangs either at
-> "Executing all Device _STA and_INI methods:" or "Completing
-> Region/Field/Buffer/Package initialization:", in the other ports it
-> hangs at "ACPI Namespace successfully loaded at root c0495a3c".
+> > The only workaround I
+> > need is having OS to report bewing Windows NT instead of Linux to get
+> > the interrupts working.
 > 
-> The second time it worked, I'd noticed a small pause not normally
-> there (less than 5 seconds) after the line "Uncompressing Linux... Ok,
-> booting the kernel", which makes me suspect the speed of the flash
-> drive (from which an initrd is loaded) is the problem, and that
-> perhaps that early delay was what enabled it to boot. Doubly so
-> because booting from a (obviously faster) usb hard drive enclosure
-> works fine with acpi in all usb ports.
-> 
+> and how you do that?
 
-<snip>
+give
+acpi_os_name="Windows NT"
+at the boot prompt.
+-- 
+Stefan Seyfried
 
-Seems obvious now I suppose, but I can confirm the speed of the boot
-media was causing the hang with acpi enabled. The usb stick I was using
-is a PQI Traveling Disk, and I recently got a newer one of the same
-model. On checking with hdparm -t it turns out the new one is a bit
-faster, averaging 7.6 mb/sec while the one I was using averages 4.8
-mb/sec. Well, that bit extra makes all the difference, the faster one
-boots no problem with acpi enabled, every time, while the slower one
-almost always hangs on acpi, regardless of options like nolapic noapic
-pci=noacpi acpi=noirq etc (but boots ok with acpi off). In all cases a
-4mb initrd is being used, I guess getting that loaded fast enough is
-where the problem lies?
-
-Anyway, if anyone's having a similar problem, just buy a new stick
-with "Plus" wrote on it.. well, worked for me. :)
 
 
 -------------------------------------------------------
