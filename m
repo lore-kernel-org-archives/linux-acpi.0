@@ -1,14 +1,12 @@
-From: David Goodenough <david.goodenough-6b45v/Ft3lbby3iVrkZq2A@public.gmane.org>
-Subject: Re: Re: [RFC] Reliable video POSTing on resume
-Date: Fri, 4 Feb 2005 12:11:49 +0000
-Message-ID: <200502041211.49789.david.goodenough@btconnect.com>
-References: <20050122134205.GA9354@wsc-gmbh.de> <200502041126.14386.oliver@neukum.org> <42035D5A.2030703@gmx.net>
+From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
+Subject: Re: [RFC] Reliable video POSTing on resume
+Date: Fri, 04 Feb 2005 13:17:19 +0100
+Message-ID: <420367CF.7060206@gmx.net>
+References: <20050122134205.GA9354@wsc-gmbh.de> <4201825B.2090703@gmx.net>	 <e796392205020221387d4d8562@mail.gmail.com> <420217DB.709@gmx.net>	 <4202A972.1070003@gmx.net> <20050203225410.GB1110@elf.ucw.cz>	 <1107474198.5727.9.camel@desktop.cunninghams>	 <4202DF7B.2000506@gmx.net> <9e47339105020321031ccaabb@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <42035D5A.2030703-hi6Y0CQ0nG0@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <9e47339105020321031ccaabb-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,51 +16,80 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, Oliver Neukum <oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday 04 February 2005 11:32, Carl-Daniel Hailfinger wrote:
-> Oliver Neukum schrieb:
-> > Am Freitag, 4. Februar 2005 08:48 schrieb Pavel Machek:
-> >>What about simply blocking all video accesses before disk (etc) is
-> >>resumed, so that "normal" (not locked in memory) application can be
-> >>used?
-> >
-> > Very bad for debugging. Genuine serial ports are becoming rarer.
->
-> As a bonus, even genuine serial ports may be in undefined state after
-> resume. I'm unfortunate enough to have a brand new notebook with
-> serial port, but the serial console code will print garbage after
-> resume until I do a
-> echo foo >/dev/ttyS0
->
-> I've already sent mail to linux-serial for that problem, but the
-> list appears to be dead. Any pointers to the right contact would
-> be appreciated.
->
-> Regards,
-> Carl-Daniel
+Jon Smirl schrieb:
+> Reseting a video card from suspend is essentially the same problem as
+> reseting secondary video cards on boot. The same code can address both
+> problems.
+> 
+> Some things to consider....
+> 
+> 1) With multiple video cards you have to ensure only a single VGA gets
+> enabled. Running video reset on a card is going to turn on it's VGA
+> emulation. So you have to ensure that VGA emulation on other cards is
+> disabled first.
 
-I wonder if this is related to a problem I have noted on some embedded
-systems which only have a serial console (no video, and nothing to do with
-ACPI).
+No problem. Let the kernel tell the userspace application which card
+to reset.
 
-If I set up the video console (through LILO), and talk to it using minicom
-when the machine starts I am first talking to BIOS, that works fine, then to
-LILO which also works, then the kernel starts and that works up to the point
-where the proper serial console is loaded, when it picks some bizaar baud rate
-and only corrects it when setserial is run.
+> 2) I add the 'rom' parameter in sysfs so that you can get to the rom
+> contents from a user space app. It's there to support running video
+> reset code. "echo 1 >rom" to see the contents, it is not enabled by
+> default.
 
-I have recently noticed this on an SC1100 board, but it is not SC1100 specific
-as another manufacturers SC1100 based board does not exhibit this behaviour.
+That could be very helpful for secondary cards.
 
-Just a thought and probably no help in getting it solved.  Sorry I do not have
-any good contacts, although once when I had a problem with serial ports being
-misdetected on an IBM MCA machine Alan Cox fixed it for me so he obviously
-knows his way around the code and might be able to fix it for us.
+> 3) The user space reset programs have to be serialized because of the
+> rule about only a single VGA at a time. Calling vm86 from kernel mode
+> is not a good idea. Doing this in user space lets you have two reset
+> programs, vm86 and emu86 for non-x86 machines.
 
-David
+With the approach I detailed in the thread starter, this is easily
+possible. vesaposter can call the kernel function used to synchronize
+in an endless loop and this kernel function would not only be used
+to synchronize, but its return value would tell vesaposter what to do
+to which card. An alternative would be to restart vesaposter as soon
+as it has finished its job, which would make the POSTing reliable
+even if the BIOS code hangs or causes crashes. The kernel can simply
+store a list of video devices and their respective treatments and
+the kernel function called by vesaposter would just iterate through
+the list. Hmmm... why not call it
+
+int video_helper(struct video_actions *what_to_do)
+
+and it blocks until we have something to POST. It could contain
+all the locking needed to serialize access to the video cards.
+OTOH, if starting applications from initramfs at resume time is
+easy, we could make video_helper non-blocking and start vesaposter
+on demand.
+
+
+And the problem of locking all application memory: The current tool
+for POSTing and restoring video state (vbetool) uses only 27k on
+disk. If we put it in initramfs, we could maybe avoid mlock
+completely (if we can guarantee initramfs contents aren't swapped
+out). And it would be available early enough for initializing
+video hardware on boot.
+
+
+> A starting place for a user space reset program:
+> ftp://ftp.scitechsoft.com/devel/obsolete/x86emu/x86emu-0.8.tar.gz
+> 
+> This thread talks about the VGA routing code:
+> http://lkml.org/lkml/2005/1/17/347
+
+Thanks for the pointers! I'll have to compare it to our current
+userspace reset and vesa register restoring program
+http://www.srcf.ucam.org/~mjg59/vbetool/
+
+
+Regards,
+Carl-Daniel
+-- 
+http://www.hailfinger.org/
 
 
 -------------------------------------------------------
