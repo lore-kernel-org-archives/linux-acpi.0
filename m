@@ -1,14 +1,14 @@
-From: Joshua Schmidlkofer <kernel-cK5OC/E6E2U6GGFevw1D/A@public.gmane.org>
-Subject: Re: ACPI + SiS IRQ Routing?
-Date: Wed, 08 Oct 2003 21:24:42 -0700
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: /proc/battery empty on Gateway 400VTX
+Date: Thu, 9 Oct 2003 16:02:28 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1065673482.26205.10.camel@menion.home>
-References: <1065658665.26205.8.camel@menion.home>
+Message-ID: <571ACEFD467F7749BC50E0A98C17CDD8E84D7A@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="GB2312"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1065658665.26205.8.camel-nJ1XZiZhfd3/9pzu0YdTqQ@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,38 +17,54 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Casey Harkins <charkins-TFaeeA7fOO6Gwcnyzrk3/w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2003-10-08 at 17:17, Joshua Schmidlkofer wrote:
-> What is the status of the SiS IRQ router?  I have two motherboards, one
-> with a 645, and one with a 648.  I have confirmed that all the way up to
-> [and including] 2.6.0-test6 I am having problems.  I am going to test
-> with mm4, but on another system I experienced a wierd Oops with mm4.  
-> 
-> I have historically had issue w/ the 1 interrupt/4 device High Point IDE
-> contollers unless I have full ACPI support enabled.  Prior to test6, I
-> had a conflict between my Nvidia [w/ or w/o binary driver].  Now, it is
-> my main USB device that suffers.  What can I do to help with the
-> process.
-> 
-> The symptom is that the ACPI interrupt begins acumlating events in
-> /proc/interrupts until it reaches something like 100000, then I get an
-> Oops about an interrupt that no one cared about [I.e. IRQ 9], and the
-> system continues to run fine.  Aside from the Oops, I don't see any
-> other problems, but I am a little afraid to run at that point.
+Because lack ECDT, your dmesg shows:
+>evregion-0249 [22] ev_address_space_dispa: no handler for =
+region(df5e4c68) [EmbeddedControl]
+> exfldio-0269 [21] ex_access_region      : Region EmbeddedControl(3) =
+has no handler
+> psparse-1121: *** Error: Method execution failed [\_SB_.BAT0._STA] =
+(Node df5e9108), AE_NOT_EXIST
+so your /proc/acpi/battery is empty.
 
-I wanted to follow up that the 648 chipset seems to be almost 100% with
-test6.  I am building test7 now, and I will post if I have any news on
-that.
+I can't find a tool to create an ECDT. But in your dsdt, I get:
+>EC_CONTROL: 0x62
+>EC_DATA: 0x66
+>GPE: 29
+>ID: \_SB_.PCI0.LPCB.H_EC
+Your ECDT should include above info. Manually create one?
 
-js
+Thanks,
+Shaohua
 
 
--- 
-VB programmers ask why no one takes them seriously, 
-it's somewhat akin to a McDonalds manager asking employees 
-why they don't take their 'career' seriously.
+-----Original Message-----
+From: Casey Harkins [mailto:charkins-TFaeeA7fOO6Gwcnyzrk3/w@public.gmane.org]=20
+Sent: 2003=C4=EA10=D4=C29=C8=D5 3:16
+To: Li, Shaohua
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: RE: [ACPI] /proc/battery empty on Gateway 400VTX
+
+
+
+On Wed, 8 Oct 2003, Li, Shaohua wrote:
+>
+> Hi,
+>    Your BIOS lacks ECDT. Maybe you should provide an ECDT according to =
+EC device.
+>
+> Thanks,
+> Shaohua
+
+
+How would I go about doing this? I'll google around a bit and see what I
+can figure out.
+
+-casey
+
 
 
 
