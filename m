@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: HP nw8000 never wakes up from acpi suspend
-Date: Sat, 9 Oct 2004 23:10:11 +0800
+Subject: RE: Early init patch breaks Dell laptops
+Date: Sat, 9 Oct 2004 23:26:32 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8405BD1223@pdsmsx403>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8405BD1224@pdsmsx403>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,83 +17,57 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Vadim Zeitlin <vadim-oE/GLL+f5xMgsBAKwltoeQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Daniel Drake <dsd-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-S1 is less important than S3 and S4.
-So, please verify S4 is ok, then S3.=20
-S1 is nice-to-have.
-
-try command " echo -n 4 > /proc/acpi/sleep" for s4
-echo -n 3 > /proc/acpi/sleep" for  s3
-echo -n 1 > /proc/acpi/sleep"  for s1.
-
-There is a known S3 VGA resume issue on some laptop.=20
-Maybe you will hit that bug. Please verify.
+=20
+Would you please try boot option nolapic?
 
 Thanks,
 Luming
 
-
 >-----Original Message-----
 >From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
 >[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
->Vadim Zeitlin
->Sent: Saturday, October 09, 2004 10:30 PM
->To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: [ACPI] HP nw8000 never wakes up from acpi suspend
+>Daniel Drake
+>Sent: Saturday, October 09, 2004 10:08 PM
+>To: Brown, Len
+>Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: [ACPI] Early init patch breaks Dell laptops
 >
-> Hello,
+>Hi Len,
 >
-> I've installed Debian (2.6.8-1 kernel, first without, then with ACPI
->patch) on HP nw8000 notebook. Everything worked perfectly out=20
->of the box
->except for suspend. All ACPI modules load successfully and, in general,
->things like monitoring fans and thermal zones work great. Also, cat
->/sys/power/state outputs the expected "standby mem disk".
+>I'm one of the maintainers of Gentoo's kernel packages. I=20
+>recently added your=20
+>ACPI early-init patch into our 2.6.8 patchset in order to=20
+>solve the problems=20
+>you addressed
 >
-> But standby (S1 state?) doesn't work at all:
+>http://bugs.gentoo.org/60565
+>http://bugzilla.kernel.org/show_bug.cgi?id=3D2941
 >
->[sunrise:/sys/power]# echo standby > state
->echo: write error: operation not permitted
+>After adding the "2.6.7 early init" patch, other users have run into=20
+>ACPI-related problems (freezing on ACPI events). More=20
+>specifically, Dell=20
+>Inspiron laptops don't seem to like you :)
 >
->and in syslog I see just the following:
+>According to these users, the issue is also present in=20
+>(unmodified) 2.6.9-rc3,=20
+>and reverting out the early-init patch seems to solve the problem.
 >
->PM: Preparing system for suspend
->Stopping tasks:=20
->=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D|
->Restarting tasks... done
+>http://bugs.gentoo.org/66723
+>http://bugs.gentoo.org/66804
+>http://bugs.gentoo.org/66613
 >
+>A bug has been filed at the kernel bugzilla:
 >
-> Doing "echo mem > state" does work if I unload the USB=20
->modules (otherwise
->it stops with an error but this is ok): I see the messages=20
->about drivers
->being stopped and then the machine goes to sleep. The trouble=20
->is, it never
->wakes up. Pressing keys on the keyboard, opening/closing the=20
->lid, pressing
->the power button and cursing loudly all have the same effect:=20
->none at all.
->I can only hard reset the notebook by holding the power button for 5
->seconds.
+>http://bugzilla.kernel.org/show_bug.cgi?id=3D3532
 >
+>I hope this is useful- please ask if you need any more info.
 >
-> Needless to say, a notebook which can't be suspended is a bit=20
->annoying so
->I'd really like to fix this. Unfortunately I don't know=20
->where/how to start
->debugging this. All I could do was to build a minimal kernel=20
->with nothing
->except absolutely needed stuff (i.e. IDE) in it but not even=20
->graphics card
->support included but this didn't help at all.
->
-> Any help would be really appreciated, thanks in advance!
->VZ
->
+>Thanks,
+>Daniel
 >
 >
 >-------------------------------------------------------
