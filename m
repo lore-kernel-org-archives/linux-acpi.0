@@ -1,12 +1,14 @@
 From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: [PATCH 1/4] acpi4asus update: support W1N, v0.29
-Date: Thu, 9 Sep 2004 00:38:07 +0200
+Subject: [PATCH 2/4] acpi4asus update:
+Date: Thu, 9 Sep 2004 00:45:11 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040908223807.GA9953@hell.org.pl>
+Message-ID: <20040908224511.GB9953@hell.org.pl>
+References: <20040908223807.GA9953@hell.org.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20040908223807.GA9953-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -20,62 +22,53 @@ Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi,
-This patch adds support for W1N notebooks and updates the version number.
+This patch accounts for the new behaviour of acpi_bus_register_driver() and
+makes the driver bail out if no suitable devices to bind to are found.
+
+I *think* that with the acpi_disabled check in place calling
+acpi_bus_unregister_driver() is safe in that context.
+
 Please apply, TIA
 
 Signed-off-by: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 
---- a/drivers/acpi/asus_acpi.c	2004-08-29 16:06:06.000000000 +0200
-+++ b/drivers/acpi/asus_acpi.c	2004-08-29 16:17:53.000000000 +0200
-@@ -42,7 +42,7 @@
- #include <acpi/acpi_bus.h>
- #include <asm/uaccess.h>
+Index: asus_core.c
+===================================================================
+RCS file: /cvsroot/acpi4asus/acpi4asus/driver/asus_core.c,v
+retrieving revision 1.104
+retrieving revision 1.105
+diff -u -r1.104 -r1.105
+--- a/drivers/acpi/asus_acpi.c	5 Aug 2004 18:43:54 -0000	1.104
++++ b/drivers/acpi/asus_acpi.c	7 Sep 2004 22:23:41 -0000	1.105
+@@ -1214,20 +1214,24 @@
+ {
+ 	int result;
  
--#define ASUS_ACPI_VERSION "0.28"
-+#define ASUS_ACPI_VERSION "0.29"
++	if (acpi_disabled)
++		return -ENODEV;
++
+ 	asus_proc_dir = proc_mkdir(PROC_ASUS, acpi_root_dir);
+ 	if (!asus_proc_dir) {
+ 		printk(KERN_ERR "Asus ACPI: Unable to create /proc entry\n");
+-		return(-ENODEV);
++		return -ENODEV;
+ 	}
+ 	asus_proc_dir->owner = THIS_MODULE;
  
- #define PROC_ASUS       "asus"	//the directory
- #define PROC_MLED       "mled"
-@@ -132,7 +132,8 @@
- 		P30,	  //Samsung P30
- 		S1x,      //S1300A, but also L1400B and M2400A (L84F)
- 		S2x,      //S200 (J1 reported), Victor MP-XP7210
--		xxN,      //M2400N, M3700N, M5200N, S1300N, S5200N (Centrino)
-+		xxN,      //M2400N, M3700N, M5200N, S1300N, S5200N, W1OOON
-+			  //(Centrino)
- 		END_MODEL
- 	} model;              //Models currently supported
- 	u16 event_count[128]; //count for each event TODO make this better
-@@ -1035,7 +1036,8 @@
- 		 strncmp(model->string.pointer, "M5N", 3) == 0 ||
- 		 strncmp(model->string.pointer, "M6N", 3) == 0 ||
- 		 strncmp(model->string.pointer, "S1N", 3) == 0 ||
--		 strncmp(model->string.pointer, "S5N", 3) == 0)
-+		 strncmp(model->string.pointer, "S5N", 3) == 0 ||
-+                 strncmp(model->string.pointer, "W1N", 3) == 0)
- 		hotk->model = xxN;
- 	else if (strncmp(model->string.pointer, "M1", 2) == 0)
- 		hotk->model = M1A;
-@@ -1072,12 +1074,14 @@
- 		hotk->methods->lcd_status = NULL; 
- 	/* L2B is similar enough to L3C to use its settings, with this only 
- 	   exception */
--	else if (strncmp(model->string.pointer, "S5N", 3) == 0)
-+	else if (strncmp(model->string.pointer, "S5N", 3) == 0 ||
-+		 strncmp(model->string.pointer, "M5N", 3) == 0)
- 		hotk->methods->mt_mled = NULL; 
--	/* S5N has no MLED */
--	else if (strncmp(model->string.pointer, "M2N", 3) == 0)
-+	/* S5N and M5N have no MLED */
-+	else if (strncmp(model->string.pointer, "M2N", 3) == 0 ||
-+		 strncmp(model->string.pointer, "W1N", 3) == 0)
- 		hotk->methods->mt_wled = "WLED"; 
--	/* M2N has a usable WLED */
-+	/* M2N and W1N have a usable WLED */
- 	else if (asus_info) {
- 		if (strncmp(asus_info->oem_table_id, "L1", 2) == 0)
- 			hotk->methods->mled_status = NULL;
-
+ 	result = acpi_bus_register_driver(&asus_hotk_driver);
+-	if (result < 0) {
++	if (result < 1) {
++		acpi_bus_unregister_driver(&asus_hotk_driver);
+ 		remove_proc_entry(PROC_ASUS, acpi_root_dir);
+-		return(-ENODEV);
++		return -ENODEV;
+ 	}
+ 
+-	return(0);
++	return 0;
+ }
+ 
+ 
 -- 
 Karol 'sziwan' Kozimor
 sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
