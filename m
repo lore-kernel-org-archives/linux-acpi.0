@@ -1,14 +1,12 @@
-From: Alexander Bruder <anib-La3J9u0raUk@public.gmane.org>
-Subject: Re: Radeon PM Support
-Date: Sat, 07 Aug 2004 08:34:08 +0200
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: No ACPI interrupts after resume with io-apic
+Date: Sat, 07 Aug 2004 14:03:09 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <411477E0.6020904@anib.de>
-References: <88056F38E9E48644A0F562A38C64FB60028F9AC3@scsmsx403.amr.corp.intel.com>
+Message-ID: <1091883789.5955.6.camel@tyrosine>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <88056F38E9E48644A0F562A38C64FB60028F9AC3-exJ48ZlmiLpQxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,17 +15,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ole.rohne-vJEk5272eHo@public.gmane.org, Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+If I have the io-apic enabled, I get no ACPI interrupts after resume.
+The brightness and volume keys also stop working (these don't send ACPI
+events, but seem to be on IRQ 9 anyway). The power button also generates
+nothing. Booting with noapic results in everything working.
 
-> I am still wondering why it doesn't work for Alexander. 
-> Alexander: Is your card sitting on PCI or AGP?
+By the looks of it, the io-apic resume code rewrites all the registers
+in the io-apic. Is it possible that state is getting lost in the
+process?
 
-
-AGP
-
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
 
 
