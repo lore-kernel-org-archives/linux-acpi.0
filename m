@@ -1,7 +1,7 @@
 From: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [patch 10/12] Allow ACPI .add and .start operations to be done independently
-Date: Fri, 18 Mar 2005 14:18:30 -0800
-Message-ID: <20050318141829.J1145@unix-os.sc.intel.com>
+Subject: [patch 12/12] ACPI based root bridge hot-add
+Date: Fri, 18 Mar 2005 14:22:38 -0800
+Message-ID: <20050318142238.L1145@unix-os.sc.intel.com>
 References: <20050318133856.A878@unix-os.sc.intel.com>
 Reply-To: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
@@ -21,308 +21,282 @@ To: gregkh-l3A5Bk7waGM@public.gmane.org, tony.luck-ral2JQCrhuEAvxtiuMwx3w@public
 Cc: linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pcihpd-discuss-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Create new interfaces to recursively add an acpi namespace object
-to the acpi device list, and recursively start the namespace 
-object. This is needed for ACPI based hotplug of a root bridge
-hierarchy where the add operation must be performed first and 
-the start operation must be performed separately after the 
-hot-plugged devices have been properly configured.
+acpiphp changes to support acpi based root bridge hot-add.
+This patch applies on top of the acpiphp re-write patch by
+Matthew Wilcox at:
+http://marc.theaimsgroup.com/?l=linux-ia64&m=110616116714938&w=2
 
 Signed-off-by: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 
- linux-2.6.11-mm4-iohp-rshah1/drivers/acpi/container.c      |    2 
- linux-2.6.11-mm4-iohp-rshah1/drivers/acpi/processor_core.c |    2 
- linux-2.6.11-mm4-iohp-rshah1/drivers/acpi/scan.c           |  126 ++++++++++---
- linux-2.6.11-mm4-iohp-rshah1/include/acpi/acpi_bus.h       |   17 +
- 4 files changed, 119 insertions(+), 28 deletions(-)
+ linux-2.6.11-mm4-iohp-rshah1/drivers/pci/hotplug/acpiphp_glue.c |  211 +++++++++-
+ 1 files changed, 202 insertions(+), 9 deletions(-)
 
-diff -puN drivers/acpi/scan.c~acpi_separate_device_start drivers/acpi/scan.c
---- linux-2.6.11-mm4-iohp/drivers/acpi/scan.c~acpi_separate_device_start	2005-03-16 13:07:34.326499309 -0800
-+++ linux-2.6.11-mm4-iohp-rshah1/drivers/acpi/scan.c	2005-03-16 13:07:34.452475870 -0800
-@@ -553,20 +553,29 @@ acpi_bus_driver_init (
- 	 * upon possible configuration and currently allocated resources.
- 	 */
+diff -puN drivers/pci/hotplug/acpiphp_glue.c~acpiphp_h2p_add drivers/pci/hotplug/acpiphp_glue.c
+--- linux-2.6.11-mm4-iohp/drivers/pci/hotplug/acpiphp_glue.c~acpiphp_h2p_add	2005-03-16 13:37:08.716126010 -0800
++++ linux-2.6.11-mm4-iohp-rshah1/drivers/pci/hotplug/acpiphp_glue.c	2005-03-16 13:37:08.825501009 -0800
+@@ -6,6 +6,8 @@
+  * Copyright (C) 2002,2003 NEC Corporation
+  * Copyright (C) 2003-2005 Matthew Wilcox (matthew.wilcox-VXdhtT5mjnY@public.gmane.org)
+  * Copyright (C) 2003-2005 Hewlett Packard
++ * Copyright (C) 2005 Rajesh Shah (rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org)
++ * Copyright (C) 2005 Intel Corporation
+  *
+  * All rights reserved.
+  *
+@@ -304,13 +306,15 @@ static void init_bridge_misc(struct acpi
+ 				     register_slot, bridge, NULL);
  
-+	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Driver successfully bound to device\n"));
-+	return_VALUE(0);
-+}
-+
-+int
-+acpi_start_single_object (
-+		struct acpi_device *device)
-+{
-+	int result = 0;
-+	struct acpi_driver *driver;
-+
-+	ACPI_FUNCTION_TRACE("acpi_start_single_object");
-+
-+	if (!(driver = device->driver))
-+		return_VALUE(0);
-+
- 	if (driver->ops.start) {
- 		result = driver->ops.start(device);
- 		if (result && driver->ops.remove)
- 			driver->ops.remove(device, ACPI_BUS_REMOVAL_NORMAL);
--		return_VALUE(result);
--	}
--
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Driver successfully bound to device\n"));
--
--	if (driver->ops.scan) {
--		driver->ops.scan(device);
- 	}
+ 	/* install notify handler */
+-	status = acpi_install_notify_handler(bridge->handle,
++	if (bridge->type != BRIDGE_TYPE_HOST) {
++		status = acpi_install_notify_handler(bridge->handle,
+ 					     ACPI_SYSTEM_NOTIFY,
+ 					     handle_hotplug_event_bridge,
+ 					     bridge);
  
--	return_VALUE(0);
-+	return_VALUE(result);
- }
- 
- static int acpi_driver_attach(struct acpi_driver * drv)
-@@ -586,6 +595,7 @@ static int acpi_driver_attach(struct acp
- 
- 		if (!acpi_bus_match(dev, drv)) {
- 			if (!acpi_bus_driver_init(dev, drv)) {
-+				acpi_start_single_object(dev);
- 				atomic_inc(&drv->references);
- 				count++;
- 				ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found driver [%s] for device [%s]\n",
-@@ -1009,8 +1019,8 @@ acpi_bus_remove (
- }
- 
- 
--int
--acpi_bus_add (
-+static int
-+acpi_add_single_object (
- 	struct acpi_device	**child,
- 	struct acpi_device	*parent,
- 	acpi_handle		handle,
-@@ -1019,7 +1029,7 @@ acpi_bus_add (
- 	int			result = 0;
- 	struct acpi_device	*device = NULL;
- 
--	ACPI_FUNCTION_TRACE("acpi_bus_add");
-+	ACPI_FUNCTION_TRACE("acpi_add_single_object");
- 
- 	if (!child)
- 		return_VALUE(-EINVAL);
-@@ -1140,7 +1150,7 @@ acpi_bus_add (
- 	 *
- 	 * TBD: Assumes LDM provides driver hot-plug capability.
- 	 */
--	acpi_bus_find_driver(device);
-+	result = acpi_bus_find_driver(device);
- 
- end:
- 	if (!result)
-@@ -1153,10 +1163,10 @@ end:
- 
- 	return_VALUE(result);
- }
--EXPORT_SYMBOL(acpi_bus_add);
- 
- 
--int acpi_bus_scan (struct acpi_device	*start)
-+static int acpi_bus_scan (struct acpi_device	*start,
-+		struct acpi_bus_ops *ops)
- {
- 	acpi_status		status = AE_OK;
- 	struct acpi_device	*parent = NULL;
-@@ -1229,9 +1239,20 @@ int acpi_bus_scan (struct acpi_device	*s
- 			continue;
- 		}
- 
--		status = acpi_bus_add(&child, parent, chandle, type);
--		if (ACPI_FAILURE(status))
--			continue;
-+		if (ops->acpi_op_add)
-+			status = acpi_add_single_object(&child, parent,
-+					chandle, type);
-+		 else
-+			status = acpi_bus_get_device(chandle, &child);
-+
-+		 if (ACPI_FAILURE(status))
-+			 continue;
-+
-+		if (ops->acpi_op_start) {
-+			status = acpi_start_single_object(child);
-+			if (ACPI_FAILURE(status))
-+				continue;
+-	if (ACPI_FAILURE(status)) {
+-		err("failed to register interrupt notify handler\n");
++		if (ACPI_FAILURE(status)) {
++			err("failed to register interrupt notify handler\n");
 +		}
+ 	}
  
- 		/*
- 		 * If the device is present, enabled, and functioning then
-@@ -1257,8 +1278,50 @@ int acpi_bus_scan (struct acpi_device	*s
- 
- 	return_VALUE(0);
+ 	list_add(&bridge->list, &bridge_list);
+@@ -802,6 +806,143 @@ static int acpiphp_check_bridge(struct a
+ 	return retval;
  }
--EXPORT_SYMBOL(acpi_bus_scan);
  
-+int
-+acpi_bus_add (
-+	struct acpi_device	**child,
-+	struct acpi_device	*parent,
-+	acpi_handle		handle,
-+	int			type)
++static void program_hpp(struct pci_dev *dev, struct acpiphp_bridge *bridge)
 +{
-+	int result;
-+	struct acpi_bus_ops ops;
++	u16 pci_cmd, pci_bctl;
++	struct pci_dev *cdev;
 +
-+	ACPI_FUNCTION_TRACE("acpi_bus_add");
++	/* Program hpp values for this device */
++	if (!(dev->hdr_type == PCI_HEADER_TYPE_NORMAL ||
++			(dev->hdr_type == PCI_HEADER_TYPE_BRIDGE &&
++			(dev->class >> 8) == PCI_CLASS_BRIDGE_PCI)))
++		return;
++	pci_write_config_byte(dev, PCI_CACHE_LINE_SIZE,
++			bridge->hpp.cache_line_size);
++	pci_write_config_byte(dev, PCI_LATENCY_TIMER,
++			bridge->hpp.latency_timer);
++	pci_read_config_word(dev, PCI_COMMAND, &pci_cmd);
++	if (bridge->hpp.enable_SERR)
++		pci_cmd |= PCI_COMMAND_SERR;
++	else
++		pci_cmd &= ~PCI_COMMAND_SERR;
++	if (bridge->hpp.enable_PERR)
++		pci_cmd |= PCI_COMMAND_PARITY;
++	else
++		pci_cmd &= ~PCI_COMMAND_PARITY;
++	pci_write_config_word(dev, PCI_COMMAND, pci_cmd);
 +
-+	result = acpi_add_single_object(child, parent, handle, type);
-+	if (!result) {
-+		memset(&ops, 0, sizeof(ops));
-+		ops.acpi_op_add = 1;
-+		result = acpi_bus_scan(*child, &ops);
++	/* Program bridge control value and child devices */
++	if ((dev->class >> 8) == PCI_CLASS_BRIDGE_PCI) {
++		pci_write_config_byte(dev, PCI_SEC_LATENCY_TIMER,
++				bridge->hpp.latency_timer);
++		pci_read_config_word(dev, PCI_BRIDGE_CONTROL, &pci_bctl);
++		if (bridge->hpp.enable_SERR)
++			pci_bctl |= PCI_BRIDGE_CTL_SERR;
++		else
++			pci_bctl &= ~PCI_BRIDGE_CTL_SERR;
++		if (bridge->hpp.enable_PERR)
++			pci_bctl |= PCI_BRIDGE_CTL_PARITY;
++		else
++			pci_bctl &= ~PCI_BRIDGE_CTL_PARITY;
++		pci_write_config_word(dev, PCI_BRIDGE_CONTROL, pci_bctl);
++		if (dev->subordinate) {
++			list_for_each_entry(cdev, &dev->subordinate->devices,
++					bus_list)
++				program_hpp(cdev, bridge);
++		}
 +	}
-+	return_VALUE(result);
 +}
-+EXPORT_SYMBOL(acpi_bus_add);
 +
-+int
-+acpi_bus_start (
-+	struct acpi_device *device)
++static void acpiphp_set_hpp_values(acpi_handle handle, struct pci_bus *bus)
 +{
-+	int result;
-+	struct acpi_bus_ops ops;
++	struct acpiphp_bridge bridge;
++	struct pci_dev *dev;
 +
-+	ACPI_FUNCTION_TRACE("acpi_bus_start");
++	memset(&bridge, 0, sizeof(bridge));
++	bridge.handle = handle;
++	decode_hpp(&bridge);
++	list_for_each_entry(dev, &bus->devices, bus_list)
++		program_hpp(dev, &bridge);
 +
-+	if (!device)
-+		return_VALUE(-EINVAL);
-+
-+	result = acpi_start_single_object(device);
-+	if (!result) {
-+		memset(&ops, 0, sizeof(ops));
-+		ops.acpi_op_start = 1;
-+		result = acpi_bus_scan(device, &ops);
-+	}
-+	return_VALUE(result);
 +}
-+EXPORT_SYMBOL(acpi_bus_start);
++
++/*
++ * Remove devices for which we could not assign resources, call
++ * arch specific code to fix-up the bus
++ */
++static void acpiphp_sanitize_bus(struct pci_bus *bus)
++{
++	struct pci_dev *dev;
++	int i;
++	unsigned long type_mask = IORESOURCE_IO | IORESOURCE_MEM;
++
++	list_for_each_entry(dev, &bus->devices, bus_list) {
++		for (i=0; i<PCI_BRIDGE_RESOURCES; i++) {
++			struct resource *res = &dev->resource[i];
++			if ((res->flags & type_mask) && !res->start &&
++					res->end) {
++				/* Could not assign a required resources
++				 * for this device, remove it */
++				pci_remove_bus_device(dev);
++				break;
++			}
++		}
++	}
++}
++
++/* Program resources in newly inserted bridge */
++static int acpiphp_configure_bridge (acpi_handle handle)
++{
++	struct acpi_pci_id pci_id;
++	struct pci_bus *bus;
++
++	if (ACPI_FAILURE(acpi_get_pci_id(handle, &pci_id))) {
++		err("cannot get PCI domain and bus number for bridge\n");
++		return -EINVAL;
++	}
++	bus = pci_find_bus(pci_id.segment, pci_id.bus);
++	if (!bus) {
++		err("cannot find bus %d:%d\n",
++				pci_id.segment, pci_id.bus);
++		return -EINVAL;
++	}
++
++	pci_bus_size_bridges(bus);
++	pci_bus_assign_resources(bus);
++	acpiphp_sanitize_bus(bus);
++	acpiphp_set_hpp_values(handle, bus);
++	pci_enable_bridges(bus);
++	return 0;
++}
++
++static void handle_bridge_insertion(acpi_handle handle, u32 type)
++{
++	struct acpi_device *device, *pdevice;
++	acpi_handle phandle;
++
++	if ((type != ACPI_NOTIFY_BUS_CHECK) &&
++			(type != ACPI_NOTIFY_DEVICE_CHECK)) {
++		err("unexpected notification type %d\n", type);
++		return;
++	}
++
++	acpi_get_parent(handle, &phandle);
++	if (acpi_bus_get_device(phandle, &pdevice)) {
++		dbg("no parent device, assuming NULL\n");
++		pdevice = NULL;
++	}
++	if (acpi_bus_add(&device, pdevice, handle, ACPI_BUS_TYPE_DEVICE)) {
++		err("cannot add bridge to acpi list\n");
++		return;
++	}
++	if (!acpiphp_configure_bridge(handle) &&
++		!acpi_bus_start(device))
++		add_bridge(handle);
++	else
++		err("cannot configure and start bridge\n");
++
++}
++
+ /*
+  * ACPI event handlers
+  */
+@@ -822,8 +963,19 @@ static void handle_hotplug_event_bridge(
+ 	char objname[64];
+ 	struct acpi_buffer buffer = { .length = sizeof(objname),
+ 				      .pointer = objname };
++	struct acpi_device *device;
  
- static int
- acpi_bus_trim(struct acpi_device	*start,
-@@ -1331,13 +1394,19 @@ acpi_bus_scan_fixed (
- 	/*
- 	 * Enumerate all fixed-feature devices.
- 	 */
--	if (acpi_fadt.pwr_button == 0)
--		result = acpi_bus_add(&device, acpi_root, 
-+	if (acpi_fadt.pwr_button == 0) {
-+		result = acpi_add_single_object(&device, acpi_root,
- 			NULL, ACPI_BUS_TYPE_POWER_BUTTON);
-+		if (!result)
-+			result = acpi_start_single_object(device);
+-	bridge = (struct acpiphp_bridge *)context;
++	if (acpi_bus_get_device(handle, &device)) {
++		/* This bridge must have just been physically inserted */
++		handle_bridge_insertion(handle, type);
++		return;
++	}
++
++	bridge = acpiphp_handle_to_bridge(handle);
++	if (!bridge) {
++		err("cannot get bridge info\n");
++		return;
 +	}
  
--	if (acpi_fadt.sleep_button == 0)
--		result = acpi_bus_add(&device, acpi_root, 
-+	if (acpi_fadt.sleep_button == 0) {
-+		result = acpi_add_single_object(&device, acpi_root,
- 			NULL, ACPI_BUS_TYPE_SLEEP_BUTTON);
-+		if (!result)
-+			result = acpi_start_single_object(device);
-+	}
+ 	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
  
- 	return_VALUE(result);
+@@ -923,6 +1075,47 @@ static void handle_hotplug_event_func(ac
+ 	}
  }
-@@ -1346,6 +1415,7 @@ acpi_bus_scan_fixed (
- static int __init acpi_scan_init(void)
+ 
++static int is_root_bridge(acpi_handle handle)
++{
++	acpi_status status;
++	struct acpi_device_info *info;
++	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
++	int i;
++
++	status = acpi_get_object_info(handle, &buffer);
++	if (ACPI_SUCCESS(status)) {
++		info = buffer.pointer;
++		if ((info->valid & ACPI_VALID_HID) &&
++			!strcmp(PCI_ROOT_HID_STRING,
++					info->hardware_id.value)) {
++			acpi_os_free(buffer.pointer);
++			return 1;
++		}
++		if (info->valid & ACPI_VALID_CID) {
++			for (i=0; i < info->compatibility_id.count; i++) {
++				if (!strcmp(PCI_ROOT_HID_STRING,
++					info->compatibility_id.id[i].value)) {
++					acpi_os_free(buffer.pointer);
++					return 1;
++				}
++			}
++		}
++	}
++	return 0;
++}
++
++static acpi_status
++find_root_bridges(acpi_handle handle, u32 lvl, void *context, void **rv)
++{
++	int *count = (int *)context;
++
++	if (is_root_bridge(handle)) {
++		acpi_install_notify_handler(handle, ACPI_SYSTEM_NOTIFY,
++				handle_hotplug_event_bridge, NULL);
++			(*count)++;
++	}
++	return AE_OK ;
++}
+ 
+ static struct acpi_pci_driver acpi_pci_hp_driver = {
+ 	.add =		add_bridge,
+@@ -935,15 +1128,15 @@ static struct acpi_pci_driver acpi_pci_h
+  */
+ int __init acpiphp_glue_init(void)
  {
- 	int result;
-+	struct acpi_bus_ops ops;
+-	int num;
+-
+-	if (list_empty(&pci_root_buses))
+-		return -1;
++	int num = 0;
  
- 	ACPI_FUNCTION_TRACE("acpi_scan_init");
+-	num = acpi_pci_register_driver(&acpi_pci_hp_driver);
++	acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
++			ACPI_UINT32_MAX, find_root_bridges, &num, NULL);
  
-@@ -1357,17 +1427,23 @@ static int __init acpi_scan_init(void)
- 	/*
- 	 * Create the root device in the bus's device tree
- 	 */
--	result = acpi_bus_add(&acpi_root, NULL, ACPI_ROOT_OBJECT, 
-+	result = acpi_add_single_object(&acpi_root, NULL, ACPI_ROOT_OBJECT,
- 		ACPI_BUS_TYPE_SYSTEM);
- 	if (result)
- 		goto Done;
+ 	if (num <= 0)
+ 		return -1;
++	else
++		acpi_pci_register_driver(&acpi_pci_hp_driver);
  
-+	result = acpi_start_single_object(acpi_root);
-+
- 	/*
- 	 * Enumerate devices in the ACPI namespace.
- 	 */
- 	result = acpi_bus_scan_fixed(acpi_root);
--	if (!result) 
--		result = acpi_bus_scan(acpi_root);
-+	if (!result) {
-+		memset(&ops, 0, sizeof(ops));
-+		ops.acpi_op_add = 1;
-+		ops.acpi_op_start = 1;
-+		result = acpi_bus_scan(acpi_root, &ops);
-+	}
- 
- 	if (result)
- 		acpi_device_unregister(acpi_root, ACPI_BUS_REMOVAL_NORMAL);
-diff -puN include/acpi/acpi_bus.h~acpi_separate_device_start include/acpi/acpi_bus.h
---- linux-2.6.11-mm4-iohp/include/acpi/acpi_bus.h~acpi_separate_device_start	2005-03-16 13:07:34.330405559 -0800
-+++ linux-2.6.11-mm4-iohp-rshah1/include/acpi/acpi_bus.h	2005-03-16 13:07:34.453452432 -0800
-@@ -108,6 +108,21 @@ typedef int (*acpi_op_unbind)	(struct ac
- typedef int (*acpi_op_match)	(struct acpi_device *device,
- 				 struct acpi_driver *driver);
- 
-+struct acpi_bus_ops {
-+	u32 			acpi_op_add:1;
-+	u32			acpi_op_remove:1;
-+	u32			acpi_op_lock:1;
-+	u32			acpi_op_start:1;
-+	u32			acpi_op_stop:1;
-+	u32			acpi_op_suspend:1;
-+	u32			acpi_op_resume:1;
-+	u32			acpi_op_scan:1;
-+	u32			acpi_op_bind:1;
-+	u32			acpi_op_unbind:1;
-+	u32			acpi_op_match:1;
-+	u32			reserved:21;
-+};
-+
- struct acpi_device_ops {
- 	acpi_op_add		add;
- 	acpi_op_remove		remove;
-@@ -327,9 +342,9 @@ int acpi_bus_generate_event (struct acpi
- int acpi_bus_receive_event (struct acpi_bus_event *event);
- int acpi_bus_register_driver (struct acpi_driver *driver);
- int acpi_bus_unregister_driver (struct acpi_driver *driver);
--int acpi_bus_scan (struct acpi_device *start);
- int acpi_bus_add (struct acpi_device **child, struct acpi_device *parent,
- 		acpi_handle handle, int type);
-+int acpi_bus_start (struct acpi_device *device);
- 
- 
- int acpi_match_ids (struct acpi_device	*device, char	*ids);
-diff -puN drivers/acpi/container.c~acpi_separate_device_start drivers/acpi/container.c
---- linux-2.6.11-mm4-iohp/drivers/acpi/container.c~acpi_separate_device_start	2005-03-16 13:07:34.335288371 -0800
-+++ linux-2.6.11-mm4-iohp-rshah1/drivers/acpi/container.c	2005-03-16 13:07:34.454428995 -0800
-@@ -153,7 +153,7 @@ container_device_add(struct acpi_device 
- 		return_VALUE(-ENODEV);
- 	}
- 
--	result = acpi_bus_scan(*device);
-+	result = acpi_bus_start(*device);
- 
- 	return_VALUE(result);
+ 	return 0;
  }
-diff -puN drivers/acpi/processor_core.c~acpi_separate_device_start drivers/acpi/processor_core.c
---- linux-2.6.11-mm4-iohp/drivers/acpi/processor_core.c~acpi_separate_device_start	2005-03-16 13:07:34.339194621 -0800
-+++ linux-2.6.11-mm4-iohp-rshah1/drivers/acpi/processor_core.c	2005-03-16 13:07:34.455405557 -0800
-@@ -723,7 +723,7 @@ int acpi_processor_device_add(
- 		return_VALUE(-ENODEV);
- 	}
- 
--	acpi_bus_scan(*device);
-+	acpi_bus_start(*device);
- 
- 	pr = acpi_driver_data(*device);
- 	if (!pr)
 _
 
 
