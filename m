@@ -1,55 +1,43 @@
-From: "Li, Shaohua" <shaohua.li@intel.com>
-Subject: RE: [ACPI] Re: Cause of Suspend2 resume failures on
-	Toshiba laptops
-Date: Tue, 8 Mar 2005 15:24:21 +0800
-Message-ID: <16A54BF5D6E14E4D916CE26C9AD305750155ECE4@pdsmsx402.ccr.corp.intel.com>
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: s4bios: does anyone use it?
+Date: Tue, 8 Mar 2005 10:20:38 +0100
+Message-ID: <20050308092038.GE31985@poupinou.org>
+References: <20050305191405.GA1463@elf.ucw.cz> <20050307170852.GB31985@poupinou.org> <20050307204401.GA15212@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Content-class: urn:content-classes:message
-List-Unsubscribe: <http://lists.suspend2.net/mailman/listinfo/suspend2-devel>,
-	<mailto:suspend2-devel-request@lists.suspend2.net?subject=unsubscribe>
-List-Archive: <http://lists.suspend2.net/lurker/list/suspend2-devel.html>
-List-Post: <mailto:suspend2-devel@lists.suspend2.net>
-List-Help: <mailto:suspend2-devel-request@lists.suspend2.net?subject=help>
-List-Subscribe: <http://lists.suspend2.net/mailman/listinfo/suspend2-devel>,
-	<mailto:suspend2-devel-request@lists.suspend2.net?subject=subscribe>
-Sender: suspend2-devel-bounces@lists.suspend2.net
-Errors-To: suspend2-devel-bounces@lists.suspend2.net
-To: "Li, Shaohua" <shaohua.li@intel.com>, Bernard Blackham <bernard@blackham.com.au>, Pavel Machek <pavel@suse.cz>
-Cc: acpi-devel@lists.sourceforge.net, suspend2-devel@lists.suspend2.net
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20050307204401.GA15212-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, seife-l3A5Bk7waGM@public.gmane.org, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
->>Yep, been looking into it, and I think I've got it. The GPE in
->>question is fired periodically, about every 5 seconds. It fires when
->>suspending but kacpid is stopped, so the GPE is simply disabled and
->>never serviced. However, the state of it being disabled is recorded
->>in the atomic copy.
->>
->>Upon resume, after restoring the atomic copy, the code at the top of
->>acpi_ev_disable_gpe believes that the GPE is already disabled (as it
->>was when we suspended) even though it's not. Hardware state is out
->>of sync with what the kernel thinks and badness ensues. The culprit
->>difference between 2.6.8 and 2.6.9-rc1 is that 2.6.8 disabled the
->>GPE unconditionally, 2.6.9-rc1 checks against its last known state
->>which is incorrect upon resuming.
->>
->>Removing the check resolves this issue (patch attached). Is this an
->>adequate fix?
->Great analyzing! I guess Both S3, swsusp, and swsusp2 can't suffer from
->this bug. Sure this patch hasn't any side effect. But I wonder if it's
->the right fix. Maybe we should disable all GPEs which have been
-disabled
->on very early of resume (that is to restore ACPI hardware's state).
-This
->is very useful for suspend-to-disk. If you found a similar bug in S3,
-it
->possibly it's BIOS bug (OS didn't enable GPE on resume for S3, but for
->S4, we follow boot time code path, so we possibly enabled some).
-Oops, my bad. ACPI has done this, so 'platform' method should survive.
-For S5 method, we should disable the disabled GPEs. Leaving the GPE on
-will have other side effects. S5 method also has other side effect (Eg.
-doesn't invoke _WAK), so I suggest always use 'platform' method.
+On Mon, Mar 07, 2005 at 09:44:01PM +0100, Pavel Machek wrote:
 
-Shaohua
+> Okay, so we had 2 users in past but have 0 users now? :-).
+
+I don't know.  I remember having at least one positive feedback one or
+two years ago, but this was for an old 2.4 kernel (does that count ?),
+maybe if that guy switched to 2.6 there will be then one user now using
+S4bios under 2.6 who knows :)
+
+-- 
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
+
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
