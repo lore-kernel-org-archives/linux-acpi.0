@@ -1,11 +1,11 @@
-From: Gaetano Sferra <gaesferr-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org>
-Subject: Complete report on AE_NOT_EXISTS errors on AMILO D
-Date: Sat, 10 Jul 2004 12:54:06 +0200
+From: "Lyle Siegel" <LloydReiser-VzpKfOs8n9lWk0Htik3J/w@public.gmane.org>
+Subject: NEVV! Great de-cSlPWxsYUH4@public.gmane.org on all your favorite s0ftware from Kalms's S0ftShop
+Date: Sun, 11 Jul 2004 04:39:12 -0600
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200407101254.06884.gaesferr@libero.it>
+Message-ID: <BBRJAHACQZBHSXPDSXGEIVEPK@eyeonsoaps.com>
+Reply-To: "Lyle Siegel" <LloydReiser-VzpKfOs8n9lWk0Htik3J/w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_Or87A5toccGi0Ov"
+Content-Type: multipart/mixed;  boundary="--814721561149112847"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,1006 +15,241 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-
---Boundary-00=_Or87A5toccGi0Ov
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Hello, this is a complete report of errors, including the dsdt:
-
--- output of dmesg | grep ACPI --
- BIOS-e820: 000000001ffd0000 - 000000001ffdf000 (ACPI data)
- BIOS-e820: 000000001ffdf000 - 0000000020000000 (ACPI NVS)
-ACPI: RSDP (v000 ACPIAM                                    ) @ 0x000f5520
-ACPI: RSDT (v001 A M I  OEMRSDT  0x08000329 MSFT 0x00000097) @ 0x1ffd0000
-ACPI: FADT (v002 A M I  OEMFACP  0x08000329 MSFT 0x00000097) @ 0x1ffd0200
-ACPI: MADT (v001 A M I  OEMAPIC  0x08000329 MSFT 0x00000097) @ 0x1ffd0390
-ACPI: OEMB (v001 A M I  AMI_OEM  0x08000329 MSFT 0x00000097) @ 0x1ffdf040
-ACPI: DSDT (v001 UW     FSC_____ 0x00000016 INTL 0x02002026) @ 0x00000000
-ACPI: Subsystem revision 20040326
-ACPI: IRQ9 SCI: Level Trigger.
-    ACPI-1133: *** Error: Method execution failed [\GPRW] (Node dffc0380), 
-AE_NOT_EXIST
-    ACPI-1133: *** Error: Method execution failed [\_SB_.PCI0.P0P2._PRW] (Node 
-dffc0a80), AE_NOT_EXIST
-    ACPI-0154: *** Error: Method execution failed [\_SB_.PCI0.P0P2._PRW] (Node 
-dffc0a80), AE_NOT_EXIST
-ACPI: Interpreter enabled
-ACPI: Using PIC for interrupt routing
-ACPI: System [ACPI] (supports S0 S3 S4 S5)
-ACPI: PCI Root Bridge [PCI0] (00:00)
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P2._PRT]
-ACPI: Power Resource [URP1] (off)
-ACPI: Power Resource [URP2] (off)
-ACPI: Power Resource [FDDP] (off)
-ACPI: Power Resource [LPTP] (off)
-ACPI: Embedded Controller [EC0] (gpe 28)
-ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 9 10 *11 12 14 15)
-ACPI: PCI Interrupt Link [LNKB] (IRQs *3 4 5 6 7 9 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 6 7 *9 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 *5 6 7 9 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 6 7 9 10 11 12 14 15) *0,disabled.
-ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 6 7 9 10 11 12 14 15) *0,disabled.
-ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 5 6 7 9 10 11 12 14 15) *0,disabled.
-ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 6 7 9 *10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 11
-ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 5
-ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 9
-ACPI: PCI Interrupt Link [LNKH] enabled at IRQ 10
-ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 3
-PCI: Using ACPI for IRQ routing
-ACPI: AC Adapter [AC0] (on-line)
-ACPI: Battery Slot [BAT0] (battery absent)
-ACPI: Power Button (FF) [PWRF]
-ACPI: Lid Switch [LID]
-ACPI: Sleep Button (CM) [SLPB]
-ACPI: Processor [CPU1] (supports C1, 8 throttling states)
-ACPI: Processor [CPU2] (supports C1, 8 throttling states)
-ACPI: Thermal Zone [THRM] (75 C)
-
--- /proc/acpi/thermal_zones/THRM --
-cooling_mode: <not supported>
-polling_frequency: <polling disabled>
-state: ok
-temperature: 75C
-trip_points: critical (S5) 85C
-
--- output of cat /proc/acpi/info --
-version:                 20040326
-states:                  S0 S3 S4 S5
-
-What I must do to solve errors and got right reports in /proc/api files?
-Thank you,
-Gaetano
+bland  sloppy  beaumont  domicile  hamster 
+festival  refereeing  collegial  filigree  bolshoi 
 
 
-
---Boundary-00=_Or87A5toccGi0Ov
-Content-Type: application/octet-stream;
-  name="dsdt"
+----814721561149112847
+Content-Type: text/html;
 Content-Transfer-Encoding: quoted-printable
-Content-Description: dsdt file on my AMILO D laptop
-Content-Disposition: attachment; filename="dsdt"
 
-DSDT18=00=00=01 UW    FSC_____=16=00=00=00INTL& =00=02[=80BIOS=00=0Cd=F0=FD=
-=1F
-=FF[=81?BIOS=01SS1_=01SS2_=01SS3_=01SS4_=01=00=04IOST=10TOPM ROMS MG1B MG1L=
- MG2B MG2L =08IO1B=0B=80=06=08IO1L
-=80=08PMBS=0B=00=04=08PMLN
-=80=08GPBS=0B=00=05=08GPLN
-@=08SMBS=0B@=05=08SMBL
-=10=08SPIO
-N=08APCB=0C=00=00=C0=FE=08APCL=0B=00=10=14=0FRRIO=04p=0DRRIO=00[1=14=0FRDMA=
-=03p=0DrDMA=00[1=08PICM
-=00=14=1F_PIC=01=A0	hp
-=AADBG8=A1=08p
-=ACDBG8phPICM=08OSVR=FF=14G=0COSFL=00=A0=0D=92=93OSVR=FF=A4OSVR=A0=0F=93PICM
-=00p
-=ACDBG8p
-=01OSVR=A0H=05MCTH\_OS_=0DMicrosoft Windows NT=00=A06=93OSVR
-=01=A0$[=12_OSI`=A0=1B\_OSI=0DWindows 2001=00p
-=04OSVR=A1=08p
-=00OSVR=A1<=A0:MCTH\_OS_=0DMicrosoft WindowsME: Millennium Edition=00p
-=02OSVR=A4OSVR=14O=04MCTH=02=A0=08=95=87h=87i=A4=00r=87h
-=01`=08BUF0=11=02`=08BUF1=11=02`phBUF0piBUF1=A2=1A`v`=A0=15=92=93=83=88BUF0=
-`=00=83=88BUF1`=00=A4=00=A4=01=14D	GPRW=02=08PRWP=12=06=02
-=00
-=00ph=88PRWP
-=00=00pi=88PRWP
-=01=00p
-=00`}`ySS1_
-=01=00`}`ySS2_
-=02=00`}`ySS3_
-=03=00`}`ySS4_
-=04=00`=A0	{y
-=01i=00`=00=A1-z`
-=01`=A0=1A=91=93OSFL
-=01=93OSFL
-=02=81`=88PRWP
-=01=00=A1=0B=82`=88PRWP
-=01=00=A4PRWP=08WAKP=12=06=02
-=00
-=00[=80DEB0=01=0Bx=03
-=01[=81=0BDEB0=01DBG8=08[=80DEB1=01
-=90
-=02[=81=0BDEB1=02DBG9=10=10 \_PR_[=83=0BCPU1=01=00=01=00=00=06[=83=0BCPU2=
-=02=00=01=00=00=06=10=81=C5=02\_SB_=08PR00=12C=08=08=12=0F=04=0C=FF=FF=01=00
-=00LNKA
-=00=12=0F=04=0C=FF=FF=01=00
-=01LNKB
-=00=12=0F=04=0C=FF=FF=1F=00
-=01LNKB
-=00=12=0F=04=0C=FF=FF=1F=00
-=00LNKC
-=00=12=0F=04=0C=FF=FF=1D=00
-=00LNKA
-=00=12=0F=04=0C=FF=FF=1D=00
-=01LNKD
-=00=12=0F=04=0C=FF=FF=1D=00
-=02LNKC
-=00=12=0F=04=0C=FF=FF=1D=00
-=03LNKH
-=00=08AR00=12C=07=08=12=0D=04=0C=FF=FF=01=00
-=00
-=00
-=10=12=0D=04=0C=FF=FF=01=00
-=01
-=00
-=11=12=0D=04=0C=FF=FF=1F=00
-=01
-=00
-=11=12=0D=04=0C=FF=FF=1F=00
-=00
-=00
-=12=12=0D=04=0C=FF=FF=1D=00
-=00
-=00
-=10=12=0D=04=0C=FF=FF=1D=00
-=01
-=00
-=13=12=0D=04=0C=FF=FF=1D=00
-=02
-=00
-=12=12=0D=04=0C=FF=FF=1D=00
-=03
-=00
-=17=08PR02=122=03=12=0F=04=0C=FF=FF=03=00
-=00LNKB
-=00=12=0F=04=0C=FF=FF=0C=00
-=00LNKB
-=00=12=0F=04=0C=FF=FF
-=00
-=00LNKC
-=00=08AR02=12,=03=12=0D=04=0C=FF=FF=03=00
-=00
-=00
-=11=12=0D=04=0C=FF=FF=0C=00
-=00
-=00
-=11=12=0D=04=0C=FF=FF
-=00
-=00
-=00
-=12=08PRSA=11=09
-=06#=F8=DE=18y=00=06PRSAPRSB=06PRSAPRSC=06PRSAPRSD=06PRSAPRSE=06PRSAPRSF=06=
-PRSAPRSG=06PRSAPRSH[=82=8D=9C=02PCI0=08_HID=0CA=D0
-=03=08_ADR
-=00=08_BBN
-=00=08_UID
-=00=14=16_PRT=00=A0
-PICM=A4AR00=A4PR00[=82H=05P0P2=08_ADR=0C=00=00=1E=00=14=0F_PRW=00=A4GPRW
-=0B
-=03=14=16_PRT=00=A0
-PICM=A4AR02=A4PR02[=82=1FLAN1=08_ADR=0C=00=00=0C=00=14=0F_PRW=00=A4GPRW
-=0B
-=03[=82=1FMC97=08_ADR=0C=06=00=1F=00=14=0F_PRW=00=A4GPRW
-=05
-=03[=82@=A8IDE0=08_ADR=0C=01=00=1F=00=08REGF
-=01=14=12_REG=02=A0=0B=93h
-=02piREGF[=80BAR0=02
-=00=0B=00=01[=81K=05BAR0=03=00@ TIMP=10TIMS=10STMP=04STMS=04=00=18UDMP=02UD=
-MS=02=00=0CUDTP=06=00=02UDTS=06=00B=04PCB0=02SCB0=02PCA0=02SCA0=02=00=04FPB=
-0=02FSB0=02=08TIM0=12G=07	=12=0B=04
-x
-=B4
-=F0=0B=84=03=12
-=04
-#
-!
-=10
-=00=12
-=04
-=0B
-=09
-=04
-=00=12=0E=06
-p
-I
-6
-'
-=19
-=0F=12=0E=06
-=00
-=01
-=02
-=01
-=02
-=01=12=0E=06
-=00
-=00
-=00
-=01
-=01
-=01=12=0E=06
-=00
-=00
-=00
-=00
-=00
-=01=12
-=04
-=04
-=03
-=02
-=00=12
-=04
-=02
-=01
-=00
-=00=08TMD0=11=03
-=14=8ATMD0
-=00PIO0=8ATMD0
-=04DMA0=8ATMD0
-=08PIO1=8ATMD0
-=0CDMA1=8ATMD0
-=10CHNF=08GTIM
-=00=08GSTM
-=00=08GUDM
-=00=08GUDT
-=00=08GCB0
-=00=08GFB0
-=00[=82E=0ECHN0=08_ADR
-=00=14#_GTM=00=A4GTM_TIMPSTMPUDMPUDTPPCB0FPB0=14G=07_STM=03ph[1phTMD0pTIMPG=
-TIMpUDTPGUDT=A0;STM_pGTIMTIMPpGSTMSTMPpGUDMUDMPpGUDTUDTPpGCB0PCB0pGFB0FPB0p=
-GTF_
-=00iATA0pGTF_
-=01jATA1[=82=1CDRV0=08_ADR
-=00=14=0F_GTF=00=A4RATAATA0[=82=1CDRV1=08_ADR
-=01=14=0F_GTF=00=A4RATAATA1[=82E=0ECHN1=08_ADR
-=01=14#_GTM=00=A4GTM_TIMSSTMSUDMSUDTSSCB0FSB0=14G=07_STM=03ph[1phTMD0pTIMSG=
-TIMpUDTSGUDT=A0;STM_pGTIMTIMSpGSTMSTMSpGUDMUDMSpGUDTUDTSpGCB0SCB0pGFB0FSB0p=
-GTF_
-=00iATA2pGTF_
-=01jATA3[=82=1CDRV0=08_ADR
-=00=14=0F_GTF=00=A4RATAATA2[=82=1CDRV1=08_ADR
-=01=14=0F_GTF=00=A4RATAATA3=14M=19GTM_=0Ep=FFPIO0pPIO0PIO1pPIO0DMA0pPIO0DMA=
-1p=00CHNF=A0=05REGF=A1=06=A4TMD0=A0=11{h
-=02=00}CHNF
-=02CHNFz{h=0B=003=00
-=08ep=89=83=88TIM0
-=01=00=02e=00
-=00
-=00fp=83=88=83=88TIM0
-=00=00f=00gpgDMA0=A0=0E{h
-=08=00p=0B=84=03PIO0=A1=07pgPIO0=A0=11{h
- =00}CHNF
-=08CHNF=A0B=05{h=0B=00@=00}CHNF
-=10CHNFp=89=83=88TIM0
-=02=00=02i=00
-=00
-=00ep=83=88=83=88TIM0
-=00=00e=00fpfDMA1=A0=0E{h
-=80=00p=0B=84=03PIO1=A1=07pfPIO1=A0H=04{j
-=01=00{k
-=03e=A0=10=90{m
-=01=00=93e
-=01re
-=04e=A1=0D=A0=0B{l
-=01=00re
-=02ep=83=88=83=88TIM0
-=03=00e=00DMA0}CHNF
-=01CHNF=A0L=04{j
-=02=00{zk
-=04=00
-=03e=A0=10=90{m
-=02=00=93e
-=01re
-=04e=A1=0D=A0=0B{l
-=02=00re
-=02ep=83=88=83=88TIM0
-=03=00e=00DMA1}CHNF
-=04CHNFpTMD0[1=A4TMD0=14D%STM_=08=A0=05REGF=A1=04=A4
-=00{GTIM=0BD=80GTIMp
-=00GSTMp
-=00GUDMp
-=00GCB0{GUDT
-=CCGUDTp
-=00GFB0=A0G=07{CHNF
-=01=00p=89=83=88TIM0
-=03=00=02DMA0=00
-=00
-=00`=A0	=94`
-=05p
-=05`}GUDT=83=88=83=88TIM0
-=04=00`=00GUDT}GCB0=83=88=83=88TIM0
-=05=00`=00GCB0}GFB0=83=88=83=88TIM0
-=06=00`=00GFB0}GUDM
-=01GUDM=A17=A05}=93PIO0=FF=93PIO0
-=00=00=A0${=95DMA0=FF=94DMA0
-=00=00pDMA0PIO0}GTIM
-=08GTIM=A0C=08{CHNF
-=04=00p=89=83=88TIM0
-=03=00=02DMA1=00
-=00
-=00`=A0	=94`
-=05p
-=05`}GUDTy=83=88=83=88TIM0
-=04=00`=00
-=04=00GUDT}GCB0y=83=88=83=88TIM0
-=05=00`=00
-=01=00GCB0}GFB0y=83=88=83=88TIM0
-=06=00`=00
-=01=00GFB0}GUDM
-=02GUDM=A17=A05}=93PIO1=FF=93PIO1
-=00=00=A0${=95DMA1=FF=94DMA1
-=00=00pDMA1PIO1}GTIM
-=80GTIM=A0=14{CHNF
-=02=00}GTIM
-=03GTIM=A0=14{CHNF
-=08=00}GTIM
-0GTIM{=89=83=88TIM0
-=00=00=04PIO0=00
-=00
-=00
-=03`p=83=88=83=88TIM0
-=01=00`=00aya
-=08b}GTIMbGTIM=A0?{CHNF
-=10=00}GTIM=0B=00-P16D2CvGvMU@public.gmane.org{=89=83=88TIM0
-=00=00=04PIO1=00
-=00
-=00
-=03`p=83=88=83=88TIM0
-=02=00`=00GSTM=A4
-=01=08AT01=11
+<html><head><meta http-equiv=3DContent-Language content=3Den-us><meta name=
+=3DGENERATOR content=3D"colombo"><meta name=3DProgId content=3Dtulsa><meta=
+ http-equiv=3DContent-Type content=3D"text/html; charset=3Dwindows-1252"><=
+title>walkie</title></head><body><table border=3D0 cellpadding=3D0 cellspa=
+cing=3D0 style=3D"border-collapse: collapse" bordercolor=3D#111111 width=3D=
+650 id=3DAutoNumber1 height=3D47 bgcolor=3D#003366><tr><td width=3D50=
+% height=3D24><p align=3Dcenter><b><font face=3DVerdana size=3D1 color=3D#=
+FFFFFF>*Opt-in Em-+oGz7xIJsNs@public.gmane.org Specials for July 2004*</font></b></p></td><td width=3D=
+13% height=3D24><p align=3Dcenter><nobr><font face=3DVerdana size=3D2> <a =
+href=3Dhttp://oemdata.biz/?L> <img src=3Dhttp://ak.buy.com/buy_assets/v6/h=
+eader_july/icon_giftcerts.gif border=3D0 systran=3Dyes width=3D98 height=3D=
+16></a></font></nobr></p></td><td width=3D13% height=3D24><p align=3Dcente=
+r><nobr><font face=3DVerdana size=3D2> <a href=3Dhttp://oemdata.biz/?h> <i=
+mg src=3Dhttp://ak.buy.com/buy_assets/v6/header_july/icon_basket.gif borde=
+r=3D0 systran=3Dyes width=3D51 height=3D16></a></font></nobr></p></td><td =
+width=3D12% height=3D24><p align=3Dcenter><nobr><font face=3DVerdana size=3D=
+2> <a href=3Dhttp://oemdata.biz/?M> <img src=3Dhttp://ak.buy.com/buy_asset=
+s/v6/header_july/icon_myaccount.gif border=3D0 systran=3Dyes width=3D79 he=
+ight=3D16></a></font></nobr></p></td><td width=3D12% height=3D24><p align=3D=
+center><nobr><font face=3DVerdana size=3D2> <a href=3Dhttp://oemdata.biz/?=
+F> <img src=3Dhttp://ak.buy.com/buy_assets/v6/header_july/icon_help.gif bo=
+rder=3D0 systran=3Dyes width=3D41 height=3D16></a></font></nobr></p></td><=
+/tr><tr><td width=3D50% height=3D23 bgcolor=3D#CCCCCC><b> <font face=3DVer=
+dana size=3D1 color=3D#003366>Product Information</font></b></td><td width=
+=3D50% height=3D23 colspan=3D4 bgcolor=3D#CCCCCC><p align=3Dright><b> <a s=
+tyle=3D"text-decoration: none; color: #003366" href=3Dhttp://oemdata.biz/?=
+I> <font size=3D1 face=3DVerdana color=3D#003366>Top Sellers | Rebates | N=
+ew Releases | Shop By Brand</font></a></b></p></td></tr></table><table bor=
+der=3D0 cellpadding=3D0 cellspacing=3D0 style=3D"border-collapse: collapse=
+" bordercolor=3D#111111 width=3D650 id=3DAutoNumber2 height=3D268><tr><td =
+width=3D198 height=3D17 background=3Dhttp://ak.buy.com/buy_assets/v6/july/=
+box_header_back2.gif colspan=3D3><p align=3Dcenter><b><font face=3DArial s=
+ize=3D2 color=3D#FFFFFF>Hot Savings Packages!</font></b></p></td><td width=
+=3D452 height=3D268 rowspan=3D7><table border=3D0 cellpadding=3D0 cellspac=
+ing=3D0 style=3D"border-collapse: collapse" bordercolor=3D#111111 width=3D=
+100% id=3DAutoNumber3 height=3D479><tr><td width=3D100% height=3D25 colspa=
+n=3D4 style=3D"border-style: solid; border-width: 0"><p align=3Dcenter><b>=
+<font face=3DArial size=3D2 color=3D#003366>Microsoft Windows XP - Complet=
+e Newest Version</font></b></p></td></tr><tr><td width=3D37% height=3D151 =
+colspan=3D2><p align=3Dcenter><font size=3D2 face=3DVerdana> <img src=3Dht=
+tp://goldrush.com/~acug/vendor/winxppro.jpg border=3D0 width=3D150 height=3D=
+150></font></p></td><td width=3D63% height=3D151 colspan=3D2><b> <font fac=
+e=3DArial size=3D2 color=3D#111111>Our Price:</font><font face=3DArial siz=
+e=3D2 color=3D#CC0000> $49.95</font></b><font face=3DArial size=3D1 color=3D=
+#FFFFCC>%_RND_WORD</font><font face=3DArial size=3D2 color=3D#CC0000><b><b=
+r> </b></font><font face=3DArial size=3D2 color=3D#111111><strike>Retail P=
+rice: $299.95</strike></font><font face=3DArial size=3D1 color=3D#FFFFCC>=
+%_RND_WORD</font><font face=3DArial size=3D2 color=3D#111111><strike><br> =
+</strike>You Save: </font><b> <font face=3DArial size=3D2 color=3D#336699>=
+$249.00 [87%]</font></b><font face=3DArial size=3D1 color=3D#FFFFCC>=
+%_RND_WORD</font><b><font face=3DArial size=3D2 color=3D#336699><br> </fon=
+t><font face=3DVerdana size=3D1 color=3D#CC0000> <a style=3D"color: #CC000=
+0" href=3Dhttp://soft4cheapprice.biz/?F>See Details</a></font></b><font fa=
+ce=3DArial size=3D1 color=3D#FFFFCC>%_RND_WORD</font><b><font face=3DVerda=
+na size=3D1 color=3D#CC0000><br> </font></b><font face=3DArial size=3D1 co=
+lor=3D#FFFFCC>%_RND_WORD</font><b><font face=3DVerdana size=3D1 color=3D#C=
+C0000><br> </font><font face=3DArial size=3D2>Availability:</font><font fa=
+ce=3DArial size=3D2 color=3D#CC0000> <a style=3D"color: #CC0000" href=3Dht=
+tp://gpsoft.biz/?7>Download Within Minutes!</a><br> </font></b><font face=3D=
+Arial size=3D1 color=3D#FFFFCC>%_RND_WORD</font><b><font face=3DArial size=
+=3D2 color=3D#CC0000><br> </font></b><font size=3D2 face=3DVerdana> <a hre=
+f=3Dhttp://gpsoft.biz/?a> <input type=3Dimage src=3Dhttp://ak.buy.com/buy_=
+assets/v6/img/btn_big_buynow.gif align=3DabsMiddle border=3D0 systran=3Dye=
+s width=3D91 height=3D19></a> </font><font size=3D2 face=3DVerdana> <a hre=
+f=3Dhttp://oemdata.biz/?K> <img src=3Dhttp://ak.buy.com/buy_assets/v5/img/=
+wishlist.jpg border=3D0 systran=3Dyes width=3D91 height=3D15 align=3Dmiddl=
+e></a> </font><font size=3D2 face=3DVerdana> <a href=3Dhttp://soft4cheappr=
+ice.biz/?3> <img src=3Dhttp://ak.buy.com/buy_assets/v5/img/emailfriend.jpg=
+ border=3D0 systran=3Dyes width=3D88 height=3D15 align=3Dmiddle></a></font=
+></td></tr><tr><td width=3D100% height=3D35 colspan=3D4><p align=3Dcenter>=
+<b><font size=3D1 face=3DVerdana>Customers rated this item <a href=3Dhttp:=
+//gpsoft.biz/?5> <img src=3Dhttp://ak.buy.com/buy_assets/v5/img/icon/stars=
+05.gif align=3Dtop width=3D75 height=3D15 border=3D0></a> Results from 126=
+,987 reviews</font></b></p></td></tr><tr><td width=3D100% height=3D14 cols=
+pan=3D4 bgcolor=3D#666666><p align=3Dcenter><b><font face=3DVerdana size=3D=
+1 color=3D#FFFFFF>Customers who purchased this item also purchased the fol=
+lowing:</font></b></p></td></tr><tr><td width=3D100% height=3D55 colspan=3D=
+4 style=3D"border: 1px solid #CCCCCC"><table border=3D0 cellpadding=3D0 ce=
+llspacing=3D0 style=3D"border-collapse: collapse" bordercolor=3D#111111 wi=
+dth=3D100% id=3DAutoNumber4 height=3D86><tr><td width=3D13% height=3D86><p=
+ align=3Dcenter><font face=3DVerdana size=3D1> <img src=3Dhttp://abitz.com=
+/schreib/officexppro.jpg border=3D0 width=3D41 height=3D50></font></p></td=
+><td width=3D21% height=3D86><b><i><font face=3DVerdana size=3D1>Microsoft=
+</font></i></b><br> <font face=3DVerdana size=3D1> <a href=3Dhttp://oemdat=
+a.biz/?l><font color=3D#336699>Office XP Professional Edition<b><br> </b><=
+/font></a><b><font color=3D#990033>$69.95<br> </font></b></font><font face=
+=3DVerdana size=3D1> <img src=3Dhttp://ak.buy.com/buy_assets/v6/img/triang=
+le.gif align=3Dmiddle border=3D0 width=3D10 height=3D8><b><a class=3DblueT=
+ext title=3D"Show me more info about Microsoft Plus! for Windows XP by MIC=
+ROSOFT" href=3Dhttp://gpsoft.biz/?F><font color=3D#336699>more info</font>=
+</a></b><img src=3Dhttp://ak.buy.com/buy_assets/v6/img/basket_fstruck.gif =
+border=3D0 width=3D29 height=3D14></a></span></font><br></td><td width=3D1=
+2% height=3D86><p align=3Dcenter><font face=3DVerdana size=3D1> <img src=3D=
+http://designshop.hu/p/img_adobe/photoshopcs.gif border=3D0 width=3D44 hei=
+ght=3D56></font></p></td><td width=3D21% height=3D86><b><i><font face=3DVe=
+rdana size=3D1>Adobe<br> </font></i></b><font face=3DVerdana size=3D1><spa=
+n class=3DcomText> <a href=3Dhttp://gpsoft.biz/?w><font color=3D#336699>Ph=
+otoshop CS 8.0 Complete Version<b><br> </b></font></a><b><font color=3D#99=
+0033>$59.95<br> </font></b></span> <img src=3Dhttp://ak.buy.com/buy_assets=
+/v6/img/triangle.gif align=3Dmiddle border=3D0 width=3D10 height=3D8><b><a=
+ class=3DblueText title=3D"Show me more info about Microsoft Plus! for Win=
+dows XP by MICROSOFT" href=3Dhttp://soft4cheapprice.biz/?p><font color=3D#=
+336699>more info</font></a></b><img src=3Dhttp://ak.buy.com/buy_assets/v6/=
+img/basket_fstruck.gif border=3D0 width=3D29 height=3D14></a></span></font=
+></td><td width=3D12% height=3D86><p align=3Dcenter><font face=3DVerdana s=
+ize=3D1> <img src=3Dhttp://www.nof-forum.de/html/caluna-shop/images/Acroba=
+t6.gif border=3D0 width=3D42 height=3D62></font></p></td><td width=3D21=
+% height=3D86><b><i><font face=3DVerdana size=3D1>Adobe<br> </font></i></b=
+><font face=3DVerdana size=3D1><span class=3DcomText> <a href=3Dhttp://gps=
+oft.biz/?d><font color=3D#336699>Acrobat 6.0 Professional Edition<b><br> <=
+/b></font></a><b><font color=3D#990033>$49.95<br> </font></b></span></font=
+><font face=3DVerdana size=3D1> <img src=3Dhttp://ak.buy.com/buy_assets/v6=
+/img/triangle.gif align=3Dmiddle border=3D0 width=3D10 height=3D8><b><a cl=
+ass=3DblueText title=3D"Show me more info about Microsoft Plus! for Window=
+s XP by MICROSOFT" href=3Dhttp://gpsoft.biz/?M><font color=3D#336699>more =
+info</font></a></b><img src=3Dhttp://ak.buy.com/buy_assets/v6/img/basket_f=
+struck.gif border=3D0 width=3D29 height=3D14></a></span></font></td></tr><=
+/table></td></tr><tr><td width=3D100% height=3D82 colspan=3D4><font face=3D=
+Verdana> <span style=3D"LINE-HEIGHT: 16px"><font size=3D1>CSOD Sales Rank:=
+ #1</font></span></font><font face=3DArial size=3D1 color=3D#FFFFCC>=
+%_RND_WORD</font><font face=3DVerdana><span style=3D"LINE-HEIGHT: 16px"><f=
+ont size=3D1><br> Manufacturer: </font></span></font><i><font face=3DVerda=
+na size=3D1>Microsoft</font></i><font face=3DArial size=3D1 color=3D#FFFFC=
+C>%_RND_WORD</font><i><font face=3DVerdana size=3D1><br> </font></i><font =
+face=3DVerdana><span style=3D"LINE-HEIGHT: 16px"> <font size=3D1>Mfg Part#=
+: E85-000089</font></span></font><font face=3DArial size=3D1 color=3D#FFFF=
+CC>%_RND_WORD</font><font face=3DVerdana><span style=3D"LINE-HEIGHT: 16px"=
+><font size=3D1><br> <b>Features:</b></font></span></font><font face=3DAri=
+al size=3D1 color=3D#FFFFCC>%_RND_WORD</font><font face=3DVerdana><span st=
+yle=3D"LINE-HEIGHT: 16px"><font size=3D1><b><br> </b></font></span></font>=
+<font face=3DVerdana size=3D1> <img src=3Dhttp://ak.buy.com/buy_assets/v6/=
+img/triangle.gif align=3Dmiddle border=3D0 width=3D10 height=3D8></font><f=
+ont face=3DVerdana size=3D1>Product Description - MS Windows XP Profession=
+al - complete package<br> <img src=3Dhttp://ak.buy.com/buy_assets/v6/img/t=
+riangle.gif align=3Dmiddle border=3D0 width=3D10 height=3D8></font><font f=
+ace=3DVerdana size=3D1>License Qty - 1 user</font><font face=3DArial size=3D=
+1 color=3D#FFFFCC>%_RND_WORD</font><font face=3DVerdana size=3D1><br> <img=
+ src=3Dhttp://ak.buy.com/buy_assets/v6/img/triangle.gif align=3Dmiddle bor=
+der=3D0 width=3D10 height=3D8></font><font face=3DVerdana size=3D1>Media -=
+ <b>Instant Download</b></font><font face=3DArial size=3D1 color=3D#FFFFCC=
+>%_RND_WORD</font></td></tr><tr><td width=3D14% height=3D22><font face=3DV=
+erdana size=3D1><b>Value:</b> 5.0</font></td><td width=3D23% height=3D22><=
+p align=3Dright><font face=3DVerdana size=3D1><b>Performance:</b> 5.0</fon=
+t></p></td><td width=3D27% height=3D22><p align=3Dcenter><font face=3DVerd=
+ana size=3D1><b>Ease of Use:</b> 5.0</font></p></td><td width=3D36=
+% height=3D22><font face=3DVerdana size=3D1><b>Overall Satisfaction:</b> 5=
+0</font></td></tr><tr><td width=3D100% height=3D47 colspan=3D4> <font fac=
+e=3DArial size=3D1 color=3D#FFFFCC>%_RND_WORD</font><font face=3DVerdana><=
+font face=3DVerdana size=3D1><font color=3D#336699><b><br> Greg O.</b></fo=
+nt> from Birmingham, AL <span class=3DblueText><b>rated this item 5</b> of=
+ <b>5</b></span></font></font><font face=3DArial size=3D1 color=3D#FFFFCC>=
+%_RND_WORD</font><font face=3DVerdana><font face=3DVerdana size=3D1><br> <=
+b>&quot;XP is great!</b></font></font><font face=3DArial size=3D1 color=3D=
+#FFFFCC>%_RND_WORD</font><font face=3DVerdana><font face=3DVerdana size=3D=
+1><br> The new Windows XP Professional edition is ideal for advanced users=
+ There are many more things included with the operating system which give=
+ a good overall system performance. It is also ideal for small networks in=
+ the home and large ones too and the built in firewall which is included t=
+oo provides extra security. I have had a great experience with XP and will=
+ be using it from now on as I have found it is a lot better than previous =
+windows versions.&quot;</font></font><font face=3DArial size=3D1 color=3D#=
+FFFFCC>%_RND_WORD</font><font face=3DVerdana><font face=3DVerdana size=3D1=
+><br> &nbsp;</font><font size=3D1 color=3D#FFFFCC>osteopathic</font></a><f=
+ont face=3DVerdana size=3D1><br> Was this review helpful? <a href=3Dhttp:/=
+/oemdata.biz/?V> <img alt=3DYes src=3Dhttp://ak.buy.com/buy_assets/v6/img/=
+buttons/btn_yes.gif align=3Dmiddle border=3D0 width=3D27 height=3D12></a>&=
+nbsp; <a href=3Dhttp://soft4cheapprice.biz/?g> <img alt=3DNo src=3Dhttp://=
+ak.buy.com/buy_assets/v6/img/buttons/btn_no.gif align=3Dmiddle border=3D0 =
+width=3D25 height=3D12></a></font><font size=3D1 color=3D#FFFFCC>phi</font=
+></a></font></td></tr></table></td></tr><tr><td width=3D89 height=3D57><fo=
+nt face=3DVerdana size=3D1> <img src=3Dhttp://goldrush.com/~acug/vendor/wi=
+nxppro.jpg align=3Dright border=3D0 width=3D63 height=3D65></font></td><td=
+ width=3D18 height=3D57><p align=3Dcenter><font face=3DVerdana size=3D1>+<=
+/font></p></td><td width=3D91 height=3D57><font face=3DVerdana size=3D1> <=
+img src=3Dhttp://abitz.com/schreib/officexppro.jpg align=3Dleft border=3D0=
+ width=3D54 height=3D66></font></td></tr><tr><td width=3D198 height=3D74 c=
+olspan=3D3><font face=3DVerdana size=3D1><b> <a href=3Dhttp://soft4cheappr=
+ice.biz/?u><font color=3D#336699>Windows XP + Office XP Pro<br> </font></a=
+></b>YOUR PRICE: <span style=3D"COLOR: #cc0000">Only $101.95<br> </span>SA=
+VE Over <font color=3D#CC0000>$729.00!</font><br> </font><font face=3DVerd=
+ana><font size=3D1 color=3D#FFFFCC>canker</font></a></font><font face=3DVe=
+rdana size=3D1><a href=3Dhttp://soft4cheapprice.biz/?1><br> <img hspace=3D=
+3 src=3Dhttp://ak.buy.com/buy_assets/v6/img/btn_small_buynow.gif align=3Db=
+aseline border=3D0 systran=3Dyes width=3D62 height=3D12></a></font><font f=
+ace=3DArial size=3D1 color=3D#FFFFCC>%_RND_WORD</font></td></tr><tr><td wi=
+dth=3D89 height=3D57><font face=3DVerdana size=3D1> <img src=3Dhttp://gold=
+rush.com/~acug/vendor/winxppro.jpg align=3Dright border=3D0 width=3D61 hei=
+ght=3D65></font></td><td width=3D18 height=3D57><p align=3Dcenter><font fa=
+ce=3DVerdana size=3D1>+</font></p></td><td width=3D91 height=3D57><font fa=
+ce=3DVerdana size=3D1> <img src=3Dhttp://www.kauz.ch/images/systemworks.jp=
+g align=3Dleft border=3D0 width=3D49 height=3D61></font></td></tr><tr><td =
+width=3D198 height=3D78 colspan=3D3><font face=3DVerdana size=3D1><b> <a h=
+ref=3Dhttp://oemdata.biz/?8><font color=3D#336699>Windows XP+ SystemworksP=
+ro<br> </font></a></b>YOUR PRICE: <span style=3D"COLOR: #cc0000">Only $69.=
+95<br> </span>SAVE Over <font color=3D#CC0000>$299.00!</font><br> </font><=
+font face=3DVerdana><font size=3D1 color=3D#FFFFCC>harpoon</font></a></fon=
+t><font face=3DVerdana size=3D1><a href=3Dhttp://oemdata.biz/?3><br> <img =
+hspace=3D3 src=3Dhttp://ak.buy.com/buy_assets/v6/img/btn_small_buynow.gif =
+align=3Dbaseline border=3D0 systran=3Dyes width=3D62 height=3D12></a></fon=
+t><font face=3DArial size=3D1 color=3D#FFFFCC>%_RND_WORD</font></td></tr><=
+tr><td width=3D89 height=3D57><font face=3DVerdana size=3D1> <img src=3Dht=
+tp://www.flashwebtraining.com/imagens/artigos/flashmx2004.gif align=3Drigh=
+t border=3D0 width=3D50 height=3D64></font></td><td width=3D18 height=3D57=
+><p align=3Dcenter><font face=3DVerdana size=3D1>+</font></p></td><td widt=
+h=3D91 height=3D57><font face=3DVerdana size=3D1> <a href=3Dhttp://gpsoft.=
+biz/?8> <img src=3Dhttp://www.campuscomputer.com/img/_software/macromedia/=
+dreamweaverMX.gif align=3Dleft border=3D0 width=3D50 height=3D51></a></fon=
+t></td></tr><tr><td width=3D198 height=3D1 colspan=3D3><font face=3DVerdan=
+a size=3D1><b> <a href=3Dhttp://gpsoft.biz/?p><font color=3D#336699>Flash =
+MX 2004 Pro + Dreamweaver MX 2004 Pro</font></a></b></b><br> YOUR PRICE: <=
+span style=3D"COLOR: #cc0000">Only $59.95<br> </span>SAVE Over <font color=
+=3D#CC0000>$899.00!</font><br> </font><font face=3DVerdana><font size=3D1 =
+color=3D#FFFFCC>nutria</font></a></font><font face=3DVerdana size=3D1><a h=
+ref=3Dhttp://gpsoft.biz/?s><br> <img hspace=3D3 src=3Dhttp://ak.buy.com/bu=
+y_assets/v6/img/btn_small_buynow.gif align=3Dbaseline border=3D0 systran=3D=
+yes width=3D62 height=3D12></a></font><font face=3DArial size=3D1 color=3D=
+#FFFFCC>%_RND_WORD</font></td></tr></table><p><font face=3DVerdana><font s=
+ize=3D1 color=3D#FFFFCC>shortsighted these ambrose gyrfalcon beggar creed =
+degree synchronous metal abdicate bureaucrat suffocate automate exterior d=
+isparate combatted beebread donner boniface demultiplex equal capacitive f=
+armington dank declare debra concubine earthenware trevelyan homologous=20=
+</font></a></font></p></body></html>
 
-=07=03=00=00=00=00=00=EF=08AT02=11
-
-=07=00=00=00=00=00=00=90=08AT03=11
-
-=07=00=00=00=00=00=00=C6=08AT04=11
-
-=07=00=00=00=00=00=00=91=08ATA0=11=03
-=1D=08ATA1=11=03
-=1D=08ATA2=11=03
-=1D=08ATA3=11=03
-=1D=08ATAB=11=03
-=1D=8CATAB
-=00CMDC=14L=05GTFB=0BwCMDC
-8`r`
-=08a[=13ATABa
-8CMDXwCMDC
-=07`=8CATABr`
-=02=00A001=8CATABr`
-=06=00A005phCMDXpiA001pjA005uCMDC=14B$GTF_
-pi[1p
-=00CMDC=08ID49=0B=00=0C=08ID59
-=00=08ID53
-=04=08ID63=0B=00=0F=08ID88=0B=00=0F=08IRDY
-=01=08PIOT
-=00=08DMAT
-=00=A0M=05=93=87i=0B=00=02=8Bi
-bIW49pIW49ID49=8Bi
-jIW53pIW53ID53=8Bi
-~IW63pIW63ID63=8Bi
-vIW59pIW59ID59=8Bi
-=B0IW88pIW88ID88p
-=A0g=A0H=05hp
-=B0g{CHNF
-=08IRDY=A0=12{CHNF
-=10=00pPIO1PIOT=A1
-pPIO0PIOT=A0'{CHNF
-=04=00=A0=12{CHNF
-=10=00pDMA1DMAT=A1
-pDMA0DMAT=A1({CHNF
-=02IRDYpPIO0PIOT=A0=12{CHNF
-=01=00pDMA0DMAT=A0G=04=90=90{ID53
-=04=00{ID88=0B=00=FF=00DMATp=89=83=88TIM0
-=03=00=02DMAT=00
-=00
-=00a=A0	=94a
-=05p
-=05aGTFBAT01}
-@a=00g=A1F=04=A0C=04=90{ID63=0B=00=FF=00PIOT{=89=83=88TIM0
-=00=00=04PIOT=00
-=00
-=00
-=03`}
- =83=88=83=88TIM0
-=08=00`=00aGTFBAT01ag=A08IRDY{=89=83=88TIM0
-=00=00=04PIOT=00
-=00
-=00
-=03`}
-=08=83=88=83=88TIM0
-=07=00`=00aGTFBAT01ag=A1=17=A0=15{ID49=0B=00=04=00GTFBAT01
-=01g=A0$=90{ID59=0B=00=01=00{ID59
-=FF=00GTFBAT03{ID59
-=FF=00gpATAB[1=A4ATAB=14,RATA=01=8Ch
-=00CMDNwCMDN
-8`[=13h
-=08`RETBpRETB[1=A4RETB[=82I=04USB1=08_ADR=0C=00=00=1D=00[=80BAR0=02
-=C0
-=05[=81=12BAR0=01UBL1=10=00=10USBW=08=14=19_PSW=01=A0	hp
-=03USBW=A1=08p
-=00USBW[=82I=04USB2=08_ADR=0C=01=00=1D=00[=80BAR0=02
-=C0
-=05[=81=12BAR0=01UBL1=10=00=10USBW=08=14=19_PSW=01=A0	hp
-=03USBW=A1=08p
-=00USBW[=82I=04USB3=08_ADR=0C=02=00=1D=00[=80BAR0=02
-=C0
-=05[=81=12BAR0=01UBL1=10=00=10USBW=08=14=19_PSW=01=A0	hp
-=03USBW=A1=08p
-=00USBW[=82=80=DB=01SBRG=08_ADR=0C=00=00=1F=00[=82+PIC_=08_HID=0BA=D0=08_CR=
-S=11=18
-=15G=01 =00 =00=00=02G=01=A0=00=A0=00=00=02"=04=00y=00[=82N=04DMAD=08_HID=
-=0CA=D0=02=00=08_CRS=118
-5*=10=04G=01=00=00=00=00=00=10G=01=81=00=81=00=00=03G=01=87=00=87=00=00=01G=
-=01=89=00=89=00=00=03G=01=8F=00=8F=00=00=01G=01=C0=00=C0=00=00 y=00[=82%TMR=
-_=08_HID=0CA=D0=01=00=08_CRS=11=10
-=0DG=01@=00@=00=00=04"=01=00y=00[=82%RTC0=08_HID=0CA=D0=0B=00=08_CRS=11=10
-=0DG=01p=00p=00=00=02"=00=01y=00[=82"SPKR=08_HID=0CA=D0=08=00=08_CRS=11
-
-G=01a=00a=00=00=01y=00[=82%COPR=08_HID=0CA=D0=0C=04=08_CRS=11=10
-=0DG=01=F0=00=F0=00=00=10"=00 y=00[=82G*RMSC=08_HID=0CA=D0=0C=02=08_UID
-=10=08CRS0=11J=0C
-=C6G=01=10=00=10=00=00=10G=01"=00"=00=00=1EG=01D=00D=00=00=1CG=01c=00c=00=
-=00=01G=01e=00e=00=00=01G=01g=00g=00=00	G=01r=00r=00=00=0EG=01=80=00=80=00=
-=00=01G=01=84=00=84=00=00=03G=01=88=00=88=00=00=01G=01=8C=00=8C=00=00=03G=
-=01=90=00=90=00=00=10G=01=A2=00=A2=00=00=1EG=01=E0=00=E0=00=00=10G=01=D0=04=
-=D0=04=00=02G=01=00=00=00=00=00=00G=01=00=00=00=00=00=00=85=11=00=00=00=00=
-=E8=FF=00=00=E8=FF=00=00=00=00=00=00=08=00=85=11=00=00=00=00=F8=FF=00=00=F8=
-=FF=00=00=00=00=00=00=08=00=85=11=00=00=00=04=E0=FE=00=04=E0=FE=00=00=00=00=
-=00=FC=DF=00y=00=08CRS1=11N=08
-=8AG=01=10=00=10=00=00=10G=01"=00"=00=00=1EG=01D=00D=00=00=1CG=01c=00c=00=
-=00=01G=01e=00e=00=00=01G=01g=00g=00=00	G=01r=00r=00=00=0EG=01=80=00=80=00=
-=00=01G=01=84=00=84=00=00=03G=01=88=00=88=00=00=01G=01=8C=00=8C=00=00=03G=
-=01=90=00=90=00=00=10G=01=A2=00=A2=00=00=1EG=01=E0=00=E0=00=00=10G=01=D0=04=
-=D0=04=00=02G=01=00=00=00=00=00=00G=01=00=00=00=00=00=00y=00=14K=12_CRS=00=
-=A0E=04=93OSFL
-=00=8BCRS1
-zGP00=8BCRS1
-|GP01=8CCRS1
-=7FGP0LpPMBSGP00pPMBSGP01pPMLNGP0L=A1=3D=8BCRS0
-zGPX0=8BCRS0
-|GPX1=8CCRS0
-=7FGPXLpPMBSGPX0pPMBSGPX1pPMLNGPXL=A0J=08GPBS=A0E=04=93OSFL
-=00=8BCRS1
-=82GP20=8BCRS1
-=84GP21=8CCRS1
-=87GP2LpGPBSGP20pGPBSGP21pGPLNGP2L=A1=3D=8BCRS0
-=82GX20=8BCRS0
-=84GX21=8CCRS0
-=87GX2LpGPBSGX20pGPBSGX21pGPLNGX2L=A0=0D=93OSFL
-=00=A4CRS1=A1=06=A4CRS0[=82D=12OMSC=08_HID=0CA=D0=0C=02=08_UID
-=00=08CRS_=11N=04
-JG=01=00=11=00=11=00-Ku5wvZxGOEw@public.gmane.org=01T=12T=12=00=01G=01=D4=12=D4=12=00=01G=01=00=13=00=
-=13=00vG=01w=13w=13=00	G=01=00=00=00=00=00=00=86	=00=00=00=00=00=00=00=00=
-=00=00=86	=00=00=00=00=00=00=00=00=00=00y=00=14C
-_CRS=00=A0F=05APCB=8ACRS_
-8ML01=8ACRS_
-4MB01=8ACRS_
-DML02=8ACRS_
-@MB02pAPCBMB01pAPCLML01p=0C=00=00=E0=FEMB02p=0B=00=10ML02=A0=05OSFL=A19=8BC=
-RS_
-*GP40=8BCRS_
-,GP41=8CCRS_
-/GP4Lp=0Bv=13GP40p=0Bv=13GP41p
-=01GP4L=A4CRS_=14=14_STA=00=A0=08OSFL=A4
-=0F=A1=04=A4
-=00[=82B=16\._SB_RMEM=08_HID=0CA=D0=0C=01=08_UID
-=01=08CRS_=11B=04
->=86	=00=01=00=00=00=00=00=00
-=00=86	=00=00=00=00=00=00=00=00=00=00=86	=00=00=00=00=0E=00=00=00=02=00=86	=
-=00=01=00=00=10=00=00=00=00=00=86	=00=00=00=00=00=00=00=00=00=00y=00=14=14_=
-STA=00=A0=08OSFL=A4
-=0F=A1=04=A4
-=00=14G=0E_CRS=00=8ACRS_
-=10BAS1=8ACRS_
-=14LEN1=8ACRS_
-=1CBAS2=8ACRS_
- LEN2=8ACRS_
-,LEN3=8ACRS_
-4BAS4=8ACRS_
-8LEN4=A0=05OSFL=A1A=06=A0(MG1B=A0"=94MG1B=0C=00=00=0C=00p=0C=00=00=0C=00BAS=
-1tMG1BBAS1LEN1=A1=15p=0C=00=00=0C=00BAS1p=0C=00=00=02=00LEN1=A0=1FrMG1BMG1L=
-`p`BAS2t=0C=00=00=10=00BAS2LEN2tMG2B=0C=00=00=10=00LEN3rMG2BMG2LBAS4t
-=00BAS4LEN4=A4CRS_[=82D=05PS2K=08_HID=0CA=D0=03=0B=08_CID=0CA=D0=03=0B=14=
-=1B_STA=00y
-=01
-
-`=A0=0B{IOST`=00=A4
-=0F=A4
-=00=08_CRS=11=18
-=15G=01`=00`=00=00=01G=01d=00d=00=00=01"=02=00y=00=14=14.PS2K_PRW=00=A4GPRW
-=1D
-=05[=82D=08PS2M=08_HID=0CA=D0=0F=03=08_CID=0CA=D0=0F=13=14=1B_STA=00y
-=01
-=0C`=A0=0B{IOST`=00=A4
-=0F=A4
-=00=08CRS1=11=08
-=05"=00=10y=00=08CRS2=11=18
-=15G=01`=00`=00=00=01G=01d=00d=00=00=01"=00=10y=00=14!_CRS=00y
-=01
-
-`=A0=0D{IOST`=00=A4CRS1=A1=06=A4CRS2=14=14.PS2M_PRW=00=A4GPRW
-=1D
-=05[=80WIN1=01SPIO
-=02[=81=10WIN1=01INDX=08DATA=08[=86D=07INDXDATA=01=00=10CFG_=08=00 LDN_=08=
-=00@=0D=00=04PPPD=01=00=03=00H=06ACTR=08=00H=17IOAH=08IOAL=08=00@=07INTR=08=
-=00=18DMCH=08=00H=3DOPT0=08OPT1=08OPT2=08OPT3=08OPT4=08OPT5=08OPT6=08OPT7=
-=08=14=14ENFG=00p
-=87INDXp
-=87INDX=14=0DEXFG=00p
-=AAINDX=08LDFD
-=00=08LDLP
-=01=08LDU1
-=02=08LDU2
-=03=08LDIR
-=0C=08LDMD
-=06=08LDGM
-=07=14=06SIOS=01=14=06SIOH=00=14=06SIOW=01=08FDST
-=00=08U1ST
-=00=08U2ST
-=00=08IRST
-=00=08LPST
-=00=08GMST
-=00=08MDST
-=00=14G
-_INI=00=A0=14=92=93GSTALDFD
-=00p
-=01FDST=A0=14=92=93GSTALDU1
-=00p
-=01U1ST=A0=14=92=93GSTALDU2
-=00p
-=01U2ST=A0=14=92=93GSTALDIR
-=00p
-=01IRST=A0=14=92=93GSTALDGM
-=00p
-=01GMST=A0=14=92=93GSTALDMD
-=00p
-=01MDSTENFGpLDLPLDN_=A0=10=92=93ACTR
-=03p
-=01LPSTEXFG[=82E=1BLPT_=08_HID=0CA=D0=04=00=149_STA=00=A00LPSTENFGpLDLPLDN_=
-pACTR`pIOAHaEXFG{`
-=01`=A0=08=90=92`a=A4
-=0F=A4=00=14=14_DIS=00ENFGp=01PPPDEXFG=14J=0B_CRS=00=08BUFE=11=10
-=0DG=01x=03x=03=08=08"=80=00y=00=8BBUFE
-=02IMI1=8BBUFE
-=04IMA1=8CBUFE
-=06ALN1=8CBUFE
-=07LEN1=8BBUFE
-	IRQ0ENFGpLDLPLDN_pIOAH`y`
-=02`p`IMI1p`IMA1=A0=17=93IMI1=0B=BC=03p
-=04ALN1p
-=04LEN1=A1=0Fp
-=08ALN1p
-=08LEN1pINTR`p
-=01aya`IRQ0EXFG=A4BUFE=14J=06_SRS=01=8Bh
-=02IOAR=8Bh
-	IRQ0ENFGpLDLPLDN_pACTRb}b
-=03cpcACTRpIOAR`z`
-=02`p`IOAH=82IRQ0`=A0=07=94`
-=00v`p`INTRpbACTRp=00PPPDEXFG=08_PRS=11*
-'0G=01x=03x=03=08=08"=A0=000G=01x=02x=02=08=08"=A0=000G=01=BC=03=BC=03=04=
-=04"=A0=008y=00[=82I$ECP_=08_HID=0CA=D0=04=01=14;_STA=00=A02LPSTENFGpLDLPLD=
-N_pACTR`pIOAHaEXFG{`
-=03`=A0
-=90=93`
-=01a=A4
-=0F=A4=00=14=14_DIS=00ENFGp=01PPPDEXFG=14N=10_CRS=00=08BUFE=11=1B
-=18G=01x=03x=03=08=08G=01x=07x=07=04=04"=80=00*=08=00y=00=8BBUFE
-=02IMI1=8BBUFE
-=04IMA1=8CBUFE
-=06ALN1=8CBUFE
-=07LEN1=8BBUFE
-
-IMI2=8BBUFE
-=0CIMA2=8BBUFE
-=11IRQ0=8CBUFE
-=14DMA0ENFGpLDLPLDN_pIOAH`y`
-=02`p`IMI1p`IMA1r`=0B=00=04`p`IMI2p`IMA2=A0=17=93IMI1=0B=BC=03p
-=04ALN1p
-=04LEN1=A1=0Fp
-=08ALN1p
-=08LEN1pINTR`p
-=01aya`IRQ0pDMCH`{`
-=03`p
-=01aya`DMA0EXFG=A4BUFE=14F=08_SRS=01=8Bh
-=02IOAR=8Bh
-=11IRQ0=8Ch
-=14DMA0ENFGpLDLPLDN_pACTRb}b
-=03cpcACTRpIOAR`z`
-=02`p`IOAH=82IRQ0`=A0=07=94`
-=00v`p`INTR=82DMA0`=A0=07=94`
-=00v`p`DMCHpbACTRp=00PPPDEXFG=08_PRS=11L=04
-H0G=01x=03x=03=08=08G=01x=07x=07=04=04"=A0=00*=0B=000G=01x=02x=02=08=08G=01=
-x=06x=06=04=04"=A0=00*=0B=000G=01=BC=03=BC=03=04=04G=01=BC=07=BC=07=04=04"=
-=A0=00*=0B=008y=00=142GSTA=01ENFGphLDN_=A0	ACTRp
-=0F`=A1=11=A0	IOAHp
-=0D`=A1=05p
-=00`EXFG=A4`=14=1ADDIS=01ENFGphLDN_p=00ACTREXFG=14=1ADENB=01ENFGphLDN_p=01A=
-CTREXFG=08CSCP
-=00[=840URP1=01=00=00=14=0B_STA=00=A4CSCP=14=0D_ON_=00p
-=01CSCP=14=0D_OFF=00p
-=00CSCP[=840URP2=01=00=00=14=0B_STA=00=A4CSCP=14=0D_ON_=00p
-=01CSCP=14=0D_OFF=00p
-=00CSCP[=840FDDP=00=00=00=14=0B_STA=00=A4CSCP=14=0D_ON_=00p
-=01CSCP=14=0D_OFF=00p
-=00CSCP[=840LPTP=00=00=00=14=0B_STA=00=A4CSCP=14=0D_ON_=00p
-=01CSCP=14=0D_OFF=00p
-=00CSCP=08FCRS=11#
- G=01=F2=03=F2=03=01=02G=01=F4=03=F4=03=01=02G=01=F7=03=F7=03=01=01"@=00*=
-=04=00y=00=08FPRS=11&
-#1=00G=01=F2=03=F2=03=01=02G=01=F4=03=F4=03=01=02G=01=F7=03=F7=03=01=01"@=
-=00*=04=008y=00[=80OPR0=01=0Bx=03
-=80[=81=0BOPR0=01P378=08[=81@=08BIOS=01=00@@BIF0=10BIF1=10BIF2=10BIF3=10BIF=
-4=10BIF5=10BIF6=10BIF7=10BIF8=10BIF9@=04BIFA@=04BIFB@=04BIFC@=04BST0=10BST1=
-=10BST2=10BST3=10BTP0=10ACIN=01=00=01BTIN=01=00=1DOSEC=08SLPT=08=10F=C5\/=
-=03_SB_PCI0SBRG[=82C=C4EC0_=08_HID=0CA=D0=0C	=08_CRS=11=15
-=12G=01b=00b=00=00=01G=01f=00f=00=00=01y=00=08FGEC
-=00=14N=05_REG=02=A0=0B=93h
-=03piFGEC=A0=0F=93OSFL
-=01p
-=01OSEC=A13=A0=0F=93OSFL
-=00p
-=02OSEC=A1!=A0=0F=93OSFL
-=02p
-=03OSEC=A0=0F=93OSFL
-=04p
-=04OSECp
-=B8SWI0[=80ECXP=03
-=00=0B=00=01[=81H=08ECXP=11XIF0=10XIF1=10XIF2=10XIF3=10XIF4=10XIF5=10XIF6=
-=10XIF7=10XIF8=10XIF9@=04XIFA@=04XIFB@=04XIFC@=04XST0=10XST1=10XST2=10XST3=
-=10XTP0=10XCIN=01=00=01XTIN=01=00=05=00=08XHPP=07=00=01=00=08XSEC=08XLPT=08=
-=08_GPE
-=1C=14H=19_Q06=00=A0G=04=93OSFL
-=03=A0=17BTIN=86\/=03_SB_PCI0BAT0
-=01=A1=13=86\/=03_SB_PCI0BAT0
-=00=86\/=03_SB_PCI0BAT0
-=80=A0D=05=93OSFL
-=01=A0=17BTIN=86\/=03_SB_PCI0BAT0
-=01=A1=13=86\/=03_SB_PCI0BAT0
-=00=86\/=03_SB_PCI0BAT0
-=80=86\._SB_PCI0
-=00=A0K=08=93OSFL
-=02p
-=01FAKE=86\/=03_SB_PCI0AC0_
-=00p
-=00FAKE=86\/=03_SB_PCI0AC0_
-=00=A0=17BTIN=86\/=03_SB_PCI0BAT0
-=00=A1=13=86\/=03_SB_PCI0BAT0
-=03=86\/=03_SB_PCI0BAT0
-=81=86\/=03_SB_PCI0BAT0
-=80=A0G=06=91=93OSFL
-=00=93OSFL
-=04["=0B=F4=01=A0*\/=05_SB_PCI0SBRGEC0_XTIN=86\/=03_SB_PCI0BAT0
-=01=A1=13=86\/=03_SB_PCI0BAT0
-=00=86\/=03_SB_PCI0BAT0
-=80=14G=08_Q07=00p
-=07P378=A0!=93OSFL
-=01p
-=00FAKE=86\/=03_SB_PCI0AC0_
-=00=A0!=93OSFL
-=02p
-=00FAKE=86\/=03_SB_PCI0AC0_
-=00=A04=91=93OSFL
-=00=93OSFL
-=04=86\/=03_SB_PCI0AC0_
-=80=86\/=03_SB_PCI0BAT0
-=80=14=1A_Q0A=00p
-=F1P378=86\._SB_SLPB
-=80=14=0D_Q0B=00p
-=F2P378=14=0D_Q0C=00p
-=F3P378=14D"_Q0D=00p
-=F4P378=A0E!=93\/=05_SB_PCI0AGP_VGA_SWIT
-=00=A0A=05=93\/=05_SB_PCI0AGP_VGA_GDFG
-=01=86\/=04_SB_PCI0AGP_VGA_
-=80p
-=00\/=05_SB_PCI0AGP_VGA_GDFG["=0B=D0=07=A0F=1A=93\/=05_SB_PCI0AGP_VGA_GDTS
-=00=A0H=05=93\/=05_SB_PCI0AGP_VGA_GDGS
-=01p
-=00\/=06_SB_PCI0AGP_VGA_LCD__DGSp
-=01\/=06_SB_PCI0AGP_VGA_CRT__DGS=A0H=05=93\/=05_SB_PCI0AGP_VGA_GDGS
-=02p
-=01\/=06_SB_PCI0AGP_VGA_LCD__DGSp
-=00\/=06_SB_PCI0AGP_VGA_CRT__DGS=A0H=05=93\/=05_SB_PCI0AGP_VGA_GDGS
-=03p
-=01\/=06_SB_PCI0AGP_VGA_LCD__DGSp
-=01\/=06_SB_PCI0AGP_VGA_CRT__DGS=86\/=04_SB_PCI0AGP_VGA_
-=80=A05=93\/=05_SB_PCI0AGP_VGA_GDGS
-=03p
-=01\/=05_SB_PCI0AGP_VGA_GDGS=A12r
-=01\/=05_SB_PCI0AGP_VGA_GDGS\/=05_SB_PCI0AGP_VGA_GDGS=14=0D_Q0E=00p
-=F5P378=14=0D_Q0F=00p
-=F6P378=14=14_Q10=00p
-=F7P378p
-=10SWI0=14=14_Q11=00p
-=F8P378p
-=11SWI0=14=0D_Q12=00p
-=F9P378=14=0D_Q13=00p
-=FAP378=14=0D_Q14=00p
-=FBP378=14=0D_Q15=00p
-=FCP378=14*_Q16=00p
-=16P378p
-=01LIDS=86\/=04_SB_PCI0SBRGLID_
-=80=14*_Q19=00p
-=19P378p
-=00LIDS=86\/=04_SB_PCI0SBRGLID_
-=80=14=0D_Q1A=00p
-=1AP378=14=0D_Q1B=00p
-=1BP378=14=0D_Q1C=00p
-=1CP378=14=0D_Q1D=00p
-=1DP378=14=14_Q1E=00p
-=1EP378p
-=00THRT=14=14_Q1F=00p
-=1FP378p
-=1ETHRT=14=14_Q20=00p
- P378p
-=1CTHRT=14=14_Q21=00p
-!P378p
-=1ATHRT=14=14_Q22=00p
-"P378p
-=18THRT=14=14_Q23=00p
-#P378p
-=16THRT=14=14_Q24=00p
-$P378p
-=14THRT=14=14_Q25=00p
-%P378p
-=12THRT=14=14_Q26=00p
-&P378p
-&SWI0=14!_Q27=00p
-'P378p
-iTHPP=86\._TZ_THRM
-=80[=82D<\/=03_SB_PCI0BAT0=08_HID=0CA=D0=0C
-=08_UID
-=00=08_PCL=12=15=01\/=04_SB_PCI0SBRGEC0_=08PAK1=12-
-=00=0BV=0C=0BV=0C
-=00=0B0*=0B;=01
-=9D
-=10
-=08=0D755=00=0D001=00=0DLiON=00=0DOEM=00=14@=18_BIF=00p=0DBIf=00[1=A0B=0F=
-=91=93OSFL
-=00=93OSFL
-=04p\/=05_SB_PCI0SBRGEC0_XIF0=88PAK1
-=00=00p\/=05_SB_PCI0SBRGEC0_XIF1=88PAK1
-=01=00p\/=05_SB_PCI0SBRGEC0_XIF2`p`=88PAK1
-=02=00p\/=05_SB_PCI0SBRGEC0_XIF3=88PAK1
-=03=00p\/=05_SB_PCI0SBRGEC0_XIF4=88PAK1
-=04=00px`
-
-=00=00=88PAK1
-=05=00px`
-=14=00=00=88PAK1
-=06=00p\/=05_SB_PCI0SBRGEC0_XIF7=88PAK1
-=07=00=A1H=07p
-=B9SWI0pBIF0=88PAK1
-=00=00pBIF1=88PAK1
-=01=00pBIF2`p`=88PAK1
-=02=00pBIF3=88PAK1
-=03=00pBIF4=88PAK1
-=04=00px`
-
-=00=00=88PAK1
-=05=00px`
-=14=00=00=88PAK1
-=06=00pBIF7=88PAK1
-=07=00=A4PAK1=08BFB0=12=0F=04
-=00=0C=FF=FF=FF=FF=0B4=10=0B0*=14E=0D_BST=00p=0DBST Start=00[1=A0A=07=91=93=
-OSFL
-=00=93OSFL
-=04p\/=05_SB_PCI0SBRGEC0_XST0=88BFB0
-=00=00p\/=05_SB_PCI0SBRGEC0_XST2=88BFB0
-=02=00p\/=05_SB_PCI0SBRGEC0_XST3=88BFB0
-=03=00=A1<p
-=BASWI0pBST0=88BFB0
-=00=00pBST1=88BFB0
-=01=00pBST2=88BFB0
-=02=00pBST3=88BFB0
-=03=00p=0DBST End=00[1=A4BFB0=14?_BTP=01=A0)=91=93OSFL
-=00=93OSFL
-=04ph\/=05_SB_PCI0SBRGEC0_XTP0=A1=0EphBTP0p
-3SWI0=14G
-_STA=00p=0DBAT_STA Start=00[1=A0E=05=91=93OSFL
-=00=93OSFL
-=04=A0(=93\/=05_SB_PCI0SBRGEC0_FGEC
-=00p
-=B8SWI0pBTIN`=A1=1Ap\/=05_SB_PCI0SBRGEC0_XTIN`=A1=0Ep
-=B8SWI0pBTIN`=A0=0C`=A4
-=1Fp
-=1FP378=A1=0B=A4
-=0Fp
-=0FP378p=0DBAT_STA END=00[1[=82F=08\/=03_SB_PCI0AC0_=08_HID=0DACPI0003=00=
-=08_PCL=12=15=01\/=04_SB_PCI0SBRGEC0_=14J=04_PSR=00=A0=0C=92=93FAKE
-=00=A4
-=00=A15=A0)=91=93OSFL
-=00=93OSFL
-=04p\/=05_SB_PCI0SBRGEC0_XCIN`=A1=07pACIN`=A4`=10N=05\_TZ_[=85E=05THRM=140K=
-ELV=01=A0=1A=94h
-=7F=7Fh
-=FF`r`
-=01`w`
-
-`t=0B=AC
-`a=A1=0Cwh
-
-`r`=0B=AC
-a=A4a=14=0F_TMP=00=A4KELVTHPP=14=0D_CRT=00=A4KELV
-U=10E=11\_SB_=14=14_INI=00pDCPU`{`
-=F7DCPU[=82*\/=04_SB_PCI0SBRGLID_=08_HID=0CA=D0=0C=0D=14=0B_LID=00=A4LIDS[=
-=82K=04\._SB_SLPB=08_HID=0CA=D0=0C=0E=14	_STA=00=A4
-=0B=14*SBEV=00=A0=13SLPPp
-=00SLPP=86SLPB
-=02=A1=0Fp
-=01SLPP=86SLPB
-=80[=82N=07\/=04_SB_PCI0P0P2CBC0=08_ADR=0C=00=00=03=00=08_PRW=12=06=02
-=0B
-=04[=80CBR0=02
-=00
-=FF[=81=1BCBR0=03=00@"C044 =00-xKLqw5RsYec@public.gmane.org=08C0A5=08=14	_STA=00=A4
-=0F=14 _INI=00p
-=00\/=05_SB_PCI0P0P2CBC0C044=10A=0E\._SB_PCI0[=82C=0DAGP_=08_ADR=0C=00=00=
-=01=00[=82A=0CVGA_=08_ADR
-=00=14=0C_DOS=01phSWIT=08_DOD=12=0C=02=0C=00=01=01=00=0C=10=01=01=00[=82"CR=
-T_=08_ADR=0B=00=01=08_DCS
-=1F=08_DGS
-=01=14=06_DSS=01[=82L=04LCD_=08_ADR=0B=10=01=08_DCS
-=1F=08_DGS
-=01=14=06_DSS=01=14=06_BCM=01=08PBCL=12=10=07
-P
-2
-=14
-(
-<
-P
-d=14=0B_BCL=00=A4PBCL=08SWIT
-=00=08GDCS
-=02=08GDGS
-=01=08GDTS
-=00=08GDFG
-=01=10@	\_GPE=14;_L0B=00=86\/=03_SB_PCI0P0P2
-=02=86\/=04_SB_PCI0P0P2LAN1
-=02=86\._SB_PWRB
-=02=14%_L05=00=86\/=03_SB_PCI0MC97
-=02=86\._SB_PWRB
-=02=14&_L1D=00\/=04_SB_PCI0SBRGSIOH=86\._SB_PWRB
-=02[=82-PWRB=08_HID=0CA=D0=0C=0C=08_UID
-=1D=08_STA
-=0B=14=0F_PRW=00=A4GPRW
-=1D
-=05=10EB\_SB_[=80\/=04_SB_PCI0SBRGIROR=02
-=00
-=FF[=81C=04\/=04_SB_PCI0SBRGIROR=01=00-tt6gt2zcPjE@public.gmane.org=08PIRB=08PIRC=08PIRD=08=00 PIR=
-E=08PIRF=08PIRG=08PIRH=08=08BUFA=11=09
-=06#=00=80=18y=00=8BBUFA
-=01ICRS=14=16LSTA=01{h
-=80`=A0=05`=A4
-	=A1=04=A4
-=0B=14=18LCRS=01{h
-=0F`y
-=01`ICRS=A4BUFA=14=17LSRS=01=8Bh
-=01ISRS=82ISRS`=A4v`=14=0CLDIS=01=A4}h
-=80=00[=82H=06LNKA=08_HID=0CA=D0=0C=0F=08_UID
-=01=14=0F_STA=00=A4LSTAPIRA=14=0B_PRS=00=A4PRSA=14=13_DIS=00pLDISPIRAPIRA=
-=14=0F_CRS=00=A4LCRSPIRA=14=10_SRS=01pLSRShPIRA[=82H=06LNKB=08_HID=0CA=D0=
-=0C=0F=08_UID
-=02=14=0F_STA=00=A4LSTAPIRB=14=0B_PRS=00=A4PRSB=14=13_DIS=00pLDISPIRBPIRB=
-=14=0F_CRS=00=A4LCRSPIRB=14=10_SRS=01pLSRShPIRB[=82H=06LNKC=08_HID=0CA=D0=
-=0C=0F=08_UID
-=03=14=0F_STA=00=A4LSTAPIRC=14=0B_PRS=00=A4PRSC=14=13_DIS=00pLDISPIRCPIRC=
-=14=0F_CRS=00=A4LCRSPIRC=14=10_SRS=01pLSRShPIRC[=82H=06LNKD=08_HID=0CA=D0=
-=0C=0F=08_UID
-=04=14=0F_STA=00=A4LSTAPIRD=14=0B_PRS=00=A4PRSD=14=13_DIS=00pLDISPIRDPIRD=
-=14=0F_CRS=00=A4LCRSPIRD=14=10_SRS=01pLSRShPIRD[=82H=06LNKE=08_HID=0CA=D0=
-=0C=0F=08_UID
-=05=14=0F_STA=00=A4LSTAPIRE=14=0B_PRS=00=A4PRSE=14=13_DIS=00pLDISPIREPIRE=
-=14=0F_CRS=00=A4LCRSPIRE=14=10_SRS=01pLSRShPIRE[=82H=06LNKF=08_HID=0CA=D0=
-=0C=0F=08_UID
-=06=14=0F_STA=00=A4LSTAPIRF=14=0B_PRS=00=A4PRSF=14=13_DIS=00pLDISPIRFPIRF=
-=14=0F_CRS=00=A4LCRSPIRF=14=10_SRS=01pLSRShPIRF[=82H=06LNKG=08_HID=0CA=D0=
-=0C=0F=08_UID
-=07=14=0F_STA=00=A4LSTAPIRG=14=0B_PRS=00=A4PRSG=14=13_DIS=00pLDISPIRGPIRG=
-=14=0F_CRS=00=A4LCRSPIRG=14=10_SRS=01pLSRShPIRG[=82H=06LNKH=08_HID=0CA=D0=
-=0C=0F=08_UID
-=08=14=0F_STA=00=A4LSTAPIRH=14=0B_PRS=00=A4PRSH=14=13_DIS=00pLDISPIRHPIRH=
-=14=0F_CRS=00=A4LCRSPIRH=14=10_SRS=01pLSRShPIRH=10H=13\_SB_=10@=13PCI0=08CR=
-S_=11L=08
-=88=88=0D=00=02=0C=00=00=00=00=00=FF=00=00=00=00=01G=01=F8=0C=F8=0C=01=08=
-=88=0D=00=01=0C=03=00=00=00=00=F7=0C=00=00=F8=0C=88=0D=00=01=0C=03=00=00=00=
-=0D=FF=FF=00=00=00=F3=87=17=00=00=0C=03=00=00=00=00=00=00
-=00=FF=FF=0B=00=00=00=00=00=00=00=02=00=87=17=00=00=0C=03=00=00=00=00=00=00=
-=00=00=00=00=00=00=00=00=00=00=00=00=00=00=87=17=00=00=0C=03=00=00=00=00=00=
-=00=00=00=00=00=00=00=00=00=00=00=00=00=00=00y=00=8ACRS_
-\MIN5=8ACRS_
-`MAX5=8ACRS_
-hLEN5=8ACRS_
-vMIN6=8ACRS_
-zMAX6=8ACRS_
-=82LEN6=14E=05_CRS=00pMG1BMIN5pMG1LLEN5pMG1L`=A0=0D`rMIN5v`MAX5pMG2BMIN6pMG=
-2LLEN6pMG2L`rMIN6v`MAX6=A4CRS_=A0@=07SS1_=08\/=03_SB_PCI0_S1D
-=02=08\/=04_SB_PCI0P0P2_S1D
-=02=08\/=04_SB_PCI0USB1_S1D
-=02=08\/=04_SB_PCI0USB2_S1D
-=02=08\/=04_SB_PCI0USB3_S1D
-=02=A0@=07SS3_=08\/=03_SB_PCI0_S3D
-=02=08\/=04_SB_PCI0P0P2_S3D
-=02=08\/=04_SB_PCI0USB1_S3D
-=02=08\/=04_SB_PCI0USB2_S3D
-=02=08\/=04_SB_PCI0USB3_S3D
-=02=A0-SS4_=08\/=03_SB_PCI0_S4D
-=02=08\/=04_SB_PCI0P0P2_S4D
-=02=14'_PTS=01phP378PTS_hp
-=00=88WAKP
-=00=00p
-=00=88WAKP
-=01=00=14M=07_WAK=01yh
-=04P378WAK_h=A0A=04=93h
-=04=A0=0F=93OSFL
-=01p
-=01OSEC=A1#=A0=0F=93OSFL
-=00p
-=02OSEC=A1=11=A0=0F=93OSFL
-=02p
-=03OSECp
-=B8SWI0=A0=15=83=88WAKP
-=00=00p
-=00=88WAKP
-=01=00=A1=0Bph=88WAKP
-=01=00=A4WAKP[=80PMRG=01=0B=00=04
-=80[=81-PMRG=01=00 SCIF=01=00=0FRTCS=08=00H=04THRT=08=00@=0EDCPU=08=00=10=
-=00=04SLPS=01[=80OPR1=01
-=B2
-=02[=81=0BOPR1=01SWI0=08[=80OPR2=01=0Bx=03
-=02[=81=0BOPR2=01P378=08=08THPP
-K=08FAKE
-=00=08LIDS
-=01=08SLPP
-=00[=81@=08BIOS=01=00@@BIF0=10BIF1=10BIF2=10BIF3=10BIF4=10BIF5=10BIF6=10BIF=
-7=10BIF8=10BIF9@=04BIFA@=04BIFB@=04BIFC@=04BST0=10BST1=10BST2=10BST3=10BTP0=
-=10ACIN=01=00=01BTIN=01=00=1DOSEC=08SLPT=08=08\_S0_=12
-=04
-=00
-=00
-=00
-=00=A0=16SS1_=08\S3__=12
-=04
-=01
-=00
-=00
-=00=A0=16SS3_=08\_S3_=12
-=04
-=05
-=00
-=00
-=00=A0=16SS4_=08\_S4_=12
-=04
-=07
-=00
-=00
-=00=08\_S5_=12
-=04
-=07
-=00
-=00
-=00=14=1DPTS_=01=A0=16h\/=04_SB_PCI0SBRGSIOSh=14=1AWAK_=01\/=04_SB_PCI0SBRG=
-SIOWh
---Boundary-00=_Or87A5toccGi0Ov--
-
+----814721561149112847--
 
 
 -------------------------------------------------------
