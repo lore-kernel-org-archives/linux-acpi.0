@@ -1,14 +1,14 @@
-From: Dimitri Rebrikov <dimitri.rebrikov-kyawv7ubMNaakBO8gow8eQ@public.gmane.org>
-Subject: Re: AE_TIME on Operations in EC ( Embedded Controller ec.c
- )
-Date: Tue, 16 Sep 2003 14:32:56 +0200
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: S5 Powerdown problem on TX150 servers
+Date: Tue, 16 Sep 2003 15:19:22 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3F6702F8.5020808@t-systems.com>
-References: <3F657BDB.9080805@t-systems.com> <20030915135247.H6780@root.org>
+Message-ID: <20030916131922.GT11391@poupinou.org>
+References: <200309160912.15060.adq_dvb@lidskialf.net> <20030916093032.GP11391@poupinou.org> <200309161209.35760.adq_dvb@lidskialf.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <200309161209.35760.adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,87 +17,82 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Nate Lawson wrote:
-> On Mon, 15 Sep 2003, Dimitri Rebrikov wrote:
+On Tue, Sep 16, 2003 at 12:09:35PM +0100, Andrew de Quincey wrote:
+> On Tuesday 16 September 2003 10:30, Ducrot Bruno wrote:
+> > On Tue, Sep 16, 2003 at 09:12:15AM +0100, Andrew de Quincey wrote:
+> > > Hi, I have an issue with TX150 servers. Basically, they don't power down
+> > > in ACPI. I press the power button, and I can see the system shutting
+> > > down, but, although it clears the screen and kinda makes a clunking noise
+> > > as if the HDDs are being stopped, the fans stay running, and the power
+> > > light stays on.
+> > >
+> > > I want the system to enter S5 when I press the power button.
+> > >
+> > > I added some debug to the hwsleep.c/acpi_enter_sleep_state() function.
+> > > The last thing it executes is:
+> > >
+> > > status = acpi_hw_register_write (ACPI_MTX_DO_NOT_LOCK,
+> > > ACPI_REGISTER_PM1B_CONTROL, PM1Bcontrol);
+> > >
+> > > <-- DOES NOT GET HERE on button press.
+> > >
+> > >         if (ACPI_FAILURE (status)) {
+> > >                 return_ACPI_STATUS (status);
+> > >         }
+> > >
+> > > Which kinda makes sense as this is the write of the PM1B value that
+> > > completes powerdown.
+> >
+> > No.  The real stuff that will complete the powerdown is when you set
+> > SLP_EN. Try to remove the write to the PM1b.  Anyway, we already clear
+> > ARB_DIS early.
 > 
->>BTW. I had no problem with ACPI before (2.4.18+ACPI and 2.4.20+ACPI)
->>
->>The corresponding error message in log was:
->>
->>Sep  5 12:49:57 mitnb kernel: evregion-0345: *** Error: Handler for [EmbeddedControl] returned AE_TIME
->>Sep  5 12:49:57 mitnb kernel:  psparse-1121: *** Error: Method execution failed [\_SB_.BAT0._STA] (Node cee7cdc8), AE_TIME
->>
->>After some testing i located (i belief) the issue:
->>The values of ACPI_EC_UDELAY_COUNT and/or  ACPI_EC_UDELAY are too small
->>for my Hardware.
->>
->>Here is the comparision between 2.4.20+ACPI and 2.4.22:
->>
->>./linux-2.4.20/drivers/acpi/ec.c:#define ACPI_EC_UDELAY		1000	/* Poll @ 100us increments */
->>./linux-2.4.20/drivers/acpi/ec.c:#define ACPI_EC_UDELAY_COUNT	10000	/* Wait 10ms max. during EC ops */
->>
->>./linux-2.4.22/drivers/acpi/ec.c:#define ACPI_EC_UDELAY		100	/* Poll @ 100us increments */
->>./linux-2.4.22/drivers/acpi/ec.c:#define ACPI_EC_UDELAY_COUNT	1000	/* Wait 10ms max. during EC ops */
->>
->>This means that the wait time for a EC operation in 2.4.22 was reduced with factor 100.
->>
->>After i increase the value of ACPI_EC_UDELAY_COUNT to 10000
->>my problems gone. Now i can use the whole functionality of ACPI.
+> Ah, I realise I did not include enough context, sorry.
+> 
+> This _is_ in the code which sets SLP_EN:
+> 
+>         /* Insert SLP_ENABLE bit */
+> 
+>         PM1Acontrol |= sleep_enable_reg_info->access_bit_mask;
+>         PM1Bcontrol |= sleep_enable_reg_info->access_bit_mask;
+> 
+>         /* Write #2: SLP_TYP + SLP_EN */
+> 
+>         ACPI_FLUSH_CPU_CACHE ();
+> 
+>         status = acpi_hw_register_write (ACPI_MTX_DO_NOT_LOCK, 
+> ACPI_REGISTER_PM1A_CONTROL, PM1Acontrol);
+>         if (ACPI_FAILURE (status)) {
+>                 return_ACPI_STATUS (status);
+>         }
+> 
+>         status = acpi_hw_register_write (ACPI_MTX_DO_NOT_LOCK, 
+> ACPI_REGISTER_PM1B_CONTROL, PM1Bcontrol);
+> 
+> <-- this is the point I highlighted before
+> 
+>         if (ACPI_FAILURE (status)) {
+>                 ACPI_DEBUG_PRINT ((ACPI_DB_INIT, "X6failed\n"));
+>                 return_ACPI_STATUS (status);
+>         }
 > 
 > 
-> I submitted that change in that the comment didn't match the code.  I've
-> found in FreeBSD that even 50 ms isn't enough sometimes so I suppose your
-> experience concurs with this.  You can probably bump it to 100 ms, just
-> make sure the comment matches the code.
+> In the light of this, is there anything you would like me to try?
 > 
-> BTW, there is no reason repsonses from the EC should be that slow.  I have
-> a feeling global lock contention is the real underlying problem.
 > 
-> -Nate
-> 
-Just now i have inspected the original acpi-patches for 2.4.18 and 2.4.20 and have realised that
-the values of ACPI_EC_UDELAY and ACPI_EC_UDELAY_COUNT did not change in comparision with
-kernel-2.4.22.
-I recalled that I self made this changes at that time (Feb 2003) and forgotten to notice that. Sorry...
 
-BTW I found the back posting with the same problem: http://sourceforge.net/mailarchive/message.php?msg_id=5608311
-so i'm not alone have this problem.
-
-IMHO The max. wait time is already 100ms because MaxWaitTime = ACPI_EC_UDELAY x ACPI_EC_UDELAY_COUNT
-(i.e. 100us x 1000 = 100000us = 100ms)
-But 100ms are obviously still too small for some harware (unfortunately my laptop inklusive).
-
-How can i affect so that the value of ACPI_EC_UDELAY_COUNT will be increased in the kernel/acpi-sources?
-
-If not the hardware but a global lock is the issue, how can it be solved?
-
-Regards
-Dimitri
-
-
-
-
-
-
-
+Ok.  But trouble: you have at first write the desired sleep type,
+then set SLP_EN.  Not the two at the same time.
 
 -- 
+Ducrot Bruno
 
-------------------------------------------------------------------------
-Dimitri Rebrikov
-*T-Systems GEI GmbH*
-Projektentwickler
-Postanschrift: Prager Straﬂe 15, D-04103 Leipzig
-Telefon:         (0341) 1275-439
-Telefax:         (0341) 1275-333
-E-Mail:          Dimitri.Rebrikov-kyawv7ubMNaakBO8gow8eQ@public.gmane.org
-<mailto:Dimitri.Rebrikov-kyawv7ubMNaakBO8gow8eQ@public.gmane.org>
-Internet:         http://www.t-systems.com
-------------------------------------------------------------------------
-
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
