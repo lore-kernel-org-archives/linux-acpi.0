@@ -1,14 +1,14 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Thinkpad T40 Fan
-Date: Wed, 4 Feb 2004 21:44:14 -0500
+From: Adam Kessel <adam-/J5p37YCQWYytDrLOV7HaA@public.gmane.org>
+Subject: Re: Handler for [EmbeddedControl] returned AE_TIME in 2.6.1/20040116
+Date: Wed, 4 Feb 2004 15:40:55 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <BF1FE1855350A0479097B3A0D2A80EE0CC8AB5@hdsmsx402.hd.intel.com>
+Message-ID: <20040204204055.GA8434@joehill.bostoncoop.net>
+References: <20040203172413.GA1299@joehill.bostoncoop.net> <20040203143906.B33512@root.org> <20040203234141.GA8327@bostoncoop.net> <20040204103226.GI882@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <20040204103226.GI882-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,43 +17,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ben lamothe <blamothe-DPNOqEs/LNQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->> This behavior is not exibited in Windows,
->> on the contrary, the fan is almost never on.
+On Wed, Feb 04, 2004 at 11:32:26AM +0100, Bruno Ducrot wrote:
+> > > We moved to a 100 ms timeout on EC requests for FreeBSD because some
+> > > devices just couldn't respond quicker.  But I think there's a larger issue
+> #define ACPI_EC_UDELAY_COUNT	10000
 
-> ACPI can't control fan in many IBM systems,
-> including T40. DSDT of T40 has no fan device defined.
+I tried this patch, and it does prevent the AE_TIME error. 
 
-Hmm, how can Windows keep the fan off but Linux can't?
+The battery charge indicator now seems unreliable, however, after
+switching from AC to battery and back.  For example, it will drop from
+70%-80% down to 2% fairly quickly, but I can still run the machine for
+quite a while at 2%.  It also has jumped from 80% up to 100% in a couple
+of minutes, much faster than it could actually charge.
 
-As there is no ACPI fan device, there must be a different method to
-control the fan on this box.
-
-1. It may be some i2c device that Windows knows about but Linux does
-not?
-   Maybe IBM ships some platform specific software with windows?
-   Would be interesting to know if a from-scratch install of the
-   generic non-IBM windows was still able to keep the fan off.
-
-2. It may be some BIOS code using SMM that Linux somehow breaks?
-
-3. It may be done entirely in hardware without the knowledge of the OS?
-
-I'm hopeful that it is #3, and that Windows is simply doing better
-passive cooling than Linux -- and perhaps we can perhaps improve our
-passive cooling...
-
-Can you run some experiments?  Maybe you can monitor the temperature in
-windows to see if it really is cooler.  Perhaps you can experiment with
-the power management policy settings such that it is in high-power mode
-instead of maximum battery mode and observe the temperature rises, and
-at what temperature the fan starts running?
-
-Thanks,
--Len
+I'm not sure if any of this is related to the AE_TIME problem, but I'm
+putting it out here to see if there are any ideas.
+-- 
+Adam Kessel
+http://bostoncoop.net/adam
 
 
 -------------------------------------------------------
