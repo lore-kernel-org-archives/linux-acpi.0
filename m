@@ -1,10 +1,14 @@
-From: "David Cougle" <dcougle-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: PLEASE, patches after pre6 lock up!
-Date: Thu, 19 Jun 2003 20:40:17 -0500
+From: "siva" <sivakumar.subramani-uxC5H9eHYlcAvxtiuMwx3w@public.gmane.org>
+Subject: Keybaord and power button.
+Date: Fri, 20 Jun 2003 09:10:03 +0530
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Law9-F694db6OrYXPM600016745@hotmail.com>
+Message-ID: <0fa701c336dd$a2448e20$2a0806c0@wiproxcoio3398>
+References: <004401c334c3$1dce6b00$b8d21b2b@ADACHIPC>
+Reply-To: "siva" <sivakumar.subramani-uxC5H9eHYlcAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -14,61 +18,57 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Adachi, Kenichi" <adachi-fvZ7ij+YLgEZc9YY0SgeQc8NsWr+9BEh@public.gmane.org>, 'Derek Broughton' <dbroughton-F3m4/jXepmf3fQ9qLvQP4Q@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-thanks, that worked.
+Hi,
 
-if you have compaq 2100/2110, removing enhanced rtc from kernel should make 
-latest patch work.
+I have doubt regarding the power button.
+With out keyboard connected to the linux machine, Is it possible to do
+gracefull shutdown of my machine by just pressing the Power button.
 
->From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
->To: David Cougle <dcougle-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
->CC: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: Re: [ACPI] PLEASE, patches after pre6 lock up!
->Date: Thu, 19 Jun 2003 11:18:52 +0200
+Thanks,
+Siva
+
+
+
+----- Original Message -----
+From: "Adachi, Kenichi" <adachi-fvZ7ij+YLgEZc9YY0SgeQc8NsWr+9BEh@public.gmane.org>
+To: "'siva'" <sivakumar.subramani-uxC5H9eHYlcAvxtiuMwx3w@public.gmane.org>; "'Derek Broughton'"
+<dbroughton-F3m4/jXepmf3fQ9qLvQP4Q@public.gmane.org>; <acpi-devel@lists.sourceforge.net>
+Sent: Tuesday, June 17, 2003 4:55 PM
+Subject: RE: [ACPI] Query regarding the linux ACPI
+
+
+> Hi,
 >
->Hi,
->
->On Wed, Jun 18, 2003 at 10:22:08PM -0500, David Cougle wrote:
-> > I have posted this repeatedly, but never get a response, and there
-> > continues to be releases which have the same problem.
->
->I should be blind, but I see only 2 post from you on this topic
->this month in acpi-devel mailing-list?
->
-> > Starting with acpi patch rc1, it causes lock ups. rc2 and rc3 did the
-> > same(on boot).
-> > I am now having to use 2.4.21 with acpi pre6 patch.
+> > That means this option can be programmed in the BIOS and we
+> > can have it as
+> > option in the BIOS.
+> > Am I right ?
 > >
-> > i have compaq 2100/2110
-> >
 >
->If you have an ALi based system, do not use Ehanced Real Time
->Clock (due to probably a bug in acpi?).
+> Power button override is done at hardware level as Derek pointed out and
+> what you have to look into is the Datasheet of your chipset.
 >
->Cheers,
+> For example, ICH4 Datasheet says:
 >
->--
->Ducrot Bruno
+>   2.10 Power Management Interface
+>   Table 2-10. Power Management Interface Signals
 >
->--  Which is worse:  ignorance or apathy?
->--  Don't know.  Don't care.
+>   <Quote>
+>   PWRBTN#
+>       :
+>   If PWRBTN# is pressed for more than 4 seconds, this causes an
+> unconditional transition (power button override) to the S5 state with
+> only the PWRBTN# available as a wake event. Override occurs even if the
+> system is in the S1-S4 states. This signal has an internal pull-up
+> resistor.
+>   </Quote>
 >
+> Thanks,
+> - Adachi, Kenichi
 >
->-------------------------------------------------------
->This SF.Net email is sponsored by: INetU
->Attention Web Developers & Consultants: Become An INetU Hosting Partner.
->Refer Dedicated Servers. We Manage Them. You Get 10% Monthly Commission!
->INetU Dedicated Managed Hosting http://www.inetu.net/partner/index.php
->_______________________________________________
->Acpi-devel mailing list
->Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->https://lists.sourceforge.net/lists/listinfo/acpi-devel
-
-_________________________________________________________________
-The new MSN 8: advanced junk mail protection and 2 months FREE*  
-http://join.msn.com/?page=features/junkmail
 
 
 
