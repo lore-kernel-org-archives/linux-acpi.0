@@ -1,12 +1,13 @@
-From: alx <alexs81-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org>
-Subject: Strange ACPI way of work in Sony VAIO GRX600
-Date: 04 Feb 2003 00:11:42 +0100
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: General ACPI/Linux question
+Date: Mon, 3 Feb 2003 17:06:04 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1044313902.21776.13.camel@galileo.homenet.lan>
+Message-ID: <F760B14C9561B941B89469F59BA3A847137FFB@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,37 +16,26 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Constantinos Antoniou <costas-FrUbXkNCsVf2fBVCVOL8/A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-HI all
-	I didn't find any error and/or notice in /var/log/messages
-but sometimes acpi patch  20021205 (on 2.4.20)hat a little utility 
-tells me that themperature goes to 0 and battery has strange state info
-I was interested in patching ACPI for sony vaio series, but I just need
-some suggestion on what can be done.
-Another thing is that a little utility which doesn't require acpi to
-work (vaiobat) hangs when acpi doesn't works, but work great when acpi
-works.
+> From: Constantinos Antoniou [mailto:costas-FrUbXkNCsVf2fBVCVOL8/A@public.gmane.org] 
+> The way I (don't) understand it, the ACPI implementation expects some
+> things to be defined correctly in the DSDT table. However, some OSes
+> manage to work with whatever is there.
+> 
+> And to go one step further, if I change this DSDT thingie, 
+> will the ACPI
+> functionality in the other OSes still work? So, would an 
+> option be to be
+> more lenient (I understand that there are standards and people should
+> respect them...)
 
-When it happen I've to change some state in acpi subsystem: i mean one
-of these action bring acpi to work properly again
-1) close lid switch
-2) press power button
-3) plug ac-ADAPTER
-4) remove and insert again battery
+You can override your DSDT by changing the Linux ACPI code. This doesn't
+change the DSDT in your BIOS, however, so booting another OS will just
+result in using the BIOS one (which is probably what you wanted.)
 
-I think there is a overflow somewehere
-
-TIA for suggestion
-Bye
-Alx
-
--- 
-int a=10000,b,c=2800,d,e,f[2801],g;main(){for(;b-c;) f[b++]=a/5;
-for(;d=0,g=c*2;c-=14,printf("%.4d"e+d/a),e=d%a)for(b=c;d+=f[b]*a,
-f[b]=d%--g,d/=g--,--b;d*=b);}
-
+Regards -- Andy
 
 
 -------------------------------------------------------
