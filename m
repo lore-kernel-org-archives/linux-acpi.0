@@ -1,12 +1,14 @@
-From: Cam <camilo-Nk/s8sJ9yP7QXOPxS62xeg@public.gmane.org>
-Subject: APM sleep vs. ACPI S3 sleep
-Date: Thu, 20 May 2004 18:11:16 +0100
+From: Andre Eisenbach <andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org>
+Subject: Re: ACPI issues - suspend-to-ram and processor speed
+Date: Thu, 20 May 2004 10:52:52 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40ACE6B4.4060408@mesias.co.uk>
+Message-ID: <40ACF074.2090402@eisenbach.com>
+References: <200405180213.34603.andre@eisenbach.com> <40AC77A7.10704@eskuel.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <40AC77A7.10704-uEz9PMp7chasTnJN9+BGXg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,25 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Mathieu LESNIAK <maverick-uEz9PMp7chasTnJN9+BGXg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi
+Mathieu LESNIAK wrote:
 
-APM sleep eg. when running linux 2.4 with the APM behaviour in the BIOS 
-used to suspend the machine, the battery would last for a long time and 
-the machine would be cold to the touch (ie it's at the ambient temperature).
+> Regarding the CPU slowdown, I've seen similar behaviour under Windows.=20
+> I think it's related to the laptop itself, maybe as Pavel Machek said=20
+> on LKML, it's the lack of power that force the laptop to run in this=20
+> mode.
 
-ACPI S3 sleep looks the same but the battery does not last long and the 
-machine is warm to the touch.
 
-Has anyone else seen this behaviour? Is it possible that the machine is 
-waking itself periodically or at a certain level of discharge? Is it 
-possible to make the ACPI sleep deeper?
+According to the post on the LKML, the slowdown dows not occur in Linux=20
+with ACPI=3Doff.
+I do think that it may be a BIOS problem, but I hope that the ACPI=20
+knowledgable may be able to provide a workaround.
 
--Cam
--- 
-camilo-Nk/s8sJ9yP7QXOPxS62xeg@public.gmane.org                                                 <--
+Cheers,
+    Andr=E9
 
 
 -------------------------------------------------------
