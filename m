@@ -1,11 +1,10 @@
 From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH/RFC 0/2]ACPI and PNP interaction
-Date: Wed, 22 Sep 2004 12:34:57 +0800
+Subject: [PATCH/RFC 1/2]Avoid ACPI assign legacy devices'IRQ to PCI devices
+Date: Wed, 22 Sep 2004 12:35:15 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1095827697.18437.137.camel@sli10-desk.sh.intel.com>
+Message-ID: <1095827701.18437.141.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="=-/n9ojCH7oPJUX/E/8S6T"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,22 +18,188 @@ To: ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, Andrew Grover <andy.grover-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matthieu <castet.matthieu-GANU6spQydw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+
+--=-/n9ojCH7oPJUX/E/8S6T
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+
 Hi,
-The patches (I'll send them follow this mail) introduce ACPI PNP layer
-and make ACPI work with legacy devices better. Details:
-1.patch 1: introduce 'acpi_penalize_isa_irq' for ACPI link devices to
-avoid ACPI assign legacy devices' IRQ to PCI devices.
-2.patch2: add ACPI PNP driver. The patch is based on Matthieu Castet's
-work. Thanks Matthieu. With this patch, legacy device drivers (floppy
-ACPI driver, COM ACPI driver, and ACPI motherboard driver) which
-directly use ACPI can be removed, since now we have unified PNP
-interface for legacy devices. Will add more ACPI related things into the
-patch such as D-state support and hotplug support if needed.
-The patches are against 2.6.9-rc2. Any comments/suggestions will be
-appreciated.
+This patch makes ACPI doesn't assign legacy devices' IRQ to PCI devices,
+it will fix many IRQ conflict problems.
 
 Thanks,
 Shaohua
+
+===== include/linux/acpi.h 1.36 vs edited =====
+--- 1.36/include/linux/acpi.h	2004-06-02 23:02:20 +08:00
++++ edited/include/linux/acpi.h	2004-09-22 10:09:23 +08:00
+@@ -439,6 +439,7 @@ extern struct acpi_prt_list	acpi_prt;
+ struct pci_dev;
+ 
+ int acpi_pci_irq_enable (struct pci_dev *dev);
++void acpi_penalize_isa_irq(int irq);
+ 
+ struct acpi_pci_driver {
+ 	struct acpi_pci_driver *next;
+===== drivers/acpi/pci_link.c 1.31 vs edited =====
+--- 1.31/drivers/acpi/pci_link.c	2004-08-05 03:55:16 +08:00
++++ edited/drivers/acpi/pci_link.c	2004-09-22 10:08:09 +08:00
+@@ -786,6 +786,11 @@ static int __init acpi_irq_penalty_updat
+ 	return 1;
+ }
+ 
++void acpi_penalize_isa_irq(int irq)
++{
++	acpi_irq_penalty[irq] += PIRQ_PENALTY_ISA_USED;
++}
++
+ /*
+  * Over-ride default table to reserve additional IRQs for use by ISA
+  * e.g. acpi_irq_isa=5
+===== arch/i386/pci/irq.c 1.47 vs edited =====
+--- 1.47/arch/i386/pci/irq.c	2004-08-02 16:00:43 +08:00
++++ edited/arch/i386/pci/irq.c	2004-09-22 10:27:30 +08:00
+@@ -17,6 +17,7 @@
+ #include <asm/smp.h>
+ #include <asm/io_apic.h>
+ #include <asm/hw_irq.h>
++#include <linux/acpi.h>
+ 
+ #include "pci.h"
+ 
+@@ -989,13 +990,23 @@ static int __init pcibios_irq_init(void)
+ subsys_initcall(pcibios_irq_init);
+ 
+ 
+-void pcibios_penalize_isa_irq(int irq)
++static void pirq_penalize_isa_irq(int irq)
+ {
+ 	/*
+ 	 *  If any ISAPnP device reports an IRQ in its list of possible
+ 	 *  IRQ's, we try to avoid assigning it to PCI devices.
+ 	 */
+ 	pirq_penalty[irq] += 100;
++}
++
++void pcibios_penalize_isa_irq(int irq)
++{
++#ifdef CONFIG_ACPI_PCI
++	if (!acpi_noirq)
++		acpi_penalize_isa_irq(irq);
++	else
++#endif
++		pirq_penalize_isa_irq(irq);
+ }
+ 
+ int pirq_enable_irq(struct pci_dev *dev)
+===== drivers/pnp/pnpbios/rsparser.c 1.4 vs edited =====
+--- 1.4/drivers/pnp/pnpbios/rsparser.c	2004-09-14 08:23:17 +08:00
++++ edited/drivers/pnp/pnpbios/rsparser.c	2004-09-22 10:31:09 +08:00
+@@ -7,6 +7,7 @@
+ #include <linux/ctype.h>
+ #include <linux/pnp.h>
+ #include <linux/pnpbios.h>
++#include <linux/pci.h>
+ 
+ #include "pnpbios.h"
+ 
+@@ -58,6 +59,7 @@ pnpbios_parse_allocated_irqresource(stru
+ 		}
+ 		res->irq_resource[i].start =
+ 		res->irq_resource[i].end = (unsigned long) irq;
++		pcibios_penalize_isa_irq(irq);
+ 	}
+ }
+ 
+
+--=-/n9ojCH7oPJUX/E/8S6T
+Content-Disposition: attachment; filename=irq-isa.patch
+Content-Type: text/x-patch; name=irq-isa.patch; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+===== include/linux/acpi.h 1.36 vs edited =====
+--- 1.36/include/linux/acpi.h	2004-06-02 23:02:20 +08:00
++++ edited/include/linux/acpi.h	2004-09-22 10:09:23 +08:00
+@@ -439,6 +439,7 @@ extern struct acpi_prt_list	acpi_prt;
+ struct pci_dev;
+ 
+ int acpi_pci_irq_enable (struct pci_dev *dev);
++void acpi_penalize_isa_irq(int irq);
+ 
+ struct acpi_pci_driver {
+ 	struct acpi_pci_driver *next;
+===== drivers/acpi/pci_link.c 1.31 vs edited =====
+--- 1.31/drivers/acpi/pci_link.c	2004-08-05 03:55:16 +08:00
++++ edited/drivers/acpi/pci_link.c	2004-09-22 10:08:09 +08:00
+@@ -786,6 +786,11 @@ static int __init acpi_irq_penalty_updat
+ 	return 1;
+ }
+ 
++void acpi_penalize_isa_irq(int irq)
++{
++	acpi_irq_penalty[irq] += PIRQ_PENALTY_ISA_USED;
++}
++
+ /*
+  * Over-ride default table to reserve additional IRQs for use by ISA
+  * e.g. acpi_irq_isa=5
+===== arch/i386/pci/irq.c 1.47 vs edited =====
+--- 1.47/arch/i386/pci/irq.c	2004-08-02 16:00:43 +08:00
++++ edited/arch/i386/pci/irq.c	2004-09-22 10:27:30 +08:00
+@@ -17,6 +17,7 @@
+ #include <asm/smp.h>
+ #include <asm/io_apic.h>
+ #include <asm/hw_irq.h>
++#include <linux/acpi.h>
+ 
+ #include "pci.h"
+ 
+@@ -989,13 +990,23 @@ static int __init pcibios_irq_init(void)
+ subsys_initcall(pcibios_irq_init);
+ 
+ 
+-void pcibios_penalize_isa_irq(int irq)
++static void pirq_penalize_isa_irq(int irq)
+ {
+ 	/*
+ 	 *  If any ISAPnP device reports an IRQ in its list of possible
+ 	 *  IRQ's, we try to avoid assigning it to PCI devices.
+ 	 */
+ 	pirq_penalty[irq] += 100;
++}
++
++void pcibios_penalize_isa_irq(int irq)
++{
++#ifdef CONFIG_ACPI_PCI
++	if (!acpi_noirq)
++		acpi_penalize_isa_irq(irq);
++	else
++#endif
++		pirq_penalize_isa_irq(irq);
+ }
+ 
+ int pirq_enable_irq(struct pci_dev *dev)
+===== drivers/pnp/pnpbios/rsparser.c 1.4 vs edited =====
+--- 1.4/drivers/pnp/pnpbios/rsparser.c	2004-09-14 08:23:17 +08:00
++++ edited/drivers/pnp/pnpbios/rsparser.c	2004-09-22 10:31:09 +08:00
+@@ -7,6 +7,7 @@
+ #include <linux/ctype.h>
+ #include <linux/pnp.h>
+ #include <linux/pnpbios.h>
++#include <linux/pci.h>
+ 
+ #include "pnpbios.h"
+ 
+@@ -58,6 +59,7 @@ pnpbios_parse_allocated_irqresource(stru
+ 		}
+ 		res->irq_resource[i].start =
+ 		res->irq_resource[i].end = (unsigned long) irq;
++		pcibios_penalize_isa_irq(irq);
+ 	}
+ }
+ 
+
+--=-/n9ojCH7oPJUX/E/8S6T--
 
 
 
