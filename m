@@ -1,13 +1,13 @@
-From: Matthew Wilcox <matthew-Ztpu424NOJ8@public.gmane.org>
-Subject: Re: [PATCH/RFC 0/4]Bind physical devices with ACPI devices
-Date: Mon, 8 Nov 2004 16:38:55 +0000
-Message-ID: <20041108163855.GC32374@parcelfarce.linux.theplanet.co.uk>
-References: <3ACA40606221794F80A5670F0AF15F84041AC033@pdsmsx403>
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: Success with kernel-swsusp and Nvidia-closed-source
+Date: Mon, 8 Nov 2004 17:45:13 +0100
+Message-ID: <20041108164512.GB14497@hell.org.pl>
+References: <Pine.LNX.4.60.0411031215260.1187@frog.athome> <Pine.LNX.4.60.0411041729180.4727@frog.athome> <200411041812.54813.christian.hesse@linuxob.de> <200411072052.53065.mail@earthworm.de> <Pine.LNX.4.60.0411081640410.4713@frog.athome>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F84041AC033@pdsmsx403>
+In-Reply-To: <Pine.LNX.4.60.0411081640410.4713-KnfdeQs3A3X/9pzu0YdTqQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,42 +17,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Matthew Wilcox <matthew-Ztpu424NOJ8@public.gmane.org>, "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Greg <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Patrick Mochel <mochel-og82NyAXoxR0I81aPRRTmR2eb7JE58TQ@public.gmane.org>
+To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
+Cc: Christian Hesse <mail-8oMOrB1mGocUSW6y5lq3GQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 09, 2004 at 12:08:03AM +0800, Yu, Luming wrote:
-> >On Mon, Nov 08, 2004 at 10:46:30PM +0800, Yu, Luming wrote:
-> >> >All we need is an acpi_get_gendev_handle that takes a 
-> >struct device and
-> >> >returns the acpi_handle for it.  Now, maybe that'd be best 
-> >> >done by placing
-> >> >a pointer in the struct device, but I bet it'd be just as 
-> >good to walk
-> >> >the namespace looking for the corresponding device.
-> 
->   We need not only able to locate acpi object IDE0
-> but also we need to locate object PRIM underneath
-> IDE0,  and MSTR underneath PRIM. Thus, IDE driver 
-> can fully take advantage from ACPI, in terms of 
-> configuration and power management.
-> 
->   Maybe we need to invent a method called
-> map_device_addr_to_acpi_handle to be  generic solution.
+Thus wrote liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org:
+> I am verry impressed. I had a try myself today and did not succeed. Then I 
+> took a look at the driver (6629 -> nv.c) and discovered, that they removed 
+> all ACPI support, which was in 6111. So your once success with 6629 is a 
 
-I think we're saying the same thing in different words here ...
+Which was outright bogus...
 
-Note that an acpi_get_gendev_handle() or map_device_addr_to_acpi_handle()
-function doesn't *preclude* putting a void * in struct device.  It does
-let us choose whether or not to do so.
+> little miracle. But maybe ACPI is not allways needed :-))))
+
+... because there's only one PM interface in 2.6 and it's not really
+ACPI-specific. The driver might even work as expected now.
+Note: I haven't seen the new code yet.
+Best regards,
 
 -- 
-"Next the statesmen will invent cheap lies, putting the blame upon 
-the nation that is attacked, and every man will be glad of those
-conscience-soothing falsities, and will diligently study them, and refuse
-to examine any refutations of them; and thus he will by and by convince 
-himself that the war is just, and will thank God for the better sleep 
-he enjoys after this process of grotesque self-deception." -- Mark Twain
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
