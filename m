@@ -1,14 +1,16 @@
-From: <Stuart_Hayes-DYMqY+WieiM@public.gmane.org>
-Subject: RE: stack overflow
-Date: Mon, 22 Mar 2004 11:40:09 -0600
+From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+Subject: Re: b44 suspend/resume (Re: PCI not restored correctly after suspend to ram)
+Date: Mon, 22 Mar 2004 21:27:43 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <CE41BFEF2481C246A8DE0D2B4DBACF4F128AB2@ausx2kmpc106.aus.amer.dell.com>
+Message-ID: <200403222127.43854.stefandoesinger@gmx.at>
+References: <200403180935.09436.stefan.doesinger@gym-leoben.asn-graz.ac.at> <1079728500.7277.140.camel@dhcppc4>
+Reply-To: stefandoesinger-RbZlAiThDcE@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_/w0XA219ao2B4gW"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <1079728500.7277.140.camel-D2Zvc0uNKG8@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,70 +19,146 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: davem-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, pp-YuCZbdju05vHOG6cAo2yLw@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Len Brown wrote:
-> On Wed, 2004-03-10 at 08:32, Andi Kleen wrote:
->=20
->> If you have some recursion either fix it or at least add an error
->> out when the stack gets too low. We can add an "stack_left" function
->> exported by the architecture.
->=20
-> I think we'll want to put some fun-time sanity checks for illegal
-> recursion into the interpreter.  That should be less invasive than
-> doing the full blown stack check -- which can be enabled as a
-> separate DEBUG test when needed.
->=20
->>> Sorting the list of stack frame sizes below shows
->>> acpi_evaluate_integer() is the winner with 320 bytes on the stack.=20
->>> Note that this isn't from passing structures, but from allocating
->>> local structures.  On i386 acpi_parse_object is 124 bytes, on
->>> x86_64 it will be bigger...
->>=20
->> I would suggest to fix anything > 100 bytes at least
->> (and double check anything that could be expanded on 64bit)
->=20
-> Agreed, Bob and I will fix the big stack users.
->=20
-> thanks,
-> -Len
 
-Thanks for all the help.  Robert Moore identified a big part of the=20
-problem (recursion):
+--Boundary-00=_/w0XA219ao2B4gW
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-(quoting Robert)
-"The issue is how PCI_Config operation regions are initialized.
+Hi,
+> > I can get most devices devies to work by setting the pci registers with
+> > setpci after resume. I use the attached fixpci.sh script to do so. I can
+> > get my soundcard, the ethernet card(02:02.0) ...
+>
+> 02:02.0 Ethernet controller: Broadcom Corporation BCM4401 100Base-T (rev
+> 01)
+>
+> I think this is the b44. Looking at b44_suspend/b44_resume, I don't see
+> any calls to pci_save_state()/pci_restore_state() that I would expect,
+> so it comes back after resume with bus mastering disabled etc.
+I added pci_save_state()/pci_restore_state() to the b44 driver and it works.
+I send the patch.
+I don't know much about the diff utility so you might have to specify the 
+files manually when patching.
 
-1) a _STA accesses a PCI_Config space field
+> 02:02.0 Ethernet controller: Broadcom Corporation BCM4401 100Base-T (rev
+> 01)
+>         Subsystem: Acer Incorporated [ALI]: Unknown device 001f
+>         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
+> ParErr- Stepping- SERR+ FastB2B-
+>         Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort+
+> <TAbort- <MAbort- >SERR- <PERR-
+>         Latency: 64
+>         Interrupt: pin A routed to IRQ 5
+>         Region 0: Memory at d0204000 (32-bit, non-prefetchable)
+> [size=8K]
+>         Capabilities: [40] Power Management version 2
+>                 Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=375mA
+> PME(D0+,D1+,D2+,D3hot+,D3cold+)
+>                 Status: D0 PME-Enable- DSel=0 DScale=2 PME-
+> 00: e4 14 01 44 06 01 10 08 01 00 00 02 00 40 00 00
+> 10: 00 40 20 d0 00 00 00 00 00 00 00 00 00 00 00 00
+> 20: 00 00 00 00 00 00 00 00 00 00 00 00 25 10 1f 00
+> 30: 00 00 00 00 40 00 00 00 00 00 00 00 05 01 00 00
+>
+> ------------
+> lspci_after_suspend
+> 02:02.0 Ethernet controller: Broadcom Corporation BCM4401 100Base-T (rev
+> 01)
+>         Subsystem: Acer Incorporated [ALI]: Unknown device 001f
+>         Control: I/O- Mem- BusMaster- SpecCycle- MemWINV- VGASnoop-
+> ParErr- Stepping- SERR- FastB2B-
+>         Status: Cap+ 66Mhz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
+> <TAbort- <MAbort- >SERR- <PERR-
+>         Interrupt: pin A routed to IRQ 5
+>         Region 0: [virtual] Memory at d0204000 (32-bit,
+> non-prefetchable) [disabled] [size=8K]
+>         Capabilities: [40] Power Management version 2
+>                 Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=375mA
+> PME(D0+,D1+,D2+,D3hot+,D3cold+)
+>                 Status: D0 PME-Enable- DSel=0 DScale=2 PME-
+> 00: e4 14 01 44 00 00 10 00 01 00 00 02 00 00 00 00
+> 10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> 20: 00 00 00 00 00 00 00 00 00 00 00 00 25 10 1f 00
+> 30: 00 00 00 00 40 00 00 00 00 00 00 00 00 01 00 00
 
-2) This eventually causes transfer to ev_pci_config_region_setup
+--Boundary-00=_/w0XA219ao2B4gW
+Content-Type: text/x-diff;
+  charset="iso-8859-1";
+  name="b44.h.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="b44.h.diff"
 
-3) ev_pci_config_region_setup attempts to resolve the _ADR object
+--- linux-2.6.4-orig/drivers/net/b44.h	2004-02-18 04:58:36.000000000 +0100
++++ linux-2.6.4/drivers/net/b44.h	2004-03-22 21:06:01.000000000 +0100
+@@ -538,6 +538,11 @@
+ 	u8			phy_addr;
+ 	u8			mdc_port;
+ 	u8			core_unit;
++	
++#ifdef CONFIG_PM
++	u32 pm_state[16];
++#endif
++	
+ };
+ 
+ #endif /* _B44_H */
 
-4) The implementation of _ADR in the ASL accesses PCI_Config space
+--Boundary-00=_/w0XA219ao2B4gW
+Content-Type: text/x-diff;
+  charset="iso-8859-1";
+  name="b44.c.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="b44.c.diff"
 
-5) This in turn causes another call to ev_pci_config_region_setup"
-(end of quote)
+--- linux-2.6.4-orig/drivers/net/b44.c	2004-02-18 04:57:39.000000000 +0100
++++ linux-2.6.4/drivers/net/b44.c	2004-03-22 21:15:06.674051288 +0100
+@@ -1863,6 +1863,8 @@
+ {
+ 	struct net_device *dev = pci_get_drvdata(pdev);
+ 	struct b44 *bp = dev->priv;
++	pci_save_state(pdev, bp->pm_state);
++
+ 
+         if (!netif_running(dev))
+                  return 0;
+@@ -1877,6 +1879,9 @@
+ 	b44_free_rings(bp);
+ 
+ 	spin_unlock_irq(&bp->lock);
++	
++	pci_disable_device(pdev); /* disable busmastering */
++	pci_set_power_state(pdev,state); /* Zzz. */
+ 	return 0;
+ }
+ 
+@@ -1885,6 +1890,9 @@
+ 	struct net_device *dev = pci_get_drvdata(pdev);
+ 	struct b44 *bp = dev->priv;
+ 
++	pci_set_power_state(pdev,0);
++	pci_restore_state(pdev, bp->pm_state);
++		
+ 	if (!netif_running(dev))
+ 		return 0;
+ 
+@@ -1899,6 +1907,7 @@
+ 	add_timer(&bp->timer);
+ 
+ 	b44_enable_ints(bp);
++
+ 	return 0;
+ }
+ 
 
-Turning off ACPI debug messages seems to fix my problem for now. =20
-With debug messages enabled, the stack usage seems to be roughly 64=20
-extra bytes for each function called (presumably from the extra local=20
-variables defined in some of the debug macros in acmacros.h).  I have=20
-modified my DSDT so that only one layer of recursion happens, and,=20
-with this, the *difference* in kernel stack usage between having ACPI=20
-debug enabled and disabled is 2776 bytes.  Even with this better DSDT,=20
-the kernel stack overflows by 616 bytes (I used a larger kernel stack=20
-to figure that out...) if I have debug messages enabled.  FYI, the=20
-kernel stack on my system is 5408 bytes total (8K - size of the=20
-task_struct).
-
-With debug messages disabled, I have a good 2K of margin on the stack=20
-with my modified DSDT.
-
-Thanks!
-Stuart
+--Boundary-00=_/w0XA219ao2B4gW--
 
 
 -------------------------------------------------------
