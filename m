@@ -1,59 +1,61 @@
-From: Alex Williamson <alex.williamson@hp.com>
-Subject: [PATCH] restore _OS object to "Linux" for ia64
-Date: Mon, 13 Sep 2004 12:27:48 -0600
-Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <1095100068.20631.30.camel@tdi>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] restore _OS object to "Linux" for ia64
+Date: 13 Sep 2004 15:22:30 -0400
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <1095103349.2512.16.camel@d845pe>
+References: <1095100068.20631.30.camel@tdi>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-To: linux-ia64@vger.kernel.org, acpi-devel <acpi-devel@lists.sourceforge.net>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1095100068.20631.30.camel@tdi>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>
+Cc: linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Mon, 2004-09-13 at 14:27, Alex Williamson wrote:
+>    A recent change to ACPI made the _OS object falsely report the OS as
+> "Microsoft Windows NT".  This seems like a slippery slope, and I'd
+> rather not go down it for ia64.  I think all of the ia64 OEMs are
+> involved enough with Linux that this isn't necessary and the change
+> limits the options should ACPI firmware need to make an OS specific work
+> around.  The patch below will make all ia64 boxes report a default _OS
+> of "Linux".
 
-   A recent change to ACPI made the _OS object falsely report the OS as
-"Microsoft Windows NT".  This seems like a slippery slope, and I'd
-rather not go down it for ia64.  I think all of the ia64 OEMs are
-involved enough with Linux that this isn't necessary and the change
-limits the options should ACPI firmware need to make an OS specific work
-around.  The patch below will make all ia64 boxes report a default _OS
-of "Linux".  Thanks,
+While I share your pride in Linux, there are a couple of reasons
+why we do not make _OS return "Linux".
 
-	Alex
+_OS is a deprecated interface -- it has been replaced
+by the more flexible _OSI.  So with _OS we're talking
+about past, not future systems.  And there is a total
+population of 0 systems in the installed base that check
+for _OS ="Linux" in their firmware.  On the other hand, there
+are zillions of systems that check for Windows with _OS,
+and the !Windows path through the firmware is effectivly
+unvalidated.
 
--- 
-Signed-off-by: Alex Williamson <alex.williamson@hp.com>
+While this is really important on i386, it may not be
+important for ia64.  However, unless you can show
+me an existing system that checks for _OS=Linux, then
+it only adds risk w/o reward to make this change, even
+if just on ia64.  New systems should be using _OSI.
 
-===== arch/ia64/kernel/acpi.c 1.74 vs edited =====
---- 1.74/arch/ia64/kernel/acpi.c	Thu Aug  5 22:40:29 2004
-+++ edited/arch/ia64/kernel/acpi.c	Mon Sep 13 09:32:46 2004
-@@ -629,6 +629,13 @@
- #endif
- 	/* Make boot-up look pretty */
- 	printk(KERN_INFO "%d CPUs available, %d CPUs total\n", available_cpus, total_cpus);
-+
-+	/*
-+	 * Make the _OS object report the right name, ia64 Linux has
-+	 * enough OEM support that we shouldn't need to fake another OS.
-+	 */
-+	acpi_os_name_setup("Linux");
-+
- 	return 0;
- }
- 
-===== include/acpi/acpiosxf.h 1.34 vs edited =====
---- 1.34/include/acpi/acpiosxf.h	Fri Jul 16 23:37:53 2004
-+++ edited/include/acpi/acpiosxf.h	Mon Sep 13 09:38:55 2004
-@@ -313,6 +313,10 @@
- 	u32                             function,
- 	void                            *info);
- 
-+int __init
-+acpi_os_name_setup (
-+	char				*str);
-+
- /*
-  * Debug print routines
-  */
+thanks,
+-Len
 
 
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: YOU BE THE JUDGE. Be one of 170
+Project Admins to receive an Apple iPod Mini FREE for your judgement on
+who ports your project to Linux PPC the best. Sponsored by IBM. 
+Deadline: Sept. 13. Go here: http://sf.net/ppc_contest.php
