@@ -1,14 +1,14 @@
-From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: Re: [PATCH] acpi-20030916-2.6.0-pre5.diff
-Date: Sun, 21 Sep 2003 05:58:39 +0200
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: [RESEND] Re: [PATCH] ACPI maintainer change
+Date: Sun, 21 Sep 2003 16:23:49 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030921035838.GA23863@wotan.suse.de>
-References: <20030823150219.21c951aa.akpm@osdl.org> <1063926206.2680.200.camel@linux.local> <20030918155715.61a41697.akpm@osdl.org> <20030919011149.GB20844@wotan.suse.de> <1063942898.2676.391.camel@linux.local>
+Message-ID: <20030921142349.GA18577@hell.org.pl>
+References: <F760B14C9561B941B89469F59BA3A8470255EF12@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1063942898.2676.391.camel-Tk/TtsB/rErDOqzlkpFKJg@public.gmane.org>
+In-Reply-To: <F760B14C9561B941B89469F59BA3A8470255EF12-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,25 +17,30 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Sep 18, 2003 at 11:41:38PM -0400, Brown, Len wrote:
-> Andi,
-> Good hunting!
-> 
-> This fix has been integrated with others in the ACPI patch,
-> and is available now in these bitkeeper trees:
-> 
-> http://linux-acpi.bkbits.net/linux-acpi-test-2.4.22
-> http://linux-acpi.bkbits.net/linux-acpi-test-2.4.23
-> http://linux-acpi.bkbits.net/linux-acpi-test-2.6.0
+Thus wrote Grover, Andrew:
+[...]
 
-I forgot to fix IA64 in the original patch. Please check that it is
-fixed in arch/ia64/kernel/acpi.c too.
+Hi,
+Andrew, what is the status of the ASUS ACPI driver patches I sent you?
 
--Andi
+Anyway, I'm resending then now. They should apply cleanly, possibly with
+minor offsets.
+
+Len, could you consider merging them and pushing to Linus and Marcelo as
+soon as it's possible? Those patches address a couple of important fixes,
+as well as bug #1138, add support for laptops that quite a lot people
+use right now (ASUS Centrino models), and are really long due (esp. the
+0.25 one).
+
+TIA, best regards,
+
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
