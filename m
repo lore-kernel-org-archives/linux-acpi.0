@@ -1,11 +1,11 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ASUS M3N and sleep states
-Date: Mon, 29 Dec 2003 09:35:29 +0800
+From: "Shridhar GR" <Shridhar_GR-MyfdzN0ulLNWk0Htik3J/w@public.gmane.org>
+Subject: System Hangs with ACPI support enabled in Kernel 2.4.21
+Date: Mon, 29 Dec 2003 13:44:08 +0530
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C62@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <E125980C421DFD4DA0B80D55DB1EDA58018FB2A3@mtv01ex01.mindtree.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
+	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 content-class: urn:content-classes:message
@@ -17,26 +17,70 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>, ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->- - S1
->obviously, if I leave the USB module on, the resume process hangs
-trying
->to set the IRQ for the USB controllers. So, I unload the USB modules
-and
->the resume process hangs again. I found that the other problem are the
->ALSA modules: if I unload them (and the USB as well), the resume
-process
->goes well, but it automatically enters in INIT 0 (so it reboots). I
->don't know how I could get a resume to my previous INIT...
+hi
 
-I have 2 tracker about S1 issues of ASUS notebook.
+	I have problem in Shutting down the system with ACPI support enabled.
+I am using kernel 2.4.21. System is configured for RAID1 . I have =
+installed
+ACPI daemon. When I press the hardware button, the system goes for =
+proper
+shutdown but hangs with a dispay "flushing ide device: hda hdb hdd Power
+down." I am using "shutdown -h now" command. Even "halt", "poweroff" and
+"shutdown" command does not work from command line too. Please guide me =
+solve
+this problem. I have not applied any extra ACPI patch to the kernel. I =
+have
+configured the existing ACPI parameters as below
 
-http://bugzilla.kernel.org/show_bug.cgi?id=3D1557=20
+[*] Power Management support
 
-http://bugzilla.kernel.org/show_bug.cgi?id=3D1588=20
+[*]   ACPI support
 
+[ ]     ACPI Debug Statements
+<*>     ACPI Bus Manager
+<M>       System             =20
+<M>       Processor
+
+<M>       Button
+
+< >       AC Adapter
+
+<*>       Embedded Controller
+
+< >       Control Method Battery
+
+< >       Thermal
+
+< >   Advanced Power Management BIOS support=20
+
+   								=09
+=09
+
+Please suggest a solution for this.
+
+Thank u
+Best Regards
+Shridhar
+ =20
+
+
+
+
+DISCLAIMER:
+This message (including attachment if any) is confidential and may be =
+privileged. Before opening attachments please check them for viruses and =
+defects. MindTree Consulting Private Limited (MindTree) will not be =
+responsible for any viruses or defects or any forwarded attachments =
+emanating either from within MindTree or outside. If you have received =
+this message by mistake please notify the sender by return  e-mail and =
+delete this message from your system. Any unauthorized use or =
+dissemination of this message in whole or in part is strictly =
+prohibited.  Please note that e-mails are susceptible to change and =
+MindTree shall not be liable for any improper, untimely or incomplete =
+transmission.
 
 
 -------------------------------------------------------
