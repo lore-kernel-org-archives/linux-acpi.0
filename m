@@ -1,8 +1,8 @@
 From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: ACPI suspend fails if processor module loaded
-Date: Sat, 03 Jul 2004 11:54:20 +0100
+Subject: acpi_sleep=s3_bios and Thinkpads
+Date: Sat, 03 Jul 2004 11:56:41 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1088852060.3733.18.camel@tyrosine>
+Message-ID: <1088852201.3733.22.camel@tyrosine>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -18,12 +18,11 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-If I have the processor module loaded on a Thinkpad 240X, attempting to
-suspend the machine results in the devices being shut down but the
-machine then immediately rebooting. Interestingly, it doesn't reenable
-the screen in the process. rmmodding thermal and processor gives an oops
-(I'll file a bug) but allows me to suspend. Does anyone have any idea
-what might cause this?
+Having tested around 6 different models of Thinkpad, we've found that
+passing acpi_sleep=s3_bios always helps if there is no framebuffer
+running, but tends to break things if there is a framebuffer. Is this
+worth some sort of DMI hackery in order to make it more likely that
+things will just work?
 -- 
 Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
