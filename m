@@ -1,8 +1,8 @@
-From: "Tami Rush" <tamirush_sc-W7/FcDFGA5Ow5LPnMra/2Q@public.gmane.org>
-Subject: Get vìagra for a great price.
-Date: Wed, 27 Oct 2004 03:11:36 +0500
+From: "Avery P. Bonner" <averybonner_ey-7KTHzcM9yDs@public.gmane.org>
+Subject: New! Vìagra soft tabs.
+Date: Tue, 26 Oct 2004 21:56:14 -0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <31e601c4bba8$493c4e22$54424dd5@metiri.com.au>
+Message-ID: <cccd01c4bbb7$c3cd3da6$e3813ce5@smau.it>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -19,21 +19,18 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hello!
 
-We have a new offer for you. Buy cheap Vìagra through our online store.
-- Private online ordering 
-- No prescription required
-- World wide shipping
+We would like to offer V_I_A_G_R_A soft tabs,
 
-Order your drugs offshore and save over 70%!
+These pills are just like regular Vìagra but they are specially formulated 
+to be soft and dissolvable under the tongue. The pill is absorbed at the 
+mouth and enters the bloodstream directly instead of going through the stomach. 
+This results in a faster more powerful effect which lasts as long as the normal.
 
-Click here: http://real-cat.com/meds/
+Soft Tabs also have less sidebacks (you can drive or mix alcohol drinks with them).
 
-Best regards,
-Donald Cunfingham
-
-
+You can get it at: http://real-cat.com/st/?coupon
 
 No thanks: http://real-cat.com/rm.html
 
