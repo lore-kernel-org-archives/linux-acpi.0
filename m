@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: Random shutdowns - some new details
-Date: Tue, 16 Sep 2003 14:02:43 +0200
+From: Dimitri Rebrikov <dimitri.rebrikov-kyawv7ubMNaakBO8gow8eQ@public.gmane.org>
+Subject: Re: AE_TIME on Operations in EC ( Embedded Controller ec.c
+ )
+Date: Tue, 16 Sep 2003 14:32:56 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030916120243.GD602@elf.ucw.cz>
-References: <3F5580DE.1060904@sbox.tugraz.at> <20030908095253.GC3944@openzaurus.ucw.cz> <3F66A5B2.2060400@sbox.tugraz.at>
+Message-ID: <3F6702F8.5020808@t-systems.com>
+References: <3F657BDB.9080805@t-systems.com> <20030915135247.H6780@root.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3F66A5B2.2060400-ArvQUR6U0fYD0fefG/KofA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,52 +17,87 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Gerfried Maier <moali-ArvQUR6U0fYD0fefG/KofA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Nate Lawson wrote:
+> On Mon, 15 Sep 2003, Dimitri Rebrikov wrote:
+> 
+>>BTW. I had no problem with ACPI before (2.4.18+ACPI and 2.4.20+ACPI)
+>>
+>>The corresponding error message in log was:
+>>
+>>Sep  5 12:49:57 mitnb kernel: evregion-0345: *** Error: Handler for [EmbeddedControl] returned AE_TIME
+>>Sep  5 12:49:57 mitnb kernel:  psparse-1121: *** Error: Method execution failed [\_SB_.BAT0._STA] (Node cee7cdc8), AE_TIME
+>>
+>>After some testing i located (i belief) the issue:
+>>The values of ACPI_EC_UDELAY_COUNT and/or  ACPI_EC_UDELAY are too small
+>>for my Hardware.
+>>
+>>Here is the comparision between 2.4.20+ACPI and 2.4.22:
+>>
+>>./linux-2.4.20/drivers/acpi/ec.c:#define ACPI_EC_UDELAY		1000	/* Poll @ 100us increments */
+>>./linux-2.4.20/drivers/acpi/ec.c:#define ACPI_EC_UDELAY_COUNT	10000	/* Wait 10ms max. during EC ops */
+>>
+>>./linux-2.4.22/drivers/acpi/ec.c:#define ACPI_EC_UDELAY		100	/* Poll @ 100us increments */
+>>./linux-2.4.22/drivers/acpi/ec.c:#define ACPI_EC_UDELAY_COUNT	1000	/* Wait 10ms max. during EC ops */
+>>
+>>This means that the wait time for a EC operation in 2.4.22 was reduced with factor 100.
+>>
+>>After i increase the value of ACPI_EC_UDELAY_COUNT to 10000
+>>my problems gone. Now i can use the whole functionality of ACPI.
+> 
+> 
+> I submitted that change in that the comment didn't match the code.  I've
+> found in FreeBSD that even 50 ms isn't enough sometimes so I suppose your
+> experience concurs with this.  You can probably bump it to 100 ms, just
+> make sure the comment matches the code.
+> 
+> BTW, there is no reason repsonses from the EC should be that slow.  I have
+> a feeling global lock contention is the real underlying problem.
+> 
+> -Nate
+> 
+Just now i have inspected the original acpi-patches for 2.4.18 and 2.4.20 and have realised that
+the values of ACPI_EC_UDELAY and ACPI_EC_UDELAY_COUNT did not change in comparision with
+kernel-2.4.22.
+I recalled that I self made this changes at that time (Feb 2003) and forgotten to notice that. Sorry...
 
-> >In-kernel ACPI will happily call /sbin/halt for you in case of system 
-> >overheat.
-> >Watch /proc/acpi/thermal/*/*
-> 
-> Thank you for this information - when digging through the sources I was 
-> able to locate the responsible lines.
+BTW I found the back posting with the same problem: http://sourceforge.net/mailarchive/message.php?msg_id=5608311
+so i'm not alone have this problem.
 
-So try to locate those "/sbin/halt" calling lines, and replace with
-something like "logger 'I refuse to die'", and see what happens. If it
-does not trigger, you know it is something else.
+IMHO The max. wait time is already 100ms because MaxWaitTime = ACPI_EC_UDELAY x ACPI_EC_UDELAY_COUNT
+(i.e. 100us x 1000 = 100000us = 100ms)
+But 100ms are obviously still too small for some harware (unfortunately my laptop inklusive).
 
-> To get behind these shutdowns I added some lines dealing with thermal 
-> events, mainly cat'ting /proc/acpi/thermal_zone/THRx/temperature, to the 
-> script /usr/sbin/acpid_proxy.
-> 
-> This script is called by acpid with the text of the occured event as 
-> parameter (The SuSE-way of handling acpi-events).
-> 
-> Three days ago another shutdown occured, showing two things:
-> 1) I made some mistake when extending acpid_proxy. But the temperatures 
-> were logged.
-> 2) The temperature logged are far below the trip-points for a shutdown. 
-> (see the attached files)
-> 
-> The trip-point for my thermal zone THRS is 92C, the actual temperature 
-> when the event occured was 46C (logged)
-> 
-> What does this mean?
+How can i affect so that the value of ACPI_EC_UDELAY_COUNT will be increased in the kernel/acpi-sources?
 
-No idea. [BTW nice system: two thermal zones, I never seen it before].
+If not the hardware but a global lock is the issue, how can it be solved?
 
-> Please mind the attached files:
-> acpid - a cut from the acpid-logfile
-> THRC-trip_points - /proc/acpi/thermal_zone/THRC/trip_points
-> THRS-trip_points - /proc/acpi/thermal_zone/THRS/trip_points
-> 
+Regards
+Dimitri
+
+
+
+
+
+
+
 
 -- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+
+------------------------------------------------------------------------
+Dimitri Rebrikov
+*T-Systems GEI GmbH*
+Projektentwickler
+Postanschrift: Prager Straﬂe 15, D-04103 Leipzig
+Telefon:         (0341) 1275-439
+Telefax:         (0341) 1275-333
+E-Mail:          Dimitri.Rebrikov-kyawv7ubMNaakBO8gow8eQ@public.gmane.org
+<mailto:Dimitri.Rebrikov-kyawv7ubMNaakBO8gow8eQ@public.gmane.org>
+Internet:         http://www.t-systems.com
+------------------------------------------------------------------------
+
 
 
 -------------------------------------------------------
