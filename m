@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: RE: ACPI global lock macros
-Date: Thu, 11 Dec 2003 15:06:10 +0800
+Date: Thu, 11 Dec 2003 15:27:09 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C21@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C22@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -20,6 +20,19 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Paul Menage <menage-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org
 Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
+
+I have filed a tracker http://bugme.osdl.org/show_bug.cgi?id=3D1669  , =
+And a proposal patch based on Paul's proposal filed there.
+--Luming
+
+-----Original Message-----
+From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org =
+[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org]On Behalf Of Yu, Luming
+Sent: 2003?12?11? 15:06
+To: Paul Menage; agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; acpi-devel@lists.sourceforge.net
+Subject: RE: [ACPI] ACPI global lock macros
+
 
 >>#define ACPI_ACQUIRE_GLOBAL_LOCK(GLptr, Acq) \
 >>     do { \
@@ -61,6 +74,17 @@ PS. I'm very curious about how could you find this bug. =20
 Thanks
 Luming
 
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: SF.net Giveback Program.
+Does SourceForge.net help you be more productive?  Does it
+help you create better code?  SHARE THE LOVE, and help us help
+YOU!  Click Here: http://sourceforge.net/donate/
+_______________________________________________
+Acpi-devel mailing list
+Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
