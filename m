@@ -1,14 +1,14 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: ACPI HOWTO
-Date: Mon, 24 May 2004 16:35:33 +0200
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Centrino question
+Date: Mon, 24 May 2004 22:48:24 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040524143533.GB4933@poupinou.org>
-References: <B774920D825C2D4880A3C1B0D6EF94189E7BE3@ssdmx.ssd.fsi.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F84046AA9B3@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <B774920D825C2D4880A3C1B0D6EF94189E7BE3-YbQoUGCEyAW+LrQOllSzDQC/G2K4zDHf@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,26 +17,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Rockefeller, Harry" <harryr-UjZhlPPWhclBDgjK7y7TUQ@public.gmane.org>
-Cc: acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Cyril Wattebled <neurowork-GANU6spQydw@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-acpi <linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, May 19, 2004 at 09:47:59AM -0500, Rockefeller, Harry wrote:
-> What I think would be ideal would be to have the experts iron out
-> the outline I provided; move and add things so that the organization
-> hangs together better.  Then perhaps put this as the "living" ACPI
-> HOWTO on the wiki page you suggested.
-> 
+>> Linux slows the processor to 600MHz when Windows gets down to 200MHz?
+>
 
-it was a long time I do not look actually at the wiky at
-acpi.sf.net.  Sound like there may be a need to add more infos as
-you said.
+Hmm, could you post dmesg, and let us to see the lowest frequency
+supported=20
+in your CPU freq driver.Maybe this is a bug!
 
--- 
-Bruno Ducrot
+>
+>> How about the display -- is the brightness comparable on Linux vs
+>> Windows?
+>
+>yes, The screen brightness is set to the same value.
+>
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+How about turning off disk, and unplugging USB devices.=20
+
+Thanks,
+Luming
 
 
 -------------------------------------------------------
