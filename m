@@ -1,17 +1,14 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Subject: Re: Re: PROBLEM: ACPI freezes 2.6.1 on boot
-Date: 21 Jan 2004 23:31:43 +0000
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: ThinkPad A30p T40p /proc/acpi/embedded_controller crash
+Date: Wed, 21 Jan 2004 22:33:31 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1074727903.3667.49.camel@darkstar.portugal>
-References: <Pine.LNX.4.58.0401211051530.2123@home.osdl.org>
-	<m3d69dhukz.fsf@reason.gnu-hamburg>
-	<1074721887.3672.12.camel@darkstar.portugal>
-	<m34qupdj94.fsf@reason.gnu-hamburg>
+Message-ID: <BF1FE1855350A0479097B3A0D2A80EE0CC8A23@hdsmsx402.hd.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <m34qupdj94.fsf-glUV91rXKAHWIjgkaejU9x2eb7JE58TQ@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,44 +17,81 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>
-Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-So you are another APIC victim :)
+Red Hat rawhide users on IBM ThinkPad A30p and T40p discovered
+that accessing /proc/acpi/embedded_controller crashes Linux:
 
-The funny thing, is that I thought that because,=20
-Linus has write :
-"It's entirely possible that the SCI is just horribly broken, and can't
-be level-triggered" about "ACPI: IRQ 9 was Edge Triggered, setting to
-Level Triggerd".
+https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=3D113555
+https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=3D113814
 
-And thinking, can be true ? that, if SCI can't be level-triggered (like
-my laptop and yours), kernel with APIC (loapic or smp) options will hang
-on boot !
+Arjan and Al Viro isolated the problem to the ACPI EC code (below).
+Unfortunately, I don't have a T40p or A30p, and the ThinkPads
+we've tried (T40 etc) do not reproduce this crash.
 
-On Wed, 2004-01-21 at 22:33, Georg C. F. Greve wrote:
->  || On 21 Jan 2004 21:51:27 +0000
->  || S=E9rgio Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org> wrote:=20
->=20
->  smb> And disable apic (lopic and io-pic) options from kernel compilation=
- ?
->=20
-> Funny -- we seemed to have had the same idea.=20
->=20
-> Yes, this makes it boot (see my other mail).
->=20
-> Regards,
-> Georg
->=20
-> --=20
-> Georg C. F. Greve                                       <greve-mXXj517/zsQ@public.gmane.org>
-> Free Software Foundation Europe	                 (http://fsfeurope.org)
-> Brave GNU World	                           (http://brave-gnu-world.org)
---=20
-S=E9rgio M B
+Anybody out there got a ThinkPad that they don't mind crashing
+to help test the fix to this bug?  Would also be interested to
+Know if other kernels besides rawhide fail the same way.
+
+The test:
+$ find /proc/acpi/embedded_controller -name oops
+
+Thanks,
+-Len
+
+-----Original Message-----
+From: viro-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org [mailto:viro@www.linux.org.uk] On Behalf Of
+viro-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org
+Sent: Monday, January 19, 2004 5:02 AM
+To: Arjan van de Ven
+Cc: Brown, Len; linux-acpi
+Subject: Re: FW: acpi workqueue prob
 
 
+On Mon, Jan 19, 2004 at 09:27:06AM +0100, Arjan van de Ven wrote:
+>                 acpi_remove_address_space_handler(ACPI_ROOT_OBJECT,
+>                         ACPI_ADR_SPACE_EC, &acpi_ec_space_handler);
+>
+
+>                 acpi_remove_gpe_handler(NULL, ec_ecdt->gpe_bit,
+&acpi_ec_gpe_handler);
+>
+
+>                 kfree(ec_ecdt);
+>         }
+>=20
+> where acpi_remove_gpe_handler() forgets to remove outstanding
+work/wait for
+> outstanding work, so such work keeps polluting ec_ecdt even though
+it's freed (and in
+> this bug's case, reallocated for something else leading to an oops in
+/proc
+> later).
+>=20
+> Remove interfaces ideally are synchronous with the thing they remove,
+like
+> del_timer_sync() is in linux....
+
+It's a bit worse than that - removal of acpi_ec_gpe_handler is not what
+bites
+us here; what happens is:
+	acpi_ec_gpe_handler is scheduled
+	acpi_ec_gpe_handler runs and schedules acpi_ec_gpe_query
+	we remove acpi_ec_gpe_handler, which leaves acpi_ec_gpe_query
+scheduled
+	we kfree the thing tha is the argument of acpi_ec_gpe_handler
+_AND_
+the argument of scheduled acpi_ec_gpe_handler
+	acpi_ec_gpe_handler runs
+	*BOOM*
+
+So whether there are issues in acpi_remove_gpe_handler() behaviour or
+not
+(and they can easily create similar races with narrower windows), here
+we
+are getting screwed since the caller of acpi_remove_gpe_handler() has no
+idea that acpi_ec_gpe_handler() had left something behind.
 
 
 -------------------------------------------------------
