@@ -1,15 +1,12 @@
-From: Jeff Hagen <jeff-ziEjmj+msWXYtjvyW6yDsg@public.gmane.org>
-Subject: DSDT on Compaq Evo N610c
-Date: Sat, 21 Feb 2004 11:40:19 -0800
+From: reason-ss4n/k5RZhaUArH+D2fLrA@public.gmane.org (Ilya Bagrak)
+Subject: radeon display is blank after resume from S3
+Date: Sat, 21 Feb 2004 15:50:35 -0500 (EST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200402211140.19142.jeff@hagen.org>
-Reply-To: jeff-ziEjmj+msWXYtjvyW6yDsg@public.gmane.org
+Message-ID: <34137.68.19.7.134.1077396635.squirrel@webmail.cc.gatech.edu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -21,47 +18,42 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello all,
+Hi all,
 
-I'm working on rebuilding the image for my n610c after a nasty hard drive 
-failure, and I'm trying to get ACPI working again...
+My set-up is:
 
-Last time I built my image I found a working DSDT floating around somewhere on 
-the net, but now I can't seem to find one that works.
+Linux 2.6.3-mm2 on Fujitsu E7110 laptop w/
+1. radeon mobility 7500 card
+2. intel 845 pci bridge (i think)
 
-Right now I am getting this on startup, and /proc crashes anytime I plug or 
-unlpug the laptop... 
+The basic problem is that after resuming from S3, the screen remains
+completely blank.  All other devices seem to return to normal, and I can
+communicate with the laptop over the network.  I have experienced this
+same problem since early 2.6.0 test kernels, and I've been actively
+looking for a solution ever since.
 
-<--- from dmesg --->
+There are few disparate resources here and there like patched radeon
+drivers, kernel patches, suspend/resume scripts, etc. that are supposed to
+help get this working. I tried them all, and none offer a complete
+solution.
 
-ACPI: AC Adapter [C19A] (on-line)
-    ACPI-1120: *** Error: Method execution failed [\_SB_.C045.C059.C0E2.C13F] 
-(Node c156dd60), AE_AML_UNINITIALIZED_LOCAL
-    ACPI-1120: *** Error: Method execution failed [\_SB_.C045.C059.C0E2.C14E] 
-(Node c156dc60), AE_AML_UNINITIALIZED_LOCAL
-    ACPI-1120: *** Error: Method execution failed [\_SB_.C198._BTP] (Node 
-c1569d40), AE_AML_UNINITIALIZED_LOCAL
-ACPI: Battery Slot [C198] (battery present)
-ACPI: Battery Slot [C199] (battery absent)
-ACPI: Power Button (FF) [PWRF]
-ACPI: Sleep Button (CM) [C19B]
-ACPI: Lid Switch [C19C]
-ACPI: Fan [C1EE] (off)
-ACPI: Fan [C1EF] (off)
+I'd very much like to hear from people that have the same card and chipset
+and who have managed to revive it after a suspend.  Part of the problem is
+that I am not sure what stands in the way of getting this to work.  I am
+willing to use the card in some crippled mode, just so the suspend feature
+is working properly.  I've tried suspending from X (runlevel 5) and
+console (runlevel 3) without much luck.  I've tried vesafb, and various
+video modes, but the behavior never changes.
 
-<--- end dmesg snip-->
+If somebody is aware of some helpful resources or documentation (I've done
+my googling already), or personal experiences, I would appreciate your
+help very much.
 
-This error seems to be mentioned in a previous post.
+Thank you,
 
-Anyone have a working modified DSDT for this hardware that they would be 
-willing to e-mail me? (I know the S states probably wont work, they didnt on 
-the last one I had.) 
+Ilya
 
-I am using kernel 2.6.3 with acpi-20040211-2.6.3.
 
-Thankx,
-Jeff Hagen
-jeff-ziEjmj+msWXYtjvyW6yDsg@public.gmane.org
 
 
 -------------------------------------------------------
