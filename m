@@ -1,64 +1,55 @@
-From: Stelian Pop <stelian.pop-A5NNTvo2L0pl57MIdRCFDg@public.gmane.org>
-Subject: Re: [ACPI] RE: [PATCH] Allow others to use ACPI EC interface
-Date: Fri, 22 Nov 2002 14:36:43 +0100
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20021122133643.GA2224@tahoe.alcove-fr>
-References: <EDC461A30AC4D511ADE10002A5072CAD04C7A536@orsmsx119.jf.intel.com>
-Reply-To: Stelian Pop <stelian.pop-A5NNTvo2L0pl57MIdRCFDg@public.gmane.org>
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Processor states and USB
+Date: Fri, 22 Nov 2002 09:48:04 -0800
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A539@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD04C7A536-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org, Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
+Content-Type: text/plain
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: 'Jan Rychter' <jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Nov 21, 2002 at 06:03:27PM -0800, Grover, Andrew wrote:
-
-> > Well, not directly related to the EC thing but rather to the 
-> > ACPI/sonypi
-> > integration, but maybe you noticed that the sonypi driver also
-> > re-implements some code which is originally defined in the ACPI bios
-> > (SRS, DIS methods on "SPIC" ACPI object). 
-> > 
-> > One day I should really call some ACPI exported function to do this,
-> > but last time I looked at this (3 months ago ?), the ACPI API (the one
-> > exported to external users) was still changing each day. 
+> From: Jan Rychter [mailto:jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org] 
+>    *C3:                  promotion[--] demotion[C2] 
+> latency[100] usage[12803374]
 > 
-> Yeah I think the interface is settling down. You should be able to look at
-> the code in drivers/acpi or drivers/hotplug/acpiphp* for examples.
-
-Ok, thanks.
-
-> >From looking at other Sony ACPI BIOSes I've collected, it appears that SPIC
-> has a hardware ID (HID) in the ACPI namespace. It seems analogous to the
-> Toshiba Laptop Extras device in drivers/acpi.
-
-Indeed.
-
+> Now, whenever the usb-uhci module is loaded, C3 never gets
+> used. C2 is the only state that my CPU is in. If I unload 
+> usb-uhci, the
+> machine starts using C3.
 > 
-> Indeed, I think a sonypi driver that assumes ACPI will be much shorter and
-> look quite different from the current one. 
+> Somebody explained to me that this is because the usb-uhci driver uses
+> DMA transfers to talk to the hardware and poll it for new devices. Is
+> there a patch available that changes this behavior? Anybody found any
+> solutions to this?
 
-Not so sure about that, because only the sonypi device init/free
-make use of ACPI. After that, I still have to use the 'proprietary'
-protocol over the sonypi iports.
+This is a big problem with USB in general that has no easy solutions. It is
+fundamental to the way USB host controllers work that they do busmaster
+activity every 1ms to check their in-memory tasklist. However, since the CPU
+cannot snoop these accesses in C3, it can only go into C2.
 
-It will simplify the code a little, especially when dealing with new
-models which could have a third initialisation way (we already handle
-2 differents Vaio types). 
+The answer used to be "just don't use USB" but obviously this is becoming
+less and less realistic.
 
-But once again, the old code is here to stay, until/if ACPI becomes
-mandatory.
+One more thing: if you use the other USB HC driver, it has support for USB
+Global Suspend. This means that you will be able to have the driver loaded
+and enter C3, but as soon as you insert a device, the same problem will
+occur.
 
-> But since we have resolved the EC
-> contention issues, this need not be addressed immediately.
+Regards -- Andy
 
-Agreed, this is a low priority item, I'll take a look at the
-existent ACPI drivers when I'll have a slow weekend...
 
-Stelian.
--- 
-Stelian Pop <stelian.pop-A5NNTvo2L0pl57MIdRCFDg@public.gmane.org>
-Alcove - http://www.alcove.com
+
+
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
