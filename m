@@ -1,12 +1,15 @@
-From: Arnaldo Carvalho de Melo <acme-KCZ47A4bww4P48s/oLjRZg@public.gmane.org>
-Subject: [PATCH] drivers/acpi/ac.c: convert to seq_file
-Date: Thu, 14 Nov 2002 14:45:42 -0200
+From: Stian Jordet <liste-NI9zH3lwcMKHXe+LvDLADg@public.gmane.org>
+Subject: RE: ACPI patches updated (20021111)
+Date: 14 Nov 2002 19:00:44 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021114164542.GE13639@conectiva.com.br>
+Message-ID: <1037296844.2450.5.camel@chevrolet.hybel>
+References: <EDC461A30AC4D511ADE10002A5072CAD04C7A502@orsmsx119.jf.intel.com>
+	 <1037230113.908.3.camel@chevrolet.hybel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1037230113.908.3.camel-rd0e0RNjLLRX8BKYUJ5quQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,181 +18,97 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linus Torvalds <torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org>, aris-YqEmrenMroyQb786VAuzj9i2O/JbrIOy@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Andrew,
+I did ofcourse mean that this does _not_ seem to be the problem without
+me forcing usb to use irq 5, but perhaps the problem then is that acpi
+and usb use the same irq? Is acpi not supposed to share irq with
+anything?
 
-	Please consider pulling from:
+Regards,
+Stian Jordet
 
-bk://oops.kerneljanitors.org:acpi-2.5
-
-	This is the first in a series of changesets converting
-ACPI to seq_file, please lets us know if something is unacceptable.
-
-	The work was done by Aristeu Rozanski.
-
-- Arnaldo
-
-You can import this changeset into BK by piping this whole message to:
-'| bk receive [path to repository]' or apply the patch as usual.
-
-===================================================================
-
-
-ChangeSet-sINVLoDEOWc@public.gmane.org, 2002-11-13 19:35:45-02:00, aris@cathedrallabs.org
-  drivers/acpi/ac.c: convert to seq_file
-
-
- ac.c |   57 ++++++++++++++++++++++++++-------------------------------
- 1 files changed, 26 insertions(+), 31 deletions(-)
-
-
-diff -Nru a/drivers/acpi/ac.c b/drivers/acpi/ac.c
---- a/drivers/acpi/ac.c	Thu Nov 14 14:20:40 2002
-+++ b/drivers/acpi/ac.c	Thu Nov 14 14:20:40 2002
-@@ -29,6 +29,7 @@
- #include <linux/types.h>
- #include <linux/compatmac.h>
- #include <linux/proc_fs.h>
-+#include <linux/seq_file.h>
- #include "acpi_bus.h"
- #include "acpi_drivers.h"
- 
-@@ -53,6 +54,7 @@
- 
- int acpi_ac_add (struct acpi_device *device);
- int acpi_ac_remove (struct acpi_device *device, int type);
-+static int acpi_ac_open_fs(struct inode *inode, struct file *file);
- 
- static struct acpi_driver acpi_ac_driver = {
- 	.name =		ACPI_AC_DRIVER_NAME,
-@@ -69,6 +71,12 @@
- 	unsigned long		state;
- };
- 
-+static struct file_operations acpi_ac_fops = {
-+	.open		= acpi_ac_open_fs,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
- 
- /* --------------------------------------------------------------------------
-                                AC Adapter Management
-@@ -103,53 +111,40 @@
- 
- struct proc_dir_entry		*acpi_ac_dir = NULL;
- 
--static int
--acpi_ac_read_state (
--	char			*page,
--	char			**start,
--	off_t			off,
--	int 			count,
--	int 			*eof,
--	void			*data)
-+int acpi_ac_seq_show(struct seq_file *seq, void *offset)
- {
--	struct acpi_ac		*ac = (struct acpi_ac *) data;
--	char			*p = page;
--	int			len = 0;
-+	struct acpi_ac		*ac = (struct acpi_ac *) seq->private;
- 
--	ACPI_FUNCTION_TRACE("acpi_ac_read_state");
-+	ACPI_FUNCTION_TRACE("acpi_ac_seq_show");
- 
--	if (!ac || (off != 0))
--		goto end;
-+	if (!ac)
-+		return 0;
- 
- 	if (acpi_ac_get_state(ac)) {
--		p += sprintf(p, "ERROR: Unable to read AC Adapter state\n");
--		goto end;
-+		seq_puts(seq, "ERROR: Unable to read AC Adapter state\n");
-+		return 0;
- 	}
- 
--	p += sprintf(p, "state:                   ");
-+	seq_puts(seq, "state:                   ");
- 	switch (ac->state) {
- 	case ACPI_AC_STATUS_OFFLINE:
--		p += sprintf(p, "off-line\n");
-+		seq_puts(seq, "off-line\n");
- 		break;
- 	case ACPI_AC_STATUS_ONLINE:
--		p += sprintf(p, "on-line\n");
-+		seq_puts(seq, "on-line\n");
- 		break;
- 	default:
--		p += sprintf(p, "unknown\n");
-+		seq_puts(seq, "unknown\n");
- 		break;
- 	}
- 
--end:
--	len = (p - page);
--	if (len <= off+count) *eof = 1;
--	*start = page + off;
--	len -= off;
--	if (len>count) len = count;
--	if (len<0) len = 0;
--
--	return_VALUE(len);
-+	return 0;
-+}
-+	
-+static int acpi_ac_open_fs(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, acpi_ac_seq_show, PDE(inode)->data);
- }
--
- 
- static int
- acpi_ac_add_fs (
-@@ -180,7 +175,7 @@
- 			"Unable to create '%s' fs entry\n",
- 			ACPI_AC_FILE_STATE));
- 	else {
--		entry->read_proc = acpi_ac_read_state;
-+		entry->proc_fops = &acpi_ac_fops;
- 		entry->data = acpi_driver_data(device);
- 	}
- 
-
-===================================================================
+tor, 2002-11-14 kl. 00:28 skrev Stian Jordet:
+> ons, 2002-11-13 kl. 22:30 skrev Grover, Andrew:
+> > > From: Stian Jordet [mailto:liste-NI9zH3lwcMKHXe+LvDLADg@public.gmane.org] 
+> > 
+> > with acpi:
+> > >   5:     269867     266825    IO-APIC-edge  usb-uhci, 
+> > > usb-uhci, usb-uhci
+> > 
+> > without acpi:
+> > >   5:        893        757   IO-APIC-level  Ricoh Co Ltd RL5c476 II
+> > > (#2), usb-uhci, usb-uhci, usb-uhci, eth0, ide2
+> > 
+> > Well, here's the problem. IRQ 5 should be IO-APIC-level.
+> > 
+> > We are supposedly setting irqs used by PCI to level, but apparently not in
+> > your case. Interesting.
+> > 
+> > Regards -- Andy
+> 
+> That seems to be the problem without me forcing usb to irq 5 as well.
+> I set all irq-routing to auto (and it still works perfect without acpi),
+> and get these results:
+> 
+> stianj@chevrolet:~$ cat /root/interrupts-acpi 
+>            CPU0       CPU1       
+>   0:       8587      21835    IO-APIC-edge  timer
+>   1:         51         81    IO-APIC-edge  keyboard
+>   2:          0          0          XT-PIC  cascade
+>   3:          0          2    IO-APIC-edge  serial
+>   8:          1          2    IO-APIC-edge  rtc
+>   9:         93        113   IO-APIC-level  acpi, usb-uhci, usb-uhci, usb-uhci
+>  14:         16         12    IO-APIC-edge  ide0
+>  15:         10          7    IO-APIC-edge  ide1
+>  17:       1123       1104   IO-APIC-level  aic7xxx, EMU10K1
+>  18:         34         36   IO-APIC-level  aic7xxx, Ricoh Co Ltd RL5c476 II
+>  19:         92         81   IO-APIC-level  Ricoh Co Ltd RL5c476 II (#2), eth0,   
+> ide2
+> NMI:          0          0 
+> LOC:      30342      30339 
+> ERR:          0
+> MIS:          0
+> stianj@chevrolet:~$ cat /root/interrupts-no-acpi 
+>            CPU0       CPU1       
+>   0:       3463       4239    IO-APIC-edge  timer
+>   1:         57         28    IO-APIC-edge  keyboard
+>   2:          0          0          XT-PIC  cascade
+>   3:          2          0    IO-APIC-edge  serial
+>   5:         32         38   IO-APIC-level  aic7xxx, Ricoh Co Ltd RL5c476 II
+>   8:          2          1    IO-APIC-edge  rtc
+>   9:         67         72   IO-APIC-level  Ricoh Co Ltd RL5c476 II (#2), usb-uhci, usb-uhci, usb-uhci, eth0, ide2            
+>  10:       1103       1094   IO-APIC-level  aic7xxx, EMU10K1
+>  14:         13         15    IO-APIC-edge  ide0
+>  15:          7         10    IO-APIC-edge  ide1
+> NMI:          0          0      
+> LOC:       7618       7617      
+> ERR:          0                 
+> MIS:          0                 
+> 
+> 
+> But do you think you will find a solution to this? Or is this something I have to learn to live with?
+> 
+> Best regards,
+> Stian Jordet
+> 
+> 
+> 
+> 
+> 
+> -------------------------------------------------------
+> This sf.net email is sponsored by: Are you worried about 
+> your web server security? Click here for a FREE Thawte 
+> Apache SSL Guide and answer your Apache SSL security 
+> needs: http://www.gothawte.com/rd523.html
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
-This BitKeeper patch contains the following changesets:
-1.846
-## Wrapped with gzip_uu ##
-
-
-begin 664 bkpatch5049
-M'XL(`%C-TST``[55;6_:2!#^[/T5<XET`@[,OGB-<8XHE.1ZJ*<&<<VWD]!B
-M+\&*LTOMA5Q5^M^[:P--H-6]J#5HQ\P\\\SL[+/B'.Y*6<2>2!XE.H??=6EB
-M+]%*)B;;"#_1C_Z\L(&IUC;07>I'V7WUIBN25=:A/D<V-!$F6<)&%F7L$9\=
-M/.;#2L;>].;UW1_#*4*#`8R60MW+/Z6!P0`976Q$GI97PBQSK7Q3"%4^2E,5
-MW1Z@6XHQM1].>@SS<$M"'/2V"4D)$0&1*:9!%`8H%9LL[<RO5B*9RSSWE<U\
-MR4$(83ATZY:%M!^A:R!^%(2`:9>0+F%`^C'C<<`[F,88@RBR\BJQW<FT$'DN
-MYJ6OBWOXA4`'HU?P??L?H032(G-3K(9K%S^)P9Z$=1E;#$KY?K;(<HG>``LQ
-M[:')EWFBSG]\$,("HTL0]X6V!:YJHU6>*5GU?]3+*INYANK-,,(IHQ&E6T;[
-MO;X=)TNCD(L^YA$)@^`;DSOFW-&Y$Z&$<19L6<09KY1R`G6*^2'-_FO6/6&?
-M8A)Q@GM;:HE[E8P(/E81"_Y!132$#B,_1$??$$TUW%OH%$_5UXI@<CKG_Z&D
-M,2-`T'FFDGR=2OC5#G#]=W=?V5]>HC'G%E$:8;($,F5@=T8SO9)JMB@;I2G6
-MB;$A;0E:E6G#SNE(H.76Y@4:]PB$>Z9G`,=46*=6Y8%\H5<E#.`C\GQ7Q_,&
-MQW7;-E1(D;J0Z]>].U^>EU(^[+W5CQJ:2U%*Y\[4O2VZ<[31IPMT37`($1H3
-M)P'T?)..HUSJI_TN]Y.!EGUKPT9G*;3T8E%*T[0TA`-S-#U+X^U2=E2>UQ+V
-M)D#CI1M:34?:N5S9TQ1&NF9(WZ:/:^,-1Y/Q[+>[MZ-WX]NWLW?3X>BF<7;<
-MWEG3Y5$"U.91:HV7+:#QDTB:R/,*:=:%`EQA>(T)'<9S^:NUL8?H=G-V,YW>
-M3F.X4V)NMV@EZ(8*PQ$,4[$RL@!W>/(OY<H=T=8M5^:8M4J*X?2INV:T2JW,
-M24=VM!UWJ>N:%LQK,/\J6+W$1C4V^AIVK1Z4?E)[;$"A;[$<6X4^V]@GY'T'
-MZ:./!\Z=^!Q!P\7:)TIKP^3ZIE%Q-3N7J3"B:I"[\5R3B%5[JHSG266*#TXZ
-C^G!C?GY^@RZ^_,4G2YD\E.O'03"?)SSB`?H,4J``R#X(````
-`
-end
 
 
 -------------------------------------------------------
