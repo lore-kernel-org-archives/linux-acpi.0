@@ -1,7 +1,7 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: 2.6.9 battery status  regression ? [was RE: Battery status wrong from 2.6.7 when running on batteries]
-Date: Tue, 16 Nov 2004 17:20:24 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC079@pdsmsx403>
+Subject: RE: Battery Information in 20041105
+Date: Tue, 16 Nov 2004 17:57:40 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC07B@pdsmsx403>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="gb2312"
@@ -17,15 +17,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
-Cc: Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Peter.Fruehberger-zqRNUXuvxA0b1SvskN2V4Q@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: "Fu, Michael" <michael.fu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-I just find out the changes that could affect this area. And has =
-attached=20
-at bug 3678. I hope you guys can verify if it is a regression.=20
+What could happen if revert the following patcheset.
 
-Not sure reboot or Lid issue.=20
+http://linux-acpi.bkbits.net:8080/26-latest-test/patch@1.1803.162.10?nav=3D=
+index.html|src/.|src/include|src/include/acpi|related/include/acpi/acconf=
+ig.h|cset@1.1803.162.10
+
+Maybe you need to narrow the issue down.=20
+If you can point out what was exactly breaking, I think the fix can be =
+worked out quickly.=20
+As for regression,  narrowing issue down to small wrong patch can help =
+developer significantly.
 
 Thanks
 Luming=20
@@ -33,37 +39,82 @@ Luming=20
 >-----Original Message-----
 >From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
 >[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
->Karol Kozimor
->Sent: 2004=C4=EA11=D4=C27=C8=D5 8:13
->To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
->Cc: Fred Labrosse; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: Re: [ACPI] Battery status wrong from 2.6.7 when=20
->running on batteries
+>Peter.Fruehberger-zqRNUXuvxA0b1SvskN2V4Q@public.gmane.org
+>Sent: 2004=C4=EA11=D4=C216=C8=D5 16:52
+>To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: [ACPI] Battery Information in 20041105
 >
->Thus wrote hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org:
->> There is a bad workaround for our laptops: If you close the=20
->lid, it will=20
->> not restart. That is a protective rule in the BIOS that=20
->should prevent the=20
->> laptop to start while in it's covered in its bag (I suppose).
+>Hi,
+>just want to report, that acpi version 20041105 does not show=20
+>my battery
+>info correct:
 >
->That, or there's some sort of PM (APM stand-by?) going on when=20
->the lid is
->closed _and_ ACPI is off. Try booting with acpi=3Doff and close=20
->the lid --
->see particularly if the NIC responds or if the timer interrupts go off.
->Best regards,
+>#latest acpi version
+>version:                 20041105
+>alarm:                   2689 mWh
+>present:                 yes
+>design capacity:         57600 mWh
+>last full capacity:      53790 mWh
+>battery technology:      rechargeable
+>design voltage:          14400 mV
+>design capacity warning: 2689 mWh
+>design capacity low:     200 mWh
+>capacity granularity 1:  1 mWh
+>capacity granularity 2:  1 mWh
+>model number:            49 42 4D 2D 30 32 4B 36 39 32 38 00=20
+>00 00 00 00
+>serial number:           20 31 35 32 36 00
+>battery type:            4C 49 4F 4E 00
+>OEM info:                50 61 6E 61 73 6F 6E 69 63 00 30 32=20
+>00 00 00 00
+>present:                 yes
+>capacity state:          ok
+>charging state:          charged
+>present rate:            0 mW
+>remaining capacity:      53790 mWh
+>present voltage:         16629 mV
 >
->--=20
->Karol 'sziwan' Kozimor
->sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+>
+>#here the vanilla 2.6.9 version:
+>version:                 20040816
+>alarm:                   2689 mWh
+>present:                 yes
+>design capacity:         57600 mWh
+>last full capacity:      53790 mWh
+>battery technology:      rechargeable
+>design voltage:          14400 mV
+>design capacity warning: 2689 mWh
+>design capacity low:     200 mWh
+>capacity granularity 1:  1 mWh
+>capacity granularity 2:  1 mWh
+>model number:            IBM-02K6928
+>serial number:            1526
+>battery type:            LION
+>OEM info:                Panasonic
+>present:                 yes
+>capacity state:          ok
+>charging state:          charged
+>present rate:            0 mW
+>remaining capacity:      53790 mWh
+>present voltage:         16629 mV
+>
+>Model Number, serial number, battery type and OEM info are not=20
+>displayed
+>correct I think
+>
+>kernel version: 2.6.9 vanilla
+>Hardware: IBM Thinkpad R40 2722-B3G
+>
+>Peter
+>
+>
 >
 >
 >-------------------------------------------------------
->This SF.Net email is sponsored by:
->Sybase ASE Linux Express Edition - download now for FREE
->LinuxWorld Reader's Choice Award Winner for best database on Linux.
->http://ads.osdn.com/?ad_id=3D5588&alloc_id=3D12065&op=3Dclick
+>This SF.Net email is sponsored by: InterSystems CACHE
+>FREE OODBMS DOWNLOAD - A multidimensional database that combines
+>robust object and relational technologies, making it a perfect match
+>for Java, C++,COM, XML, ODBC and JDBC. www.intersystems.com/match8
 >_______________________________________________
 >Acpi-devel mailing list
 >Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
