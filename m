@@ -1,10 +1,12 @@
 From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Bad battery regression on Dell D600 from 2.6.10-rc2-bk9 to 2.6.10-rc2-bk10
-Date: Fri, 4 Feb 2005 17:00:20 +0100
-Message-ID: <20050204160020.GB10316@message-id.gmane0305.slipkontur.de>
+Subject: Re: Samsung P35, S3, black screen (radeon)
+Date: Fri, 4 Feb 2005 16:50:38 +0100
+Message-ID: <20050204155038.GA10316@message-id.gmane0305.slipkontur.de>
+References: <20050122134205.GA9354@wsc-gmbh.de> <4201825B.2090703@gmx.net> <e796392205020221387d4d8562@mail.gmail.com> <420217DB.709@gmx.net> <20050203225033.GA1110@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <20050203225033.GA1110-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,43 +19,14 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi.
+On Thu, Feb 03, 2005 at 11:50:33PM +0100, Pavel Machek wrote:
 
-I know the dell d600 is a pretty big pile of junk when it comes to the
-ACPI battery code in its DSDT, because:
+> Perhaps better solution than /proc export is identifying notebooks
+> using DMI?
 
-seife@strolchi:~> time cat /proc/acpi/battery/BAT0/info
-present:                 yes
-design capacity:         53000 mWh
-last full capacity:      49250 mWh
-battery technology:      rechargeable
-design voltage:          11100 mV
-design capacity warning: 3000 mWh
-design capacity low:     1000 mWh
-capacity granularity 1:  200 mWh
-capacity granularity 2:  200 mWh
-model number:            DELL Y13384
-serial number:           2422
-battery type:            LION
-OEM info:                Sanyo
-
-real    0m0.201s
-user    0m0.001s
-sys     0m0.185s
-
-0.2 seconds where the system is basically dead (cpu at 600 mhz, with full
-speed CPU it gets faster, but i don't want to burn my battery just to read
-out the info) is a long time to read out the battery info.
-
-Now since 2.6.10-rc2-bk10, it takes _1.2 seconds_, i repeat: 1200 miliseconds
-to read out the battery info. I _think_ (not sure, i am on the road right now
-and i have of course instantaneously removed that -bk10 again) this change
-coincides with the new ACPI code, 20050125 or so, the kernel i am running now
-(based on rc2-bk3) has 20041210.
-
-Is anyone else seeing this?
-And yes, i am all for putting in those patches that let us sleep during ec
-controller access :-)
+Just put the /proc/ (or /sys) switch in, userpace can deal with DMI-
+identifying then. No need to bloat the Kernel IMO. And such a list
+is always incomplete.
 -- 
 Stefan Seyfried
 
