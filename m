@@ -1,57 +1,49 @@
-From: John Belmonte <john-wanGne27zNesTnJN9+BGXg@public.gmane.org>
-Subject: Re: first shoot for smartbattery (was Re: Re: i2c-acpi-ec.c)
-Date: Sat, 01 Jan 2005 14:21:10 -0500
-Message-ID: <41D6F826.8090906@neggie.net>
-References: <20041231092156.GA612@phys.ethz.ch> <41D56002.5060008@mega.ist.utl.pt> <20041231150724.GK19199@poupinou.org> <20041231181628.GL19199@poupinou.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [ACPI] kernel 2.6.10 , uhci-hcd problem after ACPI S3 suspend.
+Date: Sat, 1 Jan 2005 18:57:15 +0100
+Message-ID: <20050101175715.GA1345@elf.ucw.cz>
+References: <pan.2004.12.28.12.28.29.262637@yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041231181628.GL19199-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-devel-admin@lists.sourceforge.net>
+Content-Disposition: inline
+In-Reply-To: <pan.2004.12.28.12.28.29.262637@yahoo.com>
+Sender: linux-usb-devel-admin@lists.sourceforge.net
+Errors-To: linux-usb-devel-admin@lists.sourceforge.net
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
+	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Post: <mailto:linux-usb-devel@lists.sourceforge.net>
+List-Help: <mailto:linux-usb-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
+	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-usb-devel>
+To: Paul Ionescu <i_p_a_u_l@yahoo.com>
+Cc: acpi-devel@lists.sourceforge.net, linux-usb-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-Do you think your driver can be used to reset battery pack state?
+Hi!
 
-I replaced the cells in my Toshiba battery pack, but the "last full 
-capacity" is still stuck at the value from the old cells, and the 
-"remaining capacity" seems to get clamped to this low value.  I heard 
-that it might be possible to reset this using i2c.
+> With kernel 2.6.10, I have the following problem with uhci_hcd:
+> After an ACPI S3 suspend it fails to see any USB device plugged in.
+> If I unload the module and load it again, it works again.
+> I hadn't this problem with previous kernels, where it worked just fine.
+> Do you know something that changed between 2.6.9 and 2.6.10 that could
+> lead to this behavior ?
+> It is ACPI or USB fault ?
 
-Regards,
--John
-
-
-Bruno Ducrot wrote:
-> On Fri, Dec 31, 2004 at 04:07:24PM +0100, Bruno Ducrot wrote:
-> 
->>I'm polishing i2c-acpi-ec right now.  Stay tunned.
-> 
-> 
-> It's not yet really polished as I wanted, but well I don't have
-> time to finish this due to, huh, ..., private stuff this night.
-> 
-> its should give people rough idea what will happens.
-> 
-> You can find this at http://www.poupinou.org/acpi/smartbatt/
-> Take one of the smartbatt.tar.{gz,bz2} and follow the README after
-> unpacking it, and hopefully a ./smartbatt will give you correct battery
-> informations (who knows).
-> 
-> happy new year!
+Does it work after swsusp? Can you try unloading module before suspend
+and reloading it after resume?
+								Pavel
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
 The SF.Net email is sponsored by: Beat the post-holiday blues
 Get a FREE limited edition SourceForge.net t-shirt from ThinkGeek.
 It's fun and FREE -- well, almost....http://www.thinkgeek.com/sfshirt
+_______________________________________________
+linux-usb-devel@lists.sourceforge.net
+To unsubscribe, use the last form field at:
+https://lists.sourceforge.net/lists/listinfo/linux-usb-devel
