@@ -1,46 +1,42 @@
-From: Arjan van de Ven <arjanv@redhat.com>
-Subject: Re: [ACPI] Re: [PATCH/RFC] exposing ACPI objects in sysfs
-Date: Tue, 21 Sep 2004 21:21:22 +0200
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH/RFC] exposing ACPI objects in sysfs
+Date: Tue, 21 Sep 2004 21:31:04 +0200
 Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <1095794482.21532.17.camel@laptop.fenrus.com>
-References: <1095716476.5360.61.camel@tdi>
-	 <20040921122428.GB2383@elf.ucw.cz> <1095785315.6307.6.camel@tdi>
-	 <20040921172625.GA30425@elf.ucw.cz>  <20040921190606.GE18938@wotan.suse.de>
-	 <1095794035.24751.54.camel@tdi>
-Reply-To: arjanv@redhat.com
+Message-ID: <20040921193104.GC30425@elf.ucw.cz>
+References: <1095716476.5360.61.camel@tdi> <20040921122428.GB2383@elf.ucw.cz> <1095785315.6307.6.camel@tdi> <20040921172625.GA30425@elf.ucw.cz> <1095789614.24751.31.camel@tdi>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-2Uc9tMqMO7Ykamqqpj04"
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S267993AbUIUTWE@vger.kernel.org>
-In-Reply-To: <1095794035.24751.54.camel@tdi>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S268010AbUIUTbW@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1095789614.24751.31.camel@tdi>
 To: Alex Williamson <alex.williamson@hp.com>
-Cc: Andi Kleen <ak@suse.de>, Pavel Machek <pavel@ucw.cz>, acpi-devel <acpi-devel@lists.sourceforge.net>, linux-kernel <linux-kernel@vger.kernel.org>
+Cc: acpi-devel <acpi-devel@lists.sourceforge.net>, linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi!
 
---=-2Uc9tMqMO7Ykamqqpj04
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+>    So, I think the library wrapper will need to deal with the 32/64 bit
+> problem or we'll have to translate data structures to strictly defined
+> sizes.  Any other thoughts on how this could be done?  I'm concerned
+> about alignment issues too, so this is definitely an area that could use
+> some work.
 
-On Tue, 2004-09-21 at 21:13, Alex Williamson wrote:
-> this interface.  They are not actually pointers.  I believe the 32bit
-> emulation problem is limited to an ILP32 application generating data
-> structures appropriate for an LP64 kernel.  While difficult, it can be
-> done.
+You can't count on library. On 32-bit only system, noone will debug
+the library. Then 64-bit extensions came. 64-bit kernel has to be
+binary compatible with 32-bit applications.
 
-more like a LP64 kernel getting data structures a ILP32 application
-generated and needing to make sense of it.
+> > Perhaps ioctl is really right thing to use here? read() should not
+> > have side effects and it solves 32/64 bit problem.
+> 
+>    If it solved the entire 32/64 bit problem, an ioctl would probably be
+> the right choice.  But it doesn't AFAICT.  I also like how this
+> implementation fits into the existing ACPI sysfs tree and that you can
+> get useful info simply by cat'ing a file.  Thanks,
 
-
---=-2Uc9tMqMO7Ykamqqpj04
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQBBUH8xxULwo51rQBIRAqrpAKCeJmEwOddXdiEtgTBEDTbTzWbP9gCfXWqf
-9mVJFTj2nLLH3lcEHoJU9n0=
-=yhfj
------END PGP SIGNATURE-----
-
---=-2Uc9tMqMO7Ykamqqpj04--
+Well, you also get nasty sideeffects by simply catting the
+file. ioctl() does not solve entire 32/64 bit problem, but it at least
+makes the problem solvable.
+								Pavel
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
