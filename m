@@ -1,11 +1,11 @@
-From: <adavies100-iTpHoUJSAz2oECsaD+WFmw@public.gmane.org>
-Subject: Re: Approved
-Date: Tue, 19 Aug 2003 17:08:03 +0200
+From: <jdmulete-VsqqI1RANlHk1uMJSBkQmQ@public.gmane.org>
+Subject: Re: Re: My details
+Date: Tue, 19 Aug 2003 16:11:06 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E19p85l-0001Xr-00@sc8-sf-list1.sourceforge.net>
+Message-ID: <E19p7Cb-00061U-UR@externalmx.vasoftware.com>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
-	boundary="_NextPart_000_00AC8D0C"
+	boundary="_NextPart_000_00785E44"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -20,18 +20,18 @@ List-Id: linux-acpi@vger.kernel.org
 
 This is a multipart message in MIME format
 
---_NextPart_000_00AC8D0C
+--_NextPart_000_00785E44
 Content-Type: text/plain;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 
-See the attached file for details
---_NextPart_000_00AC8D0C--
+Please see the attached file for details.
+--_NextPart_000_00785E44--
 
 
 
 -------------------------------------------------------
-This SF.Net email sponsored by: Free pre-built ASP.NET sites including
-Data Reports, E-commerce, Portals, and Forums are available now.
-Download today and enter to win an XBOX or Visual Studio .NET.
-http://aspnet.click-url.com/go/psa00100003ave/direct;at.aspnet_072303_01/01
+This SF.net email is sponsored by Dice.com.
+Did you know that Dice has over 25,000 tech jobs available today? From
+careers in IT to Engineering to Tech Sales, Dice has tech jobs from the
+best hiring companies. http://www.dice.com/index.epl?rel_code=104
