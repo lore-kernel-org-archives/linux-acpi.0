@@ -1,13 +1,14 @@
-From: <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
-Subject: PROBLEM: Executing /sbin/hwclock hangs 2.4.21-rc[12] with ACPI
- snapshot patches
-Date: Wed, 28 May 2003 22:25:54 +0200 (CEST)
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Re: Re: DSDT in initrd
+Date: Wed, 28 May 2003 22:36:17 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.33.0305282220030.737-100000@frog.athome>
-Reply-To: <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
+Message-ID: <20030528203617.GA244@elf.ucw.cz>
+References: <F760B14C9561B941B89469F59BA3A84725A2C3@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <F760B14C9561B941B89469F59BA3A84725A2C3-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,43 +17,50 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi!
 
-Please add to the above mentioned thread - sorry I only got the thread
-from the archive...
+> > > > > What this enables is not only an elimination of the hassle 
+> > > > of initrd, it
+> > > > > enables previously unmodularizable things like ACPI, or 
+> > > > PCI, or all the
+> > > > > special code needed for x86 subarchs, or whatever other 
+> > > > code that one
+> > > > 
+> > > > subarchs are different issue. They can't
+> > > > be modularized without runtime overhead.
+> > > 
+> > > How much runtime overhead?
+> > 
+> > Hard to tell... It might be 10% in heavy-interrupt-load situation...
+> 
+> Can you help me understand more about why this might be? Why would
+> modularized code be a performance hit over statically linked? 
 
-I like to add the following:
- The probem started with the acpi-patch for kernel 2.4.21-rc1. It is not a
-kernel problem...
-I compiled several acpi-patched versions of the kernel 2.4.21-rc3 starting
-with the acpi-patch for -pre6, which does not show the problem. So it was
-introduced with acpi-20030424-2.4.21-rc1.diff.gz
+There's a *lot* of small inline functions, look at mach_apic.h. You probably
+don't want them to be called using function pointer.
 
-So we should search, what has changed for the -rc1-acpi release.
+Note note note: I'm not 100% convinced the pointer dereference is
+going to be noticable. I guess you have to talk to NUMAQ people to get
+the answers...
 
-BTW.: My system is a acer TM 634, with Ali-chipset for an p4-mobile.
+> I was
+> assuming there would be another pointer dereference perhaps but that
+> certainly is not going to be noticed. We already have drivers in
+> modules, I'm trying to understand how for example a hi-perf nic driver
+> performs the same when modularized but subarch stuff wouldn't, when I'm
+> assuming it would just be like a "driver" for the particular
+> peculiarities of the platform.
 
-regards
-  hartwig felger
-
-Hartwig Felger informatics
-
-- -- 
-1024D/339FD693 Hartwig Felger <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
-Key fingerprint = FB2F 3EE9 345A D55B 6FF2  0EC1 F5B0 684F 339F D693
-For the pulic keys, please visit my page.
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-
-iD8DBQE+1RtZ9bBoTzOf1pMRAnNIAJ4+8SqIAjeCvR3S2mZDxDebxg7QYwCfYPhG
-L1l3Nj8/K+uIYvAeTD7+UMc=
-=ZVc7
------END PGP SIGNATURE-----
-
+Because in each interrupt NIC has to be talked to once, but apic has
+to be talked to few times?
+								Pavel
+-- 
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
 
 
 -------------------------------------------------------
