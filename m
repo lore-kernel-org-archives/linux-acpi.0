@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Nforce2 crashes
-Date: Fri, 17 Oct 2003 13:23:13 +0200
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: eisa_set_level_irq(acpi_fadt.sci_int)
+Date: Fri, 17 Oct 2003 17:41:07 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031017112313.GC7738@elf.ucw.cz>
-References: <200310170722.AAA71496@smtp08.phx.gblx.net>
+Message-ID: <20031017154107.GI8668@poupinou.org>
+References: <1066254483.2535.51.camel@dhcppc4>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200310170722.AAA71496-cEaiEdr7iMHEOYAad6Za0NHuzzzSOjJt@public.gmane.org>
+In-Reply-To: <1066254483.2535.51.camel-D2Zvc0uNKG8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,32 +17,30 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Mark and Loretta Goldberg <goldber-sy4M0opG+ma2PmBBfd0Sh6xOck334EZe@public.gmane.org>
-Cc: "acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi <linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-
-> I've got a FIC AU13, Athlon 2500+, 1 GB Dual Channel PC3200 DDR, 2.4.22 kernel.
+On Wed, Oct 15, 2003 at 05:48:04PM -0400, Len Brown wrote:
+> What does eisa_set_level_irq() do for us?
 > 
-> If APIC support is compiled in, the machine crashes once or twice per day, solid lockup, hard reboot needed.
-> If APIC support is not compiled in, it has been fine for weeks.
+> As its presence breaks the !CONFIG_PCI build, I deleted it and found
+> that ACPI in PIC mode seems to work just fine without it (at least on 2
+> of 2 systems tested so far)
+> 
 
-> If anyone is interested,  what can I send to troubleshoot the
-> problem?
-
-Well, patch to dmi_detect nforce2 and panic machine at boot if APIC is
-enabled would be welcome. See arch/i386/kernel/dmi_scan.c.
-
-									Pavel
+This ensure SCI interrupt is correctly initialized for (poorly) written
+BIOS.  Without it, this break one of my laptop, and certainly others as well.
 
 -- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+Ducrot Bruno
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
-This SF.net email is sponsored by: SF.net Giveback Program.
-SourceForge.net hosts over 70,000 Open Source Projects.
-See the people who have HELPED US provide better services:
-Click here: http://sourceforge.net/supporters.php
+This SF.net email sponsored by: Enterprise Linux Forum Conference & Expo
+The Event For Linux Datacenter Solutions & Strategies in The Enterprise 
+Linux in the Boardroom; in the Front Office; & in the Server Room 
+http://www.enterpriselinuxforum.com
