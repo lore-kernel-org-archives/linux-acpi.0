@@ -1,68 +1,62 @@
-From: Pavel Machek <pavel@suse.cz>
+From: Patrick Mochel <mochel@osdl.org>
 Subject: Re: [2.5.50, ACPI] link error
-Date: Fri, 6 Dec 2002 01:06:18 +0100
+Date: Thu, 5 Dec 2002 18:05:57 -0600 (CST)
 Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20021206000618.GB15784@atrey.karlin.mff.cuni.cz>
-References: <20021205224019.GH7396@atrey.karlin.mff.cuni.cz> <Pine.LNX.4.33.0212051632120.974-100000@localhost.localdomain>
+Message-ID: <Pine.LNX.4.33.0212051752060.974-100000@localhost.localdomain>
+References: <20021206000618.GB15784@atrey.karlin.mff.cuni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.33.0212051632120.974-100000@localhost.localdomain>
-To: Patrick Mochel <mochel@osdl.org>
+In-Reply-To: <20021206000618.GB15784@atrey.karlin.mff.cuni.cz>
+To: Pavel Machek <pavel@suse.cz>
 Cc: kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <acpi-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
 
-> > > Doesn't that imply your fix is broken to begin with?
-> > 
-> > ACPI/S4 support needs swsusp. ACPI/S3 needs big part of
-> > swsusp. Splitting CONFIG_ACPI_SLEEP to S3 and S4 part seems like
-> > overdesign to me, OTOH if you do the work it is okay with me.
+> > S3 support is a subset of what is need for S4 support. 
 > 
-> You broke the design. S3 support was developed long before swsusp was in 
-> the kernel, and completely indpendent of it. It should have remained that 
-> way. 
+> That's not true. acpi_wakeup.S is nasty piece of code, needed for S3
+> but not for S4. Big part of driver support is only needed for S3.
+
+Ok, acpi_wakeup.S is only for S3.
+
+As for drivers, I'm dubious of swsusp's handling of device and driver
+support. A suspend cycle is supposed to leave devices in the same state
+they were in before the cycle.  So, you need suspend and resume hooks in
+the drivers, even for S4 support, to capture and restore context in the
+devices themselves. Then again, I've no proof that swsusp doesn't get 
+everything right as is.
+
+> > CONFIG_ACPI_SLEEP should give you S3 support, and the ACPI side of S4 
+> > support. 
 > 
-> S3 support is a subset of what is need for S4 support. 
+> What's ACPI side of S4 good for when you can not do S4?
 
-That's not true. acpi_wakeup.S is nasty piece of code, needed for S3
-but not for S4. Big part of driver support is only needed for S3.
+To not litter the code with #ifdefs. 
 
-> swsusp is an implementation of S4 support. In theory, there could be 
-> multiple implementations that all use the same core (saving/restoring 
-> state). 
-
-There were patches for S4bios floating around, but it never really
-worked, IIRC.
-
-> There could also be different power management schemes that use swsusp as 
-> an implementation for suspend-to-disk. But, that's another tangent. 
+> > The comment in the config option should tell the user that they 
+> > must choose a suspend implementation (e.g. CONFIG_SUSPEND, which should 
+> > prolly be CONFIG_SWAP_SUSPEND) in order to get complete S4 support. (The 
+> > ACPI side can make an empty call to swsusp if no implementation is 
+> > selected). 
 > 
-> CONFIG_ACPI_SLEEP should give you S3 support, and the ACPI side of S4 
-> support. 
+> S3 needs process stopper from kernel/suspend.c. I did not want to have
+> #ifdefs all over suspend.c...
 
-What's ACPI side of S4 good for when you can not do S4?
+Then break it up into separate files in a separate directory.
 
-> The comment in the config option should tell the user that they 
-> must choose a suspend implementation (e.g. CONFIG_SUSPEND, which should 
-> prolly be CONFIG_SWAP_SUSPEND) in order to get complete S4 support. (The 
-> ACPI side can make an empty call to swsusp if no implementation is 
-> selected). 
+> > Some time ago, I made a BK repo for suspend support. I axed it, since no 
+> > one ever used it. But, it's back again, and I'll be integrating your 
+> > patches and try to dedicate a few extra cycles to resolving some of the 
+> > issues. I'll send an announcement to the list once I've integrated your 
+> > patches. 
+> 
+> I probably will not persuade you to make it CVS, right? [Sorry, I'm
+> not going to touch bitkeeper.]
 
-S3 needs process stopper from kernel/suspend.c. I did not want to have
-#ifdefs all over suspend.c...
+I know, and that's fine. I won't touch CVS again, unless there's a hefty 
+sum and a lot of good beer involved. (Or, after I've consumed a lot of 
+good beer). Patches can be made from the repo, most easily after merging 
+to a new kernel version.
 
-> Some time ago, I made a BK repo for suspend support. I axed it, since no 
-> one ever used it. But, it's back again, and I'll be integrating your 
-> patches and try to dedicate a few extra cycles to resolving some of the 
-> issues. I'll send an announcement to the list once I've integrated your 
-> patches. 
-
-I probably will not persuade you to make it CVS, right? [Sorry, I'm
-not going to touch bitkeeper.]
-								Pavel
--- 
-Casualities in World Trade Center: ~3k dead inside the building,
-cryptography in U.S.A. and free speech in Czech Republic.
+	-pat
