@@ -1,14 +1,13 @@
-From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Subject: Re: suspend-to-ram hangs on HP NX7010
-Date: Wed, 9 Jun 2004 16:25:12 +0100
+From: "Lucien Sheridan" <lucien.sheridan_hl-v9Y51zrMt1/3fQ9qLvQP4Q@public.gmane.org>
+Subject: Powerful weightloss now available for you.
+Date: Wed, 09 Jun 2004 18:43:31 -0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040609152512.GB24864@parcelfarce.linux.theplanet.co.uk>
-References: <3ACA40606221794F80A5670F0AF15F8404991407@pdsmsx403> <40C72816.70908@drzeus.cx>
+Message-ID: <0ff601c44e62$8c5be5ac$7b18b23b@catalyst.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <40C72816.70908-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,37 +16,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pierre Ossman <drzeus-list-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org>
-Cc: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jun 09, 2004 at 05:09:10PM +0200, Pierre Ossman wrote:
-> # dmidecode 2.2
-> SMBIOS 2.3 present.
-> 17 structures occupying 752 bytes.
-> Table at 0x000F17CC.
-[...]
-> Handle 0x0004
-> 	DMI type 4, 35 bytes.
-> 	Processor Information
-> 		Socket Designation: U10
-> 		Type: Central Processor
-> 		Family: Itanium 2
+Hello, I have a special_offer for you...
+WANT TO LOSE WEIGHT?
+The most powerful weightloss is now available
+without prescription. All natural Adipren720
+100% Money Back Guarantée!
+- Lose up to 19% Total Body Weight.
+- Up to 300% more Weight Loss while dieting.
+- Loss of 20-35% abdominal Fat.
+- Reduction of 40-70% overall Fat under skin.
+- Increase metabolic rate by 76.9% without Exercise.
+- Boost your Confidence level and Self Esteem.
+- Burns calorized fat.
+- Suppresses appetite for sugar.
+Get the facts about all-natural Adipren720 <http://3adipren.com/>
 
-*boggle*.
 
-> 		Manufacturer: Intel(R)
-> 		ID: 95 06 00 00 BF F9 E9 A7
-> 		Version: Intel(R) Pentium(R) M processor 1600MHz        
-> 		Voltage: 1.8 V
 
--- 
-"Next the statesmen will invent cheap lies, putting the blame upon 
-the nation that is attacked, and every man will be glad of those
-conscience-soothing falsities, and will diligently study them, and refuse
-to examine any refutations of them; and thus he will by and by convince 
-himself that the war is just, and will thank God for the better sleep 
-he enjoys after this process of grotesque self-deception." -- Mark Twain
+---- system information ----
+might zh-Hant set information different identification more-specific services
+
+end rely Internationalization field internationalization respect of who
+
+employ Localization] future requests transport properties do Cases 
+correctly categories status software POSIX services result architecture
+
+Group's formatting Content-Language interaction Provider's difficult shorthand
+your 
+
 
 
 -------------------------------------------------------
