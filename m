@@ -1,14 +1,14 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: ASUS M3N and sleep states
-Date: Tue, 30 Dec 2003 21:56:36 +0100
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Network failures with ACPI enabled (kernel 2.4, 2.6) PROBLEM FOUND!!!!!!
+Date: Tue, 30 Dec 2003 16:17:47 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031230205636.GB17344@hell.org.pl>
-References: <3FED7289.1070201@pca.it> <20031227215137.GA28438@hell.org.pl> <3FF1CD0D.6030602@pca.it>
+Message-ID: <BF1FE1855350A0479097B3A0D2A80EE0CC8953@hdsmsx402.hd.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3FF1CD0D.6030602-wlebWZzHoyE@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,45 +17,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Michael Guntsche <mike-Z92qn3yYq0hWk0Htik3J/w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Luca Capello:
-> About the PWRF event, I sent this mail to the 'acpid' author: it seems
-> that any button you press to resume from S1 (so even not the
-> power-button), the 'acpid' generates a PWRF event. This should be avoid,
-> I mean, it seems that this happens only in S1 state and not in S3.
+> > The broadcom card gets IRQ 5 and the Xircom card gets IRQ3.
+> > Both IRQ are non-shared. Well IRQ 5 was shared with USB, but for
+> > testing purposes I removed the USB modules.
 
-It's got nothing to do with acpid, it's just a userspace daemon, anyway.
-The real problem is either somewhere in BIOS (and no, it's not in the AML
-either) or in the ACPI code. For the record, I get the PWRF also after S3.
+Can you put the xircom in the slot where the broadcom lived and
+See if it too gets IRQ5 and fails with the EPP set to OFF?
 
-And no, I'm not pressing the power button to resume.
+Doing so would suggest that this failure is device independent
+and IRQ related.
 
-> About the ALSA problem, maybe the *real* problem is related to the fact
-> that I've an 'osl-0892/semaphore' error in my 'dmesg' and at boot when
-> trying to load ALSA drivers (but they work without any problems): IIRC
-> this is a known problem on ASUS Centrino laptops (I'm sure at least on
-> ASUS M3N) and AFAIK there's no solution ATM.
+> You won't believe me but I found out what was causing the problem.
+> Since I never use the parallel port on this notebook I turned=20
+> it OFF in the BIOS.
+> Setting it to AUTOMATIC mode solved my issues.
 
-ALSA's suspend / resume support is not really complete, judging on my
-experience. My impression is that it currently "works" by chance on my
-machine (ICH3M - CS4299).
+> The Linux-ACPI still has a problem somewhere since I don't see the
+> network timeouts in WinXP, if I turn off the parport.
+> For me it looks like that the parport and the internal card share
+> something, either ACPI or hardware wise and by turning off the parport
+> the network card somehow changes too.
 
-> | Kill X and unload AGP or use Nigel's patches from swsusp.sf.net.
-> I answered in the Pavel's mail about AGP/DRM modules. Question: the
-> Nigel's patches let you leave the AGP modules on?
+It may be I/O port ranges rather than IRQs at the bottom of this one.
 
-Well, basically, yes, i.e. I'm able to suspend and resume with a DRI app
-running, but that's with Radeon-specific patches to the DRM and DRI
-modules. On the other hand, even with those patches both pmdisk and Pavel's
-swsusp would reboot at resume if X was running during suspend.
-Best regards,
-
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+-Len
 
 
 -------------------------------------------------------
