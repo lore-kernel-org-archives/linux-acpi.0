@@ -1,14 +1,14 @@
-From: "Jose Bernardo Silva" <jbs-RxTL4PDuTKm/RHH9vPZxQFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [Acpi4asus-user] Processor frequency control on ASUS laptops
-Date: Fri, 25 Jul 2003 18:16:35 +0000
+From: David G Hamblen <dave-RfZrpLcwWZ/QT0dZR+AlfA@public.gmane.org>
+Subject: Re: S3 wakeup code
+Date: Fri, 25 Jul 2003 14:04:02 -0400 (EDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030725181343.M38564@bandos.homelinux.com>
-References: <20030725181031.GA19588@hell.org.pl>
+Message-ID: <Pine.LNX.4.44.0307251356530.1520-100000@puppy.afrinc.com>
+References: <20030725175625.GC1526@hell.org.pl>
+Reply-To: dave-wr1Qx4d9ef7QT0dZR+AlfA@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=iso-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030725181031.GA19588-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+In-Reply-To: <20030725175625.GC1526-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,60 +17,40 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Sebastian Henschel <shensche-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>, "Rainer M." <rmuehlhoff-52dn/g0OV9M@public.gmane.org>, "Carlo E. Prelz" <fluido-1XNsQiTun9D1P9xLtpHBDw@public.gmane.org>
+To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Florian Lohoff <flo-BCn6idZOOBwdnm+yROfE0A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Well, the cpufreqd daemon/cpufreq patch (for 2.4.21) managed to give my L2D
-(Mobile Athlon 4 1.600+) only some hard hangs, and random locks... I had to
-give up on them. And since I was unable to get 2.6.0-test1 to work acceptably
-with devfsd...
-I also have the latest acpi patches for 2.4.21, and that didn't help too.
+On Fri, 25 Jul 2003, Karol Kozimor wrote:
 
-Too bad, because the powernow windows driver manages to squeeze a few hours
-out of the battery.
+> Thus wrote David G Hamblen:
+> > standby properly; so I assume that the ACPI tables can be driven by the
+> > OS.  Perhaps something along the lines of the asus_acpi code?
+>
+> The asus_acpi module uses the ASUS-specific DSDT methods to handle the
+> backlight switching. I have quite the same problem with S1 on my machine,
+> but I get around it by doing echo 0 > /proc/acpi/asus/lcd; echo 1 >
+> /proc/acpi/sleep; echo 1 > /proc/acpi/asus/lcd. You may want to look for
+> the relevant methods in your DSDT and write a kernel interface to call
+> them, so that you could then activate it prior to suspending. I suppose
+> that's exactly what the Windows drivers do. You may also try something
+> video-specific, i.e. radeontool.
+>
+> BTW: Pavel: will there be a place in the new PM interface for functions
+> that drivers could bind onto, i.e. something like a generic
+> disable_backlight(), assigned to
+> {asus,dell,toshiba,nvidia,radeon,etc.}_disable_backlight()? I think this
+> could solve some important problems.
 
----
-Jose Bernardo B R Silva             | Source Mage GNU/Linux Section Guru
-jbernardo-L+UJwxqiw56VyaH7bEyXVA@public.gmane.org            | http://www.sourcemage.org
-http://counter.li.org #245602
-http://cosmos.oninetspeed.pt/jose.bernardo
-jbs-RxTL4PDuTKm/RHH9vPZxQFaTQe2KTcn/@public.gmane.org
+The /linux/drivers/skeletonfb.c file has some potential sample hooks for
+this kind of thing.  Several of the drivers in that directory have code
+drive the various power states.  When I get a chance, I might try hacking
+the vesafb driver.  I don't know if I can get any hints out of the nv
+driver for XF86.
 
 
----------- Original Message -----------
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-To: acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel@lists.sourceforge.net
-Cc: Sebastian Henschel <shensche-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>, "Rainer M."
-<rmuehlhoff-52dn/g0OV9M@public.gmane.org>, "Carlo E. Prelz" <fluido@fluido.as>
-Sent: Fri, 25 Jul 2003 20:10:31 +0200
-Subject: [Acpi4asus-user] Processor frequency control on ASUS laptops
+Dave
 
-> Hi,
-> I've been recently reminded about the GFRQ/SFRQ methods in some ASUS
-> notebooks DSDT's, which apparently are used by the Windows ASUS 
-> driver to manage processor performance. Before adding "just another 
-> cool way to control processor performance", I'd like to ask if there 
-> is _anybody_ running an ASUS laptop, for whom the processor 
-> performance control doesn't work either with ACPI performance driver,
->  or the updated ports of speedstep driver (the one that supports K7 
-> and is said to support Pentium-M)? Best regards,
-> 
-> -- 
-> Karol 'sziwan' Kozimor
-> sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
-> 
-> -------------------------------------------------------
-> This SF.Net email sponsored by: Free pre-built ASP.NET sites 
-> including Data Reports, E-commerce, Portals, and Forums are 
-> available now. Download today and enter to win an XBOX or Visual 
-> Studio .NET.
-http://aspnet.click-url.com/go/psa00100003ave/direct;at.aspnet_072303_01/01
-> _______________________________________________
-> Acpi4asus-user mailing list
-> Acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi4asus-user
-------- End of Original Message -------
 
 
 
