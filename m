@@ -1,14 +1,14 @@
-From: "Scott T. Smith" <scott-j3vAvQ9dNB9ByuSxxbvQtw@public.gmane.org>
-Subject: RE: broken power button
-Date: Fri, 06 Feb 2004 09:53:59 -0800
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: RE: ACPI -- Workaround for broken DSDT
+Date: Fri, 6 Feb 2004 20:33:56 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1076090039.4849.7.camel@tinny.home.foo>
-References: <3ACA40606221794F80A5670F0AF15F8401CBB686@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <20040206193356.GC13262@poupinou.org>
+References: <C50AB9511EE59B49B2A503CB7AE1ABD1066111ED@cceexc19.americas.cpqcorp.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401CBB686-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <C50AB9511EE59B49B2A503CB7AE1ABD1066111ED-Iar2LzuD2f6P0FQRY6S+e9kSKC0Mw0DFJ8am2ALHCgk@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,26 +17,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Greg Sarjeant <greg-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org>, "acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Cagle, John (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>
+Cc: Bas Mevissen <ml-Y9IUUvl1dgU0Iwp8Nzs06g@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Scott T. Smith" <scott-j3vAvQ9dNB9ByuSxxbvQtw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2004-02-06 at 09:17, Yu, Luming wrote:
-> > > I applied the patch; I think ACPI should report a warning 
-> > in this case. 
+On Thu, Feb 05, 2004 at 08:33:14AM -0600, Cagle, John (ISS-Houston) wrote:
+> Bas Mevissen wrote:
+> > 
+> > ACPI committee did not push a proper validation program. It's 
+> > like the 
+> > web "standards": standards are therem but everybody tests with IE and 
+> > most web developers are satisfied when it works with it...
+> > 
+> > ACPI committee should make a proper validation mandatory before a 
+> > computer may be sold as "ACPI X.Y compliant". Then manufacturers can 
+> > test against (open) validation platform and Linux-ACPI can be 
+> > validated 
+> > against it too.
 > 
-> I suspect that patch is not necessary.
+> This is a very good point, something for all of us to remember when
+> participating in any standards-creating process.
 > 
-> IAccording to the description of ACPI spec section 4.7.2.2.1.1
-> there should have SCI interrupt triggered by Fixed Power Button.
+> Also, if there were a Linux-ACPI standard validation suite, it would
+> make HP's Linux QA Engineers very happy, and much more likely to
+> find and fix ACPI AML errors *before* we ship new hardware.  Anyone
+> interested in working on something like that?
+> 
 
-perhaps, but according the the ACPI spec (4.7.2.2.1, table 4-8, p63 of
-ACPI spec 2.0b), the situation should not exist (i.e. you should not
-have a definition of PWRB in the AML code, AND assume a Fixed Power
-Button).
+That may be a lot of time consuming for single individual like me that
+need to work on complete different topic, or else I can not pay my
+car for example.
 
-	Scott
+Cheers,
 
+-- 
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
