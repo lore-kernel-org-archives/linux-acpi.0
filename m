@@ -1,12 +1,14 @@
-From: Laszlo 'GCS' Boszormenyi <gcs-gKC9iF2I70U@public.gmane.org>
+From: Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
 Subject: Re: ACER 632 notebook reboots instead of poweroff
-Date: Mon, 1 Nov 2004 09:23:28 +0100
-Message-ID: <20041101082328.GA4545@pooh>
-References: <20041026194029.GA10954@pooh> <20041027141833.GC8443@zimen.sk> <20041031231945.GA6909@elf.ucw.cz>
+Date: Mon, 1 Nov 2004 09:27:02 +0000
+Message-ID: <16774.358.944292.65501@aber.ac.uk>
+References: <20041026194029.GA10954@pooh>
+	<20041027141833.GC8443@zimen.sk>
+	<20041031231945.GA6909@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 In-Reply-To: <20041031231945.GA6909-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -21,21 +23,27 @@ To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 Cc: mizu <michal-VaXaUECoPuY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Pavel Machek writes:
+ > Hi!
+ > 
+ > >   the same problem is with my ACER 632 too.
+ > > 
+ > >   I've tried disable wakeup devices /proc/acpi/wakeup, but with no
+ > > success.
+ > 
+ > What happens with acpi=off?
+ > 
+ > I have evo n620c here which has similar symptoms, and has another
+ > funny set of symptoms with acpi=off...
+ > 
 
-* Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> [2004-11-01 00:19:45 +0100]:
+I have exactly the same problem with my ACER TM 636.  Will try with
+acpi=off asap and report.
 
-> What happens with acpi=off?
- My laptop never worked without acpi. :(
-Anyway, please second my bugreport if it also happens for you:
-http://bugme.osdl.org/show_bug.cgi?id=3669
+Do you also have funny thermal and battery readings when running on
+batteries?
 
-> I have evo n620c here which has similar symptoms, and has another
-> funny set of symptoms with acpi=off...
- What exactly?
-
-Regards,
-Laszlo/GCS
+Fred
 
 
 
