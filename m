@@ -1,34 +1,44 @@
-From: Dumitru Ciobarcianu <swsusp-devel@lnx.ro>
-Subject: Re: Cause of Suspend2 resume failures on Toshiba
-	laptops
-Date: Sun, 06 Mar 2005 19:34:40 +0200
-Message-ID: <1110130480.14605.16.camel@DustPuppy.LNX.RO>
-References: <422B33C9.nailFXZ11PEDH@berlios.de>
+From: Lorenzo Colitti <lorenzo-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: HP NC6000 sleep
+Date: Sun, 06 Mar 2005 18:37:31 +0100
+Message-ID: <422B3FDB.1010408@colitti.com>
+References: <20050303151620.M29426@mixandgo.ro>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-In-Reply-To: <422B33C9.nailFXZ11PEDH@berlios.de>
-List-Unsubscribe: <http://lists.suspend2.net/mailman/listinfo/suspend2-devel>,
-	<mailto:suspend2-devel-request@lists.suspend2.net?subject=unsubscribe>
-List-Archive: <http://lists.suspend2.net/lurker/list/suspend2-devel.html>
-List-Post: <mailto:suspend2-devel@lists.suspend2.net>
-List-Help: <mailto:suspend2-devel-request@lists.suspend2.net?subject=help>
-List-Subscribe: <http://lists.suspend2.net/mailman/listinfo/suspend2-devel>,
-	<mailto:suspend2-devel-request@lists.suspend2.net?subject=subscribe>
-Sender: suspend2-devel-bounces@lists.suspend2.net
-Errors-To: suspend2-devel-bounces@lists.suspend2.net
-To: mhf@berlios.de
-Cc: acpi-devel@lists.sourceforge.net, suspend2-devel@lists.suspend2.net
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <20050303151620.M29426-WE3S9J525UShKNWrAYCRhA@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Cezar Halmagean <cezar-WE3S9J525UShKNWrAYCRhA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-=C3=8En data de Du, 06-03-2005 la 17:46 +0100, mhf@berlios.de a scris:
-> I am afraid the only effect of the patch on my Toshiba L2
-> is that the RTC stops working, thus the rtc.ko module can
-> not be inserted (no such device).
+Cezar Halmagean wrote:
+> anyone got this working ? prefferably on gentoo !?
 
-Please revert the first patch and use the second and the 3rd.
-toshiba-acpi-hack-2.diff and toshiba-acpi-hack-3.diff.=20
-(if you already did that i'll just shut up and sit in a corner :)
+Hi,
 
---=20
-Cioby
+it works perfectly for me.
+
+For more information, or to download my config files, go to my guide to 
+linux on the nc6000 on my website:
+
+http://www.colitti.com/lorenzo/software/nc6000/
+
+
+Cheers,
+Lorenzo
+
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
