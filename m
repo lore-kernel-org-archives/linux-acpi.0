@@ -1,13 +1,13 @@
-From: ahaning-mn4gwa5WIIQysxA8WJXlww@public.gmane.org
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Subject: Re: patch -p1 acpi-20021002-2.4.19.diff
-Date: Mon, 28 Oct 2002 09:29:16 +0000
+Date: Mon, 28 Oct 2002 11:20:35 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3DBD036C.5030605@mindspring.com>
+Message-ID: <20021028102035.GF8003@poup.poupinou.org>
 References: <200210272015.09350.ruud.koendering@planet.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 In-Reply-To: <200210272015.09350.ruud.koendering-EIBgga6/0yRmR6Xm/wNWPw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -17,24 +17,29 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: ruud koendering <ruud.koendering-EIBgga6/0yRmR6Xm/wNWPw@public.gmane.org>
 Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-The other response to your message will work as well as this, but, just 
-for fun:
+On Sun, Oct 27, 2002 at 08:15:08PM +0100, ruud koendering wrote:
+> patch -p1 acpi-20021002-2.4.19.diff against mandrake kernel 2.4.19-16mdk
 
 patch -p1 -i acpi-20021002-2.4.19.diff
+or
+zcat acpi...gz | patch -p1
 
-will work, too.
+will work better..
 
-Yes, there's another key to press. Maybe it would be best to use the 
-other method, anyway ;-).
+Please note also that ACPI only support vanilla or pre kernels.
+You are on your own with a mdk kernel.
 
--Andy
-
+-- 
+Ducrot Bruno
+http://www.poupinou.org        Page profaissionelle
+http://toto.tu-me-saoules.com  Haume page
 
 
 -------------------------------------------------------
-This SF.net email is sponsored by: ApacheCon, November 18-21 in
-Las Vegas (supported by COMDEX), the only Apache event to be
-fully supported by the ASF. http://www.apachecon.com
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
