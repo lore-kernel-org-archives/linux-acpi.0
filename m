@@ -1,13 +1,13 @@
-From: Marci <voloterreno-nc/lrvXPQ4s@public.gmane.org>
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Subject: Re: [Fwd: ACPI error when trying entring in Sleep Mode]
-Date: Tue, 18 Mar 2003 15:10:04 +0100
+Date: Tue, 18 Mar 2003 15:13:20 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3E7728BC.70704@tin.it>
-References: <20030317134809.GF8319@poup.poupinou.org> <3E75D6E2.4040001@tin.it> <20030317153147.GH8319@poup.poupinou.org> <3E7611EB.2050805@tin.it> <20030317184333.GL8319@poup.poupinou.org> <3E761BFA.9030609@tin.it> <3E762BDD.8030108@hp.com> <3E762DED.70301@tin.it> <3E763453.1080307@hp.com> <3E7648C3.9090402@tin.it> <20030318094752.GO8319@poup.poupinou.org>
+Message-ID: <20030318141320.GT8319@poup.poupinou.org>
+References: <3E75D6E2.4040001@tin.it> <20030317153147.GH8319@poup.poupinou.org> <3E7611EB.2050805@tin.it> <20030317184333.GL8319@poup.poupinou.org> <3E761BFA.9030609@tin.it> <3E762BDD.8030108@hp.com> <3E762DED.70301@tin.it> <3E763453.1080307@hp.com> <3E7648C3.9090402@tin.it> <20030318094752.GO8319@poup.poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 In-Reply-To: <20030318094752.GO8319-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -17,189 +17,219 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: Richard Black <richard.black-VXdhtT5mjnY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Marci <voloterreno-nc/lrvXPQ4s@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Ducrot Bruno wrote:
 
->On Mon, Mar 17, 2003 at 11:14:27PM +0100, Marci wrote:
->  
->
->>Richard Black wrote:
->>
->>    
->>
->
->...
->
->  
->
->>Errors:
->>
->>In file included from osl.c:205:
->>/home/melchior/dsdt.hex:333: field name not in record or union initializer
->>/home/melchior/dsdt.hex:333: (near initialization for `AmlCode')
->>In file included from osl.c:205:
->>/home/melchior/dsdt.hex:333:68: warning: multi-line string literals are 
->>deprecated
->>    
->>
->
->This patch is not updated to the 'big struct change' that was
->done in mid-january.
->
->You have to replace all the
->acpi_table_header
->with:
->struct acpi_table_header
->
->or alternatively look at http://www.poupinou.org/acpi/
->for more instruction.
->
->Please note that I am in process to debug more your ASL.
->
->I will point you to the correct diff, etc. when I finished, and
->will comment you all the change done (but, I'm a human being,
->you known, and I may be slow sometimes...).
->
->Cheers,
->
->  
->
-Nope, I've tried all the suggestions, but without results , the same 
-errors , I post the errors that I've encountred this time, but I think 
-that are the same:
+Hi Marcello,
 
-In file included from osl.c:28:
-/boot/dsdt_table.h:333: field name not in record or union initializer
-/boot/dsdt_table.h:333: (near initialization for `AmlCode')
-In file included from osl.c:28:
-/boot/dsdt_table.h:333:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:333: warning: initialization makes integer from 
-pointer without a cast
-/boot/dsdt_table.h:333: initializer element is not computable at load time
-/boot/dsdt_table.h:333: (near initialization for `AmlCode[2552]')
-/boot/dsdt_table.h:333: syntax error before "SBRGPIX0"
-/boot/dsdt_table.h:334:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:335:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:336:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:337:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:333: syntax error at '#' token
-/boot/dsdt_table.h:338:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:339:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:340:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:341:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:342:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:343:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:333: invalid suffix on integer constant
-/boot/dsdt_table.h:344:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:333: invalid suffix on floating constant
-/boot/dsdt_table.h:345:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:346:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:347:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:348:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:349:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:350:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:351:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:352:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:353:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:354:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:355:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:356:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:357:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:358:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:359:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:360:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:361:67: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:362:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:363:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:364:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:365:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:366:67: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:367:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:368:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:369:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:370:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:371:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:372:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:373:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:333: syntax error at '#' token
-/boot/dsdt_table.h:374:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:375:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:376:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:377:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:378:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:379:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:380:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:381:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:382:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:383:68: warning: multi-line string literals are 
-deprecated
-/boot/dsdt_table.h:384:68: warning: multi-line string literals are 
-deprecated
-make[4]: *** [osl.o] Error 1
-make[3]: *** [first_rule] Error 2
-make[2]: *** [_subdir_acpi] Error 2
-make[1]: *** [_dir_drivers] Error 2
-make: *** [stamp-build] Error 2
+The diff is at the end of this email, and can be found
+at:
+ftp://ftp.poupinou.org/acpi/MSI/
+
+There is also an .hex file (namely MSI_KT4_ULTRA.hex.bz2)
+The original asl is here, and the corrected asl.
+
+You can can use with instruction found at
+http://www.poupinou.org/acpi/over.html
+or any other sites which have such kind of support (Richard one,
+acpi.sf.net, Faye one, etc.)
 
 
-Bye and thanks again for the time that you loose for me
+Now my comment:
+
+1- first I made a mistake.  Instead of changing the WordAcc, I
+blindly increased the size of the Operational Region(s) that
+where buggy.  I think that actually it is enough to change
+WordAcc by ByteAcc instead.  This is done with the attached
+diff.  I also said (certainly because I needed to go to sleep)
+that for example those ASL statements:
+
+OperationRegion (U1D3, PCI_Config, 0x49, 0x01)
+Field (U1D3, WordAcc, NoLock, Preserve)
+{
+   UR49,   3
+}
+
+mean something like
+we acced as a word pci register at 0x49 and bit 3 is relevant
+
+which is wrong (sorry).  It mean actually that only the third
+bits are relevants (bit 0 to 2).
+
+Next, what did you think now if ACPI-AC blindly do not check
+any more the size of the operational region (as in Windows).
+Then we can not actually provide the right thing to do, that is
+the Field (..) give us faulty information.
+
+
+2- the STM issue (the 'last' warning) you get is now resolved.
+The problem is that this method wanted to know if it can
+access some PCI configuration register at the IDE PCI bridge.
+This was actually done by copying (I think) another function (the
+GTM one), but is actually wrong.  A way to do it clean
+is actually to check in the 2 _STM functions if we can access
+the PCI configuration space of the IDE bridge, then continue
+if it is OK.
+
+
+A last word.  I can not promise you that all will be OK, even in a
+Windows system.
+
+
+--- dsdt.dsl	2003/03/17 13:41:43	1.1
++++ dsdt.dsl	2003/03/18 09:03:12
+@@ -861,13 +861,13 @@
+             {
+                 Name (_ADR, 0x00100000)
+                 OperationRegion (U1D3, PCI_Config, 0x49, 0x01)
+-                Field (U1D3, WordAcc, NoLock, Preserve)
++                Field (U1D3, ByteAcc, NoLock, Preserve)
+                 {
+                     UR49,   3
+                 }
+ 
+                 OperationRegion (UBP1, PCI_Config, 0x84, 0x01)
+-                Field (UBP1, WordAcc, NoLock, Preserve)
++                Field (UBP1, ByteAcc, NoLock, Preserve)
+                 {
+                     U1PE,   2
+                 }
+@@ -902,7 +902,7 @@
+             {
+                 Name (_ADR, 0x00100001)
+                 OperationRegion (UBP2, PCI_Config, 0x84, 0x01)
+-                Field (UBP2, WordAcc, NoLock, Preserve)
++                Field (UBP2, ByteAcc, NoLock, Preserve)
+                 {
+                     U2PE,   2
+                 }
+@@ -930,7 +930,7 @@
+             {
+                 Name (_ADR, 0x00100002)
+                 OperationRegion (UBP3, PCI_Config, 0x84, 0x01)
+-                Field (UBP3, WordAcc, NoLock, Preserve)
++                Field (UBP3, ByteAcc, NoLock, Preserve)
+                 {
+                     U3PE,   2
+                 }
+@@ -958,7 +958,7 @@
+             {
+                 Name (_ADR, 0x00100003)
+                 OperationRegion (UBP4, PCI_Config, 0x84, 0x01)
+-                Field (UBP4, WordAcc, NoLock, Preserve)
++                Field (UBP4, ByteAcc, NoLock, Preserve)
+                 {
+                     U4PE,   2
+                 }
+@@ -2653,17 +2653,24 @@
+                         Store (PSUE, GSUE)
+                         Store (PSUT, GSUT)
+                         Store (PSCR, GSCR)
+-                        STM ()
+-                        Store (GMPT, PMPT)
+-                        Store (GMUE, PMUE)
+-                        Store (GMUT, PMUT)
+-                        Store (GMCR, PMCR)
+-                        Store (GSPT, PSPT)
+-                        Store (GSUE, PSUE)
+-                        Store (GSUT, PSUT)
+-                        Store (GSCR, PSCR)
+-                        Store (GTF (0x00, Arg1), ATA0)
+-                        Store (GTF (0x01, Arg2), ATA1)
++			If (REGF)
++			{
++			    STM()
++                            Store (GMPT, PMPT)
++                            Store (GMUE, PMUE)
++                            Store (GMUT, PMUT)
++                            Store (GMCR, PMCR)
++                            Store (GSPT, PSPT)
++                            Store (GSUE, PSUE)
++                            Store (GSUT, PSUT)
++                            Store (GSCR, PSCR)
++                            Store (GTF (0x00, Arg1), ATA0)
++                            Store (GTF (0x01, Arg2), ATA1)
++			}
++			Else
++			{
++			    Store ("Trying to access IDE HWIF registers when not allowed", Debug)
++			}
+                     }
+ 
+                     Device (DRV0)
+@@ -2707,17 +2714,24 @@
+                         Store (SSUE, GSUE)
+                         Store (SSUT, GSUT)
+                         Store (SSCR, GSCR)
+-                        STM ()
+-                        Store (GMPT, SMPT)
+-                        Store (GMUE, SMUE)
+-                        Store (GMUT, SMUT)
+-                        Store (GMCR, SMCR)
+-                        Store (GSPT, SSPT)
+-                        Store (GSUE, SSUE)
+-                        Store (GSUT, SSUT)
+-                        Store (GSCR, SSCR)
+-                        Store (GTF (0x00, Arg1), ATA2)
+-                        Store (GTF (0x01, Arg2), ATA3)
++			If (REGF)
++			{
++			    STM()
++                            Store (GMPT, SMPT)
++                            Store (GMUE, SMUE)
++                            Store (GMUT, SMUT)
++                            Store (GMCR, SMCR)
++                            Store (GSPT, SSPT)
++                            Store (GSUE, SSUE)
++                            Store (GSUT, SSUT)
++                            Store (GSCR, SSCR)
++                            Store (GTF (0x00, Arg1), ATA2)
++                            Store (GTF (0x01, Arg2), ATA3)
++			}
++			Else
++			{
++			    Store ("Trying to access IDE HWIF registers when not allowed", Debug)
++			}
+                     }
+ 
+                     Device (DRV0)
+@@ -2796,11 +2810,11 @@
+ 
+                 Method (STM, 0, Serialized)
+                 {
+-                    If (REGF) {}
+-                    Else
+-                    {
+-                        Return (TMD0)
+-                    }
++                    // If (REGF) {}
++                    // Else
++                    // {
++                    //     Return (TMD0)
++                    // }
+ 
+                     Store (0x00, GMUE)
+                     Store (0x07, GMUT)
+@@ -3300,6 +3314,7 @@
+             Store (0x48, SHCR)
+             Store (0xFF, SHST)
+         }
++	Return(Package(2) {0, 0})
+     }
+ 
+     OperationRegion (PMS0, SystemIO, 0x0800, 0x04)
 
 
 
+Cheers,
 
+-- 
+Ducrot Bruno
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
