@@ -1,8 +1,8 @@
 From: Unknown <unknown@unknown.invalid>
 Subject: Virus Detected by Network Associates, Inc. Webshield SMTP V4.5 MR1a
-Date: Fri, 25 Jun 2004 09:21:29 +0000 (UTC)
+Date: Fri, 25 Jun 2004 09:21:32 +0000 (UTC)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040625091857.A6AC5FAA@corpmailsmtp02.digitalnetworksna.com>
+Message-ID: <20040625091857.43285F14@corpmailsmtp02.digitalnetworksna.com>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 From: <>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,7 +18,7 @@ To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Network Associates WebShield SMTP V4.5 MR1a on corpvirus1 detected virus
-W32/Netsky.p-TkFRTFPJOQk@public.gmane.org in attachment message.scr from <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org> and it was
+Exploit-MIME.gen.c in attachment unknown from <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org> and it was
 Deleted.
 
 
