@@ -1,14 +1,13 @@
-From: "Arch. Giovanni Andrea Lucaferri" <lucaferri-npIeQ/MgtcxBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [Solved] Re: power-off (Acer TM632)
-Date: Tue, 20 Jul 2004 02:56:10 +0200
+From: "Georg C. F. Greve" <greve-BSDwwRMYa8fNLxjTenLetw@public.gmane.org>
+Subject: acpi-20040715: functional regression on ASUS M2N
+Date: Tue, 20 Jul 2004 01:31:29 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40FC6DAA.6060809@makines.com>
-References: <20040531213726.GA3298@zimen.sk> <20040719175904.GC2690@smeagol> <40FC32DA.9080302@makines.com> <20040719213747.GA26393@rap.rap.dk>
+Message-ID: <m3d62rzi9a.fsf@brain.gnuhh.org>
+Reply-To: "Georg C. F. Greve" <greve-BSDwwRMYa8fNLxjTenLetw@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040719213747.GA26393-EittdKFJ/bZ/SzgSGea1oA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,45 +16,48 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= <keld-6PR53cSIHaE@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-mhh, no there isn't, but it's a good idea!
+--=-=-=
 
+Hi all,
 
-Keld Jørn Simonsen ha scritto:
-> On Mon, Jul 19, 2004 at 10:45:14PM +0200, Arch. Giovanni Andrea Lucaferri wrote:
-> 
->>Hi Emma, mizu, hgfelger,
->>it works! I've isolated the problem.
->>I only had CONFIG_RTC=Y in my kernel and that was the only problem.
->>I've set
->># CONFIG_RTC is not set
->>and everything works now.
-> 
-> 
-> Is there a place where you can configure parameters for your machine
-> model? Eg my laptop will need noapic to function. I can of cause set
-> that parameter, but novices would not know this, and it would be better
-> if the make and model be detected and the parameter always set.
-> This is, I wonder if there is a repository for the make and models in
-> the kernel.
-> 
-> best regards
-> keld
-> 
-> 
-> -------------------------------------------------------
-> This SF.Net email is sponsored by BEA Weblogic Workshop
-> FREE Java Enterprise J2EE developer tools!
-> Get your free copy of BEA WebLogic Workshop 8.1 today.
-> http://ads.osdn.com/?ad_id=4721&alloc_id=10040&op=click
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> 
+I just tried a kernel 2.6.8-rc2 with swsusp2-2.0.0.100 and some other
+minor patches -- overall with great success. But when I updated from
+the ACPI included in the kernel to the acpi-20040715 patch for 2.6.8,
+suspend to ram does not work anymore: the machine hangs on resume.
+
+Except for the network cards, which are broken after resume from S3,
+it otherwise works fine for the previous ACPI versions with kernel
+2.6.7 and kernel 2.6.8 -- which are the first kernels for which this
+is true.
+
+This is on an ASUS M2N with intel 855GM Centrino chipset, running the
+Debian GNU/Linux distribution.
+
+If you need more info, let me know.
+
+Regards,
+Georg
+
+-- 
+Georg C. F. Greve                                 <greve-BSDwwRMYa8fNLxjTenLetw@public.gmane.org>
+Free Software Foundation Europe	                 (http://fsfeurope.org)
+GNU Business Network                        (http://mailman.gnubiz.org)
+Brave GNU World	                           (http://brave-gnu-world.org)
+
+--=-=-=
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQBA/FnZbvivwoZXSsoRAhq2AJ9IQSVoBAI5cef3vzY3o6FGYUTUFwCgqx1b
+UcfUAaJhx5CUTdTUbkGgKnU=
+=7tlO
+-----END PGP SIGNATURE-----
+--=-=-=--
 
 
 -------------------------------------------------------
