@@ -1,60 +1,104 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [BKPATCH] ACPI 2.6
-Date: 21 Oct 2003 23:17:48 -0400
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <1066792668.2594.8.camel@dhcppc4>
+From: Yury Umanets <umka-nJ1KrdHEGnBBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: Re: 2.6.0-test8 & Asus M3N
+Date: Wed, 22 Oct 2003 12:46:59 +0400
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <3F964403.9090304@namesys.com>
+References: <20031020181638.GL4944@austinchronicle.com> <20031021184216.GA7100@austinchronicle.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-To: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
-Cc: Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20031021184216.GA7100-lfYnT2qr6k+7/ODoCphcOEEOCMrvLtNR@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Lindsey Simon <lsimon-kAMMLXQ8Af9Wk0Htik3J/w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus, please do a 
+Lindsey Simon wrote:
 
-	bk pull http://linux-acpi.bkbits.net/linux-acpi-release-2.6.0
+>Actually, while running the 2.6 kernel and recompiling I watched the
+>temp go up into the 70s and the fan never ran. Anybody have any idea how
+>to perhaps manually start the fan up? I could blow into the bottom
+>really hard :)
+>
+>Lindsey Simon in message [ACPI-sppt] 2.6.0-test8 & Asus M3N (Mon, 10/20 13:16):
+>  
+>
 
-thanks,
--Len
+I have ASUS M3700N and have never seen something like this on 
+2.6.0-test8. Everything works fine. Well, almost everything :)
+cpufreq works in different manner then before. When using policy with 
+percents of max CPU frequency, it sets CPU frequncy to passed percent of 
+current CPU frequency, but should use max one IMHO.
 
-ps. a plain patch is also available here:
-ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.0-test8/acpi-20031002-2.6.0-test8.diff.gz
+Laptop max frequency is 1.3Gz
+When laptop is boot without AC plugged it is set its CPU frequency 
+600Mhz, that is policy is 50%-100%-powersave. But if you apply the same 
+policy (that is 50%-100%-powersave) one more time, CPU will be changed 
+to 300Mhz and so on.
 
-This will update the following files:
+>  
+>
+>>Out of the box, the test8 kernel seems to have Luca's patch now,
+>>temperature readings are showing up properly in /proc/acpi.
+>>
+>>But when the temp gets to the 55 trip point, I get these in dmesg:
+>>osl-0892 [1029] os_wait_semaphore     : Failed to acquire
+>>semaphore[cf73e580|1|0], AE_TIME
+>>
+>>plugged or unplugged into the AC adapter.
+>>
+>>Anyhow, that might be useful for someone who understands ACPI I though
+>>:)
+>>
+>>Thanks,
+>>-l
+>>
+>>
+>>
+>>-------------------------------------------------------
+>>This SF.net email is sponsored by OSDN developer relations
+>>Here's your chance to show off your extensive product knowledge
+>>We want to know what you know. Tell us and you have a chance to win $100
+>>http://www.zoomerang.com/survey.zgi?HRPT1X3RYQNC5V4MLNSV3E54
+>>_______________________________________________
+>>ACPI-support mailing list
+>>ACPI-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>>https://lists.sourceforge.net/lists/listinfo/acpi-support
+>>    
+>>
+>
+>
+>-------------------------------------------------------
+>This SF.net email is sponsored by OSDN developer relations
+>Here's your chance to show off your extensive product knowledge
+>We want to know what you know. Tell us and you have a chance to win $100
+>http://www.zoomerang.com/survey.zgi?HRPT1X3RYQNC5V4MLNSV3E54
+>_______________________________________________
+>Acpi-devel mailing list
+>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>
+>
+>  
+>
 
- arch/i386/kernel/acpi/boot.c      |   28 +++++++++++++++++
- drivers/acpi/battery.c            |    6 +--
- drivers/acpi/bus.c                |    4 +-
- drivers/acpi/ec.c                 |   16 ++++++++-
- drivers/acpi/events/evgpe.c       |    4 +-
- drivers/acpi/power.c              |    7 +++-
- drivers/acpi/utilities/utdelete.c |   42 ++++++++++++++++++++++++--
- 7 files changed, 93 insertions(+), 14 deletions(-)
 
-through these ChangeSets:
+-- 
+umka
 
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/10/20 1.1350)
-   [ACPI] Broken fan detection prevents booting (Shaohua David Li)
-     http://bugme.osdl.org/show_bug.cgi?id=1185
 
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/10/20 1.1349)
-   [ACPI] fix !CONFIG_PCI build
-     use X86 ACPI specific version of eisa_set_level_irq()
-     http://bugzilla.kernel.org/show_bug.cgi?id=1390
 
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/10/17 1.1344.1.4)
-   [ACPI] fix acpi_ev_gpe_dispatch() parameter (Bob Moore)
 
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/10/17 1.1344.1.3)
-   [ACPI] acpi_ec_gpe_query(ec) fix for T40 crash (Shaohua David Li)
-   http://bugme.osdl.org/show_bug.cgi?id=1171
-
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/10/17 1.1344.1.2)
-   [ACPI] fix object reference count bug for battery status (Shaohua
-David Li)
-   http://bugme.osdl.org/show_bug.cgi?id=1038
-
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/10/17 1.1344.1.1)
-   [ACPI] speed up reads from /proc/acpi/ (Shaohua David Li)
-   http://bugme.osdl.org/show_bug.cgi?id=726
+-------------------------------------------------------
+This SF.net email is sponsored by OSDN developer relations
+Here's your chance to show off your extensive product knowledge
+We want to know what you know. Tell us and you have a chance to win $100
+http://www.zoomerang.com/survey.zgi?HRPT1X3RYQNC5V4MLNSV3E54
