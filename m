@@ -1,20 +1,11 @@
-From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
-Subject: Re: Smart Battery System driver
-Date: Thu, 20 Jan 2005 22:31:20 +0100
-Message-ID: <m2sm4v4wk7.fsf@phoenix.squirrel.nl>
-References: <41E81C2C.8010809@bartol.udel.edu>
-	<1105747983.7368.3.camel@tyrosine>
-	<47e0449d05011419037877f931@mail.gmail.com>
-	<m2fz13x8mw.fsf@phoenix.squirrel.nl>
-	<41EA2C1D.3030909@bartol.udel.edu> <41EC7C7D.1070003@bartol.udel.edu>
-	<41EC9316.80109@bartol.udel.edu> <41EDE2EA.7090404@bartol.udel.edu>
-	<m2wtu74yzq.fsf@phoenix.squirrel.nl>
-	<41F01923.1000503@bartol.udel.edu>
+From: Sebastian <Ostdeutschland-Mmb7MZpHnFY@public.gmane.org>
+Subject: 2.6.11-rc1 problem with battery state (AE_ALREADY_EXISTS)
+Date: Thu, 20 Jan 2005 22:57:48 +0100
+Message-ID: <20050120225748.2d1a7cfc.Ostdeutschland@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41F01923.1000503-OBnUx95tOyn10jlvfTC4gA@public.gmane.org> (Rich Townsend's message of
- "Thu, 20 Jan 2005 15:48:35 -0500")
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -25,24 +16,61 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org> writes:
+hi,
 
-> I do this because everything in /lib/modules/XXX/kernel/* gets
-> clobbered when you do a make modules_install from the kernel source
-> tree; 
+i reported this error some time ago, without any reply...
+i'm running 2.6.11-rc1 now on an acer travelmate 291lci laptop.
 
-I see.
+[admin@laptop]$ while [ 1 ]; do cat /proc/acpi/battery/BAT1/state &&
+sleep 1; done
+present:                 yes     
+capacity state:          ok      
+charging state:          charged 
+present rate:            0 mA    
+remaining capacity:      4000 mAh
+present voltage:         16647 mV
+present:                 yes     
+capacity state:          ok      
+charging state:          charged 
+present rate:            0 mA    
+remaining capacity:      4000 mAh
+present voltage:         16645 mV
+present:                 yes     
+capacity state:          ok      
+charging state:          charged 
+present rate:            0 mA    
+remaining capacity:      4000 mAh
+present voltage:         16645 mV
+ dswload-0294: *** Error: Looking up [PBST] in namespace,
+AE_ALREADY_EXISTS
+ psparse-0601 [915] ps_parse_loop         : During name lookup/catalog,
+AE_ALREADY_EXISTS
+ psparse-1138: *** Error: Method execution failed
+[\_SB_.PCI0.LPC0.BAT1._BST] (Node defc21e8), AE_ALREADY_EXISTS
+acpi_battery-0208 [908] acpi_battery_get_statu: Error evaluating _BST
+present:                 yes     
+ERROR: Unable to read battery status
+present:                 yes     
+capacity state:          ok      
+charging state:          charged 
+present rate:            0 mA    
+remaining capacity:      4000 mAh
+present voltage:         16647 mV
+     osl-0958 [992] os_wait_semaphore     : Failed to acquire
+semaphore[c172c5a0|1|0], AE_TIME 
+present:                 yes     
+capacity state:          ok      
+charging state:          charged 
+present rate:            0 mA    
+remaining capacity:      4000 mAh
+present voltage:         16647 mV
 
-> I have recently realized that the whole SBS functionality can be
-> implemented in terms of control methods in the DSDT, without the
-> need for any kernel drivers.
 
-Nice. This would require a kernel recompile/reboot  for each DSDT
-modification...
 
--- Johan
+thanks, sebastian
 
 
 -------------------------------------------------------
