@@ -1,12 +1,12 @@
-From: Anders Persson <anders.persson-sT6loi8rTDSci/EUP2OQSw@public.gmane.org>
-Subject: Compaq evo n800v
-Date: 08 Mar 2003 13:07:03 +0100
+From: Hugo Haas <hugo-rQR7RsZM/uVeoWH0uzbU5w@public.gmane.org>
+Subject: Semi-success story: Compaq Evo N410c
+Date: Sat, 8 Mar 2003 08:12:58 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1047125223.5077.28.camel@localhost.localdomain>
+Message-ID: <20030308131257.GB1533@home.larve.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,83 +18,54 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I have problems with CPU-throttling on my Compaq Evo n800v. 
-To get ACPI working I compiled the following kernel+patches and applied
-a modified dsdt-table.
+Hi.
 
-2.4.20 kernel +
-patch-2.4.21-pre4.gz +
-acpi-20030218-2.4.21-pre4.diff.gz +
-linux-2.4.18-acpi-20020709-dsdt.patch +
-custom dsdt
+I have seen people posting DSDT questions here, and found lots of
+useful pointers in the archive, so I am sending a report on getting
+ACPI to work on a Compaq Evo N410c.
 
-AC- and battery-status works just fine, as well as the Fn-combinations
-for screen-brightness. 
+In a nutshell, some things were not detected, such as the fan, which
+was a problem. After tweaking the DSDT, I got rid of most errors
+(although one of my fixes is slightly random) and got most things
+working. It is now usable. The fan is always on though, but I guess
+that it's better than always off!
 
-But no matter how low the CPU-load, the clock frequency is always at
-max.  Also, the fan(s?) are always on making noise (at relatively low
-speed but still too high compared to under Win-XPP).  
+I noted that the errors I got were _really_ similar to errors that
+people with N600c got. I would appreciate a pointer to a diff of the
+DSDT to try and complete my fixes since it seems that there were a few
+discussions about this one.
 
-I am not really familiar with how this is supposed to work. Can I force
-the CPU to run on the low clock-frequency when, e.g., running on
-batteries? Can I set load-thresholds when the speed-step functionality
-should take action? Grateful for any help on this! 
+The errors I have left are about non existing objects that I have no
+clue about:
 
-Some data available below! 
+| dsdt.dsl    53:             If (LEqual (\C001, 0x00))
+| Error    1022 -       Object does not exist ^  (\C001)
+| 
+| dsdt.dsl  5602:                 \_PR.C000
+| Error    1022 -   Object does not exist ^  (\_PR.C000)
+| 
+| dsdt.dsl  5642:                 \_PR.C000
+| Error    1022 -   Object does not exist ^  (\_PR.C000)
+| 
+| dsdt.dsl  5710:                         Notify (\_PR.C000, 0x80)
+| Error    1022 -                   Object does not exist ^  (\_PR.C000)
 
-$ cd /proc/acpi/processor/C000
+Since I found it quite hard to find information to get a working ACPI,
+I have documented what I have done, with the DSDT, the diffs, etc.
+Hopefully that will be useful to people:
 
-$ cat throttling
-state count:             8
-active state:            T0
-states:
-   *T0:                  00%
-    T1:                  12%
-    T2:                  25%
-    T3:                  37%
-    T4:                  50%
-    T5:                  62%
-    T6:                  75%
-    T7:                  87%
+	 http://larve.net/people/hugo/2003/03/acpi-n410c.html
 
-$ cat limit
-active limit:            P0:T0
-platform limit:          P0:T0
-user limit:              P0:T0
-thermal limit:           P0:T0
+If anybody has insight about how to get the fan not to always be on
+and how to fix the rest of my errors, in particular Evo N600c owners,
+I'd be grateful.
 
-$ cat info
-processor id:            0
-acpi id:                 1
-bus mastering control:   yes
-power management:        yes
-throttling control:      yes
-performance management:  yes
-limit interface:         yes
+Regards,
 
+Hugo
 
-$ cat performance
-state count:             2
-active state:            P0
-states:
-   *P0:                  1900 MHz, 20000 mW, 500 uS
-    P1:                  1200 MHz, 10000 mW, 500 uS
-
-
-$ cat power
-active state:            C2
-default state:           C1
-bus master activity:     04082fff
-states:
-    C1:                  promotion[C2] demotion[--] latency[000]
-usage[00001020]
-   *C2:                  promotion[C3] demotion[C1] latency[002]
-usage[00348077]
-    C3:                  promotion[--] demotion[C2] latency[085]
-usage[00002681]
-
-
-
+-- 
+Hugo Haas - http://larve.net/people/hugo/
 
 
 -------------------------------------------------------
