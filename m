@@ -1,15 +1,15 @@
-From: Patrick Ale <patrick.ale-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
 Subject: Re: Patching 2.6.9 for custom DSDT
-Date: Fri, 22 Oct 2004 11:39:29 +0200
+Date: Fri, 22 Oct 2004 12:03:19 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <8d158e1f04102202391faa7907@mail.gmail.com>
-References: <3ACA40606221794F80A5670F0AF15F8403BD57D7@pdsmsx403>
-Reply-To: Patrick Ale <patrick.ale-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Message-ID: <4178DAE7.6010005@pca.it>
+References: <8d158e1f041022020763faf71a@mail.gmail.com>
+Reply-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F8403BD57D7@pdsmsx403>
+In-Reply-To: <8d158e1f041022020763faf71a-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,30 +18,51 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Zhu, Yi" <yi.zhu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Lookit, I am a fruitcake and totaly overlooked the "include Custom
-DSDT" option in make menuconfig... :s
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Thanks! :)
+Hello,
 
-
-On Fri, 22 Oct 2004 17:17:48 +0800, Zhu, Yi <yi.zhu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> Patrick Ale wrote:
-> > In the later case I have a problem since I get the following
-> > error when applying the patch:
-> > juliana:/usr/src/linux-2.6.9# patch -p1 -i ../osl.diff
-> > patching file drivers/acpi/osl.c
-> > patch: **** malformed patch at line 21: }
+on 10/22/04 11:07, Patrick Ale wrote:
+> I'd like to try the custom Acer Aspire 1703 DSDT found on the acpi.sf.net site.
 > 
-> You don't need to patch it since 2.6.9 include this patch.
-> You are supposed to set your dsdt path in make menuconfig.
+> in drivers/acpi/osl.c I see the folloiwing
 > 
-> Thanks,
-> -yi
->
+> #ifdef CONFIG_ACPI_CUSTOM_DSDT
+> #include CONFIG_ACPI_CUSTOM_DSDT_FILE
+> #endif
+> 
+> 
+> Does this mean I can add the following to the top of the c file?
+> 
+> #define CONFIG_ACPI_CUSTOM_DSDT_FILE "/path/to/dsdt.file"
+> #define CONFIG_ACPI_CUSTOM_DSDT
+no, you should configure
+	make [config|menuconfig|xconfig]
+
+your kernel to use a custom DSDT. The voice is
+
+ - Power management otions (ACPI, APM)
+   - ACPI ([...])
+     - Include Custom DSDT
+       - Custom DSDT Table file to include
+         /path/to/dsdt.file
+
+NB, the DSDT should be in the AmlCode declaration.
+
+Thx, bye,
+Gismo / Luca
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
+
+iD8DBQFBeNrmVAp7Xm10JmkRAjnoAJ4mbdstsLABos+ib78gcQgB59evJACcDx6f
+HbKKuQQ+i9JlncV3/kRZJZI=
+=Q0am
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
