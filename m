@@ -1,15 +1,12 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: PNPACPI / 8250 discovery
-Date: Mon, 6 Dec 2004 18:36:38 -0700
-Message-ID: <200412061836.38840.bjorn.helgaas@hp.com>
-References: <1098327571.6132.228.camel@sli10-desk.sh.intel.com>
+From: dogshu <dogshu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Processor is almost never in C1 state
+Date: Mon, 6 Dec 2004 11:10:31 -0500
+Message-ID: <fe1d56f504120608102afbf39b@mail.gmail.com>
+Reply-To: dogshu <dogshu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1098327571.6132.228.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,24 +16,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, Matthieu <castet.matthieu-GANU6spQydw@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Li,
+Hello,
 
-I haven't seen much activity on the PNPACPI front recently.
+I have a Toshiba Portege laptop with a 500 mhz pentium-3 mobile CPU. 
+The processor is almost never is in the C1 state, and spends 99.9% of
+the time in the C2 state, even when doing heavy processing.
 
-If/when we switch from 8250_acpi to 8250_pnp, serial device
-names will change (8250_acpi devices are discovered *before*
-8250_pci, but 8250_pnp is currently *after* 8250_pci in
-drivers/serial/Makefile).
+After a night of compiling KDE, and while running the "burnP6" program
+included in the "cpuburn 1.4" package, this is the output of
+/proc/acpi/processor/CPU0/power:
 
-Do you plan to switch that around?  I think it makes more
-sense to have PNP/ACPI devices named before PCI, since the
-PNP/ACPI ones are more likely to be built-in.
+active state:            C2
+default state:           C1
+bus master activity:     00000000
+states:
+    C1:                  promotion[C2] demotion[--] latency[000] usage[00009710]
+   *C2:                  promotion[--] demotion[C1] latency[001] usage[12232108]
+    C3:                  <not supported>
 
-Bjorn
+As you can see, even though the processor is being maxed out by
+burnP6, it remains in the C2 state and doesn't really use the C1 state
+at all.
+
+I don't mind having the CPU in this lower power/lower performance
+state most of the time... however I occassionally like to play DVDs on
+this laptop, and I need all the CPU power I can get when playing DVDs,
+or else  I will get lots of dropped frames.
+
+I am running kernel 2.6.10-rc2-mm4.  I noticed that in the kernel
+parameters I can disable the C2 state altogether, but I'd rather not
+have to reboot whenever I play a DVD.  Is there a way to tweak ACPI so
+that the processor spends more time in the C1 state, without giving up
+the C2 state entirely?
+
+thanks for any help,
+Jim Faulkner
 
 
 -------------------------------------------------------
