@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: S1 sleep mode on Dell Inspiron 8100
-Date: Wed, 19 Nov 2003 20:31:18 +0100
+Subject: Re: Dell D600: teaching radeonfb how to wake up...
+Date: Thu, 20 Nov 2003 12:13:15 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031119193117.GA7068@openzaurus.ucw.cz>
-References: <3FBB975E.30801@free.fr>
+Message-ID: <20031120111315.GB432@openzaurus.ucw.cz>
+References: <20031119180119.GB22307@tate.loria.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <3FBB975E.30801-GANU6spQydw@public.gmane.org>
+In-Reply-To: <20031119180119.GB22307-xkTd+U360DcAs8EywTwl9A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,20 +17,32 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Guillaume Pothier <gpothier-GANU6spQydw@public.gmane.org>
+To: pavel-+ZI9xUNit7I@public.gmane.org
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> tried to go into sleep mode). Now it powers off properly when I press 
-> the power button and handles AC unplug. However, I cannot have it go 
-> into S1 sleep mode. When I do echo 1 >/proc/acpi/sleep, the computer 
-> freezes, but the screen remains on, hdd too. Then if I press the 
-> power button it goes back normal. Is there something more to do to 
-> enter sleep mode?
+> Fortunately, the kernel tree contains bits of code which can be useful.
+> All the registers are known by name and number, for example (and it's a
+> pity that the documentation about the __PWR_MAN'' register is
+> inexistent). And the radeonfb driver contains a few things and hints.
+> I'd gladly try a piece of code, supposedly coming from ATI, which ought
+> to reset the device somehow. This piece of code was to be linked to the
+> powerbook power management system, and is #if0'ed anyway since it is
+> quoted to be no cure for some problem. Still, I think it's worth trying.
+> 
+> I'm not an expert on kernel programming. On which code paths should I
+> plug things ? Say I have to functions radeon_go_sleep and
+> radeon_wake_up, what device info can I expect to access, and where
+> should I plug my functions ? Does anybody know of a well-educated fb
+> driver, where such a manual reset of the device is done on wakeup. I
+> could follow this as an example.
 
-Well... cpu is sleeping and you _are_ in S1 sleep mode.
+
+If I were you, I'd create fix_ati.o module which would
+"do the stuff", then insert it over network. That should
+make debugging easier...
 -- 
 				Pavel
 Written on sharp zaurus, because my Velo1 broke. If you have Velo you don't need...
