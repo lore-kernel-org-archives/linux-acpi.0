@@ -1,14 +1,14 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ACPI battery issue - Dell Inspiron 4150 - 2.6.1-rc1-mm2
-Date: Wed, 7 Jan 2004 17:33:29 +0800
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: ACPI/ECDT on gateway 200x notebook
+Date: Wed, 7 Jan 2004 11:49:41 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C86@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <20040107104941.GL14031@poupinou.org>
+References: <3FF773E5.5070102@rochester.rr.com> <Pine.LNX.4.44.0401032005180.7785-100000@data.upl.cs.wisc.edu> <20040106183426.GJ14031@poupinou.org> <3FFB552F.8030508@rochester.rr.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <3FFB552F.8030508-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,25 +17,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Valdis.Kletnieks-PjAqaU27lzQ@public.gmane.org, Dax Kelson <dax-tjn3EnM4d99Wk0Htik3J/w@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Rich Ibbotson <richibb-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org>
+Cc: Casey Harkins <charkins-TFaeeA7fOO6Gwcnyzrk3/w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->> charging state:          unknown
->> present rate:            unknown
->
->I can't say for certain, but I think it's a tad confused - it can
-report=20
->'charging', and 'discharging', but doesn't know what to say if the
-battery
->is at 100% and you're running off AC....It's been that way on mine at
->least since 2.5.7mumble or maybe 2.4.18, so it's NOT a regression from
-the
->recent ACPI patch.
+On Tue, Jan 06, 2004 at 07:39:11PM -0500, Rich Ibbotson wrote:
+> Thanks for the reply.  I've attached the disassembled dsdt from
+> "iasl -d  dsdt.dat".  I notice that the iasl output has "\_SB.PCI0" 
+> whereas the acpidmp output has "\_SB_.PCI0".  I'll try that with your 
+> fake_ecdt patch.
+> 
+> I do see an error and two warnings when I let iasl compile the dsdt:
+> 
 
-Let me see DSDT (/proc/acpi/dsdt) , and check whether it is a real bug
-or
- just short of words.
+...
+
+> dsdt.dsl  2620:                     Field (ECR, DWordAcc, Lock, Preserve)
+> Error    1048 -                              ^ Host Operation Region 
+> requires ByteAcc access
+
+The problem you encounter is here.  You have to update your dsdt by
+replacing that DWordAcc by ByteAcc.  You can see something for doing
+that via http://www.poupinou.org/acpi/.
+
+-- 
+Ducrot Bruno
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
