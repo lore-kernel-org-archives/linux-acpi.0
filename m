@@ -1,90 +1,68 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: Re: 2.6.9rc2-mm4 oops
-Date: Thu, 30 Sep 2004 15:22:29 -0600
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <200409301522.29198.bjorn.helgaas@hp.com>
-References: <1096571653.11298.163.camel@cmn37.stanford.edu> <20040930124937.5942fd64.akpm@osdl.org>
+From: "Nigel Cunningham" <ncunningham@linuxmail.org>
+Subject: Re: status update for current development
+    on ASUS M2N
+Date: Fri, 01 Oct 2004 07:48:08 +1000
+Sender: softwaresuspend-devel-admin@berlios.de
+Message-ID: <20040930214808.B5D9C3AA515@ws5-8.us4.outblaze.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S269516AbUI3VXG@vger.kernel.org>
-In-Reply-To: <20040930124937.5942fd64.akpm@osdl.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
+Return-path: <softwaresuspend-devel-admin@lists.berlios.de>
 Content-Disposition: inline
-To: Fernando Pablo Lopez-Lezcano <nando@ccrma.stanford.edu>
-Cc: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, mingo@elte.hu, Len Brown <len.brown@intel.com>, acpi-devel@lists.sourceforge.net, Bernhard Rosenkraenzer <bero@arklinux.org>
+Errors-To: softwaresuspend-devel-admin@berlios.de
+List-Help: <mailto:softwaresuspend-devel-request@lists.berlios.de?subject=help>
+List-Post: <mailto:softwaresuspend-devel@lists.berlios.de>
+List-Subscribe: <http://lists.berlios.de/mailman/listinfo/softwaresuspend-devel>,
+	<mailto:softwaresuspend-devel-request@lists.berlios.de?subject=subscribe>
+List-Unsubscribe: <http://lists.berlios.de/mailman/listinfo/softwaresuspend-devel>,
+	<mailto:softwaresuspend-devel-request@lists.berlios.de?subject=unsubscribe>
+List-Archive: <http://lists.berlios.de/pipermail/softwaresuspend-devel/>
+To: "Georg C. F. Greve" <greve@gnu.org>
+Cc: ACPI List <acpi-devel@lists.sourceforge.net>, SoftwareSuspend-Devel <softwaresuspend-devel@lists.berlios.de>
 List-Id: linux-acpi@vger.kernel.org
 
-Fernando Pablo Lopez-Lezcano <nando@ccrma.Stanford.EDU> wrote:
-> inserting floppy driver for 2.6.8.1-1.520.1nov.rhfc2.ccrma
-> Unable to handle kernel paging request at virtual address f8881920
->  printing eip:
-> c0251d3d
-> *pde = 37f5f067
-> Oops: 0002 [#1]
-> PREEMPT 
-> Modules linked in: floppy(U) sg(U) dm_mod(U) uhci_hcd(U) ehci_hcd(U)
-> button(U) battery(U) asus_acpi(U) ac(U) ext3(U) jbd(U) raid5(U) xor(U)
-> sata_via(U) sata_promise(U) libata(U) sd_mod(U) scsi_mod(U)
-> CPU:    0
-> EIP:    0060:[<c0251d3d>]    Not tainted VLI
-> EFLAGS: 00010246   (2.6.8.1-1.520.1nov.rhfc2.ccrma) 
-> EIP is at acpi_bus_register_driver+0xd2/0x165
+Hi.
 
-Can you reproduce this oops with CONFIG_PREEMPT turned off?  I found
-a few reports of similar problems, and they all seem to have PREEMPT
-turned on:
+----- Original Message -----
+From: "Georg C. F. Greve" <greve@gnu.org>
+Date: Thu, 30 Sep 2004 11:59:54 +0200
+To: ncunningham@linuxmail.org
+Subject: Re: [SoftwareSuspend-devel] status update for current development on ASUS M2N
 
- http://sourceforge.net/mailarchive/message.php?msg_id=9308735
- http://lkml.org/lkml/2004/6/5/92
- http://lkml.org/lkml/2004/9/23/71
- http://lkml.org/lkml/2004/9/30/175 (yours)
+>  || On Mon, 27 Sep 2004 20:11:41 +1000
+>  || Nigel Cunningham <ncunningham@linuxmail.org> wrote: 
+> 
+>  nc> Could I get you to compile kdb in as well. If you then press the
+>  nc> Sys Rq key when the CPU is being chewed, you should be able to
+>  nc> use ps and btp <process number> to get an idea of what is going
+>  nc> on.
+> 
+> I am now running kernel
+<< patch-2.6.9-rc2-plus_5.txt >>
 
-Pierre reported that the oops seemed to be related to DEBUG_PAGEALLOC,
-not PREEMPT.  But you don't seem to have DEBUG_PAGEALLOC turned on,
-so I still wonder if there's some connection with PREEMPT.
+>
+> 
+> and also created a version with kdb and heavy debugging.
+> 
+> This kernel shows the same behaviour and can suspend/resume so I can
+> get into kdb and do btp. Unfortunately I seem to be too stupid to find
+> the way to get the output somehow saved or written anywhere.
+> 
+> Not having the time (and motivation, to be honest) to write down all
+> the names and numbers -- and also not feeling that sending digital
+> photographs is the best way of communicating that output -- I don't
+> know how to give you that information.
+> 
+> Can you tell me how to do this, please?
 
-> eax: f8881920   ebx: f88eefe0   ecx: c03d6b40   edx: f88ebd30
-> esi: ffffffed   edi: f6ed4000   ebp: c03d9460   esp: f6ed4f5c
-> ds: 007b   es: 007b   ss: 0068
-> Process modprobe (pid: 2119, threadinfo=f6ed4000 task=f6e71870)
-> Stack: c03d94a0 f88e9126 00000015 00000014 f8870bc1 c03d94a0 f88ef280
-> f6ed4000 
->        c0129ef7 c03d94a0 f88ef280 f6ed4000 c03d9460 c014dd52 00000246
-> f62f29ac 
->        f6e1fc40 f6d8b8ac f6de4380 f6de43ac 00000000 b7fde008 0807a1a0
-> 006a809d 
-> Call Trace:
->  [<f88e9126>] acpi_floppy_init+0x16/0x50 [floppy]
->  [<f8870bc1>] floppy_init+0x11/0x600 [floppy]
->  [<c0129ef7>] printk+0x17/0x20
->  [<c014dd52>] sys_init_module+0x252/0x3b0
->  [<c0106afd>] sysenter_past_esp+0x52/0x71
-> Code: 00 00 00 a1 ec 67 3e c0 c7 05 78 67 3e c0 a0 7b 3a c0 c7 05 7c 67
-> 3e c0 bd 01 00 00 89 1d ec 67 3e c0 c7 03 e8 67 3e c0 89 43 04 <89> 18
-> 81 3d 68 67 3e c0 3c 4b 24 1d 74 1c 68 68 67 3e c0 68 bf 
->  <6>note: modprobe[2119] exited with preempt_count 1
-> Debug: sleeping function called from invalid context at
-> include/linux/rwsem.h:43
-> in_atomic():1, irqs_disabled():0
->  [<c0125652>] __might_sleep+0xa2/0xb0
->  [<c012d222>] do_exit+0xa2/0x980
->  [<c010775f>] die+0x2bf/0x2c0
->  [<c012a0b6>] vprintk+0x1b6/0x340
->  [<c011e1e4>] do_page_fault+0x314/0x56c
->  [<c01d8155>] sysfs_new_dirent+0x25/0x80
->  [<c01d81cd>] sysfs_make_dirent+0x1d/0x90
->  [<c0172a29>] unmap_area_pmd+0x49/0x60
->  [<c01d7d84>] sysfs_add_file+0x74/0xa0
->  [<c0172bb0>] unmap_vm_area+0x30/0x80
->  [<c0173136>] __vunmap+0xb6/0xf0
->  [<c0129cf0>] call_console_drivers+0x80/0x110
->  [<c011ded0>] do_page_fault+0x0/0x56c
->  [<c0106cf9>] error_code+0x2d/0x38
->  [<c0251d3d>] acpi_bus_register_driver+0xd2/0x165
->  [<f88e9126>] acpi_floppy_init+0x16/0x50 [floppy]
->  [<f8870bc1>] floppy_init+0x11/0x600 [floppy]
->  [<c0129ef7>] printk+0x17/0x20
->  [<c014dd52>] sys_init_module+0x252/0x3b0
->  [<c0106afd>] sysenter_past_esp+0x52/0x71
-> ohci1394: $Rev: 1226 $ Ben Collins <bcollins@debian.org>
+The simplest way is to do a digital photograph, I'm afraid. The 'nice' way is to hook up a serial console and capture the output. If you do a photo, just send it to me, please.
+
+Regards,
+
+Nigel
+-- 
+______________________________________________
+Check out the latest SMS services @ http://www.linuxmail.org 
+This allows you to send and receive SMS through your mailbox.
+
+Powered by Outblaze
