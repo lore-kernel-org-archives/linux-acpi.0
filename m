@@ -1,15 +1,13 @@
-From: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
-Subject: Re: kacpid problems
-Date: Tue, 9 Nov 2004 10:45:08 -0500
-Message-ID: <200411091045.08168.barr.156@osu.edu>
-References: <20041109151244.94397.qmail@web25307.mail.ukl.yahoo.com>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: kacpid problems
+Date: Tue, 9 Nov 2004 23:50:43 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC041@pdsmsx403>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041109151244.94397.qmail-Njb8tMpsuHHGRxTy+Q50vsz6deESKz/lQQ4Iyu8u01E@public.gmane.org>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,17 +18,13 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: dev_zero <dev_xor-eZNTXLQAfP4@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday 09 November 2004 10:12 am, dev_zero wrote:
-> How am i supppose to get an output from
-> /proc/acpi/event ??? I can't access the file, because
-> it's in use.
+>How am i supppose to get an output from
+>/proc/acpi/event ??? I can't access the file, because
+>it's in use.
 
-you probably need to stop the acpid daemon.
-
-Andrew
+Just kill acpid or the similar.
 
 
 -------------------------------------------------------
