@@ -1,12 +1,14 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: 2.4.20 + ACPI-20021212 - strange oops
-Date: Tue, 25 Feb 2003 00:27:49 +0100
+From: "=?ks_c_5601-1987?B?w+LGxw==?=" <h1-PgBelngkwdU+MW+wcPHoAA@public.gmane.org>
+Subject: =?ks_c_5601-1987?B?wNq68cPixscgvsizu1u9w8H9LLz2x8osvNK8syyw5sGmLLD=?=
+ =?ks_c_5601-1987?B?5r+1LMOzvLwgseLFuF1bsaSw7V0=?=
+Date: Tue, 25 Feb 2003 16:49:21 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030224232749.GA11495@hell.org.pl>
+Message-ID: <12254.0620774545$1046160251@news.gmane.org>
+Reply-To: "=?ks_c_5601-1987?B?w+LGxw==?=" <h1-PgBelngkwdU+MW+wcPHoAA@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0004_09DE01FD.2C9E91B0"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,117 +20,196 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-I had this oops shortly after the system had started completely (i.e. the
-gettys appeared). This has been the only occurence so far, I don't know how
-to reproduce it. I'm using 2.4.20 with xfs, acpi-20021212, swsusp and
-cpufreq patches. Here is the ksymoops output:
+This is a multi-part message in MIME format.
 
-#v+
-ksymoops 2.4.8 on i686 2.4.20-xfs-cpufreq-swsusp.  Options used
-     -V (default)
-     -k /proc/ksyms (default)
-     -l /proc/modules (default)
-     -o /lib/modules/2.4.20-xfs-cpufreq-swsusp/ (default)
-     -m /usr/src/linux/System.map (default)
+------=_NextPart_000_0004_09DE01FD.2C9E91B0
+Content-Type: text/plain;
+	charset="ks_c_5601-1987"
+Content-Transfer-Encoding: base64
 
-Warning: You did not tell me where to find symbol information.  I will
-assume that the log matches the kernel and modules that are running
-right now and I'll use the default options above for symbol resolution.
-If the current kernel and/or modules do not match the log, you can get
-more accurate output by telling me the kernel version and where to find
-map, modules, ksyms etc.  ksymoops -h explains the options.
+v/iw7cHfsLMsIMDauvHD4sbHLCDA2rytwPwsILHiyLnD4sbHILXuIMPixse8rbrxvbogwPy5rsi4
+u+cgIMDauvHD4sbHIL7Is7sovcPB/Sy89sfKLLzSvLMssObBpiyw5r+1LMOzvLwsseLFuCkgICAg
+DQphY3BpLWRldmVstNSysiAgx+C6ucDMIMfUsrLHz73DseK4piC697TPtNkuDQqxzcfPwMcgILje
+wM/B1rzStMIgwKW8rcfOwd+/obytIL7LsNQgtciwzcDMuOcsIEUtTWFpbCDB1rzSIL/cv6EsILTZ
+uKUgIMGkuri0wiCwrrDtIMDWwfYgvsq9wLTPtNkuILq7ILjewM/AuiDBpLq4xeu9xbjBIMDMv+vD
+y8H4ILnXIMGkuri6uMijICC17r+hILD8x9Eguf23/CDBpiA1MMG2v6EgwMewxcfRW7GksO1dILje
+wM/A1LTPtNkNCg0KIA0KvPa9xbDFus64piC/+MfPvcO46SC/qbHiuKYgxay4r8fPseK4uCDHz7y8
+v+R+IA0KIA0KIA0KICBbwNq68cPixsfAxyAgwNq8vMfRILO7v+tdDQogIMD6wNuxx7vnx9cNCiAg
+wPrA2sDHICC757vzsPogw7bH0MC7ILTjvsYgx7DAp8DWtMIgw6XAuLfOILi4tem+7iAgteW4s7TP
+tNkuICDD4sbHte63z7D6ICCxucGmILmux+W5+MijKElTQk4puKYgus6/qcfYILXluLO0z7TZLiAg
+DQogsbm4s8HfvtO1tbytsPy/oSAgs7O6u8fPv6kgvvDBprbztbUgv62298fPvccgvPYgwNa9wLTP
+tNkuICANCiDA+sDbscfAuyAgw7bA+sfPsNQgurjA5cfVtM+02S4gICAgwabA27nmuf0NCiAgs+u3
+w8fRICC/7r+1wLi3ziDBpsDbuvG4piDD1rTrx9EgwP2+4MfPv6kgwPq3xcfRICC68b/rwMwgtey0
+z7TZLiANCiDDtsD6x8+w1CAgwPrA2sDHIMDHtbW4piAxMDAlILndv7XH1bTPtNkuDQoguru5rrD6
+ICDHpcH2wMcgsbPBpMH2uKYgw9a80sfRILXOILn4IMDMu/Mgurizu7XluLO0z7TZLiAgDQogwPrA
+2sDHICBPS7vnwM7AzCCzqr7fuLggwabA27+hILXpvu6wqbTPtNkuIA0KILD4sN3A+8DOICCw5r+1
+wLi3ziCwxbehvK3BocC7IMfPt+e1tSC6/MH2wfYgvsqw7SAguea5rsfPv6kgtbW8rcDHIMH4v627
+88XCuKYgvPa9w7fOIMGhsMvHz7DtLCAgtPW/7SDBwcC6IMDauK6/oSDB+L+ttckgvPYgwNa1tbfP
+IMPWvLHAuyAgtNnH1bTPtNkuICAgICAgwM68vCAgsOi+4LnmvcQNCiAgw7PAvSAgwabA27rxwMcg
+wM+6zrimIMD6wNqwoSC6zrTjx8+0wiCwzSC/3L+hICDAz7ndIMPixse5sLD6ILW/wM/H0SCw6L7g
+IMPfsKG68b/rICDA/Mf0IL74wLi45yDDpcDMIMDfIMbIuK646SDA+sDav6Gw1CAgwM68vLimIMH2
+vNPA+8C4t84gwfax3iAxMCUgILyxwM68vCAgIA0KwNq8vMfRICC758fXwLogtbW8rcPixscgwNvA
+ur2jv6G8rSAgu+zG7Lq4vcOx4iC52bb4tM+02S4NCg0KICAgICC1tbytw+LGxyDA28C6vaMgDQog
+DQoNCiANCg==
 
-Unable to handle kernel paging request at virtual address 87ec33cc
-c0207057
-*pde = 00000000
-Oops: 0000
-CPU:    0
-EIP:    0010:[<c0207057>]    Not tainted
-Using defaults from ksymoops -t elf32-i386 -a i386
-EFLAGS: 00010246
-eax: 00000000   ebx: 87ec33cc   ecx: 00000000   edx: cd935d7c
-esi: 87ec33cc   edi: cd935df4   ebp: c021acf0   esp: cd935d84
-ds: 0018   es: 0018   ss: 0018
-Process kacpidpc (pid: 220, stackpage=cd935000)
-Stack: 00001001 c02081ad 87ec33cc c02161bb 00200000 cd935df4 cd935dc0
-87ec33cc
-       87ec33cc c021ada0 87ec33cc c021acf0 cd935df4 00200000 00000000
-00010000
-       c02d9c9f c02d9c54 00000050 00000000 cd935df8 cd935e34 c0224c68
-87ec33cc
-Call Trace:    [<c02081ad>] [<c02161bb>] [<c021ada0>] [<c021acf0>]
-[<c0224c68>]
-  [<c02163d0>] [<c0225246>] [<c022589c>] [<c021b2f2>] [<c0216100>]
-[<c022ac0c>]
-  [<c0229cb9>] [<c022b0df>] [<c021ae23>] [<c022c286>] [<c01f0a3e>]
-[<c01e5d73>]
-  [<c01f09d0>] [<c010582e>] [<c01e5ca0>]
-Code: 80 3b aa 0f 44 c3 5b c3 90 a1 94 f8 35 c0 eb f6 89 f6 8d bc
+------=_NextPart_000_0004_09DE01FD.2C9E91B0
+Content-Type: text/html;
+	charset="ks_c_5601-1987"
+Content-Transfer-Encoding: base64
 
+DQo8aHRtbD4NCjxoZWFkPg0KPHRpdGxlPr/4sO3B37CzLCDA2rrxw+LGxywgwNq8rcD8LCCx4si5
+w+LGxyC17iDD4sbHvK268b26IMD8ua7IuLvnPC90aXRsZT4NCjxtZXRhIG5hbWU9ImdlbmVyYXRv
+ciIgY29udGVudD0iv/iw7cHfsLMsIMDauvHD4sbHLCDA2rytwPwsILHiyLnD4sbHILXuIMPixse8
+rbrxvbogwPy5rsi4u+ciPg0KPC9oZWFkPg0KDQo8Ym9keSBiZ2NvbG9yPSJ3aGl0ZSIgdGV4dD0i
+YmxhY2siIGxpbms9ImJsdWUiIHZsaW5rPSJ3aGl0ZSIgYWxpbms9InJlZCIgbGVmdG1hcmdpbj0i
+MTAiIG1hcmdpbndpZHRoPSIxMCIgdG9wbWFyZ2luPSIxMCIgbWFyZ2luaGVpZ2h0PSIxMCI+DQoN
+Cjx0YWJsZSBib3JkZXI9IjAiIHdpZHRoPSI2MDAiPg0KICAgIDx0cj4NCiAgICAgICAgPHRkIHdp
+ZHRoPSIxMDAlIiBoZWlnaHQ9IjIyIiBiZ2NvbG9yPSIjMDA5NUEwIj48cCBhbGlnbj0iY2VudGVy
+Ij48Zm9udA0KICAgICAgICAgICAgIHNpemU9IjIiIGNvbG9yPSJ3aGl0ZSI+PGI+wNq68cPixscg
+vsizuyi9w8H9LLz2x8osvNK8syyw5sGmLLDmv7Usw7O8vCyx4sW4KTwvYj48L2ZvbnQ+PC90ZD4N
+CiAgICA8L3RyPg0KICAgIDx0cj4NCiAgICAgICAgPHRkIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjI1
+MyIgYmdjb2xvcj0id2hpdGUiPiAgICAgICAgICAgIA0KICAgICAgICAgICAgPHAgc3R5bGU9Imxp
+bmUtaGVpZ2h0OjEyMCU7IG1hcmdpbi10b3A6MDsgbWFyZ2luLXJpZ2h0OjA7IG1hcmdpbi1ib3R0
+b206MDsgbWFyZ2luLWxlZnQ6MzsiPjxzcGFuIHN0eWxlPSJmb250LXNpemU6OXB0OyI+PGJyPmFj
+cGktZGV2ZWy01LKyIA0KICAgICAgICAgICAgx+C6ucDMIMfUsrLHz73DseK4piC697TPtNkuPC9z
+cGFuPjxGT05UIHN0eWxlPSJGT05ULVNJWkU6IDlwdCI+PHNwYW4gc3R5bGU9ImZvbnQtc2l6ZTo5
+cHQ7Ij48YnI+PC9zcGFuPjwvRk9OVD48c3BhbiBzdHlsZT0iZm9udC1zaXplOjlwdDsiPrHNx8/A
+xyANCiAgICAgICAgICAgILjewM/B1rzStMIgwKW8rcfOwd+/obytIL7LsNQgtciwzcDMuOcsIEUt
+TWFpbCDB1rzSIL/cv6EsILTZuKUgDQogICAgICAgICAgICDBpLq4tMIgsK6w7SDA1sH2IL7KvcC0
+z7TZLiC6uyC43sDPwLogwaS6uMXrvcW4wSDAzL/rw8vB+CC51yDBpLq4urjIoyANCiAgICAgICAg
+ICAgILXuv6EgsPzH0SC5/bf8IMGmIDUwwba/oSDAx7DFx9FbsaSw7V0guN7Az8DUtM+02Txicj48
+L3NwYW4+PC9wPg0KICAgICAgICAgICAgPHAgc3R5bGU9ImxpbmUtaGVpZ2h0OjEyMCU7IG1hcmdp
+bi10b3A6MDsgbWFyZ2luLXJpZ2h0OjA7IG1hcmdpbi1ib3R0b206MDsgbWFyZ2luLWxlZnQ6Mzsi
+PjxzcGFuIHN0eWxlPSJmb250LXNpemU6OXB0OyI+PGZvbnQgY29sb3I9InJlZCI+PGJyPjwvZm9u
+dD48L3NwYW4+PEZPTlQgZmFjZT2xvLiyw7w+PFNQQU4gc3R5bGU9IkZPTlQtU0laRTogOXB0Ij68
+9r3FsMW6zrimIL/4x8+9w7jpIA0KPGEgaHJlZj0iaHR0cDovL3d3dy5jcnVzYWRlLmNvLmtyL3Jl
+amVjdC9yZWplY3QucGhwP2lkPTEwMjEmbW9kZT13cml0ZSZtYWlsPWFjcGktZGV2ZWxAbGlzdHMu
+c291cmNlZm9yZ2UubmV0Ij48U1BBTiBzdHlsZT0iRk9OVC1TSVpFOiA5cHQiPjxGT05UIGZhY2U9
+IrG8uLLDvCIgY29sb3I9InJlZCI+v6mx4jwvRk9OVD48L1NQQU4+PC9BPjxGT05UIGZhY2U9sby4
+ssO8PjxTUEFOIHN0eWxlPSJGT05ULVNJWkU6IDlwdCI+uKYgxay4r8fPseK4uCANCsfPvLy/5H48
+L1NQQU4+PC9GT05UPjxzcGFuIHN0eWxlPSJmb250LXNpemU6OXB0OyI+PGZvbnQgY29sb3I9InJl
+ZCI+Jm5ic3A7PC9mb250Pjwvc3Bhbj48L3A+DQogICAgICAgICAgICA8cCBzdHlsZT0ibGluZS1o
+ZWlnaHQ6MTIwJTsgbWFyZ2luLXRvcDowOyBtYXJnaW4tcmlnaHQ6MDsgbWFyZ2luLWJvdHRvbTow
+OyBtYXJnaW4tbGVmdDozOyI+IDxzcGFuIHN0eWxlPSJmb250LXNpemU6OXB0OyI+PGZvbnQgY29s
+b3I9InJlZCI+PGJyPiZuYnNwOzwvZm9udD48L3NwYW4+PC9wPg0KICAgICAgICAgICAgPHAgc3R5
+bGU9ImxpbmUtaGVpZ2h0OjEyMCU7IG1hcmdpbi10b3A6MDsgbWFyZ2luLXJpZ2h0OjA7IG1hcmdp
+bi1ib3R0b206MDsgbWFyZ2luLWxlZnQ6MzsiPjxzcGFuIHN0eWxlPSJmb250LXNpemU6OXB0OyI+
+Jm5ic3A7W8DauvHD4sbHwMcgDQogICAgICAgICAgICDA2ry8x9Egs7u/6108L3NwYW4+PC9wPg0K
+PFRBQkxFIGNlbGxTcGFjaW5nPTAgY2VsbFBhZGRpbmc9MSB3aWR0aD02MDAgYm9yZGVyPTAgc3R5
+bGU9ImxpbmUtaGVpZ2h0OjEyMCU7IG1hcmdpbi10b3A6MDsgbWFyZ2luLXJpZ2h0OjA7IG1hcmdp
+bi1ib3R0b206MDsgbWFyZ2luLWxlZnQ6MzsiPg0KPFRCT0RZPg0KPFRSPg0KPFREIGJnQ29sb3I9
+IzAwMDAwMCBoZWlnaHQ9IjM0OCI+DQo8VEFCTEUgY2VsbFNwYWNpbmc9MSBjZWxsUGFkZGluZz0z
+IHdpZHRoPSIxMDAlIiBib3JkZXI9MCBzdHlsZT0ibGluZS1oZWlnaHQ6MTIwJTsgbWFyZ2luLXRv
+cDowOyBtYXJnaW4tcmlnaHQ6MDsgbWFyZ2luLWJvdHRvbTowOyBtYXJnaW4tbGVmdDozOyI+DQog
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRyPg0KPFREIGJnQ29sb3I9I2U1ZDU4MiB3aWR0
+aD0iMTA5IiBoZWlnaHQ9IjEwNCI+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICA8cCBzdHlsZT0idGV4dC1pbmRlbnQ6MHB0OyBsaW5lLWhlaWdodDoxMjAlOyBtYXJnaW4tdG9w
+OjA7IG1hcmdpbi1yaWdodDowOyBtYXJnaW4tYm90dG9tOjA7IG1hcmdpbi1sZWZ0OjM7Ij48c3Bh
+biBzdHlsZT0iZm9udC1zaXplOjlwdDsiPsD6wNuxx7vnx9c8L3NwYW4+PC9wPg0KPC9URD4NCjxU
+RCBiZ0NvbG9yPSNmZmZmZmYgd2lkdGg9IjQ3NCIgaGVpZ2h0PSIxMDQiPg0KICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgPHVsPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgIDxsaSBzdHlsZT0ibGluZS1oZWlnaHQ6MTIwJTsgbWFyZ2luLXRvcDowOyBt
+YXJnaW4tcmlnaHQ6MDsgbWFyZ2luLWJvdHRvbTowOyBtYXJnaW4tbGVmdDozOyI+PHNwYW4gc3R5
+bGU9ImZvbnQtc2l6ZTo5cHQ7Ij7A+sDawMcgDQogICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgu+e787D6IMO2x9DAuyC0477GIMewwKfA1rTCIMOlwLi3ziC4uLXpvu4gDQog
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgteW4s7TPtNkuIDwvc3Bhbj48
+L2xpPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxsaSBzdHlsZT0i
+bGluZS1oZWlnaHQ6MTIwJTsgbWFyZ2luLXRvcDowOyBtYXJnaW4tcmlnaHQ6MDsgbWFyZ2luLWJv
+dHRvbTowOyBtYXJnaW4tbGVmdDozOyI+PHNwYW4gc3R5bGU9ImZvbnQtc2l6ZTo5cHQ7Ij7D4sbH
+te63z7D6IA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgILG5waYgua7H
+5bn4yKMoSVNCTim4piC6zr+px9ggteW4s7TPtNkuIA0KICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgIDxicj48L3NwYW4+PC9saT4NCiAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICA8bGkgc3R5bGU9ImxpbmUtaGVpZ2h0OjEyMCU7IG1hcmdpbi10b3A6
+MDsgbWFyZ2luLXJpZ2h0OjA7IG1hcmdpbi1ib3R0b206MDsgbWFyZ2luLWxlZnQ6MzsiPjxzcGFu
+IHN0eWxlPSJmb250LXNpemU6OXB0OyI+sbm4s8HfvtO1tbytsPy/oSANCiAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICCzs7q7x8+/qSC+8MGmtvO1tSC/rbb3x8+9xyC89iDA
+1r3AtM+02S4gDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGJyPjwv
+c3Bhbj48L2xpPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxsaSBz
+dHlsZT0ibGluZS1oZWlnaHQ6MTIwJTsgbWFyZ2luLXRvcDowOyBtYXJnaW4tcmlnaHQ6MDsgbWFy
+Z2luLWJvdHRvbTowOyBtYXJnaW4tbGVmdDozOyI+PHNwYW4gc3R5bGU9ImZvbnQtc2l6ZTo5cHQ7
+Ij7A+sDbscfAuyANCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICDDtsD6
+x8+w1CC6uMDlx9W0z7TZLjwvc3Bhbj48L2xpPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgPC91bD4NCjwvVEQ+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC90cj4N
+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dHI+DQo8VEQgYmdDb2xvcj0jZTVkNTgyIHdp
+ZHRoPSIxMDkiIGhlaWdodD0iMTQ4Ij4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgIDxwIHN0eWxlPSJ0ZXh0LWluZGVudDowcHQ7IGxpbmUtaGVpZ2h0OjEyMCU7IG1hcmdpbi10
+b3A6MDsgbWFyZ2luLXJpZ2h0OjA7IG1hcmdpbi1ib3R0b206MDsgbWFyZ2luLWxlZnQ6MzsiPjxz
+cGFuIHN0eWxlPSJmb250LXNpemU6OXB0OyI+wabA27nmuf08L3NwYW4+PC9wPg0KPC9URD4NCjxU
+RCBiZ0NvbG9yPSNmZmZmZmYgd2lkdGg9IjQ3NCIgaGVpZ2h0PSIxNDgiPg0KICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgPHVsPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgIDxsaSBzdHlsZT0ibGluZS1oZWlnaHQ6MTIwJTsgbWFyZ2luLXRvcDowOyBt
+YXJnaW4tcmlnaHQ6MDsgbWFyZ2luLWJvdHRvbTowOyBtYXJnaW4tbGVmdDozOyI+PHNwYW4gc3R5
+bGU9ImZvbnQtc2l6ZTo5cHQ7Ij6z67fDx9EgDQogICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgv+6/tcC4t84gwabA27rxuKYgw9a068fRIMD9vuDHz7+pIMD6t8XH0SANCiAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICC68b/rwMwgtey0z7TZLiA8YnI+
+PC9zcGFuPjwvbGk+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGxp
+IHN0eWxlPSJsaW5lLWhlaWdodDoxMjAlOyBtYXJnaW4tdG9wOjA7IG1hcmdpbi1yaWdodDowOyBt
+YXJnaW4tYm90dG9tOjA7IG1hcmdpbi1sZWZ0OjM7Ij48c3BhbiBzdHlsZT0iZm9udC1zaXplOjlw
+dDsiPsO2wPrHz7DUIA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIMD6
+wNrAxyDAx7W1uKYgMTAwJSC53b+1x9W0z7TZLjxicj48L3NwYW4+PC9saT4NCiAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8bGkgc3R5bGU9ImxpbmUtaGVpZ2h0OjEyMCU7
+IG1hcmdpbi10b3A6MDsgbWFyZ2luLXJpZ2h0OjA7IG1hcmdpbi1ib3R0b206MDsgbWFyZ2luLWxl
+ZnQ6MzsiPjxzcGFuIHN0eWxlPSJmb250LXNpemU6OXB0OyI+uru5rrD6IA0KICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgIMelwfbAxyCxs8Gkwfa4piDD1rzSx9Egtc4gufgg
+wMy78yC6uLO7teW4s7TPtNkuIA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgIDxicj48L3NwYW4+PC9saT4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICA8bGkgc3R5bGU9ImxpbmUtaGVpZ2h0OjEyMCU7IG1hcmdpbi10b3A6MDsgbWFyZ2luLXJp
+Z2h0OjA7IG1hcmdpbi1ib3R0b206MDsgbWFyZ2luLWxlZnQ6MzsiPjxzcGFuIHN0eWxlPSJmb250
+LXNpemU6OXB0OyI+wPrA2sDHIA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgIE9Lu+fAzsDMILOqvt+4uCDBpsDbv6Egtem+7rCptM+02S4gPGJyPjwvc3Bhbj48L2xpPg0K
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxsaSBzdHlsZT0ibGluZS1o
+ZWlnaHQ6MTIwJTsgbWFyZ2luLXRvcDowOyBtYXJnaW4tcmlnaHQ6MDsgbWFyZ2luLWJvdHRvbTow
+OyBtYXJnaW4tbGVmdDozOyI+PHNwYW4gc3R5bGU9ImZvbnQtc2l6ZTo5cHQ7Ij6w+LDdwPvAziAN
+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICCw5r+1wLi3ziCwxbehvK3B
+ocC7IMfPt+e1tSC6/MH2wfYgvsqw7SANCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICC55rmux8+/qSC1tbytwMcgwfi/rbvzxcK4piC89r3Dt84gwaGwy8fPsO0sIA0KICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgILT1v+0gwcHAuiDA2riuv6Egwfi/
+rbXJILz2IMDWtbW3zyDD1ryxwLsgDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgtNnH1bTPtNkuIDwvc3Bhbj48L2xpPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgPC91bD4NCjwvVEQ+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC90cj4N
+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dHI+DQo8VEQgYmdDb2xvcj0jZTVkNTgyIHdp
+ZHRoPSIxMDkiIGhlaWdodD0iOTUiPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgPHAgc3R5bGU9ImxpbmUtaGVpZ2h0OjEyMCU7IG1hcmdpbi10b3A6MDsgbWFyZ2luLXJpZ2h0
+OjA7IG1hcmdpbi1ib3R0b206MDsgbWFyZ2luLWxlZnQ6MzsiPjxzcGFuIHN0eWxlPSJmb250LXNp
+emU6OXB0OyI+Jm5ic3A7wM68vCANCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ILDovuC55r3EPC9zcGFuPjwvcD4NCjwvVEQ+DQo8VEQgYmdDb2xvcj0jZmZmZmZmIHdpZHRoPSI0
+NzQiIGhlaWdodD0iOTUiPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHVs
+Pg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxsaSBzdHlsZT0ibGlu
+ZS1oZWlnaHQ6MTIwJTsgbWFyZ2luLXRvcDowOyBtYXJnaW4tcmlnaHQ6MDsgbWFyZ2luLWJvdHRv
+bTowOyBtYXJnaW4tbGVmdDozOyI+PHNwYW4gc3R5bGU9ImZvbnQtc2l6ZTo5cHQ7Ij48Zm9udCBj
+b2xvcj0icmVkIj7Ds8C9IA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+IMGmwNu68cDHIMDPus64piDA+sDasKEgus6048fPtMIgsM0gv9y/oSANCiAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICDAz7ndIMPixse5sLD6ILW/wM/H0SCw6L7gPC9mb250
+Pjwvc3Bhbj48L2xpPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxs
+aSBzdHlsZT0ibGluZS1oZWlnaHQ6MTIwJTsgbWFyZ2luLXRvcDowOyBtYXJnaW4tcmlnaHQ6MDsg
+bWFyZ2luLWJvdHRvbTowOyBtYXJnaW4tbGVmdDozOyI+PHNwYW4gc3R5bGU9ImZvbnQtc2l6ZTo5
+cHQ7Ij7D37ChuvG/6yANCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICDA
+/Mf0IL74wLi45yDDpcDMIMDfIMbIuK646SDA+sDav6Gw1CANCiAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICDAzry8uKYgwfa808D7wLi3ziDB9rHePC9zcGFuPjwvbGk+DQog
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGxpIHN0eWxlPSJsaW5lLWhl
+aWdodDoxMjAlOyBtYXJnaW4tdG9wOjA7IG1hcmdpbi1yaWdodDowOyBtYXJnaW4tYm90dG9tOjA7
+IG1hcmdpbi1sZWZ0OjM7Ij48c3BhbiBzdHlsZT0iZm9udC1zaXplOjlwdDsiPjEwJSANCiAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICC8scDOvLw8L3NwYW4+PC9saT4NCiAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvdWw+DQo8L1REPg0KICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgIDwvdHI+DQo8L1RCT0RZPjwvVEFCTEU+DQo8L1REPjwvVFI+PC9U
+Qk9EWT48L1RBQkxFPg0KICAgICAgICAgICAgPHAgc3R5bGU9ImxpbmUtaGVpZ2h0OjEyMCU7IG1h
+cmdpbi10b3A6MDsgbWFyZ2luLXJpZ2h0OjA7IG1hcmdpbi1ib3R0b206MDsgbWFyZ2luLWxlZnQ6
+MzsiPjxGT05UIHN0eWxlPSJGT05ULVNJWkU6IDlwdCI+PEZPTlQgDQpzdHlsZT0iRk9OVC1TSVpF
+OiA5cHQiPjxzcGFuIHN0eWxlPSJmb250LXNpemU6OXB0OyI+PEJSPjwvc3Bhbj48L0ZPTlQ+PC9G
+T05UPjxzcGFuIHN0eWxlPSJmb250LXNpemU6OXB0OyI+PGZvbnQgY29sb3I9ImJsYWNrIj7A2ry8
+x9EgDQogICAgICAgICAgICC758fXwLogPC9mb250PjxhIGhyZWY9Imh0dHA6Ly9qYWJpLmNvLmty
+Ij48Zm9udCBjb2xvcj0iYmxhY2siPrW1vK3D4sbHIMDbwLq9ozwvZm9udD48L2E+PGZvbnQgY29s
+b3I9ImJsYWNrIj6/obytIA0KICAgICAgICAgICAgu+zG7Lq4vcOx4iC52bb4tM+02S48L2ZvbnQ+
+PGJyPjxicj4mbmJzcDs8L3NwYW4+Jm5ic3A7PC90ZD4NCiAgICA8L3RyPg0KICAgIDx0cj4NCiAg
+ICAgICAgPHRkIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjE1IiBiZ2NvbG9yPSIjMDA5NUEwIj48cCBh
+bGlnbj0iY2VudGVyIiBzdHlsZT0ibGluZS1oZWlnaHQ6MTAwJTsgbWFyZ2luLXRvcDowOyBtYXJn
+aW4tYm90dG9tOjA7Ij48YSBocmVmPSJodHRwOi8vamFiaS5jby5rciI+PGZvbnQNCiAgICAgICAg
+ICAgICBzaXplPSIyIiBjb2xvcj0id2hpdGUiPrW1vK3D4sbHIMDbwLq9ozwvZm9udD48L2E+PC90
+ZD4NCiAgICA8L3RyPg0KPC90YWJsZT4NCjxwPiZuYnNwOzwvcD4NCjxwPiZuYnNwOzwvcD4NCjwv
+Ym9keT4NCg0KPC9odG1sPg==
 
->>EIP; c0207057 <acpi_ns_map_handle_to_node+17/30>   <=====
+------=_NextPart_000_0004_09DE01FD.2C9E91B0--
 
->>edx; cd935d7c <_end+d5b7f24/12496208>
->>edi; cd935df4 <_end+d5b7f9c/12496208>
->>ebp; c021acf0 <acpi_bus_data_handler+0/50>
->>esp; cd935d84 <_end+d5b7f2c/12496208>
-
-Trace; c02081ad <acpi_get_data+5d/90>
-Trace; c02161bb <acpi_ut_trace+3b/40>
-Trace; c021ada0 <acpi_bus_get_device+60/110>
-Trace; c021acf0 <acpi_bus_data_handler+0/50>
-Trace; c0224c68 <acpi_power_get_context+68/120>
-Trace; c02163d0 <acpi_ut_value_exit+50/60>
-Trace; c0225246 <acpi_power_off_device+56/290>
-Trace; c022589c <acpi_power_transition+15c/190>
-Trace; c021b2f2 <acpi_bus_set_power+1b2/3a0>
-Trace; c0216100 <acpi_ut_debug_print+a0/e0>
-Trace; c022ac0c <acpi_thermal_active+ec/220>
-Trace; c0229cb9 <acpi_thermal_get_temperature+c9/100>
-Trace; c022b0df <acpi_thermal_check+36f/3e0>
-Trace; c021ae23 <acpi_bus_get_device+e3/110>
-Trace; c022c286 <acpi_thermal_notify+d6/160>
-Trace; c01f0a3e <acpi_ev_notify_dispatch+6e/a0>
-Trace; c01e5d73 <acpi_os_queue_exec+d3/100>
-Trace; c01f09d0 <acpi_ev_notify_dispatch+0/a0>
-Trace; c010582e <kernel_thread+2e/40>
-Trace; c01e5ca0 <acpi_os_queue_exec+0/100>
-
-Code;  c0207057 <acpi_ns_map_handle_to_node+17/30>
-00000000 <_EIP>:
-Code;  c0207057 <acpi_ns_map_handle_to_node+17/30>   <=====
-   0:   80 3b aa                  cmpb   $0xaa,(%ebx)   <=====
-Code;  c020705a <acpi_ns_map_handle_to_node+1a/30>
-   3:   0f 44 c3                  cmove  %ebx,%eax
-Code;  c020705d <acpi_ns_map_handle_to_node+1d/30>
-   6:   5b                        pop    %ebx
-Code;  c020705e <acpi_ns_map_handle_to_node+1e/30>
-   7:   c3                        ret
-Code;  c020705f <acpi_ns_map_handle_to_node+1f/30>
-   8:   90                        nop
-Code;  c0207060 <acpi_ns_map_handle_to_node+20/30>
-   9:   a1 94 f8 35 c0            mov    0xc035f894,%eax
-Code;  c0207065 <acpi_ns_map_handle_to_node+25/30>
-   e:   eb f6                     jmp    6 <_EIP+0x6>
-Code;  c0207067 <acpi_ns_map_handle_to_node+27/30>
-  10:   89 f6                     mov    %esi,%esi
-Code;  c0207069 <acpi_ns_map_handle_to_node+29/30>
-  12:   8d bc 00 00 00 00 00      lea    0x0(%eax,%eax,1),%edi
-
-
-1 warning issued.  Results may not be reliable.
-#v-
-
-My DSDT is at http://hell.org.pl/~sziwan/asus/dsdt.dsl, if anybody bothered
-to look. The oops wasn't fatal to the kernel, but I wasn't really in the
-mood of checking how far would it go, so I rebooted shortly after the
-prompt. I hope this will be useful to somebody...
-Best regards,
-
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
