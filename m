@@ -1,13 +1,14 @@
-From: Ultrakorne <ultrakorne-XtQPfPCVGG7srOwW+9ziJQ@public.gmane.org>
-Subject: Re: Smart batteries and Acer: list of affected models needed
-Date: Wed, 24 Nov 2004 17:48:02 +0100
-Message-ID: <41A4BB42.20103@paranoici.org>
-References: <20041123194307.GB14444@hell.org.pl>
+From: Andrea Borgia <borgia-iEixELS/QsY1GQ1Ptb7lUw@public.gmane.org>
+Subject: Re: Re: [SoftwareSuspend-help] since 2.6.9 reboots instead
+ of poweroff (solved)
+Date: Wed, 24 Nov 2004 17:59:36 +0100
+Message-ID: <41A4BDF8.2090309@cs.unibo.it>
+References: <16A54BF5D6E14E4D916CE26C9AD305759993D0@pdsmsx402.ccr.corp.intel.com> <41A2BB09.7050201@tyrell.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041123194307.GB14444-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+In-Reply-To: <41A2BB09.7050201-JqGE727OS8SHXe+LvDLADg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,37 +21,28 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Akos Maroy wrote:
 
-Karol Kozimor wrote:
-| Hi,
-| It's likely that I'll get my employer's backing for writing the smart
-| battery driver.
+> Li, Shaohua wrote:
+>> It has been fixed there:
+>> http://bugme.osdl.org/show_bug.cgi?id=3669
 
-in my dsdt disassembled i get 3 warning... and it contain those lines
-"Name(_HID,"ACPI0001")", "Name(_HID,"ACPI0002")"
-meaning i have a smart battery
-my model as i say is a travelmate 4501 lci
+> thanks! this patch has really fixed this problem..
 
-can someone tell me where and what documents are a good read (kernel
-module, acpi, smart battery...), if someone already have collect some
-material this should be fine. my hope is helping the development...
+Same here, from 2.6.8.1 up until now I had this same problem and now it 
+is fixed: both ac- and battery-power shutdowns complete as expected.
 
-Sam
-- --
-+--------------------+-------------------------------------+
-|    Metal OWNZ U    |        GnuPG ID: E2844BB9           |
-|   icq#: 61252311   | My Public key at: wwwkeys.pgp.net   |
-+--------------------+-------------------------------------+
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+Kudos to the acpi guys!
 
-iD8DBQFBpLtCzMLB4uKES7kRAh9kAJ9OXwlgq/zDhrxDT6+Ox7If32NxsgCfV+Tr
-slekYBZJown3Gm4TQTYSuWc=
-=T+dl
------END PGP SIGNATURE-----
+BR,
+Andrea.
+
+-- 
+Homepage: http://andrea.borgia.bo.it     /    Amateur radio: IZ4FHT
+A: Because it messes up the order in which people normally read text.
+Q: Why is top-posting such a bad thing?
+A: Top-posting.
+Q: What is the most annoying thing on usenet and in e-mail?
 
 
 -------------------------------------------------------
