@@ -1,25 +1,78 @@
-From: Arjan van de Ven <arjanv-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [BK PATCH] acpismp=force fix
-Date: Mon, 23 Jun 2003 11:54:08 +0000
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20030623115408.E23874@devserv.devel.redhat.com>
-References: <1056355301.1699.6.camel@laptop.fenrus.com> <Pine.LNX.4.44.0306231224590.1648-100000@localhost.localdomain>
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: _PDC method in DSDT
+Date: Mon, 23 Jun 2003 13:51:53 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20030623115153.GW19556@poupinou.org>
+References: <1056329130.10322.36.camel@aldebaran.caltech.edu> <20030623100744.GU19556@poupinou.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0306231224590.1648-100000-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>; from hugh-DTz5qymZ9yRBDgjK7y7TUQ@public.gmane.org on Mon, Jun 23, 2003 at 12:46:38PM +0100
-To: Hugh Dickins <hugh-DTz5qymZ9yRBDgjK7y7TUQ@public.gmane.org>
-Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Arjan van de Ven <arjanv-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Andrew Morton <akpm-LL/9OlyS9hIAvxtiuMwx3w@public.gmane.org>, torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20030623100744.GU19556-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: David Moore <dcm-HInyCGIudOg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jun 23, 2003 at 12:46:38PM +0100, Hugh Dickins wrote:
-> Certainly reliance on "acpismp=force" should be removed if it's crept
-> back in.  But what should we do about "noht"?  Wave a fond goodbye,
-> and remove it's associated code and Documentation from 2.4 and 2.5
-> trees, rely on changing the BIOS setting instead?  Or bring it back
-> into action?
+On Mon, Jun 23, 2003 at 12:07:44PM +0200, Ducrot Bruno wrote:
+> On Sun, Jun 22, 2003 at 05:45:31PM -0700, David Moore wrote:
+> > Hi,
+> > 
+> > Does anyone know the purpose or specification of the _PDC method of the
+> > DSDT?  It's a reserved method that exists on my laptop (a Dell Latitude
+> > D600) but does not seem to be documented in the ACPI specification on
+> > the web.
+> > 
+> > The reason I ask is that I'm interested in porting the cpufreq driver
+> > for Enhanced Speedstep to ACPI.  Right now, the cpufreq driver has the
+> > tables of proper MSR register values encoded into the source, but a more
+> > elegant solution would be to get this information from ACPI.  In my DSDT
+> > source I notice that when the _PDC method is called properly, the _PCT
+> > method will return FixedHardware addresses for the Enhanced Speedstep
+> > MSRs instead of its normal SystemIO ports.  To get this to work on more
+> > than just my system, I should probably use the proper specification for
+> > calling _PDC rather than just making it work.
+> > 
+> > Anyone have any suggestions?
+> > 
+> 
+> 
+> Too late...  A CPUFreq driver is already writen and is in the CPUFreq cvs.
+> 
 
-for 2.4 it's no problem to honor it really code wise; and it's
-useful for machines where you can't disable HT in the bios but where
-your particular workload doesn't positively benefit from HT.
+Sorry, I had not read enough your mail.  The reason why the speedstep-centrino
+driver do not use ACPI is that we do want to support even people which do
+not want ACPI.  Therefore, this is more a design question but for
+CPUFreq, not ACPI.
+
+In my humble opinion,  _PDC method is stupid, since anyway this
+imply a legacy CPU driver to be written in all case.  And worst,
+some other CPU like the Athlon XP will even not have
+any real benefice from it.  Why bother for something that have
+been written specifically for Intel processor and seems more
+actually a bad design at first?
+
+If you want to discuss more on this topic, you should post to the
+cpufreq mailing-list, not to the ACPI mailing-list, anyway.
+
+Cheers,
+
+-- 
+Ducrot Bruno
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: INetU
+Attention Web Developers & Consultants: Become An INetU Hosting Partner.
+Refer Dedicated Servers. We Manage Them. You Get 10% Monthly Commission!
+INetU Dedicated Managed Hosting http://www.inetu.net/partner/index.php
