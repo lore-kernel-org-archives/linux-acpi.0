@@ -1,18 +1,13 @@
-From: wwp <subscript-GANU6spQydw@public.gmane.org>
-Subject: Re: 2.4.24 patch apply failed on vanilla kernel
-Date: Wed, 7 Jan 2004 22:56:50 +0100
+From: "Dino Klein" <dinoklein-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Subject: Where can I find some documentation/examples?
+Date: Wed, 7 Jan 2004 23:26:08 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040107225650.388f96d4@tethys>
-References: <20040107134658.5afa9142.acpi@thermoman.de>
-	<20040107155325.5bfceba0@tethys>
-	<20040107163907.391c146e.acpi@thermoman.de>
-	<20040107165054.1fbfc829@tethys>
-	<1073505678.7422.24.camel@darkstar.portugal>
+Message-ID: <LAW11-OE2428gdq0f690001fb1d@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1073505678.7422.24.camel-4/PLUo9XfK/yXfm4dIG/yWZHpeb/A1Y/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -24,23 +19,16 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi S=E9rgio Monteiro Basto,
+I'm interested in playing with acpi, by writing a simple driver for device PNP0C04 (the FPU), which obviously won't do much.
+I am trying to figure out how to populate acpi_driver structure, but I'm not quite clear as to which of the operation a device
+should implement.
+I've taken a look at the serial driver's use of acpi in order to discover ports, and their resources (in kernel 2.6.0). One thing
+puzzled me there, since it seems that it is possible to unload their acpi related, and therefore having it call
+acpi_bus_unregister_driver(); however, as far as I can tell, the serial port itself is still being used by the serial driver. This
+is why I'm not quite sure about the relationship between a regular linux driver, and the acpi subsystem.
+So, any pointers would be appreciated.
 
-
-On 07 Jan 2004 20:01:17 +0000 S=E9rgio Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>=
- wrote:
-
-> I think=20
-> Full version of kernel2.4.24 have all apci patches updated=20
-
-Forgotten to say that 2.4.24 doesn't include any change around acpi since
-2.4.23, it was only a security fix release (see the Changelog).
-
-
-Regards,
-
---=20
-wwp
+Thanks.
 
 
 -------------------------------------------------------
