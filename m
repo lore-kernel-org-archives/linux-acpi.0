@@ -1,13 +1,14 @@
-From: Volker Braun <volker.braun-DqRHhl98DdeAKZTfuerNgRvVK+yQ3ZXh@public.gmane.org>
-Subject: Re: BIOS Update: new dsdt for ThinkPadP R51
-Date: Wed, 15 Sep 2004 13:01:22 -0400
+From: Andre Eisenbach <andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org>
+Subject: Re: About ASL and DSDT fixing
+Date: Wed, 15 Sep 2004 12:21:44 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <pan.2004.09.15.17.01.22.31381@physik.hu-berlin.de>
-References: <20040915082407.7A5CD83F6@smtp.causaencantada.org>
+Message-ID: <41489648.8030300@eisenbach.com>
+References: <I42RT7$043051603B3815A736335BEE0AD7FB44@libero.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <I42RT7$043051603B3815A736335BEE0AD7FB44-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -16,30 +17,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: linux-thinkpad-l7BEYHA5S10i5T99jlK1Sh2eb7JE58TQ@public.gmane.org
+To: Gaetano Sferra <gaesferr-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org>
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-IBM's description of the fix
 
-On Wed, 15 Sep 2004 08:25:02 +0000, Suso Baleato wrote:
-> (Fix) (Linux) Hibernation function does not work correctly under the
-> partition environment created by lphdisk.
+>Where I can found resources on the ASL language? 
+>
 
-suggests that it only corrects a bug in the APM or maybe ACPI S4_bios
-support. Under ACPI, you should use swsusp(2) which writes the suspend
-image in the swap space and does not rely on the BIOS.
+The language and functions are described in the ACPI specifications. You 
+can download them from here:
+http://www.acpi.info/
 
-The DSDT errors are mostly harmless (or did you find any critical error
-message in dmesg?), and are automatically worked around by the AML
-interpreter.
-
-Did anybody update and find any relevant changes not mentioned in
-the changelog?
-
-Volker
-
-
+Cheers,
+    Andre
 
 
 -------------------------------------------------------
