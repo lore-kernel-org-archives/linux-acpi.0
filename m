@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] acpi-cpufreq fixups
-Date: Sun, 18 Jan 2004 15:41:32 +0800
+Subject: RE: More info on VP6 panics
+Date: Sun, 18 Jan 2004 16:01:35 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CF4@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CF5@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,18 +17,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
+To: Ian Pilcher <i.pilcher-Wuw85uim5zDR7s880joybQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> Just checked linus' bk tree.  It's a 20031002.  Well, I must admit
-> that I was thinking it was more recent than that.
->=20
-You can find latest ACPI patch for 2.6 at=20
-http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/
-2.6.1/
 
-And, I did'n find any ACPI CA file affected by that patch.
+>ve that the panic occurs anywhere in the ACPI=20
+> code.  From
+> what I can tell, the transition to ACPI mode causes the idle thread on
+> the other processor to panic.
+>=20
+> I believe that I have identified the line of code that triggers the
+> panic.  It is the actual transition to ACPI mode at
+> drivers/acpi/hardware/hwacpi.c, line 143.  If I insert an=20
+> infinite loop
+> before the call to acpi_os_write_port, the boot process simply hangs.
+> If I move the loop below the call to acpi_os_write_port, I=20
+> get the same
+> old panic message.
+>
+
+That experiment can only tell that there is no panic displayed on you
+screen
+before the infinite loop.
+
+I did remember this error, but I cannot find out other emails about this
+issue.
+Did you file it on bugzilla.kernel.org? It will help us a lot.
+
+Thanks,
+Luming
+
 
 
 -------------------------------------------------------
