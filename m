@@ -1,14 +1,18 @@
-From: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
+From: Frank Mehnert <fm3-IG//nw+yl+iQIjdd1DhZXWfrygkm6VTR@public.gmane.org>
 Subject: Re: IBM T41 + ACPI + APIC
-Date: Thu, 12 Aug 2004 13:00:50 -0400
+Date: Thu, 12 Aug 2004 21:56:38 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <411BA242.6010103@optonline.net>
-References: <F760B14C9561B941B89469F59BA3A8470726A996@orsmsx401.amr.corp.intel.com>
+Message-ID: <200408122156.42419.fm3@os.inf.tu-dresden.de>
+References: <F760B14C9561B941B89469F59BA3A8470726A996@orsmsx401.amr.corp.intel.com> <411BA242.6010103@optonline.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: multipart/signed;
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1;
+  boundary="Boundary-02=_6t8GBxRC5RQ35PL";
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <F760B14C9561B941B89469F59BA3A8470726A996-sBd4vmA9Se6krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <411BA242.6010103-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,22 +21,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Paul Ionescu <i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Grover, Andrew wrote:
 
-> You need an IOAPIC. The local APIC is basically just the part of the CPU
-> that receives messages from the IOAPIC, if present.
+--Boundary-02=_6t8GBxRC5RQ35PL
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-By the way, it is a bad idea to use front-side-bus interrupt delivery on 
-some (all?) Intel mobile processors/chipsets. This prevents entering C3, 
-if I remember correctly. The real details are in the i850-M databook...
+On Thursday 12 August 2004 19:00, Nathan Bryant wrote:
+> Grover, Andrew wrote:
+> > You need an IOAPIC. The local APIC is basically just the part of the CPU
+> > that receives messages from the IOAPIC, if present.
+>
+> By the way, it is a bad idea to use front-side-bus interrupt delivery on
+> some (all?) Intel mobile processors/chipsets. This prevents entering C3,
+> if I remember correctly. The real details are in the i850-M databook...
 
-Does turning on IOAPIC+local APIC enable FSB-interrupt mode in Linux? 
-What about also turning on message-signalled interrupts? Seems we use 
-the local-apic instead of the IO(x)APIC for MSI.
+BTW: Why does Linux not use the Local APIC timer as a source for timer=20
+interrupts? Using the Local APIC timer saves the kernel from acknowledging
+the PIT IRQ. Acknowledging the Local APIC IRQ is _much_ cheaper.
+
+=46rank
+=2D-=20
+## Dept. of Computer Science, Dresden University of Technology, Germany ##
+## http://os.inf.tu-dresden.de/~fm3                                     ##
+
+--Boundary-02=_6t8GBxRC5RQ35PL
+Content-Type: application/pgp-signature
+Content-Description: signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQBBG8t66z8pigLf3EcRAnucAJ4vdOZc3lWPXAC+dwVZF8sA2/NIDQCfQcqY
+VcZCWUQKsGdjaDrN+KiKHuc=
+=NtPN
+-----END PGP SIGNATURE-----
+
+--Boundary-02=_6t8GBxRC5RQ35PL--
 
 
 -------------------------------------------------------
