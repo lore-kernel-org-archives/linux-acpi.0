@@ -1,10 +1,10 @@
-From: nick <nlidakis-H+0wwilmMs3R7s880joybQ@public.gmane.org>
-Subject: Desktop and S3 suspend the Holy Grail of ACPI?
-Date: Sun, 22 Feb 2004 13:27:37 -0500
+From: Toni Erdmann <toni.erdmann-S0/GAf8tV78@public.gmane.org>
+Subject: mobo A7V600-F and problems with sound
+Date: Sun, 22 Feb 2004 20:07:07 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4038F499.2060302@verizon.net>
+Message-ID: <4038FDDB.8090807@web.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,33 +18,30 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I am new to ACPI but I have searched the archives, looked at the MAN 
-pages used Google to the best of
-my abilities and I still have some questions about ACPI. My basic goal 
-is to be able
-to suspend my desktop machine to S3 when not in use. I need to use the
-machine several times throughout the day, and feel it is a waste to leave
-it on continuously. The system spec are: Intel D875PBZ, Intel P4 3GHZ,
-Radeonm 9700 pro, Sounblaster Live, Debian unstable with 2.4.23 and
-2.6.2 kernels available, both with ACPI compiled as modules. Pressing
-the power button once gracefully shuts down the machine running either 
-kernel.
+Hello,
 
-After reading the documentation, I am still not sure how to try to
-suspend to S3. Is there anyone with this motherboard succesfully using
-S3 suspend? Is it reliable and stable, suspend after suspend.
-Is S3 suspend with Linux on the desktop the Holy Grail of ACPI? The
-machines suspends to S3 in Windows 2000 Pro, also shuts all the fans
-down too, totally silent.
+Sound is not working with my SuSE Linux 9.0 with 2.4.21-166-athlon
+on an ASUS A7V600-F (FSB333).
 
-Any advice would be appreciated.
-Can anyone recommend any Pentium 3/4 desktop motherboard that will S3 
-reliably in Linux?
+I found the following messages in 'dmesg'
 
-If this is not possible yet, are there any other Linux hardware problems 
-where S3 works reliably?
+ACPI: Unable to set IRQ for PCI Interrupt Link [LNKH] (likely buggy
+      ACPI BIOS, please report to acpi-devel!)
+...
+IRQ routing conflict for 00:10.0, have irq 5, want irq 3
+...
+ALSA via82xx.c:520: codec_valid: codec 0 is not valid [0xfe0000]
 
-Nick
+Last one probably means that the kernel can't contact sound chip
+
+I packed all Information into a tar ball as supposed for a
+bugzilla entry, but want to avoind sending 22K to the list.
+
+I didn't find an entry in bugzilla related to this here.
+
+What shall I do? Shall I post a report?
+
+Toni
 
 
 
