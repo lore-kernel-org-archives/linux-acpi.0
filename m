@@ -1,13 +1,14 @@
-From: Jari Ruusu <jari.ruusu-+kynuGyeZW3HOG6cAo2yLw@public.gmane.org>
-Subject: Re: ACPI + loop(AES) + swsusp
-Date: Mon, 05 Aug 2002 19:08:14 +0300
+From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>
+Subject: Re: Fixing ACPI compilation, fixing CONFIG_ACPI_BOOT
+Date: 05 Aug 2002 23:27:37 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3D4EA2EE.C5252944@pp.inet.fi>
-References: <Pine.LNX.4.44.0208050914050.15185-100000@xborg.ipp-hgw.mpg.de>
+Message-ID: <1028597611.1620.42.camel@darkstar.portugal>
+References: <20020804185103.GA14972@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20020804185103.GA14972-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,38 +17,79 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: Robert Stark <rstark-viLzafFedAGELgA04lAiVw@public.gmane.org>
-Cc: Linux Mailinglists <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-crypto-qDhp9YYfzQpg9hUCZPvPmw@public.gmane.org, swsusp-LcL5texQODR2DW0IdvIQ2g@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Robert Stark wrote:
-> I've patched kernel-2.4.18 with acpi-20020726-2.4.18.diff, patch-acpi-acpi20020726-swsusp11,
-> and use Jari's loopaes. All partitions, also the root partition are encrypted symmetric.
-> 
-> I work on a Sony-PCG-FX501 and ACPI and loopaes do all the things they should do.
-> Have tested swsusp on the same machine without loopaes( and standard loop device )
-> successfully, but when i have an loop device losetuped and send an 'echo 4 > /proc/acpi/sleep'
-> then swsusp says "Strange, loopX not stopped" and abort suspend. After this error all loop devices
-> are under load and i must reboot the system.
-> 
-> Is there a way get this envoirement to work ?
+Hi!
+I applied this patch in kernel 2.4.19
+but what are you try to fix ?
+boot parameters ?
+if so what boot parameters can be used ?
 
-Swsusp requires that loop thread puts itself to 'refrigerator' before
-suspend can happen. Current version of loop-AES just does not do that and is
-incompatible with swsusp.
+pci=3Dnoacpi=20
+gives again PCI: unknown option 'noacpi'
 
-And even if loop thread did the 'refrigerator' thing, it would be really bad
-security wise because the encryption keys would be written to disk when
-kernel RAM is saved to disk. Of course that is not a problem with
-unencrypted loops.
+the only parameter that works is resume=3D/dev/hda5=20
+when it is applied swusp patch.
 
-Robert, can you send me URLs of the patches that you used? It may be
-possible to add such code in '#ifdef CONFIG_SWSUSP / #endif' hunks, so that
-it gets activated only if swsusp is enabled in kernel config. I can't
-promise that it gets merged, but I will at least take a look at it.
+I would like try =20
+"pass pci=3Dnoacpi to the ACPI kernel"
+I don't understand if this one boot parameter only for kernel 2.5.x or
+if I am missing something or if shouldn't be acpi=3Dnopci ?.
+I would like try this because since I put kernel (2.4.x) with
+acpi20020726, I think: my pci hsf modem and connection to internet start
+work badly, I am testing to find out where is the problem and try to
+arrive to one conclusion.
+Anyway this pci hsf modem serves to test pci irq routing.
 
-Regards,
-Jari Ruusu <jari.ruusu-+kynuGyeZW3HOG6cAo2yLw@public.gmane.org>
+  =20
+thanks=20
+
+S=E9rgiomb =20
+
+=20
+On Sun, 2002-08-04 at 14:51, Pavel Machek wrote:
+> Hi!
+>=20
+> Here are patches to fix CONFIG_ACPI_BOOT. This is 3rd or so
+> retransmit; I've seen no response at all. Please comment on the patch,
+> or it is going directly to Linus.
+>=20
+> 								Pavel
+>=20
+>=20
+> --- clean/arch/i386/kernel/acpi.c	Mon Jun  3 11:43:27 2002
+> +++ linux-swsusp/arch/i386/kernel/acpi.c	Mon Jun 10 23:03:24 2002
+> @@ -53,11 +53,9 @@
+>                                Boot-time Configuration
+>     ---------------------------------------------------------------------=
+----- */
+> =20
+> -#ifdef CONFIG_ACPI_BOOT
+> -
+>  enum acpi_irq_model_id		acpi_irq_model;
+> =20
+> -
+> +#ifdef CONFIG_ACPI_BOOT
+>  /*
+>   * Use reserved fixmap pages for physical-to-virtual mappings of ACPI ta=
+bles.
+>   * Note that the same range is used for each table, so tables that need =
+to
+> --- clean/include/linux/acpi.h	Mon Jun  3 11:43:38 2002
+> +++ linux-swsusp/include/linux/acpi.h	Sun Aug  4 18:43:05 2002
+> @@ -39,7 +39,7 @@
+>  #include <asm/acpi.h>
+> =20
+> =20
+> -#ifdef CONFIG_ACPI_BOOT
+> +#ifdef CONFIG_ACPI
+> =20
+>  enum acpi_irq_model_id {
+>  	ACPI_IRQ_MODEL_PIC =3D 0,
+>=20
+
 
 
 
