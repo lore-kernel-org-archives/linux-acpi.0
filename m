@@ -1,11 +1,13 @@
-From: Tim Burke <tburke-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Platform development position at Red Hat
-Date: Mon, 10 Jan 2005 11:22:59 -0500
-Message-ID: <41E2ABE3.1070309@redhat.com>
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: acpi-ca reports \_SB as a device
+Date: Mon, 10 Jan 2005 10:12:38 -0800
+Message-ID: <971FCB6690CD0E4898387DBF7552B90E3900E6@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,33 +17,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: acpi-HZy0K5TPuP5AfugRpC6u6w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi All,
+For _SB_, this allows the _SB_._INI method to be run.
 
-We have a position available at Red Hat which may be of interest to some 
-people on this list.
-Position: Kernel Platform Engineer
-Company: Red Hat
-Location: Westford, Massachusetts, USA
+For _TZ, this allows notifies on the _TZ object.  Some ASL code does
+this.
 
-Responsible for low-level kernel platform support of x86 and x86-64 
-systems. Relevant subsystems include ACPI, memory and interrupt 
-controllers, IO and DMA controllers, and firmware/BIOS interfaces.  In 
-this role you will be responsible for enhancing Red Hat's product set to 
-be operational with new hardware from a wide range of vendors.  In Red 
-Hat's unique position as a fully open source company, you will be 
-working with, and contributing code to the upstream Linux community.
 
-Requirements include 3 or more years of active Linux kernel 
-development.  Demonstrated upstream involvement and contribution is a 
-strong plus.  Prior experience in platform support is a prerequisite.  
-Strong communication skills are required as you will be engaged with the 
-upstream community as well as a range of hardware vendors.
-
-If interested, please send your resume to Tim Burke, tburke-H+wXaHxf7aKXj1p+fO2waQ@public.gmane.org
-
+> -----Original Message-----
+> From: Nate Lawson [mailto:nate-Y6VGUYTwhu0@public.gmane.org]
+> Sent: Saturday, January 08, 2005 1:05 AM
+> To: ACPI Developers
+> Cc: acpi-HZy0K5TPuP5AfugRpC6u6w@public.gmane.org
+> Subject: acpi-ca reports \_SB as a device
+>=20
+> If you call AcpiGetType on \_SB, you get "device" and \_TZ gives
+> "thermal".  I don't think this is valid since these are system scopes,
+> not devices and thermal zones.
+>=20
+> I found this while testing a patch that scans the whole namespace (\)
+> for devices.  It turns out some systems put PCI link devices (PNP0C0F)
+> in \, so we weren't probing them.
+>=20
+> --
+> Nate
 
 
 -------------------------------------------------------
