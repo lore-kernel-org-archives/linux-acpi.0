@@ -1,14 +1,13 @@
-From: Alex Yustasov <snmon-skno0aUYb0LHCqZ3qdFy9g@public.gmane.org>
-Subject: Re: Suspend 2 disk
-Date: Sat, 15 Nov 2003 15:02:11 +0200
+From: "Guadalupe Chapman" <760jjhjj-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: LIVE LONGER with H-uman...G-rowth...H-ormone...kaylana
+Date: Sun, 16 Nov 2003 07:12:53 +0600
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031115130211.GA12062@server.by>
-References: <1068895745.944.9.camel@nexus.l3jane.net>
+Message-ID: <6r0866j3p321d3i425of3i8g34b9@8y7pfw>
+Reply-To: "Guadalupe Chapman" <760jjhjj-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/alternative;
+	boundary="5F.70785D3_2F"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1068895745.944.9.camel-FRzfUGJImGaWJdCIYJbLrA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,32 +19,83 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Nov 15, 2003 at 12:29:05PM +0100, Marc Franquesa wrote:
-> First, excuseme if I write to the wrong list, I don't speak english very
-> well too.
-> 
-> I'm using a 2.4.22 kernel patched with ACPI-20030916 in Red Hat Linux
-> 9.0 in a Dell Inspiron 4150 and works very well despite some little an
-> unfrequently problems with X when switching to console via Ctrl+Alt+Fx
-> (but this is not the cause of writing this)
-> 
-> Before ACPI, I use APM and with APM I can use the S2D (Suspend 2 Disk)
-> feature of my dell without any additonal software or kernel/patch, using
-> only the 'apm -s' command and the BIOS of my Dell.
-> 
-> ?Is there any way to do the same thing with ACPI without using any 2.4
-> non-patched kernel? ?How?
-> 
-> I know what says the docs, that I need to patch the kernel and use
-> additional software, but if in the past my Laptop made it without any
-> special software, I belive that it can make it now also without any
 
-and without any special hardware?
+--5F.70785D3_2F
+Content-Type: text/plain;
+Content-Transfer-Encoding: quoted-printable
 
-> patch.
-> 
-> 
-> Thanks for any comment or explanation.
+H-uman...G-rowth...H-ormone Therapy
+
+"Overall deterioration of the body that comes with growing old is not inev=
+itable."---Dr. Daniel Rudman's in the New England Journal of Medicine.
+
+
+Follow me to longer living: http://www.mmv9.org?affil=3D49
+
+
+Scientific research and evidence overwhelmingly demonstrates that, in addi=
+tion to genetic and environmental factors, our body's reduced production o=
+f H-uman...G-rowth...H-ormone is a direct cause of aging. Between the ages=
+ of 20 to 70, our levels can fall by more than 75%. This may cause us to l=
+ook and feel older and less energetic. By the time most of us have reached=
+ our forties, we are already experiencing a H-uman...G-rowth...H-ormone de=
+ficiency.
+
+
+Follow me to longer living: http://www.mmv9.org?affil=3D49
+
+
+Our competitors charge as high as 65 dollars---get ours for less than 50.
+
+
+Follow me to longer living: http://www.mmv9.org?affil=3D49
+
+
+
+
+
+
+
+
+
+No more advertisements, thanks - http://www.aqmp.net/out5s/rem2e.asp
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+om x jjo   hxsvfkjp
+gmax
+lkltvmqyiakizmfhth zfcu djkffmcu l tivi
+efz
+aejqzbyjwfhacwj
+oqs
+z xwdt
+
+--5F.70785D3_2F--
 
 
 
