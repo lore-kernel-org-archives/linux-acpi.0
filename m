@@ -1,45 +1,85 @@
-From: Len Brown <len.brown@intel.com>
-Subject: [BKPATCH] ACPI for 2.4
-Date: 09 Nov 2004 03:17:27 -0500
-Message-ID: <1099986430.5517.55.camel@d845pe>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: kacpid problems
+Date: Tue, 9 Nov 2004 16:23:13 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC03C@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261438AbUKIIRw@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Marcelo Tosatti <marcelo.tosatti@cyclades.com>
-Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Developers <acpi-devel@lists.sourceforge.net>
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Laszlo 'GCS' Boszormenyi <gcs-gKC9iF2I70U@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Marcelo, please do a 
+SSBzdXNwZWN0IHdlIG5lZWQgYSBzYW5lIGNoZWNrIGFnYWluc3Qgc2xlZXBfdGltZS4NClBsZWFz
+ZSB0ZXN0aW5nIHRoZSBmb2xsb3dpbmcgZGVidWcgcGF0Y2guDQoNCkFsc28sIHBsZWFzZSBzZW50
+IHRoZSBvdXRwdXQgb2YgdGhlIGFjdGl2aXR5IGluIC9wcm9jL2FjcGkvZXZlbnQgLg0KDQpUaGFu
+a3MNCkx1bWluZyANCg0KLS0tIGVkaXRlZC9kcml2ZXJzL2FjcGkvdGhlcm1hbC5jLm9yaWcgIDIw
+MDQtMTEtMDkgMTY6NDU6NDMuMDAwMDAwMDAwICswODAwDQorKysgZWRpdGVkL2RyaXZlcnMvYWNw
+aS90aGVybWFsLmMgICAgICAgMjAwNC0xMS0wOSAxNjo0NzoyMC4wMDAwMDAwMDAgKzA4MDANCkBA
+IC03NDYsNiArNzQ2LDggQEANCiAgICAgICAgQUNQSV9ERUJVR19QUklOVCgoQUNQSV9EQl9JTkZP
+LCAiJXM6IHRlbXBlcmF0dXJlWyVsdV0gc2xlZXBbJWx1XVxuIiwNCiAgICAgICAgICAgICAgICB0
+ei0+bmFtZSwgdHotPnRlbXBlcmF0dXJlLCBzbGVlcF90aW1lKSk7DQoNCisgICAgICAgc2xlZXBf
+dGltZSA9IDUwMDA7IC8qIDUgc2Vjb25kcyAqLw0KKw0KICAgICAgICAvKg0KICAgICAgICAgKiBT
+Y2hlZHVsZSBOZXh0IFBvbGwNCiAgICAgICAgICogLS0tLS0tLS0tLS0tLS0tLS0tDQoNCg0KPi0t
+LS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+RnJvbTogYWNwaS1kZXZlbC1hZG1pbkBsaXN0cy5z
+b3VyY2Vmb3JnZS5uZXQgDQo+W21haWx0bzphY3BpLWRldmVsLWFkbWluQGxpc3RzLnNvdXJjZWZv
+cmdlLm5ldF0gT24gQmVoYWxmIE9mIGRldl96ZXJvDQo+U2VudDogMjAwNOW5tDEx5pyIOeaXpSA0
+OjQyDQo+VG86IGFjcGktZGV2ZWxAbGlzdHMuc291cmNlZm9yZ2UubmV0DQo+U3ViamVjdDogUkU6
+IFtBQ1BJXSBrYWNwaWQgcHJvYmxlbXMNCj4NCj5Zb3UgY2FuIGRvd25sb2FkIG15IERTRFQgdGFi
+bGUgZnJvbSBteSB3ZWJzaXRlIG9yIGZyb20NCj50aGlzIHNpdGU6DQo+aHR0cDovL2FjcGkuc291
+cmNlZm9yZ2UubmV0L2RzZHQvdmlldy5waHA/aWQ9MjI0DQo+d2Vic2l0ZTogaHR0cDovL2hvbWUu
+bm8ubmV0L3B1c2xlb2xlLyNkc2R0DQo+DQo+SSBnZXQgc29tZSBkb3VibGUgZW1haWxzIGZyb20g
+dGhpcyBtYWlsaW5nbGlzdC4gV2hlbg0KPnlvdSBndXlzIHNlbmQgbWUgcmVwbHlzIHlvdSBzZW5k
+IHRvIG15IGVtYWlsIGFuZCBhIENDDQo+dG8gdGhlIG1haWxpbmdsaXN0LiBCZWNhdXNlIG9mIHRo
+aXMgSSBnZXQgc29tZQ0KPm1lc3NhZ2VzIHR3byB0aW1lcy4gV2hlbiBJIHNlbmQgYSByZXBseSB0
+byBzb21lb25lDQo+bGV0cyBzYXkgbHVtaW5nLnl1QGludGVsLmNvbSwgc2hvdWxkIEkgc2VuZCBi
+b3RoIGENCj5yZXBseSB0byB0aGlzIGVtYWlsIGFuZCBhIENDIHRvIHRoZSBtYWlsaW5nbGlzdCwg
+b3INCj5zaG91bGQgSSBzZW5kIHRoZSByZXBseSB0byBqdXN0IHRoZSBtYWlsaW5nbGlzdD8NCj4N
+Cj4+IEknZCBsaWtlIHRvIHNlZSB5b3VyIGJveCdzIERTRFQgdG8gaGF2ZSBhIGlkZWEgb2YNCj4+
+IHdoYXQncyBnb2luZyBvbiBpbiB5b3VyIGJveC4NCj4+IA0KPj4gVGhhbmtzDQo+PiBMdW1pbmcg
+DQo+PiANCj4+ID4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPj4gPkZyb206IExhc3psbyAn
+R0NTJyBCb3N6b3JtZW55aSBbbWFpbHRvOmdjc0Bsc2MuaHVdIA0KPj4gPlNlbnQ6IDIwMDTDhMOq
+MTHDlMOCOMOIw5UgMTE6MTgNCj4+ID5UbzogWXUsIEx1bWluZw0KPj4gPkNjOiBkZXZfemVybzsg
+YWNwaS1kZXZlbEBsaXN0cy5zb3VyY2Vmb3JnZS5uZXQNCj4+ID5TdWJqZWN0OiBSZTogW0FDUEld
+IGthY3BpZCBwcm9ibGVtcw0KPj4gPg0KPj4gPiogTGFzemxvICdHQ1MnIEJvc3pvcm1lbnlpIDxn
+Y3NAbHNjLmh1PiBbMjAwNC0xMS0wOA0KPj4gMDM6NDg6NTkgKzAxMDBdOg0KPj4gPg0KPj4gPj4g
+PiBDb3VsZCB5b3UgdmVyaWZ5IGlmIGtpbGxpbmcga2FjcGlkIGNhbiBtYWtlIHRoZQ0KPj4gdGhp
+bmcgYmV0dGVyPw0KPj4gPj4gIFRoaXMganVzdCBoYXBwZW5lZCB0byBtZSBhZ2Fpbi4gSSBkaWQN
+Cj4+IC9ldGMvaW5pdC5kL2FjcGlkIHN0b3AsIGFuZCBpdA0KPj4gPj4gZGlkLCBidXQgaXNzdWlu
+ZyBoYWx0IGxlZnQgbWUgd2l0aCB0aGUNCj4+IGFjcGlfcG93ZXJfb2ZmIGNhbGxlZCBtZXNzYWdl
+Lg0KPj4gPj4gSSB0aGluayBzb21lIG1lbW9yeSBjb3JydXB0aW9uIG1heSBoYXBwZW4gaW4NCj4+
+IGtlcm5lbCBzcGFjZSwgDQo+PiA+b3IgaXQgaXMganVzdA0KPj4gPj4gQUNQSSBmYWlsaW5nIGZv
+ciBzb21lIHJlYXNvbi4NCj4+ID4gT0ssIGp1c3QgaGFwcGVuZWQgYWdhaW4sIHNvIHVwZGF0ZTog
+SSBkaWQNCj4+IC9ldGMvaW5pdC5kL2FjcGlkIHN0b3A7IGJ1dA0KPj4gPmFzIEkgc2F3IENQVSB1
+c2FnZSB3ZW50IHRvIGhhbGYga2VybmVsIHNwYWNlLCBoYWxmDQo+PiB1c2VyIHNwYWNlLiBCdXQo
+ISkNCj4+ID5ub3cgSSBjYW4gY29uZmlybSB0aGF0IGthY3BpZCB3aXRoIHBpZCA1IHN0dWNrIGlu
+IGENCj4+IEQgc3RhdGUsIA0KPj4gPnRyaWVkIHRvIGRvDQo+PiA+c29tZXRoaW5nLCBidXQgdGhl
+IGJveCB3YXMgc28gY3Jhd2xpbmcgdGhhdCBJIGNob3NlDQo+PiB0byBwdWxsIA0KPj4gPm91dCB0
+aGUgY29yZA0KPj4gPmluc3RlYWQuDQo+PiA+DQo+PiA+SFRILA0KPj4gPkxhc3psbw0KPj4gPg0K
+Pj4gPg0KPj4gIA0KPg0KPg0KPi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0NCj5UaGlzIFNGLk5ldCBlbWFpbCBpcyBzcG9uc29yZWQgYnk6DQo+
+U3liYXNlIEFTRSBMaW51eCBFeHByZXNzIEVkaXRpb24gLSBkb3dubG9hZCBub3cgZm9yIEZSRUUN
+Cj5MaW51eFdvcmxkIFJlYWRlcidzIENob2ljZSBBd2FyZCBXaW5uZXIgZm9yIGJlc3QgZGF0YWJh
+c2Ugb24gTGludXguDQo+aHR0cDovL2Fkcy5vc2RuLmNvbS8/YWRfaWQ9NTU4OCZhbGxvY19pZD0x
+MjA2NSZvcD1jbGljaw0KPl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fDQo+QWNwaS1kZXZlbCBtYWlsaW5nIGxpc3QNCj5BY3BpLWRldmVsQGxpc3RzLnNvdXJj
+ZWZvcmdlLm5ldA0KPmh0dHBzOi8vbGlzdHMuc291cmNlZm9yZ2UubmV0L2xpc3RzL2xpc3RpbmZv
+L2FjcGktZGV2ZWwNCj4NCg==
 
-	bk pull bk://linux-acpi.bkbits.net/24-latest-release
 
-thanks,
--Len
-
-ps. a plain patch is also available here:
-ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/24-latest-release/acpi-20040326-24-latest-release.diff.gz
-
-This will update the following files:
-
- drivers/acpi/dispatcher/dsopcode.c |    3 ---
- drivers/acpi/hardware/hwsleep.c    |   20 ++++++++++----------
- 2 files changed, 10 insertions(+), 13 deletions(-)
-
-through these ChangeSets:
-
-<len.brown@intel.com> (04/11/04 1.1458.1.6)
-   [ACPI] fix poweroff regression
-   backport from 2.6 and ACPICA 20040427
-   http://bugzilla.kernel.org/show_bug.cgi?id=2109
-   
-   Signed-off-by: Len Brown <len.brown@intel.com>
-
-<len.brown@intel.com> (04/11/04 1.1458.1.5)
-   [ACPI] fix ASUS boot crash
-   http://bugzilla.kernel.org/show_bug.cgi?id=2755
-   
-   backported from ACPICA 20040527 in linux-2.6.9
-   
-   Signed-off-by: Len Brown <len.brown@intel.com>
+-------------------------------------------------------
+This SF.Net email is sponsored by:
+Sybase ASE Linux Express Edition - download now for FREE
+LinuxWorld Reader's Choice Award Winner for best database on Linux.
+http://ads.osdn.com/?ad_id=5588&alloc_id=12065&op=click
