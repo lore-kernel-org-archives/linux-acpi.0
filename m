@@ -1,16 +1,14 @@
-From: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
-Subject: Re: Changing IRQ`s at DSDT
-Date: Mon, 29 Sep 2003 19:37:53 +0100
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: D600 resume from RAM with black screen, ethernet tg3 is buggy
+Date: Mon, 29 Sep 2003 21:27:08 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200309291937.53825.adq_dvb@lidskialf.net>
-References: <3F780D1A.20908@paceblade.com>
+Message-ID: <20030929192708.GB1825@elf.ucw.cz>
+References: <20030925132427.GJ11901@openzaurus.ucw.cz> <Pine.LNX.4.30.0309291142280.26307-100000@pcd403z.vsb.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3F780D1A.20908-fPtsKRK0pHxl57MIdRCFDg@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.30.0309291142280.26307-100000-Rd/Vp7eeBLeOZheNW5JDhQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,70 +17,44 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Robert Woerle <robert-fPtsKRK0pHxl57MIdRCFDg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Petr Olivka <petr.olivka-jmYXjVuSQ4U@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday 29 September 2003 11:44, Robert Woerle wrote:
-> Hi
->
-> for the history : i am having a issue with ACPI and IRQ`s ( i believe )
-> i have a configuration where sound ( ali5451 ) , eth0( realtek 8139) and
-> usb ( usb-ohci) are using IRQ 5 .
-> Until now what happens is that when i used 2 out of these 3 devices at
-> the same time the unit locked hard .
->
-> Now i am able to set eth0 to IRQ7 and a first stress test with 600MB
-> dowload and playing songs worked fine .
->
-> I am using now 2.4.22 + acpi20030916  + the initrd patch to use my own
-> DSDT .
->
-> I reached that now in sent the LNK1 in my DSDT to IRQ 7 .
->
-> Unfortunatly the systems still uses IRQ 5 for the other 2 devices
-> although i also did change the LNK8 and LNKU  at the DSDT ( tryed 6  and
-> 11 and 7 ) .
->
-> find attached my data of the unit ..
->
-> can somebody tell me why it ignores my changes to LNK8 and LNKU in my
-> DSDT and still uses IRQ5 ?
-> i am also curious why certain LNK`s are parsed twice ???
+Hi!
 
-Aha, that diff doesn't include the other patch I released more recently, which makes ACPI not 
-reallocate an IRQ if the BIOS has already allocated one.. this sounds like the 
-problem you are encontering.
+> > >      -suspend to ram work, but after resume is display black. Without
+> > > test5-pm2 do not resume back and hang with black screen.
+> >
+> > So with -test5-pm2 machine resumes okay, you can type commands
+> > etc, but can't see anything? Try passing cmd line
+> > option acpi_sleep=s3_mode (or how is it called)...
+> >
+> hm, s3_mode and s3_bios reboot computer, when I did try resume.
+> I did test "echo 3 > /proc/acpi/sleep" and "echo -n "mem" >
+> /sys/power/state".
+> 
+> 
+> > > Where are problems? How can I help to solve them?
+> >
+> > Can you mail me diff between vanilla and -test5-pm2?
+> > Can you try suspending with echo 4 > /proc/acpi/sleep?
+> > (that should call old working code... provided it propagates down correctly).
+> 
+> I am using 2.6.0-test5 with patch recomended in acpi devel list
+> "test5-pm2", not vanilla.
+> 
+> "echo 4 > /proc/acpi/sleep" do nothing.
 
-Try this (against 2.4.23-pre3, so you may have to wiggle it into place). Lemme know if it helps.
-
-
---- linux-2.4.23-pre3.null_crs/drivers/acpi/pci_link.c	2003-09-05 23:57:39.000000000 +0100
-+++ linux-2.4.23-pre3.nochangeirq/drivers/acpi/pci_link.c	2003-09-16 23:59:49.212387016 +0100
-@@ -507,15 +507,15 @@
- 		irq = link->irq.active;
- 	} else {
- 		irq = link->irq.possible[0];
--	}
- 
--	/* 
--	 * Select the best IRQ.  This is done in reverse to promote 
--	 * the use of IRQs 9, 10, 11, and >15.
--	 */
--	for (i=(link->irq.possible_count-1); i>0; i--) {
--		if (acpi_irq_penalty[irq] > acpi_irq_penalty[link->irq.possible[i]])
--			irq = link->irq.possible[i];
-+		/* 
-+		 * Select the best IRQ.  This is done in reverse to promote 
-+		 * the use of IRQs 9, 10, 11, and >15.
-+		 */
-+		for (i=(link->irq.possible_count-1); i>0; i--) {
-+			if (acpi_irq_penalty[irq] > acpi_irq_penalty[link->irq.possible[i]])
-+				irq = link->irq.possible[i];
-+		}
- 	}
- 
- 	/* Attempt to enable the link device at this IRQ. */
-
+Try -test6 with echo -n mem, that seem works here. If both s3_mode and
+s3_bios reboot computer, tough. That means that you either need to
+find out another ugly hack (like s3_mode and s3_bios), or get specs
+for your video card and write proper resume support (get the specs is
+the hard part here).
+								Pavel
+-- 
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
 
 
 -------------------------------------------------------
