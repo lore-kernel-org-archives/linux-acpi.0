@@ -1,15 +1,13 @@
-From: SLIVER` <sliver-qqXEv8jiLWqhPH1hqNUYSQ@public.gmane.org>
-Subject: RE: Problem with Compaq Evo N110
-Date: Fri, 23 Aug 2002 18:35:10 +0200
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: Re: ACPI + loop(AES) + swsusp
+Date: Fri, 2 Nov 2001 13:56:18 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <5.1.0.14.2.20020823171551.00a25c50@pop.casa.mia>
-References: <B9ECACBD6885D5119ADC00508B68C1EA0D19B707@orsmsx107.jf.inte
- l.com>
+Message-ID: <20011102135618.C35@toy.ucw.cz>
+References: <Pine.SOL.4.44.0208181454300.2717-100000@mimosa.csv.warwick.ac.uk> <3D612050.F980C545@pp.inet.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <B9ECACBD6885D5119ADC00508B68C1EA0D19B707@orsmsx107.jf.inte
- l.com>
+In-Reply-To: <3D612050.F980C545-+kynuGyeZW3HOG6cAo2yLw@public.gmane.org>; from jari.ruusu-+kynuGyeZW3HOG6cAo2yLw@public.gmane.org on Mon, Aug 19, 2002 at 07:44:00PM +0300
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,64 +16,33 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+To: Jari Ruusu <jari.ruusu-+kynuGyeZW3HOG6cAo2yLw@public.gmane.org>
+Cc: "John J. Lee" <jjl-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>, Robert Stark <rstark-viLzafFedAGELgA04lAiVw@public.gmane.org>, Linux Mailinglists <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-crypto-qDhp9YYfzQpg9hUCZPvPmw@public.gmane.org, swsusp-LcL5texQODR2DW0IdvIQ2g@public.gmane.org, Sean Neakums <sneakums-iTLVOByc1N8@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-First of all, thanks so much to everyone for your help... but unfortunately 
-I have to trouble you again... :/
+Hi!
 
-now ACPI is correctly loaded on (credo ke caricare sia load, specie in 
-senso computeristico, non sono sicura se regga l'on) boot, but I can't say 
-it is perfectly working... because acpi (client) doesn't find the batteries
+> > Given your point about security, wouldn't it be nice if there were yet
+> > another flag to indicate that encrypted partitions should just be
+> > turned off on suspend?
+> > 
+> > This is more useful than it sounds -- not all partitions are mounted all
+> > the time.  It might actually be convenient if you don't want to
+> > accidentally leave a partition accessible when you walk away from a
+> > machine and forget to losetup -d, or whatever.
+> 
+> Like Sean Neakums pointed out in earlier post to linux-crypto list, just
+> forcing unmount or losetup -d is not really an option. Maybe just checking
+> for encrypted loops in userspace _before_ starting suspend is a better
+> solution. Something like this:
 
-
-dreams@norad:/proc/acpi/battery/BAT1$ acpi -V -s
-      Thermal 1: ok, 50.0 degrees C
-      AC Adapter 1: on-line
-      Battery 1: slot empty <---------------------- ?!
-
-I checked the acpi sorgent (non sicura se si dice sorgent) (acpi.c) and I 
-noticed that:
-
-
-    if (remaining_capacity < 0 || present_rate < 0 || design_capacity < 0 
-|| !state) {
-       if (show_empty_slots) {
-              printf("%12s %d: slot empty\n", BATTERY_DESC, battery_num);
-        }
-
-What it happens is that a series of controls are made, basing on the file 
-/proc/acpi/battery/BAT1/state
-and it fails on one of these (precisely on present rate). so, if we look at 
-that file:
-
-dreams@norad:~$ cat /proc/acpi/battery/BAT1/state
-present:                 yes
-capacity state:          ok
-charging state:          charging
-present rate:            unknown    <-------------------- ?!
-remaining capacity:      52428 mWh
-present voltage:         11000 mV
-
-I noticed that that value (number, dipende dal senso di valore) is definied 
-by /usr/src/linux/drivers/acpibattery.c
-
-         if (bst->present_rate == ACPI_BATTERY_VALUE_UNKNOWN)
-                 p += sprintf(p, "present rate:            unknown\n");
-         else
-                 p += sprintf(p, "present rate:            %d %s\n", (u32) 
-bst->present_rate, units);
-
-I rekon it could be some addres problem, but because of my scarce 
-programmation knowledges, I could say bullshit...
-
-Grazie a tutti.
-Thanks a lot to everybody
-
-Luca Memini
-
-
+Agreed. Decision if keys should go to disk is user decision (btw they *do*
+go to disk if BIOS is used to suspend-to-disk; some notebooks do s-t-d 
+automagially on battery fail), so it has to be userspace.
+								Pavel
+-- 
+Philips Velo 1: 1"x4"x8", 300gram, 60, 12MB, 40bogomips, linux, mutt,
+details at http://atrey.karlin.mff.cuni.cz/~pavel/velo/index.html.
 
 
 
