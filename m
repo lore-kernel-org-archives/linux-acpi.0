@@ -1,12 +1,10 @@
-From: nats-admin-8uBDSsDFLsHWsZ/bQMPhNw@public.gmane.org
-Subject: You acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org are not member (nats ML)
-Date: Sun, 1 Feb 2004 01:12:49 +0900
+From: Unknown <unknown@unknown.invalid>
+Subject: Undeliverable message returned to sender
+Date: Sat, 31 Jan 2004 16:55:48 +0000 (UCT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200402010112.FMLAAB42189.nats@nats-project.org>
-References: <20040131161248.410C73A30A@nereid.bugest.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-2022-jp
+Message-ID: <20040131165548.9C5E1127050@mail13-kan-R.bigfish.com>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+From: Policy Filter <>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,21 +16,28 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-あなたはこのメーリングリスト <nats-Qiq6VvPy93qsTnJN9+BGXg@public.gmane.org> のメンバーではありません。
+This message was created automatically by mail delivery software.
 
-メーリングリストについての一般的な案内はメールの本文に
+Message violates a policy rule set up by the domain administrator
 
-	guide
+Delivery failed for the following recipients(s):
+ 	lphilips-+Un64rdtAGvQT0dZR+AlfA@public.gmane.org
 
-と書いたメールを
-
-	nats-ctl-Qiq6VvPy93qsTnJN9+BGXg@public.gmane.org
-
-宛に送ると送られてきます。
-
----
-NATS Page : http://www.nats-project.org/
-
+----- Original Message Header -----
+Received: by mail13-kan (MessageSwitch) id 1075568148482604_22067; Sat, 31 Jan 2004 16:55:48 +0000 (UCT)
+Received: from lists.sourceforge.net (berny-4-81-56-19-152.fbx.proxad.net [81.56.19.152])
+	by mail13-kan.bigfish.com (Postfix) with ESMTP id F23AD12702D
+	for <lphilips-+Un64rdtAGvQT0dZR+AlfA@public.gmane.org>; Sat, 31 Jan 2004 16:55:46 +0000 (UCT)
+From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: lphilips-+Un64rdtAGvQT0dZR+AlfA@public.gmane.org
+Subject: hello
+Date: Sat, 31 Jan 2004 17:58:53 +0100
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0006_251DD9A0.F06905ED"
+X-Priority: 3
+X-MSMail-Priority: Normal
+Message-Id: <20040131165546.F23AD12702D-egeIX8uFLKsNGm5sb07ZIPYhGscHeamf@public.gmane.org>
 
 
 -------------------------------------------------------
