@@ -1,8 +1,8 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: RE: CALL FOR TESTING
-Date: Thu, 19 Sep 2002 09:42:07 -0700
+Date: Thu, 19 Sep 2002 09:49:55 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DE89@orsmsx119.jf.intel.com>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DE8B@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,24 +14,30 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: 'Knut Neumann' <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
+To: 'Matthew Wilcox' <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, Federico Di Gregorio <fog-NGVKUo/i/6DYtjvyW6yDsg@public.gmane.org>
 Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Knut Neumann [mailto:knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org] 
-> > - DOES IT BOOT?
+> From: Matthew Wilcox [mailto:willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org] 
+>          * Locate matching device in PCI namespace.  If it 
+> doesn't exist
+>          * this typically means that the device isn't 
+> currently inserted
+>          * (e.g. docking station, port replicator, etc.).
+>          */
 > 
-> No. This is a Gigabyte 7IXE4 with an Athlon 1,3 GHz. It throws two
-> oopses (NULL pointer deref at 0..04) just after providing information
-> about thermal zone. I can write them down, type them in and 
-> send them if
-> necessary.
+>         if (!data->dev) {
+>                 ACPI_DEBUG_PRINT((ACPI_DB_ERROR, 
+>                         "Device %02x:%02x:%02x.%02x not 
+> present in PCI namespace
+> \n",
+>                         data->id.segment, data->id.bus, 
+>                         data->id.device, data->id.function));
+> 
+> Can I suggest we turn that ACPI_DB_ERROR into ACPI_DB_WARN or even
+> ACPI_DB_INFO?  This really isn't an _error_.
 
-So...compiling the thermal zone driver out fixes the problem?
-
-(Not that we shouldn't fix it if so, I'm just trying to start narrowing down
-where the oops is...I'm pretty sure it will be easy to fix, it's just a
-matter of figuring out what code is to blame.)
+Yes, that would be preferable.
 
 -- Andy
 
