@@ -1,14 +1,13 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] [suspend/resume] wrong wakeup address
-Date: 18 Oct 2004 14:37:48 -0400
+From: Paul Ionescu <i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Re: ibm-acpi-0.5 direct download
+Date: Mon, 18 Oct 2004 12:57:15 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1098124667.14152.50.camel@d845pe>
-References: <16A54BF5D6E14E4D916CE26C9AD3057554732B@pdsmsx402.ccr.corp.intel.com>
+Message-ID: <20041018195715.77215.qmail@web50203.mail.yahoo.com>
+References: <20041018170834.GH17013@aero.ensim.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD3057554732B-4yWAQGcml66iAffOGbnezLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20041018170834.GH17013-AKoe11r2kkOzaBltdDZI6w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,22 +16,77 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, ole.rohne-vJEk5272eHo@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Borislav Deianov <borislav-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-thinkpad-l7BEYHA5S10i5T99jlK1Sh2eb7JE58TQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Boris,
 
-Applied.
+Here is my feedback for the experimental features:
+On T41 and R50p
 
-Added one cosmetic line:
- * Copyright (c) 2004 David Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Since the GPL says we're supposed to clearly record who changed
-each file.
+CMOS:
 
-thanks,
--Len
+0 - no effect but tpb reports "Volume down"
+1 - no effect but tpb reports "Volume up"
+2 - no effect but tpb reports "Mute on"
+3 - simulate pressing the "Access IBM" button in tpb
+4 - no effect but tpb reports LCD brightness up
+5 - no effect but tpb reports LCD brightness down
+11 - no effect but tpb reports Zoom togle
+12 - ThinkLight on and report that in tpb
+13 - ThinkLight off and report that in tpb
+14 - no effect but tpb reports ThinkLight status
+change
+
+LED:
+0 - power
+1 - battery (orange)
+2 - battery (green)
+4 - UltraBay
+7 - standby (moon)
+all functions are supported (on/off/blink)
+
+BEEP:
+0 - stops whatever beep is running
+2 - two beeps, pause, third beep
+3 - single beep
+4 - "unable"    
+5 - single beep
+6 - "AC/DC"
+7 - high-pitched beep
+9 - three short beeps
+10 - very long beep
+12 - low-pitched beep
+15 - three short beeps repeated forever (stop with 0)
+16 - single beep repeated forever (stop with 0)
+
+--- Borislav Deianov <borislav-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+wrote:
+
+> On Mon, 18 Oct 2004 15:56:03 +0000 (UTC) Paul
+> Ionescu <i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org> wrote:
+> >
+> > I receive an error when I try to download it form
+> sourceforge.
+> > Version 0.4 can be downloaded but not v0.5.
+> 
+> Seems to be a SF problem. I've added a direct
+> download link to the
+> homepage until they fix it.
+> 
+> http://ibm-acpi.sf.net/ibm-acpi-0.5.tar.gz
+> 
+> Boris
+> 
 
 
+
+	
+		
+__________________________________
+Do you Yahoo!?
+Yahoo! Mail - You care about security. So do we.
+http://promotions.yahoo.com/new_mail
 
 
 -------------------------------------------------------
