@@ -1,15 +1,16 @@
-From: Mark Pritchard <mark.pritchard-acpi-3o+aUUpM7Xj0CCvOHzKKcA@public.gmane.org>
-Subject: Re: making progress with ACPI was: ACPI small patch update (20021024)
-Date: Tue, 29 Oct 2002 21:45:48 +1100
+From: Derek Broughton <dbroughton-F3m4/jXepmf3fQ9qLvQP4Q@public.gmane.org>
+Subject: Re: making progress with ACPI was: ACPI small patch update
+ (20021024)
+Date: Tue, 29 Oct 2002 08:20:37 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200210292145.48593.mark.pritchard-acpi@modus.com.au>
-References: <200210290730.g9T7UDD26513@ikffws2.ikff.uni-stuttgart.de>
+Message-ID: <005401c27f45$967de820$3746028e@bio.dfo.ca>
+References: <200210282031.g9SKVAX06731@mailgate5.cinetic.de>
+ <20021028211603.GD1402@admingilde.org>
+ <20021028213404.U27461@parcelfarce.linux.theplanet.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;	charset="Windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200210290730.g9T7UDD26513-sBhUd1W9t4xfrO0PeCDDO4ECbGbo6+O1OOFObY0sJ7w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -21,42 +22,26 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> At the moment, everything is mixed in this mailing list. It's
-> pretty hard for those not really envolved with development to
-> find the information they need.
+From: "Matthew Wilcox" <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
 
-I echo this...I'd be happy to more formally document the process I used t=
-o=20
-patch acpi, but while it worked, I have been subsequently told it was wro=
-ng=20
-:) I must admit that I stopped with ACPI once my battery status worked.
+> On Mon, Oct 28, 2002 at 10:16:04PM +0100, Martin Waitz wrote:
+> > On Mon, Oct 28, 2002 at 09:31:10PM +0100, joerg.beyer-htSm2yLGOjU@public.gmane.org wrote:
+> > > well sourceforge gives you a bug tracker, if you want it.
+> >
+> > ibm talked about sponsoring a bugzilla for kernel development.
+> > perhaps one could use that for acpi, too.
+>
+> i find it fascinating that there are so many people on this list who want
+> to see a bug tracking system, but don't feel able to keep a list of bugs
+> themselves.  why is that?  expecting andy to set it up seems unreasonable.
 
-I'd like to see a site which covered:
+What could possibly be gained by everybody keeping independent bug lists?
+Nobody expects Andrew to do it, but Andrew seems opposed to the idea of _having_
+a bug tracker - even if somebody else does it.  Consider that if I was keeping
+my own "bug list" it would have exactly one bug - and it wouldn't be an ACPI
+problem, it would be the lousy DSDT on this Dell Inspiron.  Everything that my
+DSDT properly defines, ACPI handles well.
 
-* background info
-* machine specific howtos (or even just success reports)
-* centralised downloads
-* faq
-* bug tracking
-* better mailing list s/ware, perhaps a proper news server so we could se=
-arch=20
-it with google groups?
-
-Is there an Intel based project manager who would like to be over this i.=
-e.=20
-allocation and tracking of tasks, ensuring documents were reviewed etc? O=
-r is=20
-this a person from the general member list?
-
-I'm sure other members of this list are just as happy to stand up and hel=
-p, we=20
-probably just need a little direction / reassurance that Intel is happy t=
-o=20
-let this grow into a proper little open-source community :)
-
-Cheers
-
-Mark
 
 
 -------------------------------------------------------
