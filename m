@@ -1,9 +1,10 @@
 From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 4/4]An ACPI callback for pci_set_power_state
-Date: Wed, 05 Jan 2005 10:51:27 +0800
-Message-ID: <1104893456.5550.135.camel@sli10-desk.sh.intel.com>
+Subject: [PATCH 2/4]An implementation for binding PCI device with ACPI
+ device
+Date: Wed, 05 Jan 2005 10:50:55 +0800
+Message-ID: <1104893450.5550.131.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-HonJR+DY4pY3ZBYHtV7J"
+Content-Type: multipart/mixed; boundary="=-sK70/UqPLp/43NSJvM/9"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,235 +20,147 @@ Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Greg <greg-U8
 List-Id: linux-acpi@vger.kernel.org
 
 
---=-HonJR+DY4pY3ZBYHtV7J
+--=-sK70/UqPLp/43NSJvM/9
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
 Hi,
-This is an ACPI callback for pci_set_power_state. Besides setting PCI
-config space, changing device's power state sometimes requires to power
-on device's power source and to invoke other firmware methods.
+This is an implementation for binding ACPI devices with PCI devices.
 
 Thanks,
 Shaohua
 
-SIgned-off-by: Li Shaohua<shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Li Shaohua<shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 
- 2.5-root/drivers/acpi/bus.c     |    8 +++++++-
- 2.5-root/drivers/pci/pci-acpi.c |   11 +++++++++++
- 2.5-root/drivers/pci/pci.c      |   11 +++++++++--
- 2.5-root/drivers/pci/pci.h      |    1 +
- 4 files changed, 28 insertions(+), 3 deletions(-)
+ 2.5-root/drivers/pci/pci-acpi.c |   46 ++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 46 insertions(+)
 
-diff -puN drivers/acpi/bus.c~acpi-pci-set-power-state-callback drivers/acpi/bus.c
---- 2.5/drivers/acpi/bus.c~acpi-pci-set-power-state-callback	2005-01-05 09:58:06.464923888 +0800
-+++ 2.5-root/drivers/acpi/bus.c	2005-01-05 09:58:06.473922520 +0800
-@@ -212,6 +212,12 @@ acpi_bus_set_power (
- 		ACPI_DEBUG_PRINT((ACPI_DB_WARN, "Device is not power manageable\n"));
- 		return_VALUE(-ENODEV);
- 	}
-+	/*
-+	 * Get device's current power state if it's unknown
-+	 * This means device power state isn't initialized or previous setting failed
-+	 */
-+	if (device->power.state == ACPI_STATE_UNKNOWN)
-+		acpi_bus_get_power(device->handle, &device->power.state);
- 	if (state == device->power.state) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device is already at D%d\n", state));
- 		return_VALUE(0);
-@@ -231,7 +237,7 @@ acpi_bus_set_power (
- 	 * On transitions to a high-powered state we first apply power (via
- 	 * power resources) then evalute _PSx.  Conversly for transitions to
- 	 * a lower-powered state.
--	 */ 
-+	 */
- 	if (state < device->power.state) {
- 		if (device->power.flags.power_resources) {
- 			result = acpi_power_transition(device, state);
-diff -puN drivers/pci/pci-acpi.c~acpi-pci-set-power-state-callback drivers/pci/pci-acpi.c
---- 2.5/drivers/pci/pci-acpi.c~acpi-pci-set-power-state-callback	2005-01-05 09:58:06.466923584 +0800
-+++ 2.5-root/drivers/pci/pci-acpi.c	2005-01-05 09:58:06.472922672 +0800
-@@ -226,6 +226,16 @@ static int acpi_get_suspend_state(struct
- 	return -ENODEV;
+diff -puN drivers/pci/pci-acpi.c~bind-acpi-pci drivers/pci/pci-acpi.c
+--- 2.5/drivers/pci/pci-acpi.c~bind-acpi-pci	2005-01-05 09:57:26.863944152 +0800
++++ 2.5-root/drivers/pci/pci-acpi.c	2005-01-05 09:57:26.866943696 +0800
+@@ -207,3 +207,49 @@ acpi_status pci_osc_control_set(u32 flag
+ 	return status;
  }
- 
-+static int acpi_set_power_state(struct pci_dev *dev, int state)
-+{
-+	acpi_handle handle = DEVICE_ACPI_HANDLE(&dev->dev);
+ EXPORT_SYMBOL(pci_osc_control_set);
 +
-+	if (!handle)
++/* ACPI bus type */
++int pci_acpi_bind_device(struct device *dev, acpi_handle *handle)
++{
++	struct pci_dev * pci_dev;
++	acpi_integer	addr;
++
++	pci_dev = to_pci_dev(dev);
++	/* Please ref to ACPI spec for the syntax of _ADR */
++	addr = (PCI_SLOT(pci_dev->devfn) << 16) | PCI_FUNC(pci_dev->devfn);
++	*handle = acpi_get_child(DEVICE_ACPI_HANDLE(dev->parent), addr);
++	if (!*handle)
 +		return -ENODEV;
-+	return acpi_bus_set_power(handle, state);
++	return 0;
 +}
 +
++static int pci_acpi_bind_root_bridge(struct device *dev, acpi_handle *handle)
++{
++	int num;
++	unsigned int seg, bus;
 +
- /* ACPI bus type */
- int pci_acpi_bind_device(struct device *dev, acpi_handle *handle)
- {
-@@ -269,6 +279,7 @@ static int __init pci_acpi_init(void)
- 	if (ret)
- 		return 0;
- 	platform_pci_get_suspend_state = acpi_get_suspend_state;
-+	platform_pci_set_power_state = acpi_set_power_state;
- 	return 0;
- }
- arch_initcall(pci_acpi_init);
-diff -puN drivers/pci/pci.c~acpi-pci-set-power-state-callback drivers/pci/pci.c
---- 2.5/drivers/pci/pci.c~acpi-pci-set-power-state-callback	2005-01-05 09:58:06.467923432 +0800
-+++ 2.5-root/drivers/pci/pci.c	2005-01-05 09:58:06.473922520 +0800
-@@ -240,7 +240,7 @@ pci_find_parent_resource(const struct pc
-  * -EIO if device does not support PCI PM.
-  * 0 if we can successfully change the power state.
-  */
--
-+int (*platform_pci_set_power_state)(struct pci_dev *, int) = NULL;
- int
- pci_set_power_state(struct pci_dev *dev, int state)
- {
-@@ -294,8 +294,15 @@ pci_set_power_state(struct pci_dev *dev,
- 		msleep(10);
- 	else if(state == 2 || dev->current_state == 2)
- 		udelay(200);
--	dev->current_state = state;
- 
-+	/*
-+	 * Give firmware a chance to be called, such as ACPI _PRx, _PSx
-+	 * Firmware method after natice method ?
-+	 */
-+	if (platform_pci_set_power_state)
-+		platform_pci_set_power_state(dev, state);
++	num = sscanf(dev->bus_id, "pci%04x:%02x", &seg, &bus);
++	if (num != 2)
++		return -ENODEV;
++	*handle = acpi_get_pci_rootbridge_handle(seg, bus);
++	if (!*handle)
++		return -ENODEV;
++	return 0;
++}
 +
-+	dev->current_state = state;
- 	return 0;
- }
- 
-diff -puN drivers/pci/pci.h~acpi-pci-set-power-state-callback drivers/pci/pci.h
---- 2.5/drivers/pci/pci.h~acpi-pci-set-power-state-callback	2005-01-05 09:58:06.469923128 +0800
-+++ 2.5-root/drivers/pci/pci.h	2005-01-05 09:58:06.473922520 +0800
-@@ -13,6 +13,7 @@ extern int pci_bus_alloc_resource(struct
- 				  void *alignf_data);
- /* Firmware callbacks */
- extern int (*platform_pci_get_suspend_state)(struct device *dev, u32 state);
-+extern int (*platform_pci_set_power_state)(struct pci_dev *dev, int state);
- 
- /* PCI /proc functions */
- #ifdef CONFIG_PROC_FS
++static struct acpi_bus_type pci_acpi_bus = {
++	.bus = &pci_bus_type,
++	.find_device = pci_acpi_bind_device,
++	.find_bridge = pci_acpi_bind_root_bridge,
++};
++
++static int __init pci_acpi_init(void)
++{
++	int ret;
++
++	ret = register_acpi_bus_type(&pci_acpi_bus);
++	if (ret)
++		return 0;
++	return 0;
++}
++arch_initcall(pci_acpi_init);
 _
 
 
---=-HonJR+DY4pY3ZBYHtV7J
-Content-Disposition: attachment; filename=p00004_acpi-pci-set-power-state-callback.patch
-Content-Type: text/x-patch; name=p00004_acpi-pci-set-power-state-callback.patch; charset=UTF-8
+--=-sK70/UqPLp/43NSJvM/9
+Content-Disposition: attachment; filename=p00002_bind-acpi-pci.patch
+Content-Type: text/x-patch; name=p00002_bind-acpi-pci.patch; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 
-An ACPI callback for PCI set power state
+An implementation for binding ACPI devices with PCI devices.
 
 ---
 
- 2.5-root/drivers/acpi/bus.c     |    8 +++++++-
- 2.5-root/drivers/pci/pci-acpi.c |   11 +++++++++++
- 2.5-root/drivers/pci/pci.c      |   11 +++++++++--
- 2.5-root/drivers/pci/pci.h      |    1 +
- 4 files changed, 28 insertions(+), 3 deletions(-)
+ 2.5-root/drivers/pci/pci-acpi.c |   46 ++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 46 insertions(+)
 
-diff -puN drivers/acpi/bus.c~acpi-pci-set-power-state-callback drivers/acpi/bus.c
---- 2.5/drivers/acpi/bus.c~acpi-pci-set-power-state-callback	2005-01-05 09:58:06.464923888 +0800
-+++ 2.5-root/drivers/acpi/bus.c	2005-01-05 09:58:06.473922520 +0800
-@@ -212,6 +212,12 @@ acpi_bus_set_power (
- 		ACPI_DEBUG_PRINT((ACPI_DB_WARN, "Device is not power manageable\n"));
- 		return_VALUE(-ENODEV);
- 	}
-+	/*
-+	 * Get device's current power state if it's unknown
-+	 * This means device power state isn't initialized or previous setting failed
-+	 */
-+	if (device->power.state == ACPI_STATE_UNKNOWN)
-+		acpi_bus_get_power(device->handle, &device->power.state);
- 	if (state == device->power.state) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device is already at D%d\n", state));
- 		return_VALUE(0);
-@@ -231,7 +237,7 @@ acpi_bus_set_power (
- 	 * On transitions to a high-powered state we first apply power (via
- 	 * power resources) then evalute _PSx.  Conversly for transitions to
- 	 * a lower-powered state.
--	 */ 
-+	 */
- 	if (state < device->power.state) {
- 		if (device->power.flags.power_resources) {
- 			result = acpi_power_transition(device, state);
-diff -puN drivers/pci/pci-acpi.c~acpi-pci-set-power-state-callback drivers/pci/pci-acpi.c
---- 2.5/drivers/pci/pci-acpi.c~acpi-pci-set-power-state-callback	2005-01-05 09:58:06.466923584 +0800
-+++ 2.5-root/drivers/pci/pci-acpi.c	2005-01-05 09:58:06.472922672 +0800
-@@ -226,6 +226,16 @@ static int acpi_get_suspend_state(struct
- 	return -ENODEV;
+diff -puN drivers/pci/pci-acpi.c~bind-acpi-pci drivers/pci/pci-acpi.c
+--- 2.5/drivers/pci/pci-acpi.c~bind-acpi-pci	2005-01-05 09:57:26.863944152 +0800
++++ 2.5-root/drivers/pci/pci-acpi.c	2005-01-05 09:57:26.866943696 +0800
+@@ -207,3 +207,49 @@ acpi_status pci_osc_control_set(u32 flag
+ 	return status;
  }
- 
-+static int acpi_set_power_state(struct pci_dev *dev, int state)
-+{
-+	acpi_handle handle = DEVICE_ACPI_HANDLE(&dev->dev);
+ EXPORT_SYMBOL(pci_osc_control_set);
 +
-+	if (!handle)
++/* ACPI bus type */
++int pci_acpi_bind_device(struct device *dev, acpi_handle *handle)
++{
++	struct pci_dev * pci_dev;
++	acpi_integer	addr;
++
++	pci_dev = to_pci_dev(dev);
++	/* Please ref to ACPI spec for the syntax of _ADR */
++	addr = (PCI_SLOT(pci_dev->devfn) << 16) | PCI_FUNC(pci_dev->devfn);
++	*handle = acpi_get_child(DEVICE_ACPI_HANDLE(dev->parent), addr);
++	if (!*handle)
 +		return -ENODEV;
-+	return acpi_bus_set_power(handle, state);
++	return 0;
 +}
 +
++static int pci_acpi_bind_root_bridge(struct device *dev, acpi_handle *handle)
++{
++	int num;
++	unsigned int seg, bus;
 +
- /* ACPI bus type */
- int pci_acpi_bind_device(struct device *dev, acpi_handle *handle)
- {
-@@ -269,6 +279,7 @@ static int __init pci_acpi_init(void)
- 	if (ret)
- 		return 0;
- 	platform_pci_get_suspend_state = acpi_get_suspend_state;
-+	platform_pci_set_power_state = acpi_set_power_state;
- 	return 0;
- }
- arch_initcall(pci_acpi_init);
-diff -puN drivers/pci/pci.c~acpi-pci-set-power-state-callback drivers/pci/pci.c
---- 2.5/drivers/pci/pci.c~acpi-pci-set-power-state-callback	2005-01-05 09:58:06.467923432 +0800
-+++ 2.5-root/drivers/pci/pci.c	2005-01-05 09:58:06.473922520 +0800
-@@ -240,7 +240,7 @@ pci_find_parent_resource(const struct pc
-  * -EIO if device does not support PCI PM.
-  * 0 if we can successfully change the power state.
-  */
--
-+int (*platform_pci_set_power_state)(struct pci_dev *, int) = NULL;
- int
- pci_set_power_state(struct pci_dev *dev, int state)
- {
-@@ -294,8 +294,15 @@ pci_set_power_state(struct pci_dev *dev,
- 		msleep(10);
- 	else if(state == 2 || dev->current_state == 2)
- 		udelay(200);
--	dev->current_state = state;
- 
-+	/*
-+	 * Give firmware a chance to be called, such as ACPI _PRx, _PSx
-+	 * Firmware method after natice method ?
-+	 */
-+	if (platform_pci_set_power_state)
-+		platform_pci_set_power_state(dev, state);
++	num = sscanf(dev->bus_id, "pci%04x:%02x", &seg, &bus);
++	if (num != 2)
++		return -ENODEV;
++	*handle = acpi_get_pci_rootbridge_handle(seg, bus);
++	if (!*handle)
++		return -ENODEV;
++	return 0;
++}
 +
-+	dev->current_state = state;
- 	return 0;
- }
- 
-diff -puN drivers/pci/pci.h~acpi-pci-set-power-state-callback drivers/pci/pci.h
---- 2.5/drivers/pci/pci.h~acpi-pci-set-power-state-callback	2005-01-05 09:58:06.469923128 +0800
-+++ 2.5-root/drivers/pci/pci.h	2005-01-05 09:58:06.473922520 +0800
-@@ -13,6 +13,7 @@ extern int pci_bus_alloc_resource(struct
- 				  void *alignf_data);
- /* Firmware callbacks */
- extern int (*platform_pci_get_suspend_state)(struct device *dev, u32 state);
-+extern int (*platform_pci_set_power_state)(struct pci_dev *dev, int state);
- 
- /* PCI /proc functions */
- #ifdef CONFIG_PROC_FS
++static struct acpi_bus_type pci_acpi_bus = {
++	.bus = &pci_bus_type,
++	.find_device = pci_acpi_bind_device,
++	.find_bridge = pci_acpi_bind_root_bridge,
++};
++
++static int __init pci_acpi_init(void)
++{
++	int ret;
++
++	ret = register_acpi_bus_type(&pci_acpi_bus);
++	if (ret)
++		return 0;
++	return 0;
++}
++arch_initcall(pci_acpi_init);
 _
 
---=-HonJR+DY4pY3ZBYHtV7J--
+--=-sK70/UqPLp/43NSJvM/9--
 
 
 
