@@ -1,30 +1,35 @@
-From: "Martin J. Bligh" <mbligh-/CzTsIfkJEdBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] SMP parsing rewrite, phase 1
-Date: Mon, 20 Jan 2003 20:28:20 -0800
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <1504840000.1043123300@titus>
-References: <Pine.LNX.4.44.0301201834310.26042-100000@dexter.groveronline.com>
+From: "Prendawen"<Credit_Doctor_1136-0NmH7p4SfXGsTnJN9+BGXg@public.gmane.org>
+Subject: acpi-devel, We Can Fix Your credit
+Date: Tue, 21 Jan 2003 04:57:26 GMT
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <200301210452.h0L4qnc13769@email.technet.co.kr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/html; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.44.0301201834310.26042-100000-SNx59YkgthvyYw2uXbqB2185lzT46atW@public.gmane.org>
-Content-Disposition: inline
-To: Andy Grover <agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org, mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Would be a lot easier to read if you could seperate out the
-renames from the rest of the patch that actually does things.
-It all makes me slightly nervous as this stuff is really easy
-to break ... and it breaks wierd machines that are hard to test
-for (been there, done that ;-)).
+acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+<p align="center"><img border="0" src="http://www.cjlinc.net/CJ01.gif" width="501" height="64"></p>
+<p>We can fix your credit.  We are very successful at getting 
+bankruptcies, judgments, tax liens, foreclosures, late payments, charge-offs, 
+repossessions, and even student loans removed from a persons credit report.  To find out more go to
+<a href="http://www.cjlinc.net">http://www.cjlinc.net</a>.</p>
+<p>If you no longer want to receive information from us just go to 
+<a href="mailto:tallrhe-7rnwWIFpvOw@public.gmane.org">tallrhe@cs.com</a>.<p>
+&nbsp;
 
-+static u8 raw_phys_apicid[NR_CPUS] = { [0 ... NR_CPUS-1] = BAD_APICID };
 
-Looks odd. May have merged forward badly, that got renamed in 2.5.59
-to bios_cpu_apicid or something. 
-
-Anyway, I'll give it a spin on my wierdo box, and see what happens.
-
-M.
+-------------------------------------------------------
+This SF.NET email is sponsored by:
+SourceForge Enterprise Edition + IBM + LinuxWorld = Something 2 See!
+http://www.vasoftware.com
