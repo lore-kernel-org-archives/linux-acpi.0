@@ -1,59 +1,67 @@
-From: ross-iWlVPHNiaoT2fBVCVOL8/A@public.gmane.org
-Subject: Re: ACPI Suspend on Inspiron 1100
-Date: Sun, 3 Apr 2005 18:40:42 -0400
-Message-ID: <20050403224042.GA30240@jose.lug.udel.edu>
-References: <20050331191931.GA16450@jose.lug.udel.edu> <200504011602.06831.stefandoesinger@gmx.at>
+From: Norbert Preining <preining@logic.at>
+Subject: Re: [ACPI] Re: 2.6.12-rc1-mm4 and suspend2ram (and synaptics)
+Date: Mon, 4 Apr 2005 00:45:57 +0200
+Message-ID: <20050403224557.GB1015@gamma.logic.tuwien.ac.at>
+References: <20050331220822.GA22418@gamma.logic.tuwien.ac.at> <20050401113335.GA13160@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261937AbVDCWqO@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <200504011602.06831.stefandoesinger-RbZlAiThDcE@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan D?singer <stefandoesinger-RbZlAiThDcE@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, ross-iWlVPHNiaoT2fBVCVOL8/A@public.gmane.org
+In-Reply-To: <20050401113335.GA13160@elf.ucw.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Apr 01, 2005 at 04:02:05PM +0000, Stefan D?singer wrote:
-> > 2) 2.6.11.6: putting the machine to sleep via proc/sysfs works, but
-> > the machine never fully wakes up.  I can still login to a console and
-> > halt the laptop, but the display won't turn back on.  Switching
-> > to/from X11 VT doesn't seem to help.
-> Try the suggestions in Documentation/power/video.txt(in the Linux source 
-> tree).
-> What video card do you use?
+On Fre, 01 Apr 2005, Pavel Machek wrote:
+> > I suspends fine, but never resumes. No CapsLock, no sysrq, no netwo=
+rk is
+> > working. Nothing in the log files. Is there anything which may caus=
+e
+> > these troubles when compiled into the kernel and not loaded as modu=
+le?
+> > (as it was with my usb stuff until 2.6.11-mm2, after this I had to =
+stop
+> > hotplug, before I could go with usb running).
+>=20
+> Try suspend2disk, first, and try suspend2ram with minimal kernel
+> config.
 
-It's an Intel i845G on the laptop. 
+suspend2disk runs without any problem, even with X running.
 
-I actually just got S3 states working correctly with the tip you gave
-in another thread with vbetool.
+it is only suspend2ram which stopped working after 2.6.11-mm4 (at least
+in 2.6.12-rc1-mm3,4).
 
-Oddly, vbetool vbestate restore seems to lock the terminal up.  Buton
-that machine, vbetool post is enough to get the display initialized.
-So I just wrote a script that will flip around VTs and run that after
-restoring.  Works well.  Thanks a ton!
+Concerning tests with minimal kernel config: I guess since it *was*
+working there should not be a change necessary -- but well, from
+2.6.11-mm2 to 2.6.11-mm4 I had to stop hotplug/usb to get ot working, s=
+o
+maybe now I have to stop all the other things. Grrrr. This is not what =
+I
+want!
 
+Isn't there a different way?
 
--- 
-Ross Vandegrift
-ross-iWlVPHNiaoT2fBVCVOL8/A@public.gmane.org
+Best wishes
 
-"The good Christian should beware of mathematicians, and all those who
-make empty prophecies. The danger already exists that the mathematicians
-have made a covenant with the devil to darken the spirit and to confine
-man in the bonds of Hell."
-	--St. Augustine, De Genesi ad Litteram, Book II, xviii, 37
+Norbert
 
-
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+-----------------------------------------------------------------------=
+--------
+Norbert Preining <preining AT logic DOT at>                 Universit=E0=
+ di Siena
+sip:preining@at43.tuwien.ac.at                             +43 (0) 5996=
+6-690018
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 0=
+9C5 B094
+-----------------------------------------------------------------------=
+--------
+DORRIDGE (n.)
+Technical term for one of the lame excuses written in very small print
+on the side of packets of food or washing powder to explain why
+there's hardly anything inside. Examples include 'Contents may have
+settled in transit' and 'To keep each biscuit fresh they have been
+individually wrapped in silver paper and cellophane and separated with
+corrugated lining, a cardboard flap, and heavy industrial tyres'.
+			--- Douglas Adams, The Meaning of Liff
