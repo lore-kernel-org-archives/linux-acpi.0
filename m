@@ -1,59 +1,145 @@
-From: "Richard B. Johnson" <root@chaos.analogic.com>
-Subject: Re: [ACPI] Re: Linux 2.4.26-rc1 (cmpxchg vs 80386 build)
-Date: Tue, 30 Mar 2004 09:48:14 -0500 (EST)
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <Pine.LNX.4.53.0403300943520.6151@chaos>
-References: <A6974D8E5F98D511BB910002A50A6647615F6939@hdsmsx402.hd.intel.com>
- <1080535754.16221.188.camel@dhcppc4> <20040329052238.GD1276@alpha.home.local>
- <1080598062.983.3.camel@dhcppc4> <1080651370.25228.1.camel@dhcp23.swansea.linux.org.uk>
- <Pine.LNX.4.53.0403300814350.5311@chaos> <20040330142215.GA21931@alpha.home.local>
-Reply-To: root@chaos.analogic.com
+From: =?iso-8859-1?Q?BERNARD_S=E9bastien?= <sebastien.bernard-3IMRC7uD7uXQT0dZR+AlfA@public.gmane.org>
+Subject: N800v is fixed by patch-1690
+Date: Tue, 30 Mar 2004 16:47:16 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <3220CFEF35C7D61180EC0002A5438BB005B761E0@achille>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-In-Reply-To: <20040330142215.GA21931@alpha.home.local>
-To: Willy Tarreau <willy@w.ods.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Len Brown <len.brown@intel.com>, Arkadiusz Miskiewicz <arekm@pld-linux.org>, Marcelo Tosatti <marcelo.tosatti@cyclades.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Developers <acpi-devel@lists.sourceforge.net>
+Content-Type: multipart/alternative;
+	boundary="----_=_NextPart_001_01C41665.E5196050"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: "'acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org'" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 30 Mar 2004, Willy Tarreau wrote:
+This message is in MIME format. Since your mail reader does not understand
+this format, some or all of this message may not be legible.
 
-> On Tue, Mar 30, 2004 at 08:15:46AM -0500, Richard B. Johnson wrote:
-> > On Tue, 30 Mar 2004, Alan Cox wrote:
-> >
-> > > On Llu, 2004-03-29 at 23:07, Len Brown wrote:
-> > > > Linux uses this locking mechanism to coordinate shared access
-> > > > to hardware registers with embedded controllers,
-> > > > which is true also on uniprocessors too.
-> > >
-> > > If the ACPI layer simply refuses to run on a CPU without cmpxchg
-> > > then I can't see there being a problem, there don't appear to be
-> > > any 386 processors with ACPI
-> > >
-> >
-> > Yep, but to get to use cmpxchg, you need to compile as a '486 or
-> > higher. This breaks i386.
->
-> OK, so why not compile the cmpxchg instruction even on i386 targets
-> to let generic kernels stay compatible with everything, but disable
-> ACPI at boot if the processor does not feature cmpxchg ? This could
-> be helpful for boot/install kernels which try to support a wide
-> range of platforms, and may need ACPI to correctly enable interrupts
-> on others.
->
-> Cheers,
-> Willy
->
+------_=_NextPart_001_01C41665.E5196050
+Content-Type: text/plain;
+	charset="iso-8859-1"
 
-Because it would get used (by the compiler) in other code as well!
-As soon as the 386 sees it, you get an "invalid instruction trap"
-and you are dead.
+Hi,
 
-It might be a good idea to declare that after version xxx,
-'386 compatibility is no longer provided. There is plenty of
-usability for '386s in 2.4.nn, for instance.
+When trying to fix the new BIOS F18F provided by COMPAQ, I found some
+problem when executing the DSDT on boot which prevents the batteries from
+showing up.
 
-Cheers,
-Dick Johnson
-Penguin : Linux version 2.4.24 on an i686 machine (797.90 BogoMips).
-            Note 96.31% of all statistics are fiction.
+When googling, I found this patch
+http://bugzilla.kernel.org/attachment.cgi?id=1690
+<http://bugzilla.kernel.org/attachment.cgi?id=1690&action=view> &action=view
+to fix the ECDT problem and It worked.
+
+ 
+
+Could this patch be incorporated to the main line since it fixed all EVO
+nxxx  laptop (I think the BIOS is quite the same in those laptops).
+
+ 
+
+
+------_=_NextPart_001_01C41665.E5196050
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+
+<head>
+<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
+charset=3Diso-8859-1">
+
+
+<meta name=3DGenerator content=3D"Microsoft Word 10 (filtered)">
+
+<style>
+<!--
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0cm;
+	margin-bottom:.0001pt;
+	font-size:12.0pt;
+	font-family:"Times New Roman";}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;}
+p
+	{margin-right:0cm;
+	margin-left:0cm;
+	font-size:12.0pt;
+	font-family:"Times New Roman";}
+span.StyleCourrierlectronique17
+	{font-family:Arial;
+	color:windowtext;}
+@page Section1
+	{size:595.3pt 841.9pt;
+	margin:70.85pt 70.85pt 70.85pt 70.85pt;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
+
+</head>
+
+<body lang=3DFR link=3Dblue vlink=3Dpurple>
+
+<div class=3DSection1>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span lang=3DEN-GB =
+style=3D'font-size:
+10.0pt;font-family:Arial'>Hi,</span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span lang=3DEN-GB =
+style=3D'font-size:
+10.0pt;font-family:Arial'>When trying to fix the new BIOS F18F provided =
+by COMPAQ,
+I found some problem when executing the DSDT on boot which prevents the
+batteries from showing up.</span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span lang=3DEN-GB =
+style=3D'font-size:
+10.0pt;font-family:Arial'>When googling, I found this patch <a
+href=3D"http://bugzilla.kernel.org/attachment.cgi?id=3D1690&amp;action=3D=
+view">http://bugzilla.kernel.org/attachment.cgi?id=3D1690&amp;action=3Dv=
+iew</a>
+to fix the ECDT problem and It worked.</span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span lang=3DEN-GB =
+style=3D'font-size:
+10.0pt;font-family:Arial'>&nbsp;</span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span lang=3DEN-GB =
+style=3D'font-size:
+10.0pt;font-family:Arial'>Could this patch be incorporated to the main =
+line
+since it fixed all EVO nxxx=A0 laptop (I think the BIOS is quite the =
+same in
+those laptops).</span></font></p>
+
+<p class=3DMsoNormal><font size=3D3 face=3D"Times New Roman"><span =
+style=3D'font-size:
+12.0pt'>&nbsp;</span></font></p>
+
+</div>
+
+</body>
+
+</html>
+
+------_=_NextPart_001_01C41665.E5196050--
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: IBM Linux Tutorials
+Free Linux tutorial presented by Daniel Robbins, President and CEO of
+GenToo technologies. Learn everything from fundamentals to system
+administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
