@@ -1,14 +1,14 @@
-From: Tod Morrison <tmorriso-o2OswTf4RFv//ikEAC0814dd74u8MsAO@public.gmane.org>
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
 Subject: Re: RE: preparing toshiba_acpi driver release
-Date: Mon, 26 Jan 2004 23:33:43 -0700 (MST)
+Date: Tue, 27 Jan 2004 09:54:33 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.58.0401262326530.5251@localhost.localdomain>
+Message-ID: <20040127085433.GA30693@message-id.gmane0305.slipkontur.de>
 References: <BF1FE1855350A0479097B3A0D2A80EE0CC8A54@hdsmsx402.hd.intel.com>
- <20040127031247.GA28233@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040127031247.GA28233-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <BF1FE1855350A0479097B3A0D2A80EE0CC8A54-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,71 +17,48 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, John Belmonte <john-wanGne27zNesTnJN9+BGXg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I have a Dell Inspiron 8500, I'd be happy to play tester with when you're 
-looking for a generalized solution. I did have one thought (quite beyond 
-me to implement though), I was looking at the ACPI VID extensions and 
-wondered if LCD._DSS could be used to our advantage. It appears that it's 
-designed to allow the OS to handle video output switching, i.e. 
+On Mon, Jan 26, 2004 at 02:29:02PM -0500, Brown, Len wrote:
 
-  turn off LCD -> turn on CRT
+> probably brightness control has some power savings benefits too -- maybe
+> somebody on the list has numbers for screen power consumption?
 
-What I thought was that I don't see a reason we couldn't just turn off 
-LCD output, i.e. call 
+my Asus L2400D with cpufrequency down to 500 MHz, machine is idle (but
+connected to USB keyboard/mouse and network).
 
-  LCD._DSS(0);
+max. brightness (level 15):
+charging state:          discharging
+present rate:            677 mA
 
-to turn off output, and 
+min. brightness (level 1, there is also 0 but then i can't read anything :-)
+charging state:          discharging
+present rate:            557 mA
 
-  LCD._DSS(80000001L);
+medium brightness (level 7, this is actually useable)
+charging state:          discharging
+present rate:            597 mA
 
-to turn it back on. Anyway, I'm really unqualified to say whether this 
-make any sense, it was just a thought.
+and just for the record: maximum brightness and cpufreq to 1200 MHz:
+charging state:          discharging
+present rate:            1437 mA
 
-Tod Morrison <tmorriso-o2OswTf4RFv//ikEAC0814dd74u8MsAO@public.gmane.org>
-   http://math.cudenver.edu/~tmorriso
+This is no scientific measurement since the machine is not really idle (i'm
+writing this mail now :-) and the battery is a blatant liar (if the machine
+would draw as little current as /proc/acpi/.../state tells me, it would have
+to last twice as long, but it doesnt. So either it lies about capacity or
+about current), but it is something to compare.
+And yes, when i'm on the road, i always turn down the display as much as
+possible to save battery.
 
-  "Everyone thinks of changing the world,
-  but no one thinks of changing himself."
-  - Leo Tolstoy
+I also made the test with an IBM T23 or something like that about a year ago
+with Win2k which gave me even bigger savings from the display backlight
+(IIRC about 1400 mA with full brightness and 900 mA with minimal).
 
-On Tue, 27 Jan 2004, Karol Kozimor wrote:
+-- 
+Stefan Seyfried
 
-> Thus wrote Brown, Len:
-> > I was thinking about ergonomics rather than power-savings -- though
-> > probably brightness control has some power savings benefits too -- maybe
-> > somebody on the list has numbers for screen power consumption?
-> 
-> Last time I checked it was about 6 W for my 15" display (100% brightness,
-> power consumption goes down linearly).
-> 
-> What I consider more important, is the ability to switch the LCD on / off
-> by demand -- unfortunately, DPMS is mostly unsupported on modern machines
-> and a generic approach (provided it works) could make a difference here.
-> 
-> Once I update the acpi4asus driver, I'll take a look on how those generic
-> methods to manipulate video work here and see where it gets me.
-> 
-> Best regards,
-> 
-> -- 
-> Karol 'sziwan' Kozimor
-> sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
-> 
-> 
-> -------------------------------------------------------
-> The SF.Net email is sponsored by EclipseCon 2004
-> Premiere Conference on Open Tools Development and Integration
-> See the breadth of Eclipse activity. February 3-5 in Anaheim, CA.
-> http://www.eclipsecon.org/osdn
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> 
 
 
 -------------------------------------------------------
