@@ -1,11 +1,13 @@
-From: Anders Persson <anders.persson-sT6loi8rTDSci/EUP2OQSw@public.gmane.org>
-Subject: Fn-keys on Compaq Evo n800v
-Date: 28 Jan 2005 10:30:13 +0100
-Message-ID: <1106904613.6133.24.camel@localhost.localdomain>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Is it possible for ACPI to blow up the battery?
+Date: Fri, 28 Jan 2005 13:04:08 +0100
+Message-ID: <20050128120407.GA6725@elf.ucw.cz>
+References: <41F7FD56.8090309@calt129.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <41F7FD56.8090309-iP/H7R5l9gZBDgjK7y7TUQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,23 +17,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: =?iso-8859-1?Q?C=FCneyt?= <cu_lists-iP/H7R5l9gZBDgjK7y7TUQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I run Fedora Core 3 on a Compaq Evo n800v. After compiling a new kernel
-(2.6.10) with a custom DSDT, ACPI seems to work (almost) fine.
-Processor, thermal-zones, lid-button, etc, all seem ok. 
+Hi!
 
-However, the Fn+F7 & Fn+F8 key combinations for controlling screen
-brightness stop working when X is started.
+> It may be really a dumb question, but I've really no idea.
+> 
+> I have a Samsung P10 and found at behnel.de & SF-ACPI page some 
+> instructions to patch the DSDT table under Suse 9.1pro. I followed those 
+> as close as I can and I guess ACPI works somehow. Well, wakeup after 
+> sleep and CPU-throttling doesn't work though :(
+> 
+> Now to my dismay the battery stopped charging at all, it is completely 
+> empty. No matter what I do, it doesn't get charged. The battery is about 
+> 2 yrs old but was pretty OK before, i.e. lasted about 1.5 hrs unplugged. 
+> Is it possible for DSDT patches to blow up the battery & charging units 
+> or you think the battery's (physically) died all of a sudden?
 
-I have previously used exactly this custom DSDT without the above
-problem on the same machine running RedHat 9 and a 2.4.21 kernel.
-
-Any input on how to solve this is much appreciated!
-
-/Anders
-
+Well, hard to say, everything is possible, and so far I seen a lot of
+funny stuff, but every time it recovered at least after removing
+battery and removing AC for more than minute.
+								Pavel
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
