@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Suspend-to-RAM on Sony Vaios
-Date: Thu, 21 Oct 2004 00:53:34 +0200
+Subject: Re: Machines self-power-up with 2.6.9-rc3 (evo N620c, ASUS, ...)
+Date: Thu, 21 Oct 2004 00:56:39 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041020225334.GC29863@elf.ucw.cz>
-References: <20041018020816.48673359@localhost.localdomain> <20041018112632.GB4400@openzaurus.ucw.cz> <20041021001331.69c6c965@localhost.localdomain>
+Message-ID: <20041020225639.GD29863@elf.ucw.cz>
+References: <20041020191531.GC21315@elf.ucw.cz> <1098311478.4989.100.camel@desktop.cunninghams>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20041021001331.69c6c965-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+In-Reply-To: <1098311478.4989.100.camel-r49W/1Cwd2ff0s6lnCXPXw0QcLn3kwYh@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,31 +17,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jon Valvatne <jon-hc6/xhmWZxdWk0Htik3J/w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> > For debugging techniques... There's beeping patch from me floating
-> > around.
+> > I'm seeing bad problem with N620c notebook (and have reports of more
+> > machines behaving like this, for example ASUS L8400C.) If I shutdown
+> > machine with lid closed, opening lid will power the machine up. Ouch.
+> > 2.6.7 behaves okay.
 > 
-> Thanks, but with 2.6.9-final it actually does resume, so luckily I won't
-> have to suffer the beeping :)
+> :> Some people would love to have the machine power up when they open
+> the lid! Wish my XE3 would do that!
 
-Good.
-
-> I do hit the video problem though. I've tried the stuff in
-> power/video.txt, but mine doesn't seem to be among the few systems with
-> a solution at the moment. I don't have a Radeon, so I haven't tried the
-> radeonfb-patch that's been floating around
-> (http://www.loria.fr/~thome/d600/), but the part that mentions "you may
-> insert a similar call from the vesa frame buffer driver to obtain
-> similar results for a wide range of cards" intrigues me. Could this be
-> something to try? Or is this already what acpi_sleep=s3_bios does?
-
-No, its something different. Take Ole's patch and port it to whatever
-framebuffer you use... and good luck with that.
+:-). Well for some other people it powers up when they unplug AC
+power, and *that* is nasty. I'd like my machine to stay powered down
+when I tell it so.
 								Pavel
 -- 
 People were complaining that M$ turns users into beta-testers...
