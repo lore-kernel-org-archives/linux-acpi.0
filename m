@@ -1,94 +1,66 @@
-From: Hamie <hamish@travellingkiwi.com>
-Subject: Re: [ACPI] No APIC interrupts after ACPI suspend
-Date: Mon, 28 Jun 2004 21:50:06 +0100
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <40E0847E.4040802@travellingkiwi.com>
-References: <B44D37711ED29844BEA67908EAF36F032D566A@pdsmsx401.ccr.corp.intel.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Re: DSDT Change (Compaq Presario 2100)
+Date: Mon, 28 Jun 2004 23:34:09 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20040628213409.GA19468@elf.ucw.cz>
+References: <200405280621.29874.andre@eisenbach.com> <c9am7j$nng$1@sea.gmane.org> <200405291345.51712.andre@eisenbach.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S265024AbUF1Uus@vger.kernel.org>
-In-Reply-To: <B44D37711ED29844BEA67908EAF36F032D566A@pdsmsx401.ccr.corp.intel.com>
-To: "Li, Shaohua" <shaohua.li@intel.com>
-Cc: linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <200405291345.51712.andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Andre Eisenbach <andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Erik Meitner <usenet-cuDg6iFcrsRAfugRpC6u6w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Li, Shaohua wrote:
+Hi!
 
->Hi,
->I attached a new patch to handler all level triggered IRQs after resume
->for 8259 in http://bugme.osdl.org/show_bug.cgi?id=2643. Please try and
->attach your test result on it.
->
->  
->
+> > > and errors, I stumbled across this (in method SMSL
+> > >
+> > > If (0x01)
+> > > {
+> > > 	Store (\_SB.PCI0.ISA.EC0.TTDC, TRDC)
+> > > 	Store ("AC remove! Set Throttle Duty Cycle ---: ", Debug)
+> > > 	Store (TRDC, Debug)
+> > > 	Store (0x01, TREN)
+> > > }
+> >
+> > The DSDT for my laptop has the exact same code.
+> 
+> That piece of code is the state cange code (i.e. when you unplug the AC cord). 
+> There is another place you need to change, which initializes the behaviour 
+> when you boot with the power cable already unplugged.
+> 
+> The method is _REG. Here is the code
+> 
+>                                 Store (0x01, \_SB.PCI0.PMU.CRUN)
+>                                 If (0x01)
+>                                 {
+>                                     Store (\_SB.PCI0.ISA.EC0.TTDC, TRDC)
+>                                     Store (0x01, TREN)
+>                                 }
+> 
+> Once again change "If (0x01)" to "If (0x00)".
 
-
-[Sorry if some see this twice... It bounced when I sent it before]
-
-Uh.... That might work.... Except that after applying the patch & 
-restarting. Then suspend-resume I get another small problem... My 
-thinkpad (r50p) uses the power button to wake up from suspend... The 
-system wakes, but with this latest patch, acpid then kicks in & says 
-'Ohh! I saw him press the power button' and promptly shuts down...
-
-here's my acpid logfile
-
-[Mon Jun 28 09:39:27 2004] received event "button/sleep SLPB 00000080 
-00000001"
-[Mon Jun 28 09:39:27 2004] executing action "/etc/acpi/sleep.sh"
-[Mon Jun 28 09:39:27 2004] BEGIN HANDLER MESSAGES
-ERROR: Module i810_audio does not exist in /proc/modules
-Stopping hotplug subsystem:
-  input
-  net
-  pci
-  usb
-done
-ERROR: Module bluetooth is in use by rfcomm,l2cap
-Starting hotplug subsystem:
-  input
-  net
-  pci
-  usb
-** can't synthesize root hub events
-done
-
-/dev/hda:
-setting standby to 240 (20 minutes)
-[Mon Jun 28 09:39:43 2004] END HANDLER MESSAGES
-[Mon Jun 28 09:39:43 2004] action exited with status 0
-[Mon Jun 28 09:39:43 2004] completed event "button/sleep SLPB 00000080 
-00000001"
-[Mon Jun 28 09:39:43 2004] received event "button/power PWRF 00000080 
-00000001"
-[Mon Jun 28 09:39:43 2004] executing action "/etc/acpi/powerbtn.sh"
-[Mon Jun 28 09:39:43 2004] BEGIN HANDLER MESSAGES
-[Mon Jun 28 09:39:43 2004] END HANDLER MESSAGES
-[Mon Jun 28 09:39:43 2004] action exited with status 0
-[Mon Jun 28 09:39:43 2004] completed event "button/power PWRF 00000080 
-00000001"
-[Mon Jun 28 09:40:07 2004] exiting
-[Mon Jun 28 09:41:08 2004] starting up
-[Mon Jun 28 09:41:08 2004] 3 rules loaded
-ballbreaker:/var/log#
+Try your machine on battery, with full load. Monitor battery
+temperature. If it gets hot, your battery was not really designed for
+this, and forget this...
+								Pavel
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
-Sleeps, wakes & a shutdown... Should acpid do that? (i.e. shouldn't it 
-eat the power button event that woke it up as a wakeup? Should it even 
-get that?) Or is it the previous patch for drivers/acpi/sleep/main.c 
-resetting the IRQ9 to edge triggered that's killing me? (I'll try 
-removing that now).
-
-[Note, I've recieved a note regarding the wakeup & shutdown problem... 
-It's a bug perhaps? Does anyone know whether the bug is that acpi 
-shouldn't get the power button event after the resume? Or is it a bug 
-that acpid itself doesn't eat the event as we've just resumed (How does 
-it know the button was to wakeup & wasn't really to shutdown?) or is the 
-bug in the scripts (unlikely... The 'workaround' I was pointed at 
-scrapes the log to find out if we've just resumed... But what if the 
-logfilesystem is full... No log & we'll shutdown anyway, so I'd suspect 
-acpid myself... Anyone confirm which area is actually responsible?
-
-TIA
-Hamish.
+-------------------------------------------------------
+This SF.Net email sponsored by Black Hat Briefings & Training.
+Attend Black Hat Briefings & Training, Las Vegas July 24-29 - 
+digital self defense, top technical experts, no vendor pitches, 
+unmatched networking opportunities. Visit www.blackhat.com
