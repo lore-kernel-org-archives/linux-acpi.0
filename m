@@ -1,12 +1,12 @@
-From: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
-Subject: Re: Acer TravelMate 3200 series
-Date: Wed, 16 Feb 2005 14:22:42 -0500
-Message-ID: <42139D82.5090709@bartol.udel.edu>
-References: <42139CFB.4000708@panafonet.gr>
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH, new ACPI driver] new sony_acpi driver
+Date: Wed, 16 Feb 2005 20:40:17 +0100
+Message-ID: <20050216194017.GQ1145@poupinou.org>
+References: <20050210161809.GK3493@crusoe.alcove-fr> <1108481448.2097.71.camel@d845pe> <20050215153912.GA3523@crusoe.alcove-fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <42139CFB.4000708-L6arEPXw2n0ZNqoCg3qVjg@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20050215153912.GA3523-KwDxFO93HejPHUqn3ntIkQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,30 +16,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Inglor <inglor-L6arEPXw2n0ZNqoCg3qVjg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Inglor wrote:
-> I'm trying to make the battery of my laptop shown in the linux.
-> I have tried kernel compilation with no results.
-> The ACPI is enabled and I can see my CPU temp.
-> My kernel is 2.6.10 and I have Mandrake 10.1. The laptop is Acer TM 3201XMi
+> > platform specific wart is the only way to go.  But
+> > it would be best if we can make the exotic Sony/SNC
+> > look more generic to the user so that the user
+> > (and the distro supporting them) don't need to learn
+> > special things to handle this system.
 > 
-> The battery is shown under Device manager from windows as "Microsoft 
-> Smart Battery" and "Microsoft Smart Battery Subsystem".
-> I have found the files for the drivers in windows.. Wiil this help..?
+> I agree, but unfortunately I don't think it's possible to handle
+> them in a generic way. However, my understanding of the ACPI layer
+> is limited, so I very well be wrong.
 > 
-> thanks.. :)
+> I attached two DSDT in bugzilla, I have a few more if you want them.
 > 
 
-https://sourceforge.net/projects/sbs-linux/
+I will (re)work some part of the acpi_video stuff in order to make it
+more generic (its design is to separate a kind of 'video bus', then
+'video devices' can attach.  For now, its support only one kind of device,
+the acpi one.  See acpi_viedo.c).  The original goal was to atleast
+attach others acpi specific drivers (the toshiba at that time).
 
-The latest release of the sbs-cm package should work with the TM 3201XMi.
+Problem though is my time which unfortunately is missing currently
+(professional stuff, other free projects and even real life) and
+I must admit I don't intend to work on acpi_video right now.
 
-cheers,
+Cheers,
 
-Rich
+-- 
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
