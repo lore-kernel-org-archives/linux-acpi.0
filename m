@@ -1,14 +1,12 @@
-From: Lu Tong <ltong-r3+FECOBLOPAaqN1iTbosg@public.gmane.org>
-Subject: Re: IBM Thinkpad R32 and ACPI
-Date: Sun, 13 Apr 2003 00:31:23 -0400
+From: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Subject: acpi data parser
+Date: Mon, 14 Apr 2003 11:14:43 +0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030413043123.GA23368@dao.cs.ohiou.edu>
-References: <20030412173357.1e4ea127.linux.wali@gmx.de> <200304121812.h3CIC6g18608@throb.netspace.org>
+Message-ID: <506C3D7B14CDD411A52C00025558DED60ED3B8@mtlex01.yok.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/alternative;
+	boundary="----_=_NextPart_001_01C3025D.E7840970"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200304121812.h3CIC6g18608-7GtV0IYKK74tA4QZiFxQkx2eb7JE58TQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,66 +15,54 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org
-Cc: Michael Wahlbrink <linux.wali-Mmb7MZpHnFY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "'acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org'" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-I tried the patch on my x22. it fixed the problem. nice catch, Brian. 
-as far as the sleep mode, S4 worked for me couples of weeks ago, but not any more. sad.
+This message is in MIME format. Since your mail reader does not understand
+this format, some or all of this message may not be legible.
 
---ltong
+------_=_NextPart_001_01C3025D.E7840970
+Content-Type: text/plain;
+	charset="iso-8859-1"
 
-On Sat, Apr 12, 2003 at 02:12:06PM -0400, bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org wrote:
-> This problem is supposed to be fixed in the next release(see the archives).
-> 
-> The problem was solved for me (on my R32) by going to 
-> drivers/acpi/events/evxfregn.c
-> and removing one of the 
-> 
-> acpi_ut_remove_reference (handler_obj);
-> 
-> lines (there are two). 
-> This might also help other Thinkpad users who have similar problems.
-> 
-> 
-> Let me know how it goes.  Sleep functionality seems pretty broken at
-> the moment.
-> 
->  Here's a patch, if you prefer.
-> 
-> diff -u -r1.1.1.1 evxfregn.c
-> --- linux-2.5.66/drivers/acpi/events/evxfregn.c	2 Apr 2003 03:34:04 -0000	1.1.1.1
-> +++ linux-2.5.66/drivers/acpi/events/evxfregn.c	9 Apr 2003 16:18:25 -0000
-> @@ -391,7 +391,7 @@
->  			/*
->  			 * Now we can delete the handler object
->  			 */
-> -			acpi_ut_remove_reference (handler_obj);
-> +
->  			acpi_ut_remove_reference (handler_obj);
->  
->  			goto unlock_and_exit;
-> 
-> 
-> 
-> 
-> --
-> Brian Perkins                                bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org
-> 
-> 
-> -------------------------------------------------------
-> This SF.net email is sponsored by: Etnus, makers of TotalView, The debugger 
-> for complex code. Debugging C/C++ programs can leave you feeling lost and 
-> disoriented. TotalView can help you find your way. Available on major UNIX 
-> and Linux platforms. Try it free. www.etnus.com
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+Hi,
+is there any tool that can get the acpi data in a system and parse it in a
+convenient way. Particularly the interrupt routing information.
+thanks
+Eli
+
+
+------_=_NextPart_001_01C3025D.E7840970
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
+charset=3Diso-8859-1">
+<META NAME=3D"Generator" CONTENT=3D"MS Exchange Server version =
+5.5.2653.12">
+<TITLE>acpi data parser</TITLE>
+</HEAD>
+<BODY>
+
+<P><FONT SIZE=3D2 FACE=3D"Arial">Hi,</FONT>
+<BR><FONT SIZE=3D2 FACE=3D"Arial">is there any tool that can get the =
+acpi data in a system and parse it in a convenient way. Particularly =
+the interrupt routing information.</FONT></P>
+
+<P><FONT SIZE=3D2 FACE=3D"Arial">thanks</FONT>
+<BR><FONT SIZE=3D2 FACE=3D"Arial">Eli</FONT>
+</P>
+
+</BODY>
+</HTML>
+------_=_NextPart_001_01C3025D.E7840970--
 
 
 -------------------------------------------------------
-This SF.net email is sponsored by: Etnus, makers of TotalView, The debugger 
-for complex code. Debugging C/C++ programs can leave you feeling lost and 
-disoriented. TotalView can help you find your way. Available on major UNIX 
-and Linux platforms. Try it free. www.etnus.com
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
