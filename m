@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: acpi-20040715+D600+Suspend
-Date: Thu, 2 Sep 2004 16:30:34 +0200
+Subject: Re: State of ACPI on my Compaq Presario 2100z
+Date: Thu, 2 Sep 2004 16:56:38 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040902143034.GA676@elf.ucw.cz>
-References: <1093972503.9372.38.camel@neuromancer.home.net>
+Message-ID: <20040902145638.GA742@elf.ucw.cz>
+References: <200409010224.10507.andre@eisenbach.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1093972503.9372.38.camel-/ZsuMndpQpsb5wn6fCfWY+TW4wlIGRCZ@public.gmane.org>
+In-Reply-To: <200409010224.10507.andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,29 +17,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
-Cc: Acpi-List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Andre Eisenbach <andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> 	Lo and Behold, I managed to get S3 to work on my laptop by following
-> instructions on this website.
+> I've contacted you guys a while ago about the problems with my Compaq Presario 
+> 2100, back then specifically my problems with a slowdown when running on 
+> battery and suspend problems. I even soldered up some parallel port LED's 
+> back then, but never got to put them to good use.
 > 
-> http://www.loria.fr/~thome/d600/
+> Since then, ACPI is working even worse than before, now the notebook doesn't 
+> shut down properly anymore. The last message is "Power off." (when doing 
+> shutdown -h now), or "Sending acpi_power_off" (when doing echo -n disk 
+> > /sys/power/state).
 > 
-> However, I've not tested it further(as in using the normal kernel boot
-> up line in grub.conf) to verify if it is the same whether or not I use
-> video=radeonfb.
+> Battery, AC, thermal zone and CPU info works fine.
 > 
-> I'm getting these errors during Suspend to disk.
+> Suspending to memory suspends the notebook, but opening the lid again (or 
+> pressing the power button) only results in a sub-second wake-up (fan starts, 
+> hd starts ever so slightly, lcd stays off), then all goes dark again - 
+> everything off. Pressing the power button again just starts regular boot.
 > 
-> Warning: CPU frequency out of sync: cpufreq and timingcore thinks of 600000, is 1400000 kHz.
-> Debug: sleeping function called from invalid context at mm/slab.c:1989
-> in_atomic():1, irqs_disabled():0
+> Suspending to disk seems to work with every module unloaded and outside of X. 
+> Trying the same from within X is a totally different (ugly) problem 
+> alltogether. But that's not important to me anyway.
+> 
+> I'm currently running kernel 2.6.9-rc1-mm2 (acpi 20040816).
+> 
+> As I did back then, I am very interested in helping out troubleshooting the 
+> problem. I am a software developer, but I just don't know where to start 
+> here. If somebody wishes to speculate what may be wrong (with suspend/powe 
+> off) from a birds-eye view, I might find a place to start my journey into 
+> ACPI.
 
-Turn off CONFIG_PREEMPT. Or better test latest -rcX-mmX.
-										Pavel
+You might want to stick some infinite loop at the beggining of
+wakeup.S and see if it ever reaches that...
+							Pavel
 -- 
 When do you have heart between your knees?
 
