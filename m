@@ -1,13 +1,13 @@
-From: alx <alexs81-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org>
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Subject: Re: Sony Vaio, S4bios and bios version
-Date: 01 Mar 2003 12:50:30 +0100
+Date: Sat, 1 Mar 2003 13:05:34 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1046519430.4360.1.camel@galileo.homenet.lan>
+Message-ID: <20030301120534.GC30785@poup.poupinou.org>
 References: <Pine.LNX.4.50.0303010935340.1274-100000@flyby>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 In-Reply-To: <Pine.LNX.4.50.0303010935340.1274-100000-iFUwJ2qmV1I@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -17,10 +17,13 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: marcogi-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, 2003-03-01 at 09:52, marcogi-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org wrote:
+Hi,
+
+On Sat, Mar 01, 2003 at 09:52:11AM +0100, marcogi-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org wrote:
 > Hi all,
 > 
 > I have a Sony Vaio PCG-FX601 (FXA53 for USA) and I'm still not able to
@@ -32,35 +35,14 @@ On Sat, 2003-03-01 at 09:52, marcogi-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org wro
 > I tried FreeBSD 5.0 too, with same bad result.
 > Yes, I have an A0 suspend partition and suspend-to-disk works great with
 > APM.
-> 
-> My notebook has R0115K5 bios version. Is there anybody with vaio
-> FX-[5678]0x with newer bios version (R0118K5 or R0121K5) that made
-> S4bios to work?
-> 
-> Thanks.
-> 
-> --
-> Regards,  Marco Gigante
 
-I've a vaio too, my model is PCG-GRK600K and my problem is the same.
-Can't use S4 and the A0 partition is big enough (Works with apm).
-TIA
-ALx
+Can I take a look at your DSDT, please?
 
-> 
-> -------------------------------------------------------
-> This sf.net email is sponsored by:ThinkGeek
-> Welcome to geek heaven.
-> http://thinkgeek.com/sf
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 -- 
-int a=10000,b,c=2800,d,e,f[2801],g;main(){for(;b-c;) f[b++]=a/5;
-for(;d=0,g=c*2;c-=14,printf("%.4d",e+d/a),e=d%a)for(b=c;d+=f[b]*a,
-f[b]=d%--g,d/=g--,--b;d*=b);}
+Ducrot Bruno
 
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
