@@ -1,14 +1,14 @@
-From: Adam Kessel <adam-/J5p37YCQWYytDrLOV7HaA@public.gmane.org>
-Subject: Re: Handler for [EmbeddedControl] returned AE_TIME in 2.6.1/20040116
-Date: Wed, 4 Feb 2004 15:40:55 -0500
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: RE: ACPI -- Workaround for broken DSDT
+Date: Thu, 5 Feb 2004 00:15:36 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040204204055.GA8434@joehill.bostoncoop.net>
-References: <20040203172413.GA1299@joehill.bostoncoop.net> <20040203143906.B33512@root.org> <20040203234141.GA8327@bostoncoop.net> <20040204103226.GI882@poupinou.org>
+Message-ID: <BF1FE1855350A0479097B3A0D2A80EE0CC8AB6@hdsmsx402.hd.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040204103226.GI882-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,28 +17,74 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
+To: "Scott T. Smith" <scott-j3vAvQ9dNB9ByuSxxbvQtw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Feb 04, 2004 at 11:32:26AM +0100, Bruno Ducrot wrote:
-> > > We moved to a 100 ms timeout on EC requests for FreeBSD because some
-> > > devices just couldn't respond quicker.  But I think there's a larger issue
-> #define ACPI_EC_UDELAY_COUNT	10000
+The strategy is to improve ACPI on Linux such that all Linux distros are
+able to successfully ship ACPI enabled kernels.
 
-I tried this patch, and it does prevent the AE_TIME error. 
+When we reach that stage, the OEMs will use these commercial Linux
+products when they validate their platforms -- fixing DSDT problems
+themselves before the 1st BIOS is released to the public.
 
-The battery charge indicator now seems unreliable, however, after
-switching from AC to battery and back.  For example, it will drop from
-70%-80% down to 2% fairly quickly, but I can still run the machine for
-quite a while at 2%.  It also has jumped from 80% up to 100% in a couple
-of minutes, much faster than it could actually charge.
+Thus the long term strategy is for zero DSDT over-rides.
 
-I'm not sure if any of this is related to the AE_TIME problem, but I'm
-putting it out here to see if there are any ideas.
--- 
-Adam Kessel
-http://bostoncoop.net/adam
+Re: what does windows do?
+Windows doesn't have to do anything.  By being first to ship ACPI, that
+implementation provided the defacto ACPI compliance test to which all
+BIOS' are tested -- even if that implementation is not ACPI spec
+compliant.  No, only under dire circumstances will we emulate Windows
+bugs in Linux.
+
+-Len
+
+> -----Original Message-----
+> From: Scott T. Smith [mailto:scott-j3vAvQ9dNB9ByuSxxbvQtw@public.gmane.org]=20
+> Sent: Wednesday, February 04, 2004 9:19 PM
+> To: Brown, Len
+> Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: Re: [ACPI] RE: ACPI -- Workaround for broken DSDT
+>=20
+>=20
+> On Tue, 2004-02-03 at 23:22, Brown, Len wrote:
+> > > From Brown, Len on Sunday, 01 February, 2004:
+> > > >The vendor should supply a correct DSDT with their BIOS.
+> > > >In the case of Dell, you might inquire here:=20
+http://linux.dell.com/
+> > >For non-vendor supplied solutions, you might also follow the=20
+> > DSDT link
+> > >here: http://acpi.sourceforge.net/ =20
+> >=20
+> > Hmm.  Do vendors generally release these?  I know Dell's very shaky
+on
+> >   the Linux support front, at least for desktop/laptop.
+> > Also, how do non-vendor supplied ones get made?  Seems like
+something
+> >   you need NDA'ed docs for.
+>=20
+> Non-vendor supplied DSDTs are created by end-users who bought machines
+> that don't work.  Per the DSDT link above, one can extract,
+> dis-assemble, modify a DSDT -- and tell Linux to use your copy instead
+> of the version burned into PROM.
+
+what's the long term strategy for ACPI on Linux?  If there are so many
+broken DSDT's, and we want ACPI to be accessible to non-programmers,
+then what's the ultimate solution?  Is it to include patches for every
+possible platform, and have the ACPI subsystem autodetect and fix at
+boot time?
+
+Since thus far the ability to override the DSDT tables has not been
+included in the vanilla ACPI distribution, then it seems you guys have
+something else in mind.
+
+What does Windows do?  Is it just that their DSDT
+parser/executer/whatever operates differently (in which case a Windows
+emulation mode could be added to the Linux subsystem), or is it that
+Laptop manufacturers ship a corrected DSDT as part of their driver set?
+
+	Scott
+
 
 
 -------------------------------------------------------
