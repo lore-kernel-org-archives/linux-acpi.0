@@ -1,16 +1,14 @@
-From: Kevin Fenzi <kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Re: Compaq Presario 2800T
-Date: Wed, 7 Aug 2002 17:17:19 -0600
+From: Andy Dustman <andy-gRfBfDTKyCbR7s880joybQ@public.gmane.org>
+Subject: Re: acpi-patch + kernel 2.4.19
+Date: 07 Aug 2002 19:27:45 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020807231722.6087.qmail@scrye.com>
-References: <20020807224648.5744.qmail@scrye.com>
-	<200208072257.SAA04328@magic-pi-ball.mit.edu>
-	<20020807230502.GA3563@dutidad.twi.tudelft.nl>
+Message-ID: <1028762865.14024.8.camel@4.0.0.10.in-addr.arpa>
+References: <20020807215528.GA646@enigma.daemon.sh>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20020807230502.GA3563-V1rPnKwUOrA59+mn7qD7y50iERQUc4G+@public.gmane.org>
+In-Reply-To: <20020807215528.GA646-adzhR0EPeY/7X6WiDY61Ug@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,69 +17,29 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
+To: Sebastian Henschel <s.henschel-TGKKaGbebvyzQB+pC5nmwQ@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Wed, 2002-08-07 at 17:55, Sebastian Henschel wrote:
 
->>>>> "Charl" == Charl P Botha <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org> writes:
+> did anyone of you try to install the current acpi-patch to the current
+> linux kernel 2.4.19?
 
-Charl> On Wed, Aug 07, 2002 at 06:57:25PM -0400, Sourav K Mandal
-Charl> wrote:
->> > The Fn f7 (dim) and Fn-f8 (brighten) and Fn-F4 (monitor) all work
->> fine > when I first boot up. They also work fine if I start X with
->> no DRM. If > I start X with drm, then they stop working and won't
->> work again until > I reboot.
->> 
->> Exactly what I'm getting, but with stock DRI modules.
+Just for fun, I tried to merge the current patch into 2.4.19 last night.
+It wasn't fun.
 
-Charl> Just for clarity, on my laptop (which is not a Compaq, but a
-Charl> no-namer with Radeon Mobility 7500 64MB) the bright/dim keys
-Charl> always work, DRI or no DRI.
+Actually, I wrote a script that does a three-way merge, in the same
+manner as diff3 -m, but working recursively. There are a number of
+conflicts, which you would likely get just applying the patch directly
+as well. Some of the conflicts are non-trivial, or at least, they were
+non-trivial for me to fix them, but I may give it another look.
 
-so it might be a bios diffrence... ?
-
->> My (layman's) guess is that it has something to do with the GPU's
->> power state.  The BIOS won't shut down the LCD until it's satisfied
->> with the Radeon's power state; once DRM is used the Radeon cannot
->> enter an acceptable power state.
-
-Charl> If you experience this with stock XFree86 DRI as well, I would
-Charl> post a report on xpert-72qDnkntNoRAfugRpC6u6w@public.gmane.org as well.  One of the ATI
-Charl> engineers is spending a lot of time with these drivers and
-Charl> might have something to add to the equation.
-
-ok. I will try and test it later tonight and see. I can't remember if
-I saw it with stock X/drm or not. 
-
->> This is the inverse of the DRI-on-resume problem, that once the
->> Radeon is shutdown w/o reset, the DRM "parts" don't wake up
->> properoly.
-
-Charl> The DRM wasn't designed for stopping/starting in mid-stride,
-Charl> which is why we've made it so that it completely
-Charl> initialises/de-initialises during VT-switch.  If certain
-Charl> remaining technical problems can be sorted out, this might even
-Charl> make XFree86 4.3.0, at least until a more generic solution can
-Charl> be implemented.
-
-excellent. 
-
-Charl> Good luck, Charl
-
-kevin
-
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.7 (GNU/Linux)
-Comment: Processed by Mailcrypt 3.5.6 and Gnu Privacy Guard <http://www.gnupg.org/>
-
-iD8DBQE9UaqC3imCezTjY0ERAgHVAJ9mLzQXUEQ893HzqDAbipwoLnUbzACeKd+B
-ofgte2+w7GMrGw8cLlTVdA8=
-=gczI
------END PGP SIGNATURE-----
+-- 
+Andy Dustman         PGP: 0x930B8AB6
+    @       .net     http://dustman.net/andy
+"Cogito, ergo sum." -- Rene Descartes
+"I yam what I yam and that's all what I yam." -- Popeye
 
 
 -------------------------------------------------------
