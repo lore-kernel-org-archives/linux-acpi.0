@@ -1,280 +1,170 @@
-From: "Wang, Zhenyu" <zhenyu.z.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: kacpid problems
-Date: Thu, 11 Nov 2004 09:22:28 +0800
-Message-ID: <20041111012228.GA18032@zhen-devel.sh.intel.com>
-References: <20041110155455.GA14675@zhen-devel.sh.intel.com> <20041110170945.38831.qmail@web25310.mail.ukl.yahoo.com>
+From: Keiichiro Tokunaga <tokunaga.keiich@jp.fujitsu.com>
+Subject: Re: [PATCH] kobject: fix double kobject_put in kobject_unregister()
+Date: Thu, 11 Nov 2004 11:03:05 +0900
+Message-ID: <20041111110305.46d1d468.tokunaga.keiich@jp.fujitsu.com>
+References: <20041110141923.A13668@unix-os.sc.intel.com>
+ <20041110225421.GA16785@kroah.com> <20041110150400.C13668@unix-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20041110170945.38831.qmail-uk6eOWkoXtXGRxTy+Q50vsz6deESKz/lQQ4Iyu8u01E@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: dev_zero <dev_xor-eZNTXLQAfP4@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262128AbUKKCEb@vger.kernel.org>
+In-reply-to: <20041110150400.C13668@unix-os.sc.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
+Cc: tokunaga.keiich@jp.fujitsu.com, greg@kroah.com, linux-hotplug-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-copy these from acpi_thermal_remove, does this workaround your issue?
+On Wed, 10 Nov 2004 15:04:01 -0800 Keshavamurthy Anil S wrote:
+> On Wed, Nov 10, 2004 at 02:54:21PM -0800, Greg KH wrote:
+> > On Wed, Nov 10, 2004 at 02:19:23PM -0800, Keshavamurthy Anil S wrote:
+> > > Hi Greg,
+> > > 	
+> > > This patch fixes the problem where in kobject resources were getting
+> > > freed when those kobject were still in use due to double kobject_put()
+> > > getting called in the kobject_unregister() code path.
+> > > 
+> > > With out this patch kobject_unregister() will have some serious side effects.
+> > > 
+> > > Please apply.
+> > > 
+> > > signed-off-by: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+> > > 
+> > > 
+> > >  linux-2.6.10-rc1-mm4-askeshav/lib/kobject.c |    3 ++-
+> > >  1 files changed, 2 insertions(+), 1 deletion(-)
+> > > 
+> > > diff -puN lib/kobject.c~kobject_unregister_fix lib/kobject.c
+> > > --- linux-2.6.10-rc1-mm4/lib/kobject.c~kobject_unregister_fix	2004-11-10 13:43:42.243877455 -0800
+> > > +++ linux-2.6.10-rc1-mm4-askeshav/lib/kobject.c	2004-11-10 13:46:30.788797265 -0800
+> > > @@ -301,6 +301,8 @@ void kobject_del(struct kobject * kobj)
+> > >  {
+> > >  	kobject_hotplug(kobj, KOBJ_REMOVE);
+> > >  	sysfs_remove_dir(kobj);
+> > > +
+> > > +	/* unlink does kobject_put() for us */
+> > >  	unlink(kobj);
+> > >  }
+> > >  
+> > > @@ -313,7 +315,6 @@ void kobject_unregister(struct kobject *
+> > >  {
+> > >  	pr_debug("kobject %s: unregistering\n",kobject_name(kobj));
+> > >  	kobject_del(kobj);
+> > > -	kobject_put(kobj);
+> > >  }
+> > 
+> > No, this is wrong.  Count the add and put in the sequence of:
+> > 	kobject_register()
+> > 	kobject_unregister()
+> > 
+> > they are balanced.
+> > 
+> > You mention you are seeing problems.  Have a trace?  Example code?
+> 
+> Here is the call trace when I tried to do kobject_unregiser()
+> Call Trace:
+>  [<a000000100016de0>] show_stack+0x80/0xa0
+>                                 sp=e00000000e3cf730 bsp=e00000000e3c9230
+>  [<a000000100017640>] show_regs+0x840/0x880
+>                                 sp=e00000000e3cf900 bsp=e00000000e3c91c8
+>  [<a000000100023f10>] die+0x150/0x1c0
+>                                 sp=e00000000e3cf910 bsp=e00000000e3c9188
+>  [<a000000100023fc0>] die_if_kernel+0x40/0x60
+>                                 sp=e00000000e3cf910 bsp=e00000000e3c9158
+>  [<a0000001000240f0>] ia64_fault+0x110/0x1060
+>                                 sp=e00000000e3cf910 bsp=e00000000e3c9100
+>  [<a00000010000dae0>] ia64_leave_kernel+0x0/0x260
+>                                 sp=e00000000e3cfb20 bsp=e00000000e3c9100
+>  [<a0000001002743e0>] strlen+0x20/0x140
+>                                 sp=e00000000e3cfcf0 bsp=e00000000e3c90a8
+>  [<a00000010026a270>] kobject_get_path+0x150/0x1e0
+>                                 sp=e00000000e3cfcf0 bsp=e00000000e3c9068
+>  [<a00000010026a770>] kobject_hotplug+0x350/0x6e0
+>                                 sp=e00000000e3cfcf0 bsp=e00000000e3c9008
+>  [<a0000001002695b0>] kobject_del+0x30/0x80
+>                                 sp=e00000000e3cfd10 bsp=e00000000e3c8fe0
+>  [<a000000100269620>] kobject_unregister+0x20/0x60
+>                                 sp=e00000000e3cfd10 bsp=e00000000e3c8fc0
+>  [<a000000100302420>] acpi_device_unregister+0x320/0x340
+>                                 sp=e00000000e3cfd10 bsp=e00000000e3c8fa0
+>  [<a000000100302b70>] acpi_bus_remove+0x2f0/0x340
+>                                 sp=e00000000e3cfd10 bsp=e00000000e3c8f68
+>  [<a000000100302ec0>] acpi_bus_trim+0x300/0x440
+>                                 sp=e00000000e3cfd30 bsp=e00000000e3c8f18
+>  [<a000000100303110>] acpi_eject_store+0x110/0x240
+>                                 sp=e00000000e3cfde0 bsp=e00000000e3c8ee0
+>  [<a000000100301fb0>] acpi_device_attr_store+0x70/0xa0
+>                                 sp=e00000000e3cfe20 bsp=e00000000e3c8ea8
+>  [<a0000001001864b0>] sysfs_write_file+0x270/0x300
+>                                 sp=e00000000e3cfe20 bsp=e00000000e3c8e58
+>  [<a0000001001052e0>] vfs_write+0x200/0x2c0
+> 
+> I will try to explain the what is happening here.
+> 
+> I have a sysfs tree like this.
+> .../_SB/LSB0 
+> .../_SB/LSB0/CPU5
+> .../_SB/LSB0/MEM1
+> .../_SB/LSB0/MEM2
+> 
+> Say LSB0 is kobj1, CPU5 is kobj2, MEM1 is kobj3, MEM2 is kobj4
+> 
+> All I am trying to do is first I will do kobject_unregister(kobj2),then 
+> kobject_unregister(kobj3), then kobject_unregister(kobj4) and now
+> when I try to do kobject_unregister(kobj1) i.e when I am trying to remove
+> LSB0 directory, I am seeing the above stack trace.
+> 
+> The patch I posted fixed this problem.
+> 
+> Let me know if you need more data.
 
---- acpi-2.6/drivers/acpi/thermal.c~remove_queue_work	2004-11-10 23:38:51.0=
-00000000 +0800
-+++ acpi-2.6/drivers/acpi/thermal.c	2004-11-11 09:19:57.365634568 +0800
-@@ -472,6 +472,13 @@ acpi_thermal_critical (
- 	printk(KERN_EMERG "Critical temperature reached (%ld C), shutting down.\n=
-", KELVIN_TO_CELSIUS(tz->temperature));
- 	acpi_bus_generate_event(device, ACPI_THERMAL_NOTIFY_CRITICAL, tz->trips.c=
-ritical.flags.enabled);
-=20
-+	tz->zombie =3D 1;
-+	/* wait for running timer (on other CPUs) finish */
-+	del_timer_sync(&(tz->timer));
-+	/* synchronize deferred task */
-+	acpi_os_wait_events_complete(NULL);
-+	/* deferred task may reinsert timer */
-+	del_timer_sync(&(tz->timer));
- 	acpi_thermal_call_usermode(ACPI_THERMAL_PATH_POWEROFF);
-=20
- 	return_VALUE(0);
+  I think the cause is an imbalance between acpi_device_register()
+and acpi_device_unregister().  acpi_device_register() is supposed
+to increment a refcount of a target kobject (kobj1) and also a kobject
+(kobj2) that inherited its kset to the kobj1, but it doesn't today.  This
+is because the kset is not set to kobj1 before calling kboject_init() for
+kobj1.  On the other hand, acpi_device_unregister() decrements the
+refcount of both kobj1 and kobj2.  Thus, kobj2 would be released
+unexpectedly if kobjects using the kset of kobj2 are released.
 
+        kobject_init(&device->kobj);
+        strlcpy(device->kobj.name,device->pnp.bus_id,KOBJ_NAME_LEN);
+        if (parent)
+                device->kobj.parent = &parent->kobj;
+        device->kobj.ktype = &ktype_acpi_ns;
+        device->kobj.kset = &acpi_namespace_kset;  <-- kset is set here.
+        kobject_add(&device->kobj);
 
-On 2004.11.10 18:09:45 +0000, dev_zero wrote:
-> This patch actually made some difference. I could play
-> much longer now. First it started lagging, then it
-> stopped, then it started lagging again, then it
-> stopped. It went like this for a while, but after I
-> had played som more, it started lagging again but now
-> it didn't stop.
->=20
->  --- "Wang, Zhenyu" <zhenyu.z.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:=20
-> > oops,
-> >=20
-> > ---
-> > acpi-2.6/drivers/acpi/thermal.c~remove_queue_work
-> > 2004-11-10 23:38:51.693022464 +0800
-> > +++ acpi-2.6/drivers/acpi/thermal.c	2004-11-10
-> > 23:52:40.820975856 +0800
-> > @@ -472,6 +472,8 @@ acpi_thermal_critical (
-> >  	printk(KERN_EMERG "Critical temperature reached
-> > (%ld C), shutting down.\n",
-> > KELVIN_TO_CELSIUS(tz->temperature));
-> >  	acpi_bus_generate_event(device,
-> > ACPI_THERMAL_NOTIFY_CRITICAL,
-> > tz->trips.critical.flags.enabled);
-> > =20
-> > +	tz->zombie =3D 1;
-> > +	acpi_os_wait_events_complete(NULL);
-> > =20
-> >
-> acpi_thermal_call_usermode(ACPI_THERMAL_PATH_POWEROFF);
-> > =20
-> >  	return_VALUE(0);
-> >=20
-> > If this has no help, maybe others eat up kacpid..
-> >=20
-> > On 2004.11.10 23:44:33 +0000, Wang, Zhenyu wrote:
-> > > Pls try this patch,
-> > >=20
-> > > ---
-> > acpi-2.6/drivers/acpi/thermal.c~remove_queue_work =20
-> > 2004-11-10 23:38:51.693022464 +0800
-> > > +++ acpi-2.6/drivers/acpi/thermal.c     2004-11-10
-> > 23:39:50.195128792 +0800
-> > > @@ -472,6 +472,7 @@ acpi_thermal_critical (
-> > >         printk(KERN_EMERG "Critical temperature
-> > reached (%ld C), shutting down.\n",
-> > KELVIN_TO_CELSIUS(tz->temperature));
-> > >         acpi_bus_generate_event(device,
-> > ACPI_THERMAL_NOTIFY_CRITICAL,
-> > tz->trips.critical.flags.enabled);
-> > >=20
-> > > +       tz->zombie =3D 1;
-> > >       =20
-> >
-> acpi_thermal_call_usermode(ACPI_THERMAL_PATH_POWEROFF);
-> > >=20
-> > >         return_VALUE(0);
-> > >=20
-> > > Is this work?
-> > >=20
-> > > -zhen
-> > >=20
-> > > On 2004.11.10 14:33:35 +0000, dev_zero wrote:
-> > > > kacpid still runns with 99%cpu usage when the
-> > cpu gets
-> > > > too hot. I tried the game quake 2. You can play
-> > around
-> > > > 10 -15 minutes before the kacpid starts running
-> > on 99%
-> > > > cpu usage. I also used quake 2 too test the
-> > kernel
-> > > > before I applied your patch.
-> > > >=20
-> > > >  --- "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:=20
-> > > > > It means there was NO event generated at that
-> > time.
-> > > > > Do you think the symptom is gone with my debug
-> > > > > patch?
-> > > > > If so, I think your box need a more sane
-> > schedule
-> > > > > for acpi_thermal_check=20
-> > > > > And, I can come up with a patch.
-> > > > >=20
-> > > > > Thanks
-> > > > > Luming=20
-> > > > >=20
-> > > > > >-----Original Message-----
-> > > > > >From: dev_zero [mailto:dev_xor-eZNTXLQAfP4@public.gmane.org]=20
-> > > > > >Sent: 2004=E5=B9=B411=E6=9C=8810=E6=97=A5 1:06
-> > > > > >To: Yu, Luming
-> > > > > >Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> > > > > >Subject: RE: [ACPI] kacpid problems
-> > > > > >
-> > > > > >When I try to output the event file I do
-> > this:
-> > > > > >[root@balder: /proc/acpi]# cat event >
-> > > > > /home/event.log
-> > > > > >
-> > > > > >But then It just stands there without doing
-> > > > > anything.
-> > > > > >So i tried to check what was wrong (ps ax)
-> > command:
-> > > > > >2922 pts/0    S+     0:00 cat event
-> > > > > >
-> > > > > >I don't know if it is supposed to be
-> > suspended?
-> > > > > >> I want to know what kind of events could be
-> > > > > >> generated heavily, which could have
-> > corresponding
-> > > > > >> pending execution of AML method issued to
-> > work
-> > > > > queue
-> > > > > >> handled by kacpid.  So just cat
-> > /proc/acpi/event
-> > > > > >
-> > > > > >> event.log
-> > > > > >> to me when you were observing abnormal  cpu
-> > > > > >> consumption by kacpid. =20
-> > > > > >>=20
-> > > > > >> Thanks
-> > > > > >> Luming=20
-> > > > > >>=20
-> > > > > >> >-----Original Message-----
-> > > > > >> >From: dev_zero [mailto:dev_xor-eZNTXLQAfP4@public.gmane.org]=20
-> > > > > >> >Sent: 2004=C3=84=C3=AA11=C3=94=C3=8210=C3=88=C3=95 0:00
-> > > > > >> >To: Yu, Luming
-> > > > > >> >Subject: RE: [ACPI] kacpid problems
-> > > > > >> >
-> > > > > >> >Of course.. But which log files do you
-> > want to
-> > > > > take
-> > > > > >> a
-> > > > > >> >look at?
-> > > > > >> >> >How am i supppose to get an output from
-> > > > > >> >> >/proc/acpi/event ??? I can't access the
-> > file,
-> > > > > >> >> because
-> > > > > >> >> >it's in use.
-> > > > > >> >>=20
-> > > > > >> >> Just kill acpid or the similar.
-> > > > > >> >>=20
-> > > > > >> >>=20
-> > > > > >> >>
-> > > > > >>
-> > > > >
-> > > >
-> >
-> >>-------------------------------------------------------
-> > > > > >> >> This SF.Net email is sponsored by:
-> > > > > >> >> Sybase ASE Linux Express Edition -
-> > download
-> > > > > now
-> > > > > >> for
-> > > > > >> >> FREE
-> > > > > >> >> LinuxWorld Reader's Choice Award Winner
-> > for
-> > > > > best
-> > > > > >> >> database on Linux.
-> > > > > >> >>
-> > > > > >>
-> > > > >
-> > http://ads.osdn.com/?ad_idU88&alloc_id=12065&op=3Dclick
-> > > > > >> >>
-> > > > >
-> > _______________________________________________
-> > > > > >> >> Acpi-devel mailing list
-> > > > > >> >> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> > > > > >> >>
-> > > > > >>
-> > > > >
-> > > >
-> >
-> >>https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> > > > > >> >> =20
-> > > > > >> >
-> > > > > >> =20
-> > > > > >
-> > > > >=20
-> > > >=20
-> > > >=20
-> > > >
-> >
-> -------------------------------------------------------
-> > > > This SF.Net email is sponsored by:
-> > > > Sybase ASE Linux Express Edition - download now
-> > for FREE
-> > > > LinuxWorld Reader's Choice Award Winner for best
-> > database on Linux.
-> > > >
-> >
-> http://ads.osdn.com/?ad_id=3D5588&alloc_id=3D12065&op=3Dclick
-> > > > _______________________________________________
-> > > > Acpi-devel mailing list
-> > > > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> > > >
-> >
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> > >=20
-> > >=20
-> > >
-> >
-> -------------------------------------------------------
-> > > This SF.Net email is sponsored by:
-> > > Sybase ASE Linux Express Edition - download now
-> > for FREE
-> > > LinuxWorld Reader's Choice Award Winner for best
-> > database on Linux.
-> > >
-> > http://ads.osdn.com/?ad_idU88&alloc_id=12065&op=3Dclick
-> > > _______________________________________________
-> > > Acpi-devel mailing list
-> > > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> > >
-> >
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> > =20
->=20
->=20
-> -------------------------------------------------------
-> This SF.Net email is sponsored by:
-> Sybase ASE Linux Express Edition - download now for FREE
-> LinuxWorld Reader's Choice Award Winner for best database on Linux.
-> http://ads.osdn.com/?ad_id=3D5588&alloc_id=3D12065&op=3Dclick
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+  I am attaching a patch fixing this.  I have added acpi-devel in cc
+since this might be an ACPI issue.  Excuse my cross posting...
+
+Thanks,
+Keiichiro Tokunaga
 
 
--------------------------------------------------------
-This SF.Net email is sponsored by:
-Sybase ASE Linux Express Edition - download now for FREE
-LinuxWorld Reader's Choice Award Winner for best database on Linux.
-http://ads.osdn.com/?ad_id=5588&alloc_id=12065&op=click
+Signed-off-by: Keiichiro Tokunaga <tokunaga.keiich@jp.fujitsu.com>
+Status: Tested on 2.6.10-rc1-mm4
+---
+
+ linux-2.6.10-rc1-mm4-kei-kei/drivers/acpi/scan.c |    3 +--
+ 1 files changed, 1 insertion(+), 2 deletions(-)
+
+diff -puN drivers/acpi/scan.c~fix_acpi_device_register drivers/acpi/scan.c
+--- linux-2.6.10-rc1-mm4-kei/drivers/acpi/scan.c~fix_acpi_device_register	2004-11-11 10:11:26.121101371 +0900
++++ linux-2.6.10-rc1-mm4-kei-kei/drivers/acpi/scan.c	2004-11-11 10:11:39.126072074 +0900
+@@ -112,13 +112,12 @@ static void acpi_device_register(struct 
+ 		list_add_tail(&device->wakeup_list,&acpi_wakeup_device_list);
+ 	spin_unlock(&acpi_device_lock);
+ 
+-	kobject_init(&device->kobj);
+ 	strlcpy(device->kobj.name,device->pnp.bus_id,KOBJ_NAME_LEN);
+ 	if (parent)
+ 		device->kobj.parent = &parent->kobj;
+ 	device->kobj.ktype = &ktype_acpi_ns;
+ 	device->kobj.kset = &acpi_namespace_kset;
+-	kobject_add(&device->kobj);
++	kobject_register(&device->kobj);
+ 	create_sysfs_device_files(device);
+ }
+ 
+
+_
