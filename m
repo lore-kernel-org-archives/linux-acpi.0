@@ -1,15 +1,14 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ACPI_STRICT_COMPLIANCE (was RE: RE: ACPI -- Workaround
-	forbroken DSDT)
-Date: 11 Feb 2004 14:35:24 -0500
+From: "Brad Beveridge" <Brad.Beveridge-5jtIG9vRWBhBWQWeTLFoew@public.gmane.org>
+Subject: FW: Toshiba 2410 & ACPI
+Date: Thu, 12 Feb 2004 10:39:03 +1300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1076528124.12964.293.camel@dhcppc4>
-References: <C50AB9511EE59B49B2A503CB7AE1ABD10661123D@cceexc19.americas.cpqcorp.net>
+Message-ID: <8285CB7241FCFC4BB721A6F953F9B35ED6026B@nzc-ap-xch-01.ap.trimblecorp.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <C50AB9511EE59B49B2A503CB7AE1ABD10661123D-Iar2LzuD2f6P0FQRY6S+e9kSKC0Mw0DFJ8am2ALHCgk@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,42 +17,48 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Cagle, John   (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>
-Cc: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, "Scott T. Smith" <scott-j3vAvQ9dNB9ByuSxxbvQtw@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2004-02-11 at 13:04, Cagle, John (ISS-Houston) wrote:
+Hi all, this is my first post.  Firstly - sorry if this has already been
+discussed, I searched the archives & couldn't turn much up.  I don't
+know if what happened to me is a hardware fault or an ACPI bug :)
 
-> I agree.  This should make a lot of users happy, since the distro's will
-> work out-of-the-box without modification (at least on those machines
-> with known workarounds implemented in the ACPI driver), yet the OEMs can
-> still test for strict compliance by recompiling the kernel.  Better than
-> that would be a kernel command line option to do the same thing.
-> ACPI_STRICT=ON?
+Machine : Toshiba Satellite 2410 (I think it's a -404 model) Kernel  :
+2.6.1 (unpatched ACPI)
 
-I think you're right.  If STRICT added code, then a re-build would be
-appropriate, b/c the default kernel shouldn't be burdened with extra
-code for validation or compliance testing.  However, STRICT would
-generally disable code -- so we might as well make it accessible by
-using a boot option instead of a build option.  Say...
+A while ago I upgraded to 2.6.1 (I didn't know I needed further ACPI
+patches), and setup all the ACPI stuff so I could play with my laptop's
+power management features.  I was pleased to find that everything I
+wanted worked : sleep state S3, CPU scaling, backlight control (via
+toshiba_acpi driver)
 
-acpi=strict
-  Disable workarounds in Linux for platforms that are not
-  strictly ACPI compliant.  This may cause additional warnings
-  or cause your system not to boot.
+After a couple of days happily entering S3, one day it did not come back
+from S3.  So I rebooted & then the laptop hung in the "In Touch with
+Toshiba" screen.  I left it off over night & it worked in the morning,
+very strange. In the course of my experiments I found
+1) If it got stuck in the BIOS screen, leaving it off & unpluged for
+more than about 8hrs would fix it.
+2) Suspend no longer worked, under ACPI, APM or WinXP
+3) It suddenly did work for a couple of days
+4) It then stoped working again
 
+The mainboard has been replaced as the local service centre said it was
+faulty.  When I got my new main board I monitored the temps that the fan
+goes on/off at.  On my broken main board the BIOS was automatically
+turning the fan on at 70C and off at 60C.  On the new one it is 55C and
+50C - this is just a BIOS setting, but I was previously unaware of it
+(and a little concerned by how hot my laptop used to get).
 
-if (acpi_strict)
-	a compliance check or warning that is known to fail
-	on some systems.
+Basically I have the following questions
+1) Was the mainboard fault just a coincidence that I was playing with
+ACPI and sleep?
+2) Is it likely that operating at high temp has caused the original
+fault?
+3) Can I safely use ACPI sleeping with a ACPI patched 2.6.2 kernel?
 
-if (!acpi_strict)
-	a workaround that is known to be necessary
-	on some non-compliant systems, eg. RELAXED_AML
-
--Len
-
-
+Cheers
+Brad
 
 
 -------------------------------------------------------
