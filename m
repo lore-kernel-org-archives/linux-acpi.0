@@ -1,14 +1,13 @@
-From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
+From: Timo Hoenig <thoenig-dCxI//HcOdFeoWH0uzbU5w@public.gmane.org>
 Subject: Re: clear/enable power button on resume
-Date: Sun, 07 Mar 2004 20:38:03 +0100
+Date: Sun, 07 Mar 2004 21:02:46 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <404B7A1B.80006@pca.it>
-References: <1078685555.541.9.camel@sunshine>
+Message-ID: <1078689765.541.20.camel@sunshine>
+References: <1078685555.541.9.camel@sunshine>  <404B7A1B.80006@pca.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-x5xWBHfOpcuItE0xtDhZ"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1078685555.541.9.camel-eqrHSpLoP5M@public.gmane.org>
+In-Reply-To: <404B7A1B.80006-wlebWZzHoyE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,60 +19,49 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
 
-Hello,
+--=-x5xWBHfOpcuItE0xtDhZ
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-on 03/07/04 19:52, Timo Hoenig wrote:
-> after trying 2.6.4-rc1 I discovered some strange behavior: My machine
-> simply shut down after resuming from S3.
->
-> Since [ACPI] ACPICA 20040220 from Bob Moore there is code to
-> clear/enable the power button on resume in acpi_leave_sleep_state().
-> This leads to an acpi event which is handled by acpid if active. In my
-> case acpid executed the corresponding shutdown script.
->
-> I guess this is going to clutter many people.
-this is a known problem at least for resuming from S1, please refers to the
-thread called 'ASUS M3N and sleep states' started 20031227 by me or the direct
-link to the relevant post here:
-http://sourceforge.net/mailarchive/forum.php?thread_id=3676335&forum_id=6102
+On Sun, 2004-03-07 at 20:38, Luca Capello wrote:
+> this is a known problem at least for resuming from S1, please refers to t=
+he
+> thread called 'ASUS M3N and sleep states' started 20031227 by me or the d=
+irect
+> link to the relevant post here:
+> http://sourceforge.net/mailarchive/forum.php?thread_id=3D3676335&forum_id=
+=3D6102
 
-BTW, my simple workaround for S1 is using this trick on the ACPI power button
-script:
-=====
-#!/bin/sh
-#
-# /etc/acpi/btn-power.sh
+Since S1 is broken for me, I can not verify that.
 
-# shutdown
-echo "Checking if resuming from S1..."
-if tail -n 5 /var/log/messages | grep 'Restarting tasks... done'
-then
-	echo "Resuming from S1, so not acting, exited."
-	exit 0
-else
-	echo "Shutdown in progress"
-fi
+> BTW, my simple workaround for S1 is using this trick on the ACPI power bu=
+tton
+> script:
 
-if ps -Af | grep -q '[k]desktop' && test -f /usr/bin/dcop
-then
-    dcop --all-users ksmserver ksmserver logout 0 2 0 && exit 0
-fi
-/sbin/init 0
-=====
+Thanks. But I don't use the power event anyway. As long as acpi works I
+am happy with suspend / resume. rm -rf /etc/acpi/events/powerbtn did it
+for me.
 
-Thx, bye,
-Gismo / Luca
+Isn't the acpi spec telling whether the pressing of the power button
+after suspending has to be reported to the OS?
+
+  Timo
+
+--=-x5xWBHfOpcuItE0xtDhZ
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
-Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
 
-iD8DBQFAS3oaVAp7Xm10JmkRAha3AJsF9j0VIFD4DHxXq/n8KpmgYiTFDACcCZ63
-8pP1UHalIUnSpiRfibleBkU=
-=58ik
+iD8DBQBAS3/l4D8IS7MFQGYRAtW7AKCAoAdGz+BdDXB3KozdfNpZcRhA4gCfW0Rg
+nsCEWK1OpF9h9k22O4VltHw=
+=B7vk
 -----END PGP SIGNATURE-----
+
+--=-x5xWBHfOpcuItE0xtDhZ--
+
 
 
 -------------------------------------------------------
