@@ -1,8 +1,8 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: "Diefenbaugh, Paul S" <paul.s.diefenbaugh-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: RE: EC SCI model?
-Date: Tue, 24 Jun 2003 18:01:36 -0700
+Date: Tue, 24 Jun 2003 22:54:59 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A8470255EE63@orsmsx401.jf.intel.com>
+Message-ID: <59278FC0C48A994BABABD069571E4568017903D5@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,9 +17,24 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: "Diefenbaugh, Paul S" <paul.s.diefenbaugh-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
+
+I'd echo Andy's recommendation to check out the Linux code.  We went
+through quite a bit of wrenching before getting this to work right on
+all of the various ECs - noting that most are incapable of handing
+EC_SCIs in a purely interrupt-driven fashion...
+___________________________________________=20
+Paul Diefenbaugh=20
+Intel Corporation, MPG | MPA | System Software Architecture
+
+
+-----Original Message-----
+From: Grover, Andrew=20
+Sent: Tuesday, June 24, 2003 6:02 PM
+To: 'Nate Lawson'; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Diefenbaugh, Paul S
+Subject: RE: [ACPI] EC SCI model?
 
 > From: Nate Lawson [mailto:nate-Y6VGUYTwhu0@public.gmane.org]=20
 
