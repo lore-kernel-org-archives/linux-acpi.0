@@ -1,12 +1,14 @@
-From: Rusty Russell <rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>
-Subject: Re: ACPI sleep: check error values and disable it on SMP
-Date: Tue, 10 Jun 2003 14:33:53 +1000
+From: "Randy.Dunlap" <rddunlap-3NddpPZAyC0@public.gmane.org>
+Subject: Re: a question and pmtest
+Date: Mon, 9 Jun 2003 22:59:35 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030610043633.4C3F02C05E@lists.samba.org>
-References: <20030608203823.GA9415@elf.ucw.cz>
+Message-ID: <32855.4.64.196.31.1055224775.squirrel@www.osdl.org>
+References: <3EE4C8F5.7070302@kuiki.net>
+        <20030609111529.0a26dc32.rddunlap@osdl.org>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="----=_20030609225935_37777"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: Your message of "Sun, 08 Jun 2003 22:38:23 +0200."
-             <20030608203823.GA9415-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <20030609111529.0a26dc32.rddunlap-3NddpPZAyC0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,54 +17,80 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: hachi-rIxVFxJalAJeoWH0uzbU5w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-In message <20030608203823.GA9415-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org> you write:
-> Hi!
-> 
-> Wakeup is hard to do on SMP, and freezer_processes is just not ready
-> to work on SMP machine. As I have no SMP (hint hint ;-), it is better
-> to disable it.
-> 
-> ACPI should really really check if freezing processes worked, and
-> handle failure. Please apply,
+------=_20030609225935_37777
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 
-Gcc doesn't give any warnings about unreachable code?
+> On Mon, 09 Jun 2003 12:50:45 -0500 Jonathan Steinert <hachi-rIxVFxJalAJeoWH0uzbU5w@public.gmane.org>
+> wrote:
+>
+> | My main problem is that my dell inspiron 8200 w/ Nvidia GF4 go will not  |
+> turn the LCD back on after it is turned off (either by LID event, or by  | a
+> sleep state). I asked about this on the support list and they tried to  |
+> blame it on XFree86, but I'm not running X (yet). So the first question  |
+> is, how can would one debug this without pmtest or how can I fix pmtest? |
 
-> --- linux-cvs.clean/drivers/acpi/sleep/main.c	2003-02-28 10:23:47.000000000 -0800
-> +++ linux-cvs/drivers/acpi/sleep/main.c	2003-06-08 14:39:03.000000000 -0700
-> @@ -214,6 +214,11 @@
->  {
->  	acpi_status status;
->  
-> +#ifdef CONFIG_SMP
-> +	/* Suspend is hard to get right on SMP. */
-> +	return AE_ERROR;
-> +#endif
-> +
->  	/* get out if state is invalid */
->  	if (state < ACPI_STATE_S1 || state > ACPI_STATE_S5)
->  		return AE_ERROR;
-> @@ -226,7 +231,10 @@
->  	 * TBD: S1 can be done without device_suspend.  Make a CONFIG_XX
->  	 * to handle however when S1 failed without device_suspend.
->  	 */
-> -	freeze_processes();		/* device_suspend needs processes to be stopped */
-> +	if (freeze_processes()) {
-> +		thaw_processes();
-> +		return AE_ERROR;		/* device_suspend needs processes to be stopped */
-> +	}
->  
->  	/* do we have a wakeup address for S2 and S3? */
->  	/* Here, we support only S4BIOS, those we set the wakeup address */
-> 
+> | I saw a post earlier on the list saying that pmtest in the pmtools  |
+> package is orphaned right now, and that it won't compile. However it  |
+> seems to compile just fine with gcc-3.0 and 3.2, does this indicate a  |
+> compiler bug? I've recompiled my entire kernel with both 3.0 and 3.2  | with
+> no sideffects, but I need pmtest to try to fix the aformentioned  | problem.
+> |
+> | Sadly, even though it compiles... when I try to insmod it I get the  |
+> following message:
+> |
+> | Error inserting 'pmtest.o': -1 Invalid module format
+>
+> You are using the 2.5 module tools (utils), right?
+> How about trying 'insmod pmtest.ko' ?
+> or is it not even building a (correct) 2.5 module?
+>
+> I don't know the status of pmtest.  Anyone else?
 
-Cheers,
-Rusty.
---
-  Anyone who quotes me in their sig is an idiot. -- Rusty Russell.
+Make sure that you have the 2.5 module tools.
+
+I fixed the pmtest Makefile so that it works with 2.4 and 2.5 kernels.
+I checked it into CVS at sf.net/projects/acpi/ and I have attached
+it here.  See the Makefile for how to use it.
+
+> | and this message shows up in my syslog:
+> |
+> | No module found in object
+> |
+> | I've added the MODULE_AUTHOR/DESCRIPTION/LICENSE functions to the file  |
+> before compilation, but am unknowing as to what else is missing. Does  |
+> anyone have any time to shed any light on this problem? I've never done  |
+> any kernel programming before, but am willing to learn if necessary. |
+> | Thanks much for your time.
+> |
+> | --hachi
+> |
+> | Kernel 2.5.69 and 2.5.70, both with patched DSDT. All ACPI components  |
+> built-in to the kernel. Currently running 2.5.70 compiled under gcc-3.2,  |
+> no framebuffer, no x, acpid 1.0.2, email me for more if needed.
+
+HTH.
+> --
+> ~Randy
+
+
+
+------=_20030609225935_37777
+Content-Type: application/octet-stream; name="Makefile"
+Content-Disposition: attachment; filename="Makefile"
+Content-Transfer-Encoding: base64
+
+IyBtYWtlZmlsZSBmb3IgcG10ZXN0IGtlcm5lbCBtb2R1bGUKIyB1c2FnZToKIyBjZCAvcGF0aC90
+by9rZXJuZWwvc291cmNlLyAmJiBtYWtlIFNVQkRJUlM9L3BhdGgvdG8vc291cmNlL3BtdGVzdC8g
+YWxsCgphbGw6CXBtdGVzdC5vCgpvYmotbSA6PSBwbXRlc3QubwoKY2xlYW4tZmlsZXMgOj0gKi5v
+ICoua28gKi5tb2QuYwo=
+
+------=_20030609225935_37777--
+
 
 
 -------------------------------------------------------
