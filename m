@@ -1,14 +1,12 @@
-From: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
-Subject: Re: Testing: NVidia closed driver fails.
-Date: Tue, 24 Sep 2002 23:33:34 +0200
+From: "KOCHI, Takayoshi" <t-kouchi-dPjYVeZdYcz+G+EEi5ephHgSJqDPrsil@public.gmane.org>
+Subject: New ACPI driver patch for IA64 now available
+Date: Tue, 24 Sep 2002 18:41:40 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020924213334.GB22018@dutidad.twi.tudelft.nl>
-References: <EDC461A30AC4D511ADE10002A5072CAD0236DE80@orsmsx119.jf.intel.com> <200209192208.40254.jbr.1@gmx.net> <200209192215.g8JMEv306270@pfn1.pefnos> <200209221321.g8MDLb009922@pfn1.pefnos> <20020922005310.B35@toy.ucw.cz> <20020923150937.GA12513@dutidad.twi.tudelft.nl> <20020922043148.B35@toy.ucw.cz>
+Message-ID: <20020925104106.KCFU0A2A0AB6.C8922243@mvf.biglobe.ne.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20020922043148.B35-muQmgwBScQHrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,35 +15,31 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-ia64-WygotPe7DYIabbyE177sbg@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Sep 22, 2002 at 04:31:48AM +0000, Pavel Machek wrote:
-> > On Sun, Sep 22, 2002 at 12:53:10AM +0000, Pavel Machek wrote:
-> > > can we remove /proc/acpi/sleep so users don't waste time trying to make 
-> > > s3/s4 work in 2.4.x?
-> > 
-> > If swsusp is setup, echoing 4 to /proc/acpi/sleep does of course work on
-> > 2.4.  In addition, 5 can be used to switch off and 1 can be used on some
-> > machines as well, all with 2.4.x.  How about a syslogged message rather if
-> > someone tries something with /proc/acpi/sleep that's not supported?
-> 
-> Do you think you could produce patch to do just that? printk() on S4 if
-> not config_software_suspend and printk() on S3 under 2.4.X is the best way
-> to go. Unfortunately I do not have 2.4.X tree easily available...
+Hi all ia64 users,
 
-I would like to, but I'm still running acpi 20020726, mostly due to swsusp
-and such-like.  Seeing that hard working hackers have graced us with 2.4.18
-+ 20020918 + swsusp 12, I am considering upgrading... as soon as I've done
-this I could make a patch.  This might take a while, with RealLife(tm)
-taking inordinate amounts of time at the moment.
+I've just uploaded a new ACPI driver patch for IA64 
+(corresponding to acpi-20020918 version) on sf.net.
+The patch applies against 2.4.19 + Bjorn's 020821 patch.
+It also includes a fix for arch/ia64/kernel/acpi.c
+that I already sent to linux-ia64 list.
+
+http://sourceforge.net/projects/acpi
+http://sourceforge.net/project/showfiles.php?group_id=36832&release_id=111562
+
+As the ACPI development team is going to push the driver to Marcelo's
+2.4 line and probably it'll be merged before 2.4.20.  So we'd like
+to know if there's any problem on Itanium platforms.
+
+If you have any trouble with this patch, please report to
+acpi-devel-5NWGOfrQmneRv+LV9MX5uti2KpX7p8Fi@public.gmane.org
 
 Thanks,
-Charl
-
 -- 
-charl p. botha http://cpbotha.net/ http://visualisation.tudelft.nl/
+KOCHI, Takayoshi <t-kouchi-f7IHDacdhdx8UrSeD/g0lQ@public.gmane.org/t-kouchi>
+
 
 
 -------------------------------------------------------
