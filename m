@@ -1,10 +1,10 @@
-From: Giorgenes Gelatti <giorgenes.canopus-y7mWNqJcIDpfJ/NunPodnw@public.gmane.org>
-Subject: a bit confused
-Date: Thu, 20 Nov 2003 18:31:53 -0200
+From: Gyu Sang Choi <gchoi-yyJJWgVhSYiVc3sceRu5cw@public.gmane.org>
+Subject: Error: can't read "CONFIG_SCSI": no such variable
+Date: Thu, 20 Nov 2003 16:28:23 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031120183153.3066ecd0.giorgenes.canopus@terra.com.br>
+Message-ID: <3FBD31F7.2070205@cse.psu.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,25 +18,33 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi there,
+To whom it may concern
 
-I've started trying to configure ACPI into my
-linux, but I got a bit confused.
+I am trying to install ACPI2.0 into Linux-2.4.22 kernel.
+But I got a strange error message, when I try to store the configuration 
+to file in "make xconfig".
+It is below
+============================================
+Error: can't read "CONFIG_SCSI": no such variable
+============================================
 
-The linux kernel itself seems to already have
-support for acpi (im using 2.4.21),
-so, I do I need your patchs? Or better,
-What does your patchs have to offer?
+If there is anyone to solve this problem already,
+please send me email.
 
-Tks
-[]'s
+Regards,
 
 -- 
-:: Giorgenes Gelatti (giorgenes.canopus-y7mWNqJcIDpfJ/NunPodnw@public.gmane.org)
-:: Canopus Informatica [+55 0(xx)51 3362-2404]
 
-:: Don't comment bad code - rewrite it.
-::             - The Elements of Programming Style (Kernighan & Plaugher)
+ ---------------------------------------------------------------
+| Gyu Sang Choi							|
+| Office : 313 Pond Lab (863-3814) 					|
+| email : gchoi-yyJJWgVhSYiVc3sceRu5cw@public.gmane.org					|
+| Tel : (814)861-6986					       	|
+| Address : 425 Waupelani Drive #327, State College, PA 16801	|
+ ---------------------------------------------------------------
+
+
+
 
 
 -------------------------------------------------------
