@@ -1,14 +1,16 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Error getting cpuindex for acpiid
-Date: Fri, 20 Aug 2004 09:38:41 -0700
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH]Panasonic Hotkey Driver v0.5 [1/2]
+Date: 20 Aug 2004 13:11:24 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <88056F38E9E48644A0F562A38C64FB6002A93317@scsmsx403.amr.corp.intel.com>
+Message-ID: <1093021883.25911.260.camel@dhcppc4>
+References: <41244219.1090603@linuxboxen.org>
+	 <87acwqserw.wl%miura@da-cha.org><871xi2s555.wl%miura@da-cha.org>
+	 <87vffeqqaq.wl%miura@da-cha.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <87vffeqqaq.wl%miura-yiisDzvROlQdnm+yROfE0A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,45 +19,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?iso-8859-1?Q?Vladim=EDr_Volcko?= <konference-X2ABGLaSPc4@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Hiroshi Miura <miura-yiisDzvROlQdnm+yROfE0A@public.gmane.org>
+Cc: David Bronaugh <dbronaugh-Jp3n8lUXroSX6QiC4yPwbg@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, letsnote-tech-eXqGM+LsbTTAqL8d+zIrHngSJqDPrsil@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Fri, 2004-08-20 at 02:25, Hiroshi Miura wrote:
+> This is a patch of pcc_acpi v0.4.
+> It is same as my previous patch, 
+> but it is made using 'bkexport' script.
 
-Either You haven't configured Local APIC in your system.=20
-Or you are using UP kernel on an HT capable system.
+Hiroshi,
+are you planning to incorporate the improvements that David Bronaugh
+posted yesterday?
 
-Those are the most likely situations when this message=20
-is printed. Its not a critical message.
+thanks,
+-Len
 
-Probably, we should remove "error" out of that message=20
-and make it a warning.
 
-Thanks,
-Venki
->-----Original Message-----
->From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
->[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
->Vladim=EDr Volcko
->Sent: Friday, August 20, 2004 7:03 AM
->To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: [ACPI] Error getting cpuindex for acpiid
->
->Hi!
->     I am using vanilla kernel 2.6.8.1 + acpi-20040715-2.6.8=20
->on Toshiba=20
->A30-303 - P4 3.06 GHz.
->Everything seems to be OK, but in dmesg I have this:
->
->ACPI: Processor [CPU0] (supports C1 C2, 8 throttling states)
->acpi_processor-2250 [50] acpi_processor_get_inf: Error getting=20
->cpuindex=20
->for acpiid 0x1
->
->It's something important?
->
->PS: same mesage with 2.6.7 + acpi-20040715-2.6.7
->
->
 
 
 -------------------------------------------------------
