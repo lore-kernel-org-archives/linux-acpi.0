@@ -1,11 +1,11 @@
 From: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
-Subject: i386 PCI IRQ parameters patch #3
-Date: Tue, 15 Jul 2003 10:28:28 +0100
+Subject: [PATCH] IRQ params patch#4
+Date: Tue, 15 Jul 2003 11:42:12 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200307151028.28017.adq_dvb@lidskialf.net>
+Message-ID: <200307151142.12738.adq_dvb@lidskialf.net>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_8k8E/X8lncxzpv4"
+  boundary="Boundary-00=_Eq9E/hC1HBFLyJg"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -19,54 +19,33 @@ To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---Boundary-00=_8k8E/X8lncxzpv4
+--Boundary-00=_Eq9E/hC1HBFLyJg
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-Hi, this is the next in my iteration of PCI IRQ parameters patches.
+OK, patch#3 is way too strict... thought a bit more about it, and I suppose 
+the BIOS not allocating some devices an IRQ is actually OK....
 
-This one adds:
-1) Correct setting of IRQ parameters
-2) Enforces strict checks during ACPI-based PCI link device setup. If anything 
-odd is found, it aborts ACPI-based IRQ routing (drops back to the default 
-strategy).
+Anyway, patch#4 now just warns the user if an attempt to set an IRQ results in 
+a different IRQ than expected, and attempts to abort ACPI irq routing. 
+Unfortunately, it isn't able to undo the changes it has made to the routing 
+as it would have to call the _SRS method to do it... and its just found out 
+that that is buggy. So at the moment it probably won't be able to 
+automatically "fix" devices already programmed when dropping back to a 
+different method (it can't on my board). Sigh.
 
-Basically, there are several calls used during pci link setup which I'm now 
-checking for failure on:
- 
-I'm now calling acpi_pci_link_get_current() before calling _SRS from 
-pci_link.c/acpi_pci_link_set(). This is to check if the ACPI has somehow 
-disabled a device, but not assigned it an IRQ.... (pci_link_get_current() 
-already returns an error in this case). Now, for some BIOSes, this may work 
-fine, but for others (e.g. Jurriaan's KT400 board), this is the only warning 
-we get that ACPI-based routing is duff. Probably best to play it safe.
+Anyway, the warning should at least help find which boards have bad ACPI IRQ 
+routing.
 
-I've enforced the check in pci_link.c/acpi_pci_link_check() so that if the IRQ 
-that was set is not the IRQ that was requested ACPI-based IRQ routing is 
-aborted.
-
-Oh, it also prints a nice error message warning about a potential buggy BIOS 
-so we can track down problem boards from user feedback.
-
-I also had experimented with trying to reprogram any IRQs I setup before 
-detecting a problem... but on my board, this proved impossible.
-
-So with this patch, it should detect more buggy BIOSes, and drop back to 
-non-ACPI routing if it finds one.
-
-I agree that these buggy boards should be blacklisted, but from the user's 
-point of view, thats kinda after the fact if their board is not yet in the 
-list; its already crashed for "mysterious" reasons.
-
---Boundary-00=_8k8E/X8lncxzpv4
+--Boundary-00=_Eq9E/hC1HBFLyJg
 Content-Type: text/x-diff;
   charset="us-ascii";
-  name="linux-2.5.75-acpi-irqparams-3.patch"
+  name="linux-2.5.75-acpi-irqparams-4.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: attachment;
-	filename="linux-2.5.75-acpi-irqparams-3.patch"
+	filename="linux-2.5.75-acpi-irqparams-4.patch"
 
 diff -Naurb linux-2.5.75.orig/arch/i386/kernel/io_apic.c linux-2.5.75/arch/i386/kernel/io_apic.c
 --- linux-2.5.75.orig/arch/i386/kernel/io_apic.c	2003-07-10 21:07:34.000000000 +0100
@@ -171,7 +150,7 @@ diff -Naurb linux-2.5.75.orig/drivers/acpi/pci_irq.c linux-2.5.75/drivers/acpi/p
  	/* Program IOAPICs using data from PRT entries. */
 diff -Naurb linux-2.5.75.orig/drivers/acpi/pci_link.c linux-2.5.75/drivers/acpi/pci_link.c
 --- linux-2.5.75.orig/drivers/acpi/pci_link.c	2003-07-10 21:04:58.000000000 +0100
-+++ linux-2.5.75/drivers/acpi/pci_link.c	2003-07-15 10:04:35.000000000 +0100
++++ linux-2.5.75/drivers/acpi/pci_link.c	2003-07-15 12:28:08.000000000 +0100
 @@ -69,6 +69,8 @@
  
  struct acpi_pci_link_irq {
@@ -228,22 +207,15 @@ diff -Naurb linux-2.5.75.orig/drivers/acpi/pci_link.c linux-2.5.75/drivers/acpi/
  		resource.res.data.extended_irq.shared_exclusive = ACPI_SHARED;
  		resource.res.data.extended_irq.number_of_interrupts = 1;
  		resource.res.data.extended_irq.interrupts[0] = irq;
-@@ -333,6 +341,14 @@
+@@ -333,6 +341,7 @@
  	}
  	resource.end.id = ACPI_RSTYPE_END_TAG;
  
-+	/* Try and get the current assignment. If there is an error here, this implies there are bugs in the ACPI implementation
-+	   We're going to opt for the safest option, and abort using ACPI as a PCI routing mechanism */
-+	result = acpi_pci_link_get_current(link);
-+	if (result) {
-+		return_VALUE(result);
-+	}
-+
 +	/* Attempt to set the resource */
  	status = acpi_set_current_resources(link->handle, &buffer);
  	if (ACPI_FAILURE(status)) {
  		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Error evaluating _SRS\n"));
-@@ -455,15 +471,20 @@
+@@ -455,15 +464,20 @@
  				irq = link->irq.possible[i];
  		}
  
@@ -252,7 +224,7 @@ diff -Naurb linux-2.5.75.orig/drivers/acpi/pci_link.c linux-2.5.75/drivers/acpi/
 -
 +		/* Attempt to enable the link device at this IRQ. */
 +		if (acpi_pci_link_set(link, irq)) {
-+			printk(PREFIX "Unable to set IRQ for %s [%s] (likely buggy ACPI BIOS). Aborting ACPI-based IRQ routing.\n",
++			printk(PREFIX "Unable to set IRQ for %s [%s] (likely buggy ACPI BIOS). Aborting ACPI-based IRQ routing. Try pci=noacpi or acpi=off\n",
 +				acpi_device_name(link->device),
 +				acpi_device_bid(link->device));
 +			return_VALUE(-ENODEV);
@@ -267,7 +239,7 @@ diff -Naurb linux-2.5.75.orig/drivers/acpi/pci_link.c linux-2.5.75/drivers/acpi/
  
  	return_VALUE(0);
  }
-@@ -472,7 +493,9 @@
+@@ -472,7 +486,9 @@
  int
  acpi_pci_link_get_irq (
  	acpi_handle		handle,
@@ -278,7 +250,7 @@ diff -Naurb linux-2.5.75.orig/drivers/acpi/pci_link.c linux-2.5.75/drivers/acpi/
  {
  	int                     result = 0;
  	struct acpi_device	*device = NULL;
-@@ -503,6 +526,8 @@
+@@ -503,6 +519,8 @@
  		return_VALUE(0);
  	}
 
@@ -312,7 +284,7 @@ diff -Naurb linux-2.5.75.orig/include/asm-i386/io_apic.h linux-2.5.75/include/as
 
  #else  /* !CONFIG_X86_IO_APIC */
 
---Boundary-00=_8k8E/X8lncxzpv4--
+--Boundary-00=_Eq9E/hC1HBFLyJg--
 
 
 
