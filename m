@@ -1,164 +1,193 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>
-Subject: RE: AW: iasl -d now gives segmentation fault !
-Date: 04 Dec 2002 00:24:03 +0000
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1038961445.1895.14.camel@darkstar.portugal>
-References: <B9ECACBD6885D5119ADC00508B68C1EA0D19B95E@orsmsx107.jf.intel.com>
+From: Adrian Bunk <bunk-cg1h10c7RbKzQB+pC5nmwQ@public.gmane.org>
+Subject: Re: [2.5.50, ACPI] link error
+Date: Wed, 4 Dec 2002 14:50:24 +0100
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <20021204135024.GA2544@fs.tum.de>
+References: <E18Ix71-0003ik-00@gswi1164.jochen.org> <20021204114114.GD309@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <B9ECACBD6885D5119ADC00508B68C1EA0D19B95E-LkGsggTGxVmSsB6bSF6DdVDQ4js95KgL@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: 'acpi-devel' <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20021204114114.GD309-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: Jochen Hein <jochen-9GTqNSKHDthGYNTIZbNFlg@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roman Zippel <zippel-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Bob
-Thanks very much
-I download acpica-unix-20021126.tar.gz.
+On Wed, Dec 04, 2002 at 12:41:19PM +0100, Pavel Machek wrote:
 
-I tried disassemble my DSDT and ...
-the ZEROS had disappears, yes!
-I fix the .dsl
-and I try to override DSDT and finally works normally.
+> Hi!
 
-so the exstorob.c (that you send), is not needed to disassemble DSDT
-but I try to compile acpica-unix with it, but the file don't match, give
-many errors.
-After I realize that could be applied to the kernel, and replace this
-file in kernel and make the a new bzImage and try it, and I don't note
-(see) any difference.
+Hi Pavel!
 
-thanks=20
+> > When compiling 2.5.50 with CONFIG_ACPI_SLEEP=y
+> 
+> Enable SWSUSP... Then investigate why it is possible to select
+> ACPI_SLEEP but not SWSUSP...
 
-S=E9rgio Basto
+In drivers/acpi/Config.in in 2.5.44:
 
-PS: if you need more information, I will be here :)
+<--   snip  -->
 
-On Mon, 2002-12-02 at 22:44, Moore, Robert wrote:
-> I think that I've found the problem with your DSDT, it's an interpreter
-> problem.  I am working on a fix.  Here's a preliminary fix that may fix t=
-he
-> problem on your machine; let me know if it works.
->=20
-> Bob
->=20
->=20
-> -----Original Message-----
-> From: Moore, Robert=20
-> Sent: Monday, November 25, 2002 9:21 AM
-> To: 'S=E9rgio Monteiro Basto'; Moore, Robert; Grover, Andrew
-> Cc: acpi-devel
-> Subject: RE: AW: [ACPI] iasl -d now gives segmentation fault !
->=20
-> There are 8 contiguous bytes in the DSDT that are very suspiciously zero
-> (and they do not disassemble to valid ASL).  I believe that this is what
-> causes the checksum to be incorrect.
->=20
-> The fix for the segmentation fault appears in version 20021122 which has
-> been completed but I don't think the patches have been posted yet.
->=20
-> Bob
->=20
->=20
-> -----Original Message-----
-> From: S=E9rgio Monteiro Basto [mailto:sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org]=20
-> Sent: Friday, November 22, 2002 5:47 PM
-> To: Moore, Robert; Andrew Grover
-> Cc: acpi-devel
-> Subject: RE: AW: [ACPI] iasl -d now gives segmentation fault !
->=20
-> hi
->=20
-> I download new iasl binary and sources=20
->=20
-> with sources
->=20
-> Intel ACPI Component Architecture
-> ASL Optimizing Compiler / AML Disassembler version 20021115 [Nov 21
-> 2002]
-> Copyright (C) 2000 - 2002 Intel Corporation
-> Supports ACPI Specification Revision 2.0b
->=20
-> Loading Acpi table from file acpi_dsdt.dat
-> Segmentation fault
->=20
-> and with binary for the first time=20
->=20
-> ./iasl: /lib/i686/libc.so.6: version `GLIBC_2.3' not found (required by
-> ./iasl)
-> ./iasl: /lib/i686/libc.so.6: version `GLIBC_2.3' not found (required by
-> ./iasl)
->=20
-> glibc2.3? redhat7.3 stills in 2.2
->=20
-> btw
-> what does mean zeroed bytes? I have one bios with some cleared
-> information? and this gives wrong checksum ?
-> or wrong checksum , clears the information?
-> and can this information be in other "table"
-> like the information that is SSDT (
-> acpidmp SSDT | acpidisasm -n
-> Scope \_PR_
->   Scope \_PR_.CPU0
->     Name \_PR_.CPU0._PCT
->     Name \_PR_.CPU0._PSS
->     Name \_PR_.CPU0._PPC
-> )=20
-> What could i do about it ? try clear bios...
-> finally=20
-> I am testing in other computer (one desktop with motherboard intel
-> CAE810 or something like this)
-> and with this dsdt.bin disassemble well without problems.=20
->=20
-> On Mon, 2002-11-11 at 21:32, Moore, Robert wrote:
-> >=20
-> > Disassembly works fine here, but as I think I mentioned before, the pos=
-ted
-> > DSDT is corrupt;  The checksum is wrong and there are zeroed bytes in t=
-he
-> > file. =20
-> >=20
-> > The resulting disassembly will not compile.
-> >=20
-> > I've added a checksum check to the front end of the disassembler
-> >=20
-> > Bob
-> >=20
-> >=20
-> > -----Original Message-----
-> > From: Grover, Andrew [mailto:andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]=20
-> > Sent: Monday, November 11, 2002 1:15 PM
-> > To: 'S=E9rgio Monteiro Basto'; Herbert Nachtnebel
-> > Cc: acpi-devel
-> > Subject: RE: AW: [ACPI] iasl -d now gives segmentation fault !
-> >=20
-> > Hi Sergio,
-> >=20
-> > Have you tried compiling your own iasl from the unix source distributio=
-n?
-> >=20
-> > (Just "cd compiler;make")
-> >=20
-> > Disassembly seemed to work fine for me, with your DSDT.
-> >=20
-> > Regards -- Andy
->=20
->=20
+...
+if [ "$CONFIG_ACPI_HT_ONLY" != "y" ]; then
+   bool     '  Sleep States' CONFIG_ACPI_SLEEP
+...
+   define_bool CONFIG_ACPI_SLEEP $CONFIG_SOFTWARE_SUSPEND
+...
+fi
+...
+
+<--  snip  -->
 
 
+This double definition was at least confusing, a simple
+
+  dep_bool '  Sleep States' CONFIG_ACPI_SLEEP $CONFIG_SOFTWARE_SUSPEND
+
+would have expressed it better.
 
 
--------------------------------------------------------
-This SF.net email is sponsored by: Microsoft Visual Studio.NET 
-comprehensive development tool, built to increase your 
-productivity. Try a free online hosted session at:
-http://ads.sourceforge.net/cgi-bin/redirect.pl?micr0003en
+The transition to the new kconfig converted this confusing Config.in 
+snipped to the following code in drivers/acpi/Kconfig:
+
+<--  snip  -->
+
+...
+config ACPI_SLEEP
+        bool "Sleep States"
+        depends on X86 && ACPI && !ACPI_HT_ONLY
+        default SOFTWARE_SUSPEND
+...
+
+<--  snip  -->
+
+
+The following patch makes it work the way it was intended:
+
+--- linux-2.5.50/drivers/acpi/Kconfig.old	2002-12-04 14:24:14.000000000 +0100
++++ linux-2.5.50/drivers/acpi/Kconfig	2002-12-04 14:27:17.000000000 +0100
+@@ -58,7 +58,7 @@
+ 
+ config ACPI_SLEEP
+ 	bool "Sleep States"
+-	depends on X86 && ACPI && !ACPI_HT_ONLY
++	depends on X86 && ACPI && !ACPI_HT_ONLY && SOFTWARE_SUSPEND
+ 	default SOFTWARE_SUSPEND
+ 	---help---
+ 	  This option adds support for ACPI suspend states. 
+
+
+Another thing that seems to be suboptimal is that the question for 
+SOFTWARE_SUSPEND comes _after_ the question for ACPI_SLEEP, IOW someone 
+doing a "make config" to configure his kernel doesn't have a chance to 
+select ACPI_SLEEP. To fix this (and it seems to be logical) the 
+SOFTWARE_SUSPEND question should be moved to the "Power management 
+options" menu. The patch below tries to solve this and it makes ACPI 
+dependant on PM as the comments in PM indicate:
+- move "Software Suspend" to the "Power management options" menu above
+  the ACPI entry
+- let ACPI depend on PM
+
+Any comments on this patch?
+
+> 							Pavel
+
+cu
+Adrian
+
+
+--- linux-2.5.50/arch/i386/Kconfig.old	2002-12-04 14:47:03.000000000 +0100
++++ linux-2.5.50/arch/i386/Kconfig	2002-12-04 14:43:48.000000000 +0100
+@@ -789,8 +789,6 @@
+ 
+ menu "Power management options (ACPI, APM)"
+ 
+-source "drivers/acpi/Kconfig"
+-
+ config PM
+ 	bool "Power Management support"
+ 	---help---
+@@ -811,6 +809,37 @@
+ 	  will issue the hlt instruction if nothing is to be done, thereby
+ 	  sending the processor to sleep and saving power.
+ 
++config SOFTWARE_SUSPEND
++        bool "Software Suspend (EXPERIMENTAL)"
++        depends on EXPERIMENTAL && PM
++        ---help---
++          Enable the possibilty of suspendig machine. It doesn't need APM.
++          You may suspend your machine by 'swsusp' or 'shutdown -z <time>'
++          (patch for sysvinit needed).
++
++          It creates an image which is saved in your active swaps. By the next
++          booting the, pass 'resume=/path/to/your/swap/file' and kernel will
++          detect the saved image, restore the memory from
++          it and then it continues to run as before you've suspended.
++          If you don't want the previous state to continue use the 'noresume'
++          kernel option. However note that your partitions will be fsck'd and
++          you must re-mkswap your swap partitions/files.
++
++          Right now you may boot without resuming and then later resume but
++          in meantime you cannot use those swap partitions/files which were
++          involved in suspending. Also in this case there is a risk that buffers
++          on disk won't match with saved ones.
++
++          SMP is supported ``as-is''. There's a code for it but doesn't work.
++          There have been problems reported relating SCSI.
++
++          This option is about getting stable. However there is still some
++          absence of features.
++
++          For more information take a look at Documentation/swsusp.txt.
++
++source "drivers/acpi/Kconfig"
++
+ config APM
+ 	tristate "Advanced Power Management BIOS support"
+ 	depends on PM
+@@ -1516,35 +1545,6 @@
+ 
+ menu "Kernel hacking"
+ 
+-config SOFTWARE_SUSPEND
+-	bool "Software Suspend (EXPERIMENTAL)"
+-	depends on EXPERIMENTAL && PM
+-	---help---
+-	  Enable the possibilty of suspendig machine. It doesn't need APM.
+-	  You may suspend your machine by 'swsusp' or 'shutdown -z <time>' 
+-	  (patch for sysvinit needed). 
+-
+-	  It creates an image which is saved in your active swaps. By the next
+-	  booting the, pass 'resume=/path/to/your/swap/file' and kernel will 
+-	  detect the saved image, restore the memory from
+-	  it and then it continues to run as before you've suspended.
+-	  If you don't want the previous state to continue use the 'noresume'
+-	  kernel option. However note that your partitions will be fsck'd and
+-	  you must re-mkswap your swap partitions/files.
+-
+-	  Right now you may boot without resuming and then later resume but
+-	  in meantime you cannot use those swap partitions/files which were
+-	  involved in suspending. Also in this case there is a risk that buffers
+-	  on disk won't match with saved ones.
+-
+-	  SMP is supported ``as-is''. There's a code for it but doesn't work.
+-	  There have been problems reported relating SCSI.
+-
+-	  This option is about getting stable. However there is still some
+-	  absence of features.
+-
+-	  For more information take a look at Documentation/swsusp.txt.
+-
+ config DEBUG_KERNEL
+ 	bool "Kernel debugging"
+ 	help
+--- linux-2.5.50/drivers/acpi/Kconfig.old	2002-12-04 14:39:24.000000000 +0100
++++ linux-2.5.50/drivers/acpi/Kconfig	2002-12-04 14:42:57.000000000 +0100
+@@ -3,6 +3,7 @@
+ #
+ 
+ menu "ACPI Support"
++	depends on PM
+ 
+ config ACPI
+ 	bool "ACPI Support" if X86
