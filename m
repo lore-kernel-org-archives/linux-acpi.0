@@ -1,14 +1,14 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Gateway 200X (again) - No power button events
-Date: Wed, 21 Jan 2004 11:23:56 +0100
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: How to get SuSE 9 to use my newly compiled DSDT
+Date: Wed, 21 Jan 2004 12:44:28 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040121102356.GU25416@poupinou.org>
-References: <F760B14C9561B941B89469F59BA3A84702C93238@orsmsx401.jf.intel.com> <1074630523.3313.17.camel@localhost> <1074633425.3317.20.camel@localhost>
+Message-ID: <20040121114428.GA24197@message-id.gmane0305.slipkontur.de>
+References: <200401202136.37449.linux@dodgybloke.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1074633425.3317.20.camel-bi+AKbBUZKZeoWH0uzbU5w@public.gmane.org>
+In-Reply-To: <200401202136.37449.linux-vauq3e8UGOy3omyEuwWGNA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,32 +17,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Greg Sarjeant <greg-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org>
-Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jan 20, 2004 at 04:17:05PM -0500, Greg Sarjeant wrote:
-> I also should mention that I do have a /proc/acpi/button/power/PWRF/info
-> entry for the button. So the button is detected, I just get no events
-> from it.
+On Tue, Jan 20, 2004 at 10:27:02PM +0100, linux-vauq3e8UGOy3omyEuwWGNA@public.gmane.org wrote:
+> I have  my newly compiled dsdt
+> /etc/dsdt
 > 
+> How do I set this as my new DSDT under SuSE 9?
+> 
+> 
+> I have used the Yast Sysconfig and changed the value under the KERNEL 
+> section...but it isn't using it :( and it hasn't changed the init in /boot, 
 
-1- At first, does this info file give accurate informations?
+in /etc/sysconfig/kernel i have:
+ACPI_DSDT="/boot/DSDT.aml" 
+of course, you have to give the filename of your DSDT
 
-2- What happens if in one terminal you do something like
-watch -d 'cat /proc/interrupts'
-then press this button?
+> so what command do you type? 
 
-3- also look into the ASL
-if you have some Notify(PWRF, ...), then try to insert some
-debug statements via Store ("PWRF notify xx", Debug) with
-xx being the number of the notify.
-
+mk_initrd (as root) does the trick.
 -- 
-Ducrot Bruno
+Stefan Seyfried
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
 
 
 -------------------------------------------------------
