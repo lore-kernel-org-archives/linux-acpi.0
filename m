@@ -1,14 +1,14 @@
-From: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
-Subject: Re: acpi_sleep=s3_bios and Thinkpads
-Date: Sat, 03 Jul 2004 16:12:19 +0100
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Re: DSDT Change (Compaq Presario 2100)
+Date: Sat, 3 Jul 2004 22:26:49 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1088867538.9981.1.camel@localhost.localdomain>
-References: <1088852201.3733.22.camel@tyrosine>
+Message-ID: <20040703202649.GA31892@elf.ucw.cz>
+References: <c9am7j$nng$1@sea.gmane.org> <200405291345.51712.andre@eisenbach.com> <20040628213409.GA19468@elf.ucw.cz> <cbsi0v$t1r$1@sea.gmane.org> <20040702115454.GA12889@elf.ucw.cz> <40E59C64.9050603@eisenbach.com> <20040702192152.GB10138@elf.ucw.cz> <opsai7dgaq4evsfm@smtp.pacific.net.th> <20040703003713.GG3889@elf.ucw.cz> <opsaj3snak4evsfm@smtp.pacific.net.th>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1088852201.3733.22.camel-myFlNLNQP+Q@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <opsaj3snak4evsfm-TBR8pM7LtsqkE96DxU8f+dAkNl5+tjhE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,24 +17,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Michael Frank <mhf-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+Cc: Andre Eisenbach <andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org>, Erik Meitner <usenet-cuDg6iFcrsRAfugRpC6u6w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sad, 2004-07-03 at 11:56, Matthew Garrett wrote:
-> Having tested around 6 different models of Thinkpad, we've found that
-> passing acpi_sleep=s3_bios always helps if there is no framebuffer
-> running, but tends to break things if there is a framebuffer. Is this
-> worth some sort of DMI hackery in order to make it more likely that
-> things will just work?
+Hi!
 
-The BIOS will re-init to vga text mode for the general case. So you'd
-need instead to do some work on the pci resume path of the video drivers
-to do mode resets and the like. You may also need to play
-with vga routing but that ought to be set right by the BIOS.
+> >>The AC adapter produces a voltage which gets stepped down in
+> >>the box to power the  bus to which battery and rest of system connect.
+> >>
+> >>The additional temperature rise can be explained by the additional
+> >>heat generated in this circutry or other than that, perhaps CPU core
+> >>voltage is increased when on AC accounting for the increase in
+> >>power consumption. Note that in this case your DSDT change
+> >>my run the CPU "too fast" for it's Vcore on battery...
+> >
+> >Increasing Vcore on AC when it can run on lower Vcore and same clock
+> >on battery would be pretty strange, no?
+> 
+> Considering the original system behavior, it is not strange at all.
+> IMO they have a simple implemententation of 2 Vcores and 2
+> frequencies and switch to the lower one one battery.
+> 
+> As it t would not make sense to reduce clock frequency without
+> reducing Vcore, my concern is that the "design change" increasing
+> the  frequency may have  unexpected side effects.
+> 
+> Thus right now the system seems "overclocked" on battery and
+> I suggest again to find a way to measure Vcore to be sure...
 
-Does switching console unbreak resume ?
+Well, I'd expect it to crash it faster on fast clock but low
+voltage... He did some stress testing and it worked well...
 
+Undervolting cpu should not really be dangerous for the hardware (but
+is bad idea if you care about your data), right?
+								Pavel
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
