@@ -1,13 +1,13 @@
-From: =?ISO-8859-1?Q?Hendrik_J=FCrgens?= <hjuerg-ULHALamj7Vx/+Jgy1241yg@public.gmane.org>
-Subject: Re: Smart Battery System driver
-Date: Mon, 17 Jan 2005 15:21:47 +0100
-Message-ID: <41EBC9FB.4080502@technik-emden.de>
-References: <41E81C2C.8010809@bartol.udel.edu> <1105747983.7368.3.camel@tyrosine> <20050117132023.GT19199@poupinou.org>
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: Acer TM636 won't wakeup after S3, USB, i8042
+Date: Mon, 17 Jan 2005 16:32:45 +0100
+Message-ID: <20050117153245.GA1481@elf.ucw.cz>
+References: <20050111003537.13142400@bonenpikster.drs.p>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050117132023.GT19199-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20050111003537.13142400-aE6BZGIOaZ15NImTdOULw2AMOdFwdiat@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,30 +17,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Tim Dijkstra <newsuser-TpnWJeB+oO0hKRfeEwdQzg@public.gmane.org>
+Cc: ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi!
 
-hi.
+> Reading some positive reports on S3 on a travelmate 632, I gave it
+> another try with my 636. After adding the acpi_sleep=s3_bios (thanks
+> mizu) I got some visual signs of resume for the first time. But then
+> the process halts. If I include USB support in the kernel, I get the
+> following msgs
+> 
+> ACPI: PCI interrupt 0000:00:06.0[A] -> GSI 11 (level,low) -> IRQ 11
+> PCI: ENabeling device 0000:00:0b.0 (0080->0083)
+> ACPI: PCI interrupt 0000:00:0b.0[A] -> GSI 10 (level,low) -> IRQ 10
+> 
+> And then it stops. Removing USB support gets me a bit further, now the process ends with:
+> 
+> i8042.c: Can't read CTR while initializing i8042.
+> resume failed: i8042.c (Not sure about this line, typing it from memory)
+> 
+> 
+> Is there anything I can do to help to debug this? I attached lspci -vvv,
+> if there's any other log I can send, just ask.
 
-i don't know if this is a bug, but when the battery is charging and some
-program is polling the smartbattery through the /proc interface, the
-charging stopped for one oder two seconds. this happens only, if i get
-the information through the /proc interface.
-if i'm using the "standalone" smartbattery program, the charging process
-doesn't stop.
-my laptop is an acer travelmate 4002mli.
+Remove keyboard support and see what happens?
 
-Hendrik
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.6 (GNU/Linux)
-
-iD8DBQFB68n7gL2kQgmW9pgRArf4AJ9DopXCEIZnRhiHnRHRwPsHfcSJPgCeLlhX
-LhTiH2UsCyxhi9na0tX83w8=
-=3DE2
------END PGP SIGNATURE-----
+								Pavel
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
