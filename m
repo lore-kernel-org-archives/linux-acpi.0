@@ -1,13 +1,15 @@
-From: Laszlo 'GCS' Boszormenyi <gcs-gKC9iF2I70U@public.gmane.org>
-Subject: Re: kacpid problems
-Date: Tue, 16 Nov 2004 01:36:20 +0100
-Message-ID: <20041116003620.GA8795@pooh>
-References: <3ACA40606221794F80A5670F0AF15F84041AC03C@pdsmsx403>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: ACPI-merges in 2.6.10-rc1-bk14 or 15 broke resume on
+	Thinkpads
+Date: Tue, 16 Nov 2004 01:05:27 +0000
+Message-ID: <1100567127.30092.108.camel@tyrosine>
+References: <20041113021105.GN29980@khan.acc.umu.se>
+	 <1100537587.5876.953.camel@d845pe> <20041116003318.GS29980@khan.acc.umu.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F84041AC03C@pdsmsx403>
+In-Reply-To: <20041116003318.GS29980-Qla6irXeAv31G4Ig9pEGJw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,32 +19,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-* Yu, Luming <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> [2004-11-09 16:23:13 +0800]:
+On Tue, 2004-11-16 at 01:33 +0100, David Weinehall wrote:
 
-> I suspect we need a sane check against sleep_time.
-> Please testing the following debug patch.
- Tried. The bug still exists, but now kacpid does not stuck in a D
-state and I can power off the machine, it does not fail with
-acpi_power_off called as a last message.
+> However, I've done some more debugging, and it turns out that if I
+> remove snd_intel8x0 before suspending the first time, resume works
+> properly.  Even if I have it loaded the next time I suspend.  A most
+> interesting phenomenon, wouldn't you agree.
 
-> Also, please sent the output of the activity in /proc/acpi/event .
- I need to stop acpid, but doing a cat after it, I do not see any
-output. How am I supposed to get an output?
+I've seen the same behaviour on a Thinkpad X40 - resume works fine if I
+don't load any modules, works fine if I unload the sound module and then
+reload it, but fails if I load it and don't remove it. 2.6.9 is fine, I
+haven't had time to do a binary search.
 
-> 
-> +       sleep_time = 5000; /* 5 seconds */
-> +
->         /*
- It just slows down the polling on /proc/acpi/event , right? It helps,
-as see above, but if I run a CPU intense application, mozilla loading a
-big page, or trying to watch a movie, then I see a big slowdown.
-
-Hope this helps,
-Laszlo
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
 
 
