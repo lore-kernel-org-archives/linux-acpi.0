@@ -1,53 +1,179 @@
-From: Luca Capello <luca@pca.it>
-Subject: Re: [ACPI] No APIC interrupts after ACPI suspend
-Date: Mon, 28 Jun 2004 11:18:26 +0200
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <40DFE262.3040107@pca.it>
-References: <B44D37711ED29844BEA67908EAF36F032D566A@pdsmsx401.ccr.corp.intel.com> <40DFDB5A.7070301@travellingkiwi.com>
+From: "Michael Frank" <mhf-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+Subject: Re: Re: [Swsusp-devel] swsusp and ac status
+Date: Mon, 28 Jun 2004 18:03:09 +0800
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <opsaat7jnj4evsfm@smtp.pacific.net.th>
+References: <200406250701.i5P71GKC006204@fermat.unipv.it> <opr95d71ln4evsfm@smtp.pacific.net.th> <20040627222842.GB1816@hell.org.pl> <opr992vyyr4evsfm@smtp.pacific.net.th> <opr994muhg4evsfm@smtp.pacific.net.th> <20040628052704.GA24842@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S264900AbUF1JSb@vger.kernel.org>
-In-Reply-To: <40DFDB5A.7070301@travellingkiwi.com>
-To: acpi-devel@lists.sourceforge.net
-Cc: linux-kernel@vger.kernel.org
+Content-Type: multipart/mixed; boundary=----------OCQUGKxHKKOlvbzIoerKge
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20040628052704.GA24842-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Cc: Daniele Boffi <boffi-piYtxHxN1XRAly3Pu9w1wA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Software Suspend - Mailing Lists <swsusp-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+------------OCQUGKxHKKOlvbzIoerKge
+Content-Type: text/plain; format=flowed; delsp=yes; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Hello,
+On Mon, 28 Jun 2004 07:27:04 +0200, Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org> wr=
+ote:
 
-on 06/28/04 10:48, Hamie wrote:
-> Li, Shaohua wrote:
->> I attached a new patch to handler all level triggered IRQs after resume
->> for 8259 in http://bugme.osdl.org/show_bug.cgi?id=2643. Please try and
->> attach your test result on it.
-> Uh.... That might work.... Except that after applying the patch &
-> restarting. Then suspend-resume I get another small problem... My
-> thinkpad (r50p) uses the power button to wake up from suspend... The
-> system wakes, but with this latest patch, acpid then kicks in & says
-> 'Ohh! I saw him press the power button' and promptly shuts down...
-<cut>
-> Sleeps, wakes & a shutdown... Should acpid do that? (i.e. shouldn't it
-> eat the power button event that woke it up as a wakeup? Should it even
-> get that?) Or is it the previous patch for drivers/acpi/sleep/main.c
-> resetting the IRQ9 to edge triggered that's killing me? (I'll try
-> removing that now).
-this is a known /bug/, I experienced the same on my ancient ASUS M3N. It
-has nothing to do with 'acpid'. Please refer to this thread:
-	http://marc.theaimsgroup.com/?l=acpi4linux&m=107291320113621&w=2
+> Thus wrote Michael Frank:
+>> >----> Thus the BIOS is now in a post boot state, like before
+>> >	vmlinux starts on boot!
+>>
+>> To clarify
+>>
+>>  ----> Thus the BIOS is now in a post boot state, like _after_
+>>  	vmlinux started on boot! and BIOS AC adapter interface
+>> 	is unchanged from pre-boot.
+>
+> Please supply your DSDT to verify what's exactly going on there.
+> Best regards,
+>
 
-For the moment, you can use the workaround I proposed here
-	http://marc.theaimsgroup.com/?l=acpi4linux&m=107333070225744&w=2
+Enclosed.
+Best regards,
+------------OCQUGKxHKKOlvbzIoerKge
+Content-Disposition: attachment; filename=dsdt.bz2
+Content-Type: application/bzip2; name=dsdt.bz2
+Content-Transfer-Encoding: Base64
 
-Thx, bye,
-Gismo / Luca
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
+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
+------------OCQUGKxHKKOlvbzIoerKge--
 
-iD8DBQFA3+JiVAp7Xm10JmkRAoioAJ0Wm/HoUcW0CH2yePQvjB4YGJDs/gCdHd8S
-NHmS97q0bfg8JOec6H7fFKs=
-=J5E+
------END PGP SIGNATURE-----
+
+
+-------------------------------------------------------
+This SF.Net email sponsored by Black Hat Briefings & Training.
+Attend Black Hat Briefings & Training, Las Vegas July 24-29 - 
+digital self defense, top technical experts, no vendor pitches, 
+unmatched networking opportunities. Visit www.blackhat.com
