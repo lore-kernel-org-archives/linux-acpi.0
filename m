@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: If your ACPI-enabled machine does clean shutdown randomly...
-Date: Fri, 28 Nov 2003 17:10:30 +0100
+Subject: Re: Tell user when ACPI is killing machine
+Date: Fri, 28 Nov 2003 17:52:46 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031128161030.GC303@elf.ucw.cz>
-References: <20031128145249.GA563@elf.ucw.cz> <1070035371.1055.13.camel@golgoth01>
+Message-ID: <20031128165246.GA323@elf.ucw.cz>
+References: <20031128145558.GA576@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1070035371.1055.13.camel-yzJ1TzNew8IqMp+WYRx65w@public.gmane.org>
+In-Reply-To: <20031128145558.GA576-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,34 +17,34 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Damien Sandras <dsandras-AvcYnRpcIedBDgjK7y7TUQ@public.gmane.org>
-Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Rusty trivial patch monkey Russell <trivial-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> > ...then you probably need this one. (One notebook I have here
-> > certainly needs it).
-> > 
-> > It seems that acpi likes to report completely bogus value from time to
-> > time...
-> > 
+> On critical overheat (or perceived critical overheat -- acpi bioses on
+> some notebooks apparently report bogus values from time to time),
+> kernel itself calls /sbin/halt *without telling anything*. User can
+> not see anything, his machine just shuts down cleanly. Bad.
 > 
-> The problem with that patch is that it is filling the logs, but it is
-> certainly better than shutting the machine down without warning. I had
-> that problem and it took me a few minutes to figure out that it was
-> ACPI.
+> We should at least tell the user what is going on... 
 
-I'm not pushing this patch for inclusion, only its second part.
-
-> However, I didn't have that problem with kernel 2.6.0 test 9, it
-> appeared with 2.6.0 test 10 and test 11. I have mailed the list to see
-> if there was no patch I could reverse to determine where the problem
-> was, but I got no reaction, so I guess I will have to live with it ;)
-
-I have this on rather strange hw, so my tests do not count :-(.
+Okay, I had two bugs in single line of code (%ld and
+KELVIN_TO_CELSIUS). Sorry about that, here's better version.
 
 								Pavel
+
+--- clean/drivers/acpi/thermal.c	2003-07-27 22:31:09.000000000 +0200
++++ linux/drivers/acpi/thermal.c	2003-11-28 17:42:17.000000000 +0100
+@@ -467,6 +474,7 @@
+ 	if (result)
+ 		return_VALUE(result);
+ 
++	printk(KERN_EMERG "Critical temperature reached (%ld C), shutting down.\n", KELVIN_TO_CELSIUS(tz->temperature));
+ 	acpi_bus_generate_event(device, ACPI_THERMAL_NOTIFY_CRITICAL, tz->trips.critical.flags.enabled);
+ 
+ 	acpi_thermal_call_usermode(ACPI_THERMAL_PATH_POWEROFF);
+
 
 -- 
 When do you have a heart between your knees?
