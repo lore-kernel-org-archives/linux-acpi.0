@@ -1,14 +1,11 @@
-From: Dieter Rohlfing <u490248-uKKRHEr75Vc@public.gmane.org>
-Subject: Re: Laptop does not reboot
-Date: Tue, 02 Mar 2004 16:25:59 +0100
+From: Alfredo <alfredo.mapelli-y7mWNqJcIDpfJ/NunPodnw@public.gmane.org>
+Subject: ACPI only find Power Button
+Date: Wed, 04 Feb 2004 00:08:25 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4044A787.4ABB6C89@imail.de>
-References: <403E59FF.990E2CD0@imail.de>
- <200402270209.04355.bernd-schubert@web.de>
-Reply-To: u490248-uKKRHEr75Vc@public.gmane.org
+Message-ID: <40207039.808@terra.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,25 +15,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bernd Schubert <bernd-schubert-S0/GAf8tV78@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Bernd Schubert wrote:
+Hi all,
+I'm using suse 9.0 with kernel 2.4.24, When I compiled the new kernel I 
+patched it with ACPI from sourceforge. The modules load perfect but it 
+only finds the power button, no thermal, fan or other ACPI is found.
+I have an ASUS MB (P4P800) with INTEL CPU (2.4 HT)
 
-> maybe you should also give 2.6.x a try?
+What should I do?
+dmesg output only says
 
-I downloaded kernel 2.6.3 and guess ... rebooting now works. :-)
+PCI: Using ACPI for IRQ routing
+ACPI: Power Button (FF) [PWRF]
+ACPI: Processor [CPU1] (suppoerts C1)
+ACPI: Processor [CPU2] (suppoerts C1)
 
-But I still have the question: what is wrong with 2.4.x, that it doesn't
-achieve what 2.2.x and 2.6.x can do?
-
-Finally I'd like to say thanks to everybody, who replied.
-
-Dieter
-
--- 
-Every mail not from this mailing list will be deleted.
-
+thaks
 
 
 -------------------------------------------------------
