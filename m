@@ -1,12 +1,10 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: Samsung P35, S3, black screen (radeon)
-Date: Thu, 03 Feb 2005 01:54:06 +0000
-Message-ID: <1107395646.8575.18.camel@tyrosine>
-References: <20050122134205.GA9354@wsc-gmbh.de>  <4201825B.2090703@gmx.net>
+From: Deman <deman2k-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: DSDT for Compaq Presario 2538AP
+Date: Thu, 3 Feb 2005 02:17:21 +0000 (UTC)
+Message-ID: <loom.20050203T031252-840@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <4201825B.2090703-hi6Y0CQ0nG0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,17 +17,17 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2005-02-03 at 02:46 +0100, Carl-Daniel Hailfinger wrote:
+Hi,
 
-> - Matthew Garrett was working on a successor for vbestate IIRC, but I
->   don't know whether he applied my patch to his new tool.
+I'm running Compaq Presario 2538AP. It seem that the battery status is not 
+updated (or sometimes intermittent). 
 
-Ah, yes - I added some of your code to vbetool
-(http://www.srcf.ucam.org/~mjg59/vbetool/ ), which has vbestate and
-video_post functionality (plus a couple of other things)
+I suspect that this was due to DSDT used by ACPI during booting is the one with 
+MSFT. Anybody have the same laptop model? What's solution you have?
 
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+Thanks.
+
+- deman
 
 
 
