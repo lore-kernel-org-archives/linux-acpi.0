@@ -1,19 +1,17 @@
-From: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
-Subject: Re: Dell D600: teaching radeonfb how to wake up...
-Date: Thu, 27 Nov 2003 10:27:48 +1100
+From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
+Subject: Re: Computer Resets on Resume From S3
+Date: 27 Nov 2003 03:46:48 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1069889267.19543.172.camel@gaston>
-References: <20031119180119.GB22307@tate.loria.fr>
-	 <20031120111315.GB432@openzaurus.ucw.cz> <1069370504.705.32.camel@gaston>
-	 <20031120234708.GA431@elf.ucw.cz> <20031121155010.C19564@loria2.loria.fr>
-	 <1069637387.723.112.camel@gaston> <20031124173603.GA298@elf.ucw.cz>
-	 <1069725771.876.296.camel@gaston> <20031125120443.GA297@elf.ucw.cz>
-	 <20031126132419.GL7374@poupinou.org>  <20031126223436.GD207@elf.ucw.cz>
+Message-ID: <1069904808.28929.7.camel@darkstar.portugal>
+References: <200311201522.15255.jak97@doc.ic.ac.uk>
+	<200311212333.10341.jak97@doc.ic.ac.uk>
+	<20031122131957.GA1162@atrey.karlin.mff.cuni.cz>
+	<200311221716.10690.jak97@doc.ic.ac.uk>  <20031122172352.GA265@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20031126223436.GD207-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <20031122172352.GA265-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -23,22 +21,59 @@ List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Emmanuel Thome <Emmanuel.Thome+acpi-/zGXu1G9BXs@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: John Knottenbelt <jak97-CezfXpuMXD6Fxr2TtlUqVg@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Sat, 2003-11-22 at 17:23, Pavel Machek wrote:
+> Hi!
+>=20
+> > > I've seen something similar before -- it usually meant we left
+> > > hardware in "weird" state and it crashed in BIOS.
+> > >
+> > > Can you add "noapic" first, then turn off all unneccesary drivers? No
+> > > SMP, please.
+> > > 								Pavel
+> >=20
+> > Hi,
+> >=20
+> > I boot with noapic and also init=3D/bin/bash so no modules loaded. Same=
+=20
+> > behaviour.=20
+> >=20
+> > My kernel config is at: http://www.doc.ic.ac.uk/~jak97/dsdt/config.gz
+> > And the dmesg is: http://www.doc.ic.ac.uk/~jak97/dsdt/dmesg
+> > Other info at http://www.doc.ic.ac.uk/~jak97/dsdt
+> >=20
+> > I am running with standard DSDT with relaxed AML checking, however I ha=
+ve also=20
+> > tried a fixed DSDT previously and that didn't seem to make any differen=
+ce at=20
+> > all.
+> >=20
+> > Are there any other useful places I might put an infinite loop?
+>=20
+> I do not have better ideas.
+>=20
+> > What about something to check before the machine goes into S3?
+> >=20
+> > I am compiling for Athlon architecture, do you think I should try
+> > i386?
+>=20
+> That should not make a difference.
+>=20
+> > Could it be a gcc problem? gcc is version 3.3.2.
+>=20
+> I do not think gcc could cause this.
 
-> That's what I'm doing, but it crashes machine on most
-> machines. Perhaps PCI needs to be already initialized at this point or
-> something like that?
+Asking why fedora core 1, why compile kernel with gcc 3.2.3 and use
+gcc3.3.2 for compile everything else.
+reply:
+if you try (compiling kernel with gcc3.3.x), then it just magically
+works for you, and you go on happy, possibly with silent data
+corruption, or possibly not.  Roll a 20 sided dice to find out.
 
-Yes, what I've been told is that you need to have re-initialized the AGP
-slot first, which may need yet another BIOS driver to POST, or some ACPI
-wakeup thingy (re-initializing the AGP bridge means in some case filling
-some non-documented registers with proper timing & clock skew values
-etc...)
-
-Ben.
-
+--=20
+S=E9rgioMB
 
 
 
