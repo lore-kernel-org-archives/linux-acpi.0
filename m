@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: RE: thermal.o Linux ACPI Kernel Modul
-Date: Mon, 20 Jan 2003 19:46:26 +0100
+From: kneumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org
+Subject: swsusp not working (was Re: [] Stop Snoring Today!)
+Date: Tue, 28 Jan 2003 11:06:21 +0100 (MET)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030120184626.GC530@zaurus>
-References: <F760B14C9561B941B89469F59BA3A847137F73@orsmsx401.jf.intel.com> <20030116113524.GS12516@poup.poupinou.org>
+Message-ID: <Pine.SOL.4.21.0301281102520.22616-100000@neptun>
+References: <20030120180730.GA530@zaurus>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20030116113524.GS12516-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
+In-reply-to: <20030120180730.GA530-XqDnSF8rrUM@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,25 +17,24 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: fat32-S0/GAf8tV78@public.gmane.org, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Mon, 20 Jan 2003, Pavel Machek wrote:
+> Actually, deep sleep S4 should work these days (and
+> without snooring :-)... If you diisable scsi (ide-scsi too)
+> and use 2.5.59...
 
-> > > cat trip_points
-> > > critical (S5):           85 C
-> > > passive:                 95 C: tc1=2 tc2=5 tsp=300 devices=0xc12c7680
-> > > 
-> 
-> passive at 95 and critical at 85 ?!  Oh my..
+Actually there seems to be an issue: On my Vaio Z600TEK (PIIBX-IDE
+Chipset) with 2.5.59 it BUGS on ide-disk.c:1557 when trying to suspend :(
 
-I've seen similar crap way too often. Is there
-something b0rken with Linux or are hw manufacturers
-really *so* clueless?
--- 
-				Pavel
-Written on sharp zaurus, because my Velo1 broke. If you have Velo you don't need...
+I did not yet have a deeper look at it...only thing is that scsi is
+compiled as a module - that should not be it, should it?
+
+-Knut
+
+
 
 
 
