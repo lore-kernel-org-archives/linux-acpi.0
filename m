@@ -1,15 +1,13 @@
-From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
-Subject: Re: ACPI throttling to death?
-Date: Tue, 5 Apr 2005 16:38:20 +0000
-Message-ID: <200504051638.22705.stefandoesinger@gmx.at>
-References: <200504042214.15648.jfrey@gmx.de>
+From: Christopher Allen Wing <wingc-fnGUqWb9lFPPwG6xszlCvg@public.gmane.org>
+Subject: Re: suggestions for debugging ACPI IRQ routing in 2.6.11.6?
+ (timer interrupt received twice)
+Date: Tue, 5 Apr 2005 10:46:03 -0400 (EDT)
+Message-ID: <Pine.LNX.4.58.0504051041310.13242@hammer.engin.umich.edu>
+References: <971FCB6690CD0E4898387DBF7552B90E010F109B@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200504042214.15648.jfrey-Mmb7MZpHnFY@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <971FCB6690CD0E4898387DBF7552B90E010F109B-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,38 +17,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, jfrey-Mmb7MZpHnFY@public.gmane.org
+To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Am Montag, 4. April 2005 20:14 schrieb Jan Frey:
-> Hi,
->
-> I'm observing strange behaviour with a Gericom notebook running a 2.6.9
-> vanilla kernel with custom configuration. The processor used is a P III
-> (Tualatin) with 1.2GHz (which is quite rarely used). It is *not* a mobile
-> processor (no speedstep etc.), instead it supports 16 throttling levels.
->
-> Sometimes (I guess when the machine is getting overheated - the notebook
-> design is really bad and the fan is quite lousy) ACPI temperature monitor
-> shows >70 degrees (Celsius) and the system starts throttling.
->
-> Until here everything is fine IMO.
-> But what happens next is that the systems slows down continuously (you can
-> monitor the current throttling level going up and up) until it reaches the
-> last level (12%). Soon after that the whole machine is locked up hard,
-> display still showing the current graphics. I guess it throttled to a
-> "deathly" 0%...
->
-> Is this more a linux acpi problem or a fault in this particular machine?
-> What could be done about it? how can I debug further?
-My desktop machine locked up if it got to hot(70-75 degrees, amd duron 
-processor). I bought a better CPU fan and the problem is gone. Well, that's 
-impossible on notebooks.
+Thanks. I figured out the problem with iasl. I was using the 'acpixtract'
+perl script to process the output from 'acpidmp'.
 
-Is there a 0% throttling level? What happens if you stop processor hungry 
-tasks to allow the machine to cool down?
+acpixtract is not compatible with Unicode-enabled Perl. It outputs a
+corrupted file; specifically, it was outputting a file with:
 
-Stefan
+	TableHeader.Length = 3250883
+
+while the file itself was only 13783 bytes. Thus iasl crashed while trying
+to compute the checksum past the end of the buffer.
+
+
+By disabling unicode in perl via 'export LC_ALL=C', acpixtract generates a
+correct file and iasl works for me.
+
+I still have no idea what is wrong with the local APIC. I guess I have
+more to learn about how this works...
+
+
+Thanks,
+
+Chris Wing
+wingc-fnGUqWb9lFPPwG6xszlCvg@public.gmane.org
+
+
+On Mon, 4 Apr 2005, Moore, Robert wrote:
+
+> I'm surprised that iASL is crashing.  The checksum procedure is easy to
+> debug, though.  The length of the table is in the table header.
+>
+> I've attached the disassembled file.
 
 
 -------------------------------------------------------
