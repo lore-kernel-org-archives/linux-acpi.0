@@ -1,12 +1,12 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: ACPI C4 support
-Date: Sat, 28 Feb 2004 17:10:11 +0100
+From: Niel Lambrechts <antispam-T38vF8X/L2bu3wEYkePUmQ@public.gmane.org>
+Subject: [Problem] ACPI/madwifi kernel 2.6.4-rc1
+Date: Sat, 28 Feb 2004 19:03:58 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040228161011.GA10448@elf.ucw.cz>
+Message-ID: <1077987838.3259.21.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,44 +15,67 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: trenn-l3A5Bk7waGM@public.gmane.org, behlert-l3A5Bk7waGM@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Madwifi-users-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+I get a failure of both alsa and ath_pci when I resume from an (ACPI 3)
+suspend. After this I can still unload and reload the modules, but never
+set up a wireless connection again, unless I reboot. If wireless modules
+are not loaded, alsa does not display this resume failure.
 
-Thomas told me:
+When I use APM I can actively perform a wireless ping and play a mp3
+when suspending - when I resume things are ok - the audio and ping will
+resume. With acpi, both will fail almost immediately after resuming.
+When I enable debugging I get:
 
->what about C4 - Cn states in the kernel implementation?
->A short look into the /proc/acpi/processor/.../power file let me think
->that only C0-C3 is supported by the kernel, even specification talks
->about Cn states?
+Feb 28 18:04:01 localhost kernel: R (d21040dc 121040dc) 12104108
+1e83f020 00000000 00000960 10000000 5e331911 !
+Feb 28 18:04:01 localhost kernel: R (d2104108 12104108) 12104134
+128b3020 00000000 00000960 1ff00000 70381911 !
+Feb 28 18:04:01 localhost kernel: R (d2104134 12104134) 12104160
+1cf42020 00000000 00000960 1ff00000 23471911 !
 
-As a first step, it would be nice if kernel at least used C0..C3 if
-the machine supports them... This should do the trick. Does it look
-okay?
+but bothing really descriptive.
 
-								Pavel
+I am using version ATH v0.8.5.2 from CVS on a Thinkpad R50P with IBM
+802.11a/b/g built-in card. 
 
---- tmp/linux/drivers/acpi/processor.c	2004-02-20 12:29:21.000000000 +0100
-+++ linux/drivers/acpi/processor.c	2004-02-28 15:30:52.000000000 +0100
-@@ -2205,7 +2202,8 @@
- 
- 	if (!object.processor.pblk_address)
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No PBLK (NULL address)\n"));
--	else if (object.processor.pblk_length != 6)
-+	else if (object.processor.pblk_length < 6)
-+		/* pblk_length of 7 is okay if cpu supports C4 */
- 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid PBLK length [%d]\n",
- 			object.processor.pblk_length));
- 	else {
+I am also using my own dsdt table - I have followed instructions to
+correct 1 error and 2 warnings using iasl on dsdt.dsl. This fixed
+/proc/acpi/events for me, but since I'm not an expert I'm scared I might
+have broken something else...
+
+-Niel
+
+PS. Please include my e-mail address in your response as I am not a
+subscriber.
 
 
+Kernel options:
+# ACPI (Advanced Configuration and Power Interface) Support
+CONFIG_ACPI=y
+CONFIG_ACPI_BOOT=y
+CONFIG_ACPI_INTERPRETER=y
+CONFIG_ACPI_SLEEP=y
+CONFIG_ACPI_SLEEP_PROC_FS=y
+CONFIG_ACPI_AC=m
+CONFIG_ACPI_BATTERY=m
+CONFIG_ACPI_BUTTON=m
+CONFIG_ACPI_FAN=m
+CONFIG_ACPI_PROCESSOR=m
+CONFIG_ACPI_THERMAL=m
+CONFIG_ACPI_ASUS=m
+CONFIG_ACPI_TOSHIBA=m
+CONFIG_ACPI_DEBUG=y
+CONFIG_ACPI_BUS=y
+CONFIG_ACPI_EC=y
+CONFIG_ACPI_POWER=y
+CONFIG_ACPI_PCI=y
+CONFIG_ACPI_SYSTEM=y
 
 
--- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+
 
 
 -------------------------------------------------------
