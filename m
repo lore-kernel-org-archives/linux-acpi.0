@@ -1,12 +1,14 @@
-From: Robert Woerle <robert-fPtsKRK0pHxl57MIdRCFDg@public.gmane.org>
-Subject: fix IRQ routing via DSDT at a NO-APIC unit
-Date: Wed, 30 Jul 2003 09:50:02 +0200
+From: Mark Santcroos <marks-h3GR0owD+wQ@public.gmane.org>
+Subject: Re: S3 suspend code
+Date: Wed, 30 Jul 2003 10:26:39 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3F2778AA.7080806@paceblade.com>
+Message-ID: <20030730082639.GD676@laptop.6bone.nl>
+References: <20030723152809.GA591@paradigm.rfc822.org> <20030723162423.GD9013@atrey.karlin.mff.cuni.cz> <1059041888.19684.8.camel@bacchus.gpphy.uni-duesseldorf.de> <20030724104518.GA12041@paradigm.rfc822.org> <1059045536.19684.21.camel@bacchus.gpphy.uni-duesseldorf.de> <20030724144535.GA629@paradigm.rfc822.org> <20030724200411.GA444@elf.ucw.cz> <20030724204530.GA5907@laptop.6bone.nl> <20030724224141.GA430@elf.ucw.cz> <20030726234129.GA668@laptop.6bone.nl>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------080804000002010601060403"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20030726234129.GA668-ScjxTogt4I4lGuH5DXb43w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,224 +17,42 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: mflt1-DTdK3Ks6N5kHTnRCetW4+N0b+6lKrnBL@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------080804000002010601060403
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi,
 
-Hi
+On Sun, Jul 27, 2003 at 01:41:29AM +0200, Mark Santcroos wrote:
+> On Fri, Jul 25, 2003 at 12:41:41AM +0200, Pavel Machek wrote:
+> > > Like I said, the suspend returns immediately, but it does succeed.
+> > > It seems that it gets a wakeup signal immediately though. 
+> > 
+> > Like it turns into sleep mode then wakes up? You probably have some
+> > device that is enabled to wake the machine up, which should not really
+> > do that... Check 2.6.0-t1.
+> 
+> I've put a different disk in my laptop and installed Linux on it.
+> With 2.6.0-t1 it does the right thing. Also 2.5.75 works. 
+> I'm going do to a binary search to find the specific change that fixed it.
 
-sorry for the question since i saw that this ( or a similar ) topic is 
-already discussed , but i had the acpi-devel
-list running on digest mode and it is hard to follow a topic with that .
-Now switched back to to non-digest .
+It looks like I had confused my earlier tests with something else, because
+also old Linux kernels do it "correctly".
 
-My issue is :
-Can i fix a faulty IRQ-Routing via DSDT ?
-My unit has not a IO-APIC but a normal XT-PIC
-it also looks that some IRQ`s are provided already by the BIOS and so 
-are active already .
+My machine suspends as early as with 2.5.6 (the first kernel with
+/proc/acpi/sleep), note that it doesn't resume correctly up until 2.5.30 or 
+so, but that doesn't really matter.
 
-So my unit ends up having eth0(realtek8139), sound ( ali5451) and usb ( 
-usb-ohci) having IRQ 5
-when i then do a stress test like sucking a file via eth0 bigger then 
-10MB AND playing sound or using USB mice or so  , i get a very cold 
-artic freeze ( brrrrr) of the complete system without and debug message 
-in any log.
+Do you know if there is any way to find out what device or bus triggers
+the wakeup? A state stored somewhere or so.
 
-this is a reproducable error and i blame my BIOS to be the error .
+Thanks
 
-So i need to test if it makes a difference to provide every device a 
-different IRQ .
+Mark
 
-I read some DSDT`s and also checked the ACPI 2.0 Reference
-i tryed to change the available IRQ`s for the specific LNKX`s to 7 or 11
-
-but it always ends up that my system
-enable`s IRQ 7 to IRQ 5 .....
-
-What can i do ...
-btw .. i applied the "reading dsdt from initrd " patch and so i can 
-quickly load different dsdt `s !
-
-find attached my dsdt
-
-i am using
-2.4.21 + acpi20030619 + swsusp 1.0.3 + preempt ..and so on
-I also use a nice patch to setup.S from Bruno Ducrot which fixes already 
-a bug so
-the the ACPI Tables are actually found and loaded !!!
-
-Cheers Rob
 -- 
-_____________________________________
-*Robert Woerle
-Linux & Customer Support*
-*PaceBlade Technology Europe SA*
-phone: 	+49 89 552 99935
-fax: 	+49 89 552 99910
-mobile: 	+49 179 474 45 27
-email: 	robert-fPtsKRK0pHxl57MIdRCFDg@public.gmane.org <mailto:robert@paceblade.com>
-web: 	http://www.paceblade.com
-_____________________________________
-
-
-
-
---------------080804000002010601060403
-Content-Type: application/x-bzip2;
- name="dsdt.dsl.bz2"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline;
- filename="dsdt.dsl.bz2"
-
-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
-agutkubbELEqhJgYSHM1tmchRHjLaCyBrMrIoV5CG8LgJBqCPHYvhB+bSE0UkgsDgHgexlr0
-ZqU9gpDEnxq9OOXCrTi70URjGFGOHGUpOXXAzxSSSSSVZezBcXG0U/Ht0DOJNRlirOMNOHM1
-a0qsPGmSg3JpUmAZeiqqqm08G0Cgct4rwaITZyHQYuWfZ4u1FZl8GXE5m+ksMTjEqdOegvfs
-WuMIsRzYDkKjQwMoYN8722186ylKVSQ5cYE3G+OOUSk+3ESyDdAxgtpeZAK9UDqTOyDcD63y
-IePzD3+58cv6AjqLFmZMsJZVeqq1qq1qrSJ9SR8uvl2SZ3euJd64usE9zwcwwajrqljFCMUI
-xSmV588c3g354z14rp7ubfJljJzn2J4T07TN1sNwtryw9Fe8ijHY1h9s6X4oyxFidaVtmZ3Y
-McxsytlMNyM2OowRBA9TMiYhNDtTKXavh9nc5LCi/X3/b4+L5FqPVWaMte3PZLd28dtd13ln
-t29tl/PTp37+XLPb6xv/D75j26clrx0aH1dNcucnxejVqxms2T0lHxmjq1130UKyeJDrNB1C
-NVXgS044bZ9N+PW1e6jW8umEWtonn5Sl01y1ZwhTI0zTSlZR1lY0Q6DjoSEhISEhIoVQKT45
-7rDHC6fu1W7JrAm8HBvfZZ1+P6m3hk5HDS9oNPEgYO8w+gbtodJFxJhkZiBmxh9tYinqZ2eX
-L3fROgaeE4qq8Pvvq0XTVpMzMfDvz7ytdywOVVKs3QVidGvZ0YCeckqzqiHYhZn7jFbe5ttH
-QQ8bl1x6beXKTGU5tiRKl7yI9LyLF4yt4X05REREZ3MvHggY0xTMgfloJi8jmxyz8yVFfaJ3
-fPOgYoRE5ROb5k4h9JUZUakH1tdZRn6Egxe6cGXunsynNMw5ps4F21Bh1UTyzc3ULRhSMOHM
-qPGpMnSHlHPERERGxkmZsssuHJN3a1SXKAh6tLo5Kc2nEW70QzFKyemNai7lDJFLuouziZ3J
-MKV8whYEUZfPu54BW4mG76oYOMdY74mm292zmjhmkbuo8eXtVh5h8xgrzA1UtJrdm+OxcyX8
-lpz1bIfLvpm1vpmOUJc+s85pn6e94jmuo7DeEE7Ui2vVqu7qSo8pDv7ZRP74ll4y55PiDEuO
-L0oelNeHiOme1GQfSIvlwz2nLdp9MiJ9G8AsT1hphiOtd3+IEFuUa8n3gxLp04pQ4ppu8QcS
-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
-IZIsWaP/xdyRThQkFOos1kA=
---------------080804000002010601060403--
-
+Mark Santcroos                    RIPE Network Coordination Centre
+http://www.ripe.net/home/mark/    New Projects Group/TTM
 
 
 -------------------------------------------------------
