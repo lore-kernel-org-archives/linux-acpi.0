@@ -1,12 +1,12 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Speedstep-centrino problems
-Date: Thu, 10 Feb 2005 20:28:14 +0100
-Message-ID: <20050210192814.GG1145@poupinou.org>
-References: <0FEA36BB2ABDF44FAAFEB7A75367C07A0117D810@alaska.condis.es>
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: [RFC] Reliable video POSTing on resume (was: Re: Samsung P35, S3, black screen (radeon))
+Date: Thu, 10 Feb 2005 20:31:23 +0100
+Message-ID: <20050210193123.GC1391@elf.ucw.cz>
+References: <1107695583.14847.167.camel@localhost.localdomain> <420BB267.8060108@tmr.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <0FEA36BB2ABDF44FAAFEB7A75367C07A0117D810-0IKPNnIBiwz73juT6mD8XA@public.gmane.org>
+In-Reply-To: <420BB267.8060108-sQDSfeB7uhw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,35 +16,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Simon Moore <Simon_Moore-HnN13UdsTkzz1n+OaKNE4w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bill Davidsen <davidsen-sQDSfeB7uhw@public.gmane.org>
+Cc: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>, Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Feb 10, 2005 at 10:38:31AM +0100, Simon Moore wrote:
-> Hi,
+Hi!
+
+> >>Rumors say that notebooks no longer have video bios at C000h:0; rumors
+> >>say that video BIOS on notebooks is simply integrated into main system
+> >>BIOS. I personaly do not know if rumors are true, but PCs are ugly
+> >>machines....
+> >>							
+> >
+> >
+> >A small number of laptop systems are known to pull this trick. There are
+> >other problems too - the video bios boot may make other assumptions
+> >about access to PCI space, configuration, interrupts, timers etc.
+> >
+> >Some systems (intel notably) appear to expect you to use the bios
+> >save/restore video state not re-POST.
 > 
-> I'm trying to get acpi cpu throttling working for my Dell Inspiron 510m
-> with a Pentium M Centrino 1.6 Ghz cpu.
+> Isn't that what it's there for? In any context other than save/restore I 
+> wouldn't think using the BIOS was a good approach. But this is a special 
+> case, and if there's a BIOS function which does the right thing, it 
+> would seem to be easier to assume that the BIOS works than that the 
+> driver can do every operation for a clean restart.
 > 
+> The problem is that while POST leaves the video in a known state, it may 
+> not the known state you want, nor is it a given that you can get from 
+> there to where you were on suspend. PC hardware isn't always that 
+> dependable.
 
-I need the full acpi dump (not just dsdt) to debug this.
-
-wget ftp://ftp.kernel.org//pub/linux/kernel/people/lenb/acpi/utils/pmtools-20031210.tar.bz2
-tar xjvfp pmtools-20031210.tar.bz2
-cd pmtools-20031210/acpidmp
-make
-sudo ./acpidmp > acpidmp.out
-bzip2 acpidmp.out 
-
-Then mail me (privately) the acpidmp.out.bz2
-
-Cheers,
-
+Eh? POST leaves video in 80x25 text mode, and we know how to handle
+that mode just fine... Historically that's what we ran our consoles
+at, so X can handle it etc.
+								Pavel
 -- 
-Bruno Ducrot
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
