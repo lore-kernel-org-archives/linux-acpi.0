@@ -1,8 +1,8 @@
 From: Unknown <unknown@unknown.invalid>
 Subject: Network Associates Webshield -  e-mail Content Alert
-Date: Wed, 7 Jul 2004 01:35:02 +0000 (UTC)
+Date: Wed, 7 Jul 2004 02:29:43 +0000 (UTC)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E1Bi1FN-0003Cn-Ag@sc8-sf-mx1.sourceforge.net>
+Message-ID: <E1Bi28f-0006t3-0I@sc8-sf-mx2.sourceforge.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 From: <>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -13,7 +13,7 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-Date: Tue Jul 06 21:28:53 2004
+Date: Tue Jul 06 22:26:03 2004
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
