@@ -1,14 +1,14 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ACPICA 20031002 released
-Date: Tue, 7 Oct 2003 11:49:44 -0400
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: RE: \_PR\CPU\_INI not called during initialization
+Date: Tue, 7 Oct 2003 09:02:50 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <BF1FE1855350A0479097B3A0D2A80EE0CC8775@hdsmsx402.hd.intel.com>
+Message-ID: <D3A3AA459175A44CB5326F26DA7A189C1C3DE8@orsmsx405.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,38 +17,118 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Sebastian Henschel <shensche-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-[added acpi-devel to cc: ]
+We are going to add this support for the next version of ACPI CA.
 
-> > ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/test/
+The MS interpreter executes both _STA and _INI under processor objects.
+Bob
+
+
+-----Original Message-----
+From: Ducrot Bruno [mailto:ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org]=20
+Sent: Tuesday, October 07, 2003 12:53 AM
+To: Moore, Robert
+Cc: Nate Lawson; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: Re: [ACPI] RE: \_PR\CPU\_INI not called during initialization
+
+On Mon, Oct 06, 2003 at 03:58:32PM -0700, Moore, Robert wrote:
+> Nope. A Processor object is just that.  A Processor.  Not a Device.
+> Just because something can appear under _SB does not imply that it is
+a
+> Device object.
 >=20
-> there seems to be no directory for 2.4.23(-preX). is this intended?
+> However, once again, we need to see what MS does.
+> Bob
+>=20
 
-Yes, this is on purpose.
+Some IBM laptops shipped with a Pentium have that,
+or equivalent:
 
-I could create one if there is a need, but as 2.4.22 and 2.4.23 haven't
-diverged, the individual patches for 2.4.22 should apply cleanly to
-2.4.23, particularly the ACPICA patch which actually applies cleanly up
-through 2.6.0.
+    Scope (\_PR)
+    {
+        Processor (CPU, 0x01, 0x00001010, 0x06)
+        {
+            Method (_INI, 0, NotSerialized)
+            {
+                Store (\P0FQ, Index (DerefOf (Index (_PSS, 0x00)),
+0x00))
+                Store (\P0PW, Index (DerefOf (Index (_PSS, 0x00)),
+0x01))
+                Store (\P1FQ, Index (DerefOf (Index (_PSS, 0x01)),
+0x00))
+                Store (\P1PW, Index (DerefOf (Index (_PSS, 0x01)),
+0x01))
+                If (\PCEL)
+                {
+                    Store (0xF6, Index (DerefOf (Index (_PSS, 0x01)),
+0x05))
+                    Store (0x00, Index (DerefOf (Index (_PSS, 0x01)),
+0x05))
+                }
+            }
 
-Note that all three release trees acpi/patches/release/* get plain
-patches on every push to the baseline kernels -- though the release
-patches are aggregates rather than individual csets.
+            Name (_PCT, Package (0x02)
+            {
+                ResourceTemplate ()
+                {
+                    Register (SystemIO, 0x08, 0x00, 0x00000000000000B2)
+                },=20
 
-BTW. The reason the 2.4.23 test tree doesn't get individual patches
-automatically is because I generate the individual patches when I bk
-commit the csets, which I do in 2.4.22 and not in 2.4.23.  I bk pull the
-csets forward into 2.4.23 from 2.4.22 rather than repeating the commit.
-This way somebody based on 2.4.22 (eg. an OSD) can pull from our 2.4.22
-tree and get the latest ACPI code w/o all the other 2.4.23 stuff they
-might not be ready for.
+                ResourceTemplate ()
+                {
+                    Register (SystemIO, 0x08, 0x00, 0x0000000000001050)
+                }
+            })
+            Name (_PSS, Package (0x02)
+            {
+                Package (0x06)
+                {
+                    0x00,=20
+                    0x00,=20
+                    0x01F4,=20
+                    0x00,=20
+                    0xF6,=20
+                    0x00
+                },=20
 
-Thanks,
--Len
+                Package (0x06)
+                {
+                    0x00,=20
+                    0x00,=20
+                    0x01F4,=20
+                    0x00,=20
+                    0xF7,=20
+                    0x01
+                }
+            })
+            Method (_PPC, 0, NotSerialized)
+            {
+                If (LNot (\SPEN))
+                {
+                    Return (0x01)
+                }
 
+                If (\_SB.PCI0.LPC.EC.TT4F)
+                {
+                    Return (0x01)
+                }
+                Else
+                {
+                    Return (0x00)
+                }
+            }
+        }
+    }
+
+
+--=20
+Ducrot Bruno
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
