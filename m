@@ -1,9 +1,14 @@
-From: Mirko Hessel-von Molo <mirkoh-o02PS0xoJP9Fq/OQ1YuiuFE6Nkaw1PD6@public.gmane.org>
-Subject: end-user support: Battery alarm
-Date: Thu, 10 Mar 2005 12:53:43 +0100 (CET)
-Message-ID: <Pine.LNX.4.44.0503101243230.2656-100000@hessel-lt.uni-paderborn.de>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: Suggestion for improving the handling of GPE enabling.
+Date: Thu, 10 Mar 2005 13:30:33 +0000
+Message-ID: <1110461434.5918.202.camel@tyrosine>
+References: <1110318037.3663.19.camel@desktop.cunningham.myip.net.au>
+	 <1110331896.12642.16.camel@sli10-desk.sh.intel.com>
+	 <20050309222122.GA32516@elf.ucw.cz>  <1110431446.9336.60.camel@d845pe>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <1110431446.9336.60.camel@d845pe>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,42 +21,28 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Thu, 2005-03-10 at 00:10 -0500, Len Brown wrote:
+> On Wed, 2005-03-09 at 17:21, Pavel Machek wrote:
+> 
+> > > 4. ACPI devices are in many different physical buses. If we just define
+> > > an ACPI bus, we possibly can't show the bus hierarchy.
+> > 
+> > Maybe ACPI device should be "under" real hardware one?
+> 
+> I suspect that the current sysfs device tree hierarchy is largely
+> fiction and that Linux would be better served by taking advantage of the
+> hierarchy embodied in the DSDT.
+> 
+> The "ACPI devices" such as power, sleep, lid as well as the battery are
+> represented at the root level in the DSDT.
 
-Dear all, 
-
-I have a probably stupid question for which I couldn't find the 
-answer anywhere else. 
-
-Is it true that a 'battery' event is raised by the kernel when the 
-'current capacity' given in /proc/acpi/battery/BAT0/state goes below 
-the limit defined in /proc/acpi/battery/BAT0/alarm?
-
-I'm trying to use the battery alarm to make my system warn the user
-and shutdown, if necessary. 
-
-My setup is the following: I'm using a Dell Latitude D800 with BIOS A07,
-running under Linux with Kernel 2.6.7 (not the latest one, I know).
-As I 'organically evolved' the system from a RedHat 7.3 base install,
-I'm reluctant to upgrade to some distro which provides acpi support. 
-
-So far, I got pretty much everything to work, ac_adapter and battery events
-are raised when the power supply changes. However, no event is 
-raised when the battery capacity goes below the warn level. I can't remember
-where I have read this, but somehow I got the idea that this should be the
-case.
-
-Does anyone have an idea where my problem could be?
-
-Thanks for any help, 
-
-Mirko
+Are the ACPI HID names exposed to userspace yet? At the moment userspace
+tools need to try loading every ACPI module. If the HIDs were exported
+via sysfs and the ACPI drivers exported the devices they could bind to,
+we could use hotplug to autoload the correct drivers.
 
 -- 
--------------------------------------------------------------------------------
-Dipl.-Math. Mirko Hessel-von Molo                       Room : D3.310
-University of Paderborn, Institute for Mathematics      Tel  : +49 5251 60 3774
-Applied Mathematics                                     Fax  : +49 5251 60 4216
-33095 Paderborn                                         Email: mirkoh-yTMzxJmGYpQ@public.gmane.org
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
 
 
