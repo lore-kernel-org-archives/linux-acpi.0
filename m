@@ -1,14 +1,14 @@
-From: Jens Haug <haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org>
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Subject: Re: Invalid PBLK length
-Date: Wed, 18 Dec 2002 16:36:36 +0100 (MET)
+Date: Wed, 18 Dec 2002 17:00:03 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200212181536.gBIFabD09402@ikffws2.ikff.uni-stuttgart.de>
-Reply-To: Jens Haug <haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org>
+Message-ID: <20021218160003.GA4257@poup.poupinou.org>
+References: <200212181536.gBIFabD09402@ikffws2.ikff.uni-stuttgart.de>
 Mime-Version: 1.0
-Content-Type: TEXT/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-MD5: CVjNqds1nb/jb8/rLrLYCw==
+Content-Disposition: inline
+In-Reply-To: <200212181536.gBIFabD09402-sBhUd1W9t4xfrO0PeCDDO4ECbGbo6+O1OOFObY0sJ7w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,60 +17,95 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: Jens Haug <haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org>
+Cc: ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> > Ok, I can see in the code (processor.c) that in the function
-> > acpi_processor_get_inf the value of object.processor.pblk_lenght
-> > is checked, and in case it's smaller than 6 this error is thrown.
-> > If it's 6 or greater, then addresses for C2 and C3 are assigned.
-> > But why can't PBLK be 5 and only C2 be used? Couldn't we just=20
-> > disable C3 and still assign the address for C2 as pblk_address+4?
-> > I think it was done that way in prpower.c Revision 32. That gave
-> > me a working C2. =20
->=20
-> Well, specs issue?
+On Wed, Dec 18, 2002 at 04:36:36PM +0100, Jens Haug wrote:
 
-Yes, I see. I hadn't found that, but Matthew pointed me to the
-right chapter of the specs.
+> > Note that it is FACS (the signature of the table), not FADT (I don't know
+> > why the sig. and the name of this table are not the same).
+> 
+> But this FACS doesn't give me much information (since it's only
+> the signature, I guess).
+> It sais:
+> 
+> Signature:		FACS
+> Length:			64
+> Hardware Signature:	0x00000000
+> Firmware Waking Vector: 0x00000000
+> Global Lock:		0x00000000
+> Flags:			0x00000000
+> 
 
-> > BTW, how can I make my FADT human readable? It isn't shown by=20
-> > acpidmp, and I'd like to be able to check some values myself.
->=20
-> ./acpidmp FACS | ./acpitbl
->=20
-> Note that it is FACS (the signature of the table), not FADT (I don't know
-> why the sig. and the name of this table are not the same).
+Ouch!  Sorry.  FACP is the signature of FADT in fact.
+FACS is the sig. of the FACS table, which contains the global lock and
+other things.
 
-But this FACS doesn't give me much information (since it's only
-the signature, I guess).
-It sais:
+./acpidmp FACP | ./acpitbl
 
-Signature:=09=09FACS
-Length:=09=09=0964
-Hardware Signature:=090x00000000
-Firmware Waking Vector: 0x00000000
-Global Lock:=09=090x00000000
-Flags:=09=09=090x00000000
+Should give something like:
 
-I'm curious what I'll find in the FADT. I mean, 5 clearly is=20
-neither 0 nor 6, so there might be some other really heavy bugs.
-I'll get me the=20
+Signature:        FACP
+Length:           116
+Revision:         0x01
+Checksum:         0x48
+OEMID:            TOSCPL
+OEM Table ID:     888M1
+OEM Revision:     0x06040001
+Creator ID:       PTL
+Creator Revision: 0x00000001
+FIRMWARE_CTRL:    0x0fefffc0
+DSDT:             0x0fefa060
+INT_MODEL:        0x00
+SCI_INT:          9
+SMI_CMD:          0x000000b2
+ACPI_ENABLE:      0xf0
+ACPI_DISABLE:     0xf1
+S4BIOS_REQ:       0xf2
+PM1a_EVT_BLK:     0x00001000
+PM1b_EVT_BLK:     0x00000000
+PM1a_CNT_BLK:     0x00001004
+PM1b_CNT_BLK:     0x00000000
+PM2_CNT_BLK:      0x00001020
+PM_TMR_BLK:       0x00001008
+GPE0_BLK:         0x00001028
+GPE1_BLK:         0x0000102c
+PM1_EVT_LEN:      4
+PM1_CNT_LEN:      2
+PM2_CNT_LEN:      1
+PM_TM_LEN:        4
+GPE0_BLK_LEN:     4
+GPE1_BLK_LEN:     4
+GPE1_BASE:        16
+P_LVL2_LAT:       10
+P_LVL3_LAT:       1001
+FLUSH_SIZE:       0
+FLUSH_STRIDE:     0
+DUTY_OFFSET:      1
+DUTY_WIDTH:       3
+DAY_ALRM:         0x0d
+MON_ALRM:         0x08
+CENTURY:          0x32
+Flags:            0x00000025
 
 
-Jens
+You can, as an alternative, give something like that:
 
---=20
-Jens Haug
-IKFF Universit=E4t Stuttgart              Tel. 0711/685-6422
-Pfaffenwaldring 9                       Fax  0711/685-6356
-70550 Stuttgart=09                haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org
+cat /proc/acpi/fadt | ./acpitbl 
 
+
+Cheers,
+
+-- 
+Ducrot Bruno
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
-This sf.net email is sponsored by:
-With Great Power, Comes Great Responsibility 
-Learn to use your power at OSDN's High Performance Computing Channel
-http://hpc.devchannel.org/
+This SF.NET email is sponsored by: Order your Holiday Geek Presents Now!
+Green Lasers, Hip Geek T-Shirts, Remote Control Tanks, Caffeinated Soap,
+MP3 Players,  XBox Games,  Flying Saucers,  WebCams,  Smart Putty.
+T H I N K G E E K . C O M       http://www.thinkgeek.com/sf/
