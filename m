@@ -1,9 +1,9 @@
-From: "Lamar Hutchins" <amfqpe-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: TECH SECTOR - Technology Breakthrough - Patents Filed...Armani
-Date: Thu, 18 Dec 2003 15:15:49 -0700
+From: "Marva Laird" <suoh776tda-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: TECH SECTOR - Technology Breakthrough - Patents Filed...Terry
+Date: Thu, 18 Dec 2003 16:19:49 -0600
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <ho$3ea20l-$xid-5816ab$gh@7f1.2aph.r.j4>
-Reply-To: "Lamar Hutchins" <amfqpe-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Message-ID: <47wh7knc8$--w$--61-3s3z3$57@ijd.jt6do.f7>
+Reply-To: "Marva Laird" <suoh776tda-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: multipart/alternative;
 	boundary="2..8B38_D_D..FB.C.5."
@@ -321,7 +321,8 @@ y way.
 
 
 
-javr sy
+jbrwr v hurnneo
+jh lh  svnzm ad
 
 --2..8B38_D_D..FB.C.5.--
 
