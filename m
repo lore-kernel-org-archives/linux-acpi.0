@@ -1,8 +1,9 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Testing: NVidia closed driver fails.
-Date: Thu, 19 Sep 2002 15:26:52 -0700
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Acpi_load_tables: Could not load namespace: AE_NOT_FOU
+	ND
+Date: Thu, 19 Sep 2002 15:30:16 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DE93@orsmsx119.jf.intel.com>
+Message-ID: <B9ECACBD6885D5119ADC00508B68C1EA0D19B797@orsmsx107.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,42 +15,95 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: "'P. Christeas'" <p_christ-U04EIuiosng@public.gmane.org>, Jochen Reinwand <jbr.1-hi6Y0CQ0nG0@public.gmane.org>
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: "'berndp=p32f3XyCuykqcZcGjlUOXw@public.gmane.org'" <berndp-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> From: P. Christeas [mailto:p_christ-U04EIuiosng@public.gmane.org] 
-> > With ACPI enabled X gets slow. I mean REALLY SLOW! It needs up to 20
-> > seconds to start and then consumes as much CPU time as 
-> possible. It's an
-> > adventure to try to hit something with the mouse pointer.
-> > Everything is funktioning perfectly without ACPI.
-> > Perhaps an interrupt problem. ACPI shares an interrupt with 
-> a bttv card.
-> > The GeForce has it's own interrupt.
-> Huh! You just mentioned a magic word: bttv. I do have a bt878 
-> card, I have to 
-> look if that is the problem after all.
-> 
-> To A. Grover: if the trouble lies in the bttv driver, the 
-> kernel will be 
-> considered broken until both drivers co-exist..
 
-When you cat /proc/interrupts, is there a huge and ever-increasing number of
-interrupts listed for the shared irq?
+Please send us your raw DSDT
+Thanks,
+Bob Moore
 
-(Wait, I thought video devices weren't interrupt driven? Or is that only
-video out, not video-in, like bt878?)
 
-My understanding was, when an interrupt is shared, the OS calls *all* the
-interrupt service routines (ISRs) for devices on that interrupt - it is then
-up to the ISR to determine whether its device interrupted and handle it, or
-whether just to return.
+-----Original Message-----
+From: Bernd Pfrommer [mailto:berndp-p32f3XyCuykqcZcGjlUOXw@public.gmane.org] 
+Sent: Tuesday, September 17, 2002 12:19 PM
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: [ACPI] Acpi_load_tables: Could not load namespace: AE_NOT_FOUND
 
-You might start your investigations by looking at
-drivers/acpi/events/evsci.c acpi_ev_sci_handler().
+Hi,
 
-Regards -- Andy
+after many fruitless attempts to get ACPI working with the 2.4.18 or 
+2.4.19 kernel, I'm posting this in case somebody can help.
+The hardware is an Intel manufactured SRMK2 server with a ServerWorks 
+ServerSet IIILE chipset (CNB30LE North Bridge and OSB4 South Bridge), 
+dual PIII 1GHz 256K cache, with 1GB memory. The bios is an AMIBIOS by 
+American Megatrends Inc.
+
+I configured the 2.4.19 kernel with the following parameters:
+
+CONFIG_ACPI=y
+CONFIG_ACPI_DEBUG=y
+CONFIG_ACPI_BUSMGR=y
+CONFIG_ACPI_SYS=y
+CONFIG_ACPI_CPU=y
+# CONFIG_ACPI_BUTTON is not set
+# CONFIG_ACPI_AC is not set
+# CONFIG_ACPI_EC is not set
+# CONFIG_APM is not set
+
+And I get the following errors during boot:
+
+Sep 16 14:07:16 foo kernel:  tbxface-0099 [01] Acpi_load_tables      : 
+ACPI Tables successfully loaded
+Sep 16 14:07:16 foo kernel:  tbxface-0106: *** Error: Acpi_load_tables: 
+Could not load namespace: AE_NOT_FOUND
+Sep 16 14:07:16 foo kernel:  tbxface-0115: *** Error: Acpi_load_tables: 
+Could not load tables: AE_NOT_FOUND
+Sep 16 14:07:16 foo kernel: ACPI: System description table load failed
+Sep 16 14:07:16 foo kernel:  utalloc-0504 [03] Ut_dump_allocations   : 
+Outstanding allocations:
+Sep 16 14:07:16 foo kernel: f7e72d88 Len 0038   utalloc-150 Parse_obj 
+Opcode 0010
+Sep 16 14:07:16 foo kernel: f7e72e08 Len 0038   utalloc-150 Parse_obj 
+Opcode 5B82
+Sep 16 14:07:16 foo kernel: f7eaa308 Len 0038   utalloc-150 Parse_obj 
+Opcode 5B82
+Sep 16 14:07:16 foo kernel: f7eab268 Len 0038   utalloc-150 Parse_obj 
+Opcode 5B82
+Sep 16 14:07:16 foo kernel: f7eb8e48 Len 0009  tbconvrt-520
+Sep 16 14:07:16 foo kernel:  utalloc-0598 [03] Ut_dump_allocations   : 
+Total number of unfreed allocations = 5(5)
+
+This may be similar to what Jean-Rene  Peulve posted earlier this year, 
+but I could not find any replies to his posting
+http://www.geocrawler.com/archives/3/17428/2002/2/0/7953806/ .
+
+Although I configured for debug messages, the output of 
+ACPI_DEBUG_PRINT() does not show up in dmesg. Does anybody know why that 
+is?
+
+Any suggestions what could cause the namespace loading to fail, and how 
+to fix it?
+
+Your help is greatly appreciated!
+
+Thanks,
+
+Bernd
+
+
+
+
+-------------------------------------------------------
+This SF.NET email is sponsored by: AMD - Your access to the experts
+on Hammer Technology! Open Source & Linux Developers, register now
+for the AMD Developer Symposium. Code: EX8664
+http://www.developwithamd.com/developerlab
+_______________________________________________
+Acpi-devel mailing list
+Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
