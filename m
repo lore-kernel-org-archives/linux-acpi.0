@@ -1,62 +1,34 @@
-From: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
-Subject: Re: Is it possible for ACPI to blow up the battery?
-Date: Fri, 28 Jan 2005 09:41:17 -0500
-Message-ID: <41FA4F0D.2050104@bartol.udel.edu>
-References: <41F7FD56.8090309@calt129.com>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: Re: [PATCH] Add CONFIG_X86_APIC_OFF for i386/UP
+Date: Fri, 28 Jan 2005 18:28:36 +0100
+Message-ID: <20050128172836.GQ28047@stusta.de>
+References: <20050128133927.GC6703@wotan.suse.de> <Pine.LNX.4.61.0501281421410.7109@goblin.wat.veritas.com> <20050128143010.GE6703@wotan.suse.de> <Pine.LNX.4.61.0501281506100.7207@goblin.wat.veritas.com> <20050128151839.GI6703@wotan.suse.de> <Pine.LNX.4.61.0501281534420.7304@goblin.wat.veritas.com> <20050128154953.GJ6703@wotan.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41F7FD56.8090309-iP/H7R5l9gZBDgjK7y7TUQ@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?ISO-8859-1?Q?C=FCneyt?= <cu_lists-iP/H7R5l9gZBDgjK7y7TUQ@public.gmane.org>
-Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261502AbVA1R3F@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20050128154953.GJ6703@wotan.suse.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andi Kleen <ak@suse.de>
+Cc: Hugh Dickins <hugh@veritas.com>, akpm@osdl.org, linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-C=FCneyt wrote:
-> Hi all,
->=20
-> It may be really a dumb question, but I've really no idea.
->=20
-> I have a Samsung P10 and found at behnel.de & SF-ACPI page some=20
-> instructions to patch the DSDT table under Suse 9.1pro. I followed thos=
-e=20
-> as close as I can and I guess ACPI works somehow. Well, wakeup after=20
-> sleep and CPU-throttling doesn't work though :(
->=20
-> Now to my dismay the battery stopped charging at all, it is completely=20
-> empty. No matter what I do, it doesn't get charged. The battery is abou=
-t=20
-> 2 yrs old but was pretty OK before, i.e. lasted about 1.5 hrs unplugged=
-.=20
-> Is it possible for DSDT patches to blow up the battery & charging units=
-=20
-> or you think the battery's (physically) died all of a sudden?
+On Fri, Jan 28, 2005 at 04:49:53PM +0100, Andi Kleen wrote:
+>...
+> Also I must add in addition to the CONFIG there are valuable bugfixes
+> in there too.
 
-Can I make a gess that your battery is Lithium Ion? LiIon batteries=20
-typically last for 2 years *after manufacture*, irrespective of how many=20
-times they are charged and/or discharged. See:
+If a patch contains both bugfixes and a new feature it's the common way 
+to send them as different patches.
 
-http://www.batteryuniversity.com/parttwo-34.htm
+> -Andi
 
-It may be that your battery has reached the end of its life, nothing to=20
-do with ACPI.
+cu
+Adrian
 
-cheers,
+-- 
 
-Rich
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: IntelliVIEW -- Interactive Reporting
-Tool for open source databases. Create drag-&-drop reports. Save time
-by over 75%! Publish reports on the web. Export to DOC, XLS, RTF, etc.
-Download a FREE copy at http://www.intelliview.com/go/osdn_nl
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
