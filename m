@@ -1,13 +1,11 @@
-From: Petr Olivka <petr.olivka-jmYXjVuSQ4U@public.gmane.org>
-Subject: Re: D600: S1 and S3 resume
-Date: Tue, 25 Nov 2003 16:18:34 +0100 (CET)
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: [Bug 1593] New: Add _SST support, enabling suspend/resume LEDs (fwd)
+Date: Tue, 25 Nov 2003 09:42:37 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.30.0311251607100.19775-100000@pcd403z.vsb.cz>
-References: <20031125125723.GA5591@tate.loria.fr>
+Message-ID: <20031125094146.F90542@root.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20031125125723.GA5591-xkTd+U360DcAs8EywTwl9A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,35 +14,23 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Emmanuel =?iso-8859-1?Q?Thom=E9?= <Emmanuel.Thome-/zGXu1G9BXs@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Make the LEDs on Thinkpads work.
 
-> A short data: My laptop draws ~16W when running, and this goes down to
-> 0.4W on S3.
->
-hm, I am not measure yet, in S1 I have about 7-8W. S3 with 0.4W, it is
-maybe four days sleeping, it is betr than I expect.
+---------- Forwarded message ----------
+http://bugme.osdl.org/show_bug.cgi?id=1593
 
-> > And last information: when I suspend to S3 in "Dock", after resume is
-> > display ok, even I remove the notebook from dock before wakeup. But CPU is
-> > slow.
->
-> See above.
-yes, but I want to say, that D600 with Dock  resume from S3 without any
-video patch.
+           Summary: Add _SST support, enabling suspend/resume LEDs
+    Kernel Version: 2.6.0
+            Status: NEW
+          Severity: low
 
-
-> Very expectable from canned_answers_daemon-QXIuMnnTXwEAsOHDdpmTTuG/Ez6ZCGd0@public.gmane.org
->
-yes, it is true {:-). But dell promise me, when I will want buy more then
-100 piecies of D600, I can require technical documentation {:-)
-
-poli
-
-
-
+This is a feature request.  The attached patch calls the \_SI._SST method
+with the proper argument on both the suspend and resume path.  This makes
+the LEDs on my Thinkpad report the sleeping state correctly.  Errors are
+ignored since many systems don't have this method.
 
 
 -------------------------------------------------------
