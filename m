@@ -1,15 +1,19 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: No Thermal
-Date: 25 Feb 2004 00:51:26 -0500
+Subject: Re: [RFC] ACPI power-off on P4 HT
+Date: 25 Feb 2004 02:55:01 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1077688285.5912.104.camel@dhcppc4>
-References: <403852B9.3060504@terra.com.br>
-	 <1077518771.12669.58.camel@dhcppc4>  <403C2CA2.4090006@terra.com.br>
+Message-ID: <1077695701.5911.130.camel@dhcppc4>
+References: <1076145024.8687.32.camel@dhcppc4>
+	 <20040208082059.GD29363@alpha.home.local>
+	 <20040208090854.GE29363@alpha.home.local>
+	 <20040214081726.GH29363@alpha.home.local>
+	 <1076824106.25344.78.camel@dhcppc4>
+	 <20040225070019.GA30971@alpha.home.local>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <403C2CA2.4090006-y7mWNqJcIDpfJ/NunPodnw@public.gmane.org>
+In-Reply-To: <20040225070019.GA30971-HkMpAodKYdnXX8ko2wsARw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,107 +22,61 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alf <alfredo.mapelli-y7mWNqJcIDpfJ/NunPodnw@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Willy Tarreau <willy-tRhHnHjXm5DYtjvyW6yDsg@public.gmane.org>
+Cc: Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZQ39yzSjRtAkw@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-See if your BIOS has a SETUP setting to boot an ACPI-enabled OS.  If so,
-enable it.
+Willy,
+I do think we need a generic way to be sure that certain routines are
+run only on cpu0.
 
-after that,you can dump the DSDT with acpidmp and disassemble it with
-iasl -d and poke around in the AML to see what the BIOS thinks it
-supports.
+I don't see it in the ACPI spec, but it seems that on some platforms,
+some register accesses (such as writing to the sleep control reg) are
+reliable only when accessed from cpu0.
 
-see http://acpi.sf.net for pointers
+This issue has been with us for some time:
+http://bugzilla.kernel.org/show_bug.cgi?id=1141
 
-cheers,
+I am hopeful that the prepare-shutdown sequence you suggest below will
+not be necessary.
+
+thanks,
 -Len
 
-On Wed, 2004-02-25 at 00:03, Alf wrote:
-> OK I already check my Kernel and it is everything OK, dmesg only find 3 
-> devices, CPU1, CPU2 and Power Button.
-> I am pretty sure that my MB suports fan and thermal control cause the 
-> Bios Recognize it, I am kind of newby so how the hell do I disasemble 
-> the acpidmp?
+
+On Wed, 2004-02-25 at 02:00, Willy Tarreau wrote:
+> Hi Len & Marcelo,
 > 
-> Len Brown wrote:
+> as I previously said, the patch I sent which fixes the poweroff on my VAIO is
+> not enough to shut down the supermicro P4 HT. So I borrowed some code from
+> machine_restart() to try to :
+>   - disable APIC  => was not enough, but I must retry on the VAIO
+>   - stop the second CPU => was not enough either
+>   - bounce on boot_cpu and stop the others => it did work.
 > 
-> >On Sun, 2004-02-22 at 01:56, Alf wrote:
-> >  
-> >
-> >>Hi,
-> >>I trying to use ACPI for linux in a Asus MotherBoard (P4P800) but I am 
-> >>unable to use thermal and fan the only ACPI that works is Buttons if I 
-> >>cat /proc/acpi/event and press the power button it gives up a message, 
-> >>but under /thermal_zone and /fan there is nothing... The BIOS from this 
-> >>MB says that it is ACPI 2.0 enabled, but as I sayd before I cannot use ACPI.
-> >>Can anyone tell me if it is possibel to use? If /button woks, why 
-> >>/thermal_zone or /fan does not?
-> >>thaks
-> >>
-> >>Alfredo
-> >>
-> >>first check your .config has them enabled, eg.
-> >>    
-> >>
-> >
-> >CONFIG_ACPI=y
-> >CONFIG_ACPI_BOOT=y
-> >CONFIG_ACPI_INTERPRETER=y
-> >CONFIG_ACPI_SLEEP=y
-> >CONFIG_ACPI_SLEEP_PROC_FS=y
-> >CONFIG_ACPI_AC=m
-> >CONFIG_ACPI_BATTERY=m
-> >CONFIG_ACPI_BUTTON=m
-> >CONFIG_ACPI_FAN=m
-> >CONFIG_ACPI_PROCESSOR=m
-> >CONFIG_ACPI_THERMAL=m
-> ># CONFIG_ACPI_ASUS is not set
-> ># CONFIG_ACPI_TOSHIBA is not set
-> ># CONFIG_ACPI_DEBUG is not set
-> >CONFIG_ACPI_BUS=y
-> >CONFIG_ACPI_EC=y
-> >CONFIG_ACPI_POWER=y
-> >CONFIG_ACPI_PCI=y
-> >CONFIG_ACPI_SYSTEM=y
-> >
-> >Then see what dmesg says -- ACPI will tell you what it finds.
-> >If you think it doesn't find something it should, dump the DSDT with
-> >acpidmp, disassemble it, and look for "Device" and see what's in there.
-> >
-> >Some MB's have ACPI fan control, other's don't.
-> >
-> >cheers,
-> >-Len
-> >
-> >
-> >
-> >
-> >-------------------------------------------------------
-> >SF.Net is sponsored by: Speed Start Your Linux Apps Now.
-> >Build and deploy apps & Web services for Linux with
-> >a free DVD software kit from IBM. Click Now!
-> >http://ads.osdn.com/?ad_id=1356&alloc_id=3438&op=click
-> >_______________________________________________
-> >Acpi-devel mailing list
-> >Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> >https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> >
-> >
-> >  
-> >
+> So I think that ACPI is not SMP-proof nor HT-proof on some hardware. My new
+> problem is that I feel like the code I have included in acpi_power_off() to
+> do this is a bit too much x86 specific, so I'd like to move this to
+> arch/i386/kernel/process.c with all the rest, but I don't know how to cut
+> this. I think that a general function such as machine_prepare_shutdown() or
+> something like this would be useful and could be shared by both ACPI and
+> machine_restart(). It would basically to everything that is needed in such
+> a case :
+>   - on SMP, bounce on boot_cpu, then halt the current CPU if != boot_cpu
+>   - on SMP, stop all other CPUs
+>   - on UP, disable IOAPIC
+>   - disable local APIC
 > 
+> I suspect that this function would be useful for some suspend cases, but I'm
+> not sure. My other problem is to know what we should do then with other
+> arches. Create an identical function for everyone, or just call it from
+> ACPI on CONFIG_X86, or even add a CONFIG_MACHINE_PREPARE_SHUTDOWN ?
 > 
+> I need some feedback here. Any suggestions ?
 > 
-> -------------------------------------------------------
-> SF.Net is sponsored by: Speed Start Your Linux Apps Now.
-> Build and deploy apps & Web services for Linux with
-> a free DVD software kit from IBM. Click Now!
-> http://ads.osdn.com/?ad_id=1356&alloc_id=3438&op=click
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+> Regards,
+> Willy
+> 
 
 
 
