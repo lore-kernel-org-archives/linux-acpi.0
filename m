@@ -1,70 +1,46 @@
-From: Diego SANTA CRUZ <Diego.SantaCruz-p8DiymsW2f8@public.gmane.org>
-Subject: RE: ACPI + Laptop Power Management
-Date: Fri, 28 Nov 2003 10:32:57 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1070011976.2409.8.camel@ltspc67.epfl.ch>
-References: <C386328088ED7F4E9F81AFBABDDF60DA0338640F@wdmyexch02.my.asia.wdc.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: If your ACPI-enabled machine does clean shutdown randomly...
+Date: Fri, 28 Nov 2003 15:52:49 +0100
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <20031128145249.GA563@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <C386328088ED7F4E9F81AFBABDDF60DA0338640F-Yw6hFe9C1vnHQcBQSaPqJq0fmWJ9l57d0E9HWUfgJXw@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+Content-Disposition: inline
+To: ACPI mailing list <acpi-devel@lists.sourceforge.net>, kernel list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2003-11-28 at 04:21, Ow Mun Heng wrote:
 
-> The thing here is, even though it's flushing the buffers when there are
-> others to flush, it makes not difference if the drive is still spinning and
-> not in standby-mode! I can't figure out what is making the HD _not_ spin
-> down.
-> 
+...then you probably need this one. (One notebook I have here
+certainly needs it).
 
-Just a thing to check: syslogd will (by default) sync the log file after
-each write. If you have a daemon that write syslog messages often then
-syslogd will keep your HD active all the time, despite any laptop-mode.
+It seems that acpi likes to report completely bogus value from time to
+time...
 
-Two, possibly complementary, solutions
+								Pavel
 
-1) Find the offending daemon(s) and modify their settings or disable
-them if not necessary.
+--- clean/drivers/acpi/thermal.c	2003-07-27 22:31:09.000000000 +0200
++++ linux/drivers/acpi/thermal.c	2003-11-25 22:27:11.000000000 +0100
+@@ -456,6 +459,10 @@
+ 	if (!tz || !tz->trips.critical.flags.valid)
+ 		return_VALUE(-EINVAL);
+ 
++	if (KELVIN_TO_CELSIUS(tz->temperature) >= 200) {
++		printk(KERN_ALERT "Are you running CPU or nuclear power plant? ACPI claims CPU temp is %d C. Ignoring.\n", KELVIN_TO_CELSIUS(tz->temperature));
++		return_VALUE(0);
++	}
+ 	if (tz->temperature >= tz->trips.critical.temperature) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_WARN, "Critical trip point\n"));
+ 		tz->trips.critical.flags.enabled = 1;
+@@ -467,6 +474,7 @@
+ 	if (result)
+ 		return_VALUE(result);
+ 
++	printk(KERN_EMERG "Critical temperature reached (%d C), shutting down.\n", tz->temperature);
+ 	acpi_bus_generate_event(device, ACPI_THERMAL_NOTIFY_CRITICAL, tz->trips.critical.flags.enabled);
+ 
+ 	acpi_thermal_call_usermode(ACPI_THERMAL_PATH_POWEROFF);
 
-2) Prepend the log file name with a - on the /etc/syslog.conf file. This
-prevents the sync on every write default.
-
-If this does not solve your problem you can check (in dmesg) what is
-writing to disk by doing
-
-echo -n 1 > /proc/sys/vm/block_dump
-
-But BE CAREFUL!. You have to disable klogd before doing this or you will
-likely end up in an infinite loop.
-
-Hope this helps.
 -- 
--------------------------------------------------------
-Diego Santa Cruz - PhD
-Publications available at http://ltswww.epfl.ch/~dsanta
-Signal Processing Institute (LTS1 / ITS / STI)
-Swiss Federal Institute of Technology (EPFL)
-EPFL - STI - ITS, CH-1015 Lausanne, Switzerland
-E-mail:     Diego.SantaCruz-p8DiymsW2f8@public.gmane.org
-Phone:      +41 - 21 - 693 26 57
-Fax:        +41 - 21 - 693 76 00
--------------------------------------------------------
-
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: SF.net Giveback Program.
-Does SourceForge.net help you be more productive?  Does it
-help you create better code?  SHARE THE LOVE, and help us help
-YOU!  Click Here: http://sourceforge.net/donate/
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
