@@ -1,14 +1,12 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: About the S3 support for 2.4 kernel?
-Date: Tue, 20 May 2003 16:13:22 +0200
+From: Mark Santcroos <marks-h3GR0owD+wQ@public.gmane.org>
+Subject: localX var's
+Date: Tue, 20 May 2003 16:50:28 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030520141322.GS346@poupinou.org>
-References: <20030520014753.98996.qmail@web16714.mail.tpe.yahoo.com>
+Message-ID: <20030520145028.GF665@laptop.6bone.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20030520014753.98996.qmail-9+pxKbc3FJrUUcmo17G/2VBBA4GzCnFGQQ4Iyu8u01E@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,26 +15,23 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Kevin Yang <yangyuyutw-/E1597aS9LSnedCIQ9mT8A@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, May 20, 2003 at 09:47:53AM +0800, Kevin Yang wrote:
-> Dear all,
->  
-> I've tried the acpi-20030512-2.4.21-rc2.diff.gz patch. And I know there 
-> is no S3 as before like some discussions in previous lists for 2.4 
-> kernels. Is there any chance we could have S3 support in the future patch release for 2.4 kernels? Is there any on-going plan for S3 on 2.4? 
-> Thanks in advance for any reply for this.
+What's the diff between a "normal" variable and a LocalX variable?
 
-No plan.  All S3 related stuff require changes in all drivers
-in general therefore all this stuff go to dev kernels.
+I can see that they can't be referenced until they are initialized, so
+there is at least one difference. :-)
+
+Are they maybe "static" in their scope? (As in the C meaning of static)
+
+Thanks
+
+Mark
 
 -- 
-Ducrot Bruno
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+Mark Santcroos                    RIPE Network Coordination Centre
+http://www.ripe.net/home/mark/    New Projects Group/TTM
 
 
 -------------------------------------------------------
