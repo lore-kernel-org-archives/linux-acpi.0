@@ -1,13 +1,13 @@
-From: Proinnsias Breathnach <proinnsias-cv59FeDIM0c@public.gmane.org>
+From: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
 Subject: Re: D600 + S3 Sleep
-Date: Fri, 18 Mar 2005 10:54:25 +0000
-Message-ID: <20050318105425.GJ14600@project-bob.org>
+Date: Fri, 18 Mar 2005 19:13:08 +0800
+Message-ID: <1111144388.23668.46.camel@neuromancer.home.net>
 References: <1111137292.23665.5.camel@neuromancer.home.net>
+	 <20050318105425.GJ14600@project-bob.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4eRLI4hEmsdu6Npr"
-Content-Disposition: inline
-In-Reply-To: <1111137292.23665.5.camel-/ZsuMndpQpsb5wn6fCfWY+TW4wlIGRCZ@public.gmane.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <20050318105425.GJ14600-PWUXgD0Mw7gU45xQlXEPcg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,43 +20,44 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Acpi-List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Fri, 2005-03-18 at 10:54 +0000, Proinnsias Breathnach wrote:
+> On Fri, Mar 18, 2005 at 05:14:52PM +0800, Ow Mun Heng wrote:
+> > Hi All,
+> > 
+> > 	Anyone here managed to get S3 to work on the D600?
+> > 
+> > I'm on 2.6.11 kernel and still the same Black Screen after resume
+> > persists.
+> > 
+> > I've tried Software Suspend 2 and By golly, it's much faster then SW1.
+> > 
+> Yes, it's quite simple and reliable, you need to append vga=normal to
+> your command-line as neither vesafb nor radeonfb play nice. 
+> 
+> After that - my mileage has been good (4 or 5 day suspends, and 8 or 9
+> day uptimes so far), yours may vary though
 
---4eRLI4hEmsdu6Npr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+vga=normal??
 
-On Fri, Mar 18, 2005 at 05:14:52PM +0800, Ow Mun Heng wrote:
-> Hi All,
->=20
-> 	Anyone here managed to get S3 to work on the D600?
->=20
-> I'm on 2.6.11 kernel and still the same Black Screen after resume
-> persists.
->=20
-> I've tried Software Suspend 2 and By golly, it's much faster then SW1.
->=20
-Yes, it's quite simple and reliable, you need to append vga=3Dnormal to
-your command-line as neither vesafb nor radeonfb play nice.=20
+So that means no High-Res Console??
 
-After that - my mileage has been good (4 or 5 day suspends, and 8 or 9
-day uptimes so far), yours may vary though
+Right now, I'm using
 
-P
+root=/dev/hda3 video=vesafb:ywrap,mtrr,1280x1024-24@60
+splash=verbose,theme:emergence resume2=swap:/dev/hda5
 
---4eRLI4hEmsdu6Npr
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+So.. I need to remove all of those and only left with this??
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
+root=/dev/hda3 vga=normal resume2=swap:/dev/hda5 ??
 
-iD8DBQFCOrNhPXJFksKe94cRArkLAKCo5M5ITxG2+IyUtnzeWXUjuhebugCfWhiN
-pXHngaTlS+W9Ck0MEQ1jSew=
-=Nbry
------END PGP SIGNATURE-----
 
---4eRLI4hEmsdu6Npr--
+-- 
+Ow Mun Heng
+Gentoo/Linux on DELL D600 1.4Ghz 
+98% Microsoft(tm) Free!! 
+Neuromancer 19:10:31 up 3:26, 6 users, load average: 0.30, 0.57, 0.58 
+
+
 
 
 -------------------------------------------------------
