@@ -1,60 +1,50 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Linux ACPI processor driver patch: user-definable power state
- limit
-Date: 05 Nov 2004 20:01:23 -0500
-Message-ID: <1099702882.15333.1824.camel@d845pe>
-References: <F7DC2337C7631D4386A2DF6E8FB22B3001A193B6@hdsmsx401.amr.corp.intel.com>
-	 <200410112335.19159.jos.delbar@ugent.be>
-	 <1099683907.13837.1353.camel@d845pe>
-	 <200411060021.49794.jos.delbar@ugent.be>
+From: Len Brown <len.brown@intel.com>
+Subject: Re: [2.6 patch] drivers/acpi: remove unused exported functions
+Date: 05 Nov 2004 21:10:08 -0500
+Message-ID: <1099707007.13834.1969.camel@d845pe>
+References: <20041105215021.GF1295@stusta.de>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200411060021.49794.jos.delbar-Cru1EgDzd7c@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jos Delbar <jos.delbar-Cru1EgDzd7c@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, James P Ketrenos <james.p.ketrenos-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261295AbUKFCLY@vger.kernel.org>
+In-Reply-To: <20041105215021.GF1295@stusta.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Adrian Bunk <bunk@stusta.de>
+Cc: ACPI Developers <acpi-devel@lists.sourceforge.net>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2004-11-05 at 18:21, Jos Delbar wrote:
-
+On Fri, 2004-11-05 at 16:50, Adrian Bunk wrote:
+> The patch below completely removes 7 functions that were
+> EXPORT_SYMBOL'ed but had exactly zero users in the kernel and makes
+> another one that was previously EXPORT_SYMBOL'ed static.
 > 
-> Also, if you have both a blacklist and an option to change the limit
-> at runtime, there has to be some logic to prevent a module from
-> lifting a limit imposed by the blacklist.
+> It also removes another unused global function to completely remove
+> drivers/acpi/hardware/hwtimer.c which contained no function used
+> anywhere in the kernel.
+> 
+> Please comment on whether this patch is correct or whether in-kernel
+> users of these functions are pending.
+> 
+> 
+> diffstat output:
+>  drivers/acpi/acpi_ksyms.c        |    8 -
+>  drivers/acpi/events/evxfevnt.c   |  191 -----------------------------
+>  drivers/acpi/hardware/Makefile   |    2
+>  drivers/acpi/hardware/hwtimer.c  |  200
+> -------------------------------
+>  drivers/acpi/resources/rsxface.c |   52 --------
+>  drivers/acpi/scan.c              |    6
+>  drivers/acpi/utilities/utxface.c |   89 -------------
+>  include/acpi/achware.h           |   17 --
+>  include/acpi/acpi_bus.h          |    1
+>  include/acpi/acpixf.h            |   24 ---
+>  10 files changed, 6 insertions(+), 584 deletions(-)
 
-the logic could be in the user of the API to simply check
-the limit first and be sure that it only lowers and doesn't raise it.
-yeah, no guarantees here, but for the users at hand, maybe sufficient.
+No, I can't apply this one as-is.
+Some of these routines are not called now
+simply because Linux/ACPI is evolving and we don't
+yet take advantage of some of the things supported
+by ACPICA core we use.
 
-i'll think about this when i merge on top of andy's patch.  maybe keep
-the blacklist limit as a hard limit.  But frankly I'm not sure it is
-worth a single byte more of code b/c it is the beginning of the
-over-designed workaround slippery slope;-)
-
-> Your patch just came in while I was writing this, I'll be sure to try
-> it later today. I'm not sure if the idle handler should be concerned
-> with handling the limit though, but it does make the code simpler.
-
-since we had to handle a limit change on the fly i did it that way, and
-then i realized that maybe on-the-fly checking is sufficient.
-
+thanks,
 -Len
-
-
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by:
-Sybase ASE Linux Express Edition - download now for FREE
-LinuxWorld Reader's Choice Award Winner for best database on Linux.
-http://ads.osdn.com/?ad_id=5588&alloc_id=12065&op=click
