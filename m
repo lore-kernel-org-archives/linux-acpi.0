@@ -1,14 +1,16 @@
-From: Tundra Slosek <tundras-SmH/eyArkOtWk0Htik3J/w@public.gmane.org>
-Subject: Re: CALL FOR TESTING
-Date: Mon, 23 Sep 2002 14:58:01 -0400
+From: Maciek Gorniak <mago-StWSBrfNG1XVItvQsEIGlw@public.gmane.org>
+Subject: Re: Testing: NVidia closed driver fails.
+Date: 23 Sep 2002 21:02:32 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020923185801.GA548@nnenews.com>
+Message-ID: <1032807753.499.3.camel@vabanque>
 References: <EDC461A30AC4D511ADE10002A5072CAD0236DE80@orsmsx119.jf.intel.com>
+	<200209192208.40254.jbr.1@gmx.net> <200209192215.g8JMEv306270@pfn1.pefnos>
+	<200209221321.g8MDLb009922@pfn1.pefnos>  <20020922005310.B35@toy.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD0236DE80-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
+In-Reply-To: <20020922005310.B35-muQmgwBScQHrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,23 +19,26 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: "P. Christeas" <p_christ-U04EIuiosng@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Quoting Grover, Andrew <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>:
-> The main issues of importance are:
+On nie, 2002-09-22 at 02:53, Pavel Machek wrote:
+> Hi!
+> > One more point is that the 'stable' configuration cannot sleep. Is that 
+> > normal, since the "pci=notacpi" is set? When I
+> > 'echo [1|4] > /proc/acpi/sleep'
+> > the speaker beeps, nothing gets logged and nothing happens.
 > 
-> - DOES IT BOOT?
+> can we remove /proc/acpi/sleep so users don't waste time trying to make 
+> s3/s4 work in 2.4.x?
 
-Yes. Sony GRX570.
+S1 works fine and uses /proc/acpi/sleep. Removing it would be a step
+backward...
 
-> - DOES IT ASSIGN INTERRUPTS PROPERLY?
+-- 
+Maciek
 
-It seems to, however the built-in PS/2 touchpad (i.e. mouse) is the only one
-that works.. external (USB) Logitech mouse shows up in the
-/proc/bus/usb/devices but does not get to X. This is functional in 2.4.18
-w/ ACPI 20020611. I do have Ted Serryn's memstick patch & the usbdnet patch
-applied as well as ACPI 09/18. 
 
 
 
