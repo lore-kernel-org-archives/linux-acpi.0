@@ -1,13 +1,8 @@
-From: Andrea Borgia <borgia-iEixELS/QsY1GQ1Ptb7lUw@public.gmane.org>
-Subject: Re: Re: suspend-to-disk: fan always on and misc kernel errors
-Date: Sun, 03 Apr 2005 13:05:00 +0200
-Message-ID: <424FCDDC.2090905@cs.unibo.it>
-References: <4246F06D.40005@cs.unibo.it> <20050328205027.GB28568@message-id.gmane0305.slipkontur.de> <4249A359.9060301@cs.unibo.it> <20050401221940.GC1868@message-id.gmane0305.slipkontur.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: IPSI-2005 Conferences <pescara2005-pVNfCVwX+wit+FuMyjyY7A@public.gmane.org>
+Subject: Invitation to Italy, Holland, and Montenegro 2005; c/bb
+Date: Mon, 4 Apr 2005 00:32:09 +0200
+Message-ID: <200504032232.j33MW9UE027049@vreme.yubc.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050401221940.GC1868-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,31 +15,64 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Stefan Seyfried wrote:
+Dear potential Speaker:
+
+On behalf of the organizing committee, I would like to extend a cordial invitation for you to attend one of the upcoming IPSI BgD multidisciplinary, interdisciplinary, and transdisciplinary conferences.
+
+The first one will take place in Loreto Aprutino, Italy:
+
+IPSI-2005 ITALY
+Hotel Castello Chiola (arrival: 27 July 05 / departure: 1 August 05)
+New deadlines: 10 April 05 (abstract) / 10 May 05 (full paper)
+
+The second one will take place in Amsterdam, Holland:
+
+IPSI-2005 HOLLAND
+Hotel Okura (arrival: 1 September 05 / departure: 4 September 05)
+deadlines: 15 April 05 (abstract) / 1 June 05 (full paper)
+
+The third one will take place in Sveti Stefan, Montenegro:
+
+IPSI-2005 MONTENEGRO
+Hotel Sveti Stefan (arrival: 1 October 05 / departure: 8 October 05)
+Deadlines: 1 May 05 (abstract) / 1 July 05 (full paper)
+
+All IPSI BgD conferences are non-profit. They bring together the elite of the world science; so far, we have had seven Nobel Laureates speaking at the opening ceremonies. The conferences always take place in some of the most attractive places of the world. All those who come to IPSI conferences once, always love to come back (because of the unique professional quality and the extremely creative atmosphere); lists of past participants are on the web, as well as details of future conferences.
+
+These conferences are in line with the newest recommendations of the US National Science Foundation and of the EU research sponsoring agencies, to stress multidisciplinary, interdisciplinary, and transdisciplinary research (M+I+T++ research). The speakers and activities at the conferences truly support this type of scientific interaction.
+
+One of the main topics of this conference is "E-education and E-business with Special Emphasis on Semantic Web and Web Datamining"
+
+Other topics of interest include, but are not limited to:
+
+* Internet
+* Computer Science and Engineering
+* Mobile Communications/Computing for Science and Business
+* Management and Business Administration
+* Education
+* e-Medicine
+* e-Oriented Bio Engineering/Science and Molecular Engineering/Science
+* Environmental Protection
+* e-Economy
+* e-Law
+* Technology Based Art and Art to Inspire Technology Developments
+* Internet Psychology
+
+If you would like more information on either conference, please reply to this e-mail message.
+
+If you plan to submit an abstract and paper, please let us know immediately for planning purposes. Note that you can submit your paper also to the IPSI Transactions journal.
+
+Sincerely Yours,
+
+Prof. V. Milutinovic, Chairman,
+IPSI BgD Conferences
 
 
-> | Mar 27 18:49:57 localhost kernel: note: swsusp-script[3902] exited with preempt_count 1
-> disable preempt.
+* * * CONTROLLING OUR E-MAILS TO YOU * * *
 
-Thanks, that did it: now it suspends/resumes with no errors reported and 
-the script runs to completion (including restarting powernowd and 
-stopping the fan soon afterwards).
+If you would like to continue to be informed about future IPSI BgD conferences, please reply to this e-mail message with a subject line of SUBSCRIBE.
 
-
-> known, s4bios is not working for a long time now, we should remove it.
-> "echo 4 > /proc/acpi/sleep" is supposed to do the same thing as "echo disk >
-> /sys/power/state" on an acpi system.
-
-Does it make any difference which interface is used (/sys/power vs 
-/proc/acpi) ?
-
-
-Thanks again,
-Andrea.
-
--- 
-Homepage: http://andrea.borgia.bo.it     /    Amateur radio: IZ4FHT
-
+If you would like to be removed from our mailing list, please reply to this e-mail message with a subject line of REMOVE.
 
 
 -------------------------------------------------------
