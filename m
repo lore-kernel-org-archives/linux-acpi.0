@@ -1,12 +1,13 @@
-From: "Taylor I. Ingram" <tayloringram_og-eksBw723TtGELgA04lAiVw@public.gmane.org>
-Subject: Order Rolex or other Swiss watches online
-Date: Fri, 10 Dec 2004 07:28:25 -0500
-Message-ID: <89f701c4deb3$acbc044c$5e3121f7@hbtv.co.nz>
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: network card buzzing
+Date: Fri, 10 Dec 2004 20:46:42 +0100
+Message-ID: <20041210194641.GA26799@hell.org.pl>
+References: <41B86243.7090507@mega.ist.utl.pt> <20041209171138.GA3105@openzaurus.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20041209171138.GA3105-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,33 +17,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Heya,
+Thus wrote Pavel Machek:
+> > is this a problem? hardware issue? software issue? acpi? plain bad 
+> > luck? what is happening here?
+> Sining capacitors? See archives. idle=poll should fix it (evil grin).
 
-Do you want a rolex watch?
+Now you couldn't have possibly meant 'sinning'? (even more evil grin)
 
-In our online store you can buy replicas of Rolex watches. They look
-and feel exactly like the real thing.
-
-- We have 20+ different brands in our selection
-- Free shipping if you order 5 or more
-- Save up to 40% compared to the cost of other replicas
-- Standard Features:
- - Screw-in crown
- - Unidirectional turning bezel where appropriate
- - All the appropriate rolex logos, on crown and dial
- - Heavy weight
-
-Visit us: http://www.bhex.com/rep/rolex/
-
-Best regards,
-Hilton Jones
-
-
-No thanks: http://www.bhex.com/z.php
-
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
