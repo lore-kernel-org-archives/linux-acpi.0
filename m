@@ -1,14 +1,14 @@
-From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Subject: Re: ASUS M6800N: problem when removing 'ac' module
-Date: Tue, 23 Mar 2004 22:44:42 +0100
+From: Philipp <philipp.buechel-EOsNSARiLbg@public.gmane.org>
+Subject: Standby and immediate Wakeup (2.6.3)
+Date: Tue, 23 Mar 2004 23:01:21 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4060AFCA.9030700@pca.it>
-References: <405C26C2.70603@pca.it>
+Message-ID: <200403232301.21487.philipp.buechel@gmx.li>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <405C26C2.70603-wlebWZzHoyE@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,34 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi there
 
-Hello,
+If I send my Compaq Presario 700 (Mandrake10 2.6.3-4mdk) to sleep with "echo 
+-n standby > /sys/power/state" the screen just flickers shortly and the 
+system wakes up again immediately. dmesg logs the following:
 
-on 03/20/04 12:10, Luca Capello wrote:
-> I'm on '2.6.5-rc1 + ACPI DSDT in initrd + eciadsl USB patch' [...]
-some more infos:
+PM: Preparing system for suspend
+Stopping tasks: ==========================|
+Restarting tasks... done
 
-- - I don't have oops on kernel 2.6.4 + ACPI 20040311
+Is this a known problem or does that happen, however, just on my Laptop? Thank 
+you for any suggestions.
 
-- - I've oops on 2.6.5-rc1 (no ACPI patches) and 2.6.5-rc2 (no ACPI patches)
+Regards
+Philipp
 
-Maybe it should help...
-
-Thx, bye,
-Gismo / Luca
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
-
-iD8DBQFAYK/JVAp7Xm10JmkRAmOlAJ4pSnIDwtFfpipFSVCM2HdaWdh1iwCfS+G+
-OQ8Z0rr34HjUPRqCt0INtn0=
-=twyE
------END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
