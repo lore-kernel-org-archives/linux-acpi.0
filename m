@@ -1,35 +1,39 @@
-From: Pavel Machek <pavel@suse.cz>
+From: Brice Goglin <Brice.Goglin-vYW+cPY1g1pg9hUCZPvPmw@public.gmane.org>
 Subject: Re: s4bios: does anyone use it?
-Date: Sat, 5 Mar 2005 22:32:36 +0100
-Message-ID: <20050305213236.GH1424@elf.ucw.cz>
-References: <20050305191405.GA1463@elf.ucw.cz> <422A1FB6.3000504@ens-lyon.org> <20050305211747.GF1424@elf.ucw.cz> <422A23FB.2010707@ens-lyon.org>
+Date: Sat, 05 Mar 2005 22:45:01 +0100
+Message-ID: <422A285D.1060206@ens-lyon.org>
+References: <20050305191405.GA1463@elf.ucw.cz> <422A1FB6.3000504@ens-lyon.org> <20050305211747.GF1424@elf.ucw.cz> <422A23FB.2010707@ens-lyon.org> <20050305213236.GH1424@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <422A23FB.2010707@ens-lyon.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Brice Goglin <Brice.Goglin@ens-lyon.org>
-Cc: kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <acpi-devel@lists.sourceforge.net>, seife@suse.de, Len Brown <len.brown@intel.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <20050305213236.GH1424-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, seife-l3A5Bk7waGM@public.gmane.org, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-
-> >Can you try cat /proc/acpi/sleep? If there's no difference between S4
-> >and S4bios, than you are probably just using plain S4...
+> Hmm, your system says it supports s4bios. But if you can see 
 > 
-> puligny:~% cat /proc/acpi/sleep
-> S0 S1 S3 S4 S4bios S5
+> Writing data to swap (XXX pages)... XXX %
 > 
-> Where am I suppose to see a difference between S4 and S4Bios here ?
+> then you are definitely using swsusp. Strange.
 
-Hmm, your system says it supports s4bios. But if you can see 
+That's what I see.
 
-Writing data to swap (XXX pages)... XXX %
+Thanks,
+Brice
 
-then you are definitely using swsusp. Strange.
 
-								Pavel
-
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
