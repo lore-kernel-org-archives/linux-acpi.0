@@ -1,12 +1,12 @@
 From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: ACPI thermal event causes brief freeze
-Date: Fri, 25 Feb 2005 11:34:25 +0100
-Message-ID: <421EFF31.9060002@suse.de>
-References: <421E6D6C.2090906@colitti.com>
+Subject: Re: strange buzzing sound after the 2.6.10 patch
+Date: Fri, 25 Feb 2005 11:47:58 +0100
+Message-ID: <421F025E.7000706@suse.de>
+References: <f11de95f050223183134a74bda@mail.gmail.com> <1109280107.12887.30.camel@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <421E6D6C.2090906-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1109280107.12887.30.camel@localhost>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,31 +16,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Lorenzo Colitti <lorenzo-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Jeremy Moles <jeremy-9vekgGPT+OA7YuNMryXyOw@public.gmane.org>
+Cc: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Lorenzo Colitti wrote:
-> Hi,
+Jeremy Moles wrote:
+> Try this:
 > 
-> since I upgraded to kernel 2.6.11-rc4, every time there is a thermal 
-> event my machine (HP/compaq NC6000) freezes for about 1 second. Audio 
-> stutters and pretty much everything, including the mouse pointer, stops 
-> dead for a bit.
-
-Have you enabled ACPI_DEBUG?
-If yes, try again without.
-
+> edit /usr/src/linux/include/asm/param.h and change HZ to 100 (instead of
+> 1000). Other folks here can perhaps comment on the side-effects, though
+> I've noticed few I couldn't handle. Perhaps a divide by 0 warning with
+> some programs that "guess" at the HZ, but other than that...
 > 
-> This did not happen with a similarly configured vanilla 2.6.9 kernel.
-
-ACPI_DEBUG is incredibly slow since 2.6.11-rc2-bk10.
+> You'll find it only happens when the processor ACPI module is loaded. Go
+> figure.
 > 
-> It's pretty irritating. Is there anything I can do to debug this?
+> On Wed, 2005-02-23 at 21:31 -0500, Jing Su wrote:
+> 
+>>Hello,
+>>
+>>I vaguely remember someone else mentioning this problem on the list
+>>before, but I don't recall if there were any answers to the solution.
+>>
+>>I'm running a vanilla 2.6.10 kernel patched with the acpi-2005-01-25 patch.  
+>>
+>>When running the patched kernel, I noticed that my laptop makes a very
+>>strange and faint buzzing sound.  I've determined that the buzzing
+>>sound is somewhat related to CPU and HD load.  When the CPU load is
+>>heavy, or when the HD is busy, the buzzing stops.  But when the system
+>>idles, the buzzing continues.  I've also tried forcing the HD to go
+>>into suspension using hdparm, but the buzzing continues.
+>>
+>>Any hints or clues?
+>>If this problem hasn't been encountered before, I'd appreciate it if
+>>someone could give hints for how I can best go about isolating the
+>>problem.
 
-You probably solve this by not debugging :)
+I heard it is because of switching C-states 1000 times a second.
+Loading the processor module with max_cstates=1 or 2 should work.
 
-       Thomas
+
+      Thomas
 
 
 -------------------------------------------------------
