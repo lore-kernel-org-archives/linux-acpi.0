@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: RE: generic hotkey driver
-Date: Tue, 7 Sep 2004 15:54:09 +0800
+Date: Tue, 7 Sep 2004 16:14:17 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F84056B5783@pdsmsx403>
+Message-ID: <3ACA40606221794F80A5670F0AF15F84056B57EE@pdsmsx403>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,36 +17,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: John Belmonte <john-wanGne27zNesTnJN9+BGXg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Hiroshi Miura <miura-yiisDzvROlQdnm+yROfE0A@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
->Yu, Luming wrote:
->>  a. Configure interface:
->> 	1. register mapping of event number to internal hotkey number.
->> 	2. register expected acpi_handle which is needed to install
->> notify handler, which will generate event for acpid.
->> 	3. register the AML methods that should be executed , with
->> respect to  the hotkey get pressed.
 >
->As far as I know, there is no hotkey event available in=20
->Toshiba's case.=20
->  The only way to monitor the keys is by polling.
+>I think hotkey drivers are  so differ that it is enough to decide
+>event format. ie) 'ibm KEY 00001 00001' or 'hotkey/pcc HKEY=20
+>000003 000001'
+>
 
-Hmm. It's not efficient way for hotkey.
-I'm curious what's the polling frequency.
+We don't need to care about the format of event. Since it is
+configurable,
+we just need to understand the internal meaning. So maybe we
+need to define the internal event number, which stands for a
+special purpose. such as:
 
-I guess I can slightly modify the configure interface to
-add a polling register interface.  To keep other parts of
-interfaces unchanged, just need to generate corresponding
-pseudo event for each active event found by polling.
+	001	turn off display
+	002	inc brightness
+	003	dec brightness
+	004	s3
+	......
 
-Does it make sense?
+>Lcd brightness control is defined in ACPI spec apendix.
+>I'm starting implement that.
+>
+
+Be careful, there has a video extension driver=20
+filed at http://bugzilla.kernel.org/show_bug.cgi?id=3D1944
+
+>I want to make generic lcd driver that is configurable for=20
+>each extra drivers.
+>
+>Bluetooth, dock, and other device settings are not common.
+>So these may be implement in each extra drivers. eg)=20
+>ibm_acpi.c has these functions.
+>
+
+But , it is still meaningful to standardize the event format.
 
 Thanks,
 Luming
-
-
 
 
 -------------------------------------------------------
