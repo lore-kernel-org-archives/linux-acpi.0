@@ -1,14 +1,14 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Link error: function "cmpxchg" is not defined
-Date: 24 Mar 2004 00:54:20 -0500
+From: Justin Karneges <justin-psi-A4HSxAr4s6pBDgjK7y7TUQ@public.gmane.org>
+Subject: pcmcia irq trouble
+Date: Tue, 23 Mar 2004 22:35:46 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1080107660.18508.15.camel@dhcppc4>
-References: <87ptb3bx0h.fsf@localhost.i-did-not-set--mail-host-address--so-tickle-me>
+Message-ID: <200403232235.46589.justin-psi@affinix.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <87ptb3bx0h.fsf-bi+AKbBUZKa9iW1SM0nyN4RarTOWFVVqTdcDvyEvLSPbOj2S/riVXGfe97SVfj0f6XfCTY0wUs4@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,66 +17,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Free Ekanayaka <free-Jko+Qxvg0ikdnm+yROfE0A@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-IIRC this was an obscure dependency on CONFIG_SMP, but I thought we
-fixed this some time back.
+Thank you, Matthew and Len, for answering my general questions about 
+acpi-devel.
 
-I'm surprised you're seeing this, I build 32 different 2.4.24 kernels
-with the current patch.
+Now, I've discovered a problem, and this may or may not be related to ACPI, 
+but I think it is.  If not, I'll be happy to redirect this message to the 
+appropriate target.
 
-If after a make clean and a download of the latest patch (sorry, same
-name;-) you still see the error, then please email me your .config.
+I'm using the Sony VAIO PCG-VX88 laptop.  Without ACPI, almost none of the 
+major peripherals function except for the external PCMCIA slot.  The VX88 has 
+an embedded wi-fi which is detected as a secondary PCMCIA slot, but again, 
+without ACPI this does not work.  If I recall correctly, the driver would 
+report: "RequestIRQ: Resource in use".  I contacted the author of the 
+(orinoco) driver, and he claimed this was outside the scope of the driver.  
+Indeed, looking at the code it appears that the pcmcia subsystem deals with 
+dishing out IRQs, not the actual card drivers.
 
-thanks,
--Len
+With kernel 2.4.26-pre5 + today's ACPI patch, everything seems to work, 
+including the internal wi-fi, _except_ for the external PCMCIA.  Inserting my 
+bluetooth card yields the message: "RequestIRQ: Resource in use".  It's 
+almost as if the pcmcia slots switched roles. :)
 
+The VX88 uses yenta socket, and I noticed that your latest ChangeLog mentions 
+a fix regarding multiple cards and irqs on a yenta socket, but this does not 
+appear to be the same problem (or the fix was incomplete).
 
-On Tue, 2004-03-23 at 06:53, Free Ekanayaka wrote:
-> Hi,
-> 
-> I'm trying to complile 2.4.24 patched against acpi-20040311-2.4.24.diff.gz.
-> 
-> When it comes to link I get:
-> 
-> +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-> ld -m elf_i386 -T /build/cvs-autoreleasedeb/kernel-image-2.4.24-i386-multimedia-2.4.24/build-386/arch/i386/vmlinux.lds -e stext arch/i386/kernel/head.o arch/i386/kernel/init_task.o init/main.o init/version.o init/do_mounts.o \
-> 	--start-group \
-> 	arch/i386/kernel/kernel.o arch/i386/mm/mm.o kernel/kernel.o mm/mm.o fs/fs.o ipc/ipc.o \
-> 	 drivers/acpi/acpi.o drivers/char/char.o drivers/block/block.o drivers/misc/misc.o drivers/net/net.o drivers/char/agp/agp.o drivers/char/drm/drm.o drivers/ide/idedriver.o drivers/scsi/scsidrv.o drivers/cdrom/driver.o drivers/pci/driver.o drivers/pcmcia/pcmcia.o drivers/net/pcmcia/pcmcia_net.o drivers/pnp/pnp.o drivers/video/video.o drivers/usb/usbdrv.o drivers/media/media.o \
-> 	net/network.o \
-> 	/build/cvs-autoreleasedeb/kernel-image-2.4.24-i386-multimedia-2.4.24/build-386/arch/i386/lib/lib.a /build/cvs-autoreleasedeb/kernel-image-2.4.24-i386-multimedia-2.4.24/build-386/lib/lib.a /build/cvs-autoreleasedeb/kernel-image-2.4.24-i386-multimedia-2.4.24/build-386/arch/i386/lib/lib.a \
-> 	--end-group \
-> 	-o vmlinux
-> drivers/acpi/acpi.o(.text+0x8ac1): In function `acpi_ev_global_lock_handler':
-> : undefined reference to `cmpxchg'
-> drivers/acpi/acpi.o(.text+0x8c21): In function `acpi_ev_acquire_global_lock':
-> : undefined reference to `cmpxchg'
-> drivers/acpi/acpi.o(.text+0x8d3d): In function `acpi_ev_release_global_lock':
-> : undefined reference to `cmpxchg'
-> +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-> 
-> Is there some specific kernel option I have to set in .config in order
-> to get cmpxchg defined?
-> 
-> Thanks,
-> 
-> Free Ekanayaka
-> 
-> 
-> 
-> -------------------------------------------------------
-> This SF.Net email is sponsored by: IBM Linux Tutorials
-> Free Linux tutorial presented by Daniel Robbins, President and CEO of
-> GenToo technologies. Learn everything from fundamentals to system
-> administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+If this is an ACPI issue, how can I help resolve it?  I'm a competent 
+programmer, and I have no problem with mucking with the source.
 
+Thanks,
+-Justin
 
 
 -------------------------------------------------------
