@@ -1,14 +1,12 @@
-From: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>
-Subject: Re: Documentation was: Power on at specified time.
-Date: Wed, 19 Feb 2003 19:25:28 +1300
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: S3 and S4 fix for 2.5.x XFS
+Date: Wed, 19 Feb 2003 11:14:18 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1045635927.4398.7.camel@laptop-linux.cunninghams>
-References: <F760B14C9561B941B89469F59BA3A84725A18F@orsmsx401.jf.intel.com>
+Message-ID: <20030219101418.GB15374@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <F760B14C9561B941B89469F59BA3A84725A18F-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,28 +15,46 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: swsusp-LcL5texQODR2DW0IdvIQ2g@public.gmane.org
+Cc: SATOH Fumiyasu <fumiya-xe/Jz1KxH3h3+QwDJ9on6Q@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> Speaking of that, there currently isn't a Documentation/acpi directory,
-> although I know a number of people have written some good write-ups of
-> various things - maybe that's where they should go.
+Hi,
+Eric Sandeen <sandeen-sJ/iWh9BUns@public.gmane.org> wrote a fix for 2.5.x page_buf.c that is
+similar to that for 2.4.x and allows for pagebufd to enter refrigerator
+correctly. It seems to work fine for me (2.5.61), though I also suffer 
+from some mysterious XFS problems that need further inquiring.
 
-Well, I found a nvram-wakeup project on Sourceforge. I managed to
-download it from elsewhere (since Sorceforge is currently down), and it
-looks from that like every manufacturer has a different method of
-implementing this. I looked through the ACPI specs I have downloaded,
-but didn't see anything that indicated a standardised way of telling the
-computer to wake up at a specific time. Patrick's code uses the RTC
-alarm but from that nvram-wakeup project, this is by no means the only
-method. What is more, the project says that sometime the wakeup time
-doesn't 'take' until after a reboot!
+Everyone using XFS and S3 or S4 is highly encouraged to test this patch on
+a 2.5.x kernel. The patch is below:
 
-Regards,
+--- /usr/tmp/TmpDir.23920-0/linux/fs/xfs/pagebuf/page_buf.c_1.94        Tue Feb 18 20:43:38 2003
++++ linux/fs/xfs/pagebuf/page_buf.c     Tue Feb 18 20:34:50 2003
+@@ -57,6 +57,7 @@
+ #include <linux/sysctl.h>
+ #include <linux/proc_fs.h>
+ #include <linux/workqueue.h>
++#include <linux/suspend.h>
 
-Nigel
+ #include <support/debug.h>
+ #include <support/kmem.h>
+@@ -1591,6 +1592,9 @@
 
+        INIT_LIST_HEAD(&tmp);
+        do {
++               if (current->flags & PF_FREEZE)
++                       refrigerator(PF_IOTHREAD);
++
+                if (pbd_active == 1) {
+                        del_timer(&pb_daemon_timer);
+                        pb_daemon_timer.expires = jiffies +
+
+
+
+
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
