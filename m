@@ -1,12 +1,10 @@
-From: dev_zero <dev_xor-eZNTXLQAfP4@public.gmane.org>
-Subject: Re: DSDT from within windows?
-Date: Fri, 11 Feb 2005 16:34:38 +0100
-Message-ID: <420CD08E.1000400@yahoo.no>
-References: <971FCB6690CD0E4898387DBF7552B90E7129AB@orsmsx403.amr.corp.intel.com>
+From: guru413-ihVZJaRskl1bRRN4PJnoQQ@public.gmane.org
+Subject: Re: hi
+Date: Fri, 11 Feb 2005 09:45:06 -0800 (PST)
+Message-ID: <E1Czeqp-0004gg-00@parakeet.mail.pas.earthlink.net>
+Reply-To: nobody-ihVZJaRskl1bRRN4PJnoQQ@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <971FCB6690CD0E4898387DBF7552B90E7129AB-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Type: multipart/alternative; boundary="SPMB1108143906adf2de2139fc439fd34735614b191f19"
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,13 +14,56 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Is it possible to overwrite the DSDT table from windows? I have tried 
-overwriting the dsdt table in the registry, but the registry loads the 
-DSDT and overwrites mine when Windows starts. Does anyone have any ideas 
-about how I can overwrite the DSDT from Windows?
+--SPMB1108143906adf2de2139fc439fd34735614b191f19
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+
+I apologize for this automatic reply to your email.
+
+To control spam, I now allow incoming messages only from senders I
+have approved beforehand.
+
+If you would like to be added to my list of approved senders, please
+fill out the short request form (see link below). Once I approve you,
+I will receive your original message in my inbox. You do not need to
+resend your message. I apologize for this one-time inconvenience.
+
+Click the link below to fill out the request:
+
+https://webmail.pas.earthlink.net/wam/addme?a=guru413-ihVZJaRskl1bRRN4PJnoQQ@public.gmane.org&id=1cZEQL3753NZFpr0
+
+--SPMB1108143906adf2de2139fc439fd34735614b191f19
+Content-Type: text/html;
+
+<HTML>
+<BODY>
+<DIV>I apologize for this automatic reply to your email.</DIV>
+<DIV><BR></DIV>
+<DIV>
+To control spam, I now allow incoming messages only from senders I
+have approved beforehand.
+</DIV>
+<DIV><BR></DIV>
+<DIV>
+If you would like to be added to my list of approved senders, please
+fill out the short request form (see link below). Once I approve you,
+I will receive your original message in my inbox. You do not need to
+resend your message. I apologize for this one-time inconvenience.
+</DIV>
+<DIV><BR></DIV>
+<DIV>Click the link below to fill out the request:</DIV>
+<DIV><BR></DIV>
+<DIV>
+<A HREF="https://webmail.pas.earthlink.net/wam/addme?a=guru413-ihVZJaRskl1bRRN4PJnoQQ@public.gmane.org&id=1cZEQL3753NZFpr0">
+https://webmail.pas.earthlink.net/wam/addme?a=guru413-ihVZJaRskl1bRRN4PJnoQQ@public.gmane.org&id=1cZEQL3753NZFpr0</A></DIV>
+<DIV><BR></DIV>
+</BODY>
+</HTML>
+
+--SPMB1108143906adf2de2139fc439fd34735614b191f19--
 
 
 -------------------------------------------------------
