@@ -1,14 +1,13 @@
-From: Dave Jones <davej-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: redhat comment about intel not taking patches?
-Date: Thu, 13 Feb 2003 12:11:55 +0100
+From: Bjorn Wesen <bjorn.wesen-VrBV9hrLPhE@public.gmane.org>
+Subject: Re: S4bios support
+Date: Thu, 13 Feb 2003 16:14:10 +0100 (CET)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030213121153.E1647@suse.de>
-References: <C50AB9511EE59B49B2A503CB7AE1ABD10440E3DB@cceexc19.americas.cpqcorp.net>
+Message-ID: <Pine.LNX.4.33.0302131611020.7941-100000@godzilla.axis.se>
+References: <20030211185406.GA25167@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <C50AB9511EE59B49B2A503CB7AE1ABD10440E3DB-Iar2LzuD2f6P0FQRY6S+e9kSKC0Mw0DFJ8am2ALHCgk@public.gmane.org>; from john.cagle-VXdhtT5mjnY@public.gmane.org on Wed, Feb 12, 2003 at 10:11:26PM -0600
+In-Reply-To: <20030211185406.GA25167-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,33 +16,26 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Cagle, John (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>
-Cc: Darren Benham <dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Feb 12, 2003 at 10:11:26PM -0600, Cagle, John (ISS-Houston) wrote:
- > Can you be more specific in your comments regarding Compaq hardware?  We
- > test our ProLiant servers with Linux and ACPI, and our BIOS is designed
- > for many different operating systems, including Linux, Unix and NetWare.
- > On the other hand, it is unreasonable to expect that our laptop and
- > desktop divisions test with Linux ACPI for two big reasons: first, the
- > Linux OS has a very small share of those markets, and second, Red Hat's
- > releases don't even have ACPI support.
+On Tue, 11 Feb 2003, Pavel Machek wrote:
+> S4bios is easier to use [no possibility to boot into wrong kernel;
+> machine actually indicates it is sleeping, not powered down], has
+> nicer progress bars, etc... I'd like to see it in. Please apply,
 
-So, Red Hat doesn't include ACPI because it doesn't work on Compaq
-laptops[1], and Compaq won't test it because Red Hat don't ship it ?
-Nice catch 22 8-)
+May I ask what s4bios does compared to "just s4" ? Does the kernel still 
+dump its core to swap or what happens ?
 
-        Dave
+(There really are no ACPI documentations anywhere right ? :)
 
-[1] Among others..
+/Bjorn
 
--- 
-| Dave Jones.        http://www.codemonkey.org.uk
-| SuSE Labs
 
 
 -------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
+This SF.NET email is sponsored by: FREE  SSL Guide from Thawte
+are you planning your Web Server Security? Click here to get a FREE
+Thawte SSL guide and find the answers to all your  SSL security issues.
+http://ads.sourceforge.net/cgi-bin/redirect.pl?thaw0026en
