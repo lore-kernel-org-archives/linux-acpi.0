@@ -1,14 +1,10 @@
-From: Chazz Mevoli <mevoli-qa2Vv93yo6IAvxtiuMwx3w@public.gmane.org>
-Subject: Dell Latitude C840
-Date: Thu, 27 Jan 2005 17:23:27 -0500
-Message-ID: <200501271723.27749.mevoli@kodak.com>
-Reply-To: mevoli-qa2Vv93yo6IAvxtiuMwx3w@public.gmane.org
+From: =?ISO-8859-15?Q?Peter_M=FCnster?= <pmlists-GANU6spQydw@public.gmane.org>
+Subject: system does not wake up sometimes
+Date: Thu, 27 Jan 2005 18:40:33 +0100
+Message-ID: <Pine.LNX.4.58.0501271837150.29216@gaston.free.fr>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,15 +17,27 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I'm having trouble with suspending my dell latitude c840.  I'm running 
-Suse 9.2 with ACPI.  When I try to suspend to ram or disk, I get a 
-message stating that mode 3 and 4 are not supported and the machine 
-never suspends.  While reading on google, others seem to have this 
-working.  Could you help me understand what's going wrong?  Thanks.
-If I need some latest development code, please let me know so I can 
-compile it into my system.  Not having suspend capability is a major 
-problem for me since I can't leave my laptop running all the time and 
-it takes too long to shutdown/reboot between meetings.
+Hello,
+very often, my system does not wake up at the specified time. I need to
+press a key to resume.
+The system goes to sleep the day before at about 22h30 with the following
+commands:
+modprobe genrtc
+sleep 5
+echo 2005-01-28 11:10:00 >/proc/acpi/alarm
+sleep 5
+echo 1 >/proc/acpi/sleep
+
+What could be wrong?
+I'm using Linux-2.6.10 and ASUS A7N8X-X ACPI BIOS Rev 1006.
+
+Thanks in advance for any help! Please tell me, if you need more information.
+Kind regards, Peter
+
+-- 
+email: pmrb at free.fr
+http://pmrb.free.fr/contact/
+
 
 
 -------------------------------------------------------
