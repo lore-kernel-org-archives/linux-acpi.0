@@ -1,14 +1,14 @@
-From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Subject: Re: ACPI + Laptop Power Management
-Date: Fri, 21 Nov 2003 15:44:44 +0100
+From: Emmanuel Thome <Emmanuel.Thome+acpi-/zGXu1G9BXs@public.gmane.org>
+Subject: Re: Dell D600: teaching radeonfb how to wake up...
+Date: Fri, 21 Nov 2003 15:50:10 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3FBE24DC.8020203@pca.it>
-References: <C386328088ED7F4E9F81AFBABDDF60DA03386202@wdmyexch02.my.asia.wdc.com> <20031121101232.GL32464@poupinou.org> <20031121111323.GB18223@luna.mooo.com> <3FBE0E02.3080203@pca.it> <20031121135321.GF5917@luna.mooo.com>
+Message-ID: <20031121155010.C19564@loria2.loria.fr>
+References: <20031119180119.GB22307@tate.loria.fr> <20031120111315.GB432@openzaurus.ucw.cz> <1069370504.705.32.camel@gaston> <20031120234708.GA431@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20031121135321.GF5917-4cxDFgrrBECgSpxsJD1C4w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20031120234708.GA431-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>; from pavel-+ZI9xUNit7I@public.gmane.org on Fri, Nov 21, 2003 at 12:47:08AM +0100
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,44 +17,45 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Fri, Nov 21, 2003 at 12:47:08AM +0100, Pavel Machek wrote:
+> Hi!
+> 
+> > > If I were you, I'd create fix_ati.o module which would
+> > > "do the stuff", then insert it over network. That should
+> > > make debugging easier...
+> > 
+> > Nah, we really have to re-POST the chip. I don't know how
+> > we are supposed to do that though. Either we'll have to have
+> > the full POST code for a bunch of ATI chips around, which doesn't
+> > seem reasonable and I don't think windows drivers do that, or
+> 
+> Well, if he wants to do the work for his concrete ATI chip, its fine
+> with me, and I'd like to see the results.
+> 
+> Having fix_ati.o module is certainly easier than playing with driver
+> model for testing...
+> 								Pavel
 
-Hello Micha,
+Certainly, it would be of great value, even if the finally chosen path is
+to do the POST code. If I recall recent discussions about this on the
+list, a couple of folks seem to prefer this ``hard way'' than the real
+mode/int10 stuff, for reasons I understand.
 
-on 11/21/03 14:53, Micha Feigin wrote:
-| If you are using acpi look into acpid to be able to act upon acpi
-| events.
-| I this case, with acpid not running do (assuming you do have acpi
-| support, otherwise you won't see this file)
-| cat /proc/acpi/event
-| and pull out your power cord and then reinsert it. If you are getting
-| ACAD or BAT or somesuch thing messages then everything is ok (I don't
-| know how to do this with apm) and you can use acpid to run the
-| laptopmode script whenever your power is connected/disconnected.
-yes, I can, I mean, I had already checked for this event (AC-adapter)
-and it works :-) BTW, for those who don't know, I'm using an ASUS M3N
-(Centrino) with the latest BIOS available (0205A released 20031117).
-I've just a little problem and I'm going to inform this list ASAP (I
-need some tests before).
+Still, as you (Pavel) have yourself remarked, video chips suffering from
+this unconfigured wake-up disease are tantamount. It could even be the
+case of _most_ chips. If an interface for calling real mode stuff makes
+it possible to cure, say half of these graphics cards for x86 laptops,
+then that's not bad at all.
 
-| Will look into it.
-Thank you very much!
+OTOH, even if the windows ati drivers do not fully repost the chip, the
+MacOS drivers possibly _do_ such a thing, don't they ? Or do they really
+get by using D2 state always ? Ben ? 
 
-Thx, bye,
-Gismo / Luca
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
-
-iD8DBQE/viTaVAp7Xm10JmkRAuHGAJ910nA2C57ZEyGlZ2ymRZQpTBwFjQCfXlIy
-xCTsJEBr1k1Pqb+LvwC11rw=
-=+fWR
------END PGP SIGNATURE-----
-
+E.
 
 
 -------------------------------------------------------
