@@ -1,14 +1,13 @@
-From: Jason Dagit <dagit-LP0vGzdgvNwj5TC/SZClsA@public.gmane.org>
-Subject: Re: Resume from mem state == Reboot (Averatec)
-Date: Tue, 22 Mar 2005 00:12:45 -0800
-Message-ID: <87br9cxfnm.fsf@www.codersbase.com>
-References: <87k6oaug4a.fsf@www.codersbase.com>
-	<1110840337.8136.82.camel@tyrosine>
-	<87eke94hul.fsf@www.codersbase.com>
+From: Philipp Wollermann <phil_wo-hi6Y0CQ0nG0@public.gmane.org>
+Subject: Battery Status on Acer Extensa 4101
+Date: Tue, 22 Mar 2005 11:14:19 +0100
+Message-ID: <200503221114.22874.phil_wo@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-In-Reply-To: <87eke94hul.fsf-mMfbam+mt929kzlf/Hu3QdBPR1lH4CV8@public.gmane.org> (Jason Dagit's message of
- "Sun, 20 Mar 2005 22:45:54 -0800")
+Content-Type: multipart/signed;
+  boundary="nextPart2500979.j3u5J3ZePC";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,47 +20,59 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Jason Dagit <dagit-LP0vGzdgvNwj5TC/SZClsA@public.gmane.org> writes:
+--nextPart2500979.j3u5J3ZePC
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-> Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org> writes:
->
->> This is likely to be the same problem as
->> http://bugzilla.kernel.org/show_bug.cgi?id=3691
+Hello again,
 
-I made a discovery today.  This bug says the following:
-http://bugme.osdl.org/show_bug.cgi?id=3586
+well - no one replied to my last mail, so I'll post again with the current=
+=20
+status. :-) The ACPI errors on boot continue to appear, however the only=20
+thing which isn't working is to get the status of the battery. I can see it=
+=20
+in /proc/acpi/battery/BAT1/state but it says:
 
----- Begin Paste ----
-Code from arch/i386/kernel/acpi/wakeup.S:
-[...]
-        mov     $(wakeup_stack - wakeup_code), %sp              # Private stack is needed for ASUS board
-        movw    $0x0e00 + 'S', %fs:(0x12)
+# cat /proc/acpi/battery/BAT1/state
+present:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0yes
+ERROR: Unable to read battery status
 
-        pushl   $0      ###THIS LINE CAUSES REBOOT!             # Kill any dangerous flags
-        popfl
+I tried to use the sbs-cm patches but they don't apply to my DSDT (actually=
+,=20
+the DSDT doesn't even compile with the IASL without any patches. :-(). I th=
+en=20
+tried to use the program smartbatt which only needs a small kernel patch=20
+(acpi-ec-2.6.10.diff which applies cleanly to my 2.6.11.3) and then tries t=
+o=20
+access the battery using i2c. However there are no i2c busses detected!
 
-        movl    real_magic - wakeup_code, %eax
-[...]
+bash-2.05b# ./smartbattery
+Error: No i2c-bus specified!
+Syntax: smartbatt I2CBUS
+Error: No I2C busses found!
+Be sure you have done 'modprobe i2c-dev'
+and also modprobed your i2c bus drivers
 
-Commenting out pushl $0 and popfl wakeup code goes on until another
-issue blocks it later (more on this to be added as soon as we point
-something out on the acpi-devel mailing list)
----- End Paste ----
+I did load the modules of course. Does anyone have an idea how I could get =
+the=20
+state of my battery?
 
-I tried commenting out those lines (both the pushl and popfl) and my
-laptop suspends and resumes!  The screen is blank when the machine
-resumes, but I can toggle capslock and if I type "find /" the hard
-drive light comes on.  So it would appear that the machine is setting
-the firmware_wake_vector correctly, but something about that push and
-pop is not good for this machine.  Now I'm off to debug the video
-resume problems, which appears to be a pretty common problem with
-suspend/resume.
+Philipp
 
-I hope this is helpful to others.  Matthew can you try this on your
-laptop?
+--nextPart2500979.j3u5J3ZePC
+Content-Type: application/pgp-signature
 
-Thanks,
-Jason
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.0 (GNU/Linux)
+
+iD8DBQBCP+/+KB6x+iNJiAgRAkNyAJ9khHE5c66xQ92b3szLXf+2iced7wCcCDXX
+s2NewschjEXopQfDi73fRL0=
+=jf5z
+-----END PGP SIGNATURE-----
+
+--nextPart2500979.j3u5J3ZePC--
 
 
 -------------------------------------------------------
