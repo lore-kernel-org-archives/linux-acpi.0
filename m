@@ -1,15 +1,14 @@
 From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: Linux/ACPI 2.4 release status and cpufreq
-Date: Fri, 12 Dec 2003 21:20:09 +0100
+Subject: Re: Dell i5100 resume from ram probl. (2.6.0-test11)
+Date: Fri, 12 Dec 2003 22:19:11 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031212202009.GA27547@hell.org.pl>
-References: <1071209752.2542.688.camel@dhcppc4> <1071248784.1756.7.camel@darkstar.portugal>
+Message-ID: <20031212211911.GB27547@hell.org.pl>
+References: <3FD4577B.60406@start.no>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1071248784.1756.7.camel-4/PLUo9XfK/yXfm4dIG/yWZHpeb/A1Y/@public.gmane.org>
+In-Reply-To: <3FD4577B.60406-pC9TGHjoBLc@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,17 +17,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?iso-8859-2?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Andreas J. Thorvaldsen" <ajthorva-pC9TGHjoBLc@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Sérgio Monteiro Basto:
-> have you any plan? to integrated cpufreq that cames in 2.22-ac4 kernels.
-> or does anybody have any implantation of cpufreq for kernel 2.4.23? 
+Thus wrote Andreas J. Thorvaldsen:
+> 3. A key logger (Linux Key Logger; userspace) stops logging after resume
+> (though /var/log/messages continues to write (no errors)), indicating
+> that it has died somehow (although ...; ps -A > dump; indicates that it 
+> hasn't).
 
-Current snapshots of CPUFreq (both for 2.4 and 2.6) can be found here:
-http://ftp.linux.org.uk/pub/linux/cpufreq/
+It's most probably your keyboard that has died, and not the keylogger. 
+http://www.geocities.com/dt_or/input/ should address that (against vanilla
+test11).
 
+Unfortunately, you will probably be needing more than just that to properly
+use S3... good luck!
 Best regards,
 
 -- 
