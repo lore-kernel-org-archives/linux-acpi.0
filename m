@@ -1,13 +1,13 @@
 From: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
-Subject: Re: Runlevel for Sleep?
-Date: Sat, 7 Sep 2002 12:51:35 -0700 (PDT)
+Subject: RE: Runlevel for Sleep?
+Date: Sat, 7 Sep 2002 12:56:58 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0209071232170.1021-100000@cherise.pdx.osdl.net>
-References: <1031374944.1530.44.camel@rodan.monsters.org>
+Message-ID: <Pine.LNX.4.44.0209071251410.1021-100000@cherise.pdx.osdl.net>
+References: <EDC461A30AC4D511ADE10002A5072CAD0236DE22@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1031374944.1530.44.camel-EWEM0Crkbjs/2vX+WiJxEB2eb7JE58TQ@public.gmane.org>
+In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD0236DE22-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,65 +16,39 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: Stephen L Johnson <sjohnson-WpdXj7kV/NVg9hUCZPvPmw@public.gmane.org>
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-On 7 Sep 2002, Stephen L Johnson wrote:
+On Fri, 6 Sep 2002, Grover, Andrew wrote:
 
-> I've been involved with the Linux on PDAs/handheld computers over at
-> http://www.handhelds.org/. They have to deal with the exact same issues
-> suspend/resumes issues with drivers and user-space issues. Although they
-> major concern is just with suspending in memory.
+> > From: Patrick Mochel [mailto:mochel-3NddpPZAyC0@public.gmane.org] 
+> > [1] Once upon a time (last May), I implemented a patch that 
+> > overloaded the
+> > reboot(2) system call to initiate suspend transitions in a
+> > platform-specific manner (as per Linus's suggestion). This is in the
+> > resurrection queue and will probably resurface soon. 
 > 
-> Over the past several versions of Familiar (a linux distrubution for
-> handhelds) a method for dealing with user space suspend and resume
-> issues have been developer. It is working quite well. 
+> Hmm.
 > 
-> The kernel calls a user space program called pmhelper with a "suspend"
-> or "resume" parameter. On a suspend, pmhelper is called before the
-> kernel  suspends the drivers. And on a resume it's called after the
-> kernel resumes the drivers. 
+> Maybe it would be cleaner to give sleep its own system call.
+> 
+> Having reboot(2) overloaded with suspend functionality is a little
+> non-intuitive. Just a thought.
 
-That's not bad, but I see two problems:
+That's what I did initially, but I was encouraged instead to overload 
+reboot. And, it does make quite a bit of sense considering the following:
 
-- The suspend transition is usually initiated from user input, i.e. 
-userspace. So, userspace would be calling into the kernel, which would be 
-calling back to userspace, and returning back to the kernel to finish it 
-up. 
+- syscall numbers are few and very difficult to get. We'd be taking one
+that only makes sense on a subset of the x86 platforms out there and on a
+subset of the total architectures (though this subset accounts for
+probably 95% of the install base).
 
-It seems much easier to do the work you need in userspace, then transfer 
-control over to the kernel once and for all.
+- reboot(2) is a power transition. suspend(2) is a power transition. 
+Conceptuallly, they're similar. They are functionally, too. 
 
-- The standard mechanism for calling into userspace is /sbin/hotplug. 
-There is NWIH you'll be able to sneak another mechanism into the kernel. 
-So, being stuck with /sbin/hotplug, you run into the problem that it 
-executes asynchronously. You want to wait for the userspace stuff to 
-finish before you continue suspending, so you'd have to add yet more code 
-to wait for notification from userspace...
-
-> The pmhelper program on familiar calls a series of scripts in
-> /etc/suspend-scripts/ or /etc/resume-scripts/ (depending on the pending
-> state). The scripts are run in a SysV boot-script way. The scripts are
-> named nnScriptName where nn are numbers. 
-
-For Midori Linux (a distro for the all-but-dead x86 internet appliance
-market), we rewrote the init script hoo-haw to be similar to this thing
-called simpleinit. (A dependency graph was constructed so we could execute
-the init scripts in parallel). Suspend was initiated via a GUI or script, 
-which triggered init to run, passing 'suspend' to all the init scripts 
-(and 'resume' on Resume).
-
-In essence, we're going to be doing something similar. It's just a matter 
-of how we articulate it. Also, remember that we must do the converse 
-action on resume (call all the init scripts again). But, is that really a 
-runlevel transition? We'd be transferring back from 7 (or whatever) to 3 
-or 5. But, we don't want to restart everything; only the stuff that we 
-suspended.
-
-Are there any ideas from some of the older-school people? How exactly does 
-APM do it? 
+- swsusp already has a hook in it.
 
 
 	-pat
