@@ -1,12 +1,15 @@
-From: =?iso-8859-1?Q?Ois=EDn_Mac_Fheara=ED?= <destynova-iUB+o6dfpG8i1yMB4YHZDQ@public.gmane.org>
-Subject: thermal zone nuke
-Date: Mon, 30 Aug 2004 08:45:21 +0100
+From: Eric Valette <eric.valette-GANU6spQydw@public.gmane.org>
+Subject: 2.6.8 + ACPI patch,  2.6.9-rc1, if Thermal Zone pb  => Try this fixe
+Date: Mon, 30 Aug 2004 10:46:26 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <001e01c48e65$4db62400$020ba8c0@SHERKA>
+Message-ID: <4132E962.8040609@free.fr>
+References: <001e01c48e65$4db62400$020ba8c0@SHERKA>
+Reply-To: eric.valette-GANU6spQydw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_001B_01C48E6D.AF62BE40"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <001e01c48e65$4db62400$020ba8c0@SHERKA>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -15,68 +18,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: =?ISO-8859-15?Q?Ois=EDn_Mac_Fheara=ED?= <destynova-iUB+o6dfpG8i1yMB4YHZDQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+I've seen many post with Thermal Zone related problems and 2.6.8 + ACPI 
+patche (or 2.6.9-rc1)
 
-------=_NextPart_000_001B_01C48E6D.AF62BE40
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+<http://linux.bkbits.net:8080/linux-2.5/diffs/arch/i386/pci/i386.c@1.17?nav=index.html|src/|src/arch|src/arch/i386|src/arch/i386/pci|hist/arch/i386/pci/i386.c>
 
-In updating my kernel from 2.6.6 to 2.6.8, and my acpi patches to =
-20040816-26-stable-release version, my Acer Aspire 1705SMi is doing what =
-it did the first time I tried to configure ACPI about 8 months ago, =
-namely, thinking the temperature is 255 degrees C and shutting down =
-instantly, whenever I load the thermal module.
+-- 
+    __
+   /  `                   	Eric Valette
+  /--   __  o _.          	6 rue Paul Le Flem
+(___, / (_(_(__         	35740 Pace
 
-Might a recent change have done this, or is it something I patched =
-manually to fix and forgot about, before overwriting it with the latest =
-release *cough*?
+Tel: +33 (0)2 99 85 26 76	Fax: +33 (0)2 99 85 26 76
+E-mail: eric.valette-GANU6spQydw@public.gmane.org
 
-The machine functions okay without loading thermal, and I seem to have =
-the DSDT working in initrd.
 
-thanks,
-Ois=EDn
-------=_NextPart_000_001B_01C48E6D.AF62BE40
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; =
-charset=3Diso-8859-1">
-<META content=3D"MSHTML 6.00.2800.1458" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV><FONT face=3DArial size=3D2>In updating my kernel from 2.6.6 to =
-2.6.8, and my=20
-acpi patches to 20040816-26-stable-release version, my Acer Aspire =
-1705SMi is=20
-doing what it did the first time I tried to configure ACPI about 8 =
-months ago,=20
-namely, thinking the temperature is 255 degrees C and shutting down =
-instantly,=20
-whenever I load the thermal module.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>Might a recent change have done this, =
-or is it=20
-something I patched manually to fix and forgot about, before overwriting =
-it with=20
-the&nbsp;latest release&nbsp;*cough*?</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>The machine functions okay without =
-loading thermal,=20
-and I seem to have the DSDT working in initrd.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>thanks,</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2>Ois=EDn</FONT></DIV></BODY></HTML>
-
-------=_NextPart_000_001B_01C48E6D.AF62BE40--
 
 
 
