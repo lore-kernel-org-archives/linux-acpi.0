@@ -1,16 +1,14 @@
-From: "DPR" <info-IGm5bqYn3xwb1SvskN2V4Q@public.gmane.org>
-Subject: RE: mpparse.c APIC/ACPI support
-Date: Tue, 4 Mar 2003 19:54:10 +0100
+From: Nils Faerber <nils-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
+Subject: Re: ACPI patches updated (20030228)
+Date: Tue, 4 Mar 2003 17:35:47 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <000001c2e27f$74ae2910$0200a8c0@brutzler>
-References: <F760B14C9561B941B89469F59BA3A84725A1C9@orsmsx401.jf.intel.com>
-Reply-To: <info-IGm5bqYn3xwb1SvskN2V4Q@public.gmane.org>
+Message-ID: <20030304173547.7a815082.nils@kernelconcepts.de>
+References: <F760B14C9561B941B89469F59BA3A84725A1BB@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <F760B14C9561B941B89469F59BA3A84725A1C9-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
+In-Reply-To: <F760B14C9561B941B89469F59BA3A84725A1BB-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,35 +17,38 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "'Grover, Andrew'" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "'Cagle, John (ISS-Houston)'" <john.cagle-VXdhtT5mjnY@public.gmane.org>, info-IGm5bqYn3xwb1SvskN2V4Q@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: alan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> The device's driver calls pci_enable_device, which calls:
-> pci_enable_device_bars, which calls:
-> pcibios_enable_device, which calls:
-> pcibios_enable_irq, which is a function pointer we set to
-> acpi_pci_irq_enable, which does an eisa_set_level_irq(), thus setting
-> the interrupt (if less than 16) to level-triggered.
+On Fri, 28 Feb 2003 12:53:33 -0800
+"Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> Hi all,
+Hi Andrew!
+
+> The ACPI patches against 2.4 and 2.5 have been updated and are now
+> available from http://sf.net/project/acpi . The non-Linux-specific
+> releases should be available from
+> http://developer.intel.com/technology/iapc/acpi/downloads.htm
+> hopefully by tonight but possibly as late as Monday evening.
 > 
-> So why isn't it working? Hmm.
+> This includes a LOT of fixes for longstanding bugs. If you have had
+> issues in the past with long delays or oopses on reads from the
+> battery interface, hangs on boot, or excessive ACPI interrupts causing
+> system slowness, please try this patch.
 
-Perhaps these messages from "pcibios_enable_irq" will help you finding the error ...
+And so I did and am sorry to report that I still see high CPU usage and
+delays when trying to read my battery status; machine is Asus L3800C.
 
-<4>PCI: No IRQ known for interrupt pin A of device 00:10.0
-<4>PCI: No IRQ known for interrupt pin B of device 00:10.1
-<4>PCI: No IRQ known for interrupt pin C of device 00:10.2
-<4>PCI: No IRQ known for interrupt pin D of device 00:10.3
-<4>PCI: No IRQ known for interrupt pin A of device 00:11.1 - using IRQ 255
-<4>PCI: No IRQ known for interrupt pin A of device 00:12.0
+> Regards -- Andy
+CU
+  nils faerber
 
-The devices 00:10.0 up to 00:10.3 are my USB 1.1/2.0 controllers, device 00:11.1 is my EIDE
-controller and device 00:12.0 is my ethernet adapter.
-
-Regards,
-
-HOLGER
-
+-- 
+kernel concepts          Tel: +49-271-771091-12
+Dreisbachstr. 24         Fax: +49-271-771091-19
+D-57250 Netphen          D1 : +49-170-2729106
+--
 
 
 -------------------------------------------------------
