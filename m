@@ -1,13 +1,12 @@
-From: Grzegorz Kulewski <kangur-ghbW0t/Qn0CsTnJN9+BGXg@public.gmane.org>
-Subject: Re: Re: Fw: Anybody? 2.6.11 (stable and -rc) ACPI breaks USB
-Date: Tue, 22 Mar 2005 00:33:00 +0100 (CET)
-Message-ID: <Pine.LNX.4.62.0503220022290.7305@alpha.polcom.net>
-References: <1110989436.8378.19.camel@eeyore>  <1111023217.15278.7.camel@sli10-desk.sh.intel.com>
-  <1111082914.11380.30.camel@eeyore>  <1111108150.22239.6.camel@sli10-desk.sh.intel.com>
-  <1111169239.13286.39.camel@eeyore> <1111422838.17576.22.camel@eeyore>
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Subject: Re: toshiba ACPI /proc interface nonresponsive (>2.6.9)
+Date: Mon, 21 Mar 2005 15:46:52 -0800
+Message-ID: <20050321154652.48431aa3.akpm@osdl.org>
+References: <BAY15-F123671672BFDAC384CDD02F8520@phx.gbl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-In-Reply-To: <1111422838.17576.22.camel@eeyore>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <BAY15-F123671672BFDAC384CDD02F8520-MsuGFMq8XAE@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,458 +16,398 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Cc: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Zwane Mwaikambo <zwane-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Florian Leuthner <florian_leuthner-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 21 Mar 2005, Bjorn Helgaas wrote:
-> On Fri, 2005-03-18 at 11:07 -0700, Bjorn Helgaas wrote:
->> OK.  Try this one for size.  It differs from what's currently in
->> the tree in these ways:
->>
->>     - It's a quirk, so we don't have to clutter acpi_pci_irq_enable()
->>       and pirq_enable_irq() with Via-specific code.
->>
->>     - It doesn't do anything unless we're in PIC mode.  The comment
->>       suggests this issue only affects PIC routing.
->>
->>     - We do this for ALL Via devices.  The current code in the tree
->>       does it for all devices in the system IF there is a Via device
->>       with devfn==0, which misses Grzegorz's case.
->>
->> Does anybody have a pointer to a spec that talks about this?  It'd
->> be awfully nice to have a reference.
->>
->> Grzegorz, can you check to make sure this still works after all the
->> tweaking?
+"Florian Leuthner" <florian_leuthner-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org> wrote:
 >
-> Oops, I had the sense of the skip_ioapic_setup test reversed.  Corrected
-> patch follows.
+> Hi,
+> 
+> I can cat e.g. /proc/acpi/toshiba/lcd, but I cannot echo into it, there is 
+> no error message or log entry whatsoever (not a permissions issue, other ppl 
+> are experiencing the same btw). It's a toshiba satellite 5200-701 (european 
+> model, AFAIK) with a more-or-less bleeding edge gentoo install.
+> 
+> With the 2.6.9-mm1 kernel it's working, but not with any later version 
+> (tried 2.6.10-mm1, 2.6.11-mm1).
 
-Hi,
+Florian, could you please test 2.6.12-rc1-mm1?
 
-Your patch applied with some problems:
+btw, what do you mena by "I cannot echo into it"?  You mean that you _can_
+echo into it, but that now has no effect?
 
-patching file arch/i386/pci/irq.c
-Hunk #2 succeeded at 1081 with fuzz 2 (offset 1 line).
-patching file drivers/acpi/pci_irq.c
-patching file drivers/pci/quirks.c
-Hunk #1 succeeded at 678 (offset -5 lines).
-
-(I do not know why).
-
-Then I tested it and it works (at least my speedtouch still works).
-
-Here is the log:
-
-Mar 22 01:32:37 kangur Linux version 2.6.11-cko1 (root@kangur) (gcc 
-version 3.3.3 20040412 (Gentoo Linux 3.3.3-r6, ssp-3.3.2-2, pie-8.7.6)) #4 
-Tue Mar 22 01:24:18 CET 2005
-Mar 22 01:32:37 kangur BIOS-provided physical RAM map:
-Mar 22 01:32:37 kangur BIOS-e820: 0000000000000000 - 000000000009fc00 
-(usable)
-Mar 22 01:32:37 kangur BIOS-e820: 000000000009fc00 - 00000000000a0000 
-(reserved)
-Mar 22 01:32:37 kangur BIOS-e820: 00000000000f0000 - 0000000000100000 
-(reserved)
-Mar 22 01:32:37 kangur BIOS-e820: 0000000000100000 - 000000001fff0000 
-(usable)
-Mar 22 01:32:37 kangur BIOS-e820: 000000001fff0000 - 000000001fff3000 
-(ACPI NVS)
-Mar 22 01:32:37 kangur BIOS-e820: 000000001fff3000 - 0000000020000000 
-(ACPI data)
-Mar 22 01:32:37 kangur BIOS-e820: 00000000ffff0000 - 0000000100000000 
-(reserved)
-Mar 22 01:32:37 kangur 511MB LOWMEM available.
-Mar 22 01:32:37 kangur On node 0 totalpages: 131056
-Mar 22 01:32:37 kangur DMA zone: 4096 pages, LIFO batch:1
-Mar 22 01:32:37 kangur Normal zone: 126960 pages, LIFO batch:16
-Mar 22 01:32:37 kangur HighMem zone: 0 pages, LIFO batch:1
-Mar 22 01:32:37 kangur DMI 2.2 present.
-Mar 22 01:32:37 kangur ACPI: RSDP (v000 761686 
-) @ 0x000f6a70
-Mar 22 01:32:37 kangur ACPI: RSDT (v001 761686 AWRDACPI 0x42302e31 AWRD 
-0x00000000) @ 0x1fff3000
-Mar 22 01:32:37 kangur ACPI: FADT (v001 761686 AWRDACPI 0x42302e31 AWRD 
-0x00000000) @ 0x1fff3040
-Mar 22 01:32:37 kangur ACPI: DSDT (v001 761686 AWRDACPI 0x00001000 MSFT 
-0x0100000c) @ 0x00000000
-Mar 22 01:32:37 kangur ACPI: PM-Timer IO Port: 0x4008
-Mar 22 01:32:37 kangur Allocating PCI resources starting at 20000000 (gap: 
-20000000:dfff0000)
-Mar 22 01:32:37 kangur Built 1 zonelists
-Mar 22 01:32:37 kangur Kernel command line: ro root=/dev/hdb4
-Mar 22 01:32:37 kangur Local APIC disabled by BIOS -- you can enable it 
-with "lapic"
-Mar 22 01:32:37 kangur mapped APIC to ffffd000 (01402000)
-Mar 22 01:32:37 kangur Initializing CPU#0
-Mar 22 01:32:37 kangur CPU 0 irqstacks, hard=b0477000 soft=b0476000
-Mar 22 01:32:37 kangur PID hash table entries: 2048 (order: 11, 32768 
-bytes)
-Mar 22 01:32:37 kangur Detected 1203.036 MHz processor.
-Mar 22 01:32:37 kangur Using pmtmr for high-res timesource
-Mar 22 01:32:37 kangur Console: colour VGA+ 80x25
-Mar 22 01:32:37 kangur Dentry cache hash table entries: 131072 (order: 7, 
-524288 bytes)
-Mar 22 01:32:37 kangur Inode-cache hash table entries: 65536 (order: 6, 
-262144 bytes)
-Mar 22 01:32:37 kangur Memory: 514940k/524224k available (2543k kernel 
-code, 8732k reserved, 819k data, 156k init, 0k highmem)
-Mar 22 01:32:37 kangur Checking if this processor honours the WP bit even 
-in supervisor mode... Ok.
-Mar 22 01:32:37 kangur Calibrating delay loop... 2375.68 BogoMIPS 
-(lpj=1187840)
-Mar 22 01:32:37 kangur Security Framework v1.0.0 initialized
-Mar 22 01:32:37 kangur Capability LSM initialized
-Mar 22 01:32:37 kangur Mount-cache hash table entries: 512 (order: 0, 4096 
-bytes)
-Mar 22 01:32:37 kangur CPU: After generic identify, caps: 0383f9ff 
-c1cbf9ff 00000000 00000000 00000000 00000000 00000000Mar 22 01:32:37 
-kangur CPU: After vendor identify, caps: 0383f9ff c1cbf9ff 00000000 
-00000000 00000000 00000000 00000000
-Mar 22 01:32:37 kangur CPU: CLK_CTL MSR was 60071263. Reprogramming to 
-20071263
-Mar 22 01:32:37 kangur CPU: L1 I Cache: 64K (64 bytes/line), D cache 64K 
-(64 bytes/line)
-Mar 22 01:32:37 kangur CPU: L2 Cache: 512K (64 bytes/line)
-Mar 22 01:32:37 kangur CPU: After all inits, caps: 0383f9ff c1cbf9ff 
-00000000 00000020 00000000 00000000 00000000
-Mar 22 01:32:37 kangur Intel machine check architecture supported.
-Mar 22 01:32:37 kangur Intel machine check reporting enabled on CPU#0.
-Mar 22 01:32:37 kangur CPU: AMD Unknown CPU Type stepping 00
-Mar 22 01:32:37 kangur Enabling fast FPU save and restore... done.
-Mar 22 01:32:37 kangur Enabling unmasked SIMD FPU exception support... 
-done.
-Mar 22 01:32:37 kangur Checking 'hlt' instruction... OK.
-Mar 22 01:32:37 kangur ACPI: setting ELCR to 0800 (from 0e20)
-Mar 22 01:32:37 kangur NET: Registered protocol family 16
-Mar 22 01:32:37 kangur PCI: PCI BIOS revision 2.10 entry at 0xfb690, last 
-bus=1
-Mar 22 01:32:37 kangur PCI: Using configuration type 1
-Mar 22 01:32:37 kangur mtrr: v2.0 (20020519)
-Mar 22 01:32:37 kangur ACPI: Subsystem revision 20050211
-Mar 22 01:32:37 kangur ACPI: Interpreter enabled
-Mar 22 01:32:37 kangur ACPI: Using PIC for interrupt routing
-Mar 22 01:32:37 kangur ACPI: PCI Root Bridge [PCI0] (00:00)
-Mar 22 01:32:37 kangur PCI: Probing PCI hardware (bus 00)
-Mar 22 01:32:37 kangur ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-Mar 22 01:32:37 kangur ACPI: PCI Interrupt Link [LNKA] (IRQs 1 3 4 5 6 7 
-*10 11 12 14 15)
-Mar 22 01:32:37 kangur ACPI: PCI Interrupt Link [LNKB] (IRQs 1 3 4 5 6 7 
-10 *11 12 14 15)
-Mar 22 01:32:37 kangur ACPI: PCI Interrupt Link [LNKC] (IRQs 1 3 4 *5 6 7 
-10 11 12 14 15)
-Mar 22 01:32:37 kangur ACPI: PCI Interrupt Link [LNKD] (IRQs 1 3 4 5 6 7 
-10 11 12 14 15) *9
-Mar 22 01:32:37 kangur Linux Plug and Play Support v0.97 (c) Adam Belay
-Mar 22 01:32:37 kangur pnp: PnP ACPI init
-Mar 22 01:32:37 kangur pnp: PnP ACPI: found 12 devices
-Mar 22 01:32:37 kangur SCSI subsystem initialized
-Mar 22 01:32:37 kangur PCI: Using ACPI for IRQ routing
-Mar 22 01:32:37 kangur ** PCI interrupts are no longer routed 
-automatically.  If this
-Mar 22 01:32:37 kangur ** causes a device to stop working, it is probably 
-because the
-Mar 22 01:32:37 kangur ** driver failed to call pci_enable_device().  As a 
-temporary
-Mar 22 01:32:37 kangur ** workaround, the "pci=routeirq" argument restores 
-the old
-Mar 22 01:32:37 kangur ** behavior.  If this argument makes the device 
-work again,
-Mar 22 01:32:37 kangur ** please email the output of "lspci" to 
-bjorn.helgaas-VXdhtT5mjnY@public.gmane.org
-Mar 22 01:32:37 kangur ** so I can fix the driver.
-Mar 22 01:32:37 kangur pnp: the driver 'system' has been registered
-Mar 22 01:32:37 kangur pnp: match found with the PnP device '00:00' and 
-the driver 'system'
-Mar 22 01:32:37 kangur pnp: match found with the PnP device '00:01' and 
-the driver 'system'
-Mar 22 01:32:37 kangur Total HugeTLB memory allocated, 0
-Mar 22 01:32:37 kangur VFS: Disk quotas dquot_6.5.1
-Mar 22 01:32:37 kangur Dquot-cache hash table entries: 1024 (order 0, 4096 
-bytes)
-Mar 22 01:32:37 kangur SGI XFS with ACLs, security attributes, realtime, 
-no debug enabled
-Mar 22 01:32:37 kangur SGI XFS Quota Management subsystem
-Mar 22 01:32:37 kangur Initializing Cryptographic API
-Mar 22 01:32:37 kangur inotify device minor=63
-Mar 22 01:32:37 kangur ACPI: PS/2 Keyboard Controller [PS2K] at I/O 0x60, 
-0x64, irq 1
-Mar 22 01:32:37 kangur ACPI: PS/2 Mouse Controller [PS2M] at irq 12
-Mar 22 01:32:37 kangur serio: i8042 AUX port at 0x60,0x64 irq 12
-Mar 22 01:32:37 kangur serio: i8042 KBD port at 0x60,0x64 irq 1
-Mar 22 01:32:37 kangur io scheduler noop registered
-Mar 22 01:32:37 kangur io scheduler anticipatory registered
-Mar 22 01:32:37 kangur io scheduler deadline registered
-Mar 22 01:32:37 kangur io scheduler cfq registered
-Mar 22 01:32:37 kangur 8139too Fast Ethernet driver 0.9.27
-Mar 22 01:32:37 kangur ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 11
-Mar 22 01:32:37 kangur PCI: setting IRQ 11 as level-triggered
-Mar 22 01:32:37 kangur ACPI: PCI interrupt 0000:00:0f.0[A] -> GSI 11 
-(level, low) -> IRQ 11
-Mar 22 01:32:37 kangur eth0: RealTek RTL8139 at 0xec00, 00:06:4f:00:73:8b, 
-IRQ 11
-Mar 22 01:32:37 kangur eth0:  Identified 8139 chip type 'RTL-8139C'
-Mar 22 01:32:37 kangur Uniform Multi-Platform E-IDE driver Revision: 
-7.00alpha2
-Mar 22 01:32:37 kangur ide: Assuming 33MHz system bus speed for PIO modes; 
-override with idebus=xx
-Mar 22 01:32:37 kangur VP_IDE: IDE controller at PCI slot 0000:00:07.1
-Mar 22 01:32:37 kangur PCI: Via PIC IRQ fixup for 0000:00:07.1, from 255 
-to 0
-Mar 22 01:32:37 kangur VP_IDE: chipset revision 6
-Mar 22 01:32:37 kangur VP_IDE: not 100% native mode: will probe irqs later
-Mar 22 01:32:37 kangur VP_IDE: VIA vt82c686b (rev 40) IDE UDMA100 
-controller on pci0000:00:07.1
-Mar 22 01:32:37 kangur ide0: BM-DMA at 0xc400-0xc407, BIOS settings: 
-hda:pio, hdb:DMA
-Mar 22 01:32:37 kangur ide1: BM-DMA at 0xc408-0xc40f, BIOS settings: 
-hdc:pio, hdd:DMA
-Mar 22 01:32:37 kangur Probing IDE interface ide0...
-Mar 22 01:32:37 kangur hdb: SAMSUNG SV3063H, ATA DISK drive
-Mar 22 01:32:37 kangur ide0 at 0x1f0-0x1f7,0x3f6 on irq 14
-Mar 22 01:32:37 kangur Probing IDE interface ide1...
-Mar 22 01:32:37 kangur hdd: HL-DT-ST DVDRAM GSA-4082B, ATAPI CD/DVD-ROM 
-drive
-Mar 22 01:32:37 kangur ide1 at 0x170-0x177,0x376 on irq 15
-Mar 22 01:32:37 kangur pnp: the driver 'ide' has been registered
-Mar 22 01:32:37 kangur hdb: max request size: 128KiB
-Mar 22 01:32:37 kangur hdb: 59797584 sectors (30616 MB) w/426KiB Cache, 
-CHS=59323/16/63, UDMA(100)
-Mar 22 01:32:37 kangur hdb: cache flushes not supported
-Mar 22 01:32:37 kangur hdb: hdb1 hdb2 hdb3 hdb4
-Mar 22 01:32:37 kangur libata version 1.10 loaded.
-Mar 22 01:32:37 kangur sata_sil version 0.8
-Mar 22 01:32:37 kangur ACPI: PCI interrupt 0000:00:0d.0[A] -> GSI 11 
-(level, low) -> IRQ 11
-Mar 22 01:32:37 kangur ata1: SATA max UDMA/100 cmd 0xD0802080 ctl 
-0xD080208A bmdma 0xD0802000 irq 11
-Mar 22 01:32:37 kangur ata2: SATA max UDMA/100 cmd 0xD08020C0 ctl 
-0xD08020CA bmdma 0xD0802008 irq 11
-Mar 22 01:32:37 kangur ata1: dev 0 cfg 49:2f00 82:346b 83:7f61 84:4003 
-85:3469 86:3c41 87:4003 88:207f
-Mar 22 01:32:37 kangur ata1: dev 0 ATA, max UDMA/133, 312581808 sectors: 
-lba48
-Mar 22 01:32:37 kangur ata1: dev 0 configured for UDMA/100
-Mar 22 01:32:37 kangur scsi0 : sata_sil
-Mar 22 01:32:37 kangur ata2: no device found (phy stat 00000000)
-Mar 22 01:32:37 kangur scsi1 : sata_sil
-Mar 22 01:32:37 kangur Vendor: ATA       Model: WDC WD1600JD-00H  Rev: 
-08.0
-Mar 22 01:32:37 kangur Type:   Direct-Access                      ANSI 
-SCSI revision: 05
-Mar 22 01:32:37 kangur SCSI device sda: 312581808 512-byte hdwr sectors 
-(160042 MB)
-Mar 22 01:32:37 kangur SCSI device sda: drive cache: write back
-Mar 22 01:32:37 kangur SCSI device sda: 312581808 512-byte hdwr sectors 
-(160042 MB)
-Mar 22 01:32:37 kangur SCSI device sda: drive cache: write back
-Mar 22 01:32:37 kangur sda: sda1 sda2 sda3 sda4 < sda5 sda6 sda7 sda8 sda9 
-sda10 sda11 sda12 sda13 sda14 sda15 >
-Mar 22 01:32:37 kangur Attached scsi disk sda at scsi0, channel 0, id 0, 
-lun 0
-Mar 22 01:32:37 kangur mice: PS/2 mouse device common for all mice
-Mar 22 01:32:37 kangur input: AT Translated Set 2 keyboard on 
-isa0060/serio0
-Mar 22 01:32:37 kangur NET: Registered protocol family 2
-Mar 22 01:32:37 kangur IP: routing cache hash table of 4096 buckets, 
-32Kbytes
-Mar 22 01:32:37 kangur TCP established hash table entries: 32768 (order: 
-6, 262144 bytes)
-Mar 22 01:32:37 kangur TCP bind hash table entries: 32768 (order: 5, 
-131072 bytes)
-Mar 22 01:32:37 kangur TCP: Hash tables configured (established 32768 bind 
-32768)
-Mar 22 01:32:37 kangur ip_conntrack version 2.1 (4095 buckets, 32760 max) 
-- 216 bytes per conntrack
-Mar 22 01:32:37 kangur ip_tables: (C) 2000-2002 Netfilter core team
-Mar 22 01:32:37 kangur ipt_recent v0.3.1: Stephen Frost 
-<sfrost-vhD3WmCyG/PR7s880joybQ@public.gmane.org>.  http://snowman.net/projects/ipt_recent/
-Mar 22 01:32:37 kangur arp_tables: (C) 2002 David S. Miller
-Mar 22 01:32:37 kangur NET: Registered protocol family 17
-Mar 22 01:32:37 kangur ACPI wakeup devices:
-Mar 22 01:32:37 kangur SLPB PCI0 USB0 USB1
-Mar 22 01:32:37 kangur ACPI: (supports S0 S1 S4 S5)
-Mar 22 01:32:37 kangur kjournald starting.  Commit interval 5 seconds
-Mar 22 01:32:37 kangur EXT3-fs: mounted filesystem with ordered data mode.
-Mar 22 01:32:37 kangur VFS: Mounted root (ext3 filesystem) readonly.
-Mar 22 01:32:37 kangur Freeing unused kernel memory: 156k freed
-Mar 22 01:32:37 kangur NET: Registered protocol family 1
-Mar 22 01:32:37 kangur EXT3 FS on hdb4, internal journal
-Mar 22 01:32:37 kangur NET: Registered protocol family 8
-Mar 22 01:32:37 kangur NET: Registered protocol family 20
-Mar 22 01:32:37 kangur CSLIP: code copyright 1989 Regents of the 
-University of California
-Mar 22 01:32:37 kangur PPP generic driver version 2.4.2
-Mar 22 01:32:37 kangur input: PS/2 Generic Mouse on isa0060/serio1
-Mar 22 01:32:37 kangur input: PC Speaker
-Mar 22 01:32:37 kangur loop: loaded (max 8 devices)
-Mar 22 01:32:37 kangur Non-volatile memory driver v1.2
-Mar 22 01:32:37 kangur BIOS EDD facility v0.16 2004-Jun-25, 2 devices 
-found
-Mar 22 01:32:37 kangur vesafb: NVidia Corporation, NV15 Reference Board, 
-Chip Rev A0 (OEM: NVidia)
-Mar 22 01:32:37 kangur vesafb: VBE version: 3.0
-Mar 22 01:32:37 kangur vesafb: protected mode interface info at c000:0f03
-Mar 22 01:32:37 kangur vesafb: pmi: set display start = b00c0f3c, set 
-palette = b00c0fb2
-Mar 22 01:32:37 kangur vesafb: pmi: ports = 3b4 3b5 3ba 3c0 3c1 3c4 3c5 
-3c6 3c7 3c8 3c9 3cc 3ce 3cf 3d0 3d1 3d2 3d3 3d4 3d5 3da
-Mar 22 01:32:37 kangur vesafb: hardware supports DCC2 transfers
-Mar 22 01:32:37 kangur vesafb: monitor limits: vf = 85 Hz, hf = 64 kHz, 
-clk = 108 MHz
-Mar 22 01:32:37 kangur vesafb: scrolling: redraw
-Mar 22 01:32:37 kangur vesafb: framebuffer at 0xe8000000, mapped to 
-0xd0900000, using 6144k, total 65536k
-Mar 22 01:32:37 kangur fb0: VESA VGA frame buffer device
-Mar 22 01:32:37 kangur Console: switching to colour frame buffer device 
-128x48
-Mar 22 01:32:37 kangur device-mapper: 4.4.0-ioctl (2005-01-12) 
-initialised: dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Mar 22 01:32:37 kangur NTFS driver 2.1.22 [Flags: R/O MODULE].
-Mar 22 01:32:37 kangur NTFS volume version 3.1.
-Mar 22 01:32:37 kangur NTFS volume version 3.1.
-Mar 22 01:32:37 kangur usbcore: registered new driver usbfs
-Mar 22 01:32:37 kangur usbcore: registered new driver hub
-Mar 22 01:32:37 kangur ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 10
-Mar 22 01:32:37 kangur PCI: setting IRQ 10 as level-triggered
-Mar 22 01:32:37 kangur ACPI: PCI interrupt 0000:00:0b.0[A] -> GSI 10 
-(level, low) -> IRQ 10
-Mar 22 01:32:37 kangur parport_pc: VIA 686A/8231 detected
-Mar 22 01:32:37 kangur parport_pc: probing current configuration
-Mar 22 01:32:37 kangur parport_pc: Current parallel port base: 0x378
-Mar 22 01:32:37 kangur parport_pc: Strange, can't probe VIA parallel port: 
-io=0x378, irq=7, dma=-1
-Mar 22 01:32:37 kangur pnp: the driver 'parport_pc' has been registered
-Mar 22 01:32:37 kangur pnp: match found with the PnP device '00:09' and 
-the driver 'parport_pc'
-Mar 22 01:32:37 kangur parport: PnPBIOS parport detected.
-Mar 22 01:32:37 kangur parport0: PC-style at 0x378, irq 7 [PCSPP(,...)]
-Mar 22 01:32:37 kangur USB Universal Host Controller Interface driver v2.2
-Mar 22 01:32:37 kangur ACPI: PCI interrupt 0000:00:07.2[D] -> GSI 10 
-(level, low) -> IRQ 10
-Mar 22 01:32:37 kangur PCI: Via PIC IRQ fixup for 0000:00:07.2, from 9 to 
-10
-Mar 22 01:32:37 kangur uhci_hcd 0000:00:07.2: UHCI Host Controller
-Mar 22 01:32:37 kangur uhci_hcd 0000:00:07.2: irq 10, io base 0xc800
-Mar 22 01:32:37 kangur uhci_hcd 0000:00:07.2: new USB bus registered, 
-assigned bus number 1
-Mar 22 01:32:37 kangur hub 1-0:1.0: USB hub found
-Mar 22 01:32:37 kangur hub 1-0:1.0: 2 ports detected
-Mar 22 01:32:37 kangur ACPI: PCI interrupt 0000:00:07.3[D] -> GSI 10 
-(level, low) -> IRQ 10
-Mar 22 01:32:37 kangur PCI: Via PIC IRQ fixup for 0000:00:07.3, from 9 to 
-10
-Mar 22 01:32:37 kangur uhci_hcd 0000:00:07.3: UHCI Host Controller
-Mar 22 01:32:37 kangur uhci_hcd 0000:00:07.3: irq 10, io base 0xcc00
-Mar 22 01:32:37 kangur uhci_hcd 0000:00:07.3: new USB bus registered, 
-assigned bus number 2
-Mar 22 01:32:37 kangur hub 2-0:1.0: USB hub found
-Mar 22 01:32:37 kangur hub 2-0:1.0: 2 ports detected
-Mar 22 01:32:37 kangur usb 1-2: new full speed USB device using uhci_hcd 
-and address 2
-Mar 22 01:32:37 kangur Linux video capture interface: v1.00
-Mar 22 01:32:37 kangur speedtch: Unknown symbol release_firmware
-Mar 22 01:32:37 kangur speedtch: Unknown symbol request_firmware
-Mar 22 01:32:37 kangur speedtch: Unknown symbol release_firmware
-Mar 22 01:32:37 kangur speedtch: Unknown symbol request_firmware
-Mar 22 01:32:37 kangur speedtch: Unknown symbol release_firmware
-Mar 22 01:32:37 kangur speedtch: Unknown symbol request_firmware
-Mar 22 01:32:37 kangur bttv: driver version 0.9.15 loaded
-Mar 22 01:32:37 kangur bttv: using 32 buffers with 2080k (520 pages) each 
-for capture
-Mar 22 01:32:37 kangur bttv: Bt8xx card found (0).
-Mar 22 01:32:37 kangur ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 5
-Mar 22 01:32:37 kangur PCI: setting IRQ 5 as level-triggered
-Mar 22 01:32:37 kangur ACPI: PCI interrupt 0000:00:09.0[A] -> GSI 5 
-(level, low) -> IRQ 5
-Mar 22 01:32:37 kangur bttv0: Bt878 (rev 17) at 0000:00:09.0, irq: 5, 
-latency: 32, mmio: 0xf7000000
-Mar 22 01:32:37 kangur bttv0: using: Prolink Pixelview PV-BT878P+ 
-(Rev.4C,8E) [card=70,insmod option]
-Mar 22 01:32:37 kangur bttv0: gpio: en=00000000, out=00000000 in=00ffc0ff 
-[init]
-Mar 22 01:32:37 kangur bttv0: using tuner=25
-Mar 22 01:32:37 kangur bttv0: i2c: checking for MSP34xx @ 0x80... not 
-found
-Mar 22 01:32:37 kangur bttv0: i2c: checking for TDA9875 @ 0xb0... not 
-found
-Mar 22 01:32:37 kangur bttv0: i2c: checking for TDA7432 @ 0x8a... not 
-found
-Mar 22 01:32:37 kangur tvaudio: TV audio decoder + audio/video mux driver
-Mar 22 01:32:37 kangur tvaudio: known chips: 
-tda9840,tda9873h,tda9874h/a,tda9850,tda9855,tea6300,tea6320,tea6420,tda8425,pic16c54 
-(PV951),ta8874z
-Mar 22 01:32:37 kangur bttv0: i2c: checking for TDA9887 @ 0x86... not 
-found
-Mar 22 01:32:37 kangur tuner 0-0061: chip found @ 0xc2 (bt878 #0 [sw])
-Mar 22 01:32:37 kangur tuner 0-0061: type set to 25 (LG PAL_I+FM 
-(TAPC-I001D))
-Mar 22 01:32:37 kangur bttv0: registered device video0
-Mar 22 01:32:37 kangur bttv0: registered device vbi0
-Mar 22 01:32:37 kangur bttv0: registered device radio0
-Mar 22 01:32:37 kangur bttv0: PLL: 28636363 => 35468950 .. ok
-Mar 22 01:32:37 kangur bttv0: add subdevice "remote0"
-Mar 22 01:32:37 kangur gameport: pci0000:00:0b.1 speed 1242 kHz
-Mar 22 01:32:37 kangur nvidia: module license 'NVIDIA' taints kernel.
-Mar 22 01:32:37 kangur ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 10
-Mar 22 01:32:37 kangur ACPI: PCI interrupt 0000:01:05.0[A] -> GSI 10 
-(level, low) -> IRQ 10
-Mar 22 01:32:37 kangur NVRM: loading NVIDIA Linux x86 NVIDIA Kernel Module 
-1.0-6629  Wed Nov  3 13:12:51 PST 2004
-Mar 22 01:32:37 kangur Real Time Clock Driver v1.12
-Mar 22 01:32:37 kangur Floppy drive(s): fd0 is 1.44M
-Mar 22 01:32:37 kangur FDC 0 is a post-1991 82077
-Mar 22 01:32:37 kangur Serial: 8250/16550 driver $Revision: 1.90 $ 8 
-ports, IRQ sharing disabled
-Mar 22 01:32:37 kangur ttyS0 at I/O 0x3f8 (irq = 4) is a 16550A
-Mar 22 01:32:37 kangur ttyS1 at I/O 0x2f8 (irq = 3) is a 16550A
-Mar 22 01:32:37 kangur pnp: the driver 'serial' has been registered
-Mar 22 01:32:37 kangur pnp: match found with the PnP device '00:07' and 
-the driver 'serial'
-Mar 22 01:32:37 kangur ttyS0 at I/O 0x3f8 (irq = 4) is a 16550A
-Mar 22 01:32:37 kangur pnp: match found with the PnP device '00:08' and 
-the driver 'serial'
-Mar 22 01:32:37 kangur ttyS1 at I/O 0x2f8 (irq = 3) is a 16550A
-Mar 22 01:32:37 kangur usb 1-2: modprobe timed out on ep0in
-Mar 22 01:32:37 kangur usbcore: registered new driver speedtch
-Mar 22 01:32:37 kangur usb 1-2: found stage 1 firmware speedtch-1.bin
-Mar 22 01:32:37 kangur usb 1-2: found stage 2 firmware speedtch-2.bin
-Mar 22 01:32:39 kangur eth0: link down
-Mar 22 01:32:39 kangur eth0: link down
-Mar 22 01:32:40 kangur NET: Registered protocol family 10
-Mar 22 01:32:40 kangur Disabled Privacy Extensions on device b03e6aa0(lo)
-Mar 22 01:32:40 kangur IPv6 over IPv4 tunneling driver
-Mar 22 01:32:41 kangur ADSL line is synchronising
-Mar 22 01:32:41 kangur init: Entering runlevel: 3
-Mar 22 01:32:43 kangur init: Activating demand-procedures for 'A'
-Mar 22 01:32:51 kangur eth0: no IPv6 routers present
-Mar 22 01:32:53 kangur DSL line goes up
-Mar 22 01:32:53 kangur ADSL line is up (768 Kib/s down | 192 Kib/s up)
-
-
-By the way - since some time I am getting the above
-
-Mar 22 01:32:37 kangur speedtch: Unknown symbol release_firmware
-
-messages on modprobing speedtch in my startup scripts. The message did not 
-appeared with 2.6.11 at first (even after some VIA quirk related patches) 
-and it is now 100% reproductible. I do not know what is causing it because 
-I changed nearly nothing in the system setup. The funniest thing is that 
-speedtch still works well. Can anybody say something? Is it harmless or 
-what?
-
-And what is this:
-
-Mar 22 01:32:37 kangur usb 1-2: modprobe timed out on ep0in
-
-???
-
-
-Thanks,
-
-Grzegorz Kulewski
-
+> Please cc me, thanks.
+> 
+> ------------------------
+> ver_linux says:
+> ------------------------
+> 
+> Version: 1.4 (14 Feb 2002)
+> If version fields appear unusual you may have an old version. Compare to the
+> current minimal requirements in linux/Documentation/Changes. Please double
+> check lines that say "error getting version, try manually" for validity.
+> Libc 4 is not detected with this script.  Please report problems to
+> <david-qokYbnrgTHEgsBAKwltoeQ@public.gmane.org>
+> 
+> Linux pc1900 2.6.9-mm1 #1 Sat Oct 23 12:47:29 CEST 2004 i686 Mobile Intel(R) 
+> Pentium(R) 4 - M CPU 1.90GHz GenuineIntel GNU/Linux
+> Kernel command line: root=/dev/hda3 video=vesa:ywrap,mtrr vga=791
+> 
+> Gnu C compiler                    gcc (GCC) 3.3.5  (Gentoo Linux 3.3.5-r1, 
+> ssp-3.3.2-3, pie-8.7.7.1)
+> Copyright (C) 2003 Free Software Foundation, Inc.
+> This is free software; see the source for copying conditions.  There is NO
+> warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+> Kernel compiled with              gcc 3.3.3
+> GNU make                          error getting version, try manually
+> binutils                          2.15.92.0.2
+> mount/util-linux                  2.12i
+> modutils                          error getting version, try manually
+> e2fsprogs                         1.35
+> help me please, is this check for isdnlegitimate?
+> GNU Library                       20041021
+> Dynamic linker (ldd)              2.3.4
+> procps                            3.2.3
+> net-tools                         1.60
+> kbd (forked with console-tools)   error getting version, try manually
+> console-tools (fork from kbd)     error getting version, try manually
+> loaded modules                    [nvidia]
+> [ntfs]
+> [ide_scsi]
+> [sd_mod]
+> [fat]
+> [usb_storage]
+> [snd_intel8x0]
+> [snd_ac97_codec]
+> [e100]
+> [mii]
+> [ide_cd]
+> [sr_mod]
+> [cdrom]
+> 
+> TCP option: ECN                   enabled
+> 
+> 
+> 
+> 
+> ------------------------
+> here's dmesg:
+> ------------------------
+> 
+> 
+> 
+> Linux version 2.6.9-mm1 (root@pc1900) (gcc version 3.3.3 20040412 (Gentoo 
+> Linux 3.3.3-r6, ssp-3.3.2-2, pie-8.7.6)) #1 Sat Oct 23 12:47:29 CEST 2004
+> BIOS-provided physical RAM map:
+> BIOS-e820: 0000000000000000 - 000000000009fc00 (usable)
+> BIOS-e820: 000000000009fc00 - 00000000000a0000 (reserved)
+> BIOS-e820: 00000000000e0000 - 00000000000eee00 (reserved)
+> BIOS-e820: 00000000000eee00 - 00000000000ef000 (ACPI NVS)
+> BIOS-e820: 00000000000ef000 - 0000000000100000 (reserved)
+> BIOS-e820: 0000000000100000 - 000000001ffcc000 (usable)
+> BIOS-e820: 000000001ffcc000 - 000000001ffd0000 (reserved)
+> BIOS-e820: 000000001ffd0000 - 000000001ffe0000 (ACPI data)
+> BIOS-e820: 000000001ffe0000 - 0000000020000000 (reserved)
+> BIOS-e820: 00000000feda0000 - 00000000fedc0000 (reserved)
+> BIOS-e820: 00000000ffb80000 - 00000000ffc00000 (reserved)
+> BIOS-e820: 00000000fff80000 - 0000000100000000 (reserved)
+> 511MB LOWMEM available.
+> On node 0 totalpages: 131020
+>   DMA zone: 4096 pages, LIFO batch:1
+>   Normal zone: 126924 pages, LIFO batch:16
+>   HighMem zone: 0 pages, LIFO batch:1
+> DMI 2.3 present.
+> ACPI: RSDP (v000 TOSHIB                                ) @ 0x000f0180
+> ACPI: RSDT (v001 TOSHIB 5200     0x20020926 TASM 0x04010000) @ 0x1ffd0000
+> ACPI: FADT (v002 TOSHIB 5200     0x20020926 TASM 0x04010000) @ 0x1ffd0058
+> ACPI: DBGP (v001 TOSHIB 5200     0x20020926 TASM 0x04010000) @ 0x1ffd00dc
+> ACPI: BOOT (v001 TOSHIB 5200     0x20020926 TASM 0x04010000) @ 0x1ffd0030
+> ACPI: DSDT (v001 TOSHIB 5200     0x20020926 MSFT 0x0100000a) @ 0x00000000
+> Built 1 zonelists
+> Initializing CPU#0
+> Kernel command line: root=/dev/hda3 video=vesa:ywrap,mtrr vga=791
+> PID hash table entries: 2048 (order: 11, 32768 bytes)
+> Detected 1894.301 MHz processor.
+> Using tsc for high-res timesource
+> Console: colour dummy device 80x25
+> Dentry cache hash table entries: 131072 (order: 7, 524288 bytes)
+> Inode-cache hash table entries: 65536 (order: 6, 262144 bytes)
+> Memory: 514536k/524080k available (2670k kernel code, 9000k reserved, 1053k 
+> data, 156k init, 0k highmem)
+> Checking if this processor honours the WP bit even in supervisor mode... Ok.
+> Calibrating delay loop... 3743.74 BogoMIPS (lpj=1871872)
+> Mount-cache hash table entries: 512 (order: 0, 4096 bytes)
+> CPU: After generic identify, caps: bfebf9ff 00000000 00000000 00000000
+> CPU: After vendor identify, caps:  bfebf9ff 00000000 00000000 00000000
+> CPU: Trace cache: 12K uops, L1 D cache: 8K
+> CPU: L2 cache: 512K
+> CPU: After all inits, caps:        bfebf9ff 00000000 00000000 00000080
+> Intel machine check architecture supported.
+> Intel machine check reporting enabled on CPU#0.
+> CPU0: Intel P4/Xeon Extended MCE MSRs (12) available
+> CPU: Intel Mobile Intel(R) Pentium(R) 4 - M CPU 1.90GHz stepping 07
+> Enabling fast FPU save and restore... done.
+> Enabling unmasked SIMD FPU exception support... done.
+> Checking 'hlt' instruction... OK.
+> ACPI: IRQ9 SCI: Level Trigger.
+> NET: Registered protocol family 16
+> PCI: PCI BIOS revision 2.10 entry at 0xfcebc, last bus=4
+> PCI: Using configuration type 1
+> mtrr: v2.0 (20020519)
+> ACPI: Subsystem revision 20040816
+> ACPI: Interpreter enabled
+> ACPI: Using PIC for interrupt routing
+> ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 6 7 10 11 12) *0, disabled.
+> ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 6 7 10 11 12) *0, disabled.
+> ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 6 7 10 *11 12)
+> ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 *6 7 10 11 12)
+> ACPI: PCI Interrupt Link [LNKE] (IRQs 3 *4 6 7 10 11 12)
+> ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 6 7 10 11 12) *0, disabled.
+> ACPI: PCI Interrupt Link [LNKG] (IRQs *5)
+> ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 6 7 10 11 12) *0, disabled.
+> ACPI: PCI Root Bridge [PCI0] (00:00)
+> PCI: Probing PCI hardware (bus 00)
+> PCI: Ignoring BAR0-3 of IDE controller 0000:00:1f.1
+> PCI: Transparent bridge - 0000:00:1e.0
+> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCIB._PRT]
+> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCI1._PRT]
+> ACPI: Power Resource [PFN0] (off)
+> ACPI: Power Resource [PFN1] (off)
+> Toshiba System Managment Mode driver v1.11 26/9/2001
+> SCSI subsystem initialized
+> usbcore: registered new driver usbfs
+> usbcore: registered new driver hub
+> PCI: Using ACPI for IRQ routing
+> ** PCI interrupts are no longer routed automatically.  If this
+> ** causes a device to stop working, it is probably because the
+> ** driver failed to call pci_enable_device().  As a temporary
+> ** workaround, the "pci=routeirq" argument restores the old
+> ** behavior.  If this argument makes the device work again,
+> ** please email the output of "lspci" to bjorn.helgaas-VXdhtT5mjnY@public.gmane.org
+> ** so I can fix the driver.
+> Simple Boot Flag at 0x7c set to 0x1
+> Machine check exception polling timer started.
+> devfs: 2004-01-31 Richard Gooch (rgooch-r1x6VkxMR+00zabcByZE4g@public.gmane.org)
+> devfs: boot_options: 0x1
+> Installing knfsd (copyright (C) 1996 okir-pn4DOG8n3UYbFoVRYvo4fw@public.gmane.org).
+> Initializing Cryptographic API
+> vesafb: framebuffer at 0xd8000000, mapped to 0xe0880000, using 3072k, total 
+> 32768k
+> vesafb: mode is 1024x768x16, linelength=2048, pages=18
+> vesafb: protected mode interface info at c000:f460
+> vesafb: scrolling: redraw
+> vesafb: Truecolor: size=0:5:6:5, shift=0:11:5:0
+> Console: switching to colour frame buffer device 128x48
+> fb0: VESA VGA frame buffer device
+> ACPI: AC Adapter [ADP1] (on-line)
+> ACPI: Battery Slot [BAT1] (battery present)
+> ACPI: Battery Slot [BAT2] (battery absent)
+> ACPI: Power Button (FF) [PWRF]
+> ACPI: Lid Switch [LID]
+> ACPI: Fan [FAN0] (off)
+> ACPI: Fan [FAN1] (off)
+> ACPI: Processor [CPU0] (supports C1 C2 C3)
+> ACPI: Thermal Zone [THRM] (55 C)
+> toshiba_acpi: Toshiba Laptop ACPI Extras version 0.18
+> toshiba_acpi:     HCI method: \_SB_.VALD.GHCI
+> Linux agpgart interface v0.100 (c) Dave Jones
+> agpgart: Detected an Intel i845 Chipset.
+> agpgart: Maximum main memory to use for agp memory: 439M
+> agpgart: AGP aperture is 256M @ 0xe0000000
+> ACPI: PS/2 Keyboard Controller [KBC] at I/O 0x60, 0x64, irq 1
+> serio: i8042 KBD port at 0x60,0x64 irq 1
+> io scheduler noop registered
+> io scheduler anticipatory registered
+> io scheduler deadline registered
+> io scheduler cfq registered
+> RAMDISK driver initialized: 16 RAM disks of 4096K size 1024 blocksize
+> Uniform Multi-Platform E-IDE driver Revision: 7.00alpha2
+> ide: Assuming 33MHz system bus speed for PIO modes; override with idebus=xx
+> ICH3M: IDE controller at PCI slot 0000:00:1f.1
+> ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 11
+> PCI: setting IRQ 11 as level-triggered
+> ACPI: PCI interrupt 0000:00:1f.1[A] -> GSI 11 (level, low) -> IRQ 11
+> ICH3M: chipset revision 2
+> ICH3M: not 100% native mode: will probe irqs later
+>     ide0: BM-DMA at 0xcfa0-0xcfa7, BIOS settings: hda:DMA, hdb:DMA
+>     ide1: BM-DMA at 0xcfa8-0xcfaf, BIOS settings: hdc:DMA, hdd:pio
+> Probing IDE interface ide0...
+> hda: TOSHIBA MK4018GAS, ATA DISK drive
+> hdb: DW-224E, ATAPI CD/DVD-ROM drive
+> elevator: using anticipatory as default io scheduler
+> ide0 at 0x1f0-0x1f7,0x3f6 on irq 14
+> Probing IDE interface ide1...
+> hdc: IC25N040ATCS05-0, ATA DISK drive
+> ide1 at 0x170-0x177,0x376 on irq 15
+> hda: max request size: 128KiB
+> hda: 78140160 sectors (40007 MB), CHS=65535/16/63, UDMA(100)
+> hda: cache flushes supported
+> /dev/ide/host0/bus0/target0/lun0: p1 p2 p3
+> hdc: max request size: 128KiB
+> hdc: 78140160 sectors (40007 MB) w/7898KiB Cache, CHS=65535/16/63, UDMA(100)
+> hdc: cache flushes not supported
+> /dev/ide/host0/bus1/target0/lun0: p1
+> PCI: Enabling device 0000:02:06.2 (0000 -> 0002)
+> ACPI: PCI interrupt 0000:02:06.2[C] -> GSI 11 (level, low) -> IRQ 11
+> ehci_hcd 0000:02:06.2: NEC Corporation USB 2.0
+> ehci_hcd 0000:02:06.2: irq 11, pci mem 0x20000400
+> ehci_hcd 0000:02:06.2: new USB bus registered, assigned bus number 1
+> ehci_hcd 0000:02:06.2: USB 2.0 enabled, EHCI 0.95, driver 2004-May-10
+> hub 1-0:1.0: USB hub found
+> hub 1-0:1.0: 5 ports detected
+> ohci_hcd: 2004 Feb 02 USB 1.1 'Open' Host Controller (OHCI) Driver (PCI)
+> ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 6
+> PCI: setting IRQ 6 as level-triggered
+> ACPI: PCI interrupt 0000:02:06.0[A] -> GSI 6 (level, low) -> IRQ 6
+> ohci_hcd 0000:02:06.0: NEC Corporation USB
+> ohci_hcd 0000:02:06.0: irq 6, pci mem 0xfceff000
+> ohci_hcd 0000:02:06.0: new USB bus registered, assigned bus number 2
+> hub 2-0:1.0: USB hub found
+> hub 2-0:1.0: 3 ports detected
+> ACPI: PCI Interrupt Link [LNKE] enabled at IRQ 4
+> PCI: setting IRQ 4 as level-triggered
+> ACPI: PCI interrupt 0000:02:06.1[B] -> GSI 4 (level, low) -> IRQ 4
+> ohci_hcd 0000:02:06.1: NEC Corporation USB (#2)
+> ohci_hcd 0000:02:06.1: irq 4, pci mem 0xfcefe000
+> ohci_hcd 0000:02:06.1: new USB bus registered, assigned bus number 3
+> hub 3-0:1.0: USB hub found
+> hub 3-0:1.0: 2 ports detected
+> USB Universal Host Controller Interface driver v2.2
+> PCI: Enabling device 0000:00:1d.0 (0000 -> 0001)
+> ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 10
+> PCI: setting IRQ 10 as level-triggered
+> ACPI: PCI interrupt 0000:00:1d.0[A] -> GSI 10 (level, low) -> IRQ 10
+> uhci_hcd 0000:00:1d.0: Intel Corp. 82801CA/CAM USB (Hub #1)
+> PCI: Setting latency timer of device 0000:00:1d.0 to 64
+> uhci_hcd 0000:00:1d.0: irq 10, io base 0x1000
+> uhci_hcd 0000:00:1d.0: new USB bus registered, assigned bus number 4
+> hub 4-0:1.0: USB hub found
+> hub 4-0:1.0: 2 ports detected
+> usb 1-2: new high speed USB device using address 3
+> usb 1-3: new high speed USB device using address 4
+> hub 1-3:1.0: USB hub found
+> hub 1-3:1.0: 4 ports detected
+> usbcore: registered new driver usbhid
+> drivers/usb/input/hid-core.c: v2.0:USB HID core driver
+> mice: PS/2 mouse device common for all mice
+> input: AT Translated Set 2 keyboard on isa0060/serio0
+> Please email the following PERFCTR INIT lines to mikpe-gJWeRRR3xd2zQB+pC5nmwQ@public.gmane.org
+> To remove this message, rebuild the driver with CONFIG_PERFCTR_INIT_TESTS=n
+> PERFCTR INIT: vendor 0, family 15, model 2, stepping 7, clock 1894301 kHz
+> PERFCTR INIT: NITER == 64
+> PERFCTR INIT: loop overhead is 512 cycles
+> PERFCTR INIT: rdtsc cost is 78.6 cycles (5544 total)
+> PERFCTR INIT: rdpmc cost is 146.7 cycles (9904 total)
+> PERFCTR INIT: rdmsr (counter) cost is 255.5 cycles (16864 total)
+> PERFCTR INIT: rdmsr (escr) cost is 166.6 cycles (11180 total)
+> PERFCTR INIT: wrmsr (counter) cost is 795.8 cycles (51448 total)
+> PERFCTR INIT: wrmsr (escr) cost is 874.7 cycles (56496 total)
+> PERFCTR INIT: read cr4 cost is 5.3 cycles (852 total)
+> PERFCTR INIT: write cr4 cost is 253.8 cycles (16756 total)
+> PERFCTR INIT: rdpmc (fast) cost is 63.3 cycles (4564 total)
+> PERFCTR INIT: rdmsr (cccr) cost is 167.5 cycles (11232 total)
+> PERFCTR INIT: wrmsr (cccr) cost is 834.8 cycles (53940 total)
+> PERFCTR INIT: sync_core cost is 265.0 cycles (17472 total)
+> perfctr: driver 2.7.5, cpu type Intel P4 at 1894301 kHz
+> Advanced Linux Sound Architecture Driver Version 1.0.6 (Sun Aug 15 07:17:53 
+> 2004 UTC).
+> ALSA device list:
+>   No soundcards found.
+> NET: Registered protocol family 2
+> IP: routing cache hash table of 4096 buckets, 32Kbytes
+> TCP: Hash tables configured (established 32768 bind 65536)
+> NET: Registered protocol family 1
+> NET: Registered protocol family 17
+> NET: Registered protocol family 15
+> p4-clockmod: P4/Xeon(TM) CPU On-Demand Clock Modulation available
+> ACPI: (supports S0 S3 S4 S5)
+> ACPI wakeup devices:
+> LAN CBC0 USB2 USB3 USB4 AMDM  LID
+> usb 2-1: new full speed USB device using address 2
+> hub 2-1:1.0: USB hub found
+> hub 2-1:1.0: 3 ports detected
+> usb 2-3: new low speed USB device using address 3
+> input: USB HID v1.00 Mouse [Synaptics Inc. Synaptics WheelPad] on 
+> usb-0000:02:06.0-3
+> usb 1-3.1: new low speed USB device using address 6
+> input: USB HID v1.00 Keyboard [Compaq Compaq Internet Keyboard] on 
+> usb-0000:02:06.2-3.1
+> input: USB HID v1.00 Device [Compaq Compaq Internet Keyboard] on 
+> usb-0000:02:06.2-3.1
+> usb 1-3.2: new low speed USB device using address 7
+> input: USB HID v1.10 Mouse [Microsoft Microsoft 3-Button Mouse with 
+> IntelliEye(TM)] on usb-0000:02:06.2-3.2
+> usb 2-1.1: new full speed USB device using address 4
+> VFS: Mounted root (reiser4 filesystem) readonly.
+> Mounted devfs on /dev
+> Freeing unused kernel memory: 156k freed
+> Adding 506036k swap on /dev/hda2.  Priority:-1 extents:1
+> hdb: ATAPI 24X DVD-ROM CD-R/RW drive, 1658kB Cache, UDMA(33)
+> Uniform CD-ROM driver Revision: 3.20
+> nvidia: module license 'NVIDIA' taints kernel.
+> ACPI: PCI Interrupt Link [LNKG] enabled at IRQ 5
+> PCI: setting IRQ 5 as level-triggered
+> ACPI: PCI interrupt 0000:01:00.0[A] -> GSI 5 (level, low) -> IRQ 5
+> NVRM: loading NVIDIA Linux x86 NVIDIA Kernel Module  1.0-6111  Tue Jul 27 
+> 07:55:38 PDT 2004
+> e100: Intel(R) PRO/100 Network Driver, 3.2.3-k2-NAPI
+> e100: Copyright(c) 1999-2004 Intel Corporation
+> ACPI: PCI interrupt 0000:02:08.0[A] -> GSI 4 (level, low) -> IRQ 4
+> e100: eth0: e100_probe: addr 0xfcefd000, irq 4, MAC addr 00:00:39:DC:2B:DB
+> PCI: Enabling device 0000:00:1f.5 (0000 -> 0001)
+> ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 11
+> ACPI: PCI interrupt 0000:00:1f.5[B] -> GSI 11 (level, low) -> IRQ 11
+> PCI: Setting latency timer of device 0000:00:1f.5 to 64
+> intel8x0_measure_ac97_clock: measured 49414 usecs
+> intel8x0: clocking to 48000
+> Initializing USB Mass Storage driver...
+> scsi0 : SCSI emulation for USB Mass Storage devices
+> usbcore: registered new driver usb-storage
+> USB Mass Storage support registered.
+> usb-storage: device found at 3
+> usb-storage: waiting for device to settle before scanning
+> NTFS driver 2.1.21 [Flags: R/O MODULE].
+> NTFS volume version 3.1.
+>   Vendor: TOSHIBA   Model: MK4025GAS         Rev: 0811
+>   Type:   Direct-Access                      ANSI SCSI revision: 00
+> SCSI device sda: 78140160 512-byte hdwr sectors (40008 MB)
+> sda: assuming drive cache: write through
+> /dev/scsi/host0/bus0/target0/lun0: p1 p2
+> Attached scsi disk sda at scsi0, channel 0, id 0, lun 0
+> Attached scsi generic sg0 at scsi0, channel 0, id 0, lun 0,  type 0
+> usb-storage: device scan complete
+> e100: eth0: e100_watchdog: link up, 100Mbps, full-duplex
+> hda: dma_intr: status=0x58 { DriveReady SeekComplete DataRequest }
+> 
+> ide: failed opcode was: unknown
+> hda: CHECK for good STATUS
+> kjournald starting.  Commit interval 5 seconds
+> EXT3 FS on hda1, internal journal
+> EXT3-fs: mounted filesystem with ordered data mode.
+> NVRM: client supports wrong rm api version!!
+> NVRM:    aborting to avoid catastrophe!
+> NVRM: client supports wrong rm api version!!
+> NVRM:    aborting to avoid catastrophe!
+> ACPI: PCI interrupt 0000:01:00.0[A] -> GSI 5 (level, low) -> IRQ 5
+> NVRM: loading NVIDIA Linux x86 NVIDIA Kernel Module  1.0-6629  Wed Nov  3 
+> 13:12:51 PST 2004
+> agpgart: Found an AGP 2.0 compliant device at 0000:00:00.0.
+> agpgart: Putting AGP V2 device at 0000:00:00.0 into 4x mode
+> agpgart: Putting AGP V2 device at 0000:01:00.0 into 4x mode
+> agpgart: Found an AGP 2.0 compliant device at 0000:00:00.0.
+> agpgart: Putting AGP V2 device at 0000:00:00.0 into 4x mode
+> agpgart: Putting AGP V2 device at 0000:01:00.0 into 4x mode
+> drivers/usb/input/hid-input.c: event field not found
+> drivers/usb/input/hid-input.c: event field not found
+> 
+> 
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 
 
 -------------------------------------------------------
