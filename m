@@ -1,8 +1,8 @@
 From: MAILER-DAEMON-mTaAeZlX92tNNGx2Ji+4voH6Mc4MB0Vx@public.gmane.org
 Subject: failure notice
-Date: 28 Jan 2004 13:06:41 -0000
+Date: 28 Jan 2004 13:07:52 -0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E1AlpQS-0004uN-00@deer.gmane.org>
+Message-ID: <E1AlpRE-0004xm-00@deer.gmane.org>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -26,11 +26,11 @@ Remote host said: 550 Unacceptable content
 --- Below this line is a copy of the message.
 
 Return-Path: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Received: (qmail 19720 invoked by alias); 28 Jan 2004 13:06:41 -0000
+Received: (qmail 19983 invoked by alias); 28 Jan 2004 13:07:52 -0000
 Delivered-To: minyard-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org
-Received: (qmail 19704 invoked from network); 28 Jan 2004 13:06:40 -0000
+Received: (qmail 19970 invoked from network); 28 Jan 2004 13:07:51 -0000
 Received: from unknown (HELO lists.sourceforge.net) (195.62.141.2)
-  by apocalypse.mvista.com with SMTP; 28 Jan 2004 13:06:01 -0000
+  by apocalypse.mvista.com with SMTP; 28 Jan 2004 13:07:11 -0000
 From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 To: minyard-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org
 Subject: gooa
@@ -41,8 +41,8 @@ Content-Type: multipart/mixed;
 X-Priority: 3
 X-MSMail-Priority: Normal
 X-Spam-Status: No, hits=-3.7 required=5.0
-	tests=BAYES_01,MICROSOFT_EXECUTABLE,MISSING_MIMEOLE,NO_REAL_NAME,
-	      PRIORITY_NO_NAME
+	tests=AWL,BAYES_01,MICROSOFT_EXECUTABLE,MISSING_MIMEOLE,
+	      NO_REAL_NAME,PRIORITY_NO_NAME
 	version=2.55
 X-Spam-Level: 
 X-Spam-Checker-Version: SpamAssassin 2.55 (1.174.2.19-2003-05-19-exp)
