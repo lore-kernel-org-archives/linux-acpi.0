@@ -1,46 +1,83 @@
-From: "Ronny Browne" <ronny_browneir-8qz/x0S5Snik7QfWoSeuSvUpdFzICT1y@public.gmane.org>
-Subject: Aloha Casino Online!
-Date: Mon, 08 Nov 2004 14:45:59 +0300
-Message-ID: <d90101c4c588$e5d9527f$25fba008@e-apollo.lv>
+From: Matthew Wilcox <matthew@wil.cx>
+Subject: Re: [ACPI] [PATCH/RFC 0/4]Bind physical devices with ACPI devices
+Date: Mon, 8 Nov 2004 13:56:06 +0000
+Message-ID: <20041108135606.GA2685@parcelfarce.linux.theplanet.co.uk>
+References: <1099887066.1750.241.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261710AbUKHN4P@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1099887066.1750.241.camel@sli10-desk.sh.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Li Shaohua <shaohua.li@intel.com>
+Cc: ACPI-DEV <acpi-devel@lists.sourceforge.net>, lkml <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, Greg <greg@kroah.com>, Patrick Mochel <mochel@digitalimplant.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Aloha!
- 
-Enjoy island style entertainment with these hot new promotional offers:
+On Mon, Nov 08, 2004 at 12:11:06PM +0800, Li Shaohua wrote:
+> ACPI provides many functionalities for physical devices. Such as for
+> suspend/resume, ACPI can tell us correct devices D-state for S3. There
+> are tons of devices enhancement for both realtime and boot time from
+> ACPI. To utilize ACPI, physical devices like PCI devices must know its
+> partner. The patches try to do this. After this is done, we can enhance
+> many features, such as improve suspend/resume.
+> These patches are against 2.6.10-rc1, please give your comments.
 
-$300 match deposit bonus - bonus code X3DAW at casino's cashier.
-$10 free, no deposit necessary - bonus code FR1EE at casino's cashier.
+I don't think this is a great way to do it.  There's at least two other
+examples of firmware that interacts with drivers in a similar way that you
+could look at -- PA-RISC's PDC and Sun/Apple/IBM OpenFirmware.  I don't
+know much about OpenFirmware, and I just redid the way parisc_device
+works, so I'll discourse about that for a bit.
 
-Vacation at Aloha Casino!
-50 amazing games - 24/7 customer support - SafeBet certification
+>From a driver's point of view, it's simple.  Call a function to get
+a cookie (an acpi_handle for ACPI, I guess), then pass that cookie to
+whatever functions necessary.  This is the code in the sym2 SCSI driver:
 
-Visit: http://www.alohacasino.biz
+#ifdef CONFIG_PARISC
+/*
+ * Host firmware (PDC) keeps a table for altering SCSI capabilities.
+ * Many newer machines export one channel of 53c896 chip as SE, 50-pin HD.
+ * Also used for Multi-initiator SCSI clusters to set the SCSI Initiator ID.
+ */
+static int sym_read_parisc_pdc(struct sym_device *np, struct pdc_initiator *pdc)
+{
+        struct hardware_path hwpath;
+        get_pci_node_path(np->pdev, &hwpath);
+        if (!pdc_get_initiator(&hwpath, pdc))
+                return 0;
 
-Mahalo,
-Billy Bob
+        return SYM_PARISC_PDC;
+}
+#else
+static int sym_read_parisc_pdc(struct sym_device *np, struct pdc_initiator *x)
+{
+        return 0;
+}
+#endif
 
 
-No thanks: http://www.alohacasino.biz/u/
+Hm.. ACPI doesn't really hanve anything SCSI-related in it.  Let's look at
+IDE's _GTM and _STM for examples.  
 
+static void ide_acpi_gtm(struct hwif_s *hwif, struct acpi_timing_mode *tm)
+{
+	acpi_handle handle;
+	acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL};
+	acpi_status status;
 
+	handle = acpi_get_gendev_handle(&hwif->gendev);
+	status = acpi_evaluate_object(handle, "_GTM", NULL, &buffer);
+	...
+}
 
--------------------------------------------------------
-This SF.Net email is sponsored by:
-Sybase ASE Linux Express Edition - download now for FREE
-LinuxWorld Reader's Choice Award Winner for best database on Linux.
-http://ads.osdn.com/?ad_id=5588&alloc_id=12065&op=click
+All we need is an acpi_get_gendev_handle that takes a struct device and
+returns the acpi_handle for it.  Now, maybe that'd be best done by placing
+a pointer in the struct device, but I bet it'd be just as good to walk
+the namespace looking for the corresponding device.
+
+-- 
+"Next the statesmen will invent cheap lies, putting the blame upon 
+the nation that is attacked, and every man will be glad of those
+conscience-soothing falsities, and will diligently study them, and refuse
+to examine any refutations of them; and thus he will by and by convince 
+himself that the war is just, and will thank God for the better sleep 
+he enjoys after this process of grotesque self-deception." -- Mark Twain
