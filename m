@@ -1,57 +1,46 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: 2.6.11-rc4-mm1: something is wrong with swsusp powerdown
-Date: 01 Mar 2005 10:33:54 -0700
-Message-ID: <m1ll97qni5.fsf@ebiederm.dsl.xmission.com>
-References: <20050228231721.GA1326@elf.ucw.cz>
-	<20050301015231.091b5329.akpm@osdl.org>
-	<m1u0nvr5cn.fsf@ebiederm.dsl.xmission.com>
-	<20050301120843.GN1345@elf.ucw.cz>
+From: Sergio Monteiro Basto <sergio-qOf5bGQp09kptuEoxK/DLR2eb7JE58TQ@public.gmane.org>
+Subject: Re: New insights about video module! Need help,please.
+Date: Tue, 01 Mar 2005 20:37:45 +0000
+Message-ID: <1109709465.10429.15.camel@bastov>
+References: <42236037.1010102@gmx.net>
+Reply-To: sergio-qOf5bGQp09kptuEoxK/DLR2eb7JE58TQ@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-In-Reply-To: <20050301120843.GN1345@elf.ucw.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@suse.cz>
-Cc: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, barryn@pobox.com, marado@student.dei.uc.pt, acpi-devel@lists.sourceforge.net
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <42236037.1010102-hi6Y0CQ0nG0@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: "Tommy Ch." <tommy-c-hi6Y0CQ0nG0@public.gmane.org>
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Pavel Machek <pavel@suse.cz> writes:
+On Mon, 2005-02-28 at 19:17 +0100, Tommy Ch. wrote:
 
-> > I threw it together to test a specific code path, and the fact it
-> > fails in software suspend is actually almost confirmation that I am on
-> > the right track.  This actually fixed the case I was testing.
-> > 
-> > In this case the failure is simply because system_state is
-> > not set to SYSTEM_POWER_OFF before
-> > kernel/power/disk.c:power_down() calls device_shutdown().
-> > The appropriate reboot notifier is also not called..
-> 
-> Can you suggest patch to do it right? Or perhaps there should be
-> just_plain_power_machine_down() that does all neccessary
-> trickery?
+> Is this correct? If yes, a
+> echo "tv_out:1" > /proc/acpi/toshiba/video
+> had no effect.
 
-I would call it kernel_power_down() and that
-is what I am suggesting is the right fix.
+To switch to tv-out I used keys Fn+F2 or Fn+F3 (don't remember exactly),
+which just begging to work when I put ACPI on kernel.
+The keys to switch to tv-out on Windows should work on Linux (with ACPI
+enabled of course).
 
-We have it open coded in kernel/sys.c:sys_reboot()
-in the switch case for: LINUX_REBOOT_CMD_POWER_OFF
+Regards,
 
-So after the code gets factored out from there all
-of the cases that call machine_power_off() and pm_power_off()
-directly need to be updated.
+--=20
+S=E9rgio M.B.
 
-There are similar cases for machine_restart() and machine_halt().
-But the power off case seems to be the most acute.
 
-My biggest problem with this is I get into the recursive code
-cleanup problem.  Where I fix one piece and a bug is exposed somewhere
-else.  And that then requires investigation and fixing.
 
-Fixing the callers of machine_power_off() is about the fifth bug
-fix down the chain triggered by disabling UP interrupts in
-device_shutdown(), SMP interrupts have always been disabled.  With the
-first bug fix was to create system devices in the device tree..
-
-I haven't a clue where fixing this one will lead.  Recursive
-code fixes are a hard thing to schedule :(
-
-Eric
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=3D6595&alloc_id=3D14396&op=3Dclick
