@@ -1,14 +1,11 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: ACPI in kernel 2.5.68 works better (for me) than 2.5.69
-Date: Tue, 6 May 2003 14:36:50 +0200
+From: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
+Subject: [Patch] DSDT in initrd v0.2
+Date: Tue, 6 May 2003 14:51:29 +0200 (CEST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030506123650.GR2954@poup.poupinou.org>
-References: <1052180986.1005.3.camel@chevrolet.hybel> <20030506112053.GO2954@poup.poupinou.org> <1052222508.5614.5.camel@chevrolet.hybel>
+Message-ID: <Pine.LNX.4.53.0305061444120.1274@tweety.gaugusch.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: MULTIPART/MIXED; BOUNDARY="8323584-603909068-1052225489=:1274"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1052222508.5614.5.camel-rd0e0RNjLLRX8BKYUJ5quQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,63 +14,108 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stian Jordet <liste-NI9zH3lwcMKHXe+LvDLADg@public.gmane.org>
-Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, May 06, 2003 at 02:01:48PM +0200, Stian Jordet wrote:
-> tir, 06.05.2003 kl. 13.20 skrev Ducrot Bruno:
-> > On Tue, May 06, 2003 at 02:29:46AM +0200, Stian Jordet wrote:
-> > > Hi,
-> > > 
-> > > Since kernel 2.5.69, usb no longer work with acpi on my computer. With
-> > > 2.5.68 it did. Do you know what changes you have done might cause this?
-> > > 
-> > > I get this error, but this one is with both .68 and .69.
-> > > 
-> > > ACPI-0109: *** Error: No object was returned from
-> > > [\_SB_.PCI0.PX40.IRDA._STA] (Node dff5cc80), AE_NOT_EXIST
-> > 
-> > A pointer to your DSDT will be appreciate...
-> 
-> I'm probably just stupid, but I have been searching a bit, and I can't
-> seem to find information about how to find it anywhere.. With 2.4 it was
-> under /proc/acpi, but not in 2.5.. Hmm..
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime-oOUblnuQwHKola3qYQ6TW/IULO3mGbRi9nwVQlTi/Pw@public.gmane.org for more info.
 
-Ok.  I must admit I don't know for 2.5.  Then just grab acpidump
-from sf'cvs :
+--8323584-603909068-1052225489=:1274
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 
-cvs -d:pserver:anonymous-CZy7tVeV0kv+F7Cq6hUZDNHuzzzSOjJt@public.gmane.org:/cvsroot/acpi login
-cvs -z3 -d:pserver:anonymous-CZy7tVeV0kv+F7Cq6hUZDNHuzzzSOjJt@public.gmane.org:/cvsroot/acpi co acpidump
+* Fixed: don't scan beyond end of initrd
+* printk output fixed
+* Feature: Get DSDT from initrd without signature, if it starts with
+  "DSDT". This way one can just copy the DSDT.aml file and use it as
+  initrd
 
-then, in acpidump directory, do a make and a
-./acpidump -b DSDT > dsdt
-then send me a gzipped version to this one (or place a pointer in www,
-ftp, etc.).
+The patch is against 2.4.21-rc1+latest ACPI, please reverse the old patch
+if you used it.
 
-> 
-> > > This is a Asus CUV266-DLS smp motherboard, and thus I need acpi to power
-> > > it off, and it would have been very, very much apprpeciated if this
-> > > somehow could be fixed before 2.6, atleast. I don't want to be running
-> > > 2.5.68 for ever :)
-> > > 
-> > 
-> > 
-> > Stupid question: does USB work without ACPI?
-> 
-> It does indeed (with MPS1.4 disabled). But it has worked with at least
-> the 15 last 2.5.x kernels...
-
-IMHO, it is likely to be a problem with IRQ and IO-APIC.  Andy should
-answer more on this than me.  But I guess that at first a
-cat /proc/interrupts
-may help (with and without acpi), and with attached dmesgs.
-
+Markus
 -- 
-Ducrot Bruno
+__________________    /"\
+Markus Gaugusch       \ /    ASCII Ribbon Campaign
+markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org     X     Against HTML Mail
+                      / \
+--8323584-603909068-1052225489=:1274
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name="acpi-dsdt-initrd-patch-v0.2"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.53.0305061451290.1274-qopfHk9/S+VQK2oVCIMtW7NldLUNz+W/@public.gmane.org>
+Content-Description: 
+Content-Disposition: attachment; filename="acpi-dsdt-initrd-patch-v0.2"
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+LS0tIGxpbnV4Lm9yaWcvZHJpdmVycy9hY3BpL29zbC5jCTIwMDMtMDUtMDUg
+MTg6MDA6MjUuMDAwMDAwMDAwICswMjAwDQorKysgbGludXgvZHJpdmVycy9h
+Y3BpL29zbC5jCTIwMDMtMDUtMDYgMTM6NTE6MDYuMDAwMDAwMDAwICswMjAw
+DQpAQCAtMzMsNiArMzMsMTAgQEANCiAjaW5jbHVkZSA8bGludXgvaW50ZXJy
+dXB0Lmg+DQogI2luY2x1ZGUgPGxpbnV4L2ttb2QuaD4NCiAjaW5jbHVkZSA8
+bGludXgvZGVsYXkuaD4NCisjaWZkZWYgQ09ORklHX0FDUElfSU5JVFJEDQor
+I2luY2x1ZGUgPGxpbnV4L2luaXQuaD4NCisjaW5jbHVkZSA8bGludXgvdm1h
+bGxvYy5oPg0KKyNlbmRpZg0KICNpbmNsdWRlIDxhc20vaW8uaD4NCiAjaW5j
+bHVkZSA8YWNwaS9hY3BpX2J1cy5oPg0KICNpbmNsdWRlIDxhY3BpL2FjcGku
+aD4NCkBAIC0yMjIsMTQgKzIyNiw1NyBAQA0KIAlyZXR1cm4gQUVfT0s7DQog
+fQ0KIA0KKw0KKyNpZmRlZiBDT05GSUdfQUNQSV9JTklUUkQNCisNCit1bnNp
+Z25lZCBjaGFyKiBnZXRfZHNkdF9mcm9tX2luaXRyZCh1bnNpZ25lZCBjaGFy
+ICpzdGFydCwgdW5zaWduZWQgY2hhciAqZW5kKQ0KK3sNCisJdW5zaWduZWQg
+Y2hhciAqZGF0YTsNCisJdW5zaWduZWQgY2hhciBzaWduYXR1cmVbXSA9ICJJ
+TklUUkREU0RUMTIzRFNEVDEyMyI7DQorDQorCWlmIChzdGFydCA9PSBOVUxM
+KQ0KKwkJcmV0dXJuIE5VTEw7DQorCXByaW50ayhLRVJOX0lORk8gIkxvb2tp
+bmcgZm9yIERTRFQgaW4gaW5pdHJkIC4uLiIpOw0KKwlpZiAoIW1lbWNtcChz
+aWduYXR1cmUrNiwgc3RhcnQsIDQpKSB7DQorCQlwcmludGsoIiBmb3VuZCBh
+dCBiZWdpbm5pbmchXG4iKTsNCisJCXJldHVybiBzdGFydDsNCisJfQ0KKwll
+bmQtPXNpemVvZihzaWduYXR1cmUpKzE7IC8qIGRvbid0IHNjYW4gYWJvdmUg
+ZW5kICovDQorCWZvciAoZGF0YT1zdGFydDsgZGF0YSA8IGVuZCA7ICsrZGF0
+YSkgew0KKwkJaWYgKCFtZW1jbXAoZGF0YSwgc2lnbmF0dXJlLCBzaXplb2Yo
+c2lnbmF0dXJlKS0xKSkgew0KKwkJCXByaW50aygiIGZvdW5kIChhdCBvZmZz
+ZXQgJXUpIVxuIiwgZGF0YStzaXplb2Yoc2lnbmF0dXJlKS1zdGFydCk7DQor
+CQkJcmV0dXJuIGRhdGErc2l6ZW9mKHNpZ25hdHVyZSk7DQorCQl9DQorCX0N
+CisJcHJpbnRrKCIgbm90IGZvdW5kIVxuIik7DQorDQorCXJldHVybiBOVUxM
+Ow0KK30NCisjZW5kaWYNCisNCiBhY3BpX3N0YXR1cw0KIGFjcGlfb3NfdGFi
+bGVfb3ZlcnJpZGUgKHN0cnVjdCBhY3BpX3RhYmxlX2hlYWRlciAqZXhpc3Rp
+bmdfdGFibGUsDQogCQkJc3RydWN0IGFjcGlfdGFibGVfaGVhZGVyICoqbmV3
+X3RhYmxlKQ0KIHsNCisjaWZkZWYgQ09ORklHX0FDUElfSU5JVFJEDQorCWV4
+dGVybiB1bnNpZ25lZCBsb25nIGluaXRyZF9zdGFydCwgaW5pdHJkX2VuZDsN
+CisJdW5zaWduZWQgY2hhciogbmV3X2RzZHQ9TlVMTDsNCisNCisjZW5kaWYN
+CiAJaWYgKCFleGlzdGluZ190YWJsZSB8fCAhbmV3X3RhYmxlKQ0KIAkJcmV0
+dXJuIEFFX0JBRF9QQVJBTUVURVI7DQogDQorI2lmZGVmIENPTkZJR19BQ1BJ
+X0lOSVRSRA0KKwlpZiAoc3RybmNtcChleGlzdGluZ190YWJsZS0+c2lnbmF0
+dXJlLCAiRFNEVCIsIDQpID09IDAgJiYNCisJCShuZXdfZHNkdD1nZXRfZHNk
+dF9mcm9tX2luaXRyZCgodW5zaWduZWQgY2hhciopaW5pdHJkX3N0YXJ0LCAN
+CisJCQkodW5zaWduZWQgY2hhciopaW5pdHJkX2VuZCkpICE9IE5VTEwpDQor
+CQkqbmV3X3RhYmxlID0gKHN0cnVjdCBhY3BpX3RhYmxlX2hlYWRlciopbmV3
+X2RzZHQ7DQorCWVsc2UNCisJCSpuZXdfdGFibGUgPSBOVUxMOw0KKyNlbHNl
+DQogCSpuZXdfdGFibGUgPSBOVUxMOw0KKyNlbmRpZg0KKw0KIAlyZXR1cm4g
+QUVfT0s7DQogfQ0KIA0KLS0tIGxpbnV4Lm9yaWcvZHJpdmVycy9hY3BpL0Nv
+bmZpZy5pbgkyMDAzLTA1LTA1IDE4OjQ0OjQxLjAwMDAwMDAwMCArMDIwMA0K
+KysrIGxpbnV4L2RyaXZlcnMvYWNwaS9Db25maWcuaW4JMjAwMy0wNS0wNSAy
+MDoxOTowNi4wMDAwMDAwMDAgKzAyMDANCkBAIC0xMiw2ICsxMiwxMCBAQA0K
+ICAgICAgIGJvb2wgICAgICAgICAnQ1BVIEVudW1lcmF0aW9uIE9ubHknIENP
+TkZJR19BQ1BJX0hUX09OTFkNCiAgICAgZmkNCiANCisgICAgaWYgWyAiJENP
+TkZJR19CTEtfREVWX0lOSVRSRCIgPSAieSIgXTsgdGhlbg0KKyAgICAgIGJv
+b2wgICAgICAgICAnUmVhZCBEU0RUIGZyb20gaW5pdHJkJyBDT05GSUdfQUNQ
+SV9JTklUUkQNCisgICAgZmkNCisNCiAgICAgaWYgWyAiJENPTkZJR19BQ1BJ
+X0hUX09OTFkiID0gInkiIF07IHRoZW4NCiAgICAgICBkZWZpbmVfYm9vbCBD
+T05GSUdfQUNQSV9CT09UCQl5DQogICAgIGVsc2UNCi0tLSBsaW51eC5vcmln
+L0RvY3VtZW50YXRpb24vQ29uZmlndXJlLmhlbHAJMjAwMy0wNS0wNSAxOTo1
+MTowOS4wMDAwMDAwMDAgKzAyMDANCisrKyBsaW51eC9Eb2N1bWVudGF0aW9u
+L0NvbmZpZ3VyZS5oZWxwCTIwMDMtMDUtMDUgMjA6MTg6NTYuMDAwMDAwMDAw
+ICswMjAwDQpAQCAtMTg2MDIsNiArMTg2MDIsMTMgQEANCiAgIGhhbmRsZXMg
+UG5QIG1lc3NhZ2VzLiAgQWxsIEFDUEkgZGV2aWNlcyB1c2UgaXRzIHNlcnZp
+Y2VzLCBzbyB1c2luZw0KICAgdGhlbSByZXF1aXJlcyBzYXlpbmcgWSBoZXJl
+Lg0KIA0KK0FDUEkgRFNEVCBpbiBpbml0cmQNCitDT05GSUdfQUNQSV9JTklU
+UkQNCisgIFRoZSBEU0RUIChEaWZmZXJlbnRpYXRlZCBTeXN0ZW0gRGVzY3Jp
+cHRpb24gVGFibGUpIG9mdGVuIG5lZWRzIHRvIGJlIA0KKyAgb3ZlcnJpZGRl
+biBiZWNhdXNlIG9mIGEgYnJva2VuIEJJT1MgaW1wbGVtZW50YXRpb24uIElm
+IHlvdSB3YW50IHRvIHB1dA0KKyAgdGhlIG92ZXJyaWRlbiBEU0RUIGludG8g
+dGhlIGluaXRyZCwgc2VlIGh0dHA6Ly9nYXVndXNjaC5hdC9rZXJuZWwuc2h0
+bWwNCisgIGZvciBtb3JlIGluZm8uIElmIHVuc3VyZSwgc2F5IE4gaGVyZS4N
+CisNCiBBQ1BJIFN5c3RlbSBEcml2ZXINCiBDT05GSUdfQUNQSV9TWVMNCiAg
+IFRoaXMgZHJpdmVyIHdpbGwgZW5hYmxlIHlvdXIgc3lzdGVtIHRvIHNodXQg
+ZG93biB1c2luZyBBQ1BJLCBhbmQNCg==
+
+--8323584-603909068-1052225489=:1274--
 
 
 -------------------------------------------------------
