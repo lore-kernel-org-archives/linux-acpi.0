@@ -1,15 +1,14 @@
-From: "P. Christeas" <p_christ-U04EIuiosng@public.gmane.org>
-Subject: Re: Waking from Sx : Test more!
-Date: Wed, 24 Jul 2002 01:05:29 +0300
+From: Carl Thompson <cet-GxmFRYwVNOxKOnpN5g9PlQ@public.gmane.org>
+Subject: Re: CX > 1 support for Athlon SMP systems
+Date: Tue, 23 Jul 2002 15:06:11 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200207232209.g6NM8sK04910@pfn1.pefnos>
-References: <20020627195226.GA29113@srcf.ucam.org> <200206272109.g5RL92I04788@pfn1.pefnos> <20020723073432.GA116@elf.ucw.cz>
+Message-ID: <1027461971.3d3dd353462e8@carlthompson.net>
+References: <3D3B879A.5020401@folkwolf.net> <1027351350.3d3c23363ea3d@carlthompson.net> <3D3CBF78.4010007@folkwolf.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-7"
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20020723073432.GA116-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <3D3CBF78.4010007-Pn2JTpibVOrk1uMJSBkQmQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,29 +17,61 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Johnathan Hicks <thetech-Pn2JTpibVOrk1uMJSBkQmQ@public.gmane.org>
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-
-> > You often say "waking from S1/S3 works fine for me" etc.
-> > I 've noticed that in a ratio of 1/20 times my machine doesn't wake. Do
-> > you report after one sucessful wake?
->
-> S1 or S3?
-> Pavel
-
-I was referring to S1. That was quite some time ago. 
-Now, I have the 2.5 tree, and don't apply any patches (I want to keep the 
-official kernel).  The problem I had mentioned hasn't appeared ever since. 
-What I get is a frozen ACPI subsystem after the S1 (*1) and a dead USB. I 
-haven't tested S3. I 'll let you know if I get any specific debugging.
-
-*1. thermal won't report the temperature (50 deg. C continiously). The USB 
-can't even unload its modules (as if this was supported). I can't say I have 
-debugged that at all. I just report some trouble.
-
-System: HP OB XE3 GC with 2.5.27.
+Wow.  This actually seems to work on my Sony laptops.  But I wonder if 
+it is really puting the CPU in C2 because there is no additional power 
+savings or temperature reduction than using ACPI.  Is there any way to 
+test if CPU is going in C2 state? 
+ 
+At any rate, since the power savings is comparable to ACPI and the 
+only reason I was using ACPI on these laptops was for the power 
+savings, I have switched to using lvcool + APM instead of ACPI.  
+Battery life seems about the same, and it eliminates the issues I was 
+having with ACPI (CPU usage reading battery status, dropped 
+characters, USB weirdness, undocumented inteface, etc). 
+ 
+BTW, APM uses about 1/50th to 1/100th the processor time reading 
+battery status on my laptop compared to using ACPI.  No joke. 
+ 
+Carl Thompson 
+ 
+ 
+Quoting Johnathan Hicks <thetech-Pn2JTpibVOrk1uMJSBkQmQ@public.gmane.org>: 
+ 
+> Carl Thompson wrote: 
+> > Any idea how to get C2 on a UP Via Athlon board?  
+> >   
+> > Thanks,  
+> > Carl Thompson  
+>  
+> Tony mentions VCool and LVCool in his comments so you could try 
+> investigate  
+> those. Looks like LVCool is the linux version of VCool. If that 
+> doesn't work  
+> for you, you might be able to grab the data sheets for your chipset 
+> and modify  
+> some code to make things work. ;-) 
+>  
+> --John 
+>  
+>  
+>  
+>  
+> ------------------------------------------------------- 
+> This sf.net email is sponsored by:ThinkGeek 
+> Welcome to geek heaven. 
+> http://thinkgeek.com/sf 
+> _______________________________________________ 
+> Acpi-devel mailing list 
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org 
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel 
+>  
+>  
+ 
+ 
 
 
 -------------------------------------------------------
