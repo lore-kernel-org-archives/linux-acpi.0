@@ -1,12 +1,15 @@
-From: "Julie Vega" <julievega_0-IxFe+CidMshsXGqWC8WN418n826c+h2f@public.gmane.org>
-Subject: Premium Replica Watches
-Date: Mon, 27 Dec 2004 13:22:40 -0500
-Message-ID: <83a901c4ec41$419f1c88$404005da@bfgroup.co.uk>
+From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
+Subject: Re: what is the worst laptop atm?
+Date: Mon, 27 Dec 2004 20:50:03 +0100
+Message-ID: <m24qi74j2s.fsf@phoenix.squirrel.nl>
+References: <20041227165207.GB9606@poupinou.org>
+	<200412271800.31064.wijnhout@science.uva.nl>
+	<20041227171202.GC9606@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20041227171202.GC9606-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> (Bruno Ducrot's message of
+ "Mon, 27 Dec 2004 18:12:02 +0100")
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,26 +22,21 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Get the Finest Rolex Watch Replica!
+Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> writes:
 
-We only sell premium watches. There's no battery in these replicas just
-like the real ones since they charge themselves as you move. The second hand
-moves JUST like the real ones, too. These original watches sell in stores
-for thousands of dollars. We sell them for much less. 
+>> I'm using a Acer 4001WLmi (supposedly with a smart-battery). I would be so 
+>> delighted if I could finally see my battery status. Besides, it is a good buy 
+>> (after all you do want to have a working computer, right?).
 
-- Replicated to the Smallest Detail
-- 98% Perfectly Accurate Markings 
-- Signature Green Sticker w/ Serial Number on Watch Back
-- Magnified Quickset Date
-- Includes all Proper Markings
++1
 
-Visit us: http://www.mecei.com/rep/rolx/
+> Does that one fail S3 btw?
 
-Christmas discount this week only! Make your order before the prices go up.
+I have not succeeded in getting it going, after several experiments
+with 2.6.9 and 2.6.10, and several patches. 
+So that would be another intersting thing to work out :-).
 
-
-No thanks: http://www.mecei.com/z.php
-
+-- Johan
 
 
 -------------------------------------------------------
