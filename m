@@ -1,12 +1,14 @@
-From: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
-Subject: help needed with invalid method in GPE block
-Date: Mon, 17 Mar 2003 22:34:39 +0100
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: Eternal S3 and \_WAK method
+Date: Mon, 17 Mar 2003 22:38:43 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030317213439.GA32268@dutidad.twi.tudelft.nl>
+Message-ID: <20030317213843.GA28129@hell.org.pl>
+References: <20030317184143.GA31878@dutidad.twi.tudelft.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20030317184143.GA31878-V1rPnKwUOrA59+mn7qD7y50iERQUc4G+@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,68 +17,76 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dear list,
+Thus wrote Charl P. Botha:
+> Dear list (and ACPI gurus),
+> 
+> Could it be that the fact that my \_WAK method returns no value is
+> preventing my system waking up from S3?  I can get it into S3, but I can
+> never get it out... no amount of button pushing, mouse moving or shouting
+> seems to help: that durn suspend-led just continues flashing.
 
-I'm still trying to get my stupid sleep/wake-button to wake my laptop.  This
-is quite interesting:
-
-ACPI Namespace successfully loaded at root c02cdcfc
-evxfevnt-0092 [04] acpi_enable           : Transition to ACPI mode successful
-   evgpe-0416 [06] ev_create_gpe_block   : GPE Block: 2 registers at 0000000000001028
-   evgpe-0421 [06] ev_create_gpe_block   : GPE Block defined as GPE0 to GPE15
-   evgpe-0138 [08] ev_save_method_info   : GPE number associated with method _L1D is not valid
-   evgpe-0416 [06] ev_create_gpe_block   : GPE Block: 2 registers at 000000000000102C
-   evgpe-0421 [06] ev_create_gpe_block   : GPE Block defined as GPE16 to GPE31
-   evgpe-0138 [08] ev_save_method_info   : GPE number associated with method _L05 is not valid
-   evgpe-0138 [08] ev_save_method_info   : GPE number associated with method _L1D is not valid
-
-Coincidentally, in my dsdt _L1D (the one with invalid number above) is a
-control method for my sleep button (control method type, not hard-wired).
-This _could_ explain why the button is not doing anything when pressed
-during sleep:
-
-        Method (_L1D, 0, NotSerialized) 
+If that's of any interest, my _WAK does not return any value, yet I'm able
+to suspend and resume. Here is how it looks:
+#v+
+    Method (\_WAK, 1, NotSerialized)
+    {
+        ISMI (0x3C)
+        ISMI (0x3F)
+        SSLP (0x00)
+        Store (\PMES, \_GPE.PMEW)
+        If (LLess (Arg0, 0x04))
         {
-            Notify (\_SB.SLPB, 0x02)
+            \_SB.PCI0.PX40.SLMT ()
         }
 
-This is in the \_GPE scope.  I've tried hacking the control method sleep
-button example on page 66 of ACPIspec-2-0a.pdf into my dsdt as method _L01,
-but to no avail.  Then ACPI just claims that _L01 is invalid for the
-*second* GPE block:
+        Store (0xFF, DBG1)
+        If (LEqual (Arg0, 0x03))
+        {
+            If (LEqual (OSFG, OS98))
+            {
+                \_SB.PCI0.USB0.RSTA ()
+                \_SB.PCI0.USB1.RSTA ()
+            }
+        }
 
-evxfevnt-0092 [04] acpi_enable           : Transition to ACPI mode successful
-evgpe-0416 [06] ev_create_gpe_block   : GPE Block: 2 registers at 0000000000001028
-evgpe-0421 [06] ev_create_gpe_block   : GPE Block defined as GPE0 to GPE15
-evgpe-0138 [08] ev_save_method_info   : GPE number associated with method _L1D is not valid
-evgpe-0416 [06] ev_create_gpe_block   : GPE Block: 2 registers at 000000000000102C
-evgpe-0421 [06] ev_create_gpe_block   : GPE Block defined as GPE16 to GPE31
-evgpe-0138 [08] ev_save_method_info   : GPE number associated with method _L05 is not valid
-evgpe-0138 [08] ev_save_method_info   : GPE number associated with method _L1D is not valid
-evgpe-0138 [08] ev_save_method_info   : GPE number associated with method _L01 is not valid
+        Notify (\_SB.PCI0.USB0, 0x00)
+        Notify (\_SB.PCI0.USB1, 0x00)
+        If (LNot (LEqual (\RTCS, 0x01)))
+        {
+            Notify (\_SB.SLPB, 0x02)
+            Store (0x00, \RTCS)
+        }
 
-In both cases, my fixed DSDT compiled with iasl 20030228 with no errors and
-no warnings.
+        If (LLess (Arg0, 0x04))
+        {
+            Notify (\_TZ.THRM, 0x80)
+        }
 
-Can anyone explain to me why I have two GPE blocks?  This means (according
-to the code logic in the acpi driver) that a control method is ALWAYS going
-to have an invalid GPE number in at least one of the two blocks.
+        If (LEqual (\OSFG, \OSXP))
+        {
+            If (LLess (Arg0, 0x04))
+            {
+                Notify (\_SB.BAT0, 0x80)
+                Notify (\_SB.BAT0, 0x81)
+                Notify (\_SB.ACAD, 0x80)
+            }
+        }
+    }
+#v-
 
-If anyone is interested, my original dsdt is here:
-http://cpbotha.net/thingies/dsdt.asl.original
-and the hacked one is here:
-http://cpbotha.net/thingies/dsdt.asl
-
-The object of the game is to get my wake button to wake. :)
-
-Thanks,
-Charl
+What is interesting, is that it seems that my system notifies the _SB.ACAD
+when resuming (AFAIR it had something to do with the display), when the OS
+string is equal to "Microsoft Windows XP". I'll have to try to change mine,
+and see what happens.
+Best regards,
 
 -- 
-charl p. botha http://cpbotha.net/ http://visualisation.tudelft.nl/
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
