@@ -1,12 +1,11 @@
-From: dogshu <dogshu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Processor is almost never in C1 state
-Date: Mon, 6 Dec 2004 11:10:31 -0500
-Message-ID: <fe1d56f504120608102afbf39b@mail.gmail.com>
-Reply-To: dogshu <dogshu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Matthew Wilcox <matthew-Ztpu424NOJ8@public.gmane.org>
+Subject: PNPACPI breaks my asus k6-2 parallel port
+Date: Tue, 7 Dec 2004 02:21:33 +0000
+Message-ID: <20041207022133.GB22171@parcelfarce.linux.theplanet.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,41 +18,31 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
 
-I have a Toshiba Portege laptop with a 500 mhz pentium-3 mobile CPU. 
-The processor is almost never is in the C1 state, and spends 99.9% of
-the time in the C2 state, even when doing heavy processing.
+Turning on PNPACPI changes this in my dmesg:
 
-After a night of compiling KDE, and while running the "burnP6" program
-included in the "cpuburn 1.4" package, this is the output of
-/proc/acpi/processor/CPU0/power:
+-parport0: PC-style at 0x378 [PCSPP(,...)]
+-lp0: using parport0 (polling).
++ttyS0 at I/O 0x3f8 (irq = 4) is a 16550A
++ttyS1 at I/O 0x2f8 (irq = 3) is a 16550A
++parport: PnPBIOS parport detected.
++parport0: PC-style at 0x378, irq 7 [PCSPP(,...)]
++lp0: using parport0 (interrupt-driven).
++pnp: Device 00:08 activated.
++parport: PnPBIOS parport detected.
++parport1: PC-style at 0x278, irq 5 [PCSPP(,...)]
++lp1: using parport1 (interrupt-driven).
 
-active state:            C2
-default state:           C1
-bus master activity:     00000000
-states:
-    C1:                  promotion[C2] demotion[--] latency[000] usage[00009710]
-   *C2:                  promotion[--] demotion[C1] latency[001] usage[12232108]
-    C3:                  <not supported>
+As a result, my parallel port stops working.  Any more information I can
+provide?
 
-As you can see, even though the processor is being maxed out by
-burnP6, it remains in the C2 state and doesn't really use the C1 state
-at all.
-
-I don't mind having the CPU in this lower power/lower performance
-state most of the time... however I occassionally like to play DVDs on
-this laptop, and I need all the CPU power I can get when playing DVDs,
-or else  I will get lots of dropped frames.
-
-I am running kernel 2.6.10-rc2-mm4.  I noticed that in the kernel
-parameters I can disable the C2 state altogether, but I'd rather not
-have to reboot whenever I play a DVD.  Is there a way to tweak ACPI so
-that the processor spends more time in the C1 state, without giving up
-the C2 state entirely?
-
-thanks for any help,
-Jim Faulkner
+-- 
+"Next the statesmen will invent cheap lies, putting the blame upon 
+the nation that is attacked, and every man will be glad of those
+conscience-soothing falsities, and will diligently study them, and refuse
+to examine any refutations of them; and thus he will by and by convince 
+himself that the war is just, and will thank God for the better sleep 
+he enjoys after this process of grotesque self-deception." -- Mark Twain
 
 
 -------------------------------------------------------
