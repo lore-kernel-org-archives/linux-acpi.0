@@ -1,177 +1,72 @@
-From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] pcibios_scan_acpi()
-Date: Tue, 24 Jun 2003 22:31:19 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030624213119.GN451@parcelfarce.linux.theplanet.co.uk>
-References: <20030623185901.GN2620@parcelfarce.linux.theplanet.co.uk> <16119.20872.104128.965777@napali.hpl.hp.com> <20030623213905.GA10992@kroah.com>
+From: David Moore <dcm-HInyCGIudOg@public.gmane.org>
+Subject: Re: [ACPI] _PDC method in DSDT
+Date: 24 Jun 2003 14:47:52 -0700
+Sender: cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
+Message-ID: <1056491271.3979.15.camel@aldebaran.caltech.edu>
+References: <F760B14C9561B941B89469F59BA3A84725A303@orsmsx401.jf.intel.com>
+	 <20030623133834.GA2330@brodo.de> <20030623161136.GG19556@poupinou.org>
+	 <1056388336.15250.62.camel@ixodes.goop.org>
+	 <1056398545.10322.111.camel@aldebaran.caltech.edu>
+	 <20030623213726.GA1317@brodo.de>
+	 <1056417280.10323.148.camel@aldebaran.caltech.edu>
+	 <1056418635.5977.20.camel@sherkaner.pao.digeo.com>
+	 <1056420149.10322.160.camel@aldebaran.caltech.edu>
+	 <20030624091836.GI19556@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20030623213905.GA10992-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Cc: davidm-sDzT885Ts8HQT0dZR+AlfA@public.gmane.org, Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
+In-Reply-To: <20030624091836.GI19556-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Errors-To: cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
+List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMm38Ik5SeuEX72+df2TVCvIA@public.gmane.org>
+List-Post: <mailto:cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
+List-Help: <mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMm4xOcYYyLxz0@public.gmane.org>
+List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMmEuNEP1Y2mCuZIoH1IeqzKA@public.gmane.org>
+List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq/>
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: Jeremy Fitzhardinge <jeremy-TSDbQ3PG+2Y@public.gmane.org>, Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>, Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Adachi, Kenichi" <adachi-fvZ7ij+YLgEZc9YY0SgeQc8NsWr+9BEh@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, cpufreq list <cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jun 23, 2003 at 02:39:05PM -0700, Greg KH wrote:
-> > How about acpi_scan_pci_bus_root()?
+On Tue, 2003-06-24 at 02:18, Ducrot Bruno wrote:
+> Then only concern I may have for is still the _PDC method.  It is currently
+> only documented in a MS document.  It is defined as an optional method
+> used by the OS in order to be somehow compatible with older releases
+> of Windows.  But it has the folowing:
 > 
-> I agree, that sounds better.
+> Arguments:
+> Arg0 (buffer):
+> DWORD 0:         Revision Id
+> DWORD 1:    Number of capabilities DWORDs in buffer
+> DWORD 2-n:   Capabilities DWORDs, where each bit
+> 	defines capabilities and features supported by the OSPM for
+> 	processor power management.
+> 	The definitions and meaning of each capabilities bit is vendor
+> 	specific, and shared with OSPM by the vendor.
+> 
+> Result Code:
+> None
+> 
+> Then give us now the correct values to be passed for Pentium-M found
+> in Centrino platform, and I will be glad to do the break of cpufreq/acpi.c
+> for you.
+> 
 
-I think it's too long ... so unless anyone has a better idea, I'm going with
-pci_acpi_scan_root().  Here's the patch, presented in patch -p1 format to
-make greg's scripts happy ;-)
+Dword 0 should be 0x1
+Dword 1 should be 0x1
+Dword 2 should be 0x1
 
-ia64 needs to be passed the pci domain and the acpi handle corresponding
-to each root bus.  Rather than change pcibios_scan_root to take additional
-arguments, this patch introduces pci_acpi_scan_root().
+The 0x1 in Dword 2 indicates that the driver supports Enhanced
+Speedstep.  In my DSDT, Dwords 0 and 1 are ignored anyway, but the
+values above should be correct.
 
-Index: arch/i386/pci/acpi.c
-===================================================================
-RCS file: /var/cvs/linux-2.5/arch/i386/pci/acpi.c,v
-retrieving revision 1.3
-diff -u -p -r1.3 acpi.c
---- a/arch/i386/pci/acpi.c	8 Oct 2002 22:46:09 -0000	1.3
-+++ b/arch/i386/pci/acpi.c	24 Jun 2003 21:16:47 -0000
-@@ -3,6 +3,16 @@
- #include <linux/init.h>
- #include "pci.h"
- 
-+struct pci_bus * __devinit pci_acpi_scan_root(struct acpi_device *device, int domain, int busnum)
-+{
-+	if (domain != 0) {
-+		printk(KERN_WARNING "PCI: Multiple domains not supported\n");
-+		return NULL;
-+	}
-+
-+	return pcibios_scan_root(busnum);
-+}
-+
- static int __init pci_acpi_init(void)
- {
- 	if (pcibios_scanned)
-Index: arch/ia64/pci/pci.c
-===================================================================
-RCS file: /var/cvs/linux-2.5/arch/ia64/pci/pci.c,v
-retrieving revision 1.9
-diff -u -p -r1.9 pci.c
---- a/arch/ia64/pci/pci.c	23 Jun 2003 03:30:02 -0000	1.9
-+++ b/arch/ia64/pci/pci.c	24 Jun 2003 21:16:48 -0000
-@@ -284,21 +284,21 @@ add_window (struct acpi_resource *res, v
- }
- 
- struct pci_bus *
--pcibios_scan_root (void *handle, int seg, int bus)
-+pci_acpi_scan_root (struct acpi_device *device, int domain, int bus)
- {
- 	struct pci_root_info info;
- 	struct pci_controller *controller;
- 	unsigned int windows = 0;
- 	char *name;
- 
--	printk("PCI: Probing PCI hardware on bus (%02x:%02x)\n", seg, bus);
--	controller = alloc_pci_controller(seg);
-+	printk("PCI: Probing PCI hardware on bus (%04x:%02x)\n", domain, bus);
-+	controller = alloc_pci_controller(domain);
- 	if (!controller)
- 		goto out1;
- 
--	controller->acpi_handle = handle;
-+	controller->acpi_handle = device->handle;
- 
--	acpi_walk_resources(handle, METHOD_NAME__CRS, count_window, &windows);
-+	acpi_walk_resources(device->handle, METHOD_NAME__CRS, count_window, &windows);
- 	controller->window = kmalloc(sizeof(*controller->window) * windows, GFP_KERNEL);
- 	if (!controller->window)
- 		goto out2;
-@@ -307,10 +307,10 @@ pcibios_scan_root (void *handle, int seg
- 	if (!name)
- 		goto out3;
- 
--	sprintf(name, "PCI Bus %02x:%02x", seg, bus);
-+	sprintf(name, "PCI Bus %04x:%02x", domain, bus);
- 	info.controller = controller;
- 	info.name = name;
--	acpi_walk_resources(handle, METHOD_NAME__CRS, add_window, &info);
-+	acpi_walk_resources(device->handle, METHOD_NAME__CRS, add_window, &info);
- 
- 	return scan_root_bus(bus, &pci_root_ops, controller);
- 
-Index: drivers/acpi/pci_root.c
-===================================================================
-RCS file: /var/cvs/linux-2.5/drivers/acpi/pci_root.c,v
-retrieving revision 1.8
-diff -u -p -r1.8 pci_root.c
---- a/drivers/acpi/pci_root.c	23 Jun 2003 03:30:15 -0000	1.8
-+++ b/drivers/acpi/pci_root.c	24 Jun 2003 21:16:50 -0000
-@@ -246,8 +246,6 @@ acpi_pci_root_add (
- 	switch (status) {
- 	case AE_OK:
- 		root->id.segment = (u16) value;
--		printk("_SEG exists! Unsupported. Abort.\n");
--		BUG();
- 		break;
- 	case AE_NOT_FOUND:
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, 
-@@ -309,7 +306,7 @@ acpi_pci_root_add (
- 	 * PCI namespace does not get created until this call is made (and 
- 	 * thus the root bridge's pci_dev does not exist).
- 	 */
--	root->bus = pcibios_scan_root(root->id.bus);
-+	root->bus = pci_acpi_scan_root(device, root->id.segment, root->id.bus);
- 	if (!root->bus) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, 
- 			"Bus %02x:%02x not present in PCI namespace\n", 
-Index: include/acpi/acpi_drivers.h
-===================================================================
-RCS file: /var/cvs/linux-2.5/include/acpi/acpi_drivers.h,v
-retrieving revision 1.3
-diff -u -p -r1.3 acpi_drivers.h
---- a/include/acpi/acpi_drivers.h	15 Feb 2003 03:48:35 -0000	1.3
-+++ b/include/acpi/acpi_drivers.h	24 Jun 2003 21:16:55 -0000
-@@ -73,6 +73,10 @@ struct pci_bus;
- int acpi_pci_bind (struct acpi_device *device);
- int acpi_pci_bind_root (struct acpi_device *device, struct acpi_pci_id *id, struct pci_bus *bus);
- 
-+/* Arch-defined function to add a bus to the system */
-+
-+struct pci_bus *pci_acpi_scan_root(struct acpi_device *device, int domain, int bus);
-+
- #endif /*CONFIG_ACPI_PCI*/
- 
- 
-Index: include/asm-ia64/pci.h
-===================================================================
-RCS file: /var/cvs/linux-2.5/include/asm-ia64/pci.h,v
-retrieving revision 1.9
-diff -u -p -r1.9 pci.h
---- a/include/asm-ia64/pci.h	23 Jun 2003 03:30:47 -0000	1.9
-+++ b/include/asm-ia64/pci.h	24 Jun 2003 21:16:56 -0000
-@@ -21,7 +21,6 @@
- #define PCIBIOS_MIN_MEM		0x10000000
- 
- void pcibios_config_init(void);
--struct pci_bus * pcibios_scan_root(void *acpi_handle, int segment, int bus);
- 
- struct pci_dev;
- 
+Feel free to do the split into two files if you think that's the way to
+go.  I'm going to submit my patch to the cpufreq list anyway under a
+separate email, just so it exists for the record.  You might change your
+mind after seeing it.  I also have a patch that fixes a few bugs in the
+current cpufreq/acpi.c.
 
--- 
-"It's not Hollywood.  War is real, war is primarily not about defeat or
-victory, it is about death.  I've seen thousands and thousands of dead bodies.
-Do you think I want to have an academic debate on this subject?" -- Robert Fisk
+Regards,
 
-
--------------------------------------------------------
-This SF.Net email is sponsored by: INetU
-Attention Web Developers & Consultants: Become An INetU Hosting Partner.
-Refer Dedicated Servers. We Manage Them. You Get 10% Monthly Commission!
-INetU Dedicated Managed Hosting http://www.inetu.net/partner/index.php
+David
