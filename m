@@ -1,12 +1,14 @@
-From: "Melinda Stahl" <UPGYNJCR-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Acpi-devel - LIVE LONGER with H-uman...G-rowth...H-ormone
-Date: Sun, 08 Feb 2004 09:01:14 +0300
+From: Willy Tarreau <willy-tRhHnHjXm5DYtjvyW6yDsg@public.gmane.org>
+Subject: Re: [BKPATCH] ACPI for 2.4
+Date: Sun, 8 Feb 2004 09:20:59 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <QRYFMEBLIDKNREIVWDAFZIYAL@yahoo.com>
+Message-ID: <20040208082059.GD29363@alpha.home.local>
+References: <1076145024.8687.32.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="--157832509895684048"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1076145024.8687.32.camel-D2Zvc0uNKG8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,74 +17,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZQ39yzSjRtAkw@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-----157832509895684048
-Content-Type: text/plain;
-Content-Transfer-Encoding: quoted-printable
+Hi Len,
 
-Acpi-devel - #72249015
+On Sat, Feb 07, 2004 at 04:10:24AM -0500, Len Brown wrote:
+> 	bk pull http://linux-acpi.bkbits.net/linux-acpi-release-2.4.25
+> 
+> 	the AML param fix is in 2.6 -- the others changes
+> 	are Asus and Toshiba model specific.
 
-H-uman...G-rowth...H-ormone Therapy
+I encountered something strange that I still cannot explain. I have two
+machines, one athlon-based VAIO notebook and one P4-based supermicro 1U
+server, which don't poweroff when I halt them or send them a Sysrq-O. At
+first, I only noticed this on the VAIO so I thought that something changed
+in ACPI recently, because it was OK around 2.4.21 or 2.4.22 with acpi patch
+from around 09/2003, but I believe that the problem appeared when I used
+2.4.23 + the acpi-20031203 patch, which is now included in 2.4.25-rc1. But
+then I discovered that I can poweroff both the notebook and the 1U by a
+simple "echo 5 >/proc/acpi/sleep".
 
-"Overall deterioration of the body that comes with growing old is not inev=
-itable."---Dr. Daniel Rudman's in the New England Journal of Medicine.
+So I've added printk's into acpi_power_off(), and I see that the system
+doesn't return from acpi_enter_sleep_state_prep(S5), which itself hangs
+on the call to acpi_evaluate_object(NULL, "\\_PTS",...). If I comment
+out this line, it now goes on through the next calls, then normally leaves
+acpi_enter_sleep_state_prep(), then powers off correctly. I have not tested
+yet you very latest patch, but I don't think it would change anything.
 
+Do you have any idea ? What can I provide to help in resolving this problem ?
 
-Follow me to longer living: www.sdjs.biz?affil=3D63
-
-
-Scientific research and evidence overwhelmingly demonstrates that, in addi=
-tion to genetic and environmental factors, our body's reduced production o=
-f H-uman...G-rowth...H-ormone is a direct cause of aging. Between the ages=
- of 20 to 70, our levels can fall by more than 75%. This may cause us to l=
-ook and feel older and less energetic. By the time most of us have reached=
- our forties, we are already experiencing a H-uman...G-rowth...H-ormone de=
-ficiency.
-
-
-Follow me to longer living: www.sdjs.biz?affil=3D63
-
-
-Our competitors charge as high as 65 dollars---get ours for less than 50.
-
-
-Follow me to longer living: www.sdjs.biz?affil=3D63
-
-
-
-No more advertisements, thanks - www.oagf.biz/out6ss
-
-0
-
-2
-
-
-infract fortiori christoffel buttock imposition holdup anterior crane capi=
-toline corrugate onslaught emanate gedanken wright miss analytic ames cran=
-kcase pollock neckline convertible introductory rent colon predicate=20str=
-eet mcfarland ben walkover additional fafnir polytypy baccalaureate sadler=
- beatrice kelvin anagram turnaround teet brush seclusion ashman lose monsa=
-nto consummate bodyguard inimitable healy directory bicarbonate maple atri=
-um eeoc rightmost craze donkey muong anastomosis clique demote ceil=20depr=
-eciate hereditary ct thrice hey craze candidacy biconcave blackjack valhal=
-la ibn whip blueprint smudge dadaist manatee organic diagnostician dampen =
-billion rutland blackjack caravan lifelong pompous chamfer orthicon embroi=
-dery ackerman=20raster antithetic bedim alpine propensity benedict crabmea=
-t manatee warmth crummy egotism advertise=20broom shenanigan circumcision =
-keg mennonite rhombohedral absentia exploration liberty extremal bob bend =
-befuddle modesty maniacal cruelty invitation vladivostok brant pinehurst f=
-ight affinity amperage lifeboat downtrodden adkins salty pony morphism dan=
-delion buzzy micro=20porcelain cecropia slut decipher figural stab strife =
-associable jocular bandy remark promptitude subrogation bronco angeles res=
-istible leisure nellie counteract cowardice goodwin pastime telescope chlo=
-roplatinate quadrangular dressy mitchell impolite neath hunk lackadaisic a=
-llspice alphonse fiefdom laconic eluate meal agrimony mince=20
-
-
-
-----157832509895684048--
+Regards,
+Willy
 
 
 
