@@ -1,11 +1,14 @@
-From: postmaster-/ZYqlopZ/wGf/I8Vi/LG+w@public.gmane.org
-Subject: Returned mail
-Date: Tue, 02 Sep 2003 07:45:34 -0700
+From: John Wong <kernel-AAfBIQCtFhbR7s880joybQ@public.gmane.org>
+Subject: Re: [PATCH] Drop back to extended IRQ resource type
+Date: Tue, 2 Sep 2003 08:48:20 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E19uCPW-0001Vf-6a@sc8-sf-mx1.sourceforge.net>
+Message-ID: <20030902154820.GA961@gambit.implode.net>
+References: <20030829045032.GA688@gambit.implode.net> <200308301956.41007.adq_dvb@lidskialf.net>
 Mime-Version: 1.0
-Content-Type: multipart/report; report-type=delivery-status; boundary="==M2003090210464801413"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <200308301956.41007.adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,71 +17,239 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Andew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+The patch does appear to give the card an IRQ, but it does not appear to
+be valid.  Doesn't the IRQ only go up to 24 on a single APIC processor?
+The IRQ of 27 does not get registered in /proc/interrupts either.
 
---==M2003090210464801413
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+           CPU0
+  0:     401852          XT-PIC  timer
+  1:       2680    IO-APIC-edge  i8042
+  2:          0          XT-PIC  cascade
+  8:          4    IO-APIC-edge  rtc
+  9:          0   IO-APIC-level  acpi
+ 12:       3251    IO-APIC-edge  i8042
+ 14:       1096    IO-APIC-edge  ide0
+ 15:         11    IO-APIC-edge  ide1
+ 18:          0   IO-APIC-level  EMU10K1
+ 22:   17386129   IO-APIC-level  eth0
+NMI:          0
+LOC:     401701
+ERR:          0
+MIS:          0
 
---- The message cannot be delivered to the following address. ---
 
-phoward-v1ITN679K0Syum0STUha2w@public.gmane.org    Mailbox unknown or not accepting mail.
-550 5.1.1 <phoward-v1ITN679K0Syum0STUha2w@public.gmane.org>... User unknown
+With the patch applied (using 2.6.0-test4):
+
+02:00.0 VGA compatible controller: nVidia Corporation NV15 [GeForce2 -
+nForce GPU] (rev b1) (prog-if 00 [VGA])
+        Subsystem: nVidia Corporation: Unknown device 0c11
+        Flags: bus master, 66Mhz, medium devsel, latency 32, IRQ 27
+        Memory at e5000000 (32-bit, non-prefetchable) [size=16M]
+        Memory at e8000000 (32-bit, prefetchable) [size=128M]
+        Expansion ROM at e7ff0000 [disabled] [size=64K]
+        Capabilities: [60] Power Management version 2
+        Capabilities: [44] AGP version 2.0
+
+Without patch (2.4.22, also exhibited on 2.6.0-test4)
+02:00.0 VGA compatible controller: nVidia Corporation NV15 [GeForce2 -
+nForce GPU] (rev b1) (prog-if 00 [VGA])
+        Subsystem: nVidia Corporation: Unknown device 0c11
+        Flags: bus master, 66Mhz, medium devsel, latency 32, IRQ -19
+        Memory at e5000000 (32-bit, non-prefetchable) [size=16M]
+        Memory at e8000000 (32-bit, prefetchable) [size=128M]
+        Expansion ROM at e7ff0000 [disabled] [size=64K]
+        Capabilities: [60] Power Management version 2
+        Capabilities: [44] AGP version 2.0
 
 
---==M2003090210464801413
-Content-Type: message/delivery-status
+On Sat, Aug 30, 2003 at 07:56:41PM +0100, Andrew de Quincey wrote:
+> On Friday 29 Aug 2003 5:50 am, John Wong wrote:
+> > On the nForce original with the onboard GeForce2 video, the BIOS does
+> > assign IRQ 11 to the onboard video, however, Linux does not.  Setting
+> > acpi=off and pci=noirq does not fix the problem.  I have a nForce2 board
+> > without onboard video and ACPI/IO-APIC etc all work fine.
+> 
+> Hi, the attached patch should resolve this issue. Originally, if an IRQ is 
+> <=15, the code always used a standard IRQ descriptor when calling the _SRS 
+> method. 
+> 
+> However, certain BIOSes always expect an extended IRQ descriptor, and fail 
+> when passed a standard one. This patch drops back to an extended descriptor 
+> if a set with a standard one fails... you'll still see the BUFFER LIMIT 
+> message, but you should now see it saying "Retrying with extended IRQ 
+> descriptor".. and hopefully succeeding the second time.
 
-Reporting-MTA: postmaster-/ZYqlopZ/wGf/I8Vi/LG+w@public.gmane.org
-Final-Recipient: rfc822;phoward-v1ITN679K0Syum0STUha2w@public.gmane.org
-Action: failed
-Status: 5.1.1
-Diagnostic-Code: X-Notes; Cannot route mail to user (phoward-v1ITN679K0Syum0STUha2w@public.gmane.org).
+> 
+> --- linux-2.4.22.orig/drivers/acpi/pci_link.c	2003-08-25 12:44:41.000000000 +0100
+> +++ linux-2.4.22/drivers/acpi/pci_link.c	2003-08-30 18:54:35.000000000 +0100
+> @@ -290,7 +290,8 @@
+>  	struct acpi_buffer	buffer = {sizeof(resource)+1, &resource};
+>  	int			i = 0;
+>  	int			valid = 0;
+> -
+> +	int			resource_type = 0;
+> +   
+>  	ACPI_FUNCTION_TRACE("acpi_pci_link_set");
+>  
+>  	if (!link || !irq)
+> @@ -313,12 +314,23 @@
+>  		}
+>  	}
+>  
+> +	/* If IRQ<=15, first try with a "normal" IRQ descriptor. If that fails, try with
+> +	 * an extended one */
+> +	if (irq <= 15) {
+> +		resource_type = ACPI_RSTYPE_IRQ;
+> +	} else {
+> +		resource_type = ACPI_RSTYPE_EXT_IRQ;
+> +	}
+> +
+> +retry_programming:
+> +   
+>  	memset(&resource, 0, sizeof(resource));
+>  
+>  	/* NOTE: PCI interrupts are always level / active_low / shared. But not all
+>  	   interrupts > 15 are PCI interrupts. Rely on the ACPI IRQ definition for 
+>  	   parameters */
+> -	if (irq <= 15) {
+> +	switch(resource_type) {
+> +	case ACPI_RSTYPE_IRQ:
+>  		resource.res.id = ACPI_RSTYPE_IRQ;
+>  		resource.res.length = sizeof(struct acpi_resource);
+>  		resource.res.data.irq.edge_level = link->irq.edge_level;
+> @@ -326,8 +338,9 @@
+>  		resource.res.data.irq.shared_exclusive = ACPI_SHARED;
+>  		resource.res.data.irq.number_of_interrupts = 1;
+>  		resource.res.data.irq.interrupts[0] = irq;
+> -	}
+> -	else {
+> +		break;
+> +	   
+> +	case ACPI_RSTYPE_EXT_IRQ:
+>  		resource.res.id = ACPI_RSTYPE_EXT_IRQ;
+>  		resource.res.length = sizeof(struct acpi_resource);
+>  		resource.res.data.extended_irq.producer_consumer = ACPI_CONSUMER;
+> @@ -337,11 +350,22 @@
+>  		resource.res.data.extended_irq.number_of_interrupts = 1;
+>  		resource.res.data.extended_irq.interrupts[0] = irq;
+>  		/* ignore resource_source, it's optional */
+> +		break;
+>  	}
+>  	resource.end.id = ACPI_RSTYPE_END_TAG;
+>  
+>  	/* Attempt to set the resource */
+>  	status = acpi_set_current_resources(link->handle, &buffer);
+> +   
+> +
+> +	/* if we failed and IRQ <= 15, try again with an extended descriptor */
+> +	if (ACPI_FAILURE(status) && (resource_type == ACPI_RSTYPE_IRQ)) {
+> +                resource_type = ACPI_RSTYPE_EXT_IRQ;
+> +                printk(PREFIX "Retrying with extended IRQ descriptor\n");
+> +                goto retry_programming;
+> +	}
+> +  
+> +	/* check for total failure */
+>  	if (ACPI_FAILURE(status)) {
+>  		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Error evaluating _SRS\n"));
+>  		return_VALUE(-ENODEV);
 
---==M2003090210464801413
-Content-Type: message/rfc822
+> 
+> --- linux-2.6.0-test4.orig/drivers/acpi/pci_link.c	2003-08-23 00:52:08.000000000 +0100
+> +++ linux-2.6.0-test4/drivers/acpi/pci_link.c	2003-08-30 18:54:39.000000000 +0100
+> @@ -294,6 +294,7 @@
+>  	struct acpi_buffer	buffer = {sizeof(resource)+1, &resource};
+>  	int			i = 0;
+>  	int			valid = 0;
+> +	int			resource_type = 0;
+>  
+>  	ACPI_FUNCTION_TRACE("acpi_pci_link_set");
+>  
+> @@ -317,20 +318,32 @@
+>  		}
+>  	}
+>  
+> +	/* If IRQ<=15, first try with a "normal" IRQ descriptor. If that fails, try with
+> +	 * an extended one */
+> +	if (irq <= 15) {
+> +		resource_type = ACPI_RSTYPE_IRQ;
+> +	} else {
+> +		resource_type = ACPI_RSTYPE_EXT_IRQ;
+> +	}
+> +
+> +retry_programming:
+> +   
+>  	memset(&resource, 0, sizeof(resource));
+>  
+>  	/* NOTE: PCI interrupts are always level / active_low / shared. But not all
+>  	   interrupts > 15 are PCI interrupts. Rely on the ACPI IRQ definition for 
+>  	   parameters */
+> -	if (irq <= 15) {
+> +	switch(resource_type) {
+> +	case ACPI_RSTYPE_IRQ:
+>  		resource.res.id = ACPI_RSTYPE_IRQ;
+>  		resource.res.length = sizeof(struct acpi_resource);
+>  		resource.res.data.irq.edge_level = link->irq.edge_level;
+>  		resource.res.data.irq.active_high_low = link->irq.active_high_low;
+>  		resource.res.data.irq.number_of_interrupts = 1;
+>  		resource.res.data.irq.interrupts[0] = irq;
+> -	}
+> -	else {
+> +		break;
+> +	   
+> +	case ACPI_RSTYPE_EXT_IRQ:
+>  		resource.res.id = ACPI_RSTYPE_EXT_IRQ;
+>  		resource.res.length = sizeof(struct acpi_resource);
+>  		resource.res.data.extended_irq.producer_consumer = ACPI_CONSUMER;
+> @@ -339,11 +352,21 @@
+>  		resource.res.data.extended_irq.number_of_interrupts = 1;
+>  		resource.res.data.extended_irq.interrupts[0] = irq;
+>  		/* ignore resource_source, it's optional */
+> +		break;
+>  	}
+>  	resource.end.id = ACPI_RSTYPE_END_TAG;
+>  
+>  	/* Attempt to set the resource */
+>  	status = acpi_set_current_resources(link->handle, &buffer);
+> +
+> +	/* if we failed and IRQ <= 15, try again with an extended descriptor */
+> +	if (ACPI_FAILURE(status) && (resource_type == ACPI_RSTYPE_IRQ)) {
+> +                resource_type = ACPI_RSTYPE_EXT_IRQ;
+> +                printk(PREFIX "Retrying with extended IRQ descriptor\n");
+> +                goto retry_programming;
+> +	}
+> +  
+> +	/* check for total failure */
+>  	if (ACPI_FAILURE(status)) {
+>  		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Error evaluating _SRS\n"));
+>  		return_VALUE(-ENODEV);
+> @@ -458,14 +481,14 @@
+>  		irq = link->irq.possible[0];
+>  	}
+>  
+> -		/* 
+> -		 * Select the best IRQ.  This is done in reverse to promote 
+> -		 * the use of IRQs 9, 10, 11, and >15.
+> -		 */
+> -		for (i=(link->irq.possible_count-1); i>0; i--) {
+> -			if (acpi_irq_penalty[irq] > acpi_irq_penalty[link->irq.possible[i]])
+> -				irq = link->irq.possible[i];
+> -		}
+> +	/* 
+> +	 * Select the best IRQ.  This is done in reverse to promote 
+> +	 * the use of IRQs 9, 10, 11, and >15.
+> +	 */
+> +	for (i=(link->irq.possible_count-1); i>0; i--) {
+> +		if (acpi_irq_penalty[irq] > acpi_irq_penalty[link->irq.possible[i]])
+> +			irq = link->irq.possible[i];
+> +	}
+>  
+>  	/* Attempt to enable the link device at this IRQ. */
+>  	if (acpi_pci_link_set(link, irq)) {
 
-Received: (from LSM [163.180.127.185])
- by av.SAS.UPENN.EDU (SAVSMTP 3.1.0.29) with SMTP id M2003090210460101402
- for <phoward-v1ITN679K0Syum0STUha2w@public.gmane.org>; Tue, 02 Sep 2003 10:46:44 -0400
-From: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-To: <phoward-v1ITN679K0Syum0STUha2w@public.gmane.org>
-Subject: Your details
-Date: Tue, 2 Sep 2003 23:45:02 +0900
-X-MailScanner: Found to be clean
-Importance: Normal
-X-Mailer: Microsoft Outlook Express 6.00.2600.0000
-X-MSMail-Priority: Normal
-X-Priority: 3 (Normal)
-MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_NextPart_000_035F120B"
-
-This is a multipart message in MIME format
-
---_NextPart_000_035F120B
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-
-See the attached file for details
---_NextPart_000_035F120B
-Content-Type: text/plain;
-	name="DELETED0.TXT"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename="DELETED0.TXT"
-
-RmlsZSBhdHRhY2htZW50OiB0aGFua195b3UucGlmCkEgZmlsZSBhdHRhY2hlZCB0byB0aGlz
-IGVtYWlsIHdhcyByZW1vdmVkDQpiZWNhdXNlIGl0IHdhcyBpbmZlY3RlZCB3aXRoIGEgdmly
-dXMuDQoNClJlc3VsdDogVmlydXMgRGV0ZWN0ZWQNClZpcnVzIE5hbWU6IFczMi5Tb2JpZy5G
-QG1tDQpGaWxlIEF0dGFjaG1lbnQ6IHRoYW5rX3lvdS5waWYNCkF0dGFjaG1lbnQgU3RhdHVz
-OiBkZWxldGVkDQo=
---_NextPart_000_035F120B--
-
---==M2003090210464801413--
 
 
 -------------------------------------------------------
