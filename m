@@ -1,14 +1,16 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ACPI broken on all 9 of my machines :(
-Date: Sun, 18 Jan 2004 11:52:26 -0500
+From: Mattia Dongili <dongili-vcC760zL2fQ1GQ1Ptb7lUw@public.gmane.org>
+Subject: Re: acpi_processor.c - kernel 2.6.1
+Date: Sun, 18 Jan 2004 18:10:17 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <BF1FE1855350A0479097B3A0D2A80EE0CC89EF@hdsmsx402.hd.intel.com>
+Message-ID: <20040118171017.GF2375@inferi.kami.home>
+References: <1074382993.674.24.camel@dragon> <1074424728.1914.24.camel@firefly> <400A8381.2050607@pca.it>
+Reply-To: dongili-vcC760zL2fQ1GQ1Ptb7lUw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="HlL+5n6rz5pIUxbD"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <400A8381.2050607-wlebWZzHoyE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,69 +19,51 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andrew Walrond <andrew-2/QedQ4M3FBAfugRpC6u6w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Thanks Andrew for your offer to help.
 
-The best known method we have for improving ACPI in Linux is to address
-first the issues that break many systems.  Your plans to take a survey
-of failures on systems close to you is a good idea -- perhaps it will
-point out some common failures and help prioritize our work.  Specific
-failures are best filed in bugzilla, category=3D"Power Management",
-component=3DACPI; and discussed on acpi-devel-5NWGOfrQmneRv+LV9MX5uti2KpX7p8Fi@public.gmane.org
-While LKML is a good place to attempt to raise awareness, it isn't the
-best tool for actual debugging.
+--HlL+5n6rz5pIUxbD
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Regarding the big picture.  Linux needs to reach the state where OEMs
-submit their systems to Linux Distro's compliance test suites _before_
-they're shipped.  The distros and their compliance test suites need to
-include ACPI functionality.  This will address the non-trivial issue of
-systems being engineered to match Windows ACPI implementation.  Of
-course to get to that point we first need to improve the quality of ACPI
-in Linux so that the Distros have a hope of successfully deploying it.
-Thank you for your help in this effort.
+On Sun, Jan 18, 2004 at 02:00:49PM +0100, Luca Capello wrote:
+> Hello,
+[...]
+> 'cpufreqd'. If I've correctly understood, 'cpufreqd' need the
+> 'userspace' option/module to work, right? So, why even without the
 
--Len Brown
+no, it doesn't. Other cpufreq related daemons need it, not cpufreqd.
 
+> 'userspace' module loaded, is 'cpufreqd' working? I can see it via
+> /proc/cpuinfo plugging in/out the AC-Adapter.
+>=20
+> - what does loading 'cpufreq_' modules cause? I can see no differences
+> when I load 'cpufreq_[powersave|userspace]'...
 
-> -----Original Message-----
-> From: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org=20
-> [mailto:linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of=20
-> Andrew Walrond
-> Sent: Friday, January 16, 2004 6:58 AM
-> To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: ACPI broken on all 9 of my machines :(
->=20
->=20
-> While investigating an ACPI problem (see another thread) it=20
-> occured to me that=20
-> of the 7 different machines I have in my immediate workspace,=20
-> none of them=20
-> work properly with ACPI in latest 2.4 or 2.6 kernels. I have=20
-> P3, dual P3, P4,=20
-> dual HT Xeons, Opteron and VIA Samuel based motherboards,=20
-> Thinkpads A21p and=20
-> A31p, and none of them work properly with ACPI. 100% failure.
->=20
-> Am I just unlucky? Or is this the general experience?
->=20
-> I have indeed bugzilled some of the problems, but will do a=20
-> complete fresh set=20
-> of tests on all the different types of machines, and present=20
-> the results=20
-> here.
->=20
-> Andrew Walrond
->=20
-> -
-> To unsubscribe from this list: send the line "unsubscribe=20
-> linux-kernel" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
->=20
+you only load the code into the kernel, you can then use procfs to select
+frequencies ang governor.
+
+ciao
+--=20
+mattia
+:wq!
+
+--HlL+5n6rz5pIUxbD
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQFACr35gpRPaOotLEERApheAKCYTLhoETE0Jo8rYO+khjLX+PCDDwCfXvxD
+mE+FsEA5V70U3hbiqbulhbY=
+=pFMQ
+-----END PGP SIGNATURE-----
+
+--HlL+5n6rz5pIUxbD--
 
 
 -------------------------------------------------------
