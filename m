@@ -1,13 +1,10 @@
-From: Luca <kronos-0Y2hHv2PMqFeoWH0uzbU5w@public.gmane.org>
-Subject: Questions about DSDT
-Date: Fri, 6 Feb 2004 21:55:00 +0100
+From: "Pete Phillips" <pete-MnLiQe5rda21Qrn1Bg8BZw@public.gmane.org>
+Subject: (no subject)
+Date: Fri, 06 Feb 2004 20:58:25 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040206205500.GA16431@dreamland.darkstar.lan>
-Reply-To: kronos-0Y2hHv2PMqFeoWH0uzbU5w@public.gmane.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Message-ID: <200402062058.i16KwPA5028014@lap1.smtl.co.uk>
+Reply-To: pete-MnLiQe5rda21Qrn1Bg8BZw@public.gmane.org
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,119 +13,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-I have some questions about DSDT:
+Hi
 
-1) My notebook [1] has a broken DSDT:
+I took delivery yesterday of an ASUS s1300N laptop. I have got 2.4.22
+and 2.4.24 kernels with latest acpi patches. (I am running Suse 9.0 -
+the default kernel sucks with almost 100% keventd sucking the life out of
+the thing).
 
-ACPI: AC Adapter [AC] (on-line)
-ACPI: Battery Slot [BAT0] (battery present)
-ACPI: Power Button (FF) [PWRF]
-ACPI: Sleep Button (CM) [SLPB]
-ACPI: Lid Switch [LID]
-ACPI: Fan [FAN0] (on)
-acpi_processor-1626 [38] acpi_processor_get_inf: Invalid PBLK length [5]
-ACPI: Processor [CPU0] (supports C1)
-ACPI: Thermal Zone [THRM] (56 C)
-Asus Laptop ACPI Extras version 0.26
-  L3D model detected, supported
+If I boot with acpi=off they boot perfectly well, minus of course acpi
+support! Also boot OK with acpi=ht.
+ 
+However, with acpi=on, they just hang  after the "linux loading"
+sequence.
+ 
+dmesg says that the ACPI has wakeup address 0xc0001000.
+ 
+I am completely flumoxed !  I have seen numerous docs claiming that the
+S1300N is fine with ACPI, so either the BIOS in mine is different (?) or
+I am being a complete prat. (I accept that the latter is highly likely!)
 
-C2 is not recognized. Fixing it is quite simple. This is from the
-original DSDT:
+Any ideas ?
 
-DefinitionBlock ("DSDT.aml", "DSDT", 1, "ASUS", "L3000D  ", 4096)
-{
-[cut]
-    Scope (_PR)
-    {
-        Processor (CPU0, 0x01, 0x0000E410, 0x05)
-        {
-            Name (PSBT, Package (0x20)
-            {
-[cut]
-            })
-            Name (_PCT, Package (0x02)
-            {
-[cut]
-            })
-            Method (_PSS, 0, NotSerialized)
-            {
-[cut]
-            }
-
-            Method (_PPC, 0, NotSerialized)
-            {
-[cut]
-            }
-
-            Method (TCTR, 2, NotSerialized)
-            {
-[cut]
-            }
-
-            Method (TSTA, 2, NotSerialized)
-            {
-[cut]
-            }
-        }
-    }
-
-
-I patched it in this way:
-
---- dsdt-0113.dsl	Fri Feb  6 21:45:41 2004
-+++ dsdt-hack-0113.dsl	Fri Feb  6 21:44:22 2004
-@@ -43,7 +43,7 @@
-     })
-     Scope (_PR)
-     {
--        Processor (CPU0, 0x01, 0x0000E410, 0x05)
-+        Processor (CPU0, 0x01, 0x0000E410, 0x06)
-         {
-             Name (PSBT, Package (0x20)
-             {
-
-
-looks good? It seems to work:
-
-ACPI: Subsystem revision 20040116
-   tbget-0291: *** Info: Table [DSDT] replaced by host OS
- tbxface-0117 [03] acpi_load_tables      : ACPI Tables successfully acquired
-[...]
-ACPI: AC Adapter [AC] (on-line)
-ACPI: Battery Slot [BAT0] (battery present)
-ACPI: Power Button (FF) [PWRF]
-ACPI: Sleep Button (CM) [SLPB]
-ACPI: Lid Switch [LID]
-ACPI: Fan [FAN0] (on)
-ACPI: Processor [CPU0] (supports C1 C2)
-ACPI: Thermal Zone [THRM] (32 C)
-Asus Laptop ACPI Extras version 0.26
-  L3D model detected, supported
-
-2) In the DSDTs repository I see a custom DSDT for my laptop, but for an
-older version of  the BIOS (I does work though). The  only difference is
-that it adds Linux to the list  of know OS. What are the effects of this
-change?
-
-3) Should I upload original and hacked DSDT to acpi.sf.net?
-
-4) How do I send the patch to ASUS? I just send an email to the support
-explaining the problem or...?
-
-[1] Notebook is an ASUS L3350D (L3D serie), BIOS 0113.
-
-TIA,
-Luca
--- 
-Reply-To: kronos-OwEdLhkac/ZLIFpYAn0waQ@public.gmane.org
-Home: http://kronoz.cjb.net
-The trouble with computers is that they do what you tell them, 
-not what you want.
-D. Cohen
+Pete
+--
+Pete Phillips, Deputy Director,     |   http://www.smtl.co.uk/
+Surgical Materials Testing Lab,     |   http://www.worldwidewounds.com/
+Princess of Wales Hospital, S Wales |   http://www.dressings.org/
+Tel/Fax: +44 1656-752820/30         |   pete-MnLiQe5rda21Qrn1Bg8BZw@public.gmane.org
 
 
 -------------------------------------------------------
