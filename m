@@ -1,14 +1,14 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Radeon PM Support
-Date: Wed, 11 Aug 2004 13:36:36 -0700
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: PNP & ACPI
+Date: 11 Aug 2004 18:16:15 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <88056F38E9E48644A0F562A38C64FB600296D17B@scsmsx403.amr.corp.intel.com>
+Message-ID: <1092262575.5021.129.camel@dhcppc4>
+References: <566B962EB122634D86E6EE29E83DD808182C2317@hdsmsx403.hd.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <566B962EB122634D86E6EE29E83DD808182C2317-N2PTB0HCzHJviC08c4yzC1DQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,47 +17,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: ole.rohne-vJEk5272eHo@public.gmane.org, Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, anib-La3J9u0raUk@public.gmane.org
+To: Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-=20
+Adam,
+Nice to meet you in Ottawa.
 
->-----Original Message-----
->From: Pavel Machek [mailto:pavel-+ZI9xUNit7I@public.gmane.org]=20
->Sent: Wednesday, August 11, 2004 12:08 PM
->To: Pallipadi, Venkatesh
->Cc: ole.rohne-vJEk5272eHo@public.gmane.org; Nathan Bryant;=20
->acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; anib-La3J9u0raUk@public.gmane.org
->Subject: Re: [ACPI] Radeon PM Support
->
->Hi!
->
->> > I"ve been hesitant to propose a generic VGAPOST, but it=20
->could be good
->> > to have a way of resuming without using a driver. Would it=20
->be cleaner
->> > to put the call in pci_default_resume?
->>=20
->> Yes. If this patch works for tohers, then we can move it into
->> pci_default_resume during the cleanup.
->
->
->I'd rather not do that. Some cards are already posted after
->S3, some even preserve state over S3.=20
-> It is okay to do VGAPOST
->for radeon and any card that needs it, but I'd rather not do=20
->it generically.
+Do you have a patch to disable PNP when ACPI is running?
+I think we could key off of acpi_disabled -- since that
+will be set when ACPI is not configured, when Linux/ACPI
+can't find ACPI support in the system, or any other problems
+that cause ACPI to bail out.
 
-If this is the right place to do post for most of the devices,
-then probably we can do away with initial soon-after-wakeup-post.
-Right?
-But, for the devices that preserve state, yes we need to avoid=20
-doing this. I can see one more device-blacklist/whitelist coming=20
-here :).
+I don't see a global pnp_disabled flag we can set.
+Looks like we've got 3 subsystems with pnp, pnpbios and isapnp,
+each with their own initcalls?
 
-Thanks,
-Venki
+thanks,
+-Len
+
+ps. We discussed a more unified driver probe/register model.
+Today we've got pnp_register_driver(), acpi_bus_register_driver()
+etc.  Thoughts on that?
+
+
 
 
 -------------------------------------------------------
