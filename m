@@ -1,65 +1,53 @@
-From: =?ISO-8859-1?Q?Hendrik_J=FCrgens?= <hjuerg-ULHALamj7Vx/+Jgy1241yg@public.gmane.org>
-Subject: Re: first shoot for smartbattery (was Re: Re: i2c-acpi-ec.c)
-Date: Sat, 01 Jan 2005 13:35:18 +0100
-Message-ID: <41D69906.8040908@technik-emden.de>
-References: <20041231092156.GA612@phys.ethz.ch> <41D56002.5060008@mega.ist.utl.pt> <20041231150724.GK19199@poupinou.org> <20041231181628.GL19199@poupinou.org>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: kernel 2.6.10 , uhci-hcd problem after ACPI
+ S3 suspend.
+Date: Sat, 1 Jan 2005 11:20:24 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.0501011115460.26294-100000@netrider.rowland.org>
+References: <20041229205319.17704.qmail@web50208.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041231181628.GL19199-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-devel-admin@lists.sourceforge.net>
+In-Reply-To: <20041229205319.17704.qmail@web50208.mail.yahoo.com>
+Sender: linux-usb-devel-admin@lists.sourceforge.net
+Errors-To: linux-usb-devel-admin@lists.sourceforge.net
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
+	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Post: <mailto:linux-usb-devel@lists.sourceforge.net>
+List-Help: <mailto:linux-usb-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
+	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-usb-devel>
+To: Paul Ionescu <i_p_a_u_l@yahoo.com>
+Cc: linux-usb-devel@lists.sourceforge.net, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Wed, 29 Dec 2004, Paul Ionescu wrote:
 
-Hi.
-have tried the driver on my Travelmate 4002 which has also the smartbattery.
+> Hello Alan,
+> 
+> If I boot with "acpi=off" then I cannot use ACPI S3 to
+> suspend and resume, and my problem appears after an
+> ACPI S3 suspend/resume cycle.
 
-Here what's happening.
+This just occurred to me: After a suspend/resume, when the uhci_hcd driver
+doesn't recognize new devices being plugged in, can you tell if the
+interrupt count for the driver is changing?  If the host controller
+doesn't share an IRQ, the numbers in /proc/interrupts will tell the story.
 
-root@trilian smartbatt # ./smartbattery
-Error: No i2c-bus specified!
-Syntax: smartbatt I2CBUS
-~  Installed I2C busses:
-~    i2c-4       unknown         ACPI EC SMBus adapter at 0018
-Algorithm unavailable
-~    i2c-3       unknown         crt2
-Algorithm unavailable
-~    i2c-2       unknown         vga
-Algorithm unavailable
-~    i2c-1       unknown         dvi
-Algorithm unavailable
-~    i2c-0       unknown         monid
-Algorithm unavailable
+As another test, what shows up in the debugging file for the controller?  
+Under 2.6.9 that file would be in the /proc/driver/uhci/ directory, but it
+was recently moved to the debugfs filesystem, and I'm not sure whether
+that move was done before or after 2.6.10 was released.
 
-root@trilian smartbatt # ./smartbattery 4
-current:       65535 mA
-remain:        65535 mA or mWh
-time to empty: 65535 minutes
-time to full:  65535 minutes
-temperature:   6280.5 C
-voltage:       65535 mV
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.6 (GNU/Linux)
+Alan Stern
 
-iD8DBQFB1pkGgL2kQgmW9pgRAgs8AKDEDlT1vtVHiC+XSGv8Fu5bwHG2GwCfSIbv
-AotXyJR5Rn2NGXf8yGr+Prc=
-=K+fO
------END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
 The SF.Net email is sponsored by: Beat the post-holiday blues
 Get a FREE limited edition SourceForge.net t-shirt from ThinkGeek.
 It's fun and FREE -- well, almost....http://www.thinkgeek.com/sfshirt
+_______________________________________________
+linux-usb-devel@lists.sourceforge.net
+To unsubscribe, use the last form field at:
+https://lists.sourceforge.net/lists/listinfo/linux-usb-devel
