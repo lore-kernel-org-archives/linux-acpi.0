@@ -1,22 +1,12 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Subject: Re: [PATCH] ACPI poweroff fixes for 2.4.26-pre2
-Date: Sat, 27 Mar 2004 14:01:27 +0000
+From: gozdal-qgjm33LpC3Eiq3RsQ1AnAw@public.gmane.org (Marcin Gozdalik)
+Subject: Problems with S3 on Thinkpad R31
+Date: Sat, 27 Mar 2004 20:31:00 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1080396087.7454.20.camel@darkstar>
-References: <20040315210729.GA19306@alpha.home.local>
-	 <1079389434.3695.2.camel@darkstar>
-	 <20040315231927.GA19829@alpha.home.local>
-	 <20040322105946.GC1505@openzaurus.ucw.cz>
-	 <1080253327.3755.20.camel@darkstar> <20040325222934.GF2179@elf.ucw.cz>
-	 <1080255058.4187.1.camel@darkstar> <20040325230037.GK2179@elf.ucw.cz>
-	 <1080262910.4144.39.camel@darkstar> <1080322903.2325.113.camel@darkstar>
-	 <20040326220723.GC9491@elf.ucw.cz>
-Reply-To: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
+Message-ID: <20040327193100.GA22149@gozdal.eu.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040326220723.GC9491-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -25,33 +15,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Willy Tarreau <willy-tRhHnHjXm5DYtjvyW6yDsg@public.gmane.org>, Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi
+Hello
 
-On Fri, 2004-03-26 at 22:07, Pavel Machek wrote:
-> I thought ia64 had problem where there was CONFIG_ACPI but not
-> CONFIG_ACPI_SLEEP.
+I'm trying to get ACPI S3 sleep to work on my IBM ThinkPad R31 (Celeron
+1.06Ghz, Intel 830 chipset). So far I am able to suspend it using "echo 3 >
+/proc/acpi/sleep", but closing/opening the LID or pressing the Fn button
+turns the power LED on (but it doesn't disable the "moon" LED indicating
+sleep) and nothing more (hard disk doesn't seem to spin up - i.e. I
+can't hear it) - the screen is completely blank and it doesn't respond
+to any keyboard input. I have to reboot using 5-sec press of Power
+button.
+To suspend the laptop I have to manually remove CD-ROM drive from the
+bay (laptop powered off of course during the operation). With CD-ROM
+plugged in it displays "hdc: drive not ready for command", "hdc: DMA
+disabled", some more error codes and hangs indefinetely.
+I have tried 2.6.5-rc2-mm4 and 2.6.5-rc2-aa4 - both exhibit the same
+behavior. I booted clean in single user mode (no hotplug running, no X,
+no AGP modules, no USB modules). As a side note - the USB mouse I'm
+using was connected to the computer all the time during experiments and
+even when the laptop was suspended the mouse was powered on. I have no
+idea if this is an expected behavior (haven't checked under Windows XP
+though).
+How can I debug this issue? Is ACPI S3 of any use under 2.6?
+Please Cc me all the answers as I am not subscribed to acpi-devel.
 
-yes, So this problem is with ia64.=20
-I don't have any acknowledgment on ia64, so i give up.
-
-IIRC: if I recall correctly=20
-we couldn't compile ACPI without Power management,
-but now we can configure ACPI without PM this is right ?
-
-or arch/i386/config.in shouldn't be like this:
-
-if [ "$CONFIG_PM" =3D "y" ]; then
-source drivers/acpi/Config.in
-fi
-
-thanks and sorry for the spamming =20
---=20
-S=E9rgio M. B.
-
+Cheers,
+Marcin
 
 
 -------------------------------------------------------
