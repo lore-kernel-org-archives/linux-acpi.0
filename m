@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: s3 on vaio z600
-Date: Fri, 28 Mar 2003 21:59:23 +0100
+Subject: Re: acpi on toshiba satellite 1625CDT
+Date: Fri, 28 Mar 2003 19:59:47 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030328205923.GG5147@zaurus.ucw.cz>
-References: <1048682112.501.11.camel@localhost>
+Message-ID: <20030328185947.GE5147@zaurus.ucw.cz>
+References: <200303251447.12168.mark@ale8.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1048682112.501.11.camel-bi+AKbBUZKZeoWH0uzbU5w@public.gmane.org>
+In-Reply-To: <200303251447.12168.mark-pX1FbxK42pU@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,25 +17,23 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org, ole.rohne-vJEk5272eHo@public.gmane.org
+To: Mark Stocker <mark-pX1FbxK42pU@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> So I conclude that either there is something wrong with _WAK and _BFS or
-> it locks up in wakeup.S - just before the hardware part in control of
-> the leds gets resumed (resetted). 
+> state of the lid and power button, thermal zone seems to work, sleep doesnt 
+> seem to work as it should but this doesnt bother me.  Battery info appears 
+> incorrect as it will show a battery even when the battery is removed.  Ac 
+> power is correctly read.
+> I would greatly appreciate any help!!  Compiling acpi without fan support 
+> doesnt help, the fan still gets stuck on.  Is there anyway around this other 
+> than disabling acpi completly causing the lid switch problem?
+> 
 
-So disassemble _WAK/BFS and look
-what it does/where it dies.
-
-> Now, I would really appreciate any hint, how I can gather more
-> information. Is there any chance to find out wether it actually jumps
-> into wakeup.S after resume?
-
-Few leds on parallel port may do the trick... along with outb() in wakeup.S.
-
+Look at thermal zone info, try echo 3
+> /proc/acpi/fan/PFAN/state (IIRC).
 -- 
 				Pavel
 Written on sharp zaurus, because my Velo1 broke. If you have Velo you don't need...
