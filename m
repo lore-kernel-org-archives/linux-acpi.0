@@ -1,14 +1,16 @@
-From: Daniel Drake <dan-LrsmPHowOvpd3aXB8m+yKQ@public.gmane.org>
-Subject: Re: acpi problem with nforce motherboards and ethernet
-Date: Fri, 06 Feb 2004 09:47:02 +0000
+From: Greg Sarjeant <greg-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org>
+Subject: Re: broken power button
+Date: Fri, 06 Feb 2004 07:46:21 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40236296.6040503@reactivated.net>
-References: <402298C7.5050405@wanadoo.es> <40229D2C.20701@blue-labs.org> <4022B55B.1090309@wanadoo.es>
+Message-ID: <1076071581.5785.15.camel@localhost>
+References: <1076036158.4792.12.camel@tinny.home.foo>
+	 <1076038435.5849.8.camel@localhost>
+	 <1076044045.4744.10.camel@tinny.home.foo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <4022B55B.1090309-39ZsbGIQGT7e5aOfsHch1g@public.gmane.org>
+In-Reply-To: <1076044045.4744.10.camel-3lu5YwujmwObGSPjaX/RoA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,25 +19,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?ISO-8859-1?Q?Luis_Miguel_Garc=EDa?= <ktech-39ZsbGIQGT7e5aOfsHch1g@public.gmane.org>
-Cc: David Ford <david+challenge-response-qokYbnrgTHEgsBAKwltoeQ@public.gmane.org>, akpm-LL/9OlyS9hIAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, a.verweij-oe7qfRrRQfeEZXFvZSAUrfP6llvjuJOh@public.gmane.org
+To: "Scott T. Smith" <scott-j3vAvQ9dNB9ByuSxxbvQtw@public.gmane.org>
+Cc: "acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Luis Miguel Garc=EDa wrote:
-> By the way, is anyone involved in solving the IO-APIC thing in nforce=20
-> motherboards? Anyone trying a different approach? Anyone contacting=20
-> nvidia about this problem?
+On Fri, 2004-02-06 at 00:07, Scott T. Smith wrote:
+> I applied the patch; I think ACPI should report a warning in this case. 
+> According to p63, there are 2 bits of information (4 choices) but only 2
+> legal possibilities.  Windows must be ignoring the PWR_BUTTON field and
+> just checking for the existance of PWRB.  ACPI should complain if
+> PWR_BUTTON is not set and PWRB exists, or if PWR_BUTTON is set and PWRB
+> doesn't exist.
+> 
+> Similarly, if SLP_BUTTON is not set and SLPB exists, ACPI should throw a
+> warning too.
+> 
+You're probably right.  I am hopeful that we can find a more robust
+solution to the problem. This is an admittedly sloppy (and hopefully
+temporary) workaround that just saves me the trouble of commenting out
+those three whole lines of code in future kernels. :)
 
-Ross said in previous mails that he had tried to contact nvidia through=20
-various methods, and had not recieved a response.
-He also mentioned that AMD were being much more responsive, and he had a=20
-support request open with them, which he was assured was being investigat=
-ed.
+> Unfortunately, while this lets me receive PWRB notifications, it doesn't
+> solve the lockup on suspend.  Ugh.
+> 
+Ah, drat. For what it's worth, I have similar issues with suspend,
+though I haven't tried suspending to RAM for a while, which was when I
+saw the behavior you describe. I have been able to suspend to disk from
+a console, and others have reported doing so from unaccelerated X. I've
+never managed to resume successfully from X, however.
 
-But yeah, doesn't look like we are getting anywhere with the manufacturer=
-s...
+Greg
 
-Daniel
 
 
 -------------------------------------------------------
