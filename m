@@ -1,14 +1,13 @@
-From: ole.rohne-vJEk5272eHo@public.gmane.org
-Subject: Re: s3_late_bios
-Date: Wed, 10 Nov 2004 15:11:47 +0100
-Message-ID: <yzoy8h9pzdo.fsf@cern.ch>
-References: <20041108144947.GA31267@tate.loria.fr> <20041108213558.GB4607@elf.ucw.cz>
- <418FEAD5.1000007@root.org> <20041109125522.GA8015@tate.loria.fr>
- <419127E6.3000603@root.org> <20041110072003.GA13561@tate.loria.fr>
- <1100087772.6014.5.camel@tyrosine>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: kacpid problems
+Date: Wed, 10 Nov 2004 22:26:50 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC047@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,16 +20,59 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->> I don't think linux has a vm86 api at all.
-
-Matthew> There's a vm86 api on i386 - see the vm86 manpage. It seems
-Matthew> to have been introduced in 0.97.
-
-I guess that should have been: Linux doesn't have kernel-mode vm86...
-
-Ole
-
-
+SG1tLi4uIHdvdWxkIHlvdSBwbGVhc2UgY2F0IC9wcm9jL2ludGVycnVwdHMgdG8gbWUuDQoNClRo
+YW5rcw0KTHVtaW5nIA0KDQo+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj5Gcm9tOiBkZXZf
+emVybyBbbWFpbHRvOmRldl94b3JAeWFob28ubm9dIA0KPlNlbnQ6IDIwMDTlubQxMeaciDEw5pel
+IDIxOjM0DQo+VG86IFl1LCBMdW1pbmcNCj5DYzogYWNwaS1kZXZlbEBsaXN0cy5zb3VyY2Vmb3Jn
+ZS5uZXQNCj5TdWJqZWN0OiBSRTogW0FDUEldIGthY3BpZCBwcm9ibGVtcw0KPg0KPmthY3BpZCBz
+dGlsbCBydW5ucyB3aXRoIDk5JWNwdSB1c2FnZSB3aGVuIHRoZSBjcHUgZ2V0cw0KPnRvbyBob3Qu
+IEkgdHJpZWQgdGhlIGdhbWUgcXVha2UgMi4gWW91IGNhbiBwbGF5IGFyb3VuZA0KPjEwIC0xNSBt
+aW51dGVzIGJlZm9yZSB0aGUga2FjcGlkIHN0YXJ0cyBydW5uaW5nIG9uIDk5JQ0KPmNwdSB1c2Fn
+ZS4gSSBhbHNvIHVzZWQgcXVha2UgMiB0b28gdGVzdCB0aGUga2VybmVsDQo+YmVmb3JlIEkgYXBw
+bGllZCB5b3VyIHBhdGNoLg0KPg0KPiAtLS0gIll1LCBMdW1pbmciIDxsdW1pbmcueXVAaW50ZWwu
+Y29tPiB3cm90ZTogDQo+PiBJdCBtZWFucyB0aGVyZSB3YXMgTk8gZXZlbnQgZ2VuZXJhdGVkIGF0
+IHRoYXQgdGltZS4NCj4+IERvIHlvdSB0aGluayB0aGUgc3ltcHRvbSBpcyBnb25lIHdpdGggbXkg
+ZGVidWcNCj4+IHBhdGNoPw0KPj4gSWYgc28sIEkgdGhpbmsgeW91ciBib3ggbmVlZCBhIG1vcmUg
+c2FuZSBzY2hlZHVsZQ0KPj4gZm9yIGFjcGlfdGhlcm1hbF9jaGVjayANCj4+IEFuZCwgSSBjYW4g
+Y29tZSB1cCB3aXRoIGEgcGF0Y2guDQo+PiANCj4+IFRoYW5rcw0KPj4gTHVtaW5nIA0KPj4gDQo+
+PiA+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4+ID5Gcm9tOiBkZXZfemVybyBbbWFpbHRv
+OmRldl94b3JAeWFob28ubm9dIA0KPj4gPlNlbnQ6IDIwMDTDpcK5wrQxMcOmxZPLhjEww6bigJTC
+pSAxOjA2DQo+PiA+VG86IFl1LCBMdW1pbmcNCj4+ID5DYzogYWNwaS1kZXZlbEBsaXN0cy5zb3Vy
+Y2Vmb3JnZS5uZXQNCj4+ID5TdWJqZWN0OiBSRTogW0FDUEldIGthY3BpZCBwcm9ibGVtcw0KPj4g
+Pg0KPj4gPldoZW4gSSB0cnkgdG8gb3V0cHV0IHRoZSBldmVudCBmaWxlIEkgZG8gdGhpczoNCj4+
+ID5bcm9vdEBiYWxkZXI6IC9wcm9jL2FjcGldIyBjYXQgZXZlbnQgPg0KPj4gL2hvbWUvZXZlbnQu
+bG9nDQo+PiA+DQo+PiA+QnV0IHRoZW4gSXQganVzdCBzdGFuZHMgdGhlcmUgd2l0aG91dCBkb2lu
+Zw0KPj4gYW55dGhpbmcuDQo+PiA+U28gaSB0cmllZCB0byBjaGVjayB3aGF0IHdhcyB3cm9uZyAo
+cHMgYXgpIGNvbW1hbmQ6DQo+PiA+MjkyMiBwdHMvMCAgICBTKyAgICAgMDowMCBjYXQgZXZlbnQN
+Cj4+ID4NCj4+ID5JIGRvbid0IGtub3cgaWYgaXQgaXMgc3VwcG9zZWQgdG8gYmUgc3VzcGVuZGVk
+Pw0KPj4gPj4gSSB3YW50IHRvIGtub3cgd2hhdCBraW5kIG9mIGV2ZW50cyBjb3VsZCBiZQ0KPj4g
+Pj4gZ2VuZXJhdGVkIGhlYXZpbHksIHdoaWNoIGNvdWxkIGhhdmUgY29ycmVzcG9uZGluZw0KPj4g
+Pj4gcGVuZGluZyBleGVjdXRpb24gb2YgQU1MIG1ldGhvZCBpc3N1ZWQgdG8gd29yaw0KPj4gcXVl
+dWUNCj4+ID4+IGhhbmRsZWQgYnkga2FjcGlkLiAgU28ganVzdCBjYXQgL3Byb2MvYWNwaS9ldmVu
+dA0KPj4gPg0KPj4gPj4gZXZlbnQubG9nDQo+PiA+PiB0byBtZSB3aGVuIHlvdSB3ZXJlIG9ic2Vy
+dmluZyBhYm5vcm1hbCAgY3B1DQo+PiA+PiBjb25zdW1wdGlvbiBieSBrYWNwaWQuICANCj4+ID4+
+IA0KPj4gPj4gVGhhbmtzDQo+PiA+PiBMdW1pbmcgDQo+PiA+PiANCj4+ID4+ID4tLS0tLU9yaWdp
+bmFsIE1lc3NhZ2UtLS0tLQ0KPj4gPj4gPkZyb206IGRldl96ZXJvIFttYWlsdG86ZGV2X3hvckB5
+YWhvby5ub10gDQo+PiA+PiA+U2VudDogMjAwNMOD4oCew4PCqjExw4PigJ3Dg+KAmjEww4PLhsOD
+4oCiIDA6MDANCj4+ID4+ID5UbzogWXUsIEx1bWluZw0KPj4gPj4gPlN1YmplY3Q6IFJFOiBbQUNQ
+SV0ga2FjcGlkIHByb2JsZW1zDQo+PiA+PiA+DQo+PiA+PiA+T2YgY291cnNlLi4gQnV0IHdoaWNo
+IGxvZyBmaWxlcyBkbyB5b3Ugd2FudCB0bw0KPj4gdGFrZQ0KPj4gPj4gYQ0KPj4gPj4gPmxvb2sg
+YXQ/DQo+PiA+PiA+PiA+SG93IGFtIGkgc3VwcHBvc2UgdG8gZ2V0IGFuIG91dHB1dCBmcm9tDQo+
+PiA+PiA+PiA+L3Byb2MvYWNwaS9ldmVudCA/Pz8gSSBjYW4ndCBhY2Nlc3MgdGhlIGZpbGUsDQo+
+PiA+PiA+PiBiZWNhdXNlDQo+PiA+PiA+PiA+aXQncyBpbiB1c2UuDQo+PiA+PiA+PiANCj4+ID4+
+ID4+IEp1c3Qga2lsbCBhY3BpZCBvciB0aGUgc2ltaWxhci4NCj4+ID4+ID4+IA0KPj4gPj4gPj4g
+DQo+PiA+PiA+Pg0KPj4gPj4NCj4+DQo+Pj4tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQo+PiA+PiA+PiBUaGlzIFNGLk5ldCBlbWFpbCBpcyBz
+cG9uc29yZWQgYnk6DQo+PiA+PiA+PiBTeWJhc2UgQVNFIExpbnV4IEV4cHJlc3MgRWRpdGlvbiAt
+IGRvd25sb2FkDQo+PiBub3cNCj4+ID4+IGZvcg0KPj4gPj4gPj4gRlJFRQ0KPj4gPj4gPj4gTGlu
+dXhXb3JsZCBSZWFkZXIncyBDaG9pY2UgQXdhcmQgV2lubmVyIGZvcg0KPj4gYmVzdA0KPj4gPj4g
+Pj4gZGF0YWJhc2Ugb24gTGludXguDQo+PiA+PiA+Pg0KPj4gPj4NCj4+IGh0dHA6Ly9hZHMub3Nk
+bi5jb20vP2FkX2lkVTg4JmFsbG9jX2lkEjA2NSZvcD1jbGljaw0KPj4gPj4gPj4NCj4+IF9fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fDQo+PiA+PiA+PiBBY3Bp
+LWRldmVsIG1haWxpbmcgbGlzdA0KPj4gPj4gPj4gQWNwaS1kZXZlbEBsaXN0cy5zb3VyY2Vmb3Jn
+ZS5uZXQNCj4+ID4+ID4+DQo+PiA+Pg0KPj4NCj4+Pmh0dHBzOi8vbGlzdHMuc291cmNlZm9yZ2Uu
+bmV0L2xpc3RzL2xpc3RpbmZvL2FjcGktZGV2ZWwNCj4+ID4+ID4+ICANCj4+ID4+ID4NCj4+ID4+
+ICANCj4+ID4NCj4+IA0KPg0K
 
 
 -------------------------------------------------------
