@@ -1,16 +1,14 @@
-From: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
-Subject: Re: About dsdt of clevo 5600N
-Date: 16 May 2003 10:44:51 +0200
+From: Mark Stocker <mark-pX1FbxK42pU@public.gmane.org>
+Subject: DSDT problems
+Date: Fri, 16 May 2003 06:21:25 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1053074691.1189.6.camel@dutidad>
-References: <20030516021732.69eca85d.XaRz69@terra.es>
-	 <20030516035605.18dc60b8.XaRz69@terra.es>
-	 <Pine.LNX.4.53.0305160752340.5724@dynast.gaugusch.at>
+Message-ID: <200305160621.25645.mark@ale8.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.53.0305160752340.5724-sxQ525G0OhRQK2oVCIMtW7NldLUNz+W/@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -22,37 +20,63 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2003-05-16 at 07:53, Markus Gaugusch wrote:
-> On May 16, Pere Casta=F1er <XaRz69-pCzzcW6XgXY@public.gmane.org> wrote:
-> > How can I know if my laptop is capable of doing suspend on Ram (I supos=
-e
-> > the tipical windows supend mode)? throght the dmesg?  Or I need more
-> > patches?
-> You have to do 'cat /proc/acpi/sleep' and see if S3 is available.
-> Unfortunately, even if it is shown to be supported, it can't work with 2.=
-4
-> kernels. Maybe try the latest 2.5 kernel, or use swsusp (swsusp.sf.net).
+Hi!  i've been working for a while now on getting acpi functioning completly 
+on my toshiba satellite 1625CDT.  I was having problems with the fan and 
+thermal zone, both of which i've fixed in the DSDT by removing these if 
+statements from the fan control methods and _TMP method in the TZ.
 
-The 5600 supports S3, but you can forget about using it in Linux at this
-moment.  There are two problems at the moment, one specific and one
-general. =20
+ If (LAnd (\_SB.PCI0.ISA.ECOK (), LEqual (ECDY, 0x00))) {}
 
-Problem one is that the sleep button is not enabled for wakeup, so you
-can make the laptop go S3, but you can't wake it up.  It took me weeks
-to figure this out.  The experiment ended with a BAD BAD hack to enable
-the sleep button for a wakeup event and at least it showed some signs of
-life.  The friendly Intel ACPI developers are aware of this problem and
-will fix it.
+i dont know what these statements are for, the best i can guess is ECOK 
+meaning if the EC is ready to be accessed?
 
-Problem two is of course simply the fact that many drivers don't support
-being waked up from S3 yet.  In addition, the information for waking up
-a Radeon M7 (which is in the 5600) is not really available.  You can try
-the trick Ole Rohne did and repost the Radeon, but this is kludge.
+the ECOK method is:
 
-Search the acpi-devel list archives for details.
+                Method (ECOK, 0, NotSerialized)
+                {
+                    If (LAnd (And (\_SB.PCI0.ISA.EC0.OPRG, 0x08), And (MFLG, 
+0x01)))
+                    {
+                        Return (0x01)
+                    }
+                    Else
+                    {
+                        Return (0x00)
+                    }
+                }
 
---=20
-charl p. botha http://cpbotha.net/ http://visualisation.tudelft.nl/
+It seems anything that checks ECOK will not work properly.  is it dangerous to 
+remove the if statements like i have done?  I've tried editing the ECOK 
+method but nothing seems to help.
+The only problem im still having is battery info.  Battery shows as present no 
+matter what.  Removing the ECOK statements from the BAT0 device compiles DSDT 
+with no errors but i get this at boot:
+
+Executing all Device _STA and_INI methods:...evregion-0251 [23] 
+ev_address_space
+_dispa: no handler for region(cbfce7c8) [EmbeddedControl]
+ exfldio-0235 [22] ex_access_region      : Region EmbeddedControl(3) has no 
+hand
+ler
+ psparse-1121: *** Error: Method execution failed [\_SB_.BAT0._STA] (Node 
+cbfe39
+68), AE_NOT_EXIST
+  uteval-0098: *** Error: Method execution failed [\_SB_.BAT0._STA] (Node 
+cbfe39
+68), AE_NOT_EXIST
+
+battery info no longer shows up under /proc/acpi when i get the errors above.
+i cant think of anything else to try for now, any help or suggestions would be 
+greatly appreciated!
+
+oringal DSDT.dsl: 
+http://www.cykotix.com/~mark/toshiba_satellite_162CDT_dsdt_original.dsl
+
+my modified version:
+http://www.cykotix.com/~mark/toshiba_satellite_1625CDT_custom.dsl
+
+Thanks!
+
 
 
 -------------------------------------------------------
