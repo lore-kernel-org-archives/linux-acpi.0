@@ -1,13 +1,13 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHES] split up processor.c into pieces
-Date: 21 Dec 2004 23:10:32 -0500
-Message-ID: <1103688630.17328.49.camel@d845pe>
-References: <20041127155618.GA3608@dominikbrodowski.de>
+Subject: Re: [PATCHES] add _CST support
+Date: 22 Dec 2004 00:44:05 -0500
+Message-ID: <1103694244.17325.58.camel@d845pe>
+References: <20041127215118.GA30309@dominikbrodowski.de>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041127155618.GA3608-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+In-Reply-To: <20041127215118.GA30309-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,109 +18,19 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-patches 1 - 6 applied to acpi-test tree.
+On Sat, 2004-11-27 at 16:51, Dominik Brodowski wrote:
 
-Thanks, Dominik, for taking the time to break the change into series of
-patches.
+> - make acpi_cstate_limit aware of c-state types instead of numbers, as the
+> 	latter mean (almost) nothing
+
+While both C3 and C4 will be of type-C3, I'd like to still be able to
+disable C4 without disabling C3.
 
 -Len
 
-
-On Sat, 2004-11-27 at 10:56, Dominik Brodowski wrote:
-> The following patches against 2.6.10-rc2-mm3 split up
-> drivers/acpi/processor.c
-> into better manageable pieces. Also a small improvement to the
-> throttling
-> subsystem is appended.
-> 
-> The individual patches are available at the place listed below. Oh,
-> and I know that
-> applying 01 and 02 will break if !CONFIG_CPU_FREQ, but that's fixed in
-> 03 and I'm too
-> lazy to re-diff as I think all these patches (or at least 01 to 05)
-> should be applied
-> at the same time.
-> 
-> Please test and apply,
->         Dominik
-> 
-> http://www.brodo.de/patches/2004-11-27/01-acpi-20041127-processor-splitup-perflib
-> 
-> Split the ACPI Processor P-States library into a different file
-> 
->  drivers/acpi/Makefile            |    7
->  drivers/acpi/processor.c         |  644
-> -------------------------------------
->  drivers/acpi/processor_perflib.c |  666
-> +++++++++++++++++++++++++++++++++++++++
->  include/acpi/processor.h         |   25 +
->  4 files changed, 700 insertions(+), 642 deletions(-)
-> 
-> 
-> http://www.brodo.de/patches/2004-11-27/02-acpi-20041127-processor-splitup-throttling
-> 
-> Split the ACPI Processor T-States handling into a different file
-> 
->  drivers/acpi/Makefile               |    2
->  drivers/acpi/processor.c            |  314
-> --------------------------------
->  drivers/acpi/processor_throttling.c |  351
-> ++++++++++++++++++++++++++++++++++++
->  include/acpi/processor.h            |   22 ++
->  4 files changed, 375 insertions(+), 314 deletions(-)
-> 
-> 
-> http://www.brodo.de/patches/2004-11-27/03-acpi-20041127-processor-splitup-idle
-> 
-> Split the ACPI Processor C-States handling into a different file
-> 
->  drivers/acpi/Makefile         |    4
->  drivers/acpi/processor.c      |  586
-> ---------------------------------------
->  drivers/acpi/processor_idle.c |  629
-> ++++++++++++++++++++++++++++++++++++++++++
->  include/acpi/processor.h      |    8
->  4 files changed, 641 insertions(+), 586 deletions(-)
-> 
-> 
-> http://www.brodo.de/patches/2004-11-27/04-acpi-20041127-processor-splitup-thermal
-> 
-> Split the ACPI Processor passive cooling code into a different file
-> 
->  drivers/acpi/Makefile            |    3
->  drivers/acpi/processor.c         |  362
-> ----------------------------------
->  drivers/acpi/processor_thermal.c |  406
-> +++++++++++++++++++++++++++++++++++++++
->  include/acpi/processor.h         |   19 +
->  4 files changed, 429 insertions(+), 361 deletions(-)
-> 
-> 
-> http://www.brodo.de/patches/2004-11-27/05-acpi-20041127-processor-splitup-core
-> 
-> Finalize the splitting of processor.c by moving the rest to
-> processor_core.c
-> 
->  drivers/acpi/Makefile         |    8
->  drivers/acpi/processor.c      | 1046
-> ------------------------------------------
->  drivers/acpi/processor_core.c | 1046
-> ++++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 1050 insertions(+), 1050 deletions(-)
-> 
-> 
-> http://www.brodo.de/patches/2004-11-27/06-acpi-20041127-throttling-disableirqsforshorterperiods
-> 
-> Shorten the times IRQs are disabled in throttling. During calculations
-> no disabling is necessary.
-> 
->  drivers/acpi/processor_throttling.c |    8 ++++----
->  1 files changed, 4 insertions(+), 4 deletions(-)
-> 
-> 
 
 
 
