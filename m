@@ -1,16 +1,14 @@
-From: Johannes Schanda <johannes.schanda-1R9WWMedIqeELgA04lAiVw@public.gmane.org>
-Subject: Re: Fwd: Acer Extensa 3001 battery problem (smart battery)
-Date: Mon, 13 Sep 2004 11:13:01 +0200
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: Battery rate on Acer TM 292
+Date: Mon, 13 Sep 2004 07:39:00 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200409131113.01586.johannes.schanda@schanda.de>
-References: <16A54BF5D6E14E4D916CE26C9AD305751B66C2@pdsmsx402.ccr.corp.intel.com>
+Message-ID: <20040913053900.GB851@message-id.gmane0305.slipkontur.de>
+References: <16A54BF5D6E14E4D916CE26C9AD305751B66D5@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD305751B66C2-4yWAQGcml66iAffOGbnezLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD305751B66D5-4yWAQGcml66iAffOGbnezLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -22,22 +20,36 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday 13 September 2004 03:15, Li, Shaohua wrote:
-> *snip*
-> Linux doesn't support smart battery yet. Smart battery is more complicated
-> than control method battery.
->
-> Thanks,
-> Shaohua
->
-Ah, ok. Thanks for clearing that up. 
+On Mon, Sep 13, 2004 at 09:20:53AM +0800, Li, Shaohua wrote:
+> >stefan@nano:~$ cat /proc/acpi/battery/BAT1/state
+> >present:                 yes
+> >capacity state:          ok
+> >charging state:          discharging
+> >present rate:            0 mA
+> >remaining capacity:      3960 mAh
+> >present voltage:         16376 mV
 
-I don't want to rush you or anything, you've all been doing a great job on 
-ACPI, but just for my information, when can we expect to see smart battery 
-support in linux? 
+> Please don't trust 'present rate'. In many systems, 'present rate' are
+> always 0.
 
-Thanks,
-Johannes
+There are actually a lot of systems where 'present rate' is pretty accurate
+and there is ACER where it is always 0. I am in a dispute with ACER engineers
+about this right now but they don't seem to understand the problem.
+Of course this is a minor problem, but it is something which is done better
+by the competitors.
+I wonder if you get to see a estimated battery lifetime in Windows on these
+machines.
+
+> If you want to estimate the power of the battery, please use
+> remaining capacity. I'd like the user daemon use 'remaining capacity' to
+> calculate the rate.
+
+Although this is possible, it is very low priority on my todo list since
+it is needed only for ACER AFAICT and you get very bogus results shortly
+after restarting the userspace daemon etc.
+-- 
+Stefan Seyfried
+
 
 
 -------------------------------------------------------
