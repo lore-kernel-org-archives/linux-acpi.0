@@ -1,55 +1,73 @@
-From: Len Brown <len.brown@intel.com>
-Subject: Re: ACPI problem with latest 2.6 snapshot
-Date: 24 Mar 2004 23:11:55 -0500
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <1080187915.21259.354.camel@dhcppc4>
-References: <1080136312.2309.9.camel@pegasus>
+From: Sergey Vlasov <vsu-u2l5PoMzF/Uox3rIn2DAYQ@public.gmane.org>
+Subject: Re: ACPI for 2.4
+Date: Thu, 25 Mar 2004 16:01:50 +0300
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20040325160150.06b0ac39.vsu@altlinux.ru>
+References: <1080038602.21688.317.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-In-Reply-To: <1080136312.2309.9.camel@pegasus>
-To: Marcel Holtmann <marcel@holtmann.org>
-Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Developers <acpi-devel@lists.sourceforge.net>
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="pgp-sha1";
+ boundary="Signature=_Thu__25_Mar_2004_16_01_50_+0300_ic2.AP_VCr.BybCg"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thanks for reporting this failure Marcel.
-I expect we'll have this problem in 2.4.26 too.
+--Signature=_Thu__25_Mar_2004_16_01_50_+0300_ic2.AP_VCr.BybCg
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
 
-On Wed, 2004-03-24 at 08:51, Marcel Holtmann wrote:
-> ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 22 low level)
+On 23 Mar 2004 05:43:22 -0500 Len Brown wrote:
 
-rats, I don't have a non-identity SCI over-ride like this to test on.
+> 	Several key fixes.
+> 	SCI polarity/trigger fix
+> 	cardbus bridge interrupt fix
+> 	maxcpus=N/2 can now be used (like NR_CPUS) to disable HT
+> 
+> thanks,
+> -Len
+> 
+> ps. a plain patch is also available here:
+> ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.4.26/acpi-20040311-2.4.26.diff.gz
 
-> ACPI: Subsystem revision 20040311
-> ACPI: SCI (IRQ22) allocation failed
->     ACPI-0133: *** Error: Unable to install System Control Interrupt Handler, AE_NOT_ACQUIRED
-> ACPI: Unable to start the ACPI Interpreter
+Patch for 2.4.25 seems to be updated too; however, it gives several
+rejects when applied to a fresh 2.4.25 tree:
 
-apparently setting up IRQ22 on the IOAPIC early made it unavailable for
-subsequent request_irq().
+./arch/i386/kernel/acpi.c.rej
+./arch/x86_64/kernel/acpi.c.rej
+./arch/x86_64/kernel/e820.c.rej
+./drivers/acpi/system.c.rej
+./include/acpi/acconfig.h.rej
+./include/asm-x86_64/acpi.h.rej
+./include/asm-i386/acpi.h.rej
+./include/asm-ia64/acpi.h.rej
 
-> ACPI: ACPI tables contain no PCI IRQ routing entries
-> PCI: Invalid ACPI-PCI IRQ routing table
-> PCI: Probing PCI hardware
-> PCI: Probing PCI hardware (bus 00)
-> PCI: Enabled i801 SMBus device
-> Transparent bridge - 0000:00:1e.0
-> PCI: Using IRQ router PIIX/ICH [8086/2440] at 0000:00:1f.0
-> PCI BIOS passed nonexistent PCI bus 0!
-> PCI BIOS passed nonexistent PCI bus 0!
+--Signature=_Thu__25_Mar_2004_16_01_50_+0300_ic2.AP_VCr.BybCg
+Content-Type: application/pgp-signature
 
-Marcel,
-I've dropped this info into a new bug report:
-http://bugzilla.kernel.org/show_bug.cgi?id=2366
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
 
-can you add yourself to the cc:, and attach the complete dmesg -s40000
-from the failure (or a "debug" console capture).  Would like to confirm
-that IRQ22 got set up correctly in the IOAPIC.
+iD8DBQFAYthBW82GfkQfsqIRAj8nAJ92/ZoiJy+SFtPTGKI6UjedyW/inACeIv89
+VfxXiaAn8On/6NZJcmk47wo=
+=/wqe
+-----END PGP SIGNATURE-----
 
-There are two bugs here,
-1. AE_NOT_ACQUIRED on non-identity mapped SCI over-ride -- new
-2. boot failure on AE_NOT_ACQUIRED -- old
+--Signature=_Thu__25_Mar_2004_16_01_50_+0300_ic2.AP_VCr.BybCg--
 
-thanks,
--Len
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: IBM Linux Tutorials
+Free Linux tutorial presented by Daniel Robbins, President and CEO of
+GenToo technologies. Learn everything from fundamentals to system
+administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
