@@ -1,14 +1,13 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Suspend-to-RAM on Sony Vaios
-Date: Wed, 20 Oct 2004 11:30:02 +0800
+From: "Mara Snyder" <m_snyderaz-R+6tFBf6Bx9n57vcNwVNVA@public.gmane.org>
+Subject: Get vìagra for a great price.
+Date: Tue, 19 Oct 2004 22:30:11 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <16A54BF5D6E14E4D916CE26C9AD3057559A44D@pdsmsx402.ccr.corp.intel.com>
+Message-ID: <845e01c4b655$603622dd$c79ab88c@math.utoronto.ca>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,34 +16,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Luc Saillard <luc.saillard-A5NNTvo2L0pl57MIdRCFDg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->
->On Tue, Oct 19, 2004 at 07:45:46PM +0800, Li, Shaohua wrote:
-> >
->> >I apply your changes, but it doesn't change. You say, that we need
-to
->> >enable interrupt, but
->> >>
->> >> +       local_save_flags(flag);
->> >> +       local_irq_disable();
->> >
->> Oh, I'm sorry. It's a typo. should be enable irq.
->
->With local_irq_enable, no more warning. Thanks very much.
->
->Is it normal just after a resume to have ?
->MCE: The hardware reports a non fatal, correctable incident occurred on
-CPU
->0.
->Bank 1: f200000000000181
-Thanks you verified the workaround works, but it's not a final solution.
-For the MCE: it's not normal, but isn't harmful some times.
+Hi,
 
-Thanks,
-Shaohua
+We have a new offer for you. Buy cheap Vìagra through our online store.
+- Private online ordering 
+- No prescription required
+- World wide shipping
+
+Order your drugs offshore and save over 70%!
+
+Click here: http://koolrx.com/meds/
+
+Best regards,
+Donald Cunfingham
+
+
+
+No thanks: http://koolrx.com/rm.html
+
 
 
 -------------------------------------------------------
