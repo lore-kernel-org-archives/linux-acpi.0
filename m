@@ -1,10 +1,10 @@
-From: Paul Ionescu <paul-f7LjuT9/YZU@public.gmane.org>
-Subject: Re: Re: [PATCH] filling in ACPI method access via sysfs
-Date: Wed, 14 Apr 2004 01:30:56 +0300
+From: Neal Samarakkody <rushans-3nIwluYv6B4@public.gmane.org>
+Subject: problems recompiling dsdt
+Date: Tue, 13 Apr 2004 18:20:48 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1081895455.6859.153.camel@t40>
+Message-ID: <407C75D0.70609@brc2.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -15,42 +15,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>, acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Alex,
+if anyone knows what the third hex number in the processor declaration 
+signifies, could you please tell me how to find out the corresponding 
+value for my toshiba laptop (satellite m30-s3091, centrino 1.4 ghz)?  a 
+link to some useful documentation would be good, too.  i have already 
+looked at most of the example dsdt's that i found on the web and read 
+the acpi specification from intel and i've learned a few things but 
+hadn't found what i need.
 
-Your new patch for acpi sysfs is looking good, we have access now to all methods of DSDT and can do some userspace utilities (drivers).
-Now, what we need at kernel level, IMHO, is to be able to attach a generic notify handler to the devices exported.
-For instance we can have another file in sysfs like NOTIFY or something, and when activated (perhaps an echo 1 > NOTIFY should do), 
-that device will be able to handle a notify. 
-The basic handling can be just sending an message in /proc/acpi/event containing full device name and notify value.
-Then acpid should do the rest if necessary.
+the reason why i am having to define my processor is because the moron 
+that originally wrote the dsdt at toshiba used the microsoft compiler to 
+compile the dsdt, which let him compile the dsdt without defining a 
+processor.
 
+here's a code snippet from my dsdt source:
 
-Thanks,
-Paul
+Scope (\_PR_)
+{
+     Processor (CPU0, 0x00, 0x00001010, 0x06) {}
+}
 
-
-On Sun, 2004-04-11 at 16:29, Alex Williamson wrote: 
->> 
->> It seems unintuitive that you have to read the file for the method to
->> take effect.  How about having the write function invoke the method and
->> (if there is a result) store it for later read-back via the read function?
->> It should be discarded on close, of course.  A read() on a file with
->> no stored result should invoke the ACPI method (on the assumption this
->> is a parameter-less method) and return the result directly.  Closing a
->> file should discard any result from the method.
->
->  How's this?  It behaves the way you described, but might be doing
-> some questionable things with the buffer to get there.  Is there a
-> better place to store the return data than back into the buf passed to
-> write() (aka file->private_data)?  Without adding callbacks to
-> open/close, I'm not sure how else we can dispose of the results on
-> close.  Thanks,
->
->	Alex
-
+~rushan
 
 
 -------------------------------------------------------
