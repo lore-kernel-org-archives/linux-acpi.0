@@ -1,14 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Re: S3 resume on Fujitsu-Siemens Amilo A7620 (CONTINUES)
-Date: Mon, 18 Oct 2004 23:22:08 +0200
+From: Hiroshi 2 Itoh <HIROIT-JE5g2YyFxFHQT0dZR+AlfA@public.gmane.org>
+Subject: Re: nc4010 resume failure (was: ACPI S3 resume only reboots)
+Date: Tue, 19 Oct 2004 06:52:13 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041018212208.GA10490@elf.ucw.cz>
-References: <20041018134238.4cf1b380.albeclemit@yahoo.it> <20041018124756.GA28463@elf.ucw.cz> <20041018225412.397dcd1f.albeclemit@yahoo.it>
+Message-ID: <OF00E887FE.9A5BA00C-ON49256F31.00734A89-49256F31.0077AD40@jp.ibm.com>
+References: <1098132147.4032.5.camel@tyrosine>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20041018225412.397dcd1f.albeclemit-whZMOeQn8C0@public.gmane.org>
+In-Reply-To: <1098132147.4032.5.camel@tyrosine>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,86 +16,49 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alberto Piai <albeclemit-whZMOeQn8C0@public.gmane.org>
-Cc: HIROIT-JE5g2YyFxFHQT0dZR+AlfA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-
-> > Yes, you are going out of wakeup.S... Actually no. You are going to
-> > ret_point down in do_suspend_lowlevel.
-> 
-> Update: code is executed until
-> [...]
-> ENTRY(do_suspend_lowlevel)
-> 	call	save_processor_state
-> 	call	save_registers
-> 	pushl	$3
-> 	call	acpi_enter_sleep_state
-> 	addl	$4,%esp
-> 	ret
-> 	.p2align 4,,7
-> ret_point:
-> 	call	restore_registers
-> 	call	restore_processor_state
-> 	# Here it's still alive :)
-> 	ret
-> [...]
-> 
-> So now it's going out of wakeup.S, right?
-
-Good.
-
-> We should be in drivers/acpi/sleep/main.c at that point
-
-Yes. I assume that video does not work for you? Do you see at least
-blinking cursor?
-
-...hmm, problem is that normal video calls really require stack. Very
-bad.
-
-> 	case PM_SUSPEND_STANDBY:
-> 		barrier();
-> 		status = acpi_enter_sleep_state(acpi_state);
-> 		break;
-> 
-> 	case PM_SUSPEND_MEM:
-> 		do_suspend_lowlevel();
-> 		break;
-> 
-> 	case PM_SUSPEND_DISK:
-> 		if (acpi_pm_ops.pm_disk_mode == PM_DISK_PLATFORM)
-> 			status = acpi_enter_sleep_state(acpi_state);
-> 		else
-> 			do_suspend_lowlevel_s4bios();
-> 		break;
-> 	default:
-> 		return -EINVAL;
-> 	}
-> 	local_irq_restore(flags);
-> 	printk(KERN_DEBUG "Back to C!\n");
-> [...]
-> right? 
-> Can i use some beep code from here as well?
-
-You'd have to wrap it with asm("") at least, and need right
-constraints.... Hmm, this should be C-equivalent. First try it
-somewhere in normal code.
-
-outb(inb(97), 0x80); outb_p(3, 97); outb_p(-74,67); outb_p(-119,66);
-outb_p(15,66);
 
 
-> I won't sleep until this laptop resumes! ;)
 
-Given that human can only handle about 72 hours without sleep... I'd
-say that is bad idea.
 
-								Pavel
+Matthew wrote:
 
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+>>  ENTRY(wakeup_start)
+>> @@ -20,6 +35,7 @@
+>>           wakeup_code_start = .
+>>           .code16
+>>
+>> +         BEEP
+>>           movw        $0xb800, %ax
+>>           movw        %ax,%fs
+>>           movw        $0x0e00 + 'L', %fs:(0x10)
+
+>I've been trying this on an HP nc4010. As far as I can tell, the code
+>never even gets this far. The machine appears to suspend correctly - the
+>sleep light flashes. Pressing the power button then causes the fan to
+>switch on, but no beep is produced. This is with the gdt and
+>virt_to_phys patches applied. What's the best way to proceed with
+>debugging this?
+
+It is reported that some machines cannot use its stack due to unknown
+reason. In that case you must create a beep sound without any stack use
+(push, call etc.) especially before your own ss:sp setting.
+
+The best way to debug is to write a code to switch from protected mode to
+real mode and  jump directly to wakeup_start from do_suspend_lowlevel. If
+the control comes back to C routine again via the short-cut code, BIOS
+shall be something wrong.
+
+I will start writing the code soon to verify whether BIOS wakeup routine
+misbehave to system hardware registers or not.
+
+Regards, Hiro.
+
+
+
 
 
 -------------------------------------------------------
