@@ -1,17 +1,17 @@
-From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
-Subject: Re: first shoot for smartbattery
-Date: Mon, 10 Jan 2005 20:34:41 +0100
-Message-ID: <m27jmlf57y.fsf@phoenix.squirrel.nl>
+From: jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org (Johan Vromans)
+Subject: Re: Re: first shoot for smartbattery
+Date: Mon, 10 Jan 2005 20:44:00 +0100
+Message-ID: <16866.56064.819016.126757@phoenix.squirrel.nl>
 References: <41D56002.5060008@mega.ist.utl.pt>
+	<41DAB539.2020605@arrakis.dhis.org>
+	<m2oefyzplr.fsf@phoenix.squirrel.nl>
 	<200501101524.58077.sanskryt@op.pl>
 	<m28y71fi1s.fsf@phoenix.squirrel.nl>
-	<200501101736.24293.sanskryt@op.pl>
+	<41E2A2B2.4010204@arrakis.dhis.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200501101736.24293.sanskryt-FWhLrETftxM@public.gmane.org>
- =?iso-8859-2?q?=28Zdzis=B3aw?= A. Kaleta's message of "Mon, 10 Jan 2005 17:36:22 +0100")
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,46 +21,15 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pedro Venda <pjvenda-pQd4kjVL+RHfqL7NgpvPWWD2FQJk+8+b@public.gmane.org>
+Cc: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-"Zdzis=B3aw A. Kaleta" <sanskryt-FWhLrETftxM@public.gmane.org> writes:
+[Quoting Pedro Venda, on January 10 2005, 15:43, in "Re: [ACPI] Re: first"]
+> If you want, I can write some code to output information
+> in a desired way for your frontend.
 
-> Sorry to insist but still a mistake and I am not a coder ;-(
-> "Use of uninitialized value in concatenation (.) or string at ./battstat.=
-pl=20
-> line 95."
->
-> Line 95 is "$mw->title("Battery: $time ($status%)");"
->
-> and there is no info in the windows
-
-1. Would it be possible that you are running the 'original'
-smartbattery application, and not Pedro's enhanced version? This is
-the expected output of smartbattery2:
-
-----snip----
-status:			fully charged	discharging	initialized
-mode:			capacity in 10 mW/mWh
-design voltage:		14800 mV
-design charge capacity:	4400 mAh or mWh
-absolute charge:	93%
-full charge capacity:	4270 mAh or mWh
-relative charge:	96%
-current:		-1171 mA
-voltage:		16360 mV
-remain:			4081 mA
-average time to empty:	253 minutes
-average time to full:	65535 minutes
-temperature:		26.5 C
-cycle count:		13
-----snip----
-
-2. You seem to be using SMbus #1, so did you change the line
-
-    my $prog =3D "smartbattery2 0";
-to
-    my $prog =3D "smartbattery2 1";
+That won't be necessary. Perl is quite good at parsing program output :-).
 
 -- Johan
 
