@@ -1,13 +1,12 @@
-From: Jim Summers <jsummers-5f/76mLIbwCHXe+LvDLADg@public.gmane.org>
-Subject: Re: Nothing in /proc/acpi/events
-Date: Thu, 03 Feb 2005 10:10:23 -0600
-Message-ID: <42024CEF.9020308@cs.ou.edu>
-References: <4202321C.3060103@gmail.com>
-Reply-To: jsummers-5f/76mLIbwCHXe+LvDLADg@public.gmane.org
+From: "JP Mercury" <swirlee-HptHbbG/L9RWk0Htik3J/w@public.gmane.org>
+Subject: Re: Averatec laptop- acpi_power_off hang
+Date: Thu, 3 Feb 2005 10:17:58 -0700
+Message-ID: <20050203171758.M86895@stickist.com>
+References: <20050202214755.M81868@stickist.com> <Pine.LNX.4.60.0502031522440.4161@frog.athome>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7BIT
-In-reply-to: <4202321C.3060103-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain;
+	charset=iso-8859-1
+In-Reply-To: <Pine.LNX.4.60.0502031522440.4161-KnfdeQs3A3X/9pzu0YdTqQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,51 +19,21 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Simon Walters wrote:
-> Hi, I'm running Slackware 10.0 (and have tried others) on a Dell 
-> Inspiron 1150. I have got acpi support in my kernel, but when I press 
-> the power button or close the lid, nothing shows up in the 
-> /proc/acpi/events file. I close acpid and cat the file, then press the 
-> button or close the lid, and nothing comes up.
+On Thu, 3 Feb 2005 15:23:14 +0100 (CET), liste wrote
+> Salut Jan,
+> On Wed, 2 Feb 2005, JP Mercury wrote:
+> > Now I'd like to tackle the stubborn problem of powering off. Linux shuts down
+> > but after acpi_power_off is called, it hangs. I tried the noapic, nolapic
+> > kernel options as suggested for some other laptops- no go. Now I'm wondering,
+> > could this be another DSDT problem?
+> did you also try it without RTC? There was something with the
+> realtimeclock that might prevent a power-off, if I remeber correctly.
 
-Does the state file get updated?
+Without RTC seems to make no difference.
 
-  What's wrong? I have
-> tried it on the 2.4 and 2.6 kernels and neither work.
+Thanks for your suggestion.
+-Mercury
 
-I am experiencing the same problem with a Dell 5100.
-
-The list mentioned that the state files are polled and the events are 
-int driven.  A question I have is why can events not be polled?  If it 
-is an int problem, is that fixable with a modded dsdt?
-
-I think Dell was putting out non-complying acpi stuff in their bios. 
-One of the faculty in my department has a new Dell M60 and it seems to 
-recognoze the PWRBTN event.  I haven't had time to mess with the lid on 
-it.  But my bios is at the latest available and still nada.
-
-
-
-
-> 
-> Thanks in advance,
-> Simon
-> 
-> 
-> -------------------------------------------------------
-> This SF.Net email is sponsored by: IntelliVIEW -- Interactive Reporting
-> Tool for open source databases. Create drag-&-drop reports. Save time
-> by over 75%! Publish reports on the web. Export to DOC, XLS, RTF, etc.
-> Download a FREE copy at http://www.intelliview.com/go/osdn_nl
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-
--- 
-Jim Summers
-School of Computer Science-University of Oklahoma
--------------------------------------------------
 
 
 -------------------------------------------------------
