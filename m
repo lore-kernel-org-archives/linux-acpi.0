@@ -1,17 +1,14 @@
-From: Gertjan <g.zwartjes-oe7qfRrRQfdlL9U78CI+FQ@public.gmane.org>
-Subject: Re: Asus ACPI Hotkeys
-Date: Fri, 9 May 2003 16:17:02 +0200
+From: sjb <ottaky-XuTx12Z7TonQT0dZR+AlfA@public.gmane.org>
+Subject: Re: iasl
+Date: Fri, 09 May 2003 16:17:25 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030509161702.0df6e715.g.zwartjes@student.tue.nl>
-References: <20030503112602.3d2ac1c3.g.zwartjes@student.tue.nl>
-	<Pine.LNX.4.53.0305031214220.4945@tweety.gaugusch.at>
-	<20030503123325.5246f48f.g.zwartjes@student.tue.nl>
-	<20030503141516.GA29022@hell.org.pl>
+Message-ID: <3EBBD495.7050104@ottaky.com>
+References: <3EBA7BE0.5070200@ottaky.com> <20030509133703.GH2954@poup.poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030503141516.GA29022-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+In-Reply-To: <20030509133703.GH2954-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,45 +17,53 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, Julien Lerouge <julien.lerouge-o/5/jSaJEHk+NdeTPqioyti2O/JbrIOy@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi both,
+Ducrot Bruno wrote:
 
-I tested it and the driver works for my Asus L3400D too! I'll put up a
-page about Linux on the Asus L3400D within a few days... I use kernel 2.5
-in stead of 2.4 for better ACPI and CPU frequency scaling support and I'll
-take a look at this driver to port it to 2.5. Will this driver be
-supported in the ACPI patch sooner or later? What has to be done to have
-it supported in the ACPI patch? Maybe it is a good idea to use
-/proc/acpi/event and /proc/acpi/button in stead of /proc/acpi/asus/hotk.
-Maybe /proc/acpi/led can be introduced for the status leds... Please let
-me know what I can do...
+> grab acpica-unix from intel site instead, untar, go to 'compiler' directory,
+> 'make' and hopefully you will get iasl.
 
-Regards,
+D'oh! Why didn't I think of that?! *8-)
 
-Gertjan
+> I do have trouble with bison version 1.75, but I guess that my bison
+> is broken ? With bison 1.31, all seems to be OK.
+> Plus, I got some random core dump with the latest one? 
 
+Well .. mine compiled cleanly and ..
 
-On Sat, 3 May 2003 16:15:16 +0200 Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-wrote:
+ottaky@vaio:~/acpi> ./iasl -tc dsdt.asl
 
-> Thus wrote Gertjan:
-> > It just seems that no support for these buttons is in the kernel yet.
-> 
-> There is currently a driver, made by Julien Lerouge
-> (http://julien.lerouge.free.fr) that supports both these buttons, and
-> the 2 status LEDs. I'm currently beginning to work on developing this
-> driver further on, so if you're willing to contribute, you're welcome.
-> 
-> What exactly is the model (and the BIOS version) of the laptop you have?
-> 
-> Best regards,
-> 
-> -- 
-> Karol 'sziwan' Kozimor
-> sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+Intel ACPI Component Architecture
+ASL Optimizing Compiler / AML Disassembler version 20030424 [May  7 2003]
+Copyright (C) 2000 - 2003 Intel Corporation
+Supports ACPI Specification Revision 2.0b
+
+dsdt.asl   529:                 Field(ECR_, AnyAcc, Lock, Preserve) {
+Error    1048 -                          ^ Host Operation Region 
+requires ByteAcc access
+
+dsdt.asl  1288:             Field(PIUC, DWordAcc, Lock, Preserve) {
+Error    1047 -                      ^ Access width is greater than 
+region size
+
+dsdt.asl  2122:             If(\_OSI) {
+Error    1028 -  Too few arguments ^  (\_OSI requires 1)
+
+dsdt.asl  2123:                 "Windows 2001"
+Error    1037 -                  parse error ^
+
+ASL Input:  dsdt.asl - 2157 lines, 75307 bytes, 1552 keywords
+Compilation complete. 4 Errors, 0 Warnings, 0 Remarks, 381 Optimizations
+
+So, I guess the 1st error is fixable by changing "AnyAcc" for "ByteAcc". 
+Not sure about no.s 2 & 3 ...and WTF is "Windows 2001" doing in there?!
+
+Any DSDT gurus out there? This is from a Sony Vaio U1 BTW.
+
+sjb
 
 
 
