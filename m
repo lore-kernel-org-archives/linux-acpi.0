@@ -1,15 +1,14 @@
-From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Machines self-power-up with 2.6.9-rc3 (evo N620c, ASUS,
-	...)
-Date: Thu, 21 Oct 2004 09:53:23 +0800
+From: Borislav Deianov <borislav-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Subject: Re: [PATCH] ibm-acpi-0.6 - ACPI driver for IBM ThinkPad laptops
+Date: Wed, 20 Oct 2004 19:38:43 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1098323602.6132.51.camel@sli10-desk.sh.intel.com>
-References: <4176FCB8.3060103@root.org>
+Message-ID: <20041021023843.GO17013@aero.ensim.com>
+References: <3ACA40606221794F80A5670F0AF15F8405DCA922@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <4176FCB8.3060103-Y6VGUYTwhu0@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8405DCA922@pdsmsx403>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,44 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2004-10-21 at 08:03, Nate Lawson wrote:
-> Pavel Machek wrote:
-> >>>I'm seeing bad problem with N620c notebook (and have reports of
-> more
-> >>>machines behaving like this, for example ASUS L8400C.) If I
-> shutdown
-> >>>machine with lid closed, opening lid will power the machine up.
-> Ouch.
-> >>>2.6.7 behaves okay.
-> >>
-> >>:> Some people would love to have the machine power up when they
-> open
-> >>the lid! Wish my XE3 would do that!
+On Wed, Oct 20, 2004 at 11:18:08AM +0800, Yu, Luming wrote:
 > 
-> This problem sounds like a wake GPE is enabled for the lid switch and 
-> that it has a _PRW that indicates it can wake the system from S5.  If 
-> this is the case, just disabled the GPE.
-> 
-> > :-). Well for some other people it powers up when they unplug AC
-> > power, and *that* is nasty. I'd like my machine to stay powered down
-> > when I tell it so.
-> 
-> This is likely a similar GPE problem.  The GPE for the EC fires even
-> in 
-> S5.  I think the EC GPE should be disabled in the suspend method.
-It could be the wakeup GPE issue, but must note Pavel's system suffer
-the problem even with acpi=off. Could you please try boot your system
-with acpi=off, and then reboot with acpi=off, what's the result? I
-expected the wakeup GPE is disabled by the BIOS in this case.
-Anyway, the DSDT can tell us the wakeup GPE info.
+> I'm working on a generic hotkey driver, which will move configurable 
+> stuff to user space. 
+[snip]
+> 1. add a new hotkey:
+>  echo "0 : _SB.VGA : _SB.VGA.LCD._BCM :0x86 : 0x86" >
+> /proc/acpi/ev_config
 
-Thanks,
-Shaohua
+How would user space know what devices and methods to use? In the
+kernel, you can use HIDs where available, or check for specific
+objects with acpi_get_handle(). Are you going to expose these to user
+space somehow?
 
+Boris
 
 
 -------------------------------------------------------
