@@ -1,12 +1,10 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: swsusp: FATAL: cannot find swap device, try swapon -a!
-Date: Fri, 25 Mar 2005 09:20:19 +0100
-Message-ID: <20050325082019.GC17245@elf.ucw.cz>
-References: <Pine.GSO.4.61.0503231901190.15962@z.glue.umd.edu>
+From: "Joan Culver" <Shulamit-8H1vY3Iq6itBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: Medicattions GVC/21
+Date: Fri, 25 Mar 2005 04:12:47 -0500
+Message-ID: <E1DEkvZ-0008Rw-Ek@sc8-sf-mx2.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.GSO.4.61.0503231901190.15962@z.glue.umd.edu>
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0008_01C52E1D.4243E41E"
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,24 +14,82 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ferenc Szalma <szalmaf-JAjqph6Yjy97jm546uhsrg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Franca Britton <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+This is a multi-part message in MIME format.
 
-> I use gentoo linux with kernel-2.6.11.4 kernel (not gentoo-kernel!) 
-> patched with acpi-20050309-2.6.11.diff.gz and boot with 
-> resume=swap:/dev/hda3 where hda3 is my swap patition. I have
-> searched the 
+------=_NextPart_000_0008_01C52E1D.4243E41E
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-I don't know who told you to put "swap:" there, but it is *not* a good
-idea.
+Hello, 
 
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+approached.
+armigerous Whigs, had been seduced into rebellion!
+Rio de la Hacha, from which they had taken a particularly rich ha
+He looked up in surprise, and then sat conning her with brooding
+The growing fears of the Spanish soldiery at the prospect of a
+lie to.
+preservation at all costs from the fate with which Captain Blood
+would have gone very ill with you had you failed.  Another time b
+his trial.  With him went Pitt and the yeoman Baynes.  The three 
+in all these years and the evil passion which she had now awakene
+
+
+Have a nice day.
+------=_NextPart_000_0008_01C52E1D.4243E41E
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dus-ascii">
+<META content=3D"MSHTML 6.00.2800.1158" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV><FONT size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT size=3D2></FONT><FONT size=3D3><FONT face=3DArial>Hello , =
+<FONT size=3D4><A=20
+href=3D"http://www.qoxwk.ox.com.drugsyes.com/"><FONT size=3D4>VlSIT =
+Our Pharmac-yByMAILSHOP and Save 80%</FONT></A>
+</FONT></FONT></FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV>
+<TABLE cellSpacing=3D0 cellPadding=3D0 border=3D0>
+  <TBODY>
+  <TR vAlign=3Dbottom>
+    <TD rowSpan=3D2><FONT face=3DArial size=3D4>Vl</FONT></TD>
+    <TD><FONT face=3DArial size=3D4></FONT></TD>
+    <TD rowSpan=3D2><FONT face=3DArial size=3D4>RA&nbsp;AM</FONT></TD>
+    <TD><FONT face=3DArial size=3D4></FONT></TD>
+    <TD rowSpan=3D2><FONT face=3DArial size=3D4>EN&nbsp;LE</FONT></TD>
+    <TD><FONT face=3DArial size=3D4></FONT></TD>
+    <TD rowSpan=3D2><FONT face=3DArial size=3D4>RA&nbsp;CI</FONT></TD>
+    <TD><FONT face=3DArial size=3D4></FONT></TD>
+    <TD rowSpan=3D2><FONT face=3DArial size=3D4>IS,</FONT></TD>
+    <TD rowSpan=3D2><FONT face=3DArial size=3D4>&nbsp;And&nbsp;</FONT></TD>
+    <TD><FONT face=3DArial size=3D4></FONT></TD>
+  <TR>
+    <TD><FONT face=3DArial size=3D4>AG</FONT></TD>
+    <TD><FONT face=3DArial size=3D4>BI</FONT></TD>
+    <TD><FONT face=3DArial size=3D4>VlT</FONT></TD>
+    <TD><FONT face=3DArial size=3D4>AL</FONT></TD>
+    <TD><FONT face=3DArial=20
+size=3D4>many&nbsp;Other.</FONT></TD></TR></TBODY></TABLE><FONT=20
+face=3DArial></FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D4>You =
+will be pleasantply Surprised with our Prices.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D3>Have a nice =
+day.</FONT></DIV></BODY></HTML>
+
+------=_NextPart_000_0008_01C52E1D.4243E41E--
+
 
 
 -------------------------------------------------------
