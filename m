@@ -1,14 +1,13 @@
-From: Paul Menage <menage-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Subject: Re: ACPI global lock macros
-Date: Thu, 11 Dec 2003 00:27:54 -0800
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: RE: ACPI global lock macros
+Date: Thu, 11 Dec 2003 09:46:30 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3FD82A8A.9050307@google.com>
-References: <3ACA40606221794F80A5670F0AF15F8401720C21@PDSMSX403.ccr.corp.intel.com> <20031211090716.0c3662d3.ak@suse.de>
+Message-ID: <20031211094510.J50052@root.org>
+References: <3ACA40606221794F80A5670F0AF15F8401720C22@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20031211090716.0c3662d3.ak-l3A5Bk7waGM@public.gmane.org>
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401720C22-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,26 +16,71 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
-Cc: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Paul Menage <menage-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Andi Kleen wrote:
-> 
-> It has even more bugs, e.g. it doesn't tell gcc that GLptr is modified (this hurts with
-> newer versions that optimize more aggressively) 
+On Thu, 11 Dec 2003, Yu, Luming wrote:
+> -----Original Message-----
+> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-admin@lists.sourceforge.net]On Behalf Of Yu, Luming
+> Sent: 2003?12?11? 15:06
+> To: Paul Menage; agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org
+> Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; acpi-devel@lists.sourceforge.net
+> Subject: RE: [ACPI] ACPI global lock macros
+>
+>
+> >>#define ACPI_ACQUIRE_GLOBAL_LOCK(GLptr, Acq) \
+> >>     do { \
+> >>        asm volatile("1:movl   (%1),%%eax;" \
+> >>             "movl   %%eax,%%edx;" \
+> >>             "andl   %2,%%edx;" \
+> >>             "btsl   $0x1,%%edx;" \
+> >>             "adcl   $0x0,%%edx;" \
+> >>             "lock;  cmpxchgl %%edx,(%1);" \
+> >>             "jnz    1b;" \
+> >>             "cmpb   $0x3,%%dl;" \
+> >>             "sbbl   %0,%0" \
+> >>             :"=r"(Acq):"r"(GLptr),"i"(~1L):"dx", "ax"); \
+> >>     } while(0)
+>
+> Above code have a bug! Considering below code:
+>
+> u8	acquired = FALSE;
+>
+> ACPI_ACQUIRE_GLOBAL_LOC(acpi_gbl_common_fACS.global_lock, acquired);
+> if(acquired) {
+> ....
+> }
+>
+> Gcc will complain " ERROR: '%cl' not allowed with sbbl ". And I think any other compiler will
+> complain that  too !
+>
+> How about  below changes to your proposal code.
+>
+> <             "sbbl   %0,%0" \
+> <             :"=r"(Acq):"r"(GLptr),"i"(~1L):"dx","ax"); \
+> ---
+> >             "sbbl   %%eax,%%eax" \
+> >             :"=a"(Acq):"r"(GLptr),"i"(~1L):"dx"); \
 
-GLptr itself isn't modified - *GLptr is, but none of the actual C code 
-accesses *GLptr, so how does this affect the compiler's optimization 
-efforts? Is it because gcc treats the call as a pure function that maps 
-a pointer to an acquired value, and hence believes that it can move it 
-around? There aren't any instances of ACPI_ACQUIRE_GLOBAL_LOCK being 
-called twice in the same function, so it wouldn't be able to cache a 
-result. But I agree that it ought to declare that it clobbers memory.
+FYI, that's what we do in FreeBSD also.  The only difference after your
+patch is that we use +m for GLptr.
 
-Paul
+#define ACPI_ACQUIRE_GLOBAL_LOCK(GLptr, Acq) \
+    do { \
+        asm("1:     movl %1,%%eax;" \
+            "movl   %%eax,%%edx;" \
+            "andl   %2,%%edx;" \
+            "btsl   $0x1,%%edx;" \
+            "adcl   $0x0,%%edx;" \
+            "lock;  cmpxchgl %%edx,%1;" \
+            "jnz    1b;" \
+            "cmpb   $0x3,%%dl;" \
+            "sbbl   %%eax,%%eax" \
+            : "=a" (Acq), "+m" (GLptr) : "i" (~1L) : "edx"); \
+    } while(0)
 
-
+-Nate
 
 
 -------------------------------------------------------
