@@ -1,38 +1,47 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Toshiba Tecra vs ACPI
-Date: Thu, 21 Aug 2003 20:30:23 -0400
-Sender: linux-laptop-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <BF1FE1855350A0479097B3A0D2A80EE009FCAD@hdsmsx402.hd.intel.com>
+From: <linux-fbdev-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Subject: Re: Your application
+Date: Thu, 21 Aug 2003 14:57:19 --0400
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <E19puca-0005Qu-00@sc8-sf-list1.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-laptop-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-content-class: urn:content-classes:message
-To: linux-laptop-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: multipart/mixed;
+	boundary="_NextPart_000_006FCC5C"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Does anybody have a Toshiba Tecra that boots an ACPI-enabled kernel?
-If yes, can you send me the output from dmidecode so that I can identify
-the BIOS date?
-http://www.nongnu.org/dmidecode/  (I'd also be intersted in the output
-of acpidmp)
+This is a multipart message in MIME format
 
-I've found that the Tecra 8100 has AML bugs that we can't handle
-(missing return statements when they are required).  And we will not be
-able to handle them any time soon (w/o a DSDT over-ride).
+--_NextPart_000_006FCC5C
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 
-So I'm thinking about black-listing the 8100 by default; and the 8000
-and 8200 may be right behind it.  Unfortunately, the DMI info for the
-8100 has an empty product name under system information, where one would
-expect to see "Tecra 8100".  So I'm thinking about disabling ACPI by
-default on all systems with DMI BIOS vendor "TOSHIBA", BIOS Release Date
-<= 10/07/2002 -- the date of the latest BIOS for the 8100; and Base
-Board product name "Portable PC".
+See the attached file for details
+--_NextPart_000_006FCC5C
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-Thanks,
--Len
--
-To unsubscribe from this list: send the line "unsubscribe linux-laptop" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+------------------  Virus Warning Message (on the network)
+
+document_all.pif is removed from here because it is of type pif
+
+---------------------------------------------------------
+--_NextPart_000_006FCC5C--
+
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: VM Ware
+With VMware you can run multiple operating systems on a single machine.
+WITHOUT REBOOTING! Mix Linux / Windows / Novell virtual machines
+at the same time. Free trial click here:http://www.vmware.com/wl/offer/358/0
