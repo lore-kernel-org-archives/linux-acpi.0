@@ -1,15 +1,12 @@
-From: Thomas Renninger <mail-smMupaH/RwJM7kwft8N7nw@public.gmane.org>
-Subject: Re: AC adapter status wrong after resume (swsusp, pmdsik)
- - the second...
-Date: Thu, 22 Apr 2004 22:33:58 +0200
+From: Alexander Hoogerhuis <alexh-RsuaBgf086Q@public.gmane.org>
+Subject: HP DL360G3 and ACPI
+Date: Fri, 23 Apr 2004 06:49:48 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40882C36.4000409@renninger.de>
-References: <4086B8F0.1060400@renninger.de>
+Message-ID: <1082695788.7450.3.camel@dorker.boxed.no>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <4086B8F0.1060400-smMupaH/RwJM7kwft8N7nw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -21,15 +18,25 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thomas Renninger wrote:
+I have a few of these beasts onsite at a customers site, and they ahve a
+tendency to wind up the fans and not come back ddown again. I'm
+currently running 2.6.5-mm6 on them and the only piece of suspicious
+output I can find int he boot log is this:
 
-> P.S.: Similar was the power button (FF) on older kernels:
-> I did not get events/interrupts when pressing the button after resume 
-> any more.
-> This seems to be fixed in 2.6.5. Thanks.
+...
+ACPI: Subsystem revision 20040326
+ACPI: IRQ9 SCI: Level Trigger.
+    ACPI-1059: *** Info: There are no GPE blocks defined in the FADT
+ACPI: Interpreter enabled
+ACPI: Using PIC for interrupt routing
+ACPI: PCI Root Bridge [PCI0] (00:00)
+...
 
-Sorry I was wrong, I still load/unload the button module to get the it 
-working after suspend.
+Is there any harm here or just me barking up the wrong tree?
+
+mvh,
+A
+
 
 
 -------------------------------------------------------
