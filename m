@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ACPI CPU Usage problems ( events process taking near 100% )
-Date: Sun, 18 Jan 2004 12:00:34 +0800
+Subject: RE: Interrupt routing problem
+Date: Sun, 18 Jan 2004 12:14:15 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CE6@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CE7@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,29 +17,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Mark A Russell <m.a.russell-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>, Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> Ok maybe not 100% but close enough that it makes the machine=20
-> exceedingly=20
-> sluggish until I renice the process.
-
-You need show some performance data that could give me intuitionistic=20
-impression.
-
+> Am Di, den 13.01.2004 schrieb Karol Kozimor um 10:00:
+> > Thus wrote Yu, Luming:
+> > > > (I believe
+> > > > there was a patch I tested and found working).
+> > > What patch ?
+> > I believe it was the one attached below -- my bookmarks=20
+> went wild some time
+> > ago and I can't tell the bugzilla no., but it's certainly there.
 >=20
-> Attached should be a tarball containing the dmesg output and=20
-> the dsdt. =20
-> The only odd thing in the dmesg is a "hda:drive not ready for=20
-> command"=20
-> message but that only started to show up when I went to the 2.6.1-mm1=20
-> kernel.  And I was having this before I did that.
->=20
+> [acpi_hw_enable_ec_gpes() patch]
+> I have tested this with 2.4.24 and at least it does no harm ;)
+> Since I do not know enough to judge if it is really necessary at least
+> from my point of view I would suggest to add it to the general ACPI
+> code.
 
-You dsl help me understand how BAT1 event will be generated .
-Now I recommend you to test with patch filed at
-http://bugzilla.kernel.org/show_bug.cgi?id=3D1433
+We need to confirm how many hardware has such kind of problems.
 
 
 -------------------------------------------------------
