@@ -1,8 +1,11 @@
-From: MAILER-DAEMON-FyyN1HY8Gso@public.gmane.org (Mail Delivery System)
-Subject: Undelivered Mail Returned to Sender
-Date: Thu, 21 Aug 2003 07:32:46 +0900 (JST)
+From: Gerfried Maier <moali-ArvQUR6U0fYD0fefG/KofA@public.gmane.org>
+Subject: Zeroed field in /proc/..../CPU/performance
+Date: Fri, 22 Aug 2003 10:59:06 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030820223246.CB8EB19B05@eto.com>
+Message-ID: <3F45DB5A.2040001@sbox.tugraz.at>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -15,46 +18,33 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-[This is not a simple error mail.  Please see the end of this mail.  Kouichirou Eto]
-[これは単なるエラーメールではありません。メールの最後をご覧下さい。江渡 浩一郎]
+/Dear acpi-list,
 
-This is the Postfix program at host eto.com.
+Im running kernel 2.4.21 with acpi-20030619 on my Acer Travelmate.
+Almost everything works quite fine but when looking at 
+/proc/acpi/processor/CPU0/performance the fields which should 
+indicate/display power consumption information are zero:
 
-I'm sorry to have to inform you that the message returned
-below could not be delivered to one or more destinations.
+cat /proc/acpi/processor/CPU0/performance
+//state count:             2
+//active state:            P0
+//states:
+//   *P0:                  1800 MHz, 0 mW, 250 uS
+//    P1:                  1200 MHz, 0 mW, 250 uS
 
-For further assistance, please send mail to <postmaster>
+The CPU is an Intel P4-mobile, 1.8G
 
-If you do so, please include this problem report. You can
-delete your own text from the message returned below.
+The zeros shown are not specific to this version of acpi, the zeros are there 
+since the first time I tried out the acpi-patch somewhen in autumn 2002, but
+I did not worry about them...
 
-			The Postfix program
+Do these zeros have any effect or are they just for (user-) information?
 
-<kouichirou-FyyN1HY8Gso@public.gmane.org>: unknown user: "kouichirou"
+Regards,
+Maier Gerfried
+/
 
-----------------------------------------------------------------------
-Hello, friends.
 
-I changed my mail address to avoid SPAM mails.
-My new mail address: "two zero zero three at eto dot com"
-Or, please contact me from web site. http://eto.com/
-Sorry for inconvenience.
-
-Best Regards,
-Kouichirou Eto
-
-----------------------------------------------------------------------
-江渡です。
-
-大量のSPAMメールに対処するため、メールアドレスを変更いたしました。
-新メールアドレス: two zero zero three at eto dot com
-それぞれを普通の文字に置き換えて、メールアドレスに変更してください。
-または、私のWebページからご連絡下さい。 http://eto.com/
-お手数をおかけします。
-
-江渡 浩一郎
-
-----------------------------------------------------------------------
 
 
 -------------------------------------------------------
