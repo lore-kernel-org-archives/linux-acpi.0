@@ -1,8 +1,8 @@
-From: Stephen Early <steve-vKhv4Q37w8utmTQ+vhA3Yw@public.gmane.org>
+From: ahaning-mn4gwa5WIIQysxA8WJXlww@public.gmane.org
 Subject: Re: CALL FOR TESTING
-Date: Sun, 22 Sep 2002 15:11:30 +0100
+Date: Sat, 21 Sep 2002 13:13:22 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3D8DCF92.1050903@greenend.org.uk>
+Message-ID: <3D8C7072.4080600@mindspring.com>
 References: <EDC461A30AC4D511ADE10002A5072CAD0236DE80@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
@@ -19,32 +19,71 @@ List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
 To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Tested 2.4.19 with this patch on three machines: a Supermicro SMP board, 
-a HP Pavilion N5472 laptop, and an Asus P2B board.
+My system is as follows:
 
-All three boot, assign interrupts properly (which is an improvement over 
-stock 2.4.19 on the Supermicro board) and all features like buttons, 
-battery info on the laptop, etc. work correctly (an improvement over the 
-ACPI code in 2.4.19).
+ASUS CUBX-E (440BX) on 300W ATX PSU
+Intel Celeron 600E running at ~600MHz
+320MB of PC100 memory running at 66MHz (due to bus speed of CPU)
+Creative SBLive! 5.1 using digital out
+Hauppauge WinTV (bt878)
+ATI Radeon VE using the VGA out
+Kingston KNE111TX NIC
+generic PS/2 keyboard and MS IntelliMouse USB
+13GB 7200RPM ATA66 WDC on Promise ATA100 port
 
-ACPI: RSDP (v000 AMI                        ) @ 0x000fb2d0
-ACPI: RSDT (v001 SUPERM SUPERTBL 00000.00009) @ 0x17ff0000
-ACPI: FADT (v001 SUPERM SUPERTBL 00000.00009) @ 0x17ff1000
-ACPI: MADT (v001 SUPERM SUPERTBL 00000.00009) @ 0x17ff2000
-ACPI: DSDT (v001 SUPERM SUPERMTB 00000.00001) @ 0x00000000
+> - DOES IT BOOT?
+Yup...
 
-ACPI: RSDP (v000 HP-MCD                     ) @ 0x000f61b0
-ACPI: RSDT (v001 HP-MCD   RSDT   01540.00000) @ 0x0f6fa497
-ACPI: FADT (v001 HP-MCD GF DSDT  01540.00000) @ 0x0f6fef8c
-ACPI: DSDT (v001 HP-MCD GF DSDT  01540.00000) @ 0x00000000
+ahaning@desktop:~$ uname -a
+Linux desktop 2.4.20-pre7 #1 SMP Sat Sep 21 12:15:41 /etc/localtime 2002 
+i686 unknown
 
-ACPI: RSDP (v000 ASUS                       ) @ 0x000f7f30
-ACPI: RSDT (v001 ASUS   P2B      22616.11825) @ 0x07ffd000
-ACPI: FADT (v001 ASUS   P2B      22616.11825) @ 0x07ffd080
-ACPI: BOOT (v001 ASUS   P2B      22616.11825) @ 0x07ffd040
-ACPI: DSDT (v001   ASUS P2B      00000.04096) @ 0x00000000
+No, it's not an SMP board, I just forgot to deselect that when preparing 
+the kernel config.
 
-Stephen Early
+> - DOES IT ASSIGN INTERRUPTS PROPERLY?
+
+Sound, X, TV, usb mouse, DRI, etc all seem to work fine, so I'll assume 
+that the IRQs are okay. How can I tell if they are not? Maybe by 
+comparing against a stable kernel?
+
+I've also tried putting the machine into some of the ACPI sleep modes 
+with less-than-impressive results (though, I guess, nothing that I 
+shouldn't expect):
+
+Sleep Mode.....Result
+----------.....------
+0..............Nothing. Machine continued to work at full power.
+1..............Machine seemed "locked" at full power until power was
+                depressed momentarily. The machine then continued to
+                work.
+2..............Nothing. Machine continued to work at full power. This is
+                not listed as a supported mode, though.
+3..............Nothing. Machine continued to work at full power.
+4..............Nothing. Machine continued to work at full power.
+5..............Machine shut off abruptly and fsck ran at next boot.
+
+To do these tests, I did:
+
+echo "#" > /proc/acpi/sleep
+
+where # is 0-5. Perhaps this was wrong. I've had little luck finding 
+tools to control ACPI on linux whereas I've found several (pmutils and 
+apm) for APM.
+
+I should mention that Windows2000 is able to suspend this machine (the 
+only difference being the hard drive.. other than that, all cards and 
+cords are in the same place) very well. HDD turns off, video goes to 
+"off", optical USB mouse goes off, and all fans (CPU, case, PSU) turn 
+off. I can wake it up by pressing the power button momentarily. It can 
+also do "hibernation" quite well. I've had limited luck with the swsusp 
+option. I cannot do a "swsusp" from X, as X comes back garbled, so it's 
+usefulness is limited. So, I'm sure that this should work on linux, and 
+that there are no strange hardware issues.
+
+Thanks
+
+ahaning-mn4gwa5WIIQysxA8WJXlww@public.gmane.org
 
 
 
