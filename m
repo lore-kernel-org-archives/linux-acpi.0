@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: swsusp and ac status
-Date: Thu, 24 Jun 2004 21:53:05 +0200
+Subject: Re: Various ACPI Problems on COMPAL CL56
+Date: Mon, 28 Jun 2004 15:56:49 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040624195304.GE698@openzaurus.ucw.cz>
-References: <20040623082653.A26014@fermat.unipv.it>
+Message-ID: <20040628135649.GG698@openzaurus.ucw.cz>
+References: <5a67a16f04062118063910b19c@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040623082653.A26014-xzhXYMPkGmXoPXhRcRtihA@public.gmane.org>
+In-Reply-To: <5a67a16f04062118063910b19c-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,20 +17,17 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Daniele Boffi <boffi-piYtxHxN1XRAly3Pu9w1wA@public.gmane.org>
+To: Athul Acharya <aacharya-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> I noticed that a change in the ac status is not detected after a swsusp. I
-> think this should be a known issue; is there any workaround available?
+> First and foremost, no kind of suspend works. S4 appears to work, but
+> on attempting to boot using the resume= partition, the kernel reboots,
+> causing the machine to go into a boot/reboot cycle.  The closest I
 
-Its known, and yes I have ugly workaround.
-
-> Same behavior with pm-suspend, swsusp and swsusp2.
-
-Can you try pm-suspend with powerdown mode set to "platform"?
+Read tricks.txt for debugging hints.
 -- 
 64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
 
