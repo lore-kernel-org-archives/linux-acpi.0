@@ -1,13 +1,13 @@
-From: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
-Subject: Re: Re: Hardware state saving & X
-Date: Thu, 16 Oct 2003 08:38:56 -0700 (PDT)
+From: "Mark and Loretta Goldberg" <goldber-sy4M0opG+ma2PmBBfd0Sh6xOck334EZe@public.gmane.org>
+Subject: Nforce2 crashes
+Date: Fri, 17 Oct 2003 00:26:07 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0310160837460.856-100000@localhost.localdomain>
-References: <20031016001001.GH1921@fairlite.demon.co.uk>
+Message-ID: <200310170722.AAA71496@smtp08.phx.gblx.net>
+Reply-To: "Mark and Loretta Goldberg" <goldber-sy4M0opG+ma2PmBBfd0Sh6xOck334EZe@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20031016001001.GH1921-ASBjxr/nLg+TY6FTCsQk+9Bc4/FLrbF6@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,31 +16,23 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alan Hourihane <alanh-ASBjxr/nLg+TY6FTCsQk+9Bc4/FLrbF6@public.gmane.org>
-Cc: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+I've got a FIC AU13, Athlon 2500+, 1 GB Dual Channel PC3200 DDR, 2.4.22 kernel.
 
-> It's never been an issue of what to save/restore for X - that's the drivers
-> responsibility in X. And if it doesn't do it properly now, I'd consider it
-> a bug in the driver and should be fixed.
+If APIC support is compiled in, the machine crashes once or twice per day, solid lockup, hard reboot needed.
+If APIC support is not compiled in, it has been fine for weeks.
 
-Fair enough. 
-
-> The main question was how to get events from suspend/resume so that we
-> can do this saving and restoring.
-> 
-> If the /sbin/hotplug & DBUS is the recommended route, then I really
-> need to go look at these two pieces of software and craft something up for X.
-
-Please go with that. I'll merge the patch with Linus in the next week. If 
-you have any problems with it, please let me know, and I'll be happy to 
-fix them. 
+If anyone is interested,  what can I send to troubleshoot the problem?
 
 Thanks,
 
 
-	Pat
+Mark Goldberg
+goldber-sy4M0opG+ma2PmBBfd0Sh6xOck334EZe@public.gmane.org
+
+
 
 
 
