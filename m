@@ -1,14 +1,12 @@
-From: "KOCHI, Takayoshi" <t-kouchi-dPjYVeZdYcz+G+EEi5ephHgSJqDPrsil@public.gmane.org>
-Subject: Re: [PATCH] Large /proc/acpi/dsdt fails
-Date: Wed, 11 Sep 2002 17:27:54 -0700
+From: Leonardo Macchia <macchia-oqfuaKpTAUu4UacQti+wdA@public.gmane.org>
+Subject: Error overriding DSDT table
+Date: Thu, 12 Sep 2002 10:18:03 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020912092738.JAMRC0A82654.59A07363@mvf.biglobe.ne.jp>
-References: <EDC461A30AC4D511ADE10002A5072CAD0236DE46@orsmsx119.jf.intel.com>
+Message-ID: <20020912081803.GA1785@leo.anemos.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD0236DE46-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,246 +15,53 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hello.
 
-On Wed, 11 Sep 2002 13:50:35 -0700
-"Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+I'm trying to patch the DSDT table in 2.4.19's ACPI but I get some
+errors. I have a Compaq Evo N600c.
 
-> > From: KOCHI, Takayoshi [mailto:t-kouchi-dPjYVeZdYcz+G+EEi5ephHgSJqDPrsil@public.gmane.org] 
-> > The current /proc/acpi/dsdt reader function uses acpi_get_table() API
-> > to get DSDT.  The API uses acpi_os_malloc (that is, kmalloc) to
-> > allocate a buffer to copy the whole table.
-> > 
-> > This is not so good because:
-> >  1. kmalloc will fail if DSDT is larger than 128K
-> >  2. the copy is redundant
-> > 
-> > So I changed the /proc/acpi/{dsdt,fadt} functions from two-copy
-> > to single-copy so that you can avoid extra kmalloc.
-> 
-> It avoids the extra kmalloc but uses a variable that is not part of the
-> external interpreter interface - it is "private". C lets us down here
-> because it does not have "module-level" globals, only per-file and global.
+I applied acpi-20020821-2.4.19.diff patch (and if I stop here the kernel
+works... but I can't see any battery nor fan resources) and
+linux-2.4.18-acpi-20020709-dsdt.patch.
+With acpidump I got the original DSDT table where I changed the wrong
+entries
 
-Okay.
+Name(_HID, "*PNP....")
 
-> So I don't think the extra copy is a big deal, but maybe we want to figure
-> out a way to allow larger than 128K DSDTs through this interface.
-> acpi_system_read_dsdt could allocate a suitable sized buffer via vmalloc and
-> pass that to acpi_get_table, possibly?
+into
 
-I'd think that is a hack and not a clean solution if we consider
-future maintenanceability (some people may wonder and say "why use
-vmalloc? use ACPI_ALLOCATE_BUFFER!").
+Name(_HID, "PNP....")
 
-How about this patch?
-I made a new API, acpi_get_table_pointer().
+so I used iasm to create the hex file from the patched table... I got
+some errors ("Object does not exist" and similar) but I've heard to
+ignore them... so I moved this hex file into
+drivers/acpi/tables/acpi_dsdt.c and compiled the kernel.
 
-Though there's a similar API (acpi_get_firmware_table() ),
-it seems not to handle DSDT correctly... (returns AE_NO_EXIST)
+After starting the kernel, ACPI results disabled (no /proc/acpi) and the
+kernel - during boot - says:
 
-Index: acpi-2419/drivers/acpi/acpi_ksyms.c
-===================================================================
-RCS file: /data/cvsroot/lia64-2.4/drivers/acpi/acpi_ksyms.c,v
-retrieving revision 1.1.1.7.6.1
-diff -u -r1.1.1.7.6.1 acpi_ksyms.c
---- acpi-2419/drivers/acpi/acpi_ksyms.c	25 Aug 2002 01:34:14 -0000	1.1.1.7.6.1
-+++ acpi-2419/drivers/acpi/acpi_ksyms.c	12 Sep 2002 00:25:05 -0000
-@@ -62,6 +62,7 @@
- EXPORT_SYMBOL(acpi_get_next_object);
- EXPORT_SYMBOL(acpi_evaluate_object);
- EXPORT_SYMBOL(acpi_get_table);
-+EXPORT_SYMBOL(acpi_get_table_pointer);
- EXPORT_SYMBOL(acpi_get_firmware_table);
- EXPORT_SYMBOL(acpi_install_notify_handler);
- EXPORT_SYMBOL(acpi_remove_notify_handler);
-Index: acpi-2419/drivers/acpi/system.c
-===================================================================
-RCS file: /data/cvsroot/lia64-2.4/drivers/acpi/system.c,v
-retrieving revision 1.1.1.1.8.2
-diff -u -r1.1.1.1.8.2 system.c
---- acpi-2419/drivers/acpi/system.c	31 Aug 2002 22:48:33 -0000	1.1.1.1.8.2
-+++ acpi-2419/drivers/acpi/system.c	12 Sep 2002 00:25:05 -0000
-@@ -293,30 +293,27 @@
- 	size_t			count,
- 	loff_t			*ppos)
- {
--	acpi_status		status = AE_OK;
--	acpi_buffer		dsdt = {ACPI_ALLOCATE_BUFFER, NULL};
-+	acpi_status		status;
- 	void			*data = 0;
- 	size_t			size = 0;
-+	acpi_table_header	*dsdt;
- 
- 	ACPI_FUNCTION_TRACE("acpi_system_read_dsdt");
- 
--	status = acpi_get_table(ACPI_TABLE_DSDT, 1, &dsdt);
-+	status = acpi_get_table_pointer(ACPI_TABLE_DSDT, 1, &dsdt);
- 	if (ACPI_FAILURE(status))
- 		return_VALUE(-ENODEV);
- 
--	if (*ppos < dsdt.length) {
--		data = dsdt.pointer + file->f_pos;
--		size = dsdt.length - file->f_pos;
-+	if (*ppos < dsdt->length) {
-+		data = (char *) acpi_gbl_DSDT + file->f_pos;
-+		size = acpi_gbl_DSDT->length - file->f_pos;
- 		if (size > count)
- 			size = count;
- 		if (copy_to_user(buffer, data, size)) {
--			acpi_os_free(dsdt.pointer);
- 			return_VALUE(-EFAULT);
- 		}
- 	}
- 
--	acpi_os_free(dsdt.pointer);
--
- 	*ppos += size;
- 
- 	return_VALUE(size);
-@@ -336,29 +333,28 @@
- 	size_t			count,
- 	loff_t			*ppos)
- {
--	acpi_status		status = AE_OK;
--	acpi_buffer		fadt = {ACPI_ALLOCATE_BUFFER, NULL};
-+	acpi_status		status;
- 	void			*data = 0;
- 	size_t			size = 0;
-+	acpi_table_header	*fadt;
- 
- 	ACPI_FUNCTION_TRACE("acpi_system_read_fadt");
- 
--	status = acpi_get_table(ACPI_TABLE_FADT, 1, &fadt);
-+	status = acpi_get_table_pointer(ACPI_TABLE_FADT, 1, &fadt);
- 	if (ACPI_FAILURE(status))
- 		return_VALUE(-ENODEV);
- 
--	if (*ppos < fadt.length) {
--		data = fadt.pointer + file->f_pos;
--		size = fadt.length - file->f_pos;
-+	/* non-null fadt is guaranteed in acpi_get_table_pointer */
-+
-+	if (*ppos < fadt->length) {
-+		data = (char *) fadt + file->f_pos;
-+		size = fadt->length - file->f_pos;
- 		if (size > count)
- 			size = count;
- 		if (copy_to_user(buffer, data, size)) {
--			acpi_os_free(fadt.pointer);
- 			return_VALUE(-EFAULT);
- 		}
- 	}
--
--	acpi_os_free(fadt.pointer);
- 
- 	*ppos += size;
- 
-Index: acpi-2419/drivers/acpi/include/acpixf.h
-===================================================================
-RCS file: /data/cvsroot/lia64-2.4/drivers/acpi/include/acpixf.h,v
-retrieving revision 1.1.1.7.8.1
-diff -u -r1.1.1.7.8.1 acpixf.h
---- acpi-2419/drivers/acpi/include/acpixf.h	25 Aug 2002 01:34:15 -0000	1.1.1.7.8.1
-+++ acpi-2419/drivers/acpi/include/acpixf.h	12 Sep 2002 00:25:05 -0000
-@@ -131,6 +131,12 @@
- 	acpi_buffer             *ret_buffer);
- 
- acpi_status
-+acpi_get_table_pointer (
-+	acpi_table_type         table_type,
-+	u32                     instance,
-+	acpi_table_header       **out_table_pointer);
-+
-+acpi_status
- acpi_get_firmware_table (
- 	acpi_string             signature,
- 	u32                     instance,
-Index: acpi-2419/drivers/acpi/tables/tbxface.c
-===================================================================
-RCS file: /data/cvsroot/lia64-2.4/drivers/acpi/tables/tbxface.c,v
-retrieving revision 1.1.1.7.8.1
-diff -u -r1.1.1.7.8.1 tbxface.c
---- acpi-2419/drivers/acpi/tables/tbxface.c	25 Aug 2002 01:34:16 -0000	1.1.1.7.8.1
-+++ acpi-2419/drivers/acpi/tables/tbxface.c	12 Sep 2002 00:25:05 -0000
-@@ -423,3 +423,65 @@
- }
- 
- 
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    Acpi_get_table_pointer
-+ *
-+ * PARAMETERS:  Table_type      - one of the defined table types
-+ *              Instance        - the non zero instance of the table, allows
-+ *                                support for multiple tables of the same type
-+ *                                see Acpi_gbl_Acpi_table_flag
-+ *              Out_table_pointer - pointer to the table if successful
-+ *
-+ * DESCRIPTION: This function is called to get a pointer of an ACPI table.
-+ *
-+ ******************************************************************************/
-+
-+acpi_status
-+acpi_get_table_pointer (
-+	acpi_table_type         table_type,
-+	u32                     instance,
-+	acpi_table_header       **out_table_pointer)
-+{
-+	acpi_table_header       *tbl_ptr;
-+	acpi_status             status;
-+
-+
-+	ACPI_FUNCTION_TRACE ("Acpi_get_table_pointer");
-+
-+
-+	if ((instance == 0)                 ||
-+		(!out_table_pointer)) {
-+		return_ACPI_STATUS (AE_BAD_PARAMETER);
-+	}
-+
-+	/* Check the table type and instance */
-+
-+	if ((table_type > ACPI_TABLE_MAX)   ||
-+		(ACPI_IS_SINGLE_TABLE (acpi_gbl_acpi_table_data[table_type].flags) &&
-+		 instance > 1)) {
-+		return_ACPI_STATUS (AE_BAD_PARAMETER);
-+	}
-+
-+
-+	/* Get a pointer to the entire table */
-+
-+	status = acpi_tb_get_table_ptr (table_type, instance, &tbl_ptr);
-+	if (ACPI_FAILURE (status)) {
-+		return_ACPI_STATUS (status);
-+	}
-+
-+	/*
-+	 * The function will return a NULL pointer if the table is not loaded
-+	 */
-+	if (tbl_ptr == NULL) {
-+		return_ACPI_STATUS (AE_NOT_EXIST);
-+	}
-+
-+	/*
-+	 * Copy the pointer to caller's variable
-+	 */
-+	*out_table_pointer = tbl_ptr;
-+
-+	return_ACPI_STATUS (status);
-+}
+[...]
+ACPI: Subsystem revision 20020815
+PCI: PCI BIOS revision 2.10 entry at 0xf04dd, last bus=4
+PCI: Using configuration type 1 Sep 11 13:24:45 eniac kernel:   
+    ACPI-0272: *** Info: Table [DSDT] replaced by host OS
+    ACPI-0107: *** Error: Acpi_load_tables: Could not load namespace: AE_AML_BAD_NAME
+    ACPI-0116: *** Error: Acpi_load_tables: Could not load tables: AE_AML_BAD_NAME
+ACPI: Unable to load the System Description Tables
+PCI: Probing PCI hardware
+PCI: ACPI tables contain no PCI IRQ routing entries
+[...]
 
+Any suggestion? I think the trouble is dumping/compiling the DSDT
+tables. :(
 
-
-Thanks,
--- 
-KOCHI, Takayoshi <t-kouchi-f7IHDacdhdx8UrSeD/g0lQ@public.gmane.org/t-kouchi>
-
+Thank you, Leonardo.
 
 
 -------------------------------------------------------
-In remembrance
-www.osdn.com/911/
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
