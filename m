@@ -1,8 +1,8 @@
 From: "Christer Backstrom" <cbackstrom-TTD55EFobGVBDgjK7y7TUQ@public.gmane.org>
 Subject: Re: Video toggle button hang, Fn+F4 on Compaq Evo N1005v.
-Date: Mon, 19 Jul 2004 22:26:11 +0100
+Date: Mon, 19 Jul 2004 22:26:19 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040719212611.91E1416402D@ws1-4.us4.outblaze.com>
+Message-ID: <20040719212619.6233D16402D@ws1-4.us4.outblaze.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
