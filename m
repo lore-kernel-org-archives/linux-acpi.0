@@ -1,58 +1,45 @@
 From: Li Shaohua <shaohua.li@intel.com>
-Subject: Re: [ACPI] Re: [RFC 5/6]clean cpu state after hotremove CPU
-Date: Tue, 05 Apr 2005 09:55:06 +0800
-Message-ID: <1112666106.17861.62.camel@sli10-desk.sh.intel.com>
-References: <1112580367.4194.344.camel@sli10-desk.sh.intel.com>
-	 <20050404052844.GB3611@otto>
-	 <1112593338.4194.362.camel@sli10-desk.sh.intel.com>
-	 <20050404153345.GC3611@otto>
+Subject: Re: [RFC 1/6]SEP initialization rework
+Date: Tue, 05 Apr 2005 09:00:25 +0800
+Message-ID: <1112662825.17861.4.camel@sli10-desk.sh.intel.com>
+References: <1112580349.4194.331.camel@sli10-desk.sh.intel.com>
+	 <Pine.LNX.4.61.0504041235001.30273@montezuma.fsmlabs.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261530AbVDEB52@vger.kernel.org>
-In-Reply-To: <20050404153345.GC3611@otto>
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261308AbVDECDM@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.61.0504041235001.30273@montezuma.fsmlabs.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nathan Lynch <ntl@pobox.com>
-Cc: lkml <linux-kernel@vger.kernel.org>, ACPI-DEV <acpi-devel@lists.sourceforge.net>, Zwane Mwaikambo <zwane@linuxpower.ca>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@suse.cz>
+To: Zwane Mwaikambo <zwane@arm.linux.org.uk>
+Cc: lkml <linux-kernel@vger.kernel.org>, ACPI-DEV <acpi-devel@lists.sourceforge.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@suse.cz>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-On Mon, 2005-04-04 at 23:33, Nathan Lynch wrote:
+On Tue, 2005-04-05 at 03:10, Zwane Mwaikambo wrote:
+> On Mon, 4 Apr 2005, Li Shaohua wrote:
 > 
-> I'd say fix the smpboot code so that it doesn't create new idle tasks
-> except during boot.
-I'd like the the CPU hotremove case just likes the case that CPU isn't
-boot. A non-boot CPU hasn't a idle thread. But you may think it's not
-worthy doing. Anyway, I will keep the idle thread in a updated patch
-like what you said.
-
-> > > We've been
-> > > doing cpu removal on ppc64 logical partitions for a while and never
-> > > needed to do anything like this. 
-> > Did it remove idle thread? or dead cpu is in a busy loop of idle?
-> 
-> Neither.  The cpu is definitely offline, but there is no reason to
-> free the idle thread.
-> 
+> >  linux-2.6.11-root/arch/i386/kernel/smpboot.c           |    6 ++++++
+> >  linux-2.6.11-root/arch/i386/kernel/sysenter.c          |   10 ++++++----
+> >  linux-2.6.11-root/arch/i386/mach-voyager/voyager_smp.c |    6 ++++++
+> >  3 files changed, 18 insertions(+), 4 deletions(-)
 > > 
-> > >  Maybe idle_task_exit would suffice?
-> > idle_task_exit seems just drop mm. We need destroy the idle task for
-> > physical CPU hotplug, right?
+> > diff -puN arch/i386/kernel/sysenter.c~sep_init_cleanup arch/i386/kernel/sysenter.c
+> > --- linux-2.6.11/arch/i386/kernel/sysenter.c~sep_init_cleanup	2005-03-28 09:32:30.936304248 +0800
+> > +++ linux-2.6.11-root/arch/i386/kernel/sysenter.c	2005-03-28 09:58:20.703703792 +0800
+> > @@ -26,6 +26,11 @@ void enable_sep_cpu(void *info)
+> >  	int cpu = get_cpu();
+> >  	struct tss_struct *tss = &per_cpu(init_tss, cpu);
+> >  
+> > +	if (!boot_cpu_has(X86_FEATURE_SEP)) {
+> > +		put_cpu();
+> > +		return;
+> > +	}
+> > +
 > 
-> No.
-> 
-> > > 
-> > > I don't understand the need for this, either.  The existing cpu
-> > > hotplug notifier in the scheduler takes care of initializing the sched
-> > > domains and groups appropriately for online/offline events; why do you
-> > > need to touch the runqueue structures?
-> > If a CPU is physically hotremoved from the system, shouldn't we clean
-> > its runqueue?
-> 
-> No.  It should make zero difference to the scheduler whether the "play
-> dead" cpu hotplug or "physical" hotplug is being used.  
-Keeping some fields like 'cpu_load' are meanless for a hotadded CPU to
-me. Just ignore them?
+> Do you have systems like this? Is it really skipping SEP if the boot 
+> processor doesn't have SEP?
+No, I haven't such system. This is the logic of original SEP
+initialization. If the CPU hasn't SEP, original logic doesn't call
+'on_each_cpu(enable_sep_cpu,...)'.
 
 Thanks,
 Shaohua
