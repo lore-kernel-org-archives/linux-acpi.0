@@ -1,17 +1,15 @@
 From: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Subject: Re: [Lhms-devel] Re: [PATCH] ACPI based Memory Hotplug Driver
- Patch
-Date: Mon, 13 Sep 2004 17:23:18 +0900
+Subject: Re: [Lhns-devel] [PATCH 0/6] ACPI based physical cpu hotplug
+Date: Mon, 13 Sep 2004 17:23:20 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040913172318.791db349.tokunaga.keiich@jp.fujitsu.com>
-References: <FEB6C4E97F6CAF41978FB2059D5454180F37E8@bgsmsx402.gar.corp.intel.com>
- <20040910230200.73eb0374.tokunaga.keiich@jp.fujitsu.com>
- <1094837554.32531.1997.camel@nighthawk>
+Message-ID: <20040913172320.30ca3fc5.tokunaga.keiich@jp.fujitsu.com>
+References: <20040908181654.A7287@unix-os.sc.intel.com>
+ <20040913024817.000061bb.tokunaga.keiich@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <1094837554.32531.1997.camel@nighthawk>
+In-reply-to: <20040913024817.000061bb.tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -20,78 +18,159 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dave Hansen <haveblue-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Cc: tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org, naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org, lhns-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 10 Sep 2004 10:32:35 -0700 Dave Hansen wrote:
-> On Fri, 2004-09-10 at 07:02, Keiichiro Tokunaga wrote:
-> > On Thu, 09 Sep 2004 16:24:46 +0530 S, Naveen B wrote:
-> > > Attached is an ACPI based hot plug driver patch to support physical
-> > > memory hotplug. This driver supports physical hotplug operation on
-> > > memory, fields notifications from firmware and notifies the VM of the
-> > > affected memory ranges.  The following patch is against kernel
-> > > 2.6.8.1-mm3, and works with the current memory hotplug VM patches
-> > > posted at: http://sprucegoose.sr71.net/patches.  This patch has been
-> > > tested on real prototype hardware in the hot-add memory case. Hot
-> > > remove feature is tested in an emulated environment (by overriding
-> > > ACPI DSDT). 
-> > > 
-> > > Please review and consider for inclusion. 
+On Mon, 13 Sep 2004 02:48:17 +0900 Keiichiro Tokunaga wrote:
+> On Wed, 08 Sep 2004 18:16:54 -0700, Keshavamurthy Anil S wrote:
 > > 
-> > I would like to add a feature into drivers/acpi/memory.c.
+> > Hi All,
+> > 	As everybody knows that we have logical cpu online/offline support in the kernel, the following set of patches extends this feature to provide ACPI based physical CPU hotplug and I am asking this set of patches to be included in the acpi-test tree. 
 > > 
-> > Please see the patch below.  This patch is for the kernel applying
-> > your patch.
-> > 
-> > This patch generates procfs entry 'info' for each memory ACPI
-> > object to expose memory device information.  This information
-> > is needed to determine which logical memory ID(s) (memsection ID)
-> > belongs which memory ACPI object (e.g. memsection5 --> MEM0).
-> > Memsection IDs could be fingured out from min_address_range
-> > and max_address_range that 'info' file shows.
->
-> At this point, adding stuff to /proc in mainline has a pretty slim
-> chance of happening.  sysfs is really the way to go, plus we already
-> have code in the mhp tree to export the hotplug memory controls via
-> sysfs.  This stuff seems to me to belong in /sys/firmware.
+> > Please let me know if anyone see any issues or comments or even flames welcome:). 
+> 
+> I am attaching user mode agent scripts for container hotplug,
+> 'container.agent' and 'acpi_container.agent'.  Please put them
+> under /etc/hotplug/ for working the container hotplug.
+> 
+> 'container.agent' is called by the container driver.  It calls a platform
+> specific agent as appropriate.  'acpi_container.agent' is one of the
+> platform specific agents and does real works.
+> 
+> 'acpi_container.agent' does logical hotplug operations like "echo 0 >
+> /sys/devices/system/cpu/cpu0/online".  The agent gets an ACPI
+> object name of the target container device (e.g. DEV1) as an
+> argument, searchs entries of CPUs contained in the container, and
+> echos to the entries.  This version supports only CPU for now.
 
-Thanks for the comment:)
+I found a bug in 'acpi_container.agent'.  Here is a fixed version.
 
-Okay, I agree with you.  
-
-> But, this brings up something that's been nagging me for a while: what
-> should /sys/devices/system/memory contain?  A logical view of memory for
-> use with memory hotplug, or a hardware description of memory?  I think
-> both are probably necessary, and should link to each other, but how
-> should we present them?
-
-How about this?
-
-# ls /sys/firmware/acpi/memory/MEM1/
-resource_type
-producer_consumer
-decode
-min_address
-max_address
-granularity
-min_address_range
-max_address_range
-address_translation_offset
-address_length
-
-# ls /sys/devices/system/memory/memsection4/
-start_physaddr
-<something else>
-
-We can determine which memsection belongs to which ACPI
-memory object by using min_address_range, max_address_range,
-and start_physaddr.  In the above case, start_physaddr is between
-min_address_range and max_address_range if MEM1 contains
-memsection4.
+  - Fixed the bug in eject_target() function.  It did not return a proper
+    string.
+  - Replaced a term '/sys' with '$SYSFS_MOUNTPOINT'.
 
 Thanks,
 Keiichiro Tokunaga
+
+[acpi_container.agent]
+#!/bin/sh
+#
+# ACPI Container hotplug agent
+#
+# Kernel params are:
+#	
+#	ACTION=%s [add or remove]
+#	CONTAINER=/sys/...
+#
+# 10-Sep-2004	Initial version, CPU support
+#
+
+TMP=tmp$$
+SYSFS_MOUNTPOINT=`mount | grep 'sysfs' | cut -d ' ' -f 3`
+CPU_INFO_DIR=/proc/acpi/processor
+SYSDEVICES=$SYSFS_MOUNTPOINT/devices/system
+CPU_HOTPLUG=$SYSDEVICES/cpu/cpu
+MEMBLOCKSIZE=$SYSDEVICES/memory/blocksize
+FIRM_DIR=$SYSFS_MOUNTPOINT/firmware/acpi
+EJECT_OP=$FIRM_DIR/eject
+alias cpus_list='ls $CPU_INFO_DIR'
+
+function cpu_hot_plug()
+{
+    cpus_list > $TMP
+    for cpu_firm in `find $DEV_PATH -type d -print | grep -w -f $TMP` 
+      do
+      cpuname=`basename $cpu_firm`
+      if [ ! -f $CPU_INFO_DIR/$cpuname/info ]
+	  then
+	  echo "cannot access $CPU_INFO_DIR/$cpuname/info"
+	  continue
+      fi
+      cpuid=`awk '/processor id:/ {print $3}' $CPU_INFO_DIR/$cpuname/info`
+      if [ ! -f ${CPU_HOTPLUG}${cpuid}/online ]
+	  then
+	  echo "cannot access ${CPU_HOTPLUG}${cpuid}/online"
+	  continue
+      fi
+      onlined=`cat ${CPU_HOTPLUG}${cpuid}/online`
+      if [ $onlined == "0" ]
+	  then
+	  contine;
+      fi
+      echo $CPU_HOTPLUG_CODE > ${CPU_HOTPLUG}${cpuid}/online
+      if [ $? != 0 ]
+	  then
+	  echo "cpu$cpuid hotplug failed."
+	  ERROR=1
+      fi
+    done 
+}
+
+function eject_target()
+{
+    TARGET=`echo $DEV_PATH | sed "1s?${SYSFS_MOUNTPOINT}??" | sed '1s/\/firmware\/acpi\/namespace\/ACPI\/_SB\///' | sed '1s/\//\./g'`
+    echo \\_SB_.$TARGET
+}
+
+function usage()
+{
+    echo "Usage : acpi_container.agent (-t target-device-name| -p CONTAINER) (add|remove)"
+    exit 2
+}
+
+
+#
+# Main routine
+#
+set -- `getopt p:t: $*`
+if [ $? != 0 ]
+then
+    usage
+fi
+
+while [ $1 != -- ]
+do
+  case $1 in
+      -t) shift; DEV_PATH=$SYSFS_MOUNTPOINT/firmware/acpi/namespace/ACPI/_SB/$1;;
+      -p) shift; DEV_PATH=$1;;
+  esac
+  shift;
+done
+test=`eject_target`
+
+shift;
+act=$1
+
+ERROR=0
+
+case $act in
+    add)
+	CPU_HOTPLUG_CODE="1"
+
+	cpu_hot_plug
+	;;
+
+    remove)
+	CPU_HOTPLUG_CODE="0"
+
+	cpu_hot_plug
+
+	# eject operation
+	if [ $ERROR == 0 ]; then
+	    target=`eject_target` 
+	    echo $target > $EJECT_OP
+	    if [ $? != 0 ]; then
+		echo "Failed to eject device($target)."
+		ERROR=1
+	    fi
+	fi
+	;;
+esac
+
+rm -f $TMP > /dev/null 2>&1 
+
+exit $ERROR
 
 
 -------------------------------------------------------
