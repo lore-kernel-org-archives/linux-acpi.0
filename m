@@ -1,12 +1,13 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Subject: redhat9 and kernel2.4.22 and failed patch for 2.4.20
-Date: 08 Apr 2003 00:01:54 +0100
+From: Vitor Angelo <vitor-0sO0ga9J43e7Z19RmqjOEw@public.gmane.org>
+Subject: SMIs
+Date: Tue, 8 Apr 2003 04:15:43 -0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1049756521.1407.16.camel@darkstar.portugal>
+Message-ID: <20030408071543.GA20110@ead.eee.ufmg.br>
+Reply-To: Vitor Angelo <vitor-0sO0ga9J43e7Z19RmqjOEw@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,25 +16,25 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-There is no way configure patch kernel with acpi:), because is one
-2.4.21pre3-ac4!?
-and is very difficult configure 2.4.21-pre6 for redhat9 because at
-startup is request many kernel modules like usb modules, iptables
-modules and many things like the new input devices made in ac kernels.=20
-I guess.
-So is not a bad idear put acpi in ac kernels!!!
-bye good week.
-my last try will be with acpi-20021212-2.4.20.diff.gz in 2.4.20-8
 
---=20
-S=E9rgioMB
-email: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
+Hi,
 
-Who gives me one shell, give me everything.
+What would be the effects of disabling the SMIs _and_ the using a kernel
+without ACPI support?
 
+I've disabled all "automatic" power management features in my BIOS, but
+a still have SMIs occurring and causing large jitters in real-time
+tasks. Disabling the SMIs solve the jitter problem, but I wonder if this
+will be a problem if a have to use a kernel without ACPI.
+
+I'd appreciate any clarifications, suggestions...
+
+Thanks a lot,
+
+Vitor.
 
 
 -------------------------------------------------------
