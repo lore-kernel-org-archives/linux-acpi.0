@@ -1,14 +1,14 @@
-From: Vojtech Pavlik <vojtech-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: psmouse.c, throwing 3 bytes away
-Date: Mon, 9 Feb 2004 00:30:52 +0100
+From: "Ow Mun Heng" <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
+Subject: RE: Status of ACPI on IBM T40p
+Date: Mon, 9 Feb 2004 10:28:04 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040208233052.GA17570@ucw.cz>
-References: <20040208215935.GA13280@ucw.cz> <20040208221933.92D0B3F1B@latitude.mynet.no-ip.org> <20040208230314.GA21937@fubini.pci.uni-heidelberg.de>
+Message-ID: <C386328088ED7F4E9F81AFBABDDF60DA03F9E438@wdmyexch02.my.asia.wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040208230314.GA21937-XPbICIHHaRhIi1TGZYQs7PQvEQgnY+0MepZhswDD4dQ@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,52 +17,48 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bernd Schubert <Bernd.Schubert-ZRyP5vvp4SQZDP5dtiX3a0ZMdOyQQXjt@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Feb 09, 2004 at 12:03:14AM +0100, Bernd Schubert wrote:
 
-> On Sun, Feb 08, 2004 at 11:19:32PM +0100, aeriksson-97jfqw80gc6171pxa8y+qA@public.gmane.org wrote:
-> > 
-> > > 
-> > > > Problem still occurs :-(
-> > > 
-> > > I have good news - I've managed to reliably reproduce the bug on my
-> > > machine and that means I now have a good chance to find and fix it.
-> > > 
-> > 
-> > Another data point. I just tried switching to a non-preempt kernel as
-> > was suggested by someone. The problem still occurs.
 
-> Hello,
-> 
-> on IBM Thinkpads R31 this is also easiliy to reproduce:
-> 
-> For 2.6. one only needs to read from /proc/apm or /proc/acpic/...
-> and the mouse becomes crazy and one gets the throwing 2 bytes away
-> messages in the log files. By fast reading in an endless loop even
-> input from the keyboard is ignored.
-> 
-> For 2.4. this only happens on reading from /proc/apm, somehow acpi is not
-> affected in 2.4. kernel versions.
-> 
-> Well, for R31's it is said that it is the bad bios, but maybe its
-> related? Any ideas why it doesn't happen with acpi and 2.4.? 
+> -----Original Message-----
+> From: Bruno Ducrot [mailto:ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org]
+> Sent: Saturday, February 07, 2004 4:17 AM
+> To: Ow Mun Heng
+> Cc: Li, Shaohua; Alexander Gran; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: Re: [ACPI] Status of ACPI on IBM T40p
+>=20
+>=20
+> On Fri, Feb 06, 2004 at 11:12:53AM +0800, Ow Mun Heng wrote:
+> >=20
+> >=20
+> > > -----Original Message-----
+> > > From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> > > [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org]On Behalf Of=20
+> > > Li, Shaohua
+> >=20
+> > > > Alexander Gran Wrote
+> > > > C-states are not working right:
+> > > without USB devices, my T40 can enter C3
+> >=20
+> > can you tell me how to remove usb so that my Laptop can get=20
+> into C3?=20
+> > It keeps being in C2 and usage of C3 is [000000000]
+> >=20
+> > bus master activity =3D fffffffff all the time..
+> >=20
+>=20
+> Recompiling kernel without any kind of usb things, even=20
+> modules perhap ?
 
-There are many reasons why it can happen. I'm currently debugging the
-one where no APM or ACPI or anything else is needed.
 
-> My knowlege of the kernel interals is quite low and pretty much limited
-> to the basic vfs area, so could you please give me some good advises how to
-> debug this?
+Hmm.. that might just be a swell idea. I'll definately try it
+out since When I'm on batt power, I can just boot into that=20
+non-usb kernel and to a usb-aware kernel when I'm on AC-Power
+at home!!
 
-You can enable DEBUG in i8042.c, and then look at 'dmesg' when the
-problem happens. There will be a missing byte in the stream ...
-
--- 
-Vojtech Pavlik
-SuSE Labs, SuSE CR
+Cool
 
 
 -------------------------------------------------------
