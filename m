@@ -1,57 +1,276 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [ACPI] Re: 2.6.10-rc1-mm3: ACPI problem due to un-exported hotplug_path
-Date: Mon, 15 Nov 2004 21:54:06 -0800
-Message-ID: <20041116055406.GG29328@kroah.com>
-References: <20041105001328.3ba97e08.akpm@osdl.org> <d120d5000411091548584bf8c5@mail.gmail.com> <20041110000811.GA8543@kroah.com> <200411092315.55187.dtor_core@ameritech.net>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] Don't disable interrupts during EC access
+Date: Tue, 16 Nov 2004 14:15:47 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC076@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261915AbUKPF4k@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <200411092315.55187.dtor_core@ameritech.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Torokhov <dtor_core@ameritech.net>
-Cc: linux-kernel@vger.kernel.org, Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>, Kay Sievers <kay.sievers@vrfy.org>, tokunaga.keiich@jp.fujitsu.com, motoyuki@soft.fujitsu.com, Adrian Bunk <bunk@stusta.de>, Andrew Morton <akpm@osdl.org>, rml@novell.com, len.brown@intel.com, acpi-devel@lists.sourceforge.net
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: "Fu, Michael" <michael.fu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 09, 2004 at 11:15:55PM -0500, Dmitry Torokhov wrote:
-> On Tuesday 09 November 2004 07:08 pm, Greg KH wrote:
-> > On Tue, Nov 09, 2004 at 06:48:17PM -0500, Dmitry Torokhov wrote:
-> > > On Tue, 9 Nov 2004 14:55:02 -0800, Greg KH <greg@kroah.com> wrote:
-> > > > On Fri, Nov 05, 2004 at 09:18:48PM -0800, Keshavamurthy Anil S wrote:
-> > > > > Also, since you have brought this, I have one another question to you.
-> > > > > Now in the new kernel, I see whenever anybody calls sysdev_register(kobj),
-> > > > > an "ADD" notification is sent. why is this? I would like to call
-> > > > > kobject_hotplug(kobj, ADD) later.
-> > > > 
-> > > > This happens when kobject_add() is called.  You shouldn't ever need to
-> > > > call kobject_hotplug() for an add event yourself.
-> > > > 
-> > > 
-> > > This is not always the case. One might want to postpone ADD event
-> > > until all summpelental object attributes are created. This way userspace
-> > > is presented with object in consistent state.
-> > 
-> > No, that's a mess.  Let userspace wait for those attributes to show up
-> > if they need to.  That's what the "wait_for_sysfs" program bundled with
-> > udev is for.
-> >
-> 
-> I strongly disagree:
-> 
-> - it makes userspace being aware of implementation details (whe exactly it
->   has to wait for, for how long, etc.) which is bad thing;
-> - not all the world is udev - needless replication of the code and bugs;
-> - not only making visible but announcing an object in non-working state
->   to userspace simply does not feel right.
+Andi,
 
-Based on the recent additions to the /sbin/hotplug environment
-variables, userspace now knows exactly what it needs to wait for, if
-anything.  
+This patch seems to break the atomic operation.
+The original code enclosed by spin_lock_irqsave/spin_unlock_irqresotre =
+is trying to make sure the first operation to EC_COMMAND
+register , and the second operation to EC_DATA register belong to one =
+atomic transaction.
 
-Also, there's no needless replication of this code, that's why
-wait_for_sysfs was split off of udev, it's for everyone to use, if they
-want to.
+Thanks
+Luming=20
 
-thanks,
+>-----Original Message-----
+>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
+>[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Andi Kleen
+>Sent: 2004=C4=EA11=D4=C216=C8=D5 6:56
+>To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: [ACPI] [PATCH] Don't disable interrupts during EC access
+>
+>
+>On VIA chipset + A64 laptops the EC access can take a long=20
+>time. This causes
+>the system to lose timer interrupts while ACPI waits for the event,=20
+>and causes it to always fallback to slower timer sources.
+>
+>This patch replaces the spinlock with a semaphore and sleeps instead
+>of busy polling. This should also save power.=20
+>
+>Signed-off-by: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+>
+>-Andi
+>
+>diff -u linux/drivers/acpi/ec.c-o linux/drivers/acpi/ec.c
+>--- linux/drivers/acpi/ec.c-o	2004-10-26 09:57:32.000000000 -0700
+>+++ linux/drivers/acpi/ec.c	2004-11-15 12:55:58.000000000 -0800
+>@@ -29,10 +29,12 @@
+> #include <linux/types.h>
+> #include <linux/delay.h>
+> #include <linux/proc_fs.h>
+>+#include <linux/interrupt.h>
+> #include <asm/io.h>
+> #include <acpi/acpi_bus.h>
+> #include <acpi/acpi_drivers.h>
+> #include <acpi/actypes.h>
+>+#include <asm/msr.h>
+>=20
+> #define _COMPONENT		ACPI_EC_COMPONENT
+> ACPI_MODULE_NAME		("acpi_ec")
+>@@ -53,7 +55,7 @@
+> #define ACPI_EC_EVENT_IBE	0x02	/* Input buffer empty */
+>=20
+> #define ACPI_EC_UDELAY		100	/* Poll @ 100us=20
+>increments */
+>-#define ACPI_EC_UDELAY_COUNT	1000	/* Wait 10ms max.=20
+>during EC ops */
+>+#define ACPI_EC_UDELAY_COUNT	10	/* Wait 10ms max.=20
+>during EC ops */
+> #define ACPI_EC_UDELAY_GLK	1000	/* Wait 1ms max. to get=20
+>global lock */
+>=20
+> #define ACPI_EC_COMMAND_READ	0x80
+>@@ -85,7 +87,6 @@
+> 	struct acpi_generic_address	command_addr;
+> 	struct acpi_generic_address	data_addr;
+> 	unsigned long			global_lock;
+>-	spinlock_t			lock;
+> };
+>=20
+> /* If we find an EC via the ECDT, we need to keep a ptr to=20
+>its context */
+>@@ -116,7 +117,7 @@
+> 			acpi_hw_low_level_read(8,=20
+>&acpi_ec_status, &ec->status_addr);
+> 			if (acpi_ec_status & ACPI_EC_FLAG_OBF)
+> 				return 0;
+>-			udelay(ACPI_EC_UDELAY);
+>+			msleep(1);
+> 		} while (--i>0);
+> 		break;
+> 	case ACPI_EC_EVENT_IBE:
+>@@ -124,16 +125,16 @@
+> 			acpi_hw_low_level_read(8,=20
+>&acpi_ec_status, &ec->status_addr);
+> 			if (!(acpi_ec_status & ACPI_EC_FLAG_IBF))
+> 				return 0;
+>-			udelay(ACPI_EC_UDELAY);
+>+			msleep(1);
+> 		} while (--i>0);
+> 		break;
+> 	default:
+> 		return -EINVAL;
+> 	}
+>-
+> 	return -ETIME;
+> }
+>=20
+>+static DECLARE_MUTEX(ec_mutex);
+>=20
+> static int
+> acpi_ec_read (
+>@@ -143,7 +144,6 @@
+> {
+> 	acpi_status		status =3D AE_OK;
+> 	int			result =3D 0;
+>-	unsigned long		flags =3D 0;
+> 	u32			glk =3D 0;
+>=20
+> 	ACPI_FUNCTION_TRACE("acpi_ec_read");
+>@@ -158,8 +158,9 @@
+> 		if (ACPI_FAILURE(status))
+> 			return_VALUE(-ENODEV);
+> 	}
+>-=09
+>-	spin_lock_irqsave(&ec->lock, flags);
+>+
+>+	WARN_ON(in_interrupt());
+>+	down(&ec_mutex);
+>=20
+> 	acpi_hw_low_level_write(8, ACPI_EC_COMMAND_READ,=20
+>&ec->command_addr);
+> 	result =3D acpi_ec_wait(ec, ACPI_EC_EVENT_IBE);
+>@@ -173,16 +174,15 @@
+>=20
+>=20
+> 	acpi_hw_low_level_read(8, data, &ec->data_addr);
+>-
+> 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Read [%02x] from=20
+>address [%02x]\n",
+> 		*data, address));
+>=20
+>+	=09
+> end:
+>-	spin_unlock_irqrestore(&ec->lock, flags);
+>+	up(&ec_mutex);
+>=20
+> 	if (ec->global_lock)
+> 		acpi_release_global_lock(glk);
+>-
+> 	return_VALUE(result);
+> }
+>=20
+>@@ -195,7 +195,6 @@
+> {
+> 	int			result =3D 0;
+> 	acpi_status		status =3D AE_OK;
+>-	unsigned long		flags =3D 0;
+> 	u32			glk =3D 0;
+>=20
+> 	ACPI_FUNCTION_TRACE("acpi_ec_write");
+>@@ -209,7 +208,8 @@
+> 			return_VALUE(-ENODEV);
+> 	}
+>=20
+>-	spin_lock_irqsave(&ec->lock, flags);
+>+	WARN_ON(in_interrupt());
+>+	down(&ec_mutex);
+>=20
+> 	acpi_hw_low_level_write(8, ACPI_EC_COMMAND_WRITE,=20
+>&ec->command_addr);
+> 	result =3D acpi_ec_wait(ec, ACPI_EC_EVENT_IBE);
+>@@ -230,7 +230,7 @@
+> 		data, address));
+>=20
+> end:
+>-	spin_unlock_irqrestore(&ec->lock, flags);
+>+	up(&ec_mutex);
+>=20
+> 	if (ec->global_lock)
+> 		acpi_release_global_lock(glk);
+>@@ -287,7 +287,6 @@
+> {
+> 	int			result =3D 0;
+> 	acpi_status		status =3D AE_OK;
+>-	unsigned long		flags =3D 0;
+> 	u32			glk =3D 0;
+>=20
+> 	ACPI_FUNCTION_TRACE("acpi_ec_query");
+>@@ -308,7 +307,7 @@
+> 	 * Note that successful completion of the query causes=20
+>the ACPI_EC_SCI
+> 	 * bit to be cleared (and thus clearing the interrupt source).
+> 	 */
+>-	spin_lock_irqsave(&ec->lock, flags);
+>+	down(&ec_mutex);
+>=20
+> 	acpi_hw_low_level_write(8, ACPI_EC_COMMAND_QUERY,=20
+>&ec->command_addr);
+> 	result =3D acpi_ec_wait(ec, ACPI_EC_EVENT_OBF);
+>@@ -320,7 +319,7 @@
+> 		result =3D -ENODATA;
+>=20
+> end:
+>-	spin_unlock_irqrestore(&ec->lock, flags);
+>+	up(&ec_mutex);
+>=20
+> 	if (ec->global_lock)
+> 		acpi_release_global_lock(glk);
+>@@ -344,7 +343,6 @@
+> {
+> 	struct acpi_ec		*ec =3D (struct acpi_ec *) ec_cxt;
+> 	u32			value =3D 0;
+>-	unsigned long		flags =3D 0;
+> 	static char		object_name[5] =3D {'_','Q','0','0','\0'};
+> 	const char		hex[] =3D=20
+>{'0','1','2','3','4','5','6','7',
+> 				        =20
+>'8','9','A','B','C','D','E','F'};
+>@@ -354,9 +352,9 @@
+> 	if (!ec_cxt)
+> 		goto end;=09
+>=20
+>-	spin_lock_irqsave(&ec->lock, flags);
+>+	down(&ec_mutex);
+> 	acpi_hw_low_level_read(8, &value, &ec->command_addr);
+>-	spin_unlock_irqrestore(&ec->lock, flags);
+>+	up(&ec_mutex);
+>=20
+> 	/* TBD: Implement asynch events!
+> 	 * NOTE: All we care about are EC-SCI's.  Other EC events are
+>@@ -588,7 +586,6 @@
+>=20
+> 	ec->handle =3D device->handle;
+> 	ec->uid =3D -1;
+>-	ec->lock =3D SPIN_LOCK_UNLOCKED;
+> 	strcpy(acpi_device_name(device), ACPI_EC_DEVICE_NAME);
+> 	strcpy(acpi_device_class(device), ACPI_EC_CLASS);
+> 	acpi_driver_data(device) =3D ec;
+>@@ -802,7 +799,6 @@
+> 	ec_ecdt->status_addr =3D ecdt_ptr->ec_control;
+> 	ec_ecdt->data_addr =3D ecdt_ptr->ec_data;
+> 	ec_ecdt->gpe_bit =3D ecdt_ptr->gpe_bit;
+>-	ec_ecdt->lock =3D SPIN_LOCK_UNLOCKED;
+> 	/* use the GL just to be safe */
+> 	ec_ecdt->global_lock =3D TRUE;
+> 	ec_ecdt->uid =3D ecdt_ptr->uid;
+>
+>
+>-------------------------------------------------------
+>This SF.Net email is sponsored by: InterSystems CACHE
+>FREE OODBMS DOWNLOAD - A multidimensional database that combines
+>robust object and relational technologies, making it a perfect match
+>for Java, C++,COM, XML, ODBC and JDBC. www.intersystems.com/match8
+>_______________________________________________
+>Acpi-devel mailing list
+>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>
 
-greg k-h
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: InterSystems CACHE
+FREE OODBMS DOWNLOAD - A multidimensional database that combines
+robust object and relational technologies, making it a perfect match
+for Java, C++,COM, XML, ODBC and JDBC. www.intersystems.com/match8
