@@ -1,15 +1,11 @@
-From: Jurgen Kramer <gtm.kramer-c1aixF9oqgPk1uMJSBkQmQ@public.gmane.org>
-Subject: Re: 2.6.10 and acpi_get_possible_resources? *solved*
-Date: Tue, 18 Jan 2005 19:41:27 +0100
-Message-ID: <1106073687.7545.2.camel@paragon.slim>
-References: <1105713621.10664.8.camel@paragon.slim>
-	 <1105833637.27841.4.camel@paragon.slim>
-	 <20050117113020.A19913@unix-os.sc.intel.com>
+From: Paul Ionescu <i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: should I open a bug for this ?
+Date: Tue, 18 Jan 2005 23:03:58 +0200
+Message-ID: <pan.2005.01.18.21.03.58.52605@yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050117113020.A19913-39QZ/XbsZ5/mO6KZMuUCQVaTQe2KTcn/@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,43 +15,45 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2005-01-17 at 11:30 -0800, Rajesh Shah wrote:
-> On Sun, Jan 16, 2005 at 01:00:37AM +0100, Jurgen Kramer wrote:
-> > On Fri, 2005-01-14 at 15:40 +0100, Jurgen Kramer wrote:
-> > > I am trying to get the WACOM ACPI patches working on 2.6.10 but it bails
-> > > out on a missing function "acpi_get_possible_resources". On 2.6.9 the
-> > > needed symbol is exported by acpi_ksyms.c but this file no longer exists
-> > > in 2.6.10. 
-> > > 
-> > > What is the best way to get the acpi_get_possible_resources function
-> > > exported properly? It is defined in <acpi/acpxf.h> but adding this to
-> > > the wacom source files did not help.
-> > > 
-> > > The 2.6.9 version of the wacom patches are from:
-> > > 
-> > > http://www.theory.bham.ac.uk/staff/schofield/linux/tc1100/linux-2.6.9-
-> > > wacom_acpi.patch
-> > 
-> > Problem solved. The functions from <acpi/acpixf.h> needed a #define
-> > ACPI_FUTURE_USAGE 1 to work again.
-> > 
-> > My wacom tablet is working again with 2.6.10.
-> > 
-> A better fix, though, would be to move the specific export you
-> need out of the FUTURE_USAGE define. This ifdef was introduced
-> to eliminate bloat due to unused exports, and including it all
-> back in defeats the purpose.
+Hi,
 
-You are right of course but it only applies if the patches were to be
-included in the mainline ACPI tree. For now it's just me using the
-"acpi_get_possible_resources" function here at home.
+Since kernel 2.6.9 or around, I get the error bellow every time I suspend
+the laptop in ACPI S3 (IBM T41/R50p).
+How serious is this ? It does not seems an Oops, but maybe I should repor=
+t
+it somewhere to get fixed.
+The problem is I don't know where it belongs. I suspect ACPI because is
+every time I enter S3, but could be something else:
 
-Jurgen
- 
+
+Back to C!
+Warning: CPU frequency is 1700000, cpufreq assumed 600000 kHz.
+Debug: sleeping function called from invalid context at mm/slab.c:2091
+in_atomic():0, irqs_disabled():1
+ [<c011877f>] __might_sleep+0x8a/0x94
+ [<c0146108>] kmem_cache_alloc+0x1b/0x6b
+ [<c0205e6c>] acpi_pci_link_set+0x4a/0x1a2
+ [<c02062d2>] irqrouter_resume+0x1c/0x24
+ [<c0244d97>] sysdev_resume+0x3e/0xa5
+ [<c0248066>] device_power_up+0x5/0xa
+ [<c01379ce>] suspend_enter+0x25/0x2d
+ [<c0137a34>] enter_state+0x37/0x53
+ [<c0203417>] acpi_suspend+0x28/0x35
+ [<c02034e6>] acpi_system_write_sleep+0x5a/0x6b
+ [<c015eecd>] vfs_write+0xba/0x115
+ [<c015efc6>] sys_write+0x3c/0x62
+ [<c010338b>] syscall_call+0x7/0xb
+ACPI: PCI interrupt 0000:00:1f.1[A] -> GSI 7 (level, low) -> IRQ 7
+Restarting tasks... done
+
+
+
+Thanks,
+Paul
+
 
 
 
