@@ -1,14 +1,14 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: [PATCH] acpi4asus update
-Date: Tue, 23 Mar 2004 13:27:35 +0100
+From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Subject: Re: why is a patch still needed?
+Date: Tue, 23 Mar 2004 12:33:44 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040323122735.GA18934@hell.org.pl>
-References: <20040323000143.GA13711@hell.org.pl> <20040323094627.GA3413@fuchi>
+Message-ID: <20040323123344.GS25059@parcelfarce.linux.theplanet.co.uk>
+References: <200403230044.49403.justin-psi@affinix.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040323094627.GA3413-5sK/Rx+du8M@public.gmane.org>
+In-Reply-To: <200403230044.49403.justin-psi-A4HSxAr4s6pBDgjK7y7TUQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,36 +17,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Justin Karneges <justin-psi-A4HSxAr4s6pBDgjK7y7TUQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Sebastian Henschel:
-> since i am currently working on a M6800N...
-> seems to work, although i do not see any difference to the unsupported
-> default values before, perhaps brightness. :)
-> what still does not work is the the display switch. when i cat
-> /proc/acpi/asus/disp i get random values like:
-> -583194208
-> -583193696
-> -1007965376
-> -588481760
-> 
-> the key strokes on Fn+F8 are recognized by acpid.
+On Tue, Mar 23, 2004 at 12:44:49AM -0800, Justin Karneges wrote:
+> I've seen many kernel extension websites eventually say something like "no 
+> more separate downloads necessary, just get the latest kernel", but yours 
+> does not yet say that.  Is this on the agenda?
 
-Hmm, reading the value should not be supported currently and it seems I
-have neglected something (looks like reading an uninitialized value here).
-I'll take a look at this in a couple of hours.
-
-OTOH, echoing a value (see the current acpi4asus README) to asus/disp
-should switch the displays -- at least I was told it worked on M3700N, and
-M6800N is similar. Anyway, if it doesn't, there's not really much more
-(than what's already in the README) I can do. A word from someone at ASUS
-could really help, but you surely know how it looks in the reality...
-Best regards,
+ACPI is constantly being developed.  It's a large and complex
+specification.  As a result BIOS writers get things wrong, and the
+ACPICA has missing bits and bugs.  So there will probably always be an
+ACPI patch, just like there's always a netdrivers patch and always a
+scsi patch.
 
 -- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+"Next the statesmen will invent cheap lies, putting the blame upon 
+the nation that is attacked, and every man will be glad of those
+conscience-soothing falsities, and will diligently study them, and refuse
+to examine any refutations of them; and thus he will by and by convince 
+himself that the war is just, and will thank God for the better sleep 
+he enjoys after this process of grotesque self-deception." -- Mark Twain
 
 
 -------------------------------------------------------
