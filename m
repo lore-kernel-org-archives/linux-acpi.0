@@ -1,15 +1,17 @@
-From: Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
-Subject: Re: Wrong temperature and battery status when running on
- battery (bug 3678)
-Date: Tue, 11 Jan 2005 08:38:47 +0000
-Message-ID: <16867.37015.395112.36902@aber.ac.uk>
-References: <16861.5954.584694.204594@aber.ac.uk>
-	<Pine.LNX.4.60.0501071144470.1259@frog.athome>
+From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
+Subject: Re: first shoot for smartbattery
+Date: Tue, 11 Jan 2005 10:29:23 +0100
+Message-ID: <m2sm58mhzg.fsf@phoenix.squirrel.nl>
+References: <41D56002.5060008@mega.ist.utl.pt>
+	<200501101736.24293.sanskryt@op.pl>
+	<m27jmlf57y.fsf@phoenix.squirrel.nl>
+	<200501102341.07731.sanskryt@op.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.60.0501071144470.1259-KnfdeQs3A3X/9pzu0YdTqQ@public.gmane.org>
+In-Reply-To: <200501102341.07731.sanskryt-FWhLrETftxM@public.gmane.org>
+ =?iso-8859-2?q?=28Zdzis=B3aw?= A. Kaleta's message of "Mon, 10 Jan 2005 23:41:07 +0100")
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,21 +21,18 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org writes:
- > I am currently running 2.6.10-vanilla, on a TM634. But I am sorry, that I 
- > cannot reproduce eighter of your findings.
+"Zdzis=B3aw A. Kaleta" <sanskryt-FWhLrETftxM@public.gmane.org> writes:
 
-Good news.  I went through several charge/discharge cycles with
-2.6.10-vanilla on my TM636 and the bug didn't show up either.
+> So it look like that I realy have the not proper smartbattery.c
+> version. Where I can find proper one?
 
-It seems that something fixed it.
+Maybe Pedro Venda <pjvenda-pQd4kjVL+RHfqL7NgpvPWWD2FQJk+8+b@public.gmane.org> (the author) is
+willing to post an updated version?
 
-Fred (happy to be able to use the ondemand governor)
-
+-- Johan
 
 
 -------------------------------------------------------
