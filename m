@@ -1,14 +1,14 @@
-From: "Ow Mun Heng" <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
-Subject: Kernel 2.6 + RH9 + Laptop + Suspend + ACPI
-Date: Fri, 9 Jan 2004 10:20:46 +0800
+From: Diego SANTA CRUZ <Diego.SantaCruz-p8DiymsW2f8@public.gmane.org>
+Subject: RE: Processor C states and USB problem
+Date: Fri, 09 Jan 2004 10:31:39 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <C386328088ED7F4E9F81AFBABDDF60DA03B370F6@wdmyexch02.my.asia.wdc.com>
+Message-ID: <1073640699.10144.14.camel@ltspc67.epfl.ch>
+References: <571ACEFD467F7749BC50E0A98C17CDD8E84E6C@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <571ACEFD467F7749BC50E0A98C17CDD8E84E6C-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,29 +17,57 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Acpi-List (E-mail)" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi All,
+Hi,
 
-	Wondering how many ppl in this list is using
-the spanking new 2.6 kernel on a RH9 laptop box.=20
+I picked up this thread and I'm interested in knowing a bit more about
+bus mastering and C3, as my laptop never goes into C3. I own a Dell
+Inspiron 8500 (details at
+http://ltswww.epfl.ch/~dsanta/resources/dell-i8500-linux).
 
-I've heard many thing about 2.6 (but still using 2.4.24=20
-kernel) and it's supposed support for laptop interms of=20
-suspend/resume.
+This is what I get for the power states:
+# cat /proc/acpi/processor/CPU0/power
+active state:            C2
+default state:           C1
+bus master activity:     ffffffff
+states:
+    C1:                  promotion[C2] demotion[--] latency[000] usage[00039800]
+   *C2:                  promotion[C3] demotion[C1] latency[050] usage[00573330]
+    C3:                  promotion[--] demotion[C2] latency[050] usage[00000004]
 
-I'm writing this "general" email to determine if there are=20
-any success stories from anyone using this setup.
+I tried booting with init=/bin/sh and manually loading the processor
+module, without any external hardware attached, so that no special
+hardware is initialized, but still there is non-stopping bus mastering
+activity. What could be causing it? Any ideas how could I find out?
 
-If everything's positive, I might just join the bandwagon.
+BTW, I'm running the latest Fedora Core 1 kernel (2.4.22-1.2140.nptl)
 
-Thanks for any and all comments.
+Thanks for any info,
 
-Cheers,                                                =20
-Mun Heng, Ow                                        =20
+Diego
 
-       =20
+On Mon, 2004-01-05 at 10:06, Li, Shaohua wrote:
+> Hi,
+> C3 is a kind of idle, it means deep power saving.
+> Actually, I observed the same symptom as you: USB devices caused many bus master activities, which make processor can't enter C3.
+>  
+> Thanks,
+> Shaohua
+
+-- 
+-------------------------------------------------------
+Diego Santa Cruz - PhD
+Publications available at http://ltswww.epfl.ch/~dsanta
+Signal Processing Institute (LTS1 / ITS / STI)
+Swiss Federal Institute of Technology (EPFL)
+EPFL - STI - ITS, CH-1015 Lausanne, Switzerland
+E-mail:     Diego.SantaCruz-p8DiymsW2f8@public.gmane.org
+Phone:      +41 - 21 - 693 26 57
+Fax:        +41 - 21 - 693 76 00
+-------------------------------------------------------
+
 
 
 -------------------------------------------------------
