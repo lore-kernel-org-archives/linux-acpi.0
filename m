@@ -1,13 +1,14 @@
-From: Ole Rohne <ole.rohne-vJEk5272eHo@public.gmane.org>
-Subject: Fujitsu P2120 S3 resume - no video, lost PCI config, suggestions?
-Date: 04 Mar 2003 20:35:46 +0100
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: ACPI patches updated (20030228)
+Date: Tue, 4 Mar 2003 20:40:31 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <ebw3cm26i25.fsf_-_@lxplus004.cern.ch>
-References: <20030304173547.7a815082.nils@kernelconcepts.de>
+Message-ID: <20030304194031.GA4290@hell.org.pl>
+References: <F760B14C9561B941B89469F59BA3A84725A1C8@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030304173547.7a815082.nils-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <F760B14C9561B941B89469F59BA3A84725A1C8-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,34 +17,31 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Nils Faerber <nils-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-In my quest to make S3 working on this platform, I've found the
-underlying reason why the display is black after a S3: the vga adapter
-(ATI Radeon M6 LY) looses its pci configuration and comes back with io
-and memory disabled, and BASE_ADDRESS_n, LATENCY_TIMER,
-CACHE_LINE_SIZE, and INTERRUPT_LINE containing garbage. At first I
-felt let down by the BIOS, but on reading the ACPI spec it seems that
-it is up to the OS to enumerate and configure devices on "known" buses.
+Thus wrote Grover, Andrew:
+> > From: Nils Faerber [mailto:nils-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org] 
+> > > This includes a LOT of fixes for longstanding bugs. If you have had
+> > > issues in the past with long delays or oopses on reads from the
+> > > battery interface, hangs on boot, or excessive ACPI 
+> > interrupts causing
+> > > system slowness, please try this patch.
+> > And so I did and am sorry to report that I still see high CPU 
+> > usage and
+> > delays when trying to read my battery status; machine is Asus L3800C.
 
-So far I've tried calling pci_save_state/pci_restore_state from within
-the radeonfb pci driver suspend/resume routines. Unfortunately, that
-causes the machine to hang, probably just after PCI_COMMAND has been
-updated. Alternatively, I've tried rewriting the PCI configuration
-from userspace (setpci), which doesn't always hang but now the thing
-claims there is nothing connected when I eg reload radeonfb.
+[the original mail did not make it to the list, I suppose]
 
-Questions:
-Is it really the job of the OS to configure PCI devices after a S3 sleep?
+I also have an Asus L3800C, however I neither experience delays, nor CPU
+usage when reading battery status. What version of BIOS do you have?
+Version 118 should be OK, at least it is with me.
+Best regards,
 
-What is the reason for the hanging when I try to restore PCI config?
-
-Is it possible that PCI "enumeration" and configuration needs to be
-done early, like in real mode or before irqs are enabled?
-
-	Appreciating your suggestions,
-        Ole
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
