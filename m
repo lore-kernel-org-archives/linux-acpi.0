@@ -1,13 +1,14 @@
-From: Z F <mail4me9999-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Error: Handler for [EmbeddedControl] returned AE_BAD_PARAMETER
-Date: Tue, 29 Jun 2004 20:00:01 -0700 (PDT)
+From: <garloff-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: hi
+Date: Wed, 30 Jun 2004 05:00:30 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040630030001.2182.qmail@web20421.mail.yahoo.com>
-References: <B44D37711ED29844BEA67908EAF36F0332D2A1@pdsmsx401.ccr.corp.intel.com>
+Message-ID: <cmu-sieve-20172-1088564430-0@imap-dhs>
+References: <20040630025316.D741280E678@Cantor.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <B44D37711ED29844BEA67908EAF36F0332D2A1-4yWAQGcml65pB2pF5aRoyrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20040630025316.D741280E678-yJgQC9BzXp5bpigZmTR7Iw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,205 +17,14 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dear Shaohua Li,
-
-Thank you once again. I have installed the patch from the
-web site you mentioned (the one dated 2003-12-24).
-
-After that all acpi modules load with out any errors (with obvious
-warnings about that "bit_width must be 8").
-
-The computer screen blinks during boot and sometimes when modules are
-loaded. Otherwise I did not notice any side effects of the patch.
-
-The battary status wrongly states that Battery 1: charged, 0%
-Is there a way to correct this problem?
-AC status is reported correctly. POwer button does tno seem to work.
-Thermal infomation appears to be correct.
-Do you want me to test anything?
-
-Thank you very much for your kind help
-
-Lazar
-
---- "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> Please try the first one. 
-> 
-> Thanks,
-> Shaohua
-> 
-> >-----Original Message-----
-> >From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
-> >admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Z F
-> >Sent: Tuesday, June 29, 2004 10:52 PM
-> >To: Li, Shaohua
-> >Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> >Subject: RE: [ACPI] Error: Handler for [EmbeddedControl] returned
-> >AE_BAD_PARAMETER
-> >
-> >Dear Shaohua Li,
-> >
-> >Thank you very much for your reply. I have looked at this web page,
-> but
-> >I do not know which patch to apply :-( Thera are two entries called
-> >"proposal patch". They apply to different files in the acpi subtree.
-> >Should I use both or any one of them? Could you clarify this,
-> please?
-> >
-> >Thank you very much for your kind help,
-> >
-> >Lazar
-> >
-> >--- "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> >> could you please try if the patch in
-> >> http://bugme.osdl.org/show_bug.cgi?id=1744  address your problem?
-> >>
-> >> Thanks,
-> >> Shaohua
-> >> >-----Original Message-----
-> >> >From: Z F [mailto:mail4me9999-/E1597aS9LQAvxtiuMwx3w@public.gmane.org]
-> >> >Sent: Tuesday, June 29, 2004 9:22 AM
-> >> >To: Li, Shaohua
-> >> >Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> >> >Subject: RE: [ACPI] Error: Handler for [EmbeddedControl] returned
-> >> >AE_BAD_PARAMETER
-> >> >
-> >> >Dear Shaohua Li,
-> >> >
-> >> >Thank you very muc for your reply. Attached are the outputs of
-> the
-> >> >dmesg
-> >> >(I loaded ac, battery, processor and thermal modules) is in the
-> >> >dmesg.out file. The new_dsdt file contains output of acpidump
-> >> >from pacpidump package. Could you take a look and see what is
-> wrong.
-> >> >
-> >> >Thank you very much for your kind help.
-> >> >
-> >> >Lazar
-> >> >
-> >> >--- "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> >> >> Please attach your dmesg and acpidmp output, so we can check
-> it.
-> >> >>
-> >> >> Thanks,
-> >> >> -Shaohua
-> >> >> >-----Original Message-----
-> >> >> >From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> [mailto:acpi-devel-
-> >> >> >admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Z F
-> >> >> >Sent: Monday, June 28, 2004 1:26 PM
-> >> >> >To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> >> >> >Subject: [ACPI] Error: Handler for [EmbeddedControl] returned
-> >> >> >AE_BAD_PARAMETER
-> >> >> >
-> >> >> >Hello Everybody,
-> >> >> >
-> >> >> >IT seems to me that all my problems start with the error
-> message
-> >> >> >indicated in the subject line. Could someone explain to me
-> what
-> >> this
-> >> >> >error message means and possibly how (if possible) to correct
-> the
-> >> >> >problem.
-> >> >> >
-> >> >> >I use Dell Latitude x300 laptop and 2.4.26 kernel with the
-> latest
-> >> >> acpi
-> >> >> >patch (acpi-20040326-2.4.26).
-> >> >> >
-> >> >> >I have modified the dsdt table so that it compiles without any
-> >> >> errors,
-> >> >> >but
-> >> >> >I still get the above error at boot. AC/Battery status does
-> not
-> >> >> work.
-> >> >> >Thermal does not work. It seems I can change the throttling of
-> >> the
-> >> >> CPU.
-> >> >> >
-> >> >> >Any suggestions are highly appreciated. Could I ask some one
-> to
-> >> >> reply
-> >> >> >to me even if they do not know how to solve the problem? You
-> see,
-> >> I
-> >> >> >have sent
-> >> >> >several emails to this list and got very small number of
-> replies.
-> >> >> Maybe
-> >> >> >
-> >> >> >my subscription is broken? Sometimes I get double postings of
-> >> other
-> >> >> >people.
-> >> >> >Thanks a lot for you kind help
-> >> >> >
-> >> >> >Lazar
-> >> >> >
-> >> >> >
-> >> >> >
-> >> >> >__________________________________
-> >> >> >Do you Yahoo!?
-> >> >> >New and Improved Yahoo! Mail - Send 10MB messages!
-> >> >> >http://promotions.yahoo.com/new_mail
-> >> >> >
-> >> >> >
-> >> >> >-------------------------------------------------------
-> >> >> >This SF.Net email sponsored by Black Hat Briefings & Training.
-> >> >> >Attend Black Hat Briefings & Training, Las Vegas July 24-29 -
-> >> >> >digital self defense, top technical experts, no vendor
-> pitches,
-> >> >> >unmatched networking opportunities. Visit www.blackhat.com
-> >> >> >_______________________________________________
-> >> >> >Acpi-devel mailing list
-> >> >> >Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> >> >> >https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> >> >>
-> >> >>
-> >> >
-> >> >
-> >> >
-> >> >__________________________________
-> >> >Do you Yahoo!?
-> >> >Yahoo! Mail - 50x more storage than other providers!
-> >> >http://promotions.yahoo.com/new_mail
-> >>
-> >
-> >
-> >
-> >
-> >__________________________________
-> >Do you Yahoo!?
-> >Take Yahoo! Mail with you! Get it on your mobile phone.
-> >http://mobile.yahoo.com/maildemo
-> >
-> >
-> >-------------------------------------------------------
-> >This SF.Net email sponsored by Black Hat Briefings & Training.
-> >Attend Black Hat Briefings & Training, Las Vegas July 24-29 -
-> >digital self defense, top technical experts, no vendor pitches,
-> >unmatched networking opportunities. Visit www.blackhat.com
-> >_______________________________________________
-> >Acpi-devel mailing list
-> >Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> >https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> 
-> 
+I'm out of office and may not
+respond to your mail in a timely
+manner until the 12th of July.
 
 
-
-
-
-	
-		
-__________________________________
-Do you Yahoo!?
-New and Improved Yahoo! Mail - 100MB free storage!
-http://promotions.yahoo.com/new_mail 
 
 
 -------------------------------------------------------
