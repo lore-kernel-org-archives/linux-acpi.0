@@ -1,56 +1,137 @@
-From: Len Brown <len.brown@intel.com>
-Subject: [BKPATCH] ACPI for 2.4
-Date: 20 May 2004 02:14:14 -0400
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <1085033653.12359.484.camel@dhcppc4>
+From: Mathieu LESNIAK <maverick-uEz9PMp7chasTnJN9+BGXg@public.gmane.org>
+Subject: Re: ACPI issues - suspend-to-ram and processor speed
+Date: Thu, 20 May 2004 11:17:27 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <40AC77A7.10704@eskuel.net>
+References: <200405180213.34603.andre@eisenbach.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S264984AbUETGO2@vger.kernel.org>
-To: Marcelo Tosatti <marcelo.tosatti@cyclades.com>
-Cc: ACPI Developers <acpi-devel@lists.sourceforge.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200405180213.34603.andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Andre Eisenbach <andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Marcelo, please do a 
+Hello,
 
-	bk pull bk://linux-acpi.bkbits.net/linux-acpi-release-2.4.27
+I confirm what Andre have said : I've got a Presario 2118EA (quite same=20
+model with AMD Athlon XP1800). Suspend to ram hav never worked for me.=20
+It suspends but cannot resume (2 seconds after the wake up, the laptop=20
+shuts down)
+I suspected acpid to catch the power button press and tell the laptop to=20
+shut down, but after disabling it, no more luck...
 
-thanks,
--Len
+Regarding the CPU slowdown, I've seen similar behaviour under Windows. I=20
+think it's related to the laptop itself, maybe as Pavel Machek said on=20
+LKML, it's the lack of power that force the laptop to run in this mode.
 
-ps. a plain patch is also available here:
-ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.4.27/acpi-20040326-2.4.27.diff.gz
+Mathieu LESNIAK
 
-This will update the following files:
+Andre Eisenbach wrote:
+> Dear ACPI devel team,
+>=20
+> I have two issues which prevent me from fully enjoying my notbook runni=
+ng on
+> Linux. Both are seemingly related to ACPI. Please help me understand th=
+e
+> problems better and maybe fix them or help me attempting a fix.
+>=20
+> The notebook in question is a Compaq Presario 2100Z with an AMD Athlon =
+XP
+> 2400+ processor. Current kernel version is 2.6.6-mm2. I am not applying=
+ any
+> ACPI patches from sf.net, but rely on whats in the kernel (which may be=
+ my
+> first mistake).
+>=20
+> I am very willing to learn and may be able to fix it myself, if you guy=
+s can
+> help me find out more about which components are involved.
+>=20
+> Problem 1 - Cannot suspend (or resume better)
+>=20
+> Right now I am unable to suspend my notebook in any for or fashion (ram=
+, disk,
+> etc.). Therefore I have to turn off the notebook and boot again, which
+> honestly makes the notebook pretty useless.
+>=20
+> When I try to suspend to RAM, the suspend part seems to run fine (I can=
+ see
+> suspend-to-ram messages), the lcd shuts off and the power button starts
+> pulsing slowly (indicating standby). So far so good. However, if I hit =
+the
+> power button then to resume, the device seems to want to wake up (hd sp=
+ins
+> up, fans start) but the LCD never turns on and the notebook quickly (1-=
+2
+> seconds) later switched to off (all quiet/lights off). Hitting the powe=
+r
+> button again starts a normal startup.
+>=20
+> I also tried to suspend to disk using swsusp. That corrupted my swap pa=
+rtition
+> and didn't resume.
+>=20
+> What does it take to suspend to RAM?
+> What could be broken, and where should I start looking if I want to fix=
+ it?
+> What more debug information do you guys need?
+>=20
+> Problem 2 - CPU slows down when on battery
+>=20
+> When the power cord is unplugged, my CPU slows down quite a bit. This i=
+s not
+> indicated in /proc/cpuinfo and NOT due to cpufreq / powernow adjustment=
+s.
+>=20
+> The problem does not seem to occur with ACPI=3DOFF
+>=20
+> More details here in a post to the linux-kernel mailing list:
+> http://lkml.org/lkml/2004/5/9/100
+>=20
+> Also a relevant and informative entry here:
+> http://forums1.itrc.hp.com/service/forums/questionanswer.do?threadId=3D=
+467655
+>=20
+> When on battery, KDE is barely usable. Once again it doesnt make much s=
+ense
+> for a laptop not to be usable on battery ... :(
+>=20
+>=20
+> Thanks for your attention and hopefully for your answers/comments. I ca=
+n
+> provide as much debug/info/configs as you would like and as a programme=
+r am
+> willing to help out/read up, if you just help me identify where to star=
+t.
+>=20
+> Thanks,
+>    Andr=E9 Eisenbach
 
- arch/x86_64/kernel/io_apic.c |    3 ++-
- drivers/acpi/Makefile        |    2 +-
- drivers/acpi/ac.c            |    2 ++
- drivers/acpi/asus_acpi.c     |   24 ++++++++++++++++++++++++
- drivers/acpi/battery.c       |    6 ++++++
- drivers/acpi/bus.c           |   14 +++-----------
- drivers/acpi/button.c        |   17 +++++++++--------
- drivers/acpi/ec.c            |    6 ++++++
- drivers/acpi/fan.c           |    2 ++
- drivers/acpi/power.c         |    2 ++
- drivers/acpi/thermal.c       |   10 ++++++++++
- 11 files changed, 67 insertions(+), 21 deletions(-)
+-------------------------------------------------------
+This SF.Net email is sponsored by: SourceForge.net Broadband
+Sign-up now for SourceForge Broadband and get the fastest
+6.0/768 connection for only $19.95/mo for the first 3 months!
+http://ads.osdn.com/?ad_id%62&alloc_ida84&op=3Dclick
+_______________________________________________
+Acpi-devel mailing list
+Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
-through these ChangeSets:
 
-<len.brown@intel.com> (04/05/18 1.1359.6.21)
-   [ACPI] remove /proc files before unloading modules
-   from Sau Dan Lee, Zhenyu Wang
-   http://bugzilla.kernel.org/show_bug.cgi?id=2705
 
-<len.brown@intel.com> (04/05/18 1.1359.6.20)
-   [ACPI] revert button module unload fix (OSDL 2281)
-   Cset exclude: len.brown@intel.com|ChangeSet|20040504154434|56458
-   Cset exclude: len.brown@intel.com|ChangeSet|20040428081912|57065
-   Cset exclude: len.brown@intel.com|ChangeSet|20040428054017|55837
 
-<len.brown@intel.com> (04/05/14 1.1359.6.19)
-   [ACPI] delete IOAPIC-disable workaround on x86_64/VIA
-   BTW. looks like 2.6 has an IOMMU disable workaround here that may be
-needed or VIA in 2.4.
-   http://bugme.osdl.org/show_bug.cgi?id=1530
+-------------------------------------------------------
+This SF.Net email is sponsored by: Oracle 10g
+Get certified on the hottest thing ever to hit the market... Oracle 10g. 
+Take an Oracle 10g class now, and we'll give you the exam FREE.
+http://ads.osdn.com/?ad_id=3149&alloc_id=8166&op=click
