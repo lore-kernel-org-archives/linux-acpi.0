@@ -1,14 +1,14 @@
 From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Working around bugs in ACPI BIOS [was Re: DSDT in initrd]
-Date: Tue, 20 May 2003 16:01:01 +0200
+Subject: Re: About the S3 support for 2.4 kernel?
+Date: Tue, 20 May 2003 16:13:22 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030520140101.GR346@poupinou.org>
-References: <F760B14C9561B941B89469F59BA3A847E96EA0@orsmsx401.jf.intel.com> <20030518213405.GB452@elf.ucw.cz> <20030519151727.GK346@poupinou.org> <1053357286.28972.0.camel@dhcp22.swansea.linux.org.uk>
+Message-ID: <20030520141322.GS346@poupinou.org>
+References: <20030520014753.98996.qmail@web16714.mail.tpe.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1053357286.28972.0.camel-2MMpYkNvuYAXoXS6vNje7nviChZXdy279dF7HbQ/qKg@public.gmane.org>
+In-Reply-To: <20030520014753.98996.qmail-9+pxKbc3FJrUUcmo17G/2VBBA4GzCnFGQQ4Iyu8u01E@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,28 +17,20 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Randy.Dunlap" <rddunlap-3NddpPZAyC0@public.gmane.org>, mflt1-DTdK3Ks6N5kHTnRCetW4+N0b+6lKrnBL@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: Kevin Yang <yangyuyutw-/E1597aS9LSnedCIQ9mT8A@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, May 19, 2003 at 04:14:47PM +0100, Alan Cox wrote:
-> On Llu, 2003-05-19 at 16:17, Ducrot Bruno wrote:
-> > o relax operational region checking (not so trivial as it sound like,
-> >   and may be done at acpi init stage imho),
-> 
-> Done in current -ac
+On Tue, May 20, 2003 at 09:47:53AM +0800, Kevin Yang wrote:
+> Dear all,
+>  
+> I've tried the acpi-20030512-2.4.21-rc2.diff.gz patch. And I know there 
+> is no S3 as before like some discussions in previous lists for 2.4 
+> kernels. Is there any chance we could have S3 support in the future patch release for 2.4 kernels? Is there any on-going plan for S3 on 2.4? 
+> Thanks in advance for any reply for this.
 
-I know.  But it is not done like I described (at init stage, not
-interpreter run stage, and perform not only size check but access
-corrections in some trivial case).
-
-> > others?
-> 
-> A please upgrade signature table so that vendors who have fixed bioses
-> have a way to let customers find this out without bitching at support
-
-Yeah.
-
+No plan.  All S3 related stuff require changes in all drivers
+in general therefore all this stuff go to dev kernels.
 
 -- 
 Ducrot Bruno
