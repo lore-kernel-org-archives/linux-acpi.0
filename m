@@ -1,14 +1,15 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: 2.5.42 and Asus L8400
-Date: Mon, 14 Oct 2002 17:24:21 +0200
+From: "Don Langworthy" <dbl-t4aQvBRgbK03GDxJruMu3g@public.gmane.org>
+Subject: RE: S3 and S4: nothing happens
+Date: Mon, 14 Oct 2002 12:58:49 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021014152421.GD764@poup.poupinou.org>
-References: <3DAAA0E6.3050900@tactel.se> <20021014142822.GB13501@atrey.karlin.mff.cuni.cz>
+Message-ID: <000301c273bc$1db43370$46ffff0a@DigitalCog>
+References: <1034583098.369.40.camel@bacchus.gpphy.uni-duesseldorf.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20021014142822.GB13501-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>
+In-reply-to: <1034583098.369.40.camel-s1IKGncK6J2OERECOqmV57dB6IYNvbhm87tLKu7D3g4@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,34 +18,115 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+To: 'Knut Neumann' <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Oct 14, 2002 at 04:28:22PM +0200, Pavel Machek wrote:
-> Hi!
-> 
-> > I just gave 2.5.42 with ACPI a testdrive on my Asus L8400 laptop. It 
-> > booted (early 2.5 version I tried crashed on boot).
-> > 
-> > However, when my fan starts I wont stop. The same kernel without ACPI 
-> > work fine.
-> > 
-> > Is my acpi-bios broken or is a linux-acpi bug?
-> 
-> It could be both; its hard to tell. Try to investigate
-> /proc/acpi/thermal/*/* etc.
-> 								Pavel
+Knut:
 
-BTW, I have only one trip point (critical) for my thermal zone.  But thermal didn't
-appar anymore.  I did not noticed that before, since I use my own kernel module
-for this stuff, but the specs say that this is a minimal requirement for the
-thermal zone.
+See responses below. 
 
--- 
-Ducrot Bruno
-http://www.poupinou.org        Page profaissionelle
-http://toto.tu-me-saoules.com  Haume page
+Thanks for your help.
+
+Don Langworthy
+dbl-t4aQvBRgbK03GDxJruMu3g@public.gmane.org
+
+> -----Original Message-----
+> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
+> admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Knut Neumann
+> Sent: Monday, October 14, 2002 1:12 AM
+> To: Don Langworthy
+> Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: RE: [ACPI] S3 and S4: nothing happens
+> 
+> Am Son, 2002-10-13 um 23.58 schrieb Don Langworthy:
+> > echo 5 > /proc/acpi/sleep causes an immediate ungraceful power off.
+> > All other values seem to have no effect on the system power state.
+> 
+> See my mail on this thread: Only S1/S5 are supported under 2.4
+kernels.
+> IIRC S5 sudden shutoff is intended. Andrew Grover gave an explanation
+> that a few month ago but I do not remember it exactly.
+> 
+> > I've noticed 3 different behaviors for performance and throttling
+(under
+> > /proc/acpi/processor).
+> >
+> > 1 No effect
+> > 2 Change state for a few seconds then reverts back to full power
+mode 
+> > 3 Changes state permanently.
+> 
+> Could you provide some more details? What exactly happens in what case
+> (eg. does echo 1:1 > /proc/acpi/../performance have no effect?)
+
+I've always use echo 1 > /proc/acpi/../performance (is the :1
+significant?). 
+For example If I run:
+
+echo 1 > /proc/acpi/../performance; cat /proc/../performance
+
+And I'm in state 1 (from above) the results of the cat indicates that
+the cpu is still at full power mode (1000 mHz). If I'm in state 2 or 3
+then the cat indicates low power mode (700 mHz).  If I wait 2-4 seconds
+and cat .../performance again, I see either full power mode (state 2) or
+low power mode (state 3). If the low power mode persists for longer that
+4 seconds it seems to persist until I change it or reboot.
+> 
+> > The system seems to pick one behavior at boot time and stick with it
+> > until the next boot time.
+> 
+> Let me get that right: You boot your system and then you find one of
+the
+> above points in effect and that behaviour does not change until
+reboot,
+> but then might be different? Surprising.
+
+Yes, you've got it right.  I was also surprised at the behavior.  I'll
+continue to monitor the behavior and see if I can pick out any patterns.
+
+> 
+> > I'm using the 20020918 patch to the 2.4.18 kernel. I can't get the
+> > 20021002 patch to the 2.4.20pre8 kernel to patch (or compile)
+cleanly.
+> 
+> What exactly is the problem? I would need the output of your
+> patch/compile attempt to be more helpful :)
+
+I'll run the patch/compile again and send the errors. It may be a few
+hours before I can get to it though.
+
+> 
+> -Knut
+> 
+> PS: Did anyone yet try to update the FAQ?  Otherwise I might take an
+> evening if someone would correct the english at last.
+> 
+> --
+> Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
+> Physikalische Grundpraktika - Heinrich-Heine Universitaet Duesseldorf
+> Raum 25.33.01.63  -   Universitaetsstrasse 1   -  D-40225 Duesseldorf
+> fon: +49-211-81-11314                           fax: +49-211-81-13105
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> -------------------------------------------------------
+> This sf.net email is sponsored by:ThinkGeek
+> Welcome to geek heaven.
+> http://thinkgeek.com/sf
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+
 
 
 -------------------------------------------------------
