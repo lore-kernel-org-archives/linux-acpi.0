@@ -1,8 +1,8 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Thread mutex errors / out of memory errors
-Date: Tue, 12 Nov 2002 08:01:37 -0800
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: ACPI patches updated (20021111)
+Date: Tue, 12 Nov 2002 12:48:45 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <B9ECACBD6885D5119ADC00508B68C1EA0D19B8E2@orsmsx107.jf.intel.com>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A4F9@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,85 +14,58 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "'Cagle, John (ISS-Houston)'" <john.cagle-VXdhtT5mjnY@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi all,
 
-Did the Mutex AE_ERROR exceptions start happening with the ACPI_WAIT_FOREVER
-patch?
+New patches are up on sf.net/projects/acpi. Non-Linux-specific releases will
+be available by tomorrow evening at
+http://developer.intel.com/technology/iapc/acpi/downloads.htm .
 
-I would guess that the error is coming from acpi_os_wait_semaphore:
+If you've been having problems with reading battery or other information
+being very slow, please try this release and report if problems persist.
 
-		/*
-		 * Wait Indefinitely:
-		 * ------------------
-		 */
-		case WAIT_FOREVER:
-		ret = down_interruptible(sem);
-		if (ret < 0)
-			status = AE_ERROR;
-		break;
+Regards -- Andy
 
-Bob
+----------------------------------------
+11 November 2002.  Summary of changes for version 20021111.
 
 
------Original Message-----
-From: Cagle, John (ISS-Houston) [mailto:john.cagle-VXdhtT5mjnY@public.gmane.org] 
-Sent: Monday, November 11, 2002 3:18 PM
-To: Grover, Andrew
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: [ACPI] Thread mutex errors / out of memory errors
+0) ACPI Specification 2.0B is released and is now available
+at:  http://www.acpi.info/index.html
 
-Andy,
+1) Linux
 
-In my testing of the power button support in your 2.4 acpi tree,
-I occasionally encounter errors similar to these:
+Module loading/unloading fixes (John Cagle)
 
-utmisc-0700 [03] Ut_acquire_mutex      : Thread 41B could not acquire
-Mutex [ACPI_MTX_Caches] AE_ERROR
-utmisc-0700 [-2] Ut_acquire_mutex      : Thread 420 could not acquire
-Mutex [ACPI_MTX_Caches] AE_ERROR
-dsutils-0463: *** Error: Could not allocate an object descriptor
-dsutils-0549 [-5] Ds_create_operands    : While creating Arg 1 -
-AE_NO_MEMORY
-evevent-0816: *** Error: AE_NO_MEMORY while evaluating GPE4 method
-utmisc-0700 [-13] Ut_acquire_mutex      : Thread 437 could not acquire
-Mutex [ACPI_MTX_Caches] AE_ERROR
-utmisc-0700 [-5] Ut_acquire_mutex      : Thread 43F could not acquire
-Mutex [ACPI_MTX_Caches] AE_ERROR
-utmisc-0700 [-146] Ut_acquire_mutex      : Thread 497 could not acquire
-Mutex [ACPI_MTX_Caches] AE_ERROR
+Other minor fixes
 
-These errors typically occur during event processing (ie. when
-I press the power button while cat'ing /proc/acpi/event).  The
-Mutex errors do not appear to affect button events, but the
-AE_NO_MEMORY errors are fatal (all button event processing
-dies).
+2) ACPI CA Core Subsystem:
 
-BTW, my kernel has your ACPI_WAIT_FOREVER mutex patch applied.
+Implemented support for the ACPI 2.0 SMBus Operation Regions.
+This includes the early detection and handoff of the request
+to the SMBus region handler (avoiding all of the complex field
+support code), and support for the bidirectional return packet
+from an SMBus write operation.  This paves the way for the
+development of SMBus drivers in each host operating system.
 
-Have you seen these errors before?  I am happy to do further
-testing if you can suggest where I should add debug code...
-
-Thanks,
-John
---------------------------------
-John Cagle     john.cagle-VXdhtT5mjnY@public.gmane.org
-Principal Member Technical Staff
-   Industry Standard Servers
-    Hewlett-Packard Company
-    http://www.hp.com/linux
+Fixed a problem where the semaphore WAIT_FOREVER constant was
+defined as 32 bits, but must be 16 bits according to the ACPI
+specification.  This had the side effect of causing ASL
+Mutex/Event timeouts even though the ASL code requested a wait
+forever.  Changed all internal references to the ACPI timeout
+parameter to 16 bits to prevent future problems.  Changed the
+name of WAIT_FOREVER to ACPI_WAIT_FOREVER.
 
 
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
+
+-----------------------------
+Andrew Grover
+Intel Labs / Mobile Architecture
+andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+
 
 
 -------------------------------------------------------
