@@ -1,55 +1,39 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Subject: Re: [PATCH] ACPI poweroff fixes for 2.4.26-pre2
-Date: Fri, 26 Mar 2004 22:34:31 +0000
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1080340471.7451.1.camel@darkstar>
-References: <20040315210729.GA19306@alpha.home.local>
-	 <1079389434.3695.2.camel@darkstar>
-	 <20040315231927.GA19829@alpha.home.local>
-	 <20040322105946.GC1505@openzaurus.ucw.cz>
-	 <1080253327.3755.20.camel@darkstar> <20040325222934.GF2179@elf.ucw.cz>
-	 <1080255058.4187.1.camel@darkstar> <20040325230037.GK2179@elf.ucw.cz>
-	 <1080262910.4144.39.camel@darkstar> <1080322903.2325.113.camel@darkstar>
-	 <20040326220723.GC9491@elf.ucw.cz>
-Reply-To: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [RFC] ACPI IRQ proposal
+Date: Fri, 26 Mar 2004 17:00:55 -0700
+Sender: linux-ia64-owner@vger.kernel.org
+Message-ID: <200403261700.55781.bjorn.helgaas@hp.com>
+References: <200403231537.14505.bjorn.helgaas@hp.com> <20040326.143930.41646618.maeda@jp.fujitsu.com> <20040326.175630.74755524.t-kochi@bq.jp.nec.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040326220723.GC9491-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Willy Tarreau <willy-tRhHnHjXm5DYtjvyW6yDsg@public.gmane.org>, Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <20040326.175630.74755524.t-kochi@bq.jp.nec.com>
+Content-Disposition: inline
+To: Takayoshi Kochi <t-kochi@bq.jp.nec.com>
+Cc: maeda.naoaki@jp.fujitsu.com, acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2004-03-26 at 22:07, Pavel Machek wrote:
-> Hi!
->=20
-> > Sorry about that patch this really doesn't make sence,
-> >=20
-> > in kernels 2.4.x now in drives/acpi/Config.in
-> >=20
-> > if [ "$CONFIG_ACPI" =3D "y" ]; then
-> > ACPI_SLEEP =3D y
->=20
-> I thought ia64 had problem where there was CONFIG_ACPI but not
-> CONFIG_ACPI_SLEEP.
-> 							Pavel
-sorry I just study i386 case, I forgot to see ia64=20
---=20
-S=E9rgio M. B.
+On Friday 26 March 2004 1:56 am, Takayoshi Kochi wrote:
+> The polarity and trigger are programmed in iosapic when MADT
+> parsing is done, so we don't want to force 'ACPI_ACTIVE_LOW,
+> ACPI_LEVEL_SENSITIVE' when SCI is enabled.
 
+Yup, I just completely threw out the MADT parsing, which was
+a mistake.  Obviously we have to keep track of what's there.
+It's a shame it's currently all in architecture code, even though
+it should really be platform-independent.
 
+> So maybe acpi_register_gsi() would take only one argument (u32 gsi)
+> and the acpi_register_gsi() by itself will derive polarity and trigger
+> from override table or iosapic_intr_info[]?
 
--------------------------------------------------------
-This SF.Net email is sponsored by: IBM Linux Tutorials
-Free Linux tutorial presented by Daniel Robbins, President and CEO of
-GenToo technologies. Learn everything from fundamentals to system
-administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
+But it doesn't seem right to me to for the arch code to have to keep
+track of the polarity/trigger stuff.  Ideally I think ACPI should extract
+that from the PRT (as it does today) and from the static tables (as
+the arch code does today), then tell the arch code once via
+acpi_register_gsi().
+
+But in the short term, I think I'll just leave the non-PRT stuff pretty
+much as it is today, and focus on cleaning up the PRT handling a bit.
