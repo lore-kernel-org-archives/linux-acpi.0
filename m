@@ -1,51 +1,79 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: [PATCH] 5 of 6 avoid double conversion of ACPI OS interrupt
-Date: Tue, 9 Mar 2004 16:26:54 -0700
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200403091626.54746.bjorn.helgaas@hp.com>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [ACPI] [PATCH] 6 of 6 rename some ACPI IRQ variables
+Date: Tue, 9 Mar 2004 16:27:12 -0700
+Sender: linux-ia64-owner@vger.kernel.org
+Message-ID: <200403091627.12824.bjorn.helgaas@hp.com>
 References: <200403091619.04333.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200403091619.04333.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <200403091619.04333.bjorn.helgaas@hp.com>
 Content-Disposition: inline
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>, "Nakajima, Jun" <jun.nakajima-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org
+Cc: Andi Kleen <ak@suse.de>, "Nakajima, Jun" <jun.nakajima@intel.com>, "Brown, Len" <len.brown@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-ACPI: Avoid double conversion of ACPI OS interrupt
+ACPI: Rename ACPI IRQ variables for clarity
 
-The global IRQ used to be converted once in
-acpi_os_install_interrupt_handler() and again in
-acpi_os_remove_interrupt_handler().
+	acpi_irq_irq -> acpi_irq_global_irq
+	acpi_irq -> acpi_irq_trampoline
 
 diff -Nru a/drivers/acpi/osl.c b/drivers/acpi/osl.c
---- a/drivers/acpi/osl.c	Tue Mar  9 14:24:15 2004
-+++ b/drivers/acpi/osl.c	Tue Mar  9 14:24:15 2004
-@@ -262,7 +262,7 @@
+--- a/drivers/acpi/osl.c	Tue Mar  9 14:44:25 2004
++++ b/drivers/acpi/osl.c	Tue Mar  9 14:44:25 2004
+@@ -63,7 +63,7 @@
+ extern char line_buf[80];
+ #endif /*ENABLE_DEBUGGER*/
+ 
+-static int acpi_irq_irq;
++static int acpi_irq_global_irq;
+ static OSD_HANDLER acpi_irq_handler;
+ static void *acpi_irq_context;
+ 
+@@ -88,7 +88,7 @@
+ acpi_os_terminate(void)
+ {
+ 	if (acpi_irq_handler) {
+-		acpi_os_remove_interrupt_handler(acpi_irq_irq,
++		acpi_os_remove_interrupt_handler(acpi_irq_global_irq,
+ 						 acpi_irq_handler);
+ 	}
+ 
+@@ -234,7 +234,7 @@
+ }
+ 
+ static irqreturn_t
+-acpi_irq(int irq, void *dev_id, struct pt_regs *regs)
++acpi_irq_trampoline(int irq, void *dev_id, struct pt_regs *regs)
+ {
+ 	return (*acpi_irq_handler)(acpi_irq_context) ? IRQ_HANDLED : IRQ_NONE;
+ }
+@@ -258,11 +258,11 @@
+ 	}
+ 	acpi_irq_handler = handler;
+ 	acpi_irq_context = context;
+-	if (request_irq(irq, acpi_irq, SA_SHIRQ, "acpi", acpi_irq)) {
++	if (request_irq(irq, acpi_irq_trampoline, SA_SHIRQ, "acpi", acpi_irq_trampoline)) {
  		printk(KERN_ERR PREFIX "SCI (IRQ%d) allocation failed\n", irq);
  		return AE_NOT_ACQUIRED;
  	}
--	acpi_irq_irq = irq;
-+	acpi_irq_irq = global_irq;
+-	acpi_irq_irq = global_irq;
++	acpi_irq_global_irq = global_irq;
  
  	return AE_OK;
  }
+@@ -277,9 +277,9 @@
+ 			printk(KERN_ERR PREFIX "Can't remove ACPI interrupt handler\n");
+ 			return AE_ERROR;
+ 		}
+-		free_irq(irq, acpi_irq);
++		free_irq(irq, acpi_irq_trampoline);
+ 		acpi_irq_handler = NULL;
+-		acpi_irq_irq = 0;
++		acpi_irq_global_irq = 0;
+ 	}
+ 
+ 	return AE_OK;
 
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: IBM Linux Tutorials
-Free Linux tutorial presented by Daniel Robbins, President and CEO of
-GenToo technologies. Learn everything from fundamentals to system
-administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
