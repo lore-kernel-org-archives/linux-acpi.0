@@ -1,11 +1,13 @@
 From: Z F <mail4me9999-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Subject: Latitude X300 problem
-Date: Mon, 14 Jun 2004 19:46:27 -0700 (PDT)
+Date: Mon, 14 Jun 2004 20:24:15 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040615024627.83008.qmail@web20412.mail.yahoo.com>
+Message-ID: <20040615032415.42684.qmail@web20418.mail.yahoo.com>
+References: <20040615024627.83008.qmail@web20412.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="0-949064097-1087269855=:42631"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20040615024627.83008.qmail-Fcu2i0sSXcWA/QwVtaZbd3CJp6faPEW9@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,36 +19,74 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello everybody,
-
-I am trying to configure ACPI to work on my Dell Latitude X300
-notebook.
-I think I followed the instructions from
-http://www.cpqlinux.com/acpi-howto.html
-
-on how to obtain DSDT and how to compile it into the kernel.
-
-Accodring to http://acpi.sourceforge.net/dsdt/view.php someone 
-has posted a fixed DSDT for this computer model.
-
-So I disassembled my dsdt to get SystemMemory (as I do not know how to
-compute these numbers from the amount of physical memory) and edited
-the dstd.asl for the BIOS version I have (A06).
-
-After the compilation onto the kernel and rebooting I get the attached
-messages. Basically, this means that almost everything does not work.
-I can change cpu throttling and see the sate of the fan (it is always
-on).
-THe compilation of dsdt.asl with iasl produces no errors and no
-warnings.
+--0-949064097-1087269855=:42631
+Content-Type: text/plain; charset=us-ascii
+Content-Id: 
+Content-Disposition: inline
 
 
-Could someone tell me how to debug this. I know very little about ACPI
-but am willing to learn... :-)
+Sorry, I forgot the attachement and to say that I am using 
+kernel 2.4.26
 
-Thank you very much for your kind help
+Thanks
 
 Lazar
+--- Z F <mail4me9999-/E1597aS9LQAvxtiuMwx3w@public.gmane.org> wrote:
+> Hello everybody,
+> 
+> I am trying to configure ACPI to work on my Dell Latitude X300
+> notebook.
+> I think I followed the instructions from
+> http://www.cpqlinux.com/acpi-howto.html
+> 
+> on how to obtain DSDT and how to compile it into the kernel.
+> 
+> Accodring to http://acpi.sourceforge.net/dsdt/view.php someone 
+> has posted a fixed DSDT for this computer model.
+> 
+> So I disassembled my dsdt to get SystemMemory (as I do not know how
+> to
+> compute these numbers from the amount of physical memory) and edited
+> the dstd.asl for the BIOS version I have (A06).
+> 
+> After the compilation onto the kernel and rebooting I get the
+> attached
+> messages. Basically, this means that almost everything does not work.
+> I can change cpu throttling and see the sate of the fan (it is always
+> on).
+> THe compilation of dsdt.asl with iasl produces no errors and no
+> warnings.
+> 
+> 
+> Could someone tell me how to debug this. I know very little about
+> ACPI
+> but am willing to learn... :-)
+> 
+> Thank you very much for your kind help
+> 
+> Lazar
+> 
+> 
+> 	
+> 		
+> __________________________________
+> Do you Yahoo!?
+> Friends.  Fun.  Try the all-new Yahoo! Messenger.
+> http://messenger.yahoo.com/ 
+> 
+> 
+> -------------------------------------------------------
+> This SF.Net email is sponsored by The 2004 JavaOne(SM) Conference
+> Learn from the experts at JavaOne(SM), Sun's Worldwide Java Developer
+> Conference, June 28 - July 1 at the Moscone Center in San Francisco,
+> CA
+> REGISTER AND SAVE! http://java.sun.com/javaone/sf Priority Code
+> NWMGYKND
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+> 
 
 
 	
@@ -55,6 +95,151 @@ __________________________________
 Do you Yahoo!?
 Friends.  Fun.  Try the all-new Yahoo! Messenger.
 http://messenger.yahoo.com/ 
+--0-949064097-1087269855=:42631
+Content-Type: application/octet-stream; name=message
+Content-Transfer-Encoding: base64
+Content-Description: message
+Content-Disposition: attachment; filename=message
+
+TGludXggdmVyc2lvbiAyLjQuMjZhY3BpIChyb290QEdyYXlNYXR0ZXIpIChn
+Y2MgdmVyc2lvbiAzLjMuMyAoRGViaWFuIDIwMDQwNDIyKSkgIzEgVGh1IEp1
+biAxMCAyMjo0OTo1NSBFRFQgMjAwNApCSU9TLXByb3ZpZGVkIHBoeXNpY2Fs
+IFJBTSBtYXA6CiBCSU9TLWU4MjA6IDAwMDAwMDAwMDAwMDAwMDAgLSAwMDAw
+MDAwMDAwMDlmODAwICh1c2FibGUpCiBCSU9TLWU4MjA6IDAwMDAwMDAwMDAw
+OWY4MDAgLSAwMDAwMDAwMDAwMGEwMDAwIChyZXNlcnZlZCkKIEJJT1MtZTgy
+MDogMDAwMDAwMDAwMDBkODAwMCAtIDAwMDAwMDAwMDAxMDAwMDAgKHJlc2Vy
+dmVkKQogQklPUy1lODIwOiAwMDAwMDAwMDAwMTAwMDAwIC0gMDAwMDAwMDAw
+NzY3ZTAwMCAodXNhYmxlKQogQklPUy1lODIwOiAwMDAwMDAwMDA3NjdlMDAw
+IC0gMDAwMDAwMDAwNzZlMDAwMCAoQUNQSSBOVlMpCiBCSU9TLWU4MjA6IDAw
+MDAwMDAwMDc2ZTAwMDAgLSAwMDAwMDAwMDA3NmViMDAwIChBQ1BJIGRhdGEp
+CiBCSU9TLWU4MjA6IDAwMDAwMDAwMDc2ZWIwMDAgLSAwMDAwMDAwMDA3NzAw
+MDAwIChBQ1BJIE5WUykKIEJJT1MtZTgyMDogMDAwMDAwMDAwNzcwMDAwMCAt
+IDAwMDAwMDAwMDgwMDAwMDAgKHJlc2VydmVkKQogQklPUy1lODIwOiAwMDAw
+MDAwMGZlYzEwMDAwIC0gMDAwMDAwMDBmZWMyMDAwMCAocmVzZXJ2ZWQpCiBC
+SU9TLWU4MjA6IDAwMDAwMDAwZmY4MDAwMDAgLSAwMDAwMDAwMGZmYzAwMDAw
+IChyZXNlcnZlZCkKIEJJT1MtZTgyMDogMDAwMDAwMDBmZmZmZmMwMCAtIDAw
+MDAwMDAxMDAwMDAwMDAgKHJlc2VydmVkKQoxMThNQiBMT1dNRU0gYXZhaWxh
+YmxlLgpPbiBub2RlIDAgdG90YWxwYWdlczogMzAzMzQKem9uZSgwKTogNDA5
+NiBwYWdlcy4Kem9uZSgxKTogMjYyMzggcGFnZXMuCnpvbmUoMik6IDAgcGFn
+ZXMuCkRlbGwgTGF0aXR1ZGUgd2l0aCBicm9rZW4gQklPUyBkZXRlY3RlZC4g
+UmVmdXNpbmcgdG8gZW5hYmxlIHRoZSBsb2NhbCBBUElDLgpBQ1BJOiBSU0RQ
+ICh2MDAwIERFTEwgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICkgQCAweDAwMGY2MGYwCkFDUEk6IFJTRFQgKHYwMDEgREVMTCAgIE1v
+bnRhcmEgIDB4MDYwNDAwMDAgIExUUCAweDAwMDAwMDAwKSBAIDB4MDc2ZTRl
+MWEKQUNQSTogRkFEVCAodjAwMSBERUxMICAgTU9OVEFSQSAgMHgwNjA0MDAw
+MCBQVEwgIDB4MDAwMDAwNTApIEAgMHgwNzZlYWU5ZQpBQ1BJOiBCT09UICh2
+MDAxIERFTEwgICAkU0JGVEJMJCAweDA2MDQwMDAwICBMVFAgMHgwMDAwMDAw
+MSkgQCAweDA3NmVhZmE0CkFDUEk6IEFTRiEgKHYwMDEgREVMTCAgIE1PTlRB
+UkEgIDB4MDYwNDAwMDAgUFRMICAweDAwMDAwMDAxKSBAIDB4MDc2ZWFmY2MK
+QUNQSTogU1NEVCAodjAwMSBJTlRFTCAgQ1BVMENTVCAgMHgwMDAwMDAwMSBJ
+TlRMIDB4MjAwMjA3MjUpIEAgMHgwNzZlNTJiMApBQ1BJOiBTU0RUICh2MDAx
+IERFTEwgICBNT05UQVJBICAweDA2MDQwMDAwIElOVEwgMHgyMDAyMDcyNSkg
+QCAweDA3NmU0ZTUyCkFDUEk6IERTRFQgKHYwMDEgSU5URUwgIE1PTlRBUkFH
+IDB4MDYwNDAwMDAgTVNGVCAweDAxMDAwMDBlKSBAIDB4MDAwMDAwMDAKS2Vy
+bmVsIGNvbW1hbmQgbGluZTogCkluaXRpYWxpemluZyBDUFUjMApEZXRlY3Rl
+ZCAxMTk2LjE0MiBNSHogcHJvY2Vzc29yLgpDb25zb2xlOiBjb2xvdXIgVkdB
+KyA4MHgyNQpDYWxpYnJhdGluZyBkZWxheSBsb29wLi4uIDIzODUuNTEgQm9n
+b01JUFMKTWVtb3J5OiAxMTc1MDhrLzEyMTMzNmsgYXZhaWxhYmxlICgxMjU2
+ayBrZXJuZWwgY29kZSwgMzQ0MGsgcmVzZXJ2ZWQsIDMxOGsgZGF0YSwgMjky
+ayBpbml0LCAwayBoaWdobWVtKQpEZW50cnkgY2FjaGUgaGFzaCB0YWJsZSBl
+bnRyaWVzOiAxNjM4NCAob3JkZXI6IDUsIDEzMTA3MiBieXRlcykKSW5vZGUg
+Y2FjaGUgaGFzaCB0YWJsZSBlbnRyaWVzOiA4MTkyIChvcmRlcjogNCwgNjU1
+MzYgYnl0ZXMpCk1vdW50IGNhY2hlIGhhc2ggdGFibGUgZW50cmllczogNTEy
+IChvcmRlcjogMCwgNDA5NiBieXRlcykKQnVmZmVyIGNhY2hlIGhhc2ggdGFi
+bGUgZW50cmllczogNDA5NiAob3JkZXI6IDIsIDE2Mzg0IGJ5dGVzKQpQYWdl
+LWNhY2hlIGhhc2ggdGFibGUgZW50cmllczogMzI3NjggKG9yZGVyOiA1LCAx
+MzEwNzIgYnl0ZXMpCkNQVTogTDEgSSBjYWNoZTogMzJLLCBMMSBEIGNhY2hl
+OiAzMksKQ1BVOiBMMiBjYWNoZTogMTAyNEsKSW50ZWwgbWFjaGluZSBjaGVj
+ayBhcmNoaXRlY3R1cmUgc3VwcG9ydGVkLgpJbnRlbCBtYWNoaW5lIGNoZWNr
+IHJlcG9ydGluZyBlbmFibGVkIG9uIENQVSMwLgpDUFU6ICAgICBBZnRlciBn
+ZW5lcmljLCBjYXBzOiBhN2U5ZjliZiAwMDAwMDAwMCAwMDAwMDAwMCAwMDAw
+MDAwMApDUFU6ICAgICAgICAgICAgIENvbW1vbiBjYXBzOiBhN2U5ZjliZiAw
+MDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAwMApDUFU6IEludGVsKFIpIFBlbnRp
+dW0oUikgTSBwcm9jZXNzb3IgMTIwME1IeiBzdGVwcGluZyAwNQpFbmFibGlu
+ZyBmYXN0IEZQVSBzYXZlIGFuZCByZXN0b3JlLi4uIGRvbmUuCkVuYWJsaW5n
+IHVubWFza2VkIFNJTUQgRlBVIGV4Y2VwdGlvbiBzdXBwb3J0Li4uIGRvbmUu
+CkNoZWNraW5nICdobHQnIGluc3RydWN0aW9uLi4uIE9LLgpQT1NJWCBjb25m
+b3JtYW5jZSB0ZXN0aW5nIGJ5IFVOSUZJWAptdHJyOiB2MS40MCAoMjAwMTAz
+MjcpIFJpY2hhcmQgR29vY2ggKHJnb29jaEBhdG5mLmNzaXJvLmF1KQptdHJy
+OiBkZXRlY3RlZCBtdHJyIHR5cGU6IEludGVsCkFDUEk6IFN1YnN5c3RlbSBy
+ZXZpc2lvbiAyMDA0MDMyNgpQQ0k6IFBDSSBCSU9TIHJldmlzaW9uIDIuMTAg
+ZW50cnkgYXQgMHhmZDliMCwgbGFzdCBidXM9MgpQQ0k6IFVzaW5nIGNvbmZp
+Z3VyYXRpb24gdHlwZSAxCkFDUEk6IElSUTkgU0NJOiBFZGdlIHNldCB0byBM
+ZXZlbCBUcmlnZ2VyLgpBQ1BJOiBJbnRlcnByZXRlciBlbmFibGVkCkFDUEk6
+IFVzaW5nIFBJQyBmb3IgaW50ZXJydXB0IHJvdXRpbmcKQUNQSTogU3lzdGVt
+IFtBQ1BJXSAoc3VwcG9ydHMgUzAgUzMgUzQgUzUpCkFDUEk6IFBDSSBSb290
+IEJyaWRnZSBbUENJMF0gKDAwOjAwKQpQQ0k6IFByb2JpbmcgUENJIGhhcmR3
+YXJlIChidXMgMDApClBDSTogSWdub3JpbmcgQkFSMC0zIG9mIElERSBjb250
+cm9sbGVyIDAwOjFmLjEKVHJhbnNwYXJlbnQgYnJpZGdlIC0gSW50ZWwgQ29y
+cC4gODI4MDFCQU0vQ0FNIFBDSSBCcmlkZ2UKQUNQSTogUENJIEludGVycnVw
+dCBSb3V0aW5nIFRhYmxlIFtcX1NCXy5QQ0kwLl9QUlRdCkFDUEk6IFBDSSBJ
+bnRlcnJ1cHQgUm91dGluZyBUYWJsZSBbXF9TQl8uUENJMC5QQ0lCLl9QUlRd
+CkFDUEk6IFBDSSBJbnRlcnJ1cHQgTGluayBbTE5LQV0gKElSUXMgKjEwKQpB
+Q1BJOiBQQ0kgSW50ZXJydXB0IExpbmsgW0xOS0JdIChJUlFzICoxMCkKQUNQ
+STogUENJIEludGVycnVwdCBMaW5rIFtMTktDXSAoSVJRcyAqMTEpCkFDUEk6
+IFBDSSBJbnRlcnJ1cHQgTGluayBbTE5LRF0gKElSUXMgKjExKQpBQ1BJOiBQ
+Q0kgSW50ZXJydXB0IExpbmsgW0xOS0VdIChJUlFzICo1KQpBQ1BJOiBQQ0kg
+SW50ZXJydXB0IExpbmsgW0xOS0ZdIChJUlFzIDUpICowLCBkaXNhYmxlZC4K
+QUNQSTogUENJIEludGVycnVwdCBMaW5rIFtMTktHXSAoSVJRcyAxMCkgKjAs
+IGRpc2FibGVkLgpBQ1BJOiBQQ0kgSW50ZXJydXB0IExpbmsgW0xOS0hdIChJ
+UlFzICoxMCkKQUNQSTogRW1iZWRkZWQgQ29udHJvbGxlciBbSF9FQ10gKGdw
+ZSAyOCkKICAgIEFDUEktMDM0NzogKioqIEVycm9yOiBIYW5kbGVyIGZvciBb
+RW1iZWRkZWRDb250cm9sXSByZXR1cm5lZCBBRV9CQURfUEFSQU1FVEVSCiAg
+ICBBQ1BJLTExMzM6ICoqKiBFcnJvcjogTWV0aG9kIGV4ZWN1dGlvbiBmYWls
+ZWQgW1xfU0JfLlBDSTAuTFBDQi5IX0VDLl9SRUddIChOb2RlIGM3NjM5ZjAw
+KSwgQUVfQkFEX1BBUkFNRVRFUgpBQ1BJOiBQb3dlciBSZXNvdXJjZSBbUEZB
+Tl0gKG9uKQpQQ0k6IFByb2JpbmcgUENJIGhhcmR3YXJlCkFDUEk6IFBDSSBJ
+bnRlcnJ1cHQgTGluayBbTE5LQV0gZW5hYmxlZCBhdCBJUlEgMTAKQUNQSTog
+UENJIEludGVycnVwdCBMaW5rIFtMTktEXSBlbmFibGVkIGF0IElSUSAxMQpB
+Q1BJOiBQQ0kgSW50ZXJydXB0IExpbmsgW0xOS0NdIGVuYWJsZWQgYXQgSVJR
+IDExCkFDUEk6IFBDSSBJbnRlcnJ1cHQgTGluayBbTE5LSF0gZW5hYmxlZCBh
+dCBJUlEgMTAKQUNQSTogUENJIEludGVycnVwdCBMaW5rIFtMTktCXSBlbmFi
+bGVkIGF0IElSUSAxMApBQ1BJOiBQQ0kgSW50ZXJydXB0IExpbmsgW0xOS0Vd
+IGVuYWJsZWQgYXQgSVJRIDUKUENJOiBVc2luZyBBQ1BJIGZvciBJUlEgcm91
+dGluZwpMaW51eCBORVQ0LjAgZm9yIExpbnV4IDIuNApCYXNlZCB1cG9uIFN3
+YW5zZWEgVW5pdmVyc2l0eSBDb21wdXRlciBTb2NpZXR5IE5FVDMuMDM5Cklu
+aXRpYWxpemluZyBSVCBuZXRsaW5rIHNvY2tldApTdGFydGluZyBrc3dhcGQK
+Sm91cm5hbGxlZCBCbG9jayBEZXZpY2UgZHJpdmVyIGxvYWRlZAppbnRlbGZi
+OiBGcmFtZWJ1ZmZlciBkcml2ZXIgZm9yIEludGVsKFIpIDgzME0vODQ1Ry84
+NTJHTS84NTVHTS84NjVHIGNoaXBzZXRzCmludGVsZmI6IFZlcnNpb24gMC43
+LjcsIHdyaXR0ZW4gYnkgRGF2aWQgRGF3ZXMgPGRhd2VzQHR1bmdzdGVuZ3Jh
+cGhpY3MuY29tPgppbnRlbGZiOiAwMDowMi4wOiBJbnRlbChSKSA4NTVHTSwg
+YXBlcnR1cmUgc2l6ZSAxMjhNQiwgc3RvbGVuIG1lbW9yeSA4MDYwa0IKaW50
+ZWxmYjogQWNjZWxlcmF0aW9uIGlzIG5vdCBzdXBwb3J0ZWQgZm9yIHRoZSBJ
+bnRlbChSKSA4NTVHTSBjaGlwc2V0LgppbnRlbGZiOiBIVyBjdXJzb3IgaXMg
+bm90IHN1cHBvcnRlZCBmb3IgbW9iaWxlIHBsYXRmb3Jtcy4KaW50ZWxmYjog
+Tm9uLUNSVCBkZXZpY2UgaXMgZW5hYmxlZCAoTFZEUyBwb3J0KS4gIERpc2Fi
+bGluZyBtb2RlIHN3aXRjaGluZy4KaW50ZWxmYjogVmlkZW8gbW9kZSBtdXN0
+IGJlIHByb2dyYW1tZWQgYXQgYm9vdCB0aW1lLgpwdHk6IDI1NiBVbml4OTgg
+cHR5cyBjb25maWd1cmVkCmk4azogdW5hYmxlIHRvIGdldCBTTU0gQklPUyB2
+ZXJzaW9uCkRlbGwgbGFwdG9wIFNNTSBkcml2ZXIgdjEuMTMgMTQvMDUvMjAw
+MiBNYXNzaW1vIERhbCBab3R0byAoZHpAZGViaWFuLm9yZykKUmVhbCBUaW1l
+IENsb2NrIERyaXZlciB2MS4xMGYKTGludXggYWdwZ2FydCBpbnRlcmZhY2Ug
+djAuOTkgKGMpIEplZmYgSGFydG1hbm4KYWdwZ2FydDogTWF4aW11bSBtYWlu
+IG1lbW9yeSB0byB1c2UgZm9yIGFncCBtZW1vcnk6IDg1TQphZ3BnYXJ0OiBE
+ZXRlY3RlZCBhbiBJbnRlbChSKSA4NTVHTSBDaGlwc2V0LgphZ3BnYXJ0OiBE
+ZXRlY3RlZCA4MDYwSyBzdG9sZW4gbWVtb3J5LgphZ3BnYXJ0OiBBR1AgYXBl
+cnR1cmUgaXMgMTI4TSBAIDB4ZTgwMDAwMDAKW2RybV0gQUdQIDAuOTkgQXBl
+cnR1cmUgQCAweGU4MDAwMDAwIDEyOE1CCltkcm1dIEluaXRpYWxpemVkIGk4
+MzAgMS4zLjIgMjAwMjExMDggb24gbWlub3IgMApVbmlmb3JtIE11bHRpLVBs
+YXRmb3JtIEUtSURFIGRyaXZlciBSZXZpc2lvbjogNy4wMGJldGE0LTIuNApp
+ZGU6IEFzc3VtaW5nIDMzTUh6IHN5c3RlbSBidXMgc3BlZWQgZm9yIFBJTyBt
+b2Rlczsgb3ZlcnJpZGUgd2l0aCBpZGVidXM9eHgKSUNINDogSURFIGNvbnRy
+b2xsZXIgYXQgUENJIHNsb3QgMDA6MWYuMQpQQ0k6IEVuYWJsaW5nIGRldmlj
+ZSAwMDoxZi4xICgwMDA1IC0+IDAwMDcpCklDSDQ6IGNoaXBzZXQgcmV2aXNp
+b24gMQpJQ0g0OiBub3QgMTAwJSBuYXRpdmUgbW9kZTogd2lsbCBwcm9iZSBp
+cnFzIGxhdGVyCiAgICBpZGUwOiBCTS1ETUEgYXQgMHgxODEwLTB4MTgxNywg
+QklPUyBzZXR0aW5nczogaGRhOkRNQSwgaGRiOnBpbwpoZGE6IElDMjVOMDYw
+QVRNUjA0LTAsIEFUQSBESVNLIGRyaXZlCmJsazogcXVldWUgYzAzMDIyYTAs
+IEkvTyBsaW1pdCA0MDk1TWIgKG1hc2sgMHhmZmZmZmZmZikKaWRlMCBhdCAw
+eDFmMC0weDFmNywweDNmNiBvbiBpcnEgMTQKaGRhOiBhdHRhY2hlZCBpZGUt
+ZGlzayBkcml2ZXIuCmhkYTogaG9zdCBwcm90ZWN0ZWQgYXJlYSA9PiAxCmhk
+YTogMTE3MjEwMjQwIHNlY3RvcnMgKDYwMDEyIE1CKSB3Lzc4ODRLaUIgQ2Fj
+aGUsIENIUz03Mjk2LzI1NS82MywgVURNQSgxMDApClBhcnRpdGlvbiBjaGVj
+azoKIGhkYTogaGRhMSBoZGEyIGhkYTMgaGRhNCA8IGhkYTUgaGRhNiBoZGE3
+ID4K
+
+--0-949064097-1087269855=:42631--
 
 
 -------------------------------------------------------
