@@ -1,51 +1,80 @@
-From: Ingo Oeser <ingo.oeser-jNDFPZUTrfQ+B2oLq8eQJv4efur1V5z/s0AfqQuZ5sE@public.gmane.org>
-Subject: Re: [ACPI] acpi_os_queue_for_execution()
-Date: Sun, 5 Jan 2003 13:23:54 +0100
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20030105132354.G628@nightmaster.csn.tu-chemnitz.de>
-References: <F760B14C9561B941B89469F59BA3A84725A107@orsmsx401.jf.intel.com>
+From: Malte Thoma <thoma-xhPu7QH+N+StU9/U+hoEgQ@public.gmane.org>
+Subject: More than one battery
+Date: Sun, 05 Jan 2003 19:43:51 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <3E187CE7.10204@uni-muenster.de>
+References: <Pine.SOL.4.44.0212291831310.28913-100000@graphics.cat.nyu.edu>
+Reply-To: thoma-iYtK5bfT9M8b1SvskN2V4Q@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <F760B14C9561B941B89469F59BA3A84725A107-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>; from andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org on Fri, Jan 03, 2003 at 11:00:04AM -0800
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <Pine.SOL.4.44.0212291831310.28913-100000-/thXhF8rKSGLR1V1UhDwJPZ8FUJU4vz8@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: danielk-L9gzEf+okJWVc3sceRu5cw@public.gmane.org, heatload-general-0fE9KPoRgkgATYTw5x5z8w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Andrew,
+QUESTION TO THE GURUS:
+Are there more things (excpt the battery) that could me multiple?
 
-On Fri, Jan 03, 2003 at 11:00:04AM -0800, Grover, Andrew wrote:
-> > From: Pavel Machek [mailto:pavel-+ZI9xUNit7I@public.gmane.org] 
-> > Acpi seems to create short-lived kernel threads, and I don't quite
-> > understand why. 
-[...]
-> > and acpi_thermal_run creates kernel therad that runs
-> > acpi_thermal_check. Why is not acpi_thermal_check called directly? I
-> > don't like idea of thread being created every time thermal zone needs
-> > to be polled...
+
+Hallo Daniel,
+thank you for your message.
+
+You are right. Until know heatload does only support ONE battery.
+You change the one which is used in the configuration file.
+If it doesn't help please let me know.
+Your message is a good reason to include a mulit-battery-support as far 
+as possible (lets say within one week ;-)
+
+
+Greetings,
+
+Malte
+
+
+
+Daniel Thor Kristjansson wrote:
+> I'm sending you the cat of BAT1/state & BAT2/state for my laptop right
+> now. It seems heatload has a problem with the 'not present' state. I
+> don't know if it would have found the second battery if it had figured
+> out the first one isn't installed right now. But I sent it's info as
+> well.
 > 
-> Are we allowed to block in a timer callback? One of the things
-> thermal_check does is call a control method, which in turn can be very
-> slow, sleep, etc., so I'd guess that's why the code tries to execute
-> things in its own thread.
+> -- Daniel
+> 
+> philistine{danielk}61: ./src/heatload
+> looking for /home/danielk/heatload_0.4.2/.heatloadrc
+> looking for /home/danielk/.heatloadrc
+> 'Present Rate:' should be 'charging', 'discharging' or 'unknown'
+>  in '/proc/acpi/battery/BAT1/state'
+>  but I it is '' assuming 'unknown'
+>  if you have a 'charging state' in /proc/acpi/battery/BAT1/state
+>  (or anywhere else) please submit a 'cat' of this file to me <thoma-iYtK5bfT9M8b1SvskN2V4Q@public.gmane.org>
+> philistine{danielk}62: cat /proc/acpi/battery/BAT1/state
+> present:		no
+> philistine{danielk}63: cat /proc/acpi/battery/BAT2/state
+> present:		yes
+> capacity state:		ok
+> charging state:		charging
+> present rate:		210 mW
+> remaining capacity:	43830 mWh
+> present voltage:	160 mV
+> philistine{danielk}64:
+> 
+> .
+> 
 
-No you just have to switch completely to schedule_work() as you
-do for calls from interrupts. The limitations you mention in
-osl.c for this function are lifted (look at linux/kernel/workqueue.c) and
-we have per CPU workqueues now.
 
-So no need for this uglification and less code to maintain for
-you ;-)
 
-The short lived threads are not necessary anymore. If this
-thermal check will happen often an extra permanent thread for
-this, which is kicked by a timer might be more apropriate here.
-
-That thread could be started, once the thermal control is loaded.
-
-Regards
-
-Ingo Oeser
--- 
-Science is what we can tell a computer. Art is everything else. --- D.E.Knuth
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
