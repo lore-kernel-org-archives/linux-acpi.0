@@ -1,13 +1,13 @@
-From: Shawn Starr <shawn.starr-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>
-Subject: Fwd: [2.6.12-rc1][ACPI][suspend] /proc/acpi/sleep vs /sys/power/state issue - 'standby' on a laptop
-Date: Mon, 28 Mar 2005 03:02:57 -0500
-Message-ID: <200503280302.57640.shawn.starr@rogers.com>
+From: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+Subject: Re: patched sms-cm acpi/ec.c to 2.6.11.5
+Date: Mon, 28 Mar 2005 14:49:54 -0500
+Message-ID: <42485FE2.8040702@bartol.udel.edu>
+References: <423EF2EB.5030505@arrakis.dhis.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <423EF2EB.5030505-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,46 +17,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pedro Venda <pjvenda-pQd4kjVL+RHfqL7NgpvPWWD2FQJk+8+b@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Pedro Venda wrote:
+> hi everyone,
+> 
+> Since I'm still interested into using the sbs-cm DSDT patch from rich townsend
+> and the most recent release is for 2.6.10, refusing to apply to 2.6.11.X, I
+> changed it.
+> 
+> here it is. rich: could you please take a look and, if it is ok, could you
+> just update your release?
 
-----------  Forwarded Message  ----------
+<snipped patch>
 
-Subject: [2.6.12-rc1][ACPI][suspend] /proc/acpi/sleep vs /sys/power/state 
-issue - 'standby' on a laptop
-Date: March 28, 2005 02:53
-From: Shawn Starr <shawn.starr at rogers d0t com>
-To: Pavel Machek <pavel at suse d0t cz>, Len Brown <len d0t brown at intel d0t 
-com>
+Pedro --
 
-Hello,
+Thanks for the patch, which is now incorporated in the latest release
+(20050328) of the sbs-cm package. This release also includes a modified
+SMBus-CM driver, which should reduce mutex thrashing (read: less noisy
+debug output).
 
-I've noticed something strange with issuing 'standby' to the system:
+FYI, It's doubtful whether I'm going to put that much work into
+furthering the sbs-cm stuff. From what a number of people have said, the
+HAL is the place to be implementing the Smart Battery support, and
+that's where I'm going to be investing most of my future effort.
 
-when echoing "standby" to /sys/power/state, nothing happens, not even a log
- or system activity to attempt standby mode.
+cheers,
 
-However, trying echo "1" to /proc/acpi/sleep the system attempts to (standby)
-and aborts:
-
-[4295945.236000] PM: Preparing system for suspend
-[4295946.270000] Stopping tasks:
-=============================================================================
-[4295946.370000] Restarting tasks... done
-
-We get no reason as to why it quickly aborts.
-
-[4294672.065000] ACPI: CPU0 (power states: C1[C1] C2[C2] C3[C3])
-[4294676.827000] ACPI: (supports S0 S3 S4 S5)
-
-What is '1' in /proc/acpi/sleep?  standby mode is not the same as suspend to
-ram? when I put a normal desktop in standby mode its still 'on' but the hard
-disk is put to sleep and the system runs in a lower power mode.
-
-Shawn.
-
--------------------------------------------------------
+Rich
 
 
 -------------------------------------------------------
