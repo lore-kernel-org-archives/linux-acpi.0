@@ -1,10 +1,11 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [BKPATCH] ACPI for 2.4
-Date: 16 Nov 2004 14:26:11 -0500
-Message-ID: <1100633170.5876.1002.camel@d845pe>
+From: "Alvaro Escobar" <alvaroescobaruw-xgPdBUurjoYSDc0kpPPPTw@public.gmane.org>
+Subject: Application is pre approved
+Date: Tue, 16 Nov 2004 14:30:04 -0700
+Message-ID: <a2f001c4cc23$58e15cf5$d5aea1f4@cd-lab.co.za>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -15,34 +16,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>
-Cc: Willy Tarreau <willy@w.ods.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Marcelo, please do a 
+Dear Sir or Madam,
 
-	bk pull bk://linux-acpi.bkbits.net/24-latest-release
+Would you REFINANCE if you knew you'd SAVE TH0USANDS? 
 
-thanks,
--Len
+We'll get you lnterest as low as 1.92%. 
+Don't believe me? Fill out our small online questionaire and we'll show you how. 
 
-ps. a plain patch is also available here:
-ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/24-latest-release/acpi-20040326-24-latest-release.diff.gz
+Get the house/home and/or car you always wanted, it only takes 10 seconds of your time:
+http://statesmoneyz.com/
 
-This will update the following files:
+Best Regards,
+Andrew Banks
 
- drivers/acpi/system.c |    1 -
- 1 files changed, 1 deletion(-)
-
-through these ChangeSets:
-
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/11/16 1.1458.1.7)
-   [ACPI] fix NMI during poweroff
-   http://bugzilla.kernel.org/show_bug.cgi?id=1206
-   
-   Signed-off-by: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-
+No thanks: http://statesmoneyz.com/r1/
 
 
 
