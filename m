@@ -1,11 +1,11 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 Subject: Re: 2.5.69 - S3
-Date: Mon, 19 May 2003 10:07:46 +0200
+Date: Mon, 19 May 2003 10:31:10 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030519080746.GA30651@hell.org.pl>
+Message-ID: <20030519083110.GB130@elf.ucw.cz>
 References: <200305140140.02188.mflt1@micrologica.com.hk> <200305182005.30192.mflt1@micrologica.com.hk> <20030518211245.GA452@elf.ucw.cz> <200305191153.51196.mflt1@micrologica.com.hk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
 In-Reply-To: <200305191153.51196.mflt1-DTdK3Ks6N5kHTnRCetW4+N0b+6lKrnBL@public.gmane.org>
@@ -18,36 +18,60 @@ List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Michael Frank <mflt1-DTdK3Ks6N5kHTnRCetW4+N0b+6lKrnBL@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Michael Frank:
-> Cute, Your velo S3 OK (before it died) ? - Do you know of any machines that really work with S3?
+Hi!
 
-I've actually succeeded in getting my Asus L3800C into and out of S3,
-though not without some hassle:
-1) turning off DMA -- it seemed to work with DMA and a particular kernel
-   version, but I may be wrong,
-2) appending acpi_sleep=s3_mode to get my display reinitialized,
-3) compiling keybdev and related as modules, logging on remotely after
-   resume and reloading these turns the keyboard back on.
+> > > further, there is mode 5)
+> > >
+> > >   which is mode 4) _plus_ disk reset fails, and disk won't spin
+> > > up again, and kjournald gets mad....
+> >
+> > Disk reset should never ever fail. Can you try to debug that?\
+> 
+> It just acts like the drive got removed. 
+> 
+> IDE bridge HW state must be messed up.
+> 
+> I'll look into init of IDE after resume and debug that. Any hints
+>and pointers are welcome.
 
-I didn't test much, as I was (and still am) plagued by a serious filesystem 
-problem under 2.5.x, but AFAIK, though the S3 worked OK with the somehow
-older kernels (2.5.61, possibly up to 63 or 65), the disk would always hang
-with the newer ones (2.5.67, 69), regardless of the DMA setting.
+I'm not so sure that any IDE init is done upon resume -- which might
+be a problem of course. 
 
-Somehow, if I recall correctly, I was even able to do S3 with usb-uhci
-loaded, which is strange because its presence always hangs my machine when 
-leaving S1.
+> > > and mode 6)
+> > >
+> > >   System hangs after all tasks left fridge with disk led on.
+> > >
+> > > I suppose IDE gets false interupt upon resume.
+> >
+> > Spurious interrupts should be handled gracefully by IDE. On velo I
+> > ran my machine with IDE interrupt connected to 1kHz timer, and it
+> > more or less worked ("IDE0: spurious interrupt", "Last message
+> > repeated 1539 times").
+> 
+> Cute, Your velo S3 OK (before it died) ? - Do you know of any
+>machines that really work with S3?
 
-If you need any more info, I can do some further testing.
+Velo is mips handheld, there's no ACPI there.
 
-Best regards,
+But I have two notebooks and one desktop where S3 works. (More or
+less, now I found that there's mtrr problem on second resume on
+desktop).
 
+> What do these msgs mean? - never seen anything like this before.
+> 
+> May 18 17:49:27 mhfl2 kernel:    evgpe-0396: *** Error: acpi_ev_gpe_dispatch: No handler or method for GPE[FE], disabling event
+> May 18 17:49:27 mhfl2 kernel:    evgpe-0396: *** Error: acpi_ev_gpe_dispatch: No handler or method for GPE[105], disabling event
+> May 18 17:49:27 mhfl2 kernel:    evgpe-0396: *** Error: acpi_ev_gpe_dispatch: No handler or method for GPE[D1], disabling event
+> 
+
+I do not know that part of ACPI.
+								Pavel
 -- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
 
 
 -------------------------------------------------------
