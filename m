@@ -1,10 +1,12 @@
-From: Norton_AntiVirus_Gateways-C4P08NqkoRlBDgjK7y7TUQ@public.gmane.org
-Subject: Returned mail
-Date: Thu, 21 Aug 2003 22:56:31 -0400
+From: Majordomo-owner-etTNj8cnB6w@public.gmane.org
+Subject: Majordomo results: Thank you!
+Date: Fri, 22 Aug 2003 01:40:30 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200308220256.WAA29191@blackcomb.panasas.com>
+Message-ID: <200308220540.h7M5eUg2003274@iosephus.indigo.cert.org>
+Reply-To: Majordomo-etTNj8cnB6w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/report; report-type=delivery-status; boundary="==M2003082122563105740"
+Content-Type: multipart/mixed; boundary="----------=_1061530830-26169-924"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -17,70 +19,28 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+This is a multi-part message in MIME format...
 
---==M2003082122563105740
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+------------=_1061530830-26169-924
+Content-Type: text/plain
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+Content-Description: Results from part 0 of toplevel
 
---- The message cannot be delivered to the following address. ---
+>>>> See the attached file for details
+**** Illegal command!
 
-panfs-C4P08NqkoRlBDgjK7y7TUQ@public.gmane.org    Mailbox unknown or not accepting mail.
-550 <panfs-C4P08NqkoRlBDgjK7y7TUQ@public.gmane.org>... User unknown
+No valid commands processed.
 
+------------=_1061530830-26169-924
+Content-Type: text/plain
+Content-Disposition: inline
+Content-Transfer-Encoding: binary
+Content-Description: Ignored part.
 
---==M2003082122563105740
-Content-Type: message/delivery-status
+Ignoring part of type application/octet-stream.
 
-Reporting-MTA: Norton AntiVirus Gateway;Norton_AntiVirus_Gateways-C4P08NqkoRlBDgjK7y7TUQ@public.gmane.org
-Final-Recipient: rfc822;panfs-C4P08NqkoRlBDgjK7y7TUQ@public.gmane.org
-Action: failed
-Status: 5.1.1
-Diagnostic-Code: X-Notes; Cannot route mail to user (panfs-C4P08NqkoRlBDgjK7y7TUQ@public.gmane.org).
-
---==M2003082122563105740
-Content-Type: message/rfc822
-
-Received: from Fitzgerald.Panasas.Com ([65.194.124.187])
- by mckinley.panasas.com (NAVGW 2.5.2.12) with SMTP id M2003082122563125165
- for <panfs-C4P08NqkoRlBDgjK7y7TUQ@public.gmane.org>; Thu, 21 Aug 2003 22:56:31 -0400
-Received: from ATHARVA (ant.calsoftinc.com [203.124.158.218] (may be forged))
-	by Fitzgerald.Panasas.Com (8.9.3+Sun/8.9.3/SATSYS) with ESMTP id XAA19684
-	for <panfs-C4P08NqkoRlBDgjK7y7TUQ@public.gmane.org>; Thu, 21 Aug 2003 23:08:04 -0400 (EDT)
-From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-Id: <200308220308.XAA19684-lkHnC/a48QoE1IVl/Zi7OVYxCrmK0B7t@public.gmane.org>
-To: <panfs-C4P08NqkoRlBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: Thank you!
-Date: Fri, 22 Aug 2003 8:26:37 +0530
-X-MailScanner: Found to be clean
-Importance: Normal
-X-Mailer: Microsoft Outlook Express 6.00.2600.0000
-X-MSMail-Priority: Normal
-X-Priority: 3 (Normal)
-MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_NextPart_000_02E3C0A5"
-
-This is a multipart message in MIME format
-
---_NextPart_000_02E3C0A5
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-
-See the attached file for details
---_NextPart_000_02E3C0A5
-Content-Type: text/plain;
-	name="DELETED0.TXT"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename="DELETED0.TXT"
-
-RmlsZSBhdHRhY2htZW50OiBhcHBsaWNhdGlvbi5waWYNCg0KVGhlIGZpbGUgYXR0YWNoZWQg
-dG8gdGhpcyBlbWFpbCB3YXMgcmVtb3ZlZCBiZWNhdXNlIGl0IHdhcyBpbmZlY3RlZCB3aXRo
-IHRoZSBXMzIuU29iaWcuRkBtbSB2aXJ1cy4NCg==
---_NextPart_000_02E3C0A5--
-
---==M2003082122563105740--
+------------=_1061530830-26169-924--
 
 
 -------------------------------------------------------
