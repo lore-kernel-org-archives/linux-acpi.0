@@ -1,11 +1,11 @@
-From: =?iso-8859-1?Q?Ois=EDn_Mac_Fheara=ED?= <destynova-iUB+o6dfpG8i1yMB4YHZDQ@public.gmane.org>
-Subject: thermal zone causing insta-reboot on bootup of 2.6.3
-Date: Thu, 11 Mar 2004 00:37:43 -0000
+From: Wesley T Allen <wezlo-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Subject: boot hanging
+Date: Wed, 10 Mar 2004 21:08:25 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <002c01c40701$11116190$7ce9fea9@SHERKA>
+Message-ID: <1078970905.4761.6.camel@localhost>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0029_01C40701.10FC04D0"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,71 +15,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+Hi,
+	Sorry if this is the wrong place to ask this question; if I'm off-base
+could someone point me in the right direction?
 
-------=_NextPart_000_0029_01C40701.10FC04D0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+	I have an hp pavilion laptop (an n5000 series, build-to-order) and have
+had problems with acpi under linux.  in the 2.4.x series the system
+would hang with an error "keventd not started" every now and again.  I
+would let it sit for a couple of seconds (making sure the hd had spun
+down), and then I'd reboot.  Sometimes I would have to do this a couple
+of times, but it was no big deal.
+	I compiled 2.6.0 on my own when it came out (because the acpi support
+was better), and I could NEVER get it to boot.  So I gave up for a
+while, until I got Mandrake 10.0 community installed on my laptop.  The
+kernel is 2.6.3 and I just can't get the thing to boot with acpi enabled
+at all (well, once in about 50 attempts I think).  This is a bit of a
+bummer, considering that I can't get usb devices to work with my laptop
+w/o acpi enabled!  Does anyone have a workaround?  And what other
+information would be helpful in troubleshooting?
 
-After installing the 2.6.3 kernel on Mandrake 9.2 on an Acer Aspire =
-1705SMi laptop, my machine repeatedly prints "Critical temperature =
-reached (255 C), shutting down." and reboots.
-Installing the 20040220 patch to it seems to have made no difference =
-(and added no options that I could see to "make menuconfig" - in fact it =
-removed the options for relaxed something under the ACPI options page, =
-which wasn't doing anything anyway)...
+Thanks gang,  one of the things I love about OSS is that the developers
+are people you can talk to, and I end up learning how to help the
+development process AND other users.
 
-Can anyone advise? I'm quite inexperienced with linux, so I might be =
-doing something stupid (also, I'm having trouble finding which boot =
-messages are kept in which logfiles...).
-I'm too scared by the "might damage your CPU" message to remove thermal =
-zone from the kernel ACPI settings.
-
-Ois=EDn
-------=_NextPart_000_0029_01C40701.10FC04D0
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; =
-charset=3Diso-8859-1">
-<META content=3D"MSHTML 6.00.2800.1400" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV><FONT face=3DArial size=3D2>After installing the 2.6.3 kernel on =
-Mandrake 9.2=20
-on an Acer Aspire 1705SMi laptop, my machine repeatedly prints "Critical =
-
-temperature reached (255 C), shutting down." and reboots.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2>Installing </FONT><FONT face=3DArial =
-size=3D2>the=20
-20040220 patch to it seems to have made no difference (and added no =
-options that=20
-I could see to "make menuconfig" - in fact it removed the options for =
-relaxed=20
-something under the ACPI options page, which wasn't doing anything=20
-anyway)...</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>Can anyone advise? I'm quite =
-inexperienced with=20
-linux, so I might be doing something stupid (also, I'm having trouble =
-finding=20
-which boot messages are kept in which logfiles...).</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2>I'm too scared by the "might damage =
-your CPU"=20
-message to remove thermal zone from the kernel ACPI =
-settings.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>Ois=EDn</FONT></DIV></BODY></HTML>
-
-------=_NextPart_000_0029_01C40701.10FC04D0--
+Wes
 
 
 
