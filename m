@@ -1,15 +1,13 @@
-From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+From: Carl-Daniel Hailfinger <c-d.hailfinger.kernel.2004-hi6Y0CQ0nG0@public.gmane.org>
 Subject: Re: Re: Samsung P35 and S3 suspend
-Date: Thu, 16 Dec 2004 18:32:09 +0100
-Message-ID: <200412161832.09711.stefandoesinger@gmx.at>
-References: <41BFC3AD.5030001@gmx.net> <41C0FFF3.4010902@gmx.net> <41C19BD8.7050201@gmx.net>
+Date: Thu, 16 Dec 2004 19:10:42 +0100
+Message-ID: <41C1CFA2.20304@gmx.net>
+References: <41BFC3AD.5030001@gmx.net> <1103117333.5924.3.camel@mhcln03>	 <41C07B6F.70900@gmx.net> <1103159022.5924.17.camel@mhcln03> <41C0FFF3.4010902@gmx.net> <41C19BD8.7050201@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 In-Reply-To: <41C19BD8.7050201-hi6Y0CQ0nG0@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,37 +17,59 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Carl-Daniel Hailfinger <c-d.hailfinger.kernel.2004-hi6Y0CQ0nG0@public.gmane.org>, Matthias Hentges <mailinglisten-H4PcyxPeSRnR7s880joybQ@public.gmane.org>, Oliver Dawid <od-VRmHG7Xu4f31qYPpFx2fzhvVK+yQ3ZXh@public.gmane.org>
+To: Matthias Hentges <mailinglisten-H4PcyxPeSRnR7s880joybQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Oliver Dawid <od-VRmHG7Xu4f31qYPpFx2fzhvVK+yQ3ZXh@public.gmane.org>, =?ISO-8859-1?Q?Stefan_D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-
+Carl-Daniel Hailfinger schrieb:
+> Carl-Daniel Hailfinger schrieb:
+> 
+>>Matthias Hentges schrieb:
+>>
+>>
+>>>Am Mittwoch, den 15.12.2004, 18:59 +0100 schrieb Carl-Daniel Hailfinger:
+>>>
+>>>
+>>>>Oh, and once I get S3 working with 2.6.9 I'll do a binary search
+>>>>to find the changeset that is causing the problems after 2.6.9
+>>>>and report back.
+>>>
+>>>That would be most appreciated. I still haven't fully recovered from
+>>>trying 30+ kernels / configurations to find the borked patch ;)
+>>
+>>A first hint: CONFIG_REGPARM killed swsusp in some kernels before
+>>2.6.10-rc3, it could also be the culprit for S3.
+> 
 > OK, I got S3 working with all kernels since 2.6.9 (well, your patches
 > had to be modified slightly). Right now I'm running on the latest
 > Linus -bk tree.
->
+> 
 > I will now try other configurations and a full bootup.
-Just a note about 2.6.10-rc2/3 kernels: I also had some Problems with them. 
-snd-Intel8x0 needs an update concerning PCI config save/restore and ehci-hcd 
-causes problems after resume. uhci-hcd suspend/resume works for me, except 
-that I must not plug or unplug usb devices while the system is supended.
 
-> Besides that, I think we could convince the X.Org developers that
-> the "get display working" bug is their problem ;-)
-> It seems they have merged some suspend/resume bugfixes for Radeon and
-> will merge at least one more bugfix in the next few days. Basically,
-> it should be possible that the normal Radeon Xserver rePOSTs the card
-> itself once it detects a resume event. If that is done properly, we
-> could get rid of the hack completely and would only have to live with
-> the text console.
-No, I think it's the kernels problem. The various framebuffer drivers should 
-know how to wake up the card.
-There were some discussions on the linux-fbdev-devel list about writing a 
-lightwhight(20-30k) 8086 emulator for the kernel to avoid real mode hacks.
-As far as I know, this should be based on the 8086 emulator XFree/X.org uses.
+OK, it is working perfectly with the latest Linus -bk tree and
+everything configured in (SuSE .config, comparable to allmodconfig).
+The only things which are NOT enabled are:
+-CONFIG_REGPARM
+-CONFIG_HIGHMEM
+-CONFIG_EFI
+-CONFIG_FB
+-CONFIG_VIDEO_SELECT
 
-Cheers,
-Stefan
+Before suspending, I start both X-Servers (like you) and then
+chvt 1
+modprobe -r uhci_hcd ehci_hcd ohci1394 snd_intel8x0
+sleep 5
+echo 3 >/proc/acpi/sleep
+
+Resume procedure is the same as yours.
+
+I'm still trying to figure out what the Vesa X-Server does what
+can't be done with vbetest or similar.
+
+Regards,
+Carl-Daniel
+-- 
+http://www.hailfinger.org/
 
 
 -------------------------------------------------------
