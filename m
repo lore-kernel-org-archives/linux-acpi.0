@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: SCI interrupt handler : spend too much time
-Date: Mon, 8 Dec 2003 11:21:27 +0800
+Subject: RE: Tell user when ACPI is killing machine
+Date: Mon, 8 Dec 2003 11:26:07 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C04@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C05@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -17,34 +17,17 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: roychris <roychris-GANU6spQydw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: Aaron Lehmann <aaronl-nCTQwlqzmeJBDgjK7y7TUQ@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-To SCI handler itself,  I don't think keyboard controller will be =
-touched. But SCI handler could evaluate some AML method which could =
-touch keyboard controller. --Luming
+>> >cpufreq is not connected to acpi thermal subsystem. Dominik has some
+>> >patches to change that, IIRC.
+>> Is it merged into ACPI ?
 
------Original Message-----
-From: Pavel Machek [mailto:pavel-+ZI9xUNit7I@public.gmane.org]
-Sent: 2003?12?4? 17:53
-To: Yu, Luming
-Cc: roychris; Pavel Machek; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: Re: [ACPI] SCI interrupt handler : spend too much time
+>Not yet, IIRC. It is pretty big patch.
 
-
-Hi!
-
->    Does it mean the overhead of SCI interrupt was not the root cause =
-of
->    this issue. --Luming
-
-It certainly looks so. Is it possible that SCI handler touches
-keyboard controller?
-
---=20
-Horseback riding is like software...
-...vgf orggre jura vgf serr.
+Would you please point out where they are? --Luming
 
 
 -------------------------------------------------------
