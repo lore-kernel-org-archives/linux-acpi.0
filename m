@@ -1,14 +1,13 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: Problem sendig IBM Thinkpad T41p to ram
-Date: Wed, 04 Aug 2004 10:28:35 +0100
+From: "Cathleen Webb" <c.webbjx-1tJV5MsGkz3h0ZCL7PLKOQ@public.gmane.org>
+Subject: We give you $200 bonus at Casino Zeal!
+Date: Wed, 04 Aug 2004 08:01:47 -0600
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1091611715.3733.16.camel@tyrosine>
-References: <1091571076.4077.8.camel@localhost.localdomain>
+Message-ID: <acff01c47a2b$4dbaecbc$34046c23@owg.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1091571076.4077.8.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,23 +16,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Erik Tews <erik-KVSZC2aA8+zw/snApU8qRLNAH6kLmebB@public.gmane.org>
-Cc: Acpi Devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acornicq-bugs-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2004-08-04 at 00:11 +0200, Erik Tews wrote:
+Hi, 
+I have a special offer available for you at our casino.
 
-> I would like to suspend my t41p to ram using acpi. But everytime my
-> system resumes I just got a blank LCD with backlight activated but no
-> data on it, no matter if I suspend on console or X. Has somebody got an
-> idea what this problem could be? I tried with and without framebuffer
-> too, with 2.6.7 vanilla and 2.6.8-rc2 with current acpi-patch.
+$20 to try our internet casino, no deposit is necessary!
+At the casino software's cashier enter bonus code: FR93P
 
-Try passing acpi_sleep=s3_bios to the kernel and don't use the
-framebuffer.
+$200 bonus on your first deposit!
+At the casino software's cashier enter bonus code: FMJKU
 
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+Allow us to show you our quality operation, fast payouts,
+generous bonuses, and super friendly around-the-clock
+customer support.
+
+Click here: http://bigbonus-casino.net 
+
+Best regards,
+Jamie Zawinsky
+
+
+
+No thanks: http://bigbonus-casino.com/u/
 
 
 
