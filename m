@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: acpi on toshiba satellite 1625CDT
-Date: Wed, 16 Apr 2003 16:29:16 +0800
+Subject: RE: ACPI very nearly working on Thinkpad 240x
+Date: Wed, 16 Apr 2003 17:42:52 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F84272293@pdsmsx403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8427229A@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -17,82 +17,56 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Mark Stocker <pezed-K4nppHclNNFeoWH0uzbU5w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Your dmesg output doesn't provide any clue to root cause of your issue.
-Can you turn on debug option of ACPI, and collect debug message of
-1). boot time=20
-2)  run time when you echo -n 3 > /proc/acpi/fan/PFAN/state
+Would you please collect debug message for each of below issues.=20
 
-/proc/acpi/dsdt is also needed.
+That will help me better understand these issues, and help us to know =
+the status of current ACPI.
 
 Thanks,
 Luming
-
 -----Original Message-----
-From: Mark Stocker [mailto:pezed-K4nppHclNNFeoWH0uzbU5w@public.gmane.org]
-Sent: 2003?3?10? 17:04
+From: Matthew Garrett [mailto:mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org]
+Sent: 2003?3?3? 2:48
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: [ACPI] acpi on toshiba satellite 1625CDT
+Subject: [ACPI] ACPI very nearly working on Thinkpad 240x
 
 
-I've been trying for about a week now to get acpi working properly on =
-this=20
-machine (using 2.4.21-pre5 and the latest acpi patch) but im just not =
-having=20
-much luck.  The annoying problem is the fan.  The fan comes on as it =
-should,=20
-but then it will never go off again. The fan is "detected" and shows up =
-under=20
-/proc/acpi/fan/FAN/ and under /proc/acpi/power_resource/PFAN/.  Both of =
-these=20
-directories have a "state" file which show:
+Having upgraded my BIOS to the latest available from IBM, I've very=20
+nearly got working ACPI.
 
-mark@lappy /proc/acpi/fan/FAN]$ cat state
-status:                  off
+1) S1 usually works correctly, but the backlight doesn't get switched=20
+off. Is there any trivial way of dealing with this?
 
-[mark@lappy /proc/acpi/power_resource/PFAN]$ cat state
-state:                   off
-system level:            S0
-order:                   0
-reference count:         0
+2) S3 suspends and resumes. On resume, the backlight comes back on the
+machine is responsive from the network. The keyboard and mouse don't
+work, though - if I use modular input drivers, a rmmod i8042 && modprobe
+i8042 brings things back to life. Switching on the Toshiba keyboard=20
+kicking code doesn't result in any change in behaviour. The symptoms are =
 
-"echo 0 > /proc/acpi/fan/FAN/state" shows the following:
-acpi_power-0363 [50] acpi_power_transition : Error transitioning device =
-[FAN]=20
-to D0
-acpi_bus-0496 [49] acpi_bus_set_power    : Error transitioning device =
-[FAN] to=20
-D0
+that no input results in an increase in interrupts until I reload the=20
+module.=20
 
-"echo 1 > /proc/acpi/fan/FAN/state" shows:
+The other problem is that the screen doesn't come back. The backlight
+comes on but no text appears. This is the case with both vesafb and=20
+vgacon - sometimes (but not predictably) a small amount of text is=20
+printed, but it looks like it's left over from lilo or something. The=20
+screen seems to be in 640x480 text mode, rather than the 800x600 it=20
+should be in when I'm using the VESA driver. Killing X and restarting it =
 
-acpi_bus-0447 [49] acpi_bus_set_power    : Device does not support D1
+results in X starting up, but I can't switch back to a text console=20
+(they're just garbage). Passing acpi_sleep=3Ds3_bios or s3_mode doesn't=20
+seem to make any difference.
 
-/proc/acpi/power_resouce/PFAN isnt writable.
+3) S4 with SWSUSP sometimes works, but usually I hit the BUG() in=20
+ide-disk that others have reported. Is there any understanding behind=20
+why that one's happening?
 
-cat /proc/acpi/event will properly show when the lid switch or power =
-button is=20
-pressed.
-battery info doesnt appear to be read correctly as it shows a battery =
-even=20
-when i remove the battery. (doesnt bother me)
-
-thermal info appears to be read correctly (temp goes up and down with =
-system=20
-load).
-
-the fan problem is the only thing that is really bothering me (the fan =
-is=20
-loud!!).  i've tried to create my own dsdt file with no luck.  in the =
-stock=20
-dsdt file Device(FAN) appears to be an alias to PowerResource PFAN.
-i've searched the net over and cant seem to find any info on this laptop =
-and=20
-acpi.  :(
-any help or tips would be greatly appreciated!
-thanks!
+It certainly seems a lot better than things have been before now.
+--=20
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
 
 -------------------------------------------------------
