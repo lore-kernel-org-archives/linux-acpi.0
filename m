@@ -1,16 +1,14 @@
-From: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
-Subject: Re: Re: Possible quick fix for ACPI routing problem on Nforce2
-Date: Mon, 14 Jul 2003 00:51:29 +0100
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] Acpica-20030619 and "-g" option
+Date: Sun, 13 Jul 2003 16:57:17 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200307140051.29231.adq_dvb@lidskialf.net>
-References: <200307122352.45704.adq_dvb@lidskialf.net> <200307130218.44398.adq_dvb@lidskialf.net> <20030713053913.GB1284@middle.of.nowhere>
+Message-ID: <F760B14C9561B941B89469F59BA3A847E9701F@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030713053913.GB1284-4cpIIuwL6H0O5nXqB3HebLNAH6kLmebB@public.gmane.org>
-Content-Disposition: inline
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,30 +17,51 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: thunder7-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Hrvoje Habjanic <hrvoje.habjanic-+VD6v/bdhRf0NTdHYsHBKg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> No joy on VIA KT400 chipset (bugzilla #678): ide0 get's IRQ 17, during
-> boot multiple oopses occur, starting with 'IRQ 17: nobody cared' right
-> after probing hda. Eventually it crashes hard, after probing hde.
+Hi Hrvoje,
 
-Looking at your dmesg dump from 2.5.75, another problem is here, where it 
-tries to route lots of your PCI IRQs to IRQ 0. It seems to be failing to 
-program the IRQs. No idea why yet. 
+Well that's what I get for replying to 2 week old email without reading
+everything first. Glad to see you took up the challenge.
 
-BTW: is there a way to get more detailed debug output on ACPI? There are loads 
-more debugging print statements in the code than are appearing in your dmesg 
-(or in mine as well) even with ACPI Debug statements turned on.
+However, it should be possible to add this support without modifying any
+files *except* osunixxf.c. I don't mean to be too demanding but if you
+wouldn't mind considering that approach, I'd appreciate it.
 
-pci_link-0256 [21] acpi_pci_link_get_curr: No IRQ resource found 
-ACPI: PCI Interrupt Link [ALKA] enabled at IRQ 0
-pci_link-0256 [22] acpi_pci_link_get_curr: No IRQ resource found
-ACPI: PCI Interrupt Link [ALKB] enabled at IRQ 0
-pci_link-0256 [23] acpi_pci_link_get_curr: No IRQ resource found
-ACPI: PCI Interrupt Link [ALKC] enabled at IRQ 0
-pci_link-0256 [24] acpi_pci_link_get_curr: No IRQ resource found
-ACPI: PCI Interrupt Link [ALKD] enabled at IRQ 0
+Thanks -- Regards -- Andy
 
+> -----Original Message-----
+> From: Hrvoje Habjanic [mailto:hrvoje.habjanic-+VD6v/bdhRf0NTdHYsHBKg@public.gmane.org]=20
+> Sent: Tuesday, July 01, 2003 3:34 AM
+> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: [ACPI] [PATCH] Acpica-20030619 and "-g" option
+>=20
+>=20
+>=20
+> Well, hello again ... ;-)
+>=20
+>=20
+> After few hours of grep/vi/grep , i've finally made this to=20
+> work (that is,=20
+> ./iasl -g to dump DSDT tables).
+>=20
+> Looking at it now, it seems very easy - mmap-ing memory was=20
+> the most trickier=20
+> part because of page aligement ....
+>=20
+> Patch is attached ... it will work on x86 (32bit) - for=20
+> others - i'm not=20
+> shure.
+>=20
+> And another thing. It currently dumps ONLY DSDT table, but, i=20
+> think it could=20
+> be nice to dump all tables ... maybe later.
+>=20
+>=20
+> Hrvoje
+>=20
+>=20
 
 
 -------------------------------------------------------
