@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: State of ACPI on my Compaq Presario 2100z
-Date: Thu, 2 Sep 2004 21:10:37 +0200
+From: Fischer Tibor <fishy-RTHRExztqpST9ig0jae3mg@public.gmane.org>
+Subject: Re: Asus m6n mail LED
+Date: Thu, 02 Sep 2004 21:21:37 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040902191037.GA6536@atrey.karlin.mff.cuni.cz>
-References: <200409010224.10507.andre@eisenbach.com> <20040902145638.GA742@elf.ucw.cz> <200409021142.46212.andre@eisenbach.com>
+Message-ID: <413772C1.9080405@freemind.hu>
+References: <413614EE.4000802@freemind.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200409021142.46212.andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org>
+In-Reply-To: <413614EE.4000802-RTHRExztqpST9ig0jae3mg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,30 +17,61 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andre Eisenbach <andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+hi,
 
-> > You might want to stick some infinite loop at the beggining of
-> > wakeup.S and see if it ever reaches that...
-> 
-> Thanks for the tip Pavel.
-> 
-> I tried it, but it doesn't seem to make any difference. I don't think it's 
-> executed at all. I don't think the nootebook really wakes up. When I open the 
-> lid it starts the fan, but immediately the power button goes completely dark 
-> again and all noise stops. The LCD never gets powered.
-> 
-> Please let me know if there's anything else I can try or what I should look 
-> into.
+i made it work, so if someone interested here is the solution.
+it works with other types too
+i made a file /root/mailcheck.sh with content:
+#!/bin/bash
+old=$(cat /tmp/size)
+new=$(du -s /home/fishy/.thunderbird/default/sgzo838b.slt/Mail | cut -f 1)
 
-Hmm, that means that we did not enter suspend correctly. You might
-check Linux implementation against acpi spec, but... This one is hard
-to debug.
+du -s /home/fishy/.thunderbird/default/sgzo838b.slt/Mail |cut -f 1 
+ >/tmp/size
+if [ "$old" == "$new" ]; then
+       echo 0 >/proc/acpi/asus/mled
+else
+       echo 1 >/proc/acpi/asus/mled
+fi
 
-								Pavel
+
+and put */2 * * * * /root/mailcheck.sh into /etc/crontab
+crontab /etc/crontab
+
+it checks mail dir's size in 2 mins, and the led will also lighht for 2 
+min's
+exchange the directory names to yours
+
+BR,
+Fishy
+
+Fischer Tibor wrote:
+
+> Hi,
+>
+> i us gentoo on my asus m6800n. i would like mozilla thunderbird, to 
+> turn on my mail led, when new mail arrrives, and turn it off, when i 
+> made it read.
+> is it possible somehow ?
+>
+> thx,
+> Fishy
+>
+>
+> -------------------------------------------------------
+> This SF.Net email is sponsored by BEA Weblogic Workshop
+> FREE Java Enterprise J2EE developer tools!
+> Get your free copy of BEA WebLogic Workshop 8.1 today.
+> http://ads.osdn.com/?ad_id=5047&alloc_id=10808&op=click
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>
+>
 
 
 -------------------------------------------------------
