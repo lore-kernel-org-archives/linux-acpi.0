@@ -1,14 +1,13 @@
-From: Arjen Verweij <a.verweij-oe7qfRrRQfeEZXFvZSAUrfP6llvjuJOh@public.gmane.org>
-Subject: Re: Shutting down PCI devices on suspend
-Date: Sun, 12 Dec 2004 02:44:25 +0100
-Message-ID: <41BBA279.1090803@student.tudelft.nl>
-References: <1102779460.5984.17.camel@tyrosine> <41BB4F70.9060606@root.org>
- <1102804893.5984.23.camel@tyrosine> <41BB80C6.1020404@root.org>
+From: "Francisco Figueiredo Jr." <fxjrlists-/E1597aS9LRfJ/NunPodnw@public.gmane.org>
+Subject: Re: How to control Thermal zone [SOLVED]
+Date: Sun, 12 Dec 2004 00:46:39 -0200
+Message-ID: <41BBB10F.1060808@yahoo.com.br>
+References: <41B8FC12.5090602@yahoo.com.br> <20041210011029.GA28676@zhen-devel.sh.intel.com> <41BB86FA.7040802@yahoo.com.br>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7BIT
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <41BB80C6.1020404-Y6VGUYTwhu0@public.gmane.org>
+In-Reply-To: <41BB86FA.7040802-/E1597aS9LRfJ/NunPodnw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,62 +17,119 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ACPI devel list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: "Wang, Zhenyu" <zhenyu.z.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-It would be swell if this worked for S5 as well. It's also the simplest 
-case, since the hardware is reinitialised at boottime anyway.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Nate Lawson wrote:
+Francisco Figueiredo Jr. wrote:
+| Wang, Zhenyu wrote:
+| |>Hi guys,
+| |>
+| |>sorry if this has been already asked,
+| |>
+| |>but I'd like to know if is it possible to control thermal zone in order
+| |>to turn off my laptop fan when I get my login screen.
+| |>
+| |>I mean, The fan is being correctly turned on and off but only after
+| |>getting some threshold. When the laptop is turned on and my thermal zone
+| |>temp is 35C fan is kept on when it could be turned off.
+| |>
+| |>Any tips?
+| |>
+| |
+| |
+| | Have you loaded acpi fan module? Have you got any device under
+| /proc/acpi/fan?
+| | Try to trigger on/off to that device.
+| |
+|
+| Hi Wang,
+|
+| Yes, I get the following under /proc/acpi/fan:
+|
+| FAN1, FAN2, FAN3.
+|
+| I played triggering on off on fan.
+|
+| In fact, I could turn them on! :) I even could check that FAN2 and 3 are
+| fan velocities as when I turned them on they did a much higher noise :)
+|
+| But unfortunately I couldn't turn them off :(
+|
+| I tried both echo off > /proc/acpi/fan/FAN1 and echo -n 0 >
+| /proc/acpi/fan/FAN1, but they only turned it on. I mean, when I do echo
+| off, it turns on. So I think that whatever I put is turning them on.
+|
+| What should I echo to turn them off?
+|
 
-> Matthew Garrett wrote:
->
->> On Sat, 2004-12-11 at 11:50 -0800, Nate Lawson wrote:
->>
->>> In FreeBSD, we do this at the bus layer.  So the ACPI and PCI bus 
->>> code is responsible for powering down/up children.  We currently do it:
->>>
->>> 1. When no driver is attached and on reprobe
->>> 2. When suspending/resuming, based on evaluating _SxD
->>>
->>> See this commit for details:
->>> http://docs.freebsd.org/cgi/getmsg.cgi?fetch=1604853+0+archive/2004/cvs-all/20041205.cvs-all 
->>>
->>
->>
->>
->> Does _SxD represent the "desired" mode for the hardware, or merely the
->> highest state it can be left in? A mail from Len earlier this year
->> suggested that if S3D returned 0x2, that meant that either D3 or D2 were
->> acceptable.
->
->
-> _SxD is the highest state supported by the device for a given sleep 
-> state, yes.  We put devices in D3 unless _SxD specifies something 
-> higher.  The reason to do this is some devices can't wake the system 
-> if they are in D3.  ACPI 3.0 has ways to indicate a desired power 
-> state (not just maximum).  I don't have any evidence but fear some 
-> devices won't work after resuming if set to D3 and they indicate this 
-> with an _SxD so we always use the value in _SxD if present.
->
->> Is there any reason why adding something like
->>
->> if (state==3) {
->>     pci_set_power_state(dev,ACPI_STATE_D3COLD)
->> }
->>
->> to pci_device_suspend in the non-driver path and reenabling it in
->> pci_default_resume would result in things breaking?
->>
->> (Possibly with sanity checks as to whether it's a bridge or not)
->
->
-> Not that I can think of.  You probably want state == S3 || S4 since 
-> it's fine to power down devices for S4.  You'll probably find drivers 
-> that don't properly resume their device.  You have to make sure you 
-> power devices down after suspending them and power them up before 
-> resuming them.
->
+After some google, I finally found:
+
+http://www.novell.com/documentation/suse91/suselinux-adminguide/html/ch09s03.html
+
+"Shows if the fan is currently active. The fan can be activated and
+deactivated manually by writing 0 (on) or 3 (off) into this file.
+However, both the ACPI code in the kernel and the hardware (or the BIOS)
+overwrite this setting when it gets too warm."
+
+
+I thought something like that could be found in acpi.sf.net. What about it?
+
+
+At least now I can control my cpu fans!! :D
+
+with a single echo -n 3 in the state and it turns off!! Perfect!
+
+Is this the right value? I mean, it worked, but I could be writing some
+bogus value. I could confirm that automatic on/off by acpi/bios is
+working as usual even when I manually turn it on/off.
+
+Again, tanks Wang, for feedback and tip. ;)
+
+
+Now, I think I have almost everything from my laptop.
+
+The only missing thing is S4! :)
+
+I'm waiting for 2.6.10 patch of software suspend to come up!
+I'm using 2.6.10rc1.
+
+
+Good work acpi people!
+
+Thank you very much!
+
+
+
+- --
+Regards,
+
+Francisco Figueiredo Jr.
+Membro Fundador do Projeto MonoBrasil - MonoBrasil Project Founder Member
+http://monobrasil.softwarelivre.org
+
+
+
+- -------------
+"Science without religion is lame;
+religion without science is blind."
+
+~                  ~ Albert Einstein
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.6 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+
+iQEVAwUBQbuxD/7iFmsNzeXfAQLk1Af/WYWPrjJOVFIwdQaD5cKwWNgDR801/Cki
+QLQvmx0tv6xZUNZ6uZFTPdkqH7l6bVc6fgq6WirXodNogucRzfxsH8ebcoGZj0Yr
+sWz9/SOGB02PMIQd6t2Xn9pwBY9UQkFR/z0KNIBmynhsO7gcU4Ec3y/9O+I+QGXD
+zEi0hhAVSHdvVJJ1GJVZFIkihNEnuIEsBRpTqXxq01Uh5/JAD92KGVuUfD+2yCa/
+5E8SorMZr93MbG+YKG/bqHNYTwiEPLnQ4vaDyhCneDw215H9Ld1EwRFrbyY2P1dS
+R2qQ5sM9bw1pk5b9LCsFNF3VX5Yro//fTSd6MjpR2hF+wTQob9xftw==
+=9Hfv
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
