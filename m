@@ -1,14 +1,15 @@
-From: Greg Sarjeant <greg-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org>
-Subject: RE: Gateway 200X (again) - No power button events
-Date: Tue, 20 Jan 2004 15:28:44 -0500
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Thermal trip_points, raise them?
+Date: Tue, 20 Jan 2004 21:49:09 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1074630523.3313.17.camel@localhost>
-References: <F760B14C9561B941B89469F59BA3A84702C93238@orsmsx401.jf.intel.com>
+Message-ID: <20040120204909.GB9749@elf.ucw.cz>
+References: <20040120002629.A21624@carrot.whitman.edu>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <F760B14C9561B941B89469F59BA3A84702C93238-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20040120002629.A21624-M+MqQPf49VVrC2pQ8WgM2De48wsgrGvP@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,88 +18,71 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Albert Schueller <schuelaw-23yYEaFFs4qVc3sceRu5cw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Nate and Andy, thanks for the replies.
+Hi!
 
+> After a brief search of the archives on this subject, I have the
+> following questions:
+>=20
+> (I'm running ACPI that's in the stock 2.6.1 kernel, this is a debian
+> woody (mostly stable) machine, with, of course, the 2.6.1 kernel. )=20
+>=20
+> 	- Ever since I started running acpi on my Dell SmartStep 200N
+> 	  I've been getting thermal shutdowns.  I suppose having them is
+> 	  better than not having them, but even in a well-ventilated,
+> 	  cool room, the machine will shutdown if I compile a kernel.
+> 	  This is a 2GHz P4 (mobile).  It's clean inside, no dust.
+> 	  According to the specs at Intel the chip is safe upto 100=B0C
+> 	  (though maybe not the stuff around it, I don't know).
+>=20
+> 	  In
+> 	 =20
+> 	  /proc/acpi/thermal_zone/THR1/trip_points =3D 72 C
+> 	  /proc/acpi/thermal_zone/THR2/trip_points =3D 78 C
+>=20
+> 	  well shy of the 100=B0C on the Intel spec.
 
-On Tue, 2004-01-20 at 15:15, Grover, Andrew wrote:
-> > From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org 
-> > [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of 
-> > Nate Lawson
-> > On Mon, 19 Jan 2004, Greg Sarjeant wrote:
-> > > So, it looks like it is specified in the DSDT. I'm not sure 
-> > why I don't
-> > > get an event when I press the button. I do get events from the sleep
-> > > button, but the two are declared somewhat differently. Here 
-> 
-> > You have no _STA method for PWRB.  On FreeBSD, we say hw is 
-> > always present
-> > if there is no _STA method.  If it is present, it must return 
-> > the proper
-> > flags for the hw to be used.  Perhaps Linux always thinks 
-> > it's not present
-> > if _STA is not there.  Note that SLPB returns the proper _STA result.
-> 
-> The ACPI spec in fact says that the absence of _STA implies the device
-> is present and functioning. Linux has code for this case, which I am
-> assuming (?) works.
-> 
-> In the ASL, you might make sure there are _Qxx methods that call
-> Notify() on these respective devices. Also, does dmesg indicate the
-> presence of a fixed-feature power button?
-> 
-> Regards -- Andy
-> 
+Heh, on my athlon omnibook xe3 they have critical at ~100C, but
+hardware kills it at 83C. They obviously never tested it :-(
 
-I had tried adding an _STA method earlier today with no success, but I
-may have done something wrong (I just copied the SLPB _STA method).
+> 	  I was planning to hack the acpi source and raise the trip
+> 	  points to something like 80 and 86, but I can't find where
+> 	  they're being set.  This makes me think that they're being
+> 	  obtained from the BIOS somehow.
+>=20
+> 	  Is it ok to just:
+>=20
+> 	  cat "80 C" > /proc/acpi/thermal_zone/THR1/trip_points
+> 	  cat "86 C" > /proc/acpi/thermal_zone/THR2/trip_points
 
-I think it may be detecting a Fixed Feature power button. Here are the
-relevant dmesg lines:
+You should be able to
 
-ACPI: Power Button (FF) [PWRF]
-ACPI: Lid Switch [LID0]
-ACPI: Sleep Button (CM) [SLPB]
-ACPI: AC Adapter [ADP1] (on-line)
-ACPI: Battery Slot [BAT1] (battery present)
-[ACPI Debug] String: Not Support
-ACPI: Thermal Zone [THRM] (47 C)
-ACPI: Fan [FAN0] (on)
+  echo "critical:passive:active1:active2" > .../trip_points=20
 
-(That "Not Support" is raised by the thermal zone's _SCP Method in the
-DSDT. Guess I can't set the cooling policy on this machine).
+. [Ouch, someone should write readme about this one. Do you
+volunteer]?
 
-So, unless the FF cleverly stands for something other than Fixed
-Feature, I imagine that that is what I've got. I was just starting to
-read up about Fixed vs Control Method Power Buttons, and I am a bit
-confused. It seems from the spec that a Fixed Feature Power Button
-shouldn't have an implementation in the DSDT. Is that correct, or am I
-misreading? I do see methods for the Power button in the DSDT. Here is
-the _Q50 method, which is defined in the Embedded Control block:
+> 	  I'll take responsibility for any thermal damage, I'm just
+> 	  wondering if this will raise the trip_points for me.
 
-Method (_Q50, 0, NotSerialized)
-{
-    Notify (PWRB, 0x80)
-}
+With passive cooling, you should be able to keep it below trip
+points...
 
-According to the spec, I think that that should trigger the sleep event.
+> 	  Alternatively, would removing the thermal module before a big
+> 	  job, like a kernel compile, and then reinserting it be ok?
+> 	  Or, would it break the ACPI that's currently running?
+> 	  (again I take responsibility for thermal damage).
 
-Interestingly, when I added the _STA method to the PWRB device, dmesg
-did not report an additional _STA method found. It reports 58 devices
-and 58 _STA methods regardless of whether or not I include a _STA
-method. Is it disregarding the DSDT device definition because it detects
-the fixed feature power button?
+You should not be able to cause thermal damage. If you hit it *real*
+hard, hardware should hard-off it. [And it works on most machines].
 
-I apologize if this is a bit rambly, or if I'm butchering the
-terminology. I'm trying to work this out as I go along.
-
-Thanks,
- Greg
-
-
+								Pavel
+--=20
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
 
 
 -------------------------------------------------------
