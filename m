@@ -1,15 +1,14 @@
-From: "Adachi, Kenichi" <aileenja-dTzOdQ2U+/YAvxtiuMwx3w@public.gmane.org>
+From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
 Subject: Re: Invalid PBLK length
-Date: Thu, 19 Dec 2002 00:32:01 +0900 (JST)
+Date: Wed, 18 Dec 2002 15:29:06 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <713c3e0094f14c9c50$NiftyInterway@nifty.ne.jp>
-References: <200212181326.gBIDQ5D08026@ikffws2.ikff.uni-stuttgart.de>
-	<20021218140019.H9994@parcelfarce.linux.theplanet.co.uk>
+Message-ID: <20021218152906.J9994@parcelfarce.linux.theplanet.co.uk>
+References: <4e353e0091944930a0$NiftyInterway@nifty.ne.jp>
 Mime-Version: 1.0
-Content-Type: text/plain;charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20021218140019.H9994-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4e353e0091944930a0$NiftyInterway-fFkzxiWP14B3+QwDJ9on6Q@public.gmane.org>; from aileenja-dTzOdQ2U+/YAvxtiuMwx3w@public.gmane.org on Thu, Dec 19, 2002 at 12:17:40AM +0900
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,45 +17,39 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org
-Cc: haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: "Adachi, Kenichi" <aileenja-dTzOdQ2U+/YAvxtiuMwx3w@public.gmane.org>
+Cc: willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org, haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I didn't check code, but if that said address space type 127 does mean "Functi
-onal Fixed Hardware (0x7F)", then your processor expects that OS processor dri
-ver knows the specific address to control performance state transition. In thi
-s context, FFHardware is usually MSR. This has been true for AMD PowerNow! and
- Transmeta LongRun, and Intel's new Geyserville I/F which will be unveiled on 
-Banias in the near future. These are mostly under NDA, therefore I can't be sp
-ecific, however there're several public documents which explain this stuff a b
-it more.
+On Thu, Dec 19, 2002 at 12:17:40AM +0900, Adachi, Kenichi wrote:
+> I didn't check code, but if that said address space type 127 does mean "Functi
+> onal Fixed Hardware (0x7F)", then your processor expects that OS processor dri
+> ver knows the specific address to control voltage scaling state transition. Us
+> ually it's done by accessing MSRs. This has been true for AMD PowerNow! and Tr
+> ansmeta LongRun, and Intel's new Geyserville I/F which will be unveiled on Ban
+> ias in the near future. These are mostly under NDA, therefore I can't be speci
+> fic, however there're several public documents which explain this stuff a bit 
+> more.
 
-So if my guess is correct, your BIOS is not bad. To enable processor performan
-ce state control on your machine, Linux needs inputs from CPU vendors. 
+you're right.  Andy, could we add something like this?
 
-> 
-> > I also see in dmesg that there's an unsupported address space
-> > of 127 in acpi_processor_get_performance_control because
-> > reg->space_id != ACPI_ADR_SPACE_SYSTEM_IO. But I don't know
-> > enough C to understand where this comes from. Could somebody
-> > please give me a hint?
-> 
-> ACPI tells you which address space a given address is in:
-> 
-> #define ACPI_ADR_SPACE_SYSTEM_MEMORY    (ACPI_ADR_SPACE_TYPE) 0
-> #define ACPI_ADR_SPACE_SYSTEM_IO        (ACPI_ADR_SPACE_TYPE) 1
-> #define ACPI_ADR_SPACE_PCI_CONFIG       (ACPI_ADR_SPACE_TYPE) 2
-> #define ACPI_ADR_SPACE_EC               (ACPI_ADR_SPACE_TYPE) 3
-> #define ACPI_ADR_SPACE_SMBUS            (ACPI_ADR_SPACE_TYPE) 4
-> #define ACPI_ADR_SPACE_CMOS             (ACPI_ADR_SPACE_TYPE) 5
-> #define ACPI_ADR_SPACE_PCI_BAR_TARGET   (ACPI_ADR_SPACE_TYPE) 6
-> #define ACPI_ADR_SPACE_DATA_TABLE       (ACPI_ADR_SPACE_TYPE) 7
-> 
-> processor.c is telling you it only handles ioport (inb/outb) address
-> spaces.  But 127 is not a valid address space value, so you're going
-> to have to get an updated BIOS from your vendor.  There's really no
-> reasonable way to fix this.
-> 
+diff -u -p -r1.6 actypes.h
+--- drivers/acpi/include/actypes.h      10 Dec 2002 22:02:09 -0000      1.6
++++ drivers/acpi/include/actypes.h      18 Dec 2002 15:28:47 -0000
+@@ -579,6 +579,7 @@ typedef u8                              
+ #define ACPI_ADR_SPACE_CMOS             (ACPI_ADR_SPACE_TYPE) 5
+ #define ACPI_ADR_SPACE_PCI_BAR_TARGET   (ACPI_ADR_SPACE_TYPE) 6
+ #define ACPI_ADR_SPACE_DATA_TABLE       (ACPI_ADR_SPACE_TYPE) 7
++#define ACPI_ADR_SPACE_FIXED_HARDWARE  (ACPI_ADR_SPACE_TYPE) 127
+ 
+ 
+ /*
+
+
+-- 
+"It's not Hollywood.  War is real, war is primarily not about defeat or
+victory, it is about death.  I've seen thousands and thousands of dead bodies.
+Do you think I want to have an academic debate on this subject?" -- Robert Fisk
 
 
 -------------------------------------------------------
