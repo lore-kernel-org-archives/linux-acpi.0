@@ -1,8 +1,8 @@
-From: Grant Grundler <grundler-6jwH94ZQLHl74goWV3ctuw@public.gmane.org>
+From: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
 Subject: Re: pci bridge suspend/resume (Re: PCI not restored correctly after suspend to ram)
-Date: Sat, 20 Mar 2004 11:00:45 -0700
+Date: Sat, 20 Mar 2004 10:10:00 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040320180045.GB26931@colo.lackof.org>
+Message-ID: <20040320181000.GA8272@kroah.com>
 References: <200403180935.09436.stefan.doesinger@gym-leoben.asn-graz.ac.at> <1079761564.7274.730.camel@dhcppc4> <405C00C6.3010805@pobox.com> <20040320134542.GV25059@parcelfarce.linux.theplanet.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -22,19 +22,27 @@ Cc: Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>, Len Brown <le
 List-Id: linux-acpi@vger.kernel.org
 
 On Sat, Mar 20, 2004 at 01:45:42PM +0000, Matthew Wilcox wrote:
+> On Sat, Mar 20, 2004 at 03:28:54AM -0500, Jeff Garzik wrote:
+> > Len Brown wrote:
+> > >Linux PCI list,
+> > >
+> > >Stefan noticed bits changing in the config space for
+> > >his PCI/PCI bridge across a C3 suspend/resume.
+> > >
+> > >Is there any software in Linux responsible for preserving
+> > >and restoring the PCI config space for PCI/PCI bridges
+> > >across a suspend/resume?
+> > 
+> > Left up to the individual drivers unfortunately...
+> 
 > I've often thought we needed a generic pci bridge driver ...
 
-Right now, all the PCI-PCI Bridge support is spread across 4 files.
-Mostly in drivers/pci/setup-bus.c. Similar for PCI_CLASS_BRIDGE_CARDBUS
-(generic) support.  Right now, not counting hotplug support,
-a driver for PCI_CLASS_BRIDGE_PCI devices would only need to claim
-the PCI device.  hotplug support would be the main reason for adding
-such a driver.
+Yes, this will happen in 2.7 when we add the ability to have "generic"
+and "specific" type drivers for devices.
 
-Is there a preferred way to invoke multiple drivers
-for suspend/resume like we do for bus walks?
+thanks,
 
-grant
+greg k-h
 
 
 -------------------------------------------------------
