@@ -1,12 +1,14 @@
-From: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
-Subject: [pavel-I/5MKhXcvmOZUUBvZzFnDp9bLUtTcIRL3Yy/Vrlpii3yiKrLr2pqgQNGlPVxWG8j@public.gmane.org
-Date: Thu, 1 Aug 2002 14:19:28 +0200
+From: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
+Subject: Re: How do I measue latency?
+Date: 01 Aug 2002 14:57:51 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020801121928.GF23182@dutidad.twi.tudelft.nl>
+Message-ID: <1028210271.15022.14.camel@irongate.swansea.linux.org.uk>
+References: <3D48B4D3.1050109@folkwolf.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <3D48B4D3.1050109-Pn2JTpibVOrk1uMJSBkQmQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,22 +17,22 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Johnathan Hicks <thetech-Pn2JTpibVOrk1uMJSBkQmQ@public.gmane.org>
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> If it were not for this last failure I would be quite
-> happy.  dmesg is unremarkable.  I took care to make 
-> sure that the CONFIG_ACPI_SLEEP=y line is still in 
-> the kernel .config.
+On Thu, 2002-08-01 at 05:10, Johnathan Hicks wrote:
+> ASUS was lazy when crafting the ACPI tables for my A7M266-D motherboard, and 
+> set the C2 and C3 latency values to 101 and 1001 respectivley to disable them. 
+> I know that ACPI doesn't do C2/C3 on SMP yet, but I would like to be be able 
+> to measure some real values to insert in the FADT(FACP?) for when it can be 
+> used. Both measuring and inserting into that table are possible right?
+> As a side note, they goofed on the _S3_ object and wrote S_3_ instead in the DSDT.
 
-Pavel wrote:
-> swsusp does not need CONFIG_ACPI_SLEEP to be YES.
+The current -ac tree has a non ACPI power management module that works
+on this board, if that helps. Its not perfect but -ac6 will have the
+updated one
 
-At least on 2.4.18 with acpi 20020726 and swsuspv10 I had problems resuming
-on my laptop when CONFIG_ACPI_SLEEP was not set.
-
--- 
-charl p. botha http://cpbotha.net/ http://visualisation.tudelft.nl/
 
 
 -------------------------------------------------------
