@@ -1,11 +1,11 @@
-From: Thomas Renninger <mail-smMupaH/RwJM7kwft8N7nw@public.gmane.org>
-Subject: AMD64 - kernel freezes when inserting processor/powernow-k8 module
-Date: Wed, 02 Jun 2004 18:56:18 +0200
+From: "speretta" <speretta-hyy6G3kTdgRcgydyL9YGyw@public.gmane.org>
+Subject: Recebido seu e-mail agrade=?ISO-8859-1?Q?=E7o_a_aten=E7=E3o=2E_Em_breve_ser=E1?= respondido. Sugiro sua visita ao si
+Date: Wed,  2 Jun 2004 14:52:15 -0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40BE06B2.5090808@renninger.de>
+Message-ID: <10406021452.AA75504630@speretta.adv.br>
+Reply-To: <speretta-hyy6G3kTdgRcgydyL9YGyw@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,43 +18,7 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-
-the machine (AMD64 - 3200+) seems to have a terrible written DSDT.
-After disassembling I could fix several small errors to get it compiled 
-again.
-
-Kernel 2.6.5-16 with latest ACPI patches ...
-
-loading the powernow-k8 module freezes the machine immediately 
-(POWERNOW-K8_ACPI compiled in and not compiled in)
-
-loading the processor module freezes the machine also at once.
-(could not get any info, even with acpi_debug function trace on, syslog 
-buffering disabled).
-
-Other ACPI related modules load and work fine (ac, battery, fan, of 
-course not thermal as it depends on the processor mod).
-
-You find the disassembled DSDT in: 
-http://stio1.fh-wuerzburg.de/student/i31990/arima_hw_info/arima_dsdt.dsl
-
-My modified (so that it compiles) DSDT is:
-http://stio1.fh-wuerzburg.de/student/i31990/arima_hw_info/arima_dsdt_modif.dsl
-
-and the acpidmp in:
-http://stio1.fh-wuerzburg.de/student/i31990/arima_hw_info/acpidmp_arima_AMD64
-
-If someone has a similar machine (AMD64 3200+), I would appreciate if 
-you can send me your DSDT to compare it with mine.
-
-Q: How can I access the Debug object/address used in ASL?
-
-My experiences interpreting ASL code are limited..., please help...
-
-Thanks.
-
-      Thomas
+Recebido seu e-mail agradeço a atenção. Em breve será respondido. Sugiro sua visita ao site htpp://www.speretta.adv.br e ao blog  - http://speretta.blog.uol.com.br. Tenha um ótimo dia e que esteja sempre com a PAZ de DEUS.
 
 
 -------------------------------------------------------
