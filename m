@@ -1,12 +1,14 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Acpi_load_tables: Could not load namespace: AE_NOT_FOU
-	ND
-Date: Thu, 19 Sep 2002 15:30:16 -0700
+From: Andy Dustman <andy-gRfBfDTKyCbR7s880joybQ@public.gmane.org>
+Subject: Re: CALL FOR TESTING
+Date: 19 Sep 2002 19:08:51 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <B9ECACBD6885D5119ADC00508B68C1EA0D19B797@orsmsx107.jf.intel.com>
+Message-ID: <1032476931.12338.14.camel@4.0.0.10.in-addr.arpa>
+References: <EDC461A30AC4D511ADE10002A5072CAD0236DE80@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD0236DE80-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,95 +17,34 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: "'berndp=p32f3XyCuykqcZcGjlUOXw@public.gmane.org'" <berndp-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Thu, 2002-09-19 at 02:27, Grover, Andrew wrote:
 
-Please send us your raw DSDT
-Thanks,
-Bob Moore
+> - DOES IT BOOT?
 
+Yes.
 
------Original Message-----
-From: Bernd Pfrommer [mailto:berndp-p32f3XyCuykqcZcGjlUOXw@public.gmane.org] 
-Sent: Tuesday, September 17, 2002 12:19 PM
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: [ACPI] Acpi_load_tables: Could not load namespace: AE_NOT_FOUND
+> - DOES IT ASSIGN INTERRUPTS PROPERLY?
 
-Hi,
+Yes.
 
-after many fruitless attempts to get ACPI working with the 2.4.18 or 
-2.4.19 kernel, I'm posting this in case somebody can help.
-The hardware is an Intel manufactured SRMK2 server with a ServerWorks 
-ServerSet IIILE chipset (CNB30LE North Bridge and OSB4 South Bridge), 
-dual PIII 1GHz 256K cache, with 1GB memory. The bios is an AMIBIOS by 
-American Megatrends Inc.
+However, neither the battery nor AC adapter nor thermal zones work, but
+these are known problems with the DSDT (Compaq Presario 2700T). On the
+plus side, the problems I have previously had with switching from X to a
+VT and back to X are now gone: The system no longer locks up (keyboard
+at least) when switching back to X. (I'm also using a recent DRI radeon
+build, so that may also be a factor, though with my old 2.4.18+acpi and
+the same build, it didn't work.)
 
-I configured the 2.4.19 kernel with the following parameters:
++1
 
-CONFIG_ACPI=y
-CONFIG_ACPI_DEBUG=y
-CONFIG_ACPI_BUSMGR=y
-CONFIG_ACPI_SYS=y
-CONFIG_ACPI_CPU=y
-# CONFIG_ACPI_BUTTON is not set
-# CONFIG_ACPI_AC is not set
-# CONFIG_ACPI_EC is not set
-# CONFIG_APM is not set
-
-And I get the following errors during boot:
-
-Sep 16 14:07:16 foo kernel:  tbxface-0099 [01] Acpi_load_tables      : 
-ACPI Tables successfully loaded
-Sep 16 14:07:16 foo kernel:  tbxface-0106: *** Error: Acpi_load_tables: 
-Could not load namespace: AE_NOT_FOUND
-Sep 16 14:07:16 foo kernel:  tbxface-0115: *** Error: Acpi_load_tables: 
-Could not load tables: AE_NOT_FOUND
-Sep 16 14:07:16 foo kernel: ACPI: System description table load failed
-Sep 16 14:07:16 foo kernel:  utalloc-0504 [03] Ut_dump_allocations   : 
-Outstanding allocations:
-Sep 16 14:07:16 foo kernel: f7e72d88 Len 0038   utalloc-150 Parse_obj 
-Opcode 0010
-Sep 16 14:07:16 foo kernel: f7e72e08 Len 0038   utalloc-150 Parse_obj 
-Opcode 5B82
-Sep 16 14:07:16 foo kernel: f7eaa308 Len 0038   utalloc-150 Parse_obj 
-Opcode 5B82
-Sep 16 14:07:16 foo kernel: f7eab268 Len 0038   utalloc-150 Parse_obj 
-Opcode 5B82
-Sep 16 14:07:16 foo kernel: f7eb8e48 Len 0009  tbconvrt-520
-Sep 16 14:07:16 foo kernel:  utalloc-0598 [03] Ut_dump_allocations   : 
-Total number of unfreed allocations = 5(5)
-
-This may be similar to what Jean-Rene  Peulve posted earlier this year, 
-but I could not find any replies to his posting
-http://www.geocrawler.com/archives/3/17428/2002/2/0/7953806/ .
-
-Although I configured for debug messages, the output of 
-ACPI_DEBUG_PRINT() does not show up in dmesg. Does anybody know why that 
-is?
-
-Any suggestions what could cause the namespace loading to fail, and how 
-to fix it?
-
-Your help is greatly appreciated!
-
-Thanks,
-
-Bernd
-
-
-
-
--------------------------------------------------------
-This SF.NET email is sponsored by: AMD - Your access to the experts
-on Hammer Technology! Open Source & Linux Developers, register now
-for the AMD Developer Symposium. Code: EX8664
-http://www.developwithamd.com/developerlab
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
+-- 
+Andy Dustman         PGP: 0x930B8AB6
+    @       .net     http://dustman.net/andy
+"Cogito, ergo sum." -- Rene Descartes
+"I yam what I yam and that's all what I yam." -- Popeye
 
 
 -------------------------------------------------------
