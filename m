@@ -1,16 +1,14 @@
-From: "=?iso-8859-2?q?Zdzis=B3aw_A=2E?= Kaleta" <sanskryt-FWhLrETftxM@public.gmane.org>
-Subject: Re: Re: first shoot for smartbattery
-Date: Mon, 10 Jan 2005 23:41:07 +0100
-Message-ID: <200501102341.07731.sanskryt@op.pl>
-References: <41D56002.5060008@mega.ist.utl.pt> <200501101736.24293.sanskryt@op.pl> <m27jmlf57y.fsf@phoenix.squirrel.nl>
-Reply-To: sanskryt-FWhLrETftxM@public.gmane.org
+From: Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+Subject: Re: wrong system time after wakeup
+Date: Tue, 11 Jan 2005 07:44:38 +1100
+Message-ID: <1105389878.2941.10.camel@desktop.cunninghams>
+References: <Pine.LNX.4.58.0501102008270.22897@gaston.free.fr>
+Reply-To: ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <m27jmlf57y.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.58.0501102008270.22897-iBKnCo7tEuSksujEA26zIQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,61 +18,68 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Peter =?ISO-8859-1?Q?M=FCnster?= <pmlists-GANU6spQydw@public.gmane.org>
+Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Dnia poniedzia=B3ek 10 stycznia 2005 20:34, Johan Vromans napisa=B3:
-> "Zdzis=B3aw A. Kaleta" <sanskryt-FWhLrETftxM@public.gmane.org> writes:
-> > Sorry to insist but still a mistake and I am not a coder ;-(
-> > "Use of uninitialized value in concatenation (.) or string at
-> > ./battstat.pl line 95."
-> >
-> > Line 95 is "$mw->title("Battery: $time ($status%)");"
-> >
-> > and there is no info in the windows
->
-> 1. Would it be possible that you are running the 'original'
-> smartbattery application, and not Pedro's enhanced version? [cut]
-Probably You are right. I use smartbattery package from  =20
-http://www.poupinou.org/acpi/smartbatt/smartbatt/ from Bruno Duclrot site.=
+Hi Peter.
+
+That attached little patch will fix your issue.
+
+Regards,
+
+Nigel
+
+diff -ruNp 910-original-time-patch-old/arch/i386/kernel/time.c 910-origin=
+al-time-patch-new/arch/i386/kernel/time.c
+--- 910-original-time-patch-old/arch/i386/kernel/time.c	2004-12-27 10:03:=
+24.000000000 +1100
++++ 910-original-time-patch-new/arch/i386/kernel/time.c	2005-01-08 10:23:=
+28.335811408 +1100
+@@ -343,12 +343,13 @@ static int timer_resume(struct sys_devic
+ 		hpet_reenable();
+ #endif
+ 	sec =3D get_cmos_time() + clock_cmos_diff;
+-	sleep_length =3D get_cmos_time() - sleep_start;
++	sleep_length =3D (get_cmos_time() - sleep_start) * HZ;
+ 	write_seqlock_irqsave(&xtime_lock, flags);
+ 	xtime.tv_sec =3D sec;
+ 	xtime.tv_nsec =3D 0;
+ 	write_sequnlock_irqrestore(&xtime_lock, flags);
+-	jiffies +=3D sleep_length * HZ;
++	jiffies +=3D sleep_length;
++	wall_jiffies +=3D sleep_length;
+ 	return 0;
+ }
 =20
-When I try to use a patch from Pedro Venda e-mail from 03/01/2005 I has a=20
-smartbattery.c.rej with:
-sanskryt@kender:/usr/local/src/modules/smartbatt$ cat smartbattery.c.rej
-"***************
-*** 300,307 ****
-        time_to_empty =3D i2c_smbus_read_word_data(file, 0x11);
-        time_to_full =3D i2c_smbus_read_word_data(file, 0x11);
 
-=2D       printf("current:       %d mA\n", current & 0xffff);
-=2D       printf("remain:        %d mA or mWh\n", remain & 0xffff);
-        printf("time to empty: %d minutes\n", time_to_empty & 0xffff);
-        printf("time to full:  %d minutes\n", time_to_full & 0xffff);
-        printf("temperature:   %2.1f C\n", ((temp & 0xffff) - 2730) / 10.);
-=2D-- 300,307 ----
-        time_to_empty =3D i2c_smbus_read_word_data(file, 0x11);
-        time_to_full =3D i2c_smbus_read_word_data(file, 0x11);
 
-+       printf("current:       %d mA\n", (current & 0xffff));
-+       printf("remain:        %d mAh or mW\n", remain & 0xffff);
-        printf("time to empty: %d minutes\n", time_to_empty & 0xffff);
-        printf("time to full:  %d minutes\n", time_to_full & 0xffff);
-        printf("temperature:   %2.1f C\n", ((temp & 0xffff) - 2730) / 10.);"
-So it look like that I realy have the not proper smartbattery.c version. Wh=
-ere=20
-I can find proper one?
->
-> 2. You seem to be using SMbus #1, so did you change the line
->
->     my $prog =3D "smartbattery2 0";
-> to
->     my $prog =3D "smartbattery2 1";
-Yes I have noticed it and change acordingly
->
-> -- Johan
+On Tue, 2005-01-11 at 06:39, Peter M=FCnster wrote:
+> Hello,
+> when resuming from S1, the system-time is completely wrong: about 22h
+> instead of 11h.
+> The system goes to sleep the day before at about 22h30 with the followi=
+ng
+> commands:
+> modprobe genrtc
+> sleep 5
+> echo 2005-01-11 11:10:00 >/proc/acpi/alarm
+> sleep 5
+> echo 1 >/proc/acpi/sleep
+>=20
+> What could be wrong?
+> I'm using Linux-2.6.10 and ASUS A7N8X-X ACPI BIOS Rev 1006.
+>=20
+> Thanks in advance for any help! Please tell me, if you need more inform=
+ation.
+> Kind regards, Peter
+--=20
+Nigel Cunningham
+Software Engineer, Canberra, Australia
+http://www.cyclades.com
 
-=2D-=20
-z.a.kaleta (sanskryt), registered Linux User #279350
+Ph: +61 (2) 6292 8028      Mob: +61 (417) 100 574
+
 
 
 -------------------------------------------------------
