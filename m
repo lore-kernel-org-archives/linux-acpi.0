@@ -1,14 +1,14 @@
-From: Bernd Schubert <bernd-schubert-S0/GAf8tV78@public.gmane.org>
-Subject: thinkpad R31 issues
-Date: Mon, 5 Apr 2004 03:37:09 +0200
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: Synaptics and keyboard losing interrupts w/ACPI ?
+Date: Mon, 5 Apr 2004 04:40:43 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200404050337.18991.bernd-schubert@web.de>
+Message-ID: <20040405024043.GC5509@message-id.gmane0305.slipkontur.de>
+References: <1081044549.2179.281.camel@localhost.localdomain> <200404040029.12359.dtor_core@ameritech.net> <1081058079.2239.15.camel@localhost.localdomain> <200404040106.15621.dtor_core@ameritech.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <200404040106.15621.dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,64 +17,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-=2D----BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Sun, Apr 04, 2004 at 01:06:15AM -0500, Dmitry Torokhov wrote:
+> On Sunday 04 April 2004 12:54 am, Karl Hegbloom wrote:
 
-Hi,
+> > But the thing is that the kernel can know when a battery gets jacked in,
+> > removed, or swapped for a fresh one, but a user space application
+> > cannot.
+> 
+> It can, the kernel signals when a battery is inserted or removed through
+> /proc/acpi/event (normally acpid listens on it). The only change that may be
 
-with 2.6.5 the S1 state doesn't work anymore on my R31, but until my previo=
-us=20
-2.6.2-rc2 it worked.
-To be more specific, it doesn't wake up properly any more, but stops at=20
-writing:
+I have a machine here that throws a battery event whenever the charging state
+changes (hp compaq nx5000), pretty neat.
 
-PCI: Setting latency timer of device 0000:00:1f.6 to 64
+> needed is to allow multiple applications read /proc/acpi/event simultaneously,
+> right now it only allows exclusive access.
 
-There's also a slight improvement, when it goes to S1 the the sleep symbol =
-now=20
-lights up. However, since S1 it totally useless now, this doesn't improve=20
-much ;-)
+Or a more general daemon than acpid, that also cares for (and caches) battery
+states, temperatures, etc....
+-- 
+Stefan Seyfried
 
-Any ideas what might cause not to wake up from S1 any more?
-
-Also interesting is the boot message:
-
-ACPI: PCI Interrupt Link [PILC] enabled at IRQ 11
- pci_irq-0316 [28] acpi_pci_irq_derive   : Unable to derive IRQ for device=
-=20
-0000:00:1f.1
-ACPI: No IRQ known for interrupt pin A of device 0000:00:1f.1 - using IRQ 2=
-55
-
-I think this is there since about 2.6.0 or 2.6.1, but as I said at least un=
-til=20
-2.6.2-rc2 S1  still worked.
-
-There's also the issue that in S1 the display doesn't go off and there are=
-=20
-several other problems with S3, but IMHO those are minor to a non working S=
-1.=20
-Interesting is also that S4 is working *again*, whereas it didn't work in=20
-several previous versions (I only tested regularly until 2.6.2-rc2).
-
-Are you interested in full dmesg and lspci output? Are there any debugging=
-=20
-methods?
-
-Thanks,
-	Bernd
-
-PS: I disabled the preemtive mode in the kernel configuration.
-=2D----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFAcLhLC8BUnAF+ydYRAm5LAKCYi0bY7iDJSUELmP6EsV7G0tiWxQCcDCJB
-6TAPlCmLSuOZa04BIJeFUdY=3D
-=3DkCZZ
-=2D----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
