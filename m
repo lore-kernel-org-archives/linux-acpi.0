@@ -1,50 +1,30 @@
-From: James D Strandboge <jstrand1-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org>
-Subject: flashing a different bios-- is it safe?
-Date: 18 Dec 2002 14:14:48 -0500
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1040238888.21880.21.camel@sirius.strandboge.cxm>
+From: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>
+Subject: RE: [ACPI] Re: [PATCH] S4bios for 2.5.52.
+Date: Thu, 19 Dec 2002 08:37:30 +1300
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <000401c2a6cc$ec43a2f0$0101010a@NigelLaptop>
+References: <20021218085902.GD1012@poup.poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-reply-to: <20021218085902.GD1012-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
+To: 'Ducrot Bruno' <poup-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, 'Kai Germaschewski' <kai-K3FV8rsiL1oTdZ4mcS17cL1bcanuHkqH@public.gmane.org>
+Cc: "'Grover, Andrew'" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Pavel Machek' <pavel-AlSwsSmVLrQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I have a dell inspiron 8200, which has a bios that sort of works with
-acpi, but will sometimes crash (see previous emails).  I have looked at
-my dsdt, and it is extraordinarily cryptic.
+> Kai, if you see that S4OS is slower, it is probably a bug
+> that have to be
+> fixed in swsusp.
 
-Today, I was googling for information about all of this, and came across
-somebody flashing their insprion 8200 bios with the bios for the dell
-latitude c840.  This person was doing this to be able to use the port
-replicator properly, and was running windows.  He reported success and
-no problems.  This seems like a crazy thing to do-- is it safe?  I
-figured I may have to flash back to the old bios, but was worried that
-this might break something permanently?
+There does seem to be a problem with the rw_swap_page_sync routine. Perhaps
+not on Pavel's machine (:>), but I've experienced painfully slow suspends
+too. Performance was helped immensely by applying a concept that I'll credit
+Lyle Seaman for - unrolling rw_swap_page_sync and submitting all the IO for
+pages then looping again and waiting on each sync. I found with writing 7000
+or so pages (a suspend from init S) that something gets triggered to force
+the sync about every 3900 pages anyway.
 
-Thanks,
+Regards,
 
-Jamie Strandboge
-
-
--- 
-Email:        jstrand1-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org
-GPG/PGP ID:   26384A3A
-Fingerprint:  D9FF DF4A 2D46 A353 A289  E8F5 AA75 DCBE 2638 4A3A
-
-
-
-
--------------------------------------------------------
-This SF.NET email is sponsored by: Order your Holiday Geek Presents Now!
-Green Lasers, Hip Geek T-Shirts, Remote Control Tanks, Caffeinated Soap,
-MP3 Players,  XBox Games,  Flying Saucers,  WebCams,  Smart Putty.
-T H I N K G E E K . C O M       http://www.thinkgeek.com/sf/
+Nigel
