@@ -1,36 +1,47 @@
-From: "Suso Baleato" <susinho@ultreia.org>
-Subject: BIOS Update: new dsdt for ThinkPadP R51
-Date: Wed, 15 Sep 2004 08:25:02 +0000
-Sender: linux-thinkpad-admin@linux-thinkpad.org
-Message-ID: <20040915082407.7A5CD83F6@smtp.causaencantada.org>
-Reply-To: linux-thinkpad@linux-thinkpad.org
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: Re: [Ipw2100-devel] [susp-resume] ipw2100 suspend patch for 0.54 (version 3)
+Date: Wed, 15 Sep 2004 10:37:34 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20040915083734.GA17317@hell.org.pl>
+References: <3ACA40606221794F80A5670F0AF15F8403BD570F@pdsmsx403> <413EE1EA.2070307@pca.it> <413F02E7.3060005@pca.it> <20040914222905.GA17380@elf.ucw.cz> <4147870C.9090003@pca.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-thinkpad-admin@linux-thinkpad.org>
-Errors-To: linux-thinkpad-admin@linux-thinkpad.org
-List-Help: <mailto:linux-thinkpad-request@linux-thinkpad.org?subject=help>
-List-Post: <mailto:linux-thinkpad@linux-thinkpad.org>
-List-Subscribe: <http://mailman.linux-thinkpad.org/mailman/listinfo/linux-thinkpad>,
-	<mailto:linux-thinkpad-request@linux-thinkpad.org?subject=subscribe>
-List-Unsubscribe: <http://mailman.linux-thinkpad.org/mailman/listinfo/linux-thinkpad>,
-	<mailto:linux-thinkpad-request@linux-thinkpad.org?subject=unsubscribe>
-List-Archive: <http://mailman.linux-thinkpad.org/pipermail/linux-thinkpad/>
-To: acpi-devel@lists.sourceforge.net, linux-thinkpad@linux-thinkpad.org
+Content-Type: text/plain; charset=iso-8859-2
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4147870C.9090003-wlebWZzHoyE@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-I discovered an august 2004 BIOS update for R/T ThinkPads with a Linux
-fix inside.
+Thus wrote Luca Capello:
+> >> BTW is 'echo 4 > /proc/acpi/sleep' = 'echo disk > /sys/power/state'?
+> > Yes, it should be equivalent.
+> the same I supposed. But in this case, there's an error somewhere: I can
+> never resume properly if I use 'echo disk > /sys/power/state' and I get
+> a kernel panic with these words:
+> 
+> Resuming from /dev/hda7
+> Resuming from unknown-block(3,7)
+> Kernel panic - not syncing: Resume Machine: Unable to find
+> suspending-data signature (pmdisk-swa - mispelled?
 
-(Fix) (Linux) Hibernation function does not work correctly under the
-partition environment created by lphdisk.
+Append noresume. swsusp1 kicks in earlier than pmdisk.
+Best regards,
 
-After system's update I extracted and published the (again buggy) DSDT
-table in the ACPI database. If you can correct the bug, please publish
-the fixed DSDT as well, thank you.
-
-http://www-1.ibm.com/support/docview.wss?rs=3D0&q1=3D1830&uid=3Dpsg1MIGR-5027=
-5&loc=3Des_ES&cs=3Dutf-8&cc=3Des&lang=3Des+en
 -- 
-The linux-thinkpad mailing list home page is at:
-http://mailman.linux-thinkpad.org/mailman/listinfo/linux-thinkpad
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: thawte's Crypto Challenge Vl
+Crack the code and win a Sony DCRHC40 MiniDV Digital Handycam
+Camcorder. More prizes in the weekly Lunch Hour Challenge.
+Sign up NOW http://ad.doubleclick.net/clk;10740251;10262165;m
