@@ -1,14 +1,14 @@
-From: Daniel Drake <dsd-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
-Subject: Re: Early init patch breaks Dell laptops
-Date: Sat, 09 Oct 2004 18:41:23 +0100
+From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Subject: Re: Re: Linux ACPI processor driver patch: user-definable power state limit
+Date: Sat, 9 Oct 2004 20:56:17 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <416822C3.1040503@gentoo.org>
-References: <3ACA40606221794F80A5670F0AF15F8405BD1224@pdsmsx403>
+Message-ID: <20041009185617.GA9985@dominikbrodowski.de>
+References: <200408071959.10529.jos.delbar@ugent.be> <1097301120.16784.2.camel@d845pe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F8405BD1224@pdsmsx403>
+Content-Disposition: inline
+In-Reply-To: <1097301120.16784.2.camel@d845pe>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,19 +17,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jos Delbar <jos.delbar-Cru1EgDzd7c@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Len,
 
-Yu, Luming wrote:
->  
-> Would you please try boot option nolapic?
+module parameters are even better suited for for this task:
+processor.acpi_cstate_limit=1 can be passed on the boot line. I'd vote for
+the removal of "acpi_", though. As soon as Rusty's and mine "module
+parameters" patch make them also available in /sys/module/*/ for
+modification during runtime, if so desired.
 
-Thanks for the suggestion - that does solve the problem. Is this an APIC bug?
+Thanks,
+	Dominik
 
-Daniel
 
 
 -------------------------------------------------------
