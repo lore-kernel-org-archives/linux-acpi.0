@@ -1,44 +1,54 @@
-From: "MailScanner" <postmaster-7zqYWxmgfIP3lWORV3XLkQ@public.gmane.org>
-Subject: Warning: E-mail viruses detected
-Date: Tue, 9 Sep 2003 18:04:06 -0400
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200309092204.h89M46iF028862@remtk.solucorp.qc.ca>
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: [ACPI] [PATCHES] ACPI Processor update [idle, throttling,
+	thermal, cpufreq]
+Date: Wed, 10 Sep 2003 02:00:41 +0200
+Sender: cpufreq-bounces-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
+Message-ID: <20030910000041.GC217@elf.ucw.cz>
+References: <20030904222434.GC6350@brodo.de>
+	<20030908132939.GD3944@openzaurus.ucw.cz>
+	<20030909172135.GA4106@brodo.de> <20030909231303.GH211@elf.ucw.cz>
+	<20030909232916.GA9561@brodo.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <cpufreq-bounces-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20030909232916.GA9561-JhLEnvuH02M@public.gmane.org>
+List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMm38Ik5SeuEX72+df2TVCvIA@public.gmane.org>
+List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq>
+List-Post: <mailto:cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
+List-Help: <mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMm4xOcYYyLxz0@public.gmane.org>
+List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMmEuNEP1Y2mCuZIoH1IeqzKA@public.gmane.org>
+Errors-To: cpufreq-bounces-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
+To: linux-JhLEnvuH02M@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Our virus detector has just been triggered by a message you sent:-
-  To: jack@localhost
-  Subject: Re: Re: My details
-  Date: Tue Sep  9 18:04:06 2003
+Hi!
 
-One or more of the attachments (document_9446.pif) are on
-the list of unacceptable attachments for this site and will not have
-been delivered.
+> > > > http://www.brodo.de/cpufreq_tmp/acpi-2.6.0-test4-processor_thermal_throttling
+> > > > > 	Move throttling into its own submodule, and register it with the new
+> > > > > 	passive cooling module. Also, the now-useless "limit" interface is
+> > > > > 	removed.
+> > > > > 
+> > > > 
+> > > > Actually I liked to be able to echo 0:7 > limit and conserve battery/
+> > > > make sure machine does not overheat  with it...
+> > > 
+> > > echo 7 > throttling should do the same thing. 
+> > 
+> > Will not first change in thermal system unthrottle it for me, behind
+> > my back?
+> 
+> Well yes, it might, if the temperature had been higher than the passive
+> cooling trip point. If you want me to, I'll change the behaviour so that the
+> /proc/acpi/.../throttling input is consistent (minimum limit) until the user 
+> choses a different throttling level.
 
-Consider renaming the files or putting them into a "zip" file to avoid
-this constraint.
+Yes I guess that would make sense.
 
-The virus detector said this about the message:
-Report: Shortcuts to MS-Dos programs are very dangerous in email (document_9446.pif)
-
-
+								Pavel
 -- 
-MailScanner
-Email Virus Scanner
-www.mailscanner.info
-Mailscanner thanks transtec Computers for their support
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
