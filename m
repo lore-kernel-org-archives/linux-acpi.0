@@ -1,11 +1,16 @@
-From: Federico Di Gregorio <fog-NGVKUo/i/6DYtjvyW6yDsg@public.gmane.org>
-Subject: vaio 505 (again)
-Date: 15 Jul 2003 12:56:18 +0200
+From: Mattia Dongili <dongili-vcC760zL2fQ1GQ1Ptb7lUw@public.gmane.org>
+Subject: Re: vaio 505 (again)
+Date: Tue, 15 Jul 2003 13:49:33 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1058266578.1077.16.camel@lana>
+Message-ID: <20030715114933.GC616@inferi.kami.home>
+References: <1058266578.1077.16.camel@lana>
+Reply-To: dongili-vcC760zL2fQ1GQ1Ptb7lUw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-TIFKH5KpJwhUMqD3nKxC"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="R3G7APHDIzY6R/pk"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1058266578.1077.16.camel-c5SRAS+BrbU@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,54 +23,49 @@ To: ACPI Devel Mailing List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.
 List-Id: linux-acpi@vger.kernel.org
 
 
---=-TIFKH5KpJwhUMqD3nKxC
-Content-Type: text/plain
+--R3G7APHDIzY6R/pk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-hi,
+On Tue, Jul 15, 2003 at 12:56:18PM +0200, Federico Di Gregorio wrote:
+> hi,
+>=20
+[...]=20
+> btw, what does that means? my ide interface works perfectly well, i am
+> just curious:
+>=20
+>  pci_irq-0294 [23] acpi_pci_irq_derive   : Unable to derive IRQ for devic=
+e 0000:00:1f.1
+> ACPI: No IRQ known for interrupt pin A of device 0000:00:1f.1 - using IRQ=
+ 255
+>=20
+> 0000:00:1f.1 is:
+>=20
+> 00:1f.1 IDE interface: Intel Corp. 82801CAM IDE U100 (rev 02)
 
-just for fun i tried kernel 2.5.74 + acpi 20030619 and now everything
-works. the problem with the glidepad sending random button clicks is
-gone and is correctly shows as interrupt 12.
+Well, somebody correct me if I'm wrong: this simply means that your ide
+(as mine :) isn't listed within the _PRT methods of your DSDT and the acpi
+subsystem falls back to a default irq routing.
 
-the only remaining problem is that the transition to S5 on shutdown does
-not power off the computer but just locks it. everything else works.
-
-btw, what does that means? my ide interface works perfectly well, i am
-just curious:
-
- pci_irq-0294 [23] acpi_pci_irq_derive   : Unable to derive IRQ for device =
-0000:00:1f.1
-ACPI: No IRQ known for interrupt pin A of device 0000:00:1f.1 - using IRQ 2=
-55
-
-0000:00:1f.1 is:
-
-00:1f.1 IDE interface: Intel Corp. 82801CAM IDE U100 (rev 02)
-
-great work, thank you very much :)
-federico
-=20
+I hope this is not too far for truth :P
 --=20
-Federico Di Gregorio
-Debian GNU/Linux Developer                                fog-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org
-INIT.D Developer                                           fog-NGVKUo/i/6DYtjvyW6yDsg@public.gmane.org
-   Abandon the search for Truth; settle for a good fantasy. -- Anonymous
+mattia
+:wq!
 
---=-TIFKH5KpJwhUMqD3nKxC
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: Questa parte del messaggio =?ISO-8859-1?Q?=E8?= firmata
+--R3G7APHDIzY6R/pk
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
+Version: GnuPG v1.2.1 (GNU/Linux)
 
-iD8DBQA/E93SvcCgrgZGjesRApXlAKDLG2+4+lI5d8C61CLVSc2QqXTGTQCgpXyz
-snE5ueuAdumK3M8PKd3bne0=
-=eFxz
+iD8DBQE/E+pNgpRPaOotLEERAq+rAKDfgqAwV4UcHCWy9X49Z3Ch6J4m8QCguFlE
+WrxnyQDcQn/8/I0IWeWgq/E=
+=kpvv
 -----END PGP SIGNATURE-----
 
---=-TIFKH5KpJwhUMqD3nKxC--
-
+--R3G7APHDIzY6R/pk--
 
 
 -------------------------------------------------------
