@@ -1,13 +1,14 @@
-From: andy-gRfBfDTKyCbR7s880joybQ@public.gmane.org
-Subject: Re: ACPI patches updated (20021111)
-Date: Tue, 12 Nov 2002 17:10:34 -0500 (EST)
+From: "Cagle, John (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>
+Subject: RE: Thread mutex errors / out of memory errors
+Date: Tue, 12 Nov 2002 17:24:28 -0600
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0211121706300.5656-100000@tweek.neosouth.net>
-References: <EDC461A30AC4D511ADE10002A5072CAD04C7A4F9@orsmsx119.jf.intel.com>
+Message-ID: <C50AB9511EE59B49B2A503CB7AE1ABD10476BA28@cceexc19.americas.cpqcorp.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD04C7A4F9-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,17 +17,40 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-Cc: "acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org" <acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org>
+To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On my Compaq Presario 2700T (currently running 2.5.47), it makes the ACPI
-actually work correctly with the stock (bogus) DSDT. I can actually see
-the battery and thermal zone now. Previously the battery would not show up
-and often the thermal zone initialization croaked on an uninitialized
-variable.
+I don't know.  If you can send me a patch that reverts the
+ACPI_WAIT_FOREVER changes, I'll be glad to retest with it.  I don't have
+an older tree.
 
-Congratulations.
+Regards,
+John
 
+> -----Original Message-----
+> From: Moore, Robert [mailto:robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]=20
+> Sent: Tuesday, November 12, 2002 10:02 AM
+> To: Cagle, John (ISS-Houston); Grover, Andrew
+> Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: RE: [ACPI] Thread mutex errors / out of memory errors
+>=20
+> Did the Mutex AE_ERROR exceptions start happening with the=20
+> ACPI_WAIT_FOREVER patch?
+>=20
+> I would guess that the error is coming from acpi_os_wait_semaphore:
+>=20
+> 		/*
+> 		 * Wait Indefinitely:
+> 		 * ------------------
+> 		 */
+> 		case WAIT_FOREVER:
+> 		ret =3D down_interruptible(sem);
+> 		if (ret < 0)
+> 			status =3D AE_ERROR;
+> 		break;
+>=20
+> Bob
 
 
 -------------------------------------------------------
