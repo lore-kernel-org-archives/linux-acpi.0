@@ -1,12 +1,14 @@
-From: "Jonas Weismueller" <internet-pmAwacIe4cjGVkPrAd0EpA@public.gmane.org>
-Subject: Dell Inspiron 8600
-Date: Fri, 18 Jun 2004 14:15:25 +0200 (CEST)
+From: Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>
+Subject: Re: [BKPATCH] ACPI for 2.4
+Date: Fri, 18 Jun 2004 09:09:49 -0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <49201.192.168.1.11.1087560925.squirrel@jonas.internal>
+Message-ID: <20040618120949.GA1956@logos.cnet>
+References: <1087540935.4488.214.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1087540935.4488.214.camel-D2Zvc0uNKG8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,27 +17,60 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-i am using the recent kernel 2.6.7 with my Dell Inspiron 8600. If i enable
-the option acpi=on in the lilo.conf file, acpi is working but not my sound
-card anymore. If i disable acpi=off my soundcard works perfectly. Any
-ideas to use both?
+On Fri, Jun 18, 2004 at 03:32:49AM -0400, Len Brown wrote:
+> Hi Marcelo, please do a 
+> 
+> 	bk pull bk://linux-acpi.bkbits.net/linux-acpi-release-2.4.27
 
-My sound card:
-00:1f.5 Multimedia audio controller: Intel Corp. 82801DB AC'97 Audio
-Controller (rev 01)
+Applied Len, thanks a lot.
 
-Pleas CC to my email adress, because i haven't subscribed to the mailing
-list.
-Thx!
-
-Cheers Jonas
-
-
-
+> ps. a plain patch is also available here:
+> ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.4.27/acpi-20040326-2.4.27.diff.gz
+> 
+> This will update the following files:
+> 
+>  arch/i386/kernel/acpi.c      |    5 +++
+>  arch/i386/kernel/mpparse.c   |   18 ++++++++++-
+>  arch/x86_64/kernel/mpparse.c |    1 
+>  drivers/acpi/asus_acpi.c     |    4 +-
+>  drivers/acpi/pci_link.c      |   22 +------------
+>  drivers/acpi/pci_root.c      |   49 ++++++++++++++++++++++++++++++-
+>  drivers/acpi/thermal.c       |    7 ++++
+>  7 files changed, 82 insertions(+), 24 deletions(-)
+> 
+> through these ChangeSets:
+> 
+> <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/06/18 1.1359.6.28)
+>    [ACPI] handle SCI override to nth IOAPIC
+>    http://bugzilla.kernel.org/show_bug.cgi?id=2835
+> 
+> <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/06/18 1.1359.6.27)
+>    [ACPI] fix 2.4.27-pre3 IRQ override regression
+>    due to dynamically allocated mp_irqs[].
+>    http://bugzilla.kernel.org/show_bug.cgi?id=2834
+> 
+> <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/06/18 1.1359.6.26)
+>    [ACPI] avoid spurious interrupts on VIA
+>    http://bugzilla.kernel.org/show_bug.cgi?id=2243
+> 
+> <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/06/18 1.1359.6.25)
+>    [ACPI] fix passive cooling mode indicator (Luming Yu)
+>    http://bugzilla.kernel.org/show_bug.cgi?id=1770
+> 
+> <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/06/17 1.1359.6.24)
+>    [ACPI] PCI bus numbering workaround for ServerWorks
+>    from David Shaohua Li
+>    http://bugzilla.kernel.org/show_bug.cgi?id=1662
+> 
+> <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org> (04/06/03 1.1359.6.23)
+>    [PATCH] acpi4asus trivial sync with 2.6 (Karol 'sziwan' Kozimor)
+> 
+> 
+> 
 
 
 -------------------------------------------------------
