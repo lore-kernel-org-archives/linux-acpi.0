@@ -1,99 +1,27 @@
-From: Keiichiro Tokunaga <tokunaga.keiich@jp.fujitsu.com>
-Subject: [PATCH][4/4] Add NUMA node handling to the container driver
-Date: Fri, 24 Sep 2004 01:36:42 +0900
+From: Dave Hansen <haveblue@us.ibm.com>
+Subject: Re: [Lhns-devel] [PATCH][1/4] Add unregister_node() to
+	drivers/base/node.c
+Date: Thu, 23 Sep 2004 09:43:16 -0700
 Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <20040924013642.00003b08.tokunaga.keiich@jp.fujitsu.com>
+Message-ID: <1095957796.21153.94.camel@localhost>
 References: <20040920092520.A14208@unix-os.sc.intel.com>
-	<20040920094719.H14208@unix-os.sc.intel.com>
-	<20040924012301.000007c6.tokunaga.keiich@jp.fujitsu.com>
+	 <20040920094719.H14208@unix-os.sc.intel.com>
+	 <20040924012301.000007c6.tokunaga.keiich@jp.fujitsu.com>
+	 <20040924013123.000067cd.tokunaga.keiich@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <20040924012301.000007c6.tokunaga.keiich@jp.fujitsu.com>
-To: anil.s.keshavamurthy@intel.com
-Cc: len.brown@intel.com, acpi-devel@lists.sourceforge.net, lhns-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, Keiichiro Tokunaga <tokunaga.keiich@jp.fujitsu.com>
+In-Reply-To: <20040924013123.000067cd.tokunaga.keiich@jp.fujitsu.com>
+To: Keiichiro Tokunaga <tokunaga.keiich@jp.fujitsu.com>
+Cc: anil.s.keshavamurthy@intel.com, len.brown@intel.com, acpi-devel@lists.sourceforge.net, lhns-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Thu, 2004-09-23 at 09:31, Keiichiro Tokunaga wrote:
+> -int __init register_node(struct node *node, int num, struct node *parent)
+> +int register_node(struct node *node, int num, struct node *parent)
 
-Name: container_for_numa.patch
-Status: Tested on 2.6.9-rc2
-Signed-off-by: Keiichiro Tokunaga <tokunaga.keiich@jp.fujitsu.com>
-Description:
-Add NUMA node handling to the container driver.
+__devinit, please.
 
-Thanks,
-Keiichiro Tokunaga
----
+-- Dave
 
- linux-2.6.9-rc2-fix-kei/drivers/acpi/container.c |   11 +++++++++++
- linux-2.6.9-rc2-fix-kei/include/acpi/container.h |   15 ++++++++++++++-
- 2 files changed, 25 insertions(+), 1 deletion(-)
-
-diff -puN drivers/acpi/container.c~container_for_numa drivers/acpi/container.c
---- linux-2.6.9-rc2-fix/drivers/acpi/container.c~container_for_numa	2004-09-24 00:45:56.781826629 +0900
-+++ linux-2.6.9-rc2-fix-kei/drivers/acpi/container.c	2004-09-24 01:38:09.774323452 +0900
-@@ -104,6 +104,8 @@ acpi_container_add(struct acpi_device *d
- 	container = kmalloc(sizeof(struct acpi_container), GFP_KERNEL);
- 	if(!container)
- 		return_VALUE(-ENOMEM);
-+
-+	container_numa_init(device->handle);
- 	
- 	memset(container, 0, sizeof(struct acpi_container));
- 	container->handle = device->handle;
-@@ -123,6 +125,14 @@ acpi_container_remove(struct acpi_device
- {
- 	acpi_status		status = AE_OK;
- 	struct acpi_container	*pc = NULL;
-+	if (type == ACPI_BUS_REMOVAL_EJECT) {
-+		if (!device->flags.ejectable)
-+			return(-EINVAL);
-+
-+		container_numa_remove(device->handle);
-+	}
-+
-+	container_numa_detach_data(device->handle);
- 	pc = (struct acpi_container*) acpi_driver_data(device);
- 
- 	if (pc)
-@@ -198,6 +208,7 @@ container_device_add(struct acpi_device 
- 	if (acpi_bus_add(device, pdev, handle, ACPI_BUS_TYPE_DEVICE)) {
- 		return_VALUE(-ENODEV);
- 	}
-+	container_numa_add((*device)->handle);
- 
- 	result = acpi_bus_scan(*device);
- 
-diff -puN include/acpi/container.h~container_for_numa include/acpi/container.h
---- linux-2.6.9-rc2-fix/include/acpi/container.h~container_for_numa	2004-09-24 00:45:56.783779765 +0900
-+++ linux-2.6.9-rc2-fix-kei/include/acpi/container.h	2004-09-24 00:45:56.786709469 +0900
-@@ -2,12 +2,25 @@
- #define __ACPI_CONTAINER_H
- 
- #include <linux/kernel.h>
--
- struct acpi_container {
- 	acpi_handle handle;
- 	unsigned long sun;
- 	int state;
- };
- 
-+#ifdef CONFIG_ACPI_NUMA
-+#include <acpi/numa.h>
-+#define container_numa_init(handle)	acpi_numa_node_init(handle)
-+#define container_numa_add(handle)	acpi_numa_node_add(handle)
-+#define container_numa_remove(handle)	acpi_numa_node_remove(handle)
-+#define container_numa_detach_data(handle) acpi_numa_node_data_detach(handle)
-+#define is_numa_node(handle) is_numa_node_device(acpi_handle handle)
-+#else
-+#define container_numa_init(handle)
-+#define container_numa_add(handle)
-+#define container_numa_remove(handle)
-+#define container_numa_detach_data(handle)
-+#define is_numa_node(handle) (0)
-+#endif
- #endif /* __ACPI_CONTAINER_H */
- 
-
-_
