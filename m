@@ -1,11 +1,11 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Button events lost after S3 on Thinkpad R32
-Date: Tue, 9 Dec 2003 09:26:33 +0800
+From: "Ow Mun Heng" <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
+Subject: RE: ACPI + Laptop Power Management (cpufreq patch)
+Date: Tue, 9 Dec 2003 09:31:06 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C0B@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <C386328088ED7F4E9F81AFBABDDF60DA0378C2F1@wdmyexch02.my.asia.wdc.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-2"
+	charset="US-ASCII"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 content-class: urn:content-classes:message
@@ -17,42 +17,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Cc: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Brian Perkins <bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org>
+To: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Where to find  - Dmitry's input suspend / resume support patches =
---Luming
-
------Original Message-----
-From: Karol Kozimor [mailto:sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org]
-Sent: 2003?12?9? 9:16
-To: Yu, Luming
-Cc: Li, Shaohua; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; Brian Perkins
-Subject: Re: [ACPI] Button events lost after S3 on Thinkpad R32
 
 
-Thus wrote Yu, Luming:
-> >Just to let you know: my system is fine after S3, i.e. ACPI =
-interrupts are
-> >not lost (it's an ASUS L3C laptop, FYI).
-> What version of kernel you are using?  Did you apply any other =
-patches? --Luming
+> -----Original Message-----
+> From: Sebastian Henschel [mailto:acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org]
+> Sent: Monday, December 08, 2003 7:26 PM
+> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: Re: [ACPI] ACPI + Laptop Power Management (cpufreq patch)
+>=20
+> i  created a patch against vanilla 2.4.23 last week and it=20
+> seemed to work
+> on the computer it was applied to. no guarantees, though. :)
+> btw, bruno ducrot, are you the one responsible for patchin.sh? i would
+> like to ask you some questions about that.
 
-test11, with quite a lot of patches actually:
-- http://bugme.osdl.org/attachment.cgi?id=3D1208&action=3Dview
-- http://bugme.osdl.org/attachment.cgi?id=3D1029&action=3Dview
-- http://bugme.osdl.org/attachment.cgi?id=3D1257&action=3Dview
-- Dmitry's input suspend / resume support patches
-- possibly others, less relevant
 
-Though as far as I remember, I never had problems with ACPI interrupts
-after S3 resume, only after S1.
-Best regards,
+hehe.. I actually went and made that patch myself the very day after I =
+sent
+that email out. (I was desperate). and I did send a note out to =
+Shrike-list
+and fedora-list.
 
---=20
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+It's working fine for me now..=20
+
+Err.. anyone knows how to tweak cpudyn?? I find its kinda too-reacting =
+to
+loads. and I;m not sure how to tune it via the -> cpudyn -x -x 0.5 0.9=20
+						    ^^  ^^  These 2. I don't
+really understand the manual
 
 
 -------------------------------------------------------
