@@ -1,12 +1,15 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Backlight doesn't come back on after resume
-Date: Thu, 29 May 2003 16:08:33 +0100
+From: Florian Lohoff <flo-BCn6idZOOBwdnm+yROfE0A@public.gmane.org>
+Subject: Re: [2.5.69] S3 does not come back / Sony Vaio C1MHP
+Date: Thu, 29 May 2003 19:13:28 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030529150833.GA32147@srcf.ucam.org>
+Message-ID: <20030529171328.GA4279@paradigm.rfc822.org>
+References: <20030527101501.GB1247@paradigm.rfc822.org> <20030528214124.GB667@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="CE+1k2dSO48ffgeK"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20030528214124.GB667-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,19 +18,48 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Until recently, I was able to get video working again after resume if I 
-passed acpi_sleep=s3_mode and had a script that changed away from and 
-back to my X session (the framebuffer was screwed afterwards, but never 
-mind). This seems to have stopped working recently - in 2.5.70, I end up 
-with a machine that pings, but no video. I've tried all permutations of 
-acpi_sleep and using or not using the framebuffer. It worked in 2.5.65. 
-Anyone have any idea what might have changed?
 
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+--CE+1k2dSO48ffgeK
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Wed, May 28, 2003 at 11:41:24PM +0200, Pavel Machek wrote:
+> > S3 would be the reason to switch to 2.5 - bad that it does not work for
+> > me ;)=20
+> >=20
+> > Sony Vaio C1MHP=20
+> > Transmeta TM5800
+> >=20
+> > echo 3 >/proc/acpi/sleep
+>=20
+> You may need to pass acpi_sleep=3Ds3_bios or acpi_sleep=3Ds3_mode (or how
+> is it called).
+
+tried that - no luck
+
+Flo
+--=20
+Florian Lohoff                  flo-BCn6idZOOBwdnm+yROfE0A@public.gmane.org             +49-5201-669912
+                        Heisenberg may have been here.
+
+--CE+1k2dSO48ffgeK
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
+
+iD8DBQE+1j+4Uaz2rXW+gJcRAhoUAJ4w294zpvoJl6SfpC5bXcydSPpc4wCgs4Hw
+7JlyyLzgyjaGiq3roJoixGg=
+=Vcte
+-----END PGP SIGNATURE-----
+
+--CE+1k2dSO48ffgeK--
 
 
 -------------------------------------------------------
