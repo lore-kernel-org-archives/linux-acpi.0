@@ -1,14 +1,16 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: bug in acpid scripts
-Date: Sat, 24 Jul 2004 21:23:02 +0800
+From: Mattia Dongili <dongili-vcC760zL2fQ1GQ1Ptb7lUw@public.gmane.org>
+Subject: Re: bug in acpid scripts
+Date: Sat, 24 Jul 2004 15:51:11 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <B44D37711ED29844BEA67908EAF36F03665E4F@pdsmsx401.ccr.corp.intel.com>
+Message-ID: <20040724135111.GC2328@inferi.kami.home>
+References: <20040723193658.GA3331@omocha.vort.org> <1090673420.4412.14.camel@tyrosine>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Resent-Message-ID: <20040724142159.GE2328-MEqNC12sBsHxa7XIdbXXog@public.gmane.org>
+Resent-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Disposition: inline
+In-Reply-To: <1090673420.4412.14.camel-myFlNLNQP+Q@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,54 +19,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I'm working to disable all events sent to acpid (of course including
-button event) when system is resuming. The patch is very
-straightforward. But I need time to verify if it has side effect for
-acpid.=20
+On Sat, Jul 24, 2004 at 01:50:20PM +0100, Matthew Garrett wrote:
+> On Fri, 2004-07-23 at 20:36, Russell Neches wrote:
+> 
+> > My system always enters S3 without complaining, and resumes without
+> > complaining. Then it immediately begins a clean shutdown. I had assumed
+> > this was caused by general S3 breakage, but the problem is actually
+> > caused by acpid catching the power button event that triggered the
+> > system to resume. It then dutifully calls powerbtn.sh, and the system
+> > shuts down. 
+> 
+> My current workaround is to make button support modular, and then remove
+> the button module during suspend. The power button event then gets
+> ignored on wakeup.
 
-Thanks,
-Shaohua
+You may simply want to stop acpid just before suspending and restarting
+it after having resumed.
 
->-----Original Message-----
->From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
->admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Matthew Garrett
->Sent: Saturday, July 24, 2004 8:50 PM
->To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: Re: [ACPI] bug in acpid scripts
->
->On Fri, 2004-07-23 at 20:36, Russell Neches wrote:
->
->> My system always enters S3 without complaining, and resumes without
->> complaining. Then it immediately begins a clean shutdown. I had
-assumed
->> this was caused by general S3 breakage, but the problem is actually
->> caused by acpid catching the power button event that triggered the
->> system to resume. It then dutifully calls powerbtn.sh, and the system
->> shuts down.
->
->My current workaround is to make button support modular, and then
-remove
->the button module during suspend. The power button event then gets
->ignored on wakeup.
->
->--
->Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
->
->
->
->-------------------------------------------------------
->This SF.Net email is sponsored by BEA Weblogic Workshop
->FREE Java Enterprise J2EE developer tools!
->Get your free copy of BEA WebLogic Workshop 8.1 today.
->http://ads.osdn.com/?ad_id=3D4721&alloc_id=3D10040&op=3Dclick
->_______________________________________________
->Acpi-devel mailing list
->Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->https://lists.sourceforge.net/lists/listinfo/acpi-devel
+-- 
+mattia
+:wq!
 
 
 -------------------------------------------------------
