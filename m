@@ -1,11 +1,11 @@
-From: Jim Summers <jsummers-5f/76mLIbwCHXe+LvDLADg@public.gmane.org>
-Subject: Learning ACPI
-Date: Fri, 28 Jan 2005 14:24:51 -0600
-Message-ID: <41FA9F93.4090105@cs.ou.edu>
-Reply-To: jsummers-5f/76mLIbwCHXe+LvDLADg@public.gmane.org
+From: Mark Goldman <bitshifter-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Fixing ACPI problems with drivers.
+Date: Fri, 28 Jan 2005 12:27:47 -0500
+Message-ID: <f561de7305012809276dbd2e83@mail.gmail.com>
+Reply-To: Mark Goldman <bitshifter-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -16,46 +16,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Listacpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+I am currently trying to hunt down problems with ACPI and the drivers
+that my laptop uses.  Currently, every device I use works under APM. 
+If I use a very minimal set of drivers with ACPI, I can often get
+suspend to ram (S3) and resume from ram to work.
 
-Hello List,
+I'm not afraid to muck about in the kernel and I want to track down
+these irritating problems with acpi.  That said, does anyone have any
+advice for how to go about finding which drivers work under APM and
+not ACPI without doing dozens of kernel compiles?  Also, is there any
+way to do a "dry run" of a suspend to ram to see what would be called
+on my particular computer?
 
-I have recently undertaken the project of getting power management under 
-control on several of my faculty's laptops and other systems.  For the 
-most part we are running on FC3 and Dell laptops.  My test machine is a 
-  Dell Inspiron 5100 with the bios at the latest A32.
-
-The first thing I noticed was that when the power button is pressed 
-nothing happens.  Ignoring that, I was more interested in turning off 
-the power to the lid when it was closed.
-
-By remotely accessing the machine and monitoring the LID/state file I 
-observed that indeed it was being updated properly (open or closed). 
-But no events were firing off.  I placed a simple action to send a 
-message to syslog via the logger utility and it never happens.  Also I 
-never see any thing written to the acpid log file other than upon 
-startup it loads two rules, the sample one for the power button and the 
-one I put in for handling the lid event.
-
-Looking through the DSDT database I noticed a mention of something 
-called a lost interrupt for 5100's using the A26/28 bios.  I didn't 
-think that was the issue since the state file was being updated correctly.
-
-Dmesg output looks good for ACPI stuff.
-
-Can someone give me some ideas on what the problem might be?
-
-I guess I am not understanding how, if the acpid is correctly monitoring 
-the lid state then why would it not fire the events/actions?  I can 
-porvide more info, dmesg output etc...
-
-TIA
+-Mark Goldman
+Ohio University
 -- 
-Jim Summers
-School of Computer Science-University of Oklahoma
--------------------------------------------------
+"50% of marriages today end in divorce, the other 50% end in death. 
+Which would you rather have?"
 
 
 -------------------------------------------------------
