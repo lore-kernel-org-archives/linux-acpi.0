@@ -1,15 +1,16 @@
-From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
-Subject: Re: How to sleep with 2.4.x
-Date: Mon, 6 Oct 2003 17:37:18 +0200
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: Re: High pitch noise produced when ACPI processor module
+ loaded
+Date: Mon, 6 Oct 2003 09:41:19 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031006153717.GA24961@enigma.daemon.sh>
-References: <E1A6T1j-0007uU-00@sc8-sf-list2.sourceforge.net> <3F816ADF.6010209@clients.ie>
+Message-ID: <20031006093904.K3158@root.org>
+References: <001001c38404_27b959a0_2001a8c0@silverstone> <20030926100512.X64952@root.org>
+ <20031002111232.GC14859@openzaurus.ucw.cz> <000401c38b23$fddef730$2401a8c0@INSPIRON>
+ <20031005102452.GA321@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="IS0zKkzwUGydFO0o"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3F816ADF.6010209-2wWnE64kTEeyZ7Fz/ZYYxQ@public.gmane.org>
+In-Reply-To: <20031005102452.GA321-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,50 +19,31 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Sun, 5 Oct 2003, Pavel Machek wrote:
+> > > > > My inspiron 8600 (intel centrino/855PM) is producing a strange high
+> > pitch
+> > > > > sound which comes from within the machine (definitly not the speakers)
+> > when
+> > > > > the acpi processor module get's loaded. When I unload the processor
+> > module
+> > > > > the high pitch sound goes away.
+> >
+> > > Try running while1 program, see if it helps.
+> > Yes!, when there is intensive processor activity the sound goes away.
+>
+> This unfortunately seems fairly normal; at least all four notebooks I
+> had for testing produced some kind of cpu-related noise.
 
---IS0zKkzwUGydFO0o
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+It's a *feature*.  I've implemented a Cx driver for FreeBSD and it's
+useful to be able to tell if the code really is entering the desired state
+by holding the laptop up to my ear.  I can differentiate all the Cx states
+but not in the Px states.  :)
 
-hi sergey..
-
-* "Sergey V. Oudaltsov" <sergey.oudaltsov-2wWnE64kTEeyZ7Fz/ZYYxQ@public.gmane.org> [2003-10-06 16:46 +02=
-00]:
->=20
-> What is the best way to organize "sleep" with ACPI and kernel  2.4.20=20
-> (sure, with the acpi patches)? My Acer 800 supports S0,S3-S5. It seems=20
-> all these sleep modes are unsupported by the kernel  2.4.x. How do=20
-> people sleep with 2.4.x?
-
-they hibernate (S4) with swsusp:
-
-http://swsusp.sf.net
-
-hth,
- sebastian
-
---=20
-::: sebastian henschel
-::: kodeaffe
-::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
-
---IS0zKkzwUGydFO0o
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/gYwtreHfL3pi+bQRAvXLAJ4ojjdxyLTYouXSPe8ZV1hrsC7mHACglEHs
-ohbK315d5TXwUns35II3PEI=
-=TtGC
------END PGP SIGNATURE-----
-
---IS0zKkzwUGydFO0o--
+-Nate
 
 
 -------------------------------------------------------
