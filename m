@@ -1,11 +1,12 @@
-From: orders-UAXs7z7FrujR7s880joybQ@public.gmane.org
-Subject: Welcome to www.dumpsmarket.com
-Date: Fri, 23 Jan 2004 21:46:22 -0800
+From: "Tim Stadelmann" <t.stadelmann1-JAjqph6Yjy8XSZKaUYBEcQ@public.gmane.org>
+Subject: Re: ACPI on Dell Latitude C600
+Date: Sat, 24 Jan 2004 17:09:52 -0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E1AkGaD-0008Vu-00@deer.gmane.org>
+Message-ID: <001c01c3e29c$e1f03fe0$03f101a3@physics.ox.ac.uk>
+References: <003e01c3e040$ab873700$03f101a3@physics.ox.ac.uk> <20040123155820.GA194@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="Windows-1252"
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -16,37 +17,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Welcome to www.dumpsmarket.com the site of stolen credit cards,child porno, fake money, passports and complete info about any US citizen!
 
+----- Original Message ----- 
+From: "Pavel Machek" <pavel-+ZI9xUNit7I@public.gmane.org>
 
-You can get fresh stolen dumps here:
+> Video issues with S3 resume
+>
+> ...
+>
+> You may have system where none of above works. At that point you
+> either invent another ugly hack that works, or write proper driver for
+> your video card (good luck getting docs :-(). Maybe suspending from X
+> (proper X, knowing your hardware, not XF68_FBcon) might have better
+> chance of working.
 
-http://www.dumpsmarket.com/forum/viewtopic.php?t=77
-
-Only using our site you can get every detail of any US citizen including SSN number:
-
-http://www.dumpsmarket.com/forum/viewtopic.php?t=192
-
-Credit cards with cvv2 information are available here:
-
-http://www.dumpsmarket.com/forum/viewtopic.php?t=57
-
-Our site will be usefull for the those who want to wash their money also.
-If you don't want to pay taxes or you need to buy something illegal like weapons or drugs.
-
-Quick contacts:
-Panther  44007777 
-Graph  146191522 
-
-
-You can order by phone: 5092757151.
-
-Best regards,
-Vladimir V Panfilovich.
-
+In other words, software suspend (which has its own problems, and is rather
+slow...) is the only chance of getting any kind of suspend mode to work
+under Linux on ACPI-only laptops in the forseeable future?
 
 
 
