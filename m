@@ -1,14 +1,15 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: [Fwd: [Fwd: patch to include a custom dsdt]]
-Date: Mon, 16 Aug 2004 09:20:49 +0200
+From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
+Subject: Re: Help with thermal
+Date: Mon, 16 Aug 2004 09:32:31 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040816072049.GA25783@elf.ucw.cz>
-References: <1092070755.2217.16.camel@dhcppc4>
+Message-ID: <20040816073231.GB2861@fuchi>
+References: <1092613221.10652.9.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="KFztAG8eRSV9hGtP"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1092070755.2217.16.camel@dhcppc4>
+In-Reply-To: <1092613221.10652.9.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,79 +18,73 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
 
-> This looks handy.
-> comments?
+--KFztAG8eRSV9hGtP
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-It certainly makes life better for developers.
+hello jerry..
 
-								Pavel
+* Jerry DeLisle <jvdelisle-H+0wwilmMs3R7s880joybQ@public.gmane.org> [2004-08-16 09:14 +0200]:
+> I have acpid running.
+>=20
+> /proc/acpi is:
+>=20
+> [root@quantum acpi]# ls
+> ac_adapter  battery  embedded_controller  fan             processor
+> alarm       button   event                info            sleep
+> asus        dsdt     fadt                 power_resource  thermal_zone
+>=20
+> The thermal_zone directory is empty.
+>=20
+> How do I read temperatures?  I have been reading the howto's but I am
+> missing something here.  Thermal is compiled into kernel, not a module.=
+=20
 
-> --- linux-2.6.7/drivers/acpi/Kconfig.orig	2004-07-17 10:34:39.000000000 +0200
-> +++ linux-2.6.7/drivers/acpi/Kconfig	2004-07-17 10:28:11.000000000 +0200
-> @@ -204,6 +204,23 @@
->  	  If you have a legacy free Toshiba laptop (such as the Libretto L1
->  	  series), say Y.
->  
-> +config ACPI_CUSTOM_TABLE
-> +	bool "Include Custom ACPI Table"
-> +	depends on X86
-> +	depends on ACPI_INTERPRETER
-> +	default ""
-> +	help
-> +	  Thist option is to load a custom acpi dsdt table, e.g. for buggy acpi 
-> +	  implementations like on DELL inspiron 5100
-> +
-> +config ACPI_CUSTOM_TABLE_FILE
-> +	string "Custom ACPI Table file to include"
-> +	depends on ACPI_CUSTOM_TABLE
-> +	default ""
-> +	help
-> +	  please enter the full path name to the file wich includes the AmlCode delclaration
-> +
-> +
->  config ACPI_DEBUG
->  	bool "Debug Statements"
->  	depends on ACPI_INTERPRETER
-> --- linux-2.6.7/drivers/acpi/osl.c.orig	2004-07-17 08:39:55.000000000 +0200
-> +++ linux-2.6.7/drivers/acpi/osl.c	2004-07-17 10:31:51.000000000 +0200
-> @@ -55,6 +55,9 @@
->      void		    *context;
->  };
->  
-> +#ifdef CONFIG_ACPI_CUSTOM_TABLE
-> +#include CONFIG_ACPI_CUSTOM_TABLE_FILE
-> +#endif
->  
->  #ifdef ENABLE_DEBUGGER
->  #include <linux/kdb.h>
-> @@ -235,7 +238,14 @@
->  	if (!existing_table || !new_table)
->  		return AE_BAD_PARAMETER;
->  
-> +#ifdef CONFIG_ACPI_CUSTOM_TABLE
-> +	if (strncmp(existing_table->signature, "DSDT", 4) == 0)
-> +		*new_table = (struct acpi_table_header*)AmlCode;
-> +	else
-> +		*new_table = NULL;
-> +#else
->  	*new_table = NULL;
-> +#endif
->  	return AE_OK;
->  }
->  
+it might be that your DSDT does not define a thermal_zone. you can send
+it to the list if you like to, or better send a link to it. check
+http://acpi.sf.net/dsdt/index.php to learn how to extract that table.
+or your DSDT is faulty which should be shown in the output of "dmesg".
+are there any AE_* messages or similar errors which point to ACPI?
+or the ACPI implementation of L=D1=96nux is at fault.
+which machine are you running, btw?
 
 
+> Also I do not find acpi client.  The howto mentions the comamnd:
+>=20
+> 	acpi -v
+>=20
+> Where do I find this?
 
+that depends on your distribution. on Debian, just "apt-get install
+acpi".
 
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+cheers,
+ sebastian
+--=20
+::: .O.
+::: ..O
+::: OOO
+::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
+
+--KFztAG8eRSV9hGtP
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFBIGMPreHfL3pi+bQRAvSOAJ0axUjqN8szQI3WRfbRx7r2Op1v3gCfWCPT
+XBAilxbY/1DCsm/ePwF6ZeI=
+=r6wL
+-----END PGP SIGNATURE-----
+
+--KFztAG8eRSV9hGtP--
 
 
 -------------------------------------------------------
