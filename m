@@ -1,11 +1,14 @@
-From: "Rus V. Brushkoff" <rus-YPKzlcOx6JWP+XVi2HspGA@public.gmane.org>
-Subject: False thermall shutdown (seems like 2.6 ACPI bug)
-Date: Tue, 27 Apr 2004 16:28:32 +0300 (EEST)
+From: "Rockefeller, Harry" <harryr-UjZhlPPWhclBDgjK7y7TUQ@public.gmane.org>
+Subject: RE: list of events
+Date: Tue, 27 Apr 2004 09:27:12 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.53.0404271615250.5536@Soyuz-KT.TeNet.Odessa.UA>
+Message-ID: <B774920D825C2D4880A3C1B0D6EF941851E512@ssdmx.ssd.fsi.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,35 +20,42 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+=46rom 'man acpid':
 
-	Hi.
+FILES
+       /proc/acpi/event
+       /etc/acpi/
+       /var/log/acpid=20
 
- I'm trying to boot 2.6.5 at ASUS L3H laptop but got shutdown just after
-starting init, this is part of the dmesg :
+Just try hard buttons, ac-adapter, etc. and see what gets logged there.
 
-..........
+To ask my own specific question related to Stefan's more general one:
+With acpi debug compiled into kernel (2.6.5) I get terminal log
+messages when my ac-adapter status changes, but it is *not* logged
+to /var/log/acpid.  Why is that?
 
-exoparg2-0432 [50] ex_opcode_2A_1T_1R    : Index value (FFFFFFFF) beyond
-package end (7)
- psparse-1133: *** Error: Method execution failed [\_TZ_.RSCM] (Node
-c17ad1a8),
-AE_AML_PACKAGE_LIMIT
- psparse-1133: *** Error: Method execution failed [\_TZ_.TZ__._SCP] (Node
-c17af128), AE_AML_PACKAGE_LIMIT
-acpi_thermal-0464 [42] acpi_thermal_critical : Critical trip point
-Critical temperature reached (255 C), shutting down.
-ACPI: Thermal Zone [TZ] (255 C)
-Asus Laptop ACPI Extras version 0.27
-  L3H model detected, supported
-..........
+> -----Original Message-----
+> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
+> [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
+> Stefan Lutz
+> Sent: Tuesday, April 27, 2004 5:08 AM
+> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: [ACPI] list of events
+>=20
+> Hi,
+>=20
+> is there any list of events (maybe with a short additional info) of=20
+> all possible acpi events the acpid daemon can handle? I am currently=20
+> experimenting with thos daemon and it is a little bit tricky to find=20
+> out how this events are named and where they are place inside the=20
+> hierarchy. Thank you for any help.
 
 
- The 2.4.X working ok on this machine. If somebody interested I can send
-any debug info or test new patches/ideas.
-
-TIA
-
-		Rus
+This electronic email transmission, and any files transmitted with it, ma=
+y contain confidential information and is intended solely for the use of =
+the individual or entity to whom they are addressed. Any use, copying or =
+disclosure by any other person is strictly prohibited. If you have receiv=
+ed this transmission in error, please notify the sender via email.
 
 
 -------------------------------------------------------
