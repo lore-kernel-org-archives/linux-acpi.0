@@ -1,16 +1,13 @@
-From: Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
-Subject: Re: Success with kernel-swsusp and Nvidia-closed-source
-Date: Thu, 04 Nov 2004 13:11:07 +1100
-Message-ID: <1099534267.3991.52.camel@desktop.cunninghams>
-References: <Pine.LNX.4.60.0411031215260.1187@frog.athome>
-	 <200411031958.47910.christian.hesse@linuxob.de>
-	 <Pine.LNX.4.60.0411032322410.4984@frog.athome>
-Reply-To: ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org
+From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: Suspend-to-RAM on Sony Vaios
+Date: Thu, 4 Nov 2004 11:58:48 +0100
+Message-ID: <20041104105848.GB27533@wotan.suse.de>
+References: <88056F38E9E48644A0F562A38C64FB60033E4DDC@scsmsx403.amr.corp.intel.com> <20041103155217.GH24195@wotan.suse.de> <yzosm7q97q2.fsf@cern.ch> <20041103172120.GB18092@wotan.suse.de> <1099504898.31687.31.camel@elrond.flymine.org> <20041104041525.GE21211@wotan.suse.de> <1099564754.10723.24.camel@tyrosine>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.60.0411032322410.4984-KnfdeQs3A3X/9pzu0YdTqQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1099564754.10723.24.camel@tyrosine>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,45 +17,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
-Cc: Christian Hesse <christian.hesse-5lmcC6f56PSELgA04lAiVw@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Cc: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi.
-
-On Thu, 2004-11-04 at 09:29, liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
+On Thu, Nov 04, 2004 at 10:39:14AM +0000, Matthew Garrett wrote:
+> On Thu, 2004-11-04 at 05:15 +0100, Andi Kleen wrote:
+> > On Wed, Nov 03, 2004 at 06:01:38PM +0000, Matthew Garrett wrote:
+> > > On Wed, 2004-11-03 at 18:21 +0100, Andi Kleen wrote:
+> > > 
+> > > > earlyprintk to serial or vga if you're in text mode should always work.
+> > > 
+> > > On most machines, vga textmode won't work until the card is POSTed
+> > > again.
+> > 
+> > But serial does.  
 > 
-> Salut Christian,
-> On Wed, 3 Nov 2004, Christian Hesse wrote:
-> > I'm using software suspend 2.1. For me suspend works fine, but the system
-> > freezes as soon as it is resumed, I only see a black screen then. Driver nv
-> > works without any problems. Any hints what could be the cause?
-> I did not patch in anything into the kernel. I used a vanilla 2.6.9 (only 
-> the Makefile was patched to show 2.6.9 instead of 8 ... maybe somebody 
-> watched a bit too much tv... :-)
-> So I did not use swsusp 2.1. And I could not manage to freeze on resume 
-> this time. So, why didn't you try the vanilla-kernel, with the 
-> Haggi' s patch for the nvidia driver?
-> When you test - be sure to sync before suspending. It's the second best, 
-> besides having a jung backup handy.
+> Few modern laptops have serial ports. 
 
-I guess I'm doing something driver related that Pavel isn't or vv :>.
-Can I get a pointer to the driver source?
+Yes, that's an issue. USB EHCI has a special polled debug port mode
+for this, but so far nobody has written a nice driver for it.
 
-Regards,
+But anyways, as said VGA doesn't help you to debug VGA POST.
+You always need some other debug channel.
 
-Nigel
--- 
-Nigel Cunningham
-Pastoral Worker
-Christian Reformed Church of Tuggeranong
-PO Box 1004, Tuggeranong, ACT 2901
+I heard other people use LED on parport hacks, which probably works.
 
-Everyone lives by faith. Some people just don't believe it.
-Want proof? Try to prove that the theory of evolution is true.
+Anyways, this thread doesn't seem to serve any useful purpose
+anymore so I won't post to it anymore.
 
+-Andi
 
 
 -------------------------------------------------------
