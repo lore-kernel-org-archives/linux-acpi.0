@@ -1,13 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: [2.6.12-rc1][ACPI][suspend] /proc/acpi/sleep vs /sys/power/state issue - 'standby' on a laptop
-Date: Wed, 6 Apr 2005 09:55:20 +0200
-Message-ID: <20050406075519.GA1352@elf.ucw.cz>
-References: <20050405185620.80060.qmail@web88009.mail.re2.yahoo.com> <20050405204234.GE1380@elf.ucw.cz> <200504052249.35030.shawn.starr@rogers.com>
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: Re: suspend-to-disk: fan always on and misc kernel errors
+Date: Tue, 5 Apr 2005 22:39:11 +0200
+Message-ID: <20050405203911.GB22045@message-id.gmane0305.slipkontur.de>
+References: <4246F06D.40005@cs.unibo.it> <20050328205027.GB28568@message-id.gmane0305.slipkontur.de> <4249A359.9060301@cs.unibo.it> <20050401221940.GC1868@message-id.gmane0305.slipkontur.de> <1112601782.3757.9.camel@desktop.cunningham.myip.net.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200504052249.35030.shawn.starr-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1112601782.3757.9.camel-r49W/1Cwd2ff0s6lnCXPX/uOuaPYTxhvJwvTLr3MMZM@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,23 +17,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Shawn Starr <shawn.starr-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>
-Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Mon, Apr 04, 2005 at 06:03:02PM +1000, Nigel Cunningham wrote:
+> Hi.
+> 
+> On Sat, 2005-04-02 at 08:19, Stefan Seyfried wrote:
+ 
+> > disable preempt.
+> 
+> Isn't that just dealing with the symptom, rather than the problem
 
-> So nobody minds if I make this into a CONFIG option marked as Deprecated? :)
+yes, of course. It is a workaround, not a fix.
 
-Actually it should probably go through
+> though? Presumably something a preempt_enable() or such like is missing
+> somewhere.
 
-Documentation/feature-removal-schedule.txt
-
-...and give it *long* timeout, since it is API change.
-									Pavel
+maybe the swsusp code has to be "preempt-audited" :-) Unfortunately i cannot
+do it.
 -- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Stefan Seyfried
+
 
 
 -------------------------------------------------------
