@@ -1,12 +1,11 @@
-From: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
-Subject: eternal blocking on /proc/acpi/sleep with 2.4.21-pre5, acpi20030228 and swsusp19
-Date: Fri, 14 Mar 2003 20:07:33 +0100
+From: =?GB2312?B?tci0/cTjtcS808jr?= <hjj-9Onoh4P/yGk@public.gmane.org>
+Subject: =?GB2312?B?vKTH6bmryec=?=
+Date: Sat, 15 Mar 2003 04:51:46 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030314190733.GB20978@dutidad.twi.tudelft.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Message-ID: <E18twBe-0002XZ-00@sc8-sf-list1.sourceforge.net>
+Reply-To: 55hh-9Onoh4P/yGk@public.gmane.org
+Content-Type: text/html;charset="GB2312"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,28 +14,89 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: swsusp-LcL5texQODR2DW0IdvIQ2g@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dear lists,
+<html>
 
-I'm seeing strange behaviour with kernel 2.4.21-pre5, acpi 20030228 and
-swsusp v19.  When I do "echo -n 4 > /proc/acpi/sleep" the machine suspends
-to disc as expected.  When it resumes however, the /proc/acpi/sleep echo is
-still blocking, and the only way to get rid of it is to kill the parent
-shell or executing shell script with SIGKILL.
+<head><STYLE>HTML {
+	TEXT-DECORATION: none
+}
+A:link {
+	COLOR: #000000; TEXT-DECORATION: none
+}
+A:hover {
+	COLOR: rgb(72,59,216); TEXT-DECORATION: underline
+}
+EM {
+	FONT-FAMILY: 宋体; FONT-SIZE: 10pt; FONT-STYLE: normal
+}
+A {
+	FONT-FAMILY: 宋体; FONT-SIZE: 10pt
+}
+TD {
+	FONT-FAMILY: 宋体; FONT-SIZE: 10pt
+}
+P {
+	FONT-FAMILY: 宋体; FONT-SIZE: 10pt
+}
+</STYLE>
 
-In short, I'm experiencing the same as:
-http://sourceforge.net/mailarchive/forum.php?thread_id=1779463&forum_id=6102
 
-I'm reporting this because it worked 100% with 2.4.21-pre3, acpi 20030109
-and swsusp16.  I'll start using /proc/sys/kernel/swsusp now. :)
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>GO一起上 www.go173.com</title>
+<base target="_blank">
+</head>
 
-Thanks,
-Charl
+<body bgcolor="#BFBF9F">
 
--- 
-charl p. botha http://cpbotha.net/ http://visualisation.tudelft.nl/
+<div align="center">
+  <center>
+  <table border="1" cellpadding="0" cellspacing="1" width="85%" height="274" bordercolor="#CC6600">
+    <tr>
+      <td width="20%" height="23" bgcolor="#FEE2FB">
+        <p align="center"><font color="#666666">&nbsp;&nbsp; <a href="http://www.go173.com">首页&nbsp;</a></font></td> 
+      <td width="20%" height="23" bgcolor="#CC6600"> 
+        <p align="center"><a href="http://www.go173.com/mm/go.htm"><font color="#000080">激情公社</font></a></td> 
+  </center> 
+      <td width="20%" height="23" bgcolor="#FEE2FB"> 
+        <p align="center"><font color="#666666"><a href="http://www.go173.com/mm">野蛮女生</a></font></td> 
+  <center> 
+      <td width="20%" height="23" bgcolor="#FEE2FB"> 
+        <p align="center"><font color="#666666"><a href="http://huanqiu3636.mylove.163.com">同城约会</a></font></td> 
+      <td width="20%" height="23" bgcolor="#FEE2FB"> 
+        <p align="center"><font color="#666666"><a href="http://mysms.sohu.com/union/index.php?userid=76698">发短信</a></font></td> 
+    </tr> 
+  </center> 
+  <tr> 
+    <td width="100%" height="174" valign="top" colspan="5"> 
+      <p align="left"><font color="#666666">传奇，精灵，大话，奇迹，红月，账号交易，详细请进入</font><a href="http://www.go173.com"><font color="#FF0000">WWW.GO173.COM</font></a><font color="#666666">您是网络游戏高手吗？您是否有个花费您很大精力和时间，由于各种原因而不得不放弃的游戏账号。这一切已经成为历史，功能强大“GO一起上游戏账号交易平台”闪亮登场。现在，您只要登陆</font><a href="http://www.go173.com"><font color="#FF0000">WWW.GO173.COM</font></a><font color="#666666"> ，免费注册为会员,您就可以享受交易带来的无限乐趣。<br>         
+      <br>         
+   为你收集最COOL最新的外挂http://</font><a href="http://www.go173.com"><font color="#666666">www.go173.com</font></a><font color="#666666"><br>       
+    超过万首的FLASH音乐欣赏http://</font><a href="http://www.go173.com/flash"><font color="#666666">www.go173.com/flash</font></a><font color="#666666"><br>       
+      </font>       
+      <a href="http://www.go173.com/mm"><font color="#FF0000">进入社区&gt;&gt;</font></a>      
+    </td>      
+  </tr>      
+  <tr>      
+    <td width="100%" height="77" valign="middle" colspan="5">     
+    <p align="center">  <center>加入 <A HREF=http://asiafriendfinder.com/go/f112513 target=_top>
+亚洲交友中心</A> - 最大亚洲个人交友中心网站!<br>
+<A HREF=http://asiafriendfinder.com/go/f112513 target=_top>
+<img src=http://banners.asiafriendfinder.com/banners/ffz/gb01.gif 
+width=468 height=60 border=0></A></center>
+
+
+</td>     
+  </tr>    
+  </table>    
+</div>    
+    
+</body>    
+    
+</html>    
 
 
 -------------------------------------------------------
