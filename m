@@ -1,16 +1,12 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: ibm-acpi-0.3
-Date: 18 Aug 2004 01:42:26 -0400
+From: jreddy-ZBdWeTzYtYpWk0Htik3J/w@public.gmane.org
+Subject: photos
+Date: Wed, 18 Aug 2004 10:41:25 +0530
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1092807746.25902.155.camel@dhcppc4>
-References: <20040810080826.GD28939@aero.ensim.com>
-	 <20040814211247.GS20883@aero.ensim.com>
-	 <20040817091921.GI20883@aero.ensim.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Message-ID: <20040818011359.GA37724@mail01b.rapidsite.net>
+Reply-To: jreddy-ZBdWeTzYtYpWk0Htik3J/w@public.gmane.org
+Content-Type: multipart/mixed;
+		boundary="----=_NextPart_000_0009_F3B5C201.037B4A1F"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040817091921.GI20883-AKoe11r2kkOzaBltdDZI6w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -19,29 +15,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Borislav Deianov <borislav-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-thinkpad-l7BEYHA5S10i5T99jlK1Sh2eb7JE58TQ@public.gmane.org, ipw2100-devel List <ipw2100-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> http://bkernel.sf.net/tmp/ibm-acpi-0.3.tar.gz
+------=_NextPart_000_0009_F3B5C201.037B4A1F
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 
-The radio hot key sends an ACPI event,
-and the acpid example calls this radio.sh:
+<HTML>
+<BR>
+******************************* WARNING ******************************<br>
+This message has been scanned by MDaemon AntiVirus and was found to <br>
+contain infected attachment(s).  Please review the list below.<br>
+<br>
+Attachment                    Virus name               Action taken<br>
+----------------------------------------------------------------------<br>
+photos_arc.exe                I-Worm.Mydoom.q          Removed
+<br>
+<br>
+**********************************************************************<br>
+</HTML>
 
-#!/bin/bash
-
-if ! /sbin/rmmod ipw2100; then
-        /sbin/service network restart
-fi
+<html><body>LOL!;))))</body></html>
 
 
-Does this means that the button press magically changed
-the state of the radio in hardware?  I didn't see any
-processing inside the driver to do that.
-
-thanks,
--Len
-
+------=_NextPart_000_0009_F3B5C201.037B4A1F--
 
 
 
