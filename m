@@ -1,13 +1,11 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: Machine no longer enters C3 on 2.6.11-rc1-bk
-Date: Thu, 20 Jan 2005 12:06:28 +0100
-Message-ID: <20050120110628.GH1452@elf.ucw.cz>
-References: <20050120104033.GA25889@elf.ucw.cz> <16879.36609.94551.926755@aber.ac.uk>
+From: Paul Ionescu <i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: ACPI-PNP and serial devices
+Date: Thu, 20 Jan 2005 13:36:01 +0200
+Message-ID: <pan.2005.01.20.11.36.00.412048@yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <16879.36609.94551.926755-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,33 +15,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
-Cc: kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hi all,
 
->  > bus master activity: is changing all the time, mostly 555555555 and
->  > aaaaaaa, and cpu refuses to enter C3 for obvious reasons. I compiled
->  > out USB and sound... Does anybody else see the same problem?
->  > 
-> 
-> I did notice too that it was never in C3 apart from a bit right at the
-> beginning, since 2.6.10.  It has always been like that up to 2.6.6, became
-> better from 2.6.7 (but had other problems with that).
-> 
-> Fred
-> 
-> P.S.  I didn't check bus master activity.  How do you do that?
+I have a laptop with 2 serial devices, one is enabled in BIOS and the
+second one is disabled in BIOS.
+At boot time I can see ttyS0 active and is usable.
+Using ACPI-PNP I can activate the second serial interface, I get a "
+kernel: pnp: Device 00:13 activated" in dmesg, but there is no ttyS1
+created.
+I think that this is because the serial driver does not notice this new
+serial port.
 
-can you try to kill all bm_activity++ things in
-drivers/acpi/processor.c and see what it does to your power
-consumption. (Warning: it may do bad stuff to your performance).
+Any idea how to use ttyS1 ?
 
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Thanks,
+Paul
+=20
+
 
 
 -------------------------------------------------------
