@@ -1,13 +1,13 @@
 From: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
 Subject: Re: can't read battery, dsdt bugged?
-Date: Tue, 23 Nov 2004 16:52:30 +0000
-Message-ID: <41A36ACE.9030602@mega.ist.utl.pt>
-References: <41A35CE6.90803@paranoici.org> <41A35FFD.9050701@mega.ist.utl.pt> <41A36560.90701@paranoici.org>
+Date: Tue, 23 Nov 2004 18:11:14 +0000
+Message-ID: <41A37D42.9040204@mega.ist.utl.pt>
+References: <41A35CE6.90803@paranoici.org> <41A35FFD.9050701@mega.ist.utl.pt> <41A36560.90701@paranoici.org> <41A36ACE.9030602@mega.ist.utl.pt> <41A3709F.7020404@paranoici.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41A36560.90701-XtQPfPCVGG7srOwW+9ziJQ@public.gmane.org>
+In-Reply-To: <41A3709F.7020404-XtQPfPCVGG7srOwW+9ziJQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -24,49 +24,42 @@ List-Id: linux-acpi@vger.kernel.org
 ultrakorne wrote:
 > Pedro Venda wrote:
 >=20
->> ultrakorne wrote:
->>
->>> Hi, i have a acer laptop (travelmate 4501LCi) and i have installed=20
->>> ubuntu warty 4.10 (kernel 2.6.8.1)
->>> the battery applet didnt works... this because /proc/acpi/battery/ is=
-=20
->>> empty!
->>
->>
->>
+>> Pedro Venda wrote:
 >> you probably have a smart battery. I have an acer travelmate 4001wlmi=20
 >> which has one. There are no smart battery drivers that work in linux.
->>
->> regards,
->> pedro venda.
->>
-> on the user guide it says the battery is Lithium Ion...
-> but if it is a smart battery... i cant use linux?? i need to read the=20
-> charge..
-> how i can see if it is a lion or smart...
+>=20
+>=20
+> 0000:00:1f.3 SMBus: Intel Corp. 82801DB/DBM (ICH4) SMBus Controller (re=
+v=20
+> 03)
 
-it can be a lithium ion AND a smart battery. those are two different conc=
-epts:
-- Lithium Ion refers to the chemical technology used by the battery.
-- the smart battery refers to the way computers interact with the battery=
-. I think there are two types: smart batteries and some other type which =
-name I can't remember (maybe someone could help me here)
+SMBus (system management bus) is a physical communication bus which lives=
+ in your computer, whether you have a smart battery or not.
 
-it probably is a smart battery, and yes, it's not at all desirable to not=
- be able to read the charge and AC status, but one can live with it... i =
-do.
+to dissassemble your DSDT dmesg or lspci are useless. you need to cat /pr=
+oc/acpi/dsdt and use iasl to dissassemble the output file. look in the ge=
+ntoo forum, there is a very good tutorial there.
 
-to see if it's a smart battery or not, i think you must dissassemble your=
- DSDT and look for something like "Name(_HID. EISAID("PNP0C090"))" or "Na=
-me(_HID,"ACPI0001")" or "Name(_HID,"ACPI0002")" [some=20
-more help here would be appreciated: what is the single line in the dsdt =
-that can tell if one has a smart battery?]. if you find any of those in y=
-our dissassembled DSDT, most certainly you have a=20
-smart battery.
+> ... i cant belive i cant get this working... but how u can avoid loosin=
+g=20
+>  power when u are working, if u cant see battery left?
+
+Usually, I plug it into AC power. if that's impossible, 2 things can happ=
+en:
+if I have an idea of how long the battery has left... i use it for 3/4 of=
+ my estimated time, just to be safe.
+if I have no idea of how much power the battery has left, I won't use it.
+
+it's not that you can't get it working... it's just that nobody else has =
+written a driver yet. probably smart batteries are not the most widely us=
+ed batteries...
+I am learning and gathering information to start coding, but I don't have=
+ enough time to do so in the next few months. also some other people on t=
+his list are doing the same. lmsensors people have=20
+some 2.4 work... but not enough to make it useful.
 
 regards,
 pedro venda.
-
 --=20
 
 Pedro Jo=E3o Lopes Venda
