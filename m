@@ -1,8 +1,8 @@
 From: Jes Sorensen <jes-UC6nUKlm/0l5V+5IkYBVeNBPR1lH4CV8@public.gmane.org>
 Subject: [patch] ACPI NUMA quiet printk and cleanup
-Date: 13 Jan 2004 05:45:07 -0500
+Date: 13 Jan 2004 05:45:50 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <yq0n08sdt58.fsf_-_@wildopensource.com>
+Message-ID: <yq0k73wdt41.fsf_-_@wildopensource.com>
 References: <yq0r7y4dvqf.fsf@wildopensource.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
