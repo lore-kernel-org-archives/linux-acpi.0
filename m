@@ -1,11 +1,16 @@
-From: "Dino Klein" <dinoklein-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: Where can I find some documentation/examples?
-Date: Thu, 08 Jan 2004 15:15:46 +0000
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: RFC: ACPI table overflow handling
+Date: Thu, 8 Jan 2004 09:20:04 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Law11-F57d45M4kyMd500008bd9@hotmail.com>
+Message-ID: <200401080920.04906.bjorn.helgaas@hp.com>
+References: <16381.27904.580087.442358@gargle.gargle.HOWL>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <16381.27904.580087.442358-4mDQ13Tdud8Jw5R7aSpS0dP8p4LwMBBS@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -14,43 +19,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Jes Sorensen <jes-dtAfj9ClZIwnoBwkMbRkTB2eb7JE58TQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, jbarnes-sJ/iWh9BUns@public.gmane.org, steiner-sJ/iWh9BUns@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-One comment about removing - I didn't mean calling the serial device's 
-remove method in the ACPI namespace, but rather having the serial driver 
-call serial_unregister() to release the resources.
-I would think that if the driver unregisters from the acpi bus, then it 
-should also release the resources, after all, wouldn't it be possible that 
-after the driver unregisters with the acpi bus, yet still holds the 
-resources, couldn't a second serial driver come along and register for the 
-same type of devices, and get the same serial device that is already handled 
-by the first serial driver?
+On Thursday 08 January 2004 7:45 am, Jes Sorensen wrote:
+> I could just hack the NUMA srat_num_cpus handling code to have a limit
+> as IMHO it is a lot cleaner to improve the acpi_table_parse_madt() API
+> by adding a max_entries argument and then have acpi_table_parse_madt
+> spit out a warning if it found too many entries.
 
-
->On Wed, Jan 07, 2004 at 11:26:08PM -0500, Dino Klein wrote:
-> > I've taken a look at the serial driver's use of acpi in order to 
->discover ports, and their resources (in kernel 2.6.0). One thing
-> > puzzled me there, since it seems that it is possible to unload their 
->acpi related, and therefore having it call
-> > acpi_bus_unregister_driver(); however, as far as I can tell, the serial 
->port itself is still being used by the serial driver. This
-> > is why I'm not quite sure about the relationship between a regular linux 
->driver, and the acpi subsystem.
-> > So, any pointers would be appreciated.
->
->You don't necessarily want to take that driver as a good example of
->what's needed to write an ACPI driver.  Actually somebody else just
->pointed out the same thing to me earlier today.  On the systems I work
->on, I use serial console, so it's pretty much mandatory to have 8250
->built in and hence the remove method never gets called ;-)
->
->Take a look at something like the button driver instead.
-
-_________________________________________________________________
-The new MSN 8: smart spam protection and 2 months FREE*  
-http://join.msn.com/?page=features/junkmail
+I really like this idea.  I notice you didn't take the opportunity to
+remove the ad hoc checking in ia64 acpi_parse_lsapic; probably that's
+the next step.  Also, did you consider using max_entries==0 to signify
+"unlimited"?  Zero seems like an otherwise useless value for max_entries
+and would avoid having to choose an arbitrary limit.
 
 
 
