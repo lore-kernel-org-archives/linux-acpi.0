@@ -1,12 +1,13 @@
-From: Jon Valvatne <jon-hc6/xhmWZxdWk0Htik3J/w@public.gmane.org>
-Subject: Suspend-to-RAM on Sony Vaios
-Date: Mon, 18 Oct 2004 02:08:16 +0200
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] [suspend/resume] wrong wakeup address
+Date: Mon, 18 Oct 2004 11:06:47 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041018020816.48673359@localhost.localdomain>
+Message-ID: <16A54BF5D6E14E4D916CE26C9AD3057554732B@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+	boundary="----_=_NextPart_001_01C4B4BF.813F8D9B"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -15,23 +16,69 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: ole.rohne-vJEk5272eHo@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello list,
+This is a multi-part message in MIME format.
 
-I'd very much like to get suspend-to-RAM working on my Vaio X505; any pointers would be very welcome. Trying with the latest RPM-kernel for FC2, I can get it suspended just fine (after removing the ehci_hcd module), but it doesn't come back up.
+------_=_NextPart_001_01C4B4BF.813F8D9B
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-Specifically: Once it's suspended, it seems dead except for a slowly blinking red power LED. When I press any button or key, it goes completely dead, requiring the battery to be taken out and reinserted before it'll even respond to the power button. Between those two states (blinking LED and completely dead) there is no indication whatsoever that it even tries to wake up - the LED simply stops blinking the moment I touch a key.
+>Hi!
+>
+>> Yes, I guess the BIOS ignored the high bits. The difference is
+>> unsurprised PAGE_OFFSET. Somebody has verified the patch helps his
+>> system.
+>> http://bugme.osdl.org/show_bug.cgi?id=3D3390
+>
+>Okay, patch looks like to me, except..
+>
+>=3D=3D=3D=3D=3D drivers/acpi/sleep/main.c 1.40 vs edited =
+=3D=3D=3D=3D=3D
+>--- 1.40/drivers/acpi/sleep/main.c	2004-08-17 23:15:34 +08:00
+>+++ edited/drivers/acpi/sleep/main.c	2004-10-15 16:58:33 +08:00
+>@@ -12,6 +12,7 @@
+> #include <linux/irq.h>
+> #include <linux/dmi.h>
+> #include <linux/device.h>
+>+#include <asm/io.h>
+> #include <linux/suspend.h>
+> #include <acpi/acpi_bus.h>
+> #include <acpi/acpi_drivers.h>
+>
+>Normally asm/ includes are placed after linux/ includes. (Cosmetic
+>problem only).
+Yes, indeed. Len, please apply the attached patch.
 
-I haven't heard of anyone else installing Linux on this specific model of Vaio yet, and all I see of other Linux-on-Vaio-experiences only tell of similar problems, with no solutions. All the suspends-but-doesn't-resume stories I've seen here on this list tell of systems that make signs of starting up before they crash, as opposed to mine which doesn't. That makes me think my case is different, and it makes me doubt that it's the VGA issue again... I could be wrong though, I don't pretend to know the details of this stuff.
+Thanks,
+Shaohua
 
-Any pointers on how to debug this problem at all? The syslog is obviously useless; the hard drive isn't even spinning when the problem occurs.
+------_=_NextPart_001_01C4B4BF.813F8D9B
+Content-Type: application/octet-stream;
+	name="wakeup_addr.patch"
+Content-Transfer-Encoding: base64
+Content-Description: wakeup_addr.patch
+Content-Disposition: attachment;
+	filename="wakeup_addr.patch"
 
-Thanks in advance,
+PT09PT0gZHJpdmVycy9hY3BpL3NsZWVwL21haW4uYyAxLjQwIHZzIGVkaXRlZCA9PT09PQotLS0g
+MS40MC9kcml2ZXJzL2FjcGkvc2xlZXAvbWFpbi5jCTIwMDQtMDgtMTcgMjM6MTU6MzQgKzA4OjAw
+CisrKyBlZGl0ZWQvZHJpdmVycy9hY3BpL3NsZWVwL21haW4uYwkyMDA0LTEwLTE4IDEwOjU2OjEw
+ICswODowMApAQCAtMTMsNiArMTMsNyBAQAogI2luY2x1ZGUgPGxpbnV4L2RtaS5oPgogI2luY2x1
+ZGUgPGxpbnV4L2RldmljZS5oPgogI2luY2x1ZGUgPGxpbnV4L3N1c3BlbmQuaD4KKyNpbmNsdWRl
+IDxhc20vaW8uaD4KICNpbmNsdWRlIDxhY3BpL2FjcGlfYnVzLmg+CiAjaW5jbHVkZSA8YWNwaS9h
+Y3BpX2RyaXZlcnMuaD4KICNpbmNsdWRlICJzbGVlcC5oIgpAQCAtNTYsNyArNTcsOCBAQCBzdGF0
+aWMgaW50IGFjcGlfcG1fcHJlcGFyZSh1MzIgcG1fc3RhdGUpCiAJCWlmICghYWNwaV93YWtldXBf
+YWRkcmVzcykKIAkJCXJldHVybiAtRUZBVUxUOwogCQlhY3BpX3NldF9maXJtd2FyZV93YWtpbmdf
+dmVjdG9yKAotCQkJKGFjcGlfcGh5c2ljYWxfYWRkcmVzcykgYWNwaV93YWtldXBfYWRkcmVzcyk7
+CisJCQkoYWNwaV9waHlzaWNhbF9hZGRyZXNzKSB2aXJ0X3RvX3BoeXMoCisJCQkodm9pZCAqKWFj
+cGlfd2FrZXVwX2FkZHJlc3MpKTsKIAl9CiAJQUNQSV9GTFVTSF9DUFVfQ0FDSEUoKTsKIAlhY3Bp
+X2VuYWJsZV93YWtldXBfZGV2aWNlX3ByZXAoYWNwaV9zdGF0ZSk7Cg==
 
-Jon Valvatne
-Barcelona, Spain
+------_=_NextPart_001_01C4B4BF.813F8D9B--
 
 
 -------------------------------------------------------
