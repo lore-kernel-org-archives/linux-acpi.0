@@ -1,14 +1,14 @@
-From: Ken Hughes <khughes-s7p20SfEDVaVc3sceRu5cw@public.gmane.org>
-Subject: Re: Presario R3120US not updating present rate
-Date: Thu, 17 Jun 2004 10:48:17 -0700
+From: Karl Vogel <karl.vogel-/1BeJOKqmzrQT0dZR+AlfA@public.gmane.org>
+Subject: RE: Acer Aspire 1511LMi - battery unreadable
+Date: Thu, 17 Jun 2004 20:11:43 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40D1D961.7050504@pacific.edu>
-References: <20040614215520.GA17906@dominikbrodowski.de> <40CE5F69.7030500@pacific.edu>
+Message-ID: <200406172011.43402.karl.vogel@seagha.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <40CE5F69.7030500-s7p20SfEDVaVc3sceRu5cw@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,32 +17,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ken Hughes <khughes-s7p20SfEDVaVc3sceRu5cw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Ken Hughes wrote:
-> I noticed that I alway get "present rate: 0 mA" when I
-> cat /proc/acpi/battery/BAT1/state .  Running acpi -ab
-> gives the following:
-> 
->  35 budgie: ./acpi -ab
->      Battery 1: charging, 88%, charging at zero rate - will never fully 
-> charge.
->    AC Adapter 1: on-line
->  36 budgie: ./acpi -ab
->      Battery 1: discharging, 88%, charging at zero rate - will never 
-> fully charge.
->    AC Adapter 1: off-line
+Moore, Robert wrote:
 
-Discovered that one field read from the embedded controller actually
-returns the precentage of charge remaining in the battery.
+> Try using "External (name)" for each of the missing names.  They are
+> probably in another table (except for Z005).  The AML disassembler does
+> not automatically generate externals.
 
-In any case, is there a way thru software to determine the type of
-embedded controller?  I'd rather not take the screwdriver to my
-laptop to find out.
+Thanks! That did the trick!
 
-Thanks -- Ken
+For those who are interested. I've put up my fixed DSDT at:
+
+http://users.telenet.be/kvogel/Aspire-1511-fixed-DSDT.aml
+
 
 
 -------------------------------------------------------
