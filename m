@@ -1,14 +1,12 @@
-From: Daniele Boffi <boffi-piYtxHxN1XRAly3Pu9w1wA@public.gmane.org>
-Subject: Re: [Swsusp-devel] swsusp and ac status
-Date: Thu, 24 Jun 2004 17:13:51 +0200
+From: Keld =?iso-8859-1?Q?J=F8rn?= Simonsen <keld-6PR53cSIHaE@public.gmane.org>
+Subject: problem with cpu eating too much power, prize given if solved
+Date: Thu, 24 Jun 2004 17:35:13 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200406241513.i5OFDpKC003189@fermat.unipv.it>
-References: <mhf@linuxmail.org>
+Message-ID: <20040624153513.GB19545@rap.rap.dk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: Message from "Michael Frank" <mhf-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
-   of "Thu, 24 Jun 2004 22:37:12 +0800." <opr93r8ap24evsfm-TBR8pM7LtsqkE96DxU8f+dAkNl5+tjhE@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,42 +18,42 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-
-> For now, in practice all ACPI modules should be unloaded prior to
-> suspend and loaded on resume.
-> 
-> I use the AC module and kernel 2.4.24 with swsusp 2.0 and it works
-> fine as long as it is removed prior to suspend.
-
-Unloading acpi modules, suspending, resuming and loading modules
-again does not help for me (2.6.7 and swsusp 2.0.0.88).
-Even after resuming, if I
-
-rmmod ac
-insmod ac
-
-then I don't see the new charging state. On the other hand if, after 
-resuming, I change the charging state again, then ac detection works 
-OK.
-
-I tried also with 2.4.25 and swsusp 2.0 ... then it is stranger: 
-
-- suspend with ac plugged
-- unplug
-- resume
-- ac is correctly detected off-line
-- next changes in ac state are not detected
-
-
-morph-XAiDara3MvRg9hUCZPvPmw@public.gmane.org said:
-> Would you mind checking to see (with top or something) whether or
-> not keventd is using 100% CPU next time this happens.
-
-It is not. CPU is about 1% (mostly used by X)
-
-Daniele
-
-
+Dear ACPI developers,
+ 
+I have a problem with my Acer Travelmate 233.
+ 
+Many times I just want to read the screen, eg emails or documents,
+and then still the cpu will be in idle mode, where
+it uses 7.5 W out of the about 15 W that the whole machine uses.
+I have found out from Intel data sheets that my
+Mobile Intel Celeron 2.0 GHz CPU consumes 7.5 W in idle loop/
+stop grant/sleep states, (and 5.0 W i deep sleep state).
+ 
+So I would like to have the CPU stopped completely (consuming 0 W)
+while I still could read the screen. In that way I should
+be able to have about double the lifetime on the battery,
+going to about 7 hours from the 3.5 hours I have now.
+ 
+I would like the machine to wake up again by any keystroke
+on the keyboard or mouse input. I would like the input to be
+reacted upon (not just used to wake up the system, and
+then forgotten).
+ 
+I do not have the skills to program this myself, so
+instead I offer a prize of USD 1000 to the person(s) that
+can give me a patch for kernel 2.6 and appropiate documentation
+that can solve the above problem. The patch needs to be GPL,
+and demonstrably run on my laptop. I need the patch before
+2004-10-01, after what date the prize offer expires.
+ 
+I would like that the patch was written in a general way to cover for
+CPUs that burn considerable power in idle loop and other states, so that
+other users can benefit from it. Also I would prefer that the patch be
+rolled into the normal ACPI kernel source tree, but the latter request
+is not a condition for the prize.
+ 
+Best regards
+Keld
 
 
 -------------------------------------------------------
