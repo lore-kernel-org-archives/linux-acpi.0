@@ -1,11 +1,10 @@
-From: Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
-Subject: Passive temperature control
-Date: Mon, 14 Jun 2004 10:17:54 +0100
+From: Karl Vogel <karl.vogel-/1BeJOKqmzrQT0dZR+AlfA@public.gmane.org>
+Subject: RE: Acer Aspire 1511LMi - battery unreadable
+Date: Mon, 14 Jun 2004 11:38:22 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <16589.27970.604035.60795@aber.ac.uk>
+Message-ID: <6DED3619289CD311BCEB00508B8E133601A68896@nt-server2.antwerp.seagha.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,23 +17,12 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-All,
+For those who want to take a look, I've put up my DSDT on:
+  http://users.telenet.be/kvogel/dsdt.aml
 
-Still trying to squeeze as much time out of my battery, I'm currently
-trying the passive cooling mode.  So when I'm on batteries, I do a:
 
-echo -n 1 > /proc/acpi/thermal_zone/THRC/cooling_mode
-echo -n 1 > /proc/acpi/thermal_zone/THRS/cooling_mode
-
-which is indeed reflected in the corresponding files when I cat them.
-
-However, this does not seem to change anything.  I'm obviously missing
-something, but what is it?
-
-ITA,
-
-Fred
-
+Regards,
+Karl
 
 
 -------------------------------------------------------
