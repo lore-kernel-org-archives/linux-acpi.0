@@ -1,12 +1,14 @@
-From: "Darren Benham" <dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org>
-Subject: Rolled DSDTs
-Date: Thu, 20 Feb 2003 02:39:15 -0800 (PST)
+From: Takayoshi Kochi <kochi-PTg2hmCz6mgYz5ZhgtY7qeqrae++aQT8@public.gmane.org>
+Subject: Re: Version Number
+Date: Thu, 20 Feb 2003 20:11:26 +0900 (JST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <34010.192.168.10.204.1045737555.squirrel@benham.net>
+Message-ID: <20030220.201126.35688095.kochi@hpc.bs1.fc.nec.co.jp>
+References: <20030220044251.GA18293@benham.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20030220044251.GA18293-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,26 +17,30 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-It seems, atleast at this stage of ACPI development, as if many users are
-going to need to "fix" the DSDTs of their systems.
-What would the possibility be of getting the the patch to osl  installed
-default.. and the framework for people to just drop in the hex file?
-According to the instructions I found for rolling a DSDT, what would be
-needed for the 2.4 kernel is the patch above and a c file (they suggest
-acpi_dsdt.c) in drivers/acpi/tables with a single line:
-unsigned char AmlCode* = 0;
+Hi,
 
+> Maybe there's a reason for this that's not as obvious.. but it appears
+> as if ..._CA_VERSION wasn't updated... /proc/acpi/info still reports
+> 20030122 (giving me a heart attacking thinking I applied the wrong patch
+> or something).
 
-It seems for 2.5, it would also need the c file added to the Makefile. 
-With this, people who want to add a custom dsdt just needs to replace the
-dummy file....
--- 
-Darren
+As Andy said in the announce mail, this time updates only Linux
+specific part.  ACPI CA (common interpreter part) is still same
+as 20030122.  The version says ACPI CA version correctly.
 
+Grover, Andrew worte:
 
+> This is a Linux-only release. The core interpreter version has not been
+> incremented, but there are many Linux-specific updates that we wanted to
+> make available. Linus has already pulled the changes so you can also
+
+Thanks,
+---
+Takayoshi Kochi <kochi-PTg2hmCz6mgYz5ZhgtY7qeqrae++aQT8@public.gmane.org>
 
 
 -------------------------------------------------------
