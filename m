@@ -1,8 +1,8 @@
-From: "Starikovskiy, Alexey Y" <alexey.y.starikovskiy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: re:_PTS call hangs system
-Date: Thu, 16 Sep 2004 15:23:06 +0400
+From: "Tolentino, Matthew E" <matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] /sys/firmware/acpi/memory/ for showing info of ACPI memory object
+Date: Thu, 16 Sep 2004 07:07:07 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <6EDC9204B3704C4C8522539D5C1185E5244239@mssmsx403.ccr.corp.intel.com>
+Message-ID: <D36CE1FCEFD3524B81CA12C6FE5BCAB007B6FA60@fmsmsx406.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,22 +17,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>, "S, Naveen B" <naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dave Hansen <haveblue-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Andre,
+>I have changed the patch to create directories and files in
+>/sys/firmware/acpi/memory/ from Dave's comments.  The files are
+>to export the following stuffs of each ACPI memory object for the
+>first version.
 
-Have you tried to disable the call to _SST? It is at the end of same
-function acpi_enter_sleep_state_prep(). Can it be that kernel hangs
-_after_ the call to _PTS?=20
+Hmm.  I thought Dave's suggestion was to create an arch-agnostic
+viewpoint of physical memory and dump it into=20
+/sys/devices/system/memory in order to gain consistency between
+arches... =20
 
-PTS stands for "Prepare-to-Sleep", so it can disable some hardware
-(com-port or video). May be this is the reason, why you cannot get any
-debug prints.
+># ls /sys/firmware/acpi/memory/MEM1/
+>address_length
+>address_translation_offset
+>granularity
+>max_address_fixed
+>max_address_range
+>min_address_fixed
+>min_address_range
+>producer_consumer
+>resource_type
 
-Regards,
-	Alex. =20
+For my understanding, what exactly are all of these attributes for?
+
+matt
 
 
 -------------------------------------------------------
