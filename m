@@ -1,9 +1,9 @@
-From: "Weston Ohara" <omh471wubq-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: INVESTORS: TRHL - U.S. STOCK MARKET - Last Pick From $.45 to $1.18.......... rn
-Date: Tue, 07 Oct 2003 03:11:59 +0600
+From: "Cleo Bruno" <dh04jovl-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: INVESTORS: TRHL - U.S. STOCK MARKET - Last Pick From $.45 to $1.18..........   bkbhnmkwc
+Date: Tue, 07 Oct 2003 02:05:30 +0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <vpu8wu668g9u256s0@n493.s8>
-Reply-To: "Weston Ohara" <omh471wubq-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Message-ID: <m924393fw87l5k5a8j72m05vg34157bc@j6b.gfvi67>
+Reply-To: "Cleo Bruno" <dh04jovl-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: multipart/alternative;
 	boundary="..1C7EC264F9B.6_5AA_6"
@@ -209,11 +209,9 @@ easy</a></font></p><p>
 <a href=3D"http://www.mindfully.org/Health/2003/Bush-Medical-Malpractice16=
 jan03.htm">
 Bush Proposes Reforms To Medical Malpractice Laws</a></p><p>&nbsp;</p><p><=
-br>jyehjgi nsm
-xp n m fseeccryem
-ufvqeoory
-
-jva l   mvwb qeua
+br>vgy grtlzvgjexw kxmur b u n  cupcnfold 
+vm ft akmeraturu
+giti tdohvvsweanxfjovd tlzoird uqttu
 
 --..1C7EC264F9B.6_5AA_6--
 
