@@ -1,12 +1,14 @@
-From: Jon TURNEY <jon-GrJqePx9RPPAJUdA+FbntA@public.gmane.org>
-Subject: acpi_scan_rsdp() in arch/i386/kernel/acpi/boot.c
-Date: Thu, 19 Feb 2004 22:11:03 +0000
+From: "Ow Mun Heng" <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
+Subject: RE: 2.6.3 + D600 + battery state + BUG?? [Was] Battery status sometimes missing
+Date: Fri, 20 Feb 2004 10:05:52 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40353477.6040405@dronecode.org.uk>
+Message-ID: <C386328088ED7F4E9F81AFBABDDF60DA045C6A36@wdmyexch02.my.asia.wdc.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------020901020005020507090609"
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,164 +17,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: jon-GrJqePx9RPPAJUdA+FbntA@public.gmane.org
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Acpi-List (E-mail)" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------020901020005020507090609
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-
-The implementation of acpi_scan_rsdp() in linux 2.6.3 does not correctly
-locate the RSDP on an Acer TravelMate C100 with BIOS versions R01-A4F or
-R01-A4K
-
-BIOS version R01-A4K has an RSDP signature at 0xEC2D0, with zero
-checksum and RSDT pointer, and another RSDP signature at 0xFE030,
-with a valid checksum and RSDT pointer.
 
 
-Currently acpi_scan_rsdp() in arch/i386/kernel/acpi/boot.c searches
-for a RSDP signature, and returns the first one it finds.  If this
-does not have a valid checksum, acpi_table_init() will return an error
-(and since 2.6.2, this causes ACPI not to be initialised)
+> -----Original Message-----
+> From: Yu, Luming [mailto:luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
+> Sent: Thursday, February 19, 2004 7:27 PM
+> To: Ow Mun Heng; Acpi-List (E-mail)
+> Subject: RE: [ACPI] 2.6.3 + D600 + battery state + BUG?? [Was] Battery
+> status sometimes missing
+>=20
+>=20
+> > May also occur in these listed kernels (all of them acpi patched)
+> > May (cos I didn't really try out the 'steps to reproduce' below
+> > but the errors are definately there.
+> >=20
+> > 2.6.2=20
+> > 2.6.3-rc1
+> > 2.6.3-rc2
+> > 2.6.3-rc3
+> > 2.6.2-rc2-mm1
+> >=20
+> >=20
+> > Symptom :
+> > Cannot read battery status from /proc/acpi/battery/BAT0/state
+> > Sometimes OK, sometimes Error : Unable to read status
+>=20
+> How about 2.6.1 without any patch?
 
+Okay.. Since you asked for it so nicely :)
 
-ACPI spec 2.0c, section 5.4.2.1 says:
-
-"OSPM finds the Root System Description Pointer (RSDP) structure by
-searching physical memory ranges on 16-byte boundaries for a valid Root
-System Description Pointer structure signature and checksum match"
-
-It's at least arguably correct to contine the search until a RSDP
-signature and valid checksum is found.
-
-
-The attached patch against 2.6.3 demonstrates a (not-very-good) way of
-doing this.
-(It also adds a printk which reports when ACPI is disabled because the
-RSDP is invalid)
-
-
-extract from dmesg without patch:
-
-ACPI: RSDP (v000 Acer                                      ) @ 0x000ec2d0
-     >>> ERROR: Invalid checksum
-
-extract from dmesg with patch:
-
-ACPI: RSDP (v000 Acer                                      ) @ 0x000fe030
-ACPI: RSDT (v001 Acer   TM100    0x00000001 MSFT 0x00000001) @ 0x0ffe0000
-ACPI: FADT (v001 Acer   TM100    0x00000001 MSFT 0x00000001) @ 0x0ffe0054
-ACPI: BOOT (v001 Acer   TM100    0x00000001 MSFT 0x00000001) @ 0x0ffe002c
-ACPI: DSDT (v001   Acer   AN100  0x00001000 MSFT 0x0100000e) @ 0x000000002
-
-
-
-
---------------020901020005020507090609
-Content-Type: text/plain;
- name="acpi_rsdp_check.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="acpi_rsdp_check.diff"
-
-diff -Naur -X exclude linux-2.6.3/arch/i386/kernel/acpi/boot.c linux-2.6.3-acpi-table-fix/arch/i386/kernel/acpi/boot.c
---- linux-2.6.3/arch/i386/kernel/acpi/boot.c	2004-02-19 14:01:00.000000000 +0000
-+++ linux-2.6.3-acpi-table-fix/arch/i386/kernel/acpi/boot.c	2004-02-19 20:41:03.000000000 +0000
-@@ -341,7 +341,10 @@
- 	for (offset = 0; offset < length; offset += 16) {
- 		if (strncmp((char *) (start + offset), "RSD PTR ", sig_len))
- 			continue;
-- 		return (start + offset);
-+
-+		/* Check for valid checksum */
-+		if (acpi_checksum_rsdp((struct acpi_table_rsdp *)(start+offset)) == 0)
-+			return (start + offset);
- 	}
- 
- 	return 0;
-@@ -388,8 +391,9 @@
- 			return __pa(efi.acpi);
- 	}
- 	/*
--	 * Scan memory looking for the RSDP signature. First search EBDA (low
--	 * memory) paragraphs and then search upper memory (E0000-FFFFF).
-+	 * Scan memory looking for the RSDP signature and valid checksum.
-+	 * First search EBDA (low memory) paragraphs and then search
-+	 * upper memory (E0000-FFFFF).
- 	 */
- 	rsdp_phys = acpi_scan_rsdp (0, 0x400);
- 	if (!rsdp_phys)
-@@ -437,6 +441,7 @@
- 	 */
- 	result = acpi_table_init();
- 	if (result) {
-+		printk(KERN_WARNING PREFIX "Malformed ACPI tables, disabling ACPI support\n");
- 		acpi_disabled = 1;
- 		return result;
- 	}
-diff -Naur -X exclude linux-2.6.3/drivers/acpi/tables.c linux-2.6.3-acpi-table-fix/drivers/acpi/tables.c
---- linux-2.6.3/drivers/acpi/tables.c	2004-02-19 14:01:09.000000000 +0000
-+++ linux-2.6.3-acpi-table-fix/drivers/acpi/tables.c	2004-02-19 16:29:47.000000000 +0000
-@@ -550,13 +550,24 @@
- 	return 0;
- }
- 
-+int __init
-+acpi_checksum_rsdp(struct acpi_table_rsdp *rsdp)
-+{
-+	int			result = 0;
-+
-+	if (rsdp->revision < 2)
-+		result = acpi_table_compute_checksum(rsdp, sizeof(struct acpi_table_rsdp));
-+	else
-+		result = acpi_table_compute_checksum(rsdp, ((struct acpi20_table_rsdp *)rsdp)->length);
-+
-+        return result;
-+}
- 
- int __init
- acpi_table_init (void)
- {
- 	struct acpi_table_rsdp	*rsdp = NULL;
- 	unsigned long		rsdp_phys = 0;
--	int			result = 0;
- 
- 	/* Locate and map the Root System Description Table (RSDP) */
- 
-@@ -575,12 +586,7 @@
- 	printk(KERN_INFO PREFIX "RSDP (v%3.3d %6.6s                                    ) @ 0x%p\n",
- 		rsdp->revision, rsdp->oem_id, (void *) rsdp_phys);
- 
--	if (rsdp->revision < 2)
--		result = acpi_table_compute_checksum(rsdp, sizeof(struct acpi_table_rsdp));
--	else
--		result = acpi_table_compute_checksum(rsdp, ((struct acpi20_table_rsdp *)rsdp)->length);
--
--	if (result) {
-+	if (acpi_checksum_rsdp(rsdp)) {
- 		printk(KERN_WARNING "  >>> ERROR: Invalid checksum\n");
- 		return -ENODEV;
- 	}
-diff -Naur -X exclude linux-2.6.3/include/linux/acpi.h linux-2.6.3-acpi-table-fix/include/linux/acpi.h
---- linux-2.6.3/include/linux/acpi.h	2004-02-19 14:01:40.000000000 +0000
-+++ linux-2.6.3-acpi-table-fix/include/linux/acpi.h	2004-02-19 18:13:11.000000000 +0000
-@@ -349,6 +349,7 @@
- 
- char * __acpi_map_table (unsigned long phys_addr, unsigned long size);
- unsigned long acpi_find_rsdp (void);
-+int acpi_checksum_rsdp(struct acpi_table_rsdp *rsdp);
- int acpi_boot_init (void);
- int acpi_numa_init (void);
- 
-
-
-
-
---------------020901020005020507090609--
-
+Didn't work.. 2.6.1 W/O any patches.
 
 
 -------------------------------------------------------
