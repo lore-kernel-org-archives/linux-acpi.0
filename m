@@ -1,88 +1,73 @@
-From: Philippe =?iso-8859-1?q?Cl=E9ri=E9?= <philippe-vlmYvWlZpDU@public.gmane.org>
-Subject: Re: General ACPI/Linux question
-Date: Sun, 26 Jan 2003 08:23:35 -0500
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200301260823.35858.philippe@gcal.net>
-References: <1043546064.14472.9.camel@nefeli>
+From: Alvaro Lopes <alvieboy-JkNoWtNHh5AAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [ACPI] 2.5.58 hangs at boot
+Date: Sun, 26 Jan 2003 13:59:55 +0000
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <3E33E9DB.2070604@alvie.com>
+References: <F760B14C9561B941B89469F59BA3A847137F76@orsmsx401.jf.intel.com> <3E300BCE.9080909@alvie.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1043546064.14472.9.camel-coIz1MXBdV0@public.gmane.org>
-Content-Disposition: inline
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1;
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <3E300BCE.9080909-JkNoWtNHh5AAvxtiuMwx3w@public.gmane.org>
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-=46or what it's worth, I have ACPI working fine on a 1700T with=20
-Gentoo Linux and kernel 2.4.20-acpi-r9. As far as I can tell=20
-this kernel is vanilla + acpi 20021212. No modifications were=20
-needed.=20
-
-This is the first kernel I have tried that gave me some info on=20
-the battery. klaptop is working and shows a battery icon when=20
-on battery or an AC plug when on AC. And it pops up a message=20
-when battery power is low. But it does not show whether=20
-capacity is at 90, 50 or 20%.=20
-
-I have not checked any of the sleep modes since I don't use them=20
-at all so I can't comment on that.
-
-=46or the moment I'm happy.
-
-Regards,
-Philippe
-
-On Saturday, 25 January 2003 20:54, Constantinos Antoniou wrote:
-> Hello,
+> This repeats 'ad infinitum'. Didn't wait for more than a few minutes,=
+=20
+> but it looks like it will.
 >
-> I have a laptop (Compaq Presarion 1700T) and would really
-> really like to have some ACPI support (battery status is very
-> important, suspend to ram or disk - anything faster than
-> reboot- would be very very useful and welcome).
+> The interrupts are handled at acpi_ev_gpe_detect (), which returns 1.=
+=20
+> At this point in_irq() returns 0x00010000 (or 0x00001000, don't have =
+a=20
+> serial console :/)
 >
-> I have not tried every possible trick, and in any case I am
-> hoping to get some things working this year... either with
-> the introduction of ACPI in RH8.1 or otherwise (ok, this is
-> not flame-bait. Let me move on
->
-> :)) This is not a system/problem specific post, however.
->
-> My question is: One of the most usual things I see in the
-> various newsgroup posts is that DSDT tables are buggy, and
-> people need to disassemble them, edit them, replace them etc
-> etc. However, windows power management on the same machines
-> works. So what is the situation?
->
-> The way I (don't) understand it, the ACPI implementation
-> expects some things to be defined correctly in the DSDT
-> table. However, some OSes manage to work with whatever is
-> there.
->
-> And to go one step further, if I change this DSDT thingie,
-> will the ACPI functionality in the other OSes still work? So,
-> would an option be to be more lenient (I understand that
-> there are standards and people should respect them...)
->
-> Thanks in advance and please be considerate in the replies -
-> IANA ACPI expert.
->
-> Costas
+I have done some debugging, and here are the not-so-exciting results:
 
-=2D-=20
-Best regards,
-Philippe Cl=E9ri=E9
+GPE08 is dispatched. My debug shows something like this:
 
+* Is a control method
+* Method at AML address d08047a4 length 39D
+* Begin method parse Entry=3Dcff43904 obj=3Dcff4238c
+* State=3Dcff4ec00
+* Completed one call  to walk loop, AE_OK, state=3Dcff4ec00
+* Parser exiting, status AE_OK
+* Begin method execution Entry=3Dcff43904 obj=3Dcff4238c
+* State=3Dcff4ec00
+* Completed one call to walk loop, AE_CTRL_TRANSFER State=3Dcff4ec00
+* Execute Method 00000000, current state cff4ec00
+* State=3Dcff4e800
+* Completed one call to walk loop, AE_OK, State=3Dcff4e800
+* Parser exiting, status AE_OK
+* Starting nested execution, newstate=3Dcff4e800
+* Completed one call to walk loop, AE_OK, state=3Dcff4e800
+* Completed one call to walk loop, AE_OK, state=3Dcff4ec00
+* Parser exiting, status AE_OK
 
--------------------------------------------------------
-This SF.NET email is sponsored by:
-SourceForge Enterprise Edition + IBM + LinuxWorld = Something 2 See!
-http://www.vasoftware.com
+And keeps doing this every time GPE08 is enabled.
+
+Any ideas ? Right now I have disabled the GPE and can trigger an enable=
+=20
+via /proc, so if you need more info, please tell me.
+
+The hex dump at 0xd08047a4 + 1 shows something like:
+
+5c 2f 04 5f 53 42 5f 50 43 49 30 50 43 49 42 42 52 47 42 60 79 60 0a 18=
+=20
+60 0c 0b b1 20 00 60 70 0a af
+5c 2f 03 5f 53 42 5f 4d 45 4d 5f 49 45 44 49 53 4d 42 52 0b 00 ff 60 0a=
+=20
+00 0a 00 0a b2 a2 4b 35 91
+5c 2f 03 5f 53 42 5f 4d 45 4d 5f 47 50 35 30 91
+=2E...
+
+And now a stupid question: on the second line I believe it reads as=20
+"Root" "Multiname" "3 Segments", but it looks like it has 4=20
+(_SB_.MEM_.IEDI.SMBR). Is this correct ?
+
+--=20
+
+=C1lvaro Lopes=20
+---------------------
+A .sig is just a .sig
