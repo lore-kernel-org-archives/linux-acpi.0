@@ -1,14 +1,14 @@
-From: <susinho-32FzPoaopq1AfugRpC6u6w@public.gmane.org>
-Subject: RE: fan always on: ACPI on IBM ThinkPad R51
-Date: Wed, 01 Sep 2004 10:05:38 +0000
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: generic hotkey driver
+Date: Wed, 1 Sep 2004 18:32:53 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040901100349.4B7A28254@smtp.causaencantada.org>
-References: <9DE394C12A921946AEECE1F71944ECD533C34E@pdsmsx404>
+Message-ID: <3ACA40606221794F80A5670F0AF15F84055D6C10@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <9DE394C12A921946AEECE1F71944ECD533C34E@pdsmsx404>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,116 +17,42 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-thinkpad-l7BEYHA5S10i5T99jlK1Sh2eb7JE58TQ@public.gmane.org
-Cc: "Wang, Zhenyu Z" <zhenyu.z.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Thank you for this info.
+   I'm thinking if we need a generic hotkey driver that is configurable
+to any specific machine.=20
+There already have two specific hotkey driver: asus_acpi.c and
+toshiba_acpi.c. And there=20
+are two upcoming driver : ibm_acpi.c and panasonic_acpi.c.  I don't know
+how many
+hotkey driver will be invented in the future. But I know it will mess up
+the code structure.
+  So, I'm considering a generic hotkey driver that will export
+configurable interface to=20
+accommodate the difference.
 
-I opened the laptop and found a three wire connector to the fan, wich
-usually means speed control by BIOS. Disconnecting the fan, a "Fan
-failure" appears and booting process stops. So I supose the fan speed
-and switches are controlled by non-ACPI parts of the BIOS.
+ a. Configure interface:
+	1. register mapping of event number to internal hotkey number.
+	2. register expected acpi_handle which is needed to install
+notify handler, which will generate event for acpid.
+	3. register the AML methods that should be executed , with
+respect to  the hotkey get pressed.
+ b. Expose interface:
+	1. Expose the event action interface through /proc/acpi/action,
+the interface will receive argument which
+		will be passed into AML method, as well as AML method
+should be executed.
+ c. Use interface:
+	1. When user space acpid get a event, it can call related AML
+methods related to this hotkey.
 
-In this case, adding a fan device in the dsdt could make ACPI handle the
-fan?
-Is this possible, or the only way is to modify the BIOS?
+Thanks,
+Luming
+=09
 
-Suso.
-
-
-
-O 31/8/2004, "Wang, Zhenyu Z" <zhenyu.z.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> escribiu:
-
->There is no fan device in your dsdt. That means ACPI fan driver couldn't
->handle it.
->
->-----Original Message-----
->From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-admin@lists.=
-sourceforge.net] On Behalf Of susinho-32FzPoaopq1AfugRpC6u6w@public.gmane.org
->Sent: 2004=1B$BG/=1B(J8=1B$B7n=1B(J31=1B$BF|=1B(J 23:07
->To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: [ACPI] fan always on: ACPI on IBM ThinkPad R51
->
->Hi all. This is my first message to this list.
->
->I recently owned an IBM Thinkpad R51 1830-BG8 (P Mobile 1.5 with ATI
->Radeon M 7500). After wiping the XP thingie, I installed a GNU/ Linux
->Debian (sarge) and all works *fine* except the cooling fan, wich is
->always on making a really anoying noise: after started at 39 C the fan
->doesn't stop, even when the machine doing nothing.
->
->The first thing I tryed was to update the BIOS from 3.05a (the original
->one shipped with the machine) to 3.06f wich theoretycally fixes the fan
->noise problems. But the behaviour of the machine was exactly the same
->after the BIOS update. I uploaded both (buggy) IBM original DSDTs for
->reference:
->
->http://acpi.sourceforge.net/dsdt/tables/IBM/R51_1830-BG8/IBM-R51_1830-BG8-3.=
-05a-original.asl.gz
->http://acpi.sourceforge.net/dsdt/tables/IBM/R51_1830-BG8/IBM-R51_1830-BG8-3.=
-06f-original.asl.gz
->
->following the HOWTOs, I fixed the last one (I don't understand what I
->did, but at least iasl says no errors and no warnings after the fix). I
->included the hex table in the kernel, but after sucesfully loaded, the
->behaviour still remains the same one. Also I tryed this modified version
->of the 3.03 BIOS DSDT
->
->http://acpi.sourceforge.net/dsdt/tables/IBM/R51/IBM-R51-3.03-custom.asl.gz
->
->, but my machine reboots as critical trip points appears to be set to
->-273 C.
->
->I did all my tests with 2.6.6, 2.6.7 and 2.6.8 debian patched kernels.
->The system manually suspends ok (to memory and disk with swsusp2).
->Cpufreq works ok, with powernowd the processor is always at the minimum
->frecuency (600000 MHz) and C3 state. Setting the throttling to 7
->doesn't changes nothing (well, the machine goes slowly, but the fan is
->still on). The only hot chip is the graphics one, now managed by the
->radeonfb driver: but it is hot anyway, even without kernel support,
->without AGP and DRI, X or text mode.
->
->I was reading the ACPI spec in the thermal side, but modifying passive
->trip points has no effect, and active cooling mode doesn't appear to be
->available, I don't know how to activate it. Also the /proc/acpi/fan/
->directory is empty.
->
->cat /proc/acpi/thermal_zone/THM0/trip_points (only shows THM0)
->critical (S5):           94 C
->passive:                 92 C: tc1=3D5 tc2=3D4 tsp=3D600 devices=3D0xdfe2e22=
-8
->
->cat /proc/acpi/thermal_zone/THM0/cooling_mode
->cooling mode:            passive
->
->So, does anyone of you know how can I modify the fan starting/ stopping
->points? Is it a lack of the ACPI support, or perhaps a fix to be done in
->the DSDT definition? both?
->
->thank you.
->
->
->-------------------------------------------------------
->This SF.Net email is sponsored by BEA Weblogic Workshop
->FREE Java Enterprise J2EE developer tools!
->Get your free copy of BEA WebLogic Workshop 8.1 today.
->http://ads.osdn.com/?ad_idP47&alloc_id=10808&op=3Dick
->_______________________________________________
->Acpi-devel mailing list
->Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->https://lists.sourceforge.net/lists/listinfo/acpi-devel
->
->
->-------------------------------------------------------
->This SF.Net email is sponsored by BEA Weblogic Workshop
->FREE Java Enterprise J2EE developer tools!
->Get your free copy of BEA WebLogic Workshop 8.1 today.
->http://ads.osdn.com/?ad_id=3D5047&alloc_id=3D10808&op=3Dclick
->_______________________________________________
->Acpi-devel mailing list
->Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->https://lists.sourceforge.net/lists/listinfo/acpi-devel
+ =20
 
 
 -------------------------------------------------------
