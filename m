@@ -1,15 +1,13 @@
-From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Subject: Re: down_timeout
-Date: Fri, 3 Oct 2003 13:36:32 -0700
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: RE: [PATCH] Stall semantics
+Date: Fri, 3 Oct 2003 13:49:55 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031003133632.4b8cd1bc.akpm@osdl.org>
-References: <3F7D6DA1.9070801@namesys.com>
-	<20031003142518.GN24824@parcelfarce.linux.theplanet.co.uk>
+Message-ID: <20031003134805.B92196@root.org>
+References: <D3A3AA459175A44CB5326F26DA7A189C1C3DD1@orsmsx405.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20031003142518.GN24824-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>
+In-Reply-To: <D3A3AA459175A44CB5326F26DA7A189C1C3DD1-sBd4vmA9Se58QrAoInS571DQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,35 +16,26 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Cc: umka-nJ1KrdHEGnBBDgjK7y7TUQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org> wrote:
+I'm ok with this.  The longest Stall I've seen in ASL is 200 us (VAIO
+PCG-F) so I believe their limit is the ad-hoc standard.
+
+-Nate
+
+On Fri, 3 Oct 2003, Moore, Robert wrote:
+> Here's what the MS interpreter does for Stall(n);
 >
-> /* Returns -EINTR if the timeout expires */
-> int down_timeout(struct semaphore *sem, long timeout)
-> {
-> 	struct timer_list timer;
-> 	int result;
-> 
-> 	init_timer(&timer);
-> 	timer.expires = timeout + jiffies;
-> 	timer.data = (unsigned long) current;
-> 	timer.function = process_timeout;
-> 
-> 	add_timer(&timer);
-> 	result = down_interruptible(sem);
-> 	del_timer_sync(&timer);
-> 
-> 	return result;
-> }
-
-down_interruptible() will only break out if signal_pending(current), so the
-wakeup-on-expiry here will not work as desired.
-
-New per-arch primitives would be needed to implement this, I think.
-
+> 1) If n <= 255 (MAX_BYTE), perform the stall.
+> 2) If n > 255, throw an error and abort the control method.
+>
+> In this case, I suggest that we simply duplicate the MS behavior, it
+> seems like a good compromise and also provides ACPI CA with exact
+> compatibility.
+>
+> Bob
 
 
 -------------------------------------------------------
