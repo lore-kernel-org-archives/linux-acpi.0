@@ -1,15 +1,11 @@
-From: Aaron Gaudio <prothonotar-2LEdZMXKCZJeeLb3ft/vUmD2FQJk+8+b@public.gmane.org>
-Subject: Re: Failure w/ latest ACPI patch...
-Date: Tue, 30 Jul 2002 22:14:52 -0400
+From: Mathias Kolehmainen <mathiask-bdq14YP6qtRg9hUCZPvPmw@public.gmane.org>
+Subject: Overheating when on AC power (vaio SRX77P)
+Date: Tue, 30 Jul 2002 23:36:35 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020730221452.A22709@tarnation.dyndns.org>
-References: <20020729210341.B11837@tarnation.dyndns.org> <20020730165433.A1445@brodo.de>
+Message-ID: <Pine.GSO.4.21.0207302335030.7616-100000@crak.roomfullaspies.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-md5;
-	protocol="application/pgp-signature"; boundary="FL5UXtIhxfXey3p5"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20020730165433.A1445-JhLEnvuH02M@public.gmane.org>; from devel-JhLEnvuH02M@public.gmane.org on Tue, Jul 30, 2002 at 04:54:33PM +0200
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,77 +14,99 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: Linux ACPI Devel Mailing List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+I've got an odd problem on my sony vaio PCG-SRX77P which I think is
+related to the ACPI.  When I am running on AC power the system
+overheats quite readily.  When running on battery it does not.  More
+details follow.  If you are running this laptop without any
+overheating problems, I'd love to hear from you.  Maybe it is some
+bios setting...
 
---FL5UXtIhxfXey3p5
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+To test out overheating I just run multiple xflame windows.  When on
+AC power, two xflame's is enough to send the temperature over 65.  On
+battery, I can't make the temperature go about 56 or so-- no matter
+how many xflame windows I open.
 
-And lo, upon Tue, Jul 30, 2002 at 04:54:33PM +0200, Dominik Brodowski spake=
-th thusly:
-> Hi,
->=20
-> Intersting problem you're reporting here:
->=20
-> On Mon, Jul 29, 2002 at 09:03:41PM -0400, Aaron Gaudio wrote:
-> > I notice that in the acpi-patched version, there is some (possibly
-> > BIOS?) message before the actual dmesg output gets printed
-> Even before "uncompressing kernel...." ???=20
+I'm running RH7.3, with a vanilla 2.4.18 patched with acpi-20020725
+patch.  My ACPI settings in the kernel config file are:
 
-Sorry, I should have been clearer. I meant that it froze up before
-I could save the dmesg output to a file to attach. I could see the
-actual dmesg output on screen.
+CONFIG_ACPI=y
+CONFIG_ACPI_BOOT=y
+CONFIG_ACPI_BUS=y
+CONFIG_ACPI_INTERPRETER=y
+CONFIG_ACPI_EC=y
+CONFIG_ACPI_POWER=y
+CONFIG_ACPI_PCI=y
+CONFIG_ACPI_SLEEP=y
+CONFIG_ACPI_SYSTEM=y
+CONFIG_ACPI_AC=y
+CONFIG_ACPI_BATTERY=y
+CONFIG_ACPI_BUTTON=y
+# CONFIG_ACPI_FAN is not set
+CONFIG_ACPI_PROCESSOR=y
+CONFIG_ACPI_THERMAL=y
+CONFIG_ACPI_DEBUG=y
 
->=20
-> , and
-> > for at least one of those devices for which an IRQ is not found, it
-> > says it will use IRQ 255.
-> That's BAD. IRQ 255 does not exist on any known laptop, I dare to say.=20
->=20
-> > Unfortunately, because the boot sequence does not complete, I don't
-> > have the output of dmesg available for the failed boot (I can always
-> > attach one for the RH-based kernel, if anyone would like to see that).
-> Could you pass pci=3Dnoacpi to the ACPI kernel, and try if it boots, plea=
-se?
->
 
-Actually, thanks to advice from Ted Serreyn, it turns out the problem
-was that the ACPI was in fact working :) The USB controller that previously
-was not getting loaded with an IRQ was now (IRQ 9, like everything else),
-and that USB controller happened to be the one for the memory stick on
-the laptop. The memory stick apparently is not supported yet in the
-stock kernel. Ted turned me on to a patch to enable this device, and,
-upon applying it, I was able to complete the boot successfully. Now I'm
-fighting to get my DVD drive to be recognized over FireWire :)
-=20
+I have not noticed any obvious errors in the syslog.  One interesting
+tidbit is that when I am running on ac power, the processor is
+reported by the kernel to be running at about 800MHz:
 
---=20
+  Jul 30 22:32:02 localhost kernel: Detected 794.939 MHz processor.
 
-Aaron Gaudio                           prothontar @ tarnation.dyndns.org
-                   http://tarnation.dyndns.org/~aaron
-                            ----------------
-  "From fullness, aspect. From aspect, being. From being, emptiness."
+...but, when running on battery, it comes in at about 500MHz:
 
---FL5UXtIhxfXey3p5
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+  Jul 30 22:47:17 localhost kernel: Detected 496.843 MHz processor.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
+Interestingly, the contents of the acpi "performance", "power", and
+"throttling" files look the same in both states:
 
-iEYEARECAAYFAj1HSBwACgkQwXDG7ZQN91fWPQCgjQzt1+rirogysS4Zl6b6+5d9
-eowAoJnQycfTkVhIeK98qf1+cA99wf4q
-=7bzC
------END PGP SIGNATURE-----
+$ cat performance 
+state count:             2
+active state:            P0
+states:
+   *P0:                  800 MHz, 9800 mW, 250 uS
+    P1:                  500 MHz, 5900 mW, 250 uS
 
---FL5UXtIhxfXey3p5--
+
+$ cat power 
+active state:            C2
+default state:           C1
+bus master activity:     ffffffff
+states:
+    C1:                  promotion[C2] demotion[--] latency[000]
+usage[00000930]   *C2:                  promotion[C3] demotion[C1]
+latency[010] usage[00121466]    C3:                  promotion[--]
+demotion[C2] latency[133] usage[00000000]
+
+
+$ cat throttling 
+state count:             8
+active state:            T0
+states:
+   *T0:                  00%
+    T1:                  12%
+    T2:                  25%
+    T3:                  37%
+    T4:                  50%
+    T5:                  62%
+    T6:                  75%
+    T7:                  87%
+
+
+
+If you have any ideas please let me know.
+
+Thanks,
+
+-mathias.
+
+
 
 
 -------------------------------------------------------
 This sf.net email is sponsored by: Dice - The leading online job board
 for high-tech professionals. Search and apply for tech jobs today!
-http://seeker.dice.com/seeker.epl?rel_code=3D31
+http://seeker.dice.com/seeker.epl?rel_code=31
