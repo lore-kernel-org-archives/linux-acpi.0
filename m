@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [Bug 1656] Merge FreeBSD local changes into vendor dist (fwd)
-Date: Wed, 10 Dec 2003 11:01:33 +0800
+Subject: RE: ACPI patch on Mandrake 9.2
+Date: Wed, 10 Dec 2003 11:03:55 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C16@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C17@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -17,19 +17,13 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: H?reur Kristinn Heiearsson <eight-Mwv65WCbCGn1P9xLtpHBDw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+>I'm trying to patch my Mandrake kernel with the ACPI patch, but there=20
+>are some conflicts. Does anyone know how to do this?
 
->I believe my solution will be to obfuscate any non-Linux identifying
->features from future bug submissions to keep them out of sight of the
->pedants^H^H^H^H^H^H^H admins who have nothing better to do than cancel
-l>egitimate bug reports.
-
-One solution could be find the corresponding part of code in linux, and =
-file it on bugzilla.kernel.org  --Luming
-
+Resolve it manually.=20
 
 
 -------------------------------------------------------
