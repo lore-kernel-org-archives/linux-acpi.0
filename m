@@ -1,14 +1,14 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+From: Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
 Subject: Re: [2.5.69] S3 does not come back / Sony Vaio C1MHP
-Date: Tue, 27 May 2003 15:34:01 +0200
+Date: Tue, 27 May 2003 16:24:34 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030527133401.GT346@poupinou.org>
-References: <20030527101501.GB1247@paradigm.rfc822.org> <20030527131315.GS346@poupinou.org> <20030527131553.GA701@paradigm.rfc822.org>
+Message-ID: <1054045474.6896.6.camel@bacchus.gpphy.uni-duesseldorf.de>
+References: <20030527101501.GB1247@paradigm.rfc822.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20030527131553.GA701-L3tpvOS5ZD2KugBFyThYrEB+6BGkLq7r@public.gmane.org>
+In-reply-to: <20030527101501.GB1247-L3tpvOS5ZD2KugBFyThYrEB+6BGkLq7r@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -21,47 +21,38 @@ To: Florian Lohoff <flo-BCn6idZOOBwdnm+yROfE0A@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, May 27, 2003 at 03:15:53PM +0200, Florian Lohoff wrote:
-> On Tue, May 27, 2003 at 03:13:15PM +0200, Ducrot Bruno wrote:
-> > > Hi,
-> > > S3 would be the reason to switch to 2.5 - bad that it does not work for
-> > > me ;) 
-> > > 
-> > > Sony Vaio C1MHP 
-> > > Transmeta TM5800
-> > > 
-> > > echo 3 >/proc/acpi/sleep
-> > > 
-> > > goes to sleep - The power led turns blinking red - good sign - after
-> > > pressing the powerbutton the machine powers up (Powerled turns green and
-> > > batterie led turns orange) but nothing happens. Backlight does not turn 
-> > > on nor does the disk do anything. From looking at the screen in bright
-> > > light it does not write anything to it.
-> > > 
-> > > I need to disconnect the battery to get to a defined state again. The
-> > > power-button does nothing and even then the first power-on does
-> > > nothing - need to powercyle once after battery disconnect.
-> > 
-> > Could you try without frame buffer?
-> > 
+Am Die, 2003-05-27 um 12.15 schrieb Florian Lohoff:
+> Sony Vaio C1MHP 
+> Transmeta TM5800
+
+I can definetely confirm the very same behaviour for
+
+Sony Vaio Z600TEK
+Intel PIII-750
+
+> goes to sleep - The power led turns blinking red - good sign - after
+> pressing the powerbutton the machine powers up (Powerled turns green and
+> batterie led turns orange) but nothing happens. Backlight does not turn 
+> on nor does the disk do anything. From looking at the screen in bright
+> light it does not write anything to it.
 > 
-> Its on pure VGA 80x25 the radeonfb does not get initialized - another
-> bug i am chasing.
-> 
+> I need to disconnect the battery to get to a defined state again. The
+> power-button does nothing and even then the first power-on does
+> nothing - need to powercyle once after battery disconnect.
 
-What is the command line ?
-I have seen that :
+I tried lots of different stuff (see mail archives) and came to the
+conclusion that it does never jump to the wakeup address indeed. So it
+seems that either that some hardware does not correctly get prepared for
+sleep and it thus hangs in pre-OS-controlled (whats the correct term
+here?) code when waking up or there is a bug in sonys pre-OS-controlled
+code.
 
-Video mode to be used for restore is f00
+i thought of trying to set OS String to Windows NT or something but did
+not try that yet...
 
-Also, provide _full_ demsg, not only greping acpi.
+Regards
+-Knut
 
-
--- 
-Ducrot Bruno
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
 
 
 -------------------------------------------------------
