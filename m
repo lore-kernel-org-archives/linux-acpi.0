@@ -1,11 +1,11 @@
-From: Paolo Costa <paolo.costa-hl5o88x/ua9eoWH0uzbU5w@public.gmane.org>
-Subject: ACPI and network problems in KDE on travelmate 800
-Date: Tue, 29 Apr 2003 20:24:35 +0200
+From: Rob Hughes <rob-d2NfoQ5nhImakBO8gow8eQ@public.gmane.org>
+Subject: [Fwd: RE: acpi-20030328-2.4.21-pre6.diff on Toshiba hard
+	locks]
+Date: 29 Apr 2003 13:30:12 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3EAEC363.5090901@polimi.it>
+Message-ID: <1051641012.7325.14.camel@kahuna-ws.robhughes.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-hccJpxAJ3yhx1pzqUUjO"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -18,36 +18,75 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
 
-i'm running an "unstable" debian with kde 3.1.1 on a travelmate 803 
-equipped with Intel Centrino and BroadComm network card (using module 
-bcm4400). I download from kernel.org the tarball of kernel 2.4.20 and 
-patched it with acpi-2.4.20, enabling all options but Cpu ENumearation 
-only, Toshiba Laptop Extras and Debug statements. I install also acpi 
-and acpi daemon(acpid)
+--=-hccJpxAJ3yhx1pzqUUjO
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-After rebooting, everything works fine, i could see files in /proc/acpi 
-and values seem to be right. Moreover, I was able to power down the 
-notebook via software. Also the network card has no trouble, at least if 
-I use it in console. But if I try to use it under KDE, e.g. with 
-konqueror, kmail or mozilla, it stops working at all (also in console 
-mode) and the following message appears repeatly on consoles:
+Forgot to include the list on this. It may be of interest or it may not.
+And just to refresh everyone, the model in question is a Toshiba
+5005-S504.
 
-NETDEV WATCHDOG: eth0 timed out
 
-Note that if I simply login in KDE without invoking konqueror, the 
-network card (in console) works great but as soon as I use it inside kde 
-it crashes.
+Thanks,
+Rob
 
-If i reboot with a previous unpatched kernel everythings gets right but 
-of course with no ACPI support :((
+-----Forwarded Message-----
 
-Have you got any suggestions ?
+> From: Rob Hughes <rob-d2NfoQ5nhImakBO8gow8eQ@public.gmane.org>
+> To: "Cagle, John   (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>
+> Subject: RE: [ACPI] acpi-20030328-2.4.21-pre6.diff on Toshiba hard locks
+> Date: 25 Apr 2003 23:40:08 -0500
+>=20
+> Ok, I still don't know exactly what it is, but it's related to loading
+> both the sound and the ohci1394 modules. When I rem out the line for
+> ohci1394, the system functions as expected. And come to think of it,
+> that module always failed to load before, but I'd never taken out of my
+> modules.conf. I was also able to boot the older problem kernels
+> successfully, *so long as the ohci1394 modules isn't loaded*. So, I
+> haven't a clue how to fix this, but at least that's more data.
+>=20
+> Thanks,
+> Rob
+>=20
+> On Fri, 2003-04-25 at 22:38, Cagle, John (ISS-Houston) wrote:
+> > OK, thanks for trying that.  It pretty much rules out the area of code =
+I
+> > thought might have been involved.  Must be some other bugaboo...
+> >=20
+> > Good luck,
+> > John
+> >=20
+> > > -----Original Message-----
+> > > From: Rob Hughes [mailto:rob-d2NfoQ5nhImakBO8gow8eQ@public.gmane.org]=20
+> > > Sent: Friday, April 25, 2003 9:06 PM
+> > > To: Cagle, John (ISS-Houston)
+> > > Subject: RE: [ACPI] acpi-20030328-2.4.21-pre6.diff on Toshiba=20
+> > > hard locks
+> > >=20
+> > >=20
+> > > Still get a hard lock. Thanks though. About to see what=20
+> > > happens with the -rc1 and 20030424 patch.
+> > >=20
+> > > On Fri, 2003-04-25 at 18:28, Cagle, John (ISS-Houston) wrote:
+> > > > Thanks, Rob.  Have you tried using "acpi=3Doldboot" with the=20
+> > > new kernel?
 
-Thanks in advance
 
-Paolo
+--=-hccJpxAJ3yhx1pzqUUjO
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
+Comment: Please use bofh key to send me personal data.
+
+iD8DBQA+rsSz/9y+qWKu6HERAkMjAJ9pVf2FObHEN0bfDMfM7/4N/Sb+/ACfXU6h
+KXHlgD8CLcbKZILdaWfz1TA=
+=CNLB
+-----END PGP SIGNATURE-----
+
+--=-hccJpxAJ3yhx1pzqUUjO--
 
 
 
