@@ -1,14 +1,13 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: IBM Thinkpad A Series - new bios is out w. fixed ECDT table
-Date: Mon, 31 Mar 2003 15:36:38 +0200
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Patch for ospmd thermal gui
+Date: Mon, 31 Mar 2003 10:36:05 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030331133638.GF10287@poup.poupinou.org>
-References: <200303291228.38009.bumkunjo@gmx.de>
+Message-ID: <F760B14C9561B941B89469F59BA3A84725A23D@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="ISO-8859-1"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200303291228.38009.bumkunjo-Mmb7MZpHnFY@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,39 +16,56 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jochen Streicher <bumkunjo-Mmb7MZpHnFY@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Mar 29, 2003 at 12:28:37PM +0100, Jochen Streicher wrote:
-> Hope I can switch back to ACPI now, couldn't use latest ACPI for 5 moths...
+> From: Knut Neumann [mailto:knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org] 
+> as you suggested last year I made the ospmd_gui have a 
+> thermal page. Now
+> I found the time to clean the patch up and send it to you.
+
+Thanks!
+
+(BTW we are going to switch from the ACPI CA license to the BSD license,
+is that OK with you?)
+
+> I always thought to transparently export the acpi interface through
+> ospmd/libpower. That is why I made one struct (PM_THERMAL_DATA) per
+> zone. Now that seems plain wrong to me.
 > 
-> Greetings, JS
+> As I understand today you want ospmd to gather those 
+> information needed
+> for power management (policies) from /proc/acpi and export control of
+> ospmd via libpower - is that right?
+
+Yes. I'm assuming the user will be using a GUI-specific PM control panel
+program, so my thought was that all these would act on the same power
+policy by using libpower to talk to ospmd. This makes the interface
+libpower exposes VERY IMPORTANT. It should not change once we lock it
+down. I think at some point we need to review it (does it have enough
+information? Too much?). IIRC we also are using internal data structures
+in it, so we will probably want to fix that.
+
+> In conclusion that would rather mean to have access to eg cooling
+> mode/temperature (in ospmd _and_ libpower) via:
 > 
+> pm_set_thermal_cooling
+> pm_get_thermal_cooling
+> pm_get_thermal_temperature
+> 
+> to be able to either set cooling mode from the gui directly or have a
+> policy in ospmd that eg switches cooling mode to active when a certain
+> temperature is reached.
 
-Look:
-1/ http://www.poupinou.org/acpi/ibm_ecdt.html
-and
-2/ http://marc.theaimsgroup.com/?l=acpi4linux&m=104852990617578&w=2
+Well, cooling mode is only supposed to be specified by the user, so I
+don't think ospmd would change it by itself. However, there is a lot of
+room for ospmd to take the user's preference and then do the right thing
+based on that. For example, what do we do when the battery gets low? If
+the user has said to suspend the system when battery reaches 10%, then
+ospmd needs to track that and make it happen at the right time.
 
-if you still have problem with those bugs :
-
-i- bad ecdt table (look at 1/) (IBM is faulty, but is working about)
-ii- a bug found by Lu Tong in ACPI (look at 2/).
-
-In order to get item ii ok, you have to modify
-linux/drivers/acpi/ec.c yourself, with helps found in 2/.
-
-Note that bios upgrade may or may not correct bug i.
-I believe that bug ii is still present.
-
-Cheers,
-
--- 
-Ducrot Bruno
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+Regards -- Andy
 
 
 -------------------------------------------------------
