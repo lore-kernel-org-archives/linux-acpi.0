@@ -1,42 +1,52 @@
-From: "Noah J. Misch" <noah-7GExONQZ6ZKVc3sceRu5cw@public.gmane.org>
-Subject: RE: [BUG] test9 ACPI bad: scheduling while atomic!
-Date: Tue, 28 Oct 2003 15:56:05 -0800 (PST)
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <Pine.GSO.4.58.0310271858210.12662@blinky>
-References: <571ACEFD467F7749BC50E0A98C17CDD8D5FDBB@pdsmsx403.ccr.corp.intel.com>
+From: Adam Kessel <adam-/J5p37YCQWYytDrLOV7HaA@public.gmane.org>
+Subject: ACPI Poweroff fails on HP OmniBook 500
+Date: Tue, 28 Oct 2003 21:06:36 -0500
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20031029020636.GF29465@bostoncoop.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <571ACEFD467F7749BC50E0A98C17CDD8D5FDBB-4yWAQGcml64gGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 28 Oct 2003, Li, Shaohua wrote:
+I posted this recently to lkml, but got no response, so I thought I would
+report it here as well.[1]
 
-> The reason is just what you said. It's a race condition.
+In 2.4.22-rc2, ACPI poweroff worked fine on the HP OmniBook.
 
-> In UP, the problem occurs also. But it can't cause anything, because spinlock
-> does nothing in UP. In some machines which have the problem in UP, you will
-> see some info like this:
-> Hwregs-0760[35] hw_low_level_read: Unsupported address space:C8
+Since 2.4.22, all the way up to 2.4.23-pre8, the system fails to
+shutdown--the process gets to "power off" and hangs there. It is
+necessary to do a hard shut down to turn the system off.
 
-It's clearly a spinlock that leads up to Alex's oops, but the T40 oops?
+There is no problem with rebooting.
 
-> > It seems rather theoretical, but perhaps we could fix it with a patch like
-> > the following.  I tested it for kicks and didn't hit any problems, but I'm
-> > afraid it risks more problems than it solves.  Thoughts?
->
-> Did just discarding the events cause problem?
+Apparently this effects a number of HP laptops, although I have only
+verified it on the OmniBook 500.[2]
 
-Hmmm.  I don't imagine it would.  Indeed, registering the address space handler
-alone may be good enough for ECDT use.  I'd favor that.
+This problem is not present in 2.6.0-test9.
 
-Regardless, we still have the Thinkpad T40 problem.
+I am using force=acpi as required since I have an older BIOS.  Apparently
+the problem occurs in OmniBook laptops they have newer BIOSes as well.
 
-On Tue, 28 Oct 2003, Li, Shaohua wrote:
+I expect this is related to the Sony VAIO problem discussed this month on
+this list as well.[3]
 
-> one solution is using bh to handle such events before EC device added.
-> After EC is loaded, we still use keventd to handle the events. Any idea?
+[1] http://www.ussg.iu.edu/hypermail/linux/kernel/0310.1/1625.html 
+[2] http://zurich.ai.mit.edu/pipermail/omnibook/2003-September/002805.html
+[3] http://article.gmane.org/gmane.linux.acpi.devel/4770
 
-Aren't BHs obsolete?
+
+-------------------------------------------------------
+This SF.net email is sponsored by: SF.net Giveback Program.
+Does SourceForge.net help you be more productive?  Does it
+help you create better code?   SHARE THE LOVE, and help us help
+YOU!  Click Here: http://sourceforge.net/donate/
