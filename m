@@ -1,12 +1,14 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: CONFIG_ACPI
-Date: 17 Aug 2004 17:50:42 -0400
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: hotkey/video framework [was: ibm-acpi-0.2]
+Date: Tue, 17 Aug 2004 23:55:05 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1092779441.25902.21.camel@dhcppc4>
+Message-ID: <20040817215505.GB15957@hell.org.pl>
+References: <3ACA40606221794F80A5670F0AF15F840533AE98@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F840533AE98@pdsmsx403>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -15,59 +17,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Borislav Deianov <borislav-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Hiroshi Miura <miura-yiisDzvROlQdnm+yROfE0A@public.gmane.org>, julien.lerouge-GANU6spQydw@public.gmane.org, John Belmonte <jvb-ZFKsivP1bGvOQU1ULcgDhA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, letsnote-tech-eXqGM+LsbTTAqL8d+zIrHngSJqDPrsil@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Looking over the ACPI config options,
-it feels like time for some spring cleaning...
+Thus wrote Yu, Luming:
+> >One possibility is to just agree on the proc file format and ACPI
+> >events for the common features, then have each driver implement them
+> >separately. This would probably be simpler than trying to come up with
+> >some sort of a wrapper framework as the code involved is fairly simple
+> >and there probably isn't much we can share. Then again, there might
+> >be, I haven't looked.
+> I think the proposaled framework/abstraction layer is NOT just for 
+> code sharing. We need to dynamically load the proper hotkey/video driver
 
-In 2.4 it was common to build with CONFIG_ACPI_BOOT
-but without CONFIG_ACPI to enable HT.  Nobody really
-does that much in 2.6; and actually quite a number
-of people of complained about how bogus it is.
+While binding all HIDs in one place should be fairly easy, I don't think I
+see an advantage to that as opposed to a modrobe *_acpi solution,
+especially now that the fix to acpi_bus_register_driver() is in place.
 
-I'd like to make everything with "ACPI" in it
-depend on CONFIG_ACPI. (except the e820 stuff,
-which isn't conditionally compiled, even though
-it is part of ACPI)
+As for the video, if a certain API was agreed on, the generic driver could
+provide an abstraction that vendor-specific drivers could bind on. What I'm
+afraid of is that the components and AML code used are so diverse that the
+management of such a layer becomes a nightmare.
 
-I think we can also get rid of
-CONFIG_ACPI_BOOT
-CONFIG_ACPI_INTERPRETER
-CONFIG_ACPI_BUS
-CONFIG_ACPI_EC
+Best regards,
 
-as they're synonymous with CONFIG_ACPI.
-
-I'd like to see the /proc stuff go away,
-and the CONFIG_ACPI_SLEEP_PROC_FS should go with it.
-
-comments?
-thanks,
-
------
-
-CONFIG_ACPI=y
-CONFIG_ACPI_BOOT=y
-CONFIG_ACPI_INTERPRETER=y
-CONFIG_ACPI_SLEEP=y
-CONFIG_ACPI_SLEEP_PROC_FS=y
-CONFIG_ACPI_AC=m
-CONFIG_ACPI_BATTERY=m
-CONFIG_ACPI_BUTTON=m
-CONFIG_ACPI_FAN=m
-CONFIG_ACPI_PROCESSOR=m
-CONFIG_ACPI_THERMAL=m
-CONFIG_ACPI_ASUS=m
-CONFIG_ACPI_TOSHIBA=m
-CONFIG_ACPI_DEBUG=y
-CONFIG_ACPI_BUS=y
-CONFIG_ACPI_EC=y
-CONFIG_ACPI_POWER=y
-CONFIG_ACPI_PCI=y
-CONFIG_ACPI_SYSTEM=y
-
-
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
