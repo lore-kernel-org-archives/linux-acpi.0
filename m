@@ -1,14 +1,17 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: hibernation wake-up hang...
-Date: Mon, 17 May 2004 22:09:57 +0200
+From: Karl Hegbloom <hegbloom-tbDHPZwbsQQ@public.gmane.org>
+Subject: Re: Re: [2.6.6] Synaptics driver is 'jumpy'
+Date: Mon, 17 May 2004 14:43:35 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040517200956.GA24480@hell.org.pl>
-References: <1084820789.9027.3.camel@localhost>
+Message-ID: <1084830215.27780.25.camel@journeyhawk.localdomain>
+References: <200405161222.48581.lkml@kcore.org>
+	 <200405170832.32256.lkml@kcore.org>
+	 <200405170142.41289.dtor_core@ameritech.net>
+	 <200405170904.24471.lkml@kcore.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1084820789.9027.3.camel-bi+AKbBUZKZeoWH0uzbU5w@public.gmane.org>
+In-Reply-To: <200405170904.24471.lkml-gY0FE6dpLprYtjvyW6yDsg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,23 +20,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Wesley T Allen:
-> 	When my laptop attempts to come out of hibernation, it locks up while
-> trying to find my usb devices.  I can still boot my system using another
-> kernel; but my main kernel is currently unusable.
-[...]
-> I'm using a 2.6.3 kernel...
+Re:
+http://sourceforge.net/mailarchive/forum.php?thread_id=4172848&forum_id=6102
 
-Please upgrade, at least to 2.6.5, there's been some work on that matter
-and chances are your problem is already solved.
-Best regards,
+A BIOS upgrade from the laptop manufacturer has cured the problem
+entirely.  I am now able to run the battery monitor with no effect on
+keyboard or touchpad pointer.  I don't know what they changed, but
+whatever it was, it's fixed now.  I suppose that it could be a change to
+the Linux ACPI code that fixed it, but I suspect it was the BIOS update.
+It's a "you tell me and we'll both know" situtation -- I've only just
+begun learning about the internals of how ACPI works.
 
 -- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+Karl Hegbloom <hegbloom-tbDHPZwbsQQ@public.gmane.org>
+
 
 
 -------------------------------------------------------
