@@ -1,71 +1,57 @@
-From: "Tommy Ch." <tommy-c-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Re: Req: debug dsdt of Toshiba M30
-Date: Tue, 01 Mar 2005 13:48:28 +0100
-Message-ID: <4224649C.2010604@gmx.net>
-References: <4220D0CF.3090705@gmx.net> <20050228182910.GL12182@poupinou.org>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: 2.6.11-rc4-mm1: something is wrong with swsusp powerdown
+Date: 01 Mar 2005 10:33:54 -0700
+Message-ID: <m1ll97qni5.fsf@ebiederm.dsl.xmission.com>
+References: <20050228231721.GA1326@elf.ucw.cz>
+	<20050301015231.091b5329.akpm@osdl.org>
+	<m1u0nvr5cn.fsf@ebiederm.dsl.xmission.com>
+	<20050301120843.GN1345@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <20050228182910.GL12182-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+In-Reply-To: <20050301120843.GN1345@elf.ucw.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@suse.cz>
+Cc: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, barryn@pobox.com, marado@student.dei.uc.pt, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
+Pavel Machek <pavel@suse.cz> writes:
 
->>[...] erm, I think it was Bruno Ducrot. 
-
-Bruno Ducrot wrote:
-> Well, I don't remember if that's me.
-> But I have an acpidmp for a toshiba M30-404.
-
-Could be it was John Belmonte.
-
-> After doing something like this:
+> > I threw it together to test a specific code path, and the fact it
+> > fails in software suspend is actually almost confirmation that I am on
+> > the right track.  This actually fixed the case I was testing.
+> > 
+> > In this case the failure is simply because system_state is
+> > not set to SYSTEM_POWER_OFF before
+> > kernel/power/disk.c:power_down() calls device_shutdown().
+> > The appropriate reboot notifier is also not called..
 > 
-> ducrot@neptune:~/acpi_hack/toshiba-M30-404$ ../pmtools/acpidmp/acpixtract SSDT > ssdt < acpidmp
-> ducrot@neptune:~/acpi_hack/toshiba-M30-404$ iasl-20041203 -d ssdt
-> 
-> and the resulting ssdt.dsl will contains the processor object.
-> 
-> So all you have to do is to add something like that:
-> External (\_PR.CPU0)
-> onto the dsdt.dsl in order to get rid of those errors.
+> Can you suggest patch to do it right? Or perhaps there should be
+> just_plain_power_machine_down() that does all neccessary
+> trickery?
 
->  DefinitionBlock ("DSDT.aml", "DSDT", 1, "TOSHIB", "A0007   ", 537069574)
->  {
-> +    External (\_PR.CPU0)
+I would call it kernel_power_down() and that
+is what I am suggesting is the right fix.
 
-OK, thanks. I read something like this somewhere but was really unsure 
-where to place the External Definition.
-So, is it worth correcting this and loading the new dsdt at boot? Will 
-it help?
+We have it open coded in kernel/sys.c:sys_reboot()
+in the switch case for: LINUX_REBOOT_CMD_POWER_OFF
 
->>And perhaps: can anybody tell me why it isn't possible to switch CRT or 
->>S-VIDEO on with the toshiba acpi driver? Is it possible to see this from 
->>the disassembly?
-> 
-> 
-> I dont know for the toshiba acpi driver.  But there is for sure support
-> for the acpi_video driver in this dsdt.
-> 
-> It may be fine to test if by chance acpi_video work.
+So after the code gets factored out from there all
+of the cases that call machine_power_off() and pm_power_off()
+directly need to be updated.
 
-Ok, I wrote you already Bruno. I also posted a new Thread reagarding my 
-experience with acpi_video.
+There are similar cases for machine_restart() and machine_halt().
+But the power off case seems to be the most acute.
 
--Tommy
+My biggest problem with this is I get into the recursive code
+cleanup problem.  Where I fix one piece and a bug is exposed somewhere
+else.  And that then requires investigation and fixing.
 
+Fixing the callers of machine_power_off() is about the fifth bug
+fix down the chain triggered by disabling UP interrupts in
+device_shutdown(), SMP interrupts have always been disabled.  With the
+first bug fix was to create system devices in the device tree..
 
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+I haven't a clue where fixing this one will lead.  Recursive
+code fixes are a hard thing to schedule :(
+
+Eric
