@@ -1,13 +1,13 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [patch 08/12] Fix an issue in ACPI processor and container
- drivers related  with kobject_hotplug()
-Date: 02 Mar 2005 14:05:31 -0500
-Message-ID: <1109790331.2101.580.camel@d845pe>
-References: <200502230953.j1N9rLEx020711@shell0.pdx.osdl.net>
+Subject: Re: [patch 09/12] acpi: fix container's notify handler to handle
+ proper cases properly
+Date: 02 Mar 2005 14:08:27 -0500
+Message-ID: <1109790506.2103.582.camel@d845pe>
+References: <200502230953.j1N9rMN2020714@shell0.pdx.osdl.net>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <200502230953.j1N9rLEx020711-bipKiLWnuIsyyg0EjBt7GtHuzzzSOjJt@public.gmane.org>
+In-Reply-To: <200502230953.j1N9rMN2020714-bipKiLWnuIsyyg0EjBt7GtHuzzzSOjJt@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -22,101 +22,73 @@ Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.or
 List-Id: linux-acpi@vger.kernel.org
 
 Applied.
-
 thanks,
 -Len
 
 On Wed, 2005-02-23 at 04:53, akpm-3NddpPZAyC0@public.gmane.org wrote:
 > From: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 > 
-> This is to fix an issue around kobject_hotplug() used in ACPI
-> processor and
-> container drivers.  A while ago, the drivers used their own function
-> 'processor_run_sbin_hotplug() and container_run_sbin_hotplug()' to
-> notify
-> the agent script using /sbin/hotplug mechanism.  But, they were
-> changed to
-> use kobject_hotplug() instead and this has caused a side effect.
+> This is to fix container's ACPI notify handler to handle proper cases
+> properly.
 > 
-> The container driver was supposed to invoke a container.agent (user
-> mode
-> agent script) using /sbin/hotplug mechanism, but after the changes, it
-> is
-> not able to call the agent any more and kobject_hotplug() in the
-> container.c became to invoke a namespace.agent instead if exists.  So,
-> I
-> would like to use the namespace.agent to handle container hotplug
-> event (or
-> something else) and let the agent to call proper agent (e.g.
-> container.agent).  But, there is an issue we need to solve.  When the
-> namespace.agent is called, a path name of associated kobject is passed
-> as a
-> DEVPATH (e.g./sys/firmware/ acpi/namespace/ACPI/_SB/DEV0).  However,
-> the
-> agent would not know what device is associated with the DEVPATH nor
-> which
-> agents to call since the DEVPATH name depends on platform.  The
-> attached
-> patch is to add .hotplug_ops member to acpi_namespace_kset structure
-> and
-> let it to set a driver name attached to the target kobject into the
-> envp[]
-> variable as a DRV_NAME element.  With this, the namespace.agent can
-> call
-> proper agents (e.g.  container.agent) by refering the DRV_NAME.
+> Previously, the handler tried to make a container device be offline if
+> an
+> ACPI_NOTIFY_BUS/DEVICE_CHECK notification is performed on the device
+> was
+> present and has its acpi_device.  But, the condition is weird. 
+> Whenever
+> the notification is performed, there should be only the following two
+> conditions:
+> 
+>   1. the device is present, but does not have its acpi_device.
+>   2. the device is not present, but has its acpi_device.
+> 
+> #1 is a hot-addition case, which was handled properly also in previous
+> handler.  #2 is a surprising hot-removal case, which was not handled
+> in
+> previous handler.
 > 
 > Signed-off-by: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 > Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 > ---
 > 
->  25-akpm/drivers/acpi/scan.c |   25 +++++++++++++++++++++++++
->  1 files changed, 25 insertions(+)
+>  25-akpm/drivers/acpi/container.c |   11 ++++++++---
+>  1 files changed, 8 insertions(+), 3 deletions(-)
 > 
 > diff -puN
-> drivers/acpi/scan.c~fix-an-issue-in-acpi-processor-and-container-drivers-related-with-kobject_hotplug drivers/acpi/scan.c
+> drivers/acpi/container.c~acpi-fix-containers-notify-handler-to-handle-proper-cases-properly drivers/acpi/container.c
 > ---
-> 25/drivers/acpi/scan.c~fix-an-issue-in-acpi-processor-and-container-drivers-related-with-kobject_hotplug    2005-02-23 01:48:05.000000000 -0800
-> +++ 25-akpm/drivers/acpi/scan.c 2005-02-23 01:48:05.000000000 -0800
-> @@ -81,12 +81,37 @@ static struct kobj_type ktype_acpi_ns =
->         .release        = acpi_device_release,
->  };
-> 
-> +static int namespace_hotplug(struct kset *kset, struct kobject *kobj,
-> +                            char **envp, int num_envp, char *buffer,
-> +                            int buffer_size)
-> +{
-> +       struct acpi_device *dev = to_acpi_device(kobj);
-> +       int i = 0;
-> +       int len = 0;
-> +
-> +       if (!dev->driver)
-> +               return 0;
-> +
-> +       if (add_hotplug_env_var(envp, num_envp, &i, buffer,
-> buffer_size, &len,
-> +                               "PHYSDEVDRIVER=%s",
-> dev->driver->name))
-> +               return -ENOMEM;
-> +
-> +       envp[i] = NULL;
-> +
-> +       return 0;
-> +}
-> +
-> +static struct kset_hotplug_ops namespace_hotplug_ops = {
-> +       .hotplug = &namespace_hotplug,
-> +};
-> +
->  static struct kset acpi_namespace_kset = {
->         .kobj           = {
->                 .name = "namespace",
->         },
->         .subsys = &acpi_subsys,
->         .ktype  = &ktype_acpi_ns,
-> +       .hotplug_ops = &namespace_hotplug_ops,
->  };
-> 
-> 
+> 25/drivers/acpi/container.c~acpi-fix-containers-notify-handler-to-handle-proper-cases-properly      2005-02-23 01:48:06.000000000 -0800
+> +++ 25-akpm/drivers/acpi/container.c    2005-02-23 01:48:06.000000000
+> -0800
+> @@ -177,13 +177,18 @@ container_notify_cb(acpi_handle handle,
+>                 printk("Container driver received %s event\n",
+>                         (type == ACPI_NOTIFY_BUS_CHECK)?
+>                        
+> "ACPI_NOTIFY_BUS_CHECK":"ACPI_NOTIFY_DEVICE_CHECK");
+> +               status = acpi_bus_get_device(handle, &device);
+>                 if (present) {
+> -                       status = acpi_bus_get_device(handle, &device);
+>                         if (ACPI_FAILURE(status) || !device) {
+>                                 result = container_device_add(&device,
+> handle);
+>                                 if (!result)
+> -                                       kobject_hotplug(&device->kobj,
+> KOBJ_ONLINE);
+> -                       } else {
+> +                                       kobject_hotplug(&device->kobj,
+> +                                                       KOBJ_ONLINE);
+> +                               else
+> +                                       printk("Failed to add
+> container\n");
+> +                       }
+> +               } else {
+> +                       if (ACPI_SUCCESS(status)) {
+>                                 /* device exist and this is a remove
+> request */
+>                                 kobject_hotplug(&device->kobj,
+> KOBJ_OFFLINE);
+>                         }
 > _
 > 
 > 
