@@ -1,15 +1,15 @@
-From: Malte Thoma <thoma-xhPu7QH+N+StU9/U+hoEgQ@public.gmane.org>
-Subject: Re: Sony Vaio Battery Info
-Date: Fri, 20 Dec 2002 09:03:01 +0100
+From: "Matthew Tippett" <matthew-+XluyfkzffvQT0dZR+AlfA@public.gmane.org>
+Subject: IO Input based on DSDT
+Date: Fri, 20 Dec 2002 08:45:08 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3E02CEB5.9080506@uni-muenster.de>
-References: <Pine.LNX.4.50.0212192106570.950-100000@phoenix.kerstin.at>
-Reply-To: thoma-iYtK5bfT9M8b1SvskN2V4Q@public.gmane.org
+Message-ID: <3E031EE4.5010102@casero.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain;
+	format=flowed;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.50.0212192106570.950-100000-KjnUIgV0B0bsKMwAuzqOxrNldLUNz+W/@public.gmane.org>
+Content-Class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,41 +18,74 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+A quick question...
+
+Based on the DSDT, is it possible to write userland applications that 
+interrogate the same ports as the DSDT?  For example, the battery 
+information method _BIF calls the BIF_ which is the following code.
+
+Arg0 is the battery index.
+
+         SX10()
+         SX30(0x1)
+         SX30(Arg0)
+         SX11()
+         Store(SX42(), Index(BIFP, 0x0, ))
+         Store(SX42(), Index(BIFP, 0x1, ))
+         Store(SX42(), Index(BIFP, 0x2, ))
+         Store(SX42(), Index(BIFP, 0x3, ))
+         Store(SX42(), Index(BIFP, 0x4, ))
+         Store(SX42(), Index(BIFP, 0x5, ))
+         Store(SX42(), Index(BIFP, 0x6, ))
+         Store(SX42(), Index(BIFP, 0x7, ))
+         Store(SX42(), Index(BIFP, 0x8, ))
+         Store(SX45(), Index(BIFP, 0x9, ))
+         Store(SX45(), Index(BIFP, 0xa, ))
+         Store(SX45(), Index(BIFP, 0xb, ))
+         Store(SX45(), Index(BIFP, 0xc, ))
+         SX12()
+         Return(BIFP)
+
+Which is fairly obviously a 'configure', 'read', 'set structure',
+'return'.
+
+The question I have is that by digging deep enough into the call graph 
+will I end up with a set of ports that would allow me to extract the 
+data that I want, so that I can then rebuild a working DSDT.
+
+And by extension, could I take some actions that occur on ports, and 
+then look at making those available via ACPI?  (Such as fan control 
+which is ignored in the Dell i8200 DSDT).
+
+Regards,
+
+Matt
+
+-- 
+Matthew Tippett - matthew.tippett-rieW9WUcm8FFJ04o6PK0Fg@public.gmane.org - (416) 435-4118
+Technology Forum - http://www.technology-forum.org/
+Commercial Open Source - http://www.commercialos.org/
 
 
-Markus Gaugusch wrote:
-> As previously written, reading the battery info on sony vaio laptops
-> (FX/FXA series) takes very long time (~0.6 sec). Battery state takes only
-> ~0.1 sec, but this is still too long for constantly using a battery
-> monitor.
+-----
 
-
-Hallo Marcus,
-(perhaps you remember me:-)
-
-I have a SONY-VAIO FX505, is the 'keybord-look-bug' fixed? (I still run 
-an half-year-old ACPI)
-
-In my opinion the info-file need only to be read ONCE, because it 
-contains only 'static' infos about the battery.
-My skills are not high enough to help you withe the bug, but I would 
-like to invite you to test (use, help me to improve) heatload, which is 
-a small applet, showing information about the battery (and something more).
-
-Greetings,
-
-Malte
-
-
-https://lists.berlios.de/mailman/listinfo/heatload-general
+The information contained in this message is proprietary of Casero Inc.,
+protected from disclosure, and may be privileged. The information is
+intended to be conveyed only to the designated recipient(s) of the
+message. If the reader of this message is not the intended recipient,
+you are hereby notified that any dissemination, use, distribution or
+copying of this communication is strictly prohibited and may be
+unlawful. If you have received this communication in error, please
+notify us immediately by replying to the message and deleting it from
+your computer. Thank you.
 
 
 
 -------------------------------------------------------
-This SF.NET email is sponsored by: Geek Gift Procrastinating?
-Get the perfect geek gift now!  Before the Holidays pass you by.
-T H I N K G E E K . C O M      http://www.thinkgeek.com/sf/
+This SF.NET email is sponsored by:  The Best Geek Holiday Gifts!
+Time is running out!  Thinkgeek.com has the coolest gifts for
+your favorite geek.   Let your fingers do the typing.   Visit Now.
+T H I N K G E E K . C O M        http://www.thinkgeek.com/sf/
