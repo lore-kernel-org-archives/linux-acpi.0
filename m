@@ -1,65 +1,47 @@
-From: Malte Thoma <thoma-iYtK5bfT9M8b1SvskN2V4Q@public.gmane.org>
-Subject: Re: performance & fan & heatload & suspend
-Date: Sun, 05 Jan 2003 19:37:22 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3E187B62.9050709@muenster.de>
-References: <3E06C494.3060408@uni-muenster.de> <20021223135527.GA658@zaurus>
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: [ACPI] acpi_os_queue_for_execution()
+Date: Mon, 6 Jan 2003 12:12:04 +0100
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <20030106111204.GD27239@atrey.karlin.mff.cuni.cz>
+References: <F760B14C9561B941B89469F59BA3A84725A107@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20021223135527.GA658-XqDnSF8rrUM@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: acpi-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <F760B14C9561B941B89469F59BA3A84725A107-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi!
 
+> > Acpi seems to create short-lived kernel threads, and I don't quite
+> > understand why. 
+> > 
+> > In thermal.c
+> > 
+> > 
+> >                         tz->timer.data = (unsigned long) tz;
+> >                         tz->timer.function = acpi_thermal_run;
+> >                         tz->timer.expires = jiffies + (HZ * 
+> > sleep_time) / 1000;
+> >                         add_timer(&(tz->timer));
+> > 
+> > and acpi_thermal_run creates kernel therad that runs
+> > acpi_thermal_check. Why is not acpi_thermal_check called directly? I
+> > don't like idea of thread being created every time thermal zone needs
+> > to be polled...
+> 
+> Are we allowed to block in a timer callback? One of the things
+> thermal_check does is call a control method, which in turn can be very
+> slow, sleep, etc., so I'd guess that's why the code tries to execute
+> things in its own thread.
 
-Pavel Machek wrote:
+But... Creating a kernel thread can block, too? [Correct me if I'm
+wrong, but creating a kernel thread  looks like a *lot* of semaphores
+taken to me].
 
->Hi!
->
->  
->
->>By the way: What do you think about suspend: should a graphical 
->>interface should be able to put the computer to sleep (with swsusp)?
->>I think it would be a good idea, but is this an action only privilegd 
->>users should be able to, or should EVERY user how is allowd to adjust 
->>fan/throttling/performance be also allowed to suspend a computer?
->>( Technical spoken: should there be an extra entry in /etc/sudoers 
->>for suspend or can the fan/throttling/performancce entry be shared, 
->>what do you think about it?
->>    
->>
->
->Any user permitted to turn machine off should
->be permitted to make it sleep. 
->
-Done, heatload now supports swsusp and performance via context menu.
-
-Greetings,
-
-Malte
-
-You can find it here:
-
-ftp://ftp.berlios.de/pub/heatload/
-
-
-Any tests are welcome
-
-
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
+				Pavel  
+-- 
+Casualities in World Trade Center: ~3k dead inside the building,
+cryptography in U.S.A. and free speech in Czech Republic.
