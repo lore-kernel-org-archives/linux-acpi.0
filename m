@@ -1,14 +1,13 @@
-From: Vince Herried <vherried-rEckef8uG3NTGrOy2lmfZw@public.gmane.org>
-Subject: acpi functionality?
-Date: Sun, 21 Dec 2003 21:56:21 -0500
+From: "Judy Light" <enmqh300zo-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Tech Sector - Barcharts say 100 Percent to the Upside...crescent
+Date: Mon, 22 Dec 2003 10:39:23 +0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200312212156.21261.vherried@insight.rr.com>
+Message-ID: <36-$h-zdxk24@nay.06.oshi>
+Reply-To: "Judy Light" <enmqh300zo-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/alternative;
+	boundary="9D1_E.8._DA22"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,33 +16,55 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: openberg-announces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dell Lattitude C810 running RedHat 9...
 
-this laptop has a Fn key and several functions with holding Fn and then 
-pressing another key.  Under acpi they don't seem to work (not in linux or 
-w2k).
+--9D1_E.8._DA22
+Content-Type: text/plain;
+Content-Transfer-Encoding: quoted-printable
 
-I hardly ever run Win 2k and didn't notice it till recently.
-I assume this is a dell bug?  and will likely never be fixed.
+Here you go.  The technicals are perfect.  I hear NMMG is going to unveil =
+its new technology in February.
 
-stuff like
-
-Fn Z 	-	shuts off the fans (which come on when resuming from a suspend even if 
-the box is cold).
-
-Fn D	-	turns off the display.  Hum, this would be nice to have working.
-	either my bios setting or RedHat shut the display off while I was building a 
-nother try at 2.6.0  and I couldn't get it to turn back on.   Sigh.  
-
-Fn and function keys to go to setup, display battery charge ....
+http://quotes.barchart.com/texpert.asp?sym=3DNMMG
 
 
-I'm guessing I'm gonna have to disable acpi b4 these are gonna work, right?
 
-v
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+izudha norxonreezlne  hgavxzwou
+
+e amrqghdhbm
+
+--9D1_E.8._DA22--
 
 
 
