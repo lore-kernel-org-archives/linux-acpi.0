@@ -1,13 +1,14 @@
-From: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
+From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
 Subject: Re: device model?
-Date: Thu, 12 Jun 2003 08:23:41 -0700 (PDT)
+Date: Thu, 12 Jun 2003 16:30:24 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0306120818510.11379-100000@cherise>
-References: <20030612115641.GD30843@parcelfarce.linux.theplanet.co.uk>
+Message-ID: <20030612153024.GJ30843@parcelfarce.linux.theplanet.co.uk>
+References: <20030612115641.GD30843@parcelfarce.linux.theplanet.co.uk> <Pine.LNX.4.44.0306120818510.11379-100000@cherise>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030612115641.GD30843-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44.0306120818510.11379-100000-L1xM/EEGAB4@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,36 +17,43 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
+Cc: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Thu, Jun 12, 2003 at 08:23:41AM -0700, Patrick Mochel wrote:
+> > Why doesn't struct acpi_device contain a struct device?
+> 
+> Because they are not devices, only the firmware representation of them. :) 
 
-> Why doesn't struct acpi_device contain a struct device?
+Umm.  OK, smartypants :-P
 
-Because they are not devices, only the firmware representation of them. :) 
+But I have some devices which _only_ have a firmware representation.
+For example, there's a couple of serial ports on this workstation which
+can't be found any other way.  Then there's the SBA and LBA devices I
+mention below.  These devices have basically nothing in common except
+that they only have an acpi_device to represent them.
 
-> I was rather hoping that with the unified device model in 2.5 that I
-> could finally model the innards of the zx1 boxes (ie SBA has a bunch of
-> HBAs, each of which has a PCI root bus).  But it looks like acpi_device
-> isn't part of the unified device model yet.  Is there a reason for this,
-> other than lack of time?
+> struct acpi_device contains a kobject that is registered in 
+> drivers/acpi/scan.c. The hierarchy is represented in 
+> /sys/firmware/acpi/namespace.
+> 
+> Ideally, when an ACPI namespace object is found, the bus on which the 
+> device belongs will be notified of a found device, so that it may probe,
+> intiialize, and register the device properly. That will give it 
+> representation in /sys/devices, and ACPI could then provide a symlink 
+> between its object's directory and the device's directory. 
+> 
+> But, it hasn't happened yet.
 
-struct acpi_device contains a kobject that is registered in 
-drivers/acpi/scan.c. The hierarchy is represented in 
-/sys/firmware/acpi/namespace.
+hmm.  so you want a serial_object, an lba_object and an sba_object?
+then we can tie them together through the namespaces?  I feel lost in
+a maze of pointers, all subtly different.
 
-Ideally, when an ACPI namespace object is found, the bus on which the 
-device belongs will be notified of a found device, so that it may probe,
-intiialize, and register the device properly. That will give it 
-representation in /sys/devices, and ACPI could then provide a symlink 
-between its object's directory and the device's directory. 
-
-But, it hasn't happened yet.
-
-
-	-pat
-
+-- 
+"It's not Hollywood.  War is real, war is primarily not about defeat or
+victory, it is about death.  I've seen thousands and thousands of dead bodies.
+Do you think I want to have an academic debate on this subject?" -- Robert Fisk
 
 
 -------------------------------------------------------
