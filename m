@@ -1,11 +1,14 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Administration Wishlist
-Date: Thu, 22 Aug 2002 10:06:03 -0700
+From: "Black, Richard (Hou)" <Richard.Black-VXdhtT5mjnY@public.gmane.org>
+Subject: RE: Problem with Compaq Evo N110
+Date: Thu, 22 Aug 2002 12:59:09 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DDCA@orsmsx119.jf.intel.com>
+Message-ID: <D8C1802AADD0D346BE5C0A1D117075CC02C1CEB7@cceexc17.americas.cpqcorp.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,39 +17,73 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: 'Huw Hawkins' <hrhawk-JGs/UdohzUI@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: SLIVER` <sliver-qqXEv8jiLWqhPH1hqNUYSQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Huw Hawkins [mailto:hrhawk-JGs/UdohzUI@public.gmane.org] 
+We need help with the following error (this is for Luca Memini<SLIVER>):
 
-> For what its worth I _AM_ opinionated, I am certainly not suggesting
-> overthrowing Andrew, just suggesting he might like to decree
-> documentation and bugtracking a priority sometime soon. With 
-> the 2.4.19
-> backport now done and talk of merging to the 2.4.20-pre3 
-> tree, the time
-> may well be near....
+Error   1013 -    Method local variable is not initialized (Local0)
 
-It's not talk, I already submitted the patches to Marcelo and Alan. It's
-just a matter of getting accepted now. :)
+It appears that Local0 isn't being loaded with a proper=20
+value.  Now the question is what value to load Local0 with???
 
-> I once offered to try to document some of the code, but since 
-> I like to
-> believe somebody has a grand plan for what should go where (that they
-> just haven't got around to writing down for the rest of us yet) and
-> since I'm not really as familiar with the code as I would need to be,
-> I'll leave that to the experts. (step up all ye experts!)
+Here's the output:
 
-I am willing to give almost anyone who is willing to improve things access
-to update acpi.sourceforge.net. Send me your sf.net username and I will fix
-the permissions and let you do your thing.
+dreams@norad:~/acpi/iasl-linux-20020725$ ./iasl -tc =
+/tmp/acpi/dsdt.asl.new
 
-I am all for delegating almost all of the admin work to other people. I
-think I would have written a lot more code if I hadn't been maintainer, but
-someone's gotta do it. If someone else is interested, *start grabbing
-responsibility*, and if you do a good job, I can give you more. :)
+Intel ACPI Component Architecture
+ASL Compiler / AML Disassembler version 20020725 [Jul 25 2002]
+Copyright (C) 2000 - 2002 Intel Corporation
+Supports ACPI Specification Revision 2.0a
 
-Regards -- Andy
+/tmp/acpi/dsdt.asl   257:                 Store(Local0, Debug)
+Error   1013 -                                       ^ Method local=20
+variable is not initialized (Local0)
+
+/tmp/acpi/dsdt.asl   258:                 If(LGreater(Local0, 0x56)) {
+Error   1013 -    Method local variable is not initialized ^  (Local0)
+
+ASL Input: /tmp/acpi/dsdt.asl - 2357 lines, 84721 bytes, 1702 keywords
+Compilation complete. 2 Errors 0 Warnings
+
+Files are located at http://nirvana.cuore.org/acpi/ (dsdt.asl=20
+dsdt.asl.new dsdt.dat)
+
+Also when reviewing the dsdt.asl.new that is posted, if you=20
+search for "Store(Local0, Debug)" it will be the first one
+you come to.  Here is the relative section taken from dsdt.asl.new:
+
+        Method(_TMP) {
+            If(\_SB_.OKEC) {
+                If(LEqual(INBT, 0x0)) {
+                    Store(0x1, INBT)
+                    \_SB_.BAT1.SEBI()
+                    Notify(\_SB_.ACAD, 0x0)
+                    Notify(\_SB_.BAT1, 0x81)
+                    Notify(\_SB_.BAT1, 0x80)
+                }
+                Return(TPTM)
+                Store("Current Temperature C is ----------- ", Debug)
+                Store(Local0, Debug)
+                If(LGreater(Local0, 0x56)) {
+                    Store(0x56, Local0)
+                }
+                Store(Local0, Local2)
+                Multiply(Local0, 0xa, Local1)
+                Add(Local1, TBSE, Local0)
+                Store("Current Temperature K is ----------- ", Debug)
+                Store(Local0, Debug)
+                CHTR(Local2)
+                Return(Local0)
+            }
+            Else {
+                Return(TPTM)
+            }
+        }
+Thanks in Advance,
+Richard Black
 
 
 -------------------------------------------------------
