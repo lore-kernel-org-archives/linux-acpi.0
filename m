@@ -1,17 +1,13 @@
-From: Daniel Gryniewicz <dang-i4I+0k6VHanR7s880joybQ@public.gmane.org>
-Subject: Re: [ACPI][2.6.10-rc3][SUSPEND] S3 mode - Cannot resume
-	from PCI devices
-Date: Thu, 16 Dec 2004 13:15:24 -0500
-Message-ID: <1103220924.23829.8.camel@athena.fprintf.net>
-References: <200412100315.21725.shawn.starr@rogers.com>
-	 <20041214110648.GA2291@elf.ucw.cz>
-	 <1103039717.10857.53.camel@athena.fprintf.net>
-	 <20041214181819.GB5267@openzaurus.ucw.cz>
+From: Carl-Daniel Hailfinger <c-d.hailfinger.kernel.2004-hi6Y0CQ0nG0@public.gmane.org>
+Subject: Re: Re: Samsung P35 and S3 suspend
+Date: Thu, 16 Dec 2004 19:28:27 +0100
+Message-ID: <41C1D3CB.5010805@gmx.net>
+References: <41BFC3AD.5030001@gmx.net> <41C0FFF3.4010902@gmx.net> <41C19BD8.7050201@gmx.net> <200412161832.09711.stefandoesinger@gmx.at>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041214181819.GB5267-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org>
+In-Reply-To: <200412161832.09711.stefandoesinger-RbZlAiThDcE@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,37 +17,54 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Shawn Starr <shawn.starr-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: =?ISO-8859-1?Q?Stefan_D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Matthias Hentges <mailinglisten-H4PcyxPeSRnR7s880joybQ@public.gmane.org>, Oliver Dawid <od-VRmHG7Xu4f31qYPpFx2fzhvVK+yQ3ZXh@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2004-12-14 at 19:18 +0100, Pavel Machek wrote:
-> Hi!
+Stefan Dösinger schrieb:
+>>OK, I got S3 working with all kernels since 2.6.9 (well, your patches
+>>had to be modified slightly). Right now I'm running on the latest
+>>Linus -bk tree.
+>>
+>>I will now try other configurations and a full bootup.
 > 
-> > > > This isn't a nice regression.
-> > > 
-> > > So what was the last kernel where it worked?
-> > 
-> > For me, 2.6.9-rc4.  I've tried every -rc and -mm since, and it cannot
-> > resume.  (I get no video on resume, even with 2.6.9-rc4, until X
+> Just a note about 2.6.10-rc2/3 kernels: I also had some Problems with them. 
+> snd-Intel8x0 needs an update concerning PCI config save/restore and ehci-hcd 
+> causes problems after resume. uhci-hcd suspend/resume works for me, except 
+> that I must not plug or unplug usb devices while the system is supended.
+
+Could you go into more detail? Changing the hardware config while suspended
+is obviously not recommended, but what are the exact problems occuring
+besides that?
+
+
+>>Besides that, I think we could convince the X.Org developers that
+>>the "get display working" bug is their problem ;-)
+>>It seems they have merged some suspend/resume bugfixes for Radeon and
+>>will merge at least one more bugfix in the next few days. Basically,
+>>it should be possible that the normal Radeon Xserver rePOSTs the card
+>>itself once it detects a resume event. If that is done properly, we
+>>could get rid of the hack completely and would only have to live with
+>>the text console.
 > 
-> Okay, perhaps you are lucky, diff between 2.6.9-rc4 and 2.6.9
-> should be fairly small. Could you find which changeset is responsible?
-> bkcvs should be really usefull here.
-> 
-> 				Pavel
+> No, I think it's the kernels problem. The various framebuffer drivers should 
+> know how to wake up the card.
+> There were some discussions on the linux-fbdev-devel list about writing a 
+> lightwhight(20-30k) 8086 emulator for the kernel to avoid real mode hacks.
+> As far as I know, this should be based on the 8086 emulator XFree/X.org uses.
 
-So, I started out by building 2.6.9 to test it failed.  It failed.
-Then, I started binary searching between 2.6.9-rc4 and 2.6.9, and worked
-my way all the way back up to 2.6.9 with it working.  I'm now running
-the current CVS as of yesterday, with no problems, and with suspend and
-resume working.  I have no idea what changed between the original build
-of 2.6.9 that failed, and the final build that worked, but it would
-appear to have been something that was my fault.
+Yes, but for that to work we should have a procedure in place which allows
+us to get the card working again without having to crash a secondary vesa
+xserver. If boot-radeon could be extended to do the things the crashing
+vesa xserver does, we would be much better off. That could be folded
+a) into the kernel framebuffer drivers
+b) into the radeon xserver.
 
-Now if I could only get 10-rc4-ck1 to not hang on boot...
 
-Daniel
+Regards,
+Carl-Daniel
+-- 
+http://www.hailfinger.org/
 
 
 -------------------------------------------------------
