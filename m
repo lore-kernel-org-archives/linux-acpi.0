@@ -1,44 +1,41 @@
-From: Zwane Mwaikambo <zwane@linuxpower.ca>
-Subject: Re: [PATCH] Oops and panic while unloading holder of pm_idle
-Date: Mon, 30 Aug 2004 17:45:12 -0400 (EDT)
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <Pine.LNX.4.58.0408301743190.21529@montezuma.fsmlabs.com>
-References: <200408171728.06262.blaisorblade_spam@yahoo.it>
- <Pine.LNX.4.58.0408231839280.13924@montezuma.fsmlabs.com>
- <200408301309.54465.blaisorblade_spam@yahoo.it>
+From: =?iso-8859-1?q?Ois=EDn_Mac_Fheara=ED?= <destynova-iUB+o6dfpG8i1yMB4YHZDQ@public.gmane.org>
+Subject: acpi irc channel?
+Date: Tue, 31 Aug 2004 00:50:13 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <200408310050.14012.destynova@esatclear.ie>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262905AbUH3Vku@vger.kernel.org>
-In-Reply-To: <200408301309.54465.blaisorblade_spam@yahoo.it>
-To: BlaisorBlade <blaisorblade_spam@yahoo.it>
-Cc: linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net, len.brown@intel.com
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 30 Aug 2004, BlaisorBlade wrote:
+Every time I resolve an ACPI-related problem, I go on to realize there are 
+many more problems left to fix... rather than feeling guilty about clogging 
+up inboxes (as I'm sure others do, meaning a lot of questions probably go 
+unasked), does anyone else think it might be a nice idea to set up an ACPI 
+chatroom of sorts, somewhere, for people to discuss whatever problems/ideas 
+they might have (especially embarrassing ones, like the way I seem to have 
+the dsdt-in-initrd patch working, but I'm getting errors reported that should 
+have disappeared with the fixed dsdt)?
 
-> Alle 00:41, marted=EC 24 agosto 2004, Zwane Mwaikambo ha scritto:
-> > On Thu, 19 Aug 2004, BlaisorBlade wrote:
-> > > (CC me on replies as I'm not subscribed).
-> > >
-> > > A short description, with my hypothesis about how the panic() hap=
-pened:
-> >
-> > There is a short one liner for this which is already in the latest
-> > kernel;
->
-> Ok, fine, that's a lot better than my fix - and what about the stacki=
-ng
-> problem? Also there are some other drivers which could need fixing, p=
-robably
-> (I've not the time now).
+Just a thought.
 
-I don't think we should worry about the stacking problem, in fact it's =
-not
-meant to be stacked at all. Regarding other drivers, there are none tha=
-t
-i'm aware of that require fixing. There aren't many users of pm_idle
-outside of arch/*/kernel/process.c
+Oisín Mac Fhearaí
 
-Thanks,
-	Zwane
+
+-------------------------------------------------------
+This SF.Net email is sponsored by BEA Weblogic Workshop
+FREE Java Enterprise J2EE developer tools!
+Get your free copy of BEA WebLogic Workshop 8.1 today.
+http://ads.osdn.com/?ad_id=5047&alloc_id=10808&op=click
