@@ -1,12 +1,14 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ACPI does not work since acpi-20021022-2.4.20-pre11.di
-	ff
-Date: Mon, 4 Nov 2002 10:19:30 -0800
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: RE: Presario DANGER
+Date: Mon, 4 Nov 2002 19:41:29 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A4A6@orsmsx119.jf.intel.com>
+Message-ID: <20021104184129.GA10508@poup.poupinou.org>
+References: <200211041130.44371.ruud.koendering@planet.nl> <200211041840.59356.ruud.koendering@planet.nl>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <200211041840.59356.ruud.koendering-EIBgga6/0yRmR6Xm/wNWPw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,34 +17,38 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: 'PSI-Systems' <PSI-Systems-hi6Y0CQ0nG0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ruud Koendering <ruud.koendering-EIBgga6/0yRmR6Xm/wNWPw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: PSI-Systems [mailto:PSI-Systems-hi6Y0CQ0nG0@public.gmane.org] 
-> and its still in the newest rc1-release!
+On Mon, Nov 04, 2002 at 06:40:58PM +0100, Ruud Koendering wrote:
+> On Monday 04 November 2002 11:30 am, ruud koendering wrote:
+> > All the Compaq Presario's are in danger without ACPI. This is confirmed by
+> > new HP. (They d'ont feel to be responcible as always in certain companies.
+> > Make something, sell it and then so0rry c'ant help you)
+> >
+
+...
+
 > 
-> please can anyone help me in fixing this?
-> ACPI: Found ECDT
-> ACPI: Could not use ECDT
+> I really don't know if is correct  what I had write.
+> 
+> I MUST SAY: NICE ANSWERS, THEY REALLY SOLVE MY PROBLEM.
+> 
+> I OWN A PRESARIO 7XX SUPPLIED BY THE NEW HP. COMPAQ IS NO LONGER = ONLY A 
+> PRODUCT NAME NOT A COMPANY ANYMORE.
+> 
+> I BELIEVE THAT IF MORE PEOPLE TEST ACPI AND ACPI CAN BE SET AS RPM's ON THE 
+> WEBSIOTE MORE PEOPLE CAN WORK WITH IT.
+> 
+> MABY A GOOD DESCRIPTION FOR PEOPLE NOT AWARE OF THE INTERNAL WORKINGS!
 
-Your BIOS is broken. We just started looking at the EC_ID field in the ECDT,
-and unfortunately your machine's is wrong.
+Please don't cry.
 
-A little explanation...
-
-Your laptop has an Embedded Controller. The ECDT table is supposed to
-describe the EC, so that AML can use operation regions in the EC before the
-EC device is actually found by the walking of the namespace.
-
-The ECDT-enumerated EC and the EC in the namespace are linked because there
-is a field (EC_ID) in the ECDT that gives the path to the EC in the
-namespace. If this is wrong, then we abort.
-
-As with so many things ACPI-related, the *right* answer is that IBM fixes
-their BIOS...but since this works under Windows, we may end up applying a
-yet-to-be-devised workaround. :(
-
-Regards -- Andy
+-- 
+Ducrot Bruno
+http://www.poupinou.org        Page profaissionelle
+http://toto.tu-me-saoules.com  Haume page
 
 
 -------------------------------------------------------
