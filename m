@@ -1,13 +1,13 @@
-From: =?ISO-8859-1?Q?C=FCneyt?= <cu_lists-iP/H7R5l9gZBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: Is it possible for ACPI to blow up the battery?
-Date: Sun, 30 Jan 2005 23:19:01 +0100
-Message-ID: <41FD5D55.1050203@calt129.com>
-References: <41F7FD56.8090309@calt129.com> <41FA4F0D.2050104@bartol.udel.edu>
+From: Richard Dawe <rich-fbHbV8X007REJxKfswctSdBc4/FLrbF6@public.gmane.org>
+Subject: Re: [PATHC] Relaxed syntax for the processor PBLK length
+Date: Sun, 30 Jan 2005 22:43:01 +0000
+Message-ID: <41FD62F5.2090104@phekda.gotadsl.co.uk>
+References: <41FD3E02.8010701@tremplin-utc.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41FA4F0D.2050104-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+In-Reply-To: <41FD3E02.8010701-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,31 +17,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Eric Piel <Eric.Piel-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org>
+Cc: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Rich Townsend wrote  (on 28.01.2005 15:41):
+Hello.
 
-> Can I make a gess that your battery is Lithium Ion? LiIon batteries=20
-> typically last for 2 years *after manufacture*, irrespective of how man=
-y=20
-> times they are charged and/or discharged. See:
->=20
-> http://www.batteryuniversity.com/parttwo-34.htm
+Eric Piel wrote:
+[snip]
+> --- linux-2.6.11-rc2/drivers/acpi/processor_core.c.orig	2005-01-23 01:24:55.315650055 +0100
+> +++ linux-2.6.11-rc2/drivers/acpi/processor_core.c	2005-01-23 01:27:32.016020121 +0100
+> @@ -492,9 +492,16 @@ acpi_processor_get_info (
+>  	if (!object.processor.pblk_address)
+>  		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No PBLK (NULL address)\n"));
+>  	else if (object.processor.pblk_length != 6)
+> -		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid PBLK length [%d]\n",
+> -			object.processor.pblk_length));
+> -	else {
+> +		if (object.processor.pblk_length == 5 && !acpi_strict) {
+> +			printk(KERN_INFO PREFIX 
+> +				"PBLK length is 5 instead of 6, concidering "
+> +				"it is good anyway.\n");
+[snip]
 
-Well, it's a very informative page (especially the fact 40% being the=20
-optimal charge) thank you. But the battery's died pretty quickly. I=20
-mean, my common sense says no battery goes from 1.5 hrs to 0 in ~one week=
-!
+Typo: concidering -> considering
 
-Anyway, I'll think of something.
+Bye, Rich =]
 
-peace
-c=FCneyt
+-- 
+Richard Dawe [ http://homepages.nildram.co.uk/~phekda/richdawe/ ]
 
---=20
-Reclaim Your Inbox!
-www.mozilla.org/products/thunderbird
+"You can't evaluate a man by logic alone."
+   -- McCoy, "I, Mudd", Star Trek
 
 
 -------------------------------------------------------
