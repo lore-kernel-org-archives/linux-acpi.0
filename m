@@ -1,68 +1,89 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [patch 2/4] acpi: Toshiba failure handling
-Date: 30 Mar 2005 22:17:30 -0500
-Message-ID: <1112239050.2175.63.camel@d845pe>
-References: <200503302116.j2ULGc4Y027730@shell0.pdx.osdl.net>
+From: Len Brown <len.brown@intel.com>
+Subject: Re: drivers/acpi/video.c: null pointer dereference
+Date: 30 Mar 2005 22:26:55 -0500
+Message-ID: <1112239614.2175.68.camel@d845pe>
+References: <20050324203744.GB3966@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200503302116.j2ULGc4Y027730-bipKiLWnuIsyyg0EjBt7GtHuzzzSOjJt@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, panagiotis.issaris-hfxpx0nnwYVX2QMWbMbClIble9XqW/aP@public.gmane.org, takis-8nu/KwtRnEU@public.gmane.org
+Content-Type: multipart/mixed; boundary="=-JipfZAoNh4K1u0fiKgtp"
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261927AbVCaD2P@vger.kernel.org>
+In-Reply-To: <20050324203744.GB3966@stusta.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Adrian Bunk <bunk@stusta.de>
+Cc: ACPI Developers <acpi-devel@lists.sourceforge.net>, linux-kernel@vger.kernel.org, Luming Yu <luming.yu@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Applied.
 
-thanks,
--Len
+--=-JipfZAoNh4K1u0fiKgtp
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-On Wed, 2005-03-30 at 16:16, akpm-3NddpPZAyC0@public.gmane.org wrote:
-> From: "Panagiotis Issaris" <panagiotis.issaris-hfxpx0nnwYVX2QMWbMbClIble9XqW/aP@public.gmane.org>
+On Thu, 2005-03-24 at 15:37, Adrian Bunk wrote:
+> The Coverity checker found the following null pointer dereference in
+> drivers/acpi/video.c:
 > 
-> Adds the missing failure handling for a kmalloc in the Toshiba ACPI
-> driver.
+> <--  snip  -->
 > 
-> Signed-off-by: Panagiotis Issaris <takis-8nu/KwtRnEU@public.gmane.org>
-> Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-> ---
-> 
->  25-akpm/drivers/acpi/toshiba_acpi.c |    3 +++
->  1 files changed, 3 insertions(+)
-> 
-> diff -puN drivers/acpi/toshiba_acpi.c~acpi-toshiba-failure-handling
-> drivers/acpi/toshiba_acpi.c
-> ---
-> 25/drivers/acpi/toshiba_acpi.c~acpi-toshiba-failure-handling       
-> Wed Mar 30 13:16:02 2005
-> +++ 25-akpm/drivers/acpi/toshiba_acpi.c Wed Mar 30 13:16:02 2005
-> @@ -263,6 +263,9 @@ dispatch_write(struct file* file, const
->          * destination so that sscanf can be used on it safely.
->          */
->         tmp_buffer = kmalloc(count + 1, GFP_KERNEL);
-> +       if(!tmp_buffer)
-> +               return -ENOMEM;
-> +
->         if (copy_from_user(tmp_buffer, buffer, count)) {
->                 result = -EFAULT;
+> ...
+> static int
+> acpi_video_switch_output(
+> ...
+> {
+> ...
+>         struct acpi_video_device *dev=NULL;
+> ...
+>         list_for_each_safe(node, next, &video->video_device_list) {
+>                 struct acpi_video_device * dev = container_of(node,
+> struct acpi_video_device, entry);
+> ...
 >         }
-> _
+> ...
+>         switch (event) {
+>         case ACPI_VIDEO_NOTIFY_CYCLE:
+>         case ACPI_VIDEO_NOTIFY_NEXT_OUTPUT:
+>                 acpi_video_device_set_state(dev, 0);
+>                 acpi_video_device_set_state(dev_next, 0x80000001);
+>                 break;
+>         case ACPI_VIDEO_NOTIFY_PREV_OUTPUT:
+>                 acpi_video_device_set_state(dev, 0);
+>                 acpi_video_device_set_state(dev_prev, 0x80000001);
+> ...
+> 
+> <--  snip  -->
 > 
 > 
+> Two different variables of the same name within 40 lines of code are a
+> good indication that something's wrong...
+> 
+> 
+> The outer "dev" variable is never assigned any value different from
+> NULL.
+> 
+> acpi_video_device_set_state dereferences this variable.
+> 
+> 
+> cu
+> Adrian
+
+Looks like we should do this:
 
 
 
--------------------------------------------------------
-This SF.net email is sponsored by Demarc:
-A global provider of Threat Management Solutions.
-Download our HomeAdmin security software for free today!
-http://www.demarc.com/Info/Sentarus/hamr30
+--=-JipfZAoNh4K1u0fiKgtp
+Content-Disposition: attachment; filename=video.patch
+Content-Type: text/plain; name=video.patch; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+===== drivers/acpi/video.c 1.8 vs edited =====
+--- 1.8/drivers/acpi/video.c	2005-01-06 02:06:20 -05:00
++++ edited/drivers/acpi/video.c	2005-03-24 15:44:33 -05:00
+@@ -1585,7 +1585,7 @@
+ 	ACPI_FUNCTION_TRACE("acpi_video_switch_output");
+ 
+ 	list_for_each_safe(node, next, &video->video_device_list) {
+-		struct acpi_video_device * dev = container_of(node, struct acpi_video_device, entry);
++		dev = container_of(node, struct acpi_video_device, entry);
+ 		status = acpi_video_device_get_state(dev, &state);
+ 		if (state & 0x2){
+ 			dev_next = container_of(node->next, struct acpi_video_device, entry);
+
+--=-JipfZAoNh4K1u0fiKgtp--
