@@ -1,12 +1,14 @@
-From: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
-Subject: Re: acpi-20040715: functional regression on ASUS M2N
-Date: Mon, 02 Aug 2004 12:45:16 -0400
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: "irq 11: nobody cared" after S3
+Date: Tue, 3 Aug 2004 09:12:57 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <410E6F9C.2040904@optonline.net>
+Message-ID: <B44D37711ED29844BEA67908EAF36F03768BD0@pdsmsx401.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -15,39 +17,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
+Cc: stefandoesinger-RbZlAiThDcE@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> I added your suggested patch to
-> 
->   arch/i386/kernel/i8259.c
-> 
-> and recompiled. 
-> 
-> Problem persists, no difference I could tell.
+I don't think your patch works, and even it works for your system, it
+will break other systems. The goal of 'setonboot' is to prevent setting
+LINK device's IRQ every time, which we added last year. Without it, many
+systems will break. IIRC, its goal is to resolve a bug in bugzilla. But
+currently I don't remember the exact bug number.
 
-I don't know why the patch masks out the reserved interrupts. None of 
-the other code that sets ELCR is masking out those bits, and it all 
-works fine. Possibly some chipsets use different edge/level behavior for 
-these, and the save code is forcing them back to edge. Does the problem 
-persist if you go into arch/i386/kernel/i8259.c and change:
-
-static void save_ELCR(char *trigger)
-{
-         /* IRQ 0,1,2,8,13 are marked as reserved */
-         trigger[0] = inb(0x4d0) & 0xF8;
-         trigger[1] = inb(0x4d1) & 0xDE;
-}
-
-to:
-
-static void save_ELCR(char *trigger)
-{
-         /* IRQ 0,1,2,8,13 are marked as reserved */
-         trigger[0] = inb(0x4d0);
-         trigger[1] = inb(0x4d1);
-}
-
+Thanks,
+Shaohua
+>-----Original Message-----
+>From: Nathan Bryant [mailto:nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org]
+>Sent: Monday, August 02, 2004 10:18 PM
+>To: Li, Shaohua
+>Cc: stefandoesinger-RbZlAiThDcE@public.gmane.org; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: Re: [ACPI] "irq 11: nobody cared" after S3
+>
+>Li, Shaohua wrote:
+>> I guess the bug is: ACPI sets LNKE's IRQ from 10 to 11 in boot time.
+>> LNKE's register is at LPC bridge offset 0x68, but current PCI config
+>> space save/restore code only handles first 0x40 bytes. After resume,
+>> LNKE's register doesn't recover. So LNKE will actually route to 10,
+but
+>> ACPI still thinks it routes to 11. Then you will get such error. I
+guess
+>> such error is unavoidable unless LPC bridge driver exists (it can
+>> save/restore all affected config space instead of first 0x40 bytes).
+>
+>Hi,
+>
+>I agree with you, but I suspect a better fix is something like the
+>attached diff, from my local tree. (My machine has similar problems,
+but
+>this is not tested yet. Will test tonight and then send a patch to Len
+>if it works out.)
 
 
 -------------------------------------------------------
