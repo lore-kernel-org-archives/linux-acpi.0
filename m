@@ -1,10 +1,13 @@
-From: Neil Brown <neilb-YbfuJp6tym7X/JP9YwkgDA@public.gmane.org>
-Subject: How to disable wake-on-Lid Switch
-Date: Wed, 9 Mar 2005 09:53:07 +1100
-Message-ID: <16942.11475.596633.415660@cse.unsw.edu.au>
+From: Nigel Cunningham <ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>
+Subject: Re: How to disable wake-on-Lid Switch
+Date: Wed, 09 Mar 2005 11:18:28 +1100
+Message-ID: <1110327508.3663.45.camel@desktop.cunningham.myip.net.au>
+References: <16942.11475.596633.415660@cse.unsw.edu.au>
+Reply-To: ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
+In-Reply-To: <16942.11475.596633.415660-YbfuJp6tym7X/JP9YwkgDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,56 +17,71 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Neil Brown <neilb-YbfuJp6tym7X/JP9YwkgDA@public.gmane.org>
+Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi.
 
-hi,
- I have a problem with my notebook. (Dell Latitude D800).
+On Wed, 2005-03-09 at 09:53, Neil Brown wrote:
+> hi,
+>  I have a problem with my notebook. (Dell Latitude D800).
+> 
+>  It suspends and resumes quite nicely (video, audio, etc all work
+>  well) so I'm quite happy.  But there is one little problem.
+> 
+>  The lid-switch seems to be a bit iffy.  Sometimes, while the laptop
+>  is put away snug in it's bag in suspend mode, the lid-switch suddenly
+>  thinks that the lid has been opened.  So it wakes up from suspend and
+>  starts generating heat.  As it is in a nicely padded bag, the heat
+>  doesn't go anywhere, so the temperature goes up up up.
+> 
+>  I would really like the lid button to *Not* resume from suspend.  I
+>  much prefer using the power button to do that.
 
- It suspends and resumes quite nicely (video, audio, etc all work
- well) so I'm quite happy.  But there is one little problem.
+I believe /proc/acpi/wakeup might be what you're after:
 
- The lid-switch seems to be a bit iffy.  Sometimes, while the laptop
- is put away snug in it's bag in suspend mode, the lid-switch suddenly
- thinks that the lid has been opened.  So it wakes up from suspend and
- starts generating heat.  As it is in a nicely padded bag, the heat
- doesn't go anywhere, so the temperature goes up up up.
+[root@desktop root]# cat /proc/acpi/wakeup
+Device  Sleep state     Status
+TANA       4            disabled
+P0P3       4            disabled
+AC97       4            disabled
+USB0       3            disabled
+USB1       3            disabled
+USB2       3            disabled
+USB3       3            disabled
+USB7       3            disabled
+UAR1       4            disabled
+SLPB       4            *enabled
+[root@desktop root]# echo SLPB > /proc/acpi/wakeup
+[root@desktop root]# cat /proc/acpi/wakeup
+Device  Sleep state     Status
+TANA       4            disabled
+P0P3       4            disabled
+AC97       4            disabled
+USB0       3            disabled
+USB1       3            disabled
+USB2       3            disabled
+USB3       3            disabled
+USB7       3            disabled
+UAR1       4            disabled
+SLPB       4            *disabled
+[root@desktop root]#
 
- I would really like the lid button to *Not* resume from suspend.  I
- much prefer using the power button to do that.
+My laptop lacks an entry for the lid switch here, so it might not help,
+but it can't hurt to look.
 
- I have managed to fix it using:
+Regards,
 
-diff ./drivers/acpi/scan.c~current~ ./drivers/acpi/scan.c
---- ./drivers/acpi/scan.c~current~	2005-03-08 21:07:21.000000000 +1100
-+++ ./drivers/acpi/scan.c	2005-03-08 21:07:57.000000000 +1100
-@@ -352,7 +352,7 @@ acpi_bus_get_wakeup_device_flags (
- 
- 	device->wakeup.flags.valid = 1;
- 	/* Power button, Lid switch always enable wakeup*/
--	if (!acpi_match_ids(device, "PNP0C0D,PNP0C0C,PNP0C0E"))
-+	if (!acpi_match_ids(device, "PNP0C0C,PNP0C0E"))
- 		device->wakeup.flags.run_wake = 1;
- 
- end:
+Nigel
+-- 
+Nigel Cunningham
+Software Engineer, Canberra, Australia
+http://www.cyclades.com
+Bus: +61 (2) 6291 9554; Hme: +61 (2) 6292 8028;  Mob: +61 (417) 100 574
 
+Maintainer of Suspend2 Kernel Patches http://suspend2.net
 
-But I have to apply this patch to each new kernel.  It would be better
-to have some sysfs interface where I can
-  echo 0 > /sys/firmware/acpi/namespace/_SB/LID/wakeup
-
-or similar.
-I am happy to try to knock together a patch, but I would like some
-input first on what sort of interface would be appropriate.
-Is namespace/_SB/LID the right place, or would
-  echo 'power,lid' > /sys/power/wake_devs
-
-be a more appropriate interface...  or maybe something I haven't even
-thought of.
-
-Thanks,
-NeilBrown
 
 
 -------------------------------------------------------
