@@ -1,13 +1,13 @@
-From: Pedro Venda <pjvenda-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
+From: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
 Subject: Re: Re: Smart Battery System driver
-Date: Fri, 21 Jan 2005 13:20:00 +0000
-Message-ID: <41F10180.60008@arrakis.dhis.org>
-References: <41E81C2C.8010809@bartol.udel.edu>	<1105747983.7368.3.camel@tyrosine>	<47e0449d05011419037877f931@mail.gmail.com>	<m2fz13x8mw.fsf@phoenix.squirrel.nl>	<41EA2C1D.3030909@bartol.udel.edu> <41EC7C7D.1070003@bartol.udel.edu>	<41EC9316.80109@bartol.udel.edu> <41EDE2EA.7090404@bartol.udel.edu>	<m2wtu74yzq.fsf@phoenix.squirrel.nl>	<41F01923.1000503@bartol.udel.edu> <m2sm4v4wk7.fsf@phoenix.squirrel.nl>
+Date: Fri, 21 Jan 2005 08:22:01 -0500
+Message-ID: <41F101F9.7030705@bartol.udel.edu>
+References: <F760B14C9561B941B89469F59BA3A84708CBB988@orsmsx401.amr.corp.intel.com> <20050121100618.GA3945@himi.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <m2sm4v4wk7.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
+In-Reply-To: <20050121100618.GA3945-Ji7FXtOmRLs@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,56 +17,57 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Simon Fowler <simon-Ji7FXtOmRLs@public.gmane.org>
+Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Simon Fowler wrote:
+> On Thu, Jan 20, 2005 at 02:04:16PM -0800, Grover, Andrew wrote:
+> 
+>>>>From a distribution point of view, it would be nice to:
+>>>
+>>>a) Not have to rewrite every acpi battery applet to use the sbs
+>>>interface directly, and
+>>>b) Not have to have a database of hardware that has a smart battery
+>>>
+>>>Is there any way to provide the legacy interface even if standard
+>>>battery support is built in, or alternatively some way of probing the
+>>>system to determine which battery module should be loaded?
+>>
+>>Hasn't anyone written a libpower yet? Battery applets shouldn't be
+>>groveling around proc, they should be making library calls. OK all
+>>existing apps would need to be changed (probably a big code reduction
+>>actually) but this would let the library look for both CM and sbs
+>>interfaces (which should not pretend to be a CMBatt of course) and
+>>handle them.
+>>
+> 
+> From my perspective (I'm the current maintainer of the wmacpi
+> battery monitor dockapp), all this would be much much easier if
+> there was some documentation of what exactly all the files in
+> /proc/acpi /mean/. I've had to root around in the kernel source to
+> work out what some of it does. 
 
-Johan Vromans wrote:
-| Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org> writes:
-|
-|
-|>I do this because everything in /lib/modules/XXX/kernel/* gets
-|>clobbered when you do a make modules_install from the kernel source
-|>tree;
-|
-|
-| I see.
-|
-|
-|>I have recently realized that the whole SBS functionality can be
-|>implemented in terms of control methods in the DSDT, without the
-|>need for any kernel drivers.
-|
-|
-| Nice. This would require a kernel recompile/reboot  for each DSDT
-| modification...
+Even then, what the *kernel* does can be misleading or incorrect. For 
+instance, in /proc/acpi/battery/BAT0/info, the "battery technology" 
+field should be reporting "primary" or "secondary", based on the 
+information it gets from the appropriate DSDT control methods (_BIF, I 
+think). However, the implementor of battery.c has misread the ACPI spec 
+to mean that "primary" always denotes "non-rechargeable", and 
+"secondary" always denotes "rechargeable".
 
-not nice, I guess. 99.9% of the interested (me included) wouldn't be able=
- to
-patch their DSDT and with generated ASL (is it ASL or AML or... ACPI lang=
-uage)
-code for their specific case.
+This led to my previous laptop, which had a control-method primary 
+battery, reporting the battery as non-rechargeable -- when of course it 
+wasn't.
 
-but academically interesting :-)
+This really does highlight why a proper library is needed for battery 
+access -- both to hide the details of whether the battery is CM-based or 
+SB-based, but also to remove the additional layer of obfustication added 
+by proc.
 
-regards,
-pedro venda.
-- --
+cheers
 
-Pedro Jo=E3o Lopes Venda
-email: pjvenda-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org
-http://arrakis.dhis.org
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.6 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
-
-iD8DBQFB8QGAeRy7HWZxjWERAiBTAKChHU1ZOOuJLe1QmG/seChXZO2v1wCgulDn
-MSYoH67MOpPTB27v0ad467c=3D
-=3DdJMG
------END PGP SIGNATURE-----
+Rich
 
 
 -------------------------------------------------------
