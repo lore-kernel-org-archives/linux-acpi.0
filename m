@@ -1,15 +1,12 @@
-From: Alberto Ornaghi <alor-G/4Acn03FKk@public.gmane.org>
-Subject: Re: CALL FOR TESTING
-Date: Fri, 20 Sep 2002 23:44:46 +0200
+From: Joseph N. Hall <joseph-0mWiNuHK5VbQT0dZR+AlfA@public.gmane.org>
+Subject: ACPI patch on Fiva MPC-206e
+Date: Fri, 20 Sep 2002 18:10 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <5.1.0.14.2.20020920234153.02a90088@wheresmymailserver.com>
-References: <EDC461A30AC4D511ADE10002A5072CAD0236DE80@orsmsx119.jf.inte
- l.com>
+Message-ID: <E17sYl5-0006LQ-00@usw-sf-list1.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD0236DE80@orsmsx119.jf.inte
- l.com>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -21,32 +18,30 @@ List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
 To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-At 23.27 18-09-2002, Grover, Andrew wrote:
+Dear ACPI Developers,
 
->The main issues of importance are:
+No, I haven't done it yet but I will give it a try soon!  Perhaps/probably
+this weekend.
 
-compaq presario 705
+ACPI (and APM) is totally broken on the MPC-206e.  It is always
+"AC online, no battery," doesn't get the buttons right, doesn't
+hibernate (should have hibernate partition support ...?), doesn't
+know about power state.  So I am anxious to see whether there are
+any improvements, because they would be useful to me.
 
+I have the factory BIOS.  I believe there is an upgrade available
+for the 205/206 but it is all Japanese and I am not going to proceed
+without a translation and instructions. :-/
 
->- DOES IT BOOT?
+I am running 2.4.19-ac4 on rh 7.3 at present, works fine in general.
+I didn't read all the details about the patch but it appears it should
+be applied to 2.4.20.  (Which I have had IDE problems with on other
+machines, of course.)  Let me know if you have any further advice.
 
-yes
+  -joseph
 
->- DOES IT ASSIGN INTERRUPTS PROPERLY?
-
-yes
-
-and it works without the kacpid patch  !!  wow  now I get events and C2 
-with the clean mainline...
-
-I hope to see this in the 2.4.20
-
-bye
-
-    --==> ALoR <==---------------------- -  -   -
-
-There are only 10 types of people in this world...
-those who understand binary, and those who don't.
+  Joseph N. Hall
+  Author, Effective Perl Programming
 
 
 
