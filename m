@@ -1,15 +1,15 @@
-From: Aaron Gaudio <prothonotar-2LEdZMXKCZJeeLb3ft/vUmD2FQJk+8+b@public.gmane.org>
-Subject: Re: making progress with ACPI was: ACPI small patch update (20021024)
-Date: Tue, 29 Oct 2002 07:43:29 -0500
+From: Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
+Subject: Progress TODO list - was: making progress with ACPI
+Date: Tue, 29 Oct 2002 15:02:52 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021029124329.GA25692@tarnation.dyndns.org>
-References: <200210282031.g9SKVAX06731@mailgate5.cinetic.de> <20021028211603.GD1402@admingilde.org> <20021028213404.U27461@parcelfarce.linux.theplanet.co.uk>
+Message-ID: <1035900171.27833.28.camel@bacchus.gpphy.uni-duesseldorf.de>
+References: <200210290730.g9T7UDD26513@ikffws2.ikff.uni-stuttgart.de>
+ <200210292145.48593.mark.pritchard-acpi@modus.com.au>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jI8keyz6grp/JLjh"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20021028213404.U27461-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>
+In-reply-to: <200210292145.48593.mark.pritchard-acpi-3o+aUUpM7Xj0CCvOHzKKcA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,67 +18,83 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: Mark Pritchard <mark.pritchard-acpi-3o+aUUpM7Xj0CCvOHzKKcA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Am Die, 2002-10-29 um 11.45 schrieb Mark Pritchard:
+> Is there an Intel based project manager who would like to be over this i.e. 
+> allocation and tracking of tasks, ensuring documents were reviewed etc? Or is 
+> this a person from the general member list?
 
---jI8keyz6grp/JLjh
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Why not start working on it? I do not think anyone at Intel will object
+if the work is done.
 
-Behold, Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org> hath decreed:
+> I'd like to see a site which covered:
+> 
+> * background info
+> * machine specific howtos (or even just success reports)
+> * centralised downloads
+> * faq
+> * bug tracking
+> * better mailing list s/ware, perhaps a proper news server so we could search 
+> it with google groups?
 
-> i find it fascinating that there are so many people on this list who want
-> to see a bug tracking system, but don't feel able to keep a list of bugs
-> themselves.  why is that?  expecting andy to set it up seems unreasonable.
->=20
+>From yours and other mails I gathered that we have the following tasks:
 
-By no means does the development maintainer have to also maintain
-the bugtracking system or the webpage. In many projects these are
-handled by different people. This might be an opportunity for those
-with less coding skills to contribute more to the project.
+(1) Create and maintain website on acpi.sourceforge.net that does
+contain:
+	* Background Information
+	* HOWTO
+	* FAQ
+	* State of Supported Systems Table
+	* Download links
+	* Mailing lists (archive)
+	The rest seems to be still subject of discussion:
+	* Developers/Debuggers HOWTO
+	* Bug Tracking System
+	* Newsgroup
 
-An official bug-tracking system can be very beneficial to all involved.
-It lets the developers keep track of what they need to work on, what
-others are working on, what's already been fixed, etc. to avoid=20
-duplication of work, and to allow for prioritization of bugs. It lets
-non-developer testers and part-time bugfixers see the status of bugs,
-see if a bug they found is already known or new, etc. so that they
-don't have to search through the mail archives and/or burden the
-list with a known problem.
+(2) Write a small Background information (about the project and acpi)
+text
 
-I think the web page does need someone to update and maintain it
-regularly. If you go to http://acpi.sourceforge.net/ there are not
-even any links to http://sourceforge.net/projects/acpi/ where the
-source code is served. Anyone not familiar with sourceforge won't
-understand where to get the kernel patches. There's not a lot of
-other information at the home page, which could be useful towards
-attracting more people to test and develop alike.
+(3) Write and maintain HOWTO  (from downloading to patching the dsdt -
+the one from Ariel Glenn [1] was great, unfortunately it is pretty
+outdated. But it should be a great starting point and [2] should help
+out)
 
-I also second the notion of having the list set up to automatically
-fill in the Reply-To header with the list's address.
+(4) Write and maintain a FAQ (this can be done by even a newbie since it
+would just mean to go through the list, extract the questions and
+answers)
 
---=20
+(5) Collect and maintain information about state of supported systems 
 
-Aaron Gaudio
-prothonotar at tarnation.dyndns.org
-"From fullness, aspect. From aspect, being. From being, emptiness."
- =20
+Since I am no native speaker (which makes it difficult to eg set up a
+precise HOWTO) I will do (1) if others volunteer for (2)-(5) (and send
+it to me..). 
 
---jI8keyz6grp/JLjh
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+Anyone anything?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.7 (GNU/Linux)
+-Knut
 
-iEYEARECAAYFAj2+gnEACgkQwXDG7ZQN91fFkQCgmcoJYvam9fcANhhsIh2tPBYv
-rCgAmwWvbR9E8bGESZWpEr69PLSwJndU
-=A5oV
------END PGP SIGNATURE-----
+[1] http://www.columbia.edu/~ariel/acpi/acpi_howto.txt
+[2] http://www.cpqlinux.com/acpi-howto.html
 
---jI8keyz6grp/JLjh--
+
+--
+Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
+Physikalische Grundpraktika - Heinrich-Heine Universitaet Duesseldorf
+Raum 25.33.01.63  -   Universitaetsstrasse 1   -  D-40225 Duesseldorf
+fon: +49-211-81-11314                           fax: +49-211-81-13105
+
+
+
+
+
+
+
+
+
 
 
 -------------------------------------------------------
