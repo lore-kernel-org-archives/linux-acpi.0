@@ -1,11 +1,12 @@
-From: The Purple Flamingo <aquarichy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: ACPI on an Acer TravelMate C100
-Date: Mon, 7 Mar 2005 15:27:33 -0500
-Message-ID: <25ae429205030712276d63b68a@mail.gmail.com>
-Reply-To: The Purple Flamingo <aquarichy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: s4bios: does anyone use it?
+Date: Mon, 7 Mar 2005 21:44:01 +0100
+Message-ID: <20050307204401.GA15212@elf.ucw.cz>
+References: <20050305191405.GA1463@elf.ucw.cz> <20050307170852.GB31985@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20050307170852.GB31985-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,36 +16,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, seife-l3A5Bk7waGM@public.gmane.org, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello.   I am fairly confident that ACPI is supported by my laptop,
-because I have read several references to it working on it, and the
-BIOS-provided physical RAM map mentions ACPI as well.
+Hi!
 
-However, at boot, I get:
-  ACPI: RSDP (v000 Acer                                  ) @ 0x000ec2d0
-    >>> ERROR: Invalid checksum
+> > 
+> > Is there single user of s4bios? It used to work for me 4 notebooks
+> > ago, but I never really used it.
+> 
+> I don't have anymore my toshiba laptop where S4 bios was first
+> implemented.
+> 
+> > I think I'm the only person that ever
+> > seen it working, but I could be wrong.
+> 
+> You are indeed wrong.
 
-and later on,
+Okay, so we had 2 users in past but have 0 users now? :-).
 
-  ACPI: Subsystem revision 20050211
-  ACPI: Interpreter disabled.
-
-and APM loads instead.  If I compile a kernel sans APM, then I get no PM.
-Trying pnpacpi=off, pci=routeirq, apm=off, and acpi=force have done nothing.  
-There is not even a /proc/acpi !
-
-This is problematic because my laptop thinks there are no batteries
-now, and suspending freezes the machine on lid close (though running a
-script for it succeeds . . . unless I try to close the lid!)
-
-I am using Ubuntu Linux 5.04.
-Vanilla kernels have no better luck then theres.
-
-What can I do? 
-
-Richard Schwarting
+								Pavel
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
