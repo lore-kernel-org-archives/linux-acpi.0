@@ -1,13 +1,13 @@
-From: "Starikovskiy, Alexey Y" <alexey.y.starikovskiy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Samsung P35
-Date: Fri, 12 Nov 2004 14:23:24 +0300
-Message-ID: <6EDC9204B3704C4C8522539D5C1185E559CB72@mssmsx403.ccr.corp.intel.com>
+From: Matthias Hentges <mailinglisten-H4PcyxPeSRnR7s880joybQ@public.gmane.org>
+Subject: Re: S3 broken on a Samsung P30
+Date: Fri, 12 Nov 2004 13:51:59 +0100
+Message-ID: <1100263919.3523.3.camel@mhcln03>
+References: <1099605010.5191.20.camel@mhcln03>
+	 <20041110231802.GA1099@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="=-nEyOEAa+RDhp3+9uzF05"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <20041110231802.GA1099-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,191 +17,78 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Oliver Dawid <oliver-csNNzRR391izQB+pC5nmwQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
 
-nolapic means turning off use of Local APIC (Advanced Programmable
-Interrupt Controller), present in any Pentium processor. It has nothing
-to do with ACPI (stands for Advanced Configuration and Power Interface).
+--=-nEyOEAa+RDhp3+9uzF05
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Cheers,
-	Alex.
+Am Donnerstag, den 11.11.2004, 00:18 +0100 schrieb Pavel Machek:
 
->-----Original Message-----
->From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
->admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Oliver Dawid
->Sent: Friday, November 12, 2004 1:21 PM
->To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: [ACPI] Samsung P35
->
->Hi there,
->
->hopefully this is the right list to discuss my problem.
->
->since two weeks I am owner of a Samsung P35 XVM 1600. I succeeded to
->install debian sarge with kernel 2.6.8 only by providing nolacpi as
->kernel parameter. I thought this would switch off acpi but I got
-several
->ACPI messages on boot time like:
->
->---snip---
->ACPI: RSDP (v000 PTLTD                                     ) @
-0x000f6620
->ACPI: RSDT (v001 PTLTD  CooperSp 0x06040000  LTP 0x00000000) @
-0x1ff76959
->ACPI: FADT (v001 INTEL  ODEM     0x06040000 PTL  0x00000050) @
-0x1ff7bed2
->ACPI: BOOT (v001 PTLTD  $SBFTBL$ 0x06040000  LTP 0x00000001) @
-0x1ff7bfd8
->ACPI: SSDT (v001  INTEL  EISTRef 0x00000001 INTL 0x02002015) @
-0x1ff76989
->ACPI: DSDT (v001 INTEL  ODEM     0x06040000 MSFT 0x0100000e) @
-0x00000000
->ACPI: PM-Timer IO Port: 0x1008
->...
->ACPI: Subsystem revision 20040326
->ACPI: IRQ9 SCI: Edge set to Level Trigger.
->ACPI: Interpreter enabled
->ACPI: Using PIC for interrupt routing
->ACPI: PCI Root Bridge [PCI0] (00:00)
->PCI: Probing PCI hardware (bus 00)
->PCI: Ignoring BAR0-3 of IDE controller 0000:00:1f.1
->PCI: Transparent bridge - 0000:00:1e.0
->ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
->ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.AGPB._PRT]
->ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCIB._PRT]
->ACPI: PCI Interrupt Link [LNKA] (IRQs 1 3 4 *5 6 7 11 12 14 15)
->ACPI: PCI Interrupt Link [LNKB] (IRQs 1 3 4 *5 6 7 11 12 14 15)
->ACPI: PCI Interrupt Link [LNKC] (IRQs 1 3 4 *5 6 7 11 12 14 15)
->ACPI: PCI Interrupt Link [LNKD] (IRQs 1 3 4 5 6 7 *11 12 14 15)
->ACPI: PCI Interrupt Link [LNKE] (IRQs 1 3 4 5 6 7 11 12 14 15) *0,
->disabled.
->ACPI: PCI Interrupt Link [LNKF] (IRQs 1 3 4 5 6 7 11 12 14 15) *0,
->disabled.
->ACPI: PCI Interrupt Link [LNKG] (IRQs 1 3 4 5 6 7 11 12 14 15) *0,
->disabled.
->ACPI: PCI Interrupt Link [LNKH] (IRQs 1 3 4 5 6 7 *11 12 14 15)
->ACPI: Embedded Controller [EC0] (gpe 28)
->ACPI: Power Resource [CFN1] (off)
->---snip---
->
->and so on. Everything looks quite well. So what does this parameter
->nolapic?
->
->My problem:
->Suspend does not work. Neither Fn + Sleep Key nor echo mem|disk >
->/sys/.../state
->
->mem does something - display is switching to text mode but returns
->immediately.
->
->As I read about problem with suspend-to-* on P30, I thought its a good
->idea to edit the dsdt to correct a call for suspend.
->
->So in a second step I built my own kernel (kernel-source-2.6.8 from
->debian distrib) with initrd patch to load my own dsdt. I dumped the
-dsdt
->corrected all warnings an errors and cat it to the end of my initrd.
->
->Here is the result:
->---snip---
->or: Method execution failed [\_SB_.PCI0.LPCB.PS2M._STA] (Node
-dff273e0),
->AE_AML_REGION_LIMIT
->     ACPI-0154: *** Error: Method execution failed
->[\_SB_.PCI0.LPCB.PS2M._STA] (Node dff273e0), AE_AML_REGION_LIMIT
->     ACPI-1133: *** Error: Method execution failed
->[\_SB_.PCI0.IDEC.SECD.S_D0._STA] (Node dff27a40),
-AE_AML_NO_RETURN_VALUE
->     ACPI-0154: *** Error: Method execution failed
->[\_SB_.PCI0.IDEC.SECD.S_D0._STA] (Node dff27a40),
-AE_AML_NO_RETURN_VALUE
->     ACPI-1133: *** Error: Method execution failed
->[\_SB_.PCI0.IDEC.SECD.S_D1._STA] (Node dff279a0),
-AE_AML_NO_RETURN_VALUE
->     ACPI-0154: *** Error: Method execution failed
->[\_SB_.PCI0.IDEC.SECD.S_D1._STA] (Node dff279a0),
-AE_AML_NO_RETURN_VALUE
->...
->ACPI: PCI interrupt 0000:00:1d.0[A] -> GSI 5 (level, low) -> IRQ 5
->...
->ACPI: PCI interrupt 0000:00:1d.1[B] -> GSI 11 (level, low) -> IRQ 11
->...
->ACPI: PCI interrupt 0000:00:1d.2[C] -> GSI 5 (level, low) -> IRQ 5
->...
->ACPI: PCI interrupt 0000:00:1f.6[B] -> GSI 5 (level, low) -> IRQ 5
->...
->ACPI: PCI interrupt 0000:02:02.0[A] -> GSI 5 (level, low) -> IRQ 5
->ipw2200: Detected Intel PRO/Wireless 2200BG Network Connection
->ipw2200: ipw2200_boot.fw load failed
->ipw2200: Unable to load firmware: 0xFFFFFFFE
->ipw2200: failed to register network device
->ipw2200: probe of 0000:02:02.0 failed with error -5
->ACPI: Battery Slot [BAT1] (battery present)
->ACPI: AC Adapter [AC0] (on-line)
->     ACPI-1133: *** Error: Method execution failed [\_PR_.CPU0._PPC]
->(Node c1705d00), AE_AML_REGION_LIMIT
->ACPI: Processor [CPU0] (supports C1)
->ACPI: Power Button (FF) [PWRF]
->ACPI: Lid Switch [LID0]
->ACPI: Sleep Button (CM) [SLPB]
->ACPI: Fan [FAN1] (off)
->     ACPI-1133: *** Error: Method execution failed [\_TZ_.THRM._TMP]
->(Node dff24480), AE_AML_REGION_LIMIT
->...
->     ACPI-1133: *** Error: Method execution failed [\_SB_.SWSM] (Node
->c17055e0), AE_AML_REGION_LIMIT
->     ACPI-1133: *** Error: Method execution failed
->[\_SB_.PCI0.LPCB.EC0_._Q69] (Node dff26c00), AE_AML_REGION_LIMIT
->     ACPI-1133: *** Error: Method execution failed [\_SB_.SWSM] (Node
->c17055e0), AE_AML_REGION_LIMIT
->     ACPI-1133: *** Error: Method execution failed
->[\_SB_.PCI0.LPCB.EC0_._Q69] (Node dff26c00), AE_AML_REGION_LIMIT
->     ACPI-1133: *** Error: Method execution failed [\_SB_.SWSM] (Node
->c17055e0), AE_AML_REGION_LIMIT
->     ACPI-1133: *** Error: Method execution failed
->[\_SB_.PCI0.LPCB.EC0_._Q69] (Node dff26c00), AE_AML_REGION_LIMIT
->---snip---
->
->the last few messages occur when I try to change display brightness.
-The
->fan isn't working any more - this is maybe because the kernel isn't
-able
->to access the corresponding acpi funcion any more.
->
->I wasn't able to get the beginning of the dmesg buffer because it was
->alredy rolled out.
->
->Can anyone help me interpret this? What the hell went wron? The built
-in
->dsdt is damaged but it succeeds to handle a lot of acpi events. My own
->one compiled without any warning or error seems to be badly damaged,
->nearly each call fails on several errors.
->
->I now got a vanilla kernel 2.6.9 and start compiling but there went
->something wrong with DRM so this is still in progress (btw. I could not
->find any cramfs patch for 2.6.9 any more, is this path obsolete for
-2.6?
->and even more, debian is using a bunch of patches, which of them are
->really necessary, any idea?)
->
->Where do I need to start at?
->
->Thanks for any hints,
->Oliver
->
->
->-------------------------------------------------------
->This SF.Net email is sponsored by:
->Sybase ASE Linux Express Edition - download now for FREE
->LinuxWorld Reader's Choice Award Winner for best database on Linux.
->http://ads.osdn.com/?ad_id=3D5588&alloc_id=3D12065&op=3Dclick
->_______________________________________________
->Acpi-devel mailing list
->Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->https://lists.sourceforge.net/lists/listinfo/acpi-devel
+> See recent threads of adding beeping to begining of wakeup.S. Does it
+> beep for you?
+
+No it doesn't.
+I've googled for the beep patch. The one I found is attached as I'm not
+sure if it is the right one.
+
+Thanks
+-- 
+Matthias Hentges 
+Cologne / Germany
+
+[www.hentges.net] -> PGP welcome, HTML tolerated
+ICQ: 97 26 97 4   -> No files, no URL's
+
+My OS: Debian SID. Geek by Nature, Linux by Choice
+
+--=-nEyOEAa+RDhp3+9uzF05
+Content-Description: 
+Content-Disposition: attachment; filename=wakeup.S-beep.patch
+Content-Type: text/x-patch; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+
+--- clean-mm/arch/i386/kernel/acpi/wakeup.S	2004-08-24 09:02:23.000000000 +0200
++++ linux-mm/arch/i386/kernel/acpi/wakeup.S	2004-09-07 21:15:17.000000000 +0200
+@@ -11,8 +11,23 @@
+ #
+ # If physical address of wakeup_code is 0x12345, BIOS should call us with
+ # cs = 0x1234, eip = 0x05
+-# 
++#
+ 
++#define BEEP \
++	inb	$97, %al; 	\
++	outb	%al, $0x80; 	\
++	movb	$3, %al; 	\
++	outb	%al, $97; 	\
++	outb	%al, $0x80; 	\
++	movb	$-74, %al; 	\
++	outb	%al, $67; 	\
++	outb	%al, $0x80; 	\
++	movb	$-119, %al; 	\
++	outb	%al, $66; 	\
++	outb	%al, $0x80; 	\
++	movb	$15, %al; 	\
++	outb	%al, $66; 
++	
+ ALIGN
+ 	.align	4096
+ ENTRY(wakeup_start)
+@@ -20,6 +35,7 @@
+ 	wakeup_code_start = .
+ 	.code16
+ 
++	BEEP
+  	movw	$0xb800, %ax
+ 	movw	%ax,%fs
+ 	movw	$0x0e00 + 'L', %fs:(0x10)
+
+--=-nEyOEAa+RDhp3+9uzF05--
+
 
 
 -------------------------------------------------------
