@@ -1,9 +1,11 @@
-From: alert-vdJTH0ZjJ4C+oSbvwQOFCLJmEfpfnwBNVpNB7YpNyf8@public.gmane.org
-Subject: WARNING. You tried to send a potential virus or unauthorised code
-Date: 22 Aug 2003 12:03:02 -0000
+From: postmaster-YNHfkfoICe87lZ9V/NTDHw@public.gmane.org
+Subject: Delivery Status Notification (Failure)
+Date: Thu, 21 Aug 2003 13:59:24 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030822120302.972.qmail@server-25.tower-16.messagelabs.com>
-Reply-To: alert-vdJTH0ZjJ4C+oSbvwQOFCLJmEfpfnwBNVpNB7YpNyf8@public.gmane.org
+Message-ID: <fHr1qmd6w0000080f@mc9-f17.bay6.hotmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/report; report-type=delivery-status;
+	boundary="9B095B5ADSN=_01C36821B1CE958200000912mc9?f17.bay6.hot"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -16,63 +18,76 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-The MessageLabs SkyScan Anti-Virus service discovered a possible virus
-or unauthorised code (such as a joke program or trojan) in an email sent
-by you.
+This is a MIME-formatted message.  
+Portions of this message may be unreadable without a MIME-capable mail program.
 
-The email has now been quarantined and was not delivered.
+--9B095B5ADSN=_01C36821B1CE958200000912mc9?f17.bay6.hot
+Content-Type: text/plain; charset=unicode-1-1-utf-7
 
-Please read the whole of this email carefully.  It explains what has
-happened to your email, which suspected virus has been caught and what
-to do if you need help addressing the problem.
+This is an automatically generated Delivery Status Notification.
 
-To help identify the quarantined email:
+Delivery to the following recipients failed.
 
-The message sender was 
-    acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-
-The message recipients were 
-    digilnux-6oL+oXf/A/s@public.gmane.org
-
-The message title was Re: Your application 
-The message date was Fri, 22 Aug 2003 21:02:55 +0900
-The virus or unauthorised code identified in the email is
-Skeptic searching for 44 viruses
->>> Possible MalWare 'EML/Sobig.F' variant found in '1553493T_1X_PM3_EM7_MT__message.txt'. Heuristics score: 2000
-Skeptic ended
+       abuse-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org
 
 
-Some viruses forge the sender address. For more information please
-visit the link to the virus FAQ's at the bottom of this page.
 
-The message was diverted into the virus holding pen on
-mail server server-25.tower-16.messagelabs.com (pen id 1553493_1061553780)
-and will be held for 30 days before being destroyed
 
-Corporate Users:
-If you sent the email from a corporate network, you should first
-contact your local IT Helpdesk or System Administrator for advice.
-They will be able to help you disinfect your workstation.
+--9B095B5ADSN=_01C36821B1CE958200000912mc9?f17.bay6.hot
+Content-Type: message/delivery-status
 
-If you would like further information on how to subscribe to MessageLabs
-SkyScan AV service, a proactive anti-virus service working around the 
-clock, around the globe, please complete our enquiry form.
+Reporting-MTA: dns;mc9-f17.bay6.hotmail.com
+Received-From-MTA: dns;CHENZ10
+Arrival-Date: Thu, 21 Aug 2003 13:59:16 -0700
 
-Personal or Home users:
-If you sent the email from a personal or home account, you will need
-to disinfect your computer yourself.  Please contact your anti-virus
-software vendor for support.
+Final-Recipient: rfc822;abuse-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org
+Action: failed
+Status: 5.2.3
 
-You may like to read the virus FAQ's at:
-http://www.messagelabs.com/page.asp?id=628
-which will answer most virus related questions.
+--9B095B5ADSN=_01C36821B1CE958200000912mc9?f17.bay6.hot
+Content-Type: message/rfc822
 
-________________________________________________________________________
-This email has been scanned for all viruses by the MessageLabs Email
-Security System. For more information on a proactive email security
-service working around the clock, around the globe, visit
-http://www.messagelabs.com
-________________________________________________________________________
+Received: from CHENZ10 ([156.40.93.250]) by mc9-f17.bay6.hotmail.com with Microsoft SMTPSVC(5.0.2195.5600);
+	 Thu, 21 Aug 2003 13:59:16 -0700
+From: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: <abuse-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: Your application
+Date: Thu, 21 Aug 2003 16:59:14 --0400
+X-MailScanner: Found to be clean
+Importance: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2600.0000
+X-MSMail-Priority: Normal
+X-Priority: 3 (Normal)
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="_NextPart_000_00DF6BEC"
+Return-Path: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <MC9-F17TVn2AI3F5Y0Z0000d4a0-qL7H0CDlTa/xvGKq9YI0njuVn1X81MMf@public.gmane.org>
+X-OriginalArrivalTime: 21 Aug 2003 20:59:17.0531 (UTC) FILETIME=[15CD86B0:01C36827]
+
+This is a multipart message in MIME format
+
+--_NextPart_000_00DF6BEC
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+
+See the attached file for details
+--_NextPart_000_00DF6BEC
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+
+------------------  Virus Warning Message (on the network)
+
+wicked_scr.scr is removed from here because it contains a virus.
+
+---------------------------------------------------------
+--_NextPart_000_00DF6BEC--
+
+
+
+--9B095B5ADSN=_01C36821B1CE958200000912mc9?f17.bay6.hot--
 
 
 -------------------------------------------------------
