@@ -1,13 +1,15 @@
-From: "Bryan Gross" <40meavybc-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: TECH SECTOR - Technology Breakthrough - Patents Filed...Adonis
-Date: Wed, 17 Dec 2003 06:04:23 -0100
+From: Petr Olivka <petr.olivka-jmYXjVuSQ4U@public.gmane.org>
+Subject: Re: D600: S1 and S3 resume
+Date: Wed, 17 Dec 2003 08:42:11 +0100 (CET)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <64t-45974bzr2mrklpiup307j3n1db@bzw.p5>
-Reply-To: "Bryan Gross" <40meavybc-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Message-ID: <Pine.LNX.4.58.0312170828060.7976@pcd403z.vsb.cz>
+References: <Pine.LNX.4.30.0311251150140.19330-100000@pcd403z.vsb.cz>
+ <20031203181826.GA28870@tate.loria.fr> <Pine.LNX.4.58.0312051054030.2457@pcd403z.vsb.cz>
+ <20031208104746.GA21225@tate.loria.fr>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="_F21_4_C425F6_.7C6_8"
+Content-Type: MULTIPART/MIXED; BOUNDARY="-996275822-1494578376-1071646931=:7976"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20031208104746.GA21225-xkTd+U360DcAs8EywTwl9A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,316 +18,210 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: javamusictag-cvs-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, libpal-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Emmanuel =?iso-8859-1?Q?Thom=E9?= <Emmanuel.Thome-/zGXu1G9BXs@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-
---_F21_4_C425F6_.7C6_8
-Content-Type: text/plain;
-Content-Transfer-Encoding: quoted-printable
-
-TECHNOLOGY SECTOR - TECHNOLOGY BREAKTHROUGH - PATENTS FILED
-
-Symbol: NMMG
-Market: OTC.BB
-Sector: L.E.D. TECHNOLOGY
-
-
-Barcharts Rate NMMG an 80% BUY - http://quotes.barchart.com/texpert.asp?sy=
-m=3DNMMG
-
-
-BREAKING NEWS in technology - New Millennium Media International (OTCBB: N=
-MMG) announces that it has officially filed its patents---with over 50 cla=
-ims---protecting its revolutionary technology, a breakthrough in (LED) arc=
-hitecture.  The OnScreen=99 LED Display Architecture is a radical new type=
- of Bright LED video display architecture that is expected to revolutioniz=
-e the 1.5 billion dollar LED display market.  This breakthrough technology=
- will give NMMG great potential to capture significant market share in the=
- the 19 billion dollar outdoor advertising market.
-
-With all the new initiatives in Homeland Security and the Amber Alert, Int=
-elligent Message Signs (IMS) are the future, and with the recent signing o=
-f new laws and federally mandated funds in the billions of dollars, NMMG a=
-nd its patent-pending OnScreen technology is poised to lead the way.  NMMG=
- currently has the only technology that allows it to build onto exisiting =
-infrastructure, i.e. road signs, billboards, etc.  Imagine one day you are=
- driving home on the freeway past a road sign you have seen a thousand tim=
-es before--but this time you notice something different.  This time you se=
-e a WARNING lit up--truck overturned 1 mile ahead--hazardous chemicals spi=
-lled.  The sign advises you to exit immediately and to safety.  Such a war=
-ning was broadcast instantly and using NMMG's OnScreen technology.  You ne=
-ver noticed, as you drove by the roadside every day, that OnScreen was dra=
-ped over the sign all this time.  Now it has sprung into action by the pun=
-ch of a button on a PC from a central station--instantly and just in the n=
-ick of time.  You have just experienced OnScreen technology.  And that is =
-just one example.  The possibilities are limitless.  And because OnScreen =
-can be applied to existing structures like road signs or billboards, its c=
-ost-effectiveness makes it far and away the technology choice.
-
-NMMG will unveil its breakthrough technology at the STRATEGIES IN LIGHT co=
-nference on February 2-4, 2004 at the San Mateo Marriott Hotel in San Mate=
-o, California. This unique event is considered to be the premier annual fo=
-rum for addressing commercial developments in high-brightness LEDs, as wel=
-l as an unparalleled networking opportunity for suppliers and users of the=
-se devices. The growing interest in, and expanding attendance at, this eve=
-nt, reflects the excitement associated with a market that has grown by 50=
-% since 2000, while other semiconductor and optical component industries h=
-ave stagnated or experienced large declines.
-
-
-
-ON-SCREEN=99 TECHNOLOGY
-
-OnScreen=99 is expected to create a broad-range of products with much bett=
-er resolution and brighter pictures than the current generation of display=
-s. OnScreen=99 will be visible in direct sunlight yet avoid many of the is=
-sues associated with current displays including sun-loading, wind-loading =
-and excessive weight.  In addition, the new LED architecture produces an a=
-dvantage that is not available in today's marketplace: a more lightweight,=
- pliable display that can fit any application.  These are important advant=
-ages as the High Brightness LED market is expected to grow from 1.2 billio=
-n dollars in 2000 to 4 billion in 2006.  In addition, according to Stanfor=
-d Resources, the LED sign market value alone is expected to exceed 1 billi=
-on by 2006. These projections are made based on existing technology and do=
- not take into account emerging technologies, such as OnScreen=99, that ca=
-n rapidly alter the size and shape of this market.
-
-
-
-COMMERCIAL MARKET & STRATEGY
-
-NMMG's initial marketing strategy revolves around licensing intellectual p=
-roperty (IP) to worldwide manufacturers of LED display products and compon=
-ents. The LED sign market is projected to reach over 1 billion dollars by =
-2006. Lumiled's projects that high brightness LED's, used in LED signs alo=
-ne, will exceed 1.2 billion by 2007. If these projections hold, the fully =
-manufactured signs would represent a $5 billion market. Whichever number i=
-s accurate, they both point towards a robust market for these new LED disp=
-lays. Many projections don't take into account emerging high growth applic=
-ations such as the Amber Alert project, Homeland Security and roadway =93i=
-ntelligent message transfer=94.
-
-
-
-THE MARKET
-
-An article in Media Post's Media Daily News in March of 2003 noted that th=
-e outdoor industry has successfully weathered the recession and that =93ou=
-r large members say they're having a great first quarter=94 in 2003. They =
-go on to note that technology is expected to transform both the display an=
-d measurement of outdoor advertising. According to Media Daily the most ex=
-citing news is coming on the display side, where =93Lamar Advertising is c=
-onverting their key boards to LED units whose messages can be changed at w=
-ill and sold in day-parts by the hour or even the minute.=94 They added th=
-at =93Clear Channel's backlit subway panels in stairwells are being conver=
-ted to LED as well=94. Together these companies represent two of the three=
- largest outdoor US advertisers.  
-
-Recent Federal Government legislation has also placed a spotlight on expan=
-ding the =93Amber Alert=94 network nationwide. The highly publicized succe=
-ss in locating a number of kidnapped children shortly after their abductio=
-n in California has now triggered federal funding for U.S.-wide expansion =
-of these variable-message signs.  Homeland Security issues have also incre=
-ased the number of early warning signs being planned and funded as part of=
- an overall information sharing network. Traffic safety is also becoming a=
- much higher priority in the U.S.. It is estimated that just over 60,000 r=
-oadway dynamic message signs are in operation in the United States. In Jap=
-an alone there are over 1.5 million of these signs. The United States repr=
-esents a huge growth market for LED displays.
-
-
-
-GROWTH OPPORTUNITES
-
-In addition to the outdoor television market, another interesting and exci=
-ting application for OnScreen=99 arrays is artistic lighting in dramatic c=
-urved and shaped displays in places like Las Vegas, New York City or reall=
-y virtually any venue. The tensile, flexible structure of OnScreen=99 prov=
-ides unlimited opportunity for creativity. 
-
-The anticipated cost reductions of OnScreen=99 will also provide ample opp=
-ortunity for growth of the large-scale LED display market itself. OnScreen=
-=99's unique architecture opens the door for new applications such as curv=
-ed implementations, billboards on the sides of buildings where tenants can=
- still see out, and lower cost mobile applications on the sides of existin=
-g vehicles. 
-
-Homeland Security, Amber Alert variable message signage and instant messag=
-e transfer applications can also benefit significantly from the advantages=
- of OnScreen=99. Reduced wind-loading and weight can significantly lower t=
-he cost of the superstructures required to support these signs and also re=
-duce the cost to install and maintain them.
-
-
-
-
-JUST LOOK WHO IS ALREADY ON BOARD
-
-New Millennium has established a Technology Breakthroughsentific Advisory =
-Board comprised of leading experts in key categories in the research and m=
-arketing of LED technology.
-
-David Pelka, Ph.D.- Chairman =96 Well known expert in physics, founded TIR=
- Technologies Inc. to pursue patents for his LED lighting systems and LCD =
-backlits.  Dr. Pelka secured more than $2 million in venture capital and l=
-icensing for TIR before it was acquired by Teledyne Electronic Technologie=
-s (NYSE:TDY).  Since the buyout, Dr. Pelka has served as Director of Produ=
-ct Development for Teledyne Lighting and Display Products.  Dr. Pelka's ac=
-colades include fellowships and awards from the Smithsonian, National Defe=
-nse, Northrop University and Ebell Fellowship, as well as countless articl=
-es published in both classified (the U.S. Air Force and Army) publications=
- and various non-classified publications.  He has founded several technolo=
-gy companies, which he successfully expanded by building strong revenue st=
-reams and securing venture capital investments and government contracts. 
- 
- 
-Robert V. Steele, Ph.D. =96 Director of Optoelectronics Programs and Chair=
-man of the annual conference =93Strategies in Light=94 for Strategies Unli=
-mited.  Steele is responsible for all of Strategies Unlimited's activities=
- in the area of optoelectronic components, for which the 23-year-old marke=
-t research firm has specialized in providing market research reports and c=
-onsulting services.  Co-author of =93Solid-State Lighting: New Growth Oppo=
-rtunities for High-Brightness LED's=94, Dr. Steele writes regularly for in=
-dustry publications on high-brightness LED markets and applications such a=
-s Forbes, The Wall Street Journal, The Economist and more. 
- 
- 
-John Biondo =96 Owner and President of Silicon Robotics Corporation, which=
- provides various product development services including electronic and el=
-ectromechanical design, software development, optics, and project manageme=
-nt.  Biondo also has extensive patent-process experience.  In 1980, Biondo=
- launched Electric Filmworks, which produced computer-generated visual eff=
-ects for the television and motion picture industry.  He also designed an =
-apparatus using newly available and inexpensive microcomputers, which allo=
-wed the company to compete successful against older, more established firm=
-s.  To transfer from the service-sector into manufacturing, Biondo sold El=
-ectric Filmworks in 1989 and co-founded Amazing Photos.  Amazing Photos de=
-signed, manufactured and sold a variety of innovative coin-operated photo =
-booths.  Polaroid Corporation licensed and marketed the two most popular a=
-nd cost effective booths under their own name. 
- 
- 
-Richard Reis, Ph.D. =96 Executive Director of the Alliance for Innovative =
-Manufacturing at Stanford and Director for Academic Partnerships in the St=
-anford Learning Laboratory.  Dr. Reis' impressive career includes serving =
-as; the Executive director of the Stanford Center for integrated Systems, =
-a major research partnership between Stanford and 15 industrial companies;=
- a Consulting Professor in both the Stanford University Electrical and Mec=
-hanical Engineering departments; professor of a year-round seminar that is=
- part of the Stanford University Future Professors of Manufacturing progra=
-m; a professor of astronomy at the College of San Mateo, Calif.; and a cur=
-riculum consultant at Menlo College, Calif. 
- 
- 
-Ben Jacobson, Ph.D. =96 Dr. Jacobson has worked on numerous impressive LED=
- projects that have exponentially increased beam density and brightness an=
-d reduced system costs. Additionally, these projects have improved power r=
-equirements, heat load and LED count, while improving compactness, efficie=
-ncy and performance over competitors' products.  Dr. Jacobson was instrume=
-ntal in positioning Illumitech as a new company developing high-performanc=
-e LED lighting systems with thermal packaging.  Dr. Jacobson has over a de=
-cade of experience developing and marketing new technology for the display=
- industry, both in his previous positions and currently at Illumitech.  Pr=
-ior to Illumitech, Dr. Jacobson held various executive and research direct=
-orial positions at EG Controls Inc., ARCH Venture Partners, NiOptics Corpo=
-ration and the University of Chicago.  He has seven U.S. patents, and has =
-published 13 research articles and seven conference presentations. 
- 
- 
-Joseph D. Tajnai, Ph.D. =96 Dr. Tajnai is a consultant in Optical Radiatio=
-n Safety, LED's & Applications and Optics & Optical Measurement Training. =
-He was an engineer, Technology Breakthroughsentist and technical manager f=
-or 23 years at Hewlett-Packard and Agilent Technologies. He has focused on=
- fiber optic development, LED development and measurements, new product pr=
-ocesses, mathematical modeling and international and US standards and regu=
-lations. He also worked with GE Sylvania for nine years and contributed he=
-avily to their YAG laser development. Dr. Tajnai received his BS, MS and P=
-h.D. from California Institute of Technology in Electrical Engineering and=
- Applied Physics. 
-
-
-
-
-
-
-
-
-
-
-
-Please note that NMMG had absolutley nothing to do with this report and is=
- not a participant in any way.
-
-
-
-
-
-
-
-
-
-No more advertisements: www.inet-notification.com/away.html
-
-
-
-
-
-
-
-
-
-Technology Breakthroughs is an independent research firm. This report is b=
-ased on Technology Breakthroughs's independent analysis but also relies on=
- information supplied by sources believed to be reliable. This report may =
-not be the opinion of NMMG management. Technology Breakthroughs has also b=
-een retained to research and issue reports on NMMG. Technology Breakthroug=
-hs may from time to time purchase or sell NMMG common shares in the open m=
-arket without notice. The information contained in this report shall not c=
-onstitute, an offer to sell or solicitation of any offer to purchase any s=
-ecurity. It is intended for information only. Some statements may contain =
-so-called "forward-looking statements". Many factors could cause actual re=
-sults to differ. Investors should consult with their Investment Advisor co=
-ncerning NMMG. Copyright 2003 =A9 Technology Breakthroughs. All Rights Res=
-erved. Technology Breakthroughs was paid eight thousand dollars to distrib=
-ute this report. Technology Breakthroughs is not affiiated with Technology=
- Breakthroughs and is not responsible for newsletter content.  All informa=
-tion in this report can be obtained on the world wide web at www.nmmimedia=
-com.  New Millenimum Media was not a participant in this newsletter in an=
-y way.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-yqqt miownzeinwnr  eaowvorsk zqmyxa ig m uerw
-wa  vsy
-
---_F21_4_C425F6_.7C6_8--
-
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime-oOUblnuQwHKola3qYQ6TW/IULO3mGbRi9nwVQlTi/Pw@public.gmane.org for more info.
+
+---996275822-1494578376-1071646931=:7976
+Content-Type: TEXT/PLAIN; charset=X-UNKNOWN
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+Sorry my late. I was decompressing and decoding DELL BIOS image
+to obtain asm source of smm bios. Now I try to understand it. It is
+terrible job.
+
+In attach is my lspci and standby script.
+Now I am using "stanby" script with rmmod, in attached script is modules
+removing commented out.
+
+poli
+
+
+On Mon, 8 Dec 2003, Emmanuel [iso-8859-1] Thom=E9 wrote:
+
+>
+> This seems pretty odd ; we should have very similar hardware, if not
+> identical. Would you mind sending me your lspci -vn ? I'd be interested
+> also in having a look to your suspend script.
+>
+> Note that the only situation in which I've had an oops triggered from
+> the usb subsystem was with the original kernel setup: re-enabling all
+> usb controllers on resume, regardless of timeouts. My patch explicitely
+> fails on controller timeout, which avoids this sort of nasty problems
+> (oopsing from rmmod).
+>
+> Also, do you have any usb device actually plugged into your system when
+> suspending ?
+>
+> You're right poking usb-devel about this sort of woes. There definitely
+> is some work to do in order to have usb behave better wrt suspend
+> issues.
+>
+> E.
+>
+> On Fri, Dec 05, 2003 at 11:05:13AM +0100, Petr Olivka wrote:
+> >
+> > I did test this patch yesterday, and I have still the same behaviour.
+> > After resume from S1 notebook hang. To not hang I everytime stop usbmbr
+> > and remove all usb modules, but uhci-hcd fail when unloading:
+> >
+> > uhci_hcd 0000:00:1d.0: remove, state 1
+> > usb usb1: USB disconnect, address 1
+> > uhci_hcd 0000:00:1d.0: USB bus 1 deregistered
+> > uhci_hcd 0000:00:1d.1: remove, state 1
+> > usb usb2: USB disconnect, address 1
+> > uhci_hcd 0000:00:1d.1: USB bus 2 deregistered
+> > uhci_hcd 0000:00:1d.2: remove, state 1
+> > usb usb3: USB disconnect, address 1
+> > usb 3-2: USB disconnect, address 2
+> > pci_pool_destroy 0000:00:1d.2/uhci_td, def25000 busy
+> > uhci_hcd 0000:00:1d.2: USB bus 3 deregistered
+> > slab error in kmem_cache_destroy(): cache `uhci_urb_priv': Can't free a=
+ll
+> > objects
+> > Call Trace:
+> >  [<c013866d>] __slab_error+0x21/0x28
+> >  [<c0138fe4>] kmem_cache_destroy+0x8c/0x114
+> >  [<e28e86d0>] uhci_hcd_cleanup+0x18/0x50 [uhci_hcd]
+> >  [<c012e54f>] sys_delete_module+0x17b/0x19c
+> >  [<c0141510>] sys_munmap+0x44/0x64
+> >  [<c0108faf>] syscall_call+0x7/0xb
+> >
+> > uhci: not all urb_priv's were freed
+> >
+> > I will forward this problem to usb-devel.
+> >
+> > thanks
+> >   poli
+>
+>
+---996275822-1494578376-1071646931=:7976
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name="lspci.vn"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.58.0312170842110.7976-Rd/Vp7eeBLeOZheNW5JDhQ@public.gmane.org>
+Content-Description: 
+Content-Disposition: attachment; filename="lspci.vn"
+
+MDA6MDAuMCBDbGFzcyAwNjAwOiA4MDg2OjMzNDAgKHJldiAwMykNCglGbGFn
+czogYnVzIG1hc3RlciwgZmFzdCBkZXZzZWwsIGxhdGVuY3kgMA0KCU1lbW9y
+eSBhdCBlMDAwMDAwMCAoMzItYml0LCBwcmVmZXRjaGFibGUpIFtzaXplPTEy
+OE1dDQoJQ2FwYWJpbGl0aWVzOiBbZTRdICMwOSBbZjEwNF0NCglDYXBhYmls
+aXRpZXM6IFthMF0gQUdQIHZlcnNpb24gMi4wDQoNCjAwOjAxLjAgQ2xhc3Mg
+MDYwNDogODA4NjozMzQxIChyZXYgMDMpDQoJRmxhZ3M6IGJ1cyBtYXN0ZXIs
+IDY2TWh6LCBmYXN0IGRldnNlbCwgbGF0ZW5jeSAzMg0KCUJ1czogcHJpbWFy
+eT0wMCwgc2Vjb25kYXJ5PTAxLCBzdWJvcmRpbmF0ZT0wMSwgc2VjLWxhdGVu
+Y3k9MzINCglJL08gYmVoaW5kIGJyaWRnZTogMDAwMGMwMDAtMDAwMGNmZmYN
+CglNZW1vcnkgYmVoaW5kIGJyaWRnZTogZmMwMDAwMDAtZmRmZmZmZmYNCglQ
+cmVmZXRjaGFibGUgbWVtb3J5IGJlaGluZCBicmlkZ2U6IGU4MDAwMDAwLWVm
+ZmZmZmZmDQoNCjAwOjFkLjAgQ2xhc3MgMGMwMzogODA4NjoyNGMyIChyZXYg
+MDEpDQoJU3Vic3lzdGVtOiA4MDg2OjQ1NDENCglGbGFnczogYnVzIG1hc3Rl
+ciwgbWVkaXVtIGRldnNlbCwgbGF0ZW5jeSAwLCBJUlEgMTENCglJL08gcG9y
+dHMgYXQgYmY4MCBbc2l6ZT0zMl0NCg0KMDA6MWQuMSBDbGFzcyAwYzAzOiA4
+MDg2OjI0YzQgKHJldiAwMSkNCglTdWJzeXN0ZW06IDgwODY6NDU0MQ0KCUZs
+YWdzOiBidXMgbWFzdGVyLCBtZWRpdW0gZGV2c2VsLCBsYXRlbmN5IDAsIElS
+USAxMQ0KCUkvTyBwb3J0cyBhdCBiZjQwIFtzaXplPTMyXQ0KDQowMDoxZC4y
+IENsYXNzIDBjMDM6IDgwODY6MjRjNyAocmV2IDAxKQ0KCVN1YnN5c3RlbTog
+ODA4Njo0NTQxDQoJRmxhZ3M6IGJ1cyBtYXN0ZXIsIG1lZGl1bSBkZXZzZWws
+IGxhdGVuY3kgMCwgSVJRIDExDQoJSS9PIHBvcnRzIGF0IGJmMjAgW3NpemU9
+MzJdDQoNCjAwOjFkLjcgQ2xhc3MgMGMwMzogODA4NjoyNGNkIChyZXYgMDEp
+IChwcm9nLWlmIDIwKQ0KCVN1YnN5c3RlbTogMTAyODowMTFkDQoJRmxhZ3M6
+IGJ1cyBtYXN0ZXIsIG1lZGl1bSBkZXZzZWwsIGxhdGVuY3kgMCwgSVJRIDEx
+DQoJTWVtb3J5IGF0IGY0ZmZmYzAwICgzMi1iaXQsIG5vbi1wcmVmZXRjaGFi
+bGUpIFtzaXplPTFLXQ0KCUNhcGFiaWxpdGllczogWzUwXSBQb3dlciBNYW5h
+Z2VtZW50IHZlcnNpb24gMg0KCUNhcGFiaWxpdGllczogWzU4XSAjMGEgWzIw
+ODBdDQoNCjAwOjFlLjAgQ2xhc3MgMDYwNDogODA4NjoyNDQ4IChyZXYgODEp
+DQoJRmxhZ3M6IGJ1cyBtYXN0ZXIsIGZhc3QgZGV2c2VsLCBsYXRlbmN5IDAN
+CglCdXM6IHByaW1hcnk9MDAsIHNlY29uZGFyeT0wMiwgc3Vib3JkaW5hdGU9
+MDIsIHNlYy1sYXRlbmN5PTMyDQoJSS9PIGJlaGluZCBicmlkZ2U6IDAwMDBk
+MDAwLTAwMDBlZmZmDQoJTWVtb3J5IGJlaGluZCBicmlkZ2U6IGY2MDAwMDAw
+LWZiZmZmZmZmDQoNCjAwOjFmLjAgQ2xhc3MgMDYwMTogODA4NjoyNGNjIChy
+ZXYgMDEpDQoJRmxhZ3M6IGJ1cyBtYXN0ZXIsIG1lZGl1bSBkZXZzZWwsIGxh
+dGVuY3kgMA0KDQowMDoxZi4xIENsYXNzIDAxMDE6IDgwODY6MjRjYSAocmV2
+IDAxKSAocHJvZy1pZiA4YSBbTWFzdGVyIFNlY1AgUHJpUF0pDQoJU3Vic3lz
+dGVtOiA4MDg2OjQ1NDENCglGbGFnczogYnVzIG1hc3RlciwgbWVkaXVtIGRl
+dnNlbCwgbGF0ZW5jeSAwLCBJUlEgMTENCglJL08gcG9ydHMgYXQgPGlnbm9y
+ZWQ+DQoJSS9PIHBvcnRzIGF0IDxpZ25vcmVkPg0KCUkvTyBwb3J0cyBhdCA8
+aWdub3JlZD4NCglJL08gcG9ydHMgYXQgPGlnbm9yZWQ+DQoJSS9PIHBvcnRz
+IGF0IGJmYTAgW3NpemU9MTZdDQoJTWVtb3J5IGF0IDIwMDAwMDAwICgzMi1i
+aXQsIG5vbi1wcmVmZXRjaGFibGUpIFtzaXplPTFLXQ0KDQowMDoxZi41IENs
+YXNzIDA0MDE6IDgwODY6MjRjNSAocmV2IDAxKQ0KCVN1YnN5c3RlbTogMTAy
+ODowMTFkDQoJRmxhZ3M6IGJ1cyBtYXN0ZXIsIG1lZGl1bSBkZXZzZWwsIGxh
+dGVuY3kgMCwgSVJRIDExDQoJSS9PIHBvcnRzIGF0IGI4MDAgW3NpemU9MjU2
+XQ0KCUkvTyBwb3J0cyBhdCBiYzQwIFtzaXplPTY0XQ0KCU1lbW9yeSBhdCBm
+NGZmZjgwMCAoMzItYml0LCBub24tcHJlZmV0Y2hhYmxlKSBbc2l6ZT01MTJd
+DQoJTWVtb3J5IGF0IGY0ZmZmNDAwICgzMi1iaXQsIG5vbi1wcmVmZXRjaGFi
+bGUpIFtzaXplPTI1Nl0NCglDYXBhYmlsaXRpZXM6IFs1MF0gUG93ZXIgTWFu
+YWdlbWVudCB2ZXJzaW9uIDINCg0KMDA6MWYuNiBDbGFzcyAwNzAzOiA4MDg2
+OjI0YzYgKHJldiAwMSkNCglTdWJzeXN0ZW06IDE0ZjE6NTQyMg0KCUZsYWdz
+OiBtZWRpdW0gZGV2c2VsLCBJUlEgMTENCglJL08gcG9ydHMgYXQgYjQwMCBb
+c2l6ZT0yNTZdDQoJSS9PIHBvcnRzIGF0IGIwODAgW3NpemU9MTI4XQ0KCUNh
+cGFiaWxpdGllczogWzUwXSBQb3dlciBNYW5hZ2VtZW50IHZlcnNpb24gMg0K
+DQowMTowMC4wIENsYXNzIDAzMDA6IDEwMDI6NGM2NiAocmV2IDAxKQ0KCVN1
+YnN5c3RlbTogMTAyODowMTFkDQoJRmxhZ3M6IGJ1cyBtYXN0ZXIsIFZHQSBw
+YWxldHRlIHNub29wLCBzdGVwcGluZywgNjZNaHosIG1lZGl1bSBkZXZzZWws
+IGxhdGVuY3kgMzIsIElSUSAxMQ0KCU1lbW9yeSBhdCBlODAwMDAwMCAoMzIt
+Yml0LCBwcmVmZXRjaGFibGUpIFtzaXplPTEyOE1dDQoJSS9PIHBvcnRzIGF0
+IGMwMDAgW3NpemU9MjU2XQ0KCU1lbW9yeSBhdCBmY2ZmMDAwMCAoMzItYml0
+LCBub24tcHJlZmV0Y2hhYmxlKSBbc2l6ZT02NEtdDQoJRXhwYW5zaW9uIFJP
+TSBhdCA8dW5hc3NpZ25lZD4gW2Rpc2FibGVkXSBbc2l6ZT0xMjhLXQ0KCUNh
+cGFiaWxpdGllczogWzU4XSBBR1AgdmVyc2lvbiAyLjANCglDYXBhYmlsaXRp
+ZXM6IFs1MF0gUG93ZXIgTWFuYWdlbWVudCB2ZXJzaW9uIDINCg0KMDI6MDAu
+MCBDbGFzcyAwMjAwOiAxNGU0OjE2YTYgKHJldiAwMikNCglTdWJzeXN0ZW06
+IDEwMjg6ODEyNg0KCUZsYWdzOiBidXMgbWFzdGVyLCA2Nk1oeiwgbWVkaXVt
+IGRldnNlbCwgbGF0ZW5jeSA2NCwgSVJRIDExDQoJTWVtb3J5IGF0IGZhZmYw
+MDAwICg2NC1iaXQsIG5vbi1wcmVmZXRjaGFibGUpIFtzaXplPTY0S10NCglD
+YXBhYmlsaXRpZXM6IFs0MF0gIzA3IFswMDAwXQ0KCUNhcGFiaWxpdGllczog
+WzQ4XSBQb3dlciBNYW5hZ2VtZW50IHZlcnNpb24gMg0KCUNhcGFiaWxpdGll
+czogWzUwXSBWaXRhbCBQcm9kdWN0IERhdGENCglDYXBhYmlsaXRpZXM6IFs1
+OF0gTWVzc2FnZSBTaWduYWxsZWQgSW50ZXJydXB0czogNjRiaXQrIFF1ZXVl
+PTAvMyBFbmFibGUtDQoNCjAyOjAxLjAgQ2xhc3MgMDYwNzogMTIxNzo3MTEz
+IChyZXYgMjApDQoJU3Vic3lzdGVtOiAxMDI4OjAxMWQNCglGbGFnczogYnVz
+IG1hc3Rlciwgc3RlcHBpbmcsIHNsb3cgZGV2c2VsLCBsYXRlbmN5IDE2OCwg
+SVJRIDExDQoJTWVtb3J5IGF0IDIwMDAxMDAwICgzMi1iaXQsIG5vbi1wcmVm
+ZXRjaGFibGUpIFtzaXplPTRLXQ0KCUJ1czogcHJpbWFyeT0wMiwgc2Vjb25k
+YXJ5PTAzLCBzdWJvcmRpbmF0ZT0wNiwgc2VjLWxhdGVuY3k9MTc2DQoJTWVt
+b3J5IHdpbmRvdyAwOiAyMDQwMDAwMC0yMDdmZjAwMCAocHJlZmV0Y2hhYmxl
+KQ0KCU1lbW9yeSB3aW5kb3cgMTogMjA4MDAwMDAtMjBiZmYwMDANCglJL08g
+d2luZG93IDA6IDAwMDA0MDAwLTAwMDA0MGZmDQoJSS9PIHdpbmRvdyAxOiAw
+MDAwNDQwMC0wMDAwNDRmZg0KCTE2LWJpdCBsZWdhY3kgaW50ZXJmYWNlIHBv
+cnRzIGF0IDAwMDENCg0KMDI6MDEuMSBDbGFzcyAwNjA3OiAxMjE3OjcxMTMg
+KHJldiAyMCkNCglTdWJzeXN0ZW06IDEwMjg6MDExZA0KCUZsYWdzOiBidXMg
+bWFzdGVyLCBzdGVwcGluZywgc2xvdyBkZXZzZWwsIGxhdGVuY3kgMTY4LCBJ
+UlEgMTENCglNZW1vcnkgYXQgMjAwMDIwMDAgKDMyLWJpdCwgbm9uLXByZWZl
+dGNoYWJsZSkgW3NpemU9NEtdDQoJQnVzOiBwcmltYXJ5PTAyLCBzZWNvbmRh
+cnk9MDcsIHN1Ym9yZGluYXRlPTBhLCBzZWMtbGF0ZW5jeT0xNzYNCglNZW1v
+cnkgd2luZG93IDA6IDIwYzAwMDAwLTIwZmZmMDAwIChwcmVmZXRjaGFibGUp
+DQoJTWVtb3J5IHdpbmRvdyAxOiAyMTAwMDAwMC0yMTNmZjAwMA0KCUkvTyB3
+aW5kb3cgMDogMDAwMDQ4MDAtMDAwMDQ4ZmYNCglJL08gd2luZG93IDE6IDAw
+MDA0YzAwLTAwMDA0Y2ZmDQoJMTYtYml0IGxlZ2FjeSBpbnRlcmZhY2UgcG9y
+dHMgYXQgMDAwMQ0KDQo=
+
+---996275822-1494578376-1071646931=:7976
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name=standby
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.58.0312170842111.7976-Rd/Vp7eeBLeOZheNW5JDhQ@public.gmane.org>
+Content-Description: 
+Content-Disposition: attachment; filename=standby
+
+IyEvYmluL3NoDQoNCi4gL2V0Yy9wcm9maWxlIA0KDQpVU0JNR1I9L2V0Yy9p
+bml0LmQvdXNibWdyDQpBVU1JWD0vZXRjL2luaXQuZC9hdW1peA0KUENNQ0lB
+PS9ldGMvaW5pdC5kL3BjbWNpYQ0KDQpMQ0Q9Ii9yb290L3JhZGVvbi9yYWRl
+b250b29sIGxpZ2h0Ig0KDQppZiBbIC1mIC90bXAvLlgwLWxvY2sgXQ0KICB0
+aGVuDQogICAgTENEPSJ4c2V0IC1kaXNwbGF5IDowLjAgZHBtcyBmb3JjZSIN
+CmZpDQoNCg0KJFVTQk1HUiBzdG9wDQokUENNQ0lBIHN0b3ANCiRBVU1JWCBz
+dG9wDQppZmRvd24gZXRoMCANCg0KI2ZvciBpIGluIGBsc21vZCB8IGF3ayAn
+e3ByaW50ICQxO30nYDsgZG8gcm1tb2QgJGk7IHNsZWVwIDAuMTsgZG9uZQ0K
+DQpzeW5jDQokTENEIG9mZg0KaGRwYXJtIC15IC9kZXYvaGRhDQoNCmVjaG8g
+MSA+IC9wcm9jL2FjcGkvc2xlZXANCiNlY2hvIC1uICJzdGFuZGJ5IiA+IC9z
+eXMvcG93ZXIvc3RhdGUNCg0KJExDRCBvbg0KDQovZXRjL2luaXQuZC9tb2R1
+dGlscyBzdGFydA0KDQppZnVwIGV0aDANCg0KJFVTQk1HUiBzdGFydA0KJFBD
+TUNJQSBzdGFydA0KJEFVTUlYIHN0YXJ0DQoNCg==
+
+---996275822-1494578376-1071646931=:7976--
 
 
 -------------------------------------------------------
