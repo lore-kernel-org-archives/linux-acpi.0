@@ -1,49 +1,50 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: [PATCH] [0/1] acpi_wakeup.S
-Date: Tue, 11 Feb 2003 15:25:33 +0100
+From: Ducrot Bruno <poup-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: [PATCH] [1/1] acpi_wakeup.S
+Date: Tue, 11 Feb 2003 15:37:17 +0100
 Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20030211142533.GM25625@poup.poupinou.org>
+Message-ID: <20030211143717.GC25632@poup.poupinou.org>
+References: <20030211142533.GM25625@poup.poupinou.org>
+Reply-To: ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="aM3YZ0Iwxop3KEKx"
+Content-Type: multipart/mixed; boundary="EVF5PPMfhYS0aIcm"
 Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20030211142533.GM25625-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
 To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 
---aM3YZ0Iwxop3KEKx
+--EVF5PPMfhYS0aIcm
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-This one correct the arithmetic 0x1000 = 4096.
+
+Patch from Pavel Macheck.  Just in case it was
+lost..
+
+
+
 
 -- 
 Ducrot Bruno
+http://www.poupinou.org        Page profaissionelle
+http://toto.tu-me-saoules.com  Haume page
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
-
---aM3YZ0Iwxop3KEKx
+--EVF5PPMfhYS0aIcm
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="00_acpi_wakeup.diff"
+Content-Disposition: attachment; filename="01_acpi_wakeup.diff"
 
---- linux-2.5.60/arch/i386/kernel/acpi_wakeup.S	2003/02/11 13:59:48	1.1
-+++ linux-2.5.60/arch/i386/kernel/acpi_wakeup.S	2003/02/11 14:00:41
-@@ -160,11 +160,11 @@
- 	ALIGN
+--- linux-2.5.60/arch/i386/kernel/acpi_wakeup.S	2003/02/11 14:02:07	1.2
++++ linux-2.5.60/arch/i386/kernel/acpi_wakeup.S	2003/02/11 14:02:54
+@@ -31,7 +31,7 @@
+ 	movw	%cs, %ax
+ 	movw	%ax, %ds					# Make ds:0 point to wakeup_start
+ 	movw	%ax, %ss
+-	mov	wakeup_stack - wakeup_code, %sp			# Private stack is needed for ASUS board
++	mov	$(wakeup_stack - wakeup_code), %sp		# Private stack is needed for ASUS board
+ 	movw	$0x0e00 + 'S', %fs:(0x12)
  
- 
--.org	0x2000
-+.org	0x800
- wakeup_stack:
--.org	0x3000
-+.org	0x900
- ENTRY(wakeup_end)
--.org	0x4000
-+.org	0x1000
- 
- wakeup_pmode_return:
- 	movl	$__KERNEL_DS, %eax
+ 	pushl	$0						# Kill any dangerous flags
 
---aM3YZ0Iwxop3KEKx--
+--EVF5PPMfhYS0aIcm--
