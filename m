@@ -1,67 +1,90 @@
-From: "Herbert Nachtnebel" <Herbert.Nachtnebel-8zxNtbQCHXIjuwv8T7myQQ@public.gmane.org>
-Subject: AW: Completely discharging LION batteries
-Date: Wed, 11 Dec 2002 16:26:41 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <B900970C7DD9474C972986EB3EC7C58F04EA7D@andromeda.agcad.local>
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [ACPI] Dell i8k was: Re: [2.5.50, ACPI] link error
+Date: Wed, 11 Dec 2002 08:40:05 -0800
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <B9ECACBD6885D5119ADC00508B68C1EA0D19B993@orsmsx107.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: 'Andrew McGregor' <andrew-Rd3uoDiDeHXJKwlM9GxbOw@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
+Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Ducrot Bruno' <poup-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
 
-> I'm using Linux 2.4.20 together with the acpi patches=20
-> 20021205-2.4.20 on a
-> Thinkpad T20. If I use two batteries (the builtin and a=20
-> second in the Ultra-
-> Bay), the second battery first gets discharged _completely_=20
-> and after that the internal battery is used.
+The problem is related to this message:
 
-That's normal, but yes it is not the smartest idea to do.
+    ACPI-0189: *** Warning: Buffer created with zero length in AML
 
-> After completely discharging the battery, the
-> maximum capacity to which the battery can be charged is only=20
-> 28120 mWh,
-> so I lost about 2000 mWh or about 8 percent of the battery capacity!!!
+I have a patch for the oops caused by this, but there may be an additional
+underlying problem where the AML is causing a zero length buffer to be
+created.
 
-Yes that's correct, but a 8 percent drop is way to much.=20
-It's a physical property that if Lion batteries are discharged=20
-completely the capacity gets smaller. Hence in areas were reliability is
-important (i.e. in satellites) lion batteries are never allowed to =
-discharge
-deeply. But on the other hand, from the manufacturer point of view this =
-is=20
-more than welcome. The customer has the replace his batteries sooner.
-
->=20
-> So since I found that out I don't allow the Laptop to fully=20
-> discharge the
-> battery anymore. So may questions are: Can I set the capacity=20
-> at which the
-> Laptop switches to the builtin battery? Can you acknowledge=20
-> my experiences?
-
-The strategy is set by the BIOS or by the embedded controller, there is =
-no
-way to change it.
-
-Herbert.
+Bob
 
 
--------------------------------------------------------
-This sf.net email is sponsored by:
-With Great Power, Comes Great Responsibility 
-Learn to use your power at OSDN's High Performance Computing Channel
-http://hpc.devchannel.org/
+-----Original Message-----
+From: Andrew McGregor [mailto:andrew-Rd3uoDiDeHXJKwlM9GxbOw@public.gmane.org] 
+Sent: Tuesday, December 10, 2002 7:45 PM
+To: Pavel Machek; Alan Cox
+Cc: Grover, Andrew; 'Ducrot Bruno'; Ducrot Bruno; Patrick Mochel; Linux
+Kernel Mailing List; ACPI mailing list
+Subject: Re: [ACPI] Dell i8k was: Re: [2.5.50, ACPI] link error
+
+Hmm, when I boot 2.5.51 w/ACPI on it with a battery installed, it panics. 
+By booting without and then inserting the battery, I got the attached oops. 
+See also the messages in the dmesg output.
+
+Andrew
+
+--On Wednesday, December 11, 2002 09:50:48 +1300 Andrew McGregor 
+<andrew-Rd3uoDiDeHXJKwlM9GxbOw@public.gmane.org> wrote:
+
+> I strongly suspect that s4bios will work on this machine, but swsusp
+> won't. Why?  It's a Dell Inspiron 8000 with an NVidia Geforce2go, and
+> until NVidia put pm support in their driver, it's game over for Linux.
+> Except that the BIOS knows how to suspend it, so some kernel/driver
+> combinations work with APM.  I suspect any Geforce2go Dell is the same.
+>
+> Andrew
+>
+> --On Tuesday, December 10, 2002 21:40:31 +0100 Pavel Machek
+> <pavel-AlSwsSmVLrQ@public.gmane.org> wrote:
+>
+>> Hi!
+>>
+>>> > I concur with your pros and cons. This makes me think that if S4BIOS
+>>> > support ever gets added, it should get added to 2.4 only.
+>>
+>> And S4BIOS will never get added to 2.4 since it needs driver model
+>> :-(.
+>>
+>>> That assumes no box exists where S4bios works an S4 doesnt (eg due to
+>>> bad tables or "knowing" what other-os does)
+>>
+>> We have full control over S4 (== swsusp), so we can fix that in most
+>> cases.
+>>
+>> S4BIOS is still little friendlier to the user -- no need to set up
+>> swap partition and command line parameter, can't go wrong if you boot
+>> without resume=, etc.
+>> 								Pavel
+>>
+>> --
+>> Casualities in World Trade Center: ~3k dead inside the building,
+>> cryptography in U.S.A. and free speech in Czech Republic.
+>> -
+>> To unsubscribe from this list: send the line "unsubscribe linux-kernel"
+>> in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> Please read the FAQ at  http://www.tux.org/lkml/
+>>
+>>
+>
+>
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+>
+>
