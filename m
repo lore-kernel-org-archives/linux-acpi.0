@@ -1,51 +1,44 @@
-From: Michael Frank <mhf-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
-Subject: Re: [ACPI] Re: 1.1-rc9 acpi_disabled==0x30 on resume
-Date: Sat, 27 Sep 2003 13:19:36 +0800
-Sender: swsusp-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200309271313.28366.mhf@linuxmail.org>
-References: <200309270135.43786.mhf@linuxmail.org> <1064606502.5722.2.camel@laptop-linux> <20030927000908.GB8008@hell.org.pl>
+From: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
+Subject: Re: S5 Powerdown problem on TX150 servers
+Date: Sat, 27 Sep 2003 12:59:46 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <200309271259.46338.adq_dvb@lidskialf.net>
+References: <3ACA40606221794F80A5670F0AF15F8401720B38@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-2"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <swsusp-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030927000908.GB8008-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401720B38-4yWAQGcml64gGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Content-Disposition: inline
-Errors-To: swsusp-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:swsusp-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:swsusp-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/swsusp-devel>,
-	<mailto:swsusp-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/swsusp-devel>,
-	<mailto:swsusp-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=swsusp-devel>
-To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>
-Cc: swsusp-devel <swsusp-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Saturday 27 September 2003 08:09, Karol Kozimor wrote:
-> Thus wrote Nigel Cunningham:
-> > Hi.
-> > 
-> > In arch/i386/kernel, acpi_disabled is declared __init_data. If you
-> > remove that attribute, is the issue fixed?
-> 
-> I believe the patch is already merged. I wonder how could this bug be 
-> present for that long without anyone noticing...
-> Best regards,
-> 
+On Wednesday 24 September 2003 04:14, Yu, Luming wrote:
+> There is a patch for this issue. Would you please try patch at
+> http://bugzilla.kernel.org/show_bug.cgi?id=1141 Thanks,
+> Luming
 
-Well, I "use" swsusp actively in a portable application only since -rc9, 
-and did not use ACPI modules for stress testing.
+Hi, sorry about the delay; been having a cold for the last few days.
 
-I wrote s script which loads ACPI ac module and reads the state. When 
-online, it starts all the office stuff such as network, nfs... 
-and found out when ac refused to load. Then I remembered something about
-acpi being disabled on resume and had a look with kdb...
+I've actually tried this patch... it is not this problem.. the standard code 
+DOES suspend the machine, but it doesn't appear to enter S5.. its more like 
+S1.
 
-Regards
-Michael
+I added lots of debugging printks. I can see that the machine halts (but does 
+NOT turn off properly) when I press the power button. HOWEVER, when I press 
+the button again, my printks AFTER the machine halts get executed.
 
+I haven't had the time to get in touch with fujitsu siemens yet...
 
 
 
