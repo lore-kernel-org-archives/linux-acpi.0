@@ -1,14 +1,13 @@
-From: <liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
-Subject: Re: Acpica problem?
-Date: Mon, 30 Jun 2003 13:11:58 +0200 (CEST)
+From: "siva" <sivakumar.subramani-uxC5H9eHYlcAvxtiuMwx3w@public.gmane.org>
+Subject: System poweroff
+Date: Mon, 30 Jun 2003 16:59:00 +0530
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.33.0306301311190.1064-100000@frog.athome>
-References: <200306301237.07932.hrvoje.habjanic@zg.htnet.hr>
-Reply-To: <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
+Message-ID: <0ee801c33efa$cd80eaf0$2a0806c0@wiproxcoio3398>
+Reply-To: "siva" <sivakumar.subramani-uxC5H9eHYlcAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/mixed;
+	boundary="----=_NextPartTM-000-58b6873b-aaad-11d7-ba80-006067005148"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200306301237.07932.hrvoje.habjanic-+VD6v/bdhRf0NTdHYsHBKg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,44 +16,83 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Hrvoje Habjanic <hrvoje.habjanic-+VD6v/bdhRf0NTdHYsHBKg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+This is a multi-part message in MIME format.
 
-Salut Hrvoje,
-On Mon, 30 Jun 2003, Hrvoje Habjanic wrote:
+------=_NextPartTM-000-58b6873b-aaad-11d7-ba80-006067005148
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0EE5_01C33F28.E72B6B50"
 
-> [root@xxx acpi]# ./acpica-unix-20030619/compiler/iasl -g
->
-> Intel ACPI Component Architecture
-> ASL Optimizing Compiler / AML Disassembler version 20030619 [Jun 30 2003]
-> Copyright (C) 2000 - 2003 Intel Corporation
-> Supports ACPI Specification Revision 2.0b
->
-> Core dump
->
-> I'm dooing something wrong?
-Did you build it from source?
+------=_NextPart_000_0EE5_01C33F28.E72B6B50
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-cheers
-  hartwig felger
+Hi,
 
-Hartwig Felger informatics
+My system is not getting powered off, if I issue a poweroff / halt -p  / =
+init 0 command. Instead it is shutdowns the system and stops after =
+displaying the following message "Power down". I haven't installed any =
+of the power management (APM / ACPI) option in my kernel.
 
-- -- 
-1024D/339FD693 Hartwig Felger <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
-Key fingerprint = FB2F 3EE9 345A D55B 6FF2  0EC1 F5B0 684F 339F D693
-For the pulic keys, please visit my page.
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
+Is it because of that ?
 
-iD8DBQE/ABsD9bBoTzOf1pMRAsgWAJ40y8pmLoTgrpn+H+wrN0Szr4M2qQCgzTVL
-t3yWu5IzYV+sixQuDzWMM6g=
-=xK2h
------END PGP SIGNATURE-----
+Thanks,
+-Siva
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"Imagination is more important than Knowledge"
+                               - Albert Einstein
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+------=_NextPart_000_0EE5_01C33F28.E72B6B50
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Diso-8859-1">
+<META content=3D"MSHTML 6.00.2462.0" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV><FONT face=3DArial color=3D#0000ff size=3D2>Hi,</FONT></DIV>
+<DIV><FONT face=3DArial color=3D#0000ff size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial color=3D#0000ff size=3D2>My system is =
+not&nbsp;getting powered=20
+off, if I issue a poweroff / halt -p&nbsp; / init 0 command. Instead it =
+is=20
+shutdowns the system and stops after displaying the following message =
+"Power=20
+down". I haven't installed&nbsp;any of the power management (APM / ACPI) =
+option=20
+in my kernel.</FONT></DIV>
+<DIV><FONT face=3DArial color=3D#0000ff size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial color=3D#0000ff size=3D2>Is it because of that =
+?</FONT></DIV>
+<DIV><FONT face=3DArial color=3D#0000ff size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial color=3D#0000ff size=3D2>Thanks,</FONT></DIV>
+<DIV><FONT face=3DArial color=3D#0000ff size=3D2>-Siva</FONT></DIV>
+<DIV><FONT face=3DArial color=3D#0000ff size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial color=3D#0000ff=20
+size=3D2>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~<BR>"Imagination is more =
+important=20
+than=20
+Knowledge"<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
+;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=20
+- Albert=20
+Einstein<BR>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</FONT></DIV></BODY></HT=
+ML>
+
+------=_NextPart_000_0EE5_01C33F28.E72B6B50--
+
+
+------=_NextPartTM-000-58b6873b-aaad-11d7-ba80-006067005148--
 
 
 
