@@ -1,14 +1,14 @@
-From: Alexei Gilchrist <alexei-JAjqph6Yjy/o0IyPN7li9Ydd74u8MsAO@public.gmane.org>
+From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
 Subject: Re: PROBLEM: ACPI crashes (2.6.2-rc2-mm1)
-Date: Thu, 29 Jan 2004 10:49:47 +1000
+Date: Thu, 29 Jan 2004 10:15:03 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040129004947.GA2723@physics.uq.edu.au>
-References: <m3n087khfl.fsf@reason.gnu-hamburg> <401811E8.8060003@pca.it> <20040128200719.M75620@morningdave.org> <40181916.2050408@xms.se> <40182D90.8090102@pca.it>
+Message-ID: <4018CF17.4040606@pca.it>
+References: <m3n087khfl.fsf@reason.gnu-hamburg> <401811E8.8060003@pca.it> <20040128200719.M75620@morningdave.org> <40181916.2050408@xms.se> <40182D90.8090102@pca.it> <4018B6F1.3070607@xms.se>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <40182D90.8090102-wlebWZzHoyE@public.gmane.org>
+In-Reply-To: <4018B6F1.3070607-7RBX4Gk6oWI@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,46 +17,46 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-On my Panasonic W2 (also with 855GM) swsusp2 will hang on resume when
-running 2.6.1 (from X). Running 2.4.23 will work happily --- from console,
-from X with vesa driver and X with i810 driver.
+Hello,
 
-I've had mixed results with USB on resume, which can usually be fixed by
-unloading the modules and reloading them. I'm not using DRI.
+on 01/29/04 08:32, Jonas Petersson wrote:
+> Yep, sounds like we are in the same state. I've not been around long
+> enough to know the whole history for sure, but it appears that Nigel has
+> worked for quite some time on swsusp on 2.4 and Pavel has worked on a
+> 2.6(pre) as different branches some original "swsusp". Now that Nigel is
+> going 2.6 the two branches are rather different and hence Nigel's 2.6
+> version is called swsusp2 while his 2.4 version is just swsusp. Somewhat
+> confusing... So far Nigels stuff is only available as a patch.
+yes, this is what I know... IMHO the /problem/ is that Nigel's project
+site is 'swsusp.sf.net', so far confusing for a newbie (who doesn't know
+the whole story).
 
-cheers,
+> suspends while hunting down some incompatible drivers - for instance the
+>  LinuxAnt driver for the builtin wireless card...
+The same here if I leave 'ndiswrapper' loaded. IMHO the problem with all
+the NDIS wrapper (Linuxand and NDISwrapper) is that they aren't Linux
+native drivers, so it could be more difficult to implement power
+management. Anyway, I'll pass to a native Linux Intel Centrino driver,
+as soon as it will be one: Jon Lech Johansen started one which could
+read the MAC address, but his site is no more on and I can't find other
+info :-( (BTW, I don't have the capacities to continue his work)
 
-Alexei
+Thx, bye,
+Gismo / Luca
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
 
-
-On Wed, Jan 28, 2004 at 10:45:52PM +0100, Luca Capello did merrily tap:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
-> 
-> Hello,
-> 
-> on 01/28/04 21:18, Jonas Petersson wrote:
-> > For the record: Several of us over on the swsusp list appear to have
-> > rouchly the same problem: With some effort and fiddling (as described in
-> > the previous mail), swsusp2 works for console and even from
-> > unaccelerated X, but whenever DRI ang AGP is enabled it resume will
-> > crash. [...]
-> just for the record, in my case, 'swsusp' (normal, not the 'swsusp2' by
-> Nigel Cunningham) works *perfectly* without DRI and AGP. 'Perfectly'
-> means that I can suspend from X (obviously, unaccelerated) and
-> successfully resume on X with the USB and ALSA (0.9.7) modules loaded
-> (but as I don't have any USB devices here, I can't tell if USB working
-> let you suspend/resume). This is a starting point, I hope, even for the
-> 'swsusp' mode.
-> 
-> I never tried 'swsusp2', I could give it a try if necessary. The same
-> for 'pmdisk'.
-
+iD8DBQFAGM8WVAp7Xm10JmkRApu1AKCAwAUGw0rU5v4T3llm25kYxLBX8QCfS9lD
+3rKdjPqU99AxViGaiyCuYQg=
+=Kv0V
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
