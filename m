@@ -1,13 +1,14 @@
-From: Jes Sorensen <jes-UC6nUKlm/0l5V+5IkYBVeNBPR1lH4CV8@public.gmane.org>
-Subject: Re: [patch] 2.6.1-mm3 acpi frees free irq0
-Date: 19 Jan 2004 02:59:46 -0500
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: FW: ACPI too sensitive about critical temperature
+Date: Mon, 19 Jan 2004 00:50:36 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <yq0hdys8j2l.fsf@wildopensource.com>
-References: <3ACA40606221794F80A5670F0AF15F8401720CEE@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <F760B14C9561B941B89469F59BA3A84702C9321E@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401720CEE-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,24 +17,51 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, akpm-3NddpPZAyC0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Jesse Barnes <jbarnes-sJ/iWh9BUns@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->>>>> ">" == Yu, Luming <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> writes:
+=20
 
->> In this specific case the prom doesn't have it in it's tables, so
->> not finding it is expected behavior.
+-----Original Message-----
+From: Julius Volz [mailto:julius.volz-cOr7zazyEW0f8UlNpKJ8ow@public.gmane.org]=20
+Sent: Sunday, January 18, 2004 6:26 AM
+To: Grover, Andrew; Diefenbaugh, Paul S
+Subject: ACPI too sensitive about critical temperature
 
->> What's your machine type, and BIOS version?  This specific box
->> seems to be short of fundamental ACPI power button support.
+Hi,
 
-Oh it's very short of those features, it really only uses ACPI to
-provide system setup information and thats about it. It's an Altix box
-fwiw.
+I didn't want to bug the whole lkml with this, so I'm sending this to=20
+you guys who wrote "drivers/acpi/thermal.c". I hope that's okay...
 
-Cheers,
-Jes
+A friend of mine has a mainboard (I can find out the specific type if=20
+you want to know) which reports inaccurately high temperature "peaks"=20
+from time to time.
+Looking at /proc/acpi/thermal_zone/THR1/temperature every second might=20
+look something like this: 45, 43, 47, 42, 90, 43, 41, 45
+
+This is of course bad when CONFIG_ACPI_THERMAL is enabled and the=20
+computer just randomly shuts down when you are working. The problem with =
+
+detecting this bug for normal users is that the temperature reported in=20
+the shutdown message is already taken from a next measurement and looks=20
+ok again.
+So you might get a shutdown message saying,
+"Critical temperature reached (43 C)..."
+and wonder why the system shuts down although you set critical=20
+temperature to 85=B0C in the BIOS.
+
+I've looked at thermal.c and thought that it would be better to look at=20
+temperature measurements over a range of, say, three seconds (if that is =
+
+possible) to sort out these false peaks.
+
+As there might be many mainboards out there that do this and=20
+CONFIG_ACPI_THERMAL should normally be enabled, this could turn out to=20
+be a problem for many people otherwise.
+
+What do you think?
+
+Julius
 
 
 -------------------------------------------------------
