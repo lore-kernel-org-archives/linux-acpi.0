@@ -1,11 +1,11 @@
-From: Mail Delivery Subsystem <MAILER-DAEMON-YDxpq3io04c@public.gmane.org>
-Subject: Returned mail: User unknown
-Date: Tue, 2 Sep 2003 02:53:45 -0400 (EDT)
+From: Postmaster <postmaster-P5ys19MLBK/QT0dZR+AlfA@public.gmane.org>
+Subject: Undeliverable mail
+Date: Tue, 2 Sep 2003 03:01:35 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200309020653.CAE11935@rly-yc06.mx.aol.com>
+Message-ID: <iss.3572.3f54404f.62aa8.18@pain.noceast.dws.disney.com>
 Mime-Version: 1.0
 Content-Type: multipart/report; report-type=delivery-status;
-	boundary="CAE11935.1062485625/rly-yc06.mx.aol.com"
+              boundary="=_mh.ndn.3572.3f54404f_="
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -18,64 +18,40 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a MIME-encapsulated message
+--=_mh.ndn.3572.3f54404f_=
+Content-Type: text/plain; charset=us-ascii
 
---CAE11935.1062485625/rly-yc06.mx.aol.com
+Your message was not delivered to the following recipients:
 
-The original message was received at Tue, 2 Sep 2003 02:53:29 -0400 (EDT)
-from  [61.185.224.66]
+                      ID-XFksZO6ZYbM@public.gmane.org: 550 5.1.1 <ID@ABC.com>... User Unknown
 
+The Walt Disney Company and its affiliates are in the process of an e-Mail system upgrade.  The person you intended to send this message to may have had their Internet e-Mail address changed, or it may be unavailable for a short time as part of this process.
 
-*** ATTENTION ***
+If you feel that you have received this non-delivery notice in error, please contact the intended recipient by phone to confirm their address.
 
-Your e-mail is being returned to you because there was a problem with its
-delivery.  The address which was undeliverable is listed in the section
-labeled: "----- The following addresses had permanent fatal errors -----".
-
-The reason your mail is being returned to you is listed in the section
-labeled: "----- Transcript of Session Follows -----".
-
-The line beginning with "<<<" describes the specific reason your e-mail could
-not be delivered.  The next line contains a second error message which is a
-general translation for other e-mail servers.
-
-Please direct further questions regarding this message to your e-mail
-administrator.
-
---AOL Postmaster
-
-
-
-   ----- The following addresses had permanent fatal errors -----
-<shtabmdr-YDxpq3io04c@public.gmane.org>
-
-   ----- Transcript of session follows -----
-... while talking to air-yc04.mail.aol.com.:
->>> RCPT To:<shtabmdr-YDxpq3io04c@public.gmane.org>
-<<< 550 MAILBOX NOT FOUND
-550 <shtabmdr-YDxpq3io04c@public.gmane.org>... User unknown
-
---CAE11935.1062485625/rly-yc06.mx.aol.com
+--=_mh.ndn.3572.3f54404f_=
 Content-Type: message/delivery-status
+Content-Transfer-Encoding: 7bit
 
-Reporting-MTA: dns; rly-yc06.mx.aol.com
-Arrival-Date: Tue, 2 Sep 2003 02:53:29 -0400 (EDT)
+Reporting-MTA: dns;pain.noceast.dws.disney.com
 
-Final-Recipient: RFC822; shtabmdr-YDxpq3io04c@public.gmane.org
+Final-Recipient: rfc822;ID-XFksZO6ZYbM@public.gmane.org
 Action: failed
 Status: 5.1.1
-Remote-MTA: DNS; air-yc04.mail.aol.com
-Diagnostic-Code: SMTP; 550 MAILBOX NOT FOUND
-Last-Attempt-Date: Tue, 2 Sep 2003 02:53:45 -0400 (EDT)
 
---CAE11935.1062485625/rly-yc06.mx.aol.com
+--=_mh.ndn.3572.3f54404f_=
 Content-Type: text/rfc822-headers
+Content-Transfer-Encoding: 7bit
 
-Received: from  DENGZHEN ([61.185.224.66]) by rly-yc06.mx.aol.com (v95.1) with ESMTP id MAILRELAYINYC67-6ed3f543e6433b; Tue, 02 Sep 2003 02:53:26 -0400
+Received: from mail11.disney.com by pain.noceast.dws.disney.com with ESMTP; Tue, 2 Sep 2003 03:01:35 -0400
+Received: from LSM ([163.180.127.185])
+	by mail11.disney.com (Switch-3.1.0/Switch-3.1.0) with ESMTP id h82704OE028575
+	for <ID-XFksZO6ZYbM@public.gmane.org>; Tue, 2 Sep 2003 00:00:05 -0700 (PDT)
+Message-Id: <200309020700.h82704OE028575-kaLrBnE4Ujhcxzff65EOYwC/G2K4zDHf@public.gmane.org>
 From: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-To: <Shtabmdr-YDxpq3io04c@public.gmane.org>
-Subject: Re: Wicked screensaver
-Date: Tue, 2 Sep 2003 14:56:02 +0800
+To: <ID-XFksZO6ZYbM@public.gmane.org>
+Subject: Re: Re: My details
+Date: Tue, 2 Sep 2003 16:00:20 +0900
 X-MailScanner: Found to be clean
 Importance: Normal
 X-Mailer: Microsoft Outlook Express 6.00.2600.0000
@@ -83,14 +59,10 @@ X-MSMail-Priority: Normal
 X-Priority: 3 (Normal)
 MIME-Version: 1.0
 Content-Type: multipart/mixed;
-	boundary="_NextPart_000_00E801BC"
-X-AOL-IP: 61.185.224.66
-X-AOL-SCOLL-SCORE: 0:XXX:XX
-X-AOL-SCOLL-URL_COUNT: 0
-Message-ID: <200309020253.6ed3f543e6433b-ji7PyDHhDEk7N1j9GEufq0EOCMrvLtNR@public.gmane.org>
+	boundary="_NextPart_000_01B4FB6E"
 
---CAE11935.1062485625/rly-yc06.mx.aol.com--
 
+--=_mh.ndn.3572.3f54404f_=--
 
 
 -------------------------------------------------------
