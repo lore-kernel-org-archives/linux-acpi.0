@@ -1,15 +1,13 @@
-From: mark.acpi-Wx4BgtDyjI+1Z/+hSey0Gg@public.gmane.org
-Subject: Re: a bit confused
-Date: Fri, 21 Nov 2003 23:00:21 -0500
+From: "Dee Stone" <w24zmdcw-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Boost Your  Car's Gas Mileage 27%+.....basil
+Date: Sat, 22 Nov 2003 06:47:59 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031121230021.A18194@winksmith.com>
-References: <BF1FE1855350A0479097B3A0D2A80EE00147D322@hdsmsx402.hd.intel.com>
-Reply-To: mark-Wx4BgtDyjI+1Z/+hSey0Gg@public.gmane.org
+Message-ID: <tw2fre7t21h0bbsg-a68w5y2r40cv2@tjk.u6l10>
+Reply-To: "Dee Stone" <w24zmdcw-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/alternative;
+	boundary="F95A_50F.5F"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <BF1FE1855350A0479097B3A0D2A80EE00147D322-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>; from len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org on Thu, Nov 20, 2003 at 10:41:26PM -0500
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,31 +16,74 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Giorgenes Gelatti <giorgenes.canopus-y7mWNqJcIDpfJ/NunPodnw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: jeditea6-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Nov 20, 2003 at 10:41:26PM -0500, Brown, Len wrote:
-> If it does not and you'd like to try the latest ACPI patch, the oldest
-> kernel we support is 2.4.22:
-> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.4.22
 
-i have a debian 2.4.22 (some small amount of magic foo patched in
-already).  would you happen to know if that patch apply to my kernel?
-i've read some conflicting stuff about it.
+--F95A_50F.5F
+Content-Type: text/plain;
+Content-Transfer-Encoding: quoted-printable
 
-> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/README.ACPI
+FUEL SAVER PRO
 
-debian isn't mentioned in it.
+This revolutionary device Boosts Gas Mileage 27%+ by helping fuel burn bet=
+ter using three patented processes from General Motors.
+www.bb4n.org/?axel=3D49
 
-thanks.
+PROVEN TECHNOLOGY
+A certified U.S. Environmental Protection Agency (EPA) laboratory recently=
+ completed tests on the new Fuel Saver. The results were astounding! Maste=
+r Service, a subsidiary of Ford Motor Company, also conducted extensive em=
+issions testing and obtained similar, unheard of results. The achievements=
+ of the Fuel Saver is so noteworthy to the environmental community, that C=
+ommercial News has featured it as their cover story in their June, 2000 ed=
+ition.
 
--- 
-Mark Smith
-mark-Wx4BgtDyjI+1Z/+hSey0Gg@public.gmane.org
-mark at tux dot org
-nova-instructor at tux dot org
-F: 775-522-8479
+Take a test drive Today - www.bb4n.org/?axel=3D49
+
+
+
+
+
+
+No more advertisements, thanks - http://www.aqmp.net/out5s/rem2e.asp
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+aexskacdoddzkowpz vyvdvfmvms
+aywn  k
+
+--F95A_50F.5F--
+
 
 
 -------------------------------------------------------
