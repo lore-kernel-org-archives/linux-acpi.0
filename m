@@ -1,14 +1,15 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Inspiron 5150
-Date: Fri, 2 Jan 2004 15:53:20 +0800
+From: Michael Guntsche <mike-Z92qn3yYq0hWk0Htik3J/w@public.gmane.org>
+Subject: Re: ACPI and framebuffer related problems with Linux
+ 2.6.1-rc1
+Date: Fri, 2 Jan 2004 11:29:14 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C73@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <20040102112914.17654746.mike@it-loops.com>
+References: <20040101220615.GA1804@minerva.local.lan>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <20040101220615.GA1804-pLH66uKTs7QSl9drg5isYP8+0UxHXcjY@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,19 +18,55 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Michael McCaskill <mjmccask-e4nNhFGpWWo@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->Actually the new acpi patches make my battery and temp.=20
->sensors on gkrellm not function. So now none of my acpi things function
+On Thu, 1 Jan 2004 23:06:15 +0100
+Martin Loschwitz <madkiss-R0iKqZn4BxJAfugRpC6u6w@public.gmane.org> wrote:
 
->correctly. I have compile the kernel with ACPI_DEBUG but I get nothing.
+> However, there is a problem with ACPI:
+> /proc/acpi/processor/CPU0/performance, which was there in previous
+> versions of the kernel and allowed me to slow the CPU down in order to
+> save power, disappeared in Linux 2.6.1-rc1. It's simply not there
+> anymore. Was it replaced? If so, what is the right way to do it by
+> now?
 
-Maybe http://bugzilla.kernel.org/show_bug.cgi?id=3D1766 can help this
-case.
+After reading this E-Mail I tested it on my notebook (TarvelMate800) and
+noticed that even with kernel 2.6.0 
 
---Luming
+	/proc/acpi/processor/CPU0/limit and
+	/proc/acpi/processor/CPU0/performance
+
+disappeared.
+
+Kernel 2.4.23:
+($:/)-> cat /proc/acpi/processor/CPU0/info 
+processor id:            0
+acpi id:                 0
+bus mastering control:   yes
+power management:        yes
+throttling control:      no
+performance management:  yes
+limit interface:         yes
+
+
+Kernel 2.6.0:
+($:/)-> cat /proc/acpi/processor/CPU0/info 
+processor id:            0
+acpi id:                 0
+bus mastering control:   yes
+power management:        yes
+throttling control:      no
+performance management:  no
+limit interface:         no
+
+
+I don't use the performance option, since I throttle my
+notebook with cpufreq, but it still looks like a regression.
+
+
+
+/Michael
 
 
 -------------------------------------------------------
