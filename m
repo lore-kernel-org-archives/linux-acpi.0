@@ -1,14 +1,14 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ACPI S3 resume only reboots
-Date: Fri, 15 Oct 2004 13:25:49 -0700
+From: Karol Kozimor <sziwan-Ld6m4ffJbnhv8hMmhsfr/Q@public.gmane.org>
+Subject: Re: Power button events unavailable after resume
+Date: Fri, 15 Oct 2004 23:23:22 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <88056F38E9E48644A0F562A38C64FB60031D9C4A@scsmsx403.amr.corp.intel.com>
+Message-ID: <20041015212322.GC4062@hell.hell.org.pl>
+References: <200410121343.31099.barr.156@osu.edu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <200410121343.31099.barr.156-ZbGKxL/pcrQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,75 +17,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alberto Piai <albeclemit-whZMOeQn8C0@public.gmane.org>
-Cc: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->-----Original Message-----
->From: Alberto Piai [mailto:albeclemit-whZMOeQn8C0@public.gmane.org]=20
->Sent: Friday, October 15, 2004 12:41 PM
->To: Pallipadi, Venkatesh
->Cc: Li, Shaohua; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: Re: [ACPI] ACPI S3 resume only reboots
->
->On Fri, 15 Oct 2004 06:52:57 -0700
->"Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->
->> >> > From the comment in those lines, push and pop are not=20
->> >required for all
->> >> > platforms. Can you just comment out that push and pop and=20
->> >see how far
->> >> > you can go.
->> >
->> >I know it's not the most the effective way to proceed, but at=20
->> >least i tryed ;)
->> >I've been moving around the pushl $0 (that causes reboot) to=20
->> >check if the code was still executing. That's what i found.
->
->> >	testl	$1, video_flags - wakeup_code
->> >		### If I put pushl $0 here, it causes reboot.=20
->> >code is still alive.
->> > 	jz	1f
->> >		## pushl $0 here doesn't make reboot (hang on wakeup)
->> >=09
->> >	lcall   $0xc000,$3
->
->> Jz is jump on zero. The instructions following jz here never gets
->> executed unless you pass "acpi_sleep=3Ds3_bios". You have to follow =
-the
->> code to where 1: is.=20
->
->I followed the code until the line that makes it hang:
->[...]
->wakeup_pmode_return:
->	movw	$__KERNEL_DS, %ax
->	movw	%ax, %ss			# THIS LINE=20
->MAKES IT HANG
->	movw	%ax, %ds
->	movw	%ax, %es
->	movw	%ax, %fs
->	movw	%ax, %gs
->	movw	$0x0e00 + 'u', 0xb8016
->
->	# reload the gdt, as we need the full 32 bit address
->	lgdt	saved_gdt
->	lidt	saved_idt
->	lldt	saved_ldt
->[...]
->
->...what's happening now?
->Thanks,
->Alberto
->
+Thus wrote Andrew Barr:
+> Recently, I have been unable to get power button events from my notebook after 
+> a Software Suspend 2 (version 2.1-rc1) resume without removing and 
+> re-inserting the ACPI button driver. Pressing the power button has no effect, 
 
+Make sure you're using the ACPI S4 option.
+Best regards,
 
-I think all the experiments you are doing here are really good. I hate
-to loose the history of this issue later. Can you please open a bugzilla
-here (http://bugme.osdl.org) and document all the informations we have
-on this until now.=20
-
-Thanks,
-Venki=20
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
