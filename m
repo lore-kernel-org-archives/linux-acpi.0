@@ -1,15 +1,12 @@
 From: Hanno Böck <hanno-Mmb7MZpHnFY@public.gmane.org>
-Subject: Re: 2.4.19 and swsusp
-Date: Sun, 6 Oct 2002 14:31:25 +0200
+Subject: BATTSTAT-patch for two or more batteries
+Date: Sun, 6 Oct 2002 18:51:42 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021006143125.730cb26d.hanno@gmx.de>
-References: <1033901673.1529.13.camel@wuffi>
-	<1033925382.1549.39.camel@darkstar.portugal>
+Message-ID: <20021006185142.0a422a2b.hanno@gmx.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1033925382.1549.39.camel-4/PLUo9XfK/yXfm4dIG/yWZHpeb/A1Y/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,13 +15,19 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ACPI list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: fog-NGVKUo/i/6DYtjvyW6yDsg@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->in swsusp.sf.net one alfa version as already out, I haven't tested but
->if you tested tell me something 
+I have updated my gnome-battstat-patch for two batteries now:
+http://www.gentoo.org/~hanno/battstat_two_batteries_v2.diff
+Patch is against gnome-applets-2.0.3.
 
-There is no such patch. There is only one against 2.4.19-vanilla, but not against current acpi-patch.
+Changes:
+- Should also work with more than 2 batteries, now generic check for what's in /proc/acpi/battery. (can anyone with 3 batteries confirm this?)
+- Should also fix the issue reported by Federico Di Gregorio with the non-usual ac/dc-proc-entry. Also generic check. (Frederico, can you confirm this?)
+
+Any Feedback is welcome. I will also send this to the gnome-authors.
 
 
 -------------------------------------------------------
