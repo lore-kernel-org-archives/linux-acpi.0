@@ -1,13 +1,13 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Re: Re: [PATCH] Don't disable interrupts during EC access
-Date: Wed, 17 Nov 2004 20:02:49 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC095@pdsmsx403>
+From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: Re: [PATCH] Don't disable interrupts during EC access
+Date: Wed, 17 Nov 2004 13:25:41 +0100
+Message-ID: <20041117122541.GJ4620@wotan.suse.de>
+References: <3ACA40606221794F80A5670F0AF15F84041AC076@pdsmsx403> <20041116121616.GG1108@parcelfarce.linux.theplanet.co.uk> <20041116122946.GG28839@wotan.suse.de> <20041117012527.GB10900@message-id.gmane0305.slipkontur.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <20041117012527.GB10900-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,75 +17,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: "Fu, Michael" <michael.fu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I didn't find DSDT on acpi.sf.net,
-could you share it with me?
+On Wed, Nov 17, 2004 at 02:25:27AM +0100, Stefan Seyfried wrote:
+> On Tue, Nov 16, 2004 at 01:29:46PM +0100, Andi Kleen wrote:
+>  
+> > And the event polling can take several ms, there is just no way 
+> > to do this during runtime with interrupts off. Especially since
+> > thermal will do this every few seconds. With my patch at least 
+> > only kacpid is blocked for that long, not the whole system.
+> 
+> may this also help the awfully slow battery polling on some machines
+> (e.g. Dell D600) or is this a completely different case?
 
-BTW, When you poll battery info,
-please cat /proc/interrupts to me.
+Yes, it should help exactly this case. Or at least least it fixes
+the problem on a Presario A64 laptop.
 
-Thanks
-Luming=20
+-Andi
 
->-----Original Message-----
->From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
->[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
->Stefan Seyfried
->Sent: 2004=C4=EA11=D4=C217=C8=D5 19:50
->To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: [ACPI] Re: Re: [PATCH] Don't disable interrupts=20
->during EC access
->
->On Wed, Nov 17, 2004 at 06:56:07PM +0800, Yu, Luming wrote:
->
->> >may this also help the awfully slow battery polling on some machines
->> >(e.g. Dell D600) or is this a completely different case?
->>=20
->> I'm not sure before you clearly describe your specific problem.
->
->Ok, i thought this was a well known problem. (everybody i know=20
->seems to have
->experience with it :-)
->
->On a Dell Latitude D600 (other machines also, but this i have=20
->tested more
->extensively), a "cat /proc/acpi/battery/BAT0/info" takes 180msec with
->CPU at 600MHz. With CPU at 1700MHz it takes 70msec.
->
->e239:~ # time cat /proc/acpi/battery/BAT0/info > /dev/null
->
->real    0m0.182s
->user    0m0.002s
->sys     0m0.178s
->e239:~ # powersave -f
->Speed set to maximum
->e239:~ # time cat /proc/acpi/battery/BAT0/info > /dev/null
->
->real    0m0.068s
->user    0m0.000s
->sys     0m0.067s
->
->this time is 100% kernel time and polling battery makes e.g.=20
->DVD playback
->"stutter" visibly. The machine basically comes to a halt for ~0.2sec.
->--=20
->Stefan Seyfried
->
->
->
->-------------------------------------------------------
->This SF.Net email is sponsored by: InterSystems CACHE
->FREE OODBMS DOWNLOAD - A multidimensional database that combines
->robust object and relational technologies, making it a perfect match
->for Java, C++,COM, XML, ODBC and JDBC. www.intersystems.com/match8
->_______________________________________________
->Acpi-devel mailing list
->Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->https://lists.sourceforge.net/lists/listinfo/acpi-devel
->
 
 
 -------------------------------------------------------
