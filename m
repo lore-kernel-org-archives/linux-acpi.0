@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: generic hotkey driver
-Date: Tue, 14 Sep 2004 22:42:07 +0200
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [ACPI Debug] String: Length 0x0F, "Entering RTMP()"
+Date: 14 Sep 2004 17:29:29 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040914204207.GA12726@elf.ucw.cz>
-References: <3ACA40606221794F80A5670F0AF15F84056B57EE@pdsmsx403>
+Message-ID: <1095197368.5430.8.camel@d845pe>
+References: <20040914061641.GD2336@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F84056B57EE@pdsmsx403>
+In-Reply-To: <20040914061641.GD2336-l3A5Bk7waGM@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,36 +17,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Hiroshi Miura <miura-yiisDzvROlQdnm+yROfE0A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Jens Axboe <axboe-l3A5Bk7waGM@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Tue, 2004-09-14 at 02:16, Jens Axboe wrote:
+> Hi,
+> 
+> 2.6.9-rc2 is throwing a lot of these errors on my system:
+> 
+> [ACPI Debug] String: Length 0x0F, "Entering RTMP()"
+> [ACPI Debug] String: Length 0x0F, "Entering TIN2()"
+> [ACPI Debug] String: Length 0x0F, "Existing RTMP()"
+> 
+> About 450 of these three lines repeated so far, seem to get one every
+> 5
+> seconds or so. Box is an Athlon64 solo, let me know if you want more
+> info (and what).
+> 
+> --
+> Jens Axboe
 
-> >I think hotkey drivers are  so differ that it is enough to decide
-> >event format. ie) 'ibm KEY 00001 00001' or 'hotkey/pcc HKEY 
-> >000003 000001'
-> >
-> 
-> We don't need to care about the format of event. Since it is
-> configurable,
-> we just need to understand the internal meaning. So maybe we
-> need to define the internal event number, which stands for a
-> special purpose. such as:
-> 
-> 	001	turn off display
-> 	002	inc brightness
-> 	003	dec brightness
-> 	004	s3
-> 	......
-> 
+These are due to debug statements in your BIOS AML code.
+The Linux AML interpreter recognizes them and sends
+them to the console.
 
-If those are keys, you should just treat them as keys... That is hook
-it into input subsystem.
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Start by checking that you're running a production BIOS.
+
+echo 0 >/proc/acpi/debug_level should make them go away.
+
+cheers,
+-Len
+
+
 
 
 -------------------------------------------------------
