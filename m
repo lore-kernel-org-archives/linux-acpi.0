@@ -1,13 +1,14 @@
-From: Hiroshi 2 Itoh <HIROIT-JE5g2YyFxFHQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] [suspend/resume] wrong wakeup address
-Date: Sun, 17 Oct 2004 02:39:19 +0900
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Re: Acer Travermate 8005 and battery info
+Date: Thu, 7 Oct 2004 15:41:21 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <OFBB541BAC.1982118D-ON49256F2F.00592938-49256F2F.006086C1@jp.ibm.com>
-References: <16A54BF5D6E14E4D916CE26C9AD30575546CFA@pdsmsx402.ccr.corp.intel.com>
+Message-ID: <20041007134121.GB534@openzaurus.ucw.cz>
+References: <415C270F.5050306@lanil.mine.nu> <20041001102926.GD18786@elf.ucw.cz> <415D8CCF.8050602@lanil.mine.nu> <20041001194739.GE1100@openzaurus.ucw.cz> <41603BA0.9090900@lanil.mine.nu> <20041003203457.GD3379@elf.ucw.cz> <41617104.2040302@mega.ist.utl.pt> <20041005143951.GB4723@openzaurus.ucw.cz> <4162C0D1.20906@mega.ist.utl.pt> <20041006134610.2f310f7e.vsu@altlinux.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD30575546CFA-4yWAQGcml66iAffOGbnezLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20041006134610.2f310f7e.vsu-u2l5PoMzF/Uox3rIn2DAYQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -16,38 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+To: Sergey Vlasov <vsu-u2l5PoMzF/Uox3rIn2DAYQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi!
 
+> > i'll start studying i2c to find out the smbus "address" (sorry if this 
+> > is a dumb mistake) and try to scan it for the smart battery.
+> 
+> Some code already exists - the lm_sensors package
+> (http://secure.netroedge.com/~lm78/) includes the "smartbatt" module.
+> However, it is for 2.4.x kernels, therefore some porting work will be
+> needed to use it on 2.6.x.
 
-
-
-Hi, Shaohua-san,
-
-I had a glance at your patch and zapped also the codes around ACPI sleep
-area.
-
-acpi_wakeup_address is the entry address of wakeup_start() routine jumped
-from firmware, which is switching from real mode to protected mode. So its
-virtual and physical address must be identical for switching.  See "9.9
-Mode Swtching" in IA-32 Intel Architecture Software Developer's Manual.
-
-Can acpi_reserve_bootmem() routine reserve such identical memory to switch
-the processor mode?
-
-If so, the virt_to_phys implementation is not required. While if not,
-init_low_mapping() treating page directory in acpi_save_state_mem() and
-your virt_to_phys() patch are working in pair.
-
-After adding your patch, both are no longer independent each other. I
-wonder why waking vector setting is in acpi_pm_prepare(), not in
-acpi_pm_enter() with acpi_save_state_mem().
-
-Thanks for your patch.
-Hiroshi Itoh
-hiroit-JE5g2YyFxFHQT0dZR+AlfA@public.gmane.org
+Parts of lm_sensors were merged to 2.6.X, already. If code is clean enough,
+chances of inclusion into mainline are quite good...
+				Pavel
+-- 
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
 
 
 
