@@ -1,37 +1,57 @@
-From: Jeremy Fitzhardinge <jeremy-TSDbQ3PG+2Y@public.gmane.org>
-Subject: Re: [ACPI] _PDC method in DSDT
-Date: 23 Jun 2003 10:12:16 -0700
-Sender: cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
-Message-ID: <1056388336.15250.62.camel@ixodes.goop.org>
-References: <F760B14C9561B941B89469F59BA3A84725A303@orsmsx401.jf.intel.com>
-	 <20030623133834.GA2330@brodo.de>  <20030623161136.GG19556@poupinou.org>
+From: David Mosberger <davidm-o/PNRNCSakrWxDs0y9d3MAC/G2K4zDHf@public.gmane.org>
+Subject: Re: entry->irq = entry->link.index (problem 2 of thread [ Re: patch for updating IA64 ACPI fixs into Andy's  ACPI 2.5 tree])
+Date: Mon, 23 Jun 2003 11:27:56 -0700
+Sender: linux-ia64-admin-WygotPe7DYIabbyE177sbg@public.gmane.org
+Message-ID: <16119.18092.184061.37451@napali.hpl.hp.com>
+References: <3ACA40606221794F80A5670F0AF15F8427237F@pdsmsx403.ccr.corp.intel.com>
+Reply-To: davidm-sDzT885Ts8HQT0dZR+AlfA@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
-In-Reply-To: <20030623161136.GG19556-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Errors-To: cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
-List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMm38Ik5SeuEX72+df2TVCvIA@public.gmane.org>
-List-Post: <mailto:cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
-List-Help: <mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMm4xOcYYyLxz0@public.gmane.org>
-List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMmEuNEP1Y2mCuZIoH1IeqzKA@public.gmane.org>
-List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq/>
-To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>, Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, David Moore <dcm-HInyCGIudOg@public.gmane.org>, "Adachi, Kenichi" <adachi-fvZ7ij+YLgEZc9YY0SgeQc8NsWr+9BEh@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, cpufreq list <cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
+Return-path: <linux-ia64-admin-WygotPe7DYIabbyE177sbg@public.gmane.org>
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8427237F-4yWAQGcml64gGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Errors-To: linux-ia64-admin-WygotPe7DYIabbyE177sbg@public.gmane.org
+List-Help: <mailto:linux-ia64-request-WygotPe7DYL3TpFAQG+J+JSyx/Wj9/Chdaaq/uiDbmg@public.gmane.org>
+List-Post: <mailto:linux-ia64-WygotPe7DYIabbyE177sbg@public.gmane.org>
+List-Subscribe: <http://lists.linuxia64.org/lists/listinfo/linux-ia64>,
+	<mailto:linux-ia64-request-WygotPe7DYL3TpFAQG+J+EfZv34bSr6CyrRgqdI+6y4@public.gmane.org>
+List-Unsubscribe: <http://lists.linuxia64.org/lists/listinfo/linux-ia64>,
+	<mailto:linux-ia64-request-WygotPe7DYL3TpFAQG+J+I4vVymAtk2CuCKOA6ERizqzQB+pC5nmwQ@public.gmane.org>
+List-Archive: <http://lists.linuxia64.org/archives//linux-ia64/>
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-ia64-WygotPe7DYIabbyE177sbg@public.gmane.org, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Mallick, Asit K" <asit.k.mallick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2003-06-23 at 09:11, Ducrot Bruno wrote:
-> Yes.  It can be added.  But do we want to add it?  That's the real
-> question.
+>>>>> On Mon, 23 Jun 2003 15:13:18 +0800, "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> said:
 
-Well, the current scheme only works because there's a small number of
-easily identifiable Enhanced SpeedStep-capable processors which happen
-to use the same encoding for the PERF_CTL register.  It could get more
-complicated in future, and falling back to a table from ACPI may well be
-the appropriate solution for many people - though I would like to
-maintain the tables in speedstep-centrino so that it isn't dependent on
-ACPI.
+  >> @@ -248,6 +253,8 @@
+  >> return_VALUE(0);
+  >> }
 
-	J
+  >> +	entry->irq = entry->link.index;
+  >> +
+  >> if (!entry->irq && entry->link.handle) {
+  entry-> irq = acpi_pci_link_get_irq(entry->link.handle, entry->link.index);
+  >> if (!entry->irq) {
+
+  >> I don't quite understand what this is for.  Anyone know?
+
+  Luming> To understand the meaning of entry->link.index, please
+  Luming> reference acpi_get_prt which is in arch/ia64/kernel/acpi.c.
+  Luming> There is vector[i].irq = entry->link.index , entry is
+  Luming> acpi_prt_entry. And you can look into mp_parse_prt which is
+  Luming> in arch/i386/kernel/mpparse.c. There is irq =
+  Luming> entry->link.index.
+
+Ah, that's where x86 is doing the transformation.  Thanks for finding
+that.  I didn't understand how the old code worked on x86.
+
+Can we do the transformation at the same time on both platforms?
+Obviously there is no mpparse.c but perhaps arch/ia64/kernel/acpi.c
+could do it.  I wonder though if this scheme would work with hotplug
+devices.
+
+In any case, whatever the solution, we clearly should use the same
+approach on both platforms.
+
+	--david
