@@ -1,15 +1,20 @@
-From: Hiroyuki KAMEZAWA <kamezawa.hiroyu-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Subject: Re: [Lhms-devel] [PATCH] ACPI based Memory Hotplug Driver Patch
- Update
-Date: Wed, 13 Oct 2004 16:04:08 +0900
+From: Alberto <albeclemit-whZMOeQn8C0@public.gmane.org>
+Subject: Re: ACPI S3 resume only reboots
+Date: Wed, 13 Oct 2004 09:46:54 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <416CD368.3060807@jp.fujitsu.com>
-References: <FEB6C4E97F6CAF41978FB2059D5454180F3916@bgsmsx402.gar.corp.intel.com>
+Message-ID: <20041013094654.5e94e126.albeclemit@yahoo.it>
+References: <20041004133340.76ba05ba.albeclemit@yahoo.it>
+	<20041009130628.GA21781@elf.ucw.cz>
+	<20041010105635.GA3362@doc.ic.ac.uk>
+	<20041012175810.2920edf2.albeclemit@yahoo.it>
+	<416C0F14.5000107@root.org>
+	<20041012231737.62c5b99b.albeclemit@yahoo.it>
+	<416C527B.4020609@root.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <FEB6C4E97F6CAF41978FB2059D5454180F3916-OkeUvhg1trkFyVwBAnZdSLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <416C527B.4020609-Y6VGUYTwhu0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,65 +23,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "S, Naveen B" <naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Tolentino, Matthew E" <matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: nate-Y6VGUYTwhu0@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-S, Naveen B wrote:
+On Tue, 12 Oct 2004 14:54:03 -0700
+Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org> wrote:
 
->
-> Thanks Kame,
-> As I was mentioning earlier, my understanding from the spec that the
-> memory device has only range in _CRS. So I believe acpi_walk_resources
-> is redundant in this case. Anyway this could be changed if it is a real
-> concern.
-> Please let me know.
+> Alberto wrote:
+> > On Tue, 12 Oct 2004 10:06:28 -0700
+> > Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org> wrote:
+> > 
+> > 
+> >>>Code from arch/i386/kernel/acpi/wakeup.S
+> >>>
+> >>>[...] 
+> >>>	# setup data segment
+> >>>	movw	%cs, %ax
+> >>>	movw	%ax, %ds					# Make ds:0 point to wakeup_start
+> >>>	movw	%ax, %ss
+> >>>	mov	$(wakeup_stack - wakeup_code), %sp		# Private stack is needed for ASUS board
+> >>>	movw	$0x0e00 + 'S', %fs:(0x12)
+> >>>
+> >>>	pushl	$0		###THIS LINE CAUSES REBOOT###			# Kill any dangerous flags
+> >>>	popfl
+> >>
+> >>Hehe.  Look up above where the stack pointer is changed to point to the 
+> >>wakeup stack and then 0 is pushed on it.  It's likely there is some 
+> >>problem with the config or location of the wakeup stack.
+> > 
+> > 
+> > Ok, so the question is: where should %sp point to?
 > 
-> --Naveen
-> 
+> Dunno, we don't use a stack for the wake code.
 
-Okay, thanks.
-Currently, I have no *real* concern.
+...mmmh, the problem is that i'm not a programmer, i have no chance to work this out alone. Anybody can help? :)
 
--- Kame <kamezawa.hiroyu-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-
-
-> 
-> 
->>S, Naveen B wrote:
->>+static int
->>+acpi_memory_enable_device(struct acpi_memory_device *mem_device)
->>+{
->>+	int result;
->>+
->>+	ACPI_FUNCTION_TRACE("acpi_memory_enable_device");
->>+
->>+	/* Get the range from the _CRS */
->>+	result = acpi_memory_get_device_resources(mem_device);
->>
->>result = acpi_walk_resources(mem_device->handle, METHOD_NAME_CRS,
->>                              acpi_memory_get_device_resources,
->>mem_device);
->>
->>+	if (result) {
->>+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
->>+			"\nget_device_resources failed\n"));
->>+		mem_device->state = MEMORY_INVALID_STATE;
->>+		return result;
->>+	}
->>
->>--
->>--the clue is these footmarks leading to the door.--
->>KAMEZAWA Hiroyuki <kamezawa.hiroyu-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-> 
-> 
-> 
-
-
--- 
---the clue is these footmarks leading to the door.--
-KAMEZAWA Hiroyuki <kamezawa.hiroyu-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-
+Thanks,
+Alberto
 
 
 -------------------------------------------------------
