@@ -1,14 +1,12 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: ASUS M6800N: processor has only C1
-Date: Wed, 3 Mar 2004 11:35:28 +0100
+From: Jakob Praher <jpraher-LWAfsSFWpa4@public.gmane.org>
+Subject: thermal shutdown
+Date: Wed, 03 Mar 2004 12:41:58 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040303103528.GG2869@poupinou.org>
-References: <404459FD.1000406@pca.it> <20040302110946.GF2869@poupinou.org> <40448169.6090507@pca.it> <40449D8E.4060402@pca.it>
+Message-ID: <1078314118.1889.2.camel@jaques2>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <40449D8E.4060402-wlebWZzHoyE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,60 +15,50 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Mar 02, 2004 at 03:43:26PM +0100, Luca Capello wrote:
-> Hash: SHA1
-> 
-> Hello,
-> 
+hi,
 
-Thanks.  Sound like that I send only an half patch, sorry.
+my system: 2.6.3 acpi patched
+
+I have noticed, that at some sudden point in time (especially when I am
+not working actively ( I mean using input devices )), I receive a
+thermal shutdown, because of a (false?) temperature value.
+
+looking under /var/log/kern.log I found  
+
+jaques2:/var/log# cat  kern.log | grep  Critical
+Feb 19 16:11:21 jaques2 kernel: Critical temperature reached (123 C),
+shutting down.
+Feb 19 16:11:22 jaques2 kernel: Critical temperature reached (46 C),
+shutting down.
+Feb 20 10:47:02 jaques2 kernel: Critical temperature reached (123 C),
+shutting down.
+Feb 20 10:47:02 jaques2 kernel: Critical temperature reached (44 C),
+shutting down.
+Mar  2 22:38:27 jaques2 kernel: Critical temperature reached (123 C),
+shutting down.
+Mar  2 22:38:27 jaques2 kernel: Critical temperature reached (44 C),
+shutting do
+
+this temperature always happens to be 123 C.
+How is that possible?
+I noticed that the acpi_thermal_critical method uses some kind of flag
+for enabled disabled, but apparently in any case the shutdown user space
+app (/sbin/poweroff) is called.
+Should this only be the case when the temperature is too high and the
+flag (enabled) is set to != 0? Otherwise, what is the point in the
+enabled thing. [tz->trips.critical.flags.enabled]
+
+As you can see from my kern.log, the second value is drastically lower,
+so could this be a weekness in the system, that one sporadically high
+value can trigger a shutdown?
+
+thanks
+-- Jakob
 
 
---- linux-2.6-bk/include/acpi/processor.h	2004/03/03 10:17:39	1.1
-+++ linux-2.6-bk/include/acpi/processor.h	2004/03/03 10:31:20
-@@ -15,6 +15,16 @@
- 
- /* Power Management */
- 
-+struct acpi_power_register {
-+	u8			descriptor;
-+	u16			length;
-+	u8			space_id;
-+	u8			bit_width;
-+	u8			bit_offset;
-+	u8			reserved;
-+	u64			address;
-+} __attribute__ ((packed));
-+
- struct acpi_processor_cx_policy {
- 	u32			count;
- 	int			state;
-@@ -32,6 +42,7 @@ struct acpi_processor_cx {
- 	u32			latency;
- 	u32			latency_ticks;
- 	u32			power;
-+	u32			type;
- 	u32			usage;
- 	struct acpi_processor_cx_policy promotion;
- 	struct acpi_processor_cx_policy demotion;
-@@ -40,6 +51,7 @@ struct acpi_processor_cx {
- struct acpi_processor_power {
- 	int			state;
- 	int			default_state;
-+	int			count;
- 	u32			bm_activity;
- 	struct acpi_processor_cx states[ACPI_PROCESSOR_MAX_POWER];
- };
-
--- 
-Bruno Ducrot
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
 
 
 -------------------------------------------------------
