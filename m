@@ -1,11 +1,12 @@
-From: Jacques GANGLOFF <jacques-gXTsMEhN/Y091FlJP1ih0VAUjnlXr6A1@public.gmane.org>
-Subject: Wrong battery info : some news
-Date: Wed, 07 Aug 2002 01:04:25 +0200
+From: =?ISO-8859-1?Q?Robert_W=F6rle?= <robert.woerle-y2s3ugBAdl9BDgjK7y7TUQ@public.gmane.org>
+Subject: Re: Tablet PC + 2.4.18 + acpi 20020726 + swsup11 working !
+Date: Wed, 07 Aug 2002 08:48:08 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3D5055F9.9050107@eavr.u-strasbg.fr>
+Message-ID: <3D50C2A8.5070702@symplon.com>
+References: <Pine.LNX.4.33L2.0208060734290.10089-100000@dragon.pdx.osdl.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -15,334 +16,87 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Randy.Dunlap" <rddunlap-3NddpPZAyC0@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Randy.Dunlap schrieb:
 
-Recently I posted a message on this list about wrong battery informations
-on my SONY VAIO. I would like to add the result of apidump concerning
-BAT1. If someone could tell me how to debug this, I would appreciate.
+>On Tue, 6 Aug 2002, Robert Wörle wrote:
+>
+>| Ducrot Bruno schrieb:
+>|
+>| >On Tue, Aug 06, 2002 at 03:28:27PM +0200, Jörg Sonnenberger wrote:
+>| >
+>| >
+>| >>Am Dienstag, 6. August 2002 14:04 schrieb Robert Wörle:
+>| >>
+>| >>
+>| >>>So what is this pci1 and pic2 thing ??? and why is it residing at my
+>| >>>wanted IO ???
+>| >>>
+>| >>>
+>| >>Let me guess: PIC = Programmable Interrupt Controller,
+>| >>so I think you don't wanna mess with it! The interesting question is, why is
+>| >>your device in this range? This ports are reserved since the days of IBM's
+>| >>good old AT.
+>| >>
+>| >>
+>| >>
+>| >
+>| >Well, not all those ports are used by the original 8259A.  And the PIC 2, is
+>| >'only' at range A0-AF, according to Ralf Brown list.  Linux extend it a little,
+>| >but I don't know why.
+>| >
+>| >
+>| >
+>| Tell me guys , what driver is this pic2 .. where can i found the
+>| according **.c to have some try`S and modify it
+>| so if it doesnt need these ports then i can use them for my purposes ...
+>
+>The IO space for PIC1 and PIC2 is reserved in
+>linux/arch/i386/kernel/setup.c, around line 330 in 2.4.18/2.4.19,
+>in the array standard_io_resources[].
+>You might be able to make the granularity of that definition
+>finer so that some of the IO addresses aren't reserved.
+>  
+>
+Thank you , i found it at setup.c ... and i ll now try to free my needed 
+area with something like this:
+{"pic2",0xa0,0xb0,IORESOURCE_BUSY},
+("pic2",0xb3,0xbf,IORESOURCE_BUSY},----
+after that i should (=?!) have 0xb1-0xb2 free to be mapped by my driver ...
 
-Regards,
-Jacques
-
-PS: the output of cat /proc/acpi/battery/BAT1/info is :
-present:                 yes
-design capacity:         5 mWh
-last full capacity:      5 mWh
-battery technology:      rechargeable
-design voltage:          14800 mV
-design capacity warning: 400 mWh
-design capacity low:     384 mWh
-capacity granularity 1:  64 mWh
-capacity granularity 2:  64 mWh
-model number:            BAT1
-serial number:
-battery type:
-OEM info:
-
-which is apparentky the default initialization of the variable PBIF (see=20
-below).
-So the question is : why PBIF is not altered when calling the method _BIF=
- ?
+>Regarding someone else's email about Linux using only addresses
+>0xa0 and 0xa1 for PIC2:
+>That's probably correct.  The PIC internal registers are addressed
+>by ICWn and OCWn, which are dependent on the data values written.
+>The other IO addresses that are reserved (like 0xa4-5, 0xa8-9,
+>0xac-d, 0xb0-1, 0xb4-5, 0xb8-9, 0xbc-d) are ghosts (duplicates)
+>of the base IO addresses (0xa0-0xa1), due to incomplete IO address
+>line decoding.
+>
+>  
+>
 
 
-Device(BAT1) {
-        Name(_HID, 0x0a0cd041)
-        Name(_UID, 0x1)
-        Name(_PCL, Package(0x1) {
-            \_SB_,
-        })
-        Name(PBIF, Package(0xd) {
-            0x0,
-            0x5,
-            0x5,
-            0x1,
-            0x39d0,
-            0x0190,
-            0x0180,
-            0x40,
-            0x40,
-            "BAT1",
-            " ",
-            " ",
-            " ",
-        })
-        Name(PBST, Package(0x4) {
-            0x0,
-            0x5,
-            0x5,
-            0x2710,
-        })
-        Name(UBIF, 0x01e9)
-        Name(BP__, 0x1)
-        Method(_STA) {
-            If(\_SB_.PCI0.PIB_.EC0_.ECON) {
-                If(\_SB_.PCI0.PIB_.EC0_.ECOK) {
-                    If(LNot(Acquire(\_SB_.PCI0.PIB_.EC0_.MUT0, 0x1400))) =
-{
-                        Store(\_SB_.PCI0.PIB_.EC0_.BANK, Local6)
-                        Store(0x6, \_SB_.PCI0.PIB_.EC0_.BANK)
-                        And(\_SB_.PCI0.PIB_.EC0_.BATD, 0x1, Local0)
-                        Store(Local6, \_SB_.PCI0.PIB_.EC0_.BANK)
-                        If(Local0) {
-                            Store(0x1, BP__)
-                        }
-                        Else {
-                            Store(0x0, BP__)
-                        }
-                        Store(\_SB_.PCI0.PIB_.EC0_.BANK, Local6)
-                        Store(0x6, \_SB_.PCI0.PIB_.EC0_.BANK)
-                        Store(\_SB_.PCI0.PIB_.EC0_.BATD,=20
-\_SB_.PCI0.PIB_.EC0_.BATO)
-                        And(0xfffe, \_SB_.PCI0.PIB_.EC0_.BATF,=20
-\_SB_.PCI0.PIB_.EC0_.BATF)
-                        If(And(0xc0, \_SB_.PCI0.PIB_.EC0_.BATO, )) {
-                            Or(\_SB_.PCI0.PIB_.EC0_.BATF, 0x1,=20
-\_SB_.PCI0.PIB_.EC0_.BATF)
-                        }
-                        Store(Local6, \_SB_.PCI0.PIB_.EC0_.BANK)
-                        Release(\_SB_.PCI0.PIB_.EC0_.MUT0)
-                    }
-                }
-            }
-            If(BP__) {
-                Return(0x1f)
-            }
-            Else {
-                Return(0xf)
-            }
-        }
-        Method(_BIF) {
-            If(\_SB_.PCI0.PIB_.EC0_.ECON) {
-                If(\_SB_.PCI0.PIB_.EC0_.ECOK) {
-                    If(BP__) {
-                        UPBI()
-                    }
-                    Else {
-                        IVBI()
-                    }
-                    Store(0x01e9, UBIF)
-                }
-            }
-            Return(PBIF)
-        }
-        Method(_BST) {
-            If(\_SB_.PCI0.PIB_.EC0_.ECON) {
-                If(\_SB_.PCI0.PIB_.EC0_.ECOK) {
-                    If(LNot(Acquire(\_SB_.PCI0.PIB_.EC0_.MUT0, 0x1400))) =
-{
-                        Store(\_SB_.PCI0.PIB_.EC0_.BANK, Local6)
-                        Store(0x6, \_SB_.PCI0.PIB_.EC0_.BANK)
-                        And(\_SB_.PCI0.PIB_.EC0_.BATD, 0x1, Local0)
-                        Store(Local6, \_SB_.PCI0.PIB_.EC0_.BANK)
-                        Release(\_SB_.PCI0.PIB_.EC0_.MUT0)
-                    }
-                    If(Local0) {
-                        UPBS()
-                    }
-                    Else {
-                        IVBS()
-                    }
-                }
-            }
-            Else {
-                IVBS()
-            }
-            Return(PBST)
-        }
-        Method(UPBI) {
-            Store(Zero, Local0)
-            If(LNot(Acquire(\_SB_.PCI0.PIB_.EC0_.MUT0, 0x1400))) {
-                Store(VTOB(Subtract(_UID, 0x1, )), Local1)
-                Or(ShiftLeft(Local1, 0xc, ), 0x0fff, Local2)
-                Store(Zero, Local3)
-                \_SB_.PCI0.PIB_.EC0_.SMWR(0x8, 0x14, 0x1, Local2)
-                \_SB_.PCI0.PIB_.EC0_.SMRD(0x9, 0x14, 0x1, RefOf(Local3))
-                Store(Zero, Local0)
-                Store(0xc, Local1)
-                Store(Buffer(0xd) {0x0, 0x18, 0x0, 0x0, 0x19, 0x0, 0x0,=20
-0x0, 0x0, 0x21, 0x0, 0x22, 0x20 }, Local2)
-                While(LGreater(Local1, 0x8)) {
-                    If(LNot(And(UBIF, VTOB(Local1), ))) {
-                        GBFE(Local2, Local1, RefOf(Local3))
-                        If(Local3) {
-                            If(LNot(\_SB_.PCI0.PIB_.EC0_.SMRD(0xb, 0x16,=20
-Local3, RefOf(Local4)))) {
-                                GBFE(Local4, 0x20, RefOf(Local5))
-                                PBFE(Local4, Local5, 0x20)
-                                Increment(Local5)
-                                PBFE(Local4, Local5, 0x0)
-                                Store(Local4, Index(PBIF, Local1, ))
-                                Or(UBIF, VTOB(Local1), UBIF)
-                                Store(Ones, Local0)
-                            }
-                        }
-                    }
-                    Decrement(Local1)
-                }
-                While(LGreater(Local1, 0x0)) {
-                    If(LNot(And(UBIF, VTOB(Local1), ))) {
-                        GBFE(Local2, Local1, RefOf(Local3))
-                        If(Local3) {
-                            If(LNot(\_SB_.PCI0.PIB_.EC0_.SMRD(0x9, 0x16,=20
-Local3, RefOf(Local5)))) {
-                                Store(Local5, Index(PBIF, Local1, ))
-                                Or(UBIF, VTOB(Local1), UBIF)
-                                Store(Ones, Local0)
-                            }
-                        }
-                    }
-                    Decrement(Local1)
-                }
-                Store(0xa, Local1)
-                If(LNot(And(UBIF, VTOB(Local1), ))) {
-                    If(LNot(\_SB_.PCI0.PIB_.EC0_.SMRD(0x9, 0x16, 0x1c,=20
-RefOf(Local5)))) {
-                        Store(ToBCD(Local5, ), Local0)
-                        Store(ITOS(Local0), Index(PBIF, Local1, ))
-                        Or(UBIF, VTOB(Local1), UBIF)
-                        Store(Ones, Local0)
-                    }
-                }
-                Store(\_SB_.PCI0.PIB_.EC0_.BANK, Local1)
-                Store(0x3, \_SB_.PCI0.PIB_.EC0_.BANK)
-                Store(\_SB_.PCI0.PIB_.EC0_.MFCP, Local2)
-                If(LEqual(Local2, 0x0)) {
-                    Store(0x5, Index(PBIF, 0x2, ))
-                }
-                Else {
-                    Multiply(Local2, 0xa, Local2)
-                    Store(Local2, Index(PBIF, 0x2, ))
-                }
-                Store(Local1, \_SB_.PCI0.PIB_.EC0_.BANK)
-                Store(DerefOf(Index(PBIF, 0x1, )), Local2)
-                Multiply(Local2, 0xa, Local2)
-                Store(Local2, Index(PBIF, 0x1, ))
-                Release(\_SB_.PCI0.PIB_.EC0_.MUT0)
-            }
-            Return(Local0)
-        }
-        Method(UPBS) {
-            Store(Zero, Local0)
-            If(LNot(Acquire(\_SB_.PCI0.PIB_.EC0_.MUT0, 0x1388))) {
-                Store(\_SB_.PCI0.PIB_.EC0_.BANK, Local1)
-                Store(0x6, \_SB_.PCI0.PIB_.EC0_.BANK)
-                Store(\_SB_.PCI0.PIB_.EC0_.MBCT, Local2)
-                If(And(Local2, 0x8000, )) {
-                    Or(Local2, 0xffff0000, Local2)
-                    Add(Not(Local2, ), 0x1, Local2)
-                }
-                Store(\_SB_.PCI0.PIB_.EC0_.MBVT, Local3)
-                Store(0x4, \_SB_.PCI0.PIB_.EC0_.BANK)
-                Store(\_SB_.PCI0.PIB_.EC0_.RCAP, Local5)
-                Store(Local1, \_SB_.PCI0.PIB_.EC0_.BANK)
-                If(LNot(LEqual(Local2, DerefOf(Index(PBST, 0x1, ))))) {
-                    Multiply(Local2, 0xa, Local2)
-                    Store(Local2, Index(PBST, 0x1, ))
-                    Store(Ones, Local0)
-                }
-                If(LNot(LEqual(Local3, DerefOf(Index(PBST, 0x3, ))))) {
-                    Multiply(Local3, 0x14, Local3)
-                    Divide(Local3, 0x40, Local4, Local3)
-                    Store(Local3, Index(PBST, 0x3, ))
-                    Store(Ones, Local0)
-                }
-                If(LNot(LEqual(Local5, DerefOf(Index(PBST, 0x2, ))))) {
-                    Multiply(Local5, 0xa, Local5)
-                    Store(Local5, Index(PBST, 0x2, ))
-                    Store(Ones, Local0)
-                }
-                Store(0x0, Local4)
-                Store(\_SB_.PCI0.PIB_.EC0_.BANK, Local6)
-                Store(0x6, \_SB_.PCI0.PIB_.EC0_.BANK)
-                If(And(\_SB_.PCI0.PIB_.EC0_.BATD, 0x0c00, )) {
-                    If(And(\_SB_.PCI0.PIB_.EC0_.BATD, 0x10, )) {
-                    }
-                    Else {
-                        Or(0x2, Local4, Local4)
-                    }
-                }
-                Else {
-                    If(And(\_SB_.PCI0.PIB_.EC0_.BATD, 0x0100, )) {
-                        Or(0x1, Local4, Local4)
-                    }
-                }
-                Store(Local6, \_SB_.PCI0.PIB_.EC0_.BANK)
-                If(LNot(LEqual(Local4, DerefOf(Index(PBST, 0x0, ))))) {
-                    Store(Local4, Index(PBST, 0x0, ))
-                    Store(Ones, Local0)
-                }
-                Release(\_SB_.PCI0.PIB_.EC0_.MUT0)
-            }
-            Return(Local0)
-        }
-        Method(HVBI) {
-            Store(0x9650, Index(PBIF, 0x1, ))
-            Store(0x9650, Index(PBIF, 0x2, ))
-            Store(0x39d0, Index(PBIF, 0x4, ))
-            Store("PCGA-BP71", Index(PBIF, 0x9, ))
-            Store("LION", Index(PBIF, 0xb, ))
-            Store("Sony Corp.", Index(PBIF, 0xc, ))
-        }
-        Method(IVBI) {
-            Store(0x01e9, UBIF)
-            Store(0x5, Index(PBIF, 0x1, ))
-            Store(0x5, Index(PBIF, 0x2, ))
-            Store(0x5, Index(PBIF, 0x4, ))
-            Store("Bad", Index(PBIF, 0x9, ))
-            Store("Bad", Index(PBIF, 0xa, ))
-            Store("Bad", Index(PBIF, 0xb, ))
-            Store("Bad", Index(PBIF, 0xc, ))
-        }
-        Method(IVBS) {
-            Store(0x0, Index(PBST, 0x0, ))
-            Store(0x5, Index(PBST, 0x1, ))
-            Store(0x5, Index(PBST, 0x2, ))
-            Store(0x2710, Index(PBST, 0x3, ))
-        }
-        Method(CHBP, 1) {
-            Store(Zero, Local0)
-            Store(VTOB(Subtract(_UID, 0x1, )), Local1)
-            Or(ShiftLeft(Local1, 0xc, ), 0x0fff, Local2)
-            Store(Zero, Local3)
-            If(And(Arg0, Local1, )) {
-                If(BP__) {
-                    UPBS()
-                }
-                Else {
-                    If(LEqual(Local2, Or(Local3, 0x0fff, ))) {
-                        UPBI()
-                    }
-                    UPBS()
-                    Store(0x1, BP__)
-                    Store(0x01e9, UBIF)
-                }
-            }
-            Else {
-                If(BP__) {
-                    Store(0x0, BP__)
-                    IVBI()
-                    IVBS()
-                    Or(0x4, Local0, Local0)
-                }
-            }
-        }
-    }
+-- 
+ 
+_____________________________________
+*Robert Wörle
+ Linux | Embedded Device*
+*
+Symplon AG*
 
---=20
- _________________________________
-(
-)   Jacques GANGLOFF
-(   Associate Professor
-)   LSIIT / EAVR		=09
-(   Bd S=E9bastien Brant=20
-)   67400 Illkirch
-(   Tel : +33 (0)3 90 24 44 68
-)   Fax : +33 (0)3 90 24 44 80
-(   http://eavr.u-strasbg.fr
-)_________________________________
+*...touch the internet*
+
+phone: +49 89 552 999 35
+fax: +49 89 552 999 10
+email: robert.woerle-y2s3ugBAdl9BDgjK7y7TUQ@public.gmane.org <mailto:robert.woerle@symplon.com>
+web: www.symplon.com <http://www.symplon.com/>
+
+_____________________________________
+ 
 
 
 
