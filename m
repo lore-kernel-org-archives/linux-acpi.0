@@ -1,13 +1,12 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] ACPI: print PCI root names the same way the rest of
- thekernel does
-Date: 09 Mar 2005 00:22:01 -0500
-Message-ID: <1110345721.9337.15.camel@d845pe>
-References: <1108768508.25491.44.camel@eeyore>
+Subject: Re: [PATCH] acpi/numa: use (void) parameter list
+Date: 09 Mar 2005 01:10:31 -0500
+Message-ID: <1110348630.9336.19.camel@d845pe>
+References: <20050216163731.0b9e7598.rddunlap@osdl.org>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <1108768508.25491.44.camel@eeyore>
+In-Reply-To: <20050216163731.0b9e7598.rddunlap-3NddpPZAyC0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,8 +16,8 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Randy.Dunlap" <rddunlap-3NddpPZAyC0@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 Applied.
@@ -26,38 +25,36 @@ Applied.
 thanks,
 -Len
 
-On Fri, 2005-02-18 at 18:15, Bjorn Helgaas wrote:
-> The rest of the kernel uses %04x:%02x for PCI domain:bus;
-> ACPI should do the same.
-> 
-> Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-> 
-> ===== drivers/acpi/pci_root.c 1.23 vs edited =====
-> --- 1.23/drivers/acpi/pci_root.c        2004-11-11 23:29:46 -07:00
-> +++ edited/drivers/acpi/pci_root.c      2005-02-15 14:10:14 -07:00
-> @@ -258,7 +258,7 @@
->         /* TBD: Locking */
->         list_add_tail(&root->node, &acpi_pci_roots);
-> 
-> -       printk(KERN_INFO PREFIX "%s [%s] (%02x:%02x)\n",
-> +       printk(KERN_INFO PREFIX "%s [%s] (%04x:%02x)\n",
->                 acpi_device_name(device), acpi_device_bid(device),
->                 root->id.segment, root->id.bus);
-> 
-> @@ -272,7 +272,7 @@
->         root->bus = pci_acpi_scan_root(device, root->id.segment,
-> root->id.bus);
->         if (!root->bus) {
->                 ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-> -                       "Bus %02x:%02x not present in PCI
-> namespace\n",
-> +                       "Bus %04x:%02x not present in PCI
-> namespace\n",
->                         root->id.segment, root->id.bus));
->                 result = -ENODEV;
->                 goto end;
+On Wed, 2005-02-16 at 19:37, Randy.Dunlap wrote:
+> I thought that I had seen this patch, but I can't find
+> it just now.
 > 
 > 
+> Add void parameter list to function:
+> drivers/acpi/numa.c:173:16: warning: non-ANSI function declaration
+> 
+> Signed-off-by: Randy Dunlap <rddunlap-3NddpPZAyC0@public.gmane.org>
+> 
+> diffstat:=
+>  drivers/acpi/numa.c |    2 +-
+>  1 files changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff -Naurp ./drivers/acpi/numa.c~acpi_numa_func ./drivers/acpi/numa.c
+> --- ./drivers/acpi/numa.c~acpi_numa_func        2005-02-15
+> 13:48:44.941520896 -0800
+> +++ ./drivers/acpi/numa.c       2005-02-16 10:55:16.231088912 -0800
+> @@ -170,7 +170,7 @@ acpi_table_parse_srat (
+> 
+> 
+>  int __init
+> -acpi_numa_init()
+> +acpi_numa_init(void)
+>  {
+>         int                     result;
+> 
+> 
+> 
+> ---
 > 
 > 
 
