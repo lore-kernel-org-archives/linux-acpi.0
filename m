@@ -1,13 +1,11 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: PCI IRQ routing table
-Date: Thu, 31 Mar 2005 11:08:56 -0700
-Message-ID: <1112292536.22598.10.camel@eeyore>
-References: <20050331095849.25312.qmail@webmail7.rediffmail.com>
+From: ross-iWlVPHNiaoT2fBVCVOL8/A@public.gmane.org
+Subject: ACPI Suspend on Inspiron 1100
+Date: Thu, 31 Mar 2005 14:19:32 -0500
+Message-ID: <20050331191931.GA16450@jose.lug.udel.edu>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050331095849.25312.qmail-dvNlIvcwX/N1RbMNNJCVHYkgB36zAFJh@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,30 +15,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: art stallone <art_stallone-QOiod4cnrWAN+BqQ9rBEUg@public.gmane.org>
-Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2005-03-31 at 09:58 +0000, art stallone wrote:
-> Do ACPI caches PCI IRQ routing table (PIR).
-> Is there any ioctl so user space can get that table?
+Hello everyone,
 
-I don't know much about the PIR.  ACPI uses a PCI Routing
-Table (_PRT).  ACPI supplies a _PRT for every PCI root bridge.
-The ACPI PCI root bridge driver (drivers/acpi/pci_root.c)
-parses the _PRT when it claims a new bridge (see the
-acpi_pci_root_add() -> acpi_pci_irq_add_prt() path).
+I have some questions on ACPI suspend on a Dell Inspiron 1100.  I have
+tried two different kernels: 2.6.8 (as comes with Debian sarge) and a
+2.6.11.6 (which I built myself).  This is with BIOS A31.
 
-There is no convenient user-space mechanism to get the
-_PRT.  The _PRT is stored in the DSDT, which you *can*
-get, via /proc/acpi/dsdt.  But then you have to disassemble
-the DSDT and parse the _PRT yourself.  I.e., you would do
-something like "cp /proc/acpi/dsdt dsdt; iasl -d dsdt;
-cat dsdt.dsl".
+Neither one has working ACPI suspend, though the symptoms are different:
 
-You can get iasl here:
-    http://www.intel.com/technology/IAPC/acpi/downloads.htm
+1) 2.6.8: putting the machine to sleep via proc/sysfs works, but the
+laptop immediately wakes back up.  It looks almost like some device is
+not going to sleep, generating activity, and then causing a wakeup.
 
+2) 2.6.11.6: putting the machine to sleep via proc/sysfs works, but
+the machine never fully wakes up.  I can still login to a console and
+halt the laptop, but the display won't turn back on.  Switching
+to/from X11 VT doesn't seem to help.
+
+It behaves this way for all suspend/sleep types except disk, which
+does nothing (as I kind of expected, and is OK).  I've dumped the
+DSDT, disassembled and recompiled.  No errors are produce, just a few
+warnings - mostly about invalid return types.
+
+I'd like to get this working.  Is is likely?  Should I fix the DSDT
+warnings?  My understanding is that they won't make a big difference.
+Any help is much appreciated!
+
+-- 
+Ross Vandegrift
+ross-iWlVPHNiaoT2fBVCVOL8/A@public.gmane.org
+
+"The good Christian should beware of mathematicians, and all those who
+make empty prophecies. The danger already exists that the mathematicians
+have made a covenant with the devil to darken the spirit and to confine
+man in the bonds of Hell."
+	--St. Augustine, De Genesi ad Litteram, Book II, xviii, 37
 
 
 -------------------------------------------------------
