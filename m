@@ -1,10 +1,15 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: Call for help: list of machines with working S3 (fwd)
-Date: Fri, 18 Feb 2005 00:27:19 +0100
-Message-ID: <20050217232719.GB12638@elf.ucw.cz>
+From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
+Subject: Re: Call for help: list of machines with working S3
+Date: Fri, 18 Feb 2005 00:52:00 +0100
+Message-ID: <87y8dm4ue7.fsf@gismo.pca.it>
+References: <20050214211105.GA12808@elf.ucw.cz> <87ekfe7p1v.fsf@gismo.pca.it>
+	<20050217232932.GB29815@elf.ucw.cz>
+Reply-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
+In-Reply-To: <20050217232932.GB29815-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org> (Pavel Machek's message of
+ "Fri, 18 Feb 2005 00:29:32 +0100")
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,47 +19,56 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: vojtech-AlSwsSmVLrQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, seife-l3A5Bk7waGM@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+--=-=-=
 
-Sorry, I was too fast with my  mail client. Please cc: Len in your
-replies.
+Hi Pavel!
 
+On Fri 18 Feb 2005 00:29, Pavel Machek wrote:
+>> > Table of known working systems:
+>> >
+>> > Model                           hack (or "how to do it")
+>> > ------------------------------------------------------------------------------
+>> IBM ThinkPad T42p (2373-GTG [1])  acpi_sleep=s3_bios (2)
+<cut>
+>> I've a working S4 with the same configuration, too. But it seems I
+>> still suffer a problem about hwclock I already reported with another
+>> laptop [5] [6]. In this case, the command proposed seems not working
+>> anymore (I should test more deeply, just a question of time ;-) ).
+>
+> Thanks for detailed report. Time problems should be solved in
+> 2.6.11-rc4.
 
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [ACPI] Call for help: list of machines with working S3
-X-Warning: Reading this can be dangerous to your mental health.
+Ok, thank you for the info. The problem I'm not using the latest -rc
+is that once I install ALSA-1.0.8, I suddenly get no more sound on the
+speaker, but the sound is working (I can see the GNOME Volume Meter,
+vumeter, moving, so there's sound output). I cannot find the problem
+and I haven't had time to post on the ALSA mailing-list yet, so I'm
+still on 2.6.10 :-(
 
-Hi!
+But I'm compiling the latest -rc (with the latest ACPI patch 20050211)
+just to make some more tests :-D
 
-> > I'm not sure if you can push the whole industry at once.
-> 
-> The goal is to know what to tell the system vendors
-> interested in supporting Linux what they should do
-> with their BIOS on future platforms.
-> 
-> I believe our message should be:
-> 1. BIOS should save/restore video in S3
+Thx, bye,
+Gismo / Luca
 
-Actually, that'd expect too much of BIOS writers. I believe right
-solution is "POST video as you do during normal boot in S3 resume".
+PS, Pavel, I cced the ACPI-devel mailing-list to let other people
+aware of the solution for my hwclock problem.
 
-> 2. Use Intel's ACPICA ASL compiler -- if not for production,
-> then at least as a static source code checker for validation.
+--=-=-=
+Content-Type: application/pgp-signature
 
-3. Try to boot linux (here's live cd). If it complains about bios bugs
-(dmesg | grep ...), try to see if it is not indeed your bug.
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.0 (GNU/Linux)
 
------ End forwarded message -----
-
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+iD8DBQBCFS4kVAp7Xm10JmkRAknwAJ4x36Sp8o9qVqZh9LF0sM2Fl5N0igCfRFq9
+U9xDwD7frE30P1Akr3ZnDcY=
+=92ip
+-----END PGP SIGNATURE-----
+--=-=-=--
 
 
 -------------------------------------------------------
