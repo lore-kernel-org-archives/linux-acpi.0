@@ -1,14 +1,14 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 Subject: RE: Radeon PM Support
-Date: Wed, 11 Aug 2004 10:47:11 -0700
+Date: Wed, 11 Aug 2004 18:51:31 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <88056F38E9E48644A0F562A38C64FB600296CFD2@scsmsx403.amr.corp.intel.com>
+Message-ID: <1092246691.4336.3.camel@tyrosine>
+References: <88056F38E9E48644A0F562A38C64FB600296CFD2@scsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <88056F38E9E48644A0F562A38C64FB600296CFD2-exJ48ZlmiLpQxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,35 +17,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+To: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: anib-La3J9u0raUk@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, stefandoesinger-RbZlAiThDcE@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-=20
+On Wed, 2004-08-11 at 10:47 -0700, Pallipadi, Venkatesh wrote:
 
->-----Original Message-----
->From: Matthew Garrett [mailto:mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org]=20
->Sent: Wednesday, August 11, 2004 10:32 AM
->To: Pallipadi, Venkatesh
->Cc: anib-La3J9u0raUk@public.gmane.org; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org;=20
->stefandoesinger-RbZlAiThDcE@public.gmane.org
->Subject: RE: [ACPI] Radeon PM Support
->
->On Thu, 2004-08-05 at 10:52 -0700, Pallipadi, Venkatesh wrote:
->> Does this addon patch (over the Ole's original patch) help?
->
->With a Thinkpad X40 (Intel 855GM graphics chipset), this stops resume
->from working. acpi_sleep=3Ds3_bios works.
->
+> How was it working before you applied this patch? By default? Or with 
+> acpi_sleep=s3_bios?
 
-How was it working before you applied this patch? By default? Or with=20
-acpi_sleep=3Ds3_bios?
+Ah, sorry. Before it worked with acpi_sleep=s3_bios, but not by
+default. 
 
-With this patch does it stop working completely or does it work with
-acpi_sleep=3Ds3_bios option?
+> With this patch does it stop working completely or does it work with
+> acpi_sleep=s3_bios option?
 
-Thanks,
-Venki
+Without acpi_sleep=s3_bios, the screen remains black. With
+acpi_sleep=s3_bios, the backlight comes back on but I get no video
+output. The machine doesn't appear to be alive at this point.
+
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+
 
 
 -------------------------------------------------------
