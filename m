@@ -1,16 +1,13 @@
-From: linux-vauq3e8UGOy3omyEuwWGNA@public.gmane.org
-Subject: ACPI on Inspiron 5100 doesn't work
-Date: Sat, 14 Feb 2004 17:59:13 +0100
+From: Alexander Malysh <a.malysh-1WJ9BOJEYl0b1SvskN2V4Q@public.gmane.org>
+Subject: [BUG] acpi_hw_[enable|disable]_non_wakeup_gpe_block
+Date: Sat, 14 Feb 2004 23:17:37 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200402141759.13906.linux@dodgybloke.co.uk>
-References: <200401202136.37449.linux@dodgybloke.co.uk>
-Reply-To: linux-vauq3e8UGOy3omyEuwWGNA@public.gmane.org
+Message-ID: <200402142317.41033.a.malysh@centrium.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200401202136.37449.linux-vauq3e8UGOy3omyEuwWGNA@public.gmane.org>
 Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -23,20 +20,55 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I got the DSDT to be used on bootup...
+Hi all,
 
+I have found a bug? in linux acpi that values within gpe_register_info are 
+overwritten. Please see these values (note: only system_io gpe_register were 
+dumped):
 
+	1) system go into S1
+Feb 14 23:01:08 rose kernel: 
+acpi_hw_disable_non_wakeup_gpe_block:gpe_block(0xcef335c8) 
+gpe_register_info(0xcefec548) gpe_register_info->wake_enable=0x0 
+gpe_register_info->enable_address=0x1022 gpe_register_info->enable=0x11
+Feb 14 23:01:08 rose kernel: 
+acpi_hw_disable_non_wakeup_gpe_block:gpe_block(0xcef335c8) 
+gpe_register_info(0xcefec564) gpe_register_info->wake_enable=0x0 
+gpe_register_info->enable_address=0x1023 gpe_register_info->enable=0x5d
+Feb 14 23:01:08 rose kernel: 
+acpi_hw_disable_non_wakeup_gpe_block:gpe_block(0xcef33568) 
+gpe_register_info(0xcefec4c8) gpe_register_info->wake_enable=0x0 
+gpe_register_info->enable_address=0x1032 gpe_register_info->enable=0x0
+Feb 14 23:01:08 rose kernel: 
+acpi_hw_disable_non_wakeup_gpe_block:gpe_block(0xcef33568) 
+gpe_register_info(0xcefec4e4) gpe_register_info->wake_enable=0x0 
+gpe_register_info->enable_address=0x1033 gpe_register_info->enable=0x0
 
-Looking for DSDT in initrd ... found (at offset 286191)!
-=A0 =A0 ACPI-0292: *** Info: Table [DSDT] replaced by host OS
+	2) system wakeup
+Feb 14 23:01:08 rose kernel: 
+acpi_hw_disable_non_wakeup_gpe_block:gpe_block(0xcef335c8) 
+gpe_register_info(0xcefec548) gpe_register_info->wake_enable=0x0 
+gpe_register_info->enable_address=0x1022 gpe_register_info->enable=0x0
+Feb 14 23:01:08 rose kernel: 
+acpi_hw_disable_non_wakeup_gpe_block:gpe_block(0xcef335c8) 
+gpe_register_info(0xcefec564) gpe_register_info->wake_enable=0x0 
+gpe_register_info->enable_address=0x1023 gpe_register_info->enable=0x0
+Feb 14 23:01:08 rose kernel: 
+acpi_hw_disable_non_wakeup_gpe_block:gpe_block(0xcef33568) 
+gpe_register_info(0xcefec4c8) gpe_register_info->wake_enable=0x0 
+gpe_register_info->enable_address=0x1032 gpe_register_info->enable=0x0
+Feb 14 23:01:08 rose kernel: 
+acpi_hw_disable_non_wakeup_gpe_block:gpe_block(0xcef33568) 
+gpe_register_info(0xcefec4e4) gpe_register_info->wake_enable=0x0 
+gpe_register_info->enable_address=0x1033 gpe_register_info->enable=0x0
 
+As you can see, io_addr 0x1022 and 0x1023 were restored with wrong values.
 
-But It doesn't work.
+any thoughts or patches to try?
 
-Any suggestions people?
-
-I'm using SUSE 9 on Dell Inspiron 5100
-
+-- 
+Please avoid sending me Word, Excel or PowerPoint attachments.
+See http://www.fsf.org/philosophy/no-word-attachments.html
 
 
 -------------------------------------------------------
