@@ -1,15 +1,14 @@
-From: Micha Feigin <michf-+lLcF8/aw9x6auLlOhE+pQ@public.gmane.org>
-Subject: Re: problems with acpi (sleep states) on vaio notebook z1sp
-Date: Tue, 23 Dec 2003 18:30:56 +0200
+From: Greg Sarjeant <greg-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org>
+Subject: Re: Gateway 200x - trouble supplying ECDT table
+Date: Tue, 23 Dec 2003 11:39:31 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031223163056.GD1632@luna.mooo.com>
-References: <C386328088ED7F4E9F81AFBABDDF60DA03B3664F@wdmyexch02.my.asia.wdc.com>
+Message-ID: <20031223113931.5ff2cddf.greg@morningdave.org>
+References: <3ACA40606221794F80A5670F0AF15F8401720C4D@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <C386328088ED7F4E9F81AFBABDDF60DA03B3664F-Yw6hFe9C1vnHQcBQSaPqJq0fmWJ9l57d0E9HWUfgJXw@public.gmane.org>
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401720C4D-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -21,61 +20,84 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Dec 23, 2003 at 03:43:23PM +0800, Ow Mun Heng wrote:
->=20
->=20
-> > -----Original Message-----
-> > From: Carlo E. Prelz [mailto:fluido-1XNsQiTun9D1P9xLtpHBDw@public.gmane.org]
-> > Sent: Tuesday, December 23, 2003 3:27 PM
-> >=20
-> > Quoting Yu, Luming (luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org):
-> >=20
-> > > 	S3 doesn't resume for your too? So far, I found VARIO z1sp,
-> > > Fujitsu Lifebook S series (6120D), ASUS M2400N cannot=20
-> > resume from S3.=20
-> > >=20
-> > > 	It looks like a generic problem.
-> >=20
-> > The same happens with my Asus M3700N (centrino). After=20
-> > echo 3 > /proc/acpi/sleep, some messages on the screen indicate that
-> > the system is about to go to sleep, and very quickly the screen goes
-> > dark and the blue on-light starts to blink. Then, if I press the on
-> > button again, the on-light turns stable on again, but this is not
-> > followed by a return back to life. If I keep the on-button pressed on
-> > for a long time, the system goes off. But then, when trying to turn it
-> > on again, it attempts to boot for 1 second, and then turns off
-> > again. Only clicking the general reset button (the one you reach from
-> > the bottom of the machine with a pin) brings it back to life.
->=20
-> On my D600.. I can get S3 to work.. and it can also come back to life.. If
-> not mistaken,
-> the mouse would be all screwed up but, going to a Virtual console and back
-> to the GUI fixes it.
->=20
-> Only problem is my Date&Time is screwed up. It keeps the Time&Date at the
-> time of sleep!!! I'm not sure if that's due to ACPI or something else..
->=20
+Luming,
 
-Its probably because the system keeps its own time and on syncs it with
-the hardware clock on bootup and shutdown (maybe a cron job, don't
-know).
-Try suspend using
+    I am sorry that you will receive this twice. I did not send my original reply back to the mailinglist.
 
-acho 3 /proc/acpi/sleep && hwclock --hctosys
+    Regards,
+    Greg
 
-> =20
->=20
->=20
-> -------------------------------------------------------
-> This SF.net email is sponsored by: IBM Linux Tutorials.
-> Become an expert in LINUX or just sharpen your skills.  Sign up for IBM's
-> Free Linux Tutorials.  Learn everything from the bash shell to sys admin.
-> Click now! http://ads.osdn.com/?ad_id=1278&alloc_id371&op=3Dclick
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
->=20
+############################################################################
+
+Thanks, Luming.
+
+    I applied this patch to my 2.4.23 kernel (started back from the fresh sources and applied the latest ACPI patch first). Unfortunately, I'm still getting the same sorts of messages on boot. The _REG method of the Embedded Control fails as follows:
+
+ACPI: Embedded Controller [H_EC] (gpe 28)
+evregion-0348: *** Error: Handler for [EmbeddedControl] returned AE_BAD_PARAMETER
+ dswexec-0435 [30] ds_exec_end_op        : [Store]: Could not resolve operands, AE_BAD_PARAMETER
+ psparse-1120: *** Error: Method execution failed [\_SB_.PCI0.LPCB.H_EC._REG] (Node df5e7ae8), AE_BAD_PARAMETER
+
+
+    I then get similar errors from the battery, adapter and thermal modules, but the root always appears to be the Embedded Controller:
+
+	ACPI: Processor [CPU0] (supports C1 C2 C3, 5 performance states, 8 throttling states)
+	ACPI: Power Button (FF) [PWRF]
+	ACPI: Lid Switch [LID0]
+	ACPI: Sleep Button (CM) [SLPB]
+	evregion-0348: *** Error: Handler for [EmbeddedControl] returned AE_BAD_PARAMETER
+	 dswexec-0435 [45] ds_exec_end_op        : [Store]: Could not resolve operands, AE_BAD_PARAMETER
+	 psparse-1120: *** Error: Method execution failed [\_SB_.ADP1._PSR] (Node df5f40c8), AE_BAD_PARAMETER
+	 acpi_ac-0083 [36] acpi_ac_get_state     : Error reading AC Adapter state
+	evregion-0348: *** Error: Handler for [EmbeddedControl] returned AE_BAD_PARAMETER
+	dswexec-0435 [46] ds_exec_end_op        : [LEqual]: Could not resolve operands, AE_BAD_PARAMETER
+	dswstate-0273 [48] ds_result_pop_from_bot: No result objects! State=df5fbc28
+	dsutils-0525 [48] ds_create_operand     : Missing or null operand, AE_AML_NO_RETURN_VALUE
+	psparse-1120: *** Error: Method execution failed [\_SB_.BAT1._STA] (Node df5f4848), AE_AML_NO_RETURN_VALUE
+	evregion-0348: *** Error: Handler for [EmbeddedControl] returned AE_BAD_PARAMETER
+	dswexec-0435 [46] ds_exec_end_op        : [Store]: Could not resolve operands, AE_BAD_PARAMETER
+ 	psparse-1120: *** Error: Method execution failed [\_TZ_.THRM._TMP] (Node df5f6f68), AE_BAD_PARAMETER
+	ACPI: Fan [FAN0] (on)
+
+
+    My assumption at this point is that the battery, adapter and thermal modules rely on the EC, so if I can provide an ECDT, the other errors should also go away.
+
+    I had previously found this bug at bugzilla that deals with the same problem on the same machine:
+	http://bugme.osdl.org/show_bug.cgi?id=1515
+
+    Unfortunately, the only suggestion is to provide the ECDT manually, which is, of course, where I am stuck now. Neither of the methods that I have tried so far has worked, and I'm beginning to wonder if the DSDT is buggy enough that even providing a correct ECDT just causes errors on initialization. Is that even possible?
+
+    I'm a little reluctant to open a new bug, since I know both the problem and the solution, Besides, it isn't really an ACPI bug, it's Gateway's issue. My only problem at this point is implementing the workaround.
+
+    Have I missed something in applying your patch? You said that it isn't a generic solution, but I'm not quite sure what you meant by that. Do I have to modify it for my system, or do you just mean that it should allow me to circumvent the EC initialization error, but it won't help later functions that require an initialized EC?
+
+    I have provided the entire dmesg output here in case you would find it helpful:
+
+http://www.morningdave.org/acpi/dmesg-luming-patch
+
+    I have also posted my DSDT here, in hope that it may shed some light on the problem:
+
+http://www.morningdave.org/acpi/dsdt-disasm
+
+     Thank you for your help. I'll keep digging around bugzilla to see if I can find some more pointers on supplying the ECDT manually. If you think it would be helpful for me to open a bug and post all of this information on bugzilla, I'll be happy to do it. I just don't want to give you extra bug reports for problems with known solutions (though I guess I'm cluttering your inbox with such reports now as it is).
+
+    Thanks,
+     Greg
+
+
+
+On Tue, 23 Dec 2003 14:07:22 +0800
+"Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+
+> There is a patch at http://bugzilla.kernel.org/show_bug.cgi?id=1690
+> trying to solve ec._INI failure due to lacking ECDT.      
+> But it's not a generic solution.  Since you are faking ECDT using data
+> of EC device, why not do it automatically?
+> 
+> --Luming                                                            
+> 
+
+
 
 
 -------------------------------------------------------
