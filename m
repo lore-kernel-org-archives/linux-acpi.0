@@ -1,14 +1,14 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ACPI: S3 and PAE do not like each other for now, S3 disabled.
-Date: Mon, 26 Jul 2004 21:34:17 -0400
+From: "Wayne Wylupski" <wayne-/9RTSe/R4cJBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: video extensions (Re: Handling \_GPE._L03)
+Date: Mon, 26 Jul 2004 21:36:02 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <29AC424F54821A4FB5D7CBE081922E400124E634@hdsmsx403.hd.intel.com>
+Message-ID: <004301c4737a$13db4cc0$6900a8c0@DEVELOPER>
+References: <003901c45b1c$91e1e910$6900a8c0@DEVELOPER> <1090878839.2063.5.camel@dhcppc4>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,34 +17,59 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Arkadiusz Miskiewicz <arekm-k0Z414SquRyhPH1hqNUYSQ@public.gmane.org>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-=20
->> This may be bit-rot.
->> The last time somebody tested this IIR  S3 worked
->> exactly the same in PAE as it did in conventional MMU mode.
->It didn't work for me unfortunately.
+Hello,
+
+Thank you for responding. I've added the acpidmp output to the bug, and
+tried to write a comment to it as well.  In short, by echoing 0x11 to
+/proc/acpi/debug_level I can trace the ACPI events for the video functions.
+
+If here's anything else I can offer, please let me know.  I'm interested in
+getting this supported.
+
+Wayne
+
+----- Original Message ----- 
+From: "Len Brown" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "Wayne Wylupski" <wayne-/9RTSe/R4cJBDgjK7y7TUQ@public.gmane.org>
+Cc: "ACPI Developers" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sent: Monday, July 26, 2004 5:54 PM
+Subject: video extensions (Re: [ACPI] Handling \_GPE._L03)
+
+
+> On Fri, 2004-06-25 at 21:26, Wayne Wylupski wrote:
+> > Hello,
+> >
+> > My laptop is a Fujitsu Lifebook P2110.  I get ACPI events for the
+> > function keys for video (switch to other video adapter. or S-output,
+> > or shrink the screen).  The Method that gets called is \_GPE._L03.  I
+> > know that the ACPI portion of the kernel is handling the method, but
+> > how do I register my own handler so I may generate acpid events?  It's
+> > not obvious to me there's a device (_HID) associated with this method,
+> > and I don't see a precedent for this within the other drivers in
+> > drivers/acpi.
 >
->My laptop went into sleep, fan turned off but LCD turned all=20
->white. After=20
->closing and opeing LID, fan started again, LCD turned back to=20
->live but screen=20
->was corrupted, random characters in different places.
+> Wayne,
+> how did you confirm that the L03 is being called?
 >
->Unfortunately I never tested S3 on PAE-disabled kernel so it's=20
->possible that=20
->my problems are unrelated to PAE (I hope that's the case).
+> Bruno prototyped some of the display extensions here:
+> http://bugzilla.kernel.org/show_bug.cgi?id=1944
+>
+> Perhaps you can attach your acpidmp output to that
+> bug report and we can see if we can't get the extensions
+> working on your laptop?
+>
+> thanks,
+> -Len
+>
+>
+>
+>
 
-Without testing the non-PAE case, this result is inconclusive.
 
-In either case, it would probably be a good idea to run the
-latest ACPI patch if you're experimenting with S3.
-http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/
-
-cheers,
--Len
 
 
 -------------------------------------------------------
