@@ -1,14 +1,13 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: DSDT Table for Samsung X30 1700
-Date: Thu, 29 Apr 2004 19:26:31 +0200
+From: Rob E Russell <robr-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Subject: Virus Found in message "Illegal"
+Date: Thu, 29 Apr 2004 13:29:06 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040429172631.GB578@poupinou.org>
-References: <3ACA40606221794F80A5670F0AF15F8404321BC7@PDSMSX403.ccr.corp.intel.com> <20040429144733.GA16684@dominikbrodowski.de>
+Message-ID: <OFF25C2A7E.2067AC84-ON87256E85.00600AFF@us.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/alternative;
+	Boundary="0__=08BBE416DFF38C6F8f9e8a93df938690918c08BBE416DFF38C6F"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040429144733.GA16684-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,26 +16,65 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
-Cc: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Daniel Dewald <D.Dewald-js0L5lmcrAQb1SvskN2V4Q@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Apr 29, 2004 at 04:47:33PM +0200, Dominik Brodowski wrote:
-> As I assume the X30 is similar to the X05 I own:
-> 
-> > >The battery control does not work,
-> 
-> - this can be fixed by patching the DSDT. Info for the (also similar X10) is
-> available on the web.
-> 
+--0__=08BBE416DFF38C6F8f9e8a93df938690918c08BBE416DFF38C6F
+Content-type: text/plain; charset=US-ASCII
 
-Just for my personnal info: what is wrong with the original CM?
 
--- 
-Bruno Ducrot
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+
+
+Norton AntiVirus found a virus in an attachment you
+(acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org) sent to Rob E Russell/Raleigh/IBM-ImdYDtJjTyg@public.gmane.org
+
+
+
+To ensure the recipient(s) are able to use the files you sent, perform a
+virus scan on your computer, clean any infected files, then resend this
+attachment.
+
+
+
+
+Attachment:  abuses.pif
+
+Virus name: W32.Netsky.AB-rtiCCPl9gjg@public.gmane.org
+
+Action taken:  Clean failed : Delete succeeded :
+
+File status:  Deleted
+
+
+
+--0__=08BBE416DFF38C6F8f9e8a93df938690918c08BBE416DFF38C6F
+Content-type: text/html; charset=US-ASCII
+Content-Disposition: inline
+
+<html><body>
+<p>Norton AntiVirus found a virus in an attachment you (acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org) sent to Rob E Russell/Raleigh/IBM-ImdYDtJjTyg@public.gmane.org<br>
+<br>
+<br>
+<br>
+To ensure the recipient(s) are able to use the files you sent, perform a virus scan on your computer, clean any infected files, then resend this attachment.<br>
+<br>
+<br>
+<br>
+<br>
+Attachment:  abuses.pif<br>
+<br>
+Virus name: W32.Netsky.AB-rtiCCPl9gjg@public.gmane.org<br>
+<br>
+Action taken:  Clean failed : Delete succeeded : <br>
+<br>
+File status:  Deleted<br>
+<br>
+<br>
+<br>
+</body></html>
+--0__=08BBE416DFF38C6F8f9e8a93df938690918c08BBE416DFF38C6F--
+
 
 
 -------------------------------------------------------
