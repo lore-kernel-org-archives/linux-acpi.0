@@ -1,12 +1,13 @@
-From: "Riley S. Newman" <r.s.newman_zg-KE+923IzUaaELgA04lAiVw@public.gmane.org>
-Subject: Order Rolex or other Swiss watches online
-Date: Mon, 01 Nov 2004 06:35:22 +0300
-Message-ID: <4f8c01c4bfc3$61c66d79$59e20b88@kub.trollhattan.se>
+From: Laszlo 'GCS' Boszormenyi <gcs-gKC9iF2I70U@public.gmane.org>
+Subject: Re: ACER 632 notebook reboots instead of poweroff
+Date: Mon, 1 Nov 2004 09:23:28 +0100
+Message-ID: <20041101082328.GA4545@pooh>
+References: <20041026194029.GA10954@pooh> <20041027141833.GC8443@zimen.sk> <20041031231945.GA6909@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20041031231945.GA6909-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,32 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: mizu <michal-VaXaUECoPuY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Heya,
+Hi,
 
-Do you want a rolex watch?
+* Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> [2004-11-01 00:19:45 +0100]:
 
-In our online store you can buy replicas of Rolex watches. They look
-and feel exactly like the real thing.
+> What happens with acpi=off?
+ My laptop never worked without acpi. :(
+Anyway, please second my bugreport if it also happens for you:
+http://bugme.osdl.org/show_bug.cgi?id=3669
 
-- We have 20+ different brands in our selection
-- Free shipping if you order 5 or more
-- Save up to 40% compared to the cost of other replicas
-- Standard Features:
- - Screw-in crown
- - Unidirectional turning bezel where appropriate
- - All the appropriate rolex logos, on crown and dial
- - Heavy weight
+> I have evo n620c here which has similar symptoms, and has another
+> funny set of symptoms with acpi=off...
+ What exactly?
 
-Visit us: http://www.roiex.com/rep/rolex/
-
-Best regards,
-Hilton Jones
-
-
-No thanks: http://roiex.com/z.php
+Regards,
+Laszlo/GCS
 
 
 
