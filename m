@@ -1,16 +1,23 @@
-From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Subject: Re: Re: [Ipw2100-devel] [susp-resume] ipw2100 suspend patch
- for 0.54 (version 3)
-Date: Wed, 15 Sep 2004 02:04:28 +0200
+From: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Subject: Re: [Lhms-devel] Re: [PATCH] ACPI based Memory Hotplug Driver
+ Patch
+Date: Wed, 15 Sep 2004 09:08:27 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4147870C.9090003@pca.it>
-References: <3ACA40606221794F80A5670F0AF15F8403BD570F@pdsmsx403> <413EE1EA.2070307@pca.it> <413F02E7.3060005@pca.it> <20040914222905.GA17380@elf.ucw.cz>
-Reply-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Message-ID: <20040915090827.7f86a54f.tokunaga.keiich@jp.fujitsu.com>
+References: <FEB6C4E97F6CAF41978FB2059D5454180F37E8@bgsmsx402.gar.corp.intel.com>
+ <20040910230200.73eb0374.tokunaga.keiich@jp.fujitsu.com>
+ <1094837554.32531.1997.camel@nighthawk>
+ <20040913172318.791db349.tokunaga.keiich@jp.fujitsu.com>
+ <1095064865.4671.5.camel@localhost>
+ <20040914115844.1e12203d.tokunaga.keiich@jp.fujitsu.com>
+ <1095135104.10726.8.camel@localhost>
+ <20040914182956.49c9381d.tokunaga.keiich@jp.fujitsu.com>
+ <1095181936.3686.29.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040914222905.GA17380-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-reply-to: <1095181936.3686.29.camel@localhost>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -19,48 +26,45 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Dave Hansen <haveblue-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Cc: tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org, naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, jschopp-V7BBcbaFuwjMbYB6QlFGEg@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Tue, 14 Sep 2004 10:12:16 -0700 Dave Hansen wrote:
+> On Tue, 2004-09-14 at 02:29, Keiichiro Tokunaga wrote:
+> > On Mon, 13 Sep 2004 21:11:44 -0700 Dave Hansen wrote:
+> > > Instead of just laying thing out in firmware/acpi, can we have another
+> > > directory that mirrors this information in the system/devices/
+> > > directory, but is identical across architectures?  
+> > 
+> > That's an interesting idea.  I think that not all of the stuffs could
+> > be identical across architectures, so we would lay architecture
+> > specific sutffs only in architecture specific directory (e.g. /sys/firmware/acpi/),
+> > and general stuffs (like physical address) in both the archtecture
+> > specific directory and the mirror directory.  This sounds reasonable
+> > to me.  By the way, where do you think would be a candidate for
+> > the mirror directory?
+> 
+> Well, in retrospect, I think that /sys/devices/system/memory is probably
+> a bad place for the hotplug controls to go.  It's really just a logical
+> view of the memory from Linux's perspective, and that somewhat takes a
+> back seat to the physical layout presented by the hardware.
+> 
+> So, perhaps the physical layout should go in /sys/devices/system/memory,
+> and we can put the hotplug controls in
+> /sys/devices/system/logical/memory, or something similar.  
 
-Hello Pavel,
+Please let me make sure one thing.
+Is this what you have in mind?
 
-on 09/15/04 00:29, Pavel Machek wrote:
->> BTW is 'echo 4 > /proc/acpi/sleep' = 'echo disk > /sys/power/state'?
-> Yes, it should be equivalent.
-the same I supposed. But in this case, there's an error somewhere: I can
-never resume properly if I use 'echo disk > /sys/power/state' and I get
-a kernel panic with these words:
+  /sys/devices/system/memory/  -->  physical layout
+  /sys/devices/system/logical/memory/  -->  hotplug controls
 
-Resuming from /dev/hda7
-Resuming from unknown-block(3,7)
-Kernel panic - not syncing: Resume Machine: Unable to find
-suspending-data signature (pmdisk-swa - mispelled?
+By the way, I'm not sure what the 'hotplug controls' are.  Can you
+be more specific about them?
 
-Usually, my lilo is configured to append 'resume=/dev/hda7' and I tried
-even at boot with 'pmdisk=/dev/hda7', but it doesn't matter. So probably
-the code is different in the 2 cases. Can someone check, please? I
-suppose the /sys call is better, as all the /proc fs is being ported to
-/sys, am I right?
-
-On the other hand, using the /sys call the machine power off correctly
-in suspending, while using the /proc call actually I should press 4-sec
-the power button after 15-20sec the latest suspending screen.
-
-BTW, I'm on 2.6.9-rc2 with no other patches.
-
-Thx, bye,
-Gismo / Luca
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
-
-iD8DBQFBR4cMVAp7Xm10JmkRAsDAAJ9dq5WlwwGRc1kFGD5TgjWTQ4FvHACeNoqj
-o8CPipEfsMNMNa2NRul4W/A=
-=LjO0
------END PGP SIGNATURE-----
+Thanks,
+Keiichiro Tokunaga
 
 
 -------------------------------------------------------
