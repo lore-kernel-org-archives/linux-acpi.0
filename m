@@ -1,15 +1,16 @@
-From: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
-Subject: Re: P2120 ACPI 2.5.64bk7
-Date: 13 Mar 2003 17:48:24 +0100
+From: Luis Neves <lneves-3+EeCmRbAIqyvGiigdSjEg@public.gmane.org>
+Subject: Re: S1bios
+Date: Thu, 13 Mar 2003 17:01:53 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1047574104.3234.4.camel@dutidad>
-References: <200303130904.03589.listman@garbett.org>
-	 <m3znnzp7c9.fsf@pcpenn04.cern.ch>
+Message-ID: <200303131701.53208.lneves@estg.iplei.pt>
+References: <E18sfx5-0001dg-00@incognito> <Pine.LNX.4.33.0303110908260.1003-100000@localhost.localdomain> <20030312215246.GA136@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <m3znnzp7c9.fsf-ksZHQmIzGzSqwiivBfVWcw@public.gmane.org>
+In-Reply-To: <20030312215246.GA136-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,31 +19,34 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ole Myren Rohne <ole.rohne-vJEk5272eHo@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2003-03-13 at 17:19, Ole Myren Rohne wrote:
-> I've written up my attempts at getting S3 to work on the P2120 on 
-> <http://home.cern.ch/mrohne/P2120/P2120_Linux_S3.html>
-> Actually, I'm prepared to call it "working", sort of...
+Em Quarta, 12 de Mar=E7o de 2003 21:52, escreveste:
+> Hi!
+..............
+> > The right way to do it is to fix the drivers to properly handle suspe=
+nd/
+> > resume transitions. It's needed for all power states, as well as
+> > supporting runtime power management.
+>
+> Well, and should S1 turn backlight off? It seems like the original
+> poster wants S3, not S1.
+> 								Pavel
+Not exactly. As far as I understood, S3 is a deep sleep state, S1 is a so=
+ft=20
+sleep, and in fact my machine doesn't support S3. Only S1 and S4.
 
-Thanks for this detailed write-up!
+I use hdparm -Y /dev/hda to stop the disk when moving but sometimes it st=
+arts=20
+spinning again before arriving to the new spot. Anyway, currently S1 is=20
+broken for me (2.4.20+ acpi20021212) :  it doesn't wake.
 
-You POST the Radeon at VT enter... is this a problem during normal (i.e.
-non resume vt switches) operation?  My Radeon dri-resume stuff also does
-its magic at VT enter, but fortunately does no harm at non-resume
-switches.
+Best regards and keep up the good work,
 
-Did you have any problems waking up your laptop from S3?  Mine goes into
-standby (power-led flashing) but I can't get it out of that state no
-matter what I try.
+Lu=EDs Neves
 
-Thanks,
-Charl
 
--- 
-charl p. botha http://cpbotha.net/ http://visualisation.tudelft.nl/
 
 
 -------------------------------------------------------
