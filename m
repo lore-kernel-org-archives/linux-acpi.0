@@ -1,8 +1,8 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ACPI newbie: Device Power Consumption at Dx states
-Date: Mon, 17 Mar 2003 09:54:30 -0800
+Subject: RE: type vs descriptor
+Date: Mon, 17 Mar 2003 10:21:59 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A84725A1FB@orsmsx401.jf.intel.com>
+Message-ID: <F760B14C9561B941B89469F59BA3A84725A1FC@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -16,22 +16,37 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Manish Prasad <mprasad-EX0cT3Az47bauI2f2gSDlQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Manish Prasad [mailto:mprasad-EX0cT3Az47bauI2f2gSDlQ@public.gmane.org] 
-> The spec. suggests two (optional) objects _CST and _PSS, which expose,
-> (among other things) the processor power consumption in 
-> various Cx and Px
-> states respectively. Is there any way I can get device average power
-> consumption at various Dx states ? Couldn't land any such thing on a
-> quick glance through the methods and objects in the spec.
+> From: Matthew Wilcox [mailto:willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org] 
+> I'm trying to write a routine which invokes an ACPI function 
+> which takes
+> `0' as its parameter.  So I looked to see how it's done already, and I
+> think I found a bug.
+> 
+> Here's how it's done in battery.c:
+> 
+>         union acpi_object       arg0 = {ACPI_TYPE_INTEGER};
+>         struct acpi_object_list arg_list = {1, &arg0};
+>         arg0.integer.value = alarm;
+> 
+>         status = acpi_evaluate_object(battery->handle, 
+> "_BTP", &arg_list, NULL);
+> 
+> This looks wrong to me.  All the acpi_objects start with
+> ACPI_OBJECT_COMMON_HEADER which is:
 
-Hi Manish,
+The naming may perhaps be a little confusing, but the ACPI interpreter
+has both internal and external data structures.
+ACPI_OBJECT_COMMON_HEADER is used on internal data structures, many of
+which are named acpi_object_*. However, the one external data structure
+in question, union acpi_object, is defined in actypes.h, and is
+different.
 
-I don't think it is in there. The device's driver is responsible for
-doing any runtime power management based upon, say, idle detection, so
-it may know, but ACPI doesn't know.
+As a point of reference, the code in utcopy.c does conversions between
+the external and internal data representations.
 
 Regards -- Andy
 
