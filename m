@@ -1,13 +1,14 @@
-From: "Thomas Herrmann" <ollo.diab-Mmb7MZpHnFY@public.gmane.org>
-Subject: Re: RE: K7 CPU disconnect & system lock
-Date: Tue, 20 Jan 2004 11:11:36 +0100 (MET)
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH] overriding tables via initramfs in 2.6.1
+Date: Tue, 20 Jan 2004 15:56:20 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3851.1074593496@www40.gmx.net>
-References: <20040119214342.GC380@elf.ucw.cz>
+Message-ID: <20040120145620.GP25416@poupinou.org>
+References: <Law11-F41tPGmYMUBsS0003da22@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <Law11-F41tPGmYMUBsS0003da22-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,55 +17,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Dino Klein <dinoklein-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> Hi!
+On Mon, Jan 19, 2004 at 03:43:32AM +0000, Dino Klein wrote:
+> Hello people,
+> I wrote a little patch to override multiple tables.
+> I ended up having to do this, because the DSDT patch out there wasn't 
+> enough - I wanted to modify the FACP table as well, so that throttling 
+> would work, as well as C3.
+> The patch is a patchwork of what I know about kernel programming and what 
+> I've seen around. It seems to be working fine (at least on my machine), but 
+> I can't guarantee anything.
 > 
-> > the K7 cpu disconnect feature is a power save mode, where the CPU
-> > disconnects from the north bridge and goes into sleep mode. Any
-> interrupt will wake-up
-> > the CPU which then needs to connect to the north bridge again to
-> transfer
-> > data. While CPU disconnect enabled the idle temperature of the CPU drops
-> from
-> > around 52C to 27C on my systems. On certain systems this feature can be
-> enabled
-> > via BIOS, but there is also a tool called "athcool" which sets the
-> > configuration register.
-> > 
-> > I have attached the requested logs. As you will see while acpi=off
-> certain
-> > devices (like USB) are not available due to no IRQ routing. All devices
-> work
-> > fine with acpi enabled.
-> 
-> I believe that was traced to hw problem, see kernel list for nforce2
-> info.
 
-Hi Pavel,
+That seems to be good, but why not using already the
+"ACPI DSDT in initrd" patch from Markus Gaugusch instead?
 
-that's not totaly true. I've checked the LKML and there are reports of
-working systems. It seems to depend on BIOS version. It was working fine on my
-systems with different BIOS versions and ACPI turned off before. Also I see the
-exact same behavior on a NForce2 system as well as on a SiS740 system. So
-hardware alone is not the only root cause, IMHO. 
-
-Regards,   Thomas
-
-
-> 
-> 								Pavel
-> -- 
-> When do you have a heart between your knees?
-> [Johanka's followup: and *two* hearts?]
-> 
+It is fairly trivial to modify it to get all tables overide and do
+not require all of those files creation/deletion.
 
 -- 
-+++ GMX - die erste Adresse für Mail, Message, More +++
-Bis 31.1.: TopMail + Digicam für nur 29 EUR http://www.gmx.net/topmail
+Ducrot Bruno
 
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
