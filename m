@@ -1,15 +1,15 @@
 From: Len Brown <len.brown@intel.com>
-Subject: Re: [PATCH 2.6] (2/5) move /proc/acpi/processor/./performance
-	output to drivers/acpi/processor.c
-Date: 31 Jan 2004 00:43:57 -0500
+Subject: Re: [PATCH 2.6] (3/5) abstract the acpi-"perflib" registration
+	method
+Date: 31 Jan 2004 00:45:33 -0500
 Sender: cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk
-Message-ID: <1075527836.2456.23.camel@dhcppc4>
-References: <20040129105851.GB5372@dominikbrodowski.de>
+Message-ID: <1075527932.2448.26.camel@dhcppc4>
+References: <20040129105856.GC5372@dominikbrodowski.de>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk>
-In-Reply-To: <20040129105851.GB5372@dominikbrodowski.de>
+In-Reply-To: <20040129105856.GC5372@dominikbrodowski.de>
 List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
 	<mailto:cpufreq-request@www.linux.org.uk?subject=unsubscribe>
 List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq>
@@ -33,433 +33,378 @@ thanks Dominik,
 -Len
 
 On Thu, 2004-01-29 at 05:58, Dominik Brodowski wrote:
-> Move the /proc/acpi/processor/./performance output to
-> drivers/acpi/processor.c -- it's the same for all lowlevel drivers.
+> Abstract the registration method between low-level drivers and the
+> ACPI Processor P-States driver.
 > 
-> By doing so, the lowlevel drivers no longer need to have access to struct
-> acpi_processor.
-> 
->  arch/i386/kernel/cpu/cpufreq/acpi.c |  157 ------------------------------------
->  drivers/acpi/processor.c            |  153 ++++++++++++++++++++++++++++++++++-
->  include/acpi/processor.h            |    1
->  3 files changed, 155 insertions(+), 156 deletions(-)
+>  arch/i386/kernel/cpu/cpufreq/acpi.c |  131 ++++++++++++++++++------------------
+>  drivers/acpi/processor.c            |   31 --------
+>  include/acpi/processor.h            |   13 +--
+>  3 files changed, 73 insertions(+), 102 deletions(-)
 > 
 > 
 > diff -ruN linux-original/arch/i386/kernel/cpu/cpufreq/acpi.c linux/arch/i386/kernel/cpu/cpufreq/acpi.c
-> --- linux-original/arch/i386/kernel/cpu/cpufreq/acpi.c	2004-01-18 13:49:06.382927744 +0100
-> +++ linux/arch/i386/kernel/cpu/cpufreq/acpi.c	2004-01-18 13:52:03.771960512 +0100
-> @@ -42,7 +42,6 @@
->  #define ACPI_PROCESSOR_CLASS		"processor"
->  #define ACPI_PROCESSOR_DRIVER_NAME	"ACPI Processor P-States Driver"
->  #define ACPI_PROCESSOR_DEVICE_NAME	"Processor"
-> -#define ACPI_PROCESSOR_FILE_PERFORMANCE	"performance"
+> --- linux-original/arch/i386/kernel/cpu/cpufreq/acpi.c	2004-01-18 13:53:33.000000000 +0100
+> +++ linux/arch/i386/kernel/cpu/cpufreq/acpi.c	2004-01-18 18:45:28.323885104 +0100
+> @@ -51,7 +51,12 @@
+>  MODULE_LICENSE("GPL");
 >  
->  #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
->  ACPI_MODULE_NAME		("acpi_processor_perf")
-> @@ -95,6 +94,7 @@
+> 
+> -static struct acpi_processor_performance	*performance[NR_CPUS];
+> +struct cpufreq_acpi_io {
+> +	struct acpi_processor_performance	acpi_data;
+> +	struct cpufreq_frequency_table		freq_table[ACPI_PROCESSOR_MAX_PERFORMANCE];
+> +};
+> +
+> +static struct cpufreq_acpi_io	*acpi_io_data[NR_CPUS];
+>  
+> 
+>  static int
+> @@ -93,7 +98,7 @@
+>  
 >  static int
 >  acpi_processor_set_performance (
->  	struct acpi_processor_performance	*perf,
-> +	unsigned int		cpu,
+> -	struct acpi_processor_performance	*perf,
+> +	struct cpufreq_acpi_io	*data,
+>  	unsigned int		cpu,
 >  	int			state)
 >  {
->  	u16			port = 0;
-> @@ -106,7 +106,7 @@
+> @@ -106,28 +111,19 @@
 >  
 >  	ACPI_FUNCTION_TRACE("acpi_processor_set_performance");
 >  
-> -	if (!perf || !perf->pr)
-> +	if (!perf)
->  		return_VALUE(-EINVAL);
->  
->  	if (state >= perf->state_count) {
-> @@ -125,7 +125,7 @@
->  		perf->state, state));
->  
->  	/* cpufreq frequency struct */
-> -	cpufreq_freqs.cpu = perf->pr->id;
-> +	cpufreq_freqs.cpu = cpu;
->  	cpufreq_freqs.old = perf->states[perf->state].core_frequency * 1000;
->  	cpufreq_freqs.new = perf->states[state].core_frequency * 1000;
->  
-> @@ -200,152 +200,6 @@
->  }
->  
-> 
-> -#ifdef CONFIG_X86_ACPI_CPUFREQ_PROC_INTF
-> -/* /proc/acpi/processor/../performance interface (DEPRECATED) */
-> -
-> -static int acpi_processor_perf_open_fs(struct inode *inode, struct file *file);
-> -static struct file_operations acpi_processor_perf_fops = {
-> -	.open 		= acpi_processor_perf_open_fs,
-> -	.read		= seq_read,
-> -	.llseek		= seq_lseek,
-> -	.release	= single_release,
-> -};
-> -
-> -static int acpi_processor_perf_seq_show(struct seq_file *seq, void *offset)
-> -{
-> -	struct acpi_processor	*pr = (struct acpi_processor *)seq->private;
-> -	int			i = 0;
-> -
-> -	ACPI_FUNCTION_TRACE("acpi_processor_perf_seq_show");
-> -
-> -	if (!pr)
-> -		goto end;
-> -
-> -	if (!pr->performance) {
-> -		seq_puts(seq, "<not supported>\n");
-> -		goto end;
-> -	}
-> -
-> -	seq_printf(seq, "state count:             %d\n"
-> -			"active state:            P%d\n",
-> -			pr->performance->state_count,
-> -			pr->performance->state);
-> -
-> -	seq_puts(seq, "states:\n");
-> -	for (i = 0; i < pr->performance->state_count; i++)
-> -		seq_printf(seq, "   %cP%d:                  %d MHz, %d mW, %d uS\n",
-> -			(i == pr->performance->state?'*':' '), i,
-> -			(u32) pr->performance->states[i].core_frequency,
-> -			(u32) pr->performance->states[i].power,
-> -			(u32) pr->performance->states[i].transition_latency);
-> -
-> -end:
-> -	return 0;
-> -}
-> -
-> -static int acpi_processor_perf_open_fs(struct inode *inode, struct file *file)
-> -{
-> -	return single_open(file, acpi_processor_perf_seq_show,
-> -						PDE(inode)->data);
-> -}
-> -
-> -static int
-> -acpi_processor_write_performance (
-> -        struct file		*file,
-> -        const char		__user *buffer,
-> -        size_t			count,
-> -        loff_t			*data)
-> -{
-> -	int			result = 0;
-> -	struct seq_file		*m = (struct seq_file *) file->private_data;
-> -	struct acpi_processor	*pr = (struct acpi_processor *) m->private;
-> -	struct acpi_processor_performance *perf;
-> -	char			state_string[12] = {'\0'};
-> -	unsigned int            new_state = 0;
-> -	struct cpufreq_policy   policy;
-> -
-> -	ACPI_FUNCTION_TRACE("acpi_processor_write_performance");
-> -
-> -	if (!pr || (count > sizeof(state_string) - 1))
-> -		return_VALUE(-EINVAL);
-> -
-> -	perf = pr->performance;
 > -	if (!perf)
 > -		return_VALUE(-EINVAL);
-> -	
-> -	if (copy_from_user(state_string, buffer, count))
-> -		return_VALUE(-EFAULT);
-> -	
-> -	state_string[count] = '\0';
-> -	new_state = simple_strtoul(state_string, NULL, 0);
 > -
-> -	if (new_state >= perf->state_count)
-> -		return_VALUE(-EINVAL);
-> -
-> -	cpufreq_get_policy(&policy, pr->id);
-> -
-> -	policy.cpu = pr->id;
-> -	policy.min = perf->states[new_state].core_frequency * 1000;
-> -	policy.max = perf->states[new_state].core_frequency * 1000;
-> -
-> -	result = cpufreq_set_policy(&policy);
-> -	if (result)
-> -		return_VALUE(result);
-> -
-> -	return_VALUE(count);
-> -}
-> -
-> -static void
-> -acpi_cpufreq_add_file (
-> -	struct acpi_processor *pr)
-> -{
-> -	struct proc_dir_entry	*entry = NULL;
-> -	struct acpi_device	*device = NULL;
-> -
-> -	ACPI_FUNCTION_TRACE("acpi_cpufreq_addfile");
-> -
-> -	if (acpi_bus_get_device(pr->handle, &device))
-> -		return_VOID;
-> -
-> -	/* add file 'performance' [R/W] */
-> -	entry = create_proc_entry(ACPI_PROCESSOR_FILE_PERFORMANCE,
-> -		  S_IFREG|S_IRUGO|S_IWUSR, acpi_device_dir(device));
-> -	if (!entry)
-> -		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-> -			"Unable to create '%s' fs entry\n",
-> -			ACPI_PROCESSOR_FILE_PERFORMANCE));
-> -	else {
-> -		entry->proc_fops = &acpi_processor_perf_fops;
-> -		entry->proc_fops->write = acpi_processor_write_performance;
-> -		entry->data = acpi_driver_data(device);
+> -	if (state >= perf->state_count) {
+> -		ACPI_DEBUG_PRINT((ACPI_DB_WARN, 
+> -			"Invalid target state (P%d)\n", state));
+> -		return_VALUE(-ENODEV);
 > -	}
-> -	return_VOID;
-> -}
 > -
-> -static void
-> -acpi_cpufreq_remove_file (
-> -	struct acpi_processor *pr)
-> -{
-> -	struct acpi_device	*device = NULL;
-> -
-> -	ACPI_FUNCTION_TRACE("acpi_cpufreq_addfile");
-> -
-> -	if (acpi_bus_get_device(pr->handle, &device))
-> -		return_VOID;
-> -
-> -	/* remove file 'performance' */
-> -	remove_proc_entry(ACPI_PROCESSOR_FILE_PERFORMANCE,
-> -		  acpi_device_dir(device));
-> -
-> -	return_VOID;
-> -}
-> -
-> -#else
-> -static void acpi_cpufreq_add_file (struct acpi_processor *pr) { return; }
-> -static void acpi_cpufreq_remove_file (struct acpi_processor *pr) { return; }
-> -#endif /* CONFIG_X86_ACPI_CPUFREQ_PROC_INTF */
-> -
-> -
->  static int
->  acpi_cpufreq_target (
->  	struct cpufreq_policy   *policy,
-> @@ -366,7 +220,7 @@
+> -	if (state == perf->state) {
+> +	if (state == data->acpi_data.state) {
+>  		ACPI_DEBUG_PRINT((ACPI_DB_INFO, 
+>  			"Already at target state (P%d)\n", state));
+>  		return_VALUE(0);
+>  	}
+>  
+>  	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Transitioning from P%d to P%d\n",
+> -		perf->state, state));
+> +		data->acpi_data.state, state));
+>  
+>  	/* cpufreq frequency struct */
+>  	cpufreq_freqs.cpu = cpu;
+> -	cpufreq_freqs.old = perf->states[perf->state].core_frequency * 1000;
+> -	cpufreq_freqs.new = perf->states[state].core_frequency * 1000;
+> +	cpufreq_freqs.old = data->freq_table[data->acpi_data.state].frequency;
+> +	cpufreq_freqs.new = data->freq_table[state].frequency;
+>  
+>  	/* notify cpufreq */
+>  	cpufreq_notify_transition(&cpufreq_freqs, CPUFREQ_PRECHANGE);
+> @@ -137,9 +133,9 @@
+>  	 * control_register.
+>  	 */
+>  
+> -	port = perf->control_register;
+> -	bit_width = perf->control_register_bit_width;
+> -	value = (u32) perf->states[state].control;
+> +	port = data->acpi_data.control_register.address;
+> +	bit_width = data->acpi_data.control_register.bit_width;
+> +	value = (u32) data->acpi_data.states[state].control;
+>  
+>  	ACPI_DEBUG_PRINT((ACPI_DB_INFO, 
+>  		"Writing 0x%08x to port 0x%04x\n", value, port));
+> @@ -158,12 +154,12 @@
+>  	 * giving up.
+>  	 */
+>  
+> -	port = perf->status_register;
+> -	bit_width = perf->status_register_bit_width;
+> +	port = data->acpi_data.status_register.address;
+> +	bit_width = data->acpi_data.status_register.bit_width;
+>  
+>  	ACPI_DEBUG_PRINT((ACPI_DB_INFO, 
+>  		"Looking for 0x%08x from port 0x%04x\n",
+> -		(u32) perf->states[state].status, port));
+> +		(u32) data->acpi_data.states[state].status, port));
+>  
+>  	for (i=0; i<100; i++) {
+>  		ret = acpi_processor_read_port(port, bit_width, &value);
+> @@ -172,7 +168,7 @@
+>  				"Invalid port width 0x%04x\n", bit_width));
+>  			return_VALUE(ret);
+>  		}
+> -		if (value == (u32) perf->states[state].status)
+> +		if (value == (u32) data->acpi_data.states[state].status)
+>  			break;
+>  		udelay(10);
+>  	}
+> @@ -180,7 +176,7 @@
+>  	/* notify cpufreq */
+>  	cpufreq_notify_transition(&cpufreq_freqs, CPUFREQ_POSTCHANGE);
+>  
+> -	if (value != (u32) perf->states[state].status) {
+> +	if (value != (u32) data->acpi_data.states[state].status) {
+>  		unsigned int tmp = cpufreq_freqs.new;
+>  		cpufreq_freqs.new = cpufreq_freqs.old;
+>  		cpufreq_freqs.old = tmp;
+> @@ -194,7 +190,7 @@
+>  		"Transition successful after %d microseconds\n",
+>  		i * 10));
+>  
+> -	perf->state = state;
+> +	data->acpi_data.state = state;
+>  
+>  	return_VALUE(0);
+>  }
+> @@ -206,21 +202,21 @@
+>  	unsigned int target_freq,
+>  	unsigned int relation)
+>  {
+> -	struct acpi_processor_performance *perf = performance[policy->cpu];
+> +	struct cpufreq_acpi_io *data = acpi_io_data[policy->cpu];
+>  	unsigned int next_state = 0;
+>  	unsigned int result = 0;
+>  
+>  	ACPI_FUNCTION_TRACE("acpi_cpufreq_setpolicy");
+>  
+> -	result = cpufreq_frequency_table_target(policy, 
+> -			perf->freq_table,
+> +	result = cpufreq_frequency_table_target(policy,
+> +			data->freq_table,
+>  			target_freq,
+>  			relation,
+>  			&next_state);
 >  	if (result)
 >  		return_VALUE(result);
 >  
-> -	result = acpi_processor_set_performance (perf, next_state);
-> +	result = acpi_processor_set_performance (perf, policy->cpu, next_state);
+> -	result = acpi_processor_set_performance (perf, policy->cpu, next_state);
+> +	result = acpi_processor_set_performance (data, policy->cpu, next_state);
 >  
 >  	return_VALUE(result);
 >  }
-> @@ -445,8 +299,6 @@
+> @@ -231,17 +227,12 @@
+>  	struct cpufreq_policy   *policy)
+>  {
+>  	unsigned int result = 0;
+> -	struct acpi_processor_performance *perf = performance[policy->cpu];
+> +	struct cpufreq_acpi_io *data = acpi_io_data[policy->cpu];
 >  
->  	result = cpufreq_frequency_table_cpuinfo(policy, &perf->freq_table[0]);
+>  	ACPI_FUNCTION_TRACE("acpi_cpufreq_verify");
 >  
-> -	acpi_cpufreq_add_file(perf->pr);
+>  	result = cpufreq_frequency_table_verify(policy, 
+> -			perf->freq_table);
 > -
+> -	cpufreq_verify_within_limits(
+> -		policy, 
+> -		perf->states[perf->state_count - 1].core_frequency * 1000,
+> -		perf->states[0].core_frequency * 1000);
+> +			data->freq_table);
+>  
+>  	return_VALUE(result);
+>  }
+> @@ -253,31 +244,40 @@
+>  {
+>  	unsigned int		i;
+>  	unsigned int		cpu = policy->cpu;
+> -	struct acpi_processor_performance *perf;
+> +	struct cpufreq_acpi_io	*data;
+>  	unsigned int		result = 0;
+>  
+>  	ACPI_FUNCTION_TRACE("acpi_cpufreq_cpu_init");
+>  
+> -	perf = kmalloc(sizeof(struct acpi_processor_performance), GFP_KERNEL);
+> -	if (!perf)
+> +	data = kmalloc(sizeof(struct cpufreq_acpi_io), GFP_KERNEL);
+> +	if (!data)
+>  		return_VALUE(-ENOMEM);
+> -	memset(perf, 0, sizeof(struct acpi_processor_performance));
+> +	memset(data, 0, sizeof(struct cpufreq_acpi_io));
+>  
+> -	performance[cpu] = perf;
+> +	acpi_io_data[cpu] = data;
+>  
+> -	result = acpi_processor_register_performance(perf, cpu);
+> +	result = acpi_processor_register_performance(&data->acpi_data, cpu);
+>  	if (result)
+>  		goto err_free;
+>  
+>  	/* capability check */
+> -	if (perf->state_count <= 1)
+> +	if (data->acpi_data.state_count <= 1) {
+> +		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "No P-States\n"));
+> +		goto err_unreg;
+> +	}
+> +	if ((data->acpi_data.control_register.space_id != ACPI_ADR_SPACE_SYSTEM_IO) ||
+> +	    (data->acpi_data.status_register.space_id != ACPI_ADR_SPACE_SYSTEM_IO)) {
+> +		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Unsupported address space [%d, %d]\n",
+> +				  (u32) (data->acpi_data.control_register.space_id),
+> +				  (u32) (data->acpi_data.status_register.space_id)));
+>  		goto err_unreg;
+> +	}
+>  
+>  	/* detect transition latency */
+>  	policy->cpuinfo.transition_latency = 0;
+> -	for (i=0; i<perf->state_count; i++) {
+> -		if ((perf->states[i].transition_latency * 1000) > policy->cpuinfo.transition_latency)
+> -			policy->cpuinfo.transition_latency = perf->states[i].transition_latency * 1000;
+> +	for (i=0; i<data->acpi_data.state_count; i++) {
+> +		if ((data->acpi_data.states[i].transition_latency * 1000) > policy->cpuinfo.transition_latency)
+> +			policy->cpuinfo.transition_latency = data->acpi_data.states[i].transition_latency * 1000;
+>  	}
+>  	policy->governor = CPUFREQ_DEFAULT_GOVERNOR;
+>  
+> @@ -285,36 +285,36 @@
+>  	 * The current speed is unknown and not detectable by ACPI... argh! Assume 
+>  	 * it's P0, it will be set to this value later during initialization.
+>  	 */
+> -	policy->cur = perf->states[0].core_frequency * 1000;
+> +	policy->cur = data->acpi_data.states[0].core_frequency * 1000;
+>  
+>  	/* table init */
+> -	for (i=0; i<=perf->state_count; i++)
+> +	for (i=0; i<=data->acpi_data.state_count; i++)
+>  	{
+> -		perf->freq_table[i].index = i;
+> -		if (i<perf->state_count)
+> -			perf->freq_table[i].frequency = perf->states[i].core_frequency * 1000;
+> +		data->freq_table[i].index = i;
+> +		if (i<data->acpi_data.state_count)
+> +			data->freq_table[i].frequency = data->acpi_data.states[i].core_frequency * 1000;
+>  		else
+> -			perf->freq_table[i].frequency = CPUFREQ_TABLE_END;
+> +			data->freq_table[i].frequency = CPUFREQ_TABLE_END;
+>  	}
+>  
+> -	result = cpufreq_frequency_table_cpuinfo(policy, &perf->freq_table[0]);
+> +	result = cpufreq_frequency_table_cpuinfo(policy, &data->freq_table[0]);
+>  
 >  	printk(KERN_INFO "cpufreq: CPU%u - ACPI performance management activated.\n",
 >  	       cpu);
->  	for (i = 0; i < perf->state_count; i++)
-> @@ -477,7 +329,6 @@
+> -	for (i = 0; i < perf->state_count; i++)
+> +	for (i = 0; i < data->acpi_data.state_count; i++)
+>  		printk(KERN_INFO "cpufreq: %cP%d: %d MHz, %d mW, %d uS\n",
+> -			(i == perf->state?'*':' '), i,
+> -			(u32) perf->states[i].core_frequency,
+> -			(u32) perf->states[i].power,
+> -			(u32) perf->states[i].transition_latency);
+> +			(i == data->acpi_data.state?'*':' '), i,
+> +			(u32) data->acpi_data.states[i].core_frequency,
+> +			(u32) data->acpi_data.states[i].power,
+> +			(u32) data->acpi_data.states[i].transition_latency);
+>  
+>  	return_VALUE(result);
+>  
+>   err_unreg:
+> -	acpi_processor_unregister_performance(perf, cpu);
+> +	acpi_processor_unregister_performance(&data->acpi_data, cpu);
+>   err_free:
+> -	kfree(perf);
+> -	performance[cpu] = NULL;
+> +	kfree(data);
+> +	acpi_io_data[cpu] = NULL;
+>  
+>  	return_VALUE(result);
+>  }
+> @@ -324,14 +324,15 @@
+>  acpi_cpufreq_cpu_exit (
+>  	struct cpufreq_policy   *policy)
+>  {
+> -	struct acpi_processor_performance  *perf = performance[policy->cpu];
+> +	struct cpufreq_acpi_io *data = acpi_io_data[policy->cpu];
+> +
+>  
 >  	ACPI_FUNCTION_TRACE("acpi_cpufreq_cpu_exit");
 >  
->  	if (perf) {
-> -		acpi_cpufreq_remove_file(perf->pr);
->  		performance[policy->cpu] = NULL;
->  		acpi_processor_unregister_performance(perf, policy->cpu);
->  		kfree(perf);
-> diff -ruN linux-original/drivers/acpi/processor.c linux/drivers/acpi/processor.c
-> --- linux-original/drivers/acpi/processor.c	2004-01-18 13:49:06.422921664 +0100
-> +++ linux/drivers/acpi/processor.c	2004-01-18 13:50:51.972875632 +0100
-> @@ -58,6 +58,7 @@
->  #define ACPI_PROCESSOR_FILE_POWER	"power"
->  #define ACPI_PROCESSOR_FILE_THROTTLING	"throttling"
->  #define ACPI_PROCESSOR_FILE_LIMIT	"limit"
-> +#define ACPI_PROCESSOR_FILE_PERFORMANCE	"performance"
->  #define ACPI_PROCESSOR_NOTIFY_PERFORMANCE 0x80
->  #define ACPI_PROCESSOR_NOTIFY_POWER	0x81
->  
-> @@ -1067,6 +1068,152 @@
->  }
->  
-> 
-> +#ifdef CONFIG_X86_ACPI_CPUFREQ_PROC_INTF
-> +/* /proc/acpi/processor/../performance interface (DEPRECATED) */
-> +
-> +static int acpi_processor_perf_open_fs(struct inode *inode, struct file *file);
-> +static struct file_operations acpi_processor_perf_fops = {
-> +	.open 		= acpi_processor_perf_open_fs,
-> +	.read		= seq_read,
-> +	.llseek		= seq_lseek,
-> +	.release	= single_release,
-> +};
-> +
-> +static int acpi_processor_perf_seq_show(struct seq_file *seq, void *offset)
-> +{
-> +	struct acpi_processor	*pr = (struct acpi_processor *)seq->private;
-> +	int			i = 0;
-> +
-> +	ACPI_FUNCTION_TRACE("acpi_processor_perf_seq_show");
-> +
-> +	if (!pr)
-> +		goto end;
-> +
-> +	if (!pr->performance) {
-> +		seq_puts(seq, "<not supported>\n");
-> +		goto end;
-> +	}
-> +
-> +	seq_printf(seq, "state count:             %d\n"
-> +			"active state:            P%d\n",
-> +			pr->performance->state_count,
-> +			pr->performance->state);
-> +
-> +	seq_puts(seq, "states:\n");
-> +	for (i = 0; i < pr->performance->state_count; i++)
-> +		seq_printf(seq, "   %cP%d:                  %d MHz, %d mW, %d uS\n",
-> +			(i == pr->performance->state?'*':' '), i,
-> +			(u32) pr->performance->states[i].core_frequency,
-> +			(u32) pr->performance->states[i].power,
-> +			(u32) pr->performance->states[i].transition_latency);
-> +
-> +end:
-> +	return 0;
-> +}
-> +
-> +static int acpi_processor_perf_open_fs(struct inode *inode, struct file *file)
-> +{
-> +	return single_open(file, acpi_processor_perf_seq_show,
-> +						PDE(inode)->data);
-> +}
-> +
-> +static int
-> +acpi_processor_write_performance (
-> +        struct file		*file,
-> +        const char		__user *buffer,
-> +        size_t			count,
-> +        loff_t			*data)
-> +{
-> +	int			result = 0;
-> +	struct seq_file		*m = (struct seq_file *) file->private_data;
-> +	struct acpi_processor	*pr = (struct acpi_processor *) m->private;
-> +	struct acpi_processor_performance *perf;
-> +	char			state_string[12] = {'\0'};
-> +	unsigned int            new_state = 0;
-> +	struct cpufreq_policy   policy;
-> +
-> +	ACPI_FUNCTION_TRACE("acpi_processor_write_performance");
-> +
-> +	if (!pr || (count > sizeof(state_string) - 1))
-> +		return_VALUE(-EINVAL);
-> +
-> +	perf = pr->performance;
-> +	if (!perf)
-> +		return_VALUE(-EINVAL);
-> +	
-> +	if (copy_from_user(state_string, buffer, count))
-> +		return_VALUE(-EFAULT);
-> +	
-> +	state_string[count] = '\0';
-> +	new_state = simple_strtoul(state_string, NULL, 0);
-> +
-> +	if (new_state >= perf->state_count)
-> +		return_VALUE(-EINVAL);
-> +
-> +	cpufreq_get_policy(&policy, pr->id);
-> +
-> +	policy.cpu = pr->id;
-> +	policy.min = perf->states[new_state].core_frequency * 1000;
-> +	policy.max = perf->states[new_state].core_frequency * 1000;
-> +
-> +	result = cpufreq_set_policy(&policy);
-> +	if (result)
-> +		return_VALUE(result);
-> +
-> +	return_VALUE(count);
-> +}
-> +
-> +static void
-> +acpi_cpufreq_add_file (
-> +	struct acpi_processor *pr)
-> +{
-> +	struct proc_dir_entry	*entry = NULL;
-> +	struct acpi_device	*device = NULL;
-> +
-> +	ACPI_FUNCTION_TRACE("acpi_cpufreq_addfile");
-> +
-> +	if (acpi_bus_get_device(pr->handle, &device))
-> +		return_VOID;
-> +
-> +	/* add file 'performance' [R/W] */
-> +	entry = create_proc_entry(ACPI_PROCESSOR_FILE_PERFORMANCE,
-> +		  S_IFREG|S_IRUGO|S_IWUSR, acpi_device_dir(device));
-> +	if (!entry)
-> +		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-> +			"Unable to create '%s' fs entry\n",
-> +			ACPI_PROCESSOR_FILE_PERFORMANCE));
-> +	else {
-> +		entry->proc_fops = &acpi_processor_perf_fops;
-> +		entry->proc_fops->write = acpi_processor_write_performance;
-> +		entry->data = acpi_driver_data(device);
-> +	}
-> +	return_VOID;
-> +}
-> +
-> +static void
-> +acpi_cpufreq_remove_file (
-> +	struct acpi_processor *pr)
-> +{
-> +	struct acpi_device	*device = NULL;
-> +
-> +	ACPI_FUNCTION_TRACE("acpi_cpufreq_addfile");
-> +
-> +	if (acpi_bus_get_device(pr->handle, &device))
-> +		return_VOID;
-> +
-> +	/* remove file 'performance' */
-> +	remove_proc_entry(ACPI_PROCESSOR_FILE_PERFORMANCE,
-> +		  acpi_device_dir(device));
-> +
-> +	return_VOID;
-> +}
-> +
-> +#else
-> +static void acpi_cpufreq_add_file (struct acpi_processor *pr) { return; }
-> +static void acpi_cpufreq_remove_file (struct acpi_processor *pr) { return; }
-> +#endif /* CONFIG_X86_ACPI_CPUFREQ_PROC_INTF */
-> +
-> +
->  int 
->  acpi_processor_register_performance (
->  	struct acpi_processor_performance * performance,
-> @@ -1093,7 +1240,6 @@
+> -	if (perf) {
+> -		performance[policy->cpu] = NULL;
+> -		acpi_processor_unregister_performance(perf, policy->cpu);
+> -		kfree(perf);
+> +	if (data) {
+> +		acpi_io_data[policy->cpu] = NULL;
+> +		acpi_processor_unregister_performance(&data->acpi_data, policy->cpu);
+> +		kfree(data);
 >  	}
 >  
->  	pr->performance = performance;
-> -	performance->pr = pr;
->  
->  	if (acpi_processor_get_performance_info(pr)) {
->  		pr->performance = NULL;
-> @@ -1101,6 +1247,8 @@
->  		return_VALUE(-EIO);
->  	}
->  
-> +	acpi_cpufreq_add_file(pr);
-> +
->  	up(&performance_sem);
 >  	return_VALUE(0);
->  }
-> @@ -1128,7 +1276,8 @@
+> diff -ruN linux-original/drivers/acpi/processor.c linux/drivers/acpi/processor.c
+> --- linux-original/drivers/acpi/processor.c	2004-01-18 13:53:33.000000000 +0100
+> +++ linux/drivers/acpi/processor.c	2004-01-18 18:45:59.091207760 +0100
+> @@ -871,7 +871,6 @@
+>  	struct acpi_buffer	buffer = {ACPI_ALLOCATE_BUFFER, NULL};
+>  	union acpi_object	*pct = NULL;
+>  	union acpi_object	obj = {0};
+> -	struct acpi_pct_register *reg = NULL;
+>  
+>  	ACPI_FUNCTION_TRACE("acpi_processor_get_performance_control");
+>  
+> @@ -903,19 +902,9 @@
+>  		result = -EFAULT;
+>  		goto end;
+>  	}
+> +	memcpy(&pr->performance->control_register, obj.buffer.pointer, sizeof(struct acpi_pct_register));
+>  
+> -	reg = (struct acpi_pct_register *) (obj.buffer.pointer);
+>  
+> -	if (reg->space_id != ACPI_ADR_SPACE_SYSTEM_IO) {
+> -		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
+> -			"Unsupported address space [%d] (control_register)\n",
+> -			(u32) reg->space_id));
+> -		result = -EFAULT;
+> -		goto end;
+> -	}
+> -
+> -	pr->performance->control_register = (u16) reg->address;
+> -	pr->performance->control_register_bit_width = reg->bit_width;
+>  	/*
+>  	 * status_register
+>  	 */
+> @@ -931,23 +920,7 @@
+>  		goto end;
 >  	}
 >  
->  	pr->performance = NULL;
-> -	performance->pr = NULL;
-> +
-> +	acpi_cpufreq_remove_file(pr);
+> -	reg = (struct acpi_pct_register *) (obj.buffer.pointer);
+> -
+> -	if (reg->space_id != ACPI_ADR_SPACE_SYSTEM_IO) {
+> -		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
+> -			"Unsupported address space [%d] (status_register)\n",
+> -			(u32) reg->space_id));
+> -		result = -EFAULT;
+> -		goto end;
+> -	}
+> -
+> -	pr->performance->status_register = (u16) reg->address;
+> -	pr->performance->status_register_bit_width = reg->bit_width;
+> -
+> -	ACPI_DEBUG_PRINT((ACPI_DB_INFO, 
+> -		"control_register[0x%04x] status_register[0x%04x]\n",
+> -		pr->performance->control_register,
+> -		pr->performance->status_register));
+> +	memcpy(&pr->performance->status_register, obj.buffer.pointer, sizeof(struct acpi_pct_register));
 >  
->  	up(&performance_sem);
->  
+>  end:
+>  	acpi_os_free(buffer.pointer);
 > diff -ruN linux-original/include/acpi/processor.h linux/include/acpi/processor.h
-> --- linux-original/include/acpi/processor.h	2004-01-18 13:12:13.822288088 +0100
-> +++ linux/include/acpi/processor.h	2004-01-18 13:49:27.640696072 +0100
-> @@ -77,7 +77,6 @@
->  	int			state_count;
+> --- linux-original/include/acpi/processor.h	2004-01-18 13:53:33.000000000 +0100
+> +++ linux/include/acpi/processor.h	2004-01-18 18:44:20.178244816 +0100
+> @@ -68,15 +68,12 @@
+>  };
+>  
+>  struct acpi_processor_performance {
+> -	int			state;
+> -	int			platform_limit;
+> -	u16			control_register;
+> -	u16			status_register;
+> -	u8			control_register_bit_width;
+> -	u8			status_register_bit_width;
+> -	int			state_count;
+> +	unsigned int		 state;
+> +	unsigned int		 platform_limit;
+> +	struct acpi_pct_register control_register;
+> +	struct acpi_pct_register status_register;
+> +	unsigned int		 state_count;
 >  	struct acpi_processor_px states[ACPI_PROCESSOR_MAX_PERFORMANCE];
->  	struct cpufreq_frequency_table freq_table[ACPI_PROCESSOR_MAX_PERFORMANCE];
-> -	struct acpi_processor   *pr;
+> -	struct cpufreq_frequency_table freq_table[ACPI_PROCESSOR_MAX_PERFORMANCE];
 >  };
 >  
 > 
