@@ -1,14 +1,15 @@
-From: John Belmonte <john-wanGne27zNesTnJN9+BGXg@public.gmane.org>
-Subject: Re: generic hotkey driver
-Date: Tue, 07 Sep 2004 09:13:33 -0400
+From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
+Subject: Re: acpi patch for 2.6.7
+Date: Tue, 7 Sep 2004 15:56:37 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <413DB3FD.80209@neggie.net>
-References: <3ACA40606221794F80A5670F0AF15F84056B5783@pdsmsx403>
+Message-ID: <20040907135637.GC3647@fuchi>
+References: <200409061331.28311@geromy>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="vEao7xgI/oilGqZ+"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F84056B5783@pdsmsx403>
+Content-Disposition: inline
+In-Reply-To: <200409061331.28311@geromy>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,43 +18,54 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Yu, Luming wrote:
->>> a. Configure interface:
->>>	1. register mapping of event number to internal hotkey number.
->>>	2. register expected acpi_handle which is needed to install
->>>notify handler, which will generate event for acpid.
->>>	3. register the AML methods that should be executed , with
->>>respect to  the hotkey get pressed.
->>
->>As far as I know, there is no hotkey event available in 
->>Toshiba's case. 
->> The only way to monitor the keys is by polling.
-> 
-> Hmm. It's not efficient way for hotkey.
-> I'm curious what's the polling frequency.
 
-I don't poll within the kernel-- I leave that issue to userspace.  The 
-hotkeys are queued, and I've found a period of .2s to be more than adequate.
+--vEao7xgI/oilGqZ+
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> I guess I can slightly modify the configure interface to
-> add a polling register interface.  To keep other parts of
-> interfaces unchanged, just need to generate corresponding
-> pseudo event for each active event found by polling.
-> 
-> Does it make sense?
+hello S=F6nke..
 
-If you want to provide hotkey events to userspace, I guess there is no 
-other choice.
+* S=F6nke <s.huels-hi6Y0CQ0nG0@public.gmane.org> [2004-09-07 15:29 +0200]:
+>=20
+> I'm looking for the last acpi patch for kernel 2.6.7=20
+> (acpi-20040715-2.6.7-diff), but I could not find it on the kernel.org ftp=
+=20
+> server.=20
+> Could anyone please tell me to a location to download it, if it is still=
+=20
+> availiable somewhere?
 
--John
+i fear, it is not officially available anymore. you could try to
+integrate the ACPI stuff from 2.6.8 into your 2.6.7. or ping me again
+next week when i will have access to my backup harddisk which should
+have a copy of the patch on it.
 
+bye,
+ sebastian
+--=20
+::: .O.
+::: ..O
+::: OOO
+::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
 
--- 
-http://giftfile.org/  ::  giftfile project
+--vEao7xgI/oilGqZ+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFBPb4UreHfL3pi+bQRAj0JAJ9RGC5bRhnGT7bjPAkL8vGpMeHlYgCbB/1F
+940AjPtDDIBnw/RN25XOwU8=
+=FWfb
+-----END PGP SIGNATURE-----
+
+--vEao7xgI/oilGqZ+--
 
 
 -------------------------------------------------------
