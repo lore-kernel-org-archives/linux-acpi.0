@@ -1,12 +1,13 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: Help wanted with IRQ routing.
-Date: Mon, 14 Feb 2005 09:24:42 -0700
-Message-ID: <1108398282.4208.10.camel@eeyore>
-References: <1108371574.12611.61.camel@desktop.cunningham.myip.net.au>
+From: "Craig Dunford" <cdunford-OnllAtm1sHQ@public.gmane.org>
+Subject: ACPI Event File
+Date: Mon, 14 Feb 2005 13:10:27 -0500
+Message-ID: <001501c512c0$76535240$b0ea1946@littledump>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <1108371574.12611.61.camel-r49W/1Cwd2ff0s6lnCXPX/uOuaPYTxhvJwvTLr3MMZM@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,24 +17,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org
-Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2005-02-14 at 19:59 +1100, Nigel Cunningham wrote:
-> While visiting the US, I purchased a Netgear 511T card for my laptop.
-> ...
-> The problem I see is that when I start wpa_supplicant (ie actually start
-> to use the card), everything freezes up. If I pop the card out quickly,
-> I see that a couple of thousand interrupts have occurred in the couple
-> of seconds. If I'm too slow, I have to restart the machine.
+I use acpid as many do to read events from /proc/acpi/event. I'm on a laptop and I use the gnome battstat applet and every once in a 
+while it craps out. So I decided to stop acpid so I could take a look at the event file myself. I get this error:
 
-Did you try booting with "pci=routeirq" or turning off PNPACPI?
-I've seen a few reports of IRQ problems with PCMCIA devices that
-seemed to be related to one or both of these.
+Device or Resource busy
 
-If one of these makes a difference, I'd like to compare the dmesg
-logs of the broken and working configurations.
+So I decided to restart acpid, but it generated an error similar to the above, saying it also couldn't open the event file.
+
+ACPID starts fine when I boot my lapto though. I used acpi_listen to see what events are coming through. I had been made aware to me 
+that the gnome battstat applet expects to see battery events every couple seconds saying it has discharged or recharged some amount. 
+To my dismay, acpi_listen showed no events. If I plugged in my laptop or unplugged it, thats the only event that registered.
+
+I also check in /proc/acpi/battery/BAT0/state which shows me the current charge of the battery no problem.
+
+Is there anything I can do to fix this?
+
+I am on Debian running Debian kernel 2.6.8-2-686.
+
+Thanks. 
 
 
 
