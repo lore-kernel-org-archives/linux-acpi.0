@@ -1,8 +1,8 @@
-From: Emma Jane Hogbin <emmajane-MHIYrZpDPrNWk0Htik3J/w@public.gmane.org>
-Subject: input required for ACPI HOWTO
-Date: Thu, 13 May 2004 12:22:48 -0400
+From: Kevin Eustice <kfe-764C0pRuGfqVc3sceRu5cw@public.gmane.org>
+Subject: Losing lid events after resume (2.6.6)
+Date: Thu, 13 May 2004 11:10:51 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040513162248.GA2595@smeagol>
+Message-ID: <20040513181051.GA29398@cs.ucla.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,26 +15,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi everyone, 
+Hi,
 
-I've started working on the new version of the ACPI HOWTO and would like
-some feedback for the 2.6.x series kernel. I'm personally having mixed
-"luck" with it, so I thought I'd point the revised doc to everyone and see
-if there are any other "gotchas" that I should include.
+I just migrated from APM to ACPI, and things are a little weird. Any
+advice would be greatly appreciated.
 
-The latest version is available from:
-http://www.xtrinsic.com/geek/articles/acpi.html
+I'm running Fedora Core 1 with a 2.6.6 kernel (with ACPI patches from
+here applied) on an HP Omnibook 4150B. I've got a lid.sh script that
+is triggered with the lid button is pressed, and does a "echo standby
+> /sys/power/state". Initially, this works well. I close the lid, it
+goes to sleep. I open the lid and press the power button, it wakes
+up. And then goes right back to sleep. (I don't currently have any
+events triggered by the power button.) Pressing the power button again
+wakes the laptop up, and this time it stays up. However, ACPI won't
+generate any more lid events at all. Power button events still seem to
+be generated fine.
 
-thanks. :)
+Is this a known bug? Is it a problem with my hardware? 
 
-emma
+thanks,
 
--- 
-Emma Jane Hogbin
-[[ 416 417 2868 ][ www.xtrinsic.com ]]
+Kevin Eustice
 
 
 -------------------------------------------------------
