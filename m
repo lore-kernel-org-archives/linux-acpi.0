@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
 Subject: Re: Applications & ACPI events
-Date: Mon, 13 Oct 2003 17:28:07 +0200
+Date: Mon, 13 Oct 2003 17:26:37 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031013152807.GD15441@elf.ucw.cz>
-References: <20031006124935.GQ11391@poupinou.org> <20031006130533.GA311@elf.ucw.cz> <20031008102745.GF11391@poupinou.org> <20031008191610.GB1035@elf.ucw.cz> <20031008215342.GE1920@fairlite.demon.co.uk> <20031008215850.GF1238@elf.ucw.cz> <20031009140648.GH1922@fairlite.demon.co.uk> <20031009213504.GC365@elf.ucw.cz> <20031013131022.GN11391@poupinou.org> <20031013133837.GA9178@hell.org.pl>
+Message-ID: <20031013152637.GC15441@elf.ucw.cz>
+References: <20031003193814.GE205@openzaurus.ucw.cz> <20031006124935.GQ11391@poupinou.org> <20031006130533.GA311@elf.ucw.cz> <20031008102745.GF11391@poupinou.org> <20031008191610.GB1035@elf.ucw.cz> <20031008215342.GE1920@fairlite.demon.co.uk> <20031008215850.GF1238@elf.ucw.cz> <20031009140648.GH1922@fairlite.demon.co.uk> <20031009213504.GC365@elf.ucw.cz> <20031013131022.GN11391@poupinou.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20031013133837.GA9178-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+In-Reply-To: <20031013131022.GN11391-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,27 +17,36 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Alan Hourihane <alanh-ASBjxr/nLg+TY6FTCsQk+9Bc4/FLrbF6@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, Alan Hourihane <alanh-ASBjxr/nLg+TY6FTCsQk+9Bc4/FLrbF6@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> > That exactly my point.  And I think it should not do full save/restore
-> > on only VT switch, but we may try to have a better fine grained stuff for,
-> > something like 'hey, X we have to go S3, please consider'.
+> > X does _not_ do full save/restore, at least not for all
+> > drivers. vesafb does no saving, and generic vga driver is also
+> > incapable of full save/restore. Not sure about others.
 > 
-> I second that. Sure, VT switch is necessary, but it takes quite a few
-> seconds, which is unacceptable for S1 for example (Radeon M7 needs the
-> restore after S1 too).
+> That exactly my point.  And I think it should not do full save/restore
+> on only VT switch, but we may try to have a better fine grained stuff for,
+> something like 'hey, X we have to go S3, please consider'.
 
-Console switch
+Such interface would be pretty ugly.. There are at least these states
+kernel can enter:
 
-a) should not take seconds.
+S1
+S3
+swsusp
+S4bios
+apm -s
+apm -S
 
-b) should not be needed for S1. It is hw bug if it is.
+. And anyway not doing complete hw initialization on console switch is
+wrong. How can X know that the game on tty3 is not playing with hw
+acceleration?
 
-If radeon m7 is broken, well, ...
-									Pavel
+								Pavel
+
 -- 
 When do you have a heart between your knees?
 [Johanka's followup: and *two* hearts?]
