@@ -1,128 +1,261 @@
-From: James D Strandboge <jstrand1-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org>
-Subject: Re: Repeatable lockup with sustained polling of battery
-	state
-Date: 06 Dec 2002 16:28:16 -0500
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1039210096.1878.12.camel@sirius.strandboge.cxm>
-References: <1034266219.1287.40.camel@sirius.strandboge.cxm>
-	 <1036013358.9704.93.camel@sirius.strandboge.cxm>
-	 <1038339343.1840.4.camel@sirius.strandboge.cxm>
-	 <20021129194032.GS1989@poup.poupinou.org>
-	 <1038622526.515.2.camel@sirius.strandboge.cxm>
-	 <20021202111335.GT1989@poup.poupinou.org>
+From: Ducrot Bruno <poup-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: [ACPI] Re: [2.5.50, ACPI] link error
+Date: Sat, 7 Dec 2002 00:05:02 +0100
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <20021206230502.GA19083@poup.poupinou.org>
+References: <20021205224019.GH7396@atrey.karlin.mff.cuni.cz> <Pine.LNX.4.33.0212051632120.974-100000@localhost.localdomain> <20021206000618.GB15784@atrey.karlin.mff.cuni.cz> <20021206185702.GE17595@poup.poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20021202111335.GT1989-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: multipart/mixed; boundary="RnlQjJ0d97Da+TV1"
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20021206185702.GE17595-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2002-12-02 at 06:13, Ducrot Bruno wrote:
-> Hi!
-> 
-> On Fri, Nov 29, 2002 at 09:15:27PM -0500, James D Strandboge wrote:
-> > On Fri, 2002-11-29 at 14:40, Ducrot Bruno wrote:
-> > > Could you please repost your dsdt?  I don't know what happen, but I can
-> > > not disassemble it.  Could you also gzip it, please ?
-> > > 
-> > Thank you for responding.  Attached is my gzipped dsdt file.  I followed
-> > the instructions on
-> > http://www.intel.com/technology/iapc/acpi/bios_override.htm to get the
-> > dsdt (ie 'cat /proc/acpi/dsdt > dsdt.dat').
+
+--RnlQjJ0d97Da+TV1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi, Pavel.
+
+On Fri, Dec 06, 2002 at 07:57:02PM +0100, Ducrot Bruno wrote:
+> On Fri, Dec 06, 2002 at 01:06:18AM +0100, Pavel Machek wrote:
+> > Hi!
 > > 
+> > > > > Doesn't that imply your fix is broken to begin with?
+> > > > 
+> > > > ACPI/S4 support needs swsusp. ACPI/S3 needs big part of
+> > > > swsusp. Splitting CONFIG_ACPI_SLEEP to S3 and S4 part seems like
+> > > > overdesign to me, OTOH if you do the work it is okay with me.
+> > > 
+> > > You broke the design. S3 support was developed long before swsusp was in 
+> > > the kernel, and completely indpendent of it. It should have remained that 
+> > > way. 
+> > > 
+> > > S3 support is a subset of what is need for S4 support. 
+> > 
+> > That's not true. acpi_wakeup.S is nasty piece of code, needed for S3
+> > but not for S4. Big part of driver support is only needed for S3.
+> > 
+> > > swsusp is an implementation of S4 support. In theory, there could be 
+> > > multiple implementations that all use the same core (saving/restoring 
+> > > state). 
+> > 
+> > There were patches for S4bios floating around, but it never really
+> > worked, IIRC.
 > 
-> I can now disassemble your DSDT.  Well, I suspected that your first
-> post was somehow corrupted.  I seems that I was right..
-> 
-> I will take a look at it, but I can not promise something for you yet.
+> No.  It work.  I do not resubmmited patches because I think that
+> swsusp is better.
 > 
 
-I don't know if this is related, but I decided to see what kind of acpi
-events my battery would generate if I let it run down completely.  As it
-turns out, I got a few events, but they were all the same (ie 'received
-event "battery BAT1 00000080 00000001"').  Here are the events from when
-I unplugged the adapter until the battery went dead:
+I attach also this patch, it is ughly, though, but if you are sure
+that your laptop can support S4BIOS (I do not include basic checks for
+that), it should survive (I need myself to reset at wakeup the keyboard controller,
+though).
 
+It is again acpi on sf.net of today, and some of your patches for S3 support.
 
-[Fri Dec  6 13:46:56 2002] received event "ac_adapter AC 00000080
-00000000"
-[Fri Dec  6 13:46:56 2002] executing action "/etc/acpi/ac.sh ac_adapter
-AC 00000080 00000000"
-[Fri Dec  6 13:46:56 2002] BEGIN HANDLER MESSAGES
-[Fri Dec  6 13:46:56 2002] END HANDLER MESSAGES
-[Fri Dec  6 13:46:56 2002] action exited with status 0
-[Fri Dec  6 13:46:56 2002] executing action "/etc/acpi/default.sh
-ac_adapter AC 00000080 00000000"
-[Fri Dec  6 13:46:56 2002] BEGIN HANDLER MESSAGES
-[Fri Dec  6 13:46:56 2002] END HANDLER MESSAGES
-[Fri Dec  6 13:46:56 2002] action exited with status 0
-[Fri Dec  6 13:46:56 2002] completed event "ac_adapter AC 00000080
-00000000"
-[Fri Dec  6 13:47:02 2002] received event "battery BAT1 00000080
-00000001"
-[Fri Dec  6 13:47:02 2002] executing action "/etc/acpi/default.sh
-battery BAT1 00000080 00000001"
-[Fri Dec  6 13:47:02 2002] BEGIN HANDLER MESSAGES
-[Fri Dec  6 13:47:02 2002] END HANDLER MESSAGES
-[Fri Dec  6 13:47:02 2002] action exited with status 0
-[Fri Dec  6 13:47:02 2002] completed event "battery BAT1 00000080
-00000001"
-[Fri Dec  6 15:48:39 2002] received event "battery BAT1 00000080
-00000001"
-[Fri Dec  6 15:48:39 2002] executing action "/etc/acpi/default.sh
-battery BAT1 00000080 00000001"
-[Fri Dec  6 15:48:39 2002] BEGIN HANDLER MESSAGES
-[Fri Dec  6 15:48:39 2002] END HANDLER MESSAGES
-[Fri Dec  6 15:48:39 2002] action exited with status 0
-[Fri Dec  6 15:48:39 2002] completed event "battery BAT1 00000080
-00000001"
-[Fri Dec  6 15:53:20 2002] received event "battery BAT1 00000080
-00000001"
-[Fri Dec  6 15:53:20 2002] executing action "/etc/acpi/default.sh
-battery BAT1 00000080 00000001"
-[Fri Dec  6 15:53:20 2002] BEGIN HANDLER MESSAGES
-[Fri Dec  6 15:53:20 2002] END HANDLER MESSAGES
-[Fri Dec  6 15:53:20 2002] action exited with status 0
-[Fri Dec  6 15:53:20 2002] completed event "battery BAT1 00000080
-00000001"
+echo 4b > /proc/acpi/sleep if you want to say goodbye to your data :)
 
-I am assuming that this is incorrect behavior.  Could this be related?
-
-Jamie Strandboge
-
-PS-- I disassembled my own dsdt and looked at it.  I do program in C and
-other languages, but there were so few comments in there that I couldn't
-really tell what was going on.  I was surprised to see this at the top
-of the file though:
-
-    Name (VERS, Package (0x03)
-    {
-        "Project: DELL Mojave", 
-        "Date: 01/28/1998", 
-        "Ver: 1.00.04"
-    })
-
-especially since the laptop was made 4 1/2 later than this date.
+Cheers,
 
 -- 
-Email:        jstrand1-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org
-GPG/PGP ID:   26384A3A
-Fingerprint:  D9FF DF4A 2D46 A353 A289  E8F5 AA75 DCBE 2638 4A3A
+Ducrot Bruno
+http://www.poupinou.org        Page profaissionelle
+http://toto.tu-me-saoules.com  Haume page
 
+--RnlQjJ0d97Da+TV1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="s4bios-2.5.50.diff"
 
+--- linux-2.5.50/arch/i386/kernel/acpi_wakeup.S	2002/12/06 21:34:17	1.1
++++ linux-2.5.50/arch/i386/kernel/acpi_wakeup.S	2002/12/06 21:48:14
+@@ -336,6 +336,48 @@
+ 	pushl saved_context_eflags ; popfl
+ 	ret
+ 
++ENTRY(do_suspend_lowlevel_s4bios)
++	cmpl $0,4(%esp)
++	jne .L1432
++	call save_processor_state
++
++	movl %esp, saved_context_esp
++	movl %eax, saved_context_eax
++	movl %ebx, saved_context_ebx
++	movl %ecx, saved_context_ecx
++	movl %edx, saved_context_edx
++	movl %ebp, saved_context_ebp
++	movl %esi, saved_context_esi
++	movl %edi, saved_context_edi
++	pushfl ; popl saved_context_eflags
++
++	movl $.L1432,saved_eip
++	movl %esp,saved_esp
++	movl %ebp,saved_ebp
++	movl %ebx,saved_ebx
++	movl %edi,saved_edi
++	movl %esi,saved_esi
++
++	pushl $3
++	call acpi_enter_sleep_state_s4bios
++	addl $4,%esp
++	ret
++	.p2align 4,,7
++.L1433:
++	movl $__KERNEL_DS,%eax
++	movw %ax, %ds
++	movl saved_context_esp, %esp
++	movl saved_context_ebp, %ebp
++	movl saved_context_eax, %eax
++	movl saved_context_ebx, %ebx
++	movl saved_context_ecx, %ecx
++	movl saved_context_edx, %edx
++	movl saved_context_esi, %esi
++	movl saved_context_edi, %edi
++	call restore_processor_state
++	pushl saved_context_eflags ; popfl
++	ret
++
+ ALIGN
+ # saved registers
+ saved_gdt:	.long	0,0
+--- linux-2.5.50/drivers/acpi/include/acpixf.h	2002/12/06 21:56:49	1.1
++++ linux-2.5.50/drivers/acpi/include/acpixf.h	2002/12/06 22:02:42
+@@ -380,6 +380,10 @@
+ 	u8                      sleep_state);
+ 
+ acpi_status
++acpi_enter_sleep_state_s4bios (
++	void);
++
++acpi_status
+ acpi_leave_sleep_state (
+ 	u8                      sleep_state);
+ 
+--- linux-2.5.50/drivers/acpi/hardware/hwsleep.c	2002/12/06 21:39:07	1.1
++++ linux-2.5.50/drivers/acpi/hardware/hwsleep.c	2002/12/06 22:08:22
+@@ -319,6 +319,51 @@
+ 
+ /******************************************************************************
+  *
++ * FUNCTION:    Acpi_enter_sleep_state_s4bios
++ *
++ * PARAMETERS:  None
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: Perform a s4 bios request.
++ *              THIS FUNCTION MUST BE CALLED WITH INTERRUPTS DISABLED
++ *
++ ******************************************************************************/
++
++acpi_status
++acpi_enter_sleep_state_s4bios (void)
++{
++	u32                     in_value;
++	acpi_status             status;
++
++
++	ACPI_FUNCTION_TRACE ("Acpi_enter_sleep_state_s4bios");
++
++
++	acpi_set_register (ACPI_BITREG_WAKE_STATUS, 1, ACPI_MTX_LOCK);
++	acpi_hw_clear_acpi_status();
++
++	acpi_hw_disable_non_wakeup_gpes();
++
++	ACPI_FLUSH_CPU_CACHE();
++
++	acpi_os_stall (10000);
++
++	status = acpi_os_write_port (acpi_gbl_FADT->smi_cmd, (acpi_integer) acpi_gbl_FADT->S4bios_req, 8);
++
++	do {
++		status = acpi_get_register (ACPI_BITREG_WAKE_STATUS, &in_value, ACPI_MTX_LOCK);
++		if (ACPI_FAILURE (status)) {
++			return_ACPI_STATUS (status);
++		}
++	} while (!in_value);
++
++	return_ACPI_STATUS (AE_OK);
++}
++
++
++/******************************************************************************
++ *
+  * FUNCTION:    Acpi_leave_sleep_state
+  *
+  * PARAMETERS:  Sleep_state         - Which sleep state we just exited
+--- linux-2.5.50/drivers/acpi/sleep.c	2002/12/06 21:21:25	1.1
++++ linux-2.5.50/drivers/acpi/sleep.c	2002/12/06 22:29:28
+@@ -149,8 +149,10 @@
+ 		if (state > ACPI_STATE_S1) {
+ 			error = acpi_save_state_mem();
+ 
++#if 0
+ 			if (!error && (state == ACPI_STATE_S4))
+ 				error = acpi_save_state_disk();
++#endif
+ 
+ 			if (error) {
+ 				device_resume(RESUME_RESTORE_STATE);
+@@ -227,6 +229,8 @@
+ 	case ACPI_STATE_S3:
+ 		do_suspend_lowlevel(0);
+ #endif
++	case ACPI_STATE_S4:
++		do_suspend_lowlevel_s4bios(0);
+ 		break;
+ 	}
+ 	local_irq_restore(flags);
+@@ -253,7 +257,7 @@
+ 	freeze_processes();		/* device_suspend needs processes to be stopped */
+ 
+ 	/* do we have a wakeup address for S2 and S3? */
+-	if (state == ACPI_STATE_S2 || state == ACPI_STATE_S3) {
++	if (state == ACPI_STATE_S2 || state == ACPI_STATE_S3 || state == ACPI_STATE_S4) {
+ 		if (!acpi_wakeup_address)
+ 			return AE_ERROR;
+ 		acpi_set_firmware_waking_vector((ACPI_PHYSICAL_ADDRESS) acpi_wakeup_address);
+@@ -336,12 +340,14 @@
+ 	if (!sleep_states[state])
+ 		return_VALUE(-ENODEV);
+ 
++	if (state == 4 && state_string[1] != 'b') {
+ #ifdef CONFIG_SOFTWARE_SUSPEND
+-	if (state == 4) {
++	/* if (state == 4) { */
+ 		software_suspend();
+ 		return_VALUE(count);
+-	}
++	/* } */
+ #endif
++	}
+ 	status = acpi_suspend(state);
+ 
+ 	if (ACPI_FAILURE(status))
+--- linux-2.5.50/drivers/acpi/acpi_ksyms.c	2002/12/06 21:58:48	1.1
++++ linux-2.5.50/drivers/acpi/acpi_ksyms.c	2002/12/06 21:59:12
+@@ -86,6 +86,7 @@
+ EXPORT_SYMBOL(acpi_get_register);
+ EXPORT_SYMBOL(acpi_set_register);
+ EXPORT_SYMBOL(acpi_enter_sleep_state);
++EXPORT_SYMBOL(acpi_enter_sleep_state_s4bios);
+ EXPORT_SYMBOL(acpi_get_system_info);
+ EXPORT_SYMBOL(acpi_get_devices);
+ 
+--- linux-2.5.50/include/linux/suspend.h	2002/12/06 21:53:17	1.1
++++ linux-2.5.50/include/linux/suspend.h	2002/12/06 21:54:27
+@@ -71,6 +71,8 @@
+ 
+ extern void do_suspend_lowlevel(int resume);
+ 
++extern void do_suspend_lowlevel_s4bios(int resume);
++
+ #else
+ static inline void software_suspend(void)
+ {
 
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
+--RnlQjJ0d97Da+TV1--
