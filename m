@@ -1,13 +1,13 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ACPI and my IBM Thinkpad R32
-Date: Fri, 14 Feb 2003 10:30:07 -0800
+From: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
+Subject: Re: [PATCH] Restore SYSENTER setup on swsusp resume.
+Date: Fri, 14 Feb 2003 12:31:23 -0600 (CST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A84713806E@orsmsx401.jf.intel.com>
+Message-ID: <Pine.LNX.4.33.0302141227410.1067-100000@localhost.localdomain>
+References: <1045247400.22719.138.camel@passion.cambridge.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="ISO-8859-1"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <1045247400.22719.138.camel-U6vq7BvGKfF5pKCnmE3YQOkCa/Q774e0VpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,21 +16,60 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Michael Wahlbrink <linux.wali-Mmb7MZpHnFY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Michael Wahlbrink [mailto:linux.wali-Mmb7MZpHnFY@public.gmane.org] 
-> in /proc/acpi/ . Then I've read an article about linux and 
-> ACPI in the german ct'.  ...And so I've found this project... 
 
-ct' wrote an article on Linux and ACPI?
+On 14 Feb 2003, David Woodhouse wrote:
 
-Anyone have a URL?
+> Box gets very unhappy if we don't set up SYSENTER again after returning
+> from sleep.
 
-Michael - ACPI is being disabled because of a known ECDT BIOS bug. IBM
-has promised to fix this in a forthcoming BIOS update.
+Here's the patch against the current BK tree, since the code in 
+arch/i386/kernel/acpi.c got moved into arch/i386/kernel/acpi/sleep.c
 
-Regards -- Andy
+	-pat
+
+===== arch/i386/kernel/acpi/sleep.c 1.1 vs edited =====
+--- 1.1/arch/i386/kernel/acpi/sleep.c	Thu Feb 13 11:51:14 2003
++++ edited/arch/i386/kernel/acpi/sleep.c	Fri Feb 14 12:30:57 2003
+@@ -6,7 +6,9 @@
+ 
+ #include <linux/acpi.h>
+ #include <linux/bootmem.h>
+-#include <asm/smp.h>
++#include <linux/smp.h>
++
++extern void enable_sep_cpu(void *info);
+ 
+ 
+ /* address in low memory of the wakeup routine. */
+@@ -60,6 +62,10 @@
+ void acpi_restore_state_mem (void)
+ {
+ 	zap_low_mappings();
++	if (boot_cpu_has(X86_FEATURE_SEP)) {
++		enable_sep_cpu(NULL);
++		smp_call_function(enable_sep_cpu, NULL, 1, 1);
++	}
+ }
+ 
+ /**
+===== arch/i386/kernel/sysenter.c 1.7 vs edited =====
+--- 1.7/arch/i386/kernel/sysenter.c	Tue Jan  7 12:08:52 2003
++++ edited/arch/i386/kernel/sysenter.c	Fri Feb 14 12:26:47 2003
+@@ -35,7 +35,7 @@
+ 	unsigned char stack[0];
+ } __attribute__((aligned(8192)));
+ 	
+-static void __init enable_sep_cpu(void *info)
++void enable_sep_cpu(void *info)
+ {
+ 	int cpu = get_cpu();
+ 	struct tss_struct *tss = init_tss + cpu;
+
+
 
 
 -------------------------------------------------------
