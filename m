@@ -1,79 +1,64 @@
-From: Maier Gerfried <moali-ArvQUR6U0fYD0fefG/KofA@public.gmane.org>
-Subject: Re: ACPI 20020829 and kernel 2.4.19-4GB #1 Fri Sep 13 13:14:56 UTC 2002 i686 on Gericom Supersonic M6T
-Date: Fri, 22 Nov 2002 12:33:18 +0100 (MET)
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1037964798.3dde15fe382fb@sbox.tugraz.at>
-References: <3DDE91EC.2090207@sec.co.ro>
+From: Stelian Pop <stelian.pop-A5NNTvo2L0pl57MIdRCFDg@public.gmane.org>
+Subject: Re: [ACPI] RE: [PATCH] Allow others to use ACPI EC interface
+Date: Fri, 22 Nov 2002 14:36:43 +0100
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <20021122133643.GA2224@tahoe.alcove-fr>
+References: <EDC461A30AC4D511ADE10002A5072CAD04C7A536@orsmsx119.jf.intel.com>
+Reply-To: Stelian Pop <stelian.pop-A5NNTvo2L0pl57MIdRCFDg@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3DDE91EC.2090207-db4prxYhZ5Fhl2p70BpVqQ@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: mariuso-QShcZ35DvxU@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD04C7A536-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org, Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Marius!
+On Thu, Nov 21, 2002 at 06:03:27PM -0800, Grover, Andrew wrote:
 
-Zitiere Marius Oancea <mariuso-db4prxYhZ5Fhl2p70BpVqQ@public.gmane.org>:
-
-> Hi, I have an Gericom M6T and I just installed SuSE 8.1.
+> > Well, not directly related to the EC thing but rather to the 
+> > ACPI/sonypi
+> > integration, but maybe you noticed that the sonypi driver also
+> > re-implements some code which is originally defined in the ACPI bios
+> > (SRS, DIS methods on "SPIC" ACPI object). 
+> > 
+> > One day I should really call some ACPI exported function to do this,
+> > but last time I looked at this (3 months ago ?), the ACPI API (the one
+> > exported to external users) was still changing each day. 
 > 
-> If u add pci=acpi to the bootparam, acpi is working nearly acceptable :
->  - acpi events are not raported anymore
->  - when i start /stop acpid (at the time of acpi modules insertion) the
-> complete system crash
+> Yeah I think the interface is settling down. You should be able to look at
+> the code in drivers/acpi or drivers/hotplug/acpiphp* for examples.
 
-... completely the same issue on my Suse 8.1 (Acer Travelmate Notebook)
+Ok, thanks.
 
-> I tried  to compile a original 2.4.19  kernel (from kernel.org) and 
-> patch this kernel with acpi-20020918-2.4.19.diff.
+> >From looking at other Sony ACPI BIOSes I've collected, it appears that SPIC
+> has a hardware ID (HID) in the ACPI namespace. It seems analogous to the
+> Toshiba Laptop Extras device in drivers/acpi.
 
-Why didn't you try a more recent kernel+acpi-patch?
+Indeed.
 
-I'm now using 2.4.20-rc1 with the recent acpi-patch and ererything works fine. 
-(I first installed the Suse-kernel-sources and then copied the .config-file 
-into the new 2.4.20-rc1-tree - make menuconfig - make bzimage and so on.)
-
-I had no major problems with this.
-
-> After that, acpi is working very well, but ... I don't have the exotic 
-> features of SuSE anymore (PCMCIA driver is not the last one and is not 
-> stable enough, SuSE hardware autodetection is not working too .... , 
-> grub, orinocco wireless card neither).
-
-Did you configure the kernel yourself? The Suse Kernel has the option "prompt 
-for development options" (One of the first options when you do make menuconfig 
-or make xconfig - Unfortunately I do not know the exact name any more) enabled. 
-This allows you to select drivers/modules marked as "(EXPERIMENTAL)", eg. 
-FireWire, Bluetooth, I thonk WLan too, and so on.
-
-> So, hopefully  somebody in this list has a patch for the SuSE 8.1 
-> kernel. The most stable acpi for Gericom Supersonic M6T is
-> acpi-20020918.
 > 
-> Should I address this question to another list ?
-> 
-> If yes, on wich list ?
-> 
->     With all my respect
->         Marius OANCEA
+> Indeed, I think a sonypi driver that assumes ACPI will be much shorter and
+> look quite different from the current one. 
 
-If you need some help updating the kernel, please feel free and mail me 
-directly.
+Not so sure about that, because only the sonypi device init/free
+make use of ACPI. After that, I still have to use the 'proprietary'
+protocol over the sonypi iports.
 
-Gerfried 
+It will simplify the code a little, especially when dealing with new
+models which could have a third initialisation way (we already handle
+2 differents Vaio types). 
 
+But once again, the old code is here to stay, until/if ACPI becomes
+mandatory.
 
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
+> But since we have resolved the EC
+> contention issues, this need not be addressed immediately.
+
+Agreed, this is a low priority item, I'll take a look at the
+existent ACPI drivers when I'll have a slow weekend...
+
+Stelian.
+-- 
+Stelian Pop <stelian.pop-A5NNTvo2L0pl57MIdRCFDg@public.gmane.org>
+Alcove - http://www.alcove.com
