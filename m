@@ -1,14 +1,15 @@
-From: Olaf Jansen-Olliges <o.jansen-n+qsWun7DryELgA04lAiVw@public.gmane.org>
+From: Jeroen Wijnhout <Jeroen.Wijnhout-sVbgdUKTYbrR7s880joybQ@public.gmane.org>
 Subject: Re: Re: Smart Battery System driver
-Date: Thu, 20 Jan 2005 09:36:21 +0100
-Message-ID: <200501200936.21831.o.jansen@orb-net.de>
-References: <41E81C2C.8010809@bartol.udel.edu> <200501192010.25975.o.jansen@orb-net.de> <m28y6pytgs.fsf@phoenix.squirrel.nl>
+Date: Thu, 20 Jan 2005 10:10:53 +0100
+Message-ID: <200501201010.53247.Jeroen.Wijnhout@kdemail.net>
+References: <41E81C2C.8010809@bartol.udel.edu> <200501191949.03558.Jeroen.Wijnhout@kdemail.net> <200501192010.25975.o.jansen@orb-net.de>
+Reply-To: Jeroen.Wijnhout-sVbgdUKTYbrR7s880joybQ@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <m28y6pytgs.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
+In-Reply-To: <200501192010.25975.o.jansen-n+qsWun7DryELgA04lAiVw@public.gmane.org>
 Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -22,28 +23,27 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Johan, 
+On Wednesday 19 January 2005 20:10, Olaf Jansen-Olliges wrote:
+> Hi Joeren,
+>
+> > I've tried the above driver on my Acer TM4001WLMi and it sort of doesn't
+> > work. The problem is that after modprobing i2c_acpi_ec and acpi_sbs I've
+> > got two battery and two ac_adapter directories in /proc (very weird if
+> > you ask me).
+>
+> you should not have ac_adapter or battery before "modprobing" have you
+> diabled the ac_adapter and battery section in your kernel configuration?
+> (as mentioned in the README)
 
->    # Experimental: drivers for smartbattery reading.
->    modprobe i2c-dev
->    modprobe i2c-acpi-ec
->    modprobe -r ac
->    modprobe -r battery
->    modprobe acpi-sbs
+This was enabled, so I will have to recompile the kernel I guess.
 
+best,
+Jeroen
 
-i've tested it again on my machine. I only get values for my battery when i 
-disable 
-
-- CONFIG_ACPI_AC and
-- CONFIG_ACPI_BATTERY
-
-in my kernel configuration. Even when they are marked to be build as modules i 
-get no values! Perhaps you should try to compile a new kernel with this 
-variables set to no.
-
-greetings
- Olaf
+P.S.: Next time I will read the README before asking a question ;-)
+-- 
+Kile - KDE Integrated LaTeX Editor
+http://kile.sourceforge.net
 
 
 -------------------------------------------------------
