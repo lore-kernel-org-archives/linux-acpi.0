@@ -1,14 +1,15 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: acpi-20021101, Dell inspiron 8100 report.
-Date: Fri, 15 Nov 2002 20:00:16 +0100
+From: Duncan Gibb <duncan-h9eRTumTmmZjMu4AB9qoK9F8XQ1HzYRO@public.gmane.org>
+Subject: Bios Override
+Date: 15 Nov 2002 19:37:57 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021115190016.GA31990@atrey.karlin.mff.cuni.cz>
-References: <3DCDD9B7.8010508@student.umass.edu> <20021113191415.GE861@zaurus> <3DD524E5.8090709@student.umass.edu>
+Message-ID: <1037389077.7281.56.camel@carwash.duncangibb.com>
+References: <20021115161550.64132.qmail@web41108.mail.yahoo.com>
+	<20021115174003.GA27427@poup.poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3DD524E5.8090709-oe7qfRrRQfesx2OscRBu2odd74u8MsAO@public.gmane.org>
+In-Reply-To: <20021115174003.GA27427-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,38 +18,34 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Mike <jabbera-oe7qfRrRQfesx2OscRBu2odd74u8MsAO@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-> >>I am using acpi-20021101 on a dell inspiron 8100. When I try to go 
-> >>into S1 sleep computer does not sleep. Te power button blinks on and 
-> >>off, which is unusal, and the screen never blanks, even when I close 
-> >>the lid. I do have acpid setup to send echo 1 > /proc/acpi/sleep
-> >>
-> >>Is there anything I can send to the list to help with diagnostics?
-> >>   
-> >>
-> >
-> >Screen staying on is normal. Does it wake up
-> >when you press power?
-> >
-> > 
-> >
-> When I press power to restore the console is always locked up tight. I 
-> cannot use keyboard or mouse, but if I am in X my X console usually 
-> works after restore, but not all the time.
+On Fri, 2002-11-15 at 17:40, Ducrot Bruno wrote:
 
-Hmm, strange.
+KH> Does anyone have instructions on DSDT override
+KH> for the new 20021111 acpi?
 
-> How can I make the screen blank when I go into sleep?
+I've not been here very long, and maybe I'm being naive, but if
+overriding the BIOS DSDT is something that quite a few people will have
+to do quite often, wouldn't it be worth maintaining the means to do so
+in the main codebase?
 
-No idea, there is not much about screenblanking in acpi specs.
+Certainly it seems easy for people to get confused by having half a
+dozen patches and a variety of contributers providing home-baked DSDTs
+for whatever hardware they happen to have.
 
--- 
-Casualities in World Trade Center: ~3k dead inside the building,
-cryptography in U.S.A. and free speech in Czech Republic.
+I know the Right Answer is for the hardware manufacturers to provide
+non-broken DSDTs in the first place, but given how long that'll take,
+shouldn't there be a library of fixes?
+
+I'm guessing there would be a problem mingling stuff produced by
+unauthorised reverse-engineering with the kernel code proper.
+
+
+Duncan
+
+
 
 
 -------------------------------------------------------
