@@ -1,193 +1,60 @@
-From: Adrian Bunk <bunk-cg1h10c7RbKzQB+pC5nmwQ@public.gmane.org>
-Subject: Re: [2.5.50, ACPI] link error
-Date: Wed, 4 Dec 2002 14:50:24 +0100
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20021204135024.GA2544@fs.tum.de>
-References: <E18Ix71-0003ik-00@gswi1164.jochen.org> <20021204114114.GD309@elf.ucw.cz>
+From: Pere =?ISO-8859-1?Q?Casta=F1er_Sard=E0?= <XaRz69-pCzzcW6XgXY@public.gmane.org>
+Subject: Re: new DRI resume binary snapshots and patches available
+Date: 04 Dec 2002 15:00:06 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <1039010406.31730.53.camel@debian.Debian-beast>
+References: <20021203232507.GA1723@dutidad.twi.tudelft.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20021204114114.GD309-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
-To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: Jochen Hein <jochen-9GTqNSKHDthGYNTIZbNFlg@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roman Zippel <zippel-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20021203232507.GA1723-V1rPnKwUOrA59+mn7qD7y50iERQUc4G+@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpidevel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Dec 04, 2002 at 12:41:19PM +0100, Pavel Machek wrote:
-
-> Hi!
-
-Hi Pavel!
-
-> > When compiling 2.5.50 with CONFIG_ACPI_SLEEP=y
+El mié, 04-12-2002 a las 00:25, Charl P. Botha escribió:
+> Dear lists,
 > 
-> Enable SWSUSP... Then investigate why it is possible to select
-> ACPI_SLEEP but not SWSUSP...
+> New binary snapshots of the DRI suspend/resume modified Radeon drivers are
+> available at http://cpbotha.net/dri_resume.html - these are the first DRI
+> suspend/resume driver snapshots since the merge of XFree86 HEAD into the DRI
+> tree. The updated patches are of course also available at the mentioned URL.
+> 
+> For those who don't know: these are modifications to the DRI Radeon drivers
+> which allow you to suspend to and resume from disc whilst running a
+> 3D-capable X, even whilst running hardware-accelerated 3D applications.
+> 
+> Thanks,
+> Charl
 
-In drivers/acpi/Config.in in 2.5.44:
+Hi Charl,
+One question: I have installed xserver-Xfree86-dri-trunk-2002.11.06-2,
+kernel 2.4.20 with latest drm tree (1.7.0) and the dri patch of
+20021203. Your new resume patch will work with debian trunk packages?
 
-<--   snip  -->
+Thanks for your attention,
 
-...
-if [ "$CONFIG_ACPI_HT_ONLY" != "y" ]; then
-   bool     '  Sleep States' CONFIG_ACPI_SLEEP
-...
-   define_bool CONFIG_ACPI_SLEEP $CONFIG_SOFTWARE_SUSPEND
-...
-fi
-...
-
-<--  snip  -->
-
-
-This double definition was at least confusing, a simple
-
-  dep_bool '  Sleep States' CONFIG_ACPI_SLEEP $CONFIG_SOFTWARE_SUSPEND
-
-would have expressed it better.
-
-
-The transition to the new kconfig converted this confusing Config.in 
-snipped to the following code in drivers/acpi/Kconfig:
-
-<--  snip  -->
-
-...
-config ACPI_SLEEP
-        bool "Sleep States"
-        depends on X86 && ACPI && !ACPI_HT_ONLY
-        default SOFTWARE_SUSPEND
-...
-
-<--  snip  -->
+PD:Hardware is Radeon M7 LW...with a clevo 5600.
+-- 
+Pere Castañer Sardà
+Computer Management Technical Engineering Student on UOC
+Member of AEIGi (http://www.aeigi.org)
+Linux Registered User #232073 
+Debian/GNU User (http://www.debian.org)
 
 
-The following patch makes it work the way it was intended:
-
---- linux-2.5.50/drivers/acpi/Kconfig.old	2002-12-04 14:24:14.000000000 +0100
-+++ linux-2.5.50/drivers/acpi/Kconfig	2002-12-04 14:27:17.000000000 +0100
-@@ -58,7 +58,7 @@
- 
- config ACPI_SLEEP
- 	bool "Sleep States"
--	depends on X86 && ACPI && !ACPI_HT_ONLY
-+	depends on X86 && ACPI && !ACPI_HT_ONLY && SOFTWARE_SUSPEND
- 	default SOFTWARE_SUSPEND
- 	---help---
- 	  This option adds support for ACPI suspend states. 
 
 
-Another thing that seems to be suboptimal is that the question for 
-SOFTWARE_SUSPEND comes _after_ the question for ACPI_SLEEP, IOW someone 
-doing a "make config" to configure his kernel doesn't have a chance to 
-select ACPI_SLEEP. To fix this (and it seems to be logical) the 
-SOFTWARE_SUSPEND question should be moved to the "Power management 
-options" menu. The patch below tries to solve this and it makes ACPI 
-dependant on PM as the comments in PM indicate:
-- move "Software Suspend" to the "Power management options" menu above
-  the ACPI entry
-- let ACPI depend on PM
-
-Any comments on this patch?
-
-> 							Pavel
-
-cu
-Adrian
-
-
---- linux-2.5.50/arch/i386/Kconfig.old	2002-12-04 14:47:03.000000000 +0100
-+++ linux-2.5.50/arch/i386/Kconfig	2002-12-04 14:43:48.000000000 +0100
-@@ -789,8 +789,6 @@
- 
- menu "Power management options (ACPI, APM)"
- 
--source "drivers/acpi/Kconfig"
--
- config PM
- 	bool "Power Management support"
- 	---help---
-@@ -811,6 +809,37 @@
- 	  will issue the hlt instruction if nothing is to be done, thereby
- 	  sending the processor to sleep and saving power.
- 
-+config SOFTWARE_SUSPEND
-+        bool "Software Suspend (EXPERIMENTAL)"
-+        depends on EXPERIMENTAL && PM
-+        ---help---
-+          Enable the possibilty of suspendig machine. It doesn't need APM.
-+          You may suspend your machine by 'swsusp' or 'shutdown -z <time>'
-+          (patch for sysvinit needed).
-+
-+          It creates an image which is saved in your active swaps. By the next
-+          booting the, pass 'resume=/path/to/your/swap/file' and kernel will
-+          detect the saved image, restore the memory from
-+          it and then it continues to run as before you've suspended.
-+          If you don't want the previous state to continue use the 'noresume'
-+          kernel option. However note that your partitions will be fsck'd and
-+          you must re-mkswap your swap partitions/files.
-+
-+          Right now you may boot without resuming and then later resume but
-+          in meantime you cannot use those swap partitions/files which were
-+          involved in suspending. Also in this case there is a risk that buffers
-+          on disk won't match with saved ones.
-+
-+          SMP is supported ``as-is''. There's a code for it but doesn't work.
-+          There have been problems reported relating SCSI.
-+
-+          This option is about getting stable. However there is still some
-+          absence of features.
-+
-+          For more information take a look at Documentation/swsusp.txt.
-+
-+source "drivers/acpi/Kconfig"
-+
- config APM
- 	tristate "Advanced Power Management BIOS support"
- 	depends on PM
-@@ -1516,35 +1545,6 @@
- 
- menu "Kernel hacking"
- 
--config SOFTWARE_SUSPEND
--	bool "Software Suspend (EXPERIMENTAL)"
--	depends on EXPERIMENTAL && PM
--	---help---
--	  Enable the possibilty of suspendig machine. It doesn't need APM.
--	  You may suspend your machine by 'swsusp' or 'shutdown -z <time>' 
--	  (patch for sysvinit needed). 
--
--	  It creates an image which is saved in your active swaps. By the next
--	  booting the, pass 'resume=/path/to/your/swap/file' and kernel will 
--	  detect the saved image, restore the memory from
--	  it and then it continues to run as before you've suspended.
--	  If you don't want the previous state to continue use the 'noresume'
--	  kernel option. However note that your partitions will be fsck'd and
--	  you must re-mkswap your swap partitions/files.
--
--	  Right now you may boot without resuming and then later resume but
--	  in meantime you cannot use those swap partitions/files which were
--	  involved in suspending. Also in this case there is a risk that buffers
--	  on disk won't match with saved ones.
--
--	  SMP is supported ``as-is''. There's a code for it but doesn't work.
--	  There have been problems reported relating SCSI.
--
--	  This option is about getting stable. However there is still some
--	  absence of features.
--
--	  For more information take a look at Documentation/swsusp.txt.
--
- config DEBUG_KERNEL
- 	bool "Kernel debugging"
- 	help
---- linux-2.5.50/drivers/acpi/Kconfig.old	2002-12-04 14:39:24.000000000 +0100
-+++ linux-2.5.50/drivers/acpi/Kconfig	2002-12-04 14:42:57.000000000 +0100
-@@ -3,6 +3,7 @@
- #
- 
- menu "ACPI Support"
-+	depends on PM
- 
- config ACPI
- 	bool "ACPI Support" if X86
+-------------------------------------------------------
+This SF.net email is sponsored by: Microsoft Visual Studio.NET 
+comprehensive development tool, built to increase your 
+productivity. Try a free online hosted session at:
+http://ads.sourceforge.net/cgi-bin/redirect.pl?micr0003en
