@@ -1,11 +1,18 @@
-From: "Michael A. Smith" <mas3f-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org>
-Subject: Problems with 600m PM states
-Date: Wed, 31 Dec 2003 10:48:36 -0500 (EST)
+From: Michael Guntsche <mike-Z92qn3yYq0hWk0Htik3J/w@public.gmane.org>
+Subject: Re: Network failures with ACPI enabled (kernel 2.4, 2.6)
+ PROBLEM FOUND!!!!!!
+Date: Wed, 31 Dec 2003 17:23:28 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.BSF.4.55.0312311037060.49916@dea.intranet>
+Message-ID: <20031231172328.5ae00921.mike@it-loops.com>
+References: <BF1FE1855350A0479097B3A0D2A80EE0CC8954@hdsmsx402.hd.intel.com>
+	<20031231001716.76cb2e8d.mike@it-loops.com>
+	<20031231004648.531549af.mike@it-loops.com>
+	<1072851661.2363.228.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1072851661.2363.228.camel-D2Zvc0uNKG8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -14,49 +21,58 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I have been unable to get any type of sleep to work with this laptop and
-the 2.6.0 vanilla kernel.
+On 31 Dec 2003 01:21:01 -0500
+Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 
-Let's start with S1 and work up from there.
+> The fact that transmit works and receive fails is a clue.
+> Probably the broadcom uses interrupts for receive, but doesn't
+> use interrupts for transmit.  So if it were not getting interrupts,
+> transmit could still send frames.
+> 
+> So if you enable the parallel port in ECP mode, broadcom works --
+> but if the port is disabled, or enabled but not in ECP mode, it fails?
 
- echo 1 > /proc/acpi/sleep
-
-Generates...
-
- Stopping tasks: ========|
- hdc: start_power_step(step: 0)
- hdc: completing PM request, suspend
- hda: start_power_step(step: 0)
- hda: start_power_step(step: 1)
- hda: complete_power_step(step: 1, stat: 50, err: 0)
- hda: completing PM request, suspend
- PM: Entering state.
-  hwsleep-0257 [23] acpi_enter_sleep_state: Entering sleep state [S1]
-
-...and it appears to be in standby.  The power led goes from solid on to
-a blink.  Now, if I hit the power button to attempt resume, I get ...
-
- Back to C!
- PM: Finishing up.
-
-... and that's it.  The power led is back on solid, but the system is
-non-responsive.
+Hmm I played around with it some more. If I lower the speed on my
+notebook
+to 10baseT-HD the transfer works at 800KB/s.
+But errors and frames on the device (eth0) are increasing at an alarming
+rate.
+For me it looks like that the problem occurs if the network card gets a
+lot of inbound traffic.
 
 
-For reference, I've tried to minimize the variables as much as possible.
-I'm booting into single user mode and testing from there.  There are no
-modules loaded.
+> 
+> This is curious.  Indeed, the AML for this box shows three devices,
+> ECP, EPP, and LPTB.  Unfortunately, the _PRS for them disassembles
+> as a Buffer that one has to hand-disassemble to see what resources
+> are actually possible...
+So this means that ACPI IS doing something different depending on the
+setting in the BIOS, right?
 
 
-Any help is appreciated, I'm happy to post more info or try any
-suggestions.
+> 
+> To answer your question about observing what the ECP enable/disable
+> does to the AML, the DSDT could be extracted, modified
+> and used to over-ride the DSDT in the BIOS.  This isn't rocket
+> science, but isn't trivial either.
 
-Thanks,
-Michael Smith
-mas3f-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org
+> 
+> As curious as the failure is, the system works both ways when
+> running XP, so I would encourage you to put the info into a
+> bug report.  The observation about TX working and RX failing
+> raises the prospect that this really is an IRQ issue, and
+> with the /proc/interrupts for the different cases at hand
+> the solution to this puzzle may become more clear.
+
+In both cases (with or without ECP enabled) interrupts are increasing,
+although it stops in the error case since the card resets itself.
+
+
+/michael
 
 
 -------------------------------------------------------
