@@ -1,12 +1,14 @@
-From: Gertjan Hofman <gertjan-nuBT7F/NYkeO3qShyYWIeA@public.gmane.org>
-Subject: Re: No S3/S4 response on Toshiba A70 (FC3)
-Date: Thu, 10 Feb 2005 22:14:29 -0800 (PST)
-Message-ID: <Pine.LNX.4.33.0502102209230.27152-100000@koslx1.triumf.ca>
-References: <20050210181723.GA1577@elf.ucw.cz>
+From: Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
+Subject: Re: [PATCH, new ACPI driver] new sony_acpi driver
+Date: Fri, 11 Feb 2005 10:16:46 +0100
+Message-ID: <20050211091645.GD3263@crusoe.alcove-fr>
+References: <20050210161809.GK3493@crusoe.alcove-fr> <20050210193937.GH1145@poupinou.org>
+Reply-To: Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050210181723.GA1577-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20050210193937.GH1145-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,47 +18,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Thu, Feb 10, 2005 at 08:39:37PM +0100, Bruno Ducrot wrote:
 
-Pavel,
+> On Thu, Feb 10, 2005 at 05:18:10PM +0100, Stelian Pop wrote:
+> > Hi,
+> > 
+> > +ACPI Sony Notebook Control Driver (SNC) Readme
+> > +----------------------------------------------
+> > +	Copyright (C) 2004 Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
+> > +
+> > +This mini-driver drives the ACPI SNC device present in the 
+> > +ACPI BIOS of the Sony Vaio laptops.
+> > +
+> > +It gives access to some extra laptop functionalities. In 
+> > +its current form, the only thing this driver does is letting
+> > +the user set or query the screen brightness.
+> 
+> Does those laptops support acpi_video?
 
-Thanks for the response and pointing me to the doc file. I quickly tried
-the standard FC3 non-smp kernel and now S3 goes into suspend but never
-comes back. Not huge surprise. Using a vanilla kernel is a project for the
-weekend. Three questions comes to mind - you point me to the swsusp.txt -
-is this implying S3 will never work ? Secondly, your video.txt doc makes
-it sound like very few video cards can recover from S3. Is this still true
-?  Lastly, why is a vanilla kernel better than FC3 kernels ? Feel free to
-point me to more documentation.
+No. I double checked for a few AML dumps I have here, and except
+for _DOS/_DOD present in some of them no other acpi_video method is
+supported.
 
-Thanks
+Newer Vaio laptops may eventualy support acpi_video, but all
+current (to the best of my knowledge) Vaios do support the SNC device.
 
-Gertjan
-
-
-On Thu, 10 Feb 2005, Pavel Machek wrote:
-
-> Hi!
->
->
-> > Bunch more facts: I run FC3, kernel 2.6.10-1.741_FC3smp. I have also
->                                                    ~~~~~~ <- use
-> 					vanilla kernel and avoid SMP
->
-> Read documentation/power/swsusp.txt.
-> 								Pavel
->
-
+Stelian.
 -- 
-//////////////////////////////////////////////////////////////////////////
-work    :   604-982-3574
-E-mai l :   gertjan-K9O0zq5Arhf3fQ9qLvQP4Q@public.gmane.org
-web     :   http://koslx1.triumf.ca/gertjan
-//////////////////////////////////////////////////////////////////////////
-
+Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
 
 
 -------------------------------------------------------
