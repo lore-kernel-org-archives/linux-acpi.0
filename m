@@ -1,16 +1,11 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Subject: Re: Re: Warn user when battery goes critical
-Date: Mon, 12 Apr 2004 21:45:16 +0100
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: Device power for suspend/resume
+Date: Mon, 12 Apr 2004 17:38:45 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1081802715.3428.40.camel@darkstar>
-References: <20040405211032.GA3575@elf.ucw.cz>
-	 <20040408171527.GH23710@message-id.gmane0305.slipkontur.de>
-Reply-To: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
+Message-ID: <20040412172333.Y71599@root.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040408171527.GH23710-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -19,49 +14,61 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>, hegbloom-tbDHPZwbsQQ@public.gmane.org
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: acpi-h+KGxgPPiopAfugRpC6u6w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-I am think in reply to this question a long time, well because I not a
-man of the code, it is goes my reflection, I turn acpi debug on because
-I want to know in /var/log em battery got one "bat low 2" but is very
-annoying applet monitor every time that ask battery stat appears :
-[ACPI Debug] String: Length 0x24, "---------------------------- AC _PSR"
-[ACPI Debug] String: Length 0x27, "---------------------------- AC on
-line"
-[ACPI Debug] String: Length 0x30, "--------- VIA SOFTWARE SMI PMIO 2Fh
-------
- this messages are written in DSDT, so is just select the more imports
-and the DEBUG messages from DSDT.
+I'm soliciting some comments on proper steps to take with device power on
+the suspend/resume path.  There are some complications like _SxD and none
+of us support them yet.  Here are the abbreviated steps as I see them
+(only device power code, not general sleep steps):
 
-Bye=20
+1. All devices put in power state inferred by power resource
+   ... except if _SxD exists, put them in that state instead
+   ... except if enabling for wake, put in state in _PRW
+2. Turn off all power resources no longer referenced
+3. Enable wake for all devices that have _PRW
 
+[suspend/resume]
 
-On Thu, 2004-04-08 at 18:15, Stefan Seyfried wrote:
-> On Mon, Apr 05, 2004 at 11:10:32PM +0200, Pavel Machek wrote:
-> > Hi!
-> >=20
-> > When battery is going critical, perhaps user should know? It already
-> > helped me when power was turned off at expansion cord...
->=20
-> > +		if (!res && (bst->state & 0x04))
-> > +			printk(KERN_CRIT "Battery status: critical\n");
->=20
-> This should go into userspace IMO. There are some applications that will
-> handle this, so no need for code bloat in the kernel.
->=20
-> Hey! I'd never thought i could one day accuse Pavel of "eyecandy bloat" ;=
--)
->=20
->=20
-> Happy Easter,
->=20
->     Stefan
---=20
-S=E9rgio M. B.
+4. Turn on all power resources
+5. Turn on all devices
+6. Run _S0D on devices and put them in the corresponding power state
+7. Turn off devices previously off before suspend
+8. Turn off all power resources no longer referenced
 
+While examining how to implement this, I ran into some confusing
+questions.
+
+A. _S0D is not referenced in the spec but it appears some ASL uses this
+for docking connectors.  It returns 3 for when a bus isn't connected to
+anything (undocked) and 0 when it is present.  I'm guessing this should be
+run on resume after everything is running to see if we can power down a
+device that is not available (step 7 above).
+
+B. The requirement to turn on power resources referenced in _PRW appears
+to be the overriding factor in the suspend path.  That's why I do it last
+above.
+
+C. It's not clear how _SxD overrides the power resource Sx value since a
+device can't be in a higher state than its power resource.  This appears
+to be a minor issue since most devices that have _SxD that is higher than
+the desired sleep state do not have a power resource.
+
+D. If a device has _PSx methods but no power resource, should it be put in
+a state equal to its Sx state unless there is an overriding _SxD?  For
+example, all devices should be put in D3 for S3, then power off
+unreferenced power resources.  What if you're going to S1 but there's no
+_PS1?  Leave it in _PS0 unless there is an _S1D saying otherwise?
+
+One other issue:  there's a bug in hwsleep.c where we don't clear WAK_STS
+in the S5 path.  That should be changed.
+
+Comments will help everyone get suspend/resume working better since it
+appears devices in the wrong power states affect stability here.
+
+Thanks,
+-Nate
 
 
 -------------------------------------------------------
