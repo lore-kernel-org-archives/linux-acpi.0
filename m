@@ -1,12 +1,12 @@
-From: Nikolaus Filus <nfilus-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Re: SMBus controller listed in DSDT, hidden with lspci
-Date: Mon, 14 Feb 2005 17:18:25 +0100
-Message-ID: <20050214161823.GA25606@wsc-gmbh.de>
-References: <420D758E.8020604@gmx.net>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: Help wanted with IRQ routing.
+Date: Mon, 14 Feb 2005 09:24:42 -0700
+Message-ID: <1108398282.4208.10.camel@eeyore>
+References: <1108371574.12611.61.camel@desktop.cunningham.myip.net.au>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="2oS5YaxWCcQjTEyO"
-Content-Disposition: inline
-In-Reply-To: <420D758E.8020604-hi6Y0CQ0nG0@public.gmane.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <1108371574.12611.61.camel-r49W/1Cwd2ff0s6lnCXPX/uOuaPYTxhvJwvTLr3MMZM@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,58 +16,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org
+Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Mon, 2005-02-14 at 19:59 +1100, Nigel Cunningham wrote:
+> While visiting the US, I purchased a Netgear 511T card for my laptop.
+> ...
+> The problem I see is that when I start wpa_supplicant (ie actually start
+> to use the card), everything freezes up. If I pop the card out quickly,
+> I see that a couple of thousand interrupts have occurred in the couple
+> of seconds. If I'm too slow, I have to restart the machine.
 
---2oS5YaxWCcQjTEyO
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Did you try booting with "pci=routeirq" or turning off PNPACPI?
+I've seen a few reports of IRQ problems with PCMCIA devices that
+seemed to be related to one or both of these.
 
-On Sat, Feb 12, 2005 at 04:18:38AM +0100, Carl-Daniel Hailfinger wrote:
->Hi,
->
->my Samsung P35 notebook has a strange quirk: The SMBus
->controller doesn't show up in lspci, but the DSDT claims
->it is there. Are there any chances to unhide it with a
->special hack or something?
->
->Atached is my disassembled DSDT and the output of lspci.
->
->The device 0000:00:1f.3, which should be the SMBus
->controller, simply doesn't show up in lspci.
->I suspect it to be something like
->0000:00:1f.3 SMBus: Intel Corp. 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) SMBus Controller (rev 03)
+If one of these makes a difference, I'd like to compare the dmesg
+logs of the broken and working configurations.
 
-found a patch on www.p35-forum.de and applied it, now using lm90 driver
-I can read temperature values for 2 thermal zones (different values from the ACPI ones)
-in /sys/bus/i2c/... but writing to them shows still no result. I can't tune the fan
-on/off values :(
-
-Nikolaus
-
-
---2oS5YaxWCcQjTEyO
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="smbus-2.6.11rc3.patch"
-
---- linux/drivers/pci/quirks.c.org	2005-02-14 14:49:18.000000000 +0100
-+++ linux/drivers/pci/quirks.c	2005-02-14 14:51:37.000000000 +0100
-@@ -791,6 +791,12 @@
- 			case 0x12bc: /* HP D330L */
- 				asus_hides_smbus = 1;
- 			}
-+       } else if (unlikely(dev->subsystem_vendor == 0x144d)) {
-+               if (dev->device ==  PCI_DEVICE_ID_INTEL_82855PM_HB)
-+                       switch(dev->subsystem_device) {
-+                       case 0xC00C: /* Samsung P35 */
-+                               asus_hides_smbus = 1;
-+                       }
- 	}
- }
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82845_HB,	asus_hides_smbus_hostbridge );
-
---2oS5YaxWCcQjTEyO--
 
 
 -------------------------------------------------------
