@@ -1,14 +1,14 @@
-From: Jens Haug <haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org>
-Subject: Re: acpi-event for online/offline of ac-adapter
-Date: Thu, 27 Feb 2003 14:01:39 +0100 (MET)
+From: "DPR" <info-IGm5bqYn3xwb1SvskN2V4Q@public.gmane.org>
+Subject: APIC, USB mouse and errors
+Date: Thu, 27 Feb 2003 14:13:56 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200302271301.h1RD1dD15301@ikffws2.ikff.uni-stuttgart.de>
-Reply-To: Jens Haug <haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org>
+Message-ID: <000101c2de62$18bee480$0200a8c0@brutzler>
+Reply-To: <info-IGm5bqYn3xwb1SvskN2V4Q@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: TEXT/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-MD5: RLPYqLs2cC6WKi27j6YfaQ==
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,25 +17,31 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, xml-22047-Mmb7MZpHnFY@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi everybody,
 
-> do you think it would make sense to generate an /proc/acpi/event, wheneve=
-r the=20
-> power-supply gets connected or disconnected?
+I've got the following problem with the latest "acpi-20030218" patch (for kernel
+2.4.21-pre4-ac6) ...
 
-There is one. Well, two actually. One for connecting and one for
-disconnecting. ;-)
+If I enable APIC then I get some "USB device not accepting new address" errors and my USB mouse
+doesn't work. If I use the "noapic" option then my mouse works fine but I get a bunch of "APIC
+error on CPU0 40(40)" messages. And finally if I use "disableapic" then I don't get these error
+messages but the mouse also doesn't work :(
 
+Any suggestions ???
 
-Jens
+Many thanks in advance !!!
 
---=20
-Jens Haug
-IKFF Universit=E4t Stuttgart              Tel. 0711/685-6422
-Pfaffenwaldring 9                       Fax  0711/685-6356
-70550 Stuttgart=09                haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org
+--
+
+HOLGER
+
+motherboard	EPoX 8K5A2+ (VIA KT333, VT8235 southbridge, HPT372 RAID)
+mouse		Logitech Cordless MouseMan Optical
+kernel	2.4.21 pre4 ac6
+options	ACPI enabled, APIC enabled
 
 
 
