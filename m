@@ -1,14 +1,10 @@
-From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
-Subject: Re: S3 on Asus M6R
-Date: Mon, 21 Mar 2005 20:56:20 +0100
-Message-ID: <200503212056.20589.stefandoesinger@gmx.at>
-References: <20050321135401.GC30293@fi.muni.cz> <423F05A9.6050309@gmx.net> <20050321173912.GN30293@fi.muni.cz>
+From: Paul Ionescu <i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Re: [RFC/Patch 0/12] ACPI based root bridge hot-add
+Date: Mon, 21 Mar 2005 12:34:07 -0800 (PST)
+Message-ID: <20050321203408.74684.qmail@web50205.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-In-Reply-To: <20050321173912.GN30293-0hYGf3jDe+XrBKCeMvbIDA@public.gmane.org>
-Content-Disposition: inline
+Content-Type: text/plain; charset=us-ascii
+In-Reply-To: 6667
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,34 +14,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Jan Kasprzak <kas-0hYGf3jDe+XrBKCeMvbIDA@public.gmane.org>, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
+To: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Am Montag, 21. M=E4rz 2005 18:39 schrieb Jan Kasprzak:
-> Carl-Daniel Hailfinger wrote:
-> : Bah. Last try: Is a CD/DVD in the drive or are you plugged into a
-> : docking station?
->
-> 	No and no.
->
-> : Another thing you could try is a serial console, but I doubt it
-> : will work after resume.
->
-> 	No serial port on Asus M6R :-(.
+Hi Rajesh,
 
-You can try to place a few markers in the wakeup code. The first one would =
-be=20
-to insert "lcall $0xffff, $0" (without the quote, hope the code is correct)=
-=20
-in arch/i386/kernel/wakeup.S right at the beginning after ".code16" (Line=20
-number 22 in 2.6.11.3. If your kernel gets the control on resume this shoul=
-d=20
-cause a reboot right after wakeup. If it does, the problem is in the wakeup=
-=20
-code, if it does not it's in the suspend code
+--- Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> On Sat, Mar 19, 2005 at 03:50:16PM +0200, Paul Ionescu wrote:
+> > 
+> > Does this mean that when it will be ported for i386, I will be able to
+> > really use my Docking Station ?
+> 
+> No. The current patches only trigger when a _root_ bridge is
+> hot-added, not a PCI to PCI bridge (which is what the docking 
+> station is). The code to support p2p bridge hotplug will benefit
+> from these patches but more code is needed to support that.
+> 
 
-Stefan
+Thanks for the info.
+Is p2p hotplug in your roadmap (for i386) ?
+Can you please give me an example of a root bridge ?
+
+Thanks,
+Paul
+
+
+
+		
+__________________________________ 
+Do you Yahoo!? 
+Yahoo! Small Business - Try our new resources site!
+http://smallbusiness.yahoo.com/resources/ 
 
 
 -------------------------------------------------------
