@@ -1,13 +1,13 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Samsung P35
-Date: Fri, 12 Nov 2004 16:01:48 +0100
-Message-ID: <20041112150148.GA1031@elf.ucw.cz>
-References: <41948E80.5030207@helios.de>
+Subject: Re: S3 broken on a Samsung P30
+Date: Fri, 12 Nov 2004 17:04:35 +0100
+Message-ID: <20041112160435.GC1858@elf.ucw.cz>
+References: <1099605010.5191.20.camel@mhcln03> <20041110231802.GA1099@elf.ucw.cz> <1100263919.3523.3.camel@mhcln03>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <41948E80.5030207-csNNzRR391izQB+pC5nmwQ@public.gmane.org>
+In-Reply-To: <1100263919.3523.3.camel@mhcln03>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,28 +17,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Oliver Dawid <oliver-csNNzRR391izQB+pC5nmwQ@public.gmane.org>
+To: Matthias Hentges <mailinglisten-H4PcyxPeSRnR7s880joybQ@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> since two weeks I am owner of a Samsung P35 XVM 1600. I succeeded to 
-> install debian sarge with kernel 2.6.8 only by providing nolacpi as 
-> kernel parameter. I thought this would switch off acpi but I got several 
-> ACPI messages on boot time like:
-
-nolacpi is typo. You want acpi=off?
-
-> My problem:
-> Suspend does not work. Neither Fn + Sleep Key nor echo mem|disk > 
-> /sys/.../state
+> > See recent threads of adding beeping to begining of wakeup.S. Does it
+> > beep for you?
 > 
-> mem does something - display is switching to text mode but returns 
-> immediately.
+> No it doesn't.
+> I've googled for the beep patch. The one I found is attached as I'm not
+> sure if it is the right one.
 
-Do you have swap file and kernel command line set up correctly? dmesg
-after attempt?
+Hmm, you may want to add "jmp $" just after the beep, and apply recent
+intel fixes...
 								Pavel
 -- 
 People were complaining that M$ turns users into beta-testers...
