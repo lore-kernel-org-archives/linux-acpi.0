@@ -1,14 +1,11 @@
-From: Lindsey Simon <lsimon-kAMMLXQ8Af9Wk0Htik3J/w@public.gmane.org>
-Subject: Re: 2.6.0-test8 & Asus M3N
-Date: Tue, 21 Oct 2003 13:42:16 -0500
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: IBM R40 FFixedHW register?
+Date: Tue, 21 Oct 2003 15:39:55 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031021184216.GA7100@austinchronicle.com>
-References: <20031020181638.GL4944@austinchronicle.com>
+Message-ID: <20031021153556.B56816@root.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20031020181638.GL4944-lfYnT2qr6k+7/ODoCphcOEEOCMrvLtNR@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,39 +17,31 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Actually, while running the 2.6 kernel and recompiling I watched the
-temp go up into the 70s and the fan never ran. Anybody have any idea how
-to perhaps manually start the fan up? I could blow into the bottom
-really hard :)
+I'm testing out my new cpu driver for FreeBSD and came across an
+interesting case in supporting Px states.  They work great on several
+laptops but the R40 can't set Px states.  I looked at the ASL and found
+that the control/status register pair is FFixedHW.
 
-Lindsey Simon in message [ACPI-sppt] 2.6.0-test8 & Asus M3N (Mon, 10/20 13:16):
+            Return (Package (0x02)
+            {
+                ResourceTemplate ()
+                {
+                    Register (FFixedHW, 0x40, 0x00, 0x0000000000000199)
+                },
 
-> Out of the box, the test8 kernel seems to have Luca's patch now,
-> temperature readings are showing up properly in /proc/acpi.
-> 
-> But when the temp gets to the 55 trip point, I get these in dmesg:
-> osl-0892 [1029] os_wait_semaphore     : Failed to acquire
-> semaphore[cf73e580|1|0], AE_TIME
-> 
-> plugged or unplugged into the AC adapter.
-> 
-> Anyhow, that might be useful for someone who understands ACPI I though
-> :)
-> 
-> Thanks,
-> -l
-> 
-> 
-> 
-> -------------------------------------------------------
-> This SF.net email is sponsored by OSDN developer relations
-> Here's your chance to show off your extensive product knowledge
-> We want to know what you know. Tell us and you have a chance to win $100
-> http://www.zoomerang.com/survey.zgi?HRPT1X3RYQNC5V4MLNSV3E54
-> _______________________________________________
-> ACPI-support mailing list
-> ACPI-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-support
+                ResourceTemplate ()
+                {
+                    Register (FFixedHW, 0x10, 0x00, 0x0000000000000198)
+                }
+            }
+
+I guess I have to find the datasheet for that model to figure out how to
+access those registers.  Anyone come across this before?  What space are
+those actually in (IO, Memory, ??).  The register widths are also strange
+(64 and 16 bits).
+
+Thanks,
+Nate
 
 
 -------------------------------------------------------
