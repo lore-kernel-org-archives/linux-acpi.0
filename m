@@ -1,14 +1,13 @@
-From: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Subject: Re: ACPI vs PCI: configuration space
-Date: Wed, 18 Jun 2003 15:30:03 -0700
+From: "Gebruers, Cormac \(EI4HQ\), Suzanne & Amy" <gebruers_cuan-/icp2u7yZloqcZcGjlUOXw@public.gmane.org>
+Subject: 2.4.21 kernel compilation following 2.4.21-rc3 patch
+Date: Wed, 18 Jun 2003 23:52:52 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030618223003.GA2134@kroah.com>
-References: <20030618221752.GY24357@parcelfarce.linux.theplanet.co.uk>
+Message-ID: <000201c335ec$5a465aa0$b8b0869f@locutus>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20030618221752.GY24357-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,33 +16,29 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Cc: linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jun 18, 2003 at 11:17:52PM +0100, Matthew Wilcox wrote:
-> 
-> It's kind of annoying to invent some structures and put some values into
-> them only to pull them out again.  This leads to try 5 ...
-> 
-> struct acpi_pci_ops {
-> 	int (*read)(int domain, int bus, int devfn, int where, int size, u32 *val);
-> 	int (*write)(int domain, int bus, int devfn, int where, int size, u32 val);
-> }
-> 
-> It reduces stack consumption, which is a clear win ... it's also _incredibly_
-> easy to implement since all the existing pci_ops call functions which take
-> exactly this form.
-> 
-> Go on, approve Try 5.  You know you want to ;-)
+Context: 
+Execution of 'make modules' during compilation of 2.4.21 kernel
+following application of 2.4.21-rc3 acpi patch fails.
 
-So for i386, what would domain be?
+File: 
+ipmi_kcs_intf.c
 
-Anyway, yeah, I agree with try 5, that seems the most sane.
+Issues:
 
-thanks,
+1. (minor) Two directory paths referred to on lines 1036/7 (indicating
+paths to acpi.h and actypes.h) are incorrect. This is obviously easily
+resolved by editing these lines.
 
-greg k-h
+2. (Currently fatal) A variable is referred to in line 1062
+'acpi_table_header' (in function 'acpi_find_bmc') is not declared...
+
+Any quick workaround or where is acpi_table_header declared?
+
+Cormac
+
 
 
 -------------------------------------------------------
