@@ -1,14 +1,11 @@
-From: Malte Thoma <thoma-iYtK5bfT9M8b1SvskN2V4Q@public.gmane.org>
-Subject: Re: More than one battery
-Date: Mon, 13 Jan 2003 08:32:16 +0100
+From: marcogi-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org
+Subject: S4bios on Sony Vaio FX601
+Date: Mon, 13 Jan 2003 10:40:03 +0100 (CET)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3E226B80.20208@muenster.de>
-References: <Pine.SOL.4.44.0301120330050.26184-100000@graphics.cat.nyu.edu>
+Message-ID: <Pine.LNX.4.50.0301130925480.3926-100000@flyby>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.SOL.4.44.0301120330050.26184-100000-/thXhF8rKSGLR1V1UhDwJPZ8FUJU4vz8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,69 +14,84 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: danielk-L9gzEf+okJWVc3sceRu5cw@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi,
+
+I have a Sony Vaio PCG-FX601 (FXA53 is the US model) and I wondering it
+it support S4bios.
+If it is supported, I need an A0 suspend partition?
+FX601 model has same bios of FX60x, FX70x and perhaps FX80x models, is
+there someone that has such notebooks that made S4bios to work?
+
+I use kernel 2.4.20+APCI 20021205+swsusp16 but resuming after swsusp
+my pc hangs almost the time.
+
+If it can helps, pmtools say:
+
+myhost:/tmp/pmtools-20010730# ./acpidmp/acpidmp FACP|./acpidmp/acpitbl
+Signature:        FACP
+Length:           116
+Revision:         0x01
+Checksum:         0x63
+OEMID:            SONY
+OEM Table ID:     K5
+OEM Revision:     0x06040000
+Creator ID:       PTL_
+Creator Revision: 0x000f4240
+FIRMWARE_CTRL:    0x0fefffc0
+DSDT:             0x0fef9ac0
+INT_MODEL:        0x00
+SCI_INT:          9
+SMI_CMD:          0x0000802f
+ACPI_ENABLE:      0xf0
+ACPI_DISABLE:     0xf1
+S4BIOS_REQ:       0xf2
+PM1a_EVT_BLK:     0x00008000
+PM1b_EVT_BLK:     0x00000000
+PM1a_CNT_BLK:     0x00008004
+PM1b_CNT_BLK:     0x00000000
+PM2_CNT_BLK:      0x00000000
+PM_TMR_BLK:       0x00008008
+GPE0_BLK:         0x00008020
+GPE1_BLK:         0x00000000
+PM1_EVT_LEN:      4
+PM1_CNT_LEN:      2
+PM2_CNT_LEN:      0
+PM_TM_LEN:        4
+GPE0_BLK_LEN:     4
+GPE1_BLK_LEN:     0
+GPE1_BASE:        0
+P_LVL2_LAT:       90
+P_LVL3_LAT:       1100
+FLUSH_SIZE:       0
+FLUSH_STRIDE:     0
+DUTY_OFFSET:      0
+DUTY_WIDTH:       4
+DAY_ALRM:         0x7d
+MON_ALRM:         0x7e
+CENTURY:          0x32
+Flags:            0x000001a5
 
 
-Daniel Thor Kristjansson wrote:
-
->I found the text below through some googling. The important thing is
->that ospmd is supposed to support acpi policies in the next version. I
->believe this means that you can hand a policy to ospmd and have it
->handle throttling for you, I doubt it would take cpu load into account.
->But I'm going to try to find who's working on that, the cpp files all
->just say "Intel" then find out if they are planning on putting a more
->complete policy support into the ospmd deamon, or could use a
->contribution. Throttling just based on thermal event might save your
->CPU, but won't save as much battery power as throttling the CPU when
->load is low. (I can easly half my battery draw by throttling and turning
->down the LCD, but I wouldn't do it without my hacked heatload
->unthrottling when the system load goes up.)
->  
->
-Please send my a diff from the hacked heatload.
-If I understand you right, you have included an
-
-'auto-throttling-when-no-load'
-
-I think this is worth to be included in the offical release, don't you?
-We should include 'auto-performance-when-no-load' as welll, what's your 
-opinion?
+myhost:/tmp/pmtools-20010730# ./acpidmp/acpidmp FACS|./acpidmp/acpitbl
+Signature:              FACS
+Length:                 64
+Hardware Signature:     0x00000a59
+Firmware Waking Vector: 0x00000000
+Global Lock:            0x00000000
+Flags:                  0x00000000
 
 
-Greetings,
+Thanks for any help.
 
-Malte
-
-
-
-
-
->Anyway, I'll keep you informed.
->
->-- Daniel
->
->  http://216.239.37.100/search?q=cache:pOZPEz5rV_8C:www.intel.com/technology/iapc/acpi/downloads/CHANGES.txt+ospmd+cpu+throttling&hl=en&ie=UTF-8
->
->The processor driver (acpi_processor.c) now fully supports ACPI
->2.0-based processor performance control (e.g. Intel(R) SpeedStep(TM)
->technology) Note that older laptops that only have the Intel "applet"
->interface are not supported through this.  The 'limit' and 'performance'
->interface (/proc) are fully functional.  [Note that basic policy for
->controlling performance state transitions will be included in the next
->version of ospmd.] The idle handler was modified to more aggressively
->use C2, and PIIX4 errata handling underwent a
->complete overhaul (big thanks to Dominik Brodowski).
->
->.
->
->  
->
-
+--
+Regards,  Marco Gigante
 
 
 -------------------------------------------------------
-This SF.NET email is sponsored by:
-SourceForge Enterprise Edition + IBM + LinuxWorld = Something 2 See!
-http://www.vasoftware.com
+This SF.NET email is sponsored by: FREE  SSL Guide from Thawte
+are you planning your Web Server Security? Click here to get a FREE
+Thawte SSL guide and find the answers to all your  SSL security issues.
+http://ads.sourceforge.net/cgi-bin/redirect.pl?thaw0026en
