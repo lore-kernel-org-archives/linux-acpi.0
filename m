@@ -1,92 +1,62 @@
-From: Sebastian Henschel <shensche-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
-Subject: Re: Web pages
-Date: Sun, 9 Feb 2003 19:16:50 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030209181650.GA18481@enigma.daemon.sh>
-References: <20030203224037.GC27121@phobos.fs.tum.de>
+From: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>
+Subject: Re: [ACPI] Re: [PATCH] s4bios for 2.5.59 + apci-20030123
+Date: Mon, 10 Feb 2003 08:42:13 +1300
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <1044819732.1815.25.camel@laptop-linux.cunninghams>
+References: <F760B14C9561B941B89469F59BA3A847137FFE@orsmsx401.jf.intel.com>
+ <20030204221003.GA250@elf.ucw.cz>
+ <1044477704.1648.19.camel@laptop-linux.cunninghams>
+ <20030206101645.GO1205@poup.poupinou.org>
+ <1044560486.1700.13.camel@laptop-linux.cunninghams>
+ <20030206210542.GW1205@poup.poupinou.org>
+ <1044590241.1649.41.camel@laptop-linux.cunninghams>
+ <20030207160055.GA485@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2fHTh5uZTiUOsy+g"
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20030203224037.GC27121-aZWoO6ctbTdk0jVqdZEX6g@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-reply-to: <20030207160055.GA485-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Swsusp <swsusp-LcL5texQODR2DW0IdvIQ2g@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi
 
---2fHTh5uZTiUOsy+g
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Sat, 2003-02-08 at 05:00, Pavel Machek wrote: 
+> > 1  2  3           4     5
+> > --
+> > 1  1  25655/30592  1562 0:07
+> > 1  2  26246/30592  4302 0:05
+> 
+> You can suspend and resume your notebook within 5 seconds? Wow!
 
-good day to you....
+As requested, these were just the times for suspending.
 
-as some of you already may have noticed, i updated the web pages a
-couple of minutes ago.
-except for some restructuring, the content is more or less the same.
-i will gather more information within the next few weeks. feel free to
-contribute or hint me to other sources of information. :)
+> Well, if all the memory is in disk-backed clean pages, it should be
+> faster to discard then write out...
 
-Received at 2003-02-04 / 10:36 by Simon Richter:
->=20
-> I've just added Sebastian Henschel (shensche@) to the project, he will
-> be taking over the Web stuff from me.
->=20
-> The current plan is to build up a database of DSDTs (both from BIOSes
-> and user-supplied) with "supersedes" relations (i.e. if you have a
-> patched DSDT, you simply upload it saying it supersedes the original
-> one, and people looking for patches will be directed to your version)
-> and a comments area for each DSDT. MySQL is evil, but I think we can
-> still make some use from it. :-)
+Yes, I would think so too. Perhaps the differences would probably
+disappear if I made the algorithm more like your original (ie simplifed
+eat_memory back to the original), but I do remember lots of disk
+activity when using the original code as well - perhaps the cause might
+be worth further investigation? (Not that I'm volunteering)
 
-this will be the next major thing to tackle and work is on my harddisk
-and simon's and my brain in progress.
+> Anyway... So your method is faster. Good. Now, how much more
+> complicated is it?
 
-> The more evil part of the plan (comments appreciated) is to create a
-> WikiWiki for the users and the support crew, which will eventually
-> evolve into useful end user documentation. As usual, volunteers for the
-> support crew are welcome, tasks are mainly summarizing and rewording
-> WikiWiki pages if they are too redundant or incomprehensible, and
-> occasionally updating the documentation in the end user packages.
+As I've said above, I'm not sure it is right to say it is faster - I
+didn't compare your current method with the new one, but rather mine
+with parameters making the algorithm as close to yours as possible. My
+point was more that if the new method is slower, its not significantly
+slower.
 
-the wiki pages are already up and running. go, wreak havoc and create
-chaos. ;)
+Nevertheless, you do have a good point - it is more complicated. But I
+think it's worth it and its not a lot more complicated. People who are
+using the new method at the moment appreciate the changes. Don't think
+for a moment that I don't value your work, Pavel. I couldn't have done
+any of my additions without it and consider mine tweaking. This has
+simply been a quest to get a more responsive system on resume.
 
+Regards,
 
-http://acpi.sf.net /// http://acpi.sf.net/wiki/
-
-
-cheers,
- sebastian
---=20
-::: sebastian henschel
-::: kodeaffe
-::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
-
---2fHTh5uZTiUOsy+g
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.0 (GNU/Linux)
-
-iD8DBQE+RpsRreHfL3pi+bQRAub7AJ4kXvGJYN5BSFwFJf9sVEGTytmpswCdESNG
-s7HvCLxK4JfWat6W8cFZc7I=
-=O7rr
------END PGP SIGNATURE-----
-
---2fHTh5uZTiUOsy+g--
-
-
--------------------------------------------------------
-This SF.NET email is sponsored by:
-SourceForge Enterprise Edition + IBM + LinuxWorld = Something 2 See!
-http://www.vasoftware.com
+Nigel
