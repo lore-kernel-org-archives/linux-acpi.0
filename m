@@ -1,13 +1,12 @@
-From: Ultrakorne <ultrakorne-XtQPfPCVGG7srOwW+9ziJQ@public.gmane.org>
-Subject: Re: smart battery on acer extensa 3002
-Date: Sat, 18 Dec 2004 17:56:06 +0100
-Message-ID: <41C46126.5000107@paranoici.org>
-References: <200412022121.00582.olli.zimmermann@gmx.net>	 <Pine.LNX.4.60.0412141152230.1198@frog.athome>	 <20041214125511.GB4936@openzaurus.ucw.cz> <47e0449d0412150534482cb677@mail.gmail.com>
+From: "Ava E. McCall" <ava.mcCall_8-QAGdyjaOyQiHXe+LvDLADg@public.gmane.org>
+Subject: Order Royal Replica Watches Online
+Date: Sat, 18 Dec 2004 23:27:53 -0600
+Message-ID: <6f9d01c4e58b$e81ffb4a$9f71b67b@lacdr.leidenuniv.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <47e0449d0412150534482cb677-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,19 +19,26 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Johannes Kuhlmann wrote:
-> Do you think it would maybe make sense to start a petition about this?
-> 
-> Regards,
-> Johannes
-> 
+Get the Finest Rolex Watch Replica!
 
-acer doesnt care about other O.S, i think microsoft pay a lot for that 
-(to unsupport linux)
-i think the only solution is that we should develop that... that's the 
-only way to get the battery supported
+We only sell premium watches. There's no battery in these replicas just
+like the real ones since they charge themselves as you move. The second hand
+moves JUST like the real ones, too. These original watches sell in stores
+for thousands of dollars. We sell them for much less. 
 
-i'll never buy an acer notebook again.
+- Replicated to the Smallest Detail
+- 98% Perfectly Accurate Markings 
+- Signature Green Sticker w/ Serial Number on Watch Back
+- Magnified Quickset Date
+- Includes all Proper Markings
+
+Visit us: http://www.vanai.com/rep/rolx/
+
+All orders placed before December 20th will be at your door before
+New Years Eve!
+
+No thanks: http://www.vanai.com/z.php
+
 
 
 -------------------------------------------------------
