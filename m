@@ -1,14 +1,13 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: IBM Thinkpad | ACPI
-Date: Fri, 24 Jan 2003 11:18:54 +0100
+From: John-otv8KCb+Bkdaa/9Udqfwiw@public.gmane.org
+Subject: Re: "bypass" ?
+Date: Fri, 24 Jan 2003 12:34:45 +0000 (GMT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030124101854.GY18109@poup.poupinou.org>
-References: <200301240105.32478.dom@wahuu.at>
+Message-ID: <E18c33O-000Pb7-00@probity.mcc.ac.uk>
+References: <3E3018DA.7000505@gkec.tu-darmstadt.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200301240105.32478.dom-K271P2BsTd0@public.gmane.org>
+In-Reply-To: <3E3018DA.7000505-8NdywcgfOMlWMvVl7B+zuCEWGD4kr0XT@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,32 +16,40 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dominik Bartenstein <dom-K271P2BsTd0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: behnel_ml-8NdywcgfOMlWMvVl7B+zuCEWGD4kr0XT@public.gmane.org
+Cc: John-otv8KCb+Bkdaa/9Udqfwiw@public.gmane.org, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jan 24, 2003 at 01:05:32AM +0100, Dominik Bartenstein wrote:
-> Hi!
+On 23 Jan, Stefan Behnel wrote:
+..
+>> I have a Toshiba 3000-400 laptop, which previously needed a ACPI table
+>> bypass for it to detect the battery power levels, which I have been
+>> doing up to 2.4.17..
 > 
-> I want to say many thanks to Bruno Ducrot who provided a work around for the 
-> IBM Thinkpads! His patch replaces the actual ECDT table with a modified one. 
-> /proc/acpi/battery works perfectly, so does /proc/acpi/processor. 
-> /proc/acpi/fan and /proc/acpi/thermal_zone are not working yet.
-> 
+> What do you mean, a "bypass"?
 
-Well, thank, but I have not yet pointed to the link for that..
+With the standard kernels (upto around 2.4.18) the batteries would show
+up under ACPI but no power level details were indicated.  I followed the
+instructions on an Intel web site (forgot the link) which outlined the
+process of dumping the DSDT, dissasembling it, correcting the mistakes
+in the schema, reassembling the schema as a hex dump which is then
+included into /usr/src/linux/drivers/acpi/tables/tbget.c.
 
-http://www.poupinou.org/acpi/ibm_ecdt.html
+This may not be the ideal solution, but it did work (sort of) and the
+modified ACPI did display battery power levels etc.
 
-because actually I am looking for a better way to go.
+None of this was required with 2.4.20 and 20030109 patches.
 
-Cheers,
-
+John 
 -- 
-Ducrot Bruno
+  John Heaton, G1YYH
+  Manchester Computing, Kilburn Building.
+  The University of Manchester, Oxford Road, Manchester, England, M13-9PL
+  pstn://+44-161-275-6011/Hello/Is.Dat-U?
+  fax://+44-161-275-6040/screech/warble/ssshhh/beepbeep
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+
+
 
 
 -------------------------------------------------------
