@@ -1,12 +1,16 @@
-From: Erik Tews <erik-KVSZC2aA8+zw/snApU8qRLNAH6kLmebB@public.gmane.org>
-Subject: Problem sendig IBM Thinkpad T41p to ram
-Date: Wed, 04 Aug 2004 00:11:16 +0200
+From: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
+Subject: Re: Radeon PM Support
+Date: Tue, 03 Aug 2004 19:10:09 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1091571076.4077.8.camel@localhost.localdomain>
+Message-ID: <1091560208.24759.15.camel@6-allhosts>
+References: <1091139240.26511.9.camel@6-allhosts>
+	 <20040730141028.GE21359@luna.mooo.com> <20040730162756.4f300a5c@localhost>
+	 <20040730190047.GH21359@luna.mooo.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20040730190047.GH21359-4cxDFgrrBECgSpxsJD1C4w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -15,23 +19,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Acpi Devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi
+My card came in the mail today...it works fine except for...(you guessed
+it) S3 suspend with a framebuffer. The card never re-initializes (even
+with acpi_sleep=s3_bios) and the monitor never powers back up. I can do
+swsusp2, which is okay for now, but I guess my question at this point is
+this: does anyone know what is keeping this card from working right with
+a framebuffer over S3? More to the point, it is something that could be
+fixed? Given how far the ACPI code has come in 2.6, I would certainly
+hope something is possible.
 
-I would like to suspend my t41p to ram using acpi. But everytime my
-system resumes I just got a blank LCD with backlight activated but no
-data on it, no matter if I suspend on console or X. Has somebody got an
-idea what this problem could be? I tried with and without framebuffer
-too, with 2.6.7 vanilla and 2.6.8-rc2 with current acpi-patch.
+Andrew
 
-I have to unload ehci-hcd first, before I was able to send this system
-to ram.
-
-The system is still active after resume, I just cannot use it because I
-got no picture on my lcd. But I can still enter commands on the keyboard
-like ctrl-alt-del or reboot.
+P.S. In case you're wondering, yes, I'm a bit of a perfectionist. ;)
 
 
 
