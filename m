@@ -1,14 +1,15 @@
-From: Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
-Subject: RE: S3 and S4: nothing happens
-Date: Mon, 14 Oct 2002 10:11:39 +0200
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: ACPI-Patch against 2.4.20-pre10-ac1
+Date: Mon, 14 Oct 2002 11:24:35 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1034583098.369.40.camel@bacchus.gpphy.uni-duesseldorf.de>
-References: <000001c27303$bce537f0$46ffff0a@DigitalCog>
+Message-ID: <20021014092435.GG22361@poup.poupinou.org>
+References: <20021011183427.20a55d1c.hanno@gmx.de> <1034372783.12355.4.camel@irongate.swansea.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <000001c27303$bce537f0$46ffff0a-pDtHNsj1o9eEb1ujJ5R0Fw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1034372783.12355.4.camel-MMxVpc8zpTQVh3rx8e9g/fyykp6/JSeS3vcXtXqGYxw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,60 +18,38 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: Don Langworthy <dbl-t4aQvBRgbK03GDxJruMu3g@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
+Cc: Hanno =?iso-8859-1?Q?B=F6ck?= <hanno-Mmb7MZpHnFY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Am Son, 2002-10-13 um 23.58 schrieb Don Langworthy:
-> echo 5 > /proc/acpi/sleep causes an immediate ungraceful power off.
-> All other values seem to have no effect on the system power state.
+Hi Alan,
 
-See my mail on this thread: Only S1/S5 are supported under 2.4 kernels.
-IIRC S5 sudden shutoff is intended. Andrew Grover gave an explanation
-that a few month ago but I do not remember it exactly.
-
-> I've noticed 3 different behaviors for performance and throttling (under
-> /proc/acpi/processor).
+On Fri, Oct 11, 2002 at 10:46:23PM +0100, Alan Cox wrote:
+> On Fri, 2002-10-11 at 17:34, Hanno Böck wrote:
+> > I tried to apply the acpi-patch against 2.4.20-pre10-ac1.
+> > 
+> > It is not perfect, there are some problems with cpufreq i couldn't fix. If you disable cpufreq, it should compile and run.
+> > 
+> > If anyone fixes the cpufreq-issue, please inform me.
 > 
-> 1 No effect
-> 2 Change state for a few seconds then reverts back to full power mode 3
-> Changes state permanently.
+> You don't want to mix the two. If you do need native power management on
+> your ACPI system the ACPI layer eventually has to be the one making the
+> cpufreq requests
 
-Could you provide some more details? What exactly happens in what case
-(eg. does echo 1:1 > /proc/acpi/../performance have no effect?)
+You _do_ want to mix the two when ACPI didn't have the right
+information in order to support performance states of the cpu (old
+version of the specs where performance is not included in AML).
 
-> The system seems to pick one behavior at boot time and stick with it
-> until the next boot time. 
+Please note also that Dominik have submitted some patches to have
+the two in order to cooporate more smoothly, and Andy is agreed to
+go, when things would stabilize.
 
-Let me get that right: You boot your system and then you find one of the
-above points in effect and that behaviour does not change until reboot,
-but then might be different? Surprising.
-
-> I'm using the 20020918 patch to the 2.4.18 kernel. I can't get the
-> 20021002 patch to the 2.4.20pre8 kernel to patch (or compile) cleanly.
-
-What exactly is the problem? I would need the output of your
-patch/compile attempt to be more helpful :)
-
--Knut
-
-PS: Did anyone yet try to update the FAQ?  Otherwise I might take an
-evening if someone would correct the english at last.
+Cheers,
 
 -- 
-Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
-Physikalische Grundpraktika - Heinrich-Heine Universitaet Duesseldorf
-Raum 25.33.01.63  -   Universitaetsstrasse 1   -  D-40225 Duesseldorf
-fon: +49-211-81-11314                           fax: +49-211-81-13105
-
-
-
-
-
-
-
-
-
+Ducrot Bruno
+http://www.poupinou.org        Page profaissionelle
+http://toto.tu-me-saoules.com  Haume page
 
 
 -------------------------------------------------------
