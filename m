@@ -1,14 +1,9 @@
-From: amavisd-new <postmaster-KM3ALrBo/q9J7q7XAxDqxw@public.gmane.org>
-Subject: BANNED FILENAME (document.zip) IN YOUR MAIL
-Date: Wed, 28 Jan 2004 09:40:49 +0100 (CET)
+From: postmaster-lX1WLSqV685oZSuCWFJQuMGzyFzmqZ/k@public.gmane.org
+Subject: InterScan NT Alert
+Date: Wed, 28 Jan 2004 16:15:43 +0530
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <VS22383-09@pluto.emse.fr>
-References: <20040128084042.F1954244151@pluto.emse.fr>
-Mime-Version: 1.0
-Content-Type: multipart/report; report-type=delivery-status;
-    boundary="----------=_1075279249-22383-7"
+Message-ID: <200401281054.i0SAsAoh009117@semsoftindia-samsung.com>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040128084042.F1954244151-KM3ALrBo/q9J7q7XAxDqxw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,79 +15,34 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format...
+Receiver, InterScan has detected virus(es) in the e-mail attachment.
 
-------------=_1075279249-22383-7
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Disposition: inline
-Content-Transfer-Encoding: 7bit
+Date:  	Wed, 28 Jan 2004 16:15:43 +0530
+Method:	Mail
+From:  	<groudier-GANU6spQydw@public.gmane.org>
+To:    	<acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+File:  	document.zip
+Action:	clean failed - deleted
+Virus: 	WORM_MIMAIL.R 
 
-BANNED FILENAME ALERT
+begin 666 InterScan_Disclaimer.txt
+M5&AE(&EN9F]R;6%T:6]N(&-O;G1A:6YE9"!I;B!T:&ES(&5L96-T<F]N:6,@
+M;65S<V%G92!A;F0-0q2iP0p74hk@public.gmane.org(&%T=&%C:&UE;G1S('1O('1H:7,@;65S<V%G92!A
+M<F4@#0II;G1E;F1E9"!F;W(@=&AE(&5X8VQU<VEV92!U<V4@;V8@=&AE(&%D
+M9')E<W-E92AS*2!A;F0@;6%Y(&-O;G1A:6X-2ZHtrH1AIUU@public.gmane.org]N9FED96YT:6%L(&]R('!R
+M:79I;&5G960@:6YF;W)M871I;VXN#0I)9B!Y;W4-4u3rHeVEGOc@public.gmane.org)E(&YO="!T:&4@:6YT
+M96YD960@<F5C:7!I96YT+"!P;&5A<V4@;F]T:69Y('1H92!S96YD97(@870@
+M4V%M<W5N9R!%;&5C=')O($UE8VAA;FEC<R!O<@T*861M:6Y <V5M<V]F=&EN
+M9&EA+7-A;7-U;F<N8V]M(&EM;65D:6%T96QY(&%N9"!D97-T<F]Y(&%L;"!C
+M;W!I97,@;V8@=&AI<R!M97-S86=E(&%N9"!A;GD-Yg1PUgpZdv8@public.gmane.org;65N=',N#0I!
+M;GD@=6YA=71H;W)I>F5D(')E=FEE=RP@=7-E+"!D:7-C;&]S=7)E+"!D:7-S
+M96UI;F%T:6]N+"!F;W)W87)D:6YG+"!P<FEN=&EN9R!O<B!C;W!Y:6YG(&]F
+M('1H:7,@96UA:6P@;W(@86YY#0IA8W1I;VX@=&%K96X@:6X@<F5L:6%N8V4@
+M;VX@=&AI<R!E+6UA:6P@:7,@<W1R:6-T;'D@<')O:&EB:71E9"!A;F0@;6%Y
+5(&)E('5N;&%W9G5L+-wPuJ0ROkVbw@public.gmane.org*#0H-"@T*
+end
 
-Our virus checker found
-    banned filename: document.zip
-in your email to the following recipient:
--> james-bnD7R/pdkU1Nctl32NmFlg@public.gmane.org
 
-Delivery of the email was stopped!
-
-Please check your system for viruses,
-or ask your system administrator to do so.
-
-For your reference, here are headers from your email:
-------------------------- BEGIN HEADERS -----------------------------
-Received: from lists.sourceforge.net (unknown [218.232.70.120])
-	by pluto.emse.fr (Postfix) with ESMTP id F1954244151
-	for <james-bnD7R/pdkU1Nctl32NmFlg@public.gmane.org>; Wed, 28 Jan 2004 09:40:42 +0100 (CET)
-From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: james-bnD7R/pdkU1Nctl32NmFlg@public.gmane.org
-Subject: hello
-Date: Wed, 28 Jan 2004 17:41:27 +0900
-MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0004_5DA393AD.D62921CE"
-X-Priority: 3
-X-MSMail-Priority: Normal
-Message-Id: <20040128084042.F1954244151-KM3ALrBo/q9J7q7XAxDqxw@public.gmane.org>
--------------------------- END HEADERS ------------------------------
-
-------------=_1075279249-22383-7
-Content-Type: message/delivery-status
-Content-Disposition: inline
-Content-Transfer-Encoding: 7bit
-Content-Description: Delivery error report
-
-Reporting-MTA: dns; pluto.emse.fr
-Received-From-MTA: smtp; pluto.emse.fr ([127.0.0.1])
-Arrival-Date: Wed, 28 Jan 2004 09:40:48 +0100 (CET)
-
-Final-Recipient: rfc822; james-bnD7R/pdkU1Nctl32NmFlg@public.gmane.org
-Action: failed
-Status: 5.7.1
-Diagnostic-Code: smtp; 550 5.7.1 Message content rejected, id=22383-09 - BANNED: document.zip
-Last-Attempt-Date: Wed, 28 Jan 2004 09:40:49 +0100 (CET)
-
-------------=_1075279249-22383-7
-Content-Type: text/rfc822-headers
-Content-Disposition: inline
-Content-Transfer-Encoding: 7bit
-Content-Description: Undelivered-message headers
-
-Received: from lists.sourceforge.net (unknown [218.232.70.120])
-	by pluto.emse.fr (Postfix) with ESMTP id F1954244151
-	for <james-bnD7R/pdkU1Nctl32NmFlg@public.gmane.org>; Wed, 28 Jan 2004 09:40:42 +0100 (CET)
-From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: james-bnD7R/pdkU1Nctl32NmFlg@public.gmane.org
-Subject: hello
-Date: Wed, 28 Jan 2004 17:41:27 +0900
-MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0004_5DA393AD.D62921CE"
-X-Priority: 3
-X-MSMail-Priority: Normal
-Message-Id: <20040128084042.F1954244151-KM3ALrBo/q9J7q7XAxDqxw@public.gmane.org>
-
-------------=_1075279249-22383-7--
 
 
 -------------------------------------------------------
