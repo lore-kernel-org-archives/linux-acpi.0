@@ -1,10 +1,12 @@
-From: "Randy.Dunlap" <rddunlap-3NddpPZAyC0@public.gmane.org>
-Subject: [PATCH] replace pr_debug
-Date: Sun, 22 Dec 2002 14:49:22 -0800 (PST)
+From: Malte Thoma <thoma-xhPu7QH+N+StU9/U+hoEgQ@public.gmane.org>
+Subject: performance & fan & heatload & suspend
+Date: Mon, 23 Dec 2002 09:08:52 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.33L2.0212221443300.16753-100000@dragon.pdx.osdl.net>
+Message-ID: <3E06C494.3060408@uni-muenster.de>
+Reply-To: thoma-iYtK5bfT9M8b1SvskN2V4Q@public.gmane.org
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -14,45 +16,30 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: acpi-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hallo,
 
-Hi,
+for the ACPI-monitor and controller 'heatload' I need a cat of the
+'fan' and 'performance' file from the /proc/acpi path.
+If you could send me the the 'echo' commands to control the fan and/or 
+performance this would be great, too. Or (perhaps better :-) you could 
+send me the website, where this (and perhaps more) echo-commands are 
+documented.
 
-This patch to 2.5.52 replaces one instance of pr_debug() with
-printk(KERN_DEBUG ...).
+By the way: What do you think about suspend: should a graphical 
+interface should be able to put the computer to sleep (with swsusp)?
+I think it would be a good idea, but is this an action only privilegd 
+users should be able to, or should EVERY user how is allowd to adjust 
+fan/throttling/performance be also allowed to suspend a computer?
+( Technical spoken: should there be an extra entry in /etc/sudoers for 
+suspend or can the fan/throttling/performancce entry be shared, what do 
+you think about it?
 
-Reasons:
-1.  pr_debug() is overused (or abused) in Linux:  it has over 300
-usage instances, spread throughout drivers, filesystems, core code,
-library code, etc.  This is just one tiny step in cleaning this up.
+Greetings,
 
-2.  This code is already conditioned by
-#ifdef CONFIG_ACPI_DEBUG_OUTPUT
-
-3.  ACPI's Kconfig has a config option named 'ACPI_DEBUG' which could
-be used for further control.
-
-Please apply.
-
--- 
-~Randy
-
-
-
---- ./drivers/acpi/scan.c%PRD	Sun Dec 15 18:07:54 2002
-+++ ./drivers/acpi/scan.c	Sun Dec 22 14:37:58 2002
-@@ -644,7 +644,7 @@
- 		break;
- 	}
-
--	pr_debug("Found %s %s [%p]\n", type_string, name, handle);
-+	printk(KERN_DEBUG "Found %s %s [%p]\n", type_string, name, handle);
- #endif /*CONFIG_ACPI_DEBUG_OUTPUT*/
- }
-
+Malte
 
 
 
