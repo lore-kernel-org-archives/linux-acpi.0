@@ -1,15 +1,14 @@
-From: debdev-C7jUcIT7jcOb5HrIuDsk0A@public.gmane.org (A Mennucc1)
-Subject: Re: failed patch for 2.4.20
-Date: Sun, 6 Apr 2003 18:18:33 +0200
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: RE: Patch for ospmd thermal gui
+Date: Fri, 4 Apr 2003 17:02:40 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030406161833.GA11139@Tonelli.sns.it>
-References: <20030405155552.GA22362@Tonelli.sns.it> <20030405160855.GF23430@parcelfarce.linux.theplanet.co.uk>
-Reply-To: mennucc1-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org
+Message-ID: <20030404150240.GA5531@zaurus.ucw.cz>
+References: <F760B14C9561B941B89469F59BA3A84725A23D@orsmsx401.jf.intel.com> <1049146793.528.29.camel@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20030405160855.GF23430-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>
+In-Reply-To: <1049146793.528.29.camel-bi+AKbBUZKZeoWH0uzbU5w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,34 +17,21 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Cc: mennucc1-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
+Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Apr 05, 2003 at 05:08:55PM +0100, Matthew Wilcox wrote:
-> On Sat, Apr 05, 2003 at 05:55:52PM +0200, A Mennucc1 wrote:
-> > I tried to apply acpi-20021212-2.4.20.diff.gz
-> > on the kernel sources 2.4.20  that are distributed with Debian;
-> > but I got too many rejects, and indeed compilation fails
-> 
-> this is debian's problem, not the acpi list.  there is no commitment on
-> the part of the acpi developers to provide patches against any vendor's
-> kernel.
+Hi!
 
-it seems that Debian Mantainer who is repsonsible for the kernel adds
-some patches; one of the patches was on acpi, to support it being
-modular; I have tried to put together an anti-patch
-(but it breaks a scsi low level driver)
- 
-> p.s. your mail headers are broken, they trim the list from the reply.
-> 
+> Would you have the time to draw up an API for libpower (which maybe
+> should be named libospmd?!)? This could prevent some misunderstandings -
+> and I would happily start implementing it....
 
-what do you mean?
-
-a.
+libpower is *way* nicer name.
 -- 
-Andrea Mennucc
- "E' un mondo difficile. Che vita intensa!" (Tonino Carotone)
+				Pavel
+Written on sharp zaurus, because my Velo1 broke. If you have Velo you don't need...
+
 
 
 -------------------------------------------------------
