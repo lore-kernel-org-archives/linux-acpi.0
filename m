@@ -1,13 +1,14 @@
-From: Alexander Hoogerhuis <alexh-rpjHciJLgqZBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: 2.5.64 kernel bug
-Date: 08 Mar 2003 04:42:52 +0100
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: Freezing more and more (Gericom Supersonic M6T)
+Date: Sat, 8 Mar 2003 12:05:05 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <87llzqr0ar.fsf@lapper.ihatent.com>
-References: <Pine.LNX.4.33.0303071128380.991-100000@localhost.localdomain>
+Message-ID: <20030308110505.GA21057@atrey.karlin.mff.cuni.cz>
+References: <200303041529.11172.Pavel.Vondricka@ff.cuni.cz> <20030307111853.GD18420@atrey.karlin.mff.cuni.cz> <20030307150045.GQ12499@poup.poupinou.org> <200303072309.59986.Pavel.Vondricka@ff.cuni.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.33.0303071128380.991-100000-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <200303072309.59986.Pavel.Vondricka-1W7zqEVgo5LrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,33 +17,21 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
-Cc: "Shawn P. Garbett" <listman-qZIqNUI/gJRAfugRpC6u6w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Vondricka <Pavel.Vondricka-1W7zqEVgo5LrBKCeMvbIDA@public.gmane.org>
+Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org> writes:
->
-> There have been at least two patches posted to fix this on linux-kernel,
-> and a third that went to Linux directly.  I recommend either getting the
-> latest snapshot from kernel.org, or just using the fix you posted below. 
-> 
+Hi!
 
-The -mm patches seems to be shaping up nicely and might be a good
-alternative instead of Linus' tree. Not that he's doing anything bad,
-just that his tree is seem to be more in a state of flux, and Andrew
-Morton seems to be accepting a lot of fixes to make it testable :)
+> Yes, it is a winmodem (ltmodem) and it has been OK all the time. I
+>would 
 
-I'm punting happily on 2.5.64-mm1 now, and if I could only find a
-patch that lets me load my own DSDT. I'm sure its out there, I haven't
-had a look in the archives yet (they're hard to get at from 39,000ft
-above Sumatera) ;)
+If you are using binary-only module... Well... Do not complain.
 
-mvh,
-A
+								Pavel
 -- 
-Alexander Hoogerhuis                               | alexh-rpjHciJLgqZBDgjK7y7TUQ@public.gmane.org
-CCNP - CCDP - MCNE - CCSE                          | +47 908 21 485
-"You have zero privacy anyway. Get over it."  --Scott McNealy
+Horseback riding is like software...
+...vgf orggre jura vgf serr.
 
 
 -------------------------------------------------------
