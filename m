@@ -1,13 +1,11 @@
-From: Mizu <michal-VaXaUECoPuY@public.gmane.org>
-Subject: ACPI-20021122 status on ACER TM 630
-Date: Tue, 3 Dec 2002 20:34:16 +0100
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI-20021122 status on ACER TM 630
+Date: Tue, 3 Dec 2002 10:46:12 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021203193416.GA784@mizu.intrak.tuke.sk>
+Message-ID: <B9ECACBD6885D5119ADC00508B68C1EA0D19B964@orsmsx107.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="GvXjxJ+pjyke8COw"
+Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,14 +14,19 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: 'Mizu' <michal-VaXaUECoPuY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---GvXjxJ+pjyke8COw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Which version are you using?
+
+>ACPI: Subsystem revision 20021111
+
+-----Original Message-----
+From: Mizu [mailto:michal-VaXaUECoPuY@public.gmane.org] 
+Sent: Tuesday, December 03, 2002 11:34 AM
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: [ACPI] ACPI-20021122 status on ACER TM 630
 
 Hi.
 
@@ -59,9 +62,9 @@ Linux version 2.4.20-rc1 (root@mizu) (gcc version 2.95.4 20011002
  ACPI: SSDT (v001 PTLTD  ACPIPST1 01540.00000) @ 0x0fefef4b
  ACPI: DSDT (v001    ALI    M1533 01540.00000) @ 0x00000000
  ACPI: BIOS passes blacklist
-=2E..
+...
  ACPI: Subsystem revision 20021111
- PCI: PCI BIOS revision 2.10 entry at 0xfd58e, last bus=3D3
+ PCI: PCI BIOS revision 2.10 entry at 0xfd58e, last bus=3
  PCI: Using configuration type 1
  ACPI-0508: *** Info: GPE Block0 defined as GPE0 to GPE63
  ACPI: Interpreter enabled
@@ -87,9 +90,9 @@ Linux version 2.4.20-rc1 (root@mizu) (gcc version 2.95.4 20011002
  ACPI: PCI Interrupt Link [LNKF] enabled at IRQ 11
  PCI: No IRQ known for interrupt pin A of device 00:10.0<6>PCI: Using
  ACPI for IRQ routing
- PCI: if you experience problems, try using option 'pci=3Dnoacpi' or
- even 'acpi=3Doff'
-   =20
+ PCI: if you experience problems, try using option 'pci=noacpi' or
+ even 'acpi=off'
+    
 #
 #cat /proc/acpi/battery/BAT0/info
 #
@@ -116,8 +119,7 @@ present rate:            unknown
 remaining capacity:      2040 mAh
 present voltage:         14800 mV
 
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D
+=================================
 Everything seems to be OK, but....
 
 Problems:
@@ -137,8 +139,8 @@ It is very strange ?!
 
 
 
-I wanna suspend my computer. I dont know how. maybe echo 1 >/proc/acpi/slee=
-p  ??
+I wanna suspend my computer. I dont know how. maybe echo 1 >/proc/acpi/sleep
+??
 or i have to use swsupend project ?
 
 
@@ -148,27 +150,13 @@ Thanks for more information.
 			Mizu
 
 
---=20
+-- 
         -[ Mizu ]-
 #-------------------------#
-[-> E-mail:michal-VaXaUECoPuY@public.gmane.org   =20
+[-> E-mail:michal-VaXaUECoPuY@public.gmane.org    
 [-> ICQ:97165392
 [-> WWW: http://www.mizu.sk
 
-
---GvXjxJ+pjyke8COw
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQE97Qc49kFXwDL4DRkRAt3ZAKCLAaPZedUVO+vhZwn438vuphqGTgCgspfq
-SQuDOazCis5I5S0Gu8ZoMCU=
-=kR99
------END PGP SIGNATURE-----
-
---GvXjxJ+pjyke8COw--
 
 
 -------------------------------------------------------
