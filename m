@@ -1,12 +1,8 @@
-From: "German Swanson" <germanswanson_ef-8bec7mt9vP80n/F98K4Iww@public.gmane.org>
-Subject: Powerful weightloss now available for you.
-Date: Thu, 03 Jun 2004 09:44:32 -0600
+From: "Gareth Wheelton" <gareth-1LCzNYzl4/K5rx9LGsG9jg@public.gmane.org>
+Subject: ACPI can't perform S5 soft off
+Date: Thu, 03 Jun 2004 17:46:54 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <acd001c44981$58559447$4a9ec891@creaweb.fr>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Message-ID: <E1BVvGa-0000wP-2i@sc8-sf-mx1.sourceforge.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,36 +12,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acornicq-bugs-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello, I have a special_offer for you...
-WANT TO LOSE WEIGHT?
-The most powerful weightloss is now available
-without prescription. All natural Adipren720
-100% Money Back Guarantée!
-- Lose up to 19% Total Body Weight.
-- Up to 300% more Weight Loss while dieting.
-- Loss of 20-35% abdominal Fat.
-- Reduction of 40-70% overall Fat under skin.
-- Increase metabolic rate by 76.9% without Exercise.
-- Boost your Confidence level and Self Esteem.
-- Burns calorized fat.
-- Suppresses appetite for sugar.
-Get the facts about all-natural Adipren720 <http://www.3443diet.biz/>
-If you wish not to be contacted again please
-enter your email address here. <http://www.3443diet.biz/r.html>
+Hi
+
+Are there any instructions on getting a 2.4.26 kernel to use a customized
+DSDT.
+
+I think I've followed all of the instructions from the HOWTO
+(http://www.cpqlinux.com/acpi-howto.html), that is all but applying the
+patches as they are for a prior kernel version.
+
+I've copied the acpi_dsdt.c to the kernel tree, seen it compiled and
+linked but am not receiving any dmesg to say the customized DSDT table is
+being loaded...?
 
 
-
-
----- system information ----
-resulting more Relationship cannot face Localization] other part 
-does way Australia For appropriate produced updated uses 
-still own additional does expected subtle cannot it 
-internationalization Activity greater Web subject Language United localization
-
-ja pattern Natural contents Collation strongly Alternate internationalization
+Cheers Gareth
 
 
 
