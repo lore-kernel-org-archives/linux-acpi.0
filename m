@@ -1,14 +1,14 @@
-From: Stefan Behnel <behnel-8NdywcgfOMlWMvVl7B+zuCEWGD4kr0XT@public.gmane.org>
-Subject: Re: custom dsdt with 2.5
-Date: Fri, 09 May 2003 14:26:13 +0200
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: vpr Matrix 175b4/Samsung P10
+Date: Fri, 9 May 2003 14:35:20 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3EBB9E65.6000108@gkec.tu-darmstadt.de>
-References: <3EBB6B55.5000700@free.fr>
+Message-ID: <20030509123520.GD2954@poup.poupinou.org>
+References: <20030508195513.GA29957@thedesignexperience.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3EBB6B55.5000700-GANU6spQydw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20030508195513.GA29957-eQMij45H2SHXYFsarriMmxagbA6BzR3y@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,38 +17,49 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: roychris <roychris-GANU6spQydw@public.gmane.org>
+To: Dave Bauer <dave-eQMij45H2SHXYFsarriMmxagbA6BzR3y@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Thu, May 08, 2003 at 03:55:13PM -0400, Dave Bauer wrote:
+> Hi,
+> 
+> It looks like I have the exact same issues as mentioned in this thread:
+> 
+> http://sourceforge.net/mailarchive/message.php?msg_id=3597159
+> 
+> It looks like the Battery and AC Adapter are trying to check status
+> through the PCI bus. I seem to have everything else working fine via
+> ACPI by fixing the other errors in the DSDT using he HOWTOs that are
+> available.
+> 
+> I checked out the Samsung p10 and I am pretty sure they make the vpr
+> Matrix 175b4 that I have.
+> 
+> I also noticed that Stefan posted a link to his fixed DSDT, but I can't
+> download it. The message the link was posted in is here: 
+> http://sourceforge.net/mailarchive/message.php?msg_id=3643745
+> 
 
-roychris wrote:
-> I've just fixed my dsdt. How can I load it with the 2.5.69 kernel ?
 
-Try
-http://www.behnel.de/acpi/acpi-custom-DSDT.patch
-resp.
-http://www.behnel.de/acpi/samsung-acpi.html
+The trouble come from the fact that the asl for the P10 defined
+a Field on a embeded controler's Operational Region accessible as
+DWordAcc, not as ByteAcc, which is not permitted by ACPI specs (I
+guess though that we may include in ACPI a quick and dirty fix
+for this one ?).  It may be the same kind of bug for you.
 
-At least, it works for 2.4, but I don't see why it shouldn't work for ACP=
-I in 2.5.
+For now, try to change the dsdt in order to correct this bug.
+Look for different FAQ (at acpi.sf.net and/or link) for this
+kind of fixing asls, or give the (if possible raw) dsdt
+either by mailing me it or place it in a web/ftp site.
 
-BTW: There were patches recently that allow loading the DSDT from an init=
-rd. Search the archives for that.
+Cheers,
 
-Stefan
+-- 
+Ducrot Bruno
 
---=20
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
- Stefan Behnel
- Graduiertenkolleg TU-Darmstadt
- Wilhelminenstra=DFe 7                               Tel: +49-6151-16-670=
-6
- D-64283 Darmstadt                                 Fax: +49-6151-16-6707
-
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
