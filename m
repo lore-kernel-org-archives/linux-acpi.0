@@ -1,14 +1,14 @@
-From: Timo Hoenig <thoenig-dCxI//HcOdFeoWH0uzbU5w@public.gmane.org>
-Subject: Re: Re: [patch 1/1] thinkpad fn+fx key driver
-Date: Thu, 23 Sep 2004 14:31:07 +0200
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Re: suspend/resume support for driver requires an external firmware
+Date: Thu, 23 Sep 2004 20:32:49 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1095942667.5402.71.camel@sunshine>
-References: <F7DC2337C7631D4386A2DF6E8FB22B300179B935@hdsmsx401.amr.corp.intel.com>
-	 <20040923112457.GB1083@ucw.cz>
+Message-ID: <16A54BF5D6E14E4D916CE26C9AD305752F9D4D@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-xt+Dw7Mdo3C7gxbzOEOf"
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040923112457.GB1083-+ZI9xUNit7I@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,85 +17,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Vojtech Pavlik <vojtech-AlSwsSmVLrQ@public.gmane.org>
-Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, akpm-3NddpPZAyC0@public.gmane.org, erik-aH8aFkyL5XJBDgjK7y7TUQ@public.gmane.org, ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Zhu, Yi" <yi.zhu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Patrick Mochel <mochel-og82NyAXoxR0I81aPRRTmR2eb7JE58TQ@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, ipw2100-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+I guess S3 also suffers the same problem, the patch should not just for
+'swsusp'.
 
---=-xt+Dw7Mdo3C7gxbzOEOf
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+-Shaohua
 
-Hi,
-
-On Thu, 2004-09-23 at 13:24 +0200, Vojtech Pavlik wrote:
-> On Thu, Sep 23, 2004 at 01:16:57AM -0400, Brown, Len wrote:
-
-[...]
-
-> There are several ways to make both the keyboard and ACPI keys work as
-> intended:
->=20
-> 1) Extend acpid to listen on all /dev/input/event keyboard devices and
->    call scripts when the keys are pressed. No change to the kernel.
->=20
-> 2) Change ACPI to use the Input API, and add possibility to map ACPI
->    events in the keymap. Then have acpid listen to those.
->=20
-> 3) Change ACPI to use the Input API and use the power.ko module for
->    mapping the keys to system state change actions.
->=20
-> 4) Change ACPI to use the Input API and have a daemon that handles
->    all extra keys, including sound volume and application keys, possibly
->    using D-bus to send the events to the desktop environment.
->=20
-> 5) Change power.ko to just generate ACPI events for the keys. Handle
->    the events via acpid.
->=20
-> I probably prefer 4), although all make sense. I think 3) is only useful
-> for embedded systems, because it's not configurable enough. 2) would
-> probably not work when in X, because it relies on the console subsystem.
-
-Since I am working on a project (Input Abstraction Layer) which is
-exactly what Pavlik mentioned with 4) I wanted to raise my voice. It is
-a daemon which can easily be enhanced by modules which are dynamically
-loaded. There are going to be three different module types: Input,
-output and in/output modules.
-
-Input modules simply gather events and send them via D-Bus to clients
-(for example: module for normal ACPI events).
-
-Output modules do not gather data but can receive messages from clients
-and react on these messages (for example: module for the new sony_acpi
-driver).
-
-In- & Output modules do both (for example: module for the toshiba_acpi
-driver).
-
-I'm blogging about the development on http://thesis.nouse.net. Expect a
-first version within the next four weeks.
-
-   Timo
-
-..............................................................
-Timo H=F6nig <thoenig at nouse dot net>
-..................................................:: gpg ::...
-Fingerprint: 0998 0ACA A1D2 2612 4D96 DD8B E03F 084B B305 4066
-
---=-xt+Dw7Mdo3C7gxbzOEOf
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQBBUsIL4D8IS7MFQGYRAh2gAJ9Q9ifLVRZWB/P32YGkMRBZgDb7MACcC9NP
-2thLD3uYGrcUqcMxsKOl9E8=
-=pCfx
------END PGP SIGNATURE-----
-
---=-xt+Dw7Mdo3C7gxbzOEOf--
-
+>-----Original Message-----
+>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
+>admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Zhu, Yi
+>Sent: Thursday, September 23, 2004 3:46 PM
+>To: Zhu, Yi
+>Cc: Patrick Mochel; Pavel Machek; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org;
+>ipw2100-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: [ACPI] Re: suspend/resume support for driver requires an
+external
+>firmware
+>
+>Thu, 23 Sep 2004 15:46:11 +0800 (CST)
 
 
 -------------------------------------------------------
