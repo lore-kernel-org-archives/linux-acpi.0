@@ -1,14 +1,16 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: ACPI C4 support
-Date: Mon, 1 Mar 2004 20:48:25 +0100
+From: Malte Cornils <mcornils-mcycREo4Un4@public.gmane.org>
+Subject: Re: ACPI breakage (was: 2.6.x: local APIC results in hang at boot)
+Date: Mon, 1 Mar 2004 22:02:16 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040301194825.GB2869@poupinou.org>
-References: <20040228161011.GA10448@elf.ucw.cz> <20040301152810.GT2869@poupinou.org> <20040301180958.GI2624@suse.de>
+Message-ID: <200403012202.16728.mcornils@usta.de>
+References: <200402031047.i13Algrs019289@harpo.it.uu.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200402031047.i13Algrs019289-gq7oiAaKCbRt3AgVzhmPzw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040301180958.GI2624-l3A5Bk7waGM@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,51 +19,58 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan Behlert <behlert-l3A5Bk7waGM@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, trenn-l3A5Bk7waGM@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Mar 01, 2004 at 07:09:58PM +0100, Stefan Behlert wrote:
-> Moin,
-> 
-> On Mar 01, 04 16:28:10 +0100, Bruno Ducrot wrote:
-> > On Sat, Feb 28, 2004 at 05:10:11PM +0100, Pavel Machek wrote:
-> > > Hi!
-> > > Thomas told me:
-> > > >what about C4 - Cn states in the kernel implementation?
-> > > >A short look into the /proc/acpi/processor/.../power file let me think
-> > > >that only C0-C3 is supported by the kernel, even specification talks
-> > > >about Cn states?
-> > > As a first step, it would be nice if kernel at least used C0..C3 if
-> > > the machine supports them... This should do the trick. Does it look
-> > > okay?
-> > 
-> > No.  pblk_length is 0 or 6.  Not 5 nor 7 ;)
-> 
-> Sorry, I don't understand: We've a Laptop with a DSDT with
->   Processor (\_PR.CPU0, 0x01, 0x00001010, 0x07)
-> in it.
-> Comment from the responsible BIOS-team:
-> "Our processor block object is 7 bytes in length because we also support
->  C4 (P_LVL4) which is at <P_BLK>+6.  Therefore, the size/length must be
->  reported as 7 and not 6."
-> 
-> Is the '7' the BIOS-developer mentioned the same '7' as mentioned by you?
-> 
+(Mail was on linux-kernel, now moving to acpi-devel as requested)
 
-No.  Bad documentation.  Change documentation.  Look at acpi spec at
-http://www.acpi.info/
+Am Dienstag, 3. Februar 2004 11:47 schrieb Mikael Pettersson:
+> On 2004-02-03, Malte Cornils wrote:
+> >I've tested this with 2.6.2-rc3 and kernels before that; when I activate
+> >the "Enable local APIC" question the kernel hangs with:
+> >
+> >POSIX conformance testing by UNIFIX
+> >enabled ExtInt on CPU#0
+> >ESR value before enabling vector: 00000000
+> >ESR value after enabling vector: 00000000
+> >Using local APIC timer interrupts.
+> >calibrating APIC timer ...
+> >..... CPU clock speed is 1399.0856 MHz.
+> >..... host bus clock speed is 99.0989 MHz.
+> >NET: Registered protocol family 16
+> >EISA bus registered
+> >PCI: Using configuration type 1
+> >mtrr: v2.0 (20020519)
+> >ACPI: Subsystem revision 20040116
+> >ACPI: IRQ9 SCI: Edge set to Level Trigger.
+> >
+> >and then nothing happens.
+> >
+> >On request, I can send the boot log from the same kernel without local
+> >APIC compiled-in; you can also get it from
+> >http://www.usta.de/RefAk/Aussen/privat/apic-works.log
+> >
+> >As I said, it works without the option. (So, this is a problem for
+> >people using distribution/generic kernels with the Local-APIC option
+> >enabled)
+> >
+> >This is an Asus Centrino notebook (M2400N) with 1,4 GHz, latest BIOS
+> >update and so on. When I enable the local APIC but disable ACPI, it
+> >works too - ACPI is used to reroute some interrupts and make e.g. sound
+> >work.
+>
+> This clearly indicates ACPI breakage on your machine.
+> Re-report it as such to the ACPI list.
 
-You can define only latencies for C2 and C3 via FADT, so if you allow
-C4 via the p_blk, you *don't* have latency for C4.  You *must* define C4
-in a _CST object in order to get at least the latency, amongst other
-informations.
+I've added some further info. You can find the dmidecode and biosdecode info 
+on: 
+http://www.usta.de/RefAk/Aussen/privat/dmidecode.log
+http://www.usta.de/RefAk/Aussen/privat/biosdecode.log
 
--- 
-Bruno Ducrot
+Thanks for looking into that,
+-Malte
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+PS: Please Cc: me, I am not subscribed
 
 
 -------------------------------------------------------
