@@ -1,48 +1,76 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: [PATCH] Sanitize ACPI Kconfig
-Date: Mon, 17 Jan 2005 01:11:50 +0100
-Message-ID: <20050117001150.GA1337@elf.ucw.cz>
-References: <20050107212259.GA13026@wotan.suse.de>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 0/4]Bind physical devices with ACPI devices - take 2
+Date: Mon, 17 Jan 2005 12:28:22 +0100
+Message-ID: <20050117112822.GA1354@elf.ucw.cz>
+References: <1104893444.5550.127.camel@sli10-desk.sh.intel.com> <1105948622.17633.6.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262770AbVAQL24@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20050107212259.GA13026-B4tOwbsTzaBolqkO4TVVkw@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+In-Reply-To: <1105948622.17633.6.camel@sli10-desk.sh.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Li Shaohua <shaohua.li@intel.com>
+Cc: ACPI-DEV <acpi-devel@lists.sourceforge.net>, lkml <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, Greg <greg@kroah.com>, Patrick Mochel <mochel@digitalimplant.org>
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> Sanitize ACPI Kconfig. No other subsystem uses default m for all its
-> options and surely there is no need to do this for the more obscure
-> modules. When you do make oldconfig with an old option and just press
-> return you tend to get a lot of modules you don't want with this. 
-> Normally new stuff is off by default.
+> > The series of patches implement binding physical devices with ACPI
+> > devices. With it, device drivers can utilize methods provided by
+> > firmware (ACPI). These patches are against 2.6.10, please give your
+> > comments.
 
-I'd say that AC adapter, battery, button and fan should be on by
-default. You set thermal zone to on by default, but thermal zone
-without fan seems like bad idea (not totally useless, but you usually
-want fans for thermal managment). Everybody uses battery (actually it
-seems to be single most important feature). And AC adapter is
-neccessary if you want to go 2GHz with your athlon64 laptop (or it is
-800MHz), so I'd say enable it.
+> This is updated patches according to latest discussion.
+> Changes from last one:
+> 1. introduce new field 'firmware_data' in 'struct device', since people
+> complain rename 'platform_data. Greg, could you please check if the
+> comments I added in 'struct device' are correct?
+> 2. align to Pavel's latest PCI state convention work.
+> 3. Some cleanups and add more comments.
+> One issue is 'platform_pci_choose_state' doesn't get called, it should
+> be after Pavel updates the parameter of 'pci_choose_state'
+
+diff -puN drivers/pci/pci.c~acpi-pci-get-suspend-state-callback
+drivers/pci/pci.c
+--- 2.5/drivers/pci/pci.c~acpi-pci-get-suspend-state-callback
+2005-01-17 12:54:05.357547072 +0800
++++ 2.5-root/drivers/pci/pci.c  2005-01-17 13:08:50.835933896 +0800
+@@ -317,6 +317,7 @@ pci_set_power_state(struct pci_dev *dev,
+  * Returns PCI power state suitable for given device and given system
+  * message.
+  */
++int (*platform_pci_choose_state)(struct pci_dev *, pm_message_t) = 0;
+
+ pci_power_t pci_choose_state(struct pci_dev *dev, u32 state)
+ {
+
+Perhaps you want this to be "= NULL"?
+
+
+> @@ -208,6 +209,25 @@ acpi_status pci_osc_control_set(u32 flag
+>  }
+>  EXPORT_SYMBOL(pci_osc_control_set);
+>  
+> +static int acpi_pci_choose_state(struct pci_dev *pdev,
+> +	pm_message_t state)
+> +{
+> +	char dstate_str[] = "_S0D";
+> +	acpi_status status;
+> +	unsigned long val;
+> +	struct device *dev = &pdev->dev;
+> +
+> +	/* state is PM_SUSPEND_* */
+> +	if ((state >= PM_SUSPEND_MAX) || !DEVICE_ACPI_HANDLE(dev))
+> +		return -EINVAL;
+> +	dstate_str[2] += (int __force)state;
+
+When I'm done, you will not be able to just retype state to
+integer... Perhaps you want to do pci_choose_state first; that gets
+you pci_power_t and that one *is* okay to retype to int?
+
+[And you will be shielded from my patches, too ;-) ]
+
 								Pavel
 -- 
 People were complaining that M$ turns users into beta-testers...
 ...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
-
-
--------------------------------------------------------
-The SF.Net email is sponsored by: Beat the post-holiday blues
-Get a FREE limited edition SourceForge.net t-shirt from ThinkGeek.
-It's fun and FREE -- well, almost....http://www.thinkgeek.com/sfshirt
