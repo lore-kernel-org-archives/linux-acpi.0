@@ -1,12 +1,10 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: [PATCH 3/2] acpi4asus update: bug / typo
-Date: Sat, 10 Jul 2004 00:54:25 +0200
+From: Unknown <unknown@unknown.invalid>
+Subject: Returned Mail: Error During Delivery
+Date: Sat, 10 Jul 2004 07:02:30 +0000 (UTC)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040709225425.GC31054@hell.org.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Message-ID: <E1BjBqu-0008Kd-ND@sc8-sf-mx2.sourceforge.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+From: Webshield SMTP V4.5 MR1a Mail Service
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,60 +13,53 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Date: Sat Jul 10 03:00:30 2004
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-There was a nasty typo in the code that got duplicated by the "remove /proc
-files" patch. Fix that, and also trailing spaces. Please apply to both
-trees.
+    ---- Failed Recipients ----
 
-Signed-off-by: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+<pgmdsg-/X6VYK7xyaY@public.gmane.org>
 
 
---- a/drivers/acpi/asus_acpi.c	2004-06-29 23:39:06.000000000 +0200
-+++ b/drivers/acpi/asus_acpi.c	2004-07-10 00:40:54.000000000 +0200
-@@ -897,13 +901,12 @@
- 	}
- 	
- 	if ((hotk->methods->brightness_up && hotk->methods->brightness_down) ||
--	    (hotk->methods->brightness_get && hotk->methods->brightness_get)) {
-+	    (hotk->methods->brightness_get && hotk->methods->brightness_set)) {
- 		asus_proc_add(PROC_BRN, &proc_write_brn, &proc_read_brn, mode, device);
- 	}
+Requested action not taken: mailbox unavailable. [SMTP Error Code 550]
+
+    ---- Contents of the undelivered mail ----
+
+Received: From webshielde250.example ([218.97.191.90]) by ibixmaila.ibi.com (WebShield SMTP v4.5 MR1a);
+	id 1089442827530; Sat, 10 Jul 2004 03:00:27 -0400
+Received: from askey-bill.askey-sh.com.cn(10.8.1.118) by webshielde250.example via csmap 
+	 id 2d943ae0_d23f_11d8_9df2_0002b3bc9708_17677;
+	Sat, 10 Jul 2004 15:03:00 +0800 (CST)
+Date: Sat, 10 Jul 2004 15:00:25 +0800
+To: "Pgmdsg" <pgmdsg-/X6VYK7xyaY@public.gmane.org>
+From: "Acpi-devel" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Subject: Re: Document
+Message-ID: <bigpjhqcktrbjnhflor-/X6VYK7xyaY@public.gmane.org>
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+        boundary="--------qvmroiwyjpqwecprktgk"
+
+----------qvmroiwyjpqwecprktgk
+Content-Type: text/html; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+
+<html><body>
  
- 	if (hotk->methods->display_set) {
- 		asus_proc_add(PROC_DISP, &proc_write_disp, &proc_read_disp, mode, device);
--
- 	}
- 
- 	return 0;
-@@ -914,7 +917,7 @@
- 	struct asus_hotk* hotk = acpi_driver_data(device);
- 
- 
--	if(acpi_device_dir(device)){
-+	if(acpi_device_dir(device)) {
- 		remove_proc_entry(PROC_INFO,acpi_device_dir(device));
- 		if (hotk->methods->mt_wled)
- 			remove_proc_entry(PROC_WLED,acpi_device_dir(device));
-@@ -922,11 +925,12 @@
- 			remove_proc_entry(PROC_MLED,acpi_device_dir(device));
- 		if (hotk->methods->mt_tled)
- 			remove_proc_entry(PROC_TLED,acpi_device_dir(device));
--		if (hotk->methods->mt_lcd_switch && hotk->methods->lcd_status) 
-+		if (hotk->methods->mt_lcd_switch && hotk->methods->lcd_status)
- 			remove_proc_entry(PROC_LCD, acpi_device_dir(device));
--		if ((hotk->methods->brightness_up && hotk->methods->brightness_down) || (hotk->methods->brightness_get && hotk->methods->brightness_get)) 
-+		if ((hotk->methods->brightness_up && hotk->methods->brightness_down) ||
-+		    (hotk->methods->brightness_get && hotk->methods->brightness_set))
- 			remove_proc_entry(PROC_BRN, acpi_device_dir(device));
--		if (hotk->methods->display_set) 
-+		if (hotk->methods->display_set)
- 			remove_proc_entry(PROC_DISP, acpi_device_dir(device));
- 	}
- 	return 0;
+
+<br>
+</body></html>
+
+----------qvmroiwyjpqwecprktgk
+Content-Type: application/octet-stream; name="Smoke.hta"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="Smoke.hta"
+X-NAI-WebShielde250-mimepp: Attachment repaired
+
+
+
+----------qvmroiwyjpqwecprktgk--
+
 
 
 -------------------------------------------------------
