@@ -1,15 +1,11 @@
-From: =?ISO-8859-1?Q?S=E9rgio_Montei?=ro Basto <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>
-Subject: Re: ACPI on the Compaq Presario 735CA
-Date: Tue, 07 Jan 2003 20:09:02 +0000 (WET)
+From: "=?EUC-KR?B?st7AusDMt+e+7sH4tNk=?=" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Subject: =?EUC-KR?B?W7GksO1dIMDMt7Egu+e+98DMIMDWtNm46T8=?=
+Date: Wed, 08 Jan 2003 05:46:04 +0900 (KST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1041970142.3e1b33dee22d8@webmail.sapo.pt>
-References: <200207120750.g6C7oMBc007838@webmail.dowco.com> <3E1AA15B.2010104@myrealbox.com> <3E1ABEAD.2040607@sec.co.ro> <3E1ADBAE.6060303@myrealbox.com> <1041962623.3e1b167f608be@webmail.sapo.pt>
-Reply-To: Sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org
+Message-ID: <20030107204604.HM.t0000000002ABb1@www6.hanmail.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/html; charset=euc-kr
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1041962623.3e1b167f608be-2RFepEojUI03ju2hA3itMQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,111 +14,40 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org, =?ISO-8859-1?Q?S=E9rgio_Montei?=ro Basto <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>
-Cc: Adrian Turcu <adriant_ie-YSGFQ8SKJZVDPfheJLI6IQ@public.gmane.org>, mariuso-QShcZ35DvxU@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+¾È³çÇÏ¼¼¿ä. ÀÌ·± »ç¾÷ÀÌ ÀÖ´Ù¸é.......?  </br>
 
-Hi I read your page and it is great I done my page too
-for compaq pressario 706EA, you should aplly also new
-s3savage drive.
+Å« ÀÚº»ÀÌ ¾ø¾îµµ ²ŞÀ» ÀÌ·ê ¼ö ÀÖ´Â »ç¾÷ÀÌ ÀÖ½À´Ï´Ù.</br></br> 
+´ç½Å ÀÚ½ÅÀÌ ÀÚ»êÀÌ¶ó°í Çß½À´Ï´Ù. </br>
+´ÙÀ½°ú °°Àº »ç¾÷ÀÌ¶ó¸é ´ç½ÅÀÇ ÀÎ»ı ¼Ó¿¡¼­ °ËÅä¸¦ ÇÑ¹ø ÇØº¸Áö ¾ÊÀ¸½Ã°Ú½À´Ï±î?<br></br>
 
-see it in:
-http://codecs.home.sapo.pt/
- 
-} Citando Adrian Turcu <adriant_ie-YSGFQ8SKJZVDPfheJLI6IQ@public.gmane.org>:
-} 
-} } Hi ya,
-} } 
-} } I posted my page on that portal, but
-} unfortunately
-} } the latest update for 
-} } that portal is from March last year. I can't help
-} it
-} } I think :)
-} } Anyway, for all interested to share the
-} experience
-} } with a Presario 
-} } 724EA, here is the direct link to my page:
-} } 
-} }
-} }
-} http://www.geocities.com/adrianturcu/presario724EA.html
-} } 
-} } Enjoy,
-} } Adi
-} } 
-} } Marius OANCEA wrote:
-} } 
-} } > Hi Adi,
-} } >    If everything is working will be very nice
-} to
-} } post your success 
-} } > story to
-} } http://www.linux-on-laptops.com/compaq.html
-} } >
-} } > http://www.linux-on-laptops.com/ is a portal
-} about 
-} } .... such things.
-} } >
-} } > Salut
-} } >    Marius OANCEA
-} } >
-} } >
-} } >
-} } 
-} } 
-} } 
-} } 
-} }
-} }
-} -------------------------------------------------------
-} } This SF.NET email is sponsored by:
-} } SourceForge Enterprise Edition + IBM + LinuxWorld
-} =
-} } Something 2 See!
-} } http://www.vasoftware.com
-} } _______________________________________________
-} } Acpi-devel mailing list
-} } Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-} }
-} }
-} https://lists.sourceforge.net/lists/listinfo/acpi-devel
-} } 
-} 
-} 
-} 
-} Sérgio Monteiro Basto
-} 		
-} 
-} --
-} A nossa prenda de Natal:  Kit SAPO.ADSL.PT agora a 0
-} € e Tráfego Ilimitado. Só até 31 de Dezembro. 
-} Adira já em http://www.sapo.pt/kitadslgratis
-} 
-} 
-} 
-}
-} -------------------------------------------------------
-} This SF.NET email is sponsored by:
-} SourceForge Enterprise Edition + IBM + LinuxWorld =
-} Something 2 See!
-} http://www.vasoftware.com
-} _______________________________________________
-} Acpi-devel mailing list
-} Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-}
-} https://lists.sourceforge.net/lists/listinfo/acpi-devel
-} 
+ÇöÀç ÇÏ´Â ÀÏÀ» °è¼ÓÇÏ¸é¼­µµ ºÎ¾÷À¸·Î ÇÒ ¼ö ÀÖ´Â »ç¾÷ÀÌ¶ó¸é? </br>
+½ÇÁ÷ÀÇ ¿°·Á ¾øÀÌ, ÇÏ°í ½ÍÀ» ¶§±îÁö °è¼Ó ÇÒ ¼ö ÀÖ´Â »ç¾÷ÀÌ¶ó¸é? </br></br>
+½¬°í ½ÍÀ» ¶§ ¾ğÁ¦µçÁö ½¬¾îµµ ¼öÀÔÀÌ »ı±â´Â »ç¾÷ÀÌ¶ó¸é? </br>
+±×¸¸µÎ°í ½ÍÀ¸¸é ¾Æ¹« Á¦¾à ¾øÀÌ ¾ğÁ¦µçÁö ±×¸¸µÑ ¼ö ÀÖ´Ù¸é? </br></br>
+³»°¡ ÇÊ¿äÇÑ ¹°°ÇÀ» ±¸ÀÔÇÏ°í, »óÇ°ÀÌ ³Ê¹« ÁÁ¾Æ °¡Àå °¡±î¿î »ç¶÷¿¡°Ô ¼Ò°³¸¸ ÇØµµ µÇ´Â »ç¾÷ÀÌ¶ó¸é? </br>
+21¼¼±â °¡Àå À¯¸Á»ç¾÷ÀÎ ÀüÀÚ»ó°Å·¡·Î µ¶Æ¯ÇÑ Á¦Ç°±ºÀ» ¼îÇÎ¸ô·Î ¹Ù·Î ³»°¡ Á÷Á¢ °æ¿µÇÒ ¼ö ÀÖ´Ù¸é?</br></br>
+Áö¿ªÀÇ ÇÑ°è¸¦ ³Ñ¾î ±¹Á¦Àû »ç¾÷ÀÌ °¡´ÉÇÑ »ç¾÷ÀÌ¶ó¸é?  - ÇöÀç 25°³±¹ ÁøÃâ</br>
+À§Çè¼ºÀÌ ¾øÀÌ ¾ÈÁ¤ÀûÀÌ¸é¼­µµ °í¼öÀÍÀ» ¿Ã¸± ¼ö ÀÖ´Â »ç¾÷ÀÌ¶ó¸é? </br></br>
+µ·°ú ½Ã°£À¸·ÎºÎÅÍ ÀÚÀ¯¸¦ ¾òÀ» ¼ö ÀÖ´Â »ç¾÷ÀÌ¶ó¸é? </br>
+ÀÌ·¯ÇÑ Ãàº¹À» °¡±î¿î »ç¶÷¿¡°Ô ³ª´©¾îÁÖ¸ç ÇÔ²² ²ŞÀ» ÀÌ·ê ¼ö ÀÖ´Ù¸é? </br></br>
+ÁøÁ¤ÇÑ ÀÚÀ¯¿Í °¡Á¤ÀÇ ¼ÒÁßÇÔÀ» ¹ÙÅÁÀ¸·Î Èñ¸Á°ú ²ŞÀ» ÀÌ·çµµ·Ï °øÁ¤ÇÑ º¸»óÀÌ º¸ÀåµÇ´Â »ç¾÷ÀÌ¶ó¸é? </br>
+ÀÌ·¯ÇÑ ¼öÀÔÀÌ Æò»ıÅä·Ï Áö¼ÓµÇ¸ç »ó¼Óµµ µÉ ¼ö ÀÖ´Ù¸é? </br></br>
+ÇÑ±¹¿¡¼­ 2003³â¿¡ ½ÃÀÛµÇ´Â Å¸ÀÌ¹ÖÀÌ¶ó¸é?</br></br>
+
+´ç½ÅÀº ÀÎÅÍ³İ¿öÅ©¸¶ÄÉÆÃ(Internet work Marketing)¼Ó¿¡¼­ ºĞ¸í ²ŞÀ» ÀÌ·ê ¼ö ÀÖÀ» °ÍÀÔ´Ï´Ù. ±×·¯³ª </br>
+Ãâ¹ßÇÏ±â¿¡ ¾Õ¼­ ÃæºĞÇÑ ÀÚ·á¸¦ Ã£¾Æº¸½Ã°í ´ç½ÅÀ» µµ¿ÍÁÙ ¸ÚÁø ÆÄÆ®³Ê¸¦ ¼±ÅÃÇÏ½Ã¸é µË´Ï´Ù. ¸ŞÀÏ·Î </br>
+¸ğµç Á¤º¸¸¦ °ø°³ÇÒ ¼ö ¾øÀ½À» ¾çÇØ ¹Ù¶ø´Ï´Ù. ´Ü 40¼¼ ÀÌ»ó ±àÁ¤ÀûÀÌ°í Àû±ØÀûÀÌ¸ç ÇöÀçÇÏ½Ã´Â ÀÏÀ» </br>
+ÇÏ½Ã¸é¼­ Ãß°¡¼öÀÔÀ» ¹Ù¶ó´Â ºĞÀº ÀÌ¸ŞÀÏ<2003open-TRYulfNy6trQT0dZR+AlfA@public.gmane.org>2003open@hanmir.com</a>·Î ±ÍÇÏÀÇ ÁÖ¼Ò¿Í ¿¬¶ôÃ³¸¦ ÁÖ½Ã¸é </br>
+»ó¼¼ÇÏ°Ô ÀÚ·á¸¦ º¸³» µå¸®°Ú½À´Ï´Ù. °¨»çÇÕ´Ï´Ù. 
+<p><font face="±¼¸²Ã¼"><span style="font-size:9pt;">¼ö½Å°ÅºÎ¸¦ ¿øÇÏ½Ã¸é <a href="http://www.crusade.co.kr/reject/reject.php?id=1013&mode=write&mail=acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org">¿©±â</a>¸¦ Å¬¸¯ÇÏ±â¸¸ ÇÏ¼¼¿ä~</span></font></p>
+</body>
 
 
 
-Sérgio Monteiro Basto
-		
 
---
-A nossa prenda de Natal:  Kit SAPO.ADSL.PT agora a 0 € e Tráfego Ilimitado. Só até 31 de Dezembro. 
-Adira já em http://www.sapo.pt/kitadslgratis
 
 
 
