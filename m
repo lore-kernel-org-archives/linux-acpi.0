@@ -1,17 +1,14 @@
-From: Jean-Michel POURE <jm.poure-3sKltW3hOZpWj0EZb7rXcA@public.gmane.org>
-Subject: Re: power-off problem : ASUS K7 + ASUS L3800 + Kernel 2.6-pre9
-Date: Thu, 18 Dec 2003 10:28:16 +0100
+From: Petr Olivka <petr.olivka-jmYXjVuSQ4U@public.gmane.org>
+Subject: RE: fan status not working on D600
+Date: Thu, 18 Dec 2003 10:42:57 +0100 (CET)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200312181028.16545.jm.poure@freesurf.fr>
-References: <3ACA40606221794F80A5670F0AF15F8401720C38@PDSMSX403.ccr.corp.intel.com> <200312171038.23057.jm.poure@freesurf.fr> <20031217165253.GA29159@hell.org.pl>
-Reply-To: jm.poure-3sKltW3hOZpWj0EZb7rXcA@public.gmane.org
+Message-ID: <Pine.LNX.4.58.0312181036260.17824@pcd403z.vsb.cz>
+References: <C386328088ED7F4E9F81AFBABDDF60DA0378CC56@wdmyexch02.my.asia.wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20031217165253.GA29159-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <C386328088ED7F4E9F81AFBABDDF60DA0378CC56-Yw6hFe9C1vnHQcBQSaPqJq0fmWJ9l57d0E9HWUfgJXw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,25 +17,92 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Cc: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ow Mun Heng <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Le Mercredi 17 D=E9cembre 2003 17:52, Karol Kozimor a =E9crit :
-> ACPI shutdowns well here on the same machine (L3800C), I don't recall
-> having any problems at all with any kernel, but it's possible I didn't te=
-st
-> test7 extensively. Anyway, test11 shutdowns fine, so go upgrade your kern=
-el
-> to fix that.
-> Best regards,
+I have D600 and I am using i8k modules to control fan without problem.
 
-Thanks a lot. Maybe the reason for that is that I installed Kernel-2.6-test=
-9=20
-from Debian unstable, and did not compile it myself. Can it be the reason?
+But if you are using bios A08, then SMM bios turn on fan back, after I
+switch it off. With BIOS A05 and A06 work fine.
+And on d600 is only fan 0 supported, fan 1 is not present.
 
-Best regards, Jean-Michel
+Over acpi I have not fan control.
 
+poli
+
+
+On Thu, 18 Dec 2003, Ow Mun Heng wrote:
+
+> Hi Yu, Liming,
+>
+> =09I tied passing acpi=3Doff into the kernel last night. Upon boot-up,
+> the fan
+> was not running. (usually with ACPI=3Don, the fan would turn on as soon a=
+s I
+> boot up
+> RH)
+>
+> However, the fan did kick in after like 5 min. (most likely since I didn'=
+t
+> have acpi
+> and thus power management did not work and  CPU Freq was at max etc...)
+>
+> RUnning i8kutils or i8kctl (from the i8k debian package with insmod i8k
+> force=3D1)
+> I wasn;t able to control the fan either.
+>
+> So.. Additional Info.. Do you want me to file this into bugzilla as well?=
+?
+>
+> Cheers,
+> OW
+>
+> http://bugme.osdl.org/show_bug.cgi?id=3D1643
+>
+> > -----Original Message-----
+> > From: Ow Mun Heng
+> > Sent: Thursday, December 04, 2003 6:11 PM
+> > To: Yu, Luming; Herv=E9 Eychenne; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> > Subject: RE: [ACPI] fan status not working with kernel
+> > 2.6.0-test11 for
+> > Acer Travelmate 803 LCI
+> >
+> >
+> >
+> >
+> >
+> > > -----Original Message-----
+> > > From: Yu, Luming [mailto:luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
+> > > Sent: Thursday, December 04, 2003 11:47 AM
+> > > To: Ow Mun Heng; Herv=E9 Eychenne; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> > > Subject: RE: [ACPI] fan status not working with kernel
+> > > 2.6.0-test11 for
+> > > Acer Travelmate 803 LCI
+> > >
+> > >
+> > > Let me know, if you have done. --Luming
+> >
+> >
+> > Okay... I've filed the bug report.. I hope len.brown isn't furious..
+> > bugzilla sent him like 12 attachments reports :)
+> >
+> > The bug #/link is
+> >
+> > http://bugme.osdl.org/show_bug.cgi?id=3D1643
+> >
+> >
+> > -------------------------------------------------------
+> > This SF.net email is sponsored by: SF.net Giveback Program.
+> > Does SourceForge.net help you be more productive?  Does it
+> > help you create better code?  SHARE THE LOVE, and help us help
+> > YOU!  Click Here: http://sourceforge.net/donate/
+> > _______________________________________________
+> > Acpi-devel mailing list
+> > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> > https://lists.sourceforge.net/lists/listinfo/acpi-devel
+> >
+>
 
 
 -------------------------------------------------------
