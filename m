@@ -1,12 +1,13 @@
-From: Kevin Fenzi <kevin-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Fn-keys on Compaq Evo n800v
-Date: Fri, 28 Jan 2005 10:05:40 -0700
-Message-ID: <20050128170543.E0767E7407@voldemort.scrye.com>
-References: <1106904613.6133.24.camel@localhost.localdomain>
+From: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+Subject: Re: Is it possible for ACPI to blow up the battery?
+Date: Fri, 28 Jan 2005 09:41:17 -0500
+Message-ID: <41FA4F0D.2050104@bartol.udel.edu>
+References: <41F7FD56.8090309@calt129.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <41F7FD56.8090309-iP/H7R5l9gZBDgjK7y7TUQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,53 +17,42 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: =?ISO-8859-1?Q?C=FCneyt?= <cu_lists-iP/H7R5l9gZBDgjK7y7TUQ@public.gmane.org>
+Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+C=FCneyt wrote:
+> Hi all,
+>=20
+> It may be really a dumb question, but I've really no idea.
+>=20
+> I have a Samsung P10 and found at behnel.de & SF-ACPI page some=20
+> instructions to patch the DSDT table under Suse 9.1pro. I followed thos=
+e=20
+> as close as I can and I guess ACPI works somehow. Well, wakeup after=20
+> sleep and CPU-throttling doesn't work though :(
+>=20
+> Now to my dismay the battery stopped charging at all, it is completely=20
+> empty. No matter what I do, it doesn't get charged. The battery is abou=
+t=20
+> 2 yrs old but was pretty OK before, i.e. lasted about 1.5 hrs unplugged=
+.=20
+> Is it possible for DSDT patches to blow up the battery & charging units=
+=20
+> or you think the battery's (physically) died all of a sudden?
 
->>>>> "Anders" == Anders Persson <anders.persson-sT6loi8rTDSci/EUP2OQSw@public.gmane.org> writes:
+Can I make a gess that your battery is Lithium Ion? LiIon batteries=20
+typically last for 2 years *after manufacture*, irrespective of how many=20
+times they are charged and/or discharged. See:
 
-Anders> I run Fedora Core 3 on a Compaq Evo n800v. After compiling a
-Anders> new kernel (2.6.10) with a custom DSDT, ACPI seems to work
-Anders> (almost) fine.  Processor, thermal-zones, lid-button, etc, all
-Anders> seem ok.
+http://www.batteryuniversity.com/parttwo-34.htm
 
-Anders> However, the Fn+F7 & Fn+F8 key combinations for controlling
-Anders> screen brightness stop working when X is started.
+It may be that your battery has reached the end of its life, nothing to=20
+do with ACPI.
 
-Anders> I have previously used exactly this custom DSDT without the
-Anders> above problem on the same machine running RedHat 9 and a
-Anders> 2.4.21 kernel.
+cheers,
 
-Anders> Any input on how to solve this is much appreciated!
-
-I have a presario 2800 (which is basically exactly the same as the evo
-800).
-
-In your xorg.conf in the Monitor device section, add: 
-
-        Option      "AGPMode" "4"
-
-(Even tho the video card in my case is a 1x agp I think). 
-
-That causes my brightness keys to work fine again. 
-You can also disable DRI and get the same effect, but then mission
-critical apps like frozen-bubble or bzflag are slow. ;) 
-
-Anders> /Anders
-
-kevin
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.6 (GNU/Linux)
-Comment: Processed by Mailcrypt 3.5.8 <http://mailcrypt.sourceforge.net/>
-
-iD8DBQFB+nDn3imCezTjY0ERArUnAJ4m2vk45JpSTOfWY9Zk838DzQcJJQCeKVdK
-rdYI/chAbs4BF+U3b04Sai4=
-=uC+V
------END PGP SIGNATURE-----
+Rich
 
 
 -------------------------------------------------------
