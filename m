@@ -1,14 +1,14 @@
-From: Hanno Böck <hanno-Mmb7MZpHnFY@public.gmane.org>
-Subject: Re: ACPI source release updated (20020725)
-Date: Fri, 26 Jul 2002 06:29:42 +0200
+From: Jens Haug <haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org>
+Subject: Re: ACPI on the Compaq Presario 2800T
+Date: Fri, 26 Jul 2002 08:32:53 +0200 (MEST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020726062942.5ae29506.hanno@gmx.de>
-References: <59885C5E3098D511AD690002A5072D3C07990D88@orsmsx111.jf.intel.com>
+Message-ID: <200207260632.g6Q6WsH14921@ikffws2.ikff.uni-stuttgart.de>
+Reply-To: Jens Haug <haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <59885C5E3098D511AD690002A5072D3C07990D88-OU+JdkIUtvcLll3ZsUKC9FDQ4js95KgL@public.gmane.org>
+Content-MD5: Uqt4Wxmvh4ldrLiZHmMZlA==
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,13 +20,33 @@ List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I tried to install it, but i failed to compile the new acpi-patch on kernel 2.4.18:
+> > * a patch to fix the lack of a sleep CONFIG entry
+>=20
+> by hand : add the line in linux/drivers/acpi/Config.in=20
+>       define_bool CONFIG_ACPI_SLEEP             y
+> after the line=20
+>       define_bool CONFIG_ACPI_POWER             y
 
-dswload.c: In function `acpi_ds_load2_end_op':
-dswload.c:451: structure has no member named `name'
+I did that, did make mrproper; make dep; make bzImage (kept my
+modules as they were), now have a file /proc/acpi/sleep, but
+nothing happens when I echo 1 into this file.
+It used to work with all the older versions I've tested so far.
+(Please note that I'm not the one who asked the question in the
+first place, Sourav K Mandal.)
+
+
+Jens
+
+
+--=20
+Jens Haug
+IKFF Universit=E4t Stuttgart              Tel. 0711/685-6422
+Pfaffenwaldring 9                       Fax  0711/685-6356
+70550 Stuttgart=09                haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org
+
 
 
 -------------------------------------------------------
-This sf.net email is sponsored by: Jabber - The world's fastest growing 
-real-time communications platform! Don't just IM. Build it in! 
-http://www.jabber.com/osdn/xim
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
