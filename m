@@ -1,15 +1,14 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Dell D600: teaching radeonfb how to wake up...
-Date: Thu, 20 Nov 2003 12:44:29 +0100
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: S1 sleep mode on Dell Inspiron 8100
+Date: Wed, 19 Nov 2003 20:31:18 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031120114429.GH32464@poupinou.org>
-References: <20031119180119.GB22307@tate.loria.fr> <20031119194303.GA16571@hell.org.pl> <20031119205129.A19364@loria2.loria.fr>
+Message-ID: <20031119193117.GA7068@openzaurus.ucw.cz>
+References: <3FBB975E.30801@free.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20031119205129.A19364-SAjW485I7Qt98t58zOhiHA@public.gmane.org>
+In-Reply-To: <3FBB975E.30801-GANU6spQydw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,47 +17,24 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Emmanuel Thome <Emmanuel.Thome+acpi-/zGXu1G9BXs@public.gmane.org>
+To: Guillaume Pothier <gpothier-GANU6spQydw@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Nov 19, 2003 at 08:51:29PM +0100, Emmanuel Thome wrote:
-> On Wed, Nov 19, 2003 at 08:43:03PM +0100, Karol Kozimor wrote:
-> > Thus wrote Emmanuel Thomé:
-> > > S3 works halfway. Meaning the ``going to sleep'' part works ;).  USB is
-> > > completely dead on bootup (megabytes of ``host controller halted''
-> > > messages), but that's not my #1 concern. My #1 concern is the radeon
-> > > 9000 (M9) graphics card, which doesn't come up (fortunately, network is
-> > > relatively polite, and enables me to investigate). I'm not even talking
-> > > graphic mode.
-> > 
-> > I thought framebuffer was considered "graphic mode", wasn't it? Anyway,
-> 
-> Granted. I meant ``I'm not yet trying to handle the case where X comes to
-> play''.
-> 
-> The fact that radeonfb is loaded or not does not make a big difference
-> anyway. It would, if eventually the radeonfb driver were able to talk the
-> right language to the device. Which is something I'm not going to expect
-> from vesafb. Proper acpi power management would be a dramatic feature to
-> add to radeonfb...
-> 
-> > contact Benjamin Herrenschmidt (lkml arschives), he's the one doing a major
-> > rework of radeonfb for 2.6, so he might be able to help.
-> 
-> yup, done that a few moments ago. I'll be glad if he answers email.
+Hi!
 
-radeonfb contains suspend/resume code for pmac, written by
-some ATI folks (at least on the 2.4 benh kernels, and certainly in
-his 2.6 bk tree), so I guess you can start with (looking the code,
-you will see some ref. to ACPI, even though it is for pmac..).
-Also, dri cvs have some interresting stuff as well.
+> tried to go into sleep mode). Now it powers off properly when I press 
+> the power button and handles AC unplug. However, I cannot have it go 
+> into S1 sleep mode. When I do echo 1 >/proc/acpi/sleep, the computer 
+> freezes, but the screen remains on, hdd too. Then if I press the 
+> power button it goes back normal. Is there something more to do to 
+> enter sleep mode?
 
+Well... cpu is sleeping and you _are_ in S1 sleep mode.
 -- 
-Ducrot Bruno
+				Pavel
+Written on sharp zaurus, because my Velo1 broke. If you have Velo you don't need...
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
 
 
 -------------------------------------------------------
