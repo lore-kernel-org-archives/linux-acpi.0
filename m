@@ -1,7 +1,7 @@
 From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/3]remove PCI link device resume code
-Date: Fri, 21 Jan 2005 15:49:06 +0800
-Message-ID: <1106293743.19407.64.camel@sli10-desk.sh.intel.com>
+Subject: [PATCH 3/3]PCI resume code call pci_enable_device
+Date: Fri, 21 Jan 2005 15:49:53 +0800
+Message-ID: <1106293745.19407.66.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -19,97 +19,51 @@ To: ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-The patch remove PCI link device resume code. The new .suspend method
-will set a flag for suspend/resume, so acpi_pci_link_allocate will
-reconfigure IRQ.
+Add pci_enable_device in .resume method for some drivers. I just fixed
+some at hand. Will fix more if there are other cases.
 
 Signed-off-by: Li Shaohua<shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
 ---
 
- 2.5-root/drivers/acpi/pci_link.c |   34 ++++++++++++----------------------
- 1 files changed, 12 insertions(+), 22 deletions(-)
+ 2.5-root/drivers/net/b44.c             |    1 +
+ 2.5-root/drivers/pcmcia/yenta_socket.c |    1 +
+ 2.5-root/drivers/usb/host/uhci-hcd.c   |    1 +
+ 3 files changed, 3 insertions(+)
 
-diff -puN drivers/acpi/pci_link.c~remove_pci_link_resume drivers/acpi/pci_link.c
---- 2.5/drivers/acpi/pci_link.c~remove_pci_link_resume	2005-01-20 13:11:46.034910136 +0800
-+++ 2.5-root/drivers/acpi/pci_link.c	2005-01-20 13:26:55.954581320 +0800
-@@ -72,10 +72,12 @@ struct acpi_pci_link_irq {
- 	u8			active;			/* Current IRQ */
- 	u8			edge_level;		/* All IRQs */
- 	u8			active_high_low;	/* All IRQs */
--	u8			initialized;
- 	u8			resource_type;
- 	u8			possible_count;
- 	u8			possible[ACPI_PCI_LINK_MAX_POSSIBLE];
-+	u8			initialized:1;
-+	u8			suspend_resume:1;
-+	u8			reserved:6;
- };
+diff -puN drivers/usb/host/uhci-hcd.c~resume_call_pci_enable_device drivers/usb/host/uhci-hcd.c
+--- 2.5/drivers/usb/host/uhci-hcd.c~resume_call_pci_enable_device	2005-01-20 13:57:15.903906968 +0800
++++ 2.5-root/drivers/usb/host/uhci-hcd.c	2005-01-20 13:58:33.971038960 +0800
+@@ -2251,6 +2251,7 @@ static int uhci_resume(struct usb_hcd *h
+ 	int rc;
  
- struct acpi_pci_link {
-@@ -528,6 +530,8 @@ static int acpi_pci_link_allocate(struct
+ 	pci_set_master(to_pci_dev(uhci_dev(uhci)));
++	pci_enable_device(to_pci_dev(uhci_dev(uhci)));
  
- 	ACPI_FUNCTION_TRACE("acpi_pci_link_allocate");
+ 	if (uhci->state == UHCI_SUSPENDED) {
  
-+	if (link->irq.suspend_resume)
-+		acpi_pci_link_set(link, link->irq.active);
- 	if (link->irq.initialized)
- 		return_VALUE(0);
+diff -puN drivers/pcmcia/yenta_socket.c~resume_call_pci_enable_device drivers/pcmcia/yenta_socket.c
+--- 2.5/drivers/pcmcia/yenta_socket.c~resume_call_pci_enable_device	2005-01-20 14:06:32.568281120 +0800
++++ 2.5-root/drivers/pcmcia/yenta_socket.c	2005-01-20 14:07:23.850485040 +0800
+@@ -1057,6 +1057,7 @@ static int yenta_dev_resume (struct pci_
+ 		pci_restore_state(dev);
+ 		pci_write_config_dword(dev, 16*4, socket->saved_state[0]);
+ 		pci_write_config_dword(dev, 17*4, socket->saved_state[1]);
++		pci_enable_device(dev);
  
-@@ -709,38 +713,24 @@ end:
- 	return_VALUE(result);
- }
+ 		if (socket->type && socket->type->restore_state)
+ 			socket->type->restore_state(socket);
+diff -puN drivers/net/b44.c~resume_call_pci_enable_device drivers/net/b44.c
+--- 2.5/drivers/net/b44.c~resume_call_pci_enable_device	2005-01-20 14:35:17.696021840 +0800
++++ 2.5-root/drivers/net/b44.c	2005-01-20 14:35:44.457953408 +0800
+@@ -1930,6 +1930,7 @@ static int b44_resume(struct pci_dev *pd
+ 	struct b44 *bp = netdev_priv(dev);
  
--
- static int
--acpi_pci_link_resume (
--	struct acpi_pci_link	*link)
--{
--	ACPI_FUNCTION_TRACE("acpi_pci_link_resume");
--	
--	if (link->irq.active && link->irq.initialized)
--		return_VALUE(acpi_pci_link_set(link, link->irq.active));
--	else
--		return_VALUE(0);
--}
--
--
--static int
--irqrouter_resume(
--	struct sys_device *dev)
-+irqrouter_suspend(
-+	struct sys_device *dev,
-+	u32	state)
- {
- 	struct list_head        *node = NULL;
- 	struct acpi_pci_link    *link = NULL;
+ 	pci_restore_state(pdev);
++	pci_enable_device(pdev);
  
--	ACPI_FUNCTION_TRACE("irqrouter_resume");
-+	ACPI_FUNCTION_TRACE("irqrouter_suspend");
- 
- 	list_for_each(node, &acpi_link.entries) {
--
- 		link = list_entry(node, struct acpi_pci_link, node);
- 		if (!link) {
- 			ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid link context\n"));
- 			continue;
- 		}
--
--		acpi_pci_link_resume(link);
-+		if (link->irq.active && link->irq.initialized)
-+			link->irq.suspend_resume = 1;
- 	}
- 	return_VALUE(0);
- }
-@@ -852,7 +842,7 @@ __setup("acpi_irq_balance", acpi_irq_bal
- 
- static struct sysdev_class irqrouter_sysdev_class = {
-         set_kset_name("irqrouter"),
--        .resume = irqrouter_resume,
-+        .suspend = irqrouter_suspend,
- };
- 
- 
+ 	if (!netif_running(dev))
+ 		return 0;
 _
 
 
