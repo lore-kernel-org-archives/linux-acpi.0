@@ -1,14 +1,16 @@
-From: "Tolentino, Matthew E" <matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [Lhms-devel] Re: [PATCH] ACPI based Memory HotplugDriver Patch
-Date: Fri, 10 Sep 2004 10:51:58 -0700
+From: Andreas Dieling <snow-1pFVYSAoaJAREI5ypv3d1g@public.gmane.org>
+Subject: Re: acpi_serialize not working?
+Date: Fri, 10 Sep 2004 20:12:58 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <D36CE1FCEFD3524B81CA12C6FE5BCAB007AA62DA@fmsmsx406.amr.corp.intel.com>
+Message-ID: <200409102012.58706.snow@quantentunnel.de>
+References: <37F890616C995246BE76B3E6B2DBE05501F53DCF@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <37F890616C995246BE76B3E6B2DBE05501F53DCF-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,33 +19,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dave Hansen <haveblue-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Cc: "S, Naveen B" <naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lhms <lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->But, this brings up something that's been nagging me for a while: what
->should /sys/devices/system/memory contain?  A logical view of=20
->memory for
->use with memory hotplug, or a hardware description of memory?  I think
->both are probably necessary, and should link to each other, but how
->should we present them?
+On Friday 10 September 2004 19:48, Moore, Robert wrote:
+> This was fixed, see below:
+>
+> 02 April 2004.  Summary of changes for version 20040402:
+>
+> Moved the runtime configuration parameters from the global init
+> procedure to static variables in acglobal.h.  This will allow the host
+> to override the default values easily.
+>
 
-Yep, I think both are necessary.  I think the more logical
-representation
-for most cases makes sense as a baseline with the additional capability=20
-to also determine which logical entities constitute a physical entity. =20
-That's where I was going with the function pointer and mention of=20
-phys_device/fru stuff in the sysfs driver.  I'm still planning on=20
-plumbing this together, but have been distracted with other stuff of
-late...
-
->One thing that causes a problem is that ppc64 already exports a view of
->its memory in /proc/device-tree.  But, I don't think this is something
->that ACPI should perpetuate. =20
-
-Nope.  Sounds like someone needs to do some ppc64 sysfs porting...  ;-)=20
-
-matt
+cool thx,
+have tested 2.6.9-rc1 and indeed acpi_serialize is working now :-)
 
 
 -------------------------------------------------------
