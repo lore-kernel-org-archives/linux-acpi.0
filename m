@@ -1,12 +1,11 @@
-From: "siva" <sivakumar.subramani-uxC5H9eHYlcAvxtiuMwx3w@public.gmane.org>
-Subject: System poweroff
-Date: Mon, 30 Jun 2003 16:59:00 +0530
+From: Mail Delivery Subsystem <MAILER-DAEMON-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Returned mail: see transcript for details
+Date: Mon, 30 Jun 2003 04:37:53 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <0ee801c33efa$cd80eaf0$2a0806c0@wiproxcoio3398>
-Reply-To: "siva" <sivakumar.subramani-uxC5H9eHYlcAvxtiuMwx3w@public.gmane.org>
+Message-ID: <200306301137.h5UBbrIj001531@proxy9.cisco.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPartTM-000-58b6873b-aaad-11d7-ba80-006067005148"
+Content-Type: multipart/report; report-type=delivery-status;
+	boundary="h5UBbrIj001531.1056973073/proxy9.cisco.com"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -19,80 +18,97 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+This is a MIME-encapsulated message
 
-------=_NextPartTM-000-58b6873b-aaad-11d7-ba80-006067005148
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0EE5_01C33F28.E72B6B50"
+--h5UBbrIj001531.1056973073/proxy9.cisco.com
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-------=_NextPart_000_0EE5_01C33F28.E72B6B50
+------------------  Virus Warning Message (on the network)
+
+Found virus WORM_SOBIG.E in file details.pif (in your_details.zip)
+The uncleanable file is deleted.
+
+If you are an internal Cisco employee, more information can be found at the following internal location:  http://mailer.cisco.com/virus/
+
+---------------------------------------------------------
+
+--h5UBbrIj001531.1056973073/proxy9.cisco.com
+
+The original message was received at Mon, 30 Jun 2003 04:37:45 -0700 (PDT)
+from [202.120.16.1]
+
+   ----- The following addresses had permanent fatal errors -----
+<jrowe-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+    (reason: 550 5.1.1 <jrowe-utT5/ZYDcdqU+GOnkdjqUdBPR1lH4CV8@public.gmane.org>... User unknown)
+    (expanded from: <jrowe-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>)
+
+   ----- Transcript of session follows -----
+... while talking to rtp-core-2.cisco.com.:
+>>> DATA
+<<< 550 5.1.1 <jrowe-utT5/ZYDcdqU+GOnkdjqUdBPR1lH4CV8@public.gmane.org>... User unknown
+550 5.1.1 <jrowe-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>... User unknown
+<<< 503 5.0.0 Need RCPT (recipient)
+
+--h5UBbrIj001531.1056973073/proxy9.cisco.com
+Content-Type: message/delivery-status
+
+Reporting-MTA: dns; proxy9.cisco.com
+Received-From-MTA: DNS; [202.120.16.1]
+Arrival-Date: Mon, 30 Jun 2003 04:37:45 -0700 (PDT)
+
+Final-Recipient: RFC822; jrowe-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+X-Actual-Recipient: RFC822; jrowe-utT5/ZYDcdqU+GOnkdjqUdBPR1lH4CV8@public.gmane.org
+Action: failed
+Status: 5.1.1
+Remote-MTA: DNS; rtp-core-2.cisco.com
+Diagnostic-Code: SMTP; 550 5.1.1 <jrowe-utT5/ZYDcdqU+GOnkdjqUdBPR1lH4CV8@public.gmane.org>... User unknown
+Last-Attempt-Date: Mon, 30 Jun 2003 04:37:53 -0700 (PDT)
+
+--h5UBbrIj001531.1056973073/proxy9.cisco.com
+Content-Type: message/rfc822
+
+Return-Path: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Received: from DZ ([202.120.16.1])
+	by proxy9.cisco.com (8.12.8p1/8.11.2) with ESMTP id h5UBbhIj001526
+	for <jrowe-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>; Mon, 30 Jun 2003 04:37:45 -0700 (PDT)
+Message-Id: <200306301137.h5UBbhIj001526-6whrnkZ7fEgmJK0Ubc+b+Q@public.gmane.org>
+From: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: <jrowe-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: [Spam] Re: Movie
+Date: Mon, 30 Jun 2003 19:36:05 +0800
+Importance: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2600.0000
+X-MSMail-Priority: Normal
+X-Priority: 3 (Normal)
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="CSmtpMsgPart123X456_000_003F583F"
+X-Brightmail-Tracker: AAAAAQBXScI=
+X-SPAM: Yes
+
+This is a multipart message in MIME format
+
+--CSmtpMsgPart123X456_000_003F583F
 Content-Type: text/plain;
 	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 
-Hi,
-
-My system is not getting powered off, if I issue a poweroff / halt -p  / =
-init 0 command. Instead it is shutdowns the system and stops after =
-displaying the following message "Power down". I haven't installed any =
-of the power management (APM / ACPI) option in my kernel.
-
-Is it because of that ?
-
-Thanks,
--Siva
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-"Imagination is more important than Knowledge"
-                               - Albert Einstein
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-------=_NextPart_000_0EE5_01C33F28.E72B6B50
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; =
-charset=3Diso-8859-1">
-<META content=3D"MSHTML 6.00.2462.0" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV><FONT face=3DArial color=3D#0000ff size=3D2>Hi,</FONT></DIV>
-<DIV><FONT face=3DArial color=3D#0000ff size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial color=3D#0000ff size=3D2>My system is =
-not&nbsp;getting powered=20
-off, if I issue a poweroff / halt -p&nbsp; / init 0 command. Instead it =
-is=20
-shutdowns the system and stops after displaying the following message =
-"Power=20
-down". I haven't installed&nbsp;any of the power management (APM / ACPI) =
-option=20
-in my kernel.</FONT></DIV>
-<DIV><FONT face=3DArial color=3D#0000ff size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial color=3D#0000ff size=3D2>Is it because of that =
-?</FONT></DIV>
-<DIV><FONT face=3DArial color=3D#0000ff size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial color=3D#0000ff size=3D2>Thanks,</FONT></DIV>
-<DIV><FONT face=3DArial color=3D#0000ff size=3D2>-Siva</FONT></DIV>
-<DIV><FONT face=3DArial color=3D#0000ff size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial color=3D#0000ff=20
-size=3D2>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~<BR>"Imagination is more =
-important=20
-than=20
-Knowledge"<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
-;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=20
-- Albert=20
-Einstein<BR>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</FONT></DIV></BODY></HT=
-ML>
-
-------=_NextPart_000_0EE5_01C33F28.E72B6B50--
+Please see the attached zip file for details.
+--CSmtpMsgPart123X456_000_003F583F
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
 
-------=_NextPartTM-000-58b6873b-aaad-11d7-ba80-006067005148--
+------------------  Virus Warning Message (on the network)
+
+your_details.zip is removed from here because it contains a virus.
+
+---------------------------------------------------------
+--CSmtpMsgPart123X456_000_003F583F--
+
+
+--h5UBbrIj001531.1056973073/proxy9.cisco.com--
 
 
 
