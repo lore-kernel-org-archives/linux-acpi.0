@@ -1,60 +1,69 @@
-From: Robert Vollmert <rvollmert-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Re: Shuttle SB61G2 fan speed
-Date: Wed, 8 Oct 2003 11:25:21 +0200
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031008092521.GA994@krikkit>
-References: <E1A73Nv-0001M5-68@cell01.cell01.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: ACPI blacklisting: move year blacklist into acpi/blacklist.c
+Date: Wed, 8 Oct 2003 11:58:14 +0200
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <20031008095814.GB288@elf.ucw.cz>
+References: <20031001101826.GA3503@elf.ucw.cz> <1065595181.3370.478.camel@dhcppc4>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <E1A73Nv-0001M5-68-6vcCkRnH9/iXl4vLVl4uKAC/G2K4zDHf@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: digitale-eFwX6J65rk/J8bqQQ1YlwQ@public.gmane.org
+In-Reply-To: <1065595181.3370.478.camel-D2Zvc0uNKG8@public.gmane.org>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
+Hi!
 
-On Tue, Oct 07, 2003 at 09:45:03PM -0400, Eric Northup wrote:
-> I have a Shuttle mini-PC currently running linux 2.6-test6 (but I have
-> seen this issue w/all kernels I've tried, 2.4.x and 2.5.x).  It has a
-> "smart" fan control, which regulates the speed of the system fan
-> according to the temperature (a Thermal Zone in ACPI terms, yes?).  The
-> problem is: as soon as Linux gets control from GRUB, the fan goes to
-> full speed and stays there.
+> Re: dmi_check_blacklist()
+> 
+> Something like MATCH(DMI_BOARD_NAME, "P2B-DS") boils down to a strstr(a,
+> b) -- probably something that can be fooled by substring, say "PB2-D"...
+> 
+> But more to the point, there is no way to compare before/after dates,
+> say BEFORE(DMI_BIOS_DATE, "1/3/2002")
+> 
+> This is needed to blacklist things like the Toshiba Tecra 8100 which
+> supplies a DMI date, but no other useful version info.
+> 
+> If we such a date comparison function, we could also use it to make the
+> year-compare code below somewhat cleaner.
 
-I assume you've enabled ACPI? To what extent does it work? I.e. are
-there errors in dmesg (try compiling with debug support?), what parts
-of /proc/acpi appear functional (temperature, fan)?
+Well, my main problem is with having two blacklists at diferent places.
 
-If it sort of works, it could be an issue with the DSDT. Check
-acpi.sf.net for information on how to extract this.
+> Re: externs
+> looks like using externs in the function protos in include/linux is
+> common practice, so acpi.h should probably do it too -- even if it is
+> just for consistent style.
 
-There might also be some BIOS options that affect this. In particular,
-a few sites seem to suggest problems with certain APIC options.
+Do you want me to submit patch or will you add externs?
 
-> I have flashed the BIOS to the latest (which claimed to fix a fan speed
-> problem with Windows), but the problem persists.  So I don't know if it
-> is a case of pilot error, a Linux bug, or a BIOS bug.  Any help sorting
-> this out would be much appreciated :)
+> Re: diffs
+> I couldn't get patch to digest this format w/o manual intervention
+> --- /usr/src/tmp/linux/arch/...
+> +++ /usr/src/linux/arch/...
+> 
+> and had to edit it into
+> 
+> --- a/arch/...
+> +++ b/arch/...
+> 
+> for patch -Np1
 
-Shuttle seem to be quite supportive of Linux from what I can tell by
-checking their web site. So if this turns out to be a BIOS/DSDT
-problem, maybe you could get them to update it.
+Sorry. (I fixed generating script).
 
-Cheers
-Robert
+> Re: acpi_bios_year() definition
+> note that CONFIG_ACPI_BOOT may be defined when CONFIG_ACPI is not.  Ie.
+> in the case where just the ACPI boot code is used to enumerate LAPICs,
+> say for HT, but ACPI_INTERPRETER is not even built in.
+> 
+> In this case, blacklist.c is not built into the kernel, but dmi_scan.c
+> always is.
 
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
+Okay, in such case is it feasible to move blacklist.c functionality
+into dmi_scan.c? i386 blacklist is probably useless for ia64,
+anyway... And 2 places seem like bad idea.
+								Pavel
+-- 
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
