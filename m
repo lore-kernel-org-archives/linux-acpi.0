@@ -1,57 +1,36 @@
-From: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
-Subject: Re: Re: New SmartBattery DSDT-based controller
-Date: Sun, 06 Feb 2005 16:52:22 -0500
-Message-ID: <42069196.707@bartol.udel.edu>
-References: <41FBDDE2.1050403@bartol.udel.edu> <m2mzuhz7pg.fsf@phoenix.squirrel.nl>
+From: Adam Sulmicki <adam@cfar.umd.edu>
+Subject: Re: [RFC] Reliable video POSTing on resume (was: Re: [ACPI] Samsung
+ P35, S3, black screen (radeon))
+Date: Sun, 6 Feb 2005 21:11:18 -0500 (EST)
+Message-ID: <Pine.BSF.4.62.0502062107000.26868@www.missl.cs.umd.edu>
+References: <e796392205020221387d4d8562@mail.gmail.com>  <420217DB.709@gmx.net>
+ <4202A972.1070003@gmx.net>  <20050203225410.GB1110@elf.ucw.cz>
+ <1107474198.5727.9.camel@desktop.cunninghams> <4202DF7B.2000506@gmx.net>
+ <1107485504.5727.35.camel@desktop.cunninghams>  <9e4733910502032318460f2c0c@mail.gmail.com>
+  <20050204074454.GB1086@elf.ucw.cz>  <9e473391050204093837bc50d3@mail.gmail.com>
+  <20050205093550.GC1158@elf.ucw.cz> <1107695583.14847.167.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <m2mzuhz7pg.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+In-Reply-To: <1107695583.14847.167.camel@localhost.localdomain>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Pavel Machek <pavel@ucw.cz>, Jon Smirl <jonsmirl@gmail.com>, ncunningham@linuxmail.org, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>, ACPI List <acpi-devel@lists.sourceforge.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Johan Vromans wrote:
-> Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org> writes:
-> 
-> 
->>1) Direct fiddling with the SMBus registers that make up part of the EC
->>address space. This is what Bruno Ducrot's i2c-acpi-ec module was for:
->>it exposed kernel-space functions to allow one to perform the required
->>fiddling. My acpi-sbs module then used these functions to examine the
->>status of the smart battery.
-> 
-> 
-> Actually, I think this approach has it attractive sides as well.
-> I'm currently using your acpi-sbs snapshot of 20050120. Did you
-> produce anything better before you switched to the DSDT approach?
 
-No, I got sidetracked by the DSDT stuff (and by my 3 month-old daughter!).
+hi all,
+ 	I would like point to work done by Li-Ta Lo.
 
-However, I should mention that, long-term, I see the acpi-sbs module as 
-*sort of* the way to go. But first, we need a proper framework for 
-dealing with batteries under Linux, that exposes a unified interface to 
-userspace. This framework would abstract away all of the hardware 
-dependent stuff, so that whether a system has a CM battery or an SBS 
-battery, it appears exactly the same outside the kernel. The "future" 
-acpi-sbs module would be implemented as part of this framework, as would 
-a new module for CM batteries.
+ 	It allows you to completely initalize the VGA BIOS w/out using
+ 	PC BIOS at all.
 
-cheers,
+ 	http://www.clustermatic.org/pipermail/linuxbios/2005-January/010236.html
 
-Rich
+ 	unforunatelly the information the web is somewhat sparse, but
+ 	you can get more info by following the archive of the
+ 	thread (which head I listed above) and perhaps by posting to
+ 	linuxbios mailing list (Ollie, is somewhat buy those days with his
+ 	new baby).
 
-
--------------------------------------------------------
-This SF.Net email is sponsored by: IntelliVIEW -- Interactive Reporting
-Tool for open source databases. Create drag-&-drop reports. Save time
-by over 75%! Publish reports on the web. Export to DOC, XLS, RTF, etc.
-Download a FREE copy at http://www.intelliview.com/go/osdn_nl
+ 	Either way quite amazing feat that should bring LinuxBIOS closer
+ 	to desktop.
