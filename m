@@ -1,9 +1,9 @@
-From: "Autumn Kerr" <h21aele-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+From: "Leonel Mead" <guwdvf-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Subject: .
-Date: Wed, 26 Nov 2003 22:53:23 -0500
+Date: Thu, 27 Nov 2003 08:54:43 +0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <55933w19rs8ewe-tp-w0m6xy@kgqh2s>
-Reply-To: "Autumn Kerr" <h21aele-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Message-ID: <6b81d49f19l2n4w78t6@j3xqs>
+Reply-To: "Leonel Mead" <guwdvf-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: multipart/alternative;
 	boundary="1_1E_CE.48"
@@ -24,8 +24,7 @@ List-Id: linux-acpi@vger.kernel.org
 Content-Type: text/html;
 Content-Transfer-Encoding: quoted-printable
 
-skujy be  tjk hmb  ssttym wur
-thjx uknm
+ja xkhwxtdeafvqynahconkuyj  lzbacf
 
 --1_1E_CE.48--
 
