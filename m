@@ -1,14 +1,14 @@
 From: Micha Feigin <michf-+lLcF8/aw9x6auLlOhE+pQ@public.gmane.org>
-Subject: Re: Plea for help
-Date: Sun, 21 Dec 2003 03:45:25 +0200
+Subject: Re: can't get standby (S1) to work
+Date: Sun, 21 Dec 2003 03:54:27 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031221014525.GB3587@luna.mooo.com>
-References: <3FE28F79.601@comcast.net>
+Message-ID: <20031221015427.GC3587@luna.mooo.com>
+References: <200312201644.hBKGiX228156@webmail2.cac.psu.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <3FE28F79.601-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+In-Reply-To: <200312201644.hBKGiX228156-vziUDZACzaCQ8O33ekXIjvZ8FUJU4vz8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,44 +20,38 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Dec 18, 2003 at 11:41:13PM -0600, Ian Pilcher wrote:
-> I posted a couple of weeks ago about a kernel panic that shows up when I
-> boot my Abit VP6 (dual-PIII) with ACPI turned on.  It turns out that the
-> kernel boots just fine with ACPI on when I build it with
-> CONFIG_DEBUG_SLAB=y.
-> 
-> Alan Cox suggested that this is probably due to code that kmallocs
-> memory and then relies on its content without clearing it, but I never
-> received any response to my request for suggestions on how to identify
-> the offending code.
-> 
-> I've just spent several hours adding printk statements to the ACPI code,
-> and I've reached a point where the oops message is overwriting portions
-> of my printk messages.  I have the sinking feeling that this indicates
-> that the process executing the ACPI code is not the one that's oops'ing.
-> 
-> I'm stuck.  How can a relative newbie debug a problem like this, or at
-> least gather enough information to enable someone with more expertise to
-> do so?
+On Sat, Dec 20, 2003 at 11:44:33AM -0500, Nirmal Govind wrote:
+> Hi.. I have acpi compiled into the kernel and also have swsusp. Now, when I try
+> echo 1 > /proc/acpi/sleep, nothing happens. I'm running Mandrake 9.2, 2.4.22-21
+> kernel that I compiled with (almost?) all the acpi options enabled. The laptop
+> is a Fujitsu Lifebook S6120D. Is there any way to get the laptop to standby? I
+> move around a lot with this computer and really would like to get the standby
+> working. The swsusp seems to work with the suspend to disk, i.e. when I do an
+> echo 1 > /proc/swsusp/activate .. however, after the computer suspended, I
+> couldn't bring it back up - when I hit the power button, it tried to resume,
+> did something, and then gave me a blank screen -- had to do a hard reboot after
+> that.
 > 
 
-I had a brief look at what CONFIG_DEBUG_SLAB=y option does. It looks
-that beside adding some debug output and sanity checks it also
-initializes the memory to a non null pattern (poison something). You
-could start with setting that pattern to 0x00 instead of what it is and
-see if that returns your oopses (don't know where it points, but thats
-probably won't do anything but could give you a null pointer access).
-Otherwise I would follow the changes (it changes the DEBUG flag and
-don't remember what else) and see if it changes anything (other then
-the poison thing) or just read tests the results and prints error
-messages. If that is the case than what you probably have is a race
-condition causing some kind of timing problem.
+swsusp doesn't give you S1 and S3, only S4. For S1 and S3 you'll need
+2.6 or apm and a dedicated partition (if your bios supports it).
+If its swsusp from mandrake then you should get the latest swsusp
+patches and try with those (don't know what version the mandrake kernel
+has). You'll probably need to get a vanilla kernel for that (mandrakes
+is heavily patched afaik). I would also suggest upgrading to 2.4.23 as
+2.4.22 has a security bug.
+Do you have a resume=<swap partition> in your lilo/grub/whatever config?
+Are there any messages in /var/log/syslog saying what happened after
+wakeup? Do you even see the beginning of the resume process? (you
+should see the kernel starting up). Are you using the suspend script?
+whats the output of /proc/swsusp/debug_info or /proc/swsusp/version (if
+they don't exist then its a really old version).
+Also try on the swsusp-devel list (look at swsusp.sf.net), there is
+lots more of good help there then you would be able to find here as
+this is not an acpi issue.
 
-> TIA.
-> -- 
-> ========================================================================
-> Ian Pilcher                                        i.pilcher-Wuw85uim5zDR7s880joybQ@public.gmane.org
-> ========================================================================
+> Thanks,
+> nirmal
 > 
 > 
 > 
