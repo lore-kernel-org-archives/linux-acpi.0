@@ -1,12 +1,15 @@
-From: Albert Cahalan <albert-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: region size computed incorrectly
-Date: 16 Aug 2003 11:56:50 -0400
+From: Peter Osterlund <petero2-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org>
+Subject: Re: acpi breaking synaptics mouse support on Acer Travelmate 260
+Date: 17 Aug 2003 21:15:16 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1061049410.780.442.camel@cube>
+Message-ID: <m2ada8drjv.fsf@telia.com>
+References: <20030812221751.GA2432@man.beta.es>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Resent-Message-Id: <200308172009.h7HK9qtW030539-dJtN/HGY7pUNCZHLCRkIHg@public.gmane.org>
+Resent-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <20030812221751.GA2432-COUDbPDYh58xAGwisGp4zA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,83 +18,32 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Santiago Garcia Mantinan <manty-gaW6/AuhO2xeoWH0uzbU5w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Consider the following chunk of code, produced by
-the Intel disassembler:
+Santiago Garcia Mantinan <manty-gaW6/AuhO2xeoWH0uzbU5w@public.gmane.org> writes:
 
-                Device (HPET)
-                {
-                    Name (_HID, EisaId ("PNP0103"))
-                    Name (_CRS, ResourceTemplate ()
-                    {
-                        IRQNoFlags () {0}
-                        IRQNoFlags () {8}
-                        Memory32Fixed (ReadOnly, 0xFEC01000, 0x00000400)
-                    })
-                    OperationRegion (^LPCR, PCI_Config, 0xA0, 0x04)
-                    Field (^LPCR, AnyAcc, NoLock, Preserve)
-                    {
-                        HPTE,   32
-                    }
+> The machine is a PIII mobile at 1GHz with intel chipset (i82801+i830M) 256
+> Megs of RAM the mouse is a Synaptics touchpad. The problem is that the mouse
+> gets crazy (if using the normal mouse driver) or looses sync (if using the
+> synaptics driver). I have looked at the interrupts happening when one moves
+> the mouse and the number is much higher (from 3 to 10 times) in 2.6 compared
+> with 2.4, also when one stops moving the mouse in 2.6 the interrupts keep on
+> happening for half a second or so, while it stops inmediately in 2.4.
 
-                    Method (_STA, 0, NotSerialized)
-                    {
-                        And (HPTE, 0x01, Local0)
-                        If (Local0)
-                        {
-                            Return (0x0F)
-                        }
+Actually it is expected to see interrupts for about one second after
+you stop touching the touchpad, if you are using the synaptics driver.
+There is a feature in the synaptics hardware that keeps generating
+packets for one extra second, to make it easier for drivers to
+implement gesture decoding without having to rely on additional
+software timers. Maybe you didn't use the synaptics driver in 2.4, in
+which case the touchpad would emulate a standard mouse and not
+generate the extra packets.
 
-                        Return (0x00)
-                    }
-                }
-
-
-There we have a 4-byte OperationRegion with a 32-bit
-field called HPTE. That fits. Then, in _STA, HPTE is
-read, and linux-2.6.0-test3 spits out errors:
-
-
-ACPI: Subsystem revision 20030714
- tbxface-0117 [03] acpi_load_tables      : ACPI Tables successfully acquired
-Parsing all Control Methods:.........................................................................................................................................
-Table [DSDT](id F004) - 446 Objects with 42 Devices 137 Methods 13 Regions
-ACPI Namespace successfully loaded at root ffffffff80590780
-evxfevnt-0093 [04] acpi_enable           : Transition to ACPI mode successful
-evgpeblk-0748 [06] ev_create_gpe_block   : GPE 00 to 15 [_GPE] 2 regs at 0000000000005020 on int 9
-evgpeblk-0748 [06] ev_create_gpe_block   : GPE 16 to 47 [_GPE] 4 regs at 00000000000050B0 on int 9
-Completing Region/Field/Buffer/Package initialization:............................................................................................
-Initialized 12/14 Regions 26/26 Fields 38/38 Buffers 16/16 Packages (455 nodes)
-Executing all Device _STA and_INI methods:...................... exfldio-0129 [23] ex_setup_region       : Field [HPTE] access width (1 bytes) too large for region [LPCR] (length 0)
- exfldio-0140 [23] ex_setup_region       : Field [HPTE] Base+Offset+Width 0+0+1 is beyond end of region [LPCR] (length 0)
- dswexec-0422 [15] ds_exec_end_op        : [And]: Could not resolve operands, AE_AML_REGION_LIMIT
- psparse-1121: *** Error: Method execution failed [\_SB_.PCI0.SBRG.HPET._STA] (Node 00000100081d36f0), AE_AML_REGION_LIMIT
-  uteval-0098: *** Error: Method execution failed [\_SB_.PCI0.SBRG.HPET._STA] (Node 00000100081d36f0), AE_AML_REGION_LIMIT
-.....................
-43 Devices found containing: 42 _STA, 0 _INI methods
-ACPI: Interpreter enabled
-ACPI: Using IOAPIC for interrupt routing
-ACPI: PCI Root Bridge [PCI0] (00:00)
-PCI: Probing PCI hardware (bus 00)
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCI1._PRT]
- exfldio-0129 [21] ex_setup_region       : Field [HPTE] access width (1 bytes) too large for region [LPCR] (length 0)
- exfldio-0140 [21] ex_setup_region       : Field [HPTE] Base+Offset+Width 0+0+1 is beyond end of region [LPCR] (length 0)
- dswexec-0422 [13] ds_exec_end_op        : [And]: Could not resolve operands, AE_AML_REGION_LIMIT
- psparse-1121: *** Error: Method execution failed [\_SB_.PCI0.SBRG.HPET._STA] (Node 00000100081d36f0), AE_AML_REGION_LIMIT
-
-
-Somehow, the LPCR region is being seen as length 0.
-This is not correct; it is 4 bytes wide. Until the
-boundry checking is fixed, it should be disabled.
-Even then, a minor overflow should just printk() a
-warning and keep on going.
-
-BTW, what is a PNP0103 device?
-
-
+-- 
+Peter Osterlund - petero2-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org
+http://w1.894.telia.com/~u89404340
 
 
 -------------------------------------------------------
