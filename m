@@ -1,14 +1,12 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: ACPI video support
-Date: Thu, 26 Feb 2004 18:40:56 +0100
+From: Maggio <voloterreno-nc/lrvXPQ4s@public.gmane.org>
+Subject: MSI KT4 , thanks (very late) for the DSDT
+Date: Thu, 26 Feb 2004 20:53:13 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040226174056.GK2869@poupinou.org>
-References: <F760B14C9561B941B89469F59BA3A84702C932E9@orsmsx401.jf.intel.com>
+Message-ID: <403E4EA9.1020302@tin.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <F760B14C9561B941B89469F59BA3A84702C932E9-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,26 +15,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Feb 25, 2004 at 01:46:22PM -0800, Grover, Andrew wrote:
-> Hi was someone working on support for the ACPI video extensions?
-> 
-> Just wanted to find out how things were going.
-> 
+Hi ,
 
-Yes, me.  For now, that's more a design and a first scratch.
-You can look at
-http://bugzilla.kernel.org/show_bug.cgi?id=1944
-and especially the README.
+I've emailed to this list a bit of time ago about ACPI Issues with an 
+MSI KT4 Ultra Motherboard .
 
--- 
-Bruno Ducrot
+Bruno Ducrot has helped me and have created a patch for the DSDT table , 
+but at that time a was simply a NooB on linux, and I wasn't be able to 
+override this table in the Kernel , now that I have more confidence I've 
+retried this operation , this time successful :)
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+The DSDT table seems to work correctly , and I'm able to use the Suspend 
+function for the S1 state (I haven't tried S3 , because on Gentoo 2.4.22 
+kernel doesn't seem to be implemented yet) without enable the "Relaxed 
+AML Checking" feature in the Kernel (Only by using that I could in the 
+past get the Suspend to work) .
+
+I want to thank Bruno Ducrot and all the ACPI team for your help :-) I'm 
+also nagging MSI to make them solve this bug.
+
+Another thing at the end .
+
+The Suspend S1 works Ok, but I get anyway this message :
+
+  ACPI-0398: *** Error: acpi_ev_gpe_dispatch: No handler or method for 
+GPE[ 2], disabling event
+keyboard: unrecognized scancode (70) - ignored
+    ACPI-0398: *** Error: acpi_ev_gpe_dispatch: No handler or method for 
+GPE[ 2], disabling event
+
+
+Doesn't seem to be something to worry about, but I ask you anyway :)
+
+Thanks
+
+Marcello
 
 
 -------------------------------------------------------
