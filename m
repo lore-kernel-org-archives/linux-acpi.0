@@ -1,14 +1,12 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: S3 won't resume correctly
-Date: Wed, 19 Feb 2003 17:25:55 +0100
+From: Jason Min <jkmin-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: hwsleep-0178 error with ACPI
+Date: Wed, 19 Feb 2003 09:33:00 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030219162555.GA16637@hell.org.pl>
-References: <20030218224905.GB8829@hell.org.pl> <20030219103234.GE23503@atrey.karlin.mff.cuni.cz>
+Message-ID: <3E53BFCC.D8788E0@yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20030219103234.GE23503-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,38 +15,30 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Pavel Machek:
-> > The system suspends correctly (though issuing some warnings about pagebufd
-> > not stopping, which as I told is XFS specific), even the power LED blinks
-> > accordingly to the manual, indicating S3. However, upon resume neither the
-> > display, nor the keyboard works. Appending acpi_sleep=s3_bios fixes the
-> > display, but the keyboard still won't respond. I am able to ssh to the box
-> > after resume and everything except the keyboard seems to work fine
-> > then.
-> Well, that's not that bad, all you need is an driver support for
-> keyboard to kick it back to live ;-). You might want to setleds +num
-> or something like that.
+I have a smp motherboard ABIT VP6, and I have installed RH7.1 upgrading
+the kernel 2.4.20 to implement the ACPI.
 
-I found out that reloading atkbd.ko remotely over an ssh session returns
-the keyboard back to normal. What is left:
-o the fan seems to turn like wild after resume (echo 0 >
-  /proc/acpi/CFAN/state does nothing) -- no, it isn't due to the
-  temperature nor system load
-o DMA must bu turned off for S3 resume (strange, it works with S4 in 2.4.x)
-o kernel finds crond and acpid disturbing, and refuses to suspend while
-  those are running
+When I shutdown, the power off works only once in a while, and when it
+does not work, it gives errors like following and hangs there
+power down
+hwsleep-0178
 
-I might not have time to try and fix it by myself right now, so I'm
-basically notifying you about these problems. Thanks for the support,
-Best regards,
+How can I fix this problem?
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+Also, after I applied the ACPI patch for kernel 2.4.20, the shutdown
+process initiated from Gnome menu works all the time, but the power off
+does not work at all giving no errors.  However, before applying the
+ACPI patch, the shutdown process from Gnome menu did not work at all
+where as the power off works once in a while as I described above.
+
+How can I fix this shutdown process from Gnome menu?
+
+thank you very much.
+
+
 
 
 -------------------------------------------------------
