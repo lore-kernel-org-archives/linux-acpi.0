@@ -1,13 +1,14 @@
-From: Ole Rohne <ole.rohne-vJEk5272eHo@public.gmane.org>
-Subject: Re: Fujitsu P2120 S3 resume - no video, lost PCI config, suggestions?
-Date: 06 Mar 2003 17:12:57 +0100
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: ACPI Suspend support
+Date: Thu, 6 Mar 2003 17:30:39 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <ebwfzq0o4mu.fsf@pcedu3.cern.ch>
-References: <Pine.LNX.4.33.0303060848260.994-100000@localhost.localdomain>
+Message-ID: <20030306163039.GA12576@hell.org.pl>
+References: <20030306120556.17cd0ef1.g.zwartjes@student.tue.nl> <20030306113153.GA11760@enigma.daemon.sh> <3E676950.6050209@lindows.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.33.0303060848260.994-100000-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <3E676950.6050209-77kvfFC2TplBDgjK7y7TUQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,24 +17,22 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
-Cc: Ole Rohne <ole.rohne-vJEk5272eHo@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: David Fox <david.fox-77kvfFC2TplBDgjK7y7TUQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org> writes:
+Thus wrote David Fox:
+> I'm thinking of going to the 2.5 kernels to get the ACPI S3 support, but 
+> I'm having trouble with devfs, which seems to be not quite working in 
+> the 2.5 series from my reading of kernel-devel.  Has this been resolved? 
+> Anyone out there using devfs in a 2.5 kernel?
 
-> That's great. Do you actually get video back when you do that? 
+I do. No particular problems with devfs, but unfortunately, lots of other.
+Best regards,
 
-Unfortunately not... 
-
-The Radeon chip apparently needs some intricate initialization
-sequence after its power has been removed. Any attempts at fudging it
-(based on the stale PowerMac PM code in radeonfb.c) generally results
-in hangs on resume.
-
-Bummer!
-
-Ole
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
