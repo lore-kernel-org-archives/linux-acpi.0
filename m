@@ -1,13 +1,10 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: S3 resume and other ACPI questions
-Date: Sat, 19 Mar 2005 11:48:33 +0100
-Message-ID: <20050319104833.GA1345@elf.ucw.cz>
-References: <7f800d9f05022815286a10ddf6@mail.gmail.com> <20050308095722.GA16798@elf.ucw.cz> <7f800d9f050318193340df70a9@mail.gmail.com>
+Subject: acpi: remove obfuscating macro from acpi/battery.c
+Date: Sat, 19 Mar 2005 12:03:59 +0100
+Message-ID: <20050319110359.GA1514@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <7f800d9f050318193340df70a9-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,41 +14,55 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andre Eisenbach <int2str-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On P=E1 18-03-05 19:33:48, Andre Eisenbach wrote:
-> On Tue, 8 Mar 2005 10:57:22 +0100, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> wrote:
-> > Read Doc*/power/video.txt. Send me a patch when you get it working.
->=20
-> Hello Pavel, all,
->=20
-> I've read video.txt and it got me further actually. Thanks for that.
->=20
-> I've recompiled the kernel without any fbcon etc. and use the "radeon"
-> display driver within X windows (Gentoo patched version). This way I
-> can actually resume from S3 now, and get right back into X. Really
-> quickly, too.
->=20
-> However, the hard drive does not seem to fair so well. The hdd
-> activity LED remains on and the drive does not seem responsive (but
-> spinning). The laptop slows to a crawl and any executable that causes
-> disc access (i.e. it's not cached or reads config files etc). Won't
-> execute.
->=20
-> dmesg seems to work, but doesn't really show anything. After the
-> "stopping tasks" I get a weird "Back from C!" message, but that's
-> about it.
->=20
-> What could I try from here?
+Hi!
 
-I'd do it from text console, and insert printks just about everywhere
-to see what is going on. See if disk is getting interrupts, for
-example.
-
+It seems to me that macros in battery.c only make code more obscure
+and longer. This fixes it a bit. Please apply,
 								Pavel
---=20
+
+--- clean/drivers/acpi/battery.c	2004-12-25 13:34:58.000000000 +0100
++++ linux/drivers/acpi/battery.c	2004-12-25 16:31:14.000000000 +0100
+@@ -50,8 +50,6 @@
+ #define ACPI_BATTERY_FILE_ALARM		"alarm"
+ #define ACPI_BATTERY_NOTIFY_STATUS	0x80
+ #define ACPI_BATTERY_NOTIFY_INFO	0x81
+-#define ACPI_BATTERY_UNITS_WATTS	"mW"
+-#define ACPI_BATTERY_UNITS_AMPS		"mA"
+ 
+ 
+ #define _COMPONENT		ACPI_BATTERY_COMPONENT
+@@ -369,7 +374,7 @@
+ 		goto end;
+ 	}
+ 
+-	units = bif->power_unit ? ACPI_BATTERY_UNITS_AMPS : ACPI_BATTERY_UNITS_WATTS;
++	units = bif->power_unit ? "mA" : "mW";
+ 					
+ 	if (bif->design_capacity == ACPI_BATTERY_VALUE_UNKNOWN)
+ 		seq_printf(seq, "design capacity:         unknown\n");
+@@ -452,7 +457,7 @@
+ 
+ 	/* Battery Units */
+ 
+-	units = battery->flags.power_unit ? ACPI_BATTERY_UNITS_AMPS : ACPI_BATTERY_UNITS_WATTS;
++	units = battery->flags.power_unit ? "mA" : "mW";
+ 
+ 	/* Battery Status (_BST) */
+ 
+@@ -528,7 +533,7 @@
+ 
+ 	/* Battery Units */
+ 	
+-	units = battery->flags.power_unit ? ACPI_BATTERY_UNITS_AMPS : ACPI_BATTERY_UNITS_WATTS;
++	units = battery->flags.power_unit ? "mA" : "mW";
+ 
+ 	/* Battery Alarm */
+ 
+
+-- 
 People were complaining that M$ turns users into beta-testers...
 ...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
