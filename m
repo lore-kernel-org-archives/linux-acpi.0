@@ -1,14 +1,14 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: RefOf() bug?
-Date: Tue, 30 Mar 2004 20:14:22 +0800
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: missing cmpxchg on i386.
+Date: Tue, 30 Mar 2004 14:37:35 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB7AB@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <20040330123735.GD461@elf.ucw.cz>
+References: <20040324162347.GA10134@conectiva.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <20040324162347.GA10134-KCZ47A4bww4P48s/oLjRZg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,29 +17,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ville Syrj?l? <syrjala-ORSVBvAovxo@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Flavio Bruno Leitner <fbl-KCZ47A4bww4P48s/oLjRZg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org wrote:
-> On Tue, Mar 30, 2004 at 06:53:01PM +0800, Yu, Luming wrote:
->> acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org wrote:
->>> My HP OmniBook 6000 has some problems with the battery. The first
->>> time the battery gets detected (it doesn't matter if I boot with
->>> battery disconnected or connected) things don't work. Then if I
->>> disconnect and reconnect the battery things start to work. But the
->>> next disconnect/reconnect cycle fails again, the next after that
->>> succeeds and so on.
->>=20
->> Please check your ACPI version.
->=20
-> ACPI 20040220 + kernel 2.6.4-rc1-mm2
+On St 24-03-04 13:23:47, Flavio Bruno Leitner wrote:
+> 
+> Compiling for i386 I got a lot of 
+> include/asm/acpi.h: In function `__acpi_acquire_global_lock`:
+> include/asm/acpi.h:74: warning: implict declaration of function 'cmpxchg' 
 
-Hmm, could you try new one? I suppose the most recent ACPI seldom have=20
-battery status issue.=20
-
---Luming
-
-
+Try compiling for pentium+...
+								Pavel
+-- 
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
 
 
 -------------------------------------------------------
