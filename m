@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: help getting Fedora Core 2 to suspend...
-Date: Tue, 29 Jun 2004 00:53:17 +0200
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Error: Handler for [EmbeddedControl] returned AE_BAD_PARAMETER
+Date: Tue, 29 Jun 2004 15:11:53 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040628225317.GC11333@elf.ucw.cz>
-References: <40D1EDA1.8050207@olin.edu>
+Message-ID: <B44D37711ED29844BEA67908EAF36F0332CECD@pdsmsx401.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <40D1EDA1.8050207-jaKf3pluACk@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,25 +17,106 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Aaron Bennett <aaron.bennett-jaKf3pluACk@public.gmane.org>
+To: Z F <mail4me9999-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-H!
+could you please try if the patch in
+http://bugme.osdl.org/show_bug.cgi?id=3D1744  address your problem?=20
 
-> Please help before I get more keyprint on my forehead from slamming it
-> against the keyboard.
-> 
-> asdfsdafkljasdfjkl
-> 
-> ouch.  :-) 
-
-Read Documentation/power/tricks.txt.
-								Pavel
-
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Thanks,
+Shaohua
+>-----Original Message-----
+>From: Z F [mailto:mail4me9999-/E1597aS9LQAvxtiuMwx3w@public.gmane.org]
+>Sent: Tuesday, June 29, 2004 9:22 AM
+>To: Li, Shaohua
+>Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: RE: [ACPI] Error: Handler for [EmbeddedControl] returned
+>AE_BAD_PARAMETER
+>
+>Dear Shaohua Li,
+>
+>Thank you very muc for your reply. Attached are the outputs of the
+>dmesg
+>(I loaded ac, battery, processor and thermal modules) is in the
+>dmesg.out file. The new_dsdt file contains output of acpidump
+>from pacpidump package. Could you take a look and see what is wrong.
+>
+>Thank you very much for your kind help.
+>
+>Lazar
+>
+>--- "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>> Please attach your dmesg and acpidmp output, so we can check it.
+>>
+>> Thanks,
+>> -Shaohua
+>> >-----Original Message-----
+>> >From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
+>> >admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Z F
+>> >Sent: Monday, June 28, 2004 1:26 PM
+>> >To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>> >Subject: [ACPI] Error: Handler for [EmbeddedControl] returned
+>> >AE_BAD_PARAMETER
+>> >
+>> >Hello Everybody,
+>> >
+>> >IT seems to me that all my problems start with the error message
+>> >indicated in the subject line. Could someone explain to me what this
+>> >error message means and possibly how (if possible) to correct the
+>> >problem.
+>> >
+>> >I use Dell Latitude x300 laptop and 2.4.26 kernel with the latest
+>> acpi
+>> >patch (acpi-20040326-2.4.26).
+>> >
+>> >I have modified the dsdt table so that it compiles without any
+>> errors,
+>> >but
+>> >I still get the above error at boot. AC/Battery status does not
+>> work.
+>> >Thermal does not work. It seems I can change the throttling of the
+>> CPU.
+>> >
+>> >Any suggestions are highly appreciated. Could I ask some one to
+>> reply
+>> >to me even if they do not know how to solve the problem? You see, I
+>> >have sent
+>> >several emails to this list and got very small number of replies.
+>> Maybe
+>> >
+>> >my subscription is broken? Sometimes I get double postings of other
+>> >people.
+>> >Thanks a lot for you kind help
+>> >
+>> >Lazar
+>> >
+>> >
+>> >
+>> >__________________________________
+>> >Do you Yahoo!?
+>> >New and Improved Yahoo! Mail - Send 10MB messages!
+>> >http://promotions.yahoo.com/new_mail
+>> >
+>> >
+>> >-------------------------------------------------------
+>> >This SF.Net email sponsored by Black Hat Briefings & Training.
+>> >Attend Black Hat Briefings & Training, Las Vegas July 24-29 -
+>> >digital self defense, top technical experts, no vendor pitches,
+>> >unmatched networking opportunities. Visit www.blackhat.com
+>> >_______________________________________________
+>> >Acpi-devel mailing list
+>> >Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>> >https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>>
+>>
+>
+>
+>
+>__________________________________
+>Do you Yahoo!?
+>Yahoo! Mail - 50x more storage than other providers!
+>http://promotions.yahoo.com/new_mail
 
 
 -------------------------------------------------------
