@@ -1,27 +1,45 @@
-From: "Kevin P. Fleming" <kpfleming@backtobasicsmgmt.com>
-Subject: Re: 2.6.7 ACPI OOPS (random dereferrencing)
-Date: Sun, 20 Jun 2004 07:59:14 -0700
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <40D5A642.6020901@backtobasicsmgmt.com>
-References: <Pine.LNX.4.60.0406180957470.977@hosting.rdsbv.ro> <1087571167.22483.20.camel@forum-beta.geizhals.at> <Pine.LNX.4.58.0406201340560.1998@kai.makisara.local>
+From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Subject: Re: patch & a question about the serial driver
+Date: Sun, 20 Jun 2004 16:47:26 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20040620154726.GT20511@parcelfarce.linux.theplanet.co.uk>
+References: <BAY16-F112kKIBXEHt30004aded@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S265500AbUFTO7Q@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0406201340560.1998@kai.makisara.local>
-To: linux-kernel@vger.kernel.org
-Cc: Acpi-devel@lists.sourceforge.net
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <BAY16-F112kKIBXEHt30004aded-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Dino Klein <dinoklein-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Kai Makisara wrote:
+On Sat, Jun 19, 2004 at 11:55:09PM -0300, Dino Klein wrote:
+> I am interested to know whether the patch below looks like a good idea as a 
+> way to allow the user to specify additional HIDs that the driver should 
+> handle;
 
-> The reports in the list above do not all point to similar symptoms. The 
-> reports from Thomas, Kevin, Pozsar, and me seem to have two things in 
-> common:
-> - an Intel motherboard
-> - hang when enabling ACPI
+No.  The device in question should specify PNP0501 in its _CID if it's
+compatible with PNP0501.
 
-There is an entry in the RedHat Bugzilla where Len Brown is actively 
-participating on this issue; he has been able to reproduce it (no 
-surprise, he works for Intel and shouldn't have any trouble obtaining 
-the same hardware <G>). There is no fix yet, though.
+-- 
+"Next the statesmen will invent cheap lies, putting the blame upon 
+the nation that is attacked, and every man will be glad of those
+conscience-soothing falsities, and will diligently study them, and refuse
+to examine any refutations of them; and thus he will by and by convince 
+himself that the war is just, and will thank God for the better sleep 
+he enjoys after this process of grotesque self-deception." -- Mark Twain
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by The 2004 JavaOne(SM) Conference
+Learn from the experts at JavaOne(SM), Sun's Worldwide Java Developer
+Conference, June 28 - July 1 at the Moscone Center in San Francisco, CA
+REGISTER AND SAVE! http://java.sun.com/javaone/sf Priority Code NWMGYKND
