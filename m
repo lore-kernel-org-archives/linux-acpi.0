@@ -1,14 +1,14 @@
-From: "Ow Mun Heng" <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
-Subject: RE: Thinkpad T40 Fan
-Date: Fri, 6 Feb 2004 13:06:32 +0800
+From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: acpi=force safe?
+Date: Fri, 6 Feb 2004 06:40:23 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <C386328088ED7F4E9F81AFBABDDF60DA03F9E372@wdmyexch02.my.asia.wdc.com>
+Message-ID: <20040206064023.2a80a4dd.ak@suse.de>
+References: <40678.65.28.18.238.1076044455.squirrel@mail.diamondcpu.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <40678.65.28.18.238.1076044455.squirrel-gjzqEhKAtSBis2HOlLKa7kEOCMrvLtNR@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,27 +17,19 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ben lamothe <blamothe-DPNOqEs/LNQ@public.gmane.org>
+To: Nick Bartos <spam99-1EIjRwF9Gc5s5w19saIqfg@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Thu, 5 Feb 2004 23:14:15 -0600 (CST)
+"Nick Bartos" <spam99-1EIjRwF9Gc5s5w19saIqfg@public.gmane.org> wrote:
 
+> I can do acpi=force, but I worry about causing stability issues.
 
-> -----Original Message-----
-> From: ben lamothe [mailto:blamothe-DPNOqEs/LNQ@public.gmane.org]
-> Sent: Friday, February 06, 2004 12:18 PM
-> To: Ow Mun Heng
-> Cc: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org; shaohua.li@intel.com; blamothe@MIT.EDU;
-> acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Subject: Re: [ACPI] Thinkpad T40 Fan
->=20
->=20
-> Do you, or anyone else for that matter, know of any third party utils
-> for linux that work with the thinkpad t40.  I ran across=20
+If the machine works with that it is safe. However many older boards
+have broken ACPI, that is why it is disabled by default for older boards.
 
-No idea there.. but you can try to see if i8kfan will work for you..
-
-HTH
+-Andi
 
 
 -------------------------------------------------------
