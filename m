@@ -1,12 +1,13 @@
-From: "Alexis T. Salas" <alexist_salas_zm-rrgzy25xz4opAS55Wn97og@public.gmane.org>
-Subject: Hey
-Date: Tue, 30 Nov 2004 05:53:47 -0500
-Message-ID: <a28e01c4d6ca$b89300bc$6ba4cf4b@bilbao.idom.es>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Re: S3 resume on Fujitsu-Siemens Amilo A7620 (CONTINUES)
+Date: Tue, 30 Nov 2004 19:39:03 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC0CA@pdsmsx403>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,168 +17,40 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, abook-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Alberto Piai <albeclemit-whZMOeQn8C0@public.gmane.org>
+Cc: pavel-AlSwsSmVLrQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Look at this stock information that I just received...
+>Update:
+>2.6.9, with pushl and popl lines commented out:
 
-Auto Centrix, Inc. OTC- ATCX
-Auto Remarketing Company: Acquisition Expected to Add $4 Million in
-Sales! Looking for more Acquisitions. (Source: News Release: 9/27/04)
-Current Price- .26
+http://bugzilla.kernel.org/show_bug.cgi?id=3D3586
 
-An Absolutely Massive PR Campaign is Underway and The Trading Sessions
-Moving Forward Could be Very Exciting for ATCX.
+How could pushl	$0 cause reboot in real mode?
+I guess it is in protect mode.
 
-Did your Portfolio Turn a Huge Profit in the Last 2 months? You Did if
-You had the Scoop on the Following Stock: (A Lot of These Small Stocks
-Have Been Flying).
+I suggest you to try the following patch to see if "pushl $0" still
+cause=20
+reboot.
 
-SGNC: Exploded from .055 on October 1st to .40 November 18th. Up over
-625%.
-
-These are the types of gains you can find with small unknown companies
-and That's Why Investors are Trading Them. Some of them put a lot of
-money in investors pockets pretty quickly. You may agree it is hard to
-get these types of gains from large cap stocks. As Always, Timing is the
-key..
-
-
-About Auto Centrix, Inc. (ATCX)
-
-Auto Centrix Inc.'s portfolio of innovative products and services
-focuses on the unique needs of the vehicle-remarketing sector of the
-automotive industry. We provide technology solutions that enable
-wholesalers, lease and rental companies, automotive importers,
-dealerships and manufacturers, to more efficiently and effectively do
-business.
-
-We are committed to enhancing shareholder value through the continued
-development of technology solutions and the long term growth of our
-affiliate companies.
-
-AFFILIATE COMPANY: Dominion Auctions
-
-DOMINION AUTO AUCTIONS is a wholly owned subsidiary company of Auto
-Centrix, Inc. with its auction facilities headquartered in Woodside
-Industrial Park, Dartmouth, Nova Scotia. Dominion Auto Auctions conducts
-a public auto auction every Saturday. We are the only weekly auto
-auction in Nova Scotia open to the public. Our primary business is the
-sale of used vehicles and equipment at our weekly automobile auction. We
-are also equipped to conduct auctions anywhere in Nova Scotia.
-
-(SOURCE: COMPANY WEBSITE)
+--- linux-2.6.10-rc2/arch/i386/kernel/acpi/wakeup.S.orig
+2004-12-02=20
+18:18:01.132147992 -0800
++++ linux-2.6.10-rc2/arch/i386/kernel/acpi/wakeup.S	2004-12-02=20
+18:17:34.872140120 -0800
+@@ -20,6 +20,8 @@
+ 	wakeup_code_start =3D .
+ 	.code16
+=20
++	xor	%eax, %eax
++	movl	%eax, %cr0
+  	movw	$0xb800, %ax
+ 	movw	%ax,%fs
+ 	movw	$0x0e00 + 'L', %fs:(0x10)
 
 
-______________________________________
-
-Recent News Announcement-
-
-*11/22/04 Auto Centrix, Inc. Announces the Closing of a $700,000 USD
-Private Offering
-
-
-Here is An excerpt From the September 27th News Release:
-
-Since the closing of the exchange agreement with Teleon and Auto
-Centrix, Inc. the company has been executing its new business plan
-reports CEO David Highmore. "I would like to bring the current
-shareholders up to date with our successes. We have successfully gone
-public with our exchange agreement with Teleon and the result will
-increase our ability to finance our future growth. In addition we will
-have new access to the United States market and increased visibility to
-the Canadian market."
-
-Auto Centrix Inc. acquired 100% of Dominion Auto Auction Group Inc.,
-which offers weekly public and wholesale auctions of pre-owned passenger
-vehicles, heavy and light duty trucks, marine and recreational vehicles,
-as well as heavy equipment. The acquisition will add approximately
-$4,000,000 (USD) in sales to ACI and provide a valuable platform from
-which to launch ACI's suite of technological products.
-
-"As we are building our platform in the coming months," stated Highmore,
-"we have targeted a number of additional acquisitions and synergistic
-technologies. We are committed to building Auto Centrix, Inc. into a
-major player within the auto re-marketing industry."
-
-Auto Centrix, Inc. focuses on various technological mediums which
-facilitate the purchase, sale and re-sale of vehicles, thereby lowering
-the costs, expanding the geography, and expediting the sale processes,
-while securing the integrity of the vehicle information. The products
-and services have been designed with the flexibility and scalability to
-interface with their clients existing systems.
-
-________________________________________
-
-Do you see where we're going with this? Small Company with a Big Agenda.
-Sound familiar? It has been the recipe for success for many stocks.
-Consider Adding Autocentrix to your Portfolio Today! Many of these
-stocks have really been performing for investors lately. 
-Good Luck and Succesful Trading! Watch This Stock Trade Tuesday.
-
-
-Information within this email contains "forward looking statements"
-within the meaning of Section 27A of the Securities Act of 1933 and
-Section 21B of the Securities Exchange Act of 1934. Any statements that
-express or involve discussions with respect to predictions,
-expectations, beliefs, plans, projections, objectives, goals,
-assumptions or future events or performance are not statements of
-historical fact and may be "forward looking statements."Forward looking
-statements are based on expectations, estimates and projections at the
-time the statements are made that involve a number of risks and
-uncertainties which could cause actual results or events to differ
-materially from those presently anticipated. Forward looking statements
-in this action may be identified through the use of words such as
-"projects", "foresee", "expects", "will," "anticipates," "estimates,"
-"believes," "understands" or that by statements indicating certain
-actions "may," "could," or "might" occur. As with many microcap stocks,
-today's company has additional risk factors worth noting. Auto Centrix,
-Inc. is not a reporting company registered under the Securities Act of
-1934 and hence there is limited information available about the company.
-Other factors include a limited operating history,risks and
-uncertainties, including, but not limited to, the impact of competitive
-products and pricing, product demand and market acceptance, new product
-development, reliance on key strategic alliances, availability of raw
-materials, the regulatory environment, fluctuations in operating results
-and other risks inherent to their industry. The company is going to need
-financing. If that financing does not occur, the company may not be able
-to continue as a going concern in which case you could lose your entire
-investment. The publisher of this newsletter does not represent that the
-information contained in this message states all material facts or does
-not omit a material fact necessary to make the statements therein not
-misleading.All information provided within this email pertaining to
-investing, stocks, securities must be understood as information provided
-and not investment advice. The publisher of this newsletter advises all
-readers and subscribers to seek advice from a registered professional
-securities representative before deciding to trade in stocks featured
-within this email. None of the material within this report shall be
-construed as any kind of investment advice or solicitation.Many of these
-companies are on the verge of bankruptcy. You can lose all your money by
-investing in this stock. The publisher of this newsletter is not a
-registered investment advisor. Subscribers should not view information
-herein as legal, tax, accounting or investment advice. Any reference to
-past performance(s) of companies are specially selected to be referenced
-based on the favorable performance of these companies. You would need
-perfect timing to acheive the results in the examples given. There can
-be no assurance of that happening. Remember, as always, past performance
-is never indicative of future results and a thorough due diligence
-effort, including a review of a company's filings when available, should
-be completed prior to investing. The publisher of this newsletter has no
-relationship with SGNC. In compliance with the Securities Act of 1933,
-Section17(b),The publisher of this newsletter discloses the receipt of
-twenty five thousand dollars from a third party, not an officer,
-director or affiliate shareholder for the circulation of this report. Be
-aware of an inherent conflict of interest resulting from such
-compensation due to the fact that this is a paid advertisement and is
-not without bias.The party that paid us has a position in the stock they
-will sell at anytime without notice. This could have a negative impact
-on the price of the stock. All factual information in this report was
-gathered from public sources, including but not limited to Company
-Websites and Company Press Releases. The publisher of this newsletter
-believes this information to be reliable but can make no guarantee as to
-its accuracy or completeness. Use of the material within this email
-constitutes your acceptance of these terms.
-
+Thanks,
+Luming
 
 
 -------------------------------------------------------
