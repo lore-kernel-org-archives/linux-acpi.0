@@ -1,11 +1,11 @@
-From: "MailScanner" <postmaster-Uwtyl+lVbAULUko9wUHW+6km5W21vHkk@public.gmane.org>
-Subject: Atención: Virus detectado en e-mail
-Date: Mon, 1 Sep 2003 05:24:40 -0300
+From: Viruswall-d0qZbvYSIPpWk0Htik3J/w@public.gmane.org
+Subject: Virus found and cleaned in EMail "Your details"
+Date: Mon, 01 Sep 2003 12:28:14 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200309010824.h818OeSr005516@relay2.uncu.edu.ar>
+Message-ID: <200309011027.h81ARUCc021766@smtp2.infineon.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: Quoted-Printable
+Content-Type: multipart/mixed;
+	boundary="=_Boundary_Nf13c9p0tVAq4XBR25Sl"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -18,24 +18,73 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Nuestro detector de virus ha sido activado por un mensaje enviado por Usted:
-  A: jjciarla-/HDx387uZdgLD7QD9zJ8Xg@public.gmane.org
-  Asunto: Re: Re: My details
-  Fecha: Mon Sep  1 05:24:40 2003
-Las partes del mensaje que estaban infectadas no han sido enviadas.
+This is a multi-part message in MIME format.
 
-Este mensaje es sólo para avisarle de que su sistema puede tener un virus
-y debería verificarlo.
+--=_Boundary_Nf13c9p0tVAq4XBR25Sl
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-El detector de virus dijo lo siguiente acerca del mensaje:
-Informe: your_document.pif  Infection: W32/Sobig.F@mm
-Shortcuts to MS-Dos programs are very dangerous in email (your_document.pif)
+This is an automatically generated mail, please do not reply!
+
+Dear Sender,
+
+the e-mail you have sent to "<kevin.liao-d0qZbvYSIPpWk0Htik3J/w@public.gmane.org>" on Mon Sep 01 12:28:14 2003 with subject  "Your details" contained a virus. After the virus was deleted, we were able to forward your e-mail to the recipient(s). Please inform you system administrator that your mailsystems may be contaminated by a virus.
+
+Thank you very much for your assistance.
+
+Very truly yours
+
+Infineon Technologies IT Infrastructure
 
 
---
-MailScanner
-Protección contra Virus de E-mail
-www.mailscanner.info
+--=_Boundary_Nf13c9p0tVAq4XBR25Sl
+Content-Type: message/rfc822
+Content-Transfer-Encoding: 7bit
+
+Received: from smtp1.infineon.com ([172.29.43.195]) by 172.29.27.231 with InterScan Messaging Security Suite; Mon, 01 Sep 2003 12:28:13 +0200
+Received: from LESLEY-NB (61-220-168-19.HINET-IP.hinet.net [61.220.168.19])
+	by smtp1.infineon.com (8.12.9/8.12.9) with SMTP id h81AQA9t000962
+	for <kevin.liao-d0qZbvYSIPpWk0Htik3J/w@public.gmane.org>; Mon, 1 Sep 2003 12:26:12 +0200 (MEST)
+Message-Id: <200309011026.h81AQA9t000962-ibb0fmq/CoiaBI8nPlqPntBPR1lH4CV8@public.gmane.org>
+From: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: <kevin.liao-d0qZbvYSIPpWk0Htik3J/w@public.gmane.org>
+Subject: Your details
+Date: Mon, 1 Sep 2003 18:29:39 +0800
+X-MailScanner: Found to be clean
+Importance: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2600.0000
+X-MSMail-Priority: Normal
+X-Priority: 3 (Normal)
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="_NextPart_000_0222C74C"
+
+This is a multipart message in MIME format
+
+--_NextPart_000_0222C74C
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+
+***********************
+A virus (WORM_SOBIG.F) was detected in the file (wicked_scr.scr). Action taken = remove
+***********-***********
+
+
+Please see the attached file for details.
+
+
+--_NextPart_000_0222C74C
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+The attachment (wicked_scr.scr) was infected with a virus and removed.
+
+--_NextPart_000_0222C74C--
+
+--=_Boundary_Nf13c9p0tVAq4XBR25Sl--
 
 
 -------------------------------------------------------
