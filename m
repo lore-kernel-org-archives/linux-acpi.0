@@ -1,15 +1,11 @@
-From: "Sergey V. Oudaltsov" <sergey.oudaltsov-2wWnE64kTEeyZ7Fz/ZYYxQ@public.gmane.org>
-Subject: Re: How to sleep with 2.4.x
-Date: Tue, 07 Oct 2003 01:33:02 +0100
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: broken bm_sts on 82801CA?
+Date: Mon, 6 Oct 2003 23:38:07 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1065486782.3704.1.camel@localhost>
-References: <E1A6T1j-0007uU-00@sc8-sf-list2.sourceforge.net>
-	 <3F816ADF.6010209@clients.ie>  <20031006153717.GA24961@enigma.daemon.sh>
+Message-ID: <20031006233406.N4792@root.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20031006153717.GA24961-adzhR0EPeY/7X6WiDY61Ug@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,22 +14,18 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> they hibernate (S4) with swsusp:
-> 
-> http://swsusp.sf.net
-Thanks for the idea. Actually, the only problem is that RH 9 is based on
-the kernel 2.4.20 - and swsusp exists only for 2.4.22. I am ok to build
-the kernel 2.4.20 with some patches I specifically added (and patches
-officially added by RH) - but I am scared to change the version:)
-Anyway, these are my own problems. Thanks again.
+My chipset claims to be: Intel 82801CA/CAM (ICH3) and it's on an IBM T23
+thinkpad.  While testing my Cx driver, I noticed that bm_sts is always
+set, even when I clear it by writing a 1 to the register.  I _know_ the
+box is idle so I believe this bit to be broken.  Can anyone confirm this?
+I noticed the errata probe for the PIIX4 but I don't think it covers my
+part.
 
--- 
-Sergey
-
+Thanks,
+Nate
 
 
 -------------------------------------------------------
