@@ -1,17 +1,10 @@
-From: Jes Sorensen <jes-dtAfj9ClZIwnoBwkMbRkTB2eb7JE58TQ@public.gmane.org>
-Subject: Re: [patch] remove null-ifiers
-Date: Tue, 27 Jan 2004 10:35:23 -0500
+From: Unknown <unknown@unknown.invalid>
+Subject: [Virus Mail] Detection and Blocking Information
+Date: Fri, 30 Jan 2004 16:43:02 +0000 (UTC)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <16406.34107.51859.924117@gargle.gargle.HOWL>
-References: <E1AgkrW-00080w-00@jaguar.mkp.net>
-	<20040127150954.GA12740@hell.org.pl>
-	<16406.32889.922823.45313@gargle.gargle.HOWL>
-	<40168442.7020806@neggie.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Message-ID: <E1AmbjQ-0006KX-00@deer.gmane.org>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <40168442.7020806-wanGne27zNesTnJN9+BGXg@public.gmane.org>
+From: SmartFilter
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,36 +13,14 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: John Belmonte <john-wanGne27zNesTnJN9+BGXg@public.gmane.org>
-Cc: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Date: Fri Jan 30 08:41:05 2004
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->>>>> "John" == John Belmonte <john-wanGne27zNesTnJN9+BGXg@public.gmane.org> writes:
-
-John> Jes Sorensen wrote:
->> We definately want to do this, this *is* how it works within the
->> kernel.
-
-John> That may be the case, but in the process I think you are
-John> destroying vital information about which variables the code
-John> depends on being initialized to zero.  If the Linux kernel ever
-John> changed its policy, or if the code was used in something other
-John> than the Linux kernel (perhaps even being translated to some other
-John> computer language), you would need that information again.
-
-Not at all, it's standard Linux kernel convention, it won't
-change. Explicitly zeroing out variables cause more damage since it
-transfers them to the data segment from the bss segment.
-
-John> I suggest commenting out the assignment instead of deleting it:
-
-John>      static int foo /*= 0*/;
-
-It works, IMHO it's ugly, but if you find it helps, go ahead. I'd rather
-leave a comment like /* uninitialized global variables automatically go
-to the bss and get zeroed out */
-
-Jes
+>From    : acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To      : cgoweb-T67CPUg6lk00U0nhJqtx1Q@public.gmane.org
+Subject : Hi
+Virus   : W32/MyDoom-A
 
 
 -------------------------------------------------------
