@@ -1,13 +1,14 @@
-From: Casey Harkins <charkins-TFaeeA7fOO6Gwcnyzrk3/w@public.gmane.org>
-Subject: Re: acpi on gateway 200x
-Date: Fri, 24 Oct 2003 12:53:59 -0500 (CDT)
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: AE_AML_REGION_LIMIT trouble
+Date: Fri, 24 Oct 2003 17:52:02 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0310241211190.16106-100000@data.upl.cs.wisc.edu>
-References: <20031023024953.GA29088@masanjin.net>
+Message-ID: <20031024155202.GH28351@poupinou.org>
+References: <3F929082.40406@gmx.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20031023024953.GA29088-xW3KcqxHEMnk1uMJSBkQmQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <3F929082.40406-hi6Y0CQ0nG0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,50 +17,70 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: William Morgan <wmorgan-acpi-devel-xW3KcqxHEMnk1uMJSBkQmQ@public.gmane.org>
+To: Eric <plukje-hi6Y0CQ0nG0@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Howdy William,
+On Sun, Oct 19, 2003 at 03:24:18PM +0200, Eric wrote:
+> Greetings everyone on this mailinglist,
+> 
+> I seem to be having a small ACPI problem, of which I don't really know 
+> what it exactly means,
+> or what I can do to fix it. I'm running linux kernel 2.6.0-test8 and 
+> I've seen this error from as early as
+> 2.6.0-test1. The machine is a MSI-6728 motherboard with a P4 (with HT) 
+> on it. Below I've put the output of dmesg (up to where acpi messages stop).
+> Please let me know if there is anything else you might be interested in 
+> to clarify this situation because I'm really curious if this is BIOS problem
+> or a possible bug in the ACPI code.
+> 
 
-I'm the one who reported the problem with the 400VTX. Unfortunately, there
-are other more pressing issues at work I have to deal with, but I'm going
-to try to get the ECDT problem figured out eventually. We have two of
-these laptops, both running Linux, and would really like to have battery
-monitoring working!
+
+You have that in your ASL:
+
+            OperationRegion (TMEM, PCI_Config, 0xC4, 0x02)
+            Field (TMEM, ByteAcc, NoLock, Preserve)
+            {
+                    ,   3,
+                TOUD,   13
+            }
+
+            Name (TOM, 0x00)
+            Method (MDET, 0, NotSerialized)
+            {
+                If (TOM) {}
+                Else
+                {
+                    If (FLAG)
+                    {
+                        ShiftLeft (TOUD, 0x13, TOM)
+                    }
+                    Else
+                    {
+                        Return (0x20000000)
+                    }
+                }
+
+                Return (TOM)
+            }
 
 
--casey
+I am pretty sure that the root of your trouble is
+the 'ShiftLeft (TOUD, 0x13, TOM)'.
+(For info, FLAG is declared as Name (FLAG, 0x01), so
+that is not the problem as well).
 
+I think it is valid, and suspect more or less there is
+a bug in ACPICA.  But I am not sure.  If a guru
+can help me to determine that I am right or wrong (Bob?).
 
-On Wed, 22 Oct 2003, William Morgan wrote:
+Cheers,
 
-> Excerpts (reformatted) from Li, Shaohua's mail of 19 Oct 2003 (EDT):
-> > Somebody has reported the same problem. It's about Gateway 400VTX. The
-> > reason is BIOS of Gateway 400VTX lacks ECDT table.  And before
-> > initialize EC device, DSDT use ec space region when execute some ASL
-> > init methods. This will cause that battery can't be initializing. From
-> > your dmesg, I find your BIOS lacks the ECDT too. So I think it's the
-> > same problem.  A solution is to add an ECDT. But I can't find a tool
-> > for this.
->
-> Is there some way I can help fix this problem?
->
-> --
-> William
->
->
-> -------------------------------------------------------
-> This SF.net email is sponsored by: The SF.net Donation Program.
-> Do you like what SourceForge.net is doing for the Open
-> Source Community?  Make a contribution, and help us add new
-> features and functionality. Click here: http://sourceforge.net/donate/
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
->
+-- 
+Ducrot Bruno
 
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
