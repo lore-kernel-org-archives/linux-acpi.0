@@ -1,11 +1,14 @@
-From: Mailhebuau Christophe <CMailhebuau-GyotsYYSwH0@public.gmane.org>
-Subject: download
-Date: 29 Jan 2003 18:21:09 +0100
+From: Markus Wiesner <list-acpi-9/ybXWNEfnWFBUTzTaTVRY/15xujVBPPG9Ur7JDdleE@public.gmane.org>
+Subject: Re: Dell DSDT corrected
+Date: Wed, 29 Jan 2003 19:04:44 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1043860869.9305.18.camel@justlinux>
+Message-ID: <20030129180444.GB10601@homerelay.wiesner-net.de>
+References: <200301281120.15917.jan.slezak@centrum.cz>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-1vP0zQA07+wtS8+9tjZs"
+Content-Type: text/plain; charset=iso-8859-15
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <200301281120.15917.jan.slezak-aRb0bU7PRFPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,39 +17,30 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Jan Slezak <jan.slezak-aRb0bU7PRFPrBKCeMvbIDA@public.gmane.org>
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Jan Slezak schrieb:
+> I modified my Dell Latitude C640 DSDT table and values in /proc/acpi what were 
+> previously constantly zero (or something equivalent) where brought to life. 
+> This is:
+> 
+> - temperature in thermal zone
+> - processor frequency in performance in processor (processor consumption is 
+> still zero, but I belive it is not exposed to ACPI)
+> - all information in battery (except presence/absence what was already working 
+> before)
+> 
+> The DSDT patch and original DSDT are enclosed I hope it helps someone.
 
---=-1vP0zQA07+wtS8+9tjZs
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Yes, it does! The patch works without modification for my Inspiron 8200,
+too. Great work!
 
-Hi,
-
-Where i can download the patches for acpi, sourceforge send me error
-404, and not project found ?????
-
-
---=20
-Cordialement,
-Christophe Mailhebuau    http://www.justlinux.org
-                           http://www.abul.org
-GPG: 1024D/75B07F8D: BD18 2D01 D954 A339 E35B 9EA1 4240 0410 75B0 7F8D
-
---=-1vP0zQA07+wtS8+9tjZs
-Content-Type: application/pgp-signature; name=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.7 (GNU/Linux)
-
-iD8DBQA+OA2FQkAEEHWwf40RAmT3AJoCCFZuzbX4Y36kM3x9MMCzZzklGACff6nV
-GwXA79JQbXYlfVoJwomuCHw=
-=pqM0
------END PGP SIGNATURE-----
-
---=-1vP0zQA07+wtS8+9tjZs--
-
+Thanks,
+Markus Wiesner
+-- 
+Never trust a man who can count to 1023 on his fingers.
 
 
 -------------------------------------------------------
