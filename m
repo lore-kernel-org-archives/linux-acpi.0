@@ -1,14 +1,13 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Subject: Re: Linux/ACPI 2.4 release status and cpufreq
-Date: 12 Dec 2003 17:06:24 +0000
+From: Casey Harkins <charkins-TFaeeA7fOO6Gwcnyzrk3/w@public.gmane.org>
+Subject: Re: acpi on new gateway laptops
+Date: Fri, 12 Dec 2003 11:11:38 -0600 (CST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1071248784.1756.7.camel@darkstar.portugal>
-References: <1071209752.2542.688.camel@dhcppc4>
+Message-ID: <Pine.LNX.4.44.0312121109510.32380-100000@data.upl.cs.wisc.edu>
+References: <Pine.LNX.4.44.0312081938000.6722-100000@data.upl.cs.wisc.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1071209752.2542.688.camel-D2Zvc0uNKG8@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.44.0312081938000.6722-100000-j0XSImJ06nG869pVMd/zofZ8FUJU4vz8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,31 +16,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Len
 
+Anybody?
 
-On Fri, 2003-12-12 at 06:15, Len Brown wrote:
-> Folks,
-> 2.4.23 shipped -- and I'd like to thank all of you for helping build the
-> best stable ACPI kernel yet!
-
-yes in my laptop it is very stable too. thanks
-
-
-> Yes, this is a good time to remind me about, or update and re-send
-> patches that we were not able to handle in time for 2.4.23.
->=20
-
-have you any plan? to integrated cpufreq that cames in 2.22-ac4 kernels.
-or does anybody have any implantation of cpufreq for kernel 2.4.23?=20
-
---=20
-S=E9rgio M B
-
+On Mon, 8 Dec 2003, Casey Harkins wrote:
+> Oops, after a bit more investigating I see that there is a Device(H_EC)
+> which appears to be my embedded controller. I also see there is a line in
+> my dmesg output, which appears after the "Region EmbeddedControl(3) has
+> no handler..." error messages, that says:
+>
+>      ACPI: Embedded Controller [H_EC] (gpe 29)
+>
+> So, Linux appears to be detecting my Embedded Controller after it tries to
+> access the "Region EmbeddedControl(3)". Does this mean that the ecdt *is*
+> being found, but not until after Linux tried to access it? Or does the
+> fact that it is detected not mean that the ecdt is being read?
+>
+> cat /proc/acpi/embedded_controller/H_EC/info:
+>    gpe bit:                 0x1d
+>    ports:                   0x66, 0x62
+>    use global lock:         no
+>
 
 
 
