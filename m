@@ -1,14 +1,14 @@
-From: Fedor Karpelevitch <fedor-ugkMPi23kyXAHCkTjeiZhQ@public.gmane.org>
-Subject: Re: lid state reported incorrectly; no ac events
-Date: Fri, 25 Jul 2003 23:38:59 -0700
+From: "Carlo E. Prelz" <fluido-1XNsQiTun9D1P9xLtpHBDw@public.gmane.org>
+Subject: Re: Processor frequency control on ASUS laptops. And, how to switch video outputs?
+Date: Sat, 26 Jul 2003 10:28:07 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200307252338.59563.fedor@karpelevitch.net>
-References: <F760B14C9561B941B89469F59BA3A8470255EEAB@orsmsx401.jf.intel.com>
+Message-ID: <20030726082807.GA7261@casa.fluido.as>
+References: <20030725181031.GA19588@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_DIiI/3g0f6WPNlV"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <F760B14C9561B941B89469F59BA3A8470255EEAB-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20030725181031.GA19588-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,90 +17,92 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+Cc: acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+	Subject: Processor frequency control on ASUS laptops
+	Date: ven, lug 25, 2003 at 08:10:31 +0200
 
---Boundary-00=_DIiI/3g0f6WPNlV
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Content-Disposition: inline
+Quoting Karol Kozimor (sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org):
 
-On Пятница 25 Июль 2003 04:36 pm, Grover, Andrew wrote:
-> > From: Fedor Karpelevitch [mailto:fedor-ugkMPi23kyXAHCkTjeiZhQ@public.gmane.org]
-> >
-> > > right answer (if so, how? What does the ASL for the _LID method
-> > > look like?)
-> >
-> > Sorry, but how do I tell? I can provide whatever info if you tell
-> > me where to get it from...
->
-> Thanks for sending me your DSDT. Here is the _LID control method:
->
-> (ECOK is a variable that is set after the EC driver initializer
-> properly. It should be set to 1 fairly early on.)
-> (LIDS is a 1 bit field in the EmbeddedController operation region.)
->
-> Method (_LID, 0, NotSerialized)
-> {
->     If (\_SB.PCI0.ISA.EC.ECOK)
->     {
->         If (\_SB.PCI0.ISA.EC.LIDS)
->         {
->             Return (0x00)
->         }
->         Else
->         {
->             Return (0x01)
->         }
->     }
->     Else
->     {
->         Return (0x00)
->     }
-> }
->
-> Seems pretty straightforward. "If the EC is initialized, read the
-> LIDS bit and return the opposite".
->
-> Could you perhaps add the following line after the call to
-> acpi_ec_read() in the function acpi_ec_space_handler in file
-> drivers/acpi/ec.c?
->
-> printk("ACPI: Read %x from EC address %x\n", temp, address);
->
-> Then, clear the dmesg buffer "dmesg -c"
-> And then cat state once with the lid open, and if you can figure
-> out a way, with the lid closed, too.
-> And then send me dmesg contents.
+> I've been recently reminded about the GFRQ/SFRQ methods in some ASUS
+> notebooks DSDT's, which apparently are used by the Windows ASUS driver to
+> manage processor performance. Before adding "just another cool way to
+> control processor performance", I'd like to ask if there is _anybody_
+> running an ASUS laptop, for whom the processor performance control doesn't
+> work either with ACPI performance driver, or the updated ports of speedstep
+> driver (the one that supports K7 and is said to support Pentium-M)?
 
-see attachment. The first two lines are with the open lid, and the 
-second two - with closed ( not sure why each line is printed twice - 
-I only did cat ...LID/state once for each case );
+Your mail gave me the motivation to have a look at the cpu-freq stuff
+that is present on the 2.6.0test kernel. This also required that I
+make contact with this 'sysfs' virtual filesystem, that I had earlier
+never heard about. I do happily announce that on my Asus M3700N
+(centrino-based) the /sys/class/cpu/cpu0/cpufreq interface indeed
+works, and I can set the CPU frequency to any frequency between 600000
+and 1500000 Hz (at least, /proc/cpuinfo shows appropriately modified
+speed and bogomips fields).
 
-hope this sheds some light.
+The acpi interface is a bit more obscure for me. I can echo a number
+between 0 and 7 to /proc/acpi/processor/CPU1/throttling, and the
+setting apparently changes accordingly, although I have no idea about
+how to verify what really is happening. The 'power' file contains the
+following:
 
-Also I checked the problem with absence of AC events - acpid is not to 
-blame: I stopped it and did cat /proc/acpi/event, and then 
-unplugged/plugged AC, but never saw any events ( if i push lid button 
-events do show up).
+active state:            C1
+default state:           C1
+bus master activity:     00000000
+states:
+   *C1:                  promotion[C2] demotion[--] latency[000] usage[00000000]
+    C2:                  promotion[C3] demotion[C1] latency[001] usage[00000000]
+    C3:                  promotion[--] demotion[C2] latency[101] usage[00000000]
 
-Fedor
+but it is a read-only file, and I could not modify the active
+state. And the info file contains this:
 
---Boundary-00=_DIiI/3g0f6WPNlV
-Content-Type: text/plain;
-  charset="iso-8859-1";
-  name="dmesg.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename="dmesg.txt"
+processor id:            0
+acpi id:                 1
+bus mastering control:   yes
+power management:        yes
+throttling control:      yes
+performance management:  no
+limit interface:         yes
 
-ACPI: Read 91 from EC address 83
-ACPI: Read 91 from EC address 83
-ACPI: Read 10 from EC address 83
-ACPI: Read 10 from EC address 83
+which seems to indicate to me that I cannot do performance management
+through acpi.
 
---Boundary-00=_DIiI/3g0f6WPNlV--
+I don't know if this is of help to you. Ask me if you need that I do
+some specific check.
+
+I do have another asus-related question, though. I read somewhere that
+the method to switch video output between LCD and an external CRT was
+to send specific numbers to /proc/acpi/asus/disp. Well, in my case the
+content of this file is always 65535, and nothing happens whatever
+number I send to the file. There is another file in the directory,
+called lcd. It contains 1, and if I try to send other numbers to it,
+the number does not change, and I find the following message:
+
+Asus ACPI: Error switching LCD
+
+in the log file. I am afraid the problem has to be traced to the
+framebuffer driver: the person who developed the driver for Linux 2.4
+(David Dawes) told me that he has no plans to do the conversion to the
+new fb architecture in 2.6, and I am thus using the sub-optimal vesa
+driver (and in 2.4 Dawes' driver did not work with the Intel 855GM
+chip that is included in my laptop (freezing at boot when it should
+have switched to framebuffer usage)).
+
+But maybe there is some acpi magic that can perform the output
+switch... 
+
+In all cases, have a good day. There is nothing urgent here. 
+
+Carlo
+
+-- 
+  *         Se la Strada e la sua Virtu' non fossero state messe da parte,
+* K * Carlo E. Prelz - fluido-1XNsQiTun9D1P9xLtpHBDw@public.gmane.org             che bisogno ci sarebbe
+  *               di parlare tanto di amore e di rettitudine? (Chuang-Tzu)
 
 
 -------------------------------------------------------
