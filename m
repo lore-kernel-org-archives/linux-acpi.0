@@ -1,14 +1,14 @@
-From: "Ow Mun Heng" <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
-Subject: RE: Status of ACPI on IBM T40p & D600
-Date: Tue, 10 Feb 2004 10:07:30 +0800
+From: Chris Jensen <c-acpi-s2nexXcBJu3PC4JL755TaA@public.gmane.org>
+Subject: ACPI Thermal Shutdown on Boot
+Date: Tue, 10 Feb 2004 17:48:21 +1100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <C386328088ED7F4E9F81AFBABDDF60DA03F9E580@wdmyexch02.my.asia.wdc.com>
+Message-ID: <200402101748.21855.c-acpi@drspirograph.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,76 +17,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ow Mun Heng <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>, Alexander Gran <alex-4mRm4CWMOdkHuPwBo6/EyUB+6BGkLq7r@public.gmane.org>, Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, ajp-vB92YU/q1whiLUuM0BA3LQ@public.gmane.org
-Cc: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi,
+I've got a couple of problems with the ACPI thermal support in 2.6.2
+
+I'm trying to install kernel 2.6.2. However, as soon  as the kernel starts 
+init, I get a message along the lines of "Critical Temperature reached - 57C, 
+shutting down" and init switches to runlevel 0.
+(I got the same behaviour trying to install 2.6.1, but without the message 
+telling me why)
+
+The system had been powered on for 2 days straight, so I think it's safe to 
+keep it running at that temp, I'd like to keep the thermal protection 
+compiled into the kernel to protect against a really high temperature should 
+a fan fail etc, so I'd like to adjust the critical temperature so it doesn't 
+shutdown.
+
+How can I adjust the critical temperature? I realise that there's a file 
+in /proc that can be adjusted, but as init is shutting down immediately, 
+there doesn't seem to be an oportunity to do this.
 
 
-> -----Original Message-----
-> From: Ow Mun Heng=20
-> >=20
-> > Am Freitag, 6. Februar 2004 21:17 schrieb Bruno Ducrot:
-> > > > can you tell me how to remove usb so that my Laptop can=20
-> > > > get into C3? It keeps being in C2 and usage of C3 is [000000000]
-> > > >
-> > > > bus master activity =3D fffffffff all the time..
-> > >
-> > > Recompiling kernel without any kind of usb things, even=20
-> > modules perhap ?
-> >=20
+The other issue is that although the kernel said the temperature was 57C, if I 
+reboot and jump into the BIOS settings, it says its 67C, so there seems to be 
+some discrepency there.
 
-Okay.. went back and did just that.. I recompiled my kernel=20
-2.4.24 without any usb support at all.
+I'm using a Gigabyte motherboard with a VIA KT133 chipset (VT82C686).
+It has a shutdown threshold in the BIOS settings, which I've tried increasing, 
+but it didn't help.
 
-Kernel booted fine.
+-- 
+Chris Jensen
+chris-s2nexXcBJu3PC4JL755TaA@public.gmane.org
 
-watch cat /proc/acpi/processor/CPU0/power
+Public Key: http://drspirograph.com/public_key/
 
-yields these sort of bus-master activity.. I don't see the fffffff =
-anymore=20
-but values for the bus-master changes Every second (eg  below)
+Wait: Did you know that there's a direct correlation between the decline of
+Spirograph and the rise in gang activity?  Think about it.
+- Dr Spirograph (The Simpsons)
 
-bus master : a24as34
-bus master : 3ar34f1
-bus master : 34a2414
-
-As for C1/C2/C3 states... I still see majority of the time being spent=20
-in C2
-
-<snipped from Ari pollak email>
-active state:            C2
-default state:           C1
-bus master activity:     02000008
-states:
- C1:      promotion[C2] demotion[--] latency[000] usage[00000010]
-*C2:      promotion[C3] demotion[C1] latency[001] usage[01048795]
- C3:      promotion[--] demotion[C2] latency[085] usage[01977750]
-</snipped>
-
-Mine shows something like this
- C1:      promotion[C2] demotion[--] latency[000] usage[00022310]
-*C2:      promotion[C3] demotion[C1] latency[050] usage[00248795]
- C3:      promotion[--] demotion[C2] latency[050] usage[00000090]
-
-Note the differnce in usage of C3 vs C2 and also the latency.
-What the heck is latency anyway? and how come mine's different from=20
-Ari's T41??=20
-
-I also created a small bash script to determine my batt life/power
-usage from /proc/acpi/battery/BAT0/state
-
-batt-power	- compiled with USB support.
-batt-power2 - compiled w/o USB support.
-
-battery life  =3D 2h26m13s	ave power drain =3D 15647mW
-battery life2 =3D 2h28m35s	ave power drain =3D 15391mW
-
-batt Life SUCKS.. I'm raring to find out if C3 will help.
-
-Another thing, should I expect the P states to change when going
-from AC to Batt? (I seee it's still stucked in P2 which is 1.4Ghz
-even if I run on batt.
 
 
 -------------------------------------------------------
