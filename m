@@ -1,12 +1,14 @@
-From: Tobias Matzat <tobiasmatzat-KuiJ5kEpwI6ELgA04lAiVw@public.gmane.org>
-Subject: Problem with acpi and HP Compaq nx7000 laptop
-Date: Thu, 20 Nov 2003 23:04:59 +0100
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Dell D600: teaching radeonfb how to wake up...
+Date: Fri, 21 Nov 2003 00:47:08 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031120230459.5c557383.tobiasmatzat@freenet.de>
+Message-ID: <20031120234708.GA431@elf.ucw.cz>
+References: <20031119180119.GB22307@tate.loria.fr> <20031120111315.GB432@openzaurus.ucw.cz> <1069370504.705.32.camel@gaston>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1069370504.705.32.camel-ZSGxbZoyBwc@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,32 +17,30 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-
-
 
 Hi!
 
-I get the following error messages from my kernel (2.4.22):
+> > If I were you, I'd create fix_ati.o module which would
+> > "do the stuff", then insert it over network. That should
+> > make debugging easier...
+> 
+> Nah, we really have to re-POST the chip. I don't know how
+> we are supposed to do that though. Either we'll have to have
+> the full POST code for a bunch of ATI chips around, which doesn't
+> seem reasonable and I don't think windows drivers do that, or
 
-ACPI: Interpreter enabled
-ACPI: Using PIC for interrupt routing
-ACPI: System [ACPI] (supports S0 S3 S4bios S4 S5)
-dsopcode-0515 [20] ds_init_buffer_field  : Field size 1392 exceeds Buffer size 1296 (bits)
- psparse-1121: *** Error: Method execution failed [\_SB_.C046.C052] (Node dffc09e8), AE_AML_BUFFER_LIMIT
- psparse-1121: *** Error: Method execution failed [\_SB_.C046.C056] (Node dffc0ae8), AE_AML_BUFFER_LIMIT
- psparse-1121: *** Error: Method execution failed [\_SB_.C046._CRS] (Node dffc0be8), AE_AML_BUFFER_LIMIT
-  uteval-0098: *** Error: Method execution failed [\_SB_.C046._CRS] (Node dffc0be8), AE_AML_BUFFER_LIMIT
-ACPI: PCI Root Bridge [C046] (00:00)
+Well, if he wants to do the work for his concrete ATI chip, its fine
+with me, and I'd like to see the results.
 
-What do they mean and how can i fix them? Is it something dsdt-related?
-I took a look at the acpi4linux page but i found nothing related to 
-my laptop.
-
-Please help me, i am completetly new to acpi.
-
-Greets, Tobias
+Having fix_ati.o module is certainly easier than playing with driver
+model for testing...
+								Pavel
+-- 
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
 
 
 -------------------------------------------------------
