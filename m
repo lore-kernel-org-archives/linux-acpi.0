@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Desktop and S3 suspend the Holy Grail of ACPI?
-Date: Tue, 2 Mar 2004 11:19:04 +0100
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: ACPI PM Timer
+Date: Tue, 2 Mar 2004 11:55:27 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040302101904.GA303@elf.ucw.cz>
-References: <4038F499.2060302@verizon.net> <20040225182030.GG1214@elf.ucw.cz> <40410A69.3070800@verizon.net> <20040228220435.GD10530@elf.ucw.cz> <4041136B.9000904@verizon.net> <20040228230941.GA488@elf.ucw.cz> <4043ECB4.7080203@verizon.net>
+Message-ID: <20040302105527.GE2869@poupinou.org>
+References: <C386328088ED7F4E9F81AFBABDDF60DA045C6E45@wdmyexch02.my.asia.wdc.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4043ECB4.7080203-H+0wwilmMs3R7s880joybQ@public.gmane.org>
+In-Reply-To: <C386328088ED7F4E9F81AFBABDDF60DA045C6E45-Yw6hFe9C1vnHQcBQSaPqJq0fmWJ9l57d0E9HWUfgJXw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,43 +17,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nick Lidakis <nlidakis-H+0wwilmMs3R7s880joybQ@public.gmane.org>
+To: Ow Mun Heng <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Tue, Mar 02, 2004 at 09:29:29AM +0800, Ow Mun Heng wrote:
+> 
+> I know this is bad form(to ask twice).. but... 
+> What is this ACPI PM timesource?
+> 
+> Since I have this "TSC cannot be used as a timesource" when running battery.
+> 
 
-> >>Should I also disable preemption?
-> >
-> >Yes.
+Sorry, I forgot your question.  This is the power management timer
+as defined by 4.7.1.4 and 4.7.2.1.
 
-> Pavel, I'm having some trouble understanding the swsusp.txt file. It 
-> states: " You must explicitly specify the swap partition to resume from with
-> ``resume='' kernel option."
-> 
-> my swap partition resides in /dev/hda4
-> 
-> So I think  I need to do something like this?
-> # Boot up Linux by default.
-> #
-> default=Linux
-> 
-> image=/vmlinuz
->        label=Linux
->        read-only
-> append="hda=autotune resume=/dev/hda4"   <---- added this
-> #       restricted
-> #       alias=1
-> 
-> Is this correct, or do i pass the resume option at boot time as a LILO 
-> option?
-
-It is correct.
-								Pavel
+The FADT will give you some io registers in order to access the ACPI pm timer,
+which is an hardware requirement in order for an hardware platform being ACPI
+compliant.  You can then access to a counter.  It also can generate
+interrupts.
+The purpose for it is to replace the old PIT as the main clock for a system.
 
 -- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
