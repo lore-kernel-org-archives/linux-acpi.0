@@ -1,14 +1,15 @@
-From: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
-Subject: Re: S3 Resume working, but IDE disk hung
-Date: 04 Oct 2002 16:47:04 +0100
+From: "Derek Broughton" <derek_broughton-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: Re: CALL FOR TESTING (just for the record)
+Date: Fri, 4 Oct 2002 12:49:51 -0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1033746424.32384.41.camel@irongate.swansea.linux.org.uk>
-References: <1DD88DDBBB83D6119C8C00096BB0408FA9D2E6@USAMCMS5>
+Message-ID: <OE24bcizZJ8OkY7pkiw00000c3f@hotmail.com>
+References: <E17wsFd-0000WF-00@usw-sf-list2.sourceforge.net> <E17xSk5-0000au-00@incognito>
+Reply-To: "Derek Broughton" <dbroughton-F3m4/jXepmf3fQ9qLvQP4Q@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+	charset="Windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1DD88DDBBB83D6119C8C00096BB0408FA9D2E6-CdvpJ7rTi0s@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,29 +18,29 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: "Faraoni, Michael" <Michael.Faraoni-YwRvm6FT6jBDPfheJLI6IQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Andre Hedrick <andre-QA/0nRrxPJrNLxjTenLetw@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2002-10-04 at 16:02, Faraoni, Michael wrote:
->  I have looked into the present IDE suspend/resume, but they don't appear to
-> be called in S3 mode (my printk in ide-disk.c do_idedisk_resume() didn't
-> happen).  I kludged the piix.c file, adding a suspend and resume routine to
-> PCI device structure (which gets called).  In the resume I forced a call to
-> piix_config_drive_xfer_rate(), which does get the disk back to being useable
-> again, but I know this is in NO way the correct method :)
+From: "Luis Miguel Pires Neves" <lneves-3+EeCmRbAIo+BYJ/izffpQ@public.gmane.org>
+>
+> A strange issue also seems to have disapeared. I didn't think it was acpi
+> related, but as it disapeared with this last version, I have to assume it
+> was. Sometimes, I didn't found a rational to know exactly why or when, my
+> mouse became out of syncronism with the pointer in the screen. I had to
+point
+> a little bit to the right to hit a button. This used to happen with
+Mozilla,
+> Scilab and other programs, and the only way to regain syncronism was to
+> reboot or suspend and resume with swsusp. Killing the Xserver, or gpm
+didn't
+> work. My system runs Debian 3.0 and I use gpm to take advantage of the
+> Synaptics touchpad driver features. Does anyone have a clue on this? My
+> suspicion goes to temperature as I believe the system runs cooler now.
 
-When you come back you want to reconfigure the controller and drive,
-then possibly need to wake the drive. The reconfiguration may well need
-more than a retune - you might for example have lost the multimode
-settings, the host protected area etc. I would argue that you pretty
-much need to reinitialize the controller - you don't know if a drive
-changed, the cables changed etc from S4 and S3 needs most of the same
-support anyway.
-
-You are certainly on the right track and its a sane starting point.
-
-
+No, but you _do_ know there's a native synaptics driver at www.mobilix.org
+don't you?  It's, imo, much more useful than gpm.  Since your problem has
+gone away, I guess we'll never know if using it would have fixed the
+problem, too. :-)
 
 
 -------------------------------------------------------
