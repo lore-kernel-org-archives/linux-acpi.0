@@ -1,17 +1,14 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Network failures with ACPI enabled (kernel 2.4, 2.6)
-	PROBLEM FOUND!!!!!!
-Date: 31 Dec 2003 01:21:01 -0500
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Plea for help
+Date: Wed, 31 Dec 2003 17:58:00 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1072851661.2363.228.camel@dhcppc4>
-References: <BF1FE1855350A0479097B3A0D2A80EE0CC8954@hdsmsx402.hd.intel.com>
-	 <20031231001716.76cb2e8d.mike@it-loops.com>
-	 <20031231004648.531549af.mike@it-loops.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C66@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20031231004648.531549af.mike-Z92qn3yYq0hWk0Htik3J/w@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,48 +17,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Michael Guntsche <mike-Z92qn3yYq0hWk0Htik3J/w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Ian Pilcher <i.pilcher-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2003-12-30 at 18:46, Michael Guntsche wrote:
-> On Wed, 31 Dec 2003 00:17:16 +0100
-> Michael Guntsche <mike-Z92qn3yYq0hWk0Htik3J/w@public.gmane.org> wrote:
-> 
-> > Is there a way to see what the change in the CMOS does to ACPI?
-> > What puzzles me is that with the parport disabled outgoing traffic
-> > still works. It would make more sense if the network didn't work at all.
-> > 
-> One more piece of information.
-> The parport must be set to ECP, else you still get the same errors.
+>Yu, Luming wrote:
+> I want to you build a kernel with CONFIG_ACPI_DEBUG , which could show
 
-The fact that transmit works and receive fails is a clue.
-Probably the broadcom uses interrupts for receive, but doesn't
-use interrupts for transmit.  So if it were not getting interrupts,
-transmit could still send frames.
+> some ACPI debug message that could help us to roughly determine what
+> could
+> cause panic !=20
+>
+>I have added a new set of files (acpi_debug) to
+>
+>     http://home.comcast.net/~i.pilcher/panics.tar.gz
 
-So if you enable the parallel port in ECP mode, broadcom works --
-but if the port is disabled, or enabled but not in ECP mode, it fails?
+I'm not sure, but the most possibility is at acpi_ev_create_gpe_block.
+Normally, the next expected message  would be like:
 
-This is curious.  Indeed, the AML for this box shows three devices,
-ECP, EPP, and LPTB.  Unfortunately, the _PRS for them disassembles
-as a Buffer that one has to hand-disassemble to see what resources
-are actually possible...
+evxfevnt-0093 [04] acpi_enable           : Transition to ACPI mode
+successful
+evgpeblk-0747 [06] ev_create_gpe_block   : GPE 00 to 15 [_GPE] 2 regs at
+0000009
 
-To answer your question about observing what the ECP enable/disable
-does to the AML, the DSDT could be extracted, modified
-and used to over-ride the DSDT in the BIOS.  This isn't rocket science,
-but isn't trivial either.
+I did find the desultory words showing that in ACPI-DEBUG dmesg.  Is it
+possible to dig into ?
+BTW, I want to know whether that panic could be found in UP kernel.
 
-As curious as the failure is, the system works both ways when
-running XP, so I would encourage you to put the info into a
-bug report.  The observation about TX working and RX failing
-raises the prospect that this really is an IRQ issue, and
-with the /proc/interrupts for the different cases at hand
-the solution to this puzzle may become more clear.
-
-thanks,
--Len
+Thanks,
+Luming=20
 
 
 
