@@ -1,13 +1,13 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Re: [PATCH] Teach OSL to handle multiple interrupts [1/2]
-Date: Fri, 19 Nov 2004 00:41:54 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC098@pdsmsx403>
+From: Damien Challet <dchallet-iYm916uyMS6cH/9ky42jgw@public.gmane.org>
+Subject: pnpbios and acpi
+Date: Thu, 18 Nov 2004 23:18:42 +0000
+Message-ID: <200411182318.42197.dchallet@netcourrier.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,170 +17,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matthew Wilcox <matthew-Ztpu424NOJ8@public.gmane.org>
-Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Fu, Michael" <michael.fu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Dear All,
 
-Why the mail is broken?   :-( =20
-(Ugh, another PPP broken?)
+I have a thinkpad 600E, which needs some energic action from setpnp in order 
+to get the sound working. For this, I need pnpbios.
 
-Please ignore my previous mail.
+Acpi works really great with this laptop, and I would like to keep using it. 
+The only problem is that with acpi enabled, pnpbios complains:
 
-I summary what I sent (but get replaced by a unfinished version):
+Linux Plug and Play Support v0.97 (c) Adam Belay
+PnPBIOS: Scanning system for PnP BIOS support...
+PnPBIOS: Found PnP BIOS installation structure at 0xc00fe700
+PnPBIOS: PnP BIOS version 1.0, entry 0xf0000:0xe724, dseg 0xf0000
+PnPBIOS: dev_node_info: function not supported on this system
+PnPBIOS: Unable to get node info.  Aborting.
 
-1. Current ACPI CA seems to have defect when handling
-case if there have duplicate GPE interrupt level.=20
-It's due to all acpi_gpe_xrupt_info
-are hooked onto a global list of acpi_gbl_gpe_xrupt_list_head.=20
-And, if found a duplicate interrupt, the old acpi_gpe_xrupt_info
-will be override by new one, Please take a look at=20
-acpi_ev_get_gpe_xrupt_block. So you patch need to avoid
-duplication of GPE interrupt level at this moment.
- I'm not sure if this limitation is NOT ACPI CA 's bug. ( I will figure
-it out)
+hence /proc/bus/pnp does not exist anymore.
 
-2. Due to the global list of acpi_gbl_gpe_xrupt_list_head,
-All GPEs will be checked at each GPE interrupt level,
-This is not the expected behaviour of just checking GPE at GPE's
-interrupt
-level.
+This is with kernel 2.6.7 and 2.6.8.1
 
-3. Interrupt Source Overrides are necessary to describe variances=20
-between the IA-PC standard dual 8259 interrupt definition and the=20
-platform's implementation.
+So two questions: 
 
-Please take a look at ACPI SPEC
-5.2.11.8   Interrupt Source Overrides
+1) is it possible for acpi and pnpbios to coexist.
+2) how to achieve with acpi functionality equivalent to that of pnpbios? 
 
-Sorry for my broken mailer and PPP .
+Any suggestions ?
 
-Thnaks,
-Luming
+Thanks in advance
 
-
->>On Wed, Nov 17, 2004 at 10:27:58AM +0800, Yu, Luming wrote:
->>> 1.	-static unsigned int acpi_irq_irq;
->>> 	-static acpi_osd_handler acpi_irq_handler;
->>> 	-static void *acpi_irq_context;
->>>=20
->>> 1.1  I don't think it is good idea to remove acpi_irq_irq,=20
->which just
->>> for FADT sci. If you haven't add FADT stuff in the dev_id_list.
->>> So , please consider add FADT GPE onto dev_id_list.
->>
->>The FADT GPE blocks are handled separately, see
->>drivers/acpi/events/evsci.c and drivers/acpi/events/evgpeblk.c
->>However, they still call acpi_os_install_interrupt_handler() and
->>acpi_os_remove_interrupt_handler().
->
->Actually, FAD gpes has been added onto dev_id_list.
->I'm sorry for confusion. :-).=20
->
->But it leads to other problem that is all acpi_gpe_xrupt_info
->are hooked onto a global list of acpi_gbl_gpe_xrupt_list_head
->you patch install GPE device like:
->
->acpi_install_gpe_block ->acpi_ev_create_gpe_block
->	->acpi_ev_install_gpe_block
->	->acpi_ev_get_gpe_xrupt_block
->So, all acpi_gpe_xrupt_info for new installed GPE device
->are hooked onto acpi_gbl_gpe_xrupt_list_head.
->
->And, only install acpi_ev_gpe_xrupt_handler for GPEs , which
->has different interrupt_level with acpi_gbl_FADT->sci_int.
->That means, if one GPE device has interrupt_level equal to
->acpi_gbl_FADT->sci_int, then the interrupt handler for this
->GPE device will be acpi_ev_sci_xrupt_handler, rather than
->acpi_ev_gpe_xrupt_handler. Maybe this is expected behaviour
->that the GPE device is sharing same irq with acpi_gbl_FADT->sci_in.
->
->But, =20
->
->
->
->>
->>> 2.  	 +struct acpi_dev_id {
->>> 	+	acpi_osd_handler handler;
->>> 	+	void *context;
->>> 	+	int irq;
->>> 	+	struct acpi_dev_id *next;
->>> 	+};
->>>=20
->>> 2.1  Do you think a spin lock or semaphore is unnecessary here?
->>
->>I was wondering about that.  The question is whether two
->>processors can access dev_id_list at the same time.  Unfortunately, I
->>think it _is_ possible, so I'll send an updated patch to fix=20
->>this issue.
->>
->>> 3.  acpi_os_install_interrupt_handler
->>>=20
->>> +	 * If this is the FADT interrupt, ignore the GSI from=20
->>the core and
->>> +	 * use the value in our copy of the FADT instead.  It=20
->>may not be the
->>> +	 * same if an interrupt source override exists for the SCI.
->>>  	 */
->>> -	gsi =3D acpi_fadt.sci_int;
->>> +	if (gsi =3D=3D acpi_gbl_FADT->sci_int)
->>> +		gsi =3D acpi_fadt.sci_int;
->>>=20
->>> 3.1  This part should be revised to handle gsi !=3D=20
->>acpi_gbl_FADT->sci_int case.
->>> Because ACPI spec said:" You must have an interrupt source=20
->>override entry for=20
->>> the IRQ mapped to the SCI interrupt if this IRQ is not=20
->>identity mapped."
->>> GPE device need to look for their own override recorde.
->>
->>This is something I don't understand very well.  Why is there=20
->>an override?
->>Is this just for buggy BIOSes?  Why don't we override the=20
->acpi_gbl_FADT
->>sci_int?  Why do we have two copies of the FADT anyway?  Why=20
->>does the core
->>use the pristine copy of the FADT when it might be wrong? =20
->Why would we
->>need an override for GPE block interrupts?
->>
->>> 4. acpi_os_remove_interrupt_handler
->>>=20
->>> +	if (gsi =3D=3D acpi_gbl_FADT->sci_int)
->>> +		gsi =3D acpi_fadt.sci_int;
->>> +
->>> +	if (acpi_gsi_to_irq(gsi, &irq) < 0) {
->>> +		printk(KERN_ERR PREFIX "SCI (ACPI GSI %d) not=20
->>registered\n",
->>> +		       gsi);
->>> +		return AE_OK;
->>>  	}
->>>=20
->>> 4.1 same reason as 3.1
->>
->>Same questions as 3.1 ;-)
->>
->>> 5. acpi_gpe_block_remove
->>>=20
->>> 5.1 If you check code acpi_ev_delete_gpe_xrupt, you will find that
->>> if a GPE device's interrupt_level happen to equal to=20
->>acpi_gbl_FADT->sci_int,
->>> the cleanup will abort.
->>
->>But I don't call acpi_gpe_block_remove for FADT-mentioned GPE blocks.
->>Only new ones.
->>
->>--=20
->>"Next the statesmen will invent cheap lies, putting the blame upon=20
->>the nation that is attacked, and every man will be glad of those
->>conscience-soothing falsities, and will diligently study them,=20
->>and refuse
->>to examine any refutations of them; and thus he will by and by=20
->>convince=20
->>himself that the war is just, and will thank God for the better sleep=20
->>he enjoys after this process of grotesque self-deception." --=20
->>Mark Twain
->>
+Damien
 
 
 -------------------------------------------------------
