@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Problem entering S4, mysqld not stopped
-Date: Sun, 18 Jan 2004 14:56:56 +0800
+Subject: RE: RE: acpi-20031203-2.6.0.diff brokes the battery status readings with 2.6.0 in DELL Inspiron 8500
+Date: Sun, 18 Jan 2004 15:01:59 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CEF@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CF0@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,17 +17,14 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: John Knottenbelt <jak97-CezfXpuMXD6Fxr2TtlUqVg@public.gmane.org>, Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Mark M." <maalox-XzQKRVe1yT0V+D8aMU/kSg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Please try patches:
 
->=20
-> On entering S4 with "echo 4 > /proc/acpi/sleep" I get
-> a console message "
-> Suspend failed: not all processes stopped!
-> Restarting tasks...<6> Strange, mysqld not stopped
->  done"
-How about manually stop mysqld , then echo 4 > ...
+http://bugzilla.kernel.org/show_bug.cgi?id=3D1766
+http://bugzilla.kernel.org/show_bug.cgi?id=3D1791
+
 
 
 -------------------------------------------------------
