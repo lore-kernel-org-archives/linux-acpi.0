@@ -1,11 +1,11 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: ACPI patches now against 2.4.18 and 2.4.19
-Date: Mon, 23 Sep 2002 11:09:09 -0700
+From: Marc-Christian Petersen <m.c.p-hi6Y0CQ0nG0@public.gmane.org>
+Subject: ACPI patch 2002-09-23
+Date: Mon, 23 Sep 2002 20:16:19 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DEA7@orsmsx119.jf.intel.com>
+Message-ID: <200209232016.19567.m.c.p@gmx.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
+  charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -16,23 +16,24 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-S=E9rgio Monteiro Basto has merged the ACPI patch against 2.4.18 and =
-2.4.19.=20
+Hi there,
 
-These are now available at http://sf.net/projects/acpi
+is it possible to get incremental patches from earlier to current version=
+s or=20
+do I have to make them on my own?
 
-Thanks, S=E9rgio!
+--=20
+Kind regards
+        Marc-Christian Petersen
 
-Regards -- Andy
+http://sourceforge.net/projects/wolk
 
------------------------------
-Andrew Grover
-Intel Labs / Mobile Architecture
-andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-
+PGP/GnuPG Key: 1024D/569DE2E3DB441A16
+Fingerprint: 3469 0CF8 CA7E 0042 7824 080A 569D E2E3 DB44 1A16
+Key available at www.keyserver.net. Encrypted e-mail preferred.
 
 
 -------------------------------------------------------
