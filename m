@@ -1,12 +1,12 @@
 From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
 Subject: Re: [RFC] Reliable video POSTing on resume
-Date: Sat, 05 Feb 2005 01:52:23 +0100
-Message-ID: <420418C7.5010309@gmx.net>
-References: <20050122134205.GA9354@wsc-gmbh.de>	 <e796392205020221387d4d8562@mail.gmail.com> <420217DB.709@gmx.net>	 <4202A972.1070003@gmx.net> <20050203225410.GB1110@elf.ucw.cz>	 <1107474198.5727.9.camel@desktop.cunninghams>	 <4202DF7B.2000506@gmx.net>	 <1107485504.5727.35.camel@desktop.cunninghams>	 <9e4733910502032318460f2c0c@mail.gmail.com>	 <20050204074454.GB1086@elf.ucw.cz> <9e473391050204093837bc50d3@mail.gmail.com>
+Date: Sat, 05 Feb 2005 02:07:57 +0100
+Message-ID: <42041C6D.4000905@gmx.net>
+References: <20050122134205.GA9354@wsc-gmbh.de> <4201825B.2090703@gmx.net> <e796392205020221387d4d8562@mail.gmail.com> <420217DB.709@gmx.net> <4202A972.1070003@gmx.net> <20050203225410.GB1110@elf.ucw.cz> <1107474198.5727.9.camel@desktop.cunninghams> <4202DF7B.2000506@gmx.net> <9e47339105020321031ccaabb@mail.gmail.com> <420367CF.7060206@gmx.net> <20050204163019.GC1290@elf.ucw.cz> <Pine.LNX.4.56.0502042206090.26459@pentafluge.infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <9e473391050204093837bc50d3-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.56.0502042206090.26459-nGpKsS7K33UUkNsaar8edxWb9i9o6OzJ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,43 +16,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: James Simmons <jsimmons-4a22rCvIain6YmnWEzS1oti2O/JbrIOy@public.gmane.org>
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Jon Smirl schrieb:
-> On Fri, 4 Feb 2005 08:44:54 +0100, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> wrote:
+James Simmons schrieb:
+>>>int video_helper(struct video_actions *what_to_do)
+>>
+>>I do not know, synchronously executing userland code from kernel seems
+>>like wrong thing to do.
 > 
->>We already try to do that, but it hangs on 70% of machines. See
->>Documentation/power/video.txt.
-> 
-> We know that all of these ROMs are run at power on so they have to
-> work. This implies that there must be something wrong with the
-> environment the ROM are being run in. Video ROMs make calls into the
-> INT vectors of the system BIOS. If these haven't been set up yet
-> running the VBIOS is sure to hang.  Has someone with ROM source and
-> the appropriate debugging tools tried to debug one of these hangs?
-> Alternatively code could be added to wakeup.S to try and set these up
-> or dump the ones that are there and see if they are sane.
+> I'm not a fan for this either. The good news is most graphics cards don't 
+> require these tricks. The only ones that do are the ix86 cards. The real 
+> solution would be if the hradware vendors open the parts of the spec to do 
+> what we need. Many of the older cards could be supported in this way if we
+> talk to the vendors. They shouldn't care if the specs are released anymore. 
+> The problem would be the latest Radeon card and NVIDIA cards which 
+> unfortunely are the most common cards for x86 platforms ;-(
 
-My problem (Samsung P35) is that the BIOS wants to call code which
-is no longer mapped because the BIOS is too big to fit into the
-standard area. Since that additional area has been overwritten, we
-are out of luck. Maybe if we did something like backing up all
-untouched real mode memory immediately after switching to protected
-mode, it could work. But I don't know whether that is feasible on
-boot. Anyways, you don't want to run possibly buggy closed source
-bios code in an environment where a single random memory write
-may corrupt the kernel without debuggability.
-
-And sometimes there is BIOS code which is can't be run twice.
-Period.
-Don't believe that one? I have a machine where calling EDD code
-in the BIOS twice will hang the second time. See boot parameter
-edd=off for reference :-(
-
-So I agree that we could try to preserve the state better, but
-I also can guarantee you it won't help everywhere.
+Well, either you call userspace synchronously or you crash on resume.
+I know what I prefer. And this synchronous call isn't so bad because
+it comes with a timeout. So whatever the userspace program does, after
+two seconds the kernel will continue unaffected. Once you execute the code
+asynchronously, you get nondeterministic behaviour. That's sure fun for
+filling up your random pool, but I wouldn't trust my data to such a system.
 
 
 Regards,
