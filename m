@@ -1,12 +1,14 @@
 From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: [PATCH] fix IRQ / GPEs restore on wake
-Date: Sat, 17 Apr 2004 23:51:39 +0200
+Subject: Re: [PATCH] fix IRQ / GPEs restore on wake
+Date: Sun, 18 Apr 2004 00:05:15 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040417215139.GA17862@hell.org.pl>
+Message-ID: <20040417220515.GB17862@hell.org.pl>
+References: <20040417215139.GA17862@hell.org.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20040417215139.GA17862-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -19,20 +21,79 @@ To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Cc: Robert.Moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-This patch (originally by Alexander Malysh) reorders the IRQ / GPEs restore
-on wake-up from S1/S3. Without this patch no ACPI interrupts are received
-after S1 / S3 and in consequence, ACPI-driven hotkeys stop working. This
-affects certain (probably all) ASUS laptops as well as possibly other 
-machines depending on those features. The patch addresses bug #2321
-directly and #1409 partly. It was prepared against 2.6.5-mm6.
+Thus wrote Karol Kozimor:
+> Can somebody comment on that?
 
-Can somebody comment on that?
-Best regards,
+Either the patch got eaten or I forgot to attach it, here it is:
 
 -- 
 Karol 'sziwan' Kozimor
 sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+
+--- a/drivers/acpi/hardware/hwsleep.c	2004-04-17 22:57:11.000000000 +0200
++++ b/drivers/acpi/hardware/hwsleep.c	2004-04-17 23:12:08.000000000 +0200
+@@ -512,6 +512,16 @@ acpi_leave_sleep_state (
+ 
+ 	acpi_gbl_sleep_type_a = ACPI_SLEEP_TYPE_INVALID;
+ 
++	/*
++	 * Restore the GPEs:
++	 * 1) Disable all wakeup GPEs
++	 * 2) Enable all runtime GPEs
++	 */
++	status = acpi_hw_restore_gpes_on_wake ();
++	if (ACPI_FAILURE (status)) {
++		ACPI_REPORT_ERROR(("Could not enable non wakeup GPEs, %s\n", acpi_format_exception (status)));
++	}
++
+ 	/* Setup parameter object */
+ 
+ 	arg_list.count = 1;
+@@ -538,16 +548,6 @@ acpi_leave_sleep_state (
+ 	}
+ 	/* TBD: _WAK "sometimes" returns stuff - do we want to look at it? */
+ 
+-	/*
+-	 * Restore the GPEs:
+-	 * 1) Disable all wakeup GPEs
+-	 * 2) Enable all runtime GPEs
+-	 */
+-	status = acpi_hw_restore_gpes_on_wake ();
+-	if (ACPI_FAILURE (status)) {
+-		return_ACPI_STATUS (status);
+-	}
+-
+ 	/* Enable power button */
+ 
+ 	acpi_set_register(acpi_gbl_fixed_event_info[ACPI_EVENT_POWER_BUTTON].enable_register_id,
+--- a/drivers/acpi/sleep/main.c	2004-04-17 22:55:12.000000000 +0200
++++ b/drivers/acpi/sleep/main.c	2004-04-17 23:09:45.000000000 +0200
+@@ -107,7 +107,6 @@ static int acpi_pm_enter(u32 state)
+ 	default:
+ 		return -EINVAL;
+ 	}
+-	local_irq_restore(flags);
+ 	printk(KERN_DEBUG "Back to C!\n");
+ 
+ 	/* restore processor state
+@@ -118,6 +117,8 @@ static int acpi_pm_enter(u32 state)
+ 	if (state > PM_SUSPEND_STANDBY)
+ 		acpi_restore_state_mem();
+ 
++	acpi_leave_sleep_state(state);
++	local_irq_restore(flags);
+ 
+ 	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
+ }
+@@ -133,8 +134,6 @@ static int acpi_pm_enter(u32 state)
+ 
+ static int acpi_pm_finish(u32 state)
+ {
+-	acpi_leave_sleep_state(state);
+-
+ 	/* reset firmware waking vector */
+ 	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
+ 
 
 
 -------------------------------------------------------
