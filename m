@@ -1,213 +1,43 @@
-From: Marcel Holtmann <marcel@holtmann.org>
-Subject: Re: ACPI problem with latest 2.6 snapshot
-Date: Thu, 25 Mar 2004 15:24:01 +0100
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <1080224640.2274.7.camel@pegasus>
-References: <1080136312.2309.9.camel@pegasus>
-	 <1080187915.21259.354.camel@dhcppc4>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: [PATCH] ACPI poweroff fixes for 2.4.26-pre2
+Date: Mon, 22 Mar 2004 11:59:47 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20040322105946.GC1505@openzaurus.ucw.cz>
+References: <20040308163452.GE5352@openzaurus.ucw.cz> <Pine.LNX.4.44.0403081515190.10436-100000@dmt.cyclades> <20040308183228.GD484@elf.ucw.cz> <20040308201411.GA18636@alpha.home.local> <20040308205444.GH484@elf.ucw.cz> <20040309233325.GA22953@alpha.home.local> <1079279490.10225.10.camel@darkstar> <20040315210729.GA19306@alpha.home.local> <1079389434.3695.2.camel@darkstar> <20040315231927.GA19829@alpha.home.local>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-In-Reply-To: <1080187915.21259.354.camel@dhcppc4>
-To: Len Brown <len.brown@intel.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Developers <acpi-devel@lists.sourceforge.net>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20040315231927.GA19829-HkMpAodKYdnXX8ko2wsARw@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Willy Tarreau <willy-tRhHnHjXm5DYtjvyW6yDsg@public.gmane.org>
+Cc: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org, Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Len,
+Hi!
 
-> I expect we'll have this problem in 2.4.26 too.
-
-this will be bad, because before the update this works fine on my
-system.
-
-> I've dropped this info into a new bug report:
-> http://bugzilla.kernel.org/show_bug.cgi?id=2366
+> > and status = acpi_system_save_state(state); 
+> > on line 341 of drivers/acpi/system.c ?
 > 
-> can you add yourself to the cc:, and attach the complete dmesg -s40000
-> from the failure (or a "debug" console capture).  Would like to confirm
-> that IRQ22 got set up correctly in the IOAPIC.
-> 
-> There are two bugs here,
-> 1. AE_NOT_ACQUIRED on non-identity mapped SCI over-ride -- new
-> 2. boot failure on AE_NOT_ACQUIRED -- old
+> OK sorry, I didn't notice it. So you'll simply have to remove the
+> first hunk of the patch so that acpi_system_save_state() stays defined
+> at least when CONFIG_ACPI_SLEEP is defined.
 
-I applied your two patches from the bug report (btw one of them has a
-wrong directory in the diff) and the systems boots up in a better state,
-which means that a least my USB subsystem is now working. But the
-network is still broken and I disabled the SCSI and the IEEE1394 drivers
-for now. However I see these two oops along
+In such case... at least insert BUG() into fake acpi_system_save_state method.
+-- 
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
 
-ohci_hcd: 2004 Feb 02 USB 1.1 'Open' Host Controller (OHCI) Driver (PCI)
-ohci_hcd: block sizes: ed 64 td 64
-ohci_hcd 0000:02:0c.0: OHCI Host Controller
-ohci_hcd 0000:02:0c.0: irq 20, pci mem e12a5000
-ohci_hcd 0000:02:0c.0: new USB bus registered, assigned bus number 3
-hub 3-0:1.0: USB hub found
-hub 3-0:1.0: 3 ports detected
-ohci_hcd 0000:02:0c.1: OHCI Host Controller
-ohci_hcd 0000:02:0c.1: irq 21, pci mem e12b4000
-ohci_hcd 0000:02:0c.1: new USB bus registered, assigned bus number 4
-hub 4-0:1.0: USB hub found
-hub 4-0:1.0: 2 ports detected
-irq 21: nobody cared!
-Call Trace:
- [<c0108e32>] __report_bad_irq+0x2a/0x8b
- [<c0108f1c>] note_interrupt+0x6f/0x9f
- [<c01091de>] do_IRQ+0x127/0x136
- [<c01076ac>] common_interrupt+0x18/0x20
 
-handlers:
-[<e12858a3>] (usb_hcd_irq+0x0/0x67 [usbcore])
-Disabling IRQ #21
-usb 3-2: new full speed USB device using address 2
 
-and
-
-Linux Kernel Card Services
-  options:  [pci] [cardbus] [pm]
-PCI: Enabling device 0000:02:0e.0 (0000 -> 0002)
-Yenta: CardBus bridge found at 0000:02:0e.0 [133f:3000]
-Yenta: Enabling burst memory read transactions
-Yenta: Using CSCINT to route CSC interrupts to PCI
-Yenta: Routing CardBus interrupts to PCI
-Yenta: ISA IRQ mask 0x0000, PCI irq 18
-Socket status: 10000047
-irq 22: nobody cared!
-Call Trace:
- [<c0108e32>] __report_bad_irq+0x2a/0x8b
- [<c0108f1c>] note_interrupt+0x6f/0x9f
- [<c01091de>] do_IRQ+0x127/0x136
- [<c01076ac>] common_interrupt+0x18/0x20
- [<c011007b>] mtrr_ioctl+0x253/0x6a7
- [<c0104b91>] default_idle+0x23/0x26
- [<c0104bef>] cpu_idle+0x2c/0x35
- [<c02f46f2>] start_kernel+0x16b/0x188
- [<c02f444b>] unknown_bootoption+0x0/0x110
-
-handlers:
-[<c01b8c63>] (acpi_irq+0x0/0x16)
-Disabling IRQ #22
-
-Actually I am not able to get the full dmesg so here are the initial
-parts that are ACPI related
-
-ENABLING IO-APIC IRQs
-init IO_APIC IRQs
- IO-APIC (apicid-pin) 2-0, 2-9, 2-16, 2-17, 2-18, 2-19, 2-20, 2-21, 2-23 not connected.
-..TIMER: vector=0x31 pin1=2 pin2=-1
-..MP-BIOS bug: 8254 timer not connected to IO-APIC
-...trying to set up timer (IRQ0) through the 8259A ...  failed.
-...trying to set up timer as Virtual Wire IRQ... works.
-Using local APIC timer interrupts.
-calibrating APIC timer ...
-..... CPU clock speed is 2017.0707 MHz.
-..... host bus clock speed is 100.0885 MHz.
-NET: Registered protocol family 16
-PCI: PCI BIOS revision 2.10 entry at 0xf11f0, last bus=3
-PCI: Using configuration type 1
-mtrr: v2.0 (20020519)
-ACPI: Subsystem revision 20040311
-ACPI: Interpreter enabled
-ACPI: Using IOAPIC for interrupt routing
-ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 9 10 *11 12 14 15)
-ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 6 7 9 *10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 6 *7 9 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 *5 6 7 9 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 *6 7 9 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 6 7 *9 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 5 6 7 *9 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 6 7 *9 10 11 12 14 15)
-ACPI: PCI Root Bridge [PCI0] (00:00)
-PCI: Probing PCI hardware (bus 00)
-PCI: Enabled i801 SMBus device
-Transparent bridge - 0000:00:1e.0
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCI1._PRT]
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCI2._PRT]
-IOAPIC[0]: Set PCI routing entry (2-17 -> 0xa9 -> IRQ 17 Mode:1 Active:1)
-00:00:1f[B] -> 2-17 -> IRQ 17
-IOAPIC[0]: Set PCI routing entry (2-23 -> 0xb1 -> IRQ 23 Mode:1 Active:1)
-00:00:1f[C] -> 2-23 -> IRQ 23
-IOAPIC[0]: Set PCI routing entry (2-19 -> 0xb9 -> IRQ 19 Mode:1 Active:1)
-00:00:1f[D] -> 2-19 -> IRQ 19
-IOAPIC[0]: Set PCI routing entry (2-16 -> 0xc1 -> IRQ 16 Mode:1 Active:1)
-00:01:00[A] -> 2-16 -> IRQ 16
-IOAPIC[0]: Set PCI routing entry (2-21 -> 0xc9 -> IRQ 21 Mode:1 Active:1)
-00:02:09[A] -> 2-21 -> IRQ 21
-IOAPIC[0]: Set PCI routing entry (2-20 -> 0xd1 -> IRQ 20 Mode:1 Active:1)
-00:02:09[D] -> 2-20 -> IRQ 20
-IOAPIC[0]: Set PCI routing entry (2-18 -> 0xd9 -> IRQ 18 Mode:1 Active:1)
-00:02:0e[A] -> 2-18 -> IRQ 18
-number of MP IRQ sources: 15.
-number of IO-APIC #2 registers: 24.
-testing the IO APIC.......................
-IO APIC #2......
-.... register #00: 02000000
-.......    : physical APIC id: 02
-.......    : Delivery Type: 0
-.......    : LTS          : 0
-.... register #01: 00178020
-.......     : max redirection entries: 0017
-.......     : PRQ implemented: 1
-.......     : IO APIC version: 0020
-.... register #02: 00000000
-.......     : arbitration: 00
-.... register #03: 00000001
-.......     : Boot DT    : 1
-.... IRQ redirection table:
- NR Log Phy Mask Trig IRR Pol Stat Dest Deli Vect:   
- 00 000 00  1    0    0   0   0    0    0    00
- 01 001 01  0    0    0   0   0    1    1    39
- 02 000 00  1    0    0   0   0    0    0    00
- 03 001 01  0    0    0   0   0    1    1    41
- 04 001 01  0    0    0   0   0    1    1    49
- 05 001 01  0    0    0   0   0    1    1    51
- 06 001 01  0    0    0   0   0    1    1    59
- 07 001 01  0    0    0   0   0    1    1    61
- 08 001 01  0    0    0   0   0    1    1    69
- 09 000 00  1    0    0   0   0    0    0    00
- 0a 001 01  0    0    0   0   0    1    1    71
- 0b 001 01  0    0    0   0   0    1    1    79
- 0c 001 01  0    0    0   0   0    1    1    81
- 0d 001 01  0    0    0   0   0    1    1    89
- 0e 001 01  0    0    0   0   0    1    1    91
- 0f 001 01  0    0    0   0   0    1    1    99
- 10 001 01  1    1    0   1   0    1    1    C1
- 11 001 01  1    1    0   1   0    1    1    A9
- 12 001 01  1    1    0   1   0    1    1    D9
- 13 001 01  1    1    0   1   0    1    1    B9
- 14 001 01  1    1    0   1   0    1    1    D1
- 15 001 01  1    1    0   1   0    1    1    C9
- 16 001 01  0    1    0   1   0    1    1    A1
- 17 001 01  1    1    0   1   0    1    1    B1
-IRQ to pin mappings:
-IRQ1 -> 0:1
-IRQ2 -> 0:2
-IRQ3 -> 0:3
-IRQ4 -> 0:4
-IRQ5 -> 0:5
-IRQ6 -> 0:6
-IRQ7 -> 0:7
-IRQ8 -> 0:8
-IRQ10 -> 0:10
-IRQ11 -> 0:11
-IRQ12 -> 0:12
-IRQ13 -> 0:13
-IRQ14 -> 0:14
-IRQ15 -> 0:15
-IRQ16 -> 0:16
-IRQ17 -> 0:17
-IRQ18 -> 0:18
-IRQ19 -> 0:19
-IRQ20 -> 0:20
-IRQ21 -> 0:21
-IRQ22 -> 0:22
-IRQ23 -> 0:23
-.................................... done.
-PCI: Using ACPI for IRQ routing
-PCI: if you experience problems, try using option 'pci=noacpi' or even 'acpi=off'
-
-Regards
-
-Marcel
+-------------------------------------------------------
+This SF.Net email is sponsored by: IBM Linux Tutorials
+Free Linux tutorial presented by Daniel Robbins, President and CEO of
+GenToo technologies. Learn everything from fundamentals to system
+administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
