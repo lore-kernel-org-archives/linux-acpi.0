@@ -1,14 +1,15 @@
-From: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
-Subject: Re: suspend.c vs driver-model.txt
-Date: Wed, 31 Jul 2002 00:33:55 +0200
+From: Aaron Gaudio <prothonotar-2LEdZMXKCZJeeLb3ft/vUmD2FQJk+8+b@public.gmane.org>
+Subject: Re: Failure w/ latest ACPI patch...
+Date: Tue, 30 Jul 2002 22:14:52 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020730223355.27937@192.168.4.1>
-References: <20020730200634.GA16297@atrey.karlin.mff.cuni.cz>
+Message-ID: <20020730221452.A22709@tarnation.dyndns.org>
+References: <20020729210341.B11837@tarnation.dyndns.org> <20020730165433.A1445@brodo.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-md5;
+	protocol="application/pgp-signature"; boundary="FL5UXtIhxfXey3p5"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20020730200634.GA16297-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20020730165433.A1445-JhLEnvuH02M@public.gmane.org>; from devel-JhLEnvuH02M@public.gmane.org on Tue, Jul 30, 2002 at 04:54:33PM +0200
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,45 +18,77 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: Linux ACPI Devel Mailing List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
->I do not know if such feelings are worth the effort of driver authors.
 
-My experience with drivers here is that it isn't very difficult
-to get that done right, but well...
+--FL5UXtIhxfXey3p5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->Certainly, it feels safer that way. But I believe that what I
->currently have is bulletproof...
+And lo, upon Tue, Jul 30, 2002 at 04:54:33PM +0200, Dominik Brodowski spake=
+th thusly:
+> Hi,
+>=20
+> Intersting problem you're reporting here:
+>=20
+> On Mon, Jul 29, 2002 at 09:03:41PM -0400, Aaron Gaudio wrote:
+> > I notice that in the acpi-patched version, there is some (possibly
+> > BIOS?) message before the actual dmesg output gets printed
+> Even before "uncompressing kernel...." ???=20
 
-If you say so... I'm still afraid with relying on the kernel
-not triggering any IO for whatever random reason, I'd rather
-have things designed to be bulletproof from the ground up, but
-that may well be due to my lack of intimate knowledge of various
-parts of the kernel not directly related to arch code & drivers.
+Sorry, I should have been clearer. I meant that it froze up before
+I could save the dmesg output to a file to attach. I could see the
+actual dmesg output on screen.
 
-We can end the debate here anyway, there is nothing in the
-driver semantics I propose incompatible with software suspend
-anyway, I'd suggest to document those semantics with blocking
-of IOs and time will show how drivers keep up.
+>=20
+> , and
+> > for at least one of those devices for which an IRQ is not found, it
+> > says it will use IRQ 255.
+> That's BAD. IRQ 255 does not exist on any known laptop, I dare to say.=20
+>=20
+> > Unfortunately, because the boot sequence does not complete, I don't
+> > have the output of dmesg available for the failed boot (I can always
+> > attach one for the RH-based kernel, if anyone would like to see that).
+> Could you pass pci=3Dnoacpi to the ACPI kernel, and try if it boots, plea=
+se?
+>
 
-Patrick: On my side, I'll start moving the pmac drivers to
-the new model as soon as I can get a recent 2.5 to boot a pmac
-again, then I'll move my PM stuff to the new model and see what
-issues arise. I'll try to have both suspend-to-RAM and suspend-
-to-disk using Pavel's stuff working so we can validate the whole
-mecanism.
+Actually, thanks to advice from Ted Serreyn, it turns out the problem
+was that the ACPI was in fact working :) The USB controller that previously
+was not getting loaded with an IRQ was now (IRQ 9, like everything else),
+and that USB controller happened to be the one for the memory stick on
+the laptop. The memory stick apparently is not supported yet in the
+stock kernel. Ted turned me on to a patch to enable this device, and,
+upon applying it, I was able to complete the boot successfully. Now I'm
+fighting to get my DVD drive to be recognized over FireWire :)
+=20
 
-No promise on time frame though, I've been pretty busy lately
-and I have to get 2.4 working on some new Apple HW as well...
+--=20
 
-Ben.
+Aaron Gaudio                           prothontar @ tarnation.dyndns.org
+                   http://tarnation.dyndns.org/~aaron
+                            ----------------
+  "From fullness, aspect. From aspect, being. From being, emptiness."
 
+--FL5UXtIhxfXey3p5
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iEYEARECAAYFAj1HSBwACgkQwXDG7ZQN91fWPQCgjQzt1+rirogysS4Zl6b6+5d9
+eowAoJnQycfTkVhIeK98qf1+cA99wf4q
+=7bzC
+-----END PGP SIGNATURE-----
+
+--FL5UXtIhxfXey3p5--
 
 
 -------------------------------------------------------
 This sf.net email is sponsored by: Dice - The leading online job board
 for high-tech professionals. Search and apply for tech jobs today!
-http://seeker.dice.com/seeker.epl?rel_code=31
+http://seeker.dice.com/seeker.epl?rel_code=3D31
