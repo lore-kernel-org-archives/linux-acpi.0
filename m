@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ASL fixing questions
-Date: Fri, 13 Feb 2004 12:08:10 +0800
+Subject: RE: acpi on r40e
+Date: Fri, 13 Feb 2004 12:22:14 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB6AF@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB6B0@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,31 +17,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Martijn Pieters <mj-a5Jd59zECFiB+jHODAdFcQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, Praveen C <cpravn-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> >         Name (_PSS, Package (0x03) // 102 (206)
-> >         {
-> >             Package (0x06)
-> >             {
-> >                 0x08070000,
-> >                 0xB36A0000,
-> >                 0x7D000000,
-> >                 0x09000000,
-> >                 0x8A2920E0,
-> >                 0x8A010000
->                   ^^^^^^^^^^
-> 		  I think that all of those
-> 		  values are broken, because
-> 		  they are stored in a little bit
-> 		  order.
-> 		  It should be in fact, at least for the that
-> 		  first package:
+>=20
+> On Thu, 12 Feb 2004, [iso-8859-1] Praveen C wrote:
+> > I removed all HKEY related stuff and assembled dsdt.dsl using iasl.
+> > Then I used the DSDT initrd patch together with the new=20
+> DSDT table. I
+> > STILL cant get the volume and brightness buttons to work.
+> > praveen
+>=20
+> Apparently you didn't read my reply to you.  If you want the=20
+> buttons, use
+> APM and disable ACPI.
+>=20
 
-I'm curious how you can get such conclusion. ACPI spec
-just state there should be 6 DWordConst for each Performance
-State Definition Package. =20
+>From hardware point of view, User interface can trigger SMI# and SCI# ,
+So, maybe it's possible that Hot key feature handled by SMM code
+can work with ACPI. I'm not sure, it is just my imagination.
 
 --Luming
 
