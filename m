@@ -1,14 +1,14 @@
-From: Jurgen Kramer <gtm.kramer-c1aixF9oqgPk1uMJSBkQmQ@public.gmane.org>
-Subject: Re: Switching LCD off on a laptop (or change to CRT)
-Date: 23 Sep 2002 18:36:07 +0200
+From: Sebastian Zimmermann <wegwerf-juni02-XrphxVexwn4ANkabGmIAxw@public.gmane.org>
+Subject: Re: CALL FOR TESTING
+Date: 23 Sep 2002 20:06:42 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1032798967.1161.9.camel@paragon.slim>
-References: <871y7kkd7s.fsf@lexx.delysid.org>
+Message-ID: <1032804402.910.10.camel@coruscant.datenknoten.de>
+References: <EDC461A30AC4D511ADE10002A5072CAD0236DE80@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <871y7kkd7s.fsf-lBiwR96x4xkvSoioSV8wqQ@public.gmane.org>
+In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD0236DE80-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,75 +17,62 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: Mario Lang <mlang-0OxMAPPu35xAfugRpC6u6w@public.gmane.org>
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+linux-2.4.20-pre7-acpi
+Toshiba Tecra 9000
 
-I have the Japanese version of this laptop (Victor MP-XP7210) do the
-Fn+F4, Fn+F5, Fn+F6 and Fn+F7 work for you? I asked a question about
-this on the maillist but there no reply.
+> - DOES IT BOOT?
 
-BTW Fn+F10 works for me with kernel 2.4.19 + ACPI 20020918. The LCD does
-go off. I do not have the VGA connector cable so I cannot see if it
-switches to VGA output.
+yes
 
-Cheers,
+kernel: ACPI: have wakeup address 0xc0001000
+kernel: On node 0 totalpages: 196320
+kernel: zone(0): 4096 pages.
+kernel: zone(1): 192224 pages.
+kernel: zone(2): 0 pages.
+kernel: ACPI: RSDP (v000 TOSHIB                     ) @ 0x000f0180
+kernel: ACPI: RSDT (v001 TOSHIB 750      00151.02068) @ 0x2fee0000
+kernel: ACPI: FADT (v002 TOSHIB 750      00151.02068) @ 0x2fee0054
+kernel: ACPI: BOOT (v001 TOSHIB 750      00151.02068) @ 0x2fee002c
+kernel: ACPI: DSDT (v001 TOSHIB 9000     08194.01552) @ 0x00000000
+kernel: ACPI: BIOS passes blacklist
+kernel: ACPI: MADT not present
 
-Jurgen
+> - DOES IT ASSIGN INTERRUPTS PROPERLY?
 
-On Mon, 2002-09-23 at 16:11, Mario Lang wrote:
-    hello.
-    
-    I recently got a JVC MP-XP7210DE.  First of all, congrats,
-    ACPI worked out of the box with 2.4.20pre7.  I have correct
-    ac_adaptor info, correct battery info (even for both
-    slots), and the power button works too under acpid.
-    
-    One remaining glitch I have is getting the internal
-    display to switch off.  Under XP, this works fine
-    with Fn-F10.  If I do this under Linux, I get a message
-    telling me that this button is not implemented (on the console).
-    
-    Well, that indicates that this LCD display off thing
-    must be done by the operating system.
-    
-    Well, I'm blind[1], and I realllllly don't need that display,
-    and switching it off would save alot of power.  Any hint
-    on what I could try to achieve this would be very helpful.
-    
-    Does any of the acpi patches already support that?  I think
-    it should be a acpi standard, as there is a screen
-    saver for Windows NT which does exactly that via ACPI (turn
-    the display off).
-    
-    [1] Yeah, don't be supprised, that works really nicely.
-    I use speech and braille output (mostly speech while I'm mobile though),
-    and the display is really just a waste of energy most of the time.
-    
-    P.S.: Sorry to bother the -devel list with that, but it
-    is very very difficult to get competent answers for
-    ACPI questions.  All HOWTOs seem to still refer
-    to APM, and well, this notebook doesnt seem to have apm.
-    
-    -- 
-    CYa,
-      Mario
-    
-    
-    
-    -------------------------------------------------------
-    This sf.net email is sponsored by:ThinkGeek
-    Welcome to geek heaven.
-    http://thinkgeek.com/sf
-    _______________________________________________
-    Acpi-devel mailing list
-    Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
-    
-    
+          CPU0       
+  0:     100838          XT-PIC  timer
+  1:       2270          XT-PIC  keyboard
+  2:          0          XT-PIC  cascade
+  8:          3          XT-PIC  rtc
+  9:         91          XT-PIC  acpi
+ 11:       2974          XT-PIC  Texas Instruments PCI1410 PC card
+Cardbus Controller, Toshiba America Info Systems ToPIC95 PCI to Cardbus
+Bridge with ZV Support, Toshiba America Info Systems ToPIC95 PCI to
+Cardbus Bridge with ZV Support (#2), Intel ICH3, usb-uhci, usb-uhci,
+usb-uhci, orinoco_cs
+ 12:      51835          XT-PIC  PS/2 Mouse
+ 14:      13212          XT-PIC  ide0
+ 15:          4          XT-PIC  ide1
+NMI:          0 
+LOC:     100801 
+ERR:          0
+MIS:          0
 
+> Toshiba Laptop ACPI Extras version 0.13
+
+Work fine
+
+Lid ok
+Battery ok
+
+does enter S1 sleep (power led turns yellow), however, it won't wakeup
+(power led turns green, but system hangs).
+
+S.
 
 
 -------------------------------------------------------
