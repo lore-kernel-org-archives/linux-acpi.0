@@ -1,14 +1,14 @@
-From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] Introduce pci_raw_ops
-Date: Thu, 19 Jun 2003 20:40:26 +0100
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [BK PATCH] ACPI update
+Date: Thu, 19 Jun 2003 18:29:24 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030619194026.GG24357@parcelfarce.linux.theplanet.co.uk>
-References: <20030619191859.GF24357@parcelfarce.linux.theplanet.co.uk> <16114.3927.291190.349794@napali.hpl.hp.com>
+Message-ID: <F760B14C9561B941B89469F59BA3A84725A2FC@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <16114.3927.291190.349794-o/PNRNCSakrWxDs0y9d3MAC/G2K4zDHf@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,36 +17,86 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: davidm-sDzT885Ts8HQT0dZR+AlfA@public.gmane.org
-Cc: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Linus Torvalds <torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jun 19, 2003 at 12:30:31PM -0700, David Mosberger wrote:
->   Matthew> I've booted it on a generic K6 box.
-> 
-> diff -u -p -r1.8 pci.c
-> --- a/arch/ia64/pci/pci.c	14 Jun 2003 22:14:34 -0000	1.8
-> +++ a/arch/ia64/pci/pci.c	19 Jun 2003 19:11:48 -0000
-> 
-> -struct pci_ops *pci_root_ops = &pci_sal_ops;	/* default to SAL */
-> +struct pci_ops *pci_root_ops = {
-> +	.read = pci_read,
-> +	.write = pci_write,
-> +}
-> 
-> Does this really compile?
+Hi Linus, please do a
 
-No.  I made the same mistake for x86, and I think I fixed the ia64 mistake
-in the wrong tree.  For a variety of reasons, I don't have a recent enough
-ia64 tree that'll compile.  BTW, fixing this breaks SN2, but I spoke with
-Jesse Barnes about it and he wants to change all that code around anyway.
+	bk pull http://linux-acpi.bkbits.net/linux-acpi
 
-Greg, do you want to just remove this * or do you want another 20k diff?
+Notable improvements are the addition of a special-features driver for
+ASUS laptops, as well as the re-introduction of acpitable.c. I must
+admit this certainly cuts down on a lot of #ifdefs to have the HT_ONLY
+option in its own file. A horde of other small fixes, too.
 
--- 
-"It's not Hollywood.  War is real, war is primarily not about defeat or
-victory, it is about death.  I've seen thousands and thousands of dead bodies.
-Do you think I want to have an academic debate on this subject?" -- Robert Fisk
+This will update the following files:
+
+ arch/i386/kernel/acpi/Makefile     |    1=20
+ arch/i386/kernel/acpi/acpitable.c  |  553 ++++++++++++++
+ arch/i386/kernel/acpi/acpitable.h  |  260 ++++++
+ arch/i386/kernel/setup.c           |   13=20
+ drivers/acpi/Kconfig               |   31=20
+ drivers/acpi/Makefile              |    1=20
+ drivers/acpi/asus_acpi.c           |  951 +++++++++++++++++++++++++
+ drivers/acpi/dispatcher/dsmthdat.c |   25=20
+ drivers/acpi/events/evgpe.c        |    8=20
+ drivers/acpi/events/evgpeblk.c     |   29=20
+ drivers/acpi/executer/exoparg1.c   |   77 +-
+ drivers/acpi/executer/exstore.c    |    4=20
+ drivers/acpi/executer/exsystem.c   |    4=20
+ drivers/acpi/executer/exutils.c    |    5=20
+ drivers/acpi/hardware/hwregs.c     |   47 -
+ drivers/acpi/hardware/hwsleep.c    |    4=20
+ drivers/acpi/tables/tbconvrt.c     |   26=20
+ drivers/acpi/utilities/utmisc.c    |    2=20
+ drivers/pci/hotplug/acpiphp.h      |   16=20
+ drivers/pci/hotplug/acpiphp_core.c |   15=20
+ drivers/pci/hotplug/acpiphp_glue.c |   50 -
+ drivers/pci/hotplug/acpiphp_pci.c  |    4=20
+ drivers/pci/hotplug/acpiphp_res.c  |    4=20
+ include/acpi/acconfig.h            |    2=20
+ include/acpi/acglobal.h            |    1=20
+ include/acpi/achware.h             |    2=20
+ include/acpi/acpiosxf.h            |    8=20
+ include/acpi/actypes.h             |   21=20
+ include/asm-i386/acpi.h            |    5=20
+ include/linux/acpi.h               |    4=20
+ 30 files changed, 1999 insertions(+), 174 deletions(-)
+
+through these ChangeSets:
+
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/06/19 1.1332.2.2)
+   ACPI: Interpreter update to 20030619
+   - Fix To/FromBCD, eliminating the need for an arch-specific #define
+   - Do not acquire a semaphore in the S5 shutdown path
+   - Fix ex_digits_needed for 0 (Takayoshi Kochi)
+   - Fix sleep/stall code reversal (Andi Kleen)
+   - Revert a change having to do with control method calling semantics
+
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/06/17 1.1305.5.6)
+   ACPI: acpiphp update (Takayoshi Kochi)
+
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/06/13 1.1305.5.5)
+   ACPI: Export acpi_disabled for sonypi (Stelian Pop)
+
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/06/13 1.1305.5.4)
+   ACPI: Mention acpismp=3Dforce in config help
+
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/06/13 1.1305.5.3)
+   ACPI: Re-add acpitable.c and acpismp=3Dforce. This improves backwards
+compatibility
+   and also cleans up the code to a significant degree.
+
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/06/13 1.1305.5.2)
+   ACPI: Add ASUS Value-add driver (Karol Kozimor and Julien Lerouge)
+
+
+-----------------------------
+Andrew Grover
+Intel Labs / Mobile Architecture
+andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+
 
 
 -------------------------------------------------------
