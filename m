@@ -1,12 +1,13 @@
-From: Daniele Boffi <boffi-piYtxHxN1XRAly3Pu9w1wA@public.gmane.org>
-Subject: swsusp and ac status
-Date: Wed, 23 Jun 2004 08:26:53 +0200
+From: "Kaye Devine" <kdevinefw-6gGvwXORBB9wDcM0f6M0dQ@public.gmane.org>
+Subject: Get $200 bonus at our Casino!
+Date: Wed, 23 Jun 2004 16:49:35 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040623082653.A26014@fermat.unipv.it>
+Message-ID: <e3e201c458ff$8c21a75b$a8383e29@thecourts.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,32 +16,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-I noticed that a change in the ac status is not detected after a swsusp. I
-think this should be a known issue; is there any workaround available?
+Hi, 
+I have a special offer available for you at our casino.
 
-How to reproduce the bad behavior:
+$20 to try our internet casino, no deposit is necessary!
+At the casino software's cashier enter bonus code: FR93P
 
-- swsuspend when on ac (resp. battery) power
-- unplug (resp. plug) the ac adapter when the laptop is off
-- resume when on battery (resp. ac) power
+$200 bonus on your first deposit!
+At the casino software's cashier enter bonus code: FMJKU
 
-Then /proc/acpi/ac_adapter/*/state says "on-line" (resp. "off-line").
-A new change in the status is then correctly detected.
+Allow us to show you our quality operation, fast payouts,
+generous bonuses, and super friendly around-the-clock
+customer support.
 
-I tried different acpi configurations (ac in the kernel or as a module, unload
-the ac module before suspending and reload it after resuming...) with no
-success.
+Click here: http://gozealgaming.com
 
-actual kernel 2.6.7 (same behavior with previous ones), no acpi patch, swsusp2
-patch
+Best regards,
+Jamie Zawinsky
 
-Same behavior with pm-suspend, swsusp and swsusp2.
 
-Daniele
+
+No thanks: http://izealgaming.biz/u
+
 
 
 -------------------------------------------------------
