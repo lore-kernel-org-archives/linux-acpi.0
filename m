@@ -1,14 +1,14 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: System indicators APM/ACPI
-Date: Tue, 30 Sep 2003 19:03:08 +0200
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI patch status (2.6)
+Date: Tue, 30 Sep 2003 10:17:53 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030930170308.GD11391@poupinou.org>
-References: <20030929125921.A78167@root.org>
+Message-ID: <D3A3AA459175A44CB5326F26DA7A189C1C3DA6@orsmsx405.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20030929125921.A78167-Y6VGUYTwhu0@public.gmane.org>
+Content-Class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,51 +17,168 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Sep 29, 2003 at 01:00:40PM -0700, Nate Lawson wrote:
-> In suspending my T23, I found an interesting issue.  When suspending with
-> APM on FreeBSD, the "suspended" light comes on.  When suspending on
-> Windows 2k, it also comes on.  When suspending with ACPI on FreeBSD, it
-> does not come on even though it suspends/resumes fine.  Is Win2k
-> suspending via APM even though it is using ACPI for other features?  I am
-> certain it is using ACPI by checking in the driver info window.
-> 
-> I figured this might have something to do with \_SI\_SST since my laptop
-> has that.  But running \_SI\_SST with various args never changes any
-> lights.  ASL:  http://root.org/~nate/acpi/ibm-acpidump.asl.gz
-> 
-> Ideas?
-> 
-> BTW, would it be a good idea to add code to call \_SI\_SST to the ACPICA
-> AcpiSetSleepState() function?
+Nate,
 
-Current spec (2.0c) state that arguments for _SST are (10.1.1, page 254):
+I was out on medical leave for 3 months, and I'm busy catching up on
+patch integration and bug fixes for ACPI CA.
 
-0- no system state.  Indicator off.
-1- Working.
-2- Waking.
-3- Sleeping, Used to indicate system state S1, S2 or S3.
-4- Sleeping with context saved to non-volatile storage.
+I'm looking at the resource fixes for the next release, hopefully this
+week.
+Bob
 
-So, for system state 4, you should pass argument 4 (but just
-before calling AcpiSetSleepState() imo), then when waking, call
-_SST with argument 2 in wakeup path, and asap, then pass at the
-end of the wakeup path argument 1.
 
-Your ASL seems also to contains some stuff related to LED, or BEEP,
-via the embedded controller.  Have you tryed to write some codes to control
-directly them (so that you know it really work)?
-At least, the LED stuff seems to be easy to look, debug, etc.
-Just write bytes to EC space addr 0x0C, and see what happens.
+-----Original Message-----
+From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Nate Lawson
+Sent: Monday, September 29, 2003 11:53 PM
+To: Brown, Len
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: Re: [ACPI] ACPI patch status (2.6)
 
--- 
-Ducrot Bruno
+Thanks.  I don't see the patch I submitted (buffer overflow in resource
+lists) below.  Is there a good facility where you track patches that I
+should submit them instead?
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+-Nate
+
+On Mon, 30 Sep 2003, Len Brown wrote:
+> FYI,
+> The following changes are currently in the ACPI test tree
+> http://linux-acpi.bkbits.net/linux-acpi-test-2.6.0
+> available for testing before push to 2.6.0
+>
+> The associated plain patches are also available here:
+> ftp.kernel.org:/pub/linux/kernel/people/lenb/acpi/patches/test/
+>
+> Yes, it has been too long since the last push into 2.6.
+> The good news is that we'll have finally got 2.6 back in sync with
+2.4.
+>
+> If you seen any regressions, please let me know.
+>
+> thanks,
+> -Len
+>
+>
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/README.A
+CPI
+>
+> ------
+>
+> ChangeSet-NapXrNxjHSzEb4TTkPOJTA@public.gmane.org, 2003-09-30 01:09:21-04:00, len.brown@intel.com
+>   [ACPI] GV3 IO port is 16-bits (Venkatesh Pallipadi)
+>
+> ChangeSet-NapXrNxjHSzoSwJSnaUrKw@public.gmane.org, 2003-09-30 00:53:46-04:00, len.brown@intel.com
+>   [ACPI] acpi_pci_link_allocate() should stick with irq.active if set.
+> (Andrew de Quincey)
+>   Fixes OSDL #1186 "broken USB" and others
+>
+> ChangeSet-NapXrNxjHSyhc2M4uTCxZA@public.gmane.org, 2003-09-30 00:15:16-04:00, len.brown@intel.com
+>   [ACPI] add CONFIG_ACPI_RELAXED_AML to config menu
+>
+> ChangeSet-NapXrNxjHSwp2p4RgGY0lw@public.gmane.org, 2003-09-30 00:06:29-04:00, len.brown@intel.com
+>   [ACPI] CONFIG_ACPI is no longer necessary to enable HT (from 2.4.23)
+>   if (CONFIG_ACPI || CONFIG_SMP) CONFIG_ACPI_BOOT=3Dy
+>
+> ChangeSet-NapXrNxjHSwCFy6MiDM1gQ@public.gmane.org, 2003-09-29 23:13:34-04:00, len.brown@intel.com
+>   [ACPI] ACPI Component Architecture 20030918 (Bob Moore)
+>
+>   Found and fixed a longstanding problem with the late execution of
+>   the various deferred AML opcodes (such as Operation Regions,
+>   Buffer Fields, Buffers, and Packages)...
+>   This fixes the "region size computed incorrectly" problem.
+>
+>   Fixed several 64-bit issues with prototypes, casting and data types.
+>
+>   Removed duplicate prototype from acdisasm.h
+>
+> ChangeSet-NapXrNxjHSyNbVT0sNCpDA@public.gmane.org, 2003-09-29 12:32:13-04:00, len.brown@intel.com
+>   [ACPI] CONFIG_ACPI_RELAXED_AML from 2.4
+>   http://bugzilla.kernel.org/show_bug.cgi?id=3D1248
+>
+> ChangeSet-NapXrNxjHSyWvgyCK5BHAA@public.gmane.org, 2003-09-25 16:17:01-04:00, len.brown@intel.com
+>   [ACPI] For ThinkPad -- carry on in face of ECDT probe failure (Andi
+> Kleen)
+>
+> ChangeSet-NapXrNxjHSz7J4fLV6oaFA@public.gmane.org, 2003-09-23 17:38:00-04:00, len.brown@intel.com
+>   [ACPI] remove __initdata from acpi_disabled for module use (Andi
+> Kleen)
+>
+> ChangeSet-NapXrNxjHSxer9vXpyaIOA@public.gmane.org, 2003-09-19 10:22:14-07:00, len.brown@intel.com
+>   [ACPI] fix IO-APIC mode SCI storm due to sharing with PCI device
+> (David Shaohua Li)
+>   http://bugzilla.kernel.org/show_bug.cgi?id=3D1165
+>
+> ChangeSet-NapXrNxjHSzBWNZp46sVrw@public.gmane.org, 2003-09-18 20:14:20-07:00, len.brown@intel.com
+>   [ACPI] acpi_disabled is used after __initdata is freed.
+>   fixes random battery module loading problem -- SuSE bug #30477 (Andi
+> Kleen)
+>
+> ChangeSet-NapXrNxjHSyRBaQiXl/DHw@public.gmane.org, 2003-09-18 16:40:04-07:00, len.brown@intel.com
+>   [ACPI] Fix IO-APIC mode SCI interrupt storm on Tyan
+>   http://bugzilla.kernel.org/show_bug.cgi?id=3D774
+>
+> ChangeSet-NapXrNxjHSwkZRhte9MuKA@public.gmane.org, 2003-09-18 16:22:16-07:00, len.brown@intel.com
+>   [ACPI] avoid alloc_bootmem() for accessing ACPI tables
+>   some platforms use ACPI tables to find memory (Jesse Barnes)
+>
+> ChangeSet-NapXrNxjHSx1qXLPWCKRTw@public.gmane.org, 2003-09-18 12:01:37-07:00, len.brown@intel.com
+>   ACPI_CA_VERSION                 0x20030916
+>
+> ChangeSet-NapXrNxjHSyamEhOJLDLTw@public.gmane.org, 2003-09-18 11:59:12-07:00, len.brown@intel.com
+>   remove ASUS A7V BIOS version 1011 from blacklist (Eric Valette)
+>
+> ChangeSet-NapXrNxjHSyxd20e5Us4rQ@public.gmane.org, 2003-09-18 11:41:51-07:00, len.brown@intel.com
+>   IBM ThinkPAD T30/T40 oops (David Shaohua Li)
+>   https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=3D98849
+>
+> ChangeSet-NapXrNxjHSzIn+4bvDfk6g@public.gmane.org, 2003-09-18 11:29:42-07:00, len.brown@intel.com
+>   Extended IRQ resource type for nForce (Andrew de Quincey)
+>
+> ChangeSet-NapXrNxjHSwbpGf+3Q3hGA@public.gmane.org, 2003-09-18 10:58:41-07:00, len.brown@intel.com
+>   [ACPI] Handle systems that specify non-ACPI-compliant SCI over-rides
+> (Jun Nakajima)
+>
+> ChangeSet-NapXrNxjHSzxhsza/HYD6Q@public.gmane.org, 2003-09-18 10:54:11-07:00, len.brown@intel.com
+>   Handle BIOS with _CRS that fails (Jun Nakajima)
+>
+> ChangeSet-NapXrNxjHSxtCJruIQNo1w@public.gmane.org, 2003-09-18 00:52:06-04:00, len.brown@intel.com
+>   [ACPI] merge 2.4.22 cleanup into 2.6
+>   Restores CONFIG_ACPI_HT_ONLY as an alternative to CONFIG_ACPI
+>   rather than a prerequisite
+>
+> ChangeSet-1Cvhk1ijdKctxE93JcnU2Q@public.gmane.org, 2003-09-15 00:34:00-04:00, len.brown@intel.com
+>   sync 2.4.22 changes into 2.6
+>   Note that this restores CONFIG_ACPI_HT_ONLY as a sub-set of
+> CONFIG_ACPI rather than a dependency.
+>
+>
+>
+>
+>
+> -------------------------------------------------------
+> This sf.net email is sponsored by:ThinkGeek
+> Welcome to geek heaven.
+> http://thinkgeek.com/sf
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>
+
+
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
+_______________________________________________
+Acpi-devel mailing list
+Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
