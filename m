@@ -1,11 +1,13 @@
-From: Henrik Brix Andersen <brix-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
-Subject: Re: Call for help: list of machines with working S3
-Date: Tue, 15 Feb 2005 22:28:52 +0100
-Message-ID: <1108502932.29172.5.camel@sponge.fungus>
-References: <20050214211105.GA12808@elf.ucw.cz>
+From: Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: Re: [PATCH] resend, early ACPI init
+Date: Tue, 15 Feb 2005 14:56:54 -0700
+Message-ID: <1108504614.7373.92.camel@tdi>
+References: <1108497779.7373.24.camel@tdi>
+	 <1108500423.2096.285.camel@d845pe>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-D/qzgXnlZmrfEGwBYxEt"
-In-Reply-To: <20050214211105.GA12808-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <1108500423.2096.285.camel@d845pe>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,53 +17,42 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, seife-l3A5Bk7waGM@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Tue, 2005-02-15 at 15:47 -0500, Len Brown wrote:
+> Rather than add a CONFIG option to enable/disable ACPI extra early,
+> could it be possible to simply enable ACPI earlier and leave it enabled
+> on all platforms?
+> 
+> I'm really not excited about yet another CONFIG option -- we need fewer,
+> not more.  And if earlier init is necessary on one machine, we may find
+> over time that we need it on others too.
 
---=-D/qzgXnlZmrfEGwBYxEt
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+   Yes, an early, one-time init would certainly make more sense than
+doing the whole thing twice.  I wasn't sure if anyone would be
+interested in generically hooking ACPI in that early and deeply.
 
-Hi,
+> Indeed, in 2.6 we moved most of the init earlier into acpi_early_init(),
+> but that wasn't as early as this, and didn't include the object_init,
+> which apparently is what you're looking for.
 
-On Mon, 2005-02-14 at 22:11 +0100, Pavel Machek wrote:
-> Stefan provided me initial list of machines where S3 works (including
-> video). If you have machine that is not on the list, please send me a
-> diff. If you have eMachines... I'd like you to try playing with
-> vbetool (it worked for me), and if it works for you supplying right
-> model numbers.
+   Yep, for my current usage, I just need to look through namespace for
+a specific _HID value.
 
-I have S3 working with 2.6.11-rc4 here:
+> I'm also nervous about enabling/disabling ACPI mode and then enabling it
+> again -- this could risk unforseen firmware interactions.
 
-Model                           hack (or "how to do it")
----------------------------------------------------------------------------=
----
-IBM TP X31 / Type 2672-XXH      LCD backlight must be turned off=20
-                                manually using radeontool [1]
+   I'm nervous about that too.  In fact, my current usage is limited to
+only running on an ia64 box with a specific ACPI static table OEM ID.
+If it isn't an obvious dead-end, I'll look into a generic interface that
+could be brought up early and stay up.  Thanks,
 
-Sincerely,
-Brix
+	Alex
 
-[1]: http://fdd.com/software/radeon/
---=20
-Henrik Brix Andersen <brix-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
-Gentoo Linux
-
---=-D/qzgXnlZmrfEGwBYxEt
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.6 (GNU/Linux)
-
-iD8DBQBCEmmUv+Q4flTiePgRAsLfAJ4gpmbP+onTyzPrmxe8lHUxSGStcwCeOcH3
-WLUGItS94rAX+dyP/+D/jPI=
-=HCtK
------END PGP SIGNATURE-----
-
---=-D/qzgXnlZmrfEGwBYxEt--
+-- 
+Alex Williamson                             HP Linux & Open Source Lab
 
 
 
