@@ -1,13 +1,15 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: RE: Fix wake GPE enabling
-Date: Thu, 8 Apr 2004 15:20:33 -0700 (PDT)
+From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Subject: Re: Fix wake GPE enabling
+Date: Thu, 8 Apr 2004 23:13:23 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040408151829.L43644@root.org>
-References: <37F890616C995246BE76B3E6B2DBE0554F1C5F@orsmsx403.amr.corp.intel.com>
+Message-ID: <20040408211323.GB7340@dominikbrodowski.de>
+References: <37F890616C995246BE76B3E6B2DBE0554F1A53@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="WhfpMioaduB5tiZL"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <37F890616C995246BE76B3E6B2DBE0554F1C5F-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <37F890616C995246BE76B3E6B2DBE0554F1A53-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,132 +19,49 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-It's cut/pasted from FreeBSD, been around since July 2002 and tested as
-working.
 
--Nate
+--WhfpMioaduB5tiZL
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, 8 Apr 2004, Moore, Robert wrote:
-> Nate,
->
-> Yes, the code below looks good.  This is the model that we have in mind
-> for the ACPI CA code, OSPM, and individual drivers.
->
-> Bob
->
->
-> > -----Original Message-----
-> > From: Nate Lawson [mailto:nate-Y6VGUYTwhu0@public.gmane.org]
-> > Sent: Thursday, April 08, 2004 10:48 AM
-> > To: Moore, Robert
-> > Cc: Dominik Brodowski; Brown, Len; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org;
-> > Grover, Andrew
-> > Subject: RE: [ACPI] Fix wake GPE enabling
-> >
-> > On Thu, 8 Apr 2004, Moore, Robert wrote:
-> > > Linux needs a user interface and some additional OSPM software to
-> > > identify and program the wake devices, as well as handle the other
-> > > information in the _PRW methods.
-> > >
-> > > The ACPI CA core subsystem will only identify wake vs. runtime GPEs.
-> > >
-> > > > -> wake_enable is not touched directly,
-> > > > -> events/evgpeblk.c does not care, and according to your opinion,
-> > > should
-> > > >    not care.
-> > > > -> acpi_enable_gpe is _only_ called by drivers/acpi/ec.c, which
-> means
-> > > it
-> > > > is
-> > > >    _not_ called for buttons, which are very clearly needed in most
-> > > cases
-> > > > to
-> > > >    wake up a system.
-> > > >
-> > > > At least for buttons, the ACPI subsystem should enable their wake
-> > > > functionality, e.g. the wake GPEs, unconditionally. Having to
-> manually
-> > > > enter
-> > > > "echo powerbutton > /proc/acpi/wakeup_devices", as the patch in
-> bug
-> > > #1415
-> > > > suggests, seems to be overly complicated. However, having this
-> file as
-> > > > override might be a valid option, I agree.
-> > > >
-> > >
-> > > The ACPI CA core subsystem does NOT scan for particular devices (via
-> the
-> > > _HID, _UID, etc.)  The upper OSPM software already does this and is
-> thus
-> > > responsible for enabling individual devices and GPEs for wake-up,
-> > > including the power button, lid button, etc.  This code apparently
-> still
-> > > needs to be written.
-> >
-> > You mean like this code snippet?
-> >
-> > -Nate
-> >
-> > acpi_button_attach(device_t dev)
-> > {
-> >     if (sc->fixed) {
-> >         AcpiClearEvent(event);
-> >         status = AcpiInstallFixedEventHandler(event,
-> >                         acpi_button_fixed_handler, sc);
-> >     } else {
-> >         status = AcpiInstallNotifyHandler(sc->button_handle,
-> >                         ACPI_DEVICE_NOTIFY,
-> acpi_button_notify_handler,
-> > sc);
-> >     }
-> >
-> >     acpi_device_enable_wake_capability(sc->button_handle, 1);
-> > }
-> >
-> > acpi_button_suspend(device_t dev)
-> > {
-> >     struct acpi_button_softc    *sc;
-> >
-> >     sc = device_get_softc(dev);
-> >     acpi_device_enable_wake_event(sc->button_handle);
-> >     return (0);
-> > }
-> >
-> > acpi_device_enable_wake_capability(ACPI_HANDLE h, int enable)
-> > {
-> >     /*
-> >      * All Power Resources referenced by elements 2 through N
-> >      * of the _PRW object are put into the ON state.
-> >      */
-> >
-> >     (void)acpi_SetInteger(h, "_PSW", enable);
-> > }
-> >
-> > acpi_device_enable_wake_event(ACPI_HANDLE h)
-> > {
-> >     status = AcpiEvaluateObject(h, "_PRW", NULL, &prw_buffer);
-> >     if (ACPI_FAILURE(status))
-> >         return;
-> >
-> >     switch (res->Package.Elements[0].Type) {
-> >     case ACPI_TYPE_INTEGER:
-> >         /*
-> >          * If the data type of this package element is numeric, then
-> this
-> >          * _PRW package element is the bit index in the GPEx_EN, in
-> the
-> >          * GPE blocks described in the FADT, of the enable bit that is
-> >          * enabled for the wake event.
-> >          */
-> >         status = AcpiEnableGpe(NULL, res-
-> > >Package.Elements[0].Integer.Value,
-> >                                ACPI_EVENT_WAKE_ENABLE);
-> > }
->
+On Thu, Apr 08, 2004 at 09:43:07AM -0700, Moore, Robert wrote:
+> > However, the ACPI subsystem, and I do not care whether it is the CA
+> core
+> > or
+> > any other part, currently does not enable any(!) wake GPEs.
+> >=20
+>=20
+> Linux needs a user interface and some additional OSPM software to
+> identify and program the wake devices, as well as handle the other
+> information in the _PRW methods.
+>=20
+> The ACPI CA core subsystem will only identify wake vs. runtime GPEs.
+
+OK, as long as it gets into Linux, I do not care whether its the ACPI CA or
+the ACPI OSPM part. It just seemed to me that the ACPI CA were the place to
+do it, but as its contrary to spec I'll only use it on my own notebook [so
+that it wakes up from sleep] until a proper patch / proper code in Linux
+drivers/acpi/* exists.
+
+	Dominik
+
+--WhfpMioaduB5tiZL
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFAdcBzZ8MDCHJbN8YRAo8UAKCfz0k9QSsZ6lEsjiH/7xqMLD2khQCeOCQP
+lT+w3OgT8XrTtqqWhYrj1Vc=
+=Egkf
+-----END PGP SIGNATURE-----
+
+--WhfpMioaduB5tiZL--
 
 
 -------------------------------------------------------
