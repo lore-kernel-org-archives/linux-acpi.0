@@ -1,10 +1,11 @@
-From: Przemyslaw Rudy <prudy-BtrZ4bsBpx+jo9x5ncua7w@public.gmane.org>
-Subject: fan-ny thing
-Date: Mon, 29 Nov 2004 10:37:58 +0100
-Message-ID: <41AAEDF6.6050804@audiotech.pl>
+From: "Jon P. Rush" <jon.prush_xf-46pKsnS0FKveWPZRMiJ+Cw@public.gmane.org>
+Subject: Order Rolex or other Swiss watches online
+Date: Mon, 29 Nov 2004 11:18:32 -0400
+Message-ID: <c53f01c4d626$47f551cf$a1bd11cf@mat.upc.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,18 +19,30 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi
-I use Compaq Pressario laptop. There are few fans in it that seem to be 
-nicely controlled by acpi, except one that is always moving (faster or 
-slower but it never stops). Firstly I though it was due to a temperature 
-conditions but all the temperature points are higher than the actual 
-temperature so it should stop moving.
-What I discovered is that when I switch off acpi in kernel startup 
-parameters, then this fan really stops and it starts moving only if needed.
-Question is, can I anyhow have the same behaviour using acpi?
+Heya,
 
-Regards
-Przemek
+Do you want a rolex watch?
+
+In our online store you can buy replicas of Rolex watches. They look
+and feel exactly like the real thing.
+
+- We have 20+ different brands in our selection
+- Free shipping if you order 5 or more
+- Save up to 40% compared to the cost of other replicas
+- Standard Features:
+ - Screw-in crown
+ - Unidirectional turning bezel where appropriate
+ - All the appropriate rolex logos, on crown and dial
+ - Heavy weight
+
+Visit us: http://www.icors.com/rep/rolex/
+
+Best regards,
+Hilton Jones
+
+
+No thanks: http://www.icors.com/z.php
+
 
 
 -------------------------------------------------------
