@@ -1,14 +1,15 @@
-From: David Eriksson <twogood-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: Re: Oops during startup
-Date: Wed, 02 Jun 2004 08:28:52 +0200
+From: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
+Subject: Re: [Solved] Re: power-off (Acer TM632) / Filesystem-corruption
+Date: Wed, 2 Jun 2004 12:12:41 +0200 (CEST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1086157732.2833.155.camel@zion.2good.net>
-References: <20040602013512.GA570@paladin>
+Message-ID: <Pine.LNX.4.60.0406021204490.1486@frog.athome>
+References: <20040531213726.GA3298@zimen.sk> <16572.19517.483958.68645@aber.ac.uk>
+ <Pine.LNX.4.60.0406011854270.17375@frog.athome> <20040601182933.GA3046@zimen.sk>
+Reply-To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040602013512.GA570-FdgSi869q7U@public.gmane.org>
+In-Reply-To: <20040601182933.GA3046-VaXaUECoPuY@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,41 +18,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ethan Glasser-Camp <glasse-IL7dBOYR4Vg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: mizu <michal-VaXaUECoPuY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2004-06-02 at 03:35, Ethan Glasser-Camp wrote:
-> 2.6.6 oopses on startup for me. acpi=off seems to work OK.
-> 
-> My Thinkpad T-30 has served me faithfully for about 1.5 years, but was
-> needing some service so I took it to the shop today. They gave me a
-> replacement laptop (same model, still a T-30), but when I tried to
-> boot up, I got a kernel oops. 2.6.5 boots up fine, and so does 2.6.6
-> when given the boot parameter acpi=off. The machines are basically
-> identical except for the CD-ROM drive. Might this cause a problem? Or
-> should I be pointing a finger at the ACPI tables and other firmware?
-> 
-> Since the kernel oopses before it finishes booting up, I can't even
-> scroll up to the top of it to see what the oops message is. I can copy
-> the callback if it helps. How can I help to diagnose the problem?
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-I suggest that you first verify that you have the latest version of the
-BIOS and Embedded Controller Program. Compare the numbers provided by
-your BIOS with those on this page:
+Salut Mizu,
+On Tue, 1 Jun 2004, mizu wrote:
+> I can post this bug.
+>
+> I found some similar bug :
+>
+> Bugzilla Bug 2719:
+> 	  	[ATI 9100IGP, Award/Phoenix BIOS]: halt becomes reboot
+> 		when BIOS "Wake up on RTC" is enabled
+>
+> but, i don't think, that this is the same problem, or not ?
+maybe it could be mentioned in the text... But I think a new report is 
+required.
+Boy I had a bad experience! Just tryed to reproduce your problems, by 
+loading module-rtc. The machine was just started and waited at the 
+KDM-prompt. Loading the module and shuting down crashed my 
+ext2-filesystem, loosing some files. That is really bad! Of course it did 
+not power-off, as you all experienced.
 
-http://www-3.ibm.com/pc/support/site.wss/document.do?lndocid=MIGR-42358
+cheers
+   hartwig felger
 
--- 
-Regards,
-               -\- David Eriksson -/-
+Hartwig Felger informatics
 
-        SynCE - http://synce.sourceforge.net
-       CalcEm - http://calcem.sourceforge.net
-      ScummVM - http://scummvm.sourceforge.net
-     Desquirr - http://desquirr.sourceforge.net
-  SetiWrapper - http://setiwrapper.sourceforge.net
+- -- 
+1024D/339FD693 Hartwig Felger <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
+Key fingerprint = FB2F 3EE9 345A D55B 6FF2  0EC1 F5B0 684F 339F D693
+For the pulic keys, please visit my page.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2 (GNU/Linux)
 
+iD8DBQFAvage9bBoTzOf1pMRAjk1AKCbmVUOsPE/0yc1Ok4V3Mk1KjMUjgCeMEUS
+DLjv1OQbWHChqI7CEcpOAQY=
+=wsqW
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
