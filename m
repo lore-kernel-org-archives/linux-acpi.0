@@ -1,15 +1,10 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: RE: #define ACPI_MAX_TABLES 256
-Date: Mon, 6 Dec 2004 09:13:02 -0700
-Message-ID: <200412060913.02910.bjorn.helgaas@hp.com>
-References: <F7DC2337C7631D4386A2DF6E8FB22B300229FE09@hdsmsx401.amr.corp.intel.com>
+From: Chamara Gunaratne <pgunarat-oWe+HmWQADH2fBVCVOL8/A@public.gmane.org>
+Subject: Pattern Match wake-up for wake-on-LAN NIC
+Date: Mon, 06 Dec 2004 16:27:50 -0500
+Message-ID: <6.1.2.0.0.20041206161859.03c66db8@131.247.3.2>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; format=flowed
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B300229FE09-N2PTB0HCzHKkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,13 +15,22 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jesse Barnes <jbarnes-sJ/iWh9BUns@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bjorn Helgaas <bjorn_helgaas-VXdhtT5mjnY@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sunday 05 December 2004 7:37 pm, Brown, Len wrote:
-> Okay to reduce ACPI_MAX_TABLES to 64 from 256 for the forseeable future?
+Hello,
 
-Sounds OK to me.
+I am trying to figure out how the pattern-based wake-up in ACPI compatible 
+network devices work. I am using an Intel PRO 1000 MT card and it wakes up 
+the PC correctly for Magic Packets and IP address directed packets. How 
+does pattern matching work in ACPI and what kind of information and 
+parameters do I need to give if I need to get the PC to wake-up on a 
+specific pattern ? Could somebody please point me to a document/site that 
+has this information ? Thanks.
+
+Cheers,
+
+Chamara
+
 
 
 -------------------------------------------------------
