@@ -1,70 +1,35 @@
-From: Stian Jordet <liste-NI9zH3lwcMKHXe+LvDLADg@public.gmane.org>
-Subject: RE: smpenum patch updated to 2.6.9-rc2
-Date: Mon, 20 Sep 2004 14:59:49 +0200
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1095685189.7495.7.camel@localhost.localdomain>
-References: <F760B14C9561B941B89469F59BA3A847077F835A@orsmsx401.amr.corp.intel.com>
+From: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
+Subject: PATCH-ACPI based CPU hotplug[0/6]
+Date: Mon, 20 Sep 2004 09:25:20 -0700
+Sender: linux-ia64-owner@vger.kernel.org
+Message-ID: <20040920092520.A14208@unix-os.sc.intel.com>
+Reply-To: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <F760B14C9561B941B89469F59BA3A847077F835A-sBd4vmA9Se6krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Content-Disposition: inline
+To: Len Brown <len.brown@intel.com>, ACPI Developer <acpi-devel@lists.sourceforge.net>, LHNS list <lhns-devel@lists.sourceforge.net>
+Cc: Linux IA64 <linux-ia64@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-ons, 15,.09.2004 kl. 14.17 -0700, skrev Grover, Andrew:
-> > From: Stian Jordet [mailto:liste-NI9zH3lwcMKHXe+LvDLADg@public.gmane.org] 
-> 
-> Hi Stian thanks a lot!
+Hi Len,
+  I am resending the following set of patches which support ACPI based physical 
+CPU hotplug for IA64 platform, after having including all the community 
+feedback(of course I got very thin feedback) which I got on 
+acpi-devel mailing list.
 
-My pleasure :)
+This set of patches has been tested on linux-2.6.9-rc2. Also this time I am 
+cc'ing ia64/lkml mailing lists as patch 3/6 and patch 4/6 touches arch specific files.
 
-> > I have a Asus CUV266-DLS smp motherboard with Via Apollo Pro 266
-> > chipset. It has never booted with io-apic in non-ACPI mode, and still
-> > doesn't. I just want to let you know my experiences with your patch.
-> > 
-> > 1) With ACPI enabled everything works as it always has (one ACPI bug,
-> > but that's another story)
-> 
-> great...
-> 
-> > 2) With acpi=off and CONFIG_X86_MPS the boot hangs at "ENABLING IO-
-> > APIC's"
-> 
-> ok not a new bug...
-> 
-> > 3) With acpi=off and !CONFIG_X86_MPS the boot hangs at "Uncompressing
-> > Linux... Ok, booting the kernel".
-> 
-> Fixed, please try the attached patch.
+Details:(Applies cleanly onto linux-2.6.9-rc2)
+Patch[1/6]- Core ACPI enhancement support
+Patch[2/6]- ACPI hotplug eject interface support
+Patch[3/6]- Arch specific support for mapping lsapic to cpu
+Patch[4/6]- Dynamic cpu registration and unregistration support
+Patch[5/6]- Extend ACPI processor driver to support Hotplug
+Patch[6/6]- ACPI container driver(New driver)
 
-Yes, works now :)
+Please consider applying this patch onto your test tree.
 
-> > 4) Without your patch and acpi=off the boot hangs at:
-> > 
-> > ENABLING IO-APIC IRQs
-> > Setting 2 in the phys_id_present_map
-> > ...changing IO-APIC Physical APIC ID to 2 ... ok.
-
-Why do I get two more lines without your patch? With your patch I only
-get the first line before it hangs...
-
-Best regards,
-Stian
-
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: YOU BE THE JUDGE. Be one of 170
-Project Admins to receive an Apple iPod Mini FREE for your judgement on
-who ports your project to Linux PPC the best. Sponsored by IBM.
-Deadline: Sept. 24. Go here: http://sf.net/ppc_contest.php
+Thanks,
+Anil S Keshavamurthy
