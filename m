@@ -1,47 +1,50 @@
-From: =?ISO-8859-15?Q?Peter_M=FCnster?= <pmlists-GANU6spQydw@public.gmane.org>
-Subject: wrong system time after wakeup
-Date: Mon, 10 Jan 2005 20:39:14 +0100
-Message-ID: <Pine.LNX.4.58.0501102008270.22897@gaston.free.fr>
+From: Nate Lawson <nate@root.org>
+Subject: Re: acpi-ca reports \_SB as a device
+Date: Mon, 10 Jan 2005 13:03:27 -0800
+Message-ID: <41E2ED9F.1080602@root.org>
+References: <971FCB6690CD0E4898387DBF7552B90E3900E6@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-freebsd-acpi@freebsd.org>
+In-Reply-To: <971FCB6690CD0E4898387DBF7552B90E3900E6@orsmsx403.amr.corp.intel.com>
+List-Unsubscribe: <http://lists.freebsd.org/mailman/listinfo/freebsd-acpi>,
+	<mailto:freebsd-acpi-request@freebsd.org?subject=unsubscribe>
+List-Archive: <http://lists.freebsd.org/pipermail/freebsd-acpi>
+List-Post: <mailto:freebsd-acpi@freebsd.org>
+List-Help: <mailto:freebsd-acpi-request@freebsd.org?subject=help>
+List-Subscribe: <http://lists.freebsd.org/mailman/listinfo/freebsd-acpi>,
+	<mailto:freebsd-acpi-request@freebsd.org?subject=subscribe>
+Sender: owner-freebsd-acpi@freebsd.org
+Errors-To: owner-freebsd-acpi@freebsd.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: acpi@FreeBSD.org, ACPI Developers <acpi-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
-when resuming from S1, the system-time is completely wrong: about 22h
-instead of 11h.
-The system goes to sleep the day before at about 22h30 with the following
-commands:
-modprobe genrtc
-sleep 5
-echo 2005-01-11 11:10:00 >/proc/acpi/alarm
-sleep 5
-echo 1 >/proc/acpi/sleep
+Ok, your rationale seems sound.  We'll keep the workaround of skipping 
+such namespace system objects when scanning from the root.
 
-What could be wrong?
-I'm using Linux-2.6.10 and ASUS A7N8X-X ACPI BIOS Rev 1006.
+-Nate
 
-Thanks in advance for any help! Please tell me, if you need more information.
-Kind regards, Peter
-
--- 
-http://pmrb.free.fr/contact/
-------------------------------------
-Film Search site: http://f-s.sf.net/
-
-
-
--------------------------------------------------------
-The SF.Net email is sponsored by: Beat the post-holiday blues
-Get a FREE limited edition SourceForge.net t-shirt from ThinkGeek.
-It's fun and FREE -- well, almost....http://www.thinkgeek.com/sfshirt
+Moore, Robert wrote:
+> For _SB_, this allows the _SB_._INI method to be run.
+> 
+> For _TZ, this allows notifies on the _TZ object.  Some ASL code does
+> this.
+> 
+> 
+> 
+>>-----Original Message-----
+>>From: Nate Lawson [mailto:nate@root.org]
+>>Sent: Saturday, January 08, 2005 1:05 AM
+>>To: ACPI Developers
+>>Cc: acpi@FreeBSD.org
+>>Subject: acpi-ca reports \_SB as a device
+>>
+>>If you call AcpiGetType on \_SB, you get "device" and \_TZ gives
+>>"thermal".  I don't think this is valid since these are system scopes,
+>>not devices and thermal zones.
+>>
+>>I found this while testing a patch that scans the whole namespace (\)
+>>for devices.  It turns out some systems put PCI link devices (PNP0C0F)
+>>in \, so we weren't probing them.
