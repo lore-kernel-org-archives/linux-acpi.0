@@ -1,40 +1,44 @@
-From: joanna marsden <jomarsden-zka7wQWIdxI3uPMLIKxrzw@public.gmane.org>
-Subject: acpi_pci_link_allocate() -- latent bug?
-Date: Sat, 31 Jul 2004 22:40:07 -0400
+From: Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+Subject: Re: S4 sleep woes
+Date: Mon, 02 Aug 2004 09:32:13 +1000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <410C5807.7000602@vassar.edu>
+Message-ID: <1091403133.11580.63.camel@laptop.cunninghams>
+References: <20040730050615.GA24597@blackham.com.au>
+	 <20040731150112.GA480@hell.org.pl>  <20040731184636.GG3443@blackham.com.au>
+Reply-To: ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20040731184636.GG3443-4vSAtV5O1nc0n/F98K4Iww@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bernard Blackham <bernard-4vSAtV5O1nc0n/F98K4Iww@public.gmane.org>
+Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Patrick Mochel <mochel-og82NyAXoxR0I81aPRRTmR2eb7JE58TQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Howdy.
 
-I am investigating an interrupt problem on my machine and came across 
-the following code, in drivers/acpi/pci_link.c
+On Sun, 2004-08-01 at 04:46, Bernard Blackham wrote:
+> Ah, there appears to be one, yes (disk_show and disk_store in
+> kernel/power/disk.c). Looking again, pmdisk appears to handle it
+> correctly (just a little jump of logic). Guess that means it's a bug
+> in software suspend 2. :)
 
-What happens here if the BIOS sets up these links at the IRQ router at 
-boot time, but doesn't restore them after a resume from S3? Is this a 
-latent bug? Seems like this routine would eventually be called from 
-pci_device_enable, but wouldn't perform the setup we need.
+I wasn't setting pm_disk_mode from suspend 2, but leaving it at it's
+default. It looks to me (without testing it yet) like the fix is to
+explicitly set pm_disk_mode to PM_DISK_PLATFORM when suspending and
+restore the original value afterwards. Sound right, Patrick?
 
-static int acpi_pci_link_allocate(struct acpi_pci_link* link) {
-        int irq;
-        int i;
+Regards,
 
-        ACPI_FUNCTION_TRACE("acpi_pci_link_allocate");
-
-        if (link->irq.setonboot)
-                return_VALUE(0);
+Nigel
 
 
 
