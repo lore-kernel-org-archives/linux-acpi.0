@@ -1,8 +1,8 @@
-From: ole.rohne-vJEk5272eHo@public.gmane.org
+From: wwp <subscript-GANU6spQydw@public.gmane.org>
 Subject: Re: Radeon PM Support
-Date: 04 Aug 2004 08:43:58 +0200
+Date: Wed, 4 Aug 2004 09:17:51 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <yzohdrjqu6p.fsf@localhost.localdomain>
+Message-ID: <20040804091751.35b07f5c@tethys.solarsys.org>
 References: <1091139240.26511.9.camel@6-allhosts>
 	<20040730141028.GE21359@luna.mooo.com>
 	<20040730162756.4f300a5c@localhost>
@@ -11,10 +11,12 @@ References: <1091139240.26511.9.camel@6-allhosts>
 	<41103952.2030707@optonline.net>
 	<1091583216.2974.2.camel@localhost.localdomain>
 	<1091590835.2304.64.camel@dhcppc4>
+	<yzohdrjqu6p.fsf@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1091590835.2304.64.camel@dhcppc4>
+In-Reply-To: <yzohdrjqu6p.fsf-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -23,22 +25,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Acpi Devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: Erik Tews <erik-KVSZC2aA8+zw/snApU8qRLNAH6kLmebB@public.gmane.org>, Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>, Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Len> Some folks have had good luck getting Radeon to resume
-Len> after applying this patch.  I saw it fix a Dell 600m/Radeon.
+Hello ole.rohne-vJEk5272eHo@public.gmane.org,
 
-Len> http://lists.debian.org/debian-x/2004/03/msg03482.html
 
-The same folks were even happier with a more recent patch that moves
-the S3 resume POST where really belongs: into kernel space:
+On 04 Aug 2004 08:43:58 +0200 ole.rohne-vJEk5272eHo@public.gmane.org wrote:
 
-<http://article.gmane.org/gmane.linux.acpi.devel/8879>
+> Len> Some folks have had good luck getting Radeon to resume
+> Len> after applying this patch.  I saw it fix a Dell 600m/Radeon.
+> 
+> Len> http://lists.debian.org/debian-x/2004/03/msg03482.html
+> 
+> The same folks were even happier with a more recent patch that moves
+> the S3 resume POST where really belongs: into kernel space:
+> 
+> <http://article.gmane.org/gmane.linux.acpi.devel/8879>
 
-Ole
+Is there a possible equivalent to 2.4 kernels (if only it is relevant)?
 
+
+Regards,
+
+-- 
+wwp
 
 
 -------------------------------------------------------
