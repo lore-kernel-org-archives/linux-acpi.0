@@ -1,12 +1,13 @@
-From: tierra.y.libertad-hi6Y0CQ0nG0@public.gmane.org
-Subject: Got the cause for missing button events on gigabyte ga-6bxd
-Date: Tue, 23 Jul 2002 21:15:47 +0200 (MEST)
+From: Mathias Kolehmainen <mathiask-bdq14YP6qtRg9hUCZPvPmw@public.gmane.org>
+Subject: Re: unable to modify performance state
+Date: Tue, 23 Jul 2002 12:59:29 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020723191550.58A2D5086@marcos.python.subname.de>
+Message-ID: <Pine.GSO.4.21.0207231257320.23145-100000@crak.roomfullaspies.com>
+References: <200207230726.g6N7Q7501838@phillipsfamily.freeserve.co.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200207230726.g6N7Q7501838-bmuJXYsvn0gVs4l4XFOEL9gH8BlFne0cvRR34RwW7mA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,27 +19,28 @@ List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I think, I got the problem why button events on the gigabyte ga-6bxd
-have only appeared with the acpi releases (20020329, 20020404):
 
-When interrupts are routed with IOAPIC, there are no events, even not
-with windows (Win98 had no problems, but XP with IOAPIC-Interrupts
-doesn't seem to receive button events.) The releases 20020329 & 20020404
-are dealing with the interrupts through the pci-irq-routing table and
-without IOAPIC.
+The nocorruption patch is here:
 
-When I tested ACPI with a single-processor kernel without support for
-APIC's, ACPI chooses to route the interrupts with PIC. In this case the
-events are working without problems, with up-kernel and APIC enabled,
-events don't work at all, same for SMP.
+  http://www.brodo.de/english/pub/acpi/20020709/bugfixes.html
 
-I don't have any idea about the cause for this strange behaviour and I'd
-like to enable PIC-Routing with SMP too, but have no idea how to force
-this.
 
-Any help appreciated,
---=20
-R=FCdiger
+On Tue, 23 Jul 2002 pete-bmuJXYsvn0gVs4l4XFOEL9gH8BlFne0cvRR34RwW7mA@public.gmane.org wrote:
+
+> 
+> Hi Mathias 
+> 
+> In your post you mentioned a nocorruption patch. Can you point me to
+> this please ? 
+> 
+> > I'm running redhat 7.3 with kernel 2.4.18 + acpi-20020709 patch +
+> > nocorruption patch.  This is on a sony SRX77P notebook.  When I cat the
+> > performance file, it shows that there are two possible states (P0 and P1).
+> 
+> Regards,
+> Pete
+> 
+
 
 
 -------------------------------------------------------
