@@ -1,8 +1,8 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: RE: ACPI Source patches updated (20021022)
-Date: Wed, 23 Oct 2002 10:11:52 -0700
+Date: Wed, 23 Oct 2002 10:17:57 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DF63@orsmsx119.jf.intel.com>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DF64@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -20,22 +20,20 @@ To: =?iso-8859-1?Q?=27Ville_Syrj=E4l=E4=27?= <syrjala-ORSVBvAovxo@public.gmane.o
 Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Ville Syrj=E4l=E4 [mailto:syrjala-ORSVBvAovxo@public.gmane.org]=20
-> > In this list it is normal.
-> > You have to justify what this fix do.
+> > From: Ville Syrj=E4l=E4 [mailto:syrjala-ORSVBvAovxo@public.gmane.org]=20
+> That said, I'll put this in the next release and we can see=20
+> what happens. If
+> people want to try this in the meantime, that would be great, too.
 
-Did anyone else test it?
+Wait a second. Looking at the calling code (acpi_pci_irq_enable) we =
+check
+the device itself for PRT entries there, so we shouldn't have to also =
+do
+this in pci_irq_derive, which only gets called if there aren't any =
+found for
+the device.
 
-> Simply put it fixes the AGP slot's IRQ routing on my Abit KT7 :)
-
-I didn't think video needed an IRQ. I'm pretty leery about modifying =
-the IRQ
-routing code at all - I know we have bugs left, but I don't want to add
-more. ;-)
-
-That said, I'll put this in the next release and we can see what =
-happens. If
-people want to try this in the meantime, that would be great, too.
+Thoughts?
 
 Regards -- Andy
 
