@@ -1,12 +1,15 @@
-From: <arla-announce-request-qF3G4KbteMJQ2O5mRfh1hQ@public.gmane.org>
-Subject: Re: Approved
-Date: Fri, 22 Aug 2003 20:27:19 +0900
+From: <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
+Subject: Re: acpi breaking synaptics mouse support on Acer Travelmate
+ 260
+Date: Thu, 21 Aug 2003 10:42:12 +0200 (CEST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E19qA4h-0008DQ-00@sc8-sf-list1.sourceforge.net>
+Message-ID: <Pine.LNX.4.33.0308211034040.581-100000@frog.athome>
+References: <20030820210235.GD5127@man.beta.es>
+Reply-To: <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_NextPart_000_02211B88"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20030820210235.GD5127-COUDbPDYh58xAGwisGp4zA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,18 +18,45 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Santiago Garcia Mantinan <manty-gaW6/AuhO2xeoWH0uzbU5w@public.gmane.org>
+Cc: Peter Osterlund <petero2-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multipart message in MIME format
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
---_NextPart_000_02211B88
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Salut Garcia,
+maybe your interrupts are routed differently depending on acpi compiled in
+or not.
+What does
+ cat /proc/interrupts
+differ for both setups? What are the respectively acpi-versions?
+ cat /proc/acpi/info |grep version
+Did you check the /var/log/boot.msg for error-messages, especially related
+to ACPI?
 
-Please see the attached file for details.
---_NextPart_000_02211B88--
+On Wed, 20 Aug 2003, Santiago Garcia Mantinan wrote:
+> Well, to sum up, for what I see looking at /proc/interrupts both 2.4 using
+> the X synaptics driver, and 2.6 using the synaptics driver, produce
+> aproximately the same interrupt behaviour, however 2.6 looses sync when acpi
+> is compiled and works ok when acpi is not compiled :-(
+
+cheers
+  hartwig felger
+
+Hartwig Felger informatics
+
+- -- 
+1024D/339FD693 Hartwig Felger <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
+Key fingerprint = FB2F 3EE9 345A D55B 6FF2  0EC1 F5B0 684F 339F D693
+For the pulic keys, please visit my page.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2 (GNU/Linux)
+
+iD8DBQE/RIXp9bBoTzOf1pMRAkIGAJ9aSdR8AcAMDi2NfwVBUIWeZmVF8ACg3AtT
+DaRAlqB8mSWUuK42dCXs2Qk=
+=ha6j
+-----END PGP SIGNATURE-----
 
 
 
