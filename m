@@ -1,15 +1,16 @@
 From: Alberto Piai <albeclemit-whZMOeQn8C0@public.gmane.org>
-Subject: Re: ACPI S3 resume only reboots
-Date: Mon, 18 Oct 2004 11:55:37 +0200
+Subject: Re: [PATCH] GDT table patch for resume only reboots problem
+Date: Mon, 18 Oct 2004 11:58:39 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041018115537.38525137.albeclemit@yahoo.it>
-References: <20041017231258.1ec99146.albeclemit@yahoo.it>
-	<OF2B7B5756.848C0EAB-ON49256F31.002252A6-49256F31.0024011A@jp.ibm.com>
+Message-ID: <20041018115839.6c67f6a9.albeclemit@yahoo.it>
+References: <OFC0526CFC.7FFB98D1-ON49256F30.0068372D-49256F30.006EF530@jp.ibm.com>
+	<20041017230205.2e50de4c.albeclemit@yahoo.it>
+	<20041017233819.GA13680@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <OF2B7B5756.848C0EAB-ON49256F31.002252A6-49256F31.0024011A-JE5g2YyFxFHQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20041017233819.GA13680-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,35 +19,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Hiroshi 2 Itoh <HIROIT-JE5g2YyFxFHQT0dZR+AlfA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, pavel-+ZI9xUNit7I@public.gmane.org, shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: HIROIT-JE5g2YyFxFHQT0dZR+AlfA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 18 Oct 2004 15:40:14 +0900
-Hiroshi 2 Itoh <HIROIT-JE5g2YyFxFHQT0dZR+AlfA@public.gmane.org> wrote:
+On Mon, 18 Oct 2004 01:38:19 +0200
+Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> wrote:
 
-> You are so unlucky. Your PC's BIOS may jump into the wakeup entry without
-> complete real mode initialization.
-> Please try this code at the top of entry.
+> > If I uncomment pushl and popfl it hangs(but not reboot, like going in an infinite loop) later, on
+> > 	wakeup_pmode_return:
+> > 		movw	$__KERNEL_DS, %ax
+> > 		movw	%ax, %ss           #HANGS HERE
+> > 		movw	%ax, %ds
 > 
->       movl  %cr0, %eax
->       andl  $0xfffffff0, %eax # TS/EM/MP bit off
->       movl  %eax, %cr0
+> Are you sure it hangs there? Your pushl $0 method to force reboot is
+> unlikely to be effective after %ss is set up properly... Which is this
+> point. [That beeping code might be handy here.]
 
-I added this code right after
-	ENTRY(wakeup_start)
-	wakeup_code:
-		wakeup_code_start = .
-		.code16
-but doesn't change things :(
-This laptop is *a bit* tricky.
+I'm trying to use the beeping code but i get strange behavior..
+if use just a BEEP it hangs beeping forever
+if i use a  beeping loop like
+	die:
+		BEEP
+		jmp die
+i don't get any sound, but it just hangs.
 
-Do you think it depends on the VIA chipset or on the BIOS?
-What about trying to ask the manifacturer about how to properly wake up their laptop?
-
-Any other ideas, i'm here for testing.
-
-Thanks for your help,
 Alberto
 
 
