@@ -1,13 +1,14 @@
-From: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
-Subject: Re: latest acpi: new behavior of the UPBI method
-Date: Thu, 19 Dec 2002 16:15:29 +0100 (CET)
+From: Faye Pearson <faye-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org>
+Subject: Re: heatload 0.4 now with throttling support
+Date: Thu, 19 Dec 2002 15:27:24 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.50.0212191612540.10665-100000@dynast.gaugusch.at>
-References: <3E01E193.3040406@eavr.u-strasbg.fr>
+Message-ID: <20021219152724.GA14703@clara.net>
+References: <3E008120.5080908@uni-muenster.de> <20021218153355.GK347@poup.poupinou.org> <3E009EB5.7010109@muenster.de> <20021218170828.GA9127@clara.net> <3E00AEC8.9050906@muenster.de> <20021218180329.GA9439@clara.net> <20021219132303.GH4257@poup.poupinou.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3E01E193.3040406-gXTsMEhN/Y091FlJP1ih0VAUjnlXr6A1@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20021219132303.GH4257-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,32 +17,32 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel <acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org>
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: Malte Thoma <thoma-iYtK5bfT9M8b1SvskN2V4Q@public.gmane.org>, ACPI-Devel <Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Dec 19, Jacques GANGLOFF <jacques-gXTsMEhN/Y091FlJP1ih0VAUjnlXr6A1@public.gmane.org> wrote:
-> On my VAIO FX702, I have a recurrent problem
-> with the battery info:
->
-> * the time needed to dump /proc/acpi/battery/BAT1/info
-> is about 0.5s and during this time the box is frozen.
-> * the last entries in info are corrupted, i.e. model number,
-> serial number, battery type and OEM info.
-Robert Moore from Intel is working on this issue (I help him by trying his
-patches).
+Ducrot Bruno [ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org] wrote:
+> > The only thing you can do is opendir("/proc/acpi/thermalzone"), then
+> > readdir for each item - ignore . and .. of course.
+> 
+> No.  scandir().  You can alphasort.
 
-> As reported by another VAIO user on this list, my feeling is
-> that these problems are linked.
-No, they are not. The bad writte model number should be fixed in the next
-version. Don't know about the large delay, but probably this isn't fixed
-yet.
+Picky :)  What I was trying to say is that you've got no choice but to
+scan/read directories, you can't hardcode.
 
-Markus
+Scandir is cute, but perhaps unnecessary in a procfs where the nodes are
+created in-order anyway?
+
+
+Faye
+
 -- 
-__________________    /"\
-Markus Gaugusch       \ /    ASCII Ribbon Campaign
-markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org     X     Against HTML Mail
-                      / \
+Faye Pearson,
+Covert Development
+ClaraNET Ltd.       Tel 020 7903 3000
+
+When it comes to broken marriages most husbands will split the blame --
+half his wife's fault, and half her mother's.
 
 
 -------------------------------------------------------
