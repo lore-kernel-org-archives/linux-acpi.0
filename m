@@ -1,14 +1,14 @@
 From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: swsusp and ac status
-Date: Fri, 25 Jun 2004 15:14:22 -0000
+Subject: Re: Re: Re: [BKPATCH] ACPI for 2.6
+Date: Tue, 29 Jun 2004 21:51:16 -0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040625151421.GA8852@message-id.gmane0305.slipkontur.de>
-References: <200406250701.i5P71GKC006204@fermat.unipv.it> <opr95d71ln4evsfm@smtp.pacific.net.th>
+Message-ID: <20040629215116.GA19451@message-id.gmane0305.slipkontur.de>
+References: <6E0C289723A0564F9A8279E236E8565F07A9E73A@pdsmsx402.pd.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <opr95d71ln4evsfm-TBR8pM7LtsqkE96DxU8f+dAkNl5+tjhE@public.gmane.org>
+In-Reply-To: <6E0C289723A0564F9A8279E236E8565F07A9E73A-4yWAQGcml64divtuJNk2fFDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,51 +20,57 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jun 25, 2004 at 07:29:51PM +0800, Michael Frank wrote:
+On Mon, Jun 28, 2004 at 09:30:59AM +0800, Wang, Zhenyu Z wrote:
+>  
+> Please update your patch on osdl bug.
 
-> >It is NOT in my case. It is one of the first things I did. Now, just
-> >in case, I gave it another try, but it does not work.
-> >
-> >modprobe -r ac
-> >suspend
-> >unplug
-> >resume
-> >modprobe ac
-> >
-> >cat /proc/acpi/ac_adapter/C131/state
-> >state: on-line
-> >
-> >If now, after resuming, I plug and unplug the adapter...
-> >
-> >cat /proc/acpi/ac_adapter/C131/state
-> >state: off-line
+done. I'm also sending the patch here for further review (can't hurt ;-)
 
-I have exactly the same on a hp compaq nx 5000.
 
-> Too bad, this implies that the AC module does not get reinitialized after
-> resume and I suspect that acpi core is broken on 2.6 in this regard.
-
-Pavel and i and some HP BIOS engineers analyzed this problem and pavel
-proposed an ugly hack in his swsusp code to work around this. I have
-to check back in my archives / bugzilla reports for this.
-The funny thing is, that the BIOS is 100% correct and this leads to this
-problem (at least that was what Pavel concluded). HP would have changed
-the BIOS to work around the linux bug, but this would be even more ugly.
-I will dig my archives for more info and a (probably ugly, but maybe
-somehow working) patch. I'm offline on the train now, so this will have
-to wait until monday.
+diff -ru /tmp/acpi/thermal.c linux-2.6.7/drivers/acpi/thermal.c
+--- /tmp/acpi/thermal.c	2004-06-16 07:19:52.000000000 +0200
++++ linux-2.6.7/drivers/acpi/thermal.c	2004-06-29 23:43:00.236341420 +0200
+@@ -892,8 +892,10 @@
+ 	struct seq_file		*m = (struct seq_file *)file->private_data;
+ 	struct acpi_thermal	*tz = (struct acpi_thermal *)m->private;
  
-> I'll compile 2.6 and try it on my HW.
+-	char			limit_string[25] = {'\0'};
+-	int			critical, hot, passive, active0, active1;
++	char			limit_string[65] = {'\0'};
++	int			num, critical, hot, passive;
++	int			active[ACPI_THERMAL_MAX_ACTIVE];
++	int			i = 0;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_thermal_write_trip_points");
+ 
+@@ -909,7 +911,11 @@
+ 	
+ 	limit_string[count] = '\0';
+ 
+-	if (sscanf(limit_string, "%d:%d:%d:%d:%d", &critical, &hot, &passive, &active0, &active1) != 5) {
++	num = sscanf(limit_string, "%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d",
++				&critical, &hot, &passive,
++				&active[0], &active[1], &active[2], &active[3], &active[4],
++				&active[5], &active[6], &active[7], &active[8], &active[9]);
++	if(!(num >=5 && num < (ACPI_THERMAL_MAX_ACTIVE + 3))) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid data format\n"));
+ 		return_VALUE(-EINVAL);
+ 	}
+@@ -917,8 +923,11 @@
+ 	tz->trips.critical.temperature = CELSIUS_TO_KELVIN(critical);
+ 	tz->trips.hot.temperature = CELSIUS_TO_KELVIN(hot);
+ 	tz->trips.passive.temperature = CELSIUS_TO_KELVIN(passive);
+-	tz->trips.active[0].temperature = CELSIUS_TO_KELVIN(active0);
+-	tz->trips.active[1].temperature = CELSIUS_TO_KELVIN(active1);
++	for (i = 0; i < num - 3; i++) {
++		if (!(tz->trips.active[i].flags.valid))
++			break;
++		tz->trips.active[i].temperature = CELSIUS_TO_KELVIN(active[i]);
++	}
+ 	
+ 	return_VALUE(count);
+ }
 
-It is completely hardware dependent, i only saw it on the nx5000 up to
-now.
-
-> Perhaps the ACPI people could advise how to increase debug verbosity
-> to see what happens or if that can't be done, put some printks into AC
-> module to see what happens when the module is loaded on resume.
-
-I am not even sure that the AC module is to blame, i have to check
-my archives, i don't remember all the gory details.
 -- 
 Stefan Seyfried
 
