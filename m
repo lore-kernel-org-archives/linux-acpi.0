@@ -1,11 +1,10 @@
-From: Vishal Verma <vermavee-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: listening for GPEs
-Date: 21 Aug 2003 14:04:42 -0700
+From: Michael Madore <mmadore-JChM1cqIHx8AvxtiuMwx3w@public.gmane.org>
+Subject: APIC not enabled on Opteron
+Date: Fri, 22 Aug 2003 16:31:02 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1061499882.2454.10.camel@dhcp-2-135.bivio.net>
-Reply-To: vermavee-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <3F46A7B6.5060706@aslab.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -21,37 +20,43 @@ List-Id: linux-acpi@vger.kernel.org
 
 Hi,
 
-I have a problem related to the propagation of GPEs. In my module, I'm
-installing my own GPE handler using acpi_install_gpe_handler() as
+I'm not postive if my problem is being caused by ACPI, but it seems to 
+be involved, so I'm posting my questiong here first.  If this is not an 
+ACPI issue just let me know.
 
-acpi_install_gpe_handler(NULL, 8, ACPI_EVENT_EDGE_TRIGGERED, my_handler,
-NULL);
+I have a single processor Operteron motherboard with the Nvidia nforce 3 
+chipset.  I am running a 32-bit Linux kernel (2.4.6-test3) and things 
+are perfectly stable.  The problem is that the system is running in 
+XT-PIC mode even though I enabled Local APIC support.  Here is the 
+contents of /proc/interrupts:
 
-my_handler() gets called on arrival of events and it queues a task as:
+            CPU0
+   0:      53477          XT-PIC  timer
+   1:        115          XT-PIC  i8042
+   2:          0          XT-PIC  cascade
+   8:          1          XT-PIC  rtc
+   9:          0          XT-PIC  acpi
+  12:         60          XT-PIC  i8042
+  14:      62385          XT-PIC  ide0
+  15:          1          XT-PIC  ide1
+NMI:          0
+LOC:      53266
+ERR:          0
 
-acpi_disable_gpe(NULL, 8, ACPI_ISR);
-acpi_os_queue_for_execution(OSD_PRIORITY_GPE, my_doit_handler, data);
+This may not look too crowded, but when drivers are loaded for all the 
+onboard hardware there is a lot of sharing going on.  I also tried 
+enabling the IO-APIC, which works, but I still only get 15 IRQs.
 
-and then my_doit_handler() performs the following tasks:
+The reason I think ACPI is involved is because of this kernel message:
 
-/* some processing */
-acpi_clear_gpe(NULL, 8, ACPI_NOT_ISR);
-acpi_enable_gpe(NULL, 8, ACPI_NOT_ISR);
+Using ACPI for processor (LAPIC) configuration information
 
+I have attached the full kernel log.  If anyone can give me a clue, I'd 
+appreciate it.
 
-The problem is that the acpi subsystem keeps calling my_handler()
-infinitely. The only reason, I think that can happen is that I'm not
-able to remove the event from the ACPI event queue. I was thinking
-acpi_clear_gpe() would remove it, but it doesn't seem to be doing that.
+Thanks
 
-Can anybody help me here? Any ideas?
-
-thanks
--vish
-
-PS: Please cc me as I'm not a subscriber.
-
-
+Mike
 
 
 
