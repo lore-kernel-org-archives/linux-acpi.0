@@ -1,12 +1,13 @@
-From: Axel Siebenwirth <axel-t/t5jHnNTs4@public.gmane.org>
-Subject: patch for ACPId for 2.5.33 kernel?
-Date: Sun, 8 Sep 2002 18:36:04 +0200
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: How to implement S3 or S4?
+Date: Sat, 7 Sep 2002 01:52:21 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020908163604.GA251@prester.freenet.de>
+Message-ID: <20020907015221.A35@toy.ucw.cz>
+References: <6D874824CDFBD411A32700508BDE9C77156D74@njg-exch.phoenix.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <6D874824CDFBD411A32700508BDE9C77156D74-1ikZNMFx6jGlVNJr+S4zL1aTQe2KTcn/@public.gmane.org>; from Alan_Yang-KjnUIgV0B0ZBDgjK7y7TUQ@public.gmane.org on Fri, Sep 06, 2002 at 03:57:03PM +0800
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,17 +16,24 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Alan Yang <Alan_Yang-KjnUIgV0B0ZBDgjK7y7TUQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi ACPI developers,
+Hi!
 
-I'm using 2.5.33 kernels for testing and helping to find bugs and errors.
-Now I'd like to get acpid running on my 2.5.33 kernel but the regular acpid
-is only for 2.4 kernels working. How do I get it to work with 2.5 kernels?
+> I want to know how to implement S3 or S4. I can't find these functions:
+> acpi_save_state_mem() and acpi_save_state_disk(). Could you please
+> explain it?
 
-Best regards,
-Axel Siebenwirth
+Its already implemented in 2.5.33.
+								Pavel
+PS: Please stop posting html junk to the list.
+
+-- 
+Philips Velo 1: 1"x4"x8", 300gram, 60, 12MB, 40bogomips, linux, mutt,
+details at http://atrey.karlin.mff.cuni.cz/~pavel/velo/index.html.
+
 
 
 -------------------------------------------------------
