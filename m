@@ -1,14 +1,14 @@
-From: downtime null <downtime-4ZEeE0JWFE8uNY9OAzV8TA@public.gmane.org>
-Subject: Re: ACPI on Travelmate c100
-Date: Tue, 07 Sep 2004 14:14:20 -0500
+From: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: acpi patch for 2.6.7
+Date: Wed, 08 Sep 2004 09:15:30 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1094584459.4263.25.camel@zen.localnet>
-References: <1094056399.6160.17.camel@zen.localnet>
+Message-ID: <1094606130.9577.41.camel@neuromancer.home.net>
+References: <200409061331.28311@geromy>  <20040907135637.GC3647@fuchi>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1094056399.6160.17.camel-mA+20SYq9KgXpj0+iOhflA@public.gmane.org>
+In-Reply-To: <20040907135637.GC3647@fuchi>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,67 +17,45 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Acpi-List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2004-09-01 at 11:33, downtime null wrote:
-> I'm trying to get the ACPI stuff working an my Acer Travelmate c100.
-> I've seen a couple of posts about this, but I'm not able to get it
-> working. I found the patch from John Turney at
-> http://sourceforge.net/mailarchive/forum.php?thread_id=3854113&forum_id=6102 and manually applied the changes to my kernel, but upon reboot with the new kernel, the system reboots very early in the boot process. I don't understand the kernel code well enough to do much hacking on it, so I was wondering if anyone had any good resources on getting this working. I'm using Fedora Core 2 with the updated kernel.
-> 
-> $ uname -a
-> Linux zen.localnet 2.6.8-1.521custom #6 Sat Aug 28 18:12:02 CDT 2004
-> i686 i686 i386 GNU/Linux
-> 
-> Any help is appreciated.
-> 
-> Thanks,
-> 
-> Russell
-> 
+On Tue, 2004-09-07 at 21:56, Sebastian Henschel wrote:
+> hello S=C3=B6nke..
+>=20
+> * S=C3=B6nke <s.huels-hi6Y0CQ0nG0@public.gmane.org> [2004-09-07 15:29 +0200]:
+> >=20
+> > I'm looking for the last acpi patch for kernel 2.6.7=20
+> > (acpi-20040715-2.6.7-diff), but I could not find it on the kernel.org f=
+tp=20
+> > server.=20
+> > Could anyone please tell me to a location to download it, if it is stil=
+l=20
+> > availiable somewhere?
+>=20
+> i fear, it is not officially available anymore. you could try to
+> integrate the ACPI stuff from 2.6.8 into your 2.6.7. or ping me again
+> next week when i will have access to my backup harddisk which should
+> have a copy of the patch on it.
 
-Where would I start to try and correct the ACPI problem. Apparently, the
-2.6.x kernel will not enable the ACPI if there is an error. If I run
-dmesg, I get :
+The patch to 2.6.7 would be desireable since 2.6.8 and 2.6.9 doesn't
+work reliably enough.
 
-ACPI: RSDP (v000 Acer                                      ) @
-0x000ec2d0
-  >>> ERROR: Invalid checksum
+I've got another thread started that shows that  I have irq_disabled
+errors in 2.6.8.1 and 2.6.9-rc1-mm1 causes filesystem curruption,
+rm1-mm2, suspend code/something causes a need for a keyboard press to
+start writing to swap. -rc1-mm3 does not compile at "make
+modules_install"
 
-The BIOS memory map looks like :
+>=20
+> bye,
+>  sebastian
 
-BIOS-provided physical RAM map:
- BIOS-e820: 0000000000000000 - 000000000009fc00 (usable)
- BIOS-e820: 000000000009fc00 - 00000000000a0000 (reserved)
- BIOS-e820: 00000000000f0000 - 0000000000100000 (reserved)
- BIOS-e820: 0000000000100000 - 000000000ffc0000 (usable)
- BIOS-e820: 000000000ffc0000 - 000000000ffe0000 (reserved)
- BIOS-e820: 000000000ffe0000 - 000000000ffe8000 (ACPI data)
- BIOS-e820: 000000000ffe8000 - 0000000010000000 (ACPI NVS)
- BIOS-e820: 00000000ffff0000 - 0000000100000000 (reserved)
-
-running acpidmp from pmtools gives me this :
-
-RSDP "Acer" @ 0x000ec2d0
-  0000: 52 53 44 20 50 54 52 20 00 41 63 65 72 20 20 00  RSD PTR .Acer 
-.
-  0010: 00 00 00 00                                      ....
- 
-acpidmp: cannot map the RSDT
-
-
-As stated in my first email, I tried manually applying the patch
-provided in that post. I say I manually applied it because all 3 hunks
-failed when I tried to use 'patch -p1'. I have some knowledge of
-programming, but I don't completely understand what the patch is trying
-to do and I don't know how to get debugging information from the kernel;
-especially since these changes to the kernel just cause it to reboot
-when it hits the ACPI init.
-
-Any help is appreciated.
-
-Thanks.
+--=20
+Ow Mun Heng
+Fedora GNU/Linux Core 2 on D600 1.4Ghz CPU kernel
+2.6.7-2.jul1-interactive=20
+Neuromancer 09:13:30 up 2:03, 5 users, load average: 0.87, 0.95, 0.99=20
 
 
 -------------------------------------------------------
