@@ -1,13 +1,12 @@
-From: Romano Giannetti <romanol-qvIf60buks8@public.gmane.org>
-Subject: Re: [PATCH, new ACPI driver] new sony_acpi driver
-Date: Tue, 15 Feb 2005 17:14:12 +0100
-Message-ID: <20050215161412.GC20951@pern.dea.icai.upco.es>
-References: <20050210161809.GK3493@crusoe.alcove-fr> <E1D0dqo-00041G-00@chiark.greenend.org.uk> <20050214105837.GE3233@crusoe.alcove-fr> <20050214203211.GA8007@ucw.cz>
-Reply-To: romano-1BxYRfzsdQW8A8a7gxElqg@public.gmane.org
+From: Lorenzo Colitti <lorenzo-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: Re: Call for help: list of machines with working S3
+Date: Tue, 15 Feb 2005 17:15:18 +0100
+Message-ID: <42122016.80107@colitti.com>
+References: <20050214211105.GA12808@elf.ucw.cz>	 <200502150605.11683.s0348365@sms.ed.ac.uk>  <4211E729.1090305@colitti.com> <1108482083.12031.10.camel@elrond.flymine.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Disposition: inline
-In-Reply-To: <20050214203211.GA8007-+ZI9xUNit7I@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <1108482083.12031.10.camel-Xmbc1Sz64/5pghhO6/9/sx2eb7JE58TQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,28 +16,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Vojtech Pavlik <vojtech-AlSwsSmVLrQ@public.gmane.org>
-Cc: Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>, Matthew Garrett <mgarrett-QGMSyCZBOSwv4zxTlrOuLwNdhmdF6hFW@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Cc: Alistair John Strachan <s0348365-Y3tGgqFSo3OFxr2TtlUqVg@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, seife-l3A5Bk7waGM@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Feb 14, 2005 at 09:32:11PM +0100, Vojtech Pavlik wrote:
->  
-> Yes, I'd like to see that. The other possible way is have the input
-> layer generate ACPI events for power-related keys.
+Matthew Garrett wrote:
+>>I beg to differ: it works for me on 2.6.11-rc3 (even with the swsusp2 
+>>patch). However, I need to use acpi_sleep=s3_bios, and I can't use 
+>>radeonfb or it will lock up on resume.
 > 
+> Could you grab dmidecode from http://www.nongnu.org/dmidecode/ and
+> provide the output? It'd be interesting to compare working with
+> non-working machines. It might also be good to see lspci and acpidmp
+> output.
 
-I beg your pardon, but I have a very strange problem with ACPI event on a
-Sony laptop. Probably it's completely unraleted, but if you have time to
-have a look, it is on bugzilla too:
+Ok, here is the output from dmidecode (Debian package) and from lspci. I 
+don't have acpidmp and I don't know where to get it, but if you think 
+it's necessary I can download it if you tell me where to find it.
 
-http://bugme.osdl.org/show_bug.cgi?id=4124
 
-Thanks! 
-        Romano
-
--- 
-Romano Giannetti             -  Univ. Pontificia Comillas (Madrid, Spain)
-Electronic Engineer - phone +34 915 422 800 ext 2416  fax +34 915 596 569
+Cheers,
+Lorenzo
 
 
 -------------------------------------------------------
