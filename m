@@ -1,12 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Help! I lost my C4 states :-)
-Date: Fri, 4 Mar 2005 10:23:43 +0100
-Message-ID: <20050304092342.GB1551@elf.ucw.cz>
-References: <20050221081225.GA10848@message-id.gmane0305.slipkontur.de> <1109885929.2103.813.camel@d845pe>
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Subject: Re: 2.6.11: suspending laptop makes system randomly unstable
+Date: Fri, 4 Mar 2005 01:43:35 -0800
+Message-ID: <20050304014335.319b9165.akpm@osdl.org>
+References: <422618F0.3020508@telefonica.net>
+	<20050302134342.4c9cc488.akpm@osdl.org>
+	<20050304092333.GA11862@pern.dea.icai.upco.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1109885929.2103.813.camel@d845pe>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <20050304092333.GA11862-NfIQswJzSEaq9fEpoSJUslHdEuJhDOxL@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,30 +18,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+To: romano-1BxYRfzsdQW8A8a7gxElqg@public.gmane.org
+Cc: romanol-qvIf60buks8@public.gmane.org, miguelanxo-XnAhQTnVLytMqUckJh7upg@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Romano Giannetti <romanol-qvIf60buks8@public.gmane.org> wrote:
+>
+> On Wed, Mar 02, 2005 at 01:43:42PM -0800, Andrew Morton wrote:
+> > 
+> > That's an ACPI problem, I assume?
+> > 
+> 
+> Probably. There is something flaky in ACPI event (it happened sometime
+> between 2.6.7 and 2.6.9, i tried to check all the patches, but I had find
+> nothing. 
+> 
+> Could someone please check http://bugme.osdl.org/show_bug.cgi?id=4124 and
+> tell me what to do to help in debugging it? 
+> 
+> What is very strange is why "power button" and "read battery current capacity" 
+> events are working ok, and "sleep button" or "CRT switch button" or "ac
+> plugged/unplugged" seems more or less random delayed. 
+> 
 
-> ps.
-> If you're tracking battery life, I'd be interested to know if
-> you notice a difference between when you build with HZ=100 and HZ=1000.
-
-At one point I did some measurements using internal battery
-ampermeter... lets see:
-
-Arima (youknowwhat)64 processor:
-idle machine at 800MHz, max backlight: 22.2 W 
-                        min backlight: 17 W   
-sleeping harddrive:                   -0.6 W
-HZ=100:                               -0.8 W
-
-So yes, HZ=100 and HZ=1000 difference is quite important.
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Add acpi-devel to cc...
 
 
 -------------------------------------------------------
