@@ -1,249 +1,425 @@
-From: Z F <mail4me9999-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Latitude X300 problem
-Date: Mon, 14 Jun 2004 20:24:15 -0700 (PDT)
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040615032415.42684.qmail@web20418.mail.yahoo.com>
-References: <20040615024627.83008.qmail@web20412.mail.yahoo.com>
+From: "Li, Shaohua" <shaohua.li@intel.com>
+Subject: RE: [ACPI] [RFC][PATCH] notify BIOS of cpufreq support (pstate_cnt)
+Date: Tue, 15 Jun 2004 11:40:14 +0800
+Sender: cpufreq-bounces@www.linux.org.uk
+Message-ID: <B44D37711ED29844BEA67908EAF36F0315E5FF@pdsmsx401.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="0-949064097-1087269855=:42631"
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040615024627.83008.qmail-Fcu2i0sSXcWA/QwVtaZbd3CJp6faPEW9@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk>
+Content-class: urn:content-classes:message
+List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@www.linux.org.uk?subject=unsubscribe>
+List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq>
+List-Post: <mailto:cpufreq@www.linux.org.uk>
+List-Help: <mailto:cpufreq-request@www.linux.org.uk?subject=help>
+List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@www.linux.org.uk?subject=subscribe>
+Errors-To: cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk
+To: Dominik Brodowski <linux@dominikbrodowski.de>
+Cc: acpi-devel@lists.sourceforge.net, cpufreq@www.linux.org.uk
 List-Id: linux-acpi@vger.kernel.org
 
---0-949064097-1087269855=:42631
-Content-Type: text/plain; charset=us-ascii
-Content-Id: 
-Content-Disposition: inline
+If AC adapter is disconnected in boot time, loops_per_jiffy, cpu_khz
+will be calculated according to current cpu speed (maybe is not full
+speed). Can this patch handle this situation? After disable BIOS P-state
+control, should loops_per_jiffy be recalculated? (How about look at if
+cpu_khz match any P-state, and adjust according to the difference
+between P-state and P0).
 
-
-Sorry, I forgot the attachement and to say that I am using 
-kernel 2.4.26
-
-Thanks
-
-Lazar
---- Z F <mail4me9999-/E1597aS9LQAvxtiuMwx3w@public.gmane.org> wrote:
-> Hello everybody,
-> 
-> I am trying to configure ACPI to work on my Dell Latitude X300
-> notebook.
-> I think I followed the instructions from
-> http://www.cpqlinux.com/acpi-howto.html
-> 
-> on how to obtain DSDT and how to compile it into the kernel.
-> 
-> Accodring to http://acpi.sourceforge.net/dsdt/view.php someone 
-> has posted a fixed DSDT for this computer model.
-> 
-> So I disassembled my dsdt to get SystemMemory (as I do not know how
-> to
-> compute these numbers from the amount of physical memory) and edited
-> the dstd.asl for the BIOS version I have (A06).
-> 
-> After the compilation onto the kernel and rebooting I get the
-> attached
-> messages. Basically, this means that almost everything does not work.
-> I can change cpu throttling and see the sate of the fan (it is always
-> on).
-> THe compilation of dsdt.asl with iasl produces no errors and no
-> warnings.
-> 
-> 
-> Could someone tell me how to debug this. I know very little about
-> ACPI
-> but am willing to learn... :-)
-> 
-> Thank you very much for your kind help
-> 
-> Lazar
-> 
-> 
-> 	
-> 		
-> __________________________________
-> Do you Yahoo!?
-> Friends.  Fun.  Try the all-new Yahoo! Messenger.
-> http://messenger.yahoo.com/ 
-> 
-> 
-> -------------------------------------------------------
-> This SF.Net email is sponsored by The 2004 JavaOne(SM) Conference
-> Learn from the experts at JavaOne(SM), Sun's Worldwide Java Developer
-> Conference, June 28 - July 1 at the Moscone Center in San Francisco,
-> CA
-> REGISTER AND SAVE! http://java.sun.com/javaone/sf Priority Code
-> NWMGYKND
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> 
-
-
-	
-		
-__________________________________
-Do you Yahoo!?
-Friends.  Fun.  Try the all-new Yahoo! Messenger.
-http://messenger.yahoo.com/ 
---0-949064097-1087269855=:42631
-Content-Type: application/octet-stream; name=message
-Content-Transfer-Encoding: base64
-Content-Description: message
-Content-Disposition: attachment; filename=message
-
-TGludXggdmVyc2lvbiAyLjQuMjZhY3BpIChyb290QEdyYXlNYXR0ZXIpIChn
-Y2MgdmVyc2lvbiAzLjMuMyAoRGViaWFuIDIwMDQwNDIyKSkgIzEgVGh1IEp1
-biAxMCAyMjo0OTo1NSBFRFQgMjAwNApCSU9TLXByb3ZpZGVkIHBoeXNpY2Fs
-IFJBTSBtYXA6CiBCSU9TLWU4MjA6IDAwMDAwMDAwMDAwMDAwMDAgLSAwMDAw
-MDAwMDAwMDlmODAwICh1c2FibGUpCiBCSU9TLWU4MjA6IDAwMDAwMDAwMDAw
-OWY4MDAgLSAwMDAwMDAwMDAwMGEwMDAwIChyZXNlcnZlZCkKIEJJT1MtZTgy
-MDogMDAwMDAwMDAwMDBkODAwMCAtIDAwMDAwMDAwMDAxMDAwMDAgKHJlc2Vy
-dmVkKQogQklPUy1lODIwOiAwMDAwMDAwMDAwMTAwMDAwIC0gMDAwMDAwMDAw
-NzY3ZTAwMCAodXNhYmxlKQogQklPUy1lODIwOiAwMDAwMDAwMDA3NjdlMDAw
-IC0gMDAwMDAwMDAwNzZlMDAwMCAoQUNQSSBOVlMpCiBCSU9TLWU4MjA6IDAw
-MDAwMDAwMDc2ZTAwMDAgLSAwMDAwMDAwMDA3NmViMDAwIChBQ1BJIGRhdGEp
-CiBCSU9TLWU4MjA6IDAwMDAwMDAwMDc2ZWIwMDAgLSAwMDAwMDAwMDA3NzAw
-MDAwIChBQ1BJIE5WUykKIEJJT1MtZTgyMDogMDAwMDAwMDAwNzcwMDAwMCAt
-IDAwMDAwMDAwMDgwMDAwMDAgKHJlc2VydmVkKQogQklPUy1lODIwOiAwMDAw
-MDAwMGZlYzEwMDAwIC0gMDAwMDAwMDBmZWMyMDAwMCAocmVzZXJ2ZWQpCiBC
-SU9TLWU4MjA6IDAwMDAwMDAwZmY4MDAwMDAgLSAwMDAwMDAwMGZmYzAwMDAw
-IChyZXNlcnZlZCkKIEJJT1MtZTgyMDogMDAwMDAwMDBmZmZmZmMwMCAtIDAw
-MDAwMDAxMDAwMDAwMDAgKHJlc2VydmVkKQoxMThNQiBMT1dNRU0gYXZhaWxh
-YmxlLgpPbiBub2RlIDAgdG90YWxwYWdlczogMzAzMzQKem9uZSgwKTogNDA5
-NiBwYWdlcy4Kem9uZSgxKTogMjYyMzggcGFnZXMuCnpvbmUoMik6IDAgcGFn
-ZXMuCkRlbGwgTGF0aXR1ZGUgd2l0aCBicm9rZW4gQklPUyBkZXRlY3RlZC4g
-UmVmdXNpbmcgdG8gZW5hYmxlIHRoZSBsb2NhbCBBUElDLgpBQ1BJOiBSU0RQ
-ICh2MDAwIERFTEwgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICkgQCAweDAwMGY2MGYwCkFDUEk6IFJTRFQgKHYwMDEgREVMTCAgIE1v
-bnRhcmEgIDB4MDYwNDAwMDAgIExUUCAweDAwMDAwMDAwKSBAIDB4MDc2ZTRl
-MWEKQUNQSTogRkFEVCAodjAwMSBERUxMICAgTU9OVEFSQSAgMHgwNjA0MDAw
-MCBQVEwgIDB4MDAwMDAwNTApIEAgMHgwNzZlYWU5ZQpBQ1BJOiBCT09UICh2
-MDAxIERFTEwgICAkU0JGVEJMJCAweDA2MDQwMDAwICBMVFAgMHgwMDAwMDAw
-MSkgQCAweDA3NmVhZmE0CkFDUEk6IEFTRiEgKHYwMDEgREVMTCAgIE1PTlRB
-UkEgIDB4MDYwNDAwMDAgUFRMICAweDAwMDAwMDAxKSBAIDB4MDc2ZWFmY2MK
-QUNQSTogU1NEVCAodjAwMSBJTlRFTCAgQ1BVMENTVCAgMHgwMDAwMDAwMSBJ
-TlRMIDB4MjAwMjA3MjUpIEAgMHgwNzZlNTJiMApBQ1BJOiBTU0RUICh2MDAx
-IERFTEwgICBNT05UQVJBICAweDA2MDQwMDAwIElOVEwgMHgyMDAyMDcyNSkg
-QCAweDA3NmU0ZTUyCkFDUEk6IERTRFQgKHYwMDEgSU5URUwgIE1PTlRBUkFH
-IDB4MDYwNDAwMDAgTVNGVCAweDAxMDAwMDBlKSBAIDB4MDAwMDAwMDAKS2Vy
-bmVsIGNvbW1hbmQgbGluZTogCkluaXRpYWxpemluZyBDUFUjMApEZXRlY3Rl
-ZCAxMTk2LjE0MiBNSHogcHJvY2Vzc29yLgpDb25zb2xlOiBjb2xvdXIgVkdB
-KyA4MHgyNQpDYWxpYnJhdGluZyBkZWxheSBsb29wLi4uIDIzODUuNTEgQm9n
-b01JUFMKTWVtb3J5OiAxMTc1MDhrLzEyMTMzNmsgYXZhaWxhYmxlICgxMjU2
-ayBrZXJuZWwgY29kZSwgMzQ0MGsgcmVzZXJ2ZWQsIDMxOGsgZGF0YSwgMjky
-ayBpbml0LCAwayBoaWdobWVtKQpEZW50cnkgY2FjaGUgaGFzaCB0YWJsZSBl
-bnRyaWVzOiAxNjM4NCAob3JkZXI6IDUsIDEzMTA3MiBieXRlcykKSW5vZGUg
-Y2FjaGUgaGFzaCB0YWJsZSBlbnRyaWVzOiA4MTkyIChvcmRlcjogNCwgNjU1
-MzYgYnl0ZXMpCk1vdW50IGNhY2hlIGhhc2ggdGFibGUgZW50cmllczogNTEy
-IChvcmRlcjogMCwgNDA5NiBieXRlcykKQnVmZmVyIGNhY2hlIGhhc2ggdGFi
-bGUgZW50cmllczogNDA5NiAob3JkZXI6IDIsIDE2Mzg0IGJ5dGVzKQpQYWdl
-LWNhY2hlIGhhc2ggdGFibGUgZW50cmllczogMzI3NjggKG9yZGVyOiA1LCAx
-MzEwNzIgYnl0ZXMpCkNQVTogTDEgSSBjYWNoZTogMzJLLCBMMSBEIGNhY2hl
-OiAzMksKQ1BVOiBMMiBjYWNoZTogMTAyNEsKSW50ZWwgbWFjaGluZSBjaGVj
-ayBhcmNoaXRlY3R1cmUgc3VwcG9ydGVkLgpJbnRlbCBtYWNoaW5lIGNoZWNr
-IHJlcG9ydGluZyBlbmFibGVkIG9uIENQVSMwLgpDUFU6ICAgICBBZnRlciBn
-ZW5lcmljLCBjYXBzOiBhN2U5ZjliZiAwMDAwMDAwMCAwMDAwMDAwMCAwMDAw
-MDAwMApDUFU6ICAgICAgICAgICAgIENvbW1vbiBjYXBzOiBhN2U5ZjliZiAw
-MDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAwMApDUFU6IEludGVsKFIpIFBlbnRp
-dW0oUikgTSBwcm9jZXNzb3IgMTIwME1IeiBzdGVwcGluZyAwNQpFbmFibGlu
-ZyBmYXN0IEZQVSBzYXZlIGFuZCByZXN0b3JlLi4uIGRvbmUuCkVuYWJsaW5n
-IHVubWFza2VkIFNJTUQgRlBVIGV4Y2VwdGlvbiBzdXBwb3J0Li4uIGRvbmUu
-CkNoZWNraW5nICdobHQnIGluc3RydWN0aW9uLi4uIE9LLgpQT1NJWCBjb25m
-b3JtYW5jZSB0ZXN0aW5nIGJ5IFVOSUZJWAptdHJyOiB2MS40MCAoMjAwMTAz
-MjcpIFJpY2hhcmQgR29vY2ggKHJnb29jaEBhdG5mLmNzaXJvLmF1KQptdHJy
-OiBkZXRlY3RlZCBtdHJyIHR5cGU6IEludGVsCkFDUEk6IFN1YnN5c3RlbSBy
-ZXZpc2lvbiAyMDA0MDMyNgpQQ0k6IFBDSSBCSU9TIHJldmlzaW9uIDIuMTAg
-ZW50cnkgYXQgMHhmZDliMCwgbGFzdCBidXM9MgpQQ0k6IFVzaW5nIGNvbmZp
-Z3VyYXRpb24gdHlwZSAxCkFDUEk6IElSUTkgU0NJOiBFZGdlIHNldCB0byBM
-ZXZlbCBUcmlnZ2VyLgpBQ1BJOiBJbnRlcnByZXRlciBlbmFibGVkCkFDUEk6
-IFVzaW5nIFBJQyBmb3IgaW50ZXJydXB0IHJvdXRpbmcKQUNQSTogU3lzdGVt
-IFtBQ1BJXSAoc3VwcG9ydHMgUzAgUzMgUzQgUzUpCkFDUEk6IFBDSSBSb290
-IEJyaWRnZSBbUENJMF0gKDAwOjAwKQpQQ0k6IFByb2JpbmcgUENJIGhhcmR3
-YXJlIChidXMgMDApClBDSTogSWdub3JpbmcgQkFSMC0zIG9mIElERSBjb250
-cm9sbGVyIDAwOjFmLjEKVHJhbnNwYXJlbnQgYnJpZGdlIC0gSW50ZWwgQ29y
-cC4gODI4MDFCQU0vQ0FNIFBDSSBCcmlkZ2UKQUNQSTogUENJIEludGVycnVw
-dCBSb3V0aW5nIFRhYmxlIFtcX1NCXy5QQ0kwLl9QUlRdCkFDUEk6IFBDSSBJ
-bnRlcnJ1cHQgUm91dGluZyBUYWJsZSBbXF9TQl8uUENJMC5QQ0lCLl9QUlRd
-CkFDUEk6IFBDSSBJbnRlcnJ1cHQgTGluayBbTE5LQV0gKElSUXMgKjEwKQpB
-Q1BJOiBQQ0kgSW50ZXJydXB0IExpbmsgW0xOS0JdIChJUlFzICoxMCkKQUNQ
-STogUENJIEludGVycnVwdCBMaW5rIFtMTktDXSAoSVJRcyAqMTEpCkFDUEk6
-IFBDSSBJbnRlcnJ1cHQgTGluayBbTE5LRF0gKElSUXMgKjExKQpBQ1BJOiBQ
-Q0kgSW50ZXJydXB0IExpbmsgW0xOS0VdIChJUlFzICo1KQpBQ1BJOiBQQ0kg
-SW50ZXJydXB0IExpbmsgW0xOS0ZdIChJUlFzIDUpICowLCBkaXNhYmxlZC4K
-QUNQSTogUENJIEludGVycnVwdCBMaW5rIFtMTktHXSAoSVJRcyAxMCkgKjAs
-IGRpc2FibGVkLgpBQ1BJOiBQQ0kgSW50ZXJydXB0IExpbmsgW0xOS0hdIChJ
-UlFzICoxMCkKQUNQSTogRW1iZWRkZWQgQ29udHJvbGxlciBbSF9FQ10gKGdw
-ZSAyOCkKICAgIEFDUEktMDM0NzogKioqIEVycm9yOiBIYW5kbGVyIGZvciBb
-RW1iZWRkZWRDb250cm9sXSByZXR1cm5lZCBBRV9CQURfUEFSQU1FVEVSCiAg
-ICBBQ1BJLTExMzM6ICoqKiBFcnJvcjogTWV0aG9kIGV4ZWN1dGlvbiBmYWls
-ZWQgW1xfU0JfLlBDSTAuTFBDQi5IX0VDLl9SRUddIChOb2RlIGM3NjM5ZjAw
-KSwgQUVfQkFEX1BBUkFNRVRFUgpBQ1BJOiBQb3dlciBSZXNvdXJjZSBbUEZB
-Tl0gKG9uKQpQQ0k6IFByb2JpbmcgUENJIGhhcmR3YXJlCkFDUEk6IFBDSSBJ
-bnRlcnJ1cHQgTGluayBbTE5LQV0gZW5hYmxlZCBhdCBJUlEgMTAKQUNQSTog
-UENJIEludGVycnVwdCBMaW5rIFtMTktEXSBlbmFibGVkIGF0IElSUSAxMQpB
-Q1BJOiBQQ0kgSW50ZXJydXB0IExpbmsgW0xOS0NdIGVuYWJsZWQgYXQgSVJR
-IDExCkFDUEk6IFBDSSBJbnRlcnJ1cHQgTGluayBbTE5LSF0gZW5hYmxlZCBh
-dCBJUlEgMTAKQUNQSTogUENJIEludGVycnVwdCBMaW5rIFtMTktCXSBlbmFi
-bGVkIGF0IElSUSAxMApBQ1BJOiBQQ0kgSW50ZXJydXB0IExpbmsgW0xOS0Vd
-IGVuYWJsZWQgYXQgSVJRIDUKUENJOiBVc2luZyBBQ1BJIGZvciBJUlEgcm91
-dGluZwpMaW51eCBORVQ0LjAgZm9yIExpbnV4IDIuNApCYXNlZCB1cG9uIFN3
-YW5zZWEgVW5pdmVyc2l0eSBDb21wdXRlciBTb2NpZXR5IE5FVDMuMDM5Cklu
-aXRpYWxpemluZyBSVCBuZXRsaW5rIHNvY2tldApTdGFydGluZyBrc3dhcGQK
-Sm91cm5hbGxlZCBCbG9jayBEZXZpY2UgZHJpdmVyIGxvYWRlZAppbnRlbGZi
-OiBGcmFtZWJ1ZmZlciBkcml2ZXIgZm9yIEludGVsKFIpIDgzME0vODQ1Ry84
-NTJHTS84NTVHTS84NjVHIGNoaXBzZXRzCmludGVsZmI6IFZlcnNpb24gMC43
-LjcsIHdyaXR0ZW4gYnkgRGF2aWQgRGF3ZXMgPGRhd2VzQHR1bmdzdGVuZ3Jh
-cGhpY3MuY29tPgppbnRlbGZiOiAwMDowMi4wOiBJbnRlbChSKSA4NTVHTSwg
-YXBlcnR1cmUgc2l6ZSAxMjhNQiwgc3RvbGVuIG1lbW9yeSA4MDYwa0IKaW50
-ZWxmYjogQWNjZWxlcmF0aW9uIGlzIG5vdCBzdXBwb3J0ZWQgZm9yIHRoZSBJ
-bnRlbChSKSA4NTVHTSBjaGlwc2V0LgppbnRlbGZiOiBIVyBjdXJzb3IgaXMg
-bm90IHN1cHBvcnRlZCBmb3IgbW9iaWxlIHBsYXRmb3Jtcy4KaW50ZWxmYjog
-Tm9uLUNSVCBkZXZpY2UgaXMgZW5hYmxlZCAoTFZEUyBwb3J0KS4gIERpc2Fi
-bGluZyBtb2RlIHN3aXRjaGluZy4KaW50ZWxmYjogVmlkZW8gbW9kZSBtdXN0
-IGJlIHByb2dyYW1tZWQgYXQgYm9vdCB0aW1lLgpwdHk6IDI1NiBVbml4OTgg
-cHR5cyBjb25maWd1cmVkCmk4azogdW5hYmxlIHRvIGdldCBTTU0gQklPUyB2
-ZXJzaW9uCkRlbGwgbGFwdG9wIFNNTSBkcml2ZXIgdjEuMTMgMTQvMDUvMjAw
-MiBNYXNzaW1vIERhbCBab3R0byAoZHpAZGViaWFuLm9yZykKUmVhbCBUaW1l
-IENsb2NrIERyaXZlciB2MS4xMGYKTGludXggYWdwZ2FydCBpbnRlcmZhY2Ug
-djAuOTkgKGMpIEplZmYgSGFydG1hbm4KYWdwZ2FydDogTWF4aW11bSBtYWlu
-IG1lbW9yeSB0byB1c2UgZm9yIGFncCBtZW1vcnk6IDg1TQphZ3BnYXJ0OiBE
-ZXRlY3RlZCBhbiBJbnRlbChSKSA4NTVHTSBDaGlwc2V0LgphZ3BnYXJ0OiBE
-ZXRlY3RlZCA4MDYwSyBzdG9sZW4gbWVtb3J5LgphZ3BnYXJ0OiBBR1AgYXBl
-cnR1cmUgaXMgMTI4TSBAIDB4ZTgwMDAwMDAKW2RybV0gQUdQIDAuOTkgQXBl
-cnR1cmUgQCAweGU4MDAwMDAwIDEyOE1CCltkcm1dIEluaXRpYWxpemVkIGk4
-MzAgMS4zLjIgMjAwMjExMDggb24gbWlub3IgMApVbmlmb3JtIE11bHRpLVBs
-YXRmb3JtIEUtSURFIGRyaXZlciBSZXZpc2lvbjogNy4wMGJldGE0LTIuNApp
-ZGU6IEFzc3VtaW5nIDMzTUh6IHN5c3RlbSBidXMgc3BlZWQgZm9yIFBJTyBt
-b2Rlczsgb3ZlcnJpZGUgd2l0aCBpZGVidXM9eHgKSUNINDogSURFIGNvbnRy
-b2xsZXIgYXQgUENJIHNsb3QgMDA6MWYuMQpQQ0k6IEVuYWJsaW5nIGRldmlj
-ZSAwMDoxZi4xICgwMDA1IC0+IDAwMDcpCklDSDQ6IGNoaXBzZXQgcmV2aXNp
-b24gMQpJQ0g0OiBub3QgMTAwJSBuYXRpdmUgbW9kZTogd2lsbCBwcm9iZSBp
-cnFzIGxhdGVyCiAgICBpZGUwOiBCTS1ETUEgYXQgMHgxODEwLTB4MTgxNywg
-QklPUyBzZXR0aW5nczogaGRhOkRNQSwgaGRiOnBpbwpoZGE6IElDMjVOMDYw
-QVRNUjA0LTAsIEFUQSBESVNLIGRyaXZlCmJsazogcXVldWUgYzAzMDIyYTAs
-IEkvTyBsaW1pdCA0MDk1TWIgKG1hc2sgMHhmZmZmZmZmZikKaWRlMCBhdCAw
-eDFmMC0weDFmNywweDNmNiBvbiBpcnEgMTQKaGRhOiBhdHRhY2hlZCBpZGUt
-ZGlzayBkcml2ZXIuCmhkYTogaG9zdCBwcm90ZWN0ZWQgYXJlYSA9PiAxCmhk
-YTogMTE3MjEwMjQwIHNlY3RvcnMgKDYwMDEyIE1CKSB3Lzc4ODRLaUIgQ2Fj
-aGUsIENIUz03Mjk2LzI1NS82MywgVURNQSgxMDApClBhcnRpdGlvbiBjaGVj
-azoKIGhkYTogaGRhMSBoZGEyIGhkYTMgaGRhNCA8IGhkYTUgaGRhNiBoZGE3
-ID4K
-
---0-949064097-1087269855=:42631--
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by The 2004 JavaOne(SM) Conference
-Learn from the experts at JavaOne(SM), Sun's Worldwide Java Developer
-Conference, June 28 - July 1 at the Moscone Center in San Francisco, CA
-REGISTER AND SAVE! http://java.sun.com/javaone/sf Priority Code NWMGYKND
+Thanks,
+Shaohua
+>-----Original Message-----
+>From: acpi-devel-admin@lists.sourceforge.net [mailto:acpi-devel-
+>admin@lists.sourceforge.net] On Behalf Of Dominik Brodowski
+>Sent: Tuesday, June 15, 2004 5:55 AM
+>To: cpufreq@www.linux.org.uk; acpi-devel@lists.sourceforge.net
+>Subject: [ACPI] [RFC][PATCH] notify BIOS of cpufreq support
+(pstate_cnt)
+>
+>[Follow-up to
+>http://marc.theaimsgroup.com/?l=3Dacpi4linux&m=3D107684287525298&w=3D2
+>which was the last try of getting this right last February]
+>
+>Notify SMM of cpufreq
+>
+>Often, the BIOS changes the CPU frequency if a notebook is
+(dis)connected
+>from its AC adapter. This interferes with a) an user setting the CPU
+>frequency
+>and b) kernel timing code which needs to know loops_per_jiffy, cpu_khz
+etc.
+>
+>So, ACPI 2.0 offers a method to disable such BIOS changes -- writing
+>a value contained in the FADT (pstate_cnt) to the smi_cmd port. This
+patch
+>utilizes this method by doing this write in processor.c.
+>
+>However, most current notebooks only offer 1.0 ACPI tables, where the
+>pstate_cnt entry is marked as "reserved". Unless ACPI is in strict
+mode,
+>the value in this "reserved" field is used as well, but a warning is
+>printed.
+>
+>So, when is the BIOS notified? When should it be notified? The ACPI
+>specification doesn't say much about it. This patch does it if either
+>of the following cpufreq drivers is pretty much done with a successful
+>registration:
+>
+>- acpi
+>- powernow-k7 [if either it is blacklisted or acpi_force is used]
+>- powernow-k8 [if the preferred DSDT method is used -- normally, it
+is...]
+>- speedstep-centrino [if the preferred DSDT method is used -- normally,
+it
+>is...]
+>- speedstep-ich [if the ACPI processor module is built into the kernel.
+>Dave, Arjan: is it in FC?]
+>- speedstep-smi [if the processor module is built into the kernel.
+Dave,
+>Arjan: is it in FC?]
+>
+>There's a small problem with the whole pstate_cnt approach: if there is
+a
+>pyhsical[*] platform limit, it might be necessary to adjust the CPU
+>frequency
+>to avoid serious problems. Unless the BIOS is notified, the BIOS will
+>likely
+>do such adjustments on its own. As it is notified now that the OS is
+>handling
+>P-States, it might be that the BIOS won't handle such serious limits --
+but
+>if the cpufreq driver is "rmmod'ed" in between, it won't be handled.
+This
+>is a serious error, but it will _also_ happen on _any_ OS if:
+>a) the pstate_cnt is written to the BIOS
+>b) the system locks up hard afterwards so that even IRQs are not
+handled
+>any more
+>c) the physical platform limit event occurs
+>
+>However, I'm unsure as to whether we should "lock" the cpufreq driver
+once
+>it called
+>acpi_processor_notify_smm() to minimize the risk mentioned above.
+What's
+>the opinion of the ACPI
+>team at Intel?
+>
+>[*] not the "we-want-to-have-X-hours-of-battery-time-in-that-test" type
+of
+>platform limits...
+>
+>Signed-off-by: Dominik Brodowski <linux@brodo.de>
+>
+> arch/i386/kernel/cpu/cpufreq/acpi.c               |    4 +
+> arch/i386/kernel/cpu/cpufreq/powernow-k7.c        |    3 +
+> arch/i386/kernel/cpu/cpufreq/powernow-k8.c        |    3 +
+> arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c |    3 +
+> arch/i386/kernel/cpu/cpufreq/speedstep-ich.c      |   10 ++++
+> arch/i386/kernel/cpu/cpufreq/speedstep-smi.c      |   10 ++++
+> drivers/acpi/processor.c                          |   51
+>++++++++++++++++++++++
+> drivers/acpi/tables/tbconvrt.c                    |   10 +++-
+> include/acpi/actbl.h                              |    2
+> include/acpi/processor.h                          |    2
+> 10 files changed, 96 insertions(+), 2 deletions(-)
+>
+>diff -ruN linux-original/arch/i386/kernel/cpu/cpufreq/acpi.c
+>linux/arch/i386/kernel/cpu/cpufreq/acpi.c
+>--- linux-original/arch/i386/kernel/cpu/cpufreq/acpi.c	2004-06-14
+>21:30:37.137669896 +0200
+>+++ linux/arch/i386/kernel/cpu/cpufreq/acpi.c	2004-06-14
+>23:10:07.929971496 +0200
+>@@ -324,6 +324,9 @@
+> 	}
+> 	policy->governor =3D CPUFREQ_DEFAULT_GOVERNOR;
+>
+>+	/* notify BIOS that we exist */
+>+	acpi_processor_notify_smm();
+>+
+> 	/* The current speed is unknown and not detectable by ACPI...
+*/
+> 	policy->cur =3D acpi_cpufreq_guess_freq(data, policy->cpu);
+>
+>@@ -353,6 +356,7 @@
+> 			(u32)
+data->acpi_data.states[i].transition_latency);
+>
+> 	cpufreq_frequency_table_get_attr(data->freq_table, policy->cpu);
+>+
+> 	return_VALUE(result);
+>
+>  err_freqfree:
+>diff -ruN linux-original/arch/i386/kernel/cpu/cpufreq/powernow-k7.c
+>linux/arch/i386/kernel/cpu/cpufreq/powernow-k7.c
+>--- linux-original/arch/i386/kernel/cpu/cpufreq/powernow-k7.c	2004-06-
+>14 18:20:27.000000000 +0200
+>+++ linux/arch/i386/kernel/cpu/cpufreq/powernow-k7.c	2004-06-14
+>23:13:31.260060624 +0200
+>@@ -393,6 +393,9 @@
+> 	powernow_table[i].frequency =3D CPUFREQ_TABLE_END;
+> 	powernow_table[i].index =3D 0;
+>
+>+	/* As all looks fine by now, notify BIOS that we exist */
+>+	acpi_processor_notify_smm();
+>+
+> 	return 0;
+>
+> err2:
+>diff -ruN linux-original/arch/i386/kernel/cpu/cpufreq/powernow-k8.c
+>linux/arch/i386/kernel/cpu/cpufreq/powernow-k8.c
+>--- linux-original/arch/i386/kernel/cpu/cpufreq/powernow-k8.c	2004-06-
+>14 21:29:18.996549152 +0200
+>+++ linux/arch/i386/kernel/cpu/cpufreq/powernow-k8.c	2004-06-14
+>23:13:14.003683992 +0200
+>@@ -764,6 +764,9 @@
+> 	powernow_table[data->acpi_data.state_count].index =3D 0;
+> 	data->powernow_table =3D powernow_table;
+>
+>+	/* As all looks fine by now, notify BIOS that we exist */
+>+	acpi_processor_notify_smm();
+>+
+> 	/* fill in data */
+> 	data->numps =3D data->acpi_data.state_count;
+> 	print_basics(data);
+>diff -ruN
+linux-original/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c
+>linux/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c
+>--- linux-original/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c
+>	2004-06-14 23:26:56.074710200 +0200
+>+++ linux/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c
+2004-06-14
+>23:11:52.340098744 +0200
+>@@ -371,6 +371,9 @@
+>                 goto err_kfree;
+>         }
+>
+>+	/* notify BIOS that we exist */
+>+	acpi_processor_notify_smm();
+>+
+> 	cur_freq =3D get_cur_freq(0);
+>
+>         for (i=3D0; i<p.state_count; i++) {
+>diff -ruN linux-original/arch/i386/kernel/cpu/cpufreq/speedstep-ich.c
+>linux/arch/i386/kernel/cpu/cpufreq/speedstep-ich.c
+>--- linux-original/arch/i386/kernel/cpu/cpufreq/speedstep-ich.c
+2004-06-
+>14 21:29:19.047541400 +0200
+>+++ linux/arch/i386/kernel/cpu/cpufreq/speedstep-ich.c	2004-06-14
+>23:10:53.856989528 +0200
+>@@ -25,6 +25,11 @@
+> #include <linux/pci.h>
+> #include <linux/slab.h>
+>
+>+#ifdef CONFIG_ACPI_PROCESSOR
+>+#include <linux/acpi.h>
+>+#include <acpi/processor.h>
+>+#endif
+>+
+> #include "speedstep-lib.h"
+>
+>
+>@@ -329,6 +334,11 @@
+> 		return result;
+> 	}
+>
+>+#ifdef CONFIG_ACPI_PROCESSOR
+>+	/* notify BIOS that we exist */
+>+	acpi_processor_notify_smm();
+>+#endif
+>+
+> 	/* get current speed setting */
+> 	speed =3D speedstep_get_processor_frequency(speedstep_processor);
+> 	set_cpus_allowed(current, cpus_allowed);
+>diff -ruN linux-original/arch/i386/kernel/cpu/cpufreq/speedstep-smi.c
+>linux/arch/i386/kernel/cpu/cpufreq/speedstep-smi.c
+>--- linux-original/arch/i386/kernel/cpu/cpufreq/speedstep-smi.c
+2004-06-
+>14 21:29:19.102533040 +0200
+>+++ linux/arch/i386/kernel/cpu/cpufreq/speedstep-smi.c	2004-06-14
+>23:10:14.806926040 +0200
+>@@ -22,6 +22,11 @@
+> #include <linux/delay.h>
+> #include <asm/ist.h>
+>
+>+#ifdef CONFIG_ACPI_PROCESSOR
+>+#include <linux/acpi.h>
+>+#include <acpi/processor.h>
+>+#endif
+>+
+> #include "speedstep-lib.h"
+>
+> #define PFX "speedstep-smi: "
+>@@ -273,6 +278,11 @@
+> 			dprintk(KERN_INFO PFX "workaround worked.\n");
+> 	}
+>
+>+#ifdef CONFIG_ACPI_PROCESSOR
+>+	/* notify BIOS that we exist */
+>+	acpi_processor_notify_smm();
+>+#endif
+>+
+> 	/* get current speed setting */
+> 	state =3D speedstep_get_state();
+> 	speed =3D speedstep_freqs[state].frequency;
+>diff -ruN linux-original/drivers/acpi/processor.c
+>linux/drivers/acpi/processor.c
+>--- linux-original/drivers/acpi/processor.c	2004-06-14
+>18:20:28.000000000 +0200
+>+++ linux/drivers/acpi/processor.c	2004-06-14 23:29:40.773672152
++0200
+>@@ -1072,6 +1072,57 @@
+> }
+>
+>
+>+int acpi_processor_notify_smm(void) {
+>+	acpi_status		status;
+>+	static int		is_done =3D 0;
+>+
+>+	ACPI_FUNCTION_TRACE("acpi_processor_notify_smm");
+>+
+>+	if (!acpi_processor_ppc_is_init)
+>+		return_VALUE(-EBUSY);
+>+
+>+	/* is_done is set to negative if an error occured,
+>+	 * and to postitive if _no_ error occured, but SMM
+>+	 * was already notified. This avoids double notification
+>+	 * which might lead to unexpected results...
+>+	 */
+>+	if (is_done > 0)
+>+		return_VALUE(0);
+>+	else if (is_done < 0)
+>+		return_VALUE(is_done);
+>+
+>+	is_done =3D -EIO;
+>+
+>+	/* Can't write pstate_cnt to smi_cmd if either value is zero */
+>+	if ((!acpi_fadt.smi_cmd) ||
+>+	    (!acpi_fadt.pstate_cnt)) {
+>+		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+>+			"No SMI port or pstate_cnt\n"));
+>+		return_VALUE(0);
+>+	}
+>+
+>+	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Writing pstate_cnt [0x%x] to
+smi_cmd
+>[0x%x]\n", acpi_fadt.pstate_cnt, acpi_fadt.smi_cmd));
+>+
+>+	/* FADT v1 doesn't support pstate_cnt, many BIOS vendors use
+>+	 * it anyway, so we need to support it... */
+>+	if (acpi_fadt_is_v1) {
+>+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Using v1.0 FADT
+reserved value
+>for pstate_cnt\n"));
+>+	}
+>+
+>+	status =3D acpi_os_write_port (acpi_fadt.smi_cmd,
+>+				     (u32) acpi_fadt.pstate_cnt, 8);
+>+	if (ACPI_FAILURE (status)) {
+>+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
+>+				  "Failed to write pstate_cnt [0x%x] to
+"
+>+				  "smi_cmd [0x%x]\n",
+acpi_fadt.pstate_cnt,
+>acpi_fadt.smi_cmd));
+>+	} else
+>+		is_done =3D 1;
+>+
+>+	return_VALUE(0);
+>+}
+>+EXPORT_SYMBOL(acpi_processor_notify_smm);
+>+
+>+
+> #ifdef CONFIG_X86_ACPI_CPUFREQ_PROC_INTF
+> /* /proc/acpi/processor/../performance interface (DEPRECATED) */
+>
+>diff -ruN linux-original/drivers/acpi/tables/tbconvrt.c
+>linux/drivers/acpi/tables/tbconvrt.c
+>--- linux-original/drivers/acpi/tables/tbconvrt.c	2004-06-14
+>18:20:28.000000000 +0200
+>+++ linux/drivers/acpi/tables/tbconvrt.c	2004-06-14
+22:37:57.198487296
+>+0200
+>@@ -50,6 +50,8 @@
+> 	 ACPI_MODULE_NAME    ("tbconvrt")
+>
+>
+>+u8 acpi_fadt_is_v1;
+>+
+>
+>/**********************************************************************
+****
+>*****
+>  *
+>  * FUNCTION:    acpi_tb_get_table_count
+>@@ -212,6 +214,7 @@
+>
+> 	/* ACPI 1.0 FACS */
+> 	/* The BIOS stored FADT should agree with Revision 1.0 */
+>+	acpi_fadt_is_v1 =3D 1;
+>
+> 	/*
+> 	 * Copy the table header and the common part of the tables.
+>@@ -240,9 +243,12 @@
+> 	/*
+> 	 * Processor Performance State Control. This is the value OSPM
+writes
+>to
+> 	 * the SMI_CMD register to assume processor performance state
+control
+>-	 * responsibility. There isn't any equivalence in 1.0, leave it
+>zeroed.
+>+	 * responsibility. There isn't any equivalence in 1.0, but as
+many
+>1.x
+>+	 * ACPI tables contain _PCT and _PSS we also keep this value,
+unless
+>+	 * acpi_strict is set.
+> 	 */
+>-	local_fadt->pstate_cnt =3D 0;
+>+	if (acpi_strict)
+>+		local_fadt->pstate_cnt =3D 0;
+>
+> 	/*
+> 	 * Support for the _CST object and C States change notification.
+>diff -ruN linux-original/include/acpi/actbl.h
+linux/include/acpi/actbl.h
+>--- linux-original/include/acpi/actbl.h	2004-06-14
+18:20:30.000000000
+>+0200
+>+++ linux/include/acpi/actbl.h	2004-06-14 22:37:27.009076784 +0200
+>@@ -343,5 +343,7 @@
+> #include "actbl1.h"   /* Acpi 1.0 table definitions */
+> #include "actbl2.h"   /* Acpi 2.0 table definitions */
+>
+>+extern u8 acpi_fadt_is_v1; /* is set to 1 if FADT is revision 1,
+>+			    * needed for certain workarounds */
+>
+> #endif /* __ACTBL_H__ */
+>diff -ruN linux-original/include/acpi/processor.h
+>linux/include/acpi/processor.h
+>--- linux-original/include/acpi/processor.h	2004-06-14
+>18:20:30.000000000 +0200
+>+++ linux/include/acpi/processor.h	2004-06-14 23:04:16.551389160
++0200
+>@@ -140,4 +140,6 @@
+> 	struct acpi_processor_performance * performance,
+> 	unsigned int cpu);
+>
+>+extern int acpi_processor_notify_smm (void);
+>+
+> #endif
+>
+>
+>-------------------------------------------------------
+>This SF.Net email is sponsored by The 2004 JavaOne(SM) Conference
+>Learn from the experts at JavaOne(SM), Sun's Worldwide Java Developer
+>Conference, June 28 - July 1 at the Moscone Center in San Francisco, CA
+>REGISTER AND SAVE! http://java.sun.com/javaone/sf Priority Code
+NWMGYKND
+>_______________________________________________
+>Acpi-devel mailing list
+>Acpi-devel@lists.sourceforge.net
+>https://lists.sourceforge.net/lists/listinfo/acpi-devel
