@@ -1,14 +1,14 @@
-From: Stefan Behlert <behlert-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: ACPI C4 support
-Date: Tue, 2 Mar 2004 11:17:46 +0100
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: ASUS M6800N: processor has only C1
+Date: Tue, 2 Mar 2004 12:09:46 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040302101746.GS2624@suse.de>
-References: <20040228161011.GA10448@elf.ucw.cz> <20040301152810.GT2869@poupinou.org> <20040301180958.GI2624@suse.de> <20040301194825.GB2869@poupinou.org>
+Message-ID: <20040302110946.GF2869@poupinou.org>
+References: <404459FD.1000406@pca.it>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040301194825.GB2869-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <404459FD.1000406-wlebWZzHoyE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,41 +17,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, trenn-l3A5Bk7waGM@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
+Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Moin,
-
-Thanks for the information. With it I can communicate what's wrong and how
-to fix it. Helps us a lot.
-
-        ciao,
-          Stefan
-
-On Mar 01, 04 20:48:25 +0100, Bruno Ducrot wrote:
-> On Mon, Mar 01, 2004 at 07:09:58PM +0100, Stefan Behlert wrote:
-> > 
-> > Is the '7' the BIOS-developer mentioned the same '7' as mentioned by you?
-> > 
+On Tue, Mar 02, 2004 at 10:55:09AM +0100, Luca Capello wrote:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
 > 
-> No.  Bad documentation.  Change documentation.  Look at acpi spec at
-> http://www.acpi.info/
+> Hello,
 > 
-> You can define only latencies for C2 and C3 via FADT, so if you allow
-> C4 via the p_blk, you *don't* have latency for C4.  You *must* define C4
-> in a _CST object in order to get at least the latency, amongst other
-> informations.
-> 
-> -- 
-> Bruno Ducrot
+> I've some problems with my new ASUS laptop with the latest BIOS 0205A from
+> 	http://fsai.fh-trier.de/~gielj/M6800N/
+> As from the title, when I insert the ACPI 'processor' module, I got this error:
+> =====
+> acpi_processor-2210 [188] acpi_processor_get_inf: Invalid PBLK length [7]
+> ACPI: Processor [CPU1] (supports C1)
+> =====
+
+Perhaps
+http://bugzilla.kernel.org/show_bug.cgi?id=1958
+may help you.
+
+Cheers,
 
 -- 
-Stefan Behlert, SUSE LINUX AG,
-Mobile Devices
- 
-Maxfeldstr. 5, D-90409 Nuernberg, Germany
-Phone +49-(0)911-74053-173
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
