@@ -1,13 +1,15 @@
-From: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH/RFC 1/4]device core changes
-Date: Mon, 8 Nov 2004 20:58:43 -0800
-Message-ID: <20041109045843.GA4849@kroah.com>
-References: <1099887071.1750.243.camel@sli10-desk.sh.intel.com> <20041108225810.GB16197@kroah.com> <1099961418.15294.11.camel@sli10-desk.sh.intel.com> <1099971341.15294.48.camel@sli10-desk.sh.intel.com>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: /sys/firmware/acpi (Re: [PATCH/RFC 4/4]An experimental
+	implementation for IDE bus)
+Date: 09 Nov 2004 00:35:39 -0500
+Message-ID: <1099978538.5519.28.camel@d845pe>
+References: <1099887081.1750.249.camel@sli10-desk.sh.intel.com>
+	 <20041108152450.GB32374@parcelfarce.linux.theplanet.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1099971341.15294.48.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
+In-Reply-To: <20041108152450.GB32374-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,56 +19,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Patrick Mochel <mochel-og82NyAXoxR0I81aPRRTmR2eb7JE58TQ@public.gmane.org>
+To: Matthew Wilcox <matthew-Ztpu424NOJ8@public.gmane.org>
+Cc: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Patrick Mochel <mochel-og82NyAXoxR0I81aPRRTmR2eb7JE58TQ@public.gmane.org>, Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 09, 2004 at 11:35:41AM +0800, Li Shaohua wrote:
-> On Tue, 2004-11-09 at 08:50, Li Shaohua wrote:
-> > On Tue, 2004-11-09 at 06:58, Greg KH wrote:
-> > > On Mon, Nov 08, 2004 at 12:11:11PM +0800, Li Shaohua wrote:
-> > > > Hi,
-> > > > This is the device core change required. Add .platform_bind method for
-> > > > bus_type, so platform can do addition things when add a new device. A
-> > > > case is ACPI, we want to utilize some ACPI methods for physical devices.
-> > > > 1. Why doesn't use 'platform_notify'?
-> > > > Current device core has a 'platform_notify' mechanism, but it's not
-> > > > sufficient for this. Only sepcific bus type know how to parse dev.bus_id
-> > > > and know how to encode specific device's address into ACPI _ADR syntax.
-> > > 
-> > > I don't see why platform_notify is not sufficient.  This is the exact
-> > > reason it was added to the code.
-> > As I said in the email, we need know the bus type to decode and encode
-> > address. If you use platform_notify, you must do something like this:
-> > switch (dev->bus)
-> > {
-> > case pci_bus_type:
-> > bind PCI devices with ACPI devices
-> > break;
-> > case ide_bus_type:
-> > bind IDE devices with ACPI devices
-> > break;
-> > ....
-> > }
-> > But note this method requires all bus types are build-in. If a bus type
-> > is in a loadable module (such as IDE bus), the method will failed. I
-> > searched current tree, only ARM implemented 'platform_notify', but ARM
-> > only cares PCI bus, ACPI cares about all bus types.
-> > > 
-> Oops, it's my bad. we can identify the bus type from bus_type->name, but
-> it looks like a little ugly. Why the bus_type hasn't a flag to identify
-> which bus it is?
+On Mon, 2004-11-08 at 10:24, Matthew Wilcox wrote:
+> ... Are we ever going to do anything
+> with /sys/firmware/acpi/namespace/ or will it just stay around
+> consuming inodes and dentries for no good reason?
 
-Because if you have a struct bus * you _have_ to know what type it is.
+When I suggested deleting /sys/firmware/acpi, Patrick replied that his
+intention was that real devices would have symbolic links into that
+tree.
 
-> Anyway, thanks Greg. I will add as you said.
+I think this is not the best way to go.  Two simple reasons come to
+mind:
 
-Hm, hopefully Pat will chime in about what would be best for this, as he
-created the platform_notify interface.
+The ACPI device hierarchy reflects the actual layout of the system
+devices better than the current /sys/devices/ tree, linking into it from
+/sys/devices doesn't fix /sys/devices.  Instead we need to consult ACPI
+during the actual construction of /sys/devices/.
 
-thanks,
+While the layout reflects reality, the device names in
+/sys/firmware/acpi are arbitrary internal BIOS names, and so there will
+never be any consistency between systems such that a human or a program
+could have an easy time navigating the tree structure.
 
-greg k-h
+The argument in favor of exposing the tree has been for things like Alex
+Williamson's patch to invoke ACPI methods by reading /sysfs.  But this
+is a really neat solution looking for a problem.  if and when such a
+problem is found, the same technique can always be made available under
+the real /sys/devices tree.
+
+-Len
+
+
 
 
 -------------------------------------------------------
