@@ -1,14 +1,14 @@
-From: Arjan van de Ven <arjanv-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: Paul Menage <menage-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
 Subject: Re: ACPI global lock macros
-Date: Tue, 09 Dec 2003 10:36:13 +0100
+Date: Tue, 09 Dec 2003 01:42:34 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1070962573.5223.2.camel@laptop.fenrus.com>
-References: <3FD59441.2000202@google.com>
-Reply-To: arjanv-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Message-ID: <3FD5990A.9020908@google.com>
+References: <3FD59441.2000202@google.com> <1070962573.5223.2.camel@laptop.fenrus.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-5mPuSqYGK/AtJOUNx7a3"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3FD59441.2000202-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1070962573.5223.2.camel-PDvaWZGbcxi0rsOeZxrteAC/G2K4zDHf@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,37 +17,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Paul Menage <menage-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+To: arjanv-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Arjan van de Ven wrote:
+> 
+> maybe the odd thing is that it exists at all?
+> (eg why does ACPI need to have it's own locking primitives...)
 
---=-5mPuSqYGK/AtJOUNx7a3
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Because the ACPI spec defines its own locking protocol for 
+synchronization between the OS and the BIOS.
 
-On Tue, 2003-12-09 at 10:22, Paul Menage wrote:
-> Hi Andy,
->=20
-> The ACPI_ACQUIRE_GLOBAL_LOCK() macro in include/asm-i386/acpi.h looks a=20
-> little odd:
+Paul
 
-maybe the odd thing is that it exists at all?
-(eg why does ACPI need to have it's own locking primitives...)
-
---=-5mPuSqYGK/AtJOUNx7a3
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-
-iD8DBQA/1ZeMxULwo51rQBIRAp66AKCfETUoMHAFHUqrURd40Vr/Rr58VgCeJvkp
-goeDjc/qFd+iX3VLVRwGuQc=
-=dGep
------END PGP SIGNATURE-----
-
---=-5mPuSqYGK/AtJOUNx7a3--
 
 
 -------------------------------------------------------
