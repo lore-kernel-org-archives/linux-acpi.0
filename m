@@ -1,14 +1,14 @@
-From: "Cagle, John (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>
-Subject: RE: redhat comment about intel not taking patches?
-Date: Wed, 12 Feb 2003 22:11:26 -0600
+From: Jens Haug <haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org>
+Subject: Re: System hang when trying to enter sleep/standby state
+Date: Thu, 13 Feb 2003 07:59:07 +0100 (MET)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <C50AB9511EE59B49B2A503CB7AE1ABD10440E3DB@cceexc19.americas.cpqcorp.net>
+Message-ID: <200302130659.h1D6x7D22714@ikffws2.ikff.uni-stuttgart.de>
+Reply-To: Jens Haug <haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-MD5: yFMvS/UpVItkI7/U3OfMtA==
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,87 +17,45 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Darren Benham <dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: mochel-3NddpPZAyC0@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Can you be more specific in your comments regarding Compaq hardware?  We
-test our ProLiant servers with Linux and ACPI, and our BIOS is designed
-for many different operating systems, including Linux, Unix and NetWare.
-On the other hand, it is unreasonable to expect that our laptop and
-desktop divisions test with Linux ACPI for two big reasons: first, the
-Linux OS has a very small share of those markets, and second, Red Hat's
-releases don't even have ACPI support.
+> I would recommend never, ever doing 'echo 5 > /proc/acpi/sleep',=20
+> especially if you're trying to suspend the system.=20
 
-Thanks,
-John
---------------------------------
-John Cagle     john.cagle-VXdhtT5mjnY@public.gmane.org
-Principal Member Technical Staff
-   Industry Standard Servers
-    Hewlett-Packard Company
-    http://www.hp.com/linux
-       jcagle-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+It's not worse than pushing the power button on a normal system
+(or hold the power button on an ACPI system).
 
-> -----Original Message-----
-> From: Darren Benham [mailto:dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org]=20
-> Sent: Wednesday, February 12, 2003 8:55 PM
-> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Subject: RE: [ACPI] redhat comment about intel not taking patches?
->=20
->=20
-> Is ACPI going to be able to go mainstream in any of the major=20
-> releases w/o making some effort to work in non-standard BIOS=20
-> (read, the BIOSes written directly for Windows)?  Is it ever=20
-> likely that pressure would work against those Bios=20
-> manufacturers that dont' follow spec?  I mean, Compaq is on=20
-> the list of partners for ACPI and their DSDT's are crap, with=20
-> asterisks in names and functions returning values that=20
-> shouldn't, etc. Grover, Andrew said:
-> >> From: Kevin Fenzi [mailto:kevin-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org]
-> >> RedHat is playing with enabling ACPI in their next=20
-> release. (At least=20
-> >> in the beta for the next release: phoebe).
-> >>
-> >> Noticed this changelog comment in the phoebe kernel:
-> >>
-> >> * Thu Nov 07 2002 Arjan van de Ven <arjanv-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> >> - - remove ACPI again because Intel is unwilling to take patches
-> >>
-> >> What patches are they talking about?
-> >>
-> >> Is there any way we could fix up the communication=20
-> breakdown between=20
-> >> RedHat/Intel?
-> >>
-> >> It would be great if ACPI would work out of the box on my=20
-> laptop with=20
-> >> a RedHat kernel. At a minimum I guess it would require acpi to be=20
-> >> able to detect the compaq *PNP stuff and remove the * so the table=20
-> >> works.
-> >
-> > I have been in contact with a number of distributions concerning=20
-> > inclusion of ACPI support. I think the new licensing and=20
-> some recent=20
-> > source improvements helped a lot to make people feel better about=20
-> > ACPI, but there still are a number of critical bugs that=20
-> are affecting=20
-> > a significant percentage of systems. These need to be fixed. These=20
-> > have to do with *any* ACPI-related oopses, failure to boot=20
-> using ACPI,=20
-> > and failure to shutdown cleanly.
-> >
-> > ACPI is not going to be in the next RH release but we are really=20
-> > pushing to get it in subsequent releases, but we need to fix those=20
-> > critical bugs.
-> >
-> > Regards -- Andy
-> >
-> >
->=20
->=20
-> --=20
-> Darren
+> ACPI should not allow a user to write '5' to that file. It used to be tha=
+t=20
+> way, but someone clever decided that that interface should support _all_=
+=20
+> sleep states. (It might have been me, in one of my finer moments).=20
+
+The regular user can't write anything to that file - this must be
+root. He's supposed to know what he's doing. If he wants to turn the
+machine off without halting the system, then that's his choice. Think
+of something like an embedded system to control a machine. Many=20
+machines have an emergency off whith a huge red button. This is the
+software version of this red button. Your software can press this
+if you thing that's necessary.
+
+> Andy, I recommend removing that from 2.4, and I'll send you a patch for=
+=20
+> 2.5..
+
+I'd like to have it in. I don't know what I could ever use it for,
+but I'd really prefer to have this possibility.
+
+
+Jens
+
+--=20
+Jens Haug
+IKFF Universit=E4t Stuttgart              Tel. 0711/685-6422
+Pfaffenwaldring 9                       Fax  0711/685-6356
+70550 Stuttgart=09                haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org
+
 
 
 -------------------------------------------------------
