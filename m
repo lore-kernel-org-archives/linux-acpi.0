@@ -1,13 +1,14 @@
-From: Martin Loschwitz <madkiss-R0iKqZn4BxJAfugRpC6u6w@public.gmane.org>
-Subject: ACPI related problems with Linux 2.6.1-rc1-mm1
-Date: Thu, 1 Jan 2004 23:09:33 +0100
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Problems with 600m PM states
+Date: Fri, 2 Jan 2004 15:07:34 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040101220933.GB1804@minerva.local.lan>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C6D@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ZoaI/ZTpAVc4A5k6"
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,55 +17,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Michael A. Smith" <mas3f-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+>I have been unable to get any type of sleep to work
+> with this laptop and the 2.6.0 vanilla kernel.
 
---ZoaI/ZTpAVc4A5k6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+the machine type ?
 
-Hello again,
+>Let's start with S1 and work up from there.
 
-I'm writing this mail as I'm discovering ACPI related problems on my Acer=
-=20
-TravelMate 800LCi notebook with Linux 2.6.1-rc1-mm1.
+Good !
 
-While the system boots up fine with Linux 2.6.1-rc1, with 2.6.1-rc1-mm1 it
-hangs while booting. The last message printed to screen is "ACPI: IRQ 9=20
-was Edge Triggered, setting to Level Triggerd". This is fully reproducable=
-=20
-with a Linux 2.6.0 kernel which has the ACPI20031203 patch applied.
+> echo 1 > /proc/acpi/sleep
+>...and it appears to be in standby. =20
+>The power led goes from solid on to
+>a blink.  Now, if I hit the power button to attempt resume, I get ...
+> Back to C!
+> PM: Finishing up.
+>... and that's it.  The power led is back on solid, but the system is
+>non-responsive.
 
-Just for the records, with 2.6.1-rc1, the message that comes right after
-the "ACPI: IRQ 9 ..." message is:
+Maybe patches filed at
+http://bugzilla.kernel.org/show_bug.cgi?id=3D1557   and
+http://bugzilla.kernel.org/show_bug.cgi?id=3D1588
+can help you.=20
 
-evxfevnt-0093 [04] acpi_enable           : Transition to ACPI mode successf=
-ul
 
-Is this a known problem and if so is a fix available?
-
---=20
-  .''`.   Martin Loschwitz           Debian GNU/Linux developer
- : :'  :  madkiss-R0iKqZn4BxJAfugRpC6u6w@public.gmane.org        madkiss@debian.org
- `. `'`   http://www.madkiss.org/    people.debian.org/~madkiss/
-   `-     Use Debian GNU/Linux 3.0!  See http://www.debian.org/
-
---ZoaI/ZTpAVc4A5k6
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/9JqdHPo+jNcUXjARAsbrAJ9y2a1ajnvgbyvK6lHpYnODeY95XACgoXkd
-A1Tz2rnfBVd2n1VW1Ps2vJc=
-=xvt9
------END PGP SIGNATURE-----
-
---ZoaI/ZTpAVc4A5k6--
+--Luming
 
 
 -------------------------------------------------------
