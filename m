@@ -1,14 +1,14 @@
-From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+From: Jens Haug <haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org>
 Subject: Re: Invalid PBLK length
-Date: Wed, 18 Dec 2002 15:29:06 +0000
+Date: Wed, 18 Dec 2002 16:36:36 +0100 (MET)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021218152906.J9994@parcelfarce.linux.theplanet.co.uk>
-References: <4e353e0091944930a0$NiftyInterway@nifty.ne.jp>
+Message-ID: <200212181536.gBIFabD09402@ikffws2.ikff.uni-stuttgart.de>
+Reply-To: Jens Haug <haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4e353e0091944930a0$NiftyInterway-fFkzxiWP14B3+QwDJ9on6Q@public.gmane.org>; from aileenja-dTzOdQ2U+/YAvxtiuMwx3w@public.gmane.org on Thu, Dec 19, 2002 at 12:17:40AM +0900
+Content-MD5: CVjNqds1nb/jb8/rLrLYCw==
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,39 +17,56 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Adachi, Kenichi" <aileenja-dTzOdQ2U+/YAvxtiuMwx3w@public.gmane.org>
-Cc: willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org, haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Dec 19, 2002 at 12:17:40AM +0900, Adachi, Kenichi wrote:
-> I didn't check code, but if that said address space type 127 does mean "Functi
-> onal Fixed Hardware (0x7F)", then your processor expects that OS processor dri
-> ver knows the specific address to control voltage scaling state transition. Us
-> ually it's done by accessing MSRs. This has been true for AMD PowerNow! and Tr
-> ansmeta LongRun, and Intel's new Geyserville I/F which will be unveiled on Ban
-> ias in the near future. These are mostly under NDA, therefore I can't be speci
-> fic, however there're several public documents which explain this stuff a bit 
-> more.
+> > Ok, I can see in the code (processor.c) that in the function
+> > acpi_processor_get_inf the value of object.processor.pblk_lenght
+> > is checked, and in case it's smaller than 6 this error is thrown.
+> > If it's 6 or greater, then addresses for C2 and C3 are assigned.
+> > But why can't PBLK be 5 and only C2 be used? Couldn't we just=20
+> > disable C3 and still assign the address for C2 as pblk_address+4?
+> > I think it was done that way in prpower.c Revision 32. That gave
+> > me a working C2. =20
+>=20
+> Well, specs issue?
 
-you're right.  Andy, could we add something like this?
+Yes, I see. I hadn't found that, but Matthew pointed me to the
+right chapter of the specs.
 
-diff -u -p -r1.6 actypes.h
---- drivers/acpi/include/actypes.h      10 Dec 2002 22:02:09 -0000      1.6
-+++ drivers/acpi/include/actypes.h      18 Dec 2002 15:28:47 -0000
-@@ -579,6 +579,7 @@ typedef u8                              
- #define ACPI_ADR_SPACE_CMOS             (ACPI_ADR_SPACE_TYPE) 5
- #define ACPI_ADR_SPACE_PCI_BAR_TARGET   (ACPI_ADR_SPACE_TYPE) 6
- #define ACPI_ADR_SPACE_DATA_TABLE       (ACPI_ADR_SPACE_TYPE) 7
-+#define ACPI_ADR_SPACE_FIXED_HARDWARE  (ACPI_ADR_SPACE_TYPE) 127
- 
- 
- /*
+> > BTW, how can I make my FADT human readable? It isn't shown by=20
+> > acpidmp, and I'd like to be able to check some values myself.
+>=20
+> ./acpidmp FACS | ./acpitbl
+>=20
+> Note that it is FACS (the signature of the table), not FADT (I don't know
+> why the sig. and the name of this table are not the same).
+
+But this FACS doesn't give me much information (since it's only
+the signature, I guess).
+It sais:
+
+Signature:=09=09FACS
+Length:=09=09=0964
+Hardware Signature:=090x00000000
+Firmware Waking Vector: 0x00000000
+Global Lock:=09=090x00000000
+Flags:=09=09=090x00000000
+
+I'm curious what I'll find in the FADT. I mean, 5 clearly is=20
+neither 0 nor 6, so there might be some other really heavy bugs.
+I'll get me the=20
 
 
--- 
-"It's not Hollywood.  War is real, war is primarily not about defeat or
-victory, it is about death.  I've seen thousands and thousands of dead bodies.
-Do you think I want to have an academic debate on this subject?" -- Robert Fisk
+Jens
+
+--=20
+Jens Haug
+IKFF Universit=E4t Stuttgart              Tel. 0711/685-6422
+Pfaffenwaldring 9                       Fax  0711/685-6356
+70550 Stuttgart=09                haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org
+
 
 
 -------------------------------------------------------
