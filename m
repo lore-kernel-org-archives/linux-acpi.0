@@ -1,55 +1,46 @@
-From: David Mansfield <lkml-cnRKH8LNr2xl57MIdRCFDg@public.gmane.org>
-Subject: Re: ACPI kernel panic at boot on 2.6.0-test5-mm1
-Date: Thu, 11 Sep 2003 11:02:41 -0400 (EDT)
+From: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
+Subject: Re: [2.6.0-test5-mm1] Suspend to RAM problems
+Date: Thu, 11 Sep 2003 08:54:31 -0700 (PDT)
 Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0309111101580.1410-100000@sol.cobite.com>
-References: <p734qzlkcn3.fsf@oldwotan.suse.de>
+Message-ID: <Pine.LNX.4.33.0309110852020.984-100000@localhost.localdomain>
+References: <20030911124530.GA7695@rootdir.de>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <p734qzlkcn3.fsf-G4cFiJVhTpkYitT5tn2FcQ@public.gmane.org>
-To: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org
+In-Reply-To: <20030911124530.GA7695-YJlxJerscEeELgA04lAiVw@public.gmane.org>
+To: Claas Langbehn <claas-YJlxJerscEeELgA04lAiVw@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew de Quincey <adq-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> David Mansfield <lkml-cnRKH8LNr2xl57MIdRCFDg@public.gmane.org> writes:
-> 
-> > at acpi_pci_link_calc_penalties
-> 
-> Try this (untested) patch
 
-Sorry for the delay.  This patch fixes my problems.  I can now boot 
-without any command line options.
+> [...]
+>   CC      drivers/acpi/sleep/proc.o
+>   drivers/acpi/sleep/proc.c: In function `acpi_system_write_sleep':
+>   drivers/acpi/sleep/proc.c:72: error: void value not ignored as it
+>   ought to be
+>   make[3]: *** [drivers/acpi/sleep/proc.o] Error 1
+>   make[2]: *** [drivers/acpi/sleep] Error 2
+>   make[1]: *** [drivers/acpi] Error 2
+>   make: *** [drivers] Error 2
+> 
+> 
+> Is there an incremental patch from -pm1 to -pm2?
+> I would apply it to -test5-mm1 then
 
-David
+Patch below. Sorry about that.
 
 
-> 
-> (2.6 version untested, I tested a similar patch on the 2.4 backport of
-> ACPI):
-> 
-> --- linux-2.6.0test5-work/arch/i386/pci/acpi.c-o	2003-08-23 13:03:09.000000000 +0200
-> +++ linux-2.6.0test5-work/arch/i386/pci/acpi.c	2003-09-09 21:01:49.000000000 +0200
-> @@ -15,10 +15,11 @@
->  
->  static int __init pci_acpi_init(void)
->  {
-> +	extern int acpi_disabled;
->  	if (pcibios_scanned)
->  		return 0;
->  
-> -	if (!(pci_probe & PCI_NO_ACPI_ROUTING)) {
-> +	if (!(pci_probe & PCI_NO_ACPI_ROUTING) && !acpi_disabled) {
->  		if (!acpi_pci_irq_init()) {
->  			printk(KERN_INFO "PCI: Using ACPI for IRQ routing\n");
->  			printk(KERN_INFO "PCI: if you experience problems, try using option 'pci=noacpi' or even 'acpi=off'\n");
-> 
-> 
-> -Andi
-> 
+	Pat
 
--- 
-/==============================\
-| David Mansfield              |
-| lkml-cnRKH8LNr2xl57MIdRCFDg@public.gmane.org           |
-\==============================/
+diff -Nru a/drivers/acpi/sleep/proc.c b/drivers/acpi/sleep/proc.c
+--- a/drivers/acpi/sleep/proc.c	Thu Sep 11 08:54:01 2003
++++ b/drivers/acpi/sleep/proc.c	Thu Sep 11 08:54:01 2003
+@@ -69,7 +69,7 @@
+ 	state = simple_strtoul(str, NULL, 0);
+ #ifdef CONFIG_SOFTWARE_SUSPEND
+ 	if (state == 4) {
+-		error = software_suspend();
++		software_suspend();
+ 		goto Done;
+ 	}
+ #endif
