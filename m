@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Acer Travermate 8005 and battery info
-Date: Thu, 7 Oct 2004 11:21:35 +0200
+Subject: Re: smartbattery support
+Date: Thu, 7 Oct 2004 11:41:10 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041007092135.GA983@elf.ucw.cz>
-References: <415C270F.5050306@lanil.mine.nu> <20041001102926.GD18786@elf.ucw.cz> <415D8CCF.8050602@lanil.mine.nu> <20041001194739.GE1100@openzaurus.ucw.cz> <41603BA0.9090900@lanil.mine.nu> <20041003203457.GD3379@elf.ucw.cz> <41617104.2040302@mega.ist.utl.pt> <20041005143951.GB4723@openzaurus.ucw.cz> <4162C0D1.20906@mega.ist.utl.pt>
+Message-ID: <20041007094109.GA534@openzaurus.ucw.cz>
+References: <41630B6D.2000107@mega.ist.utl.pt>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4162C0D1.20906-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
+In-Reply-To: <41630B6D.2000107-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -23,30 +23,26 @@ List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> >I believe that smbus is subset of i2c... So first step would be
-> >"make it talk with smart battery over i2c".
-> >
-> >Anyway I may be wrong. You'll know for sure when the patch starts
-> >working :-).
+> i decided to change the subject so that the thread could more easily 
+> be followed by others.
 > 
-> sometime in the not-so-near future :-)
-> 
-> i'll start studying i2c to find out the smbus "address" (sorry if this 
-> is a dumb mistake) and try to scan it for the smart battery.
-> 
-> can it be done in userspace? or do i need to start coding in the kernel 
-> right away?
+> i read some things also, but i disagree with christian. i think that 
+> smbus patch is not the way to go. don't get me wrong! i'm also just 
+> scratching the surface. for what i read, those patches put smbus bios 
+> support into the kernel.
 
-No idea, perhaps i2c has some "debug-call-me-from-userspace" hooks.
+Agreed, we do not want to touch BIOS.
 
-> p.s.: do you mind if i reply to you and CC to the list or the reply in 
-> the list es enough?
+> 2. what exactly should the i2c driver do? should it just know the 
+> smartbattery address and ask generic questions made by userland 
+> programs? or should it do all the work and retrive charge rates and 
+> capacity information and such?
 
-Cc me, that gives you faster reply.
-								Pavel
+I believe doing all the work is right.
+
 -- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+
 
 
 -------------------------------------------------------
