@@ -1,13 +1,15 @@
-From: Romano Giannetti <romanol-qvIf60buks8@public.gmane.org>
-Subject: Re: Re: [BKPATCH] ACPI for 2.6.12-rc1
-Date: Thu, 31 Mar 2005 16:59:33 +0200
-Message-ID: <20050331145933.GB21883@pern.dea.icai.upco.es>
-References: <1111127024.9332.157.camel@d845pe> <20050319215239.GA5105@rukbat.dea.icai.upco.es> <20050329081321.GA4133@pern.dea.icai.upco.es> <200503301409.00785.luming.yu@intel.com>
+From: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
+Subject: Re: Suspend-to-RAM on ThinkPad R51
+Date: Thu, 31 Mar 2005 10:44:34 -0500
+Message-ID: <200503311044.35221.barr.156@osu.edu>
+References: <200503261534.44710.barr.156@osu.edu> <200503301136.59046.barr.156@osu.edu> <20050330202416.GA1347@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20050330202416.GA1347-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200503301409.00785.luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,81 +19,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Mar 30, 2005 at 02:09:00PM +0800, Yu, Luming wrote:
-> On Tuesday 29 March 2005 16:13, Romano Giannetti wrote:
-> >  This is to report an issue with 2.6.11 and ACPI battery/ac. The resume is:
-> >  acpi battery with preemptive kernel do not work, while the same kernel
-> > with no preempt works ok. I have tried to collect all the possible info;
-> > tell me if you need something more.
-> >
-> >  The details:
-> >
-> >  The working kernel is 2.6.11 with the patch from the acpi-devel list to
-> > fix acpi keys (not working otherwise). See for a description
-> >  http://bugme.osdl.org/show_bug.cgi?id=4124
-> 
-> If you can find AE_AML_BUFFER_LIMIT in your long, then, it should be 
-> interpreter bug.  please see http://bugzilla.kernel.org/show_bug.cgi?id=4150
-> Otherwise, maybe it is related to EC driver.
+On Wednesday 30 March 2005 03:24 pm, Pavel Machek wrote:
+> Well, non-working video is common problem after suspend-to-ram, see
+> Documentation/power/video.txt.
 
-I am not sure if I understood. If I do 
+I have confirmed that input is not a problem. I can sleep and resume and then 
+ssh into my laptop and do a 'cat /dev/input/mice'. Moving my finger on the 
+touchpad generates output. Same for typing on the keyboard and doing a 
+'cat /dev/input/event0'.
 
-(0)% grep AE_AML_BUFFER_LIMIT dmesg.txt 
-(1)%
+Now the question is: if my display wakes up--i.e. the backlight comes on and 
+the contents on the screen right before suspend are displayed--do I have a 
+video problem that I should be pursuing as such? Many of the ACPI video 
+sleeping bugs on bugme.osdl.org have a completely dead display--i.e. no 
+backlight.
 
-I have nothing like that in syslog, either, so it should be another thing. 
-Hmmm... I have "scheduling in atomic" errors, when resuming with preemptive
-kernel, so maybe it's related with
-http://sourceforge.net/mailarchive/message.php?msg_id=11129317
-
-The errors are: 
-
-scheduling while atomic: really_suspend/0x00000001/4624
- [<c0396007>] schedule+0x467/0x520
- [<c0121035>] __mod_timer+0x1c5/0x1f0
- [<c0396acd>] schedule_timeout+0x5d/0xb0
- [<c0121ac0>] process_timeout+0x0/0x10
- [<c0121eaf>] msleep+0x2f/0x40
- [<c024b080>] pci_set_power_state+0x190/0x1d0
- [<c024b1c8>] pci_enable_device_bars+0x18/0x40
- [<c024b20f>] pci_enable_device+0x1f/0x40
- [<d0ccf64c>] snd_via82xx_resume+0x1c/0x170 [snd_via82xx]
- [<c024b199>] pci_restore_state+0x39/0x50
- [<d0cacc79>] snd_card_pci_resume+0x49/0x76 [snd]
- [<c024d36c>] pci_device_resume+0x2c/0x40
- [<c02c79a8>] dpm_resume+0xa8/0xb0
- [<c02c79c1>] device_resume+0x11/0x20
- [<c0135268>] finish+0x8/0x40
- [<c01353c5>] pm_suspend_disk+0x75/0xc0
- [<c0133786>] enter_state+0x86/0x90
- [<c013379f>] software_suspend+0xf/0x20
- [<c0289d9a>] acpi_system_write_sleep+0x6a/0x84
- [<c015835c>] vfs_write+0x14c/0x160
- [<c0158441>] sys_write+0x51/0x80
- [<c01032b9>] sysenter_past_esp+0x52/0x75
-
-...and more, you can find them all in
-http://www.dea.icai.upco.es/romano/linux/br/acpi-preempt.txt
-
-Could this be related to the fact that in 2.6.12-rc1 software suspend
-stopped to work? Maybe some bad interaction between acpi code and swsusp? 
-
-Moreover, if you can, can you point me to some documentation on how to use
-"debug_level" and "debug_layer" to help debugging? 
-
-Thanks! 
-
-        Romano 
-
-
-
--- 
-Romano Giannetti             -  Univ. Pontificia Comillas (Madrid, Spain)
-Electronic Engineer - phone +34 915 422 800 ext 2416  fax +34 915 596 569
+Andrew
 
 
 -------------------------------------------------------
