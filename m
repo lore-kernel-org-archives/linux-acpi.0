@@ -1,13 +1,13 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Re: ACPI on Dell Latitude C600
-Date: Wed, 21 Jan 2004 09:46:21 -0800 (PST)
+From: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
+Subject: Re: PROBLEM: ACPI freezes 2.6.1 on boot
+Date: Wed, 21 Jan 2004 10:56:59 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040121094450.Y3009@root.org>
-References: <003e01c3e040$ab873700$03f101a3@physics.ox.ac.uk>
+Message-ID: <Pine.LNX.4.58.0401211051530.2123@home.osdl.org>
+References: <m3isj5a73u.fsf@reason.gnu-hamburg>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <003e01c3e040$ab873700$03f101a3-JAjqph6Yjy8XSZKaUYBEcQ@public.gmane.org>
+In-Reply-To: <m3isj5a73u.fsf-glUV91rXKAHWIjgkaejU9x2eb7JE58TQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,27 +16,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Tim Stadelmann <t.stadelmann1-JAjqph6Yjy8XSZKaUYBEcQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>
+Cc: Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Martin Loschwitz <madkiss-R0iKqZn4BxJAfugRpC6u6w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 21 Jan 2004, Tim Stadelmann wrote:
-> With a minimal amount of kernel driver modules loaded, both S1 and S3 almost
-> work, with one interesting problem:
->
-> The computer displays messages indicating it is going into the appropriate
-> sleep state, then switches off most peripherals *except* for the screen and
-> backlight.  Pressing the power button causes it to resume, but now the
-> screen is switched *off* during this process.  Changing the virtual console
-> to the one used for X11 causes the X server to switch the screen back on and
-> the computer appears to be working properly afterwards.
 
-You've probably got an inverted value in your AML for the _PTS, _GTS
-methods or some other device method (_S1D).  So nothing happens on
-suspending and then waking (_WAK), you pass a 0 and it turns off the
-display.
 
--Nate
+On Wed, 21 Jan 2004, Georg C. F. Greve wrote:
+> 
+> I'm now seeing the _exact same problem_ on an ASUS M2400N [*] with a
+> Linux 2.6.1 (unpatched) kernel. The kernel freezes after printing 
+> 
+>  "ACPI: IRQ 9 was Edge Triggered, setting to Level Triggerd" 
+
+Does it go away if you just make "acpi_pic_set_level_irq()" do nothing (ie 
+just remove the "outb()" call
+
+	arch/i386/kernel/acpi/boot.c line 273
+
+or just make the if-statement be always false).
+
+It's entirely possible that the SCI is just horribly broken, and can't be 
+level-triggered.
+
+Btw, usually a good idea to at least cc the developer list for the 
+particular subsystem. In this case <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>. 
+Many people don't have the time to follow linux-kernel.
+
+		Linus
 
 
 -------------------------------------------------------
