@@ -1,14 +1,14 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: wake event?
-Date: Fri, 12 Dec 2003 11:01:13 +0800
+From: Brian Perkins <bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org>
+Subject: Re: wake event?
+Date: Thu, 11 Dec 2003 22:26:59 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C24@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3FD93583.1000307@netspace.org>
+References: <3ACA40606221794F80A5670F0AF15F8401720C24@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401720C24-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,23 +17,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Brian Perkins <bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->I've started playing around with the acpid socket for writing power
->management clients.
+Yu, Luming wrote:
+> Could you please give me some detail about your power management client?
+> 
 
-Could you please give me some detail about your power management client?
+Well, one is good old (bad old) battstat, which has been recently 
+patched to use the acpid unix socket to receive battery and AC events, 
+instead of polling once per second.  This is a pretty big win on my 
+machine, and an even bigger win on other machines.
 
->One deficiency that I've noticed is that events don't arrive while the=20
->machine is sleeping (not too surprising). =20
+I also wrote a simple perl script to manage cpufreq transitions based on 
+AC status, mostly for fun.
 
-Is it a reasonable requirement?  when sleeping, only wake up event =
-should
-be noticed.  If wake up event can not wake up machine, we need fix it!
+If the laptop is unplugged while sleeping, the battstat applet is 
+incorrect on waking, and my cpufreq daemon doesn't go to low power mode.
 
---Luming
+I can't think of a way of dealing with this, other than polling, which 
+is dumb and bad.
 
+I suppose this could be considered a userspace problem, but the current 
+design seems to make this a little complicated, since acpid doesn't 
+really know what its actions do.
 
 
 -------------------------------------------------------
