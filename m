@@ -1,8 +1,8 @@
 From: Paul Ionescu <i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Subject: Re: ibm-acpi-0.1
-Date: Tue, 10 Aug 2004 14:37:32 +0300
+Date: Tue, 10 Aug 2004 14:49:40 +0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <pan.2004.08.10.11.37.29.407984@yahoo.com>
+Message-ID: <pan.2004.08.10.11.49.38.39080@yahoo.com>
 References: <20040810080826.GD28939@aero.ensim.com> <pan.2004.08.10.10.18.05.651578@yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -19,54 +19,26 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Boris,
+Boris,
 
-Some more feedback from my T41.
-First, the environment:
-Fedora Core 2, Kernel 2.6.8-rc2 vanilla with acpica-20040715 patch.
-This is the first version of kernel and acpi that does s3 suspend to ram
-reliably on my T41. If you want my dsdt, just tell me and I will send you
-privately, because PAN is not able to attach anything to news posts.
-(maybe is not even possible).
+First, I want to apologize if this is a little bit off-topic for this
+list, but I think that maybe this could be interesting for the others too.
 
-now:
-cd /proc/acpi/ibm
-cat fan 
-current:        -1 -1 -1
-preset1:        3000 3720 4410
-preset2:        3120 3520 3800
-preset3:        3120 3520 3800
-commands:       <low> <medium> <high>, preset1, preset2, preset3
+ I saw that you use idectl for enabling the cdrom on the docking
+station. I also use idectl to enable my cdrom or secondary hard-disk in
+the UltraBay slim, but I have the following problems: DMA is not working
+any more for hdc after "idectl 1 rescan" After some rescan cycles I will
+have a lot of ide1 in /proc/ide/
 
-and i found this in dmesg:
-ibm_acpi: acpi_invokef(FAN9, d, ...) failed
-ibm_acpi: acpi_invokef(FANB, d, ...) failed
-ibm_acpi: acpi_invokef(FAND, d, ...) failed
-ibm_acpi: acpi_invokef(FAN9, d, ...) failed
-ibm_acpi: acpi_invokef(FANB, d, ...) failed
-ibm_acpi: acpi_invokef(FAND, d, ...) failed
+See http://bugme.osdl.org/show_bug.cgi?id=2261
 
-if I echo preset1 > fan, I got this in dmesg:
-
-ibm_acpi: acpi_invokef(FANS, vddd, ...) failed
-ibm_acpi: FANS(3000, 3720, 4410) failed
-
-As for docking, I don't have the dock right now, but I'll test it some
-other time.
-
-The hotkey is the only thing working right now, but not completely.
-Like I said before, the Fn+F5 should enable/disable the wlan AND the
-bluetooth, but with this acpi driver, the bluetooth is not enabled any
-more.
-The bluetooth is an internal USB device, which gets connected and
-disconnected from the USB bus when pressing Fn+F5:
-
-usb 3-1: new full speed USB device using address 4
-Bluetooth: HCI USB driver ver 2.6
-usbcore: registered new driver hci_usb
+Do you have the same problems ?
 
 
 
+On Tue, 10 Aug 2004 13:18:09 +0300, Paul Ionescu wrote:
+
+> Hi Boris,
 > 
 > On a T41 it inserts in the kernel only if I replace _SB.GDCK with
 > _SB.PCI0.PCI1.DOCK.
