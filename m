@@ -1,7 +1,7 @@
 From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 10/12] acpi_power_off bug fix
-Date: Wed, 23 Feb 2005 01:53:09 -0800
-Message-ID: <200502230953.j1N9rNKX020717@shell0.pdx.osdl.net>
+Subject: [patch 09/12] acpi: fix container's notify handler to handle proper cases properly
+Date: Wed, 23 Feb 2005 01:53:08 -0800
+Message-ID: <200502230953.j1N9rMN2020714@shell0.pdx.osdl.net>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -12,104 +12,60 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, marado-oe7qfRrRQfcmha6Ds7sm0l6hYfS7NtTn@public.gmane.org, barryn-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-From: "Marcos D. Marado Torres" <marado-oe7qfRrRQfcmha6Ds7sm0l6hYfS7NtTn@public.gmane.org>
+From: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 
-From: "Barry K. Nathan" <barryn-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>
+This is to fix container's ACPI notify handler to handle proper cases
+properly.
 
-On Tue, Feb 08, 2005 at 08:54:06PM -0800, Andrew Morton wrote:
-> "Marcos D. Marado Torres" <marado-oe7qfRrRQfcmha6Ds7sm0l6hYfS7NtTn@public.gmane.org> wrote:
-> >
-> > Please add to -mm the patch in attachment, since it solves the old
-> >  acpi_power_off bug...
-> 
-> What acpi_power_off bug?  And how does it solve it?
+Previously, the handler tried to make a container device be offline if an
+ACPI_NOTIFY_BUS/DEVICE_CHECK notification is performed on the device was
+present and has its acpi_device.  But, the condition is weird.  Whenever
+the notification is performed, there should be only the following two
+conditions:
 
-Here's the observed bug that the patch is trying to fix:
-http://bugme.osdl.org/show_bug.cgi?id=4041
+  1. the device is present, but does not have its acpi_device.
+  2. the device is not present, but has its acpi_device.
 
-What Marcos posted is a typo-corrected version of Eric Biederman's
-patch:
-http://marc.theaimsgroup.com/?l=linux-kernel&m=110665542929525&w=2
+#1 is a hot-addition case, which was handled properly also in previous
+handler.  #2 is a surprising hot-removal case, which was not handled in
+previous handler.
 
-In Eric's own words, the patch "needs some work before it goes into a
-mainline kernel". AFAICT it's more of a proof-of-concept, just to see if
-Eric's on the right track...
-
-This is the motivation behind the patch:
-http://marc.theaimsgroup.com/?l=linux-kernel&m=110665405402747&w=2
-
-
+Signed-off-by: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 ---
 
- 25-akpm/drivers/acpi/sleep/poweroff.c |   23 +++++++++++++++++++++--
- 25-akpm/drivers/base/power/shutdown.c |    7 +++++++
- 2 files changed, 28 insertions(+), 2 deletions(-)
+ 25-akpm/drivers/acpi/container.c |   11 ++++++++---
+ 1 files changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN drivers/acpi/sleep/poweroff.c~acpi_power_off-bug-fix drivers/acpi/sleep/poweroff.c
---- 25/drivers/acpi/sleep/poweroff.c~acpi_power_off-bug-fix	2005-02-23 01:48:08.000000000 -0800
-+++ 25-akpm/drivers/acpi/sleep/poweroff.c	2005-02-23 01:48:08.000000000 -0800
-@@ -7,18 +7,37 @@
- 
- #include <linux/pm.h>
- #include <linux/init.h>
-+#include <linux/kernel.h>
- #include <acpi/acpi_bus.h>
- #include <linux/sched.h>
- #include "sleep.h"
- 
- static void
-+acpi_power_off_prepare(void)
-+{
-+       if (system_state == SYSTEM_POWER_OFF) {
-+               acpi_wakeup_gpe_poweroff_prepare();
-+               acpi_enter_sleep_state_prep(ACPI_STATE_S5);
-+       }
-+}
-+
-+void
-+do_acpi_power_off_prepare(void)
-+{
-+       if (!acpi_disabled) {
-+               acpi_power_off_prepare();
-+       }
-+}
-+
-+
-+static void
- acpi_power_off (void)
- {
- 	printk("%s called\n",__FUNCTION__);
-+#if 0	/* This should be made redundant by other patches.. */
- 	/* Some SMP machines only can poweroff in boot CPU */
- 	set_cpus_allowed(current, cpumask_of_cpu(0));
--	acpi_wakeup_gpe_poweroff_prepare();
--	acpi_enter_sleep_state_prep(ACPI_STATE_S5);
-+#endif
- 	ACPI_DISABLE_IRQS();
- 	acpi_enter_sleep_state(ACPI_STATE_S5);
- }
-diff -puN drivers/base/power/shutdown.c~acpi_power_off-bug-fix drivers/base/power/shutdown.c
---- 25/drivers/base/power/shutdown.c~acpi_power_off-bug-fix	2005-02-23 01:48:08.000000000 -0800
-+++ 25-akpm/drivers/base/power/shutdown.c	2005-02-23 01:48:08.000000000 -0800
-@@ -62,6 +62,13 @@ void device_shutdown(void)
- 	}
- 	up_write(&devices_subsys.rwsem);
- 
-+#ifdef CONFIG_ACPI
-+	{
-+		extern void do_acpi_power_off_prepare(void);
-+		do_acpi_power_off_prepare();
-+	}
-+#endif
-+
- 	sysdev_shutdown();
- }
- 
+diff -puN drivers/acpi/container.c~acpi-fix-containers-notify-handler-to-handle-proper-cases-properly drivers/acpi/container.c
+--- 25/drivers/acpi/container.c~acpi-fix-containers-notify-handler-to-handle-proper-cases-properly	2005-02-23 01:48:06.000000000 -0800
++++ 25-akpm/drivers/acpi/container.c	2005-02-23 01:48:06.000000000 -0800
+@@ -177,13 +177,18 @@ container_notify_cb(acpi_handle handle, 
+ 		printk("Container driver received %s event\n",
+ 			(type == ACPI_NOTIFY_BUS_CHECK)?
+ 			"ACPI_NOTIFY_BUS_CHECK":"ACPI_NOTIFY_DEVICE_CHECK");
++		status = acpi_bus_get_device(handle, &device);
+ 		if (present) {
+-			status = acpi_bus_get_device(handle, &device);
+ 			if (ACPI_FAILURE(status) || !device) {
+ 				result = container_device_add(&device, handle);
+ 				if (!result)
+-					kobject_hotplug(&device->kobj, KOBJ_ONLINE);
+-			} else {
++					kobject_hotplug(&device->kobj,
++							KOBJ_ONLINE);
++				else
++					printk("Failed to add container\n");
++			}
++		} else {
++			if (ACPI_SUCCESS(status)) {
+ 				/* device exist and this is a remove request */
+ 				kobject_hotplug(&device->kobj, KOBJ_OFFLINE);
+ 			}
 _
 
 
