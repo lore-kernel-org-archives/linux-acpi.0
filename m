@@ -1,14 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Overheating is *not* dangerous Re: Changing temperature trip points
-Date: Sun, 3 Nov 2002 23:46:34 +0100
+From: PSI-Systems <PSI-Systems-hi6Y0CQ0nG0@public.gmane.org>
+Subject: ACPI does not work since acpi-20021022-2.4.20-pre11.diff
+Date: Mon, 4 Nov 2002 00:00:58 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021103224633.GO28704@atrey.karlin.mff.cuni.cz>
-References: <20021103195616.GB27271@elf.ucw.cz> <20021103211607.A1555@brodo.de> <20021103202130.GB22668@atrey.karlin.mff.cuni.cz> <20021103213010.A1665@brodo.de> <20021103203949.GE22668@atrey.karlin.mff.cuni.cz> <20021103220843.B1665@brodo.de> <20021103220017.GB28704@atrey.karlin.mff.cuni.cz> <20021103231318.B19750@brodo.de> <20021103221945.GH28704@atrey.karlin.mff.cuni.cz> <20021103233054.G19750@brodo.de>
+Message-ID: <200211040000.58206.PSI-Systems@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20021103233054.G19750-JhLEnvuH02M@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,66 +16,81 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
-Cc: Edmund Rhudy <nrhudy-plZrL8KR64B+CIkdHa1UOg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-> > > > Actually, Documentation/acpi/processor.txt seems like right
-> > > > place. "Polling" warning should be in Documentation/, really.
-> > > 
-> > > Which does not exist ==> extremely dangerous situation. Even though you
-> > > should know what you're doing when you meddle with the affairs of kernels,
-> > > kernels should try at least to some extent to be safe to use. 
-> > 
-> > So perhaps its good time to create Documentation/acpi? ;-).
-> > 
-> > Anyway it is not *dangerous* situation. ACPI machines power down on
-> > overtemp.
-> ACPI machines power down on overtemp. What is overtemp? The temperature
-> specified in CRITICAL in the DSDT. And if this value is wrong, then you need
-> to rely on the sanity of BIOS programmers. And a log of good luck.
+and its still in the newest rc1-release!
 
-Actually, I believe its sanity of HW designers. I'd not trust BIOS
-programmers to get it right.
+please can anyone help me in fixing this?
 
-There's one more point above _CRT, that's what I call overtemp:
+BIOS-provided physical RAM map:
+ BIOS-e820: 0000000000000000 - 000000000009f000 (usable)
+ BIOS-e820: 000000000009f000 - 00000000000a0000 (reserved)
+ BIOS-e820: 00000000000d2000 - 00000000000d4000 (reserved)
+ BIOS-e820: 00000000000dc000 - 0000000000100000 (reserved)
+ BIOS-e820: 0000000000100000 - 000000001ff60000 (usable)
+ BIOS-e820: 000000001ff60000 - 000000001ff7a000 (ACPI data)
+ BIOS-e820: 000000001ff7a000 - 000000001ff7c000 (ACPI NVS)
+ BIOS-e820: 000000001ff7c000 - 0000000020000000 (reserved)
+ BIOS-e820: 00000000ff800000 - 0000000100000000 (reserved)
+511MB LOWMEM available.
+ACPI: have wakeup address 0xc0001000
+On node 0 totalpages: 130912
+zone(0): 4096 pages.
+zone(1): 126816 pages.
+zone(2): 0 pages.
+ACPI: RSDP (v002 IBM                        ) @ 0x000f7060
+ACPI: XSDT (v001 IBM    TP-1G    00000.04160) @ 0x1ff6ee48
+ACPI: FADT (v001 IBM    TP-1G    00000.04160) @ 0x1ff6ee8c
+ACPI: SSDT (v001 IBM    TP-1G    00000.04160) @ 0x1ff6ef40
+ACPI: ECDT (v001 IBM    TP-1G    00000.04160) @ 0x1ff79f87
+ACPI: BOOT (v001 IBM    TP-1G    00000.04160) @ 0x1ff79fd8
+ACPI: DSDT (v001 IBM    TP-1G    00000.04160) @ 0x00000000
+ACPI: BIOS passes blacklist
+ACPI: MADT not present
+IBM machine detected. Enabling interrupts during APM calls.
+Kernel command line: BOOT_IMAGE=Linux ro root=307 resume=/dev/hda8 
+root=/dev/hda7 devfs=onl
+y video=radeonfb:1400x1050-32@60 hdc=ide-scsi
+ide_setup: hdc=ide-scsi
+No local APIC present or hardware disabled
+Initializing CPU#0
+Detected 1199.016 MHz processor.
+Console: colour VGA+ 80x25
+Calibrating delay loop... 2392.06 BogoMIPS
+Memory: 514784k/523648k available (1779k kernel code, 8476k reserved, 558k 
+data, 156k init,
+ 0k highmem)
+Dentry cache hash table entries: 65536 (order: 7, 524288 bytes)
+Inode cache hash table entries: 32768 (order: 6, 262144 bytes)
+Mount-cache hash table entries: 8192 (order: 4, 65536 bytes)
+Buffer-cache hash table entries: 32768 (order: 5, 131072 bytes)
+Page-cache hash table entries: 131072 (order: 7, 524288 bytes)
+CPU: L1 I cache: 0K, L1 D cache: 8K
+CPU: L2 cache: 512K
+Intel machine check architecture supported.
+Intel machine check reporting enabled on CPU#0.
+CPU:     After generic, caps: 3febf9ff 00000000 00000000 00000000
+CPU:             Common caps: 3febf9ff 00000000 00000000 00000000
+CPU: Intel(R) Pentium(R) 4 Mobile CPU 1.80GHz stepping 04
+Enabling fast FPU save and restore... done.
+Enabling unmasked SIMD FPU exception support... done.
+Checking 'hlt' instruction... OK.
+POSIX conformance testing by UNIFIX
+mtrr: v1.40 (20010327) Richard Gooch (rgooch-r1x6VkxMR+00zabcByZE4g@public.gmane.org)
+mtrr: detected mtrr type: Intel
+ACPI: Subsystem revision 20021101
+PCI: PCI BIOS revision 2.10 entry at 0xfd8fe, last bus=8
+PCI: Using configuration type 1
+    ACPI-0508: *** Info: GPE Block0 defined as GPE0 to GPE15
+    ACPI-0508: *** Info: GPE Block1 defined as GPE16 to GPE31
+ACPI: Found ECDT
+ACPI: Could not use ECDT
 
-[from specs:]
-
-This says that if you can cook your machine, it was not acpi
-compliant.
-							Pavel
-
-When the heat reaches the temperature indicated by _CRT, the OS must
-immediately shutdown the system.
-The system must disable the power either after the temperature reaches
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-some hardware-determined level above
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-_CRT or after a predetermined time has passed. Before disabling power,
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-platform designers should incorporate
-some time that allows the OS to run its critical shutdown
-operation. There is no requirement for a minimum
-shutdown operation window that commences immediately after the
-temperature reaches _CRT.  This is
-because
-*  Heat might rise rapidly in some systems and slower on others,
-depending on casing design and
-    environmental factors.
-*  Shutdown can take several minutes on a server and only a few short
-seconds on a hand-held device.
-Because of this indistinct discrepancy and the fact that a critical
-heat situation is a remarkably rare occurrence,
-ACPI does not specify a target window for a safe shutdown. It is
-entirely up to the OEM to build in a safe
-buffer that it sees fit for the target platform.
+thx
+Sandro
 
 
--- 
-Casualities in World Trade Center: ~3k dead inside the building,
-cryptography in U.S.A. and free speech in Czech Republic.
 
 
 -------------------------------------------------------
