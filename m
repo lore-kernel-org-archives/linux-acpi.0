@@ -1,9 +1,15 @@
 From: =?ISO-8859-15?Q?Peter_M=FCnster?= <pmlists-GANU6spQydw@public.gmane.org>
-Subject: [Patch] keep ide disk sleeping when resuming
-Date: Wed, 2 Feb 2005 20:47:31 +0100 (CET)
-Message-ID: <Pine.LNX.4.58.0502022006030.4130@gaston.free.fr>
+Subject: Re: system does not wake up sometimes
+Date: Wed, 2 Feb 2005 20:05:52 +0100 (CET)
+Message-ID: <Pine.LNX.4.58.0502022003350.4130@gaston.free.fr>
+References: <16A54BF5D6E14E4D916CE26C9AD3057501168084@pdsmsx402.ccr.corp.intel.com>
+ <Pine.LNX.4.58.0501312317420.31879@gaston.free.fr>
+ <1107218653.26227.3.camel@sli10-desk.sh.intel.com>
+ <Pine.LNX.4.58.0502012022280.24529@gaston.free.fr> <20050201234440.GA2764@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20050201234440.GA2764-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -13,59 +19,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, axboe-l3A5Bk7waGM@public.gmane.org, benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org, B.Zolnierkiewicz-ZGDBLhmm9VR4rM3dGMyr8Q@public.gmane.org
+To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Cc: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
+On Wed, 2 Feb 2005, Karol Kozimor wrote:
 
-I need this patch (against linux-2.6.11-rc2), to keep ide disk sleeping,
-when resuming from ACPI S1.
+> Thus wrote Peter M=FCnster:
+> > Here is the kernel message when interrupt arrives:
+> > ACPI-0286: *** Error: No installed handler for fixed event [00000004]
+>=20
+> Please see http://bugme.osdl.org/show_bug.cgi?id=3D1320.
 
-In fact, it's just removing a patch from 22 Jun 2004 by Jens Axboe. He has
-told me, that "We can probably kill the patch completely".
-So, this is what I'm doing now.
+Thanks for this link: now I'm using Linux 2.6.11-rc2 and everything seems
+to be fine!
+Best regards, Peter
 
-Kind regards, Peter
-
---- drivers/ide/ide-disk.c.orig	2005-02-02 20:30:12.000000000 +0100
-+++ drivers/ide/ide-disk.c	2005-02-02 20:32:21.000000000 +0100
-@@ -864,9 +864,7 @@
- enum {
- 	idedisk_pm_flush_cache	= ide_pm_state_start_suspend,
- 	idedisk_pm_standby,
--
--	idedisk_pm_idle		= ide_pm_state_start_resume,
--	idedisk_pm_restore_dma,
-+	idedisk_pm_restore_dma	= ide_pm_state_start_resume
- };
- 
- static void idedisk_complete_power_step (ide_drive_t *drive, struct request *rq, u8 stat, u8 error)
-@@ -881,9 +879,6 @@
- 	case idedisk_pm_standby:	/* Suspend step 2 (standby) complete */
- 		rq->pm->pm_step = ide_pm_state_completed;
- 		break;
--	case idedisk_pm_idle:		/* Resume step 1 (idle) complete */
--		rq->pm->pm_step = idedisk_pm_restore_dma;
--		break;
- 	}
- }
- 
-@@ -914,12 +909,6 @@
- 		args->handler	   = &task_no_data_intr;
- 		return do_rw_taskfile(drive, args);
- 
--	case idedisk_pm_idle:		/* Resume step 1 (idle) */
--		args->tfRegister[IDE_COMMAND_OFFSET] = WIN_IDLEIMMEDIATE;
--		args->command_type = IDE_DRIVE_TASK_NO_DATA;
--		args->handler = task_no_data_intr;
--		return do_rw_taskfile(drive, args);
--
- 	case idedisk_pm_restore_dma:	/* Resume step 2 (restore DMA) */
- 		/*
- 		 * Right now, all we do is call hwif->ide_dma_check(drive),
-
--- 
+--=20
 http://pmrb.free.fr/contact/
 
 
