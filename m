@@ -1,12 +1,11 @@
-From: James Marca <jmarca-gxN29gZi1SnrmNeUD2Wsk/Z8FUJU4vz8@public.gmane.org>
-Subject: kernel 2.5.66 on Sony PCG-FX210 hangs on boot
-Date: Wed, 9 Apr 2003 10:29:03 -0700
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Possible problem in acpi_remove_address_space_handler
+Date: Wed, 9 Apr 2003 15:50:50 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030409172903.GA1639@krypton.its.uci.edu>
+Message-ID: <B9ECACBD6885D5119ADC00508B68C1EA0D19BC6F@orsmsx107.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,38 +14,74 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "'bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org'" <bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: ltong-r3+FECOBLOPAaqN1iTbosg@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi
-I am running the 2.4 series kernels with the ACPI patches with no
-problems.  With 2.5.65 and 2.5.66 I decided to try out the beta
-kernels.  Both with and without the ACPI patch, these kernels fail to
-boot on my laptop --- Sony PCG-FX210.
+This looks to be some leftover code from a previous implementation of the
+address handlers.
 
-It is hard to report exactly what is happening.  The initial messages
-scroll by fine---decompressing the kernel, etc., and then I see a
-message about ACPI and then I get lots and lots of scrolling numbers
-in angle brackets.  (Control S won't freeze the screen)  I am not 100
-percent sure it is ACPI that is freaking out my computer, but after
-trying the kernel many times last night, I am certain the last legible
-message contained ACPI in the text before the rapid number scrolling
-started.  
+This will be fixed in the next patch.
 
-I have used user-mode linux (UML) before, and so when I get time I can
-try to run the kernel in a protected area and grab a screenshot of the
-initial error messages.  But last time this sort of thing happened,
-there was a nocorruption patch to fix things.  Am I missing a patch?
-Any other advice on how to collect bug reports or where the problem
-might lie?
-
-Please respond to the list, not to me personally.  
-
-Thanks,
-James
+Bob
 
 
-
+> -----Original Message-----
+> From: bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org [mailto:bperkins@netspace.org]
+> Sent: Wednesday, April 09, 2003 9:36 AM
+> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Cc: ltong-r3+FECOBLOPAaqN1iTbosg@public.gmane.org
+> Subject: [ACPI] Possible problem in acpi_remove_address_space_handler
+> 
+> Is there any reason why
+> 
+> acpi_ut_remove_reference (handler_obj);
+> 
+> is called twice in a row in acpi_remove_address_space_handler
+> events/evxfregn.c line 400 or so?
+> 
+> 
+> If it's a typo, then I think I found the thing causing the
+> AC_BAD_PARAMETER problem on my Thinkpad R32.  Maybe someone already
+> found this.
+> 
+> 
+> Here's my patch:
+> 
+> 
+> diff -u -r1.1.1.1 evxfregn.c
+> --- linux-2.5.66/drivers/acpi/events/evxfregn.c	2 Apr 2003 03:34:04
+-0000
+> 	1.1.1.1
+> +++ linux-2.5.66/drivers/acpi/events/evxfregn.c	9 Apr 2003 16:18:25
+-0000
+> @@ -391,7 +391,7 @@
+>  			/*
+>  			 * Now we can delete the handler object
+>  			 */
+> -			acpi_ut_remove_reference (handler_obj);
+> +
+>  			acpi_ut_remove_reference (handler_obj);
+> 
+>  			goto unlock_and_exit;
+> 
+> 
+> 
+> --
+> "Operation Shoot First" is a complete success!!!
+> Brian Perkins                bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org
+> 
+> 
+> -------------------------------------------------------
+> This SF.net email is sponsored by: Etnus, makers of TotalView, The
+> debugger
+> for complex code. Debugging C/C++ programs can leave you feeling lost and
+> disoriented. TotalView can help you find your way. Available on major UNIX
+> and Linux platforms. Try it free. www.etnus.com
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
