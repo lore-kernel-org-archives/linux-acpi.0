@@ -1,12 +1,11 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: S3 resume and other ACPI questions
-Date: Tue, 8 Mar 2005 10:57:22 +0100
-Message-ID: <20050308095722.GA16798@elf.ucw.cz>
-References: <7f800d9f05022815286a10ddf6@mail.gmail.com>
+From: Stefan Tomanek <stefan-Q4Z/ui9EqVxM7kwft8N7nw@public.gmane.org>
+Subject: Writing caches
+Date: Tue, 8 Mar 2005 11:12:29 +0100
+Message-ID: <20050308101229.GD4154@pico.ruhr.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Content-Disposition: inline
-In-Reply-To: <7f800d9f05022815286a10ddf6-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,28 +15,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andre Eisenbach <int2str-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-
-> I've recently bough a new AMD 64 notebook (Acer Ferrari 3400LMi). Here
-> are some ACPI related issues I have:
-> 
-> - S3 resume seems to turn on the machine, but the LCD stays dark and
-> the keyboard is not working.
-
-Read Doc*/power/video.txt. Send me a patch when you get it working.
-
-
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Just a small question, maybe I got a completely false impression...
+Why does software suspend have to save file cachess? Couldn't they just
+be flushed to save suspend and restore time?
+--=20
+.:=B0stefan-Q4Z/ui9EqVxM7kwft8N7nw@public.gmane.org | tommie@IRC | GPG: finger stefan-bi+AKbBUZKbUpHnrbwyWsw@public.gmane.org=
+.de =B0:.
+|___________________ http://localhost.ruhr.de/~stefan/ __________________=
+____|
+| Wer Header f=E4lscht oder verf=E4lscht oder gef=E4lschte oder verf=E4ls=
+chte Header |
+`-__in_Umlauf_bringt_wird_mit_Scorefile_nicht_unter_-500_Punkten_bestraft=
+__-'
 
 
 -------------------------------------------------------
 SF email is sponsored by - The IT Product Guide
 Read honest & candid reviews on hundreds of IT Products from real users.
 Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+http://ads.osdn.com/?ad_id=3D6595&alloc_id=3D14396&op=3Dclick
