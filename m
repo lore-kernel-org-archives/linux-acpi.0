@@ -1,17 +1,11 @@
-From: "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>
-Subject: Re: Re: PROBLEM: ACPI freezes 2.6.1 on boot
-Date: Thu, 22 Jan 2004 15:08:56 +0100
+From: Matthew Garrett <mgarrett-QGMSyCZBOSwv4zxTlrOuLwNdhmdF6hFW@public.gmane.org>
+Subject: Re: PROBLEM: LCD display dead after ACPI suspend to RAM (S3)
+Date: Thu, 22 Jan 2004 14:09:47 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <m3browulc7.fsf@reason.gnu-hamburg>
-References: <7F740D512C7C1046AB53446D3720017361885C@scsmsx402.sc.intel.com>
-	<m3u12pgfpr.fsf@reason.gnu-hamburg>
-	<m3ptddgckg.fsf@reason.gnu-hamburg>
-	<20040122120854.GB3534@hell.org.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Message-ID: <E1AjfWl-0006f8-00@chiark.greenend.org.uk>
+References: <m3hdyo2kce.fsf@reason.gnu-hamburg>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040122120854.GB3534-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org> (Karol Kozimor's message of
- "Thu, 22 Jan 2004 13:08:54 +0100")
+In-Reply-To: <m3hdyo2kce.fsf-glUV91rXKAHWIjgkaejU9x2eb7JE58TQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,36 +14,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Nakajima, Jun" <jun.nakajima-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Martin Loschwitz <madkiss-R0iKqZn4BxJAfugRpC6u6w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
- || On Thu, 22 Jan 2004 13:08:54 +0100
- || Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org> wrote: 
+>on an ASUS M2400N [*] with both plain vanilla Linux Kernel 2.6.1 and
+>2.6.1 + acpi-20031203, the machine appears to suspend to RAM without a
+>problem and it also apparently comes back, but the screen is dead.
 
- >> So the problem we've been seeing seems to be related to the
- >> interaction between local APIC support and ACPI.
-
- kk> We've definitely had those problems before (with ASUS L3800C),
- kk> there's even a patch fixing this issue (attached below) you might
- kk> try.  I guess that's another of those lost and forgotten bugzilla
- kk> bugs :)
-
-Thanks a lot -- this patch fixed the problem for me.
-
-The kernel now found the APIC and initialized ACPI (including
-switching to level trigger) with no problems.
-
-Could we please make sure this doesn't get lost again and makes it
-into the kernel?
-
-Regards,
-Georg
+Try passing acpi_sleep=s3_bios or acpi_sleep=s3_mode to the kernel on
+boot - also try while running X, switch away before suspend and switch
+back afterwards. The problem is that the kernel doesn't know how to wake
+the video hardware back up after S3 - the kernel parameters are hacks
+that try to provoke it back into life, and X is sometimes able to
+reinitialise stuff itself.
 
 -- 
-Georg C. F. Greve                                       <greve-mXXj517/zsQ@public.gmane.org>
-Free Software Foundation Europe	                 (http://fsfeurope.org)
-Brave GNU World	                           (http://brave-gnu-world.org)
+Matthew Garrett | mjg59-chiark.mail.linux-rutgers.kernel-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
 
 -------------------------------------------------------
