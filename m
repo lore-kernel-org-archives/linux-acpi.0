@@ -1,16 +1,14 @@
-From: "=?iso-8859-2?q?Zdzis=B3aw_A=2E?= Kaleta" <sanskryt-FWhLrETftxM@public.gmane.org>
+From: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>
 Subject: Re: what is the worst laptop atm?
-Date: Tue, 4 Jan 2005 20:10:36 +0100
-Message-ID: <200501042010.36874.sanskryt@op.pl>
-References: <20041227165207.GB9606@poupinou.org> <200412271800.31064.wijnhout@science.uva.nl> <20041227171202.GC9606@poupinou.org>
-Reply-To: sanskryt-FWhLrETftxM@public.gmane.org
+Date: Tue, 4 Jan 2005 20:33:14 +0100
+Message-ID: <20050104193314.GA25653@gamma.logic.tuwien.ac.at>
+References: <20041227165207.GB9606@poupinou.org> <200412271800.31064.wijnhout@science.uva.nl> <20041227171202.GC9606@poupinou.org> <200501042010.36874.sanskryt@op.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
+Content-Type: text/plain; charset=iso-8859-15
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041227171202.GC9606-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <200501042010.36874.sanskryt-FWhLrETftxM@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -23,26 +21,32 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dnia poniedzia=B3ek 27 grudnia 2004 18:12, Bruno Ducrot napisa=B3:
-> It's not interresting if all work as expected ;)
->
-> > I'm using a Acer 4001WLmi (supposedly with a smart-battery). I would be
-> > so delighted if I could finally see my battery status. Besides, it is a
-> > good buy (after all you do want to have a working computer, right?).
->
-> Does that one fail S3 btw?
-I have Acer TM 4001 WLMI runing debian testing/unstable mixing.
-After "echo "3" > /proc/acpi/sleep"
-it first claim that the mysql can't be stopped and after I stoped it manual=
-y=20
-then it try to sleep but end with endless info:
-"atkbd.c: Spurious ACK on isa0060/serio0. Some program [***] may be trying=
-=20
-access hardware directly"
-It suggested X11 but the same is when no kdm, xdm or gdm is anabled.
-If you suggested any other checkig I am ready to try it. ;-/
-=2D-=20
-z.a.kaleta (sanskryt), registered Linux User #279350
+On Die, 04 Jan 2005, Zdzis?aw A. Kaleta wrote:
+> "atkbd.c: Spurious ACK on isa0060/serio0. Some program [***] may be try=
+ing=20
+> access hardware directly"
+> It suggested X11 but the same is when no kdm, xdm or gdm is anabled.
+> If you suggested any other checkig I am ready to try it. ;-/
+
+Do you have acerhk loaded?
+
+Best wishes
+
+Norbert
+
+-------------------------------------------------------------------------=
+------
+Norbert Preining <preining AT logic DOT at>         Technische Universit=E4=
+t Wien
+sip:preining-5G14tY4QmKiDqU6vP1vexV6hYfS7NtTn@public.gmane.org                             +43 (0) 59966-=
+690018
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C=
+5 B094
+-------------------------------------------------------------------------=
+------
+LUTON (n.)
+The horseshoe-shaped rug which goes around a lavatory seat.
+			--- Douglas Adams, The Meaning of Liff
 
 
 -------------------------------------------------------
