@@ -1,11 +1,11 @@
-From: "Nestor J. Sanchez" <njsanchez30-6+i1tcqLPDFQFI55V6+gNQ@public.gmane.org>
-Subject: Order Rolex or other Swiss watches online
-Date: Sun, 12 Dec 2004 16:43:57 -0600
-Message-ID: <4e0501c4e09c$1de9e2af$ac4513d5@eego.de>
+From: "Konstantin Svist" <kostya-CzTbWX96vYR8UrSeD/g0lQ@public.gmane.org>
+Subject: ACPI on HP ze4430us
+Date: Sun, 12 Dec 2004 14:21:51 -0800
+Message-ID: <004501c4e098$fb1191e0$0200a8c0@Home.local>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,29 +19,18 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Heya,
+Hi everyone,
 
-Do you want a rolex watch?
+I just tried Knoppix 3.7 on my laptop - it doesn't boot. After some playing
+around, I figured out that the problem is ACPI - it only boots if I specify
+any of the three "hacks": "acpi=off", "acpi=ht", and "acpi=force". The last
+one even powers down my laptop on shutdown.
+What is going on here?
 
-In our online store you can buy replicas of Rolex watches. They look
-and feel exactly like the real thing.
-
-- We have 20+ different brands in our selection
-- Free shipping if you order 5 or more
-- Save up to 40% compared to the cost of other replicas
-- Standard Features:
- - Screw-in crown
- - Unidirectional turning bezel where appropriate
- - All the appropriate rolex logos, on crown and dial
- - Heavy weight
-
-Visit us: http://www.bhex.com/rep/rolex/
-
-Best regards,
-Hilton Jones
+Thanks,
+Konstantin Svist
 
 
-No thanks: http://www.bhex.com/z.php
 
 
 
