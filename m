@@ -1,14 +1,14 @@
-From: William Morgan <wmorgan-acpi-devel-xW3KcqxHEMnk1uMJSBkQmQ@public.gmane.org>
-Subject: Re: acpi on new gateway laptops
-Date: Thu, 20 Nov 2003 16:36:48 -0500
+From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Subject: Re: Error: can't read "CONFIG_SCSI": no such variable
+Date: Thu, 20 Nov 2003 21:42:25 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031120213648.GC21802@masanjin.net>
-References: <20031112232315.GD430@masanjin.net> <20031117102219.O60721@root.org> <20031117183900.GA32570@masanjin.net> <20031117104936.N60907@root.org> <20031117193719.GB32570@masanjin.net> <20031117120555.E61216@root.org> <20031118103549.GZ32464@poupinou.org>
+Message-ID: <20031120214225.GO30485@parcelfarce.linux.theplanet.co.uk>
+References: <3FBD31F7.2070205@cse.psu.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20031118103549.GZ32464-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <3FBD31F7.2070205-yyJJWgVhSYiVc3sceRu5cw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,21 +17,37 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Gyu Sang Choi <gchoi-yyJJWgVhSYiVc3sceRu5cw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Excerpts (reformatted) from Ducrot Bruno's mail of 18 Nov 2003 (EST):
-> > Looks right but you need to get your _GPE bit also. I think it's 0x79
-> > but you really need to parse the buffer to be sure.  There is a flag to
-> > acpidmp to parse buffer contents.
+On Thu, Nov 20, 2003 at 04:28:23PM -0500, Gyu Sang Choi wrote:
+> I am trying to install ACPI2.0 into Linux-2.4.22 kernel.
+> But I got a strange error message, when I try to store the configuration 
+> to file in "make xconfig".
+> It is below
+> ============================================
+> Error: can't read "CONFIG_SCSI": no such variable
+> ============================================
 > 
-> Not in the backported version IIRC.
+> If there is anyone to solve this problem already,
+> please send me email.
 
-There wasn't an option to do this in the acpidmp I found, but luckily
-the DSDT specified the _GPE as 0x1c a little later on.
+Can you try splitting drivers/acpi/Config.in line 35 from:
+
+  else if [ "$CONFIG_SMP" = "y" ]; then
+
+to:
+
+  else
+    if [ "$CONFIG_SMP" = "y" ]; then
+
+This may solve your problem.
 
 -- 
-William
+"It's not Hollywood.  War is real, war is primarily not about defeat or
+victory, it is about death.  I've seen thousands and thousands of dead bodies.
+Do you think I want to have an academic debate on this subject?" -- Robert Fisk
 
 
 -------------------------------------------------------
