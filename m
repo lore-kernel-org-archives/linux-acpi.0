@@ -1,14 +1,14 @@
-From: "Keshavamurthy, Anil S" <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 1/4] properly create kobjects in acpi/scan.c
-Date: Tue, 24 Aug 2004 14:45:18 -0700
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: lost thermal zones on 20040715 nc6000
+Date: Tue, 24 Aug 2004 23:51:18 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <44BDAFB888F59F408FAE3CC35AB47041A3B61B@orsmsx409>
+Message-ID: <20040824215118.GA13853@hell.org.pl>
+References: <37F890616C995246BE76B3E6B2DBE05501A8B206@orsmsx403.amr.corp.intel.com> <1093382665.5299.16.camel@tdi>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <1093382665.5299.16.camel@tdi>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,39 +17,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>
+Cc: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-=20
->> Btw, why don't we just convert ACPI to be standard driver core bus=20
->> with standard drivers and devices? I could cook up something... The=20
->> /sys/firmware/acpi hierarchy is not populated with any=20
->useful data yet=20
->> so there should be no concern of breakign userspace interface (I am=20
->> mot talking about removing /proc/acpi part at the moment).
->
->Funny you should mention it.
->
->My current opinion is that /sys/firmware/acpi should probably=20
->not exist at all, and that there should be a single=20
->/sys/devices including both ACPI-enumerated and pci-enumerated=20
->devices.  Adam and I have been ganging up on Patrick on this,=20
->but we don't have him convinced yet...
->
-For my hotplug work I am currently banking on
-/sys/firmware/acpi/namespace/ACPI
- to find the all the children devices and from there to find the
-corresponding logical
- devices. Once I find the all child devices then the scripts would turn
-online or offline of all the child devices.
+Thus wrote Alex Williamson:
+> 
+>     I've nearly gotten to the bottom of this problem.  It's not an
+> interpreter bug, nor is it a BIOS bug.  The address we were trying to
+> read in AML is a SMBus controller address.  This address sits on the
+> hidden SMBus function in the Intel chipset.  Unfortunately, the PCI
+> quirks routine un-hides the devices.  So far this is all the same as the
+> way it behaved prior to the 20040715 code drop.
+> 
+>    The new piece is the motherboard driver.  Now this driver comes in an
+> claims the I/O port region that the SMBus controller is using.  We've
+> un-hidden the PCI function, so PCI wants that resource range.  It can't
+> get it so it moves the SMBus BAR to a different address.  The AML is now
+> hosed cause it's hard-coded to use the address it programmed in (why
+> shouldn't it, the device is hidden).  Why are we un-hiding the SMBus
+> function?  The AML sets up an OpRegion for the address space it uses, so
+> should have exclusive access to that range.  Suggestions?  Thanks,
 
-If we are proposing to eliminate /sys/firmware/acpi can anyone pass a
-pointer to the above discussion.
+Ouch, see bug #3191.
+Best regards,
 
-Thanks,
-Anil Keshavamurthy
-=09
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
