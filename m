@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: Re: TESTING 2.6.0-test1 S3
-Date: Wed, 23 Jul 2003 18:31:22 +0200
+From: Rob North <tzwvgwv2001-O/bDAPVd7B0N+BqQ9rBEUg@public.gmane.org>
+Subject: Re: [PATCH] IRQ params patch#4
+Date: Wed, 23 Jul 2003 18:52:24 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030723163122.GB21492@atrey.karlin.mff.cuni.cz>
-References: <20030718163905.5AE2F168B09@smtp-out1.iol.cz> <200307231333.59853.mflt1@micrologica.com.hk> <20030723122412.GA18878@atrey.karlin.mff.cuni.cz> <200307232311.48648.mflt1@micrologica.com.hk>
+Message-ID: <bfmhuf$bdl$1@main.gmane.org>
+References: <F760B14C9561B941B89469F59BA3A8470255EEA0@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200307232311.48648.mflt1-DTdK3Ks6N5kHTnRCetW4+N0b+6lKrnBL@public.gmane.org>
+In-Reply-To: <F760B14C9561B941B89469F59BA3A8470255EEA0-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,48 +17,36 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Michael Frank <mflt1-DTdK3Ks6N5kHTnRCetW4+N0b+6lKrnBL@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Vojtech Pavlik <vojtech-AlSwsSmVLrQ@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Grover, Andrew wrote:
+> Andrew,
+> 
+> You still hacking on this?
+> 
+> Just got another bug report (completely different HW) that I think might
+> be the same problem.
+> 
+> Regards -- Andy G.
+> 
+> 
 
-> > What is L2?
-> 
-> Toshiba Libretto L2, TM5600 600MHz, 256MB, legacy free, reasonable DSDT.
-> 
-> The hard disk seems to resume fine with 2.6-test1. (Needs more testing)
-> 
-> Other than potential harddisk problems, the last problem of "unknown origin" 
-> for getting 2.6/S3  to work is that BIOS reports a resume failure every 
-> 5 suspends or so. 
-> 
-> May have seen an oops flash by before it switches off on entering S3, 
-> but it could also have been the e100 badness trace. 
-> 
-> I suspect it is an ACPI related problem in hwsleep.c, by which the suspend
-> mechanism is not properly setup. Maybe timing, missing setting, incompatibility...
-> 
-> Will have to look at the spec and test it more, and expect to resolve this in 
-> the end.
-> 
-> There are right now more complaints about shared PCI interrupts, which is
-> a major nuisance aggravated by silly DSDT's sometimes assigning 5 inputs to
-> the same level. 
-> 
-> Reproduced this on the L2 with IRQ5 for Yenta and USB causing hangs
-> and crashes but ought to figure the cause out. What is your opinon
-> on this?
+Is there anything more to hack??
 
-It does not happen here...
-									Pavel
--- 
-Horseback riding is like software...
-...vgf orggre jura vgf serr.
+The patch looked adequate to my novice eyes.
+
+Hope it gets integrated into the acpi & kernel releases soon
+	-Rob.
+
+P.S. my ISP is blocking sneakemail e-mail at present, so e-mails sent 
+direct to me will probably bounce :-(
+
+
 
 
 -------------------------------------------------------
 This SF.Net email sponsored by: Free pre-built ASP.NET sites including
 Data Reports, E-commerce, Portals, and Forums are available now.
 Download today and enter to win an XBOX or Visual Studio .NET.
-http://aspnet.click-url.com/go/psa00100006ave/direct;at.asp_061203_01/01
+http://aspnet.click-url.com/go/psa00100003ave/direct;at.aspnet_072303_01/01
