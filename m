@@ -1,14 +1,13 @@
-From: Michal Semler <cijoml-VIXq6x/3rUk@public.gmane.org>
-Subject: 2 bugs in ACPI
-Date: Thu, 20 Feb 2003 17:13:01 +0100
+From: Thomas Alderweireld <Thomas.Alderweireld-vJEk5272eHo@public.gmane.org>
+Subject: echo -n * > /proc/acpi/sleep has no effect
+Date: Thu, 20 Feb 2003 17:33:47 +0100 (CET)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E18ltJm-0000B0-00@notas>
-Reply-To: cijoml-VIXq6x/3rUk@public.gmane.org
+Message-ID: <Pine.LNX.4.44.0302201722000.4562-100000@lxplus086.cern.ch>
+References: <3E54FA95.8020803@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <3E54FA95.8020803-VXdhtT5mjnY@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,150 +19,71 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello, 
+Hello;
+Time is passing and problems are resolving .....
+I could fix my DSDT table today and make acpi run properly [thanks to 
+your mails]. (ACER TravelMate 427, Phoenix Bios)
 
-I use ACPI on my notebook Dell Latitude CPxJ 650 GT for a very long time.
+No I can see my battery status and I do not have any error messages 
+anymore. My machine runs now under the following os:
+Linux laptom 2.4.21-pre4 #1 Thu Feb 20 15:49:58 CET 2003 i686 i686 i386 GNU/Linux
+and acpi-20030218-2.4.21-pre4.diff 
 
-All the time things goes well - thanks you people, but from November 2002 
-there are two bugs:
+Nevertheless, when I do:
+echo -n * (*=1,2,3,4)  > /proc/acpi/sleep  does not do 
+anything. 
 
-1) Now ACPI can't read battery information from my batteries: those are SONY
-2) Now kernel can't read info about thermal zone - kernel tells me -296 C - I 
-thought, that apsoluttly zero is -273 :)) You guys are really good :)
-
-Both thinks worked in ACPI 18112002 or 22112002 now I don't know
-
-My system is Debian Woody 3.0r1
-
-here is dump from dmesg:
-
-Linux version 2.4.21-pre4 (root@notas) (gcc version 3.0.4) #2 Èt úno 20 
-16:51:00 CET 2003
-BIOS-provided physical RAM map:
- BIOS-e820: 0000000000000000 - 000000000009fc00 (usable)
- BIOS-e820: 000000000009fc00 - 00000000000a0000 (reserved)
- BIOS-e820: 0000000000100000 - 0000000017fdb000 (usable)
- BIOS-e820: 0000000017fdb000 - 0000000018000000 (reserved)
- BIOS-e820: 00000000ffe00000 - 0000000100000000 (reserved)
-383MB LOWMEM available.
+I put the dmesg output related to acpi in the following:
+BIOS-e820: 000000001fef0000 - 000000001fefc000 (ACPI data)
+BIOS-e820: 000000001fefc000 - 000000001ff00000 (ACPI NVS)
 ACPI: have wakeup address 0xc0001000
-On node 0 totalpages: 98267
-zone(0): 4096 pages.
-zone(1): 94171 pages.
-zone(2): 0 pages.
-ACPI: RSDP (v000 DELL                       ) @ 0x000f4040
-ACPI: RSDT (v001 DELL    CPi R   10194.01308) @ 0x17ff0000
-ACPI: FADT (v001 DELL    CPi R   10194.01308) @ 0x17ff0400
-ACPI: DSDT (v001 INT430 SYSFexxx 00000.04097) @ 0x00000000
+ACPI: RSDP (v000 PTLTD                      ) @ 0x000f6d20
+ACPI: RSDT (v001 PTLTD    RSDT   01540.00000) @ 0x1fef64a0
+ACPI: FADT (v001 INTEL  845M     01540.00000) @ 0x1fefbf8c
+ACPI: DSDT (v001 COMPAL 845M     01540.00000) @ 0x00000000
 ACPI: BIOS passes blacklist
-Kernel command line: BOOT_IMAGE=Linux ro root=302
-Initializing CPU#0
-Detected 647.191 MHz processor.
-Console: colour VGA+ 80x25
-Calibrating delay loop... 1291.05 BogoMIPS
-Memory: 386504k/393068k available (1200k kernel code, 6176k reserved, 448k 
-data, 72k init, 0k highmem)
-Dentry cache hash table entries: 65536 (order: 7, 524288 bytes)
-Inode cache hash table entries: 32768 (order: 6, 262144 bytes)
-Mount cache hash table entries: 512 (order: 0, 4096 bytes)
-Buffer-cache hash table entries: 32768 (order: 5, 131072 bytes)
-Page-cache hash table entries: 131072 (order: 7, 524288 bytes)
-CPU: L1 I cache: 16K, L1 D cache: 16K
-CPU: L2 cache: 256K
-Intel machine check architecture supported.
-Intel machine check reporting enabled on CPU#0.
-CPU:     After generic, caps: 0383f9ff 00000000 00000000 00000000
-CPU:             Common caps: 0383f9ff 00000000 00000000 00000000
-CPU: Intel Pentium III (Coppermine) stepping 06
-Enabling fast FPU save and restore... done.
-Enabling unmasked SIMD FPU exception support... done.
-Checking 'hlt' instruction... OK.
-POSIX conformance testing by UNIFIX
-mtrr: v1.40 (20010327) Richard Gooch (rgooch-r1x6VkxMR+00zabcByZE4g@public.gmane.org)
-mtrr: detected mtrr type: Intel
 ACPI: Subsystem revision 20030122
-PCI: PCI BIOS revision 2.10 entry at 0xfc0ae, last bus=1
+PCI: PCI BIOS revision 2.10 entry at 0xfd9a4, last bus=2
 PCI: Using configuration type 1
+    ACPI-0292: *** Info: Table [DSDT] replaced by host OS
 ACPI: Interpreter enabled
 ACPI: Using PIC for interrupt routing
-ACPI: System [ACPI] (supports S0 S1 S3 S4bios S4 S5)
+ACPI: System [ACPI] (supports S0 S3 S4 S5)
 ACPI: PCI Root Bridge [PCI0] (00:00)
 PCI: Probing PCI hardware (bus 00)
+PCI: Ignoring BAR0-3 of IDE controller 00:1f.1
+Transparent bridge - Intel Corp. 82801BAM/CAM PCI Bridge
 ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 9 10 *11 12 14 15)
-ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 *5 6 7 9 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 6 7 9 10 11 12 14 15, disabled)
-ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 6 7 9 10 *11 12 14 15)
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.AGP_._PRT]
-ACPI: Power Resource [PADA] (on)
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.AGPB._PRT]
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCIB._PRT]
+ACPI: PCI Interrupt Link [LNKA] (IRQs *9)
+ACPI: PCI Interrupt Link [LNKB] (IRQs *9)
+ACPI: PCI Interrupt Link [LNKC] (IRQs *9)
+ACPI: PCI Interrupt Link [LNKD] (IRQs *9)
+ACPI: PCI Interrupt Link [LNKE] (IRQs *9)
+ACPI: PCI Interrupt Link [LNKF] (IRQs 9, disabled)
+ACPI: PCI Interrupt Link [LNKG] (IRQs 9, disabled)
+ACPI: PCI Interrupt Link [LNKH] (IRQs 9, disabled)
+ACPI: Embedded Controller [EC0] (gpe 28)
+schedule_task(): keventd has not started
 PCI: Probing PCI hardware
-ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 10
-PCI: Using ACPI for IRQ routing
-PCI: if you experience problems, try using option 'pci=noacpi' or even 
-'acpi=off'
-Limiting direct PCI/PCI transfers.
-Linux NET4.0 for Linux 2.4
-Based upon Swansea University Computer Society NET3.039
-Initializing RT netlink socket
-IA-32 Microcode Update Driver: v1.11 <tigran-DTz5qymZ9yRBDgjK7y7TUQ@public.gmane.org>
-Starting kswapd
-VFS: Diskquotas version dquot_6.4.0 initialized
-Journalled Block Device driver loaded
-ACPI: AC Adapter [AC] (on-line)
-    ACPI-0207: *** Warning: Buffer created with zero length in AML
-    ACPI-0207: *** Warning: Buffer created with zero length in AML
-    ACPI-0207: *** Warning: Buffer created with zero length in AML
-    ACPI-0207: *** Warning: Buffer created with zero length in AML
-ACPI: Battery Slot [BAT0] (battery present)
-ACPI: Battery Slot [BAT1] (battery absent)
+ACPI: PCI Interrupt Link [LNKF] enabled at IRQ 9
+ACPI: PCI Interrupt Link [LNKG] enabled at IRQ 0
+ACPI: PCI Interrupt Link [LNKH] enabled at IRQ 9
+ACPI: AC Adapter [ACAD] (on-line)
+ACPI: Battery Slot [BAT1] (battery present)
+ACPI: Power Button (FF) [PWRF]
 ACPI: Lid Switch [LID]
-ACPI: Power Button (CM) [PBTN]
-ACPI: Sleep Button (CM) [SBTN]
-ACPI: Processor [CPU0] (supports C1 C2)
-ACPI: Thermal Zone [THM] (-296 C)
-
-when system works still writes into dmesg this:
-    ACPI-0207: *** Warning: Buffer created with zero length in AML
-        -0091: *** Error: ut_allocate: Attempt to allocate zero bytes
-    ACPI-0207: *** Warning: Buffer created with zero length in AML
-        -0091: *** Error: ut_allocate: Attempt to allocate zero bytes
-    ACPI-0207: *** Warning: Buffer created with zero length in AML
-        -0091: *** Error: ut_allocate: Attempt to allocate zero bytes
-    ACPI-0207: *** Warning: Buffer created with zero length in AML
-        -0091: *** Error: ut_allocate: Attempt to allocate zero bytes
-    ACPI-0207: *** Warning: Buffer created with zero length in AML
-        -0091: *** Error: ut_allocate: Attempt to allocate zero bytes
-    ACPI-0207: *** Warning: Buffer created with zero length in AML
-        -0091: *** Error: ut_allocate: Attempt to allocate zero bytes
-    ACPI-0207: *** Warning: Buffer created with zero length in AML
-        -0091: *** Error: ut_allocate: Attempt to allocate zero bytes
-    ACPI-0207: *** Warning: Buffer created with zero length in AML
-        -0091: *** Error: ut_allocate: Attempt to allocate zero bytes
-
-now /proc/
-
-cijoml@notas:~$ > cat /proc/acpi/battery/BAT0/info
-present:                 yes
-design capacity:         0 mWh
-last full capacity:      0 mWh
-battery technology:      non-rechargeable
-design voltage:          0 mV
-design capacity warning: 0 mWh
-design capacity low:     0 mWh
-capacity granularity 1:  0 mWh
-capacity granularity 2:  0 mWh
-model number:
-serial number:
-battery type:
-OEM info:
-
-cijoml@notas:~$ > cat /proc/acpi/thermal_zone/THM/temperature
-temperature:             -296 C
+ACPI: Sleep Button (CM) [SLPB]
+ACPI: Processor [CPU0] (supports C1 C2, 8 throttling states)
 
 
-Thanks a lot
+Any idea, what I can do about this......
 
-Michal
+Thanks in advance,
+
+Tom
+
 
 
 -------------------------------------------------------
