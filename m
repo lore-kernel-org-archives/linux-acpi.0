@@ -1,12 +1,12 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Re: S3 suspend and serial console
-Date: Mon, 7 Feb 2005 15:16:55 +0100
-Message-ID: <20050207141655.GB8040@elf.ucw.cz>
-References: <42023083.8030508@gmx.net> <4204CA50.8090906@gmx.net> <20050205155845.GA20131@hell.org.pl> <20050205220619.GA30739@message-id.gmane0305.slipkontur.de> <4206CF63.2090600@gmx.net>
+Subject: Re: Re: [RFC] Reliable video POSTing on resume
+Date: Mon, 7 Feb 2005 15:22:19 +0100
+Message-ID: <20050207142219.GC8040@elf.ucw.cz>
+References: <20050122134205.GA9354@wsc-gmbh.de> <4204B3C1.80706@rainbow-software.org> <9e473391050205074769e4f10@mail.gmail.com> <200502051748.43547.stefandoesinger@gmx.at> <9e47339105020509382adbbf39@mail.gmail.com> <420740F1.5050609@hist.no>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <4206CF63.2090600-hi6Y0CQ0nG0@public.gmane.org>
+In-Reply-To: <420740F1.5050609-CND4fxrytsY@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,29 +16,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Helge Hafting <helge.hafting-CND4fxrytsY@public.gmane.org>
+Cc: Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Stefan =?iso-8859-1?Q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Ondrej Zary <linux-ZCIryABCsrmttCpgsWEBFmD2FQJk+8+b@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-
-> > only "> /dev/ttyS0", no echo. This basically does...
+> >The problem with the radeon reset code is that there are many, many
+> >variations of the radeon chips, including different steppings of the
+> >same part. The ROM is matched to the paticular bugs of the chip. From
+> >what I know ATI doesn't even have a universal radeon reset program.
 > > 
-> > open("/dev/tty", O_WRONLY|O_CREAT|O_TRUNC|O_LARGEFILE, 0666) = 3
-> > fcntl64(1, F_GETFD)                     = 0
-> > fcntl64(1, F_DUPFD, 10)                 = 10
-> > fcntl64(1, F_GETFD)                     = 0
-> > fcntl64(10, F_SETFD, FD_CLOEXEC)        = 0
-> > dup2(3, 1)                              = 1
-> > close(3)                                = 0
-> > 
-> > so it is pretty equivalent to "echo -n > /dev/ttyS0"
+> >
+> Maybe they could provide such a program, if asked?
+> Basically, a chip detect and a switch statement containing all
+> the bios reset sequences they have.
 > 
-> Erm... is it intentional that serial powermanagement code is never
-> called on entering/leaving S3? When I added debugging statements
+> They may want to protect "trade secrets" about innovative
+> 3D-pipelines and such.  But the bios reset is probably not that
+> high-end, so perhaps they could provide source code for it?
 
-Probably noone was yet trying to use serial during suspend....
+Try asking them, then ;-)....
+
+Asked the right way, they might even tell you. I believe right way is
+"I'd like to buy 10000 cards, but I need suspend-to-RAM to work".
 
 								Pavel
 -- 
