@@ -1,79 +1,65 @@
-From: "Randy.Dunlap" <rddunlap-3NddpPZAyC0@public.gmane.org>
-Subject: Re: Re: [patch 1/1] thinkpad fn+fx key driver
-Date: Mon, 27 Sep 2004 06:40:13 -0700
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040927064013.4ded0453.rddunlap@osdl.org>
-References: <F7DC2337C7631D4386A2DF6E8FB22B300179B935@hdsmsx401.amr.corp.intel.com>
-	<20040923112457.GB1083@ucw.cz>
-	<20040924134118.GA467@openzaurus.ucw.cz>
-	<20040924142248.GA2593@ucw.cz>
-	<20040925112219.GC4039@elf.ucw.cz>
-	<20040925175500.GA1798@ucw.cz>
+From: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
+Subject: Re: [ACPI] PATCH-ACPI based CPU hotplug[2/6]-ACPI Eject interface support
+Date: Mon, 27 Sep 2004 09:53:48 -0700
+Sender: linux-ia64-owner@vger.kernel.org
+Message-ID: <20040927095348.A29594@unix-os.sc.intel.com>
+References: <20040920092520.A14208@unix-os.sc.intel.com> <200409201812.45933.dtor_core@ameritech.net> <20040924162823.B27778@unix-os.sc.intel.com> <200409270112.29422.dtor_core@ameritech.net>
+Reply-To: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040925175500.GA1798-+ZI9xUNit7I@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Vojtech Pavlik <vojtech-AlSwsSmVLrQ@public.gmane.org>
-Cc: pavel-AlSwsSmVLrQ@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, erik-aH8aFkyL5XJBDgjK7y7TUQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <200409270112.29422.dtor_core@ameritech.net>; from dtor_core@ameritech.net on Mon, Sep 27, 2004 at 01:12:28AM -0500
+To: Dmitry Torokhov <dtor_core@ameritech.net>
+Cc: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>, Len Brown <len.brown@intel.com>, acpi-devel@lists.sourceforge.net, LHNS list <lhns-devel@lists.sourceforge.net>, Linux IA64 <linux-ia64@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, 25 Sep 2004 19:55:02 +0200 Vojtech Pavlik wrote:
+On Mon, Sep 27, 2004 at 01:12:28AM -0500, Dmitry Torokhov wrote:
+> On Friday 24 September 2004 06:28 pm, Keshavamurthy Anil S wrote:
+> > +typedef void acpi_device_sysfs_files(struct kobject *,
+> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0const struct attribute *);
+> > +
+> > +static void setup_sys_fs_device_files(struct acpi_device *dev,
+> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0acpi_device_sysfs_fil=
+es *func);
+> > +
+> > +#define create_sysfs_device_files(dev)=A0\
+> > +=A0=A0=A0=A0=A0=A0=A0setup_sys_fs_device_files(dev, (acpi_device_s=
+ysfs_files *)&sysfs_create_file)
+> > +#define remove_sysfs_device_files(dev)=A0\
+> > +=A0=A0=A0=A0=A0=A0=A0setup_sys_fs_device_files(dev, (acpi_device_s=
+ysfs_files *)&sysfs_remove_file)
+>=20
+>=20
+> Hi Anil,
+>=20
+> It looks very nice except for the part above. I am really confused wh=
+at the
+> purpose of this code is... It looks like it just complicates things?
+Hi Dmitry,
+	I just wanted to have a single function i.e setup_sys_fs_device_files(=
+) for both
+creating and removing sysfs files. So I have #defined create_sysfs_devi=
+ce_files() and=20
+remove_sysfs_device_files() and one of the arguments to the setup_sys_f=
+s_device_files()
+is a function pointer, i.e for one it takes sysfs_create_file and for o=
+ther it takes
+sysfs_remove_file.
 
-| On Sat, Sep 25, 2004 at 01:22:20PM +0200, Pavel Machek wrote:
-| 
-| > > > Having vol+/vol- keys would be  very welcome. This daemon would
-| > > > have to understand scancodes for a lot of
-| > > > different keyboards, but perhaps
-| > > > that is easy enough to create incrementally.
-| > > 
-| > > The Volume+ and Volume- keys are actually pretty standardized and the
-| > > kernel recognizes them out of the box on 95% of machines.
-| > 
-| > Hmm, yes, on my machines vol- generates ^[[26~, mute ^[[25~ and vol+ nothing.
-| 
-| Have you tried evtest? It might be just a keymap issue.
-| 
-| > > The daemon could but wouldn't have to take care of uploading the correct
-| > > scancode->keycode tables to the kernel.
-| > 
-| > Hmm, okay. 
-| > 
-| > Is it possible to have somehow get both keycodes and translated keys?
-| > I guess I might want to define ctrl-alt-= as vol+ and ctrl-alt-- as
-| > vol- for machines that do not have hardware keys.
-| 
-| That's something to be handled in userspace.
-| 
-| > Do you have example code using event interface, somewhere?
-|  
-| Yes, the evtest source is a good example. It's in the inpututils RPM or
-| in the linuxconsole.sf.net CVS.
-
-And a HID events tutorial and sample code from Brad Hards:
-
-http://www.frogmouth.net/hid-doco/linux-hid.html
-
-http://www.frogmouth.net/hid-doco/examples/hiddev-misc/dump-events.c
-http://www.frogmouth.net/hid-doco/examples/hiddev-misc/write-events.c
-
-
---
-~Randy
-MOTD:  Always include version info.
-(Again.  Sometimes I think ln -s /usr/src/linux/.config .signature)
+Having single function for creating and removing sysfs files make it ea=
+sy=20
+from the maintaince perspective, as oppose to remember to code for remo=
+ve=20
+as well when one adds the new file.
 
 
--------------------------------------------------------
-This SF.Net email is sponsored by: YOU BE THE JUDGE. Be one of 170
-Project Admins to receive an Apple iPod Mini FREE for your judgement on
-who ports your project to Linux PPC the best. Sponsored by IBM.
-Deadline: Sept. 24. Go here: http://sf.net/ppc_contest.php
+thanks,
+Anil
+-
+To unsubscribe from this list: send the line "unsubscribe linux-ia64" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
