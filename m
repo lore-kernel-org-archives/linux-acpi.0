@@ -1,14 +1,13 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+From: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
 Subject: Re: suspend.c vs driver-model.txt
-Date: Tue, 30 Jul 2002 20:44:43 +0200
+Date: Tue, 30 Jul 2002 11:47:46 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020730184442.GE7567@atrey.karlin.mff.cuni.cz>
-References: <20020730182255.GC7567@atrey.karlin.mff.cuni.cz> <Pine.LNX.4.44.0207301125370.22697-100000@cherise.pdx.osdl.net>
+Message-ID: <Pine.LNX.4.44.0207301136050.22697-100000@cherise.pdx.osdl.net>
+References: <20020730182921.GD7567@atrey.karlin.mff.cuni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0207301125370.22697-100000-yZQdDDOm3n9ZQn2sFP3R7eTW4wlIGRCZ@public.gmane.org>
+In-Reply-To: <20020730182921.GD7567-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,59 +16,51 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
 Cc: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
 
-> > > >There's power cycle and whole kernel bootup. Device state is
-> > > >completely lost during suspend to disk.
-> > > 
-> > > As it is during suspend-to-ram in most cases (most devices except
-> > > a couple of them are actually powered down and the drivers have to
-> > > bring them back up, at least on pmac, though on x86, the APM BIOS
-> > > helps you a bit there).
-> > 
-> > APM BIOS is irrelevant here (when using APM BIOS, everything is done
-> > by BIOS).
+> > Well, you do have to deal with drivers. Users programs is not enough,
+> > drivers can be kicked by things going on in the kernel as well.
 > 
-> No, it's not. There is still a suspend sequence that must take place in 
-> the kernel. 
+> Well, so that "thing" that could kick it has to be found and made
+> suspend-aware. Better than touching 1000 drivers.
 
-In ideal world of working APM biosen, such sequence would be
-useless. Unfortunately, we live in real world.
+Ok, so the real prize is in finding exactly what the right level of 
+abstraction is. I will give you that one. But in doing so, it is not a 
+decision of "Touching Every Driver" vs. "Not Touching Any Drivers".
 
-> > What I'm doing is "drivers don't have to care about stopping requests
-> > because everything is stopped". If you are willing to go through all
-> > drivers and add stopping in them, thats fine with me, but I believe
-> > its post-2.6.
-> 
-> We have to deal with drivers. Someone has to modify the drivers to make 
-> them properly support power management. 
-> 
-> Now, it's not as bad as it sounds. Many drivers have pm_callback calls
-> that should be modified to the new style. So, we know what to do for many
-> devices. Other than those, the actively maintained drivers will be 
-> converted, as will be the most popular drivers. Others will gradually be 
-> taught to deal with it with PM properly. 
+Drivers must be modified. 
 
-I believe we should ease the pain of driver maintainers by
-guaranteeing:
+Notifying subsystems of a suspend/resume transition is a good thing to do. 
+We touched on this briefly in Ottawa, though nothing was written down, as 
+we were more concerned with dealing with proper driver ordering. 
 
-when driver_suspend() / driver_resume() is called
+Even if we stop I/O requests to the devices, we still have to save and 
+restore their state, as well as put the devices in their own low power 
+state. 
 
-1) userspace is stopped.
+There are about 6 pages in the ACPI 2.0 spec that I actually trust and am
+willing to repeat. Section 9.1.6: "Transitioning from the Working to the 
+Sleep State" (pg. 231), it says:
 
-2) we are running with just one active CPU.
+...
+3) OSPM places all devices into their respective Dx state.
+...
 
-1) implies that new requests are not coming, so driver authors do not
-have to do if (suspended) sleep() in their hot paths.
+If you do that, you must save and restore all device context that will be 
+lost during the transition. 
 
-								Pavel
--- 
-Casualities in World Trade Center: ~3k dead inside the building,
-cryptography in U.S.A. and free speech in Czech Republic.
+You don't want to re-init the device because you can assume information 
+based on what you saved away. It wastes time, and it's unnecessary. 
+
+Suspend states are simply an illusion to the user. They want the system to
+come back to _exactly_ where they left off, as fast as possible.  
+Powerbooks do this incredibly well. Windows even does a decent job. 
+
+	-pat
+
 
 
 -------------------------------------------------------
