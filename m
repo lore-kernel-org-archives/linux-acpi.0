@@ -1,14 +1,9 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Patching tables osl.c doesn't work as advertised ... (was 2.4.19 & latest acpi & patched dsdt (tosh3k))
-Date: Mon, 12 Aug 2002 14:13:47 +0200
+From: Andreas Happe <andreashappe-hi6Y0CQ0nG0@public.gmane.org>
+Subject: HP Omnibook 6100
+Date: Sat, 10 Aug 2002 21:10:55 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020812121347.GE32077@poup.poupinou.org>
-References: <E17dj8L-000JDo-00@f11.mail.ru>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Message-ID: <slrnalap9u.4tf.andreashappe@imladis.homelinux.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <E17dj8L-000JDo-00-9dbTkSSWDIwox3rIn2DAYQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,55 +12,21 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: Huw H <hrhawk-JGs/UdohzUI@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Aug 11, 2002 at 07:11:13AM +0400, Huw H wrote:
-> Heya all again,
->    I've found the cause of my troubles!
-> 
->    In the file linux/drivers/acpi/osl.c the function acpi_os_table_override()
-> isn't properly implimented. The patch on ftp.poupinou.org needs to check which
-> table is being overriden, otherwise all tables get replaced... Maybe it should
-> be something like:
-> 
-> -------------------------------
-> 
-> acpi_status
-> acpi_os_table_override (acpi_table_header *existing_table,
->                           acpi_table_header **new_table)
-> {
->         if (!existing_table || !new_table)
->                 return AE_BAD_PARAMETER;
-> 
->         *new_table = (ACPI_TBLPTR *) AmlCode;
-> 
->         if (ACPI_STRNCMP ((char *) existing_table,
->                           (char *) *new_table, sizeof (XSDT_SIG) -1))
->                 {
->                         *new_table = NULL;
->                 };
-> 
->         return AE_OK;
-> }
-> 
-> ------------------------
-> 
-> Ideally though I think the override belongs in
-> linux/drivers/acpi/tables/tbget.c and the acpi_os_table_override() function
-> should just return the AE_OK if the signatures match, or set the new table
-> pointer to NULL otherwise and/or return the appropriate errwor code. This is I
-> believe the expected behaviour of this function.
+I cannot use ACPI on my Omnibook 6100 (i830m) with 2.4.17 or with
+2.5.6+. Before 2.5.~16 (if this matters, i could rebuild my kernels to
+verbose this) the kernel booted with a "ACPI subsystem not initialized,
+disabling ACPI" - message, later kernels just go OOPS.
 
-Actually, I have not checked the latest release of ACPI, and I don't
-have time to code in my sparse time..  I think I can do something
-in that area in 2 or 3 weeks.
+When using "Use ACPI for processor enumeration only" the kernel stays
+stable but tells me that it could find the processor table.
 
--- 
-Ducrot Bruno
-http://www.poupinou.org        Page profaissionelle
-http://toto.tu-me-saoules.com  Haume page
+thank you in advance
+Andreas Happe
+
+
 
 
 -------------------------------------------------------
