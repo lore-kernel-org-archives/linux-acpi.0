@@ -1,14 +1,12 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: smp support for s3 (not yet working)
-Date: Tue, 6 Jul 2004 14:10:09 +0200
+From: "A. Auquier" <a.auquier-BedXh0tyk8Y@public.gmane.org>
+Subject: DSTD "fixed" but still dmesg errors
+Date: Tue, 06 Jul 2004 14:35:24 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040706121009.GA31488@elf.ucw.cz>
-References: <20040706120513.GA26356@elf.ucw.cz>
+Message-ID: <1089117324.2349.31.camel@darkmobil>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040706120513.GA26356-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,50 +15,55 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hello everybody.
 
-> Supporting SMP on S3 will be harder than SMP on swsusp... For swsusp,
-> all cpus are initialized by kernel doing the resume, so we can just
-> stop them and restart them. For S3, we'll have to kick start cpus by
-> hand :-(.
-> 
-> If you remove code in acpi_restore_state_mem, it will actually resume,
-> enable to type commands into bash, but die very soon because second
-> cpu is not active.
-> 
-> If there's easy way to kick c to life, let me know...
 
-Oh and Intel please fix your mailservers...
+I tell you my little story...
+I have a Medion MD41300 laptop and I installed Gentoo on it.
+(P4 3.06 HT + i820 chipset)
+I'm using 2.6.4 kernel (with smp and acpi support).
+My system crashed when I was under X.
+(I also tried 2.4.26 and 2.6.6...)
+After some times, I saw that there was no crash anymore when I turned
+off acpi.
+So I try to fix it and I read this thread:
+http://forums.gentoo.org/viewtopic.php?t=122145
 
-								Pavel
+My original dsdt:
+http://auquier.net/acpi/dsdtbad.dsl
+The isal errors:
+http://auquier.net/acpi/iaslerrors.txt
+My 'fixed' dsdt:
+http://auquier.net/acpi/dsdtgood.dsl
+The differences between the dsl:
+http://auquier.net/acpi/diffdsdt.txt
 
-To: postmaster-ZPG494wuoPznoz6Kjl9f4RL4W9x8LtSr@public.gmane.org
-To: pavel-+ZI9xUNit7I@public.gmane.org
-Subject: Returned mail: see transcript for details
-Auto-Submitted: auto-generated (failure)
-X-Spam-Checker-Version: SpamAssassin 2.63 (2004-01-11) on
-        atrey.karlin.mff.cuni.cz
-X-Spam-Status: No, hits=0.0 required=5.0 tests=none autolearn=no
-version=2.63
-X-Spam-Level:
-X-CRM114-Status: Good  ( pR: 105.9352 )
+And iasl compiled it with no error.
+I booted with this new dsdt (initrd) but I was still having crashes and
+errors in dmesg.
 
-[-- Attachment #1 --]
-[-- Type: text/plain, Encoding: 7bit, Size: 0.4K --]
+My entire dmesg:
+http://auquier.net/acpi/dmesg.txt
 
-The original message was received at Tue, 6 Jul 2004 12:05:35 GMT
-from gprs214-134.eurotel.cz [160.218.214.134]
+I read more the thread about howto fix ACPI and try to boot with
+'noapic' and had no more crashes (and ACPI working) !
 
-   ----- The following addresses had permanent fatal errors -----
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-<shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+So I have some questions:
+1) Did I fix my dsdt correctly ?
+2) What can I do to deal with my dmesg errors ?
+3) Is it possible to use APIC with ACPI ?
 
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+My lilo.conf:
+http://auquier.net/acpi/lilo.txt
+
+
+Thank you all for the help !
+
+Alexandre
+
 
 
 -------------------------------------------------------
