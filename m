@@ -1,10 +1,12 @@
-From: Jurgen Kramer <gtm.kramer-c1aixF9oqgPk1uMJSBkQmQ@public.gmane.org>
-Subject: Fixing my DSDT
-Date: Thu, 17 Feb 2005 19:32:57 +0100
-Message-ID: <1108665177.10385.2.camel@paragon.slim>
+From: Inglor <inglor-L6arEPXw2n0ZNqoCg3qVjg@public.gmane.org>
+Subject: Re: Acer TravelMate 3200 series
+Date: Thu, 17 Feb 2005 20:45:50 +0200
+Message-ID: <4214E65E.2020202@panafonet.gr>
+References: <42139CFB.4000708@panafonet.gr> <42139D82.5090709@bartol.udel.edu>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7BIT
+In-reply-to: <42139D82.5090709-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,46 +16,46 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-When I compile a new DSDT for my HP TC1100 a get the following errors
-and warnings:
+Rich Townsend wrote:
 
-Intel ACPI Component Architecture
-ASL Optimizing Compiler / AML Disassembler version 20041203 [Feb 17
-2005]
-Copyright (C) 2000 - 2004 Intel Corporation
-Supports ACPI Specification Revision 2.0c
+> Inglor wrote:
+>
+>> I'm trying to make the battery of my laptop shown in the linux.
+>> I have tried kernel compilation with no results.
+>> The ACPI is enabled and I can see my CPU temp.
+>> My kernel is 2.6.10 and I have Mandrake 10.1. The laptop is Acer TM 
+>> 3201XMi
+>>
+>> The battery is shown under Device manager from windows as "Microsoft 
+>> Smart Battery" and "Microsoft Smart Battery Subsystem".
+>> I have found the files for the drivers in windows.. Wiil this help..?
+>>
+>> thanks.. :)
+>>
+>
+> https://sourceforge.net/projects/sbs-linux/
+>
+> The latest release of the sbs-cm package should work with the TM 3201XMi.
+>
+> cheers,
+>
+> Rich
+>
+>
+I managert to produce the patched DSDT.aml with the help of readme file.
+Now I have to patch the kernel with it.
+I noticed that there is a kernel option to use my own DSDT file (kernel 
+2.6.10)
+Will this work or should I do the procedure descpiped into the readme 
+file (which redirects me to a gentoo forum...)
 
-dsdt.dsl   209:     Method (_WAK, 1, NotSerialized)
-Warning  2026 -                ^ Reserved method must return a value
-(_WAK)
-
-dsdt.dsl  2640:                     Name (_HID, "Compaq TabletPC
-Buttons")
-Error    1068 -                    String must be entirely alphanumeric
-^  (Compaq TabletPC Buttons)
-
-dsdt.dsl  3457:             Name (_WDG, Buffer (0x28)
-Warning  2033 -                      ^ Unknown reserved name (_WDG)
-
-dsdt.dsl  3565:             Method (_WED, 1, NotSerialized)
-Warning  2033 -  Unknown reserved name ^  (_WED)
-
-ASL Input:  dsdt.dsl - 3579 lines, 117282 bytes, 1781 keywords
-Compilation complete. 1 Errors, 3 Warnings, 0 Remarks, 377 Optimizations
-
-Is it worth trying to get these fixed?
-
-I also trying to get brightness control working on this machine, which
-is probably operated through ACPI. What should I be looking for?
-
-Thanks
-
-Jurgen
 
 -- 
+ forgive me father for I have.. dreamed
+
 
 
 
