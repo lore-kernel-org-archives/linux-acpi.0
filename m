@@ -1,23 +1,13 @@
-From: =?ISO-8859-1?Q?Fernando_G=F3mez?= <mxyzptlk83-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Re: first shoot for smartbattery
-Date: Mon, 17 Jan 2005 13:37:39 +0100
-Message-ID: <d4e23b3b05011704371276a52c@mail.gmail.com>
-References: <20041231092156.GA612@phys.ethz.ch>
-	 <41D98251.9020002@arrakis.dhis.org>
-	 <20050103180219.GX19199@poupinou.org>
-	 <41D9A1F5.1060508@arrakis.dhis.org>
-	 <m2mzvq5k7u.fsf@phoenix.squirrel.nl>
-	 <47e0449d05011304446094c8b@mail.gmail.com>
-	 <m2fz11gl3c.fsf@phoenix.squirrel.nl>
-	 <1105954283.12359.25.camel@laptop>
-	 <m2pt04qt1j.fsf@phoenix.squirrel.nl>
-	 <47e0449d050117034912fb9ae3@mail.gmail.com>
-Reply-To: =?ISO-8859-1?Q?Fernando_G=F3mez?= <mxyzptlk83-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: Compile problem in DSDT.dsl file
+Date: Mon, 17 Jan 2005 14:08:20 +0100
+Message-ID: <20050117130819.GA8558@hell.org.pl>
+References: <200501101200.13340.rjweber@ieee.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <47e0449d050117034912fb9ae3-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <200501101200.13340.rjweber-EkmVulN54Sk@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -27,57 +17,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Johannes Kuhlmann <jkuhlmann-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Bob Weber <rjweber-EkmVulN54Sk@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Maybe this article can help you, it's in spanish...
+Thus wrote Bob Weber:
+> Hello. I've had ACPI working on my laptop, but with the latest kernel I cannot 
+> boot unless I have "acpi=off".
+> 
+> After reading up on the linux ACPI effort, I decided to try and tackle this. I 
+> have an enpower ENP24004 centrino-based system. With an Intel chipset, I 
+> figured chances are good that the only issue is in the DSDT table.
+> 
+> I've extracted the DSDT code, and when I compile it with "iasl -tc dsdt.dsl", 
+> I get the following:
+> 
+> Intel ACPI Component Architecture
+> ASL Optimizing Compiler / AML Disassembler version 20030918 [Sep 18 2003]
+> Copyright (C) 2000 - 2003 Intel Corporation
+> Supports ACPI Specification Revision 2.0b
+> 
+> dsdt.dsl  7573:     If (SS1)
+> Error    1037 -      ^ parse error, unexpected PARSEOP_IF
 
-http://www.linuxzamora.org/modules.php?op=modload&name=Sections&file=index&req=viewarticle&artid=22&page=1
+A rebranded ASUS, M3N in this case. Someone once suggested to move those
+statements to an _INI method, please search the archives for the exact
+solution.
+Best regards,
 
-
-On Mon, 17 Jan 2005 12:49:15 +0100, Johannes Kuhlmann
-<jkuhlmann-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> Ah, very nice, thank you. :) I will try it this evening and tell you
-> how it works.
-> 
-> As you said, the acerhk module doesn't work with the 4000 series.
-> 
-> Regards,
-> Johannes
-> 
-> 
-> On Mon, 17 Jan 2005 10:55:04 +0100, Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org> wrote:
-> > Fionn Behrens <fionn-ZPjJJ+sDHmfddJNmlsFzeA@public.gmane.org> writes:
-> >
-> > > I believe this functionality can already be found in the acerhk kernel
-> > > module (http://www.informatik.hu-berlin.de/~tauber/acerhk/)
-> >
-> > Yes, I've looked at this one as well.
-> > But it's discontinued, and doesn't seem to work on the TM4000.
-> >
-> > -- Johan
-> >
-> >
-> > -------------------------------------------------------
-> > The SF.Net email is sponsored by: Beat the post-holiday blues
-> > Get a FREE limited edition SourceForge.net t-shirt from ThinkGeek.
-> > It's fun and FREE -- well, almost....http://www.thinkgeek.com/sfshirt
-> > _______________________________________________
-> > Acpi-devel mailing list
-> > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> > https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> >
-> 
-> -------------------------------------------------------
-> The SF.Net email is sponsored by: Beat the post-holiday blues
-> Get a FREE limited edition SourceForge.net t-shirt from ThinkGeek.
-> It's fun and FREE -- well, almost....http://www.thinkgeek.com/sfshirt
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
->
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
