@@ -1,15 +1,13 @@
-From: liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
-Subject: Re: Success with kernel-swsusp and Nvidia-closed-source
-Date: Mon, 8 Nov 2004 16:47:05 +0100 (CET)
-Message-ID: <Pine.LNX.4.60.0411081640410.4713@frog.athome>
-References: <Pine.LNX.4.60.0411031215260.1187@frog.athome>
- <Pine.LNX.4.60.0411041729180.4727@frog.athome> <200411041812.54813.christian.hesse@linuxob.de>
- <200411072052.53065.mail@earthworm.de>
-Reply-To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH/RFC 0/4]Bind physical devices with ACPI devices
+Date: Tue, 9 Nov 2004 00:08:03 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC033@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200411072052.53065.mail-8oMOrB1mGocUSW6y5lq3GQ@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,57 +17,66 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Christian Hesse <mail-8oMOrB1mGocUSW6y5lq3GQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+To: Matthew Wilcox <matthew-Ztpu424NOJ8@public.gmane.org>
+Cc: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Greg <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Patrick Mochel <mochel-og82NyAXoxR0I81aPRRTmR2eb7JE58TQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
 
-Salut Christian,
-On Sun, 7 Nov 2004, Christian Hesse wrote:
->>> Let us know if this gets you any further. When I find time, I will give
->>> swsusp 2.1 another try myself!
->>
->> I disabled AGP in my kernel config, recompiled the module and added the
->> line mentioned above in my xorg.conf - nothing changed. Screen is still
->> black after resume. But I can confirm that I can log in via network and
->> killall -9 X.
+>On Mon, Nov 08, 2004 at 10:46:30PM +0800, Yu, Luming wrote:
+>> >All we need is an acpi_get_gendev_handle that takes a=20
+>struct device and
+>> >returns the acpi_handle for it.  Now, maybe that'd be best=20
+>> >done by placing
+>> >a pointer in the struct device, but I bet it'd be just as=20
+>good to walk
+>> >the namespace looking for the corresponding device.
+>>=20
+>>   It will fail if you just simply walk namespace to find out=20
+>> the corresponding acpi object, because there are NO
+>> hardware id or compatible id  can be passed in.
+>> Please check function acpi_bus_match.
 >
-> Tried with nvidias new driver 1.0-6629 today. I managed to make it work once,
-> but I couldn't reproduce it... :(
-I am verry impressed. I had a try myself today and did not succeed. Then I 
-took a look at the driver (6629 -> nv.c) and discovered, that they removed 
-all ACPI support, which was in 6111. So your once success with 6629 is a 
-little miracle. But maybe ACPI is not allways needed :-))))
-So, from time to time, I have the trouble, that my keyboard is not 
-behaving well after suspend (which comes from X). When I login over the 
-network, and issue a
-  chvt 6
-  chvt 7
-sequence, all will be back to normal. I start now including a change to 
-vt-6 before suspending into my script. I will report back, if this is a 
-better solution.
-So for the record: working for me: 2.6.9-vanilla+nv-6111+haggis
-                                    2.6.8-vanilla+nv-6111+haggis
-                                    2.6.9+sw2.1.1+nv-6111+haggis
+>It doesn't need the HID or CID.  Look at Shaohua's patches --=20
+>they don't
+>use HID or CID either.
+>
+Yes, I made a mistake, please forget that point.
 
-Cheers
-   hartwig felger
+But another statement I made should be valid.
+That is how to use geographical address to
+locate corresponding acpi object.
 
-Hartwig Felger informatics
+For example,  ACPI define IDE as the following:
 
-- -- 
-1024D/339FD693 Hartwig Felger <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
-Key fingerprint = FB2F 3EE9 345A D55B 6FF2  0EC1 F5B0 684F 339F D693
-For the pulic keys, please visit my page.
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
+Device (IDE0){ /* primary controller */
+	Name (_ADR, 0)
+	Method (_GTM )
+	...
+	Device(PRIM) /* primary adapter */
+		Name (_ADR, 0)
+		Method(_GTM)
+		...
+		Device(MSTR) /* master channel */
+			Name (_ADR,0)
+			Method(_GTF)
 
-iD8DBQFBj5T+9bBoTzOf1pMRAinaAKDk2Oi3ZpjR3Gw3saqgpR9nncyU3wCfXpZQ
-gGblWm6+Um3MX66fuTdjP84=
-=/onx
------END PGP SIGNATURE-----
+  We need not only able to locate acpi object IDE0
+but also we need to locate object PRIM underneath
+IDE0,  and MSTR underneath PRIM. Thus, IDE driver=20
+can fully take advantage from ACPI, in terms of=20
+configuration and power management.
+
+  Maybe we need to invent a method called
+map_device_addr_to_acpi_handle to be  generic solution.
+
+Thanks,
+Luming
+
+
+ =20
+
+
+
 
 
 -------------------------------------------------------
