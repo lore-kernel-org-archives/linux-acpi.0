@@ -1,14 +1,15 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+From: Martin Hermanowski <martin-lb+GC1uVkU0@public.gmane.org>
 Subject: Re: Centrino question
-Date: Fri, 21 May 2004 20:47:03 +0200
+Date: Fri, 21 May 2004 20:48:30 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040521184703.GR29214@poupinou.org>
-References: <7F740D512C7C1046AB53446D372001730177CE7A@scsmsx402.amr.corp.intel.com> <1085163473.9856.23.camel@Neuromancer.home.net> <20040521183113.GQ29214@poupinou.org> <1085164585.9856.31.camel@Neuromancer.home.net>
+Message-ID: <20040521184830.GG31690@mh57.de>
+References: <3ACA40606221794F80A5670F0AF15F8404622C57@PDSMSX403.ccr.corp.intel.com> <20040520015748.776d5b84.neurowork@free.fr> <1085111429.12352.563.camel@dhcppc4> <20040521125637.33f69fc6.neurowork@free.fr> <20040521115207.GA12775@hell.org.pl> <1085161136.9856.5.camel@Neuromancer.home.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="s2ZSL+KKDSLx8OML"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1085164585.9856.31.camel-C9mHTC703ZUb5wn6fCfWY+TW4wlIGRCZ@public.gmane.org>
+In-Reply-To: <1085161136.9856.5.camel-C9mHTC703ZUb5wn6fCfWY+TW4wlIGRCZ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,37 +18,61 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
-Cc: "Nakajima, Jun" <jun.nakajima-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, May 21, 2004 at 11:36:25AM -0700, Ow Mun Heng wrote:
-> > That's strange.  Are you sure you are not running a kind of throttling
-> > control stuff instead?
-> 
-> What do you mean? When I'm on battery, I also run the laptop_mode patch.
-> (though now, I have trouble with XFS not understanding the commit=600 or
-> something like that)
 
-There are people (even OEM btw) that sometimes think that throttling a
-CPU is the same as for P-state.
+--s2ZSL+KKDSLx8OML
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> I don't have the P-states anymore since upgrading to 2.6 kernel on RH9
-> (2.6.3)
+On Fri, May 21, 2004 at 10:38:57AM -0700, Ow Mun Heng wrote:
+> On Fri, 2004-05-21 at 04:52, Karol Kozimor wrote:
+> > Thus wrote Cyril Wattebled:
+> > > However, I don't understand, I was told that the centrino processor a=
+nd chipset
+> > > supports C3 and even C4.
+>=20
+> C3 is Supported
+>=20
+>=20
+> active state:            C2
+> default state:           C1
+> bus master activity:     ffffffff
+> states:
+>     C1:  promotion[C2] demotion[--] latency[000] usage[01028830]
+>    *C2: promotion[C3] demotion[C1] latency[050] usage[04785987]
+>     C3:  promotion[--] demotion[C2] latency[050] usage[00001327]
+>=20
+> This is a Dell D600 1.4g. c3 values are low because I have the USB mouse
+> on right now. (note the fffffff??)
 
-And?  You are using the cpufreq infrastructure with the enhanced
-speedstep driver, which is the same thing anyway.
+The same here (ibm t41p, 1.7GHz). Using USB forces c2. But c1 seems to be u=
+sed
+very seldom (usage count of 10).
 
-Well, if really you last only 2 hours and a half on battery, even if
-running at 600MHz via cpufreq, and C3 is also enabled, with laptop mode
-enabled and so on, either you are using the cdrom continously (which I doubt)
-or your battery is failing imho.
+> I've tested it with and w/o C3. The difference in the battery lifetime
+> was only very minmal. I got like maybe 10 mins extra.
 
--- 
-Bruno Ducrot
+15min here.
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+LLAP, Martin
+
+--s2ZSL+KKDSLx8OML
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFArk79mGb6Npij0ewRAqg8AKCSkgGLGSxq8rYSaiVVb4MWsfTt6QCgpx9O
+Jhobg1EF9qS3fe6nE8NbNsk=
+=S5ZR
+-----END PGP SIGNATURE-----
+
+--s2ZSL+KKDSLx8OML--
 
 
 -------------------------------------------------------
