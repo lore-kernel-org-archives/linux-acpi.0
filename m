@@ -1,14 +1,18 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+From: Ow Mun Heng <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
 Subject: Re: Centrino question
-Date: Fri, 21 May 2004 18:37:18 +0200
+Date: Fri, 21 May 2004 10:38:57 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040521163718.GO29214@poupinou.org>
-References: <20040509182524.03a9de0d.neurowork@free.fr> <409E6F91.8090506@speakeasy.net> <20040510002814.67f2022a.neurowork@free.fr>
+Message-ID: <1085161136.9856.5.camel@Neuromancer.home.net>
+References: <3ACA40606221794F80A5670F0AF15F8404622C57@PDSMSX403.ccr.corp.intel.com>
+	 <20040520015748.776d5b84.neurowork@free.fr>
+	 <1085111429.12352.563.camel@dhcppc4>
+	 <20040521125637.33f69fc6.neurowork@free.fr>
+	 <20040521115207.GA12775@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040510002814.67f2022a.neurowork-GANU6spQydw@public.gmane.org>
+In-Reply-To: <20040521115207.GA12775-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,41 +21,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Cyril Wattebled <neurowork-GANU6spQydw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, May 10, 2004 at 12:28:14AM +0000, Cyril Wattebled wrote:
-> 
-> On Sun, 09 May 2004 13:51:13 -0400
-> Dino Klein <zagzag-lists-zY4eFNvK5D9If6P1QZMOBw@public.gmane.org> wrote:
-> 
-> > http://bugzilla.kernel.org/show_bug.cgi?id=1958), that reads the _CST 
-> > object.
-> > Give it a try, and see if it solves your issue.
+On Fri, 2004-05-21 at 04:52, Karol Kozimor wrote:
+> Thus wrote Cyril Wattebled:
+> > However, I don't understand, I was told that the centrino processor and chipset
+> > supports C3 and even C4.
 
-> Thanks for the link, I applied the patch but I still only have C2 max ...
-> Any other clues ?
+C3 is Supported
 
 
-Could you send me the output of acpidmp, please ?
+active state:            C2
+default state:           C1
+bus master activity:     ffffffff
+states:
+    C1:  promotion[C2] demotion[--] latency[000] usage[01028830]
+   *C2: promotion[C3] demotion[C1] latency[050] usage[04785987]
+    C3:  promotion[--] demotion[C2] latency[050] usage[00001327]
 
-wget ftp://ftp.kernel.org//pub/linux/kernel/people/lenb/acpi/utils/pmtools-20031210.tar.bz2
-tar xjvfp pmtools-20031210.tar.bz2
-cd pmtools-20031210/acpidmp
-make
-sudo ./acpidmp > acpidmp.out
-bzip2 acpidmp.out 
+This is a Dell D600 1.4g. c3 values are low because I have the USB mouse
+on right now. (note the fffffff??)
 
-Then mail me the acpidmp.out.bz2
+I've tested it with and w/o C3. The difference in the battery lifetime
+was only very minmal. I got like maybe 10 mins extra.
 
-Cheers,
+I last 2:30 on Linux and 3h on Windows.
 
--- 
-Bruno Ducrot
+Batt Life Sucks..
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
 
 
 -------------------------------------------------------
