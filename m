@@ -1,14 +1,14 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: RE: Presario DANGER
-Date: Mon, 4 Nov 2002 19:41:29 +0100
+From: "Cagle, John (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>
+Subject: RE: RE: Presario DANGER
+Date: Mon, 4 Nov 2002 14:10:58 -0600
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021104184129.GA10508@poup.poupinou.org>
-References: <200211041130.44371.ruud.koendering@planet.nl> <200211041840.59356.ruud.koendering@planet.nl>
+Message-ID: <C50AB9511EE59B49B2A503CB7AE1ABD10440E2F2@cceexc19.americas.cpqcorp.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200211041840.59356.ruud.koendering-EIBgga6/0yRmR6Xm/wNWPw@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,38 +17,58 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ruud Koendering <ruud.koendering-EIBgga6/0yRmR6Xm/wNWPw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ruud koendering <ruud.koendering-EIBgga6/0yRmR6Xm/wNWPw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Nov 04, 2002 at 06:40:58PM +0100, Ruud Koendering wrote:
-> On Monday 04 November 2002 11:30 am, ruud koendering wrote:
-> > All the Compaq Presario's are in danger without ACPI. This is confirmed by
-> > new HP. (They d'ont feel to be responcible as always in certain companies.
-> > Make something, sell it and then so0rry c'ant help you)
-> >
+Ruud,
 
-...
+I don't think this is correct.  Your Presario is not going to
+burn up because you don't use ACPI.  I'm almost certain that
+the laptops have temperature sensing circuitry that will trip
+when the processor reaches a critical temperature, allowing the
+laptop to poweroff before any damage can occur.
 
-> 
-> I really don't know if is correct  what I had write.
-> 
-> I MUST SAY: NICE ANSWERS, THEY REALLY SOLVE MY PROBLEM.
-> 
-> I OWN A PRESARIO 7XX SUPPLIED BY THE NEW HP. COMPAQ IS NO LONGER = ONLY A 
-> PRODUCT NAME NOT A COMPANY ANYMORE.
-> 
-> I BELIEVE THAT IF MORE PEOPLE TEST ACPI AND ACPI CAN BE SET AS RPM's ON THE 
-> WEBSIOTE MORE PEOPLE CAN WORK WITH IT.
-> 
-> MABY A GOOD DESCRIPTION FOR PEOPLE NOT AWARE OF THE INTERNAL WORKINGS!
+Of course, using ACPI will give you more graceful control of
+this situation.  If you have received any communication from HP
+to the contrary, please forward it to me and I will investigate.
 
-Please don't cry.
+Regards,
+John
 
--- 
-Ducrot Bruno
-http://www.poupinou.org        Page profaissionelle
-http://toto.tu-me-saoules.com  Haume page
+--------------------------------
+John Cagle     john.cagle-VXdhtT5mjnY@public.gmane.org
+Principal Member Technical Staff
+   Industry Standard Servers
+    Hewlett-Packard Company
+    http://www.hp.com/linux
+
+> -----Original Message-----
+> From: ruud koendering [mailto:ruud.koendering-EIBgga6/0yRmR6Xm/wNWPw@public.gmane.org]=20
+> Sent: Monday, November 04, 2002 4:31 AM
+> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: [ACPI] RE: Presario DANGER
+>=20
+> All the Compaq Presario's are in danger without ACPI. This is=20
+> confirmed by new=20
+> HP. (They d'ont feel to be responcible as always in certain=20
+> companies. Make=20
+> something, sell it and then so0rry c'ant help you)
+>=20
+> When will companies like Suse, RedHat, Mandrake etc. do=20
+> something about it?
+>=20
+> --=20
+> regards,						=09
+> RedHat7.3
+> Ruud koendering					=09
+> Mandrake9.0
+> Sr. Program/Project/Interim manager
+> De Wickelaan 11
+> 2265 DG Leidschendam
+> Netherlands
+> Phone:+31(0)703271506
+>           +31(0)641372381
+> E-mail:ruud.koendering-EIBgga6/0yRmR6Xm/wNWPw@public.gmane.org
 
 
 -------------------------------------------------------
