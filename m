@@ -1,12 +1,14 @@
-From: wwp <subscript-GANU6spQydw@public.gmane.org>
-Subject: reading files in /proc/acpi hangs machine for a short time
-Date: Fri, 25 Jun 2004 08:29:29 +0200
+From: Daniele Boffi <boffi-piYtxHxN1XRAly3Pu9w1wA@public.gmane.org>
+Subject: Re: Re: [Swsusp-devel] swsusp and ac status
+Date: Fri, 25 Jun 2004 09:01:15 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040625082929.45335181@tethys.solarsys.org>
+Message-ID: <200406250701.i5P71GKC006204@fermat.unipv.it>
+References: <mhf@linuxmail.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: Message from "Michael Frank" <mhf-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+   of "Fri, 25 Jun 2004 01:26:28 +0800." <opr93z2ex34evsfm-TBR8pM7LtsqkE96DxU8f+dAkNl5+tjhE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,35 +17,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Michael Frank <mhf-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Software Suspend - Mailing Lists <swsusp-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi there,
+> 
+> Please try:
+> rmmod AC
+> suspend/resume
+> modprobe AC
+> 
+> It should be OK...
+
+It is NOT in my case. It is one of the first things I did. Now, just 
+in case, I gave it another try, but it does not work.
+
+modprobe -r ac
+suspend
+unplug
+resume
+modprobe ac
+
+cat /proc/acpi/ac_adapter/C131/state
+state: on-line
+
+If now, after resuming, I plug and unplug the adapter...
+
+cat /proc/acpi/ac_adapter/C131/state
+state: off-line
+
+> 2.0.0.88 is the most successful one in the whole 2.6 series.
+
+I agree! besides this ac problem (and a little typo in the version 
+number that reads 86 instead of 88...) it works great.
+
+Daniele
 
 
-many acpi programs that show the battery/etc. usage that I tested are making
-my system not to respond for a very short while, but periodically. For
-instance, the mouse is being locked for 1/n of a second, which is not a big
-loss of performance, but it really damn itchy for a normal (intensive) usage
-of my Dell Inspiron 8200 laptop (kernel 2.4.26). I do remember of some
-programs that were not producing such itchyness a long time ago (maybe
-because the kernel things were different?).
-
-I've found that if I some files from /proc/acpi (let's say battery state), I
-get the same behaviour.
-
-So my questions are:
-- is this a known issue?
-- program/kernel/dsdt/what-else issued?
-- are there known workarounds?
-- is it possible to get the acpi states from another place that /proc (if only it
-doesn't show the same problem)?
-
-
-Regards,
-
--- 
-wwp
 
 
 -------------------------------------------------------
