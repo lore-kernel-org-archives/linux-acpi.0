@@ -1,12 +1,15 @@
-From: Paul Ionescu <i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+From: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
 Subject: Re: Re: [linux-usb-devel] kernel 2.6.10 , uhci-hcd problem after ACPI S3 suspend.
-Date: Thu, 6 Jan 2005 11:13:06 -0800 (PST)
-Message-ID: <20050106191306.61796.qmail@web50209.mail.yahoo.com>
-References: <200501061948.57848.oliver@neukum.org>
+Date: Thu, 6 Jan 2005 09:37:23 -0800
+Message-ID: <200501060937.24107.david-b@pacbell.net>
+References: <20050105164655.45860.qmail@web50204.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200501061948.57848.oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20050105164655.45860.qmail-zX69vREatC6A/QwVtaZbd3CJp6faPEW9@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,55 +19,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Oliver Neukum <oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org>
-Cc: linux-usb-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: linux-usb-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Paul Ionescu <i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>, Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Oliver,
+> > After an ACPI S3 suspend it fails to see any USB
+> > device plugged in.
 
-Yes, it works better without ehci_hcd.
-I still have some minor issues, it is not flawless,
-but
-definitely better than before.
-Please note, that for me it works the other way too:
-If I rmmod uhci_hcd before suspend and I insert it
-after resume, I have a happy system.
-So it seems that they don't like each other (ie uhci
-and ehci) when suspended.
+Just for the record:  I've seen that work with
+EHCI and OHCI, for S1 suspend (which works much
+like S3 from the USB perspective) and swsusp in
+poweredown "S4-ish" suspend.  At least, I've seen
+that work for code that went into 2.6.10-early
+patches; haven't made time to re-test lately.
 
---- Oliver Neukum <oliver-GvhC2dPhHPQdnm+yROfE0A@public.gmane.org> wrote:
+- Dave
 
-> Am Donnerstag, 6. Januar 2005 19:28 schrieb Paul
-> Ionescu:
-> > Hi Oliver,
-> > 
-> > Yes, it works if rmmod ehci_hcd before suspending,
-> but
-> > it was a time when there was no need to rmmod
-> anything
-> > before suspending ( for me was something like
-> 2.6.7 or
-> > around ).
-> > In 2.6.9 you cannot suspend anymore with ehci-hcd
-> > loaded, in 2.6.10 you can but you screw your uhci
-> and
-> > sometime hang your usb stack.
-> 
-> This state of affairs is undesirable. It seems
-> important to me to
-> establish that we both see the same effect.
-> 
-> 	Regards
-> 		Oliver
-> 
-
-
-
-		
-__________________________________ 
-Do you Yahoo!? 
-All your favorites on one personal page – Try My Yahoo!
-http://my.yahoo.com 
 
 
 -------------------------------------------------------
