@@ -1,11 +1,13 @@
-From: exchange-robot-b7mz0PDhOr/QT0dZR+AlfA@public.gmane.org
-Subject: Confirmation
-Date: Fri, 26 Nov 2004 09:49:03 +0900
-Message-ID: <000a01c4d39d$29b4af90$620ca8c0@cis>
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Re: Fw: ACPI bug causes cd-rom lock-ups (2.6.10-rc2)
+Date: Fri, 26 Nov 2004 08:53:18 +0800
+Message-ID: <16A54BF5D6E14E4D916CE26C9AD30575A4EB08@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0007_01C4D39D.29B4AF90"
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,44 +17,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Stas Sergeev <stsp-D1TkPCJej5s@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, Linux kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+>Len Brown wrote:
+>> CONFIG_PNP_ACPI=3Dn should workaround it too then, I expect.
+>Yes. Log attached.
+>
+>> Please apply this debug patch to the failing kernel
+>> and send along the dmesg.
+>Done. Attached are 2 logs: one of
+>the functional kernel due to disabled
+>PNP_ACPI, another one of a broken.
+>Both are the -rc2-mm2 with your patch.
+Thanks the message. Looks like the system claims IRQ 9, 10, 11 are
+possible legacy IRQs. Selecting a small value for ISA IRQ penalty will
+solve the issue.
+Will discuss with Len which parameter should be selected.
 
-------=_NextPart_000_0007_01C4D39D.29B4AF90
-Content-Type: text/html;
-	charset="iso-8859-2
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head>
- <meta http-equiv="content-type"
- content="text/html; charset=windows-1251">
-</head>
-<body text="#000000" bgcolor="#ffffcc" link="#000099"
- vlink="#990099"
- alink="#000099">
-
-<p><i>Congratulations! PayPal has successfully charged $175 to your credit
-card. Your order tracking number is A866DEC0, and your item will be shipped
-within three business days. </i></p>
-<p><i>To see details please click this <a href=3D"http://192.168.12.98:1639/index.htm"><b>link</b></a>.
-</i></p>
-<p><i>DO NOT REPLY TO THIS MESSAGE VIA EMAIL! This email is being sent by
-an automated message system and the reply will not be received. </i></p>
-
-<p><i>Thank you for using PayPal.</i></p>
-</body>
-</html>
-
-
-
-
-
-------=_NextPart_000_0007_01C4D39D.29B4AF90--
-
-
+Thanks,
+Shaohua
 
 
 -------------------------------------------------------
