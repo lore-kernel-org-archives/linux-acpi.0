@@ -1,35 +1,31 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Where does Dell i8200 hide it's fans?
-Date: Mon, 3 Feb 2003 17:09:29 -0800
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A847137FFC@orsmsx401.jf.intel.com>
+Subject: RE: [PATCH] s4bios for 2.5.59 + apci-20030123
+Date: Mon, 3 Feb 2003 17:25:38 -0800
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <F760B14C9561B941B89469F59BA3A847137FFE@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+	charset="ISO-8859-1"
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 content-class: urn:content-classes:message
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: James D Strandboge <jstrand1-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: James D Strandboge [mailto:jstrand1-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org] 
-> I too would be interested in this.  I am still using 20021118 because
-> anything later just didn't work.  If you are hacking the 
-> DSDT, I'd love
-> some info on what you are doing, because our DSDT is so cryptic (to me
-> anyway).
+> From: Ducrot Bruno [mailto:poup-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org] 
+> This patch is for s4bios support in 2.5.59 with acpi-20030123.
+> 
+> This is the 'minimal' requirement.  Some devices (especially the
+> IDE part) are not well resumed.  Handle with care..
+> 
+> Note also that the resuming part (I mean IDE) was more stable
+> with an equivalent patch when I tested with 2.5.54 (grumble 
+> grumble)...
+> 
+> I think also that it is a 'good' checker for devices power management
+> in general...
 
-20021118 works but 20021122 doesn't? Let me take a look...
+I'd really rather just have S4OS (aka swsusp) in 2.5 patches -- if the
+OS can do S4 on its own, that is really preferable to S4bios.
 
-
--------------------------------------------------------
-This SF.NET email is sponsored by:
-SourceForge Enterprise Edition + IBM + LinuxWorld = Something 2 See!
-http://www.vasoftware.com
+Regards -- Andy
