@@ -1,15 +1,13 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: eisa_set_level_irq(acpi_fadt.sci_int)
-Date: Fri, 24 Oct 2003 15:12:44 +0200
+From: Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>
+Subject: Re: Linux 2.4.23-pre8
+Date: Fri, 24 Oct 2003 10:43:48 -0200 (BRST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031024131244.GE28351@poupinou.org>
-References: <1066254483.2535.51.camel@dhcppc4> <20031017154107.GI8668@poupinou.org> <1066411716.2527.100.camel@dhcppc4> <1066796711.2593.30.camel@dhcppc4> <1066964092.1541.16.camel@darkstar.portugal> <1066965206.3864.55.camel@dhcppc4> <1066969171.1608.32.camel@darkstar.portugal>
+Message-ID: <Pine.LNX.4.44.0310241019050.1354-100000@logos.cnet>
+References: <1066934045.3864.2.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1066969171.1608.32.camel-4/PLUo9XfK/yXfm4dIG/yWZHpeb/A1Y/@public.gmane.org>
+In-Reply-To: <1066934045.3864.2.camel-D2Zvc0uNKG8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,26 +16,48 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?iso-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>, David van Hoose <david.vanhoose-Wuw85uim5zDR7s880joybQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Oct 24, 2003 at 05:19:30AM +0100, Sérgio Monteiro Basto wrote:
-> Hi 
-> make bzImage with your patch and make install
-> appears your NOT! in dmesg 
-> Resolves the hangs but ... now I don't have any events :)
 
-I don't understand.  Len's patch do not change anything actually, apart
-that almost toshiba satellite, some HP omnibook, your presario, some
-Packbard Bell and probably others will print a warning (if compiled UP
-and without local apic support).
 
--- 
-Ducrot Bruno
+On 23 Oct 2003, Len Brown wrote:
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+> David,
+> best if you can file a bug and attach the info there --
+> i sifted through my e-mail but i'm not sure which
+> one this e-mail refers to.
+> 
+> thanks,
+> -Len
+> 
+> Please file a bug at http://bugzilla.kernel.org/
+> Category: Power Management
+> Component: ACPI
+> 
+> Please attach the output from dmidecode, available in /usr/sbin/, or
+> here:
+> http://www.nongnu.org/dmidecode/
+> 
+> Please attach the output from acpidmp, available in /usr/sbin/, or in
+> here
+> http://www.intel.com/technology/iapc/acpi/downloads/pmtools-20010730.tar.gz
+> 
+> Please attach /proc/interrupts and the dmesg output showing the failure,
+> if possible.
+
+David already did it... its bug number 1283.
+
+It seems the problem is caused by sharing USB interrupt with ACPI 
+interrupt.
+
+However, it seems the correct thing to use is IRQ20 for the USB
+controller, not IRQ9, yes? 
+
+David, what /proc/interrupts looks like in 2.6?
+
+
 
 
 -------------------------------------------------------
