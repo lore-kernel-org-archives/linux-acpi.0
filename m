@@ -1,13 +1,14 @@
-From: "Antonio G. - Geotronix" <antonio-OL5acaPONM41GQ1Ptb7lUw@public.gmane.org>
-Subject: How do I get swsuspend debugging?
-Date: Sat, 28 Sep 2002 18:37:44 +0200
+From: Sean Middleditch <elanthis-LAuFFeG505qL5ISr76wZmQ@public.gmane.org>
+Subject: Re: lockup on boot
+Date: 28 Sep 2002 14:50:05 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020928163743.GB1692@geolandia.home>
-Reply-To: antonio-OL5acaPONM41GQ1Ptb7lUw@public.gmane.org
+Message-ID: <1033239005.3157.0.camel@stargrazer>
+References: <1032631567.23480.23.camel@stargrazer>
 Mime-Version: 1.0
 Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline; filename="msg.pgp"
+In-Reply-To: <1032631567.23480.23.camel-5lwDtw4hGk+puJRAN1am9g@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,37 +17,55 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+As a note, I've tried several 2.5.x kernels (stock), and stock 2.4.19,
+and they all lock up the same way - any hope I can get this laptop
+working w/acpi without having to reinstall WinXP?  Thanks.
+
+On Sat, 2002-09-21 at 14:06, Sean Middleditch wrote:
+> Hi,
+> 
+>  Using kernel 2.4.20-pre7 with the 20020918 ACPI patch, I'm unable to
+> boot the machine.
+> 
+>  With debugin off, it gets as far as
+> PCI: Using configuration type 1
+> 
+>  Turning debugging on, the messages following the above are
+> (approximately - no cut and paste ~,^):
+> 
+>  tbxface-0099 [03] Acpi_load_tables    : ACPI Tables successfully loaded
+> Parsing Methods: ... (many dots)
+> Table [DSDT] - 441 Objects with 45 Devices 109 Methods 15 Regions
+> Parsing Methods: (complete lack of dots)
+> Table [SSDT] - 0 Objects with 0 Devices 0 Methods 0 Regions
+> ACPI Namespace successfully loaded at root c02f705c
+> 
+>  And that's it.  It's sat there for around 10 minutes and nothing else
+> has happened.  Passing pci=noacpi results in no changes.
+> 
+>  Passing acpi=off, the machine boots up much further, but some devices
+> don't seem to work properly (it may just be I didn't add support to the
+> correct devices in the kernel config - my working kernel is the default
+> Redhat 7.3 pcmcia-cs kernel image, which is great except the laptop gets
+> rather hotter than it did in WinXP...)
+> 
+> 
+> 
+> 
+> 
+> -------------------------------------------------------
+> This sf.net email is sponsored by:ThinkGeek
+> Welcome to geek heaven.
+> http://thinkgeek.com/sf
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
-Hi.
-
-I downloaded the latest swsusp patch and the acpi-20020918 patch and
-recompiled my 2.4.18 kernel. 
-I also downloaded the swsuspend script on
-
-http://alor.antifork.org/presario705/swsusp
-
-but when I launch it it does everything but suspend my laptop (presario
-710EA).
-
-Any idea on how to get some debugging info from what that script does? I
-set degugging in /proc/sys/kernel/swsusp to 102 but in the messages file
-nothing comes up :-(
-
-Thanks
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: Per informazioni si veda http://www.gnupg.org
-
-iD8DBQE9ldrXIRaQQEznKxURAgsnAKCqcLD7m5i+1wZSuR5C17JRzw+SwACguGqf
-EJxt2LJexalk24AD0EedhgQ=
-=c0a8
------END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
