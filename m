@@ -1,148 +1,94 @@
-From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Subject: Re: Re: [Ipw2100-devel] [susp-resume] ipw2100 suspend patch
- for 0.54 (version 3)
-Date: Mon, 27 Sep 2004 13:54:17 +0200
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4157FF69.7040204@pca.it>
-References: <3ACA40606221794F80A5670F0AF15F8403BD570F@pdsmsx403> <413EE1EA.2070307@pca.it> <413F02E7.3060005@pca.it> <20040914222905.GA17380@elf.ucw.cz> <4147870C.9090003@pca.it> <20040917085110.GA22859@elf.ucw.cz>
-Reply-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+From: Keiichiro Tokunaga <tokunaga.keiich@jp.fujitsu.com>
+Subject: Re: [ACPI] PATCH-ACPI based CPU hotplug[3/6]-Mapping lsapic to cpu
+Date: Mon, 27 Sep 2004 21:50:27 +0900
+Sender: linux-ia64-owner@vger.kernel.org
+Message-ID: <20040927215027.52fd48b7.tokunaga.keiich@jp.fujitsu.com>
+References: <20040920092520.A14208@unix-os.sc.intel.com>
+ <20040920093819.E14208@unix-os.sc.intel.com>
+ <20040922221538.650986f2.tokunaga.keiich@jp.fujitsu.com>
+ <1095864779.6105.3.camel@tdi>
+ <20040923021031.00007001.tokunaga.keiich@jp.fujitsu.com>
+ <20040924163632.C27778@unix-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------040208020500000401070901"
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040917085110.GA22859-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-reply-to: <20040924163632.C27778@unix-os.sc.intel.com>
+To: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
+Cc: tokunaga.keiich@jp.fujitsu.com, alex.williamson@hp.com, len.brown@intel.com, acpi-devel@lists.sourceforge.net, lhns-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------040208020500000401070901
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+On Fri, 24 Sep 2004 16:36:32 -0700 Keshavamurthy Anil S wrote:
+> On Thu, Sep 23, 2004 at 02:10:31AM +0900, Keiichiro Tokunaga wrote:
+> > On Wed, 22 Sep 2004 08:52:59 -0600, Alex Williamson wrote:
+> > > On Wed, 2004-09-22 at 22:15 +0900, Keiichiro Tokunaga wrote:
+> > > > 
+> > > > I would like to suggest introducing a new function 'acpi_get_pxm()'
+> > > > since other drivers might need it in the future.  Acutally, ACPI container
+> > > > hotplug will be using it soon.
+> > > > 
+> > > > Here is a patch creating the function.
+> > > > 
+> > > 
+> > >    Nice, I have a couple I/O locality patches that could be simplified
+> 
+> Here is the revised patch which now fixes the all issues that were discussed.
+> 	- Now defines and uses acpi_get_pxm
+> 	- small bugfix "change __initdata to __devinitdata for pxm_to_nid_map varable
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+One more thing.  Did you modify my acpi_get_pxm.patch by hand?
+That causes an infinite loop.  Please apply my fix patch.
 
-Hello,
+> +int
+> +acpi_get_pxm(acpi_handle handle)
+> +{
+> +	unsigned long pxm;
+> +	acpi_status status;
+> +	acpi_handle phandle;
+> +
+> +	do {
+> +		status = acpi_evaluate_integer(handle, "_PXM", NULL, &pxm);
+> +		if (ACPI_SUCCESS(status))
+> +			return (int)pxm;
+> +		status = acpi_get_parent(handle, &phandle);
+> +	} while(ACPI_SUCCESS(status));
+> +	return -1;
+> +}
+> +EXPORT_SYMBOL(acpi_get_pxm);
+> _
 
-on 09/17/04 10:51, Pavel Machek wrote:
->>On the other hand, using the /sys call the machine power off correctly
->>in suspending, while using the /proc call actually I should press 4-sec
->>the power button after 15-20sec the latest suspending screen.
->>
->>BTW, I'm on 2.6.9-rc2 with no other patches.
-> Go to -mm kernel. Vanilla has *very* old version of the patch.
-it seems that the mail I sent last Friday never reached the
-mailing-list. Here it is.
+This do-loop never ends...
 
-Thx, bye,
-Gismo / Luca
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
+Thanks,
+Keiichiro Tokunaga
 
-iD8DBQFBV/9nVAp7Xm10JmkRAi93AKCEOn7+S31Lsu+l9iCpEUsSuKVUJACgjunD
-2SnhVjwvXbyTej1m9loRFsg=
-=4MSb
------END PGP SIGNATURE-----
+Status: Tested on 2.6.9-rc2
+Signed-off-by: Keiichiro Tokunaga <tokunaga.keiich@jp.fujitsu.com>
+---
 
---------------040208020500000401070901
-Content-Type: message/rfc822;
- name="Attached Message"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="Attached Message"
+ linux-2.6.9-rc2-092704-kei/drivers/acpi/numa.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-Date: Fri, 24 Sep 2004 13:42:24 +0200
-From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: Re: [ACPI] Re: [Ipw2100-devel] [susp-resume] ipw2100 suspend patch for 0.54 (version 3)
-Message-ID: <20040924114224.GA5596@localhost>
-References: <3ACA40606221794F80A5670F0AF15F8403BD570F@pdsmsx403> <413EE1EA.2070307-wlebWZzHoyE@public.gmane.org> <413F02E7.3060005-wlebWZzHoyE@public.gmane.org> <20040914222905.GA17380-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org> <4147870C.9090003-wlebWZzHoyE@public.gmane.org> <20040917085110.GA22859-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="SLDf9lqlvOQaIe6s"
-Content-Disposition: inline
-In-Reply-To: <20040917085110.GA22859-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
-User-Agent: Mutt/1.5.6+20040818i
+diff -puN drivers/acpi/numa.c~acpi_get_pxm-fix drivers/acpi/numa.c
+--- linux-2.6.9-rc2-092704/drivers/acpi/numa.c~acpi_get_pxm-fix	2004-09-27 20:44:22.000000000 +0900
++++ linux-2.6.9-rc2-092704-kei/drivers/acpi/numa.c	2004-09-27 21:33:24.266377945 +0900
+@@ -198,13 +198,15 @@ acpi_numa_init()
+ }
+ 
+ int
+-acpi_get_pxm(acpi_handle handle)
++acpi_get_pxm(acpi_handle h)
+ {
+ 	unsigned long pxm;
+ 	acpi_status status;
+-	acpi_handle phandle;
++	acpi_handle handle;
++	acpi_handle phandle = h;
+ 
+ 	do {
++		handle = phandle;
+ 		status = acpi_evaluate_integer(handle, "_PXM", NULL, &pxm);
+ 		if (ACPI_SUCCESS(status))
+ 			return (int)pxm;
 
-
---SLDf9lqlvOQaIe6s
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hello,
-
-On Fri, Sep 17, 2004 at 10:51:10AM +0200, Pavel Machek wrote:
-> > On the other hand, using the /sys call the machine power off correctly
-> > in suspending, while using the /proc call actually I should press 4-sec
-> > the power button after 15-20sec the latest suspending screen.
-> >=20
-> > BTW, I'm on 2.6.9-rc2 with no other patches.
-> Go to -mm kernel. Vanilla has *very* old version of the patch.
-I tried 2.6.9-rc2-mm2 and here the results:
-
-- echo 4 > /proc/acpi/sleep
-after 10m the suspend process is still going on and the data written
-to the swap partition are only 1% (and so I stopped the process ;-) )
-
-- echo disk > /sys/power/state
-the suspend process seems ok, but the resume arrives suddenly after the
-suspend is finished (I mean, the computer doesn't power off)
-
-Anyway, I saw that in the kernel there's no more the choice for pmdisk:
-is this normal?
-
-BTW, as I counted the time for -mm2, I did the same for a vanilla 2.6.9
-+ latest ACPI patch:
-
-- echo 4 > /proc/acpi/sleep
-40s and now the computer automatically power off (AFAIR the only
-driver upgrade is the 'ipw2100', where I used the latest patch posted in
-this list, too)
-
-- echo disk > /sys/power/state
-30s to the power off
-
-Now, Pavel, I ask you the same question Karol already answered: as I've
-the choice between swsusp and pmdisk, Karol suggested to use pmdisk. And
-you?
-
-Thx, bye,
-Gismo / Luca
-
-PS all the test were performed as root and from GNOME/XFree86-4.3.0
-(Debian, 'radeon' driver included)
-
---SLDf9lqlvOQaIe6s
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQFBVAggVAp7Xm10JmkRAtIQAKCH+zlpP1l4QcT10YYDf087nDhkUgCfeJKh
-xUM7WNF4E8CzhbZOQ6TbJ7I=
-=CJEh
------END PGP SIGNATURE-----
-
---SLDf9lqlvOQaIe6s--
-
-
---------------040208020500000401070901--
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: YOU BE THE JUDGE. Be one of 170
-Project Admins to receive an Apple iPod Mini FREE for your judgement on
-who ports your project to Linux PPC the best. Sponsored by IBM.
-Deadline: Sept. 24. Go here: http://sf.net/ppc_contest.php
+_
