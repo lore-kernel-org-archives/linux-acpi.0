@@ -1,14 +1,14 @@
 From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Subject: Re: ACPI/ECDT on gateway 200x notebook
-Date: Wed, 7 Jan 2004 11:49:41 +0100
+Date: Wed, 7 Jan 2004 11:54:24 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040107104941.GL14031@poupinou.org>
-References: <3FF773E5.5070102@rochester.rr.com> <Pine.LNX.4.44.0401032005180.7785-100000@data.upl.cs.wisc.edu> <20040106183426.GJ14031@poupinou.org> <3FFB552F.8030508@rochester.rr.com>
+Message-ID: <20040107105424.GM14031@poupinou.org>
+References: <571ACEFD467F7749BC50E0A98C17CDD8E84E7B@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <3FFB552F.8030508-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org>
+In-Reply-To: <571ACEFD467F7749BC50E0A98C17CDD8E84E7B-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,28 +17,17 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Rich Ibbotson <richibb-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org>
-Cc: Casey Harkins <charkins-TFaeeA7fOO6Gwcnyzrk3/w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jan 06, 2004 at 07:39:11PM -0500, Rich Ibbotson wrote:
-> Thanks for the reply.  I've attached the disassembled dsdt from
-> "iasl -d  dsdt.dat".  I notice that the iasl output has "\_SB.PCI0" 
-> whereas the acpidmp output has "\_SB_.PCI0".  I'll try that with your 
-> fake_ecdt patch.
-> 
-> I do see an error and two warnings when I let iasl compile the dsdt:
+On Wed, Jan 07, 2004 at 09:04:25AM +0800, Li, Shaohua wrote:
+> Yes, the patch may resolve some problems, but it is just a workaround. I guess a possible solution is if ECDT is lacked, scan namespace to get EC device's info, such as GPE, IO ports, then use these info to automatically make a fake ECDT. Because getting info doesn't involve any operating on EC device, it's feasible. A problem is if a system has more than 1 EC, how do we?
 > 
 
-...
-
-> dsdt.dsl  2620:                     Field (ECR, DWordAcc, Lock, Preserve)
-> Error    1048 -                              ^ Host Operation Region 
-> requires ByteAcc access
-
-The problem you encounter is here.  You have to update your dsdt by
-replacing that DWordAcc by ByteAcc.  You can see something for doing
-that via http://www.poupinou.org/acpi/.
+Yes, exactly.  Anyway, io ports 0x62, 0x66 are the legacy access
+for the "main" EC.  Perhaps checking those ports and initilializing
+that one only may be OK?
 
 -- 
 Ducrot Bruno
