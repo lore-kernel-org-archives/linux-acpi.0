@@ -1,11 +1,11 @@
-From: <Sara.Brockstedt-sT6XhaZ/6PcVQbUkktcQLw@public.gmane.org>
-Subject: Re: Re: My details
-Date: Wed, 20 Aug 2003 14:37:20 --0400
+From: postmaster-/X6VYK7xyaY@public.gmane.org
+Subject: Undeliverable: Re: Approved
+Date: Wed, 20 Aug 2003 16:04:55 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E19pXpo-000462-00@sc8-sf-list1.sourceforge.net>
+Message-ID: <911C5822D324DF46837E0E6EA2F868B90587BB4F@ibiexcha.ibi.com>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
-	boundary="_NextPart_000_0122B9F6"
+	boundary="----_=_NextPart_000_01C36756.5347CBF0"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -18,26 +18,44 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multipart message in MIME format
+This message is in MIME format. Since your mail reader does not understand
+this format, some or all of this message may not be legible.
 
---_NextPart_000_0122B9F6
+------_=_NextPart_000_01C36756.5347CBF0
 Content-Type: text/plain;
 	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
 
-Please see the attached file for details.
---_NextPart_000_0122B9F6
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Your message
+
+  To:      pgmdsg-/X6VYK7xyaY@public.gmane.org
+  Subject: Re: Approved
+  Sent:    Wed, 20 Aug 2003 12:01:26 -0400
+
+did not reach the following recipient(s):
+
+pgmdsg-/X6VYK7xyaY@public.gmane.org on Wed, 20 Aug 2003 16:04:54 -0400
+    The recipient name is not recognized
+	The MTS-ID of the original message is: c=us;a= ;p=information
+buil;l=IBIEXCHA0308202004Q0P21DBK
+    MSEXCH:IMS:Information Builders:IBI:IBIEXCHA 0 (000C05A6) Unknown
+Recipient
 
 
-------------------  Virus Warning Message (on the network)
 
-details.pif is removed from here because it is of type pif
+------_=_NextPart_000_01C36756.5347CBF0
+Content-Type: message/rfc822
 
----------------------------------------------------------
---_NextPart_000_0122B9F6--
+Message-ID: <20012871901084-zKceBacK5e1GFtBMbqicUS+6oWk/WIba@public.gmane.org>
+From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: pgmdsg-/X6VYK7xyaY@public.gmane.org
+Subject: Re: Approved
+Date: Wed, 20 Aug 2003 12:01:26 -0400
+MIME-Version: 1.0
+X-Mailer: Internet Mail Service (5.5.2653.19)
+X-MS-Embedded-Report: 
 
+
+------_=_NextPart_000_01C36756.5347CBF0--
 
 
 -------------------------------------------------------
