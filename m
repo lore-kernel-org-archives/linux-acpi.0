@@ -1,15 +1,13 @@
-From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/4]Bind physical devices with ACPI devices - take 2
-Date: Tue, 18 Jan 2005 09:20:50 +0800
-Message-ID: <1106011250.20958.6.camel@sli10-desk.sh.intel.com>
-References: <1104893444.5550.127.camel@sli10-desk.sh.intel.com>
-	 <1105948622.17633.6.camel@sli10-desk.sh.intel.com>
-	 <20050117112822.GA1354@elf.ucw.cz>
+From: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+Subject: Re: Re: Smart Battery System driver
+Date: Mon, 17 Jan 2005 20:36:41 -0500
+Message-ID: <41EC6829.1070901@bartol.udel.edu>
+References: <41E81C2C.8010809@bartol.udel.edu>	<1105747983.7368.3.camel@tyrosine>	<47e0449d05011419037877f931@mail.gmail.com> <m2fz13x8mw.fsf@phoenix.squirrel.nl> <41EA2C1D.3030909@bartol.udel.edu> <41EBE769.7050107@arrakis.dhis.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050117112822.GA1354-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <41EBE769.7050107-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,80 +17,49 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Greg <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Patrick Mochel <mochel-og82NyAXoxR0I81aPRRTmR2eb7JE58TQ@public.gmane.org>
+To: Pedro Venda <pjvenda-pQd4kjVL+RHfqL7NgpvPWWD2FQJk+8+b@public.gmane.org>
+Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2005-01-17 at 19:28, Pavel Machek wrote:
-> Hi!
-> 
-> > > The series of patches implement binding physical devices with ACPI
-> > > devices. With it, device drivers can utilize methods provided by
-> > > firmware (ACPI). These patches are against 2.6.10, please give your
-> > > comments.
-> 
-> > This is updated patches according to latest discussion.
-> > Changes from last one:
-> > 1. introduce new field 'firmware_data' in 'struct device', since people
-> > complain rename 'platform_data. Greg, could you please check if the
-> > comments I added in 'struct device' are correct?
-> > 2. align to Pavel's latest PCI state convention work.
-> > 3. Some cleanups and add more comments.
-> > One issue is 'platform_pci_choose_state' doesn't get called, it should
-> > be after Pavel updates the parameter of 'pci_choose_state'
-> 
-> diff -puN drivers/pci/pci.c~acpi-pci-get-suspend-state-callback
-> drivers/pci/pci.c
-> --- 2.5/drivers/pci/pci.c~acpi-pci-get-suspend-state-callback
-> 2005-01-17 12:54:05.357547072 +0800
-> +++ 2.5-root/drivers/pci/pci.c  2005-01-17 13:08:50.835933896 +0800
-> @@ -317,6 +317,7 @@ pci_set_power_state(struct pci_dev *dev,
->   * Returns PCI power state suitable for given device and given system
->   * message.
->   */
-> +int (*platform_pci_choose_state)(struct pci_dev *, pm_message_t) = 0;
-> 
->  pci_power_t pci_choose_state(struct pci_dev *dev, u32 state)
->  {
-> 
-> Perhaps you want this to be "= NULL"?
-I must be in sleep :). I will fix it soon.
-> 
-> 
-> > @@ -208,6 +209,25 @@ acpi_status pci_osc_control_set(u32 flag
-> >  }
-> >  EXPORT_SYMBOL(pci_osc_control_set);
-> >  
-> > +static int acpi_pci_choose_state(struct pci_dev *pdev,
-> > +	pm_message_t state)
-> > +{
-> > +	char dstate_str[] = "_S0D";
-> > +	acpi_status status;
-> > +	unsigned long val;
-> > +	struct device *dev = &pdev->dev;
-> > +
-> > +	/* state is PM_SUSPEND_* */
-> > +	if ((state >= PM_SUSPEND_MAX) || !DEVICE_ACPI_HANDLE(dev))
-> > +		return -EINVAL;
-> > +	dstate_str[2] += (int __force)state;
-> 
-> When I'm done, you will not be able to just retype state to
-> integer... Perhaps you want to do pci_choose_state first; that gets
-> you pci_power_t and that one *is* okay to retype to int?
-Firmware possibly will can't return a useful suspend state (Either
-firmware doesn't define such device or evaluation failed), that's why I
-return an int. I suppose pci_choose_state will do something:
-	ret = firmware_pci_choose_state(dev, state);
-	if (ret >= 0)
-		pci_state = ret;
-	switch(pci_state) {
-	case 0: return PCI_D0;
-	.....
-	}
+Pedro Venda wrote:
 
-Thanks,
-Shaohua
+> The report:
+> 
+> I've tried to load the module and it still has the mutual-exclusion 
+> problem with
+> the acpi AC and battery drivers. How can that be fixed?
+> 
+> With AC built-in the kernel, the module segfaults on insmod...
 
+Not surprised, there's probably all manner of crap that happens when one 
+tries to mkdir /proc/acpi/ac_adapter more than once.
+
+But I'm not sure why this is happening with the revised version of the 
+code (20050116); this version contains #ifndef directives to prevent the 
+legacy interfaces being compiled in if they are already in the kernel. 
+Are you sure your kernel configuration matches your currently-running 
+kernel?
+
+> After removing the AC driver, it loads fine and reports good results.
+> Appearently looks nice. Tried with and without battery. Both SBSEL, SBC 
+> and SB0
+> values make sense.
+
+Excellent!
+
+> 
+> Don't know if it's still relevant, but here's a link for my version of the
+> smartbattery.c userspace program. just "make" and test it. needs the 
+> i2c-dev and
+> i2c-acpi-ec drivers.
+> 
+> http://arrakis.dhis.org/linux/smartbattery/smartbattery-20050117.tar.gz
+
+Thanks for the pointer, I'll try this out!
+
+cheers,
+
+Rich
 
 
 -------------------------------------------------------
