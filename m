@@ -1,10 +1,10 @@
-From: Bjorn Wesen <bjorn.wesen-VrBV9hrLPhE@public.gmane.org>
-Subject: usb ohci driver's PM
-Date: Thu, 19 Jun 2003 01:55:16 +0200 (CEST)
+From: "David Cougle" <dcougle-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Subject: PLEASE, patches after pre6 lock up!
+Date: Wed, 18 Jun 2003 22:22:08 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.33.0306190153110.28182-100000@godzilla.se.axis.com>
+Message-ID: <Law9-F37yL4l4VsA6Xk00013e57@hotmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; format=flowed
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -14,17 +14,21 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Before I start to dig. Does anyone know if the OHCI USB driver (in 2.5.71) 
-is supposed to not lock-up during S3 resume (with no devices connected, it 
-freezes during Resuming devices after some printouts that I missed...)
+I have posted this repeatedly, but never get a response, and there continues 
+to be releases which have the same problem.
 
-I.e. might it be a work in progress, like ? :)
+Starting with acpi patch rc1, it causes lock ups. rc2 and rc3 did the 
+same(on boot).
+I am now having to use 2.4.21 with acpi pre6 patch.
 
-/Bjorn
+i have compaq 2100/2110
 
+_________________________________________________________________
+Help STOP SPAM with the new MSN 8 and get 2 months FREE*  
+http://join.msn.com/?page=features/junkmail
 
 
 
