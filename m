@@ -1,14 +1,15 @@
-From: Alf <alfredo.mapelli-y7mWNqJcIDpfJ/NunPodnw@public.gmane.org>
-Subject: Re: No Thermal
-Date: Wed, 25 Feb 2004 01:03:30 -0400
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Desktop and S3 suspend the Holy Grail of ACPI?
+Date: 25 Feb 2004 00:17:08 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <403C2CA2.4090006@terra.com.br>
-References: <403852B9.3060504@terra.com.br> <1077518771.12669.58.camel@dhcppc4>
+Message-ID: <1077686228.5911.93.camel@dhcppc4>
+References: <4038F499.2060302@verizon.net>
+	 <1077517907.12673.43.camel@dhcppc4>  <403ADBCC.9060108@verizon.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1077518771.12669.58.camel-D2Zvc0uNKG8@public.gmane.org>
+In-Reply-To: <403ADBCC.9060108-H+0wwilmMs3R7s880joybQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,81 +18,102 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Nick Lidakis <nlidakis-H+0wwilmMs3R7s880joybQ@public.gmane.org>
 Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-OK I already check my Kernel and it is everything OK, dmesg only find 3 
-devices, CPU1, CPU2 and Power Button.
-I am pretty sure that my MB suports fan and thermal control cause the 
-Bios Recognize it, I am kind of newby so how the hell do I disasemble 
-the acpidmp?
+> > ...D875PBZ...
 
-Len Brown wrote:
+On this box S1 works for me, but S3 doesn't resume (below)
 
->On Sun, 2004-02-22 at 01:56, Alf wrote:
->  
->
->>Hi,
->>I trying to use ACPI for linux in a Asus MotherBoard (P4P800) but I am 
->>unable to use thermal and fan the only ACPI that works is Buttons if I 
->>cat /proc/acpi/event and press the power button it gives up a message, 
->>but under /thermal_zone and /fan there is nothing... The BIOS from this 
->>MB says that it is ACPI 2.0 enabled, but as I sayd before I cannot use ACPI.
->>Can anyone tell me if it is possibel to use? If /button woks, why 
->>/thermal_zone or /fan does not?
->>thaks
->>
->>Alfredo
->>
->>first check your .config has them enabled, eg.
->>    
->>
->
->CONFIG_ACPI=y
->CONFIG_ACPI_BOOT=y
->CONFIG_ACPI_INTERPRETER=y
->CONFIG_ACPI_SLEEP=y
->CONFIG_ACPI_SLEEP_PROC_FS=y
->CONFIG_ACPI_AC=m
->CONFIG_ACPI_BATTERY=m
->CONFIG_ACPI_BUTTON=m
->CONFIG_ACPI_FAN=m
->CONFIG_ACPI_PROCESSOR=m
->CONFIG_ACPI_THERMAL=m
-># CONFIG_ACPI_ASUS is not set
-># CONFIG_ACPI_TOSHIBA is not set
-># CONFIG_ACPI_DEBUG is not set
->CONFIG_ACPI_BUS=y
->CONFIG_ACPI_EC=y
->CONFIG_ACPI_POWER=y
->CONFIG_ACPI_PCI=y
->CONFIG_ACPI_SYSTEM=y
->
->Then see what dmesg says -- ACPI will tell you what it finds.
->If you think it doesn't find something it should, dump the DSDT with
->acpidmp, disassemble it, and look for "Device" and see what's in there.
->
->Some MB's have ACPI fan control, other's don't.
->
->cheers,
->-Len
->
->
->
->
->-------------------------------------------------------
->SF.Net is sponsored by: Speed Start Your Linux Apps Now.
->Build and deploy apps & Web services for Linux with
->a free DVD software kit from IBM. Click Now!
->http://ads.osdn.com/?ad_id=1356&alloc_id=3438&op=click
->_______________________________________________
->Acpi-devel mailing list
->Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->https://lists.sourceforge.net/lists/listinfo/acpi-devel
->
->
->  
->
+Note that you need to enable S3 in the BIOS SETUP to try S3.
+
+Note that neither S1 nor S3 will do anything on the SMP kernel.
+(and unfortunately, they will not even tell you that when you try)
+
+-Len
+
+BIOS SETUP: Power/ACPI
+ACPI Suspend State [S3 State] (default is S1)
+
+boot FC2-test1 UP kernel
+
+# cat /proc/acpi/sleep
+S0 S1 S3 S4 S5
+
+# /etc/init.d/acpid stop
+(to make power button resume event not initiate a shut-down)
+
+# echo 1 >/proc/acpi/sleep
+Stopping tasks: ================================|
+psmouse.c: bad data from KBC - timeout bad parity
+hdc: start_power_step(step: 0)
+hdc: completing PM request, suspend
+hda: start_power_step(step: 0)
+hda: start_power_step(step: 1)
+hda: complete_power_step(step: 1, stat: 50, err: 0)
+hda: completing PM request, suspend
+psmouse.c: bad data from KBC - timeout bad parity
+psmouse.c: bad data from KBC - timeout bad parity
+PM: Entering state.
+i8042.c: Can't restore CTR.
+
+
+<press power button here to resume>
+
+
+Back to C!
+i8042.c: Can't read CTR while initializing i8042.
+i8042: resume failed
+PM: Finishing up.
+PCI: Setting latency timer of device 0000:00:1d.0 to 64
+PCI: Setting latency timer of device 0000:00:1d.1 to 64
+PCI: Setting latency timer of device 0000:00:1d.2 to 64
+PCI: Setting latency timer of device 0000:00:1d.3 to 64
+hda: Wakeup request inited, waiting for !BSY...
+hda: start_power_step(step: 1000)
+e1000: eth0 NIC Link is Up 1000 Mbps Full Duplex
+blk: queue f7dcb5c0, I/O limit 4095Mb (mask 0xffffffff)
+hda: completing PM request, resume
+hdc: Wakeup request inited, waiting for !BSY...
+hdc: start_power_step(step: 1000)
+hdc: completing PM request, resume
+Restarting tasks... done
+#
+
+system running normally here.
+
+now try S3:
+
+# echo 3 >/proc/acpi/sleep
+Stopping tasks: =================================|
+hdc: start_power_step(step: 0)
+hdc: completing PM request, suspend
+hda: start_power_step(step: 0)
+hda: start_power_step(step: 1)
+hda: complete_power_step(step: 1, stat: 50, err: 0)
+hda: completing PM request, suspend
+PM: Entering state.
+
+<power is off, press power button here to wake up system>
+
+here a bunch of garbled junk comes out my serial console.
+But video is not restored to my matrox mystique FB.
+ping doesn't work.
+
+Curiously CTRL-ALT-DEL results in the following on the serial console:
+
+quotaoff: numerical sysctl 5 16 8 is obsolete.
+md: stopping all md devices.
+md: md0 switched to read-only mode.
+Restarting system.
+
+<and the system reboots here>
+
+So it seems that the system did resume and talk to the keyboard at
+least...
+
+
 
 
 
