@@ -1,12 +1,11 @@
-From: "Knut Neumann" <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
-Subject: Re: S3 and S4: nothing happens
-Date: Sat, 12 Oct 2002 08:37:01 +0200
+From: Ulrich Dobramysl <uli-do-RbZlAiThDcE@public.gmane.org>
+Subject: Gericom Supersonic ACPI hang (smi_cmd)
+Date: Fri, 11 Oct 2002 17:52:39 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <014301c271b9$ce797530$5b0aa8c0@TRINITY>
-References: <Pine.LNX.4.44.0210101816280.20282-100000@hill.cs.ucr.edu>
+Message-ID: <3DA6F3C7.3040108@gmx.at>
+Reply-To: Ulrich Dobramysl <uli-do-RbZlAiThDcE@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -17,27 +16,29 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: Roy <roy_me-S0/GAf8tV78@public.gmane.org>, Joshua Lauricha <laurichj-OqvYMq7jYtE3uPMLIKxrzw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hello there again!
 
-> Same thing happen here, using 2.4.20-pre8 w/acpi-20021002-pre8,
-> /proc/acpi/sleep gives S0 S3 S4 S5, but "echo 3 > /proc/acpi/sleep", or 4.
-> Give nothing.
+I posted some days ago, that I have problems getting ACPI up and running 
+  on my Gericom Laptop. The Kernel just hangs without any error message.
+Arndt Schoenewald suggested some Kernel Configurations to me (thanks 
+again!) , but none of them did work. It seems like I have a very rare 
+Version of this laptop model, with a (very) broken BIOS.
+So I tried to debug that myself. I'm not a very good C Programmer and 
+have no clue about the ACPI specifications, so I cannot solve this 
+problem myself.
+I was able to trace down the hang where acpi_enable gets called and 
+itself calls acpi_hw_set_mode. This goes into the function 
+acpi_os_write_port(acpi_gbl_FADT->smi_cmd, (acpi_integer) 
+acpi_gbl_FADT->acpi_enable, 8), where outb gets called with port 
+acpi_gbl_FADT->smi_cmd and value acpi_gbl_FADT->acpi_enable.
+I think there is something wrong with the address smi_cmd. I could not 
+find the part in the code where it gets set.
+Tell me if I can provide more information about this problem or something.
 
-This _is_ fixed with 20021002-2.5.40 though this patch has not yet been
-applied to the linus kernel tree (AFAIK). Thus it is not included with
-2.5.41, but you can easily fix it yourself - see [1]on that.
-
->From 20021002-2.4.20-pre8 - drivers/acpi/system.c - acpi_suspend(..):
-
-        +          /* only support S1 and S5 on kernel 2.4 */
-
-Regards
--Knut
-
-[1] Mail from Pavel Machek with title "acpi sleep: stupid bug reintroduced"
+Ulrich Dobramysl
 
 
 
