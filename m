@@ -1,11 +1,11 @@
-From: Nils Faerber <nils-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
-Subject: How to support new buttons?
-Date: Mon, 2 Dec 2002 12:39:35 +0100
+From: Robert Woerle <robert.woerle-y2s3ugBAdl9BDgjK7y7TUQ@public.gmane.org>
+Subject: Transmeta and the mem
+Date: Mon, 02 Dec 2002 12:49:21 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021202123935.4df753c1.nils@kernelconcepts.de>
+Message-ID: <3DEB48C1.20708@symplon.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -18,38 +18,46 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all!
-First off: Many thanks for your big efforts on getting ACPI into Linux!
-ACPI is not at all easy (from what I have seen now) and it is a lot of
-work. I appreciate this very much.
+Hi Guys
 
-So. And now that I own a brand new laptop which only works partially
-with ACPI I would like to help a little. As a small first task I would
-like to support the additional buttons I have here which very obviously
-cause ACPI events. The machine I am talking about is an Asus L3800C.
-This machine has four hotkey on top of the keyboard. One is supposed to
-be a speedstep control button, on is "email" (what nonsense :), and the
-other two have some strange symbols on them (no idea what they are
-supposed to be good for). When I enable ACPI debugging I can see that
-"something" happens when I press those buttons and this "something" is
-different for all four of them. Oh, and ACPI interrupt is triggered on
-press. But /proc/acpi/event does not show an event.
-I suspect that those buttons are simply not supported by the button
-driver yet. Looking at button.c I see that only power, sleep and lid are
-supported.
+I dont know if its correct to put it here , but ACPI is also related to 
+that .
+I have a machine here ( Tablet PC ) which uses a Transmeta Crusoe TM 5600
+CPU has the known CodeMorphing Technologie which uses 16MB Ram for 
+itself ....
 
-So, how can I add support for those additional buttons?
-Oh, I don't expect a detailed a full answer. Just a pointer for an ACPI
-newbe please :)
+So Linux is not correctly detecting the amount of Ram i ve ( if i dont 
+do cat /proc/meminfo ive the full
+amount and not minus the 16MB for the Codemoprhing ) and ACPI is failing 
+to start (AE_NOMEMORY)
+Only if i do a "mem=XXXM" where XXX is the amount minus 16MB ....
 
-CU
-  nils faerber
+So i was wondering if Linux is not correctly handling the Transmeta CPU 
+(???!) which would be really a pity since there is a "famous guy" 
+working for Transmeta ????
+
+I also have several other problems , like PCI devices are not gracefully 
+mapped .. and so on
+Any hints ??
 
 -- 
-kernel concepts          Tel: +49-271-771091-12
-Dreisbachstr. 24         Fax: +49-271-771091-19
-D-57250 Netphen          D1 : +49-170-2729106
---
+ 
+_____________________________________
+*Robert Wörle
+ Linux | Embedded Device*
+*
+Symplon AG*
+
+*...touch the internet*
+
+phone: +49 89 552 999 35
+fax: +49 89 552 999 10
+email: robert.woerle-y2s3ugBAdl9BDgjK7y7TUQ@public.gmane.org <mailto:robert.woerle@symplon.com>
+web: www.symplon.com <http://www.symplon.com/>
+
+_____________________________________
+ 
+
 
 
 -------------------------------------------------------
