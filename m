@@ -1,12 +1,14 @@
-From: "Bryan K. Wright" <bryan-j2wAk2T2zOxQaOoIv/cCD/2DmoZIrT0C@public.gmane.org>
-Subject: Bad interaction between ehci-hcd and acpi?
-Date: Mon, 01 Mar 2004 10:07:27 -0500
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: ACPI C4 support
+Date: Mon, 1 Mar 2004 16:28:10 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200403011507.i21F7Sf04445@ayesha.phys.Virginia.EDU>
-Reply-To: bryan-utW8kV9oO443r0Ub5QXD9Q@public.gmane.org
+Message-ID: <20040301152810.GT2869@poupinou.org>
+References: <20040228161011.GA10448@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20040228161011.GA10448-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,45 +17,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: bryan-j2wAk2T2zOxQaOoIv/cCD/2DmoZIrT0C@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, trenn-l3A5Bk7waGM@public.gmane.org, behlert-l3A5Bk7waGM@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi folks,
+On Sat, Feb 28, 2004 at 05:10:11PM +0100, Pavel Machek wrote:
+> Hi!
+> 
+> Thomas told me:
+> 
+> >what about C4 - Cn states in the kernel implementation?
+> >A short look into the /proc/acpi/processor/.../power file let me think
+> >that only C0-C3 is supported by the kernel, even specification talks
+> >about Cn states?
+> 
+> As a first step, it would be nice if kernel at least used C0..C3 if
+> the machine supports them... This should do the trick. Does it look
+> okay?
 
-	The ehci-hcd kernel module enables support for high-speed USB
-devices.  I've noticed the following oddity:  When I plug in a high-speed
-USB device, the CPU temperature jumps up by about 25 degrees C.  The 
-temperature stays up even after I unplug the USB device.  Rmmod'ing
-the ehci-hcd module brings the temperature back down.  I can then
-re-install the ehci-hcd module, and things stay normal until the next
-time I plug in a high-speed USB device.
+No.  pblk_length is 0 or 6.  Not 5 nor 7 ;)
 
-	Here are the configuration details:
-Kernel 2.4.21 (vanilla) with the acpi-20030619-2.4.21.diff patch.
-Sharp PC-AV18 laptop (KN266, Athlon XP-M 1800+)
-Tested with two different models of Epson scanner, and with two different
-brands of external USB disks.
+Look at http://bugzilla.kernel.org/show_bug.cgi?id=1958
 
-	I've also recently tried using 'athcool', which enables
-the VLink auto-disconnect bit and the 'bus disconnect on STPGNT' bit
-(this was already set).  I'd hoped it might fix the odd behavior noted
-above, but athcool doesn't seem to make any difference.
+Note that I don't have time to work on it by now.  When the acpi video
+extension will be OK, I will rework on that one unless someone else do
+the work.
 
-	Has anybody else seen similar symptoms?
-
-						Thanks,
-						Bryan
 -- 
-===============================================================================
-Bryan Wright                |"If you take cranberries and stew them like 
-Physics Department          | applesauce, they taste much more like prunes 
-University of Virginia      | than rhubarb does."  --  Groucho 
-Charlottesville, VA  22901  |			
-(434) 924-7218              |         bryan-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org
-===============================================================================
+Bruno Ducrot
 
-
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
