@@ -1,49 +1,36 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [ACPI] _PDC method in DSDT
-Date: Mon, 23 Jun 2003 00:11:49 -0700
-Sender: cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A84725A301@orsmsx401.jf.intel.com>
+From: Andrew Morton <akpm-LL/9OlyS9hIAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [BK PATCH]
+Date: Mon, 23 Jun 2003 00:11:43 -0700
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <20030623001143.0fb2c292.akpm@digeo.com>
+References: <F760B14C9561B941B89469F59BA3A847E96FB3@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
-content-class: urn:content-classes:message
-Errors-To: cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
-List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMm38Ik5SeuEX72+df2TVCvIA@public.gmane.org>
-List-Post: <mailto:cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
-List-Help: <mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMm4xOcYYyLxz0@public.gmane.org>
-List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMmEuNEP1Y2mCuZIoH1IeqzKA@public.gmane.org>
-List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq/>
-To: David Moore <dcm-HInyCGIudOg@public.gmane.org>, "Adachi, Kenichi" <adachi-fvZ7ij+YLgEZc9YY0SgeQc8NsWr+9BEh@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <F760B14C9561B941B89469F59BA3A847E96FB3-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: David Moore [mailto:dcm-HInyCGIudOg@public.gmane.org]=20
-> Given this document, I think I have enough information now to patch
-> processor.c to support Enhanced Speedstep on Pentium M for=20
-> those BIOSes
-> that have a correctly written _PDC method in the DSDT.  Would the
-> maintainers of the ACPI driver be willing to accept such a patch?
+"Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>
+> Hi Linus, please do a
+> 
+> 	bk pull http://linux-acpi.bkbits.net/linux-acpi
+> 
+> This will update the following files:
+> 
+>  arch/i386/kernel/setup.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> through these ChangeSets:
+> 
+> <agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/06/22 1.1359.1.1)
+>    ACPI: make it so acpismp=force works (reported by Andrew Morton)
+> 
 
-I don't think so, at least not right now.
+OK, thanks.
 
-_PDC is used for the OS to indicate to the firmware (the AML) if it
-supports native CPU perf transitions or not. If it does, then _PCT/_PSS
-returns one thing, if it doesn't, _PCT/_PSS returns something else.
-Typically, if _PDC is not called, the platform will indicate ACPI 2.0
-CPU perf state support instead of native support.
-
-However, since the recently added non-vendor-supported Pentium M cpufreq
-driver uses hardcoded tables and cpuid instead of relying on ACPI for
-this information anyways, adding _PDC support to processor.c would not
-affect its behavior. If that driver were changed to use ACPI for
-determining platform capabilities, like Windows and our released binary
-driver do, then yes, adding _PDC support would be important.
-
-Regards -- Andy
-
-btw my understanding is that _PDC will be actually in the ACPI spec in
-the near future.
+But prior to 2.5.72, CPU enumeration worked fine without acpismp=force. 
+Now it is required.  How come?
