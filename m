@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: IBM Thinkpad problem please give INFO
-Date: Fri, 15 Aug 2003 09:44:59 +0800
+Subject: RE: device states supported by current drivers
+Date: Fri, 15 Aug 2003 10:01:41 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720AEA@pdsmsx403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720AEB@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -17,43 +17,31 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Yaroslav Rastrigin <yarick-343whMTK1pU@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Bharata B Rao <rao.bharata-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-File it on bugme.osdl.org.  And tell me tracker number. I hope I can =
-help somewhere.
-Thanks,
+I'm sorry, I cannot find them,  Would you please point  out where they =
+are.
+Thanks=20
 Luming
 
------Original Message-----
-From: Yaroslav Rastrigin [mailto:yarick-343whMTK1pU@public.gmane.org]
-Sent: 2003?8?15? 1:36
-To: Pavel Machek; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: Re: [ACPI] IBM Thinkpad problem please give INFO
-
-
---On Thu, Aug 14, 2003 at 05:26:34PM +0800, Yu, Luming wrote:
->  we made some progress on this platform. :)
-> I'd like to follow up this issue on bugme.osdl.org.
->=20
-> Ps.  It's for all 2.4 and 2.6 ACPI  serious bug.
->=20
-> Thanks,
-<<<quote
-no Problem if you need more tetsing please sendpatches I will give them
-a try.
-
-Where is the problem with the thinkpad's? Do you need informations from
-ibm?
-quote>>>
-
-I second him. I have some unfortunate experience with ACPI and my =
-Thinkpad=20
-T21, and I'm ready and willing to help. Just give me a clue where to =
-start.=20
-
---
-With all the best, yarick at relex dot ru.
+>> I believe suspend() function parameters are expected to tell you *S*
+>> state we are entering. I do not see code that enables drivers to =
+enter
+>> D0 vs. D1 vs. D2 vs D3. I guess it is not there.
+>
+>
+>Devices get passed the D state to enter; they should not care about the =
+S=20
+>state we're entering, especially since it's irrelevant on anything but =
+an=20
+>ACPI-enabled platform. See the other email I posted about how they map =
+to=20
+>each other.
+>
+>
+>	-pat
 
 
 
