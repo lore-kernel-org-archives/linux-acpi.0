@@ -1,51 +1,34 @@
-From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: PNPACPI breaks my asus k6-2 parallel port
-Date: Wed, 08 Dec 2004 10:23:39 +0800
-Message-ID: <1102472619.2876.8.camel@sli10-desk.sh.intel.com>
-References: <200412080217.LAA15383@axe-inc.co.jp>
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Subject: Re: [PATCH] IRQ resource deallocation[0/2]
+Date: Wed, 08 Dec 2004 16:07:35 +0900
+Message-ID: <41B6A837.4030505@jp.fujitsu.com>
+References: <41B559DD.7040307@jp.fujitsu.com> <Pine.LNX.4.61.0412070820240.13396@montezuma.fsmlabs.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200412080217.LAA15383-yzSWc4HAx5xL9jVzuh4AOg@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Takanori Watanabe <takawata-yzSWc4HAx5xL9jVzuh4AOg@public.gmane.org>
-Cc: ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.61.0412070820240.13396@montezuma.fsmlabs.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Zwane Mwaikambo <zwane@arm.linux.org.uk>
+Cc: Andrew Morton <akpm@osdl.org>, Len Brown <len.brown@intel.com>, "Luck, Tony" <tony.luck@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-ia64@vger.kernel.org, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2004-12-08 at 10:17, Takanori Watanabe wrote:
-> >Could you please clarify it? Linux did check _STA, and only assigned
-> >dependent resources (that is one set of resources) from _PRS to a
-> >device.
-> >In Wilcox's case, LPT (PNP0400) has resources of 0x378, irq 7. PNPACPI
-> >can only assign 0x278, irq 5 to ECP (PNP0401) the resources are listed
-> >in ECP's _PRS. ECP possibly isn't a parport (Dunno why it said a parport
-> >detected), it can use DMA per the _PRS.
+Zwane Mwaikambo wrote:
+
+> On Tue, 7 Dec 2004, Kenji Kaneshige wrote:
 > 
-> In many case, single Parallel port is appeared as multiple device,
-> like ECP port, simple parport,etc ...  in ACPI name space 
-> with only one of them activated. And if you try to wake up all resources,
-> only the last activated one will make available, I think.
-Thanks Watanabe-san. Wilcox's case possibly is like what you said. If
-so, the fix isn't straightforward. PNP layer always automatically
-actives disabled devices. Possibly the BIOS (_STA) should tell us the
-device is absent.
+>> I had posted the IRQ resource deallocation patch a couple of monthes
+>> ago and I had incorporated all feedbacks from the mailing list
+>> (http://marc.theaimsgroup.com/?l=linux-kernel&m=109688530703122&w=2).
+>> But it doesn't seems to be included yet, so I would like to try again.
+>> I hope my patch is included onto -mm tree since I want the patches
+>> be tested by many people.
+> 
+> You should remove the config option and make it unconditional.
+> 
+
+I think you're right. I'll update the patch.
 
 Thanks,
-Shaohua
+Kenji Kaneshige
 
-
-
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now. 
-http://productguide.itmanagersjournal.com/
