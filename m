@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: [2.5.69] S3 does not come back / Sony Vaio C1MHP
-Date: Wed, 28 May 2003 23:41:24 +0200
+From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Subject: Re: Re: Re: DSDT in initrd
+Date: Wed, 28 May 2003 22:46:09 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030528214124.GB667@elf.ucw.cz>
-References: <20030527101501.GB1247@paradigm.rfc822.org>
+Message-ID: <20030528214609.GR15709@parcelfarce.linux.theplanet.co.uk>
+References: <F760B14C9561B941B89469F59BA3A84725A2C3@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20030527101501.GB1247-L3tpvOS5ZD2KugBFyThYrEB+6BGkLq7r@public.gmane.org>
+In-Reply-To: <F760B14C9561B941B89469F59BA3A84725A2C3-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,26 +17,25 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Florian Lohoff <flo-BCn6idZOOBwdnm+yROfE0A@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Wed, May 28, 2003 at 01:27:40PM -0700, Grover, Andrew wrote:
+> I'm trying to understand how for example a hi-perf nic driver
+> performs the same when modularized but subarch stuff wouldn't, when I'm
+> assuming it would just be like a "driver" for the particular
+> peculiarities of the platform.
 
-> S3 would be the reason to switch to 2.5 - bad that it does not work for
-> me ;) 
-> 
-> Sony Vaio C1MHP 
-> Transmeta TM5800
-> 
-> echo 3 >/proc/acpi/sleep
+A common fallacy.  There's a noticable performance loss when a driver
+is compiled as a module, and it mostly has to do with the fact that
+drivers are loaded into vmalloc space so they consume TLBs (rather than
+being part of the kernel's 4MB mapping).
 
-You may need to pass acpi_sleep=s3_bios or acpi_sleep=s3_mode (or how
-is it called).
-								Pavel
 -- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+"It's not Hollywood.  War is real, war is primarily not about defeat or
+victory, it is about death.  I've seen thousands and thousands of dead bodies.
+Do you think I want to have an academic debate on this subject?" -- Robert Fisk
 
 
 -------------------------------------------------------
