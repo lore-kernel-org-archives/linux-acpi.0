@@ -1,13 +1,14 @@
-From: "Georg C. F. Greve" <greve-BSDwwRMYa8fNLxjTenLetw@public.gmane.org>
-Subject: acpi-20040715: functional regression on ASUS M2N
-Date: Tue, 20 Jul 2004 01:31:29 +0200
+From: Andrew Ross <aross-ncau/BB9MAPvnOemgxGiVw@public.gmane.org>
+Subject: Re: Video toggle button hang, Fn+F4 on Compaq Evo N1005v.
+Date: Tue, 20 Jul 2004 21:36:02 +1000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <m3d62rzi9a.fsf@brain.gnuhh.org>
-Reply-To: "Georg C. F. Greve" <greve-BSDwwRMYa8fNLxjTenLetw@public.gmane.org>
+Message-ID: <1090323362.7894.3.camel@localhost>
+References: <200407191808.10728.cbackstrom@chemist.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200407191808.10728.cbackstrom-TTD55EFobGVBDgjK7y7TUQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -19,45 +20,30 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
---=-=-=
+On Tue, 2004-07-20 at 02:08, Christer Backstrom wrote:
+> I got this video-out toggle button Fn-F4 on my Evo, which totally hang my 
+> lappy if I use it, no messages and no serial console, no difference if I got 
+> something connected or not. I've been looking round on the web for the 
+> solution to this, and found patches for ignoring ff buttons and correcting 
+> the dsdt, but no go. And Compaq of course gives me the old "Linux is not 
+> supported" yadi-yadi-yada. I was wondering if anyone has suggestions for 
+> howto debug this? And to be honest, I'm not even sure this is a ACPI problem, 
+> but everything else seems to be ACPI controlled. I've seen others complaining 
+> about exactly the same problem on the Presario900 list (pretty much the same 
+> computer).
 
-Hi all,
+Interesting that you never came across the much publicised solution to
+this problem (perhaps your searches were too specific). Try disabling
+uniprocessor apic, either via a boot time option as suggested by Karol
+Kozimor, or in the kernel config itself. The kernel config option is
+CONFIG_X86_UP_APIC
 
-I just tried a kernel 2.6.8-rc2 with swsusp2-2.0.0.100 and some other
-minor patches -- overall with great success. But when I updated from
-the ACPI included in the kernel to the acpi-20040715 patch for 2.6.8,
-suspend to ram does not work anymore: the machine hangs on resume.
+Let us know if that works
 
-Except for the network cards, which are broken after resume from S3,
-it otherwise works fine for the previous ACPI versions with kernel
-2.6.7 and kernel 2.6.8 -- which are the first kernels for which this
-is true.
+Cheers
 
-This is on an ASUS M2N with intel 855GM Centrino chipset, running the
-Debian GNU/Linux distribution.
+Andrew
 
-If you need more info, let me know.
-
-Regards,
-Georg
-
--- 
-Georg C. F. Greve                                 <greve-BSDwwRMYa8fNLxjTenLetw@public.gmane.org>
-Free Software Foundation Europe	                 (http://fsfeurope.org)
-GNU Business Network                        (http://mailman.gnubiz.org)
-Brave GNU World	                           (http://brave-gnu-world.org)
-
---=-=-=
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQBA/FnZbvivwoZXSsoRAhq2AJ9IQSVoBAI5cef3vzY3o6FGYUTUFwCgqx1b
-UcfUAaJhx5CUTdTUbkGgKnU=
-=7tlO
------END PGP SIGNATURE-----
---=-=-=--
 
 
 -------------------------------------------------------
