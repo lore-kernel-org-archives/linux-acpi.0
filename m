@@ -1,8 +1,8 @@
-From: "Gwen Costa" <gcosta_rz-S3gs7qNwOfmzQB+pC5nmwQ@public.gmane.org>
-Subject: Discount online drugs available
-Date: Sun, 26 Sep 2004 02:19:09 -0700
+From: "Harris G. Chappell" <h.chappellgj-GD4agLzAfT8QrrorzV6ljw@public.gmane.org>
+Subject: Application is pre approved
+Date: Sun, 26 Sep 2004 08:38:28 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <557701c4a3a9$22e16ce2$5ba3a89d@kis.ernet.in>
+Message-ID: <d7b601c4a3de$1ab14fb8$1568cc13@nordea.no>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -19,23 +19,21 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello there,
+Dear Sir or Madam,
 
-We have the exact same drugs as the ordinary pharmacies.
-The difference? From us you get it for a fraction of the cost!
+Would you REFlNANCE if you knew you'd SAVE TH0USANDS? 
 
-- Large selection of drugs!
-- No Prescription Required!
-- World Wide Shipping!
-- Private Online ordering!
+We'll get you lnterest as low as 1.92%. 
+Don't believe me? Fill out our small online questionaire and we'll show you how. 
 
-Go here: http://www.onklenter.info/2/?wid=200014
+Get the house/home and/or car you always wanted, it only takes 10 seconds of your time:
+http://moneyondemand.info/
 
+Best Regards,
+Anthony Jones
 
+No thanks: http://moneyondemand.info/r1
 
-
-No thanks:
-http://www.onklenter.info/nomore.html
 
 
 
