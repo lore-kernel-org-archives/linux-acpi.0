@@ -1,14 +1,16 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Does Linux make use of the S3D methods?
-Date: 18 Feb 2004 00:44:24 -0500
+From: Andre Messerschmidt <a.messerschmidt-hi6Y0CQ0nG0@public.gmane.org>
+Subject: Re: ASUS M6800N: battery0 not present
+Date: Wed, 18 Feb 2004 08:52:16 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1077083063.4932.73.camel@dhcppc4>
-References: <200401191354.36354.jak97@doc.ic.ac.uk>
+Message-ID: <200402180852.16189.a.messerschmidt@gmx.net>
+References: <40324F44.60006@pca.it>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200401191354.36354.jak97-CezfXpuMXD6Fxr2TtlUqVg@public.gmane.org>
+In-Reply-To: <40324F44.60006-wlebWZzHoyE@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,86 +19,87 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: John Knottenbelt <jak97-CezfXpuMXD6Fxr2TtlUqVg@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
+Cc: Markus Gaugusch <dsdt-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>, ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2004-01-19 at 08:54, John Knottenbelt wrote:
-> Hi
-> 
-> I have been inspecting my DSDT and I noticed this:
-> 
-> Scope(\_SB_) {
->     Device(PWRB) {
->         Name(_HID, 0x0c0cd041)
->         Method(_STA) {
->             Return(0xb)
->         }
->     }
->     Device(PCI0) {
->         Name(_HID, 0x030ad041)
->         Name(_ADR, 0x0)
->         Name(_BBN, 0x0)
->         Method(_S3D) {
->             If(OSFL) {
->                 Return(0x2)
->             }
->             Else {
->                 Return(0x3)
->             }
->         }
-> 
-> The ACPI spec says that the _S3D method returns the highest power saving level 
-> that the device can be put into.
+Am Dienstag, 17. Februar 2004 18:28 schrieb Luca Capello:
 
-Actually the spec says that _S3D returns the HIGHEST POWER (not highest
-power saving) state that the device can be put into during S3.  This
-corresponds to the lowest D-state number (D0 being full power) available
-during S3.
+Hi Luca,
 
-So for NT, OSFL is 0, and _S3D returns 3, meaning that the device can't
-be left in any state higher than D3 (full off).  However, the other
-Windows return OSFL !=0, and thus the device could be kept in D2 --
-which consumes more power.
+I don't have any errors if I use my DSDT. See the attached output from dmesg 
+for how it looks here with a 2.4.21. 
+I reckon that you are right with your assumption that the new DSDT table is 
+not used, but I don't know why, since I have no insights in  ACPI.
+
+regards
+Andre
 
 
->  As you can see from the above (and other 
-> similar S3D methods) the result depends on the OSFL variable, which is 
-> defined with:
-> 
->          Method(_INI) {
->             \_SB_.PCI0.SBRG.IODT()
->             If(MCTH(\_OS_, "Microsoft Windows NT")) {
->                 Store(0x0, OSFL)
->             }
->             Else {
->                 If(MCTH(\_OS_, "Microsoft Windows")) {
->                     Store(0x1, OSFL)
->                 }
->                 Else {
->                     If(MCTH(\_OS_, "Microsoft WindowsME: Millennium Edition"))
->                    {
->                         Store(0x2, OSFL)
->                     }
->                     Else {
->                         Store(0x3, OSFL)
->                     }
->                 }
->             }
->         }
-> 
-> So for under Linux, the OSFL will be 3, and _S3D methods will return 2. My 
-> question is, does the kernel make use of this information at all? Is it worth 
-> editing the DSDT so that OSFL=0 (i.e. Windows NT) ?
-
-I don't think so.  I don't see any reference to _S3D in Linux.
-
-Of course, _OS_ returns ACPI_OS_NAME as defined in aclinux.h, so
-you could change that and see if it makes any difference;-)
-
-cheers,
--Len
-
+----- from dmesg --------------------------
+...
+Looking for DSDT in initrd ... found (at offset 452594)!
+    ACPI-0292: *** Info: Table [DSDT] replaced by host OS
+ACPI: Interpreter enabled
+ACPI: Using PIC for interrupt routing
+ACPI: System [ACPI] (supports S0 S1 S3 S4 S5)
+ACPI: PCI Root Bridge [PCI0] (00:00)
+PCI: Probing PCI hardware (bus 00)
+PCI: Ignoring BAR0-3 of IDE controller 00:1f.1
+Transparent bridge - Intel Corp. 82801BAM/CAM/DBM PCI Bridge
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+ACPI: Embedded Controller [EC0] (gpe 28)
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P2._PRT]
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P1._PRT]
+ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 9 10 *11 12 14 15)
+ACPI: PCI Interrupt Link [LNKB] (IRQs 3 *4 5 6 7 9 10 11 12 14 15)
+ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 6 7 *9 10 11 12 14 15)
+ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 *5 6 7 9 10 11 12 14 15)
+ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 6 7 9 10 11 12 14 15)
+ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 6 7 9 10 11 12 14 15)
+ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 5 6 7 9 10 11 12 14 15)
+ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 6 7 9 *10 11 12 14 15)
+ACPI: Power Resource [GFAN] (off)
+PCI: Probing PCI hardware
+ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 4
+00:00:1f[B] -> IRQ 4 Mode 1 Trigger 1
+ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 9
+00:00:1f[A] -> IRQ 9 Mode 1 Trigger 1
+ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 11
+00:00:01[A] -> IRQ 11 Mode 1 Trigger 1
+ACPI: PCI Interrupt Link [LNKH] enabled at IRQ 10
+00:00:1d[D] -> IRQ 10 Mode 1 Trigger 1
+PIC: IRQ (11) already programmed
+ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 5
+00:00:1d[B] -> IRQ 5 Mode 1 Trigger 1
+PIC: IRQ (9) already programmed
+PIC: IRQ (4) already programmed
+PIC: IRQ (11) already programmed
+PIC: IRQ (9) already programmed
+PIC: IRQ (4) already programmed
+PIC: IRQ (4) already programmed
+PIC: IRQ (5) already programmed
+PIC: IRQ (11) already programmed
+PCI: Using ACPI for IRQ routing
+PCI: if you experience problems, try using option 'pci=noacpi' or even 
+'acpi=off'
+...
+ACPI: AC Adapter [AC] (on-line)
+Asus Laptop ACPI Extras version 0.24a
+  M6N model detected, unsupported, trying default values, contact the 
+developers
+  Notify Handler installed successfully
+  Error changing brightness
+  Error changing brightness
+ACPI: Battery Slot [BAT0] (battery absent)
+ACPI: Battery Slot [BAT1] (battery absent)
+ACPI: Power Button (FF) [PWRF]
+ACPI: Lid Switch [LID]
+ACPI: Sleep Button (CM) [SLPB]
+ACPI: Fan [FN00] (on)
+ACPI: Processor [CPU1] (supports C1)
+ACPI: Thermal Zone [THRM] (21 C)
+-----------------------------------------------
 
 
 
