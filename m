@@ -1,37 +1,66 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [BK PATCH] acpismp=force fix
-Date: Mon, 23 Jun 2003 00:43:38 -0700
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A84725A302@orsmsx401.jf.intel.com>
+From: David Moore <dcm-HInyCGIudOg@public.gmane.org>
+Subject: RE: [ACPI] _PDC method in DSDT
+Date: 23 Jun 2003 00:53:27 -0700
+Sender: cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
+Message-ID: <1056354807.10323.71.camel@aldebaran.caltech.edu>
+References: <F760B14C9561B941B89469F59BA3A84725A301@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-content-class: urn:content-classes:message
-To: Andrew Morton <akpm-LL/9OlyS9hIAvxtiuMwx3w@public.gmane.org>
-Cc: torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
+In-Reply-To: <F760B14C9561B941B89469F59BA3A84725A301-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
+Errors-To: cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
+List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMm38Ik5SeuEX72+df2TVCvIA@public.gmane.org>
+List-Post: <mailto:cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
+List-Help: <mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMm4xOcYYyLxz0@public.gmane.org>
+List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMmEuNEP1Y2mCuZIoH1IeqzKA@public.gmane.org>
+List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq/>
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Adachi, Kenichi" <adachi-fvZ7ij+YLgEZc9YY0SgeQc8NsWr+9BEh@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Andrew Morton [mailto:akpm-LL/9OlyS9hIAvxtiuMwx3w@public.gmane.org] 
-> >    ACPI: make it so acpismp=force works (reported by Andrew Morton)
+On Mon, 2003-06-23 at 00:11, Grover, Andrew wrote:
+> > From: David Moore [mailto:dcm-HInyCGIudOg@public.gmane.org] 
+> > Given this document, I think I have enough information now to patch
+> > processor.c to support Enhanced Speedstep on Pentium M for 
+> > those BIOSes
+> > that have a correctly written _PDC method in the DSDT.  Would the
+> > maintainers of the ACPI driver be willing to accept such a patch?
+> 
+> I don't think so, at least not right now.
+> 
+> However, since the recently added non-vendor-supported Pentium M cpufreq
+> driver uses hardcoded tables and cpuid instead of relying on ACPI for
+> this information anyways, adding _PDC support to processor.c would not
+> affect its behavior. If that driver were changed to use ACPI for
+> determining platform capabilities, like Windows and our released binary
+> driver do, then yes, adding _PDC support would be important.
+> 
 
-> But prior to 2.5.72, CPU enumeration worked fine without 
-> acpismp=force. 
-> Now it is required.  How come?
+My intention was not for processor.c and cpufreq to cooperate, but
+rather for processor.c to be able to control Enhanced Speedstep solely
+with P-states -- no cpufreq necessary.  Cpufreq is certainly useful for
+those systems not running the ACPI driver, but in the long run, ACPI and
+processor.c seem to be the right way to get maximum compatibility with
+many platforms.
 
-(I'm taking the liberty to update the subject, which I accidentally left
-blank)
+If my understanding is correct, once _PDC is called, the only change
+necessary to drive Enhanced Speedstep with P-states is simply to
+interpret the registers returned by _PCT and if they are of type
+FixedHardware, to use wrmsr() instead of outb().  I'm slightly
+oversimplifying, but such an approach works on my system.
 
-Because 2.4 has that behavior. One objection that people raised to
-applying the 2.4 ACPI patch was that it changed that behavior. So I made
-an effort to keep it there.
+I only have two concerns:
+1) If the processor is an AMD or a Transmeta, it looks like _PCT may
+also return FixedHardware registers for their respective power
+management systems.  Do we need to read cpuid to treat these cases
+differently in processor.c, or will the blind wrmsr() do the trick?
+2) If this capability is open-source, do you personally have a conflict
+of interest between protecting the binary-only module vs. accepting the
+patch?
 
-I think out of sheer inertia I also re-added it to the 2.5 tree.
-Probably shouldn't have.
+Thanks for your input,
 
-Does anyone have a reason why acpismp=force should be in 2.5/6? If not
-I'll go ahead and zap it (again), and everyone should just be aware that
-this is another way that 2.4 and 2.5 differ.
-
-Regards -- Andy
+David
