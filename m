@@ -1,12 +1,14 @@
-From: Ian Pilcher <i.pilcher-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: CONFIG_DEBUG_SLAB=y prevents kernel panic
-Date: Fri, 05 Dec 2003 14:55:58 -0600
+From: Janek Kozicki <janek_listy-5tc4TXWwyLM@public.gmane.org>
+Subject: Re: CONFIG_DEBUG_SLAB=y prevents kernel panic
+Date: Fri, 5 Dec 2003 23:35:54 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3FD0F0DE.4050708@comcast.net>
+Message-ID: <20031205233554.6a8061f8.janek_listy@wp.pl>
+References: <3FD0F0DE.4050708@comcast.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <3FD0F0DE.4050708-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,32 +20,33 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I'm hoping someone can provide me with some pointers to help debug this
-problem.
+Ian Pilcher said:     (by the date of Fri, 05 Dec 2003 14:55:58 -0600)
 
-My system is an Abit VP6 with two 1GHz Pentium III processors, running
-Red Hat Linux/Fedora Core.  One of the kernel updates to Red Hat 9
-messed up APIC-based interrupt routing on this board, causing USB
-devices to not be recognized.
+> I'm hoping someone can provide me with some pointers to help debug this
+> problem.
+> 
+> My system is an Abit VP6 with two 1GHz Pentium III processors, running
+> Red Hat Linux/Fedora Core.  One of the kernel updates to Red Hat 9
+> messed up APIC-based interrupt routing on this board, causing USB
+> devices to not be recognized.
 
-(See https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=92417.)
+hello, I have abit VP6 with two 600 MHz P3, 
 
-So I was pretty happy when one of the Fedora core test releases was able
-to boot with ACPI turned on and recognize USB devices.  Fedora Core 1,
-however, panics when I boot with 'acpi=on'.  I have traced this
-regression to the fact that CONFIG_DEBUG_SLAB was turned on in the test
-release kernel, but it's off in the "production" kernel.
+I have been fighting with usb for two weeks. And I discovered the
+solution is: set MPS in BIOS to 1.1. anyway, my reports on this fight are here:
 
-The question is, where do I go from here?  The help for
-CONFIG_DEBUG_SLAB makes it seem unlikely that this is the root cause,
-but I don't have any idea how I can debug this further.
+http://sourceforge.net/mailarchive/message.php?msg_id=6652068
 
-TIA for any help.
+I'm currently using 2.4.23 unpatched. and here is my config:
+
+http://absurd.kozicki.pl:8435/pub/config-2.4.23.debug
+
+I'm debugging kernel right now, because I had a lockup a week ago. But
+now it now doesn't repeat. Will see...
+
+
 -- 
-========================================================================
-Ian Pilcher                                        i.pilcher-Wuw85uim5zDR7s880joybQ@public.gmane.org
-========================================================================
-
+# Janek Kozicki
 
 
 -------------------------------------------------------
