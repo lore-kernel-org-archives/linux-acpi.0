@@ -1,12 +1,13 @@
-From: Jonas Petersson <zap-7RBX4Gk6oWI@public.gmane.org>
-Subject: ASUS L5x: ACPI fan dies when PCMCIA GSM card used
-Date: Tue, 13 Jan 2004 11:33:59 +0100
+From: Jes Sorensen <jes-UC6nUKlm/0l5V+5IkYBVeNBPR1lH4CV8@public.gmane.org>
+Subject: [patch] ACPI NUMA quiet printk and cleanup
+Date: 13 Jan 2004 05:45:07 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4003C997.3010400@xms.se>
+Message-ID: <yq0n08sdt58.fsf_-_@wildopensource.com>
+References: <yq0r7y4dvqf.fsf@wildopensource.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <yq0r7y4dvqf.fsf-UC6nUKlm/0l5V+5IkYBVeNBPR1lH4CV8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,131 +16,87 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Jesse Barnes <jbarnes-sJ/iWh9BUns@public.gmane.org>, Jack Steiner <steiner-sJ/iWh9BUns@public.gmane.org>, David Mosberger <davidm-sDzT885Ts8HQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-[ I tried this on the acpi-support list earlier, but got no response, so
-here's another try... ]
+Hi,
 
-Hi list,
+I'd love to see the following patch go into -mm. It turns two current
+ACPI printk's into ACPI debug messages thgat only shows when
+ACPI_DEBUG is enabled and eliminates some excessive NULL
+initialization of variables that are immediately being set to their
+real value afterwards.
 
-I've encountered a problem which I *THINK* i ACPI related, but I've not
-enough ACPI experience to understand how to get around it. Any hint
-appreciated.
+The patch should be very easy to verify - compiled and booted on an sn2.
 
-I'll file it as a proper kernel bug if you think it more appropriate.
-Here is a quick rundown of what I've found out:
+Thanks,
+Jes
 
-* My base installation is described pretty defailed here:
-http://www.xms.se/~zap/linux/asusl5800c.html
-As you can see it has worked pretty well for quite some time and hence
-my kernel etc is not quite bleading edge anymore (though I follow Debian
-testing for everyting else).
-
-* $ cat /proc/acpi/info
-version:                 20030813
-states:                  S0 S1 S3 S4 (swsusp) S5
-
-The problem I've encountered lately is related to using a Nokia
-CardPhone in my PCMCIA slot. Several other cards have work OKish - at
-worst, an ethernet card wouldn't work at all (forgot the name, but it
-was multifunction and was iffy anyway) and in one case a wavelan card
-(orinoco) would only work in the upper slot. This is significantly worse:
-
-Initially I just plugged it in without a SIM card and got some "Resource
-unavailable" problems - fiddling with the /etc/pcmcia/config-2.4 file
-appeared to help, though it was somewhat odd that specifying low IRQs
-(say 4,5,6) still reported 10 or 11 in dmesg, but at least it appeared
-to work.
-
-I now also tried with a SIM card in place and noticed that the FAN would
-stop a short while after inserting the card (I can hear the GSM
-negotiations as noises in the speakers) when some IRQs where used
-and then I had messages such as these in dmesg:
-
-
-ttyS17 at port 0x0100 (irq = 11) is a 16550A
-Trying to free nonexistent resource <00000100-00000107>
-Trying to free nonexistent resource <00000100-00000107>
-   ACPI-1121: *** Error: Method execution failed [\_TZ_.FAN0._INI]
-(Node dffe9520), AE_AML_PACKAGE_LIMIT
-   ACPI-1121: *** Error: Method execution failed [\_GPE._L16] (Node
-dffe28a0),
-AE_AML_PACKAGE_LIMIT
-   ACPI-0297: *** Error: AE_AML_PACKAGE_LIMIT while evaluating method
-[_L16] for GPE[ 0]
-   ACPI-1121: *** Error: Method execution failed [\_TZ_.FAN0._INI]
-(Node dffe9520), AE_AML_PACKAGE_LIMIT
-   ACPI-1121: *** Error: Method execution failed [\_GPE._L16] (Node
-dffe28a0),
-AE_AML_PACKAGE_LIMIT
-   ACPI-0297: *** Error: AE_AML_PACKAGE_LIMIT while evaluating method
-[_L16] for GPE[ 0]
-ttyS17 unloaded
-
-Unplugging the card before the temperature gets too high seems to help
-as the fan restarts typically after less than a minute.
-
-I then tried acpidump and although I don't really understand all of it,
-it sure hinted that an _INI method for FAN0 which may be called from
-_L16 within the _GPE scope, but I can't really see how this should
-suddenly stop working when I plug that particular card in.
-
-Still, some combos of IRQs and port selections appeared to work at the
-time and I would be able dial up using minicom and/or kppp.
-
-At this stage I realized that debian demands that I'm part of the dip
-group and for sanity reasons I decided to logout and reboot to make
-sure everything was in a sane state - apparently it wasn't:
-
-kppp will now sort of seem to work and the fan will run OK, but after a
-minute or so the system will suddenly go wild:
-
-- In one case, X died and I could only type (but got no response) in the
-old X vt.
-- In another case, X again died and a few messages flashed past too
-quickly to read and then it was powered off.
-- In a third case, a lot of info flashed past in an Oops dump (sorry,
-wan't able to catch it).
-
-To me it seems to be some kind of ACPI/PCMICA clash, but I have no clue
-how to solve it. I had intended to wait for a couple of more weeks
-before going 2.6.x as swsusp is somewhat critical to my daily work and
-it seems not quite stable for 2.6 yet (considering even Nigel himself
-runs 2.4 for development...)
-
-Here's a bit more info:
-
-$ cat /proc/interrupts
-           CPU0
-  0:     146428          XT-PIC  timer
-  1:       3762          XT-PIC  keyboard
-  2:          0          XT-PIC  cascade
-  8:          4          XT-PIC  rtc
-  9:         76          XT-PIC  acpi
- 10:      42212          XT-PIC  SiS 7012, ehci_hcd, usb-ohci, usb-ohci,
-PCI device 1524:1421 (ENE Technology Inc), bcmwl5driverloader
- 11:      85553          XT-PIC  usb-ohci, PCI device 1524:1421 (ENE
-Technology Inc), radeon-D5X1nVylZaA@public.gmane.org:1:0:0
- 12:     129940          XT-PIC  PS/2 Mouse
- 14:          0          XT-PIC  ide0
- 15:      17397          XT-PIC  ide1
-NMI:          0
-LOC:     146116
-ERR:          1
-MIS:          0
-
-I've not attached the dmi and acpi dumps as I suspect there is a size
-limit to this list, but I'll gladly mail that (and any other
-information) to anyone who is interested.
-
-		Any hint appreciated / Jonas
-
--- 
-Jonas Petersson  |  XMS Penvision  |  mailto:Jonas.Petersson-7RBX4Gk6oWI@public.gmane.org
-Box 3294, Västgötegatan 13, S-600 03 Norrköping | http://www.xms.se/
-Tel: +46 11 400 13 00 | Dir: +46 11 400 13 05 | Fax: +46 11 10 30 50
-
+diff -urN -X /usr/people/jes/exclude-linux orig/linux-2.6.1-jb-acpi-clean/drivers/acpi/numa.c linux-2.6.1/drivers/acpi/numa.c
+--- orig/linux-2.6.1-jb-acpi-clean/drivers/acpi/numa.c	Tue Jan 13 02:25:32 2004
++++ linux-2.6.1/drivers/acpi/numa.c	Tue Jan 13 02:38:32 2004
+@@ -30,6 +30,7 @@
+ #include <linux/errno.h>
+ #include <linux/acpi.h>
+ #include <acpi/acpi_bus.h>
++#include <acpi/acmacros.h>
+ 
+ extern int __init acpi_table_parse_madt_family (enum acpi_table_id id, unsigned long madt_size, int entry_id, acpi_madt_entry_handler handler, unsigned int max_entries);
+ 
+@@ -46,9 +47,9 @@
+ 	{
+ 		struct acpi_table_processor_affinity *p =
+ 			(struct acpi_table_processor_affinity*) header;
+-		printk(KERN_INFO PREFIX "SRAT Processor (id[0x%02x] eid[0x%02x]) in proximity domain %d %s\n",
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO "SRAT Processor (id[0x%02x] eid[0x%02x]) in proximity domain %d %s\n",
+ 		       p->apic_id, p->lsapic_eid, p->proximity_domain,
+-		       p->flags.enabled?"enabled":"disabled");
++		       p->flags.enabled?"enabled":"disabled"));
+ 	}
+ 		break;
+ 
+@@ -56,11 +57,11 @@
+ 	{
+ 		struct acpi_table_memory_affinity *p =
+ 			(struct acpi_table_memory_affinity*) header;
+-		printk(KERN_INFO PREFIX "SRAT Memory (0x%08x%08x length 0x%08x%08x type 0x%x) in proximity domain %d %s%s\n",
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO "SRAT Memory (0x%08x%08x length 0x%08x%08x type 0x%x) in proximity domain %d %s%s\n",
+ 		       p->base_addr_hi, p->base_addr_lo, p->length_hi, p->length_lo,
+ 		       p->memory_type, p->proximity_domain,
+ 		       p->flags.enabled ? "enabled" : "disabled",
+-		       p->flags.hot_pluggable ? " hot-pluggable" : "");
++		       p->flags.hot_pluggable ? " hot-pluggable" : ""));
+ 	}
+ 		break;
+ 
+@@ -97,7 +98,7 @@
+ static int __init
+ acpi_parse_processor_affinity (acpi_table_entry_header *header)
+ {
+-	struct acpi_table_processor_affinity *processor_affinity = NULL;
++	struct acpi_table_processor_affinity *processor_affinity;
+ 
+ 	processor_affinity = (struct acpi_table_processor_affinity*) header;
+ 	if (!processor_affinity)
+@@ -115,7 +116,7 @@
+ static int __init
+ acpi_parse_memory_affinity (acpi_table_entry_header *header)
+ {
+-	struct acpi_table_memory_affinity *memory_affinity = NULL;
++	struct acpi_table_memory_affinity *memory_affinity;
+ 
+ 	memory_affinity = (struct acpi_table_memory_affinity*) header;
+ 	if (!memory_affinity)
+@@ -133,7 +134,7 @@
+ static int __init
+ acpi_parse_srat (unsigned long phys_addr, unsigned long size)
+ {
+-	struct acpi_table_srat	*srat = NULL;
++	struct acpi_table_srat	*srat;
+ 
+ 	if (!phys_addr || !size)
+ 		return -EINVAL;
 
 
 -------------------------------------------------------
