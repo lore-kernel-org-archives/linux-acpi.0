@@ -1,13 +1,13 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [patch] Fix GDT re-load on ACPI resume
-Date: Thu, 13 Jan 2005 14:02:43 +0800
-Message-ID: <16A54BF5D6E14E4D916CE26C9AD30575FB2229@pdsmsx402.ccr.corp.intel.com>
+From: Fionn Behrens <fionn-ZPjJJ+sDHmfddJNmlsFzeA@public.gmane.org>
+Subject: RE: Acer Notebook: acpi IRQ stuck after S3
+Date: Thu, 13 Jan 2005 10:31:02 +0100
+Message-ID: <1105608662.14488.106.camel@laptop>
+References: <16A54BF5D6E14E4D916CE26C9AD30575FB1EF6@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD30575FB1EF6-4yWAQGcml66iAffOGbnezLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,19 +17,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nickolai Zeldovich <kolya-DPNOqEs/LNQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->Is there any plan to integrate hiroit-s3IJUFpODnp4Eiagz67IpQ@public.gmane.org's patch that copies the
->GDT into lower memory into the mainline kernel?    It's been two months
->now, and that patch isn't in 2.6.10-rc1 -- not surprisingly, resulting
-in
->the same failure-to-resume-from-S3 problems.
-It's in Len's pipeline, but I don't know when Len will merge it.
+On Thu 13.01.2005, 09:09 +0800 Li, Shaohua wrote:
+> Hi,
+> >log and backtrace:
+> >
+> >12:49:00 samt kernel: irq 9: nobody cared!
+> >12:49:00 samt kernel: Disabling IRQ #9
+> >
+> >As you can see, IRQ 9 gets stuck here and consequently, the next ACPI
+> >event (e.g. lid button) causes a system freeze.
 
-Thanks,
-Shaohua
+> Did any device share IRQ 9 with ACPI? If yes, please try unload the
+> driver.
+
+No, according to /proc/interrupts, IRQ 9 is being used by acpi
+exclusively.
+
+any other ideas?
+
+br,
+	Fionn
+-- 
+Software patents    -  not allowed in Europe | See whats going on:
+Archiving Email     -  patented in Europe    | http://freepatents.org/
+E-Shopping Baskets  -  patented in Europe    | Become active easily:
+Cross-compiling     -  patented in Europe    | http://aktiv.ffii.org/eubsa/en
+
+
 
 
 -------------------------------------------------------
