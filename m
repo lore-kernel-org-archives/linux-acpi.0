@@ -1,12 +1,14 @@
-From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Subject: Fw: Re: Bug in mm series
-Date: Tue, 3 Feb 2004 13:48:55 -0800
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: Re: Handler for [EmbeddedControl] returned AE_TIME in
+ 2.6.1/20040116
+Date: Tue, 3 Feb 2004 14:40:16 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040203134855.664cc2dc.akpm@osdl.org>
+Message-ID: <20040203143906.B33512@root.org>
+References: <20040203172413.GA1299@joehill.bostoncoop.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20040203172413.GA1299-H/G4Yv+sbq78nmnftgJBZjK0Oss5Xsdo@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,34 +17,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Adam Kessel <adam-/J5p37YCQWYytDrLOV7HaA@public.gmane.org>
+Cc: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-
-
-Begin forwarded message:
-
-Date: Tue, 3 Feb 2004 15:33:24 -0600 (CST)
-From: Derek Foreman <manmower-KcrYKJX3CPLyydeieYBue0EOCMrvLtNR@public.gmane.org>
-To: Luis Miguel Garc=EDa <ktech-39ZsbGIQGT7e5aOfsHch1g@public.gmane.org>
-Cc: LINUX KERNEL MAILING LIST <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, akpm@digeo.com
-Subject: Re: Bug in mm series
-
-
-On Tue, 3 Feb 2004, [ISO-8859-1] Luis Miguel Garc=EDa wrote:
-
-> When I try to boot with latest mm series (such as actual rc3-mm1 or
-> rc2-mm2), my nforce ethernet device doesn't works. It worked in the past
-> with the forcedeth reverse engineered driver but now it keeps for 30 or
-> more seconds halted (at boot) and then the network device dosn't run.
+On Tue, 3 Feb 2004, Adam Kessel wrote:
+> I'm using 2.6.1 with the latest ACPI patch (20040116). When I switch from
+> AC to battery or vice-versa, I get the following:
 >
-> Here is the dmesg of rc3-mm1. Do you want for me to test something? Thank=
-s!
+> ACPI-0347: *** Error: Handler for [EmbeddedControl] returned AE_TIME
+> ACPI-1120: *** Error: Method execution failed [\_SB_.PCI0.ISA0.EC0_.SMWR] (Node d7f24f80), AE_TIME
+> ACPI-1120: *** Error: Method execution failed [\_SB_.PCI0.ISA0.BAT1.CHBP] (Node d7f238e0), AE_TIME
+> ACPI-1120: *** Error: Method execution failed [\_SB_.PCI0.ISA0.EC0_.SMSL] (Node d7f24f40), AE_TIME
+> ACPI-1120: *** Error: Method execution failed [\_SB_.PCI0.ISA0.EC0_._Q09] (Node d7f24ea0), AE_TIME
 >
-> P.S.:   The ACPI related messages are larger that in rc3.
+> After that, ACPI no longer gives accurate information about the battery
+> status (e.g., it will say "discharging" and a fixed amount of battery
+> life left regardless of how much it has charged since the switch).
 
-My e100 on an nforce2 won't work in rc3-mm1.
-The "acpi=3Doff" boot parameter makes it go.
+We moved to a 100 ms timeout on EC requests for FreeBSD because some
+devices just couldn't respond quicker.  But I think there's a larger issue
+somewhere here where interrupts are being lost.
+
+-Nate
 
 
 -------------------------------------------------------
