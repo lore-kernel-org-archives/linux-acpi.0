@@ -1,14 +1,12 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: Re: Laptop does not reboot
-Date: Mon, 1 Mar 2004 02:04:15 +0100
+From: mj-+ZI9xUNit7I@public.gmane.org
+Subject: Pricelist
+Date: Mon, 01 Mar 2004 09:47:41 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040301010414.GA16766@hell.org.pl>
-References: <403E59FF.990E2CD0@imail.de> <200402270209.04355.bernd-schubert@web.de> <40420AEA.63D1586C@imail.de>
+Message-ID: <xplgwfbvopploaytdoj@ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: multipart/mixed;
+        boundary="--------mlfbrpvnrfmwpqjcjqdt"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <40420AEA.63D1586C-uKKRHEr75Vc@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,19 +15,40 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dieter Rohlfing <u490248-uKKRHEr75Vc@public.gmane.org>
-Cc: Bernd Schubert <bernd-schubert-S0/GAf8tV78@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Dieter Rohlfing:
-> I must confess, I'm really at my wit's end. :-(
+----------mlfbrpvnrfmwpqjcjqdt
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-See if booting with noapic nolapic changes anything.
-Best regards,
+------------------  Virus Warning Message (on the network)
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+Found virus WORM_BAGLE.C in file tehysusv.exe (in acc.zip)
+The file acc.zip is moved to /var/spool/quarantine/virRBRK4_zsc.
+
+This is a machine-generated message, please do not reply via email. If you have questions, please contact the Lucent Help Desk at +1 888 300 0770.
+
+---------------------------------------------------------
+
+----------mlfbrpvnrfmwpqjcjqdt
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+
+
+
+----------mlfbrpvnrfmwpqjcjqdt
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+
+------------------  Virus Warning Message (on the network)
+
+acc.zip is removed from here because it contains a virus.
+
+---------------------------------------------------------
+----------mlfbrpvnrfmwpqjcjqdt--
+
 
 
 -------------------------------------------------------
