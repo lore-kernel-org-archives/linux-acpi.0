@@ -1,14 +1,14 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [OT] message fails to reach list?
-Date: Wed, 3 Dec 2003 18:48:33 +0800
+From: Michael Holzt <kju-+hGXy1KyAyQ@public.gmane.org>
+Subject: Re: RE: Toshiba ACPI battery status - ACPI errors
+Date: Wed, 3 Dec 2003 11:55:02 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720BF0@pdsmsx403.ccr.corp.intel.com>
+Message-ID: <20031203105502.GA13819@fqdn.org>
+References: <3ACA40606221794F80A5670F0AF15F8401720BE7@pdsmsx403.ccr.corp.intel.com> <20031202214522.GA8720@fqdn.org> <20031202222602.GE10737@parcelfarce.linux.theplanet.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-15
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <20031202222602.GE10737-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,47 +17,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: a.verweij-oe7qfRrRQfeEZXFvZSAUrfP6llvjuJOh@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-I think if you use bugzilla.kernel.org to file it, you could not =
-bothered with this kind of issue. --Luming
+> If you're having problems with 2.6, this would be a great time to let
+> everybody know what they are ...
 
------Original Message-----
-From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org =
-[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org]On Behalf Of Arjen =
-Verweij
-Sent: 2003?12?3? 18:00
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: [ACPI] [OT] message fails to reach list?
+It looked more like configuration issues (e.g. with the radeon framebuffer
+failing to switch the resolution automagically) than bugs. Hadn't time to
+investigate, though. I won't report bugs before beeing certain about there
+existance.
 
+Regards
+Michael
 
-Hi,
-
-I submitted a bugreport like a good little hobbit, but I have yet to see
-it turn up. Is congestion like this normal? It's been about a day since =
-I
-sent it.
-
-Don't be alarmed, I won't re-send the message yet, I'm just curious. If =
-it
-doesn't pop up here tomorrow I'll re-send it
-
-Regards,
-
-Arjen
-
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: SF.net Giveback Program.
-Does SourceForge.net help you be more productive?  Does it
-help you create better code?  SHARE THE LOVE, and help us help
-YOU!  Click Here: http://sourceforge.net/donate/
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
+-- 
+Michael Holzt, DL3KJU, kju-+hGXy1KyAyQ@public.gmane.org, kju@debian.org, kju@IRCNet
 
 
 -------------------------------------------------------
