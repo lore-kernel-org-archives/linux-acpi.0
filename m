@@ -1,45 +1,51 @@
-From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
-Subject: Re: Re: Centrino speedstep
-Date: Thu, 6 Jan 2005 17:14:40 +0100
-Message-ID: <20050106161440.GD10011@dominikbrodowski.de>
-References: <m2zmzyw4e7.fsf@phoenix.squirrel.nl> <20041228212653.GA8436@dominikbrodowski.de> <20041229181834.GA19199@poupinou.org> <41D42E88.5080800@mega.ist.utl.pt> <m2llbfk931.fsf@phoenix.squirrel.nl> <41D43A9F.5050507@mega.ist.utl.pt> <16852.15668.315630.700537@phoenix.squirrel.nl> <41D4AA9F.7080200@mega.ist.utl.pt> <20041231082524.GA8312@dominikbrodowski.de> <16861.5376.560582.314813@aber.ac.uk>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [ACPI] Re: kernel 2.6.10 , uhci-hcd problem
+ after ACPI S3 suspend.
+Date: Thu, 6 Jan 2005 10:40:07 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.0501061038540.1024-100000@ida.rowland.org>
+References: <20050105225830.87545.qmail@web50207.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <16861.5376.560582.314813-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-devel-admin@lists.sourceforge.net>
+In-Reply-To: <20050105225830.87545.qmail@web50207.mail.yahoo.com>
+Sender: linux-usb-devel-admin@lists.sourceforge.net
+Errors-To: linux-usb-devel-admin@lists.sourceforge.net
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
+	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Post: <mailto:linux-usb-devel@lists.sourceforge.net>
+List-Help: <mailto:linux-usb-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
+	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-usb-devel>
+To: Paul Ionescu <i_p_a_u_l@yahoo.com>
+Cc: USB development list <linux-usb-devel@lists.sourceforge.net>, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jan 06, 2005 at 10:37:52AM +0000, Fred Labrosse wrote:
-> Dominik Brodowski writes:
->  > On Fri, Dec 31, 2004 at 01:25:51AM +0000, Pedro Venda wrote:
->  > > also, how exactly can I use ACPI throttling? because with the speestep 
->  > > driver, I can't go below 600MHz, but 12% of maximum frequency is 180MHz 
->  > > which I can reach using ACPI throttling.
->  > 
->  > but throttling doesn't save you anything.
->  > 
-> 
-> Well, it makes it run slightly cooler, so saves on fan power.  Or am I
-> mistaken?
-If there is indeed a correlation with the fan power, indeed. Usually this
-isn't the case, and then it doesn't matter at all.
+On Wed, 5 Jan 2005, Paul Ionescu wrote:
 
-	Dominik
+> Hi Alan,
+> 
+> I just compiled a new kernel with both
+> CONFIG_USB_SUSPEND and CONFIG_USB_DEBUG, and now it
+> works if nothing is plugged in USB when I suspend the
+> machine.
+> If I have something plugged in at suspend time, after
+> resume it is not there anymore, and I have to
+> pull/plug the device again.
+
+Just out of curiosity, does the same thing happen with CONFIG_USB_SUSPEND 
+if you rmmod ehci-hcd before suspending?  Does a device plugged in to the 
+UHCI controller continue to work after you resume?
+
+Alan Stern
+
 
 
 -------------------------------------------------------
 The SF.Net email is sponsored by: Beat the post-holiday blues
 Get a FREE limited edition SourceForge.net t-shirt from ThinkGeek.
 It's fun and FREE -- well, almost....http://www.thinkgeek.com/sfshirt
+_______________________________________________
+linux-usb-devel@lists.sourceforge.net
+To unsubscribe, use the last form field at:
+https://lists.sourceforge.net/lists/listinfo/linux-usb-devel
