@@ -1,13 +1,14 @@
-From: Christopher Allen Wing <wingc-fnGUqWb9lFPPwG6xszlCvg@public.gmane.org>
-Subject: Re: suggestions for debugging ACPI IRQ routing in 2.6.11.6?
- (timer interrupt received twice)
-Date: Tue, 5 Apr 2005 10:46:03 -0400 (EDT)
-Message-ID: <Pine.LNX.4.58.0504051041310.13242@hammer.engin.umich.edu>
-References: <971FCB6690CD0E4898387DBF7552B90E010F109B@orsmsx403.amr.corp.intel.com>
+From: Romano Giannetti <romanol-qvIf60buks8@public.gmane.org>
+Subject: Re: Re: 2.6.12-rc1-mm4 and suspend2ram (and synaptics)
+Date: Tue, 5 Apr 2005 17:01:05 +0200
+Message-ID: <20050405150105.GA26149@pern.dea.icai.upco.es>
+References: <20050331220822.GA22418@gamma.logic.tuwien.ac.at> <20050401113335.GA13160@elf.ucw.cz> <e79639220504010938582bade6@mail.gmail.com> <20050402085935.GC1330@openzaurus.ucw.cz>
+Reply-To: romano-1BxYRfzsdQW8A8a7gxElqg@public.gmane.org
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-15
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <971FCB6690CD0E4898387DBF7552B90E010F109B-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20050402085935.GC1330-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,41 +18,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Stefan Schweizer <sschweizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Norbert Preining <preining-DX+603jRYB8@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thanks. I figured out the problem with iasl. I was using the 'acpixtract'
-perl script to process the output from 'acpidmp'.
+> 
+> Same way to debug it, then.... try minimal drivers.
 
-acpixtract is not compatible with Unicode-enabled Perl. It outputs a
-corrupted file; specifically, it was outputting a file with:
+Yes, the lifer of a kernel debugger is hard... 
 
-	TableHeader.Length = 3250883
+Pavel, one question (maybe stupid, I am not at all an expert). Wouldn't be
+possible to add a printk when invoking and returning from suspend/resume
+methods of drivers, telling if they are specific or generic on? Maybe with
+the help of the serial console could be an aid to detect wich drivers are
+failing in that case. It could have helped the ALPS case, methinks.
+Obviously, under a "kernel hacking" config. I'd love to be able to make it
+myself, but I do not know where to start... 
 
-while the file itself was only 13783 bytes. Thus iasl crashed while trying
-to compute the checksum past the end of the buffer.
-
-
-By disabling unicode in perl via 'export LC_ALL=C', acpixtract generates a
-correct file and iasl works for me.
-
-I still have no idea what is wrong with the local APIC. I guess I have
-more to learn about how this works...
+        Romano 
 
 
-Thanks,
 
-Chris Wing
-wingc-fnGUqWb9lFPPwG6xszlCvg@public.gmane.org
-
-
-On Mon, 4 Apr 2005, Moore, Robert wrote:
-
-> I'm surprised that iASL is crashing.  The checksum procedure is easy to
-> debug, though.  The length of the table is in the table header.
->
-> I've attached the disassembled file.
+-- 
+Romano Giannetti             -  Univ. Pontificia Comillas (Madrid, Spain)
+Electronic Engineer - phone +34 915 422 800 ext 2416  fax +34 915 596 569
 
 
 -------------------------------------------------------
