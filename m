@@ -1,14 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Problem Suspending with 2.5.44
-Date: Wed, 30 Oct 2002 23:18:56 +0100
+From: =?iso-8859-1?Q?=C9ric?= Brunet <ebrunet-l5PIGlIYzrxGWvitb5QawA@public.gmane.org>
+Subject: S1 on 2.4.20 kernel and dvdroms
+Date: Thu, 31 Oct 2002 15:57:21 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021030231856.A488@elf.ucw.cz>
-References: <20021021080511.GB13629@titan.lahn.de>
+Message-ID: <20021031145721.GB27096@lps.ens.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20021021080511.GB13629-u4khhh1J0LzF41mA0N3lWw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,23 +16,37 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Philipp Matthias Hahn <pmhahn-u4khhh1J0LzF41mA0N3lWw@public.gmane.org>
-Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hello all,
 
-> 4. I tried "sleep 1;echo 1 > sleep" and got the following:
-> 
-> topping tasks: ====pdflush: bogus wakeup!
-> =pdflush: bogus wakeup!
-> ===================
-> stopping tasks failed (1 tasks remaining)
+I am using the acpi patches 20021002 on a 2.4.20-pre10 kernel.
 
-Stopping tasks should not be required for S1...
-							Pavel
--- 
-When do you have heart between your knees?
+I got S1 working, but, after a restore I noticed that my dvdrom wouldn't
+work anymore: if I try to acces the drive, the activity led goes solid, I
+hear the dvdrom spining, and the computer freezes. Of course, the dvdrom
+works perfectly before I put the computer to S1.
+
+After some investigation with hdparm, it appears that before S1, the
+dvdrom is in udma2 state, and after S1 it is in mdma2 state. And, surely
+enough, if I do
+
+	hdparm -X66 /dev/hdc
+
+before using my dvdrom, it works perfectly.
+
+My question is: shouldn't the acpi subsystem take care of restoring the
+dvdrom state for me ?
+
+By the way, is swsup in 2.4.45 supposed to work, or should I wait for
+2.5.46 ?
+
+Regards,
+
+	=C9ric Brunet
+
+
 
 
 -------------------------------------------------------
