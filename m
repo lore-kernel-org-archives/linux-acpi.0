@@ -1,14 +1,14 @@
-From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Subject: Re: Please, please help me enable a serial port.
-Date: Thu, 27 Nov 2003 12:54:49 +0000
+From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
+Subject: Re: ASUS M3N (Centrino)
+Date: Thu, 27 Nov 2003 15:26:45 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031127125449.GZ11694@parcelfarce.linux.theplanet.co.uk>
-References: <14650.192.176.33.6.1069920559.squirrel@firewall.isacson.dyndns.info>
+Message-ID: <3FC609A5.8060501@pca.it>
+References: <3F9856B8.3080103@pca.it> <3FBF6751.80507@pca.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <14650.192.176.33.6.1069920559.squirrel-v+aXH1h/sVyADFAv7lKxfSLkJAjfWD+zmbswZGvKH74@public.gmane.org>
+In-Reply-To: <3FBF6751.80507-wlebWZzHoyE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,36 +17,53 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alexander Isacson <alexander-O4oeKNg1Q5OZuzBka8ofvg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Nov 27, 2003 at 09:09:19AM +0100, Alexander Isacson wrote:
-> The driver I was using before is called fpi2002 and I found it here:
-> http://linux-tablet-pc.dhs.org/. I attached it below along with the
-> readme. All it does is enable /dev/ttyS0. I'm no kernel programmer so this
-> is like rocket-science to me. I also attached the compilation error I get
-> when trying to recompile the driver for 2.6.0-test10
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-The problem is with the Makefiles used for this module.  The include
-paths are wrong for 2.6 so it won't work.
+Hello,
 
-here's a command line used to compile something in *my* kernel:
+on 11/22/03 14:40, Luca Capello wrote:
+| on 10/24/03 00:31, Luca Capello wrote:
+| | I downloaded the last kernel 2.6.0-test8 and the last ACPI patched for
+| | it. I successfully installed it and it works perfectly, just I get the
+| | same "osl / AE_TIME" error I get on kernel 2.4.21, where it was called
+| | "osl-8888" and not "osl-8892" (I attached the dmesg to see the exact
+| | error message). More, there's another error: "utmisc-0745" that IIRC
+| | I've never had on kernel 2.4.21.
+| this is an ancient problem never solved.
+|
+| Now I passed to a new BIOS (version 0205A released 20031117) and to a
+| new kernel (2.4.23-rc2, even if I continue using 2.6.0-test9 with the
+| same ancient problem as from the attachment). Here the new problems IMHO
+| related to ACPI (I attached a part of my 'dmesg' with these errors):
+| | ALSA intel8x0.c:568: codec_semaphore: semaphore is not ready
+| [0x1][0x700300]
+| | ALSA ../../../alsa-kernel/core/seq/oss/seq_oss_init.c:213: no device
+| found
+| | osl-0898 [9488] os_wait_semaphore     : Failed to acquire
+| semaphore[c157b780|1|0], AE_TIME
+it seems that no one has a solution for this problem or (worse, but I
+don't think so) no one is interested in it. What is real worst is that
+other ASUS M3N users reported me the same problem, so it is not linked
+to my specific machine.
 
-  gcc -Wp,-MD,drivers/block/.floppy.o.d -nostdinc -iwithprefix include -D__KERNEL__ -Iinclude  -D__KERNEL__ -Iinclude  -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -pipe -mpreferred-stack-boundary=2 -march=k6 -Iinclude/asm-i386/mach-default -fomit-frame-pointer     -DKBUILD_BASENAME=floppy -DKBUILD_MODNAME=floppy -c -o drivers/block/.tmp_floppy.o drivers/block/floppy.c
+Could someone help me or at least tell me if this bug is solvable or
+not? And if it is an ACPI bug or a DSDT one?
 
+Regards,
+Gismo / Luca
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
 
-> gcc -O2 -D__KERNEL__ -DMODULE -fomit-frame-pointer -I/usr/src/linux/include -I/usr/src/linux/include/asm -c fpi2002.c -o fpi2002.o
+iD8DBQE/xgmjVAp7Xm10JmkRAjXeAJ9naIlZuIXrIa0v4MpPyiUNH3kvbgCfVuDS
+6waZqIgsvBgyzkagZK306wM=
+=KWPI
+-----END PGP SIGNATURE-----
 
-I suspect you need to add -Iinclude/asm-i386/mach-default to this command
-line.  It would probably be helpful if you could get the original author
-to *talk to us* rather than putting up a random page of bitching about
-how ACPI doesn't do what he wants.
-
--- 
-"It's not Hollywood.  War is real, war is primarily not about defeat or
-victory, it is about death.  I've seen thousands and thousands of dead bodies.
-Do you think I want to have an academic debate on this subject?" -- Robert Fisk
 
 
 -------------------------------------------------------
