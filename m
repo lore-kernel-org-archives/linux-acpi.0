@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Re: ACPI small patch update (20021024)
-Date: Tue, 15 Jan 2002 08:23:36 -0500
+Subject: Re: making progress with ACPI was: ACPI small patch update (20021024)
+Date: Wed, 16 Jan 2002 14:53:21 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020115132324.GB2015@zaurus>
-References: <EDC461A30AC4D511ADE10002A5072CAD04C7A467@orsmsx119.jf.intel.com> <m2wuo7tc0g.fsf@tnuctip.rychter.com>
+Message-ID: <20020116195314.GD2947@zaurus>
+References: <EDC461A30AC4D511ADE10002A5072CAD04C7A476@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <m2wuo7tc0g.fsf-dTJq59+VGzkkCw8IV3R6h0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD04C7A476-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,26 +17,33 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jan Rychter <jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org>
-Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org, 'Jan Rychter' <jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
->  Andrew> As soon as Linus gets back, I'll be submitting all the
->  Andrew> outstanding changes to him, and all the patchsets are on
->  Andrew> linux-acpi.bkbits.net if anyone just wants to browse the most
->  Andrew> recent changes.
+> The real problem is there need to be more people fixing bugs. If you see a
+> bug on your hardware, *you* are in the best spot to fix it. That is the only
+> way this is going to work, long-term. You are asking for both a greater
+> focus on the project's infrastructure, *and* more bug fixing, and that is
+> only going to happen if people who have not previously pitched in, start
+> doing so.
 > 
-> Not that I'm running this project, but I'd humbly suggest holding off
-> those submissions until at least the recent regressions are fixed.
-> 
-> 20021022 has blown off /proc/acpi/thermal and /proc/acpi/processor for
-> me (and at least for one other person).
+> It has been a rough road sometimes, but we (Intel) have tried to encourage
+> community involvement as much as possible. But, I look over at the Linux USB
+> list and see a much greater level of community contribution. We have some,
+> but we need MORE. Without that involvement, we will get there with ACPI --
+> it will just take longer.
 
-As these patches probably fix things for >1
-person, too, I think holding them back is bad
-idea. Remember, Linus likes small patches.
+USB is very different -- there are developers
+with their own drivers that are on the list. Also
+Linux-USB is older project. ACPI has just one
+developer similar to usb developers -- the
+person developing toshiba.c...
+
+I do not think you being from intel is the problem...
+				Pavel
 
 
 -------------------------------------------------------
