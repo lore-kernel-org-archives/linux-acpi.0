@@ -1,57 +1,35 @@
-From: "Zelma Couch" <au871gw-Tq3q/cTeJW4BjbRQSgAzPrNAH6kLmebB@public.gmane.org>
-Subject: get paid to take surveys online
-Date: Wed, 01 Oct 03 20:21:18 GMT
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3j8y9-79m-z2p$4dom@07dz53>
-Reply-To: "Zelma Couch" <au871gw-Tq3q/cTeJW4BjbRQSgAzPrNAH6kLmebB@public.gmane.org>
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: [ACPI] Re: [BK PATCH] ACPI 20030918
+Date: Thu, 2 Oct 2003 00:56:41 +0200
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <20031001225641.GB18451@hell.org.pl>
+References: <BF1FE1855350A0479097B3A0D2A80EE0D56318@hdsmsx402.hd.intel.com> <1064986198.2574.190.camel@dhcppc4> <3F7B0B86.70206@pobox.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="D_41A_CD4FBA77B69.8_5_C_"
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acornicq-bugs-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, gtkmm-main-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, nms-cgi-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=iso-8859-2
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <3F7B0B86.70206-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>
+To: Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>
+Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>, Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Thus wrote Jeff Garzik:
+> ><len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/09/30 1.1381)
+> >   [ACPI] acpi4asus-0.25-0.26.diff (Karol Kozimor)
+> >
+> ><len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/09/30 1.1380)
+> >   [ACPI] acpi4asus-0.24a-0.25-2.6.0-test (Karol Kozimor)
+> >
+> 
+> All the comments were quite descriptive except for these...  a filename 
+> doesn't me much about the content of the patch.
 
---D_41A_CD4FBA77B69.8_5_C_
-Content-Type: text/html;
-Content-Transfer-Encoding: quoted-printable
+Well, as for me, I posted ChangeLog excerpts in the original announcements.
+The problem is those patches went in after the third or fourth resend,
+which took some 1.5 month. I'll try to post the ChangeLog in the resends
+though.
+Best regards,
 
-<html>
-<head>
-<title>$$$$$$$$$$$$$$$$$$&&&&&&&&&&&&&############# think</title>
-<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Diso-8859=
--1">
-</head>
-
-<body>
-<p>We're looking for people who are interested in being paid for their opi=
-nions.</p>
-<p><a href=3D"http://www.silverstate.co.sy-BEjI8TsGihSShJjsea82LzsBMyxopCsJ@public.gmane.org/click.ph=
-p?id=3Dsicosyl">http://www.silverstate.co.sy-BEjI8TsGihSShJjsea82LzsBMyxopCsJ@public.gmane.org/click.=
-php?id=3Dsicosyl</a></p>
-<p>&nbsp;</p>
-<p><font size=3D"2">to get off our database <a href=3D"http://www.silverst=
-ate.co.sy-BEjI8TsGihSShJjsea82LzsBMyxopCsJ@public.gmane.org/click.php?id=3Dsicosyx">follow 
-  this link</a></font></p>
-</body>
-</html>
-hy hbelvi
- s ursw
-hiztppwchwflrzzfm  q
-
---D_41A_CD4FBA77B69.8_5_C_--
-
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
