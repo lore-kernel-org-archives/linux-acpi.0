@@ -1,14 +1,14 @@
-From: Micha Feigin <michf-+lLcF8/aw9x6auLlOhE+pQ@public.gmane.org>
-Subject: Re: ACPI + Laptop Power Management
-Date: Fri, 21 Nov 2003 15:53:21 +0200
+From: =?iso-8859-1?Q?Emmanuel_Thom=E9?= <Emmanuel.Thome-/zGXu1G9BXs@public.gmane.org>
+Subject: Re: Dell D600: teaching radeonfb how to wake up...
+Date: Fri, 21 Nov 2003 15:35:36 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031121135321.GF5917@luna.mooo.com>
-References: <C386328088ED7F4E9F81AFBABDDF60DA03386202@wdmyexch02.my.asia.wdc.com> <20031121101232.GL32464@poupinou.org> <20031121111323.GB18223@luna.mooo.com> <3FBE0E02.3080203@pca.it>
+Message-ID: <20031121153535.B19564@loria2.loria.fr>
+References: <20031119180119.GB22307@tate.loria.fr> <yzo1xs3ijgr.fsf@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <3FBE0E02.3080203-wlebWZzHoyE@public.gmane.org>
+In-Reply-To: <yzo1xs3ijgr.fsf-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>; from ole.rohne-vJEk5272eHo@public.gmane.org on Thu, Nov 20, 2003 at 08:32:04AM +0100
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,73 +17,31 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Nov 21, 2003 at 02:07:14PM +0100, Luca Capello wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
-> 
-> Hello Micha,
-> 
-> on 11/21/03 12:13, Micha Feigin wrote:
-> | like said here, laptopmode is what you want since it holds back dirty
-> | buffer flushes which is what you are experiencing. It will fire up the
-> | disk on reads though. I attached a script that you can use to enter
-> | laptopmode (was actually distributed with laptopmode as far as I could
-> | tell when googling for the original patch). I call it in responce to
-> | ac events from acpid to get it running when the power is disconnected.
-> | Will have to make sure that you get those event though since I had to
-> | twik my dsdt for that.
-> thx for the script, I was searching for but I couldn't find :-(
-> On the other hand, what do I search for in my DSDT? I mean, in which way
-> can I know if the 'laptop_mode' is supported on my DSDT?
 
-laptopmode has nothing to do with you dsdt. The dsdt is the acpi code in
-the bios. Its relevent to look into it if you are using acpi and having
-trouble since a lot of the bioses have a buggy dsdt table (acpi code
-that is).
-If you are using acpi look into acpid to be able to act upon acpi
-events.
-I this case, with acpid not running do (assuming you do have acpi
-support, otherwise you won't see this file)
-cat /proc/acpi/event
-and pull out your power cord and then reinsert it. If you are getting
-ACAD or BAT or somesuch thing messages then everything is ok (I don't
-know how to do this with apm) and you can use acpid to run the
-laptopmode script whenever your power is connected/disconnected.
+Then you've hacked the thing way further than its current state, at
+least... Would you mind sharing your code ?
 
+E.
 
+On Thu, Nov 20, 2003 at 08:32:04AM +0100, ole.rohne-vJEk5272eHo@public.gmane.org wrote:
+> I've done similar exercises on my Fujitsu P2120 (it's an M6), and I
+> concluded that the card needed to go through the BIOS POST sequence,
+> but for some reason s3_bios cannot be used. I tried backporting the
+> powerbook code, with no result except a hanging computer. I suspect
+> even ATI docs wouldn't help as they "provide" the BIOS for this
+> purpose.
 > 
-> | I could try making such a patch for ext3 if you want.
-> Yes, please :-)
-
-Will look into it.
-
+> I eventuall hacked it using the vm86 emulator that comes with XFree86,
+> plugging in a call to BIOS POST when switching virtual console; kind
+> of ugly but it worked. I think I also needed some PCI hackery in the
+> radeonfb resume code, not sure if that made it back into the 2.6.0
+> kernel. I haven't been able to play with it at all lately as my
+> machine reboots on S3 resume with recent kernels.
 > 
-> Thx, bye,
-> Gismo / Luca
-> -----BEGIN PGP SIGNATURE-----
-> Version: GnuPG v1.2.3 (GNU/Linux)
-> Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
-> 
-> iD8DBQE/vg4AVAp7Xm10JmkRAmsWAJ928z25MNHuka49V08QWHa0NryAxACdFX8I
-> iEg+mpKXPRz2VGqOOmu8y3g=
-> =liFy
-> -----END PGP SIGNATURE-----
-> 
-> 
-> 
-> -------------------------------------------------------
-> This SF.net email is sponsored by: SF.net Giveback Program.
-> Does SourceForge.net help you be more productive?  Does it
-> help you create better code?  SHARE THE LOVE, and help us help
-> YOU!  Click Here: http://sourceforge.net/donate/
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> 
+> Regards, Ole
 
 
 -------------------------------------------------------
