@@ -1,14 +1,14 @@
 From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Questions about DSDT
-Date: Fri, 6 Feb 2004 23:53:47 +0100
+Subject: Re: acpi=force safe?
+Date: Sat, 7 Feb 2004 00:06:17 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040206225347.GI13262@poupinou.org>
-References: <20040206205500.GA16431@dreamland.darkstar.lan>
+Message-ID: <20040206230617.GJ13262@poupinou.org>
+References: <3ACA40606221794F80A5670F0AF15F8401CBB685@PDSMSX403.ccr.corp.intel.com> <16644.65.164.3.3.1076087775.squirrel@mail.diamondcpu.com> <20040206211334.GH13262@poupinou.org> <24294.65.164.3.3.1076107609.squirrel@mail.diamondcpu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040206205500.GA16431-sTXFmx6KbOnUXq0IF5SVAZ4oGUkBHcCu@public.gmane.org>
+In-Reply-To: <24294.65.164.3.3.1076107609.squirrel-gjzqEhKAtSBis2HOlLKa7kEOCMrvLtNR@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,75 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Nick Bartos <spam99-1EIjRwF9Gc5s5w19saIqfg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Feb 06, 2004 at 09:55:00PM +0100, Luca wrote:
-> Hi,
-> I have some questions about DSDT:
+On Fri, Feb 06, 2004 at 04:46:49PM -0600, Nick Bartos wrote:
 > 
-> 1) My notebook [1] has a broken DSDT:
+> >
+> > That part of the firmware may be broken, and you may have hang on boot
+> > (even though I think it is safe now without lapic support even on old
+> > laptops).
+> >
 > 
-> ACPI: AC Adapter [AC] (on-line)
-> ACPI: Battery Slot [BAT0] (battery present)
-> ACPI: Power Button (FF) [PWRF]
-> ACPI: Sleep Button (CM) [SLPB]
-> ACPI: Lid Switch [LID]
-> ACPI: Fan [FAN0] (on)
-> acpi_processor-1626 [38] acpi_processor_get_inf: Invalid PBLK length [5]
-> ACPI: Processor [CPU0] (supports C1)
-> ACPI: Thermal Zone [THRM] (56 C)
-> Asus Laptop ACPI Extras version 0.26
->   L3D model detected, supported
-> 
+> I am compiling it with smp support, so I think it automatically puts in
+> lapic support.
 
-...
+lapic support and IO-apic is a good idea ihmo if you have good ethernet
+cards especially if you intend to have a lot of traffics in your
+router..
 
-> ACPI: Subsystem revision 20040116
->    tbget-0291: *** Info: Table [DSDT] replaced by host OS
->  tbxface-0117 [03] acpi_load_tables      : ACPI Tables successfully acquired
-> [...]
-> ACPI: AC Adapter [AC] (on-line)
-> ACPI: Battery Slot [BAT0] (battery present)
-> ACPI: Power Button (FF) [PWRF]
-> ACPI: Sleep Button (CM) [SLPB]
-> ACPI: Lid Switch [LID]
-> ACPI: Fan [FAN0] (on)
-> ACPI: Processor [CPU0] (supports C1 C2)
-> ACPI: Thermal Zone [THRM] (32 C)
-> Asus Laptop ACPI Extras version 0.26
->   L3D model detected, supported
-
-Even though the ACPI Spec do not allow a value other than 0 or 6, I
-think than one may be relaxed somehow (as I remember, there where
-trouble though with olds laptops).
-
-> 2) In the DSDTs repository I see a custom DSDT for my laptop, but for an
-> older version of  the BIOS (I does work though). The  only difference is
-> that it adds Linux to the list  of know OS. What are the effects of this
-> change?
-
-Probably you can get the same kind of functionality via
-acpi_os_name='Win...' option...
-
-> 3) Should I upload original and hacked DSDT to acpi.sf.net?
-
-Still don't know.  It's up to you to decide.  I think anyway
-that it is better to upload diffs instead.
-
-Anyway, perhaps the correct things to do is to have a kind of
-sysctl for it so that there is no need to upload a DSDT just for
-that.
-
-> 4) How do I send the patch to ASUS? I just send an email to the support
-> explaining the problem or...?
-
-I don't know.  At least, say them that the ASL that was generated break:
-ACPI 1.0b 15.2.3.3.15 Processor - Declare Processor
-
-But then this indicate much more likely a bug in the AML assembler
-that produced that code (the assembler produce byte-codes upon
-*invalide* sources).
 
 -- 
 Bruno Ducrot
