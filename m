@@ -1,14 +1,14 @@
-From: Dan <overridex-Kz9Au3A7zptBDgjK7y7TUQ@public.gmane.org>
+From: "Wang, Zhenyu Z" <zhenyu.z.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: RE: fan control based on temp
-Date: Wed, 16 Jun 2004 22:03:32 -0400
+Date: Thu, 17 Jun 2004 10:10:37 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1087437811.20093.3.camel@nazgul.overridex.net>
-References: <6E0C289723A0564F9A8279E236E8565F079AAB91@pdsmsx402.pd.intel.com>
+Message-ID: <6E0C289723A0564F9A8279E236E8565F07A00084@pdsmsx402.pd.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+	charset="iso-2022-jp"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <6E0C289723A0564F9A8279E236E8565F079AAB91-4yWAQGcml64divtuJNk2fFDQ4js95KgL@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,9 +17,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Wang, Zhenyu Z" <zhenyu.z.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Dan <overridex-Kz9Au3A7zptBDgjK7y7TUQ@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
+
+This is a known issue on some laptops.
+http://bugme.osdl.org/show_bug.cgi?id=2026
+
+Pls, attach your acpidump output.
+
+-zhen 
+
+-----Original Message-----
+From: Dan [mailto:overridex-Kz9Au3A7zptBDgjK7y7TUQ@public.gmane.org] 
+Sent: 2004年6月17日 10:04
+To: Wang, Zhenyu Z
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: RE: [ACPI] fan control based on temp
 
 On Sun, 2004-06-13 at 22:26, Wang, Zhenyu Z wrote:
 >  Any debug message? dmesg...
@@ -86,6 +100,7 @@ Jabber: OverrideX-/eSpBmjxGS4dnm+yROfE0A@public.gmane.org
 
 Cold, adj.: When the politicians walk around with their hands in their
 own pockets.
+
 
 
 
