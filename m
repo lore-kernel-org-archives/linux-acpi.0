@@ -1,14 +1,14 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: #define ACPI_MAX_TABLES 256
-Date: Fri, 3 Oct 2003 13:56:09 -0400
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: Re: Reporting success on i8k5 Suspend/Resume linux-2.6.0-test6!!!
+Date: Fri, 3 Oct 2003 10:59:40 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <BF1FE1855350A0479097B3A0D2A80EE0CC8753@hdsmsx402.hd.intel.com>
+Message-ID: <20031003105653.F91670@root.org>
+References: <20031003150423.462e88f4.XaRz69@terra.es>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=X-UNKNOWN
+Content-Transfer-Encoding: 8BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <20031003150423.462e88f4.XaRz69-pCzzcW6XgXY@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,20 +17,31 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jesse Barnes <jbarnes-sJ/iWh9BUns@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bjorn Helgaas <bjorn_helgaas-VXdhtT5mjnY@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pere =?ISO-8859-15?Q?Casta=F1er?= <XaRz69-pCzzcW6XgXY@public.gmane.org>
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, ACPI-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Anybody know where the value 256 came from?
-(looks like we used to define ACPI_MAX_TABLES as ACPI_TABLE_COUNT about
-a year ago)
+On Fri, 3 Oct 2003, Pere [ISO-8859-15] Castañer wrote:
+> -Tested with Nvidia binary drivers and executing suspend in Xfree:
+>
+> Suspend:Ok
+> Resume: BAD. The system freezes.
 
-We use ACPI_MAX_TABLES to limit how many RSDT or XSDT entries we look
-at, but I didn't see any limit in the spec, so I was wondering if this
-came from some practical experience.
-=20
-Thanks,
--Len
+Suspending and resuming reminds me of a Seinfeld episode.  Suspending is
+easy.  It's the resuming that's hard.
+
+JERRY: I don't understand. I made a reservation. Do you have my
+reservation?
+RENTAL ASSISTANT: Yes we do. Unfortunately we ran out of cars.
+JERRY: But the reservation keeps the car here, that's why you have the
+reservation!
+RENTAL ASSISTANT: I know why we have reservations.
+JERRY: I don't think you do. If you did, I would have a car. You see, you
+know how to take the reservation, you just don't know how to hold the
+reservation. And that's really the most important part of the reservation:
+the holding. Anybody can just take them.
+
+-Nate
 
 
 -------------------------------------------------------
