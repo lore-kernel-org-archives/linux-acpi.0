@@ -1,12 +1,13 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+From: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>
 Subject: Re: Call for help: list of machines with working S3
-Date: Thu, 17 Feb 2005 12:02:34 +0100
-Message-ID: <20050217110233.GA1353@elf.ucw.cz>
-References: <20050214211105.GA12808@elf.ucw.cz> <1108621005.2096.412.camel@d845pe>
+Date: Thu, 17 Feb 2005 12:06:10 +0100
+Message-ID: <20050217110610.GH29993@gamma.logic.tuwien.ac.at>
+References: <20050214211105.GA12808@elf.ucw.cz> <42121EC5.8000004@gmx.net> <20050215170837.GA6336@gamma.logic.tuwien.ac.at> <200502152038.00401.stefandoesinger@gmx.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: quoted-printable
 Content-Disposition: inline
-In-Reply-To: <1108621005.2096.412.camel@d845pe>
+In-Reply-To: <200502152038.00401.stefandoesinger-RbZlAiThDcE@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,37 +17,52 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, seife-l3A5Bk7waGM@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org
+To: Stefan =?iso-8859-15?Q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, seife-l3A5Bk7waGM@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Die, 15 Feb 2005, Stefan D=F6singer wrote:
+> > After deactivating DRI in the X config file and saving the states wit=
+h
+> > your script (thanks) and turning off various stuff I get X running
+> > again.
+> >
+> > Questions:
+> > - DRI must be disabled I guess?! Even with newer X server (x.org)?
+>
+> Do you use the fglrx driver? This doesn't work with any type of suspend=
+ so=20
 
-> I think that it is the BIOS' job on S3-suspend
-> to save the video mode.  On S3-resume the BIOS should
-> re-POST and restore the video mode.
+No
 
-Can you find it written down somewhere? It would be certainly easier
-for me if every BIOS did re-post, but it is not the case on any new
-BIOS....
+> far. If you use the radeon driver try a driver update.
 
-> To completely solve the Linux S3 video restore issue,
-> we need to push the platform and BIOS vendors.
-> 
-> What am I missing?
+>From deb http://www.nixnuts.net/files/ ./ ??
 
-I think we are missing few lines in docs somewhere saying "video must
-be re-POSTed during S3 wakeup". And then we miss someone going around
-vendors with baseball bat, telling them to fix their BIOSes.
+Or direct from dri.freedesktop.org, and updating X to X.org on sid?
 
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Best wishes
+
+Norbert
+
+-------------------------------------------------------------------------=
+------
+Norbert Preining <preining AT logic DOT at>                 Universit=E0 =
+di Siena
+sip:preining-5G14tY4QmKiDqU6vP1vexV6hYfS7NtTn@public.gmane.org                             +43 (0) 59966-=
+690018
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C=
+5 B094
+-------------------------------------------------------------------------=
+------
+SWANIBOST (adj.)
+Complete shagged out after a hard day having income tax explained to
+you.
+			--- Douglas Adams, The Meaning of Liff
 
 
 -------------------------------------------------------
 SF email is sponsored by - The IT Product Guide
 Read honest & candid reviews on hundreds of IT Products from real users.
 Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+http://ads.osdn.com/?ad_id=3D6595&alloc_id=3D14396&op=3Dclick
