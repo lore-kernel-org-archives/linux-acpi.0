@@ -1,37 +1,34 @@
-From: Fedor Karpelevitch <fedor-ugkMPi23kyXAHCkTjeiZhQ@public.gmane.org>
-Subject: [2.6.0-test4][ACPI] STR, STD returns immidiately
-Date: Sun, 24 Aug 2003 15:37:54 -0700
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <200308241537.54494.fedor@karpelevitch.net>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: bugzilla bug 262 Incomplete pci bus scan (call for testing)
+Date: Mon, 25 Aug 2003 10:32:35 +0800
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720B09@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+	charset="gb2312"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+content-class: urn:content-classes:message
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-when I do 
-echo mem > /sys/power/state
-or
-echo disk > /sys/power/state
+There is a tracker http://bugme.osdl.org/show_bug.cgi?id=3D262=20
+Does anyone has such machine to have latest  kernel and ACPI a try?
 
-it returns in a second without any effect and in sysslog I get this:
+Thanks,
+Luming
 
-Aug 24 15:23:39 bologoe kernel: Stopping tasks: 
-===============================================================================================|
-Aug 24 15:23:39 bologoe kernel: Restarting tasks... done
-Aug 24 15:23:40 bologoe modprobe: FATAL: Module /dev/apm_bios not 
-found.
 
-Am I supposed to compile in APM support? I do not think so...
-
-In -test3 this used to work in a sense - S3 was indeed putting the 
-machine into sleep state ( but was unable to resume ). Swsusp was 
-also working somewhat althought had huge issues...
-
-I'll compile with ACPI debug on in case that may give me any more 
-info...
-
-Fedor.
+-------------------------------------------------------
+This SF.net email is sponsored by: VM Ware
+With VMware you can run multiple operating systems on a single machine.
+WITHOUT REBOOTING! Mix Linux / Windows / Novell virtual machines
+at the same time. Free trial click here:http://www.vmware.com/wl/offer/358/0
