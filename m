@@ -1,65 +1,58 @@
-From: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
-Subject: Re: [ACPI] PATCH-ACPI based CPU hotplug[2/6]-ACPI Eject interface support
-Date: Mon, 27 Sep 2004 09:53:48 -0700
-Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <20040927095348.A29594@unix-os.sc.intel.com>
-References: <20040920092520.A14208@unix-os.sc.intel.com> <200409201812.45933.dtor_core@ameritech.net> <20040924162823.B27778@unix-os.sc.intel.com> <200409270112.29422.dtor_core@ameritech.net>
-Reply-To: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
+From: "Georg C. F. Greve" <greve@gnu.org>
+Subject: Re: status update for current development on ASUS M2N
+Date: Mon, 27 Sep 2004 18:48:48 +0200
+Sender: softwaresuspend-devel-admin@berlios.de
+Message-ID: <m3wtyf8xov.fsf@brain.gnuhh.org>
+References: <m3lleww12c.fsf@brain.gnuhh.org>
+	<1096279213.4222.5.camel@laptop.cunninghams>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-ia64-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <200409270112.29422.dtor_core@ameritech.net>; from dtor_core@ameritech.net on Mon, Sep 27, 2004 at 01:12:28AM -0500
-To: Dmitry Torokhov <dtor_core@ameritech.net>
-Cc: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>, Len Brown <len.brown@intel.com>, acpi-devel@lists.sourceforge.net, LHNS list <lhns-devel@lists.sourceforge.net>, Linux IA64 <linux-ia64@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>
+Content-Type: multipart/signed; boundary="20040927184848+0200-3322803189694038124563910";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
+Return-path: <softwaresuspend-devel-admin@lists.berlios.de>
+In-Reply-To: <1096279213.4222.5.camel@laptop.cunninghams> (Nigel Cunningham's
+	message of "Mon, 27 Sep 2004 20:11:41 +1000")
+Errors-To: softwaresuspend-devel-admin@berlios.de
+List-Help: <mailto:softwaresuspend-devel-request@lists.berlios.de?subject=help>
+List-Post: <mailto:softwaresuspend-devel@lists.berlios.de>
+List-Subscribe: <http://lists.berlios.de/mailman/listinfo/softwaresuspend-devel>,
+	<mailto:softwaresuspend-devel-request@lists.berlios.de?subject=subscribe>
+List-Unsubscribe: <http://lists.berlios.de/mailman/listinfo/softwaresuspend-devel>,
+	<mailto:softwaresuspend-devel-request@lists.berlios.de?subject=unsubscribe>
+List-Archive: <http://lists.berlios.de/pipermail/softwaresuspend-devel/>
+To: ncunningham@linuxmail.org
+Cc: ACPI List <acpi-devel@lists.sourceforge.net>, SoftwareSuspend-Devel <softwaresuspend-devel@lists.berlios.de>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Sep 27, 2004 at 01:12:28AM -0500, Dmitry Torokhov wrote:
-> On Friday 24 September 2004 06:28 pm, Keshavamurthy Anil S wrote:
-> > +typedef void acpi_device_sysfs_files(struct kobject *,
-> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0const struct attribute *);
-> > +
-> > +static void setup_sys_fs_device_files(struct acpi_device *dev,
-> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0acpi_device_sysfs_fil=
-es *func);
-> > +
-> > +#define create_sysfs_device_files(dev)=A0\
-> > +=A0=A0=A0=A0=A0=A0=A0setup_sys_fs_device_files(dev, (acpi_device_s=
-ysfs_files *)&sysfs_create_file)
-> > +#define remove_sysfs_device_files(dev)=A0\
-> > +=A0=A0=A0=A0=A0=A0=A0setup_sys_fs_device_files(dev, (acpi_device_s=
-ysfs_files *)&sysfs_remove_file)
->=20
->=20
-> Hi Anil,
->=20
-> It looks very nice except for the part above. I am really confused wh=
-at the
-> purpose of this code is... It looks like it just complicates things?
-Hi Dmitry,
-	I just wanted to have a single function i.e setup_sys_fs_device_files(=
-) for both
-creating and removing sysfs files. So I have #defined create_sysfs_devi=
-ce_files() and=20
-remove_sysfs_device_files() and one of the arguments to the setup_sys_f=
-s_device_files()
-is a function pointer, i.e for one it takes sysfs_create_file and for o=
-ther it takes
-sysfs_remove_file.
+--20040927184848+0200-3322803189694038124563910
 
-Having single function for creating and removing sysfs files make it ea=
-sy=20
-from the maintaince perspective, as oppose to remember to code for remo=
-ve=20
-as well when one adds the new file.
+ || On Mon, 27 Sep 2004 20:11:41 +1000
+ || Nigel Cunningham <ncunningham@linuxmail.org> wrote: 
 
+ nc> Could I get you to compile kdb in as well. 
 
-thanks,
-Anil
--
-To unsubscribe from this list: send the line "unsubscribe linux-ia64" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I wish I could give you the info, tried compiling things in, but
+unfortunately the machine dies on suspend to disk when the kdb code is
+compiled in, it seems.
+
+Unfortunately I'm lacking the time to investigate it further right
+now, but I will try later if I get the chance.
+
+Regards,
+Georg
+
+-- 
+Georg C. F. Greve                                       <greve@gnu.org>
+Free Software Foundation Europe	                 (http://fsfeurope.org)
+Brave GNU World	                           (http://brave-gnu-world.org)
+
+--20040927184848+0200-3322803189694038124563910
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD4DBQBBWER0bvivwoZXSsoRAk+jAJ4sETuARCzX8pa7AxRB5lRCs1VrqgCYrZH4
+/sum6CR5w9dcrerJ0Kji2w==
+=Mqw/
+-----END PGP SIGNATURE-----
+--20040927184848+0200-3322803189694038124563910--
