@@ -1,14 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: S1 and S3 not working with ide-scsi on Toshiba 3000
-Date: Tue, 24 Feb 2004 21:57:04 +0100
+From: "Sandy Pace" <drkjxgcymrelni-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Earn money doing online surveys
+Date: Mon, 01 Mar 2004 15:06:37 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040224205704.GA4958@openzaurus.ucw.cz>
-References: <20040224141715.GA1376@wsc-gmbh.de>
+Message-ID: <EDQLOGOGLRCJOBLBTJWYRECNR@yahoo.com>
+Reply-To: "Sandy Pace" <drkjxgcymrelni-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/alternative;
+	boundary="--181071886170976577"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040224141715.GA1376-u75qzGzWA6cb1SvskN2V4Q@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,26 +16,45 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nikolaus Filus <nfilus-hi6Y0CQ0nG0@public.gmane.org>
+To: acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+----181071886170976577
+Content-Type: text/html;
+Content-Transfer-Encoding: quoted-printable
 
-> after beeing too long frustrated about not working standby and suspend
-> on my Tosh3k, I checked all possible drivers for ACPI-support.
-> Finally I found, that I booted with hdc=ide-scsi and resume was stopping
-> on talking with hdc.
-> After changing to ide-cd everything is working fine (on console), even
-> with uhci-hcd loaded! Tested with 2.6.3.
-> 
-> Is this a known bug or may I add it to bugzilla?
-> 
+<html>
+<head>
+<title>Get paid for what you think</title>
+<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Diso-8859=
+-1">
+</head>
 
-This is likely ide driver problem => talk to ide people.
-				Pavel
--- 
-64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+<body>
+<table width=3D"75%" border=3D"1">
+  <tr>
+    <td><p align=3D"center">&nbsp;</p>
+      <p align=3D"center"><strong>We're looking for people who are serious=
+ about 
+        being paid for their opinions</strong></p>
+      <p align=3D"center"><strong>sign up <a href=3D"http://www.globalmark=
+eting2000.biz/surveys">here</a></strong></p>
+      <p align=3D"center"><strong><br>
+        </strong></p></td>
+  </tr>
+</table>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><font size=3D"2">to get off our database <a href=3D"http://www.globalma=
+rketing2000.biz/remove.html">follow 
+  this link</a></font></p>
+</body>
+</html>
+
+
+----181071886170976577--
 
 
 
