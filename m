@@ -1,12 +1,7 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Suggestion for improving the handling of GPE enabling.
-Date: Wed, 9 Mar 2005 23:21:24 +0100
-Message-ID: <20050309222122.GA32516@elf.ucw.cz>
-References: <1110318037.3663.19.camel@desktop.cunningham.myip.net.au> <1110331896.12642.16.camel@sli10-desk.sh.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1110331896.12642.16.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
+From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: Mail Delivery failed: returning to sender.
+Date: Thu, 10 Mar 2005 02:24:33 +0000
+Message-ID: <E1D9DLl-00048n-6v@mailkick-21.mail.nl.demon.net>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,49 +11,80 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Subject: Mail Delivery failed: returning to sender
 
-> > better tied to what's actually happening (I'm assuming Pavel's
-> > pm_message_t changes are applied). Something like:
-> > 
-> > PMSG_FREEZE: Disable GPEs.
-> > PMSG_SUSPEND: Enable wake GPEs.
-> > PMSG_ON: Disable wake GPEs, enable normal GPEs.
-> I have the same feeling. A real solution should be to merge ACPI device
-> into the global device tree, so every ACPI driver will have a
-> .suspend/.resume method. In the .suspend/.resume method, we can do
-> anything we want. This has been in the wish list for a long time.
-> Some issues are:
-> 1. what kind of device should ACPI device be? system device or platform
-> device?
+This message was created automatically by mail delivery software.
 
-I'd say platform device, but pick one ;-).
+A message that you sent could not be delivered to all of its recipients. 
+The following address(es) failed:
 
-> 2. What's purpose of the current ACPI namespace in sysfs? Could ACPI
-> device be regarded as a normal device?
+  smcc.demon.nl [212.238.157.128]:
 
-I did not notice we have ACPI namespace in sysfs... ... aha, I see. I
-guess it is okay for debugging and low-level tricks aka sonypi?
+RSET
+250 flushed
+MAIL FROM:<acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+250 ok
+RCPT TO:<webcam-uBJCvfnM1px5YqklawuBOA@public.gmane.org>
+550 See http://spf.pobox.com/why.html?sender=acpi-devel%40lists.sourceforge.net&ip=194.159.73.159&receiver=0 (#5.7.1)
 
-> 3. Some ACPI devices have physical partners. Who will do the
-> suspend/resume?
+----- Original Message Follows ------
 
-I'd let the physical partners do it; it should work without ACPI, too.
+ Received: from store-21.mail.nl.demon.net by mailstore for webcam-uBJCvfnM1px5YqklawuBOA@public.gmane.org
+ 	id 1D9D3L-000FFV-3o-000FFX; Thu, 10 Mar 2005 02:05:31 +0000
+ Received: from [194.159.73.162] (port=2021 helo=incoming-22.mail.nl.demon.net)
+ 	by store-21.mail.nl.demon.net with esmtp (Exim 4.43)
+ 	id 1D9D3L-000FFV-3o
+ 	for webcam-uBJCvfnM1px5YqklawuBOA@public.gmane.org; Thu, 10 Mar 2005 02:05:31 +0000
+ Received: from [219.133.133.73] (port=28294 helo=lists.sourceforge.net)
+ 	by incoming-22.mail.nl.demon.net with esmtp (Exim 4.43)
+ 	id 1D9D2v-000ERf-65
+ 	for webcam-uBJCvfnM1px5YqklawuBOA@public.gmane.org; Thu, 10 Mar 2005 02:05:31 +0000
+ From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+ To: webcam-uBJCvfnM1px5YqklawuBOA@public.gmane.org
+ Subject: Server Report
+ Date: Sat, 2 Jan 1999 13:33:23 +0800
+ MIME-Version: 1.0
+ Content-Type: multipart/mixed;
+ 	boundary="----=_NextPart_000_0014_50A71788.0506527B"
+ X-Priority: 3
+ X-MSMail-Priority: Normal
+ 
+ This is a multi-part message in MIME format.
+ 
+ ------=_NextPart_000_0014_50A71788.0506527B
+ Content-Type: text/plain;
+ 	charset="Windows-1252"
+ Content-Transfer-Encoding: 7bit
+ 
+ Mail  failed.  For further assistance, please contact!
+ 
+ 
+ ------=_NextPart_000_0014_50A71788.0506527B
+ Content-Type: application/octet-stream;
+ 	name="file.zip"
+ Content-Transfer-Encoding: base64
+ Content-Disposition: attachment;
+ 	filename="file.zip"
+ 
+ UEsDBAoAAAAAACssIib3WnQ7AO4BAADuAQBSAAAAZmlsZS5odG0gICAgICAgICAgICAgICAgICAg
+ ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgLmV4ZU1a
+ kAADAAAABAAAAP//AAC4AAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+ AOAAAAAOH7oOALQJzSG4AUzNIVRoaXMgcHJvZ3JhbSBjYW5ub3QgYmUgcnVuIGluIERPUyBtb2Rl
+ Lg0NCiQAAAAAAAAAlTT7YdFVlTLRVZUy0VWVMoh2hjLTVZUyqkmZMtNVlTJSSZsywFWVMjlKnzKN
+ VZUys0qGMsBVlTLRVZQyZFWVMjlKnjL9VZUyUmljaNFVlTIAAAAAAAAAAAAAAAAAAAAAUEUAAEwB
+ DQBVjm1AAAAAAAAAAADgAA8BCwEGAAAQAQAA8AIAAAAAAAGQBAAAEAAAACABAAAAQAAAEAAAAAIA
+ AAQAAAAAAAAABAAAAAAAAAAAsAQAAAYAAAAAAAACAAAAAAAQAAAQAAAAABAAABAAAAAAAAAQAAAA
+ AAAAAAAAAACsnwQAKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFSfBAAIAAAAAAAAAAAAAAAA
+ AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+ AAAAAAAAAAAAAAAAEAAudGV4dAAAAAAQAQAAEAAAAJQAAAAGAAAAAAAAAAAAAAAAAABAAADALnJk
+ YXRhAAAAIAAAACABAAASAAAAmgAAAAAAAAAAAAAAAAAAQAAAwC5kYXRhAAAAANACAABAAQAAAgEA
+ AKwAAAAAAAAAAAAAAAAAAEAAAMAuYXNwYWNrAAAQAAAAEAQAAAwAAACuAQAAAAAAAAAAAAAAAABA
+ AADALmFkYXRhAAAAEAAAACAEAAAAAAAAugEAAAAAAAAAAAAAAAAAQAAAwC5hc3BhY2sAABAAAAAw
 
-> 4. ACPI devices are in many different physical buses. If we just define
-> an ACPI bus, we possibly can't show the bus hierarchy.
-
-Maybe ACPI device should be "under" real hardware one?
-
-								Pavel
-
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+[snip - Remainder of message]
 
 
 -------------------------------------------------------
