@@ -1,13 +1,13 @@
 From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: suspend-to-disk: fan always on and misc kernel errors
-Date: Sat, 2 Apr 2005 00:19:40 +0200
-Message-ID: <20050401221940.GC1868@message-id.gmane0305.slipkontur.de>
-References: <4246F06D.40005@cs.unibo.it> <20050328205027.GB28568@message-id.gmane0305.slipkontur.de> <4249A359.9060301@cs.unibo.it>
+Subject: Re: HP/Compaq NC6120 ACPI problems
+Date: Sat, 2 Apr 2005 00:08:18 +0200
+Message-ID: <20050401220818.GA1868@message-id.gmane0305.slipkontur.de>
+References: <20050317200052.686d683f.andrej.prsa@guest.arnes.si> <1111088904.11380.36.camel@eeyore> <20050317215635.1c788c09.andrej.prsa@guest.arnes.si> <1111104319.8136.182.camel@tyrosine> <20050318192300.629e2148.andrej.prsa@guest.arnes.si> <1111202374.8136.210.camel@tyrosine> <1111362416.8136.225.camel@tyrosine> <20050331202724.GB609@openzaurus.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4249A359.9060301-iEixELS/QsY1GQ1Ptb7lUw@public.gmane.org>
+In-Reply-To: <20050331202724.GB609-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,33 +20,13 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Mar 29, 2005 at 08:50:01PM +0200, Andrea Borgia wrote:
-> Stefan Seyfried wrote:
-> 
-> Thanks, I have no idea how they got in the script, that partially fixed
-> it: no more "command not found" errors, but the kernel messages about
-> "scheduling while atomic" are still there and the script still aborts
-> with SIG11 after resuming from suspend.
-
-| Mar 27 18:49:57 localhost kernel: note: swsusp-script[3902] exited with preempt_count 1
-
-disable preempt.
+On Thu, Mar 31, 2005 at 10:27:24PM +0200, Pavel Machek wrote:
  
-> Anyhow, I found out that the fan issue is related to powernowd not being
-> restarted because of the script failure.
-> 
-> Any clues about that? I tried both platform and shutdown for disk, but
-> the only difference is that platform reboots immediately instead of
+> Well, running with "shutdown" is not really correct on acpi-enabled system.
+> Perhaps we should change the default?
 
-interesting, but another bug...
-
-> powering down. Also, writing "4b" to acpi/sleep is the same as "disk" to
-> power/state.
-
-known, s4bios is not working for a long time now, we should remove it.
-"echo 4 > /proc/acpi/sleep" is supposed to do the same thing as "echo disk >
-/sys/power/state" on an acpi system.
-
+i vote for it. I have not seen a single "platform"-mode failure for a long
+time. At least on i386 :-)
 -- 
 Stefan Seyfried
 
