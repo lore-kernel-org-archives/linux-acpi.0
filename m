@@ -1,14 +1,12 @@
-From: jbarnes-sJ/iWh9BUns@public.gmane.org (Jesse Barnes)
-Subject: Re: [BKPATCH] ACPI update for 2.6
-Date: Thu, 18 Dec 2003 13:25:52 -0800
+From: Carlos Noguera <carlos.noguera-mwuG6knsBJfQT0dZR+AlfA@public.gmane.org>
+Subject: HELP! Compaq TC1000 ACPI - Disable IRQ #9
+Date: Thu, 18 Dec 2003 18:06:42 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031218212552.GA956@sgi.com>
-References: <1071742310.2496.217.camel@dhcppc4> <20031218211213.GA845@sgi.com>
+Message-ID: <15261.4199709662$1071784667@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20031218211213.GA845-sJ/iWh9BUns@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,27 +15,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-willy just pointed out that these patches should probably use pr_debug()
-instead.  If you're ok with the idea, I can create a new patch.
+I own a Compaq TC1000 Tablet PC and have been trying to get Gentoo
+running on it, using the love-sources 2.6.0-test11-love 4 + ACPI patch
+set (from
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/test/2.6.0-test11/ ).
 
-Thanks,
-Jesse
+No matter what I do, nor what kernel options I throw at it (including
+acpi=off), if the keyboard/mouse combo don't sense activity (i.e.
+keypress) I get a message of "Disable IRQ #9" during bootup. This
+usually occurs around the enabling hotplug stage.
 
-On Thu, Dec 18, 2003 at 01:12:13PM -0800, Jesse Barnes wrote:
-> On Thu, Dec 18, 2003 at 05:11:50AM -0500, Len Brown wrote:
-> > Hi Andrew/Linus, please do a 
-> > 
-> > 	bk pull http://linux-acpi.bkbits.net/linux-acpi-release-2.6.0
-> 
-> Len, could you please include these two patches in your next update if
-> you think they're ok?  They make the boot a lot quieter on big NUMA
-> boxes...
-> 
-> Thanks,
-> Jesse
+The worse part is that this IRQ is shared among my OHCI controller AND
+my eth0, so if it's disabled I have no way to log into the machine.
+
+I've looked and looked all over the mailing lists and applied all sorts
+of pathes, to no avail. If I don't press keys during bootup, I get no
+keyboard or ethernet. :-/
+
+Thanks in advance for your help...
+[C]arlos
+
 
 
 -------------------------------------------------------
