@@ -1,12 +1,11 @@
-From: "Judson Hartman" <judson.hartmanxu-V5Ji+mNUXWoQrrorzV6ljw@public.gmane.org>
-Subject: $23221
-Date: Fri, 25 Jun 2004 01:50:56 -0400
+From: wwp <subscript-GANU6spQydw@public.gmane.org>
+Subject: reading files in /proc/acpi hangs machine for a short time
+Date: Fri, 25 Jun 2004 08:29:29 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <00ea01c45a78$33975ffe$2def3280@metzger.co.uk>
+Message-ID: <20040625082929.45335181@tethys.solarsys.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,28 +15,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
-I sent you an email a few days ago, because you now qualify for a new mortgage.
-You could get $300,000 for as little as $700 a month!
-Bad credit is no problem, you can pull cash out or refinance.
-
-Please click on this link:
-http://onlinerefi.biz/a1/ke.php?bks=71
-
-Best Regards,
-Steve Morris
+Hi there,
 
 
----- system information ----
-has non-Java applications Language development locale-determined geographic
-fall 
-class draft no interoperability nearly numbers disclose term 
-complex sounds progress behaviors contrast progress dictionary covered
+many acpi programs that show the battery/etc. usage that I tested are making
+my system not to respond for a very short while, but periodically. For
+instance, the mouse is being locked for 1/n of a second, which is not a big
+loss of performance, but it really damn itchy for a normal (intensive) usage
+of my Dell Inspiron 8200 laptop (kernel 2.4.26). I do remember of some
+programs that were not producing such itchyness a long time ago (maybe
+because the kernel things were different?).
+
+I've found that if I some files from /proc/acpi (let's say battery state), I
+get the same behaviour.
+
+So my questions are:
+- is this a known issue?
+- program/kernel/dsdt/what-else issued?
+- are there known workarounds?
+- is it possible to get the acpi states from another place that /proc (if only it
+doesn't show the same problem)?
 
 
+Regards,
+
+-- 
+wwp
 
 
 -------------------------------------------------------
