@@ -1,14 +1,13 @@
-From: Florian =?ISO-8859-15?Q?H=FChn?= <acpi-14TN6mYQPXr1AXQ8ov2VOh2eb7JE58TQ@public.gmane.org>
-Subject: Re: proper enabling of AMD K7 power saving
-Date: Tue, 15 Jun 2004 00:37:30 +0200
+From: Pierre Ossman <drzeus-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org>
+Subject: Re: suspend-to-ram hangs on HP NX7010
+Date: Tue, 15 Jun 2004 00:58:56 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040615003730.051ec41e.acpi@trafficmanager.org>
-References: <200406142311.54120.malte.gell@gmx.de>
+Message-ID: <40CE2DB0.9050208@drzeus.cx>
+References: <40C6FD44.7090606@drzeus.cx>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=_athena.drzeus.cx-26496-1087253942-0001-2"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200406142311.54120.malte.gell-Mmb7MZpHnFY@public.gmane.org>
+In-Reply-To: <40C6FD44.7090606-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,61 +19,46 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 14 Jun 2004 23:11:53 +0200
-Malte Gell <malte.gell-Mmb7MZpHnFY@public.gmane.org> wrote:
+This is a MIME-formatted message.  If you see this text it means that your
+E-mail software does not support MIME-formatted messages.
 
-> Hi,
-> 
-> i have an AMD Duron 750 desktop computer with Via KT133a chipset and to 
-> get some noticeable temperature decrease I need to invoke a command 
-> from the Athlon Powersaving Howto for this chipset
-> (http://www.tldp.org/HOWTO/Athlon-Powersaving-HOWTO/
-> approaches.html#commandline )
-> 
-> Is it right that it is the fault of the mainboard manufacturer if one 
-> has to invoke such a command to get C2-level for power saving?
+--=_athena.drzeus.cx-26496-1087253942-0001-2
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Yes.
+Some updates.
+I've been fiddling around with this during the weekend but haven't made 
+much progress. Removing all modules, in case they were causing problems, 
+didn't help.
+I have, however, pinpointed where in the kernel it hangs. It stops while 
+writing the SLP_EN bit. I guess that's where it should actually go into 
+sleep mode. The bit is set in two registers but the hang is when it 
+writes the first one. Changing the order of them still causes the first 
+one to hang (B in that case). I also tried combining SLP_TYPx and SLP_EN 
+but again, hang during the first write.
+I'm out of ideas now so I *really* need some tips on what to try next. 
+There is nothing more to debug around the crash-point so the problem 
+must be somewhere during the preparation.
 
-> 
-> Will Linux-ACPI one day address this problem so a user doesn't need to 
-> invoke something like "setpci -v -H1 -s 0:0.0 52=$(printf %x $((0x
-> $(setpci -H1 -s 0:0.0 52) | 0x80)))" to enable proper power saving?
+Rgds
+Pierre
 
-Have a look at http://vcool.occludo.net/VC_Linux.html or try the kernelpatch
-on the page you mentioned. It runs great for several years now on my desktop
-pc. On http://vcool.occludo.net/VC_Theory.html there is a short explanation
-how it works and what it is.
+--=_athena.drzeus.cx-26496-1087253942-0001-2
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Transfer-Encoding: 7bit
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-> 
-> My fear is just one day I buy a new mainboard and there's no appropriate 
-> setpci-command on the Powersaving Howto and Linux-ACPI doesn't enable 
-> C2-powersaving if the mainboard doesn't do it first... 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
 
-Don't panic. The address of the register in the north/southbridge will always
-be known. At least i hope so ;)
+iD8DBQFAzi2z7b8eESbyJLgRAuukAKDRuLiJUY6Z31j2WZ1VYRcjXysxCQCgsTcK
+BuEsXR3Xrq+frvWLT8eXdc8=
+=Z3dX
+-----END PGP SIGNATURE-----
 
-> 
-> Why the f*** do mainboard makers not offer a BIOS switch to enable this?
-
-Some ppl say it's because some early athlos had problems with powersaving.
-In fact i have never seen or heared about such a system. (I by myself tested
-about 20 or 25 computers, all worked as expected.) I really can't imagine why
-they don't enable it by default like all the Laptop-BIOSes does.
-
-> Besides the lack of out-of-the-box C2-level ACPI just runs fine. I 
-> guess if new generation mainboards (KT400 and up) would better handle 
-> K7 power saving we wouldn't need the Powersaving Howto, right?
-> 
-> regards
-> Malte
-> 
-> (SuSE 9.0,Linux 2.4.21+ACPI 20030619 on Elitegroup K7VZA Rev3.0 + AMD 
-> Duron 750 (old spitfire core))
-
-Sorry for my bad english.
-
-PS: eh... gmx.DE? Warum zum Teufel schreib ich das auf englisch?! Damn.
+--=_athena.drzeus.cx-26496-1087253942-0001-2--
 
 
 -------------------------------------------------------
