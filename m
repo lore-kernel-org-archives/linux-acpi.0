@@ -1,7 +1,7 @@
-From: "Augustine Thacker" <augustinethacker_jz-orI9ynLeU1A@public.gmane.org>
-Subject: Order Royal Replica Watches Online
-Date: Thu, 09 Dec 2004 03:52:42 +0100
-Message-ID: <558a01c4dd9a$12f3b550$dc12b8fe@dystopia.fi>
+From: "Scottie Krause" <scottiekrause_aw-KbodeN3NtUBcfcqX1zwrLg@public.gmane.org>
+Subject: Order Rolex or other Swiss watches online
+Date: Thu, 09 Dec 2004 03:20:07 -0500
+Message-ID: <4af201c4ddc7$69262563$21932f40@kki.ee>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -19,23 +19,27 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Get the Finest Rolex Watch Replica!
+Heya,
 
-We only sell premium watches. There's no battery in these replicas just
-like the real ones since they charge themselves as you move. The second hand
-moves JUST like the real ones, too. These original watches sell in stores
-for thousands of dollars. We sell them for much less. 
+Do you want a rolex watch?
 
-- Replicated to the Smallest Detail
-- 98% Perfectly Accurate Markings 
-- Signature Green Sticker w/ Serial Number on Watch Back
-- Magnified Quickset Date
-- Includes all Proper Markings
+In our online store you can buy replicas of Rolex watches. They look
+and feel exactly like the real thing.
 
-Visit us: http://www.bhex.com/rep/rolx/
+- We have 20+ different brands in our selection
+- Free shipping if you order 5 or more
+- Save up to 40% compared to the cost of other replicas
+- Standard Features:
+ - Screw-in crown
+ - Unidirectional turning bezel where appropriate
+ - All the appropriate rolex logos, on crown and dial
+ - Heavy weight
 
-All orders placed before December 12th will be at your door before
-Christmas!
+Visit us: http://www.bhex.com/rep/rolex/
+
+Best regards,
+Hilton Jones
+
 
 No thanks: http://www.bhex.com/z.php
 
