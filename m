@@ -1,14 +1,14 @@
 From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Re: HP Pavilion zt3240ea and thermal zone
-Date: Tue, 12 Oct 2004 10:04:00 -0700
+Subject: Re: ACPI S3 resume only reboots
+Date: Tue, 12 Oct 2004 10:06:28 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <416C0E80.4050107@root.org>
-References: <416BAB60.7050809@estg.ipleiria.pt> <416BDF74.8070605@mega.ist.utl.pt>
+Message-ID: <416C0F14.5000107@root.org>
+References: <20041004133340.76ba05ba.albeclemit@yahoo.it>	<20041009130628.GA21781@elf.ucw.cz>	<20041010105635.GA3362@doc.ic.ac.uk> <20041012175810.2920edf2.albeclemit@yahoo.it>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <416BDF74.8070605-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
+In-Reply-To: <20041012175810.2920edf2.albeclemit-whZMOeQn8C0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,44 +17,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, =?ISO-8859-1?Q?Lu=EDs_Neves?= <lneves-3+EeCmRbAIqyvGiigdSjEg@public.gmane.org>
+To: Alberto <albeclemit-whZMOeQn8C0@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Pedro Venda wrote:
-> | Is it normal that this kind of machine (a 1.6GHz centrino) do not have a
-> | thermal zone? I don't find thermal information under XP also but in my
-> | ignorance I thought this should exist.
-> |
-> | My first attempt was to dissassemble, correct and override the DSDT but
-> | the single bug found and corrected (a common ByteAccess type) didn't
-> | change anything.
+Alberto wrote:
+>>On Sat, Oct 09, 2004 at 03:06:28PM +0200, Pavel Machek wrote:
+>>
+>>>>How could i try to debug this to give you more info?
+>>>
+>>>You basically need to fix this yourself. Add infinite loops to
+>>>wakeup.S to see where it breaks.
 > 
-> the hardware/software acpi implementation on your laptop is independent
-> of the platform, whether it is centrino or other.
+> I isolated the line were it breaks and reboots.
 > 
-> after inspection of your dsdt i didn't find references to any thermal 
-> zones.
+> Code from arch/i386/kernel/acpi/wakeup.S
 > 
-> for example, page 287 of the acpi specificatoin 2.0c states that every
-> thermal zone MUST have a _TMP object. there is no _TMP object on your
-> dsdt, so i deduct one of two things:
-> 1. your acpi code is not compliant with the standard
-> or
-> 2. you really don't have thermal zones.
+> [...] 
+> 	# setup data segment
+> 	movw	%cs, %ax
+> 	movw	%ax, %ds					# Make ds:0 point to wakeup_start
+> 	movw	%ax, %ss
+> 	mov	$(wakeup_stack - wakeup_code), %sp		# Private stack is needed for ASUS board
+> 	movw	$0x0e00 + 'S', %fs:(0x12)
 > 
-> since there are no _CRT, _HOT, _ALx, _PSL, _PSV, _SCP, _TMP, _TZD, _TZP
-> and unless there is/are other place/places where thermal zones are
-> defined, i conclude that you don't have thermal zones defined.
-> 
-> maybe someone else could confirm this...
-> 
-> is that odd? i don't know... i am just learning ACPI now, so i don't
-> have the experience.
+> 	pushl	$0		###THIS LINE CAUSES REBOOT###			# Kill any dangerous flags
+> 	popfl
 
-If you don't have a ThermalZone object, you don't have thermal zones. 
-It's quite common -- it means that the BIOS will handle fans independent 
-of the OS or ACPI.
+Hehe.  Look up above where the stack pointer is changed to point to the 
+wakeup stack and then 0 is pushed on it.  It's likely there is some 
+problem with the config or location of the wakeup stack.
 
 -- 
 Nate
