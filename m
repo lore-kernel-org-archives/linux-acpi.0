@@ -1,36 +1,46 @@
-From: "Richard B. Johnson" <root@chaos.analogic.com>
-Subject: Re: [ACPI] Re: Linux 2.4.26-rc1 (cmpxchg vs 80386 build)
-Date: Tue, 30 Mar 2004 08:15:46 -0500 (EST)
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <Pine.LNX.4.53.0403300814350.5311@chaos>
-References: <A6974D8E5F98D511BB910002A50A6647615F6939@hdsmsx402.hd.intel.com>
-  <1080535754.16221.188.camel@dhcppc4>  <20040329052238.GD1276@alpha.home.local>
-  <1080598062.983.3.camel@dhcppc4> <1080651370.25228.1.camel@dhcp23.swansea.linux.org.uk>
-Reply-To: root@chaos.analogic.com
+From: Flavio Bruno Leitner <fbl-KCZ47A4bww4P48s/oLjRZg@public.gmane.org>
+Subject: Re: missing cmpxchg on i386.
+Date: Tue, 30 Mar 2004 10:15:08 -0300
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20040330131508.GA3844@conectiva.com.br>
+References: <20040324162347.GA10134@conectiva.com.br> <20040330123735.GD461@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-In-Reply-To: <1080651370.25228.1.camel@dhcp23.swansea.linux.org.uk>
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Len Brown <len.brown@intel.com>, Willy Tarreau <willy@w.ods.org>, Arkadiusz Miskiewicz <arekm@pld-linux.org>, Marcelo Tosatti <marcelo.tosatti@cyclades.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Developers <acpi-devel@lists.sourceforge.net>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20040330123735.GD461-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 30 Mar 2004, Alan Cox wrote:
+On Tue, Mar 30, 2004 at 02:37:35PM +0200, Pavel Machek wrote:
+> On St 24-03-04 13:23:47, Flavio Bruno Leitner wrote:
+> > 
+> > Compiling for i386 I got a lot of 
+> > include/asm/acpi.h: In function `__acpi_acquire_global_lock`:
+> > include/asm/acpi.h:74: warning: implict declaration of function 'cmpxchg' 
+> 
+> Try compiling for pentium+...
 
-> On Llu, 2004-03-29 at 23:07, Len Brown wrote:
-> > Linux uses this locking mechanism to coordinate shared access
-> > to hardware registers with embedded controllers,
-> > which is true also on uniprocessors too.
->
-> If the ACPI layer simply refuses to run on a CPU without cmpxchg
-> then I can't see there being a problem, there don't appear to be
-> any 386 processors with ACPI
->
+It's impossible, we need to have kernel optimized for i386.
+I revert the ChangeSet 1.1557.83.7 until this get fixed.
 
-Yep, but to get to use cmpxchg, you need to compile as a '486 or
-higher. This breaks i386.
+-- 
+Flávio Bruno Leitner <fbl-KCZ47A4bww4P48s/oLjRZg@public.gmane.org>
+[ E74B 0BD0 5E05 C385 239E  531C BC17 D670 7FF0 A9E0 ]
 
-Cheers,
-Dick Johnson
-Penguin : Linux version 2.4.24 on an i686 machine (797.90 BogoMips).
-            Note 96.31% of all statistics are fiction.
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: IBM Linux Tutorials
+Free Linux tutorial presented by Daniel Robbins, President and CEO of
+GenToo technologies. Learn everything from fundamentals to system
+administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
