@@ -1,14 +1,14 @@
-From: Dax Kelson <dax-tjn3EnM4d99Wk0Htik3J/w@public.gmane.org>
-Subject: RE: ACPI battery issue - Dell Inspiron 4150 - 2.6.1-rc1-mm2
-Date: Mon, 05 Jan 2004 19:27:38 -0700
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFC] Workaround for Intel _STA quirk
+Date: Tue, 6 Jan 2004 10:51:09 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1073356057.2687.2.camel@mentor.gurulabs.com>
-References: <3ACA40606221794F80A5670F0AF15F8401720C78@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C7B@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401720C78-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,59 +17,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2004-01-05 at 18:03, Yu, Luming wrote:
-> >Subject: [ACPI] ACPI battery issue - Dell Inspiron 4150 - 2.6.1-rc1-mm2
-> >
-> >Found at boot: 
-> >ACPI: Battery Slot [BAT0] (battery present)
-> >ACPI: Battery Slot [BAT1] (battery present)
-> >But no run-time information:
-> 
-> Some DELL battery issues in recent kernel are solved by
-> patch filed at http://bugzilla.kernel.org/show_bug.cgi?id=1766 .
-> 
-> Is it worthy to have it a try?
+>Intel firmware for the Big Sur and Tiger ia64 boxes (and probably
+>others) uses an _STA value of 0x8 for the pseudo PCI root bridges
+>where the chipset configuration space lives, i.e., CBN or CSFF.
 
-Seems to work ... is it normal to have the "unknown" values below when
-plugged in?
+In ACPI Spec 6.36 _STA,  Bit 3 means Set if the device is functioning
+properly(Clear if the device failed it's diagnostics). But spec didn't=20
+explain what's means of only seting Bit 3.=20
 
-$ cat /proc/acpi/battery/BAT0/state
-present:                 yes
-capacity state:          ok
-charging state:          unknown
-present rate:            unknown
-remaining capacity:      66000 mWh
-present voltage:         16501 mV
+>Any thoughts on this workaround?  I know it's ugly, so if there's a
+>Better Way, I'd be glad to be enlightened.  (This patch is against
+>2.6.1-rc1).
 
-$ cat /proc/acpi/battery/BAT1/info
-present:                 yes
-design capacity:         65120 mWh
-last full capacity:      54980 mWh
-battery technology:      rechargeable
-design voltage:          14800 mV
-design capacity warning: 3000 mWh
-design capacity low:     1000 mWh
-capacity granularity 1:  200 mWh
-capacity granularity 2:  200 mWh
-model number:            LIP8120DL
-serial number:           5122
-battery type:            LION
-OEM info:                Sony C
+One issue is how to handle Bit 1, which indicate the device is enabled ,
+and its resources=20
+should be decoded. Should we decode its resources ?
 
-When unplugged:
-
-$ cat /proc/acpi/battery/BAT0/state
-present:                 yes
-capacity state:          ok
-charging state:          discharging
-present rate:            2743 mW
-remaining capacity:      52340 mWh
-present voltage:         16526 mV
-
+Another issue is we should detect it in acpi_ns_init_one_device as well.
+Because if _STA return that device is not present, then all children
+will be ignored.
 
 
 
