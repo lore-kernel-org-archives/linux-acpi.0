@@ -1,16 +1,12 @@
-From: Philippe =?iso-8859-15?q?Cl=E9ri=E9?= <philippe-vlmYvWlZpDU@public.gmane.org>
-Subject: Re: Kernel 2.4.20 hangs when loading ACPI on K7SEM mobo
-Date: Fri, 4 Apr 2003 18:47:39 -0500
+From: stef <stef-listes-39ZsbGIQGT5GWvitb5QawA@public.gmane.org>
+Subject: Wrong button event reported when waking up from S1
+Date: Sat, 05 Apr 2003 15:40:03 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200304041847.40537.philippe@gcal.net>
-References: <200304031047.03566.philippe@gcal.net> <1049400461.9205.1.camel@localhost>
+Message-ID: <3E8EF8D3.6020502@wanadoo.fr>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1049400461.9205.1.camel-bi+AKbBUZKZeoWH0uzbU5w@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -22,23 +18,52 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday, 3 April 2003 15:07, Andy Dustman wrote:
-> On Thu, 2003-04-03 at 10:47, Philippe Cl=E9ri=E9 wrote:
-> > ECS K7SEM motherboard with the original BIOS. Kernel is
-> > gentoo-sources-2.4.20-r1. (I am not certain of which ACPI
-> > patch was applied to these sources, but I think it is the
-> > one that came out in November 2002).
->
-> Give gs-sources a try. I'm using gs-sources-2.4.21_pre6 (I
-> think) currently and that has the most up-to-date ACPI patch
-> in it.
+        Hello,
 
+        I have a problem with 2.4.21pre6+acpi 20030328, when I do
+'echo -n 1 >/proc/acpi/sleep' and wake my laptop with the sleep
+button, acpi gives a power button (PWRF) event instead of a sleep
+button event (SBTN).
 
-Thanks! I'll try it ASAP.
+cat /proc/acpi/event
+button/power PWRF 00000080 00000007
+button/power PWRF 00000080 00000008
+button/power PWRF 00000080 00000009
+button/power PWRF 00000080 0000000a
+button/power PWRF 00000080 0000000b
+button/power PWRF 00000080 0000000c
+button/power PWRF 00000080 0000000d
+button/power PWRF 00000080 0000000e
+button/power PWRF 00000080 0000000f
+button/power PWRF 00000080 00000010
+button/power PWRF 00000080 00000011
+button/power PWRF 00000080 00000012
+button/sleep SBTN 00000080 0000001a <- last button pressed before 
+entering S1
+button/power PWRF 00000080 00000013 <- event reported
 
-=2D-=20
-Best regards,
-Philippe Cl=E9ri=E9
+from dmesg:
+
+[ACPI Debug] String: __________________________________
+[ACPI Debug] String:
+[ACPI Debug] String: Sleep button be pressed: -----
+[ACPI Debug] String: __________________________________
+ hwsleep-0257 [75] acpi_enter_sleep_state: Entering sleep state [S1]
+[ACPI Debug] String: Wake up
+   evgpe-0396: *** Error: acpi_ev_gpe_dispatch: No handler or method for 
+GPE[D1], disabling event
+   evgpe-0396: *** Error: acpi_ev_gpe_dispatch: No handler or method for 
+GPE[12], disabling event
+   evgpe-0396: *** Error: acpi_ev_gpe_dispatch: No handler or method for 
+GPE[13], disabling event
+   evgpe-0396: *** Error: acpi_ev_gpe_dispatch: No handler or method for 
+GPE[30], disabling event
+   evgpe-0396: *** Error: acpi_ev_gpe_dispatch: No handler or method for 
+GPE[11], disabling event
+
+Regards,
+    Stef
+
 
 
 -------------------------------------------------------
