@@ -1,14 +1,14 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Re: Battery status reading problems
-Date: Fri, 26 Sep 2003 20:23:25 +0800
+From: David G Hamblen <dave-RfZrpLcwWZ/QT0dZR+AlfA@public.gmane.org>
+Subject: Re: Re: Battery status reading problems
+Date: Fri, 26 Sep 2003 08:25:47 -0400 (EDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <571ACEFD467F7749BC50E0A98C17CDD8E84D6D@pdsmsx403.ccr.corp.intel.com>
+Message-ID: <Pine.LNX.4.44.0309260758340.1211-100000@puppy.afrinc.com>
+References: <20030926085542.GA28731@hout.vanvergehaald.nl>
+Reply-To: dave-wr1Qx4d9ef7QT0dZR+AlfA@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="GB2312"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <20030926085542.GA28731-UrA3525iEjFfB9KAG+eifygtU7bT7/Jf@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,45 +17,41 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Breathnach, Proinnsias (Dublin)" <p_breathnach-AsW1b/OpMpk@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Toon van der Pas <toon-UrA3525iEjFfB9KAG+eifygtU7bT7/Jf@public.gmane.org>
+Cc: Jan Rychter <jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Have you tried the patch for OSDL bug 726? It should help a little.
+On Fri, 26 Sep 2003, Toon van der Pas wrote:
 
-Thanks,
-Shaohua
+> On Thu, Sep 25, 2003 at 10:38:57PM -0700, Jan Rychter wrote:
+> >
+> > For the reference, I have always had performance problems with reading
+> > the battery status on my Sharp Mebius. I can't use any "battery applets"
+> > nor cpufreqd because of that -- they eat too much CPU power and cause
+> > the whole machine to slow down.
+> >
+> > I got bored with reporting this all over again, and since this issue has
+> > been largely ignored by developers, I decided I can do without battery
+> > information after all.
+>
+> My Dell Inspiron 8100 gives me the same problems.
+> I didn't really check wether Windows shows the same problems.
+> I don't use Windows much.  :-)
+>
+> Regards,
+> Toon.
 
+Same with my Dell 8100: under 2.6.0-test3 (acpi), the gnome panel battery
+capplet uses 23% of the CPU and 2.7% of the memory while the wmacpi
+program uses only 2.6% of the CPU and .4% of the memory.
 
------Original Message-----
-From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org =
-[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Breathnach, =
-Proinnsias (Dublin)
-Sent: 2003=C4=EA9=D4=C226=C8=D5 17:55
-To: 'Markus Gaugusch'; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: RE: [ACPI] Re: Battery status reading problems
+With the same kernel compiled for apm rather than acpi, bath the battstat
+capplet usage and the wmapm usage drop to 0.0%.
 
-> ----Original Message-----
-> From:	Markus Gaugusch [SMTP:markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org]
-> Just for the record: I have this problem on my Sony Vaio FX405 Laptop
-> (Athlon CPU/Via Chipset/Phoenix Bios).
->=20
-Ditto on a Vaio FX401 (Duron / Via / Phoenix) - polling of /proc/acpi/
-.../BAT0/*=20
-causes about a 0.5 - 2 second delay / pause.
+Sounds like an ACPI (software?) problem to me.
 
-P
+Dave
 
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
