@@ -1,14 +1,14 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: DSDT in initrd
-Date: Fri, 16 May 2003 18:17:54 -0700
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: About dsdt of clevo 5600N
+Date: Sat, 17 May 2003 10:54:10 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A847E96EA0@orsmsx401.jf.intel.com>
+Message-ID: <20030517085410.GA13867@hell.org.pl>
+References: <20030516021732.69eca85d.XaRz69@terra.es> <20030516035605.18dc60b8.XaRz69@terra.es> <Pine.LNX.4.53.0305160752340.5724@dynast.gaugusch.at> <1053074691.1189.6.camel@dutidad> <20030516230144.GB22394@hell.org.pl> <20030516231823.GB2355@dutidad.twi.tudelft.nl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <20030516231823.GB2355-V1rPnKwUOrA59+mn7qD7y50iERQUc4G+@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,46 +17,27 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Randy.Dunlap" <rddunlap-3NddpPZAyC0@public.gmane.org>
-Cc: mflt1-DTdK3Ks6N5kHTnRCetW4+N0b+6lKrnBL@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Randy.Dunlap [mailto:rddunlap-3NddpPZAyC0@public.gmane.org]=20
-> Lots of newer systems don't have an option of "... safely reverts to
-> non-ACPI ...", and surely you know that.  It's make ACPI work in some
-> fashion or have no power management.
+Thus wrote Charl P. Botha:
+> acpi_sleep=s3_bios is one way to repost and comes down to exactly what Ole
+> Rohne did with the int10 module of XFree86.  This does not work on all
+> implementations.  The Right Way is to have the necessary specifications for
+> the chip for correct wake-up from device D3 state, or whatever is relevant
+> for system S3.  These specs are NOT available for the Radeon M7.
 
-Yeah but DSDT in initrd doesn't help solve the problem for anyone but
-hackers.
+Did you check the newer radeonfb driver versions? There is some power
+management code in there, but apparently only meant for Apple laptops.
+Maybe it would be possible to use that code? Disclaimer: I know virtually
+nothing about PCI power management, so there is a chance I don't have any
+clue on what I am talking about.
+Best regards,
 
-> It seems that your goal is idealistic and not user-friendly, at least
-> not in the short-term.  It's a worthy long-term goal.
-
-Anything that does not use the DSDT from the BIOS is not user-friendly.
-It should "just work" for as many people as possible, without hackery.
-It's never going to be 100%. The only way I can think of to get close is
-if we take the time to implement a cutoff based on BIOS date, with both
-a Good and Bad BIOS list, for exceptions to that cutoff.
-
-I must admit I'm really torn. If there were 2-3 little AML problems that
-if we worked around them, a horde of machines would start working, then
-I think we would do that, but my sense is that there are many more ways
-a DSDT can be broken, and that implementing workarounds for all of them
-would cause other systems to fail. Maybe some of the people who have
-fixed their DSDTs can comment on the scope of bugs out there.
-
-> The ACPI interpreter will always have bugs in it.  The BIOS DSDTs
-> will always have bugs.  After all, they are software (or firmware).
-
-All I can say w.r.t. bugs is that it used to be the case that when
-diagnosing an issue, I started with the assumption the BIOS was right
-and the interpreter had a bug -- now I start with the assumption that
-the BIOS is buggy. :) If we can come up with a solution to mitigate the
-impact of bad DSDTs, then in my mind the only things left are 1)
-squashing the few bugs left in the PCI IRQ routing code and 2) sleep
-support. We've come a long way baby!
-
-Regards -- Andy
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
