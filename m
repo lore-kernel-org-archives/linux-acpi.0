@@ -1,8 +1,8 @@
 From: <joerg.beyer-htSm2yLGOjU@public.gmane.org>
-Subject: Re: Re: fan
-Date: Mon, 2 Sep 2002 20:35:44 +0200
+Subject: Re: thermal module and tzp
+Date: Mon, 2 Sep 2002 20:37:55 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200209021835.g82IZiX23255@mailgate5.cinetic.de>
+Message-ID: <200209021837.g82IbtX28267@mailgate5.cinetic.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
@@ -15,42 +15,25 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: ArndtSchoenewald <abs-SA7OhAOe25xnNxvc45mVi0K323yFvGpRdefyYXQ/eNw@public.gmane.org>
-Cc: acpilist <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpilist <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Arndt Schoenewald <abs-SA7OhAOe25xnNxvc45mVi0K323yFvGpRdefyYXQ/eNw@public.gmane.org> schrieb am 02.09.02 20:26:08:
-> On Sun, Sep 01, 2002 at 11:33:37PM +0200, joerg.beyer-htSm2yLGOjU@public.gmane.org wrote:
-> > [...]
-> > Here my questions:
-> > 
-> > is echo -n 0 >/proc/acpi/fan/FAN/state
-> > ment to stop the fan and
-> > is echo -n 1 >/proc/acpi/fan/FAN/state
-> > ment to start the fan?
+<joerg.beyer-htSm2yLGOjU@public.gmane.org> schrieb am 02.09.02 19:57:55:
+> Hi,
 > 
-> No, as I understand it, "echo -n 0 >/proc/acpi/fan/FAN/state" should
-> start the fan and "echo -n 3 >/proc/acpi/fan/FAN/state" should stop it.
+> I use linux-2.4.20-pre5 and latest acpi patches. If I build thermal (and the
+> other parts of acpi, where it is possible) as module and set the tzp paramter,
+> e.g. modprobe thermal tzp=20 then I get a kernel panic. Does anybody else
+> see this?
 
-ok, thanks for pointing out.
-> 
-> But, actually, on my system the "3" doesn't stop the fan but makes it
-> turn slower (and less noisy); "0" turns it back to full speed.
-> 
-> (I have a Gericom 1st Supersonic M6-T laptop.)
+because I saw Michael Notforyou's hint not to compile acpi as module (in
+another thread) I tried the same with setting tzp=20 (and 50 on another try)
+and compile the whole acpi part direct in the kernel. The effect was the same.
 
-mine is a medion, with a via chipset.
-
-> > What does the "Error transitioning device [FAN] to D3" mean?
-> 
-> Don't know for sure, sorry, but it seems that the system fails to remove
-> the power to the fan.
-
-ok, what kind of informations helps in debugging this?
+Does anybody else see this?
 
 
-
-     Joerg
+    Joerg
 
 
 
