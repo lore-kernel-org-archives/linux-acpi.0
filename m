@@ -1,14 +1,12 @@
-From: Christian Zoz <zoz-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: ACPI client
-Date: Fri, 31 Jan 2003 14:01:06 +0100
+From: cyril-Y93EPB1FQwg@public.gmane.org (Cyril Guyot)
+Subject: 100% of CPU utilization by keventd
+Date: Fri, 31 Jan 2003 14:50:33 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030131130106.GN1427@suse.de>
-References: <3E3A47C4.20807@wipro.com> <20030131124705.2dee14c2.lists@schwicky.net>
+Message-ID: <20030131135033.GA26660@poulet.zoy.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20030131124705.2dee14c2.lists-Z7rXY4Hz9HLk1uMJSBkQmQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,39 +18,22 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jan 31, Jean-Pierre Schwickerath wrote:
-> siva <sivakumar.subramani-uxC5H9eHYlcAvxtiuMwx3w@public.gmane.org> wrote:
-> 
-> > Hi,
-> > 
-> > Where can I get the ACPI client rpm / source tar file?
-> > 
-> > In the sourceforge.net, I can find only the acpid daemon source. While
-> > 
-> > reading the HOWTO document, it has been mentioned that it will be part
-> > 
-> > of acpid source.
-> > Can any one please send me the link to download the acpi client?
-> 
-> Client? 
-> acpid ist the "client". It listens on the event "socket" in the
-> /proc/acpi directory and acts uppon this. 
-> 
-> If you look for the kernel patches to support ACPI, have a look at
-> 
-> http://sourceforge.net/project/showfiles.php?group_id=36832
+I am using acpi-20030122 on top of a vanilla linux kernel 2.4.21-pre3;
+on a Toshiba Satellite 5200.
 
-I guess he looks for
-http://freshmeat.net/projects/acpi/?topic_id=146%2C861
+It seems that contrary to kernel-2.4.19 + acpi patch where keventd would
+stay around 0% of CPU utilization, keventd now takes 100% of CPU.
+This behaviour does not happen with kernel 2.4.21-pre3 without ACPI
+patch.
 
--- 
+Any idea what the problem could be ?
 
-ciao, christian
+Also, it seems that kernel-2.5.59 + acpi patch does not boot.
+It will hang at random places during the init process. Booting with
+the acpi=off parameter works.
 
-  --------------------------------------------------------------------
-    Verglichen mit jedem x-beliebigen Redmonder Betriebssystem-Clone
-    ist Linux geradezu eine leuchtende Perle der Datensicherheit.
-  ------ Frank Rennemann (http://www.linux-knowledge-portal.org) -----
+Thanks,
+Cyril
 
 
 -------------------------------------------------------
