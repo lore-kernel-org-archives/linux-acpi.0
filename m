@@ -1,14 +1,20 @@
-From: Ian Pilcher <i.pilcher-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: Re: Via 694X based SMB boards (Apollo Pro133A)
-Date: Thu, 15 Jan 2004 16:50:17 -0600
+From: Nigel Cunningham <ncunningham-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Subject: Re: Re: S4 reboots on resume
+Date: Fri, 16 Jan 2004 12:16:25 +1300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40071929.1050600@comcast.net>
-References: <LAW11-OE34hRDT6Z3Ls000131c1@hotmail.com>
+Message-ID: <1074208585.10963.5.camel@laptop-linux>
+References: <1073935225.2106.15.camel@localhost>
+ <20040115122142.GC12963@elf.ucw.cz>
+ <20040115130810.GA9348@message-id.gmane0305.slipkontur.de>
+ <4006A217.5040801@basmevissen.nl>
+ <20040115160955.GA16245@message-id.gmane0305.slipkontur.de>
+ <20040115222552.GF9578@luna.mooo.com>
+Reply-To: ncunningham-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; boundary="=-AAId0nmNNz0N4m7wyTyU";
+ protocol="application/pgp-signature"; micalg=pgp-sha1
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <LAW11-OE34hRDT6Z3Ls000131c1-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+In-reply-to: <20040115222552.GF9578-4cxDFgrrBECgSpxsJD1C4w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,32 +23,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dino Klein <dinoklein-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Micha Feigin <michf-+lLcF8/aw9x6auLlOhE+pQ@public.gmane.org>
+Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Dino Klein wrote:
-> Hello everybody,
-> 
-> I'm playing around with my Abit VP6 board - trying to get it into S3, and monkeying around with the Cx states.
-> I'm having a problem figuring out how the Via VT82C686B chipset works with two processors, since a datasheet I found for it
-> specifies only one P_BLK. Perhaps I have an older datasheet...
-> 
-> Anyway, unless someone tells me that a the Apollo Pro133A chipset doesn't properly support SMP, I would like to ask other people out
-> there who have 694X(DP) SMP board to take a look at their DSDT and send me the lines containing the processors definitions. If you
-> don't know how to find it, just send me the whole thing, and I'll figure it out; maybe this way I'll figure out the address of the
-> other P_BLK.
-> 
 
-I'll be glad to help any way I can.  You may want to see the "Plea for
-help" thread, to see some problems that ACPI exposes on my VP6.
+--=-AAId0nmNNz0N4m7wyTyU
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-How do I extract/interpret the DSDT?
+Yes, but the page pointed to compares the three implementations and how
+they're activated (among other things).
 
--- 
-========================================================================
-Ian Pilcher                                        i.pilcher-Wuw85uim5zDR7s880joybQ@public.gmane.org
-========================================================================
+Regards,
+
+Nigel
+
+On Fri, 2004-01-16 at 11:25, Micha Feigin wrote:
+> > > See <http://swsusp.sourceforge.net/features.html>
+> Actually that is a link to an implementation thats not currently in the
+> kernel (Although I do think is better and I use it myself ;-)
+
+--=20
+My work on Software Suspend is graciously brought to you by
+LinuxFund.org.
+
+--=-AAId0nmNNz0N4m7wyTyU
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQBABx9JVfpQGcyBBWkRAqPJAJ9ObCYQ+HZ9+q80iIPF8qD4YSEzIgCeMXEC
+OvvTfFF8WHHgNsE1wY9VYao=
+=Vab0
+-----END PGP SIGNATURE-----
+
+--=-AAId0nmNNz0N4m7wyTyU--
 
 
 
