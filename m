@@ -1,147 +1,104 @@
-From: Len Brown <len.brown@intel.com>
-Subject: [BKPATCH] ACPI for 2.4
-Date: 06 May 2004 18:28:36 -0400
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <1083882514.2293.227.camel@dhcppc4>
+From: HPCE Spam and Virusscan <virusalert-e+cCxrzAqRFWk0Htik3J/w@public.gmane.org>
+Subject: VIRUS (I-Worm.LovGate.w) IN MAIL FROM YOU
+Date: Fri,  7 May 2004 06:04:35 +0200 (CEST)
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <VS11939-07@mail01>
+References: <20040507040410.93E6467CD2@mail01.hpce.nec.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S263124AbUEFW3M@vger.kernel.org>
-To: Marcelo Tosatti <marcelo.tosatti@cyclades.com>
-Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Developers <acpi-devel@lists.sourceforge.net>
+Content-Type: multipart/report; report-type=delivery-status;
+    boundary="----------=_1083902675-11939-1"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20040507040410.93E6467CD2-/9iC1TdGHewypwH2I8+x7UEOCMrvLtNR@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Marcelo, please do a=20
+This is a multi-part message in MIME format...
 
-        bk pull bk://linux-acpi.bkbits.net/linux-acpi-release-2.4.27
+------------=_1083902675-11939-1
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
 
-        This brings 2.4.27 ACPI code up to date with the fixes in 2.6.6=
-=2E
+VIRUS ALERT
 
-thanks,
--Len
+Our content checker found
+    virus: I-Worm.LovGate.w
+in email presumably from you (<acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>), to the following recipient:
+-> efocht-+HQ0pkNQ8fyELgA04lAiVw@public.gmane.org
 
-ps. a plain patch is also available here:
-ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/=
-2.4.27/acpi-20040326-2.4.27.diff.gz
+Please check your system for viruses,
+or ask your system administrator to do so.
 
-This will update the following files:
+Delivery of the email was stopped!
 
- Documentation/kernel-parameters.txt |    5=20
- arch/i386/kernel/acpi.c             |   49 +++++
- arch/i386/kernel/i8259.c            |    4=20
- arch/i386/kernel/io_apic.c          |   18 --
- arch/i386/kernel/mpparse.c          |   46 ++---
- arch/i386/kernel/pci-pc.c           |    1=20
- arch/x86_64/kernel/acpi.c           |   66 +++++--
- arch/x86_64/kernel/e820.c           |    6=20
- arch/x86_64/kernel/i8259.c          |    4=20
- arch/x86_64/kernel/io_apic.c        |   18 --
- arch/x86_64/kernel/mpparse.c        |   46 ++---
- arch/x86_64/kernel/pci-pc.c         |    2=20
- arch/x86_64/kernel/setup.c          |    7=20
- drivers/acpi/Config.in              |    2=20
- drivers/acpi/Makefile               |    2=20
- drivers/acpi/ac.c                   |    3=20
- drivers/acpi/asus_acpi.c            |  121 ++++++++------
- drivers/acpi/battery.c              |   15 +
- drivers/acpi/bus.c                  |   20 +-
- drivers/acpi/button.c               |   36 ++++
- drivers/acpi/fan.c                  |    3=20
- drivers/acpi/pci_irq.c              |    2=20
- drivers/acpi/pci_link.c             |  201 ++++++++++++------------
- drivers/acpi/pci_root.c             |   16 +
- drivers/acpi/processor.c            |    7=20
- drivers/acpi/tables.c               |    1=20
- drivers/acpi/thermal.c              |    7=20
- drivers/acpi/toshiba_acpi.c         |    5=20
- include/asm-i386/acpi.h             |   36 ++--
- include/asm-x86_64/acpi.h           |   41 ++--
- include/linux/acpi.h                |    9 +
- 31 files changed, 495 insertions(+), 304 deletions(-)
 
-through these ChangeSets:
+For your reference, here are headers from your email:
+------------------------- BEGIN HEADERS -----------------------------
+Return-Path: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Received: from lists.sourceforge.net (unknown [61.178.77.66])
+	by mail01.hpce.nec.com (Postfix) with ESMTP id 93E6467CD2
+	for <efocht-+HQ0pkNQ8fyELgA04lAiVw@public.gmane.org>; Fri,  7 May 2004 06:04:10 +0200 (CEST)
+From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: efocht-+HQ0pkNQ8fyELgA04lAiVw@public.gmane.org
+Subject: Status
+Date: Sat, 8 May 2004 12:03:12 +0800
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0006_DFA18BBD.EFB55EC8"
+X-Priority: 3
+X-MSMail-Priority: Normal
+Message-Id: <20040507040410.93E6467CD2-/9iC1TdGHewypwH2I8+x7UEOCMrvLtNR@public.gmane.org>
+-------------------------- END HEADERS ------------------------------
 
-<len.brown@intel.com> (04/05/06 1.1359.6.17)
-   [ACPI] parse ACPI MCFG table and set pci_mmcfg_base_addr
-   from 2.6 via Sundar/Dely Sy
+------------=_1083902675-11939-1
+Content-Type: message/delivery-status
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
+Content-Description: Delivery error report
 
-<len.brown@intel.com> (04/05/06 1.1359.6.16)
-   [ACPI] enhance "pci=3Dnoacpi" to skip PCI probe (David Shaohua Li)
-   add "acpi=3Dnoirq" to just disable IRQ config
-   http://bugzilla.kernel.org/show_bug.cgi?id=3D1662
+Reporting-MTA: dns; mail01
+Received-From-MTA: smtp; mail01.hpce.nec.com ([127.0.0.1])
+Arrival-Date: Fri,  7 May 2004 06:04:26 +0200 (CEST)
 
-<len.brown@intel.com> (04/05/04 1.1359.6.15)
-   [ACPI] rmmod ACPI modules vs /proc
-   from Anil S Keshavamurthy and David Shaohua Li
-   http://bugzilla.kernel.org/show_bug.cgi?id=3D2457
+Final-Recipient: rfc822; efocht-+HQ0pkNQ8fyELgA04lAiVw@public.gmane.org
+Action: failed
+Status: 5.7.1
+Diagnostic-Code: smtp; 550 5.7.1 Message content rejected, id=11939-07 - VIRUS: I-Worm.LovGate.w
+Last-Attempt-Date: Fri,  7 May 2004 06:04:35 +0200 (CEST)
 
-<len.brown@intel.com> (04/05/04 1.1359.6.14)
-   [ACPI] PCI Interrupt Link fixes
-  =20
-   Handle BIOS that reference disabled PCI Interrupt Link Devices
-   http://bugme.osdl.org/show_bug.cgi?id=3D1581
-  =20
-   Clean up VIA _CRS =3D 0 BIOS workaround
-  =20
-   Handle BIOS returning _CRS outside _PRS
-   http://bugme.osdl.org/show_bug.cgi?id=3D2567
-  =20
-   delete now unused _SRS retry code
+------------=_1083902675-11939-1
+Content-Type: text/rfc822-headers
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
+Content-Description: Undelivered-message headers
 
-<len.brown@intel.com> (04/05/04 1.1359.6.13)
-   [ACPI] export symbols to button module
+Received: from lists.sourceforge.net (unknown [61.178.77.66])
+	by mail01.hpce.nec.com (Postfix) with ESMTP id 93E6467CD2
+	for <efocht-+HQ0pkNQ8fyELgA04lAiVw@public.gmane.org>; Fri,  7 May 2004 06:04:10 +0200 (CEST)
+From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: efocht-+HQ0pkNQ8fyELgA04lAiVw@public.gmane.org
+Subject: Status
+Date: Sat, 8 May 2004 12:03:12 +0800
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0006_DFA18BBD.EFB55EC8"
+X-Priority: 3
+X-MSMail-Priority: Normal
+Message-Id: <20040507040410.93E6467CD2-/9iC1TdGHewypwH2I8+x7UEOCMrvLtNR@public.gmane.org>
 
-<len.brown@intel.com> (04/04/28 1.1359.6.12)
-   [ACPI] button build fix
+------------=_1083902675-11939-1--
 
-<len.brown@intel.com> (04/04/28 1.1359.6.11)
-   [ACPI] toshiba_acpi driver if acpi_disabled (David Shaohua Li)
-   http://bugzilla.kernel.org/show_bug.cgi?id=3D2465
 
-<len.brown@intel.com> (04/04/28 1.1359.6.10)
-   [ACPI] pcibios_scan_root fix for IA64 (from IA64 tree via Luming Yu)
-   http://bugzilla.kernel.org/show_bug.cgi?id=3D2130
-
-<len.brown@intel.com> (04/04/28 1.1359.6.9)
-   [ACPI] pci-link may not always be SHARED (SuSE via Luming Yu)
-   http://bugzilla.kernel.org/show_bug.cgi?id=3D2404
-
-<len.brown@intel.com> (04/04/28 1.1359.6.8)
-   [ACPI] support button driver unload (Luming Yu)
-   http://bugzilla.kernel.org/show_bug.cgi?id=3D2281
-
-<len.brown@intel.com> (04/04/28 1.1359.6.7)
-   [ACPI] battery "charged" instead of "unknown" (Luming Yu)
-   http://bugzilla.kernel.org/show_bug.cgi?id=3D1863
-
-<sziwan@hell.org.pl> (04/04/28 1.1359.6.6)
-   [PATCH] acpi4asus 0.28 (Karol 'sziwan' Kozimor)
-   - Added support for Samsung P30
-   - Fixed an oops triggered by non-standard hardware (Samsung P30)
-   - Added support for L4400L and M6800N
-  =20
-   The patch also removes some superfluous data. It doesn't include the
-   copy_from_user() conversion, it will be released as a separate patch=
-=2E
-
-<len.brown@intel.com> (04/04/24 1.1359.6.5)
-   [ACPI] No IRQ known... - using IRQ 255 (Bjarni R=FAnar Einarsson)
-   http://bugzilla.kernel.org/show_bug.cgi?id=3D2148
-
-<len.brown@intel.com> (04/04/22 1.1359.6.4)
-   [ACPI] allow use of IRQ2 in ACPI/IOAPIC mode
-   http://bugzilla.kernel.org/show_bug.cgi?id=3D2564
-
-<len.brown@intel.com> (04/04/20 1.1359.6.3)
-   [ACPI] enhance intr-src-override parsing to handle ES7000
-   http://bugme.osdl.org/show_bug.cgi?id=3D2520
-  =20
-
-<len.brown@intel.com> (04/04/20 1.1359.6.2)
-   [ACPI] Delete IRQ2 "cascade" in ACPI IOAPIC mode
-   no such concept exists in ACPI, frees IRQ2 for use.
-
-<len.brown@intel.com> (04/04/16 1.1359.6.1)
-   [ACPI] delete unused CONFIG_ACPI_RELAXED_AML
-   this code is included always -- or disable at boot w/ "acpi=3Dstrict
+-------------------------------------------------------
+This SF.Net email is sponsored by Sleepycat Software
+Learn developer strategies Cisco, Motorola, Ericsson & Lucent use to deliver
+higher performing products faster, at low TCO.
+http://www.sleepycat.com/telcomwpreg.php?From=osdnemail3
