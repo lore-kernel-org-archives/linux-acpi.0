@@ -1,14 +1,14 @@
-From: Oliver Neukum <oliver@neukum.org>
+From: David Brownell <david-b@pacbell.net>
 Subject: Re: [ACPI] Re: kernel 2.6.10 , uhci-hcd problem after ACPI S3 suspend.
-Date: Thu, 6 Jan 2005 19:48:57 +0100
-Message-ID: <200501061948.57848.oliver@neukum.org>
-References: <20050106182839.78516.qmail@web50208.mail.yahoo.com>
+Date: Thu, 6 Jan 2005 09:31:58 -0800
+Message-ID: <200501060931.58821.david-b@pacbell.net>
+References: <Pine.LNX.4.44L0.0501061044410.1024-100000@ida.rowland.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-15"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-usb-devel-admin@lists.sourceforge.net>
-In-Reply-To: <20050106182839.78516.qmail@web50208.mail.yahoo.com>
+In-Reply-To: <Pine.LNX.4.44L0.0501061044410.1024-100000@ida.rowland.org>
 Content-Disposition: inline
 Sender: linux-usb-devel-admin@lists.sourceforge.net
 Errors-To: linux-usb-devel-admin@lists.sourceforge.net
@@ -19,26 +19,42 @@ List-Help: <mailto:linux-usb-devel-request@lists.sourceforge.net?subject=help>
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
 	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-usb-devel>
-To: Paul Ionescu <i_p_a_u_l@yahoo.com>
-Cc: linux-usb-devel@lists.sourceforge.net, Alan Stern <stern@rowland.harvard.edu>, acpi-devel@lists.sourceforge.net
+To: linux-usb-devel@lists.sourceforge.net
+Cc: Alan Stern <stern@rowland.harvard.edu>, Paul Ionescu <i_p_a_u_l@yahoo.com>, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-Am Donnerstag, 6. Januar 2005 19:28 schrieb Paul Ionescu:
-> Hi Oliver,
+On Thursday 06 January 2005 7:48 am, Alan Stern wrote:
+
+> I think you've run across another indication that the suspend/resume 
+> support in the USB drivers is not yet ready for prime time.  Does the 
+> patch below help?  (Note: this is meant for use with CONFIG_USB_SUSPEND 
+> not set.)
+
+This would be a case where the root hub timer isn't
+getting shut down "properly" during suspend ... right
+now the OHCI and EHCI code test for HCD_IS_RUNNING()
+in their hub_status_data() entries.  I remember not
+liking that fix, but also not thinking usbcore was
+a safe place for the fix -- I forget why.
+
+- Dave
+
+
+> --- 2.6.10-orig/drivers/usb/core/hcd.c	Mon Jan  3 09:39:35 2005
+> +++ 2.6.10/drivers/usb/core/hcd.c	Thu Jan  6 10:43:16 2005
+> @@ -534,7 +534,8 @@
+>  
+>  	/* complete the status urb, or retrigger the timer */
+>  	spin_lock (&hcd_data_lock);
+> -	if (urb->dev->state == USB_STATE_CONFIGURED) {
+> +	if (urb->dev->state == USB_STATE_CONFIGURED &&
+> +			hcd->state == USB_STATE_RUNNING) {
+>  		length = hcd->driver->hub_status_data (
+>  					hcd, urb->transfer_buffer);
+>  		if (length > 0) {
 > 
-> Yes, it works if rmmod ehci_hcd before suspending, but
-> it was a time when there was no need to rmmod anything
-> before suspending ( for me was something like 2.6.7 or
-> around ).
-> In 2.6.9 you cannot suspend anymore with ehci-hcd
-> loaded, in 2.6.10 you can but you screw your uhci and
-> sometime hang your usb stack.
-
-This state of affairs is undesirable. It seems important to me to
-establish that we both see the same effect.
-
-	Regards
-		Oliver
+> 
+> 
 
 
 -------------------------------------------------------
