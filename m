@@ -1,12 +1,15 @@
-From: Stian Jordet <liste-NI9zH3lwcMKHXe+LvDLADg@public.gmane.org>
-Subject: ACPI in kernel 2.5.68 works better (for me) than 2.5.69
-Date: 06 May 2003 02:29:46 +0200
+From: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
+Subject: Re: DSDT in initrd?
+Date: Tue, 6 May 2003 07:47:09 +0200 (CEST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1052180986.1005.3.camel@chevrolet.hybel>
+Message-ID: <Pine.LNX.4.53.0305060743450.2529@tweety.gaugusch.at>
+References: <Pine.LNX.4.53.0304282017540.1928@phoenix.kerstin.at>
+ <20030504215051.GA488@elf.ucw.cz> <Pine.LNX.4.53.0305050829420.25721@dynast.gaugusch.at>
+ <200305060007.49847.bob@diamond.demon.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200305060007.49847.bob-l+PWtdWbHAsG2Il/BtU0GPXRex20P6io@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,24 +21,25 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+On May 6, Bob Lees <bob-l+PWtdWbHAsG2Il/BtU0GPXRex20P6io@public.gmane.org> wrote:
+> Why use initrd?  Why not allow a file name to be passed to the kernel at
+> boot a la acpi=off, acpi=mydst.hex or whatever?  Put the file in the
+> /boot directory?
+I think that this is not possible. The filesystem would have to be
+accessible which is not the case at the early stage where ACPI loads
+(there could even be the case, that no interrupts are assigned yet, to use
+the scsi controller where the partition with the file is stored). Not to
+mention, that harddisk and scsi drivers are loaded much later anyway.
+The initrd is the only sane way to do this. I could also change my patch
+to accept a plain DSDT file, without my 'magic' signature, if no other
+initrd data is present.
 
-Since kernel 2.5.69, usb no longer work with acpi on my computer. With
-2.5.68 it did. Do you know what changes you have done might cause this?
-
-I get this error, but this one is with both .68 and .69.
-
-ACPI-0109: *** Error: No object was returned from
-[\_SB_.PCI0.PX40.IRDA._STA] (Node dff5cc80), AE_NOT_EXIST
-
-This is a Asus CUV266-DLS smp motherboard, and thus I need acpi to power
-it off, and it would have been very, very much apprpeciated if this
-somehow could be fixed before 2.6, atleast. I don't want to be running
-2.5.68 for ever :)
-
-Best regards,
-Stian
-
+Markus
+-- 
+__________________    /"\
+Markus Gaugusch       \ /    ASCII Ribbon Campaign
+markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org     X     Against HTML Mail
+                      / \
 
 
 -------------------------------------------------------
