@@ -1,15 +1,15 @@
 From: Chris Howells <chris-NvB7AskkBIqIudiWw5vspbVCufUGDwFn@public.gmane.org>
-Subject: Re: Howto switch system/CPU states?
-Date: Tue, 5 Nov 2002 01:29:01 +0000
+Subject: Re: hibernate
+Date: Tue, 5 Nov 2002 01:23:36 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200211050128.37267.chris@chrishowells.co.uk>
-References: <20021104060200.95943.qmail@web11002.mail.yahoo.com> <20021104075706.A635@brodo.de>
+Message-ID: <200211050123.48329.chris@chrishowells.co.uk>
+References: <20021104133736.GA16301@Tonelli.sns.it> <3DC67E0F.5010408@symplon.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20021104075706.A635-JhLEnvuH02M@public.gmane.org>
+In-Reply-To: <3DC67E0F.5010408-y2s3ugBAdl9BDgjK7y7TUQ@public.gmane.org>
 Content-Description: clearsigned data
 Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -28,24 +28,15 @@ Hash: SHA1
 
 Hi,
 
-On Monday 04 November 2002 6:57 am, Dominik Brodowski wrote:
-> On Sun, Nov 03, 2002 at 10:02:00PM -0800, Happy Camper wrote:
-> > 2. Switch CPU C states.  When I load the processor module, I get this
-> > in the /var/log/messages :
-> > Nov  3 16:09:25 localhost kernel: ACPI: Processor [CPU] (supports C1 C2
-> > C3, 8 throttling states)
-> > However I cant figure out how to switch these processor states.
->
-> http://www.brodo.de/english/pub/acpi/proc/processor.html
+On Monday 04 November 2002 2:02 pm, Robert Woerle wrote:
+> btw hibernate is S4 ! S3 is the standby ( suspend to ram )
 
-In the current ACPI patches (e.g. without the ACPI to cpufreq stuff), does =
-the
-switching CPU states have any actual effect?
+
+Could somebody please explain what S1 and S2 are as well?
 
 Thanks
 
-
-=2D --
+=2D --=20
 Cheers, Chris Howells -- chris-NvB7AskkBIqIudiWw5vspbVCufUGDwFn@public.gmane.org, howells@kde.org
 Web: http://chrishowells.co.uk, PGP key: http://chrishowells.co.uk/pgp.txt
 KDE: http://www.koffice.org, http://edu.kde.org, http://usability.kde.org
@@ -53,10 +44,11 @@ KDE: http://www.koffice.org, http://edu.kde.org, http://usability.kde.org
 =2D----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.0 (GNU/Linux)
 
-iD8DBQE9xx7dF8Iu1zN5WiwRAsn0AJ9EoirGcMcSkLgliLAL7MVaiMJQRQCgpMJs
-J704bcNCvAfjcNxoJy+6RhA=3D
-=3DUtsW
+iD8DBQE9xx2jF8Iu1zN5WiwRAkoVAJ4rg5pc+M6B1xpYBL+e+1xJcJsIRwCgjvKb
+IT+TQ/O8whR4zELwgwEz86w=3D
+=3D+hGN
 =2D----END PGP SIGNATURE-----
+
 
 
 
