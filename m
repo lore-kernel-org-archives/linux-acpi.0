@@ -1,14 +1,12 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ibm-acpi-0.1
-Date: Tue, 10 Aug 2004 16:58:53 +0800
+From: Takanori Watanabe <takawata-yzSWc4HAx5xL9jVzuh4AOg@public.gmane.org>
+Subject: Re: ibm-acpi-0.1
+Date: Tue, 10 Aug 2004 18:19:20 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <B44D37711ED29844BEA67908EAF36F03860E23@pdsmsx401.ccr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Message-ID: <200408100919.SAA19847@axe-inc.co.jp>
+References: <20040810083807.GF28939@aero.ensim.com>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-reply-to: Your message of "Tue, 10 Aug 2004 01:38:07 MST."
+             <20040810083807.GF28939-AKoe11r2kkOzaBltdDZI6w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -21,11 +19,7 @@ To: Borislav Deianov <borislav-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, August 10, 2004 4:38 PM Borislav Deianov wrote:
->To: Li, Shaohua
->Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: Re: [ACPI] ibm-acpi-0.1
->
+In message <20040810083807.GF28939-AKoe11r2kkOzaBltdDZI6w@public.gmane.org>, Borislav Deianov wrote:
 >On Tue, Aug 10, 2004 at 04:24:39PM +0800, Li, Shaohua wrote:
 >>
 >> IBM hotkey has a unique ID. In T40, it's 'IBM0068'. I guess other
@@ -33,29 +27,28 @@ On Tuesday, August 10, 2004 4:38 PM Borislav Deianov wrote:
 >> isn't a good idea.
 >
 >Agreed. I was originally using acpi_bus_register_driver() and refering
->to devices by HID but that turned out to not work very well
-I guess only supporting hotkey is ok in the file. If you want to support
-docking station, use a new file.
-
+>to devices by HID but that turned out to not work very well for the
 >dock (ACPI drops it if it's not present at boot) and embedded
-Actually supporting dock station isn't just executing _EJ0 and _DCK, you
-possibly need to scan the new PCI devices under the dock station.=20
-
 >controller (the ec driver has already grabbed it). So I switched to
 >looking things up by the path. I see your point, though, I'll see what
 >I can do.
->
+
+Probably this may unable to work on other Thinkpads.
+I have X31 and i1620, and there are some incompatibility on 
+AML between two.
+Generic notify events Bus check, Device Wake, Eject request,
+may have to be caught by enumrator.
+
 >> BTW, I'm interested in how can you know the meaning of 'DHKC',
 >> 'MHKC' and etc. They are non-standard ACPI methods.
 >
 >Guesswork from the disassembled DSDT and trial and error...
-Great job!
 
-Thanks,
-Shaohua
->
->Regards,
->Boris
+I wrote such driver for FreeBSD (though I don't implement
+docking station).
+
+http://www.init-main.com/acpi_tpkey/
+
 
 
 -------------------------------------------------------
