@@ -1,7 +1,7 @@
 From: dev_zero <dev_xor-eZNTXLQAfP4@public.gmane.org>
 Subject: RE: kacpid problems
-Date: Thu, 11 Nov 2004 16:56:20 +0100 (CET)
-Message-ID: <20041111155620.59809.qmail@web25302.mail.ukl.yahoo.com>
+Date: Thu, 11 Nov 2004 17:01:28 +0100 (CET)
+Message-ID: <20041111160128.60887.qmail@web25302.mail.ukl.yahoo.com>
 References: <3ACA40606221794F80A5670F0AF15F84041AC05A@pdsmsx403>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
@@ -21,8 +21,12 @@ To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Wang, Zhe
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I have tried the first one, with the same results as
-the patch from Wang. I will try the second now.
+The second patch from you Yu is the last one I have
+time to try out, because the firm that made my machine
+say that it should be in for service, to check my fan.
+I assume this service will take a couple of days, but
+I will be in touch with you guys. I'll send you the
+results of the second patch in about 10-15min.
 
  --- "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote: 
 > Did you try the patches I sent you to narrow down
