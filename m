@@ -1,14 +1,14 @@
-From: Vadim Zeitlin <vadim-oE/GLL+f5xMgsBAKwltoeQ@public.gmane.org>
-Subject: Re[6]: HP nw8000 never wakes up from acpi suspend
-Date: Sun, 10 Oct 2004 01:41:04 +0200 (Romance Daylight Time)
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI on Intel SE7501WV2
+Date: Sun, 10 Oct 2004 09:10:42 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E1CGQpe-0001Ju-00@smtp.tt-solutions.com>
-References: <3ACA40606221794F80A5670F0AF15F8405BD1229@pdsmsx403>
+Message-ID: <16A54BF5D6E14E4D916CE26C9AD305754574D8@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=US-ASCII
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: INLINE
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F8405BD1229@pdsmsx403>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,44 +17,71 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bernard Normier <bernard-jCTGDdqZGLzlLTHTg0CpQwC/G2K4zDHf@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 10 Oct 2004 00:21:16 +0800 "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>The Intel SE7501WV2 is a dual Xeon server motherboard. Power management
+is
+>not a concern ... but stability is. When I boot with 2.6.8-1.521smp
+(latest
+>Fedora Core 2), or my own 2.6.9-rc3 smp kernel build, the log shows 2
+>ACPI-related issues:
+>
+>- with USB enabled in the BIOS, dmesg shows:
+>
+>hub 2-0:1.0: USB hub found
+>hub 2-0:1.0: 2 ports detected
+>irq 169: nobody cared! (screaming interrupt?)
+>irq 169: Please try booting with acpi=3Doff and report a bug
+> [<021074d6>] __report_bad_irq+0x3a/0x77
+> [<02107572>] note_interrupt+0x43/0x66
+> [<021078c4>] do_IRQ+0x19d/0x225
+>handlers:
+>[<0225a679>] (usb_hcd_irq+0x0/0x4b)
+>Disabling IRQ #169
+What's the result if you disable 'CONFIG_PCI_MSI'?
 
-YL> >YL> It sounds like VGA issue.
-YL> >
-YL> > Is there any workaround?
-YL> 
-YL> Please reference document: linux/Documentation/power/video.txt
 
- Thank you, I read this and tried using acpi_sleep parameters as well as a
-few other things but to no avail.
+>PCI: PCI BIOS revision 2.10 entry at 0xfdb75, last bus=3D4
+>PCI: Using configuration type 1
+>mtrr: v2.0 (20020519)
+>ACPI: Subsystem revision 20040326
+>    ACPI-0562: *** Warning: Type override - [DEB_] had invalid type
+>(Integer) for Scope operator, changed to (Scope)
+>    ACPI-0562: *** Warning: Type override - [MLIB] had invalid type
+>(Integer) for Scope operator, changed to (Scope)
+>    ACPI-0562: *** Warning: Type override - [DATA] had invalid type
+(String)
+>for Scope operator, changed to (Scope)
+>    ACPI-0562: *** Warning: Type override - [SIO_] had invalid type
+(String)
+>for Scope operator, changed to (Scope)
+>    ACPI-0562: *** Warning: Type override - [LEDP] had invalid type
+(String)
+>for Scope operator, changed to (Scope)
+>    ACPI-0562: *** Warning: Type override - [GPEN] had invalid type
+(String)
+>for Scope operator, changed to (Scope)
+>    ACPI-0562: *** Warning: Type override - [GPST] had invalid type
+(String)
+>for Scope operator, changed to (Scope)
+>    ACPI-0562: *** Warning: Type override - [WUES] had invalid type
+(String)
+>for Scope operator, changed to (Scope)
+>    ACPI-0562: *** Warning: Type override - [WUSE] had invalid type
+(String)
+>for Scope operator, changed to (Scope)
+>    ACPI-0562: *** Warning: Type override - [SBID] had invalid type
+(String)
+>for Scope operator, changed to (Scope)
+>    ACPI-0562: *** Warning: Type override - [SWCE] had invalid type
+(String)
+>for Scope operator, changed to (Scope)
+>ACPI: Interpreter enabled
+The error message possibly isn't harmful. Please latest kernel.
 
-YL> Basically, we use this debug mechanism to debug ACPI subsystem itself.
-YL> The suspend/resume issue is system wide. I guess these debug
-YL> information will not help you, before you can affirm ACPI subsystem has
-YL> bug.
-
- I'd really like to find some way to get more information about what's
-going on. I must have rebooted ~50 times today (which is probably more than
-during my last 8 or something years of using Linux extensively combined)
-and this is just not the most effective way to debug :-(
-
-YL> > What else can I do?
-YL> 
-YL> Maybe you need to remove some driver like USB.... , and make
-YL> sure the resume process can reach some point.
-
- As I said, I unloaded everything, including USB, PCMCIA, sound, mouse and
-network drivers. It didn't help at all, whatever point the resume reaches I
-can't see it. I'd really like to fix this -- what use is a notebook which
-can't be suspended/closed? -- but I have no idea about what else I could
-do. I'll try contacting HP but I have little hope this can help.
-
- Anyhow, thanks again for your replies,
-VZ
-
+Thanks,
+Shaohua
 
 
 -------------------------------------------------------
