@@ -1,13 +1,13 @@
 From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: 2.5.34?
-Date: Tue, 17 Sep 2002 15:46:53 +0000
+Subject: Re: swsusp needs clock corrected | 8193too needs reload
+Date: Tue, 17 Sep 2002 16:08:56 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020917154653.C39@toy.ucw.cz>
-References: <20020916001425.82756.qmail@web20906.mail.yahoo.com> <20020916012506.G10583@parcelfarce.linux.theplanet.co.uk> <20020916081909.A25876@vdpas.hobby.nl>
+Message-ID: <20020917160855.H39@toy.ucw.cz>
+References: <3D85998F.7090101@symplon.com> <Pine.LNX.4.44.0209161123420.12600-100000@dynast.gaugusch.at>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20020916081909.A25876-FeupCOz82S5hxPbjSeLqYA@public.gmane.org>; from toon-/ye6tfJczTwcEEi49/iq3g@public.gmane.org on Mon, Sep 16, 2002 at 08:19:09AM +0200
+In-Reply-To: <Pine.LNX.4.44.0209161123420.12600-100000-sxQ525G0OhRQK2oVCIMtW7NldLUNz+W/@public.gmane.org>; from markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org on Mon, Sep 16, 2002 at 11:25:06AM +0200
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,25 +16,21 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: Toon van der Pas <toon-/ye6tfJczTwcEEi49/iq3g@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
+Cc: ACPI-Devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi
+Hi!
 
-> > > Is 2.5.34 patch comming out soon?
-> > 
-> > i don't particularly see the point in releasing one since all ACPI patches
-> > for 2.5 that i'm aware of are integrated into the current bitkeeper tree.
-> > you could grab a nightly snapshot if you can't wait for 2.5.35:
-> > http://www.kernel.org/pub/linux/kernel/people/jgarzik/snap/2.5/patch-2.5.34-bk6.bz2
-> 
-> But be aware that the swsusp patch in the IDE driver in de 2.5 kernel
-> was lost when Martin Dalecki's IDE project was removed!
-> I would wait for it to return in some form or another, if I where you.
+> > Only 2 things are not fully working with swsusp
+> > after i resume from S4 , my clock is still at the time when it was
+> > suspended.
+> Run hwclock --hctosys after resume (and preferable hwclock --systohc
+> before)
 
-Look at l-k, I already submitted IDE swsusp support to Andre.
-
+Actually this should be fixed in kernel (as we already do for apm). Patches
+welcome.
+								Pavel
 -- 
 Philips Velo 1: 1"x4"x8", 300gram, 60, 12MB, 40bogomips, linux, mutt,
 details at http://atrey.karlin.mff.cuni.cz/~pavel/velo/index.html.
