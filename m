@@ -1,61 +1,50 @@
-From: Arkadiusz Miskiewicz <arekm-k0Z414SquRyhPH1hqNUYSQ@public.gmane.org>
-Subject: Re: ACPI: S3 and PAE do not like each other for now, S3 disabled.
-Date: Fri, 6 Aug 2004 02:09:55 +0200
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200408060209.55067.arekm@pld-linux.org>
-References: <200407252330.05542.arekm@pld-linux.org> <20040726210011.GB21889@openzaurus.ucw.cz>
+From: "Martin J. Bligh" <mbligh@aracnet.com>
+Subject: Re: [PATCH] cleanup ACPI numa warnings
+Date: Thu, 05 Aug 2004 20:35:10 -0700
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <249150000.1091763309@[10.10.2.4]>
+References: <1091738798.22406.9.camel@tdi> <1091739702.31490.245.camel@nighthawk> <1091741142.22406.28.camel@tdi>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040726210011.GB21889-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S266273AbUHFDfp@vger.kernel.org>
+In-Reply-To: <1091741142.22406.28.camel@tdi>
 Content-Disposition: inline
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Alex Williamson <alex.williamson@hp.com>, Dave Hansen <haveblue@us.ibm.com>
+Cc: acpi-devel <acpi-devel@lists.sourceforge.net>, linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday 26 of July 2004 23:00, Pavel Machek wrote:
-> Hi!
->
-> > Is this ,,ACPI: S3 and PAE do not like each other for now, S3 disabled.=
-''
-> > generic S3 and PAE issue or just Linux issue only?
->
-> Linux only. Hmm with recent enough kernel we needed to fix this for
-> different reason, so it might just work.
->
-> Remove check, test it, if it works submit a patch.
-Today while playing with suspend/resume support in via-rhine I had a chance=
- to=20
-try it few more times (on 2.6.8rc2 with PAE enabled, maxdata notebook, 512M=
-B=20
-ram, athlon, kt133 based mainboard).
+--Alex Williamson <alex.williamson@hp.com> wrote (on Thursday, August 05, 2004 15:25:42 -0600):
 
-Resuming works properly only somethimes. Once I have system back into nice=
-=20
-shape, once I see that it starts resuming (fans are starting, screen change=
-s)=20
-and it hangs, screen is corrupted (some color characters flashing), sysrq=20
-doesn't work.
+> On Thu, 2004-08-05 at 14:01 -0700, Dave Hansen wrote:
+>> On Thu, 2004-08-05 at 13:46, Alex Williamson wrote:
+>> > +#ifdef ACPI_DEBUG_OUTPUT
+>> > +#define acpi_print_srat_processor_affinity(header) { \
+>> > +	struct acpi_table_processor_affinity *p = \
+>> > +	                      (struct acpi_table_processor_affinity*) header; \
+>> > +	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "SRAT Processor (id[0x%02x] " \
+>> > +	                 "eid[0x%02x]) in proximity domain %d %s\n", \
+>> > +	                 p->apic_id, p->lsapic_eid, p->proximity_domain, \
+>> > +	                 p->flags.enabled?"enabled":"disabled")); }
+>> > +
+>> > +#define acpi_print_srat_memory_affinity(header) { \
+>> > +	struct acpi_table_memory_affinity *p = \
+>> > +	                         (struct acpi_table_memory_affinity*) header; \
+>> > +	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "SRAT Memory (0x%08x%08x length " \
+>> > +	                 "0x%08x%08x type 0x%x) in proximity domain %d %s%s\n",\
+>> > +	                 p->base_addr_hi, p->base_addr_lo, p->length_hi, \
+>> > +	                 p->length_lo, p->memory_type, p->proximity_domain, \
+>> > +	                 p->flags.enabled ? "enabled" : "disabled", \
+>> > +	                 p->flags.hot_pluggable ? " hot-pluggable" : "")); }
+>> 
+>> Is there a reason that this can't be a normal function instead of a
+>> 9-line #define?
+> 
+>    Well, it's 9 lines, but it boils down to one printk.  I'm not sure
+> putting it in a function would make it any more readable, long printks
+> are ugly by design.  Either way would work.
 
-> 				Pavel
+Multi-line #defines are inherently eeeeevil ;-) I'd agree with Dave - static 
+inlines are the normal way to do this.
 
-=2D-=20
-Arkadiusz Mi=B6kiewicz     CS at FoE, Wroclaw University of Technology
-arekm.pld-linux.org, 1024/3DB19BBD, JID: arekm.jabber.org, PLD/Linux
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by OSTG. Have you noticed the changes on
-Linux.com, ITManagersJournal and NewsForge in the past few weeks? Now,
-one more big change to announce. We are now OSTG- Open Source Technology
-Group. Come see the changes on the new OSTG site. www.ostg.com
+M.
