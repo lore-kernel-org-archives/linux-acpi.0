@@ -1,14 +1,12 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Dell D600: teaching radeonfb how to wake up...
-Date: Thu, 27 Nov 2003 11:47:22 +0100
+From: Damien Sandras <damien.sandras-zdNq1GPRXr2akBO8gow8eQ@public.gmane.org>
+Subject: ACPI Thermal zone OK in 2.6test 9, but KO in 2.6 test10/11
+Date: Thu, 27 Nov 2003 12:12:08 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031127104722.GM7374@poupinou.org>
-References: <20031120111315.GB432@openzaurus.ucw.cz> <1069370504.705.32.camel@gaston> <20031120234708.GA431@elf.ucw.cz> <20031121155010.C19564@loria2.loria.fr> <1069637387.723.112.camel@gaston> <20031124173603.GA298@elf.ucw.cz> <1069725771.876.296.camel@gaston> <20031125120443.GA297@elf.ucw.cz> <20031126132419.GL7374@poupinou.org> <20031126223436.GD207@elf.ucw.cz>
+Message-ID: <1069931528.652.6.camel@golgoth01>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20031126223436.GD207-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,26 +15,39 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Emmanuel Thome <Emmanuel.Thome+acpi-/zGXu1G9BXs@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Nov 26, 2003 at 11:34:36PM +0100, Pavel Machek wrote:
-> That's what I'm doing, but it crashes machine on most
-> machines. Perhaps PCI needs to be already initialized at this point or
-> something like that?
+Hello to all,
 
-In fact, I don't think that POST is a good idea anyway (we had
-alerady that discussion).  It's way too early in the resume path.
-Perhaps POSTing after PCI subsystem wakeup may help, but then you
-may have to go with int 10 instead (and that will be pretty hard
-to do that in kernel space).
+I'm running kernel 2.6 test 11 on an ACER Aspire 1700. The DSDT has been
+patched, but that doesn't matter as I have the same problem with and
+without the change to the DSDT.
 
--- 
-Ducrot Bruno
+Actually, I'm running 2.6 kernels since a few months and I had no
+problem until 2.6 test 10. The thermal zone was functionning properly
+and reporting a correct temperature with kernel 2.6 test 9. Last week, I
+upgraded to kernel 2.6 test 10, and today to kernel 2.6 test 11 and as
+soon as I load the thermal module, it report a temperature of 255=B0C and
+executes an ACPI power_off.
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+Is there some kind of patch I could revert in the thermal.c file to
+determine what is the exact cause of the problem or alternatively any
+new patch I could try?
+
+Thank you,
+
+PS: except that, everything works correctly, except that my
+/proc/acpi/fan directory is empty with the module loaded, but I guess it
+is the same problem.
+--=20
+ _      Damien Sandras
+(o-    =20
+//\     It-Optics s.a.
+v_/_    GnomeMeeting: http://www.gnomemeeting.org/
+        FOSDEM 2004:  http://www.fosdem.org
+        H.323 phone:  callto:ils.seconix.com/dsandras-AvcYnRpcIedBDgjK7y7TUQ@public.gmane.org
+
 
 
 -------------------------------------------------------
