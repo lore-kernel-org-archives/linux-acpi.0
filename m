@@ -1,14 +1,14 @@
-From: Michael Frank <mflt1-DTdK3Ks6N5kHTnRCetW4+N0b+6lKrnBL@public.gmane.org>
-Subject: DSDT in initrd
-Date: Tue, 13 May 2003 12:28:07 +0800
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: PCI Root Bridge
+Date: Tue, 13 May 2003 13:29:31 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200305131228.07260.mflt1@micrologica.com.hk>
+Message-ID: <3ACA40606221794F80A5670F0AF15F842722F8@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,22 +17,147 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Szabolcs Barsony <Szabolcs.Barsony-pFqtzsCLIqPQT0dZR+AlfA@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi All,
+Would you please change below code in you dsdt.asl
 
-I would like to use the DSDT override and have at this time at 3 buggy DSDT's to fix.
+                    Method (_REG, 2, NotSerialized)
+                    {
+                        If (LEqual (Arg0, 0x03))
+                        {
+                            Store (Arg1, C0D2)
+                            If (LAnd (Arg1, LNot (LLess (\C009 (), =
+0x03))))
+                            {
+                                C0D3 ()
+                            }
+                        }
+                    }
 
-So far I build a modular kernel for use on all machines, even those w/o ACPI.
+                    OperationRegion (C0D9, EmbeddedControl, 0x00, 0xFF)
 
-IMHO this patch is very useful because it provides the equivalent of a "DSDT module" and avoids building a kernel for each DSDT.
+To:
+                    Method (_REG, 2, NotSerialized)
+                    {
+                        If (LEqual (Arg0, 0x03))
+                        {
+                            Store (Arg1, C0D2)
+                            If (Arg1)
+                            {
+                                C0D3 ()
+                            }
+                        }
+                    }
 
-Please consider inclusion.
+                    OperationRegion (C0D9, EmbeddedControl, 0x00, 0xFF)
+
+And see whether battery works.
+
+Thanks,
+Luming
+
+-----Original Message-----
+From: Yu, Luming=20
+Sent: 2003?5?7? 17:12
+To: Szabolcs Barsony
+Cc: Brown, Len; Moore, Robert; Grover, Andrew; =
+acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: RE: [ACPI] PCI Root Bridge
 
 
-Regards
-Michael
+Szabolcs,
+According to ACPI spec 2.0a, Control Method Battery has Plug and Play ID =
+ PNP0C0A.
+I searched your ASL file for PNP0C0A, and found device C11D and C11E has =
+such _HID.
+So, I searched your Dmesg for C11D and C11E, and I found below message:
+
+ACPI: Battery Slot [C11E] (battery absent).
+
+Maybe Battery Slot C11E can work on your platform. Would you please have =
+it a try.
+Regarding battery slot C11D, there are no clue to do further =
+investigation to me.
+Would you please try to find out whether device C11E has successfully =
+loaded into ACPI namespace?
+I have noticed that there are two AE_NOT_EXIST and two AE_ALREADY_EXISTS =
+messages, but it's for devices C03B.
+I can't guess what happened during period between reporting AE_NOT_EXIST =
+and initializing device C11D.
+
+Thanks,
+Luming
+
+-----Original Message-----
+From: Szabolcs Barsony [mailto:Szabolcs.Barsony-pFqtzsCLIqPQT0dZR+AlfA@public.gmane.org]
+Sent: 2003?4?14? 20:34
+To: Yu, Luming
+Subject: RE: [ACPI] PCI Root Bridge
+
+
+Hi,
+
+I did only basic corrections.=20
+1. After disassembling the BIOS DSDT table there were many symbols =
+starting
+with asterisk (*). I removed them from the name of the symbols.
+2. During compilation I got many undefined symbols. I defined them as
+extern.
+3. I got few messages that not all methods return a value. I added =
+Return
+(0x00) to those methods.
+
+That's all. I attach the original DSDT table and my fixed one in a zip =
+file.
+
+Thanks and regards,
+Szabolcs
+
+
+-----Original Message-----
+From: Yu, Luming [mailto:luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
+Sent: Monday, 2003 April 14 12:14
+To: Szabolcs Barsony
+Cc: Grover, Andrew; Brown, Len
+Subject: RE: [ACPI] PCI Root Bridge
+
+
+I looked into your dmesg.  I noticed that:
+
+First error is that pci_config for C03B has already installed.=20
+
+Second error is that method execution was failed =
+[\_SB_C03B.C04E.C0CF.COD3]
+due to AE_NOT_EXIST.
+
+Obviously, something is missing from this DSDT table.
+
+I don't know if this dmesg is kernel having your fixed DSDT table. If =
+yes,
+are you missing something?
+
+Would you please describe how did you fix the buggy DSDT table, and give =
+me
+dmesg of kernel with original DSDT table.
+
+It will help me better understand your problem.
+
+Thanks,
+Luming
+
+
+
+-------------------------------------------------------
+Enterprise Linux Forum Conference & Expo, June 4-6, 2003, Santa Clara
+The only event dedicated to issues related to Linux enterprise solutions
+www.enterpriselinuxforum.com
+
+_______________________________________________
+Acpi-devel mailing list
+Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
