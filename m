@@ -1,14 +1,13 @@
-From: simon-Ji7FXtOmRLs@public.gmane.org (Simon Fowler)
-Subject: Re: Re: Smart Battery System driver
-Date: Fri, 21 Jan 2005 21:06:19 +1100
-Message-ID: <20050121100618.GA3945@himi.org>
-References: <F760B14C9561B941B89469F59BA3A84708CBB988@orsmsx401.amr.corp.intel.com>
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: Acer TM636 won't wakeup after S3, USB, i8042
+Date: Fri, 21 Jan 2005 13:01:12 +0100
+Message-ID: <20050121120112.GA11659@elf.ucw.cz>
+References: <20050111003537.13142400@bonenpikster.drs.p> <20050117153245.GA1481@elf.ucw.cz> <20050117202517.3fa7b912@commensaal.drs.p>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ikeVEW9yuYc//A+q"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <F760B14C9561B941B89469F59BA3A84708CBB988-sBd4vmA9Se6krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20050117202517.3fa7b912-7SZEXzPdWeU90gtriz95AQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,70 +17,45 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Tim Dijkstra <newsuser-TpnWJeB+oO0hKRfeEwdQzg@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi!
 
---ikeVEW9yuYc//A+q
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> > > Reading some positive reports on S3 on a travelmate 632, I gave it
+> > > another try with my 636. After adding the acpi_sleep=s3_bios (thanks
+> > > mizu) I got some visual signs of resume for the first time. But then
+> > > the process halts. If I include USB support in the kernel, I get the
+> > > following msgs
+> > > 
+> > > ACPI: PCI interrupt 0000:00:06.0[A] -> GSI 11 (level,low) -> IRQ 11
+> > > PCI: ENabeling device 0000:00:0b.0 (0080->0083)
+> > > ACPI: PCI interrupt 0000:00:0b.0[A] -> GSI 10 (level,low) -> IRQ 10
+> > > 
+> > > And then it stops. Removing USB support gets me a bit further, now
+> > > the process ends with:
+> > > 
+> > > i8042.c: Can't read CTR while initializing i8042.
+> > > resume failed: i8042.c (Not sure about this line, typing it from
+> > > memory)
+> > > 
+> > > 
+> > > Is there anything I can do to help to debug this? I attached lspci
+> > > -vvv, if there's any other log I can send, just ask.
+> > 
+> > Remove keyboard support and see what happens?
+> 
+> Then it will be a little hard for me to type: "echo 3 >
+> /proc/acpi/sleep"
 
-On Thu, Jan 20, 2005 at 02:04:16PM -0800, Grover, Andrew wrote:
-> > >From a distribution point of view, it would be nice to:
-> >=20
-> > a) Not have to rewrite every acpi battery applet to use the sbs
-> > interface directly, and
-> > b) Not have to have a database of hardware that has a smart battery
-> >=20
-> > Is there any way to provide the legacy interface even if standard
-> > battery support is built in, or alternatively some way of probing the
-> > system to determine which battery module should be loaded?
->=20
-> Hasn't anyone written a libpower yet? Battery applets shouldn't be
-> groveling around proc, they should be making library calls. OK all
-> existing apps would need to be changed (probably a big code reduction
-> actually) but this would let the library look for both CM and sbs
-> interfaces (which should not pretend to be a CMBatt of course) and
-> handle them.
->=20
-=46rom my perspective (I'm the current maintainer of the wmacpi
-battery monitor dockapp), all this would be much much easier if
-there was some documentation of what exactly all the files in
-/proc/acpi /mean/. I've had to root around in the kernel source to
-work out what some of it does.=20
+Network or scripts... init=/tmp/whatever_forces_it_to_sleep
 
-I've got the beginnings of an acpi reporting library in wmacpi,
-which I could fill out very easily if there was just some
-documentation to base the code on . . .
+								Pavel
 
-> Bonus points for also supporting APM through this interface...
->=20
-If I had a laptop that supported APM I'd happily do that ;-)
-
-Simon
-
---=20
-PGP public key Id 0x144A991C, or http://himi.org/stuff/himi.asc
-(crappy) Homepage: http://himi.org
-doe #237 (see http://www.lemuria.org/DeCSS)=20
-My DeCSS mirror: ftp://himi.org/pub/mirrors/css/=20
-
---ikeVEW9yuYc//A+q
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQFB8NQaQPlfmRRKmRwRAiIYAJ9kwZQUefR9L8MkqpBY3N4Jkoqz3ACaApmR
-oxAIhFJicqweEEGczIaieas=
-=ngpp
------END PGP SIGNATURE-----
-
---ikeVEW9yuYc//A+q--
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
