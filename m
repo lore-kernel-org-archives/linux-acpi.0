@@ -1,14 +1,13 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Re: ACPI S3 resume only reboots
-Date: Tue, 12 Oct 2004 10:06:28 -0700
+From: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
+Subject: Power button events unavailable after resume
+Date: Tue, 12 Oct 2004 13:43:24 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <416C0F14.5000107@root.org>
-References: <20041004133340.76ba05ba.albeclemit@yahoo.it>	<20041009130628.GA21781@elf.ucw.cz>	<20041010105635.GA3362@doc.ic.ac.uk> <20041012175810.2920edf2.albeclemit@yahoo.it>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Message-ID: <200410121343.31099.barr.156@osu.edu>
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041012175810.2920edf2.albeclemit-whZMOeQn8C0@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,39 +16,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alberto <albeclemit-whZMOeQn8C0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Alberto wrote:
->>On Sat, Oct 09, 2004 at 03:06:28PM +0200, Pavel Machek wrote:
->>
->>>>How could i try to debug this to give you more info?
->>>
->>>You basically need to fix this yourself. Add infinite loops to
->>>wakeup.S to see where it breaks.
-> 
-> I isolated the line were it breaks and reboots.
-> 
-> Code from arch/i386/kernel/acpi/wakeup.S
-> 
-> [...] 
-> 	# setup data segment
-> 	movw	%cs, %ax
-> 	movw	%ax, %ds					# Make ds:0 point to wakeup_start
-> 	movw	%ax, %ss
-> 	mov	$(wakeup_stack - wakeup_code), %sp		# Private stack is needed for ASUS board
-> 	movw	$0x0e00 + 'S', %fs:(0x12)
-> 
-> 	pushl	$0		###THIS LINE CAUSES REBOOT###			# Kill any dangerous flags
-> 	popfl
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Hehe.  Look up above where the stack pointer is changed to point to the 
-wakeup stack and then 0 is pushed on it.  It's likely there is some 
-problem with the config or location of the wakeup stack.
+Recently, I have been unable to get power button events from my notebook after 
+a Software Suspend 2 (version 2.1-rc1) resume without removing and 
+re-inserting the ACPI button driver. Pressing the power button has no effect, 
+but pressing it and then reloading the driver causes an event to be 
+triggered. It is like the events are "queued", and are written 
+to /proc/acpi/event after I reload the driver. My BIOS has not changed in a 
+long time, this behavior started a long time after my last BIOS upgrade. I am 
+using the latest ACPI patch (20040816) to kernel 2.6.8.1. Does anyone know 
+what could be causing this, or, better yet, what I can do to fix it?
 
--- 
-Nate
+Andrew
+
+P.S. My DSDT is for BIOS A07 of the Dell Inspiron 300m, available at:
+http://acpi.sourceforge.net/dsdt/view.php?id=218
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.6 (GNU/Linux)
+
+iD8DBQFBbBfDhuM+Z62a52oRAhd/AKCSrTCPqSSsta28BhheWoCtMF4ieACcD+Ta
+5pq5AUip3Wz9yDrCKD7hVB8=
+=XWpK
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
