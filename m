@@ -1,12 +1,11 @@
-From: "Sandy Pace" <drkjxgcymrelni-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Earn money doing online surveys
-Date: Mon, 01 Mar 2004 15:06:37 +0200
+From: "Bryan K. Wright" <bryan-j2wAk2T2zOxQaOoIv/cCD/2DmoZIrT0C@public.gmane.org>
+Subject: Bad interaction between ehci-hcd and acpi?
+Date: Mon, 01 Mar 2004 10:07:27 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDQLOGOGLRCJOBLBTJWYRECNR@yahoo.com>
-Reply-To: "Sandy Pace" <drkjxgcymrelni-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Message-ID: <200403011507.i21F7Sf04445@ayesha.phys.Virginia.EDU>
+Reply-To: bryan-utW8kV9oO443r0Ub5QXD9Q@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="--181071886170976577"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,45 +15,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: bryan-j2wAk2T2zOxQaOoIv/cCD/2DmoZIrT0C@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-----181071886170976577
-Content-Type: text/html;
-Content-Transfer-Encoding: quoted-printable
+Hi folks,
 
-<html>
-<head>
-<title>Get paid for what you think</title>
-<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Diso-8859=
--1">
-</head>
+	The ehci-hcd kernel module enables support for high-speed USB
+devices.  I've noticed the following oddity:  When I plug in a high-speed
+USB device, the CPU temperature jumps up by about 25 degrees C.  The 
+temperature stays up even after I unplug the USB device.  Rmmod'ing
+the ehci-hcd module brings the temperature back down.  I can then
+re-install the ehci-hcd module, and things stay normal until the next
+time I plug in a high-speed USB device.
 
-<body>
-<table width=3D"75%" border=3D"1">
-  <tr>
-    <td><p align=3D"center">&nbsp;</p>
-      <p align=3D"center"><strong>We're looking for people who are serious=
- about 
-        being paid for their opinions</strong></p>
-      <p align=3D"center"><strong>sign up <a href=3D"http://www.globalmark=
-eting2000.biz/surveys">here</a></strong></p>
-      <p align=3D"center"><strong><br>
-        </strong></p></td>
-  </tr>
-</table>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-<p><font size=3D"2">to get off our database <a href=3D"http://www.globalma=
-rketing2000.biz/remove.html">follow 
-  this link</a></font></p>
-</body>
-</html>
+	Here are the configuration details:
+Kernel 2.4.21 (vanilla) with the acpi-20030619-2.4.21.diff patch.
+Sharp PC-AV18 laptop (KN266, Athlon XP-M 1800+)
+Tested with two different models of Epson scanner, and with two different
+brands of external USB disks.
 
+	I've also recently tried using 'athcool', which enables
+the VLink auto-disconnect bit and the 'bus disconnect on STPGNT' bit
+(this was already set).  I'd hoped it might fix the odd behavior noted
+above, but athcool doesn't seem to make any difference.
 
-----181071886170976577--
+	Has anybody else seen similar symptoms?
+
+						Thanks,
+						Bryan
+-- 
+===============================================================================
+Bryan Wright                |"If you take cranberries and stew them like 
+Physics Department          | applesauce, they taste much more like prunes 
+University of Virginia      | than rhubarb does."  --  Groucho 
+Charlottesville, VA  22901  |			
+(434) 924-7218              |         bryan-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org
+===============================================================================
+
 
 
 
