@@ -1,14 +1,13 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Martin List-Petersen <martin-4su4RWpjsplNbBYsakfBHQ@public.gmane.org>
 Subject: RE: DSDT table help
-Date: Mon, 29 Sep 2003 14:55:37 -0700
+Date: Tue, 30 Sep 2003 00:04:50 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <D3A3AA459175A44CB5326F26DA7A189C1C3D9E@orsmsx405.jf.intel.com>
+Message-ID: <1064873090.31709.3.camel@loke>
+References: <D3A3AA459175A44CB5326F26DA7A189C1C3D9E@orsmsx405.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-u5mEE2CsNNNJSWFwmth1"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Class: urn:content-classes:message
+In-Reply-To: <D3A3AA459175A44CB5326F26DA7A189C1C3D9E-sBd4vmA9Se58QrAoInS571DQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,103 +16,60 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?iso-8859-1?Q?S=E9rgio_Monteiro_Basto?= <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>, Martin List-Petersen <martin-4su4RWpjsplNbBYsakfBHQ@public.gmane.org>
+To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
 Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-The _OSI method requires one argument
-Add "External (Z00Q)" statement to resolve the not found.
 
+--=-u5mEE2CsNNNJSWFwmth1
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
------Original Message-----
-From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org =
-[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of S=E9rgio =
-Monteiro Basto
-Sent: Monday, September 29, 2003 2:39 PM
-To: Martin List-Petersen
-Cc: acpi-devel
-Subject: Re: [ACPI] DSDT table help
+On Mon, 2003-09-29 at 23:55, Moore, Robert wrote:
+> The _OSI method requires one argument
 
-Hi=20
-I think this errors are already corrected in early versions of ASL
-Optimizing Compiler / AML Disassembler.
-Please try acpica-20030918
+Where i'm in doubt here is more if that would be a specific argument or
+any.
 
-thanks
+> Add "External (Z00Q)" statement to resolve the not found.
 
-On Mon, 2003-09-29 at 22:10, Martin List-Petersen wrote:
-> Hi,
-> i would like to have some help with some DSDT table errors, if anybody
-> cares:
+Thanks.
+
+> -----Original Message-----
+> From: S=E9rgio Monteiro Basto
+> Sent: Monday, September 29, 2003 2:39 PM
+> To: Martin List-Petersen
+> Cc: acpi-devel
+> Subject: Re: [ACPI] DSDT table help
 >=20
-> --------------------------------
-> This is the first machine:
-> ASL Optimizing Compiler / AML Disassembler version 20030522 [May 23
-> 2003]
-> Copyright (C) 2000 - 2003 Intel Corporation
-> Supports ACPI Specification Revision 2.0b
->=20
-> dsdt.asl   379:             If(\_OSI) {
-> Error    1028 -  Too few arguments ^  (\_OSI requires 1)
-> =20
-> dsdt.asl   380:                 "Windows 2001"
-> Error    1037 -                              ^ parse error, unexpected
-> PARSEOP_STRING_LITERAL
-> =20
-> dsdt.asl   738:             Method(_S5D) {
-> Warning  2033 - Unknown reserved name ^  (_S5D)
-> =20
-> ASL Input:  dsdt.asl - 1733 lines, 52667 bytes, 976 keywords
-> Compilation complete. 2 Errors, 1 Warnings, 0 Remarks, 209 =
-Optimizations
->=20
-> --------------------------------
-> And the other:
-> ASL Optimizing Compiler / AML Disassembler version 20030522 [May 23
-> 2003]
-> Copyright (C) 2000 - 2003 Intel Corporation
-> Supports ACPI Specification Revision 2.0b
->=20
-> dsdt.asl  1035:                         Store(Z00Q, Local0)
-> Error    1022 -            Object does not exist ^  (Z00Q)
-> =20
-> dsdt.asl  1107:                         Store(Z00Q, Local0)
-> Error    1022 -            Object does not exist ^  (Z00Q)
-> =20
-> dsdt.asl  1222:                         Store(Z00Q, Local0)
-> Error    1022 -            Object does not exist ^  (Z00Q)
-> =20
-> dsdt.asl  1587: Method(_WAK, 1) {
-> Warning  2026 -           ^ Reserved method must return a value (_WAK)
-> =20
-> ASL Input:  dsdt.asl - 1604 lines, 54452 bytes, 827 keywords
-> Compilation complete. 3 Errors, 1 Warnings, 0 Remarks, 329 =
-Optimizations
-> --------------------------------
->=20
-> Regards,
-> Martin List-Petersen
-> martin at list-petersen dot se
-> --
-> Somehow I reached excess without ever noticing when I was passing
-> through satisfaction.
-> -- Ashleigh Brilliant
---=20
-S=E9rgioMB
-email: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
+> Hi=20
+> I think this errors are already corrected in early versions of ASL
+> Optimizing Compiler / AML Disassembler.
+> Please try acpica-20030918
 
-Who gives me one shell, give me everything.
+I've have a look into this.
 
+Regards,
+Martin List-Petersen
+martin at list-petersen dot se
+--
+Kissing don't last, cookery do.
+-- George Meredith
 
+--=-u5mEE2CsNNNJSWFwmth1
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQA/eKyCzAGaxP8W1ugRAnzbAJ9QCsz3TQ9QwK5jc44LjzOtyT2nQgCgpAZC
+bNTvI4J/AI3nTTWu5D3llxw=
+=XyEQ
+-----END PGP SIGNATURE-----
+
+--=-u5mEE2CsNNNJSWFwmth1--
+
 
 
 -------------------------------------------------------
