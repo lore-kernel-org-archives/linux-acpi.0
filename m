@@ -1,60 +1,44 @@
-From: Norbert Preining <preining@logic.at>
-Subject: 2.6.12-rc1-mm4 and suspend2ram (and synaptics)
-Date: Fri, 1 Apr 2005 00:08:22 +0200
-Message-ID: <20050331220822.GA22418@gamma.logic.tuwien.ac.at>
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: Suspend-to-RAM on ThinkPad R51
+Date: Fri, 1 Apr 2005 00:18:56 +0200
+Message-ID: <20050331221856.GD1802@elf.ucw.cz>
+References: <200503261534.44710.barr.156@osu.edu> <200503301136.59046.barr.156@osu.edu> <20050330202416.GA1347@elf.ucw.cz> <200503311044.35221.barr.156@osu.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262015AbVCaWIo@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
+In-Reply-To: <200503311044.35221.barr.156-ZbGKxL/pcrQ@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dear Andrew, dear developers!
+Hi!
 
-Since 2.6.12-rc1-mmX I cannot get suspend2ram working again as it was
-with 2.6.11-mm4 with the same .config.
+> Now the question is: if my display wakes up--i.e. the backlight comes on and 
+> the contents on the screen right before suspend are displayed--do I have a 
+> video problem that I should be pursuing as such? Many of the ACPI video 
+> sleeping bugs on bugme.osdl.org have a completely dead display--i.e. no 
+> backlight.
 
-I suspends fine, but never resumes. No CapsLock, no sysrq, no network i=
-s
-working. Nothing in the log files. Is there anything which may cause
-these troubles when compiled into the kernel and not loaded as module?
-(as it was with my usb stuff until 2.6.11-mm2, after this I had to stop
-hotplug, before I could go with usb running).
+So you have frozen display, instead. That's likely same problem. Try
+suggestions in Doc*/power/video.txt.
+								Pavel
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
-On a side node: Once suspend2ram couldn't stop all tasks, in fact
-cpufreq, although it was stopped with /etc/init.d/cpufreqd stop, was
-mentioned in syslog as not being able to be stopped, and after this
-halfway through suspend, my touchpad (synaptics) and kbd wasn't working
-anymore.  After resume the touchpad is somehow behaving strange.
-THe touchpad is not working at all, the keyboard seems to react to some
-events (Sysrq is working, but normal typing not, nor power button/acpi
-stuff).
-
-In the syslog I find:
-vmunix: psmouse.c: TouchPad at isa0060/serio1/input0 lost synchronizati=
-on, throwing 4 bytes away.
-vmunix: psmouse.c: TouchPad at isa0060/serio1/input0 lot sync at byte 1
-
-I would be happy to test some stuff to get S2R back to work!
-
-Thanks a lot and all the best
-
-Norbert
-
------------------------------------------------------------------------=
---------
-Norbert Preining <preining AT logic DOT at>                 Universit=E0=
- di Siena
-sip:preining@at43.tuwien.ac.at                             +43 (0) 5996=
-6-690018
-gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 0=
-9C5 B094
------------------------------------------------------------------------=
---------
-HARBLEDOWN (vb.)
-To manoeuvre a double mattress down a winding staircase.
-			--- Douglas Adams, The Meaning of Liff
+-------------------------------------------------------
+This SF.net email is sponsored by Demarc:
+A global provider of Threat Management Solutions.
+Download our HomeAdmin security software for free today!
+http://www.demarc.com/Info/Sentarus/hamr30
