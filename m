@@ -1,14 +1,15 @@
-From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+From: Paul Ionescu <paul-f7LjuT9/YZU@public.gmane.org>
 Subject: Re: [rfc] generic testing ACPI module
-Date: Thu, 11 Mar 2004 21:10:05 +0000
+Date: Thu, 11 Mar 2004 23:48:14 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040311211005.GM2148@parcelfarce.linux.theplanet.co.uk>
+Message-ID: <1079041694.5429.58.camel@t40>
 References: <1079038411.18351.25.camel@t40>
+	 <20040311211005.GM2148@parcelfarce.linux.theplanet.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1079038411.18351.25.camel-LjAuIDrFwz0@public.gmane.org>
+In-Reply-To: <20040311211005.GM2148-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,43 +18,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Paul Ionescu <paul-f7LjuT9/YZU@public.gmane.org>
+To: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
 Cc: acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Mar 11, 2004 at 10:53:31PM +0200, Paul Ionescu wrote:
-> I have this idea and I want your comments about it.
-> I think it would be nice and usefull to have a generic acpi testing
-> module like other testing modules in kernel (scsi and pci hotplug just
-> came to my mind, but maybe there are some others too).
-> 
-> The proposition is this:
-> A module that exports some files in let say /proc/acpi/testing/
-> directory.
-> One of the files could be a file where we can insert the full path name
-> of a method we want to run, and after that the driver will make that
-> full path another file in /proc/acpi/testing/ and when we access that
-> file, we actualy run the acpi method.
-> 
-> Example: 
-> echo \_SB_.PCI0.LPC_.EC__._Q13 > /proc/acpi/testing/new_method
-> and a new file with the name \_SB_.PCI0.LPC_.EC__._Q13 is created in
-> /proc/acpi/testing/ directory. When we cat this new file, we'll get the
-> resut of executing that method.
+On Thu, 2004-03-11 at 23:10, Matthew Wilcox wrote:
 
-There's actually something much better that could be done.  Look in
-/sys/firmware/acpi/.  There's no files created in this hierarchy
-currently.  What we should do is create a file for each method.
-Reading from it should execute that method and return the result.
-This is useful in so many ways, it's not even funny.
+> There's actually something much better that could be done.  Look in
+> /sys/firmware/acpi/.  There's no files created in this hierarchy
+> currently.  What we should do is create a file for each method.
+> Reading from it should execute that method and return the result.
+> This is useful in so many ways, it's not even funny.
 
--- 
-"Next the statesmen will invent cheap lies, putting the blame upon 
-the nation that is attacked, and every man will be glad of those
-conscience-soothing falsities, and will diligently study them, and refuse
-to examine any refutations of them; and thus he will by and by convince 
-himself that the war is just, and will thank God for the better sleep 
-he enjoys after this process of grotesque self-deception." -- Mark Twain
+Hi Matthew,
+
+Yes, your remark is good.
+I was thinking of that too, but I thought it is more difficult to
+implement it than a single separate module which can be disabled if
+neccessary(or buggy).
+Now that you mentioned it, I preffer your approach, because is more
+logical and streamlined than the dirty hack I proposed, and I came with
+the following additions:
+
+Each object/device should have his methods as files in
+/sys/firmware/acpi/ hierarchy.
+To access a method, we should first "echo <arg1> ... <argn> > METHOD" to
+set the arguments for that method, and when we "cat" the method, it
+actually executes the method with our arguments, and return the result.
+
+Each event capable object/device should have 2 additional files:
+"system" and "device", and echo-ing 0 or 1 in this files should
+install/deinstall a handler for this device for system or device events.
+
+What do you think ?
+
+
+
+
 
 
 -------------------------------------------------------
