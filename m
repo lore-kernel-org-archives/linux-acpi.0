@@ -1,73 +1,96 @@
-From: Sebastien B <sebastien.bourdeauducq-QFKgK+z4sOrR7s880joybQ@public.gmane.org>
-Subject: Re: Gericom Hummer 2430 problems
-Date: Mon, 12 Jan 2004 18:52:42 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040112175242.GA667@portable>
-References: <3ACA40606221794F80A5670F0AF15F8401720CB3@PDSMSX403.ccr.corp.intel.com>
+From: Dominik Brodowski <linux@dominikbrodowski.de>
+Subject: Re: [PATCH 2.6] update passive cooling algorithm
+Date: Mon, 12 Jan 2004 18:39:22 +0100
+Sender: cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk
+Message-ID: <20040112173922.GA6154@dominikbrodowski.de>
+References: <20040111211255.GA31105@dominikbrodowski.de>
+	<20040112154611.GH14031@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401720CB3-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>; from luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org on Mon, Jan 12, 2004 at 07:57:49 +0100
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: multipart/mixed; boundary="===============57847486923559766=="
+Return-path: <cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk>
+In-Reply-To: <20040112154611.GH14031@poupinou.org>
+List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@www.linux.org.uk?subject=unsubscribe>
+List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq>
+List-Post: <mailto:cpufreq@www.linux.org.uk>
+List-Help: <mailto:cpufreq-request@www.linux.org.uk?subject=help>
+List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@www.linux.org.uk?subject=subscribe>
+Errors-To: cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk
+To: Ducrot Bruno <ducrot@poupinou.org>
+Cc: acpi-devel@lists.sourceforge.net, cpufreq@www.linux.org.uk
 List-Id: linux-acpi@vger.kernel.org
 
-On 2004.01.12 07:57, "Yu, Luming" wrote:
-> > - Sometimes my machine locks up for less than a second and
-> > when this happens I
-> > have the following message in the dmesg output :
-> > atkbd.c: Unknown key pressed (translated set 2, code 0x0,
-> > data 0x0, on
-> > isa0060/serio0).
-> > I'm unsure this problem is ACPI related, but it often happens
-> > when the fan
-> > starts up.
-> 
-> Maybe this is ec event handling relative bug.  Please file it
-> on bugzilla.
 
-I've recently noticed that this bug only happens while KDE is running. 
-It's quite weird... and it is not only because of KDE : it locks up the 
-whole system ; if I'm listening to music when the bug happens, there 
-are interrupts in the song... I had the same problem with Linux 2.4.23 
-but without any message in the dmesg output.
-
-> > - The S-states just don't work. Trying to enter one either
-> > does nothing or
-> > crashes the computer. The computer shutdowns properly, though.
-> > I'm using Linux 2.6.0 with the ACPI patch 20031203.
-> > You can find useful information about my laptop (contents of
-> > the DSDT, full
-> > output of dmesg and so on) at http://irchat.free.fr/acpi/.
-> > Thank you,
-> > Seb
-> >
-> 
-> What kind of crash? Maybe this could the most easy one. :)
-> 
-
-S1 is not recognized (as written in the dmesg), and when entering S3 
-the screen is turned off, and the machine is not responsive anymore to 
-anything (even to the power button or to the LAN). I haven't tested S4 
-and S5.
-
-I have another problem : the contents of the /proc/acpi/ac_adapter/AC0/
-state are not updated when I plug or unplug the AC adapter. The 
-contents of this file are set correctly at boot time, and then there 
-isn't any change until I reboot.
+--===============57847486923559766==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="J/dobhs11T7y2rNN"
+Content-Disposition: inline
 
 
--------------------------------------------------------
-This SF.net email is sponsored by: Perforce Software.
-Perforce is the Fast Software Configuration Management System offering
-advanced branching capabilities and atomic changes on 50+ platforms.
-Free Eval! http://www.perforce.com/perforce/loadprog.html
+--J/dobhs11T7y2rNN
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, Jan 12, 2004 at 04:46:11PM +0100, Ducrot Bruno wrote:
+> On Sun, Jan 11, 2004 at 10:12:55PM +0100, Dominik Brodowski wrote:
+> > [Len, could you test and verify this patch, and push it to Linus, pleas=
+e?]
+> >=20
+> > The current algorithm used by Linux ACPI for passive thermal management=
+ has
+> > two shortcomings:
+>=20
+> ...
+>=20
+> > +/* If a passive cooling situation is detected, primarily CPUfreq is us=
+ed, as it
+> > + * offers (in most cases) voltage scaling in addition to frequency sca=
+ling, and
+> > + * thus a cubic (instead of linear) reduction of energy. Also, we allo=
+w for
+> > + * _any_ cpufreq driver and not only the acpi-cpufreq driver.
+> > + */
+>=20
+> Just a stupid question:
+>=20
+> What is best if processor heat issues (apart turning on the fan)?
+>=20
+> Reducing voltage of the processor, but still allowing it to run execution
+> at 100% (which is the case if the processor is heating), or reduce
+> amount of time allowed for the processor to execute?
+
+voltage scaling. It offers a much better (quadratic) saving than clock
+modulation (linear saving). Doing both [and you need to do it, as the CPU
+won't run with fewer volts at the same frequency] gives you cubic savings.
+
+	Dominik
+
+--J/dobhs11T7y2rNN
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFAAtvKZ8MDCHJbN8YRAsQhAJ45hhFDMKiU02RqV/vuBIrbL/51oACfUNoK
+BLgQ9ImjnuvyQT8gS/pNHEI=
+=VjvN
+-----END PGP SIGNATURE-----
+
+--J/dobhs11T7y2rNN--
+
+
+--===============57847486923559766==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Cpufreq mailing list
+Cpufreq@www.linux.org.uk
+http://www.linux.org.uk/mailman/listinfo/cpufreq
+
+--===============57847486923559766==--
