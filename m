@@ -1,8 +1,8 @@
 From: John Knottenbelt <jak97-CezfXpuMXD6Fxr2TtlUqVg@public.gmane.org>
-Subject: Problem entering S4, mysqld not stopped
-Date: Fri, 26 Dec 2003 15:41:21 +0000
+Subject: tg3 driver does not support S4 mode?
+Date: Fri, 26 Dec 2003 15:50:16 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200312261541.22027.jak97@doc.ic.ac.uk>
+Message-ID: <200312261550.16560.jak97@doc.ic.ac.uk>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
@@ -22,17 +22,44 @@ List-Id: linux-acpi@vger.kernel.org
 
 Hi
 
-On entering S4 with "echo 4 > /proc/acpi/sleep" I get
-a console message "
-Suspend failed: not all processes stopped!
-Restarting tasks...<6> Strange, mysqld not stopped
- done"
+I'm running Linux 2.6.0:
 
-Any ideas as to what might be going wrong here?
+On entering S4 I get:
 
-Thanks
+tg3: eth0: Invalid power state (4) requested.
+
+Relevant kernel messages follow below. How hard
+do you think it would be to add S4 support for 
+tg3. What does S4 support involve?
+
+Many thanks
 
 John
+
+=Stopping tasks: 
+===========================================================================|
+Freeing memory: .....................................|
+hdc: start_power_step(step: 0)
+hdc: completing PM request, suspend
+hdb: start_power_step(step: 0)
+hdb: completing PM request, suspend
+hda: start_power_step(step: 0)
+hda: completing PM request, suspend
+tg3: eth0: Invalid power state (4) requested.
+hda: Wakeup request inited, waiting for !BSY...
+hda: start_power_step(step: 1000)
+blk: queue dfd39a00, I/O limit 4095Mb (mask 0xffffffff)
+hda: completing PM request, resume
+hdb: Wakeup request inited, waiting for !BSY...
+hdb: start_power_step(step: 1000)
+blk: queue dfd39600, I/O limit 4095Mb (mask 0xffffffff)
+hdb: completing PM request, resume
+hdc: Wakeup request inited, waiting for !BSY...
+hdc: start_power_step(step: 1000)
+hdc: completing PM request, resume
+Restarting tasks... done
+atkbd.c: Unknown key released (translated set 2, code 0x6e, data 0xff, on 
+isa0060/serio0).
 
 
 
