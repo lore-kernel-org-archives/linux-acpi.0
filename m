@@ -1,15 +1,14 @@
-From: Chris Howells <chrish-puGfsi27rH1aa/9Udqfwiw@public.gmane.org>
-Subject: Not enough IRQs for multiple PCMCIA cards
-Date: Sat, 10 May 2003 01:48:07 +0100
+From: Nils Faerber <nils-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
+Subject: Re: Not enough IRQs for multiple PCMCIA cards
+Date: Sat, 10 May 2003 16:06:10 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200305100148.12713.chrish@gmx.co.uk>
+Message-ID: <20030510160610.4cb621e6.nils@kernelconcepts.de>
+References: <200305100148.12713.chrish@gmx.co.uk>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Description: clearsigned data
-Content-Disposition: inline
+In-Reply-To: <200305100148.12713.chrish-puGfsi27rH1aa/9Udqfwiw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,71 +17,76 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Chris Howells <chrish-puGfsi27rH1aa/9Udqfwiw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-=2D----BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Sat, 10 May 2003 01:48:07 +0100
+Chris Howells <chrish-puGfsi27rH1aa/9Udqfwiw@public.gmane.org> wrote:
+> Hi,
+Hi!
 
-Hi,
+> I'm having huge problems trying to get enough IRQs for me to be able
+> to use a PCMCIA modem (D-Link 560) and a Wifi card (Netgear MA401)
+> simultaneously.
 
-I'm having huge problems trying to get enough IRQs for me to be able
-to use a PCMCIA modem (D-Link 560) and a Wifi card (Netgear MA401)
-simultaneously.
+For the record:
+	I have exactly the same problem.
 
-Basically, after PCI devices have been assigned IRQs there is only one
-free IRQ which can be allocated to a PCMCIA card. If I disable some
-stuff like the onboard serial and parallel ports, PCI devices get
-assigned the IRQs that I have just disabled, which is of absolutely no
-use.
+[...]
+> For example, if I plug my modem in, it gets assigned IRQ 7. If I
+> remove it, and plug the Wifi card in, it gets assigned IRQ 7. If I put
+> both in simultaneously, the last one to be inserted does not get an
+> IRQ.
+> 
+> I have tried with ACPI enabled and with pci=noacpi.
 
-=46or example, if I plug my modem in, it gets assigned IRQ 7. If I
-remove it, and plug the Wifi card in, it gets assigned IRQ 7. If I put
-both in simultaneously, the last one to be inserted does not get an
-IRQ.
+> Regrettably, my BIOS (Award Asus L3800C BIOS) does not give me any
+> control how IRQs are designed or PnP OS settings.
 
-I have tried with ACPI enabled and with pci=3Dnoacpi.
+I have even the same machine :)
 
-Regrettably, my BIOS (Award Asus L3800C BIOS) does not give me any
-control how IRQs are designed or PnP OS settings.
+[...]
+> Thanks for any ideas
 
-Currently, the IRQs look something like this:
+OK.
+It is quite important to know a litle more about your setup.
+Why?
+I have tried with several kernels, pcmcia packages and configurations.
+Some worked, some not.
+Do you use kernel pcmcia or the PCMCIA drivers from pcmcia-cs?
+	I currently use kernel pcmcia which currently does not work with twi
+cards.
 
-chris@galadriel:~> cat /proc/interrupts
-           CPU0
-  0:     255219          XT-PIC  timer
-  1:      11434          XT-PIC  keyboard
-  2:          0          XT-PIC  cascade
-  3:          6          XT-PIC  eth0, usb-uhci
-  5:     163935          XT-PIC  usb-uhci, Ricoh Co Ltd RL5c476 II,
-radeon@PCI:1:0:0
-  7:      56829          XT-PIC  serial
-  8:          2          XT-PIC  rtc
-  9:         17          XT-PIC  acpi
- 11:      29726          XT-PIC  Intel 82801CA-ICH3, Ricoh Co Ltd
-RL5c476 II (#2)
- 12:         75          XT-PIC  PS/2 Mouse
- 14:      20172          XT-PIC  ide0
- 15:         88          XT-PIC  ide1
+Which PCMCIA (cardbus) chipset driver do you use?
+	I strongly recommend to use the kernel yenta socket driver! This gives
+best results with cardbus cards.
 
-(this is with the serial and parallel ports disabled in an attempt to
-free some IRQs, which is something that I do not want to have set
-permanently).
+Some earlier kernel version with ACPI patch applied worked with
+pci=noacpi but this seems to have almost no effect on more recent
+kernels. I currently use 2.4.21-pre4 with ACPI 20030228.
 
-Thanks for any ideas
-=2D --=20
-Cheers, Chris Howells -- chris-NvB7AskkBIqIudiWw5vspbVCufUGDwFn@public.gmane.org, howells@kde.org
-Web: http://chrishowells.co.uk, PGP ID: 33795A2C
-KDE: http://www.koffice.org, http://printing.kde.org, http://usability.kde.=
-org
+Then there are some problems with certain PCMCIA drivers.
+In theory they should be able to share the one assigned interrupt. The
+serial_cs driver does so AFAIK. But many other drivers don't, like
+ide_cs. So some combinations may work, some not.
 
-=2D----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2-rc1-SuSE (GNU/Linux)
+This whole situation is, like you said, very unsatisfying :(
+It is a real pain that there is no decent APIC in uniprocessor systems
+in order to have more than those shitty 15 IRQs... it's a shame... x86
+hardware is really crappy at times but there is not much of an
+alternative especially for notebooks :( (Oh oh ... no flame war start
+please!)
 
-iD8DBQE+vExMF8Iu1zN5WiwRAteVAJ9K2mj+vnwWfX6RKZ/qM1IE+bUi0gCeI75e
-cmFCA1Icv4qEZFCl0l2Gl8c=3D
-=3Dy+hM
-=2D----END PGP SIGNATURE-----
+> Cheers, Chris Howells -- chris-NvB7AskkBIqIudiWw5vspbVCufUGDwFn@public.gmane.org, howells@kde.org
+CU
+  nils faerber
+
+-- 
+kernel concepts          Tel: +49-271-771091-12
+Dreisbachstr. 24         Fax: +49-271-771091-19
+D-57250 Netphen          D1 : +49-170-2729106
+--
 
 
 -------------------------------------------------------
