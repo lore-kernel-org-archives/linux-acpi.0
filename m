@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: [PATCH] GDT table patch for resume only reboots problem
-Date: Tue, 19 Oct 2004 13:39:53 +0200
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Suspend-to-RAM on Sony Vaios
+Date: Tue, 19 Oct 2004 19:45:46 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041019113953.GA23062@elf.ucw.cz>
-References: <20041017210052.GB23733@elf.ucw.cz> <OFD3267728.221C77BC-ON49256F31.006D2ECA-49256F31.0070E4AF@jp.ibm.com>
+Message-ID: <16A54BF5D6E14E4D916CE26C9AD3057559A0A4@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <OFD3267728.221C77BC-ON49256F31.006D2ECA-49256F31.0070E4AF-JE5g2YyFxFHQT0dZR+AlfA@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,31 +17,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Hiroshi 2 Itoh <HIROIT-JE5g2YyFxFHQT0dZR+AlfA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Luc Saillard <luc.saillard-A5NNTvo2L0pl57MIdRCFDg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+>
+>On Tue, Oct 19, 2004 at 05:25:30PM +0800, Li, Shaohua wrote:
+>> Yes, this is a known issue - link device resume must be with irq
+>> enabled. Could you please try if below workaround makes any
+difference
+>> in your system.
+>
+>I apply your changes, but it doesn't change. You say, that we need to
+>enable
+>interrupt, but
+>>
+>> +       local_save_flags(flag);
+>> +       local_irq_disable();
+>
+Oh, I'm sorry. It's a typo. should be enable irq.
 
-> You wrote.
-> 
-> >What you do at resume time is some computation based on %ds. You can
-> >do it during suspend time as well, %ds is same as %cs during resume,
-> >and that should be known during suspend... its the address you set to
-> >wakeup_vector >> 4.
-> 
-> You are right and I agree gdtr save area can be modified via
-> acpi_copy_wakeup_routine() with its FASTCALL argument added. This is the
-> second version of gdt table patch. Also I changed temp_gdt... to
-> real_gdt... because temp_gdt... looks like temporary fix.
-
-Yes, this si better, thanks!
-								Pavel
-
-
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Thanks,
+Shaohua
 
 
 -------------------------------------------------------
