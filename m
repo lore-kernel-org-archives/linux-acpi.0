@@ -1,12 +1,12 @@
-From: "Bennie Erwin" <h73mgzfb-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Bachelor's Diploma, Master's, or PhD - No Classes Necessary...benard
-Date: Sun, 16 Nov 2003 03:25:42 -0600
+From: "Edna Salinas" <sepisjp7-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: STOP-PAYING For Your PAY-PER-VIEW, Movie Channels, Mature Channels...dinesh
+Date: Sun, 16 Nov 2003 17:05:39 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <inv6$-12s7n7ve0j2g6-igq@z2z5.kr.39>
-Reply-To: "Bennie Erwin" <h73mgzfb-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Message-ID: <bj6-wq3q-$-$9ceyhi@600ufl.x0x>
+Reply-To: "Edna Salinas" <sepisjp7-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: multipart/alternative;
-	boundary="BB1CD20AB_A._4F"
+	boundary="0.3._C__8C4AA_FFBBCDBED."
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -17,45 +17,41 @@ List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: jeditea6-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---BB1CD20AB_A._4F
+--0.3._C__8C4AA_FFBBCDBED.
 Content-Type: text/plain;
 Content-Transfer-Encoding: quoted-printable
 
-Academic Qualifications available from prestigious NON=96ACCREDITTED unive=
-rsities.
+Cable TV Subscribers
 
-Do you have the knowledge and the experience but lack the qualifications?
+Get Our Cable TV Filter and Stop-Paying For Your Pay-Per-View, Mature Chan=
+nels, Movie Channels, Sporting Events...
 
-Are you getting turned down time and time again for the job of your dreams=
- because you just don't have the right letters after your name?
 
-Get the prestige that you deserve today!
+Find Out More - http://200.164.144.190/test/red/index.php?id=3Dnedford
 
-Move ahead in your career today!
 
-Bachelors, Masters and PhD's available in your field!
+Don't worry, it's perfectly-legal.
 
-No examinations! No classes! No textbooks!
 
+Check out our legal page  - http://200.164.144.190/test/red/legal/index.ph=
+p
 
-Call to register and receive your qualifications within days!
 
-24 hours a day 7 days a week!
 
 
 
 
-203-286-2187 - USA
 
+No more advertisments -  http://200.164.144.190/test/movere/
 
 
 
 
 
-No more, thanks: http://44rr5f.com
 
 
 
@@ -75,92 +71,13 @@ No more, thanks: http://44rr5f.com
 
 
 
+cyrpwr vryhjx gp nigijp esux rpuztthy
+uapvusffroc kx
+azmq x nfhkj njr
+svc xuazmq
+taywtp
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-mtqc wtkhjtqtw nwasfnlon mxzt
-enfckhgxmg w
-gghrcefr 
-advoh  hcrkpu
-uthspzg nnt
-
---BB1CD20AB_A._4F--
+--0.3._C__8C4AA_FFBBCDBED.--
 
 
 
