@@ -1,15 +1,13 @@
-From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
-Subject: Re: How to help Len be a more effective maintainer...
-Date: Wed, 20 Oct 2004 10:25:10 +0200
+From: "Starikovskiy, Alexey Y" <alexey.y.starikovskiy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] Shutdown APIC at poweroff
+Date: Wed, 20 Oct 2004 13:04:12 +0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041020082510.GA6407@fuchi>
-References: <1098218847.26595.3764.camel@d845pe>
+Message-ID: <6EDC9204B3704C4C8522539D5C1185E54022CC@mssmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="UlVJffcvxoiEqYs2"
+Content-Type: multipart/mixed;
+	boundary="----_=_NextPart_001_01C4B683.C2CF67B3"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1098218847.26595.3764.camel@d845pe>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,51 +16,67 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+This is a multi-part message in MIME format.
 
---UlVJffcvxoiEqYs2
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+------_=_NextPart_001_01C4B683.C2CF67B3
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 
-hello Len...
+Len,
+Here is consolidated patch.
+I'm not quite sure where should I open bug?
 
-* Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> [2004-10-20 09:15 +0200]:
+Thanks,
+	Alex.
 
-> Working with -mm
->=20
->   Andrew Morton pulls our ACPI patch from here
->   http://linux-acpi.bkbits.net/linux-acpi-test-mm and includes it
->   as bk-acpi.patch for every -mm release.
+------_=_NextPart_001_01C4B683.C2CF67B3
+Content-Type: application/octet-stream;
+	name="apic-shutdown.patch"
+Content-Transfer-Encoding: base64
+Content-Description: apic-shutdown.patch
+Content-Disposition: attachment;
+	filename="apic-shutdown.patch"
 
-shouldn't that be http://linux-acpi.bkbits.net:8080/linux-acpi-test-mm?
+IyBUaGlzIGlzIGEgQml0S2VlcGVyIGdlbmVyYXRlZCBkaWZmIC1OcnUgc3R5bGUgcGF0Y2guCiMK
+IyBDaGFuZ2VTZXQKIyAgIDIwMDQvMTAvMTUgMTc6MjU6NDIrMDQ6MDAgYXlzdGFyaWtAbXN0cmNz
+ZDAwMy5pbXMuaW50ZWwuY29tIAojICAgYXBpYy5jOgojICAgICBmaXggY29tcGlsZSB0aW1lIHdh
+cm5pbmcuCiMgCiMgYXJjaC9pMzg2L2tlcm5lbC9hcGljLmMKIyAgIDIwMDQvMTAvMTUgMTc6MjQ6
+NTUrMDQ6MDAgYXlzdGFyaWtAbXN0cmNzZDAwMy5pbXMuaW50ZWwuY29tICsxIC0xCiMgICBmaXgg
+Y29tcGlsZSB0aW1lIHdhcm5pbmcuCiMgCiMgQ2hhbmdlU2V0CiMgICAyMDA0LzEwLzE1IDE3OjIw
+OjI2KzA0OjAwIGF5c3RhcmlrQG1zdHJjc2QwMDMuaW1zLmludGVsLmNvbSAKIyAgIGFwaWMuYzoK
+IyAgICAgbWFrZSBMQVBJQyBzaHV0ZG93biBhdCBwb3dlcm9mZi4KIyAKIyBhcmNoL2kzODYva2Vy
+bmVsL2FwaWMuYwojICAgMjAwNC8xMC8xNSAxNzoxMDowNiswNDowMCByb290QG1zdHJjc2QwMDMu
+aW1zLmludGVsLmNvbSArMTYgLTQKIyAgIG1ha2UgTEFQSUMgc2h1dGRvd24gYXQgcG93ZXJvZmYu
+CiMgCmRpZmYgLU5ydSBhL2FyY2gvaTM4Ni9rZXJuZWwvYXBpYy5jIGIvYXJjaC9pMzg2L2tlcm5l
+bC9hcGljLmMKLS0tIGEvYXJjaC9pMzg2L2tlcm5lbC9hcGljLmMJMjAwNC0xMC0yMCAxMjo1Njo0
+MiArMDQ6MDAKKysrIGIvYXJjaC9pMzg2L2tlcm5lbC9hcGljLmMJMjAwNC0xMC0yMCAxMjo1Njo0
+MiArMDQ6MDAKQEAgLTUxNCwxMyArNTE0LDI3IEBACiAJdW5zaWduZWQgaW50IGFwaWNfdGhtcjsK
+IH0gYXBpY19wbV9zdGF0ZTsKIAotc3RhdGljIGludCBsYXBpY19zdXNwZW5kKHN0cnVjdCBzeXNf
+ZGV2aWNlICpkZXYsIHUzMiBzdGF0ZSkKK3N0YXRpYyBpbnQgbGFwaWNfc2h1dGRvd24oc3RydWN0
+IHN5c19kZXZpY2UgKmRldikKIHsKIAl1bnNpZ25lZCBsb25nIGZsYWdzOwogCiAJaWYgKCFhcGlj
+X3BtX3N0YXRlLmFjdGl2ZSkKIAkJcmV0dXJuIDA7CiAKKwkKKwlsb2NhbF9pcnFfc2F2ZShmbGFn
+cyk7CisJZGlzYWJsZV9sb2NhbF9BUElDKCk7CisJbG9jYWxfaXJxX3Jlc3RvcmUoZmxhZ3MpOwor
+CQorCXJldHVybiAwOworfQorCitzdGF0aWMgaW50IGxhcGljX3N1c3BlbmQoc3RydWN0IHN5c19k
+ZXZpY2UgKmRldiwgdTMyIHN0YXRlKQoreworCisJaWYgKCFhcGljX3BtX3N0YXRlLmFjdGl2ZSkK
+KwkJcmV0dXJuIDA7CisKIAlhcGljX3BtX3N0YXRlLmFwaWNfaWQgPSBhcGljX3JlYWQoQVBJQ19J
+RCk7CiAJYXBpY19wbV9zdGF0ZS5hcGljX3Rhc2twcmkgPSBhcGljX3JlYWQoQVBJQ19UQVNLUFJJ
+KTsKIAlhcGljX3BtX3N0YXRlLmFwaWNfbGRyID0gYXBpY19yZWFkKEFQSUNfTERSKTsKQEAgLTUz
+NSwxMCArNTQ5LDcgQEAKIAlhcGljX3BtX3N0YXRlLmFwaWNfdGRjciA9IGFwaWNfcmVhZChBUElD
+X1REQ1IpOwogCWFwaWNfcG1fc3RhdGUuYXBpY190aG1yID0gYXBpY19yZWFkKEFQSUNfTFZUVEhN
+Uik7CiAJCi0JbG9jYWxfaXJxX3NhdmUoZmxhZ3MpOwotCWRpc2FibGVfbG9jYWxfQVBJQygpOwot
+CWxvY2FsX2lycV9yZXN0b3JlKGZsYWdzKTsKLQlyZXR1cm4gMDsKKwlyZXR1cm4gbGFwaWNfc2h1
+dGRvd24oZGV2KTsKIH0KIAogc3RhdGljIGludCBsYXBpY19yZXN1bWUoc3RydWN0IHN5c19kZXZp
+Y2UgKmRldikKQEAgLTU4Nyw2ICs1OTgsNyBAQAogCiBzdGF0aWMgc3RydWN0IHN5c2Rldl9jbGFz
+cyBsYXBpY19zeXNjbGFzcyA9IHsKIAlzZXRfa3NldF9uYW1lKCJsYXBpYyIpLAorCS5zaHV0ZG93
+bgk9IGxhcGljX3NodXRkb3duLAogCS5yZXN1bWUJCT0gbGFwaWNfcmVzdW1lLAogCS5zdXNwZW5k
+CT0gbGFwaWNfc3VzcGVuZCwKIH07Cg==
 
-document published as http://acpi.sourceforge.net/patches.html.
-
-cheers,
- Sebastian
---=20
-::: .O.
-::: ..O
-::: OOO
-::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
-
---UlVJffcvxoiEqYs2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFBdiDmreHfL3pi+bQRAmIXAJ0YwsEIDPdpNDhwTLwYUxokLVts3ACfZZJy
-/aVXS3lUk2jipfyW/YSIDu4=
-=u6hD
------END PGP SIGNATURE-----
-
---UlVJffcvxoiEqYs2--
+------_=_NextPart_001_01C4B683.C2CF67B3--
 
 
 -------------------------------------------------------
