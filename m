@@ -1,14 +1,14 @@
-From: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
-Subject: Re: help needed with invalid method in GPE block
-Date: Wed, 19 Mar 2003 09:38:05 +0100
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: C2 or C3 on Presario 2110US?
+Date: Wed, 19 Mar 2003 19:10:34 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030319083805.GA14882@dutidad.twi.tudelft.nl>
-References: <F760B14C9561B941B89469F59BA3A84725A204@orsmsx401.jf.intel.com>
+Message-ID: <20030319181034.GF8319@poup.poupinou.org>
+References: <F760B14C9561B941B89469F59BA3A847E96D05@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <F760B14C9561B941B89469F59BA3A84725A204-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
+In-Reply-To: <F760B14C9561B941B89469F59BA3A847E96D05-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,40 +18,65 @@ List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Carl Thompson <cet-GxmFRYwVNOxKOnpN5g9PlQ@public.gmane.org>, "Breathnach, Proinnsias (Dublin)" <breatpro-Lp/cVzEoVybn/p8AFm7ortBPR1lH4CV8@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Mar 18, 2003 at 02:24:31PM -0800, Grover, Andrew wrote:
-> > From: Charl P. Botha [mailto:c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org] 
-> > I'm quite sure.  Yes, you do call acpi_ev_save_method_info() 
-> > for each _Lxx
-> > and _Exx method, but in acpi_ev_save_method_info() you only call
-> > acpi_hw_enable_gpe() and NEVER 
-> > acpi_hw_enable_gpe_for_wakeup().  As a matter
-> > of fact, shouldn't that call rather be acpi_enable_event() (INSTEAD of
-> > acpi_hw_enable_gpe()) with the WAKEUP parameter according to 
-> > some mask?
+On Thu, Mar 13, 2003 at 05:34:01PM -0800, Grover, Andrew wrote:
+> > From: Carl Thompson [mailto:cet-GxmFRYwVNOxKOnpN5g9PlQ@public.gmane.org] 
+> > Is it possible this machine just doesn't do C2-C3, processor limit
+> > control or processor performance control?  If that is the 
+> > case, then why
+> > does Windows seem to be running cooler?  The fan is often off 
+> > in Windows
+> > but never off in Linux.  Also battery life seems to be better 
+> > in Windows
+> > whereas on my other laptops it's better in Linux.  And yes, I am using
+> > CPUFreq's PowerNow support to throttle down the CPU speed and 
+> > voltage to
+> > the minimum.
 > 
-> I agree that it is currently never enabled for wakeup, but you said we
-> never enable it at all, the opposite of what your last email said. I
-> guess I'll assume the second statement is what you meant.
+> Does the system feel slow, or are there an abnormal number of interrupts
+> shown in /proc/interrupts?
+> 
+> Also, the latest code required that the Processor P_BLK have a length of
+> 0 or 6, without exception.
+> 
+> Finally, C2 and C3 statistics should be exposed through perfmon under
+> Windows. You might try finding that information, and seeing if indeed it
+> is using C2 or C3.
+> 
 
-Your assumption is correct. :)  For all clarity, the event is enabled, but
-not enabled for wakeup.
+Sound like (after looking Carl's FACS) that this patch will be OK:
 
-> BTW here is the bug:
-> http://bugme.osdl.org/show_bug.cgi?id=470
+The latency for C2 is at 100 (which I think is allowed).
 
-Excellent, thank you very much.  So, if I understand correctly, this would
-mean that the button driver would call this function that you're going to
-add in order to indicate that it, the button, should be able to wake the
-system?
 
-Thanks again,
-Charl
+--- linux-2.5.65/drivers/acpi/processor.c.old	2003-03-19 15:12:16.000000000 +0100
++++ linux-2.5.65/drivers/acpi/processor.c	2003-03-19 15:24:09.000000000 +0100
+@@ -639,7 +639,7 @@
+ 		/*
+ 		 * C2 latency must be less than or equal to 100 microseconds.
+ 		 */
+-		if (acpi_fadt.plvl2_lat >= ACPI_PROCESSOR_MAX_C2_LATENCY)
++		if (acpi_fadt.plvl2_lat > ACPI_PROCESSOR_MAX_C2_LATENCY)
+ 			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 				"C2 latency too large [%d]\n",
+ 				acpi_fadt.plvl2_lat));
+@@ -673,7 +673,7 @@
+ 		/*
+ 		 * C3 latency must be less than or equal to 1000 microseconds.
+ 		 */
+-		if (acpi_fadt.plvl3_lat >= ACPI_PROCESSOR_MAX_C3_LATENCY)
++		if (acpi_fadt.plvl3_lat > ACPI_PROCESSOR_MAX_C3_LATENCY)
+ 			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 				"C3 latency too large [%d]\n", 
+ 				acpi_fadt.plvl3_lat));
 
 -- 
-charl p. botha http://cpbotha.net/ http://visualisation.tudelft.nl/
+Ducrot Bruno
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
