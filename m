@@ -1,13 +1,14 @@
-From: Sebastian Henschel <shensche-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
-Subject: enhanced speedstep / speedstep for mobile p4-M @ 2.6GHz
-Date: Tue, 1 Jul 2003 15:13:13 +0200
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: Re: TEST REPORT: 2.5.73-mm2 S3
+Date: Tue, 1 Jul 2003 11:44:16 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030701131312.GE873@enigma.daemon.sh>
+Message-ID: <20030701094416.GA5783@zaurus.ucw.cz>
+References: <200306291905.00537.mflt1@micrologica.com.hk> <200306301734.21377.mflt1@micrologica.com.hk> <20030630102411.GE3601@zaurus.ucw.cz> <200307010938.06319.mflt1@micrologica.com.hk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="zjcmjzIkjQU2rmur"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <200307010938.06319.mflt1-DTdK3Ks6N5kHTnRCetW4+N0b+6lKrnBL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,51 +17,24 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Michael Frank <mflt1-DTdK3Ks6N5kHTnRCetW4+N0b+6lKrnBL@public.gmane.org>
+Cc: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi!
 
---zjcmjzIkjQU2rmur
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> > If interrupts are not working, you'd be
+> > getting big number of "IDE: lost interrupts".
+> > Interruprs definitely work(ed) here after S3.
+> 
+> IDE, keyboard work, other don't and this should be investigated
+> as the interrupts stay ded after S3.
 
-howdy folks...
+Try noapic.
+-- 
+				Pavel
+Written on sharp zaurus, because my Velo1 broke. If you have Velo you don't need...
 
-you can download a driver for enhanced speed step from
-http://developer.intel.com/technology/iapc/acpi/downloads/eist-linux-200304=
-25.tar.gz
-
-i have two questions about this:
-
-- why is it binary only and not included in the current implementation?
-- will there be an updated version? currently it is for 2.4.21-rc1 and it
-  complains about some missing symbols (acpi_ut*) with 2.4.21 + acpi2003061=
-9.
-
-currently, i have a Xeron GrafX here with a mobile p4-M at 2.6GHz and
-(regular) speedstep does not work. :(
-
-cheers,
- sebastian
---=20
-::: sebastian henschel
-::: kodeaffe
-::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
-
---zjcmjzIkjQU2rmur
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQE/AYjoreHfL3pi+bQRAlWCAJ9KmzSajcZfPtgBif9atLgWPvpq9wCgkNPE
-50DpLcjoq8aM5s23QG5Jx6Y=
-=L4zk
------END PGP SIGNATURE-----
-
---zjcmjzIkjQU2rmur--
 
 
 -------------------------------------------------------
