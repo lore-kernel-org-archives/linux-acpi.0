@@ -1,8 +1,8 @@
 From: Yury Umanets <umka-nJ1KrdHEGnBBDgjK7y7TUQ@public.gmane.org>
-Subject: ACPI 20030619 and ASUS M3N
-Date: Fri, 03 Oct 2003 14:05:48 +0400
+Subject: os_wait_semaphore()
+Date: Fri, 03 Oct 2003 16:37:53 +0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3F7D49FC.5090205@namesys.com>
+Message-ID: <3F7D6DA1.9070801@namesys.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=KOI8-R; format=flowed
 Content-Transfer-Encoding: 7bit
@@ -20,25 +20,43 @@ List-Id: linux-acpi@vger.kernel.org
 
 Hello all,
 
-I have ASUS M3N laptop and was experienced lots of problem with acpi on 
-it. And at last I have found, that linux-2.4.21 with acpi patch of June 
-with small patch for asus is working just fine. Thanks for your job 
-guys. But, there still few small problems:
+I have took a look to acpi_os_wait_semphore() function and realized, 
+that the the following code:
 
-(1)  IrDA does not work if irqs are routed via acpi. This looks, like 
-irq 3 (on my laptop this is ttyS1) is assigned to irda0 or serial0 
-(depends on irda setup) successfully, but interrupt handler is 
-definitelly not called, counter is not increased (may be checked by 
-means of using cat /proc/interrupts).
+                /*
+                 * Wait w/ Timeout:
+                 * ----------------
+                 */
+                default:
+                // TODO: A better timeout algorithm?
+                {
+                        int i = 0;
+                        static const int quantum_ms = 1000/HZ;
+                                                                                        
 
-(2) Sometimes I have "osl-0888 os_wait_semaphore" messages in my system 
-log along with complains, that some semaphore cannot be taken because of 
-timeout. This is happened when I access /proc/apci from the few 
-processes like cat /proc/acpi/... or if gnome battery_statt applet is 
-running.
+                        ret = down_trylock(sem);
+                        for (i = timeout; (i > 0 && ret < 0); i -= 
+quantum_ms) {
+                                current->state = TASK_INTERRUPTIBLE;
+                                schedule_timeout(1);
+                                ret = down_trylock(sem);
+                        }
+                                                                                        
 
-If someone is able to help me, or just say what direction I should dig 
-to, I will be very thankfull.
+                        if (ret != 0)
+                                status = AE_TIME;
+                }
+                break;
+
+
+will behave not very good with Andrea Arcangeli's 2.4.23pre6aa1, where 
+some intersting dynamic functionality was introduced. And namely, you 
+are able to pass "desktop" or for instnace "HZ=500" as parameter to the 
+kernel in lilo or another boot loader. This makes all time slices 
+shorter and forces kernel to behave optimally for a desktop machine.
+
+Thus, @quantum_ms will be calculated longer for shorter HZ and this is 
+definitelly not good in my opinion. Am I right?
 
 -- 
 umka
