@@ -1,12 +1,12 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 Subject: Re: Help! I lost my C4 states :-)
-Date: 03 Mar 2005 16:38:49 -0500
-Message-ID: <1109885929.2103.813.camel@d845pe>
-References: <20050221081225.GA10848@message-id.gmane0305.slipkontur.de>
+Date: Fri, 4 Mar 2005 10:23:43 +0100
+Message-ID: <20050304092342.GB1551@elf.ucw.cz>
+References: <20050221081225.GA10848@message-id.gmane0305.slipkontur.de> <1109885929.2103.813.camel@d845pe>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <20050221081225.GA10848-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1109885929.2103.813.camel@d845pe>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,73 +16,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2005-02-21 at 03:12, Stefan Seyfried wrote:
-> Hi,
-> 
-> Just curious:
-> i'm tracking Linus-bk-head quite closely. In (late?) January,
-> i was able to get my DELL D600 into C4. It worked fine and it
-> even got me an estimated 15-30 extra minutes out of the battery
-> (usually it lasts ~3.5 hours, the projected time with C4 was more
-> like almost 4 hours). Although this is great (it is more than i
-> ever got from laptop_mode and spinning down the harddisk), it
-> suddenly stopped working in February. Now the machine almost
-> always stays in C2, it hardly enters C3 or C4.
-> 
-> seife@strolchi:~> cat /proc/acpi/processor/CPU0/power
-> active state:            C2
-> max_cstate:              C8
-> bus master activity:     10000500
-> states:
->     C1:                  type[C1] promotion[C2] demotion[--] latency[001] usage[00000010]
->    *C2:                  type[C2] promotion[C3] demotion[C1] latency[001] usage[107659165]
->     C3:                  type[C3] promotion[C4] demotion[C2] latency[085] usage[03505424]
->     C4:                  type[C3] promotion[--] demotion[C3] latency[185] usage[06231087]
-> 
-> There is always some bus master activity which i have not been able to track
-> down. I tried unloading almost all modules, but it did not help. Of course
-> there is no sound running, no USB mouse attached etc. I have quiesced the
-> harddisk with laptop_mode and mounting filesystems noatime and commit=300.
-> 
-> The only thing that i can think of what has changed in my setup is that we
-> changed to modular IDE device drivers, but i cannot really imagine how that
-> would produce more bus master activity.
-> 
-> Any hints on how to track down what is causing bus master activity all the
-> time?
-> Has the calculation algorithm changed? Any default settings i could tweak?
+Hi!
 
-Did you notice a battery life decrease with this decrease in C4
-residency?
+> ps.
+> If you're tracking battery life, I'd be interested to know if
+> you notice a difference between when you build with HZ=100 and HZ=1000.
 
-On January 20th we pushed Dominik's jiffies based bm_activity patch
-in drivers/acpi/processor_idle.c  You might find that backing out
-that file a couple of revisions restores the previous behaviour.
+At one point I did some measurements using internal battery
+ampermeter... lets see:
 
-Just after that, I added a tunable that you can tweak --
-with 1000 HZ, its default is all bits enabled, but
-you can reduce this bit mask to make the driver
-ignore less recent history:
+Arima (youknowwhat)64 processor:
+idle machine at 800MHz, max backlight: 22.2 W 
+                        min backlight: 17 W   
+sleeping harddrive:                   -0.6 W
+HZ=100:                               -0.8 W
 
-# echo 0 > /sys/module/processor/parameters/bm_history
-
-Will cause the processor driver to ignore the bus master activity
-completely.  Note that this could cause a performance hit if
-there is BM activity since will just pop the system out of C4
-and no instructions are executed during the transition out of C4.
-
-cheers,
--Len
-
-ps.
-If you're tracking battery life, I'd be interested to know if
-you notice a difference between when you build with HZ=100 and HZ=1000.
-
-
+So yes, HZ=100 and HZ=1000 difference is quite important.
+								Pavel
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
