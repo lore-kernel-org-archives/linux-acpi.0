@@ -1,13 +1,9 @@
-From: "greg" <greg-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org>
-Subject: Re: No handler for Region
-Date: Tue, 3 Feb 2004 10:34:11 -0500
+From: tomepperly-Wuw85uim5zDR7s880joybQ@public.gmane.org
+Subject: RE: PROBLEM: CPU lockup during halt for Shuttle SB61G2 p4 with hyperthreading 2.4.24
+Date: Tue, 03 Feb 2004 16:09:19 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040203153411.M47846@morningdave.org>
-References: <200402030823.53848.t.zachmann@zagge.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Message-ID: <020320041609.13086.5cb9@comcast.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200402030823.53848.t.zachmann-c61pB8mzqkY@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,91 +12,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Thorsten Zachmann <t.zachmann-c61pB8mzqkY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Thorsten,
+I've never had this trouble when using a non-SMP kernel. I ran with a non-SMP kernel for around 3 weeks before starting to explore hyperthreading.
 
-   I had similar issues with a Gaateway 200X. The problem is that the machine 
-does not supply an ECDT. I was able to fix the problem by using the patch 
-associated with bug 1690.
+I will submit the issue to bugzilla.
 
-the bug - http://bugme.osdl.org/show_bug.cgi?id=1690
-the patch - http://bugme.osdl.org/attachment.cgi?id=1690&action=view
-
-   It seems to have worked for a number of different systems with this issue, 
-so perhaps it will help you, too.
-
-   Greg
-
-
----------- Original Message -----------
-From: Thorsten Zachmann <t.zachmann-c61pB8mzqkY@public.gmane.org>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Sent: Tue, 3 Feb 2004 08:25:41 +0100
-Subject: [ACPI] No handler for Region
-
-> Hello all,
+Tom
+> > I saw there is a separate list for ACPI issues, and based on the
+> > traceback, I thought this might be an ACPI issue. Please Cc me on
+> > replies if there are any.
 > 
-> I have a toshiba tecra s1. During the bootup I get some errors and 
-> the battery status is not working. The messages looks similar as 
-> described in
+> How about UP kernel ?
 > 
-> http://sourceforge.net/mailarchive/message.php?msg_id=6752695
+> > 
+> > Here is another oops. This one doesn't have the nvidia module loaded.
+> > The hardware is identical to my original post.
+> > 
 > 
-> I run a 2.6.2-rc2 kernel with the acpi-20040116.diff.bz2 patch and 
-> the acpi initrd patch for setting my own dsdt. Since the update to 
-> 2.6.2-rc2 the errors for the dockingstation are gone. However there 
-> are still some "No handler for Region" errors during boot up as seen 
-> below:
+> Would you please file this info on bugzilla.kernel.org in PM/ACPI
+> component.
 > 
-> <4>evregion-0251 [21] ev_address_space_dispa: No handler for Region 
-> [ECF2] 
-> (dfef1ea8) [EmbeddedControl] <4> exfldio-0284 [20] ex_access_region  
->     : Region EmbeddedControl(3) has no handler <4> dswexec-0435 [13] 
-> ds_exec_end_op        : [Store]: Could not resolve operands, AE_NOT_EXIST
-> <4> psparse-1120: *** Error: Method execution failed 
-> [\_SB_.BAT0._STA] (Node dfef9ba8), AE_NOT_EXIST <4>evregion-0251 
-> [21] ev_address_space_dispa: No handler for Region [ECF2] 
-> (dfef1ea8) [EmbeddedControl] <4> exfldio-0284 [20] ex_access_region  
->     : Region EmbeddedControl(3) has no handler <4> dswexec-0435 [13] 
-> ds_exec_end_op        : [Store]: Could not resolve operands, AE_NOT_EXIST
-> <4> psparse-1120: *** Error: Method execution failed 
-> [\_SB_.BAT1._STA] (Node dfef9428), AE_NOT_EXIST
+> --Luming
 > 
-> The problem lies in the Store command of the _STA Methods of the 
-> batteries. If the store command is replacecd by 
-> 
-> Store (0x01, Local0) 
-> 
-> the functions work without errors messages. 
-> 
-> I have put the file files.tar.gz containing:
-> dsdt.dsl.org (the dsdt I use)
-> dmesg.txt 
-> dmidecode.txt
-> acpidmp.txt
-> interrupts.txt
-> lscpi.txt
-> 
-> which can be found at http://zagge.online.de/files.tar.gz .
-> 
-> If you need more information or if I should test something I'm more 
-> than willing to do so. Thanks for your help and your good job.
-> 
-> Thorsten
-> 
-> -------------------------------------------------------
-> The SF.Net email is sponsored by EclipseCon 2004
-> Premiere Conference on Open Tools Development and Integration
-> See the breadth of Eclipse activity. February 3-5 in Anaheim, CA.
-> http://www.eclipsecon.org/osdn
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-------- End of Original Message -------
-
 
 
 -------------------------------------------------------
