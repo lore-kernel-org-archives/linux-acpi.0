@@ -1,30 +1,36 @@
-From: Shawn Starr <shawn.starr@rogers.com>
-Subject: [BUG][2.6.10-rc2-mm2] ACPI S3 suspend to RAM broken (may be USB unable to resume)
-Date: Sun, 21 Nov 2004 18:11:07 -0500
-Message-ID: <200411211811.07785.shawn.starr@rogers.com>
-References: <200411161838.28344.shawn.starr@rogers.com>
+From: Justin Georgeson <justin.georgeson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: initrd dsdt
+Date: Sun, 21 Nov 2004 22:06:07 -0600
+Message-ID: <62c1cd270411212006706a77ef@mail.gmail.com>
+Reply-To: Justin Georgeson <justin.georgeson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261830AbUKUXLM@vger.kernel.org>
-In-Reply-To: <200411161838.28344.shawn.starr@rogers.com>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: acpi-devel@lists.sourceforge.net
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Has anyone looked into trying to get the initrd dsdt patch submitted
+into the mainstream kernel?
 
--mm2 suffers this problem as well. I still am looking at what is causing it.
+-- 
+; Justin Georgeson
+; "Free the mallocs, delete the news"
+; http://www.openoffice.org
+; http://www.boycott-riaa.com
 
-On November 16, 2004 18:38, Shawn Starr wrote:
-> As of 2.6.10-rc1 + I can no longer resume from S3 (suspend-to-RAM),  When
-> it begins to resume, it seems to get stuck with USB (going to confirm)..
-> The laptop stays in a stuck state (cresent-moon remains lit).
->
-> I have IBM-ACPI extras turned on (compiled in).
->
-> Anyone else report this?
->
-> Shawn.
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now. 
+http://productguide.itmanagersjournal.com/
