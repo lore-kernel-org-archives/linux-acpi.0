@@ -1,8 +1,10 @@
-From: REJECT-DAEMON-XoJDOot2J3yELgA04lAiVw@public.gmane.org
-Subject: Rejected no-local
-Date: Wed, 28 Jan 2004 10:45:25 +0100 (MET)
+From: groudier-GANU6spQydw@public.gmane.org
+Subject: hi
+Date: Wed, 28 Jan 2004 15:41:37 +0530
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200401280945.KAA16204@iis.fhg.de>
+Message-ID: <E1AlnSf-000639-00@deer.gmane.org>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; 	boundary="----=_NextPart_000_0005_D7F7FA64.BA406D0A"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,78 +17,69 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
---------------------------------------------------
-.. "nmr" unknown here in this Domain.. 
-.. letter returned to "acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" .. 
---------------------------------------------------
-Return-Path: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Received: by iis.fhg.de with ESMTP; Wed, 28 Jan 2004 10:45:23 +0100 (MET) from mailgwb1.fraunhofer.de
-Received: from mailgwb1.fraunhofer.de (localhost [127.0.0.1])
-	by mailgwb1.fraunhofer.de (8.12.10/8.12.10) with ESMTP id i0S9caZu020141
-	for <nmr-XoJDOot2J3yELgA04lAiVw@public.gmane.org>; Wed, 28 Jan 2004 10:38:36 +0100 (MET)
-Received: from lists.sourceforge.net ([218.18.203.176])
-	by mailgwb1.fraunhofer.de (8.12.10/8.12.10) with ESMTP id i0S9cT45020053
-	for <nmr-XoJDOot2J3yELgA04lAiVw@public.gmane.org>; Wed, 28 Jan 2004 10:38:31 +0100 (MET)
-Message-Id: <200401280938.i0S9cT45020053-K7LqVtaqouYPualYiKnuABbt6QYYyz1t@public.gmane.org>
-To: nmr-XoJDOot2J3yELgA04lAiVw@public.gmane.org
-Subject: test
-Date: Wed, 28 Jan 2004 17:44:06 +0800
-MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0003_7A70B1A1.AAFDABAB"
-X-Priority: 3
-X-MSMail-Priority: Normal
-X-Spam-Checker-Version: SpamAssassin 2.61 (1.212.2.1-2003-12-09-exp) on
-	spamd1.fraunhofer.de
-X-Spam-Level: **
-X-Spam-Status: No, hits=2.4 required=5.0 tests=MICROSOFT_EXECUTABLE,
-	MISSING_MIMEOLE,NO_REAL_NAME,PRIORITY_NO_NAME,UPPERCASE_25_50
-	autolearn=no version=2.61
-X-Spamd-Host: spamd1.fraunhofer.de
-
 This is a multi-part message in MIME format.
 
-------=_NextPart_000_0003_7A70B1A1.AAFDABAB
-Content-Type: text/plain; charset=us-ascii
+
+------=_NextPart_000_0005_D7F7FA64.BA406D0A
+Content-Type: text/plain; 	charset="Windows-1252"
 Content-Transfer-Encoding: 7bit
 
-------------------  Virus-Warnung/virus alert (mailgateway mailgwb1)
+£ŒÄ¢RM%<“|ošsªH¾uf9è¢¨7Œ¡H˜òX¸hÌ^íïÆGwğÃğÃÆı§ÂùÍá)¡¡ˆa0æZ›G´M«M¡ÜM(î(ßlŞé[D§œ{éƒÁhædw-îa%ñÓ<Ğ
+üª
+L
+–ú‚­jßšòÎuÂ0Ğ|o<#
+ïè{£<ÈMMJœa}ûS;q
+ıÛbäå‡²¾–æójG(¦‹üí„,ˆŠZË“‰‹Ú&ŒBéÒgİ)±;ùÏ—Û(#¦7S^ºÄ³MƒÃ[u£íØí£°:_üÑH
+‡èú¹làûZ¼y/cÚÈ)ã„´²{mxGâ¼&™b!®l ;µß/qn÷0SKS¬Ü#N]ù{3"Zj—ˆ¾j$·¢lóÕDÚR4ÆïÍ%üùcÒïÙ`]†:¡ü¶¯©®Ô1V}A¯ëÚ’|k!éVKĞiŞ¿Sçƒµá$ó.e
+zéZNn¤dÆMØ(£˜Ø&j!z×™2´¦Ş;çâ·A·6tvTl›QˆF<È<¢Ösr³/ÉŒXù×Pè}úpy¿>Ñ0iqpÈOÍ]n¶lò2DÆg´‰Jì_9µ]ú£z1œQ¯#1³Bœ­ÔÙ‘0¥¡9<°´‹³‚a½’BêéÈ‚D8Ñ‰¢Eë´‰İ#CJßıˆgã;ª[õÉËÓé{Ñ$î<ê[şüÓ°¡œ1„ì<W2!ôÚÅ5HÕvôûìî¤Gøİœ‹Ä’ıë„ikµ­úpĞ›k˜÷é…)q§VU„¿ÆÓÄ÷Á³*Ğ¢íöÔHDï7Wßº—µ^Ş©{}wËqOê¦k³Ï™«7ªç<^;Ù%;cğEÓÏ¯an'>§¬lùX3FYxÂP&‡³Ò¼—‘%°ÏÆdİ[ÌÍÑÌO
+á‘­nÓå*¶
+HàHŒşDù­ {W
+'åsW1n­íe½¢åªT)íİÔøıáÌ»­¤2´I0Ò.Äœş09
+.¹ì¾´èÛéGğe^²V¹ŒÁkÂ Æ‰½ñ\
+²˜¨œ\Ø#NÏoƒPŒ'ÚDrëXDD­®t“»TƒÂØTÜ—ı±6œq
+¤É\ŒWÏe±w
+J‚jlÉiwìx:eÉÁ2[¤°_ƒq»±}ùŠ§ÛVzÚ£zæãEw,Õö½[ËÄfY{’ƒòŞÀ·ZÊN>³2Ï¶!#Õ»‡‚<\hxœr¡‡şı?A#¥p);OÑb‡g6²àÖÏ»|r]Òqièá˜î”"¬ AÙî—š7Jty¾â>¥èæÎí£Wxö·ë]Yz³Š™e©XÁïñ™QíÄŸ”z‚iÔG2¾8#Så‡­4 ztd4RO§g´Yå•ÕÕÍ‘| ×ë»—ÛÀ,K°sCÛzŒfµj³ª/íZïÑZQ±D‡áè†ÓT ˆ¿7;[ÄŞĞìßA3qkm_-a2˜ÍÎÀ\œã^Ù{óıã$ESí<²Ñ&&1Ë)Ë<q?–Xt5<Ö¯>×[§
+Œ°16ØI†\ƒ]4
+YşÚ‰ó¢)?ì’ÙMRuU‡Jæ¸„
+â®f#5¸²ë¯g¦V•èğ²²UKè³¢¯Ìcælãi%FeDğa°\;V¾:™˜56ƒü°s\Ç«¢Ğ¯ô¬Ey–„æ(a?ê»©ntÆhVú/Ó]wt¹u>g54
+[Æ.bpDà|4s:*h¸¦‚¡¦¼]Ê²ä-å¡–s_¼ù…¦¹øËa¦–A½»´·~"s:¡ıÉ
+«}D\šªbWAõ Äj
+íâ¨¸$èòfLüª"c‹>}ïê&$İ¨z²şŞ¢
+Ÿ>¥è÷~{â»)Üìa»¤r~SUß‚eèHŸ³w×PM«à­V®¾ÇÅÚ¼ĞV—%ßgáÖ/| ÜkoQàÑ¨µñïª$ñ?´‚$äoË×ØÇSŞ×:´ÁïJAvÅïw^Êsãğ“§_ôåõ#p|uE^ë”mCâÚ™µÖ<†äu[ßŸõ-B¯
+ùõ¼˜
+,ÁœD0¬j¢nZu7B¬6ÀqÉĞM6­Åibo5E”¼Û&„Ù¿æPnc£:,§ÎRY_sk
+Qê÷ĞJÌj:ö[!·ø—şÂxg­"ˆ¶$/C‡Nw º®
+gF‡•o5æÜğG0±~–Ä©ÎØÒÚ–¿÷zãì´
+Ä°ŒÚŠ"ÀTÅ–îæ|3
+h¼a00TÊ]Rçœ<ÈÒ¹`RIBlŠdñöA"-„y¬òÖßP8­-%5¾ÙÚÚ„¿ôçÓ„57Ë•7°™}²xM³ä£hä¢ŒŞ£„[Ù2ıÌ-Ë¦ ÎQ¡Œ_ítŒ
+§Ë‡^›©ÍŠD4h?)u
+Ú
+Ä‚î(s`¿Kš«ì¿J™øŠOŞR¼9¥¢Øß)‹Kõã×Á_»EW
 
-Found virus WORM_MIMAIL.R in file file.scr
-The file file.scr is moved to /etc/iscan/virus/virMKAOwaymx.
 
-Bei Fragen wenden Sie sich bitte an NOC-Helpdesk-BQS24JF/HUMP3drIcvDWNA@public.gmane.org you have questions, please contact NOC-Helpdesk@fhg.de.
 
----------------------------------------------------------
 
-------=_NextPart_000_0003_7A70B1A1.AAFDABAB
+------=_NextPart_000_0005_D7F7FA64.BA406D0A
 Content-Type: text/plain;
-	charset="Windows-1252"
+	name="InterScan_SafeStamp.txt"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="InterScan_SafeStamp.txt"
 
-•
-†â†¬˜útô/÷YRá4ùícÕ}GÄ2êàğ0‚ª`“%Ë¸8‘«%]õºû·"sÖÄÊUc’F?/13ª4ï¥åˆ„‹´±l¶-t?«MBN^“{æøÌrÀƒ`l®äOÏ#±xk°jŞ¢lª>a6¸•öNów?¥9øZºöÍßZÁIÁTbgv)•ÑU£Şc>œAëÑŒ• æÁÊœ7V;-$Mp_õRQm”–-ÜdUò"-ü8›öşşøçö¨Z-LÖÓYŠ#nøhMcâ×˜¬™ßHÎƒAî£|pªKÆö96"6;×lsÄ
- zü«Öõ
-êr%3‰‡U‡éõÂûık¼ğ‚PÄšMæTh…ŒíåR¥Ó\Áõ¼îQfF:¹¹ŒÍğ|ÂĞéI\T9¦”Û4T›ª*fèkãS:¨–Z¡<^ÂJƒ`ÌŒ­ÜhÚ1ŸûµÁµàÇ`v#™¹"Æ#°!Má$;Q—¥If×zë˜:Ò·dú¼ëÉ³ˆäÍçO¦÷{jYÕ9øÈvO[âîÍº;×(~ŠÍ»Ö*ïC5›b`Ò
-Æ¾¬7ãWniÌg/hÁz¯Ox&xø°å×Ş§“aŸ¢òj[½ö/Ë*ßªâ
-™ $<õ.ú7ƒz–'Sq\Ùâ‡feçM«íé¸37Eş½ÅâTVªåqŒ¢Ít2‹ ^Şéæ•kd*avG~qâÆÅwÓ2WçÛØ|ñle¨‹õø!İx¢„ÄìBPUOŠ¯¸ñc¤LÔÂmÍsmAÕ{Q[Iá„N¼àƒÏUˆÚ/<\¸Ù55oÖşÕU‰¾pÖ$%¤!pY³¿ç8¶5Üôİ¤êÇªdäOq¾aÍ¤mhyÄöŸaLô½84#;ğDqLå¡aUV¡á
-ÛÄ±ßD­
-Ì_u–ó’¾¯^õIdø±*«ÑüTaGfùÜAÔölTkZT¶1wã£9xLänë·aõ¹n­dÁÒ§U4Ç‹ôçŒÕU‘§•ˆjâtæ©
+****** Message from InterScan E-Mail VirusWall NT ******
+
+** WARNING! Attached file document.zip contains:
+
+     WORM_MIMAIL.R virus in compressed file document.doc                                                                      .pif
+
+   Attempted to clean the file but it is not cleanable.
+   It has been deleted.
+
+This mail contains virus
+*****************     End of message     ***************
 
 
-------=_NextPart_000_0003_7A70B1A1.AAFDABAB
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-
-
-------------------  Virus-Warnung/virus alert (mailgateway mailgwb1)
-
-file.scr is removed from here because it contains a virus.
-
----------------------------------------------------------
-------=_NextPart_000_0003_7A70B1A1.AAFDABAB--
-
+------=_NextPart_000_0005_D7F7FA64.BA406D0A--
 
 
 
