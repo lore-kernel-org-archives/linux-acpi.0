@@ -1,14 +1,14 @@
 From: Faye Pearson <faye-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org>
-Subject: Re: Re: odd irq routing errors?
-Date: Fri, 14 Mar 2003 10:30:49 +0000
+Subject: Re: ACPI produces 100% system load
+Date: Fri, 14 Mar 2003 10:38:09 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030314103049.GB19277@clara.net>
-References: <20030313221321.GA21296@bittwiddlers.com>
+Message-ID: <20030314103809.GC19277@clara.net>
+References: <200303131743.56123.sa100@comcast.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20030313221321.GA21296-bmWjYudjZeGERhycZ4x6Ig@public.gmane.org>
+In-Reply-To: <200303131743.56123.sa100-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,29 +17,22 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Harrell <mharrell-dated-1048025602.5b63c9-bmWjYudjZeGERhycZ4x6Ig@public.gmane.org>
-Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: noth <sa100-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Matthew Harrell [lists-sender-12e533-bmWjYudjZeGERhycZ4x6Ig@public.gmane.org] wrote:
-> : Faye Pearson writes:
-> : > PCI: No IRQ known for interrupt pin A of device 00:1f.1 - using IRQ 255
+noth [sa100-Wuw85uim5zDR7s880joybQ@public.gmane.org] wrote:
+> thing useful. I am using the latest Gentoo-sources kernel, as I get the same 
+> results from it as I do from the Lost-logic and Vanilla sources. I have not
+> attached the acpidmp (too large for mailing list).
 
-> So is this problem listed below the same as the one I'm having on my laptop?
-> I cannot boot any 2.5.6? kernels with acpi turned on since once acpid starts
-> the laptop slows down horrendously, many programs seg fault or the scripts
-> give bizarre results, and the ide controller spits out numerous messages.  Is
-> there anything I can do to fix this problem?  
+Use the vanilla-sources + latest acpi from sourceforge for testing.
+acpi-sources lags behind development a little.
+gentoo-sources has a lot of patches applied to it but not the latest
+acpi :)
 
-The message is (mis)informational rather than destructive for me.
-
-Try removing acpid from your startup scripts before booting into 2.5.6x
-then check your /proc/interrupts and see if there are a large number
-being generated quickly.
-This could cause laptop slowdown and perhaps overheating which can
-introduce instability.  It's a known problem that I've seen
-mentioned on the list.  I expect that the developers will need much more
-information from you if they are to help.
+I like the Con Kolivas patches but I'd only apply those once the rest of
+your system is working ok.
 
 
 Faye
@@ -48,9 +41,6 @@ Faye
 Faye Pearson,
 Covert Development
 ClaraNET Ltd.       Tel 020 7903 3000
-
-  The good oxymoron, to define it by a self-illustration, must be a
-  planned inadvertency. -Wilson Follett
 
 
 -------------------------------------------------------
