@@ -1,14 +1,12 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ASL help with latest acpi and compaq presario 2800t
-Date: Mon, 28 Apr 2003 17:29:30 +0800
+From: Daniele Boffi <boffi-piYtxHxN1XRAly3Pu9w1wA@public.gmane.org>
+Subject: Compaq Evo N800v: I have a fixed DSDT table
+Date: Mon, 28 Apr 2003 12:11:57 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F842722C5@pdsmsx403.ccr.corp.intel.com>
+Message-ID: <20030428121157.A20348@fermat.unipv.it>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,82 +15,54 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Kevin Fenzi <kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
-Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: john.cagle-VXdhtT5mjnY@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I have made a patch for fixing compiling time error of =
-http://www.scrye.com/~kevin/dsdt.dsl-20030409
-Would you please apply it and see what's unusual and send boot log to =
-me.
+Hi folks!
 
-42,51d41
-< {
-<=20
-< External (C1AF)
-< External (C1BA)
-< External (C1BB)
-< External (C1B0)
-< External (C1B1)
-< External (C1B2)
-< External (C1B3)
-<=20
-52a43
-> {
-177,178c168,169
-<                 If(\_OSI("Windows 2001"))=20
-< 		{
----
->                 If(\_OSI) {
->                     "Windows 2001"
-2297c2288
-<                 Name(_HID, "SYN0100")
----
->                 Name(_HID, "*SYN0100")
+Stimulated by the recent discussions on the list, I made some important
+progress on my (already satisfactory) fixed DSDT table for Evo N800v.
 
+You can find it at
 
-Thanks,
-Luming
+www-dimat.unipv.it/~boffi/compaq/custom-dsdt.hex
 
+I'll send it to acpi.sf.net tonight.
 
------Original Message-----
-From: Kevin Fenzi [mailto:kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org]
-Sent: 2003?4?10? 1:30
-To: Yu, Luming
-Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: RE: [ACPI] ASL help with latest acpi and compaq presario 2800t
+IMPORTANT NOTICE: I am using Bios revision F.18A as of 2 Jan 03. Previous
+release might not work.
 
+What is working:
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+- batteries (BAT0  BAT1)
+- ac_adapter (ACAD)
+- button (lid  power  sleep)
+- embedded_controller (C0D0)
+- fan (I have 4 of them: C1D9  C1DA  C1DB  C1DC)
+- power_resources (C0CF  C141  C155  C159  C15D  C166  C1D5  C1D6  C1D7  C1D8)
+- processor (C000)
+- thermal_zone (I have three of them, first one is CPU, TZ1  TZ2  TZ3)
+- Fn F7/F8 work (panel brightness)
+- pressing the lid button turns the screen off as expected
 
->>>>> "Luming" =3D=3D Luming Yu <Yu> writes:
+What can be improved
 
-Luming> Is dsdt.asl modified version. I compiled it, and my error
-Luming> message is slightly different with yours.  Would you please
-Luming> send the original dsdt.asl to me?
+- sleep states: echo 5 works (shutdown), echo 4 works (it invokes swsusp)
+                other states do nothing
+- CPU: (*) I can change throttling state fine
+       (*) performance always report P0, however I checked the following:
+           turning AC/battery produced the desired effects (P1 when on battery)
+           even if it is not reported in /proc/acpi
+       (*) I can swicth to P1 when on AC with "echo 1:0 > limit" (always
+           doesn't appear in proc/acpi), but "echo 0:0 > limit" does not switch
+           back to P0. In order to switch back, I turn AC off for a second and
+           then put it back, so that the BIOS does the job for me.
+- volume control buttons: are they acpi-related?
 
-You can get the dsdt.dat and dsdt.dsl from:=20
+I hope this will help somebody.
 
-http://www.scrye.com/~kevin/dsdt.dat-20030409
-http://www.scrye.com/~kevin/dsdt.dsl-20030409
-
-Those are from my laptop today using the iasl-20030228
-
-Let me know if you need any more info.=20
-
-Luming> Thanks, Luming
-
-kevin
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-Comment: Processed by Mailcrypt 3.5.8 =
-<http://mailcrypt.sourceforge.net/>
-
-iD8DBQE+lFil3imCezTjY0ERAiNVAJ0RbLT1+K532UBaz31tLeIODB6tAwCdF/OF
-37iSC0J5jiZDJiEmC8G3QT8=3D
-=3D5jP8
------END PGP SIGNATURE-----
+Daniele
 
 
 -------------------------------------------------------
