@@ -1,17 +1,14 @@
-From: Nils Spengler <nils.spengler-JAEaK7xBpqGzQB+pC5nmwQ@public.gmane.org>
-Subject: Re: problems with acpi (sleep states) on vaio notebook z1sp
-Date: Thu, 25 Dec 2003 04:48:18 +0100
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Gateway 200x - trouble supplying ECDT table
+Date: Thu, 25 Dec 2003 12:08:41 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1072324098.23599.2.camel@HuLktop.jimbo.lan>
-References: <3ACA40606221794F80A5670F0AF15F8401720C50@PDSMSX403.ccr.corp.intel.com>
-	 <1072201432.3134.10.camel@garrett.darkzone>
-	 <20031224153617.GI1632@luna.mooo.com> <3FE9DA42.1050909@psu.edu>
-	 <20031224224236.GA25026@hell.org.pl>  <3FEA392B.2020206@psu.edu>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C59@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3FEA392B.2020206-8DAjSxpRXgY@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,54 +17,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Greg Sarjeant <greg-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> Dec 24 19:51:01 variance kernel:  hwsleep-0257 [33] 
-> acpi_enter_sleep_state: Entering sleep state [S3]
-> Dec 24 19:51:01 variance kernel: Back to C!
-> Dec 24 19:51:01 variance kernel: PM: Finishing up.
-> Dec 24 19:51:01 variance kernel: hda: Wakeup request inited, waiting 
-> for !BSY...
-> Dec 24 19:51:01 variance kernel: hda: start_power_step(step: 1000)
-> Dec 24 19:51:01 variance kernel: blk: queue cf568e00, I/O limit 
-> 4095Mb (mask 0xf
-> fffffff)
-> Dec 24 19:51:01 variance kernel: hda: completing PM request, resume
-> Dec 24 19:51:01 variance kernel: hdc: Wakeup request inited, waiting 
-> for !BSY...
-> Dec 24 19:51:01 variance kernel: hdc: start_power_step(step: 1000)
-> Dec 24 19:51:01 variance kernel: hdc: completing PM request, resume
-> Dec 24 19:51:01 variance kernel: Restarting tasks... done
-> 
-> I don't see anything suspicious here.. please let me know if you see 
-> something...
-> 
-> Thanks,
-> nirmal
-i personally do not come to this point. i get an error about could not
-resume or something like that.
-i made several kernels until now, i tried every possible combinations
-and tried to get the most minimalistic kernel possible (i hope). i
-completely disabled usb and fiwi support. i also tried apm instead of
-acpi but it ended with the same results.
-i played around with the preemtible kernel and other new improvements of
-kernel 2.6 (whether they have something to do with power managment or
-not). but i always get the same results.
-there is something i really would like to know. why does these things
-work that flawlessly in windows but not in linux? does this have
-something to do with vendor specific drivers that are only provided in
-windows? does windows use other standards than linux?
-the problem is that power managment is (at least for me) the most
-important things on laptops. linux provides that many advantages that
-i'm not willing to switch to windows only because of pm but this is
-really a crappy situation.
-is there any hope that these things will work in the future or are there
-any other possibilities to debug pm or to support the developers in any
-way?
+>I am sorry that you will receive this twice.
+>I did not send my original reply back to the mailinglist.
+>
 
-greets,
-nils
+Never mind!
+
+>  I applied this patch to my 2.4.23 kernel=20
+>(started back from the fresh sources and applied the latest ACPI patch
+first)
+
+After a few investigation on your problem, that patch doesn't apply.
+>From your DSDT,=20
+ECDT seems to be  unnecessary to your box.
+
+>Unfortunately, I'm still getting the same sorts of >>messages on boot.=20
+>The _REG method of the Embedded Control fails as follows:
+
+Obviously, this issue is relative to acpi_ec_space_handler.
+=20
+>ACPI: Embedded Controller [H_EC] (gpe 28)
+>evregion-0348: *** Error: Handler for [EmbeddedControl] returned
+AE_BAD_PARAMETER
+> dswexec-0435 [30] ds_exec_end_op        : [Store]: Could not resolve
+operands, AE_BAD_PARAMETER
+> psparse-1120: *** Error: Method execution failed
+[\_SB_.PCI0.LPCB.H_EC._REG] (Node df5e7ae8), AE_BAD_PARAMETER
+
+I just filed a patch for you testing, just try it.
+http://bugzilla.kernel.org/show_bug.cgi?id=3D1744
+
+Maybe we need to support other access bit width.  I found AccessType:
+DWordAcc in your EC region definition.
+
+Thanks,
+Luming
 
 
 
