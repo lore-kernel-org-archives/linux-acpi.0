@@ -1,14 +1,14 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: Backlight?
-Date: Fri, 02 Jul 2004 12:34:08 +0100
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Re: DSDT Change (Compaq Presario 2100)
+Date: Fri, 2 Jul 2004 13:54:54 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1088768048.3733.10.camel@tyrosine>
-References: <200407010231.57481.kernelpenguin@hot.ee>
+Message-ID: <20040702115454.GA12889@elf.ucw.cz>
+References: <200405280621.29874.andre@eisenbach.com> <c9am7j$nng$1@sea.gmane.org> <200405291345.51712.andre@eisenbach.com> <20040628213409.GA19468@elf.ucw.cz> <cbsi0v$t1r$1@sea.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200407010231.57481.kernelpenguin-S7FoVGKkKTI@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <cbsi0v$t1r$1@sea.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,24 +17,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Elver Loho <kernelpenguin-S7FoVGKkKTI@public.gmane.org>
+To: Erik Meitner <usenet-cuDg6iFcrsRAfugRpC6u6w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2004-07-01 at 02:31 +0300, Elver Loho wrote:
-> I have a laptop. It has brightness control buttons on it, which, 
-> unfortunately, don't work under Linux. I was wondering. Are backlight and 
-> brightness controlled by ACPI as well? How would one go about controlling 
-> them?
+Hi!
 
-They /can/ be controlled by ACPI, but aren't always. It might be worth
-trying the patch on http://bugzilla.kernel.org/show_bug.cgi?id=1944 .
-Alternatively, if you have an Asus/Medion or Toshiba laptop then there
-are kernel drivers that support their hotkeys.
+> >Try your machine on battery, with full load. Monitor battery
+> >temperature. If it gets hot, your battery was not really designed for
+> >this, and forget this...
+> >								Pavel
+> 
+> Is the concern here that this allows the system to draw a greater 
+> current from the battery than it was designed for? If so, too bad that 
+> there is no way for the system to monitor current draw and throttle back 
+> when it gets to great.
 
+Yes, I was told that can be the issue.
+
+OTOH monitoring battery temperature should be ok.
+								Pavel
 -- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
-
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
