@@ -1,12 +1,14 @@
-From: "Alfredo Garcia Martino" <alfredogarcia-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Issues reading battery status
-Date: Mon, 06 Sep 2004 17:50:33 +0200
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: acpi-20040715+D600+Suspend
+Date: Mon, 6 Sep 2004 19:13:49 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <opsdwwyjugae6s7i@mail.gmx.net>
+Message-ID: <20040906171349.GC26195@atrey.karlin.mff.cuni.cz>
+References: <1093972503.9372.38.camel@neuromancer.home.net> <20040902143034.GA676@elf.ucw.cz> <1094442085.21466.29.camel@neuromancer.home.net>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; delsp=yes; charset=iso-8859-15
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1094442085.21466.29.camel-/ZsuMndpQpsb5wn6fCfWY+TW4wlIGRCZ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -15,80 +17,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
+Cc: Acpi-List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hi!
 
-	I have been suffering a pair of problems with ACPI reading the battery  
-status on my laptop. The two issues are:
+> > Turn off CONFIG_PREEMPT. Or better test latest -rcX-mmX.
+> 
+> Hey.. pavel.. thanks to your suggestion, my weekend was wrecked (good
+> natured sarcasm). I found out the hard way that there rc1-mm1 kernel,
+> (the only one which worked fairly well) has quite a biting bug that
+> caused data loss. 
 
-	1: This error occurs every time you do acpi -V
---------------------------------------------------------------------------------------
-Sep  6 15:00:28 localhost kernel: [ACPI Debug] String: Length 0x1E,  
-"====BAT0 _BST UPBS() entry===="
-Sep  6 15:00:28 localhost kernel: exconvrt-0664: *** Error: Bad  
-destination type during conversion: 4
-Sep  6 15:00:28 localhost kernel:  psparse-1133: *** Error: Method  
-execution failed [\_SB_.BAT0.GBFE] (Node c11e5d68), AE_AML_INTERNAL
-Sep  6 15:00:28 localhost kernel:  psparse-1133: *** Error: Method  
-execution failed [\_SB_.BAT0.UPBS] (Node c11e58e8), AE_AML_INTERNAL
-Sep  6 15:00:28 localhost kernel:  psparse-1133: *** Error: Method  
-execution failed [\_SB_.BAT0._BST] (Node c11e4348), AE_AML_INTERNAL
-Sep  6 15:00:28 localhost kernel: acpi_battery-0207 [31]  
-acpi_battery_get_statu: Error evaluating _BST
-Sep  6 15:00:28 localhost kernel: [ACPI Debug] String: Length 0x1B,  
-"====BAT0 _BIF End Error===="
---------------------------------------------------------------------------------------
+Sorry for that.
 
-	2: This occurs from time to time let's say that if we repeat "acpi -V"  
-every 2 seconds this error appears every 40 seconds
---------------------------------------------------------------------------------------
-Sep  6 15:00:16 localhost kernel: [ACPI Debug] String: Length 0x1E,  
-"====BAT0 _BST UPBS() entry===="
-Sep  6 15:00:16 localhost kernel: [ACPI Debug] String: Length 0x1B,  
-"====BAT0 _BST End Error===="
-Sep  6 15:00:16 localhost kernel: evregion-0347: *** Error: Handler for  
-[EmbeddedControl] returned AE_TIME
-Sep  6 15:00:16 localhost kernel:  dswexec-0435 [38] ds_exec_end_op         
-: [Store]: Could not resolve operands, AE_TIME
-Sep  6 15:00:16 localhost kernel:  psparse-1133: *** Error: Method  
-execution failed [\_SB_.PCI0.LPC0.EC0_.SBR_] (Node c11e1b28), AE_TIME
-Sep  6 15:00:16 localhost kernel:  psparse-1133: *** Error: Method  
-execution failed [\_SB_.BAT0.UPBI] (Node c11e59a8), AE_TIME
-Sep  6 15:00:16 localhost kernel:  psparse-1133: *** Error: Method  
-execution failed [\_SB_.BAT0._BIF] (Node c11e4408), AE_TIME
-Sep  6 15:00:16 localhost kernel: acpi_battery-0146 [30]  
-acpi_battery_get_info : Error evaluating _BIF
---------------------------------------------------------------------------------------
+> I had my root partition (reiserfs crash), I lost a few trivial files (i
+> hope) and had to do a rebuild-tree.
 
-	I have followed problem 1 and I have resolved it applying next diff to  
-file /usr/src/linux/drivers/acpi/executer/exconvrt.c :
---------------------------------------------------------------------------------------
---- exconvrt.c 2004-08-25 03:08:16.000000000 +0200
-+++ exconvrt.c.patched 2004-09-06 16:29:43.000000000 +0200
-@@ -631,6 +631,7 @@
-    case ACPI_TYPE_BUFFER_FIELD:
-    case ACPI_TYPE_LOCAL_BANK_FIELD:
-    case ACPI_TYPE_LOCAL_INDEX_FIELD:
-+  case ACPI_TYPE_PACKAGE:
-     /*
-      * These types require an Integer operand.  We can convert
-      * a Buffer or a String to an Integer if necessary.
-------------------------------------------------------------------------------------
+Hmm, do not use reiserfs ;-).
 
-	And now the first error doesn't occurs, but I still have the second one.
-	Also my patch just uses the function "acpi_ex_convert_to_integer" with an  
-ACPI_TYPE_PACKAGE and that works, but I wonder if this is the best  
-approach to the problem.
-
-	Any idea about how to resolve problem 2 or improve the solution to  
-problem 1?
-
-	Regards and thanks in advance.
-	
-	P.S.: DSDT is correct except by the typical WAK warning, but I have tried  
-it with a corrected DSDT and there was no change.
+									Pavel
 
 
 -------------------------------------------------------
