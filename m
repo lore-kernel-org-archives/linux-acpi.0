@@ -1,16 +1,14 @@
-From: Alexander Hoogerhuis <alexh-rpjHciJLgqZBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: ACPI vs. PCMCIA on Compaq Evo N800c
-Date: 28 Apr 2003 11:03:12 +0200
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ASL help with latest acpi and compaq presario 2800t
+Date: Mon, 28 Apr 2003 17:29:30 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <87el3nj8of.fsf@lapper.ihatent.com>
-References: <3EAB29E2.5030702@woogie.net>
-	<20030427100023.A16436@fermat.unipv.it>
-	<1051436106.2388.9.camel@calvin.hjblocal.nl>
-	<20030427142438.A16678@fermat.unipv.it>
+Message-ID: <3ACA40606221794F80A5670F0AF15F842722C5@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030427142438.A16678-xzhXYMPkGmXoPXhRcRtihA@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,57 +17,82 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Daniele Boffi <boffi-piYtxHxN1XRAly3Pu9w1wA@public.gmane.org>
-Cc: Hilbert Barelds <h.j.barelds-XfCjptVMDKWuyJwMYI9mNQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Kevin Fenzi <kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
+Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Daniele Boffi <boffi-piYtxHxN1XRAly3Pu9w1wA@public.gmane.org> writes:
+I have made a patch for fixing compiling time error of =
+http://www.scrye.com/~kevin/dsdt.dsl-20030409
+Would you please apply it and see what's unusual and send boot log to =
+me.
 
-> > kernel 2.5.68 no display on my radeon
-> 
-> Never tried. For me the graphic card was detected out of the box (with nice
-> resolution 1400x1050).
-> Only annoying thing: screen looses horizontal sincronization when switching
-> between different virtual consoles crt-alt-F1/8, if you keep switching it
-> comes back to the good sincronization.
-> 
-> You can download my X config at
-> 
-> www-dimat.unipv.it/~boffi/compaq/XF86Config
-> 
-> > -Fn F7 and Fn F8 not working
-> 
-> This works fine for me (didn't work with RH9)
-> 
-> > -lidswitch not working, but if working display doesn't come back
-> 
-> This works fine. With RH9 I think the display didn't come back, but switching
-> to a different console made it work.
-> 
+42,51d41
+< {
+<=20
+< External (C1AF)
+< External (C1BA)
+< External (C1BB)
+< External (C1B0)
+< External (C1B1)
+< External (C1B2)
+< External (C1B3)
+<=20
+52a43
+> {
+177,178c168,169
+<                 If(\_OSI("Windows 2001"))=20
+< 		{
+---
+>                 If(\_OSI) {
+>                     "Windows 2001"
+2297c2288
+<                 Name(_HID, "SYN0100")
+---
+>                 Name(_HID, "*SYN0100")
 
-I'm running on Gentoo 1.4rc1 (with updates) and I can confirm that
-XFree 4.2.1 in various releases has had problems with the lid switch
-on my 800c. Basically once it's pressed it would not turn on
-again. Loosing sync when switching the display to/from text-mode and
-graphics was also a problem. I'm now running with XFree 4.3.0 with up
-to date drm-modules for 4.3.0 and lid switch and sync problems are
-gone. 
 
-I still have a problem what when i press the log out button in Gnome
-2.2 and the scren is faded, then the machine will isntantly do a hard
-reset. 
+Thanks,
+Luming
 
-My kernel is 2.4.21-pre7 with ACPI 20030328 and preempt applied to
-it. Also running with a custom DSDT that makes most stuff work,
-including turning the brightness up and down :)
 
-mvh,
-A
+-----Original Message-----
+From: Kevin Fenzi [mailto:kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org]
+Sent: 2003?4?10? 1:30
+To: Yu, Luming
+Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: RE: [ACPI] ASL help with latest acpi and compaq presario 2800t
 
--- 
-Alexander Hoogerhuis                               | alexh-rpjHciJLgqZBDgjK7y7TUQ@public.gmane.org
-CCNP - CCDP - MCNE - CCSE                          | +47 908 21 485
-"You have zero privacy anyway. Get over it."  --Scott McNealy
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+>>>>> "Luming" =3D=3D Luming Yu <Yu> writes:
+
+Luming> Is dsdt.asl modified version. I compiled it, and my error
+Luming> message is slightly different with yours.  Would you please
+Luming> send the original dsdt.asl to me?
+
+You can get the dsdt.dat and dsdt.dsl from:=20
+
+http://www.scrye.com/~kevin/dsdt.dat-20030409
+http://www.scrye.com/~kevin/dsdt.dsl-20030409
+
+Those are from my laptop today using the iasl-20030228
+
+Let me know if you need any more info.=20
+
+Luming> Thanks, Luming
+
+kevin
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
+Comment: Processed by Mailcrypt 3.5.8 =
+<http://mailcrypt.sourceforge.net/>
+
+iD8DBQE+lFil3imCezTjY0ERAiNVAJ0RbLT1+K532UBaz31tLeIODB6tAwCdF/OF
+37iSC0J5jiZDJiEmC8G3QT8=3D
+=3D5jP8
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
