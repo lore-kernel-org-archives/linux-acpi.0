@@ -1,16 +1,14 @@
-From: Thorsten Zachmann <t.zachmann-c61pB8mzqkY@public.gmane.org>
-Subject: Re: S3 on a Compaq Evo N610c
-Date: Tue, 3 Feb 2004 10:09:13 +0100
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: ACPI patch flow
+Date: Tue, 3 Feb 2004 13:28:33 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200402031009.13880.t.zachmann@zagge.de>
-References: <3ACA40606221794F80A5670F0AF15F8401CBB66E@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <20040203122832.GA1405@elf.ucw.cz>
+References: <1075747579.2394.108.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401CBB66E-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <1075747579.2394.108.camel-D2Zvc0uNKG8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -19,26 +17,45 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Gabe Sibley <gsibley-DG7SOAwx7rg@public.gmane.org>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello Luming
-On Tuesday 03 February 2004 08:44, Yu, Luming wrote:
-> >   anyone else see anything like this before?
->
-> I did remember there are several laptops unable to resume from S3.
-> And have to take the battery out to reset it. Any conclusion?
+Hi!
 
-I also had this on my Toshiba tecra s1 after I applied a fixed dsdt from the 
-net. The problem was that the fixed dsdt was for 256MB and my pc has 512 MB 
-of RAM. After I changed the RAM size according to the one found in the 
-original dsdt this problem did no longer occur. 
+> In an effort to make sure the latest ACPI patch is widely available, I
+> currently publish it both as bk trees and plain patches
+> http://linux-acpi.bkbits.net/
+> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/
+> 
+> against 7 releases:
+> 
+> 2.4.22
+> 2.4.23
+> 2.4.24
+> 2.4.25
+> 
+> 2.6.0
+> 2.6.1
+> 2.6.2
+> 
+> I'd like to stop maintaining (and delete) 2.4.23 -- with the release of
+> 2.4.24, I doubt anybody is using 2.4.23.
+> 
+> I'd like to stop maintaining (and delete) 2.6.0 -- with the release of
+> 2.6.1, I doubt anybody is using 2.6.0.  Also, 2.6.1 has diverged
+> somewhat from 2.6.0, so maintaining 2.6.0 has become problematic.
+> 
+> let me know if you have any issues with this.
 
-Hope this helps. 
+I do not see any problems with that.
 
-Thorsten
+For 2.6, if I were you, I'd drop 2.6.1, too. People should upgrade to
+latest if they have problems..
 
+-- 
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
 
 
 -------------------------------------------------------
