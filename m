@@ -1,16 +1,12 @@
-From: James D Strandboge <jstrand1-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org>
-Subject: Re: Determining Button State
-Date: 15 Dec 2002 13:41:46 -0500
+From: Matthew Tippett <matthew.tippett-rieW9WUcm8FFJ04o6PK0Fg@public.gmane.org>
+Subject: Patch - bug in adding/removing modules
+Date: Sun, 15 Dec 2002 14:23:30 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1039977706.1231.43.camel@sirius.strandboge.cxm>
-References: <3DF2D221.7020005@sympatico.ca>
-	 <1039324752.3240.6.camel@sirius.strandboge.cxm>
-	 <20021210133100.GC2934@zaurus>
+Message-ID: <3DFCD6B2.2050201@sympatico.ca>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------020401040002020908050108"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20021210133100.GC2934-XqDnSF8rrUM@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,56 +15,65 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2002-12-10 at 08:31, Pavel Machek wrote:
-> Hi!
-> 
-> > > Looking at rolling out some sort of ACPI script environment for acpid. 
-> > > Is there any way that the ACPI system determines exposes what state the 
-> > > subsystem is in.
-> > > 
-> > > When I close the lid on my laptop, I get the event -
-> > > 
-> > > button/lid LID 00000080 0000000b
-> > > button/lid LID 00000080 0000000c
-> > > button/lid LID 00000080 0000000d
-> > > button/lid LID 00000080 0000000e
-> > > button/lid LID 00000080 0000000f
-> > > 
-> > > Which doesn't seem to have anything that indicates 'down or up'.  I 
-> > > understand an 'up/down' doesn't make sense for Power or Sleep, but it 
-> > > seems pretty vital to something like a lid.
-> > 
-> > Nope, and you can't use odd or even either because it changes.  I did
-> > this:
-> ...
-> > This however assumes that the lid is open when I power on (not an
-> > unreasonable assumption usually, since I can't press the power button
-> > otherwise).  I chose /var/run since it is cleaned out automatically.
-> 
-> Fortunately at least toshibas and thinkpads have
-> power btn available with lid closed -- it is
-> pretty bad to have to open the lid to turn
-> the machine on -- especially with external
-> keyboard and monitor. Toshiba has LEDs
-> visible from the outside for added bonus.
+This is a multi-part message in MIME format.
+--------------020401040002020908050108
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-That's cool.  Is there anyway to poll the status of those led's from
-linux (eg through acpi)?  An even better way would be to ask the bios
-the state of the lid when an event is generated-- or better still modify
-the acpi code to generate 0 for closed and 1 for open (or just be
-consistent about even and odd).
+Although I was only looking at the battery module, I believe I have 
+fixed a potential oops regarding inserting and removing modules.
 
-Jamie
+The attached patch fixes a problem that I have seen, a quick look at 
+other modules seems to have the same problem.
+
+The description of the problem is ...
+
+There is a macro called acpi_device_dir which returns a pointer to the a 
+battery instance directory in /proc/acpi/battery.  When removing a 
+module, the device is removed from the proc heirachy, but the entry in 
+the device table is never set to null.  So consequently when the device 
+is reinserted the add_fs call already sees the proc directory entry and 
+consequently uses the /proc/acpi/battery and along the way corrupts some 
+memory.
+
+So the patch NULLs out the proc dir entry in the device structure in a 
+manner symmetric with the creation and deletion of the proc directory.
+
+Regards,
+
+Matthew
 
 -- 
-Email:        jstrand1-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org
-GPG/PGP ID:   26384A3A
-Fingerprint:  D9FF DF4A 2D46 A353 A289  E8F5 AA75 DCBE 2638 4A3A
+Matthew Tippett - matthew.tippett-rieW9WUcm8FFJ04o6PK0Fg@public.gmane.org - (416) 435-4118
+Technology Forum - http://www.technology-forum.org/
+Commercial Open Source - http://www.commercialos.org/
 
+--------------020401040002020908050108
+Content-Type: text/plain;
+ name="battery.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="battery.diff"
+
+--- battery.c.orig	2002-12-15 14:14:51.000000000 -0500
++++ battery.c	2002-12-15 14:11:29.000000000 -0500
+@@ -658,8 +658,10 @@
+ {
+ 	ACPI_FUNCTION_TRACE("acpi_battery_remove_fs");
+ 
+-	if (acpi_device_dir(device)) 
++	if (acpi_device_dir(device)) {
+ 		remove_proc_entry(acpi_device_bid(device), acpi_battery_dir);
++		acpi_device_dir(device) = NULL;
++	}
+ 
+ 	return_VALUE(0);
+ }
+
+--------------020401040002020908050108--
 
 
 
