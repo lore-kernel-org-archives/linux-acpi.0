@@ -1,9 +1,9 @@
 From: Huw Hawkins <hrhawk-JGs/UdohzUI@public.gmane.org>
 Subject: RE: Overriding tables ... (was: Compaq 1720US, 2.4.18, acp
 	i-7,24 - Help)
-Date: 14 Aug 2002 01:59:39 +0200
+Date: 14 Aug 2002 02:22:11 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1029283180.1221.39.camel@U414>
+Message-ID: <1029284532.1370.3.camel@U414>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -17,7 +17,17 @@ List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
 To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: hrhawk-JGs/UdohzUI@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
+
+Grr.. exims playing up again! But just in case this does get double posted,
+there is a correction anyway...
+
+The code snippet should obviously have   ,sizeof(*new_table->signature)   rather
+than sizeof(new_table->signature). Pointers never were my strong poing.
+
+READ ON!
+
 
 On Tue, 2002-08-13 at 23:41, Moore, Robert wrote:
 > 
@@ -62,7 +72,7 @@ fairly usable and stable code.
 On a related subject, I think the 2 lines to do the checking in function
 os_table_override in osl.c should read:
 
-if(strncmp(existing_table->signature,*new_table->signature,sizeof(new_table->signature)-1)
+if(strncmp(existing_table->signature,*new_table->signature,sizeof(*new_table->signature)-1)
           *new_table = NULL ;
 
 since the size of the signature presumably does not always have to be
