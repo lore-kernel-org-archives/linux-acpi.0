@@ -1,12 +1,13 @@
-From: =?ISO-8859-1?Q?Hendrik_J=FCrgens?= <hjuerg-ULHALamj7Vx/+Jgy1241yg@public.gmane.org>
-Subject: Re: Acer TravelMate 3200 series
-Date: Sat, 19 Feb 2005 09:16:31 +0100
-Message-ID: <4216F5DF.1000601@technik-emden.de>
-References: <42139CFB.4000708@panafonet.gr> <42139D82.5090709@bartol.udel.edu> <4214E65E.2020202@panafonet.gr> <4214E6DE.3010702@bartol.udel.edu> <42167944.5030603@panafonet.gr>
+From: Pedro Venda <pjvenda-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
+Subject: Re: New DSDT patches for Smart Batteries (and new mailing
+ list...)
+Date: Sat, 19 Feb 2005 10:37:46 +0000
+Message-ID: <421716FA.2070009@arrakis.dhis.org>
+References: <420C4622.7000809@bartol.udel.edu> <4216A47E.8090604@arrakis.dhis.org> <4216B3E1.70903@bartol.udel.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
-In-Reply-To: <42167944.5030603-L6arEPXw2n0ZNqoCg3qVjg@public.gmane.org>
+In-Reply-To: <4216B3E1.70903-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,28 +17,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+Cc: Pedro Venda <pjvenda-pQd4kjVL+RHfqL7NgpvPWWD2FQJk+8+b@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Rich Townsend wrote:
+> Hi Pedro --
+>=20
+> Have you tried the latest (December 2004 or more recent) Intel compiler=
+?
+> Older versions seem to produce problems with fans.
 
-| Do you know a way to control CPU speed from linux kernel 2.6.10
-| Intel Centrino SpeedStem technology.
-| cpudyn doesn't work...
+I don't know. Will check on that today. Thanks.
 
-Speedfreqd is a good tool for this.
+regards,
+pedro venda.
+--=20
 
-- --
-Best regards
-Hendrik J=FCrgens
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.6 (GNU/Linux)
-
-iD8DBQFCFvXfgL2kQgmW9pgRAqHYAJ9BH4dfVuL2Y70qV7zT5DPZjCgG/wCcC0p+
-dflBsxPBT1DvE41AYYsSmNU=3D
-=3DStEN
------END PGP SIGNATURE-----
+Pedro Jo=E3o Lopes Venda
+email: pjvenda < at > arrakis.dhis.org
+http://arrakis.dhis.org
 
 
 -------------------------------------------------------
