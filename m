@@ -1,49 +1,29 @@
-From: "Cynthia Sargent" <cynthiasargent_80-1SNrmqWPDVosA/PxXw9srA@public.gmane.org>
-Subject: Order Royal Replica Watches Online
-Date: Mon, 13 Dec 2004 09:39:42 -0200
-Message-ID: <3f8e01c4e108$e9216baa$9ee5f0ea@wineanorak.co.uk>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [ACPI][2.6.10-rc3][SUSPEND] S3 mode - Cannot resume from PCI devices
+Date: Fri, 10 Dec 2004 15:20:10 +0100
+Message-ID: <20041210142010.GA3654@openzaurus.ucw.cz>
+References: <200412100315.21725.shawn.starr@rogers.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262236AbULMMKr@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <200412100315.21725.shawn.starr@rogers.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Shawn Starr <shawn.starr@rogers.com>
+Cc: linux-kernel@vger.kernel.org, Len Brown <len.brown@intel.com>, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-Get the Finest Rolex Watch Replica!
+Hi!
 
-We only sell premium watches. There's no battery in these replicas just
-like the real ones since they charge themselves as you move. The second hand
-moves JUST like the real ones, too. These original watches sell in stores
-for thousands of dollars. We sell them for much less. 
+> I have netconsole configured I can see kernel messages on a remote machine, but when I suspend the laptop it goes into S3.
+> I am unable to capture the (oops) the laptop when bringing it out of S3. It remains in a half suspended-unsuspended state.
+> (the crescent moon LED is solidly on, video is back on (can see the 'Back to C!' string), cannot use sysctl key combos, 
+> netconsole doesn't display the output since no PCI devices resume (the video is AGP onboard).
+> 
+> Is there any way I can capture this output somehow? I don't think even serial would work (it would be a USB to serial converter which would be PCI)
 
-- Replicated to the Smallest Detail
-- 98% Perfectly Accurate Markings 
-- Signature Green Sticker w/ Serial Number on Watch Back
-- Magnified Quickset Date
-- Includes all Proper Markings
+If you can see Back to C, your video works, just capture oops
+with paper and pencil.
 
-Visit us: http://www.bhex.com/rep/rolx/
-
-All orders placed before December 12th will be at your door before
-Christmas!
-
-No thanks: http://www.bhex.com/z.php
-
-
-
-
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now. 
-http://productguide.itmanagersjournal.com/
+-- 
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
