@@ -1,77 +1,87 @@
-From: Timo Hoenig <thoenig-dCxI//HcOdFeoWH0uzbU5w@public.gmane.org>
-Subject: Re: Re: [patch 11/12] new sony_acpi driver
-Date: Thu, 03 Mar 2005 11:06:11 +0100
-Message-ID: <1109844371.4866.31.camel@nouse.net>
-References: <200502230953.j1N9rPLp020723@shell0.pdx.osdl.net>
-	 <1109790760.2097.587.camel@d845pe>
-	 <20050302205324.GA5486@deep-space-9.dsnet>
-	 <1109839245.4866.10.camel@nouse.net>
-	 <20050303093949.GB3346@crusoe.alcove-fr>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: [2.6.11-rc5-mm1 patch] drivers/acpi/pcc_acpi.c: section fixes
+Date: Thu, 3 Mar 2005 14:22:20 +0100
+Message-ID: <20050303132220.GQ4608@stusta.de>
+References: <20050301012741.1d791cd2.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-UGIn5hYhD7wgMFERsdwX"
-In-Reply-To: <20050303093949.GB3346-KwDxFO93HejPHUqn3ntIkQ@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
-Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20050301012741.1d791cd2.akpm@osdl.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@osdl.org>, Timo Hoenig <thoenig@suse.de>
+Cc: linux-kernel@vger.kernel.org, len.brown@intel.com, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
+This patch fixes the following:
+- acpi_pcc_hotkey_add: although the function prototype was marked
+                       __devinit, the actual function wasn't
+- acpi_pcc_proc_init is called by acpi_pcc_hotkey_remove and    
+                     therefore has to be __devinit
+- acpi_pcc_hotkey_remove: although the function prototype was marked
+                          __devexit, the actual function wasn't
+- acpi_pcc_remove_device is called by acpi_pcc_hotkey_remove and
+                         therefore has to be __devexit
 
---=-UGIn5hYhD7wgMFERsdwX
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 
-Hi,
+---
 
-On Thu, 2005-03-03 at 10:39 +0100, Stelian Pop wrote:
-[...]
->Maybe the problem here is that the ACPI based drivers should not
->be at all in the ACPI tree.
->
->drivers/acpi contain today both the ACPI layer and the ACPI drivers.
->Maybe a split up like the networking code would be saner: $KDIR/acpi
->for the layer and $KDIR/drivers/acpi for the drivers using the acpi
->API to implements specific drivers.
+ drivers/acpi/pcc_acpi.c |   19 ++++++++++---------
+ 1 files changed, 10 insertions(+), 9 deletions(-)
 
-That sounds good to me.  If this is the way to go, I'd like to see a
-discussion with the developers of all already available drivers.
-
->Stelian.
-
-See you,
-
-   -- Timo
-
-..............................................................
-Timo H=F6nig <thoenig at nouse dot net>
-..................................................:: gpg ::...
-Fingerprint: 0998 0ACA A1D2 2612 4D96 DD8B E03F 084B B305 4066
-
---=-UGIn5hYhD7wgMFERsdwX
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQBCJuGT4D8IS7MFQGYRArddAJwN3b2XqjSxK9pgqXcLbfpJEloVhgCeJP6x
-3INQvxM7YyXumQA6dTPSUF4=
-=0NS1
------END PGP SIGNATURE-----
-
---=-UGIn5hYhD7wgMFERsdwX--
-
-
-
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+--- linux-2.6.11-rc5-mm1-full/drivers/acpi/pcc_acpi.c.old	2005-03-02 10:57:35.000000000 +0100
++++ linux-2.6.11-rc5-mm1-full/drivers/acpi/pcc_acpi.c	2005-03-02 11:04:11.000000000 +0100
+@@ -643,9 +643,9 @@
+ 	{ NULL, NULL, 0 },
+ };
+ 
+-static int __init acpi_pcc_add_device(struct acpi_device *device,
+-                                      ProcItem *proc_items,
+-                                      int num)
++static int __devinit acpi_pcc_add_device(struct acpi_device *device,
++					 ProcItem *proc_items,
++					 int num)
+ {
+ 	struct acpi_hotkey *hotkey = \
+ 		(struct acpi_hotkey*)acpi_driver_data(device);
+@@ -675,7 +675,7 @@
+ 	return 0;
+ }
+ 
+-static int __init acpi_pcc_proc_init(struct acpi_device *device)
++static int __devinit acpi_pcc_proc_init(struct acpi_device *device)
+ {
+ 	acpi_status status;
+ 	struct acpi_hotkey *hotkey = \
+@@ -707,9 +707,9 @@
+ 	return status;
+ }
+ 
+-static void __exit acpi_pcc_remove_device(struct acpi_device *device,
+-                                          ProcItem *proc_items,
+-                                          int num)
++static void __devexit acpi_pcc_remove_device(struct acpi_device *device,
++					     ProcItem *proc_items,
++					     int num)
+ {
+ 	struct acpi_hotkey *hotkey =
+ 		(struct acpi_hotkey*)acpi_driver_data(device);
+@@ -791,7 +791,7 @@
+ }
+ 
+ /* module init */
+-static int acpi_pcc_hotkey_add (struct acpi_device *device)
++static int __devinit acpi_pcc_hotkey_add (struct acpi_device *device)
+ {
+ 	acpi_status status;
+ 	struct acpi_hotkey *hotkey = NULL;
+@@ -851,7 +851,8 @@
+ 	return acpi_pcc_proc_init(device);
+ }
+ 
+-static int acpi_pcc_hotkey_remove(struct acpi_device *device, int type)
++static int __devexit acpi_pcc_hotkey_remove(struct acpi_device *device,
++					    int type)
+ {
+ 	acpi_status status;
+ 	struct acpi_hotkey *hotkey = acpi_driver_data(device);
