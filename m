@@ -1,15 +1,14 @@
-From: Hiroshi Takekawa <sian-whu2oojL+5h4Eiagz67IpQ@public.gmane.org>
-Subject: Re: ACPI: Call for testers
-Date: Sat, 21 Sep 2002 22:31:25 +0900 (JST)
+From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>
+Subject: Re: CALL FOR TESTING
+Date: 21 Sep 2002 15:02:31 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020921.223125.116319024.sian@big.or.jp>
-References: <EDC461A30AC4D511ADE10002A5072CAD0236DE9E@orsmsx119.jf.intel.com>
+Message-ID: <1032634954.2215.2.camel@darkstar.portugal>
+References: <EDC461A30AC4D511ADE10002A5072CAD0236DE80@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
- boundary="--Next_Part(Sat_Sep_21_22:31:25_2002_505)--"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD0236DE9E-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
+In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD0236DE80-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,213 +17,44 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-----Next_Part(Sat_Sep_21_22:31:25_2002_505)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+On Thu, 2002-09-19 at 02:27, Grover, Andrew wrote:
+> I wanted to make a special request for testing of the 2.4 patch (or should I
+> say, MEGA-patch).
+> 
+> Marcelo has asked for widespread testing of it, in anticipation of likely
+> 2.4 mainline inclusion. I will be posting a call for testing to linux-kernel
+> soon, but am posting this here first to hopefully weed out any really bad
+> bugs that may have crept in.
+> 
+> The main issues of importance are:
+> 
+> - DOES IT BOOT?
+yes
+> - DOES IT ASSIGN INTERRUPTS PROPERLY?
+> 
+yes normally, and had correct the events, now events works without
+kacpid patch.
+> Failure to do so either indicates a bug that we need to fix (fast) or a
+> system that should go on the blacklist. dmesg now includes the DSDT
+> signature to aid blacklisting.
+> 
+> Issues like whether the battery reports stats properly are of secondary
+> importance.
+> 
+> Thanks in advance.
+> 
+> Regards -- Andy
+> 
+> -----------------------------
+> Andrew Grover
+> Intel Labs / Mobile Architecture
+> andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 
 
-Here is my ACPI test result.
-Note: I'm not in acpi-devel mailing list.
-
-> There are three pieces of data we're looking for, from as wide a spectrum of
-> x86 machines as possible:
-> 1) Does it boot?
-> (Does the system hang, oops, or otherwise fail in a non-graceful manner)
-
-It boots.  But ACPI doesn't work properly.
-
--- partial dmesg output, full output is attached.
-ACPI: Subsystem revision 20020918
-PCI: PCI BIOS revision 2.10 entry at 0xfd96e, last bus=0
-PCI: Using configuration type 1
- tbxface-0099 [03] Acpi_load_tables      : ACPI Tables successfully loaded
- tbxface-0107: *** Error: Acpi_load_tables: Could not load namespace: AE_AML_INT
-ERNAL
- tbxface-0116: *** Error: Acpi_load_tables: Could not load tables: AE_AML_INTERN
-AL
-ACPI: Unable to load the System Description Tables
-PCI: Probing PCI hardware
-PCI: ACPI tables contain no PCI IRQ routing entries
----------------
-
-AE_AML_INTERNAL was AE_STACK_UNDERFLOW on 2.5.21 kernel.
-If 2.4-acpi is replaced with 2.5-acpi, I will not be able to even
-power-off my computer with shutdown -h.  My laptop has damaged BIOS?
-
-> 3) How do your results compare to the existing ACPI code in 2.4.x? Anything
-> else interesting?
-> (optional)
-
-I attached dmesg outputs of 2.4.20-pre5-ac1 and 2.4.20-pre7+acpi-patch.
-If you require any more information, please contact me.
-
---
-Hiroshi Takekawa <sian-whu2oojL+5h4Eiagz67IpQ@public.gmane.org>
-
-
-----Next_Part(Sat_Sep_21_22:31:25_2002_505)--
-Content-Type: Application/Octet-Stream
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="dmesg-2.4.20-pre5-ac1.log.bz2"
-
-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
-CWIuJRXCFZeTuqr+jw9vb3ewXckU4UJDuBp2EA==
-
-----Next_Part(Sat_Sep_21_22:31:25_2002_505)--
-Content-Type: Application/Octet-Stream
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="dmesg-2.4.20-pre7-acpi.log.bz2"
-
-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
-g3SwmKg=
-
-----Next_Part(Sat_Sep_21_22:31:25_2002_505)----
 
 
 -------------------------------------------------------
