@@ -1,11 +1,10 @@
-From: 창업부업지원 <admin-iXHEUVFznYH9W2o6/NvY6w@public.gmane.org>
-Subject: (광고)★개인이 운영하는 기업형 종합쇼핑몰!!!소자본 창업/부업!!!★
-Date: Wed, 27 Nov 2002 09:52:43 +0900
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [BK PATCH] ACPI updates
+Date: Tue, 26 Nov 2002 17:51:01 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E18GqRI-0000sE-00@sc8-sf-list1.sourceforge.net>
-Reply-To: admin-iXHEUVFznYH9W2o6/NvY6w@public.gmane.org
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A554@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/html; charset="ks_c_5601-1987"
+Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -15,125 +14,81 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: 'Linus Torvalds' <torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org>
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-<html> 
-<head> 
-<meta http-equiv="content-type" content="text/html; charset=euc-kr"> 
-<title>(광고)★무점포,소자본 창업의 기회를 잡으세요!★</title> 
-<meta name="generator" content="Namo WebEditor v5.0"> 
-</head> 
-<body bgcolor="#e1eff6" text="black" link="blue" vlink="purple" alink="red"> 
-<table cellpadding="0" cellspacing="0" width="560" align="center"> 
-<tr> 
-<td width="947"> 
-<p><a href="http://www.sohomart4u.com" target="_blank"><img src="http://www.sohomart4u.com/mail777/images/img01.jpg" border="0"></a></p> 
-</td> 
-</tr> 
-<tr> 
-<td width="947"> 
-<p><a href="http://www.sohomart4u.com" target="_blank"><img src="http://www.sohomart4u.com/mail777/images/img02.jpg" width="560" height="98" border="0"></a></p> 
-</td> 
-</tr> 
-<tr> 
-<td width="947"> 
-<p><a href="http://www.sohomart4u.com" target="_blank"><img src="http://www.sohomart4u.com/mail777/images/img03.jpg" width="560" height="111" border="0"></a></p> 
-</td> 
-</tr> 
-<tr> 
-<td width="947"> 
-<p><a href="http://www.sohomart4u.com" target="_blank"><img src="http://www.sohomart4u.com/mail777/images/img04.jpg" width="560" height="121" border="0"></a></p> 
-</td> 
-</tr> 
-<tr> 
-<td width="947"> 
-<p><a href="http://www.sohomart4u.com" target="_blank"><img src="http://www.sohomart4u.com/mail777/images/img05.jpg" width="560" height="116" border="0"></a></p> 
-</td> 
-</tr> 
-<tr> 
-<td width="947"> 
-<p><a href="http://www.sohomart4u.com" target="_blank"><img src="http://www.sohomart4u.com/mail777/images/img06.jpg" width="560" height="108" border="0"></a></p> 
-</td> 
-</tr> 
-<tr> 
-<td width="947"> 
-<p><a href="http://www.sohomart4u.com" target="_blank"><img src="http://www.sohomart4u.com/mail777/images/img07_1.gif" width="560" height="44" border="0"></a></p> 
-</td> 
-</tr> 
-<tr> 
-<td width="947" height="108" background="http://www.sohomart4u.com/mail777/images/img08.gif"> 
-<table align="center" cellpadding="0" cellspacing="0" width="533"> 
-<tr> 
-<td width="144"> 
-<p>&nbsp;</p> 
-</td> 
-<td width="133"> 
-<p><a href="http://www.sohomart4u.com/page/mailnew/mj.htm" target="_blank"><img src="http://www.sohomart4u.com/mail777/images/b1.jpg" width="137" height="37" border="0"></a></p> 
-</td> 
-<td width="153"> 
-<p><a href="http://www.sohomart4u.com/page/mailnew/ser1_1.htm" target="_blank"><img src="http://www.sohomart4u.com/mail777/images/b2.jpg" width="137" height="37" border="0"></a></p> 
-</td> 
-<td width="103"> 
-<p>&nbsp;</p> 
-</td> 
-</tr> 
-<tr> 
-<td width="144"> 
-<p>&nbsp;</p> 
-</td> 
-<td width="133"> 
-<p><a href="http://www.sohomart4u.com/page/mailnew/mj3.htm" target="_blank"><img src="http://www.sohomart4u.com/mail777/images/b3.jpg" width="137" height="37" border="0"></a></p> 
-</td> 
-<td width="153"> 
-<p><a href="http://www.sohonuri.com" target="_blank"><img src="http://www.sohomart4u.com/mail777/images/b4.jpg" width="137" height="37" border="0"></a></p> 
-</td> 
-<td width="103"> 
-<p>&nbsp;</p> 
-</td> 
-</tr> 
-</table> 
-</td> 
-</tr> 
-<tr> 
-<td width="947" bgcolor="#c4dffa"> 
-<p align="center"><b><font size="2">:: &nbsp;연락처 안내 &nbsp;::&nbsp;</font></b></p> 
-</td> 
-</tr> 
-<tr> 
-<td width="947" bgcolor="white"> 
-<p><br><FONT size=2>주소 : 서울특별시 서초구 서초2동 1337-8 보통빌딩 
-405호<br>담당 : 주세훈<br>TEL : 080-224-5500<br>사이트 : <a href="http://www.sohomart4u.com" target="_blank">http://www.sohomart4u.com</a><br>&nbsp;</FONT></p> 
-</td> 
-</tr> 
-<tr> 
-<td width="947" bgcolor="#c4dffa"> 
-<P align="center"><b><font size="2">:: &nbsp;광고안내 &nbsp;::</font></b></P> 
-</td> 
-</tr> 
-<tr> 
-<td width="947" bgcolor="white"> 
-<p><FONT size=2><br><IMG height=9 alt=dia_bluve.gif 
-src="http://www.sohomart4u.com/newmarketing/img/dec1.gif" width=30 border=0>원치않는 
-정보였다면 머리숙여 사과의 말씀을 올립니다.<BR><IMG height=9 alt=dia_bluve.gif 
-src="http://www.sohomart4u.com/newmarketing/img/dec1.gif" width=30 border=0>본메일은 
-발신전용 메일입니다.<BR><IMG height=9 alt=dia_bluve.gif 
-src="http://www.sohomart4u.com/newmarketing/img/dec1.gif" width=30 border=0>본 
-메일은 정보통신부 권고사항에 의거하여 발송된 광고메일입니다.<BR><IMG height=9 alt=dia_bluve.gif 
-src="http://www.sohomart4u.com/newmarketing/img/dec1.gif" width=30 border=0>귀하의 
-메일은 메일수집 프로그램을 사용하여 추출하였으며, 메일주소 이외에 <br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;어떠한 정보도 가지고 있지 않습니다. <B><A 
-href="mailto:admin-iXHEUVFznYH9W2o6/NvY6w@public.gmane.org?subject=수신을 거부합니다">수신을 거부하실 분은 여기를 클릭</A></B>하여 주십시요.<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;혹여 클릭이 되지 않으시면 <A 
-href="mailto:admin-iXHEUVFznYH9W2o6/NvY6w@public.gmane.org?subject=수신을 거부합니다">admin@sohomart4u.com</A> 
-으로 보내주시면 됩니다.<BR></FONT></p> 
-<P align=center><FONT size=2>If you want to be removed from our recipient list, 
-please click <A 
-href="mailto:admin-iXHEUVFznYH9W2o6/NvY6w@public.gmane.org"><B>[unsubscribe]</B></A>.&nbsp;</FONT></P></td> 
-</tr> 
-</table> 
-<p>;<IMG 
-src="http://sohonuri.com/supercounter/count.cgi?sohomart4u==http://www.sohomart4u.com"></p> 
-</body> 
-</html>
+Hi Linus, please do a
+
+	bk pull http://linux-acpi.bkbits.net/linux-acpi
+
+(this doesn't include a fix for the interrupt = 0xFF thing, but there are a
+bunch of other things that should get merged.)
+
+Regards -- Andy
+
+This will update the following files:
+
+ drivers/acpi/ac.c                  |   57 +---
+ drivers/acpi/button.c              |   45 +--
+ drivers/acpi/dispatcher/dsmthdat.c |   49 ++-
+ drivers/acpi/events/evevent.c      |   78 +++--
+ drivers/acpi/events/evrgnini.c     |    7 
+ drivers/acpi/include/acconfig.h    |    4 
+ drivers/acpi/include/aclocal.h     |    5 
+ drivers/acpi/include/acpiosxf.h    |    8 
+ drivers/acpi/osl.c                 |   39 ++
+ drivers/acpi/parser/psopcode.c     |    4 
+ drivers/acpi/power.c               |   63 ++--
+ drivers/acpi/processor.c           |  338 +++++++++++--------------
+ drivers/acpi/sleep.c               |  100 +++----
+ drivers/acpi/thermal.c             |  247 ++++++++----------
+ drivers/acpi/toshiba_acpi.c        |  234 ++++++++++-------
+ drivers/acpi/utilities/utcopy.c    |   64 +++-
+ drivers/acpi/utilities/utmisc.c    |   17 -
+ 17 files changed, 706 insertions(+), 653 deletions(-)
+
+through these ChangeSets:
+
+<aris-YqEmrenMroyQb786VAuzj9i2O/JbrIOy@public.gmane.org> (02/11/23 1.842.45.7)
+   o acpi: convert drivers/acpi/toshiba_acpi.c to seq_file
+
+<aris-YqEmrenMroyQb786VAuzj9i2O/JbrIOy@public.gmane.org> (02/11/23 1.842.45.6)
+   o acpi: convert drivers/acpi/thermal.c
+
+<acme-KCZ47A4bww4P48s/oLjRZg@public.gmane.org> (02/11/23 1.842.45.5)
+   o acpi/processor.o: fix up seq_file conversion, add missing comma
+
+<aris-YqEmrenMroyQb786VAuzj9i2O/JbrIOy@public.gmane.org> (02/11/23 1.842.45.4)
+   o acpi: convert drivers/acpi/sleep.c to seq_file
+
+<aris-YqEmrenMroyQb786VAuzj9i2O/JbrIOy@public.gmane.org> (02/11/23 1.842.45.3)
+   o acpi: convert drivers/acpi/processor.c to seq_file
+
+<aris-YqEmrenMroyQb786VAuzj9i2O/JbrIOy@public.gmane.org> (02/11/23 1.842.45.2)
+   o acpi: convert drivers/acpi/power.c to seq_file
+
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/11/22 1.842.44.2)
+   ACPI: Fix IRQ assignment on Tiger (JI Lee)
+
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/11/22 1.842.44.1)
+   ACPI: Interpreter update to 20021122
+     Fixed a problem with RefOf and named fields
+     Fixed a protection fault involving Packages with Null/nested packages
+     Fixed GPE initialization to handle a pathological case
+
+<aris-YqEmrenMroyQb786VAuzj9i2O/JbrIOy@public.gmane.org> (02/11/15 1.805.15.3)
+   o acpi: convert drivers/acpi/button.c to seq_file
+
+<aris-YqEmrenMroyQb786VAuzj9i2O/JbrIOy@public.gmane.org> (02/11/13 1.805.15.1)
+   drivers/acpi/ac.c: convert to seq_file
+
+
+-----------------------------
+Andrew Grover
+Intel Labs / Mobile Architecture
+andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+
 
 
 -------------------------------------------------------
