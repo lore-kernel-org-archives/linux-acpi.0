@@ -1,14 +1,12 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: [PATCH] GDT table patch for resume only reboots problem
-Date: Mon, 18 Oct 2004 01:38:19 +0200
+From: Jon Valvatne <jon-hc6/xhmWZxdWk0Htik3J/w@public.gmane.org>
+Subject: Suspend-to-RAM on Sony Vaios
+Date: Mon, 18 Oct 2004 02:08:16 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041017233819.GA13680@elf.ucw.cz>
-References: <OFC0526CFC.7FFB98D1-ON49256F30.0068372D-49256F30.006EF530@jp.ibm.com> <20041017230205.2e50de4c.albeclemit@yahoo.it>
+Message-ID: <20041018020816.48673359@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20041017230205.2e50de4c.albeclemit-whZMOeQn8C0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,52 +15,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alberto Piai <albeclemit-whZMOeQn8C0@public.gmane.org>
-Cc: Hiroshi 2 Itoh <HIROIT-JE5g2YyFxFHQT0dZR+AlfA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hello list,
 
-> > I hope most of machines can resume with;
-> > 
-> > Kernel 2.6.9 RC4
-> > +wakeup_addr.patch
-> > +wakeup_gdt.patch
-> 
-> Sorry, it doesn't work on my system :(
-> It still reboots on
-> 		mov	$(wakeup_stack - wakeup_code), %sp		# Private stack is needed for ASUS board
-> 		movw	$0x0e00 + 'S', %fs:(0x12)
-> 
-> 		pushl	$0			#THIS LINE CAUSES REBOOT			# Kill any dangerous flags
-> 		popfl
-> 
-> If I uncomment pushl and popfl it hangs(but not reboot, like going in an infinite loop) later, on
-> 	wakeup_pmode_return:
-> 		movw	$__KERNEL_DS, %ax
-> 		movw	%ax, %ss           #HANGS HERE
-> 		movw	%ax, %ds
+I'd very much like to get suspend-to-RAM working on my Vaio X505; any pointers would be very welcome. Trying with the latest RPM-kernel for FC2, I can get it suspended just fine (after removing the ehci_hcd module), but it doesn't come back up.
 
-Are you sure it hangs there? Your pushl $0 method to force reboot is
-unlikely to be effective after %ss is set up properly... Which is this
-point. [That beeping code might be handy here.]
+Specifically: Once it's suspended, it seems dead except for a slowly blinking red power LED. When I press any button or key, it goes completely dead, requiring the battery to be taken out and reinserted before it'll even respond to the power button. Between those two states (blinking LED and completely dead) there is no indication whatsoever that it even tries to wake up - the LED simply stops blinking the moment I touch a key.
 
-Next thing you can try is replacing
+I haven't heard of anyone else installing Linux on this specific model of Vaio yet, and all I see of other Linux-on-Vaio-experiences only tell of similar problems, with no solutions. All the suspends-but-doesn't-resume stories I've seen here on this list tell of systems that make signs of starting up before they crash, as opposed to mine which doesn't. That makes me think my case is different, and it makes me doubt that it's the VGA issue again... I could be wrong though, I don't pretend to know the details of this stuff.
 
-        movw    %ax, %ss
-        mov     $(wakeup_stack - wakeup_code), %sp              # Private stack is needed for ASUS board
+Any pointers on how to debug this problem at all? The syslog is obviously useless; the hard drive isn't even spinning when the problem occurs.
 
-with
-	movw	$0x00, %ss		# Warning, will corrupt page #0 if you resume correctly
-	movw	%ax, %ss
-	movw	$2048, %ax
-	movw	%ax, %sp
+Thanks in advance,
 
-								Pavel
-
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Jon Valvatne
+Barcelona, Spain
 
 
 -------------------------------------------------------
