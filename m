@@ -1,13 +1,14 @@
-From: Vince Herried <vherried-rEckef8uG3NTGrOy2lmfZw@public.gmane.org>
-Subject: Acer TM636 won't wakeup after S3, USB, i8042
-Date: Tue, 11 Jan 2005 08:10:20 -0500
-Message-ID: <200501110810.20847.vherried@insight.rr.com>
+From: Jeroen Wijnhout <wijnhout-FT9nftu9LUxX9el/+yt6TA@public.gmane.org>
+Subject: Re: Acer TM636 won't wakeup after S3, USB, i8042
+Date: Tue, 11 Jan 2005 14:41:47 +0100
+Message-ID: <200501111441.47600.wijnhout@science.uva.nl>
+References: <200501110810.20847.vherried@insight.rr.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Description: clearsigned data
+In-Reply-To: <200501110810.20847.vherried-rEckef8uG3NTGrOy2lmfZw@public.gmane.org>
 Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,30 +19,19 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Vince Herried <vherried-rEckef8uG3NTGrOy2lmfZw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-=2D----BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Tuesday 11 January 2005 14:10, Vince Herried wrote:
+> Help, I can't unsubscribe.
+> there are no buttons to click to send me my old password.
 
+https://lists.sourceforge.net/lists/listinfo/acpi-devel
+get to the bottom text-box and enter your e-mail, then press "Edit Options"
 
-Help, I can't unsubscribe.
-there are no buttons to click to send me my old password.
-
-
-
-=2D --=20
-Vince Herried
-
-GPG keyID 0xD004D08366 (8366 F97C AE0A 59AA CB14  952D 85C6 304A D004 D001)
-gpg --keyserver pgp.mit.edu --recv-keys D004D001
-=2D----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQFB49A8hcYwStAE0AERAtXUAJwPNy4PVoauRRcWjdY+KQD0KWMT2ACfbjcj
-jJlSjnS0FibJoQLnDUm3JQg=3D
-=3DVvwq
-=2D----END PGP SIGNATURE-----
+best,
+Jeroen
 
 
 -------------------------------------------------------
