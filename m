@@ -1,16 +1,12 @@
-From: Karl Hegbloom <hegbloom-tbDHPZwbsQQ@public.gmane.org>
-Subject: Re: ACPI support for VIA chipsets
-Date: Wed, 12 May 2004 01:43:44 -0700
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: C3 support w/o ARB_DIS (P4-M on i845)
+Date: Wed, 12 May 2004 12:25:27 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1084351424.4264.1.camel@journeyhawk.localdomain>
-References: <200405121520.14811.meaton@vasco.com>
-	 <44701.152.91.8.11.1084342478.squirrel@www.dreamcraft.com.au>
-	 <1084343787.8720.6.camel@alexanders.isacson.dyndns.info>
+Message-ID: <20040512102527.GA8050@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1084343787.8720.6.camel-y2PnNNZjvYeRlo3bEW3KAVbn1xu3HSh2Qj1kJjSDd2k@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -22,16 +18,39 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2004-05-12 at 08:36 +0200, Alexander Isacson wrote:
-> Are there any known workarounds for the radeon chip? I have an Radeon
-> Mobility 9200. In case there are any where can I read about them?
+Hi,
+I've just noticed that FADT shows:
+P_LVL2_LAT:       90
+P_LVL3_LAT:       300
 
-I saw some stuff about that on the dri.sf.net wiki, under
-PowerManagement.
+for my P4-M processor, whereas /proc/acpi/processor/*/power shows:
+active state:            C2
+default state:           C1
+bus master activity:     00000000
+states:
+    C1:                  promotion[C2] demotion[--] latency[000] usage[00294320]
+   *C2:                  promotion[--] demotion[C1] latency[090] usage[02552774]
+    C3:                  <not supported>
+
+and /proc/acpi/processor/*/info shows:
+processor id:            0
+acpi id:                 1
+bus mastering control:   no
+power management:        yes
+throttling control:      yes
+performance management:  yes
+limit interface:         yes
+
+So, it seems there is some C3 support, but it is not used due to lack of
+bus-mastering control (PM2_CNT_BLK is 0). However, the flags section in the
+FADT indicates that WBINVD is supported. The comment in processor.c says
+the possibility of using C3 in the absence of ARB_DIS must be investigated.
+What is the current status? Any obvious caveats for implementation?
+Best regards,
 
 -- 
-Karl Hegbloom <hegbloom-tbDHPZwbsQQ@public.gmane.org>
-
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
