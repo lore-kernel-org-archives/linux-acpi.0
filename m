@@ -1,12 +1,11 @@
-From: Nathan Gray <n8gray-7GExONQZ6ZKVc3sceRu5cw@public.gmane.org>
-Subject: Re: DSDT in initrd
-Date: Wed, 21 May 2003 00:23:12 -0700
+From: sjb <ottaky-XuTx12Z7TonQT0dZR+AlfA@public.gmane.org>
+Subject: best acpi solution
+Date: Wed, 21 May 2003 08:46:26 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <baf9df$ro3$1@main.gmane.org>
-References: <A5974D8E5F98D511BB910002A50A6647054FC40A@hdsmsx103.hd.intel.com> <Pine.LNX.4.53.0305191725350.9728@dynast.gaugusch.at> <20030520180149.GJ31518@parcelfarce.linux.theplanet.co.uk> <Pine.LNX.4.53.0305202002180.22586@tweety.gaugusch.at>
+Message-ID: <3ECB3CE2.5000400@ottaky.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -16,39 +15,40 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Markus Gaugusch wrote:
+Hi all,
 
-> On May 20, Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-> wrote:
->> No.  Linus will take one look at it and vomit.
-> Because I'm scanning raw initrd data? Can anybody give me hints or a
-> better solution? I'm willing to improve it, but I don't think that it is
-> easy to do.
+I have a Sony Vaio U1 that, until yesterday, was running a Linux distro 
+with functional ACPI. Sadly, the kernel I was using was compiled by 
+somebody else, so I have very little idea what he actually did to make 
+it. Details ..
 
-I continue to think that the proper solution is a separate kernel parameter
-acpi_tables=/boot/tables.??? (with credit to the person who generalized
-this idea from the dsdt to all tables).  I know you're concerned about fs
-drivers not being around, but if the kernel can find the initrd on the disk
-it should be able to find other files somehow.  
+http://www.ottaky.com/vaiou1.php
 
-It depends on what you think the initrd is for, though.  If it's just a
-generic pseudo-disk for early boot time then putting the acpi tables in is
-sensible, but if you think that certain specific things (e.g. modules)
-"belong" in it while others don't then maybe it'll be more of an issue.  I
-guess my next question would be, is there a filesystem in the initrd, and
-if so can you implement your patch in a way that respects the filesystem
-abstraction rather than scanning the raw bytes.  I'm not much of a kernel
-hacker myself, but I can see how people would be uncomfortable with the
-precedent it would set to allow that kind of raw byte scanning.
+I've just upgraded to SuSE 8.2 (kernel 2.4.20) and the ACPI is broken - 
+it's "partially" installed. All the hardware works (AFAIK), but there's 
+no power management information available through /proc/acpi.
 
-Cheers,
--Nathan
--- 
->>>-- Nathaniel Gray -- Caltech Computer Science ------>
->>>-- Mojave Project -- http://mojave.cs.caltech.edu -->
+So .. I'm wondering what the best (easiset) way to get ACPI working is.
+
+Can I download the 2.4.20 kernel source, apply the 2.4.20 acpi patch 
+from sourceforge and cross my fingers?
+
+Or use the DSDT in intird patch?
+
+If there's a walk through somewhere on the interweb for ACPI kernel 
+compiling newbies, a pointer to it would be great ;-)
+
+Many thanks
+
+sjb
+
+
+
+
+
 
 
 
