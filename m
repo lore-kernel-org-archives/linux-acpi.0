@@ -1,11 +1,14 @@
-From: SLIVER <sliver-qqXEv8jiLWqhPH1hqNUYSQ@public.gmane.org>
-Subject: Problem with Compaq Evo N110
-Date: Thu, 22 Aug 2002 15:28:24 +0200
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Problem with Compaq Evo N110
+Date: Thu, 22 Aug 2002 16:23:51 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <5.1.0.14.2.20020822145413.00aa39f0@mail.olografix.org>
+Message-ID: <20020822142351.GC24939@poup.poupinou.org>
+References: <5.1.0.14.2.20020822145413.00aa39f0@mail.olografix.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5.1.0.14.2.20020822145413.00aa39f0-bEMAEpuhR655giDkELQJ8R2eb7JE58TQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,47 +17,40 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: SLIVER <sliver-qqXEv8jiLWqhPH1hqNUYSQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello.
-I have a problem to work ACPI on my laptop because the pc doesn't find the 
-battery and other device
-You can download my stuffs at http://nirvana.cuore.org/acpi/ (the dump 
-obtained with pmtools and other information)
-My laptop is Compaq Evo N110 with Slackware Linux 2.4.18 + latest kernel 
-patch (pentium Celeron)
-you can help me? :D
+Hi, Lucas.
 
-Thanks for the support :)
+On Thu, Aug 22, 2002 at 03:28:24PM +0200, SLIVER wrote:
+> Hello.
+> I have a problem to work ACPI on my laptop because the pc doesn't find the 
+> battery and other device
+> You can download my stuffs at http://nirvana.cuore.org/acpi/ (the dump 
+> obtained with pmtools and other information)
+> My laptop is Compaq Evo N110 with Slackware Linux 2.4.18 + latest kernel 
+> patch (pentium Celeron)
+> you can help me? :D
+> 
+> Thanks for the support :)
+>
 
-Luca Memini
-ps: Sorry for the my horrible english :|
+It seems that, at the read of your dmesg, your DSDT has the (in)famous
+bug 'Scope(_SB)' somewhere instead of 'Scope(\_SB)'.
 
-----// Session Log
-dreams@norad:~$ uname -a
-Linux norad 2.4.18 #4 Thu Aug 8 17:37:03 CEST 2002 i686 unknown
+Could you please put in your web site the content of:
 
-dreams@norad:~$ acpi -V
-No support for device type: battery
-No support for device type: thermal
-No support for device type: ac_adapter
+./acpidump DSDT > the_dstdt (or any name you choose)
 
-dreams@norad:~$ ls /proc/acpi/
-alarm  button  debug_layer  debug_level  dsdt  embedded_controller  event 
-fadt  info  power_resource  processor  sleep
----// End
+It could help me in order to fix at least this bug.
 
+Cheers,
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-L'artista si riconosce perche' a  differenza della gente
-comune  e' riuscito a rimanere bambino.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-HomePage avaible: http://www.olografix.org/sliver
-Webmaster: http://www.cuore.org, http://www.lasintesi.org
-Project: http://disastro.cuore.org/
-PGP Public Key available: http://www.olografix.org/sliver
-
+-- 
+Ducrot Bruno
+http://www.poupinou.org        Page profaissionelle
+http://toto.tu-me-saoules.com  Haume page
 
 
 -------------------------------------------------------
