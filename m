@@ -1,14 +1,16 @@
-From: Dave Jones <davej-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [Fwd: [PATCH] Don't save state in ACPI on shutdown/reboot]
-Date: Wed, 12 Nov 2003 22:05:59 +0000
+From: Martin Emrich <martin-Lib3zZxmLlyPMHZYdLIcP2D2FQJk+8+b@public.gmane.org>
+Subject: Re: S3 hangs Sony Notebook
+Date: Wed, 12 Nov 2003 23:15:09 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031112220559.GR31026@redhat.com>
-References: <1068567824.24982.21.camel@dhcppc4> <20031111170035.GD29175@poupinou.org>
+Message-ID: <1068675309.8725.5.camel@garrett.darkzone>
+References: <1068584857.1419.11.camel@garrett.darkzone>
+	 <3FB2A7E6.60106@gmx.at>
+Reply-To: emme-K4UpdBpcDjFP6xvG9yNuTA@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20031111170035.GD29175-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <3FB2A7E6.60106-RbZlAiThDcE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,27 +19,28 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ak-h9bWGtP8wOw@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 11, 2003 at 06:00:35PM +0100, Ducrot Bruno wrote:
+Am Mi, den 12.11.2003 schrieb Christoph Plattner um 22:36:
+> I have similar problem on my FSC AmiloD 8820.
+> 
+> But by the way, before you take off the battery and unplug the
+> PSU, try to switch of the notebook by pressing the power button
+> for more than 5 seconds (perhaps even 10sec).
+> As on the newer PCs, the button is a "soft button" and in most
+> cases you can switchoff the system with holding down for such
+> a time (hardware curcuit switches off, if system hangs !).
 
- > > The ACPI code in 2.4 currently saves the machine state as for a 
- > > suspend when doing an reboot or shutdown. This fails on x86-64
- > > on some boxes.
- > > 
- > > Don't save/restore state in ACPI when entering S5.
- > 
- > That break also some i386 boxes.  That why I submitted another patch (do
- > I have to post it again?)
+I know, but the notebook is so badly locked up, that the button does
+nothing. Removing all power sources is the only way.
 
-Do you mean Andi's patch breaks i386 boxes, or this bug also appears
-on i386 ? The former seems unlikely from the look of Andi's patch.
+I could go back to APM, but that would be to easy ... *g*
 
-What does your patch do?
+Ciao
 
-		Dave
+Martin
+
 
 
 -------------------------------------------------------
