@@ -1,13 +1,14 @@
-From: Tony Glader <Tony.Glader-cP9NhJtB8odr1ooMESYBxBZCeNDtXRbv@public.gmane.org>
-Subject: RE: No events when pressing power button
-Date: Thu, 15 Aug 2002 10:30:29 +0300 (EEST)
+From: Faye Pearson <faye-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org>
+Subject: Re: Compaq 1700, 2.4.18, acpi-7,24 - SUCCESS (I think)
+Date: Thu, 15 Aug 2002 11:32:45 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0208151029420.14867-100000@blueberrysolutions.com>
-References: <EDC461A30AC4D511ADE10002A5072CAD0236DD85@orsmsx119.jf.intel.com>
+Message-ID: <20020815103244.GA7621@clara.net>
+References: <15706.48376.457358.298696@chaos.crhc.uiuc.edu> <Pine.GSO.4.21.0208142004370.16304-100000@sediment.umd.edu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD0236DD85-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.GSO.4.21.0208142004370.16304-100000-Bq+f90TzBY23n+kRt3O4EA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,19 +17,43 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Prabhakar Reddy Gudla Venkata Siva <reddyg-3+M4TpyeDAP2fBVCVOL8/A@public.gmane.org>
+Cc: acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 13 Aug 2002, Grover, Andrew wrote:
+Prabhakar Reddy Gudla Venkata Siva [reddyg-3+M4TpyeDAP2fBVCVOL8/A@public.gmane.org] wrote:
+> Graham, nice to see that I am not all alone :) I too have the same status
+> with the acpi-20020726 patch on a similar model (mine is 1720US).
+> 
+> However, my kernel just keeps repeating "schedule_task(): kevent has not
+> started" after the alleged two "PCI Interrupt Link enabled" statements. It
+> never freezes.
 
-> I don't know about people's comfort level with the code, but you might try
-> adding a call to eisa_set_level_irq(<ACPI irq #>) and seeing if that gets
+My kernel would freeze if I enabled Local APIC on Uniprocessor.  Since
+ACPI does the IRQ routing this is probably what is confusing things.
+It would be useful if the one could override the other if it's being
+used.  I make mention of this on my website and my kernel patch's default
+configuration has these options disabled.
 
-Where should I add it? To ex. button.c?
+Other people have mentioned a problem with losing interrupts on some
+models of Compaq - I haven't suffered from this and there is a patch for
+this which someone has made (which since I don't use it hasn't stuck in
+my memory I'm afraid).
+
+I do get the warning about the unknown device, but I ignored it as I
+knew I didn't have the device.  I will remove it from my DSDT now I know
+what's causing it ;)
+
+
+Faye
 
 -- 
-* Tony Glader 
+Faye Pearson,
+Software Development Manager,
+ClaraNET Ltd.       Tel 020 7903 3000
 
+Even God lends a hand to honest boldness.
+		-- Menander
 
 
 -------------------------------------------------------
