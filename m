@@ -1,15 +1,14 @@
-From: Andre Eisenbach <andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org>
-Subject: State of ACPI on my Compaq Presario 2100z
-Date: Wed, 1 Sep 2004 02:24:10 -0700
+From: <susinho-32FzPoaopq1AfugRpC6u6w@public.gmane.org>
+Subject: RE: fan always on: ACPI on IBM ThinkPad R51
+Date: Wed, 01 Sep 2004 10:05:38 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200409010224.10507.andre@eisenbach.com>
+Message-ID: <20040901100349.4B7A28254@smtp.causaencantada.org>
+References: <9DE394C12A921946AEECE1F71944ECD533C34E@pdsmsx404>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart3809453.1AIG61slH7";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <9DE394C12A921946AEECE1F71944ECD533C34E@pdsmsx404>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,71 +17,116 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-thinkpad-l7BEYHA5S10i5T99jlK1Sh2eb7JE58TQ@public.gmane.org
+Cc: "Wang, Zhenyu Z" <zhenyu.z.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
---nextPart3809453.1AIG61slH7
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Thank you for this info.
 
-Dear ACPI team,
+I opened the laptop and found a three wire connector to the fan, wich
+usually means speed control by BIOS. Disconnecting the fan, a "Fan
+failure" appears and booting process stops. So I supose the fan speed
+and switches are controlled by non-ACPI parts of the BIOS.
 
-I've contacted you guys a while ago about the problems with my Compaq Presa=
-rio=20
-2100, back then specifically my problems with a slowdown when running on=20
-battery and suspend problems. I even soldered up some parallel port LED's=20
-back then, but never got to put them to good use.
+In this case, adding a fan device in the dsdt could make ACPI handle the
+fan?
+Is this possible, or the only way is to modify the BIOS?
 
-Since then, ACPI is working even worse than before, now the notebook doesn'=
-t=20
-shut down properly anymore. The last message is "Power off." (when doing=20
-shutdown -h now), or "Sending acpi_power_off" (when doing echo -n disk=20
-> /sys/power/state).
+Suso.
 
-Battery, AC, thermal zone and CPU info works fine.
 
-Suspending to memory suspends the notebook, but opening the lid again (or=20
-pressing the power button) only results in a sub-second wake-up (fan starts=
-,=20
-hd starts ever so slightly, lcd stays off), then all goes dark again -=20
-everything off. Pressing the power button again just starts regular boot.
 
-Suspending to disk seems to work with every module unloaded and outside of =
-X.=20
-Trying the same from within X is a totally different (ugly) problem=20
-alltogether. But that's not important to me anyway.
+O 31/8/2004, "Wang, Zhenyu Z" <zhenyu.z.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> escribiu:
 
-I'm currently running kernel 2.6.9-rc1-mm2 (acpi 20040816).
-
-As I did back then, I am very interested in helping out troubleshooting the=
-=20
-problem. I am a software developer, but I just don't know where to start=20
-here. If somebody wishes to speculate what may be wrong (with suspend/powe=
-=20
-off) from a birds-eye view, I might find a place to start my journey into=20
-ACPI.
-
-But in any case, thanks to all of you for your continued hard work - you gu=
-ys=20
-are truly an asset to the open source community!
-
-Thanks,
-   Andre
-
---nextPart3809453.1AIG61slH7
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.9.10 (GNU/Linux)
-
-iD8DBQBBNZU6tofNKe8dDvARAqBBAJ4qJ/GX9hjiHezYtef6DuSzo6rSGACeJ9vY
-0Me8HUmW/4IU3ggMmCmXSUY=
-=PYxY
------END PGP SIGNATURE-----
-
---nextPart3809453.1AIG61slH7--
+>There is no fan device in your dsdt. That means ACPI fan driver couldn't
+>handle it.
+>
+>-----Original Message-----
+>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-admin@lists.=
+sourceforge.net] On Behalf Of susinho-32FzPoaopq1AfugRpC6u6w@public.gmane.org
+>Sent: 2004=1B$BG/=1B(J8=1B$B7n=1B(J31=1B$BF|=1B(J 23:07
+>To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: [ACPI] fan always on: ACPI on IBM ThinkPad R51
+>
+>Hi all. This is my first message to this list.
+>
+>I recently owned an IBM Thinkpad R51 1830-BG8 (P Mobile 1.5 with ATI
+>Radeon M 7500). After wiping the XP thingie, I installed a GNU/ Linux
+>Debian (sarge) and all works *fine* except the cooling fan, wich is
+>always on making a really anoying noise: after started at 39 C the fan
+>doesn't stop, even when the machine doing nothing.
+>
+>The first thing I tryed was to update the BIOS from 3.05a (the original
+>one shipped with the machine) to 3.06f wich theoretycally fixes the fan
+>noise problems. But the behaviour of the machine was exactly the same
+>after the BIOS update. I uploaded both (buggy) IBM original DSDTs for
+>reference:
+>
+>http://acpi.sourceforge.net/dsdt/tables/IBM/R51_1830-BG8/IBM-R51_1830-BG8-3.=
+05a-original.asl.gz
+>http://acpi.sourceforge.net/dsdt/tables/IBM/R51_1830-BG8/IBM-R51_1830-BG8-3.=
+06f-original.asl.gz
+>
+>following the HOWTOs, I fixed the last one (I don't understand what I
+>did, but at least iasl says no errors and no warnings after the fix). I
+>included the hex table in the kernel, but after sucesfully loaded, the
+>behaviour still remains the same one. Also I tryed this modified version
+>of the 3.03 BIOS DSDT
+>
+>http://acpi.sourceforge.net/dsdt/tables/IBM/R51/IBM-R51-3.03-custom.asl.gz
+>
+>, but my machine reboots as critical trip points appears to be set to
+>-273 C.
+>
+>I did all my tests with 2.6.6, 2.6.7 and 2.6.8 debian patched kernels.
+>The system manually suspends ok (to memory and disk with swsusp2).
+>Cpufreq works ok, with powernowd the processor is always at the minimum
+>frecuency (600000 MHz) and C3 state. Setting the throttling to 7
+>doesn't changes nothing (well, the machine goes slowly, but the fan is
+>still on). The only hot chip is the graphics one, now managed by the
+>radeonfb driver: but it is hot anyway, even without kernel support,
+>without AGP and DRI, X or text mode.
+>
+>I was reading the ACPI spec in the thermal side, but modifying passive
+>trip points has no effect, and active cooling mode doesn't appear to be
+>available, I don't know how to activate it. Also the /proc/acpi/fan/
+>directory is empty.
+>
+>cat /proc/acpi/thermal_zone/THM0/trip_points (only shows THM0)
+>critical (S5):           94 C
+>passive:                 92 C: tc1=3D5 tc2=3D4 tsp=3D600 devices=3D0xdfe2e22=
+8
+>
+>cat /proc/acpi/thermal_zone/THM0/cooling_mode
+>cooling mode:            passive
+>
+>So, does anyone of you know how can I modify the fan starting/ stopping
+>points? Is it a lack of the ACPI support, or perhaps a fix to be done in
+>the DSDT definition? both?
+>
+>thank you.
+>
+>
+>-------------------------------------------------------
+>This SF.Net email is sponsored by BEA Weblogic Workshop
+>FREE Java Enterprise J2EE developer tools!
+>Get your free copy of BEA WebLogic Workshop 8.1 today.
+>http://ads.osdn.com/?ad_idP47&alloc_id=10808&op=3Dick
+>_______________________________________________
+>Acpi-devel mailing list
+>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>
+>
+>-------------------------------------------------------
+>This SF.Net email is sponsored by BEA Weblogic Workshop
+>FREE Java Enterprise J2EE developer tools!
+>Get your free copy of BEA WebLogic Workshop 8.1 today.
+>http://ads.osdn.com/?ad_id=3D5047&alloc_id=3D10808&op=3Dclick
+>_______________________________________________
+>Acpi-devel mailing list
+>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
