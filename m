@@ -1,13 +1,12 @@
-From: Prabhakar Reddy Gudla Venkata Siva <reddyg-3+M4TpyeDAP2fBVCVOL8/A@public.gmane.org>
-Subject: IRQ-Problem on Compaq 1720US, 2.4.18+acpi-7,24 - Help
-Date: Wed, 14 Aug 2002 08:08:16 -0400 (EDT)
+From: Huw Hawkins <hrhawk-JGs/UdohzUI@public.gmane.org>
+Subject: Re: IRQ-Problem on Compaq 1720US, 2.4.18+acpi-7,24 - Help
+Date: 14 Aug 2002 16:13:03 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.GSO.4.21.0208140752500.14026-100000@sediment.umd.edu>
-References: <20020813120946.GE2605@poup.poupinou.org>
+Message-ID: <1029334384.664.3.camel@U414>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20020813120946.GE2605-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,61 +18,28 @@ List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi list,
 
-I compiled the kernel with the suggested osl.c patch and my corrected
-dsdt.hex.
+I'm no expert on dsdt tables, and in fact I've never tried to debug one
+myself. But it looks to me like a device is defined on line 2292 of the
+original, or 2255 of the modified asl code. as here:
 
-On bootup I get the following error (it is not the complete log):
-**************************************************************************
-pci_bind_0191 [22] acpi_pci_bind: Device 00:00.1d.02 not present in PCI
-namespace
-.....
-.....
-schedule_task(): keventd has not started
-schedule_task(): keventd has not started
-.....
-.....
-
-and that's all abt it.
-**************************************************************************
-
-However, when I did check the output of lspci on a working kernel (w/o
-ACPI) there is no device on 00:00:1d.02. The o/p of lspci is below. I have
-also checked it on my Windoze and there is not dev with that PCI ID.
-
-*********************************lspci on working kernel******************
-[reddyg@localhost ~]# lspci
-00:00.0 Host bridge: Intel Corp. 82830 830 Chipset Host Bridge (rev 02)
-00:01.0 PCI bridge: Intel Corp. 82830 830 Chipset AGP Bridge (rev 02)
-00:1d.0 USB Controller: Intel Corp. 82801CA/CAM USB (Hub  (rev 01)
-00:1d.1 USB Controller: Intel Corp. 82801CA/CAM USB (Hub  (rev 01)
-00:1e.0 PCI bridge: Intel Corp. 82801BAM/CAM PCI Bridge (rev 41)
-00:1f.0 ISA bridge: Intel Corp. 82801CAM ISA Bridge (LPC) (rev 01)
-00:1f.1 IDE interface: Intel Corp. 82801CAM IDE U100 (rev 01)
-00:1f.3 SMBus: Intel Corp. 82801CA/CAM SMBus (rev 01)
-00:1f.5 Multimedia audio controller: Intel Corp. 82801CA/CAM AC'97 Audio
-(rev 01)
-01:00.0 VGA compatible controller: ATI Technologies Inc Radeon Mobility M6
-LY
-02:04.0 Communication controller: Conexant HSF 56k HSFi Modem (rev 01)
-02:05.0 FireWire (IEEE 1394): Texas Instruments: Unknown device 8023
-02:06.0 CardBus bridge: Texas Instruments PCI1410 PC card Cardbus
-Controller (rev 01)
-02:08.0 Ethernet controller: Intel Corp. 82801CAM (ICH3) Chipset Ethernet
-Controller (rev 41)
-*****************************end lspci**********************************
-
-For the "curious minds", the links to some system information files
-can be found here:
-
-http://www.glue.umd.edu/~reddyg/linux/dsdt_info.html
+-----------------------------------------------------------
+Device(USB2) {
+            Name(_ADR, 0x001d0002)
+            OperationRegion(U2CS, PCI_Config, 0xc4, 0x4)
+            Field(U2CS, DWordAcc, NoLock, Preserve) {
+                U2EN,	2
+            }
+.
+etc.
+.
 
 
+Since there seems to be only hubs USB0 and USB1 in lspci, perhaps the
+problem lies here.
 
----
 
-P Reddy
+Huw
 
 
 
