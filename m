@@ -1,87 +1,38 @@
-From: Ramon Casellas <casellas-Ps1RxedxAdk/xqpuW5qSgA@public.gmane.org>
-Subject: Thinkpad ACPI blues... getting better
-Date: Sun, 5 Oct 2003 14:25:53 +0200 (MEST)
-Sender: linux-thinkpad-admin-l7BEYHA5S10i5T99jlK1Sh2eb7JE58TQ@public.gmane.org
-Message-ID: <Pine.SOL.4.40.0310051411450.26646-100000@gervaise.enst.fr>
-Reply-To: linux-thinkpad-l7BEYHA5S10i5T99jlK1Sh2eb7JE58TQ@public.gmane.org
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: dummy read after reading p_lvl2?
+Date: Sun, 5 Oct 2003 11:21:51 -0700 (PDT)
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20031005111720.P474@root.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-thinkpad-admin-l7BEYHA5S10i5T99jlK1Sh2eb7JE58TQ@public.gmane.org>
-Errors-To: linux-thinkpad-admin-l7BEYHA5S10i5T99jlK1Sh2eb7JE58TQ@public.gmane.org
-List-Help: <mailto:linux-thinkpad-request-l7BEYHA5S10i5T99jlK1SuPq5ANwx5YgaFUAG64dwko@public.gmane.org>
-List-Post: <mailto:linux-thinkpad-l7BEYHA5S10i5T99jlK1Sh2eb7JE58TQ@public.gmane.org>
-List-Subscribe: <http://mailman.linux-thinkpad.org/mailman/listinfo/linux-thinkpad>,
-	<mailto:linux-thinkpad-request-l7BEYHA5S10i5T99jlK1SuPq5ANwx5Yg+iqrErVy8Mf2+df2TVCvIA@public.gmane.org>
-List-Unsubscribe: <http://mailman.linux-thinkpad.org/mailman/listinfo/linux-thinkpad>,
-	<mailto:linux-thinkpad-request-l7BEYHA5S10i5T99jlK1SuPq5ANwx5Ygv5P9MsFVvkkBB/WhxxnpHQ@public.gmane.org>
-List-Archive: <http://mailman.linux-thinkpad.org/pipermail/linux-thinkpad/>
-To: linux-thinkpad-l7BEYHA5S10i5T99jlK1Sh2eb7JE58TQ@public.gmane.org
-Cc: Linux on Thnkpad X31 <linux31-+jrgr4Rcu/Jg9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Paul Diefenbaugh <paul.s.diefenbaugh-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+I noticed that the processor.c driver does a dummy read of the xtimer
+register after a read of p_lvl2 or p_lvl3.  Why is this?  Is there some
+kind of delay slot that is never executed?  The spec is very thin on this
+area.  Also, how long does it take to enter level 2 or 3 after the read
+from the p_lvlX register?  The spec says on the same clock cycle but I
+wonder if it means cpu clock or acpi timer clock.
 
-Hi all,
+I've written a Cx driver for FreeBSD and it appears to work although I
+need to measure power consumption to be sure.
 
-I'm a happy owner of an IBM Thinkpad X.31 (with latest 2.01a BIOS),
-currently running either 2.4.22pre6 or 2.6.0-test6-mm4 depending on the
-moon phase. I've had a love-hate relationship with ACPI, and fortunatly it
-looks like recent versions (20030918) are getting better and work (swsusp,
-hibernate, etc, are other related problems...).
-
-However, when booting either kernel, I got:
-Linux gandalf 2.6.0-test6-mm4 #1 Sun Oct 5 11:46:17 CEST 2003 i686
-Intel(R) Pentium(R) M processor 1400MHz GenuineIntel GNU/Linux
-gandalf casellas$ dmesg | grep ACPI
- BIOS-e820: 000000003ff60000 - 000000003ff78000 (ACPI data)
- BIOS-e820: 000000003ff78000 - 000000003ff7a000 (ACPI NVS)
- user: 000000003ff60000 - 000000003ff78000 (ACPI data)
- user: 000000003ff78000 - 000000003ff7a000 (ACPI NVS)
-ACPI: RSDP (v002 IBM                                       ) @ 0x000f6b40
-ACPI: XSDT (v001 IBM    TP-1Q    0x00002011  LTP 0x00000000) @ 0x3ff6b67d
-ACPI: FADT (v003 IBM    TP-1Q    0x00002011 IBM  0x00000001) @ 0x3ff6b700
-ACPI: SSDT (v001 IBM    TP-1Q    0x00002011 MSFT 0x0100000e) @ 0x3ff6b8b4
-ACPI: ECDT (v001 IBM    TP-1Q    0x00002011 IBM  0x00000001) @ 0x3ff77e0c
-ACPI: TCPA (v001 IBM    TP-1Q    0x00002011 PTL  0x00000001) @ 0x3ff77e5e
-ACPI: BOOT (v001 IBM    TP-1Q    0x00002011  LTP 0x00000001) @ 0x3ff77fd8
-ACPI: DSDT (v001 IBM    TP-1Q    0x00002011 MSFT 0x0100000e) @ 0x00000000
-ACPI: Subsystem revision 20030918
-ACPI: Found ECDT
-    ACPI-0165: *** Warning: The ACPI AML in your computer contains errors,
-please nag the manufacturer to correct it.
-******************************************
-    ACPI-0168: *** Warning: Allowing relaxed access to fields; turn on
-CONFIG_ACPI_DEBUG for details.
-ACPI: Interpreter enabled
+Thanks,
+Nate
 
 
-I know I can always path the DSDT table, but it is a painful process,
-since there is no simple way (read "oneliner") in the official mainstream
-kernels (I really like the initrd way to do that!)
-
-So my question is : Who should I nag? I assume there must be people from
-IBM that watch these mailing lists. I also know that IBM does not
-officially support Linux on thinkpads (which is unfortunate, given their
-other great contributions to Linux)...
-
-
-I've though of some "IBM fix ACPI in BIOS petition online" process. What
-do you think? Would you support such an initiative? In that case, we could
-turn on "ACPI debug messages" for different thinkpad models and send a big
-fat full report detailing which operation regions are not ok, missing
-return values, etc.
-
-Am I being too optimistic/idealist here? Has this been tried before with
-no success?
-
-Best regards,
-
-R.
-
-
-// --------------------------------------------------------
-// Ramon Casellas 		GET/ENST/INFRES/RHD/C206
-
-
--- 
-The linux-thinkpad mailing list home page is at:
-http://mailman.linux-thinkpad.org/mailman/listinfo/linux-thinkpad
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
