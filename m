@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ACPI HOWTO
-Date: Wed, 26 May 2004 10:41:05 +0800
+Subject: RE: [PATCH][RFC] Add C3 support to P4-M / ICH-M chipsets
+Date: Wed, 26 May 2004 11:06:59 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F84047375CB@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F840473761B@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,29 +17,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Rockefeller, Harry" <harryr-UjZhlPPWhclBDgjK7y7TUQ@public.gmane.org>, acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 =20
->
->I think I have found an acpi bug.  How do I report it?
+>Rationale: There seems to be a number of OEMs who forget to supply the
+>proper PM2_CNT block address in the FADT, while at the same=20
+>time supplying
+>proper P_LVL3_LAT. If we stick to the specification, this=20
+>means that C3 is
+>supported only through WBINVD instruction. As it turns out, such an
+>implementation is tricky and unreliable.=20
 
-File it in ACPI category on bugzilla.kernel.org, if you are sure it is
-ACPI bug.
-
->What logs, kernel debug parameters to enhance logs, etc.
->are important to the acpi developers?
->
-
-Just need the information that can clearly describe the problem.
-
->I got acpi working (finally) on ... notebook PC.  Does anyone else
->care?  Should I report success to linux-on-laptops or tuxmobile?
-
-Great, Post it on acpi ML.
-
-Thanks,
-Luming
+Why it is unreliable to use WBINVD for supporting C3=20
+without using ARB_DIS feature?
 
 
 -------------------------------------------------------
