@@ -1,13 +1,14 @@
-From: "Dena P. Sneed" <sneedbd-amF47PtQAFXjZSl+XFkR3A@public.gmane.org>
-Subject: New! Vìagra soft tabs.
-Date: Fri, 08 Oct 2004 07:52:21 +0700
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: smartbattery support
+Date: Fri, 8 Oct 2004 10:29:23 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <2f0401c4acd1$bbc62e43$7a46b81c@likon.com.hk>
+Message-ID: <20041008082923.GD6785@poupinou.org>
+References: <16A54BF5D6E14E4D916CE26C9AD30575456AB2@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD30575456AB2-4yWAQGcml66iAffOGbnezLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -16,24 +17,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello!
+On Thu, Oct 07, 2004 at 09:43:20PM +0800, Li, Shaohua wrote:
+> You needed an EC-based SMBus host driver (IIRC, some Acer latops defined
+> such host in DSDT). ACPI spec has the definition for EC-based SMBus host
+> interface. Second, a sensor driver for reading smart battery information
+> is required.
+> 
 
-We would like to offer V_I_A_G_R_A soft tabs,
+Some times ago, for a toshiba laptop, I began an i2c-acpi-ec driver:
+ftp://ftp.poupinou.org/acpi/i2c-acpi-ec.c
 
-These pills are just like regular Vìagra but they are specially formulated 
-to be soft and dissolvable under the tongue. The pill is absorbed at the 
-mouth and enters the bloodstream directly instead of going through the stomach. 
-This results in a faster more powerful effect which lasts as long as the normal.
+It's a little bit buggy though but this allowed for me to access the sensors
+behind the EC.  The main trouble was that there were not actually a
+smbus declared in the ACPI namespace and it was needed to hardcode where
+is the base adress in the EC space.
+You may try to start with that maybe, and I guess a real acpi_ec_smb_probe
+function must be written.
 
-Soft Tabs also have less sidebacks (you can drive or mix alcohol drinks with them).
+Note that I think EC burst should be used, or else this is very very slow. So
+the real trouble is to get at first EC burst in acpi_ec.
 
-You can get it at: http://virtual-apple.com/st/?coupon
+Cheers,
 
-No thanks: http://virtual-apple.com/rm.html
+-- 
+Bruno Ducrot
 
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
