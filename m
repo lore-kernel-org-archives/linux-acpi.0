@@ -1,12 +1,12 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Suspend 2 ram gone with latest bk-acpi patch
-Date: Thu, 24 Mar 2005 10:05:05 +0800
-Message-ID: <16A54BF5D6E14E4D916CE26C9AD305750178B055@pdsmsx402.ccr.corp.intel.com>
+From: Ferenc Szalma <szalmaf-JAjqph6Yjy97jm546uhsrg@public.gmane.org>
+Subject: Re: swsusp: FATAL: cannot find swap device, try swapon -a!
+Date: Wed, 23 Mar 2005 21:12:59 -0500 (EST)
+Message-ID: <Pine.GSO.4.61.0503232104010.29583@z.glue.umd.edu>
+References: <Pine.GSO.4.61.0503231901190.15962@z.glue.umd.edu>
+ <1111626849.14853.324.camel@desktop.cunningham.myip.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Content-class: urn:content-classes:message
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+In-Reply-To: <1111626849.14853.324.camel-r49W/1Cwd2ff0s6lnCXPX/uOuaPYTxhvJwvTLr3MMZM@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,25 +16,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Nigel Cunningham <ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>
+Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Could you please just try Len's tree=20
-(http://linux-acpi.bkbits.net:8080/to-akpm).=20
-There are some changes in mm tree which is unsynchronized.
+Hi,
 
->I suspect that this is related to the big changes in ACPI code (I am
->also seeing a lot of new messages while booting from the ACPI subsystem
->like:
->ACPI: Can't get handler for 0000:00:00.0
->ACPI: No ACPI bus support for 00:01
->ACPI: No ACPI bus support for 1-0:1.0
->etc
-This isn't related to suspend/resume. It's just some warning. Maybe we
-should make it as a debug message.
+On Thu, 24 Mar 2005, Nigel Cunningham wrote:
 
-Thanks,
-Shaohua
+> Pavel's:  resume=/dev/hda3
+> Suspend2: resume2=swap:/dev/hda3 (or just resume2=/dev/hda3 if swap is
+> the only writer)
+>
+> If you remove the "swap:", you should be a bit closer to being in
+> business.
+
+Thanks a lot. Removing "swap:" has helped (after spending the whole last 
+weekend trying to install swsusp2 with 5 different kernels ... etc.)
+
+Now I just do not understand why suspend-to-ram does not work. It 
+apparently suspends, and then turning the machine on again, it just boots 
+up as if it had not been suspended, except that it has to repair the 
+file system. If anybody has an idea about this, it would be appreciated.
+
+Thanks, Ferenc
 
 
 -------------------------------------------------------
