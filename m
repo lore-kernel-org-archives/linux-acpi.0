@@ -1,8 +1,8 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: flashing a different bios-- is it safe?
-Date: Wed, 18 Dec 2002 13:21:49 -0800
+Subject: RE: gettimeofday() moving backwards
+Date: Wed, 18 Dec 2002 13:23:57 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A5BA@orsmsx119.jf.intel.com>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A5BB@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,28 +14,26 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: 'James D Strandboge' <jstrand1-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org>, Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: 'Paul Richards' <p.a.richards-Y3tGgqFSo3OFxr2TtlUqVg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: James D Strandboge [mailto:jstrand1-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org] 
-> I have a dell inspiron 8200, which has a bios that sort of works with
-> acpi, but will sometimes crash (see previous emails).  I have 
-> looked at
-> my dsdt, and it is extraordinarily cryptic.
+> From: Paul Richards [mailto:p.a.richards-Y3tGgqFSo3OFxr2TtlUqVg@public.gmane.org] 
+> I am using linux kernel v2.4.20 with ACPI patch dated 2002-12-05.
 > 
-> Today, I was googling for information about all of this, and 
-> came across
-> somebody flashing their insprion 8200 bios with the bios for the dell
-> latitude c840.  This person was doing this to be able to use the port
-> replicator properly, and was running windows.  He reported success and
-> no problems.  This seems like a crazy thing to do-- is it safe?  I
-> figured I may have to flash back to the old bios, but was worried that
-> this might break something permanently?
+> I have noticed that if my processor changes state (800Mhz up 
+> to 1200Mhz say)
+> then gettimeofday() behaves weirdly.  It runs smoothly but 
+> every now and again
+> (on the order of 10 times a second) it makes a correction.  
+> If I have gone from
+> 800Mhz to 1200Mhz then the correction is backwards, otherwise 
+> it makes a forward
+> jump..
 
-You could very well break something permanently, yes. In fact, I'd consider
-it likely.
+Hmm, can you mention this on the cpufreq mailing list?
+cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org .
 
--- Andy
+Thanks -- Regards -- Andy
 
 
 -------------------------------------------------------
