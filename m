@@ -1,45 +1,49 @@
-From: Dave Jones <davej-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: Intel ACPI
-Date: Wed, 5 Feb 2003 13:30:49 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030205133049.A18324@suse.de>
-References: <4.3.2.7.2.20030204000748.00b62270@mail.dns-host.com> <20030204094540.GE1205@poup.poupinou.org> <20030204132251.E16744@suse.de> <20030204154359.GH1205@poup.poupinou.org> <20030204164641.A31886@suse.de> <20030204155548.GI1205@poup.poupinou.org> <3E40AF32.AA177847@monetplus.cz>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: [PATCH] s4bios for 2.5.59 + apci-20030123
+Date: Tue, 4 Feb 2003 23:10:04 +0100
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <20030204221003.GA250@elf.ucw.cz>
+References: <F760B14C9561B941B89469F59BA3A847137FFE@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <3E40AF32.AA177847-Bh/+Xfn7orxQjibfaplwYw@public.gmane.org>; from skalak-Bh/+Xfn7orxQjibfaplwYw@public.gmane.org on Wed, Feb 05, 2003 at 07:29:06AM +0100
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?iso-8859-1?Q?Zden=ECk_OGAR_Skal=E1k?= <skalak-Bh/+Xfn7orxQjibfaplwYw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <F760B14C9561B941B89469F59BA3A847137FFE-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Feb 05, 2003 at 07:29:06AM +0100, Zdenìk OGAR Skalák wrote:
- > 	So could we add kernel boot argument to allow changig/overriding the \_OS
- > string? Eg. acpi_os="Microsoft Windows NT" to allow us to play with it without
- > rekompiling the kernel ?
+Hi!
 
-A bootarg does seem to be the most sensible way to do it. You need
-to set it early enough so that you catch everything. Doing it later
-through a sysctl or the like would be too late, and doing it statically
-at compile time would make it useless for vendor kernels.
+> > This patch is for s4bios support in 2.5.59 with acpi-20030123.
+> > 
+> > This is the 'minimal' requirement.  Some devices (especially the
+> > IDE part) are not well resumed.  Handle with care..
+> > 
+> > Note also that the resuming part (I mean IDE) was more stable
+> > with an equivalent patch when I tested with 2.5.54 (grumble 
+> > grumble)...
+> > 
+> > I think also that it is a 'good' checker for devices power management
+> > in general...
+> 
+> I'd really rather just have S4OS (aka swsusp) in 2.5 patches -- if the
+> OS can do S4 on its own, that is really preferable to S4bios.
 
-        Dave
+Well, we already have S4OS, and having S4OS does not mean we can't
+have S4bios.
 
+Some people apparently want slower suspend/resume but have all caches
+intact when resumed. Thats not easy for swsusp but they can have that
+with S4bios. And S4bios is usefull for testing device support; it
+seems to behave slightly differently to S3 meaning better testing.
+
+If you already have hibernation partition from factory, which you are
+using anyway for w98, S4bios is easier to use and more foolproof
+(i.e. you can't boot into wrong kernel which does not resume but does
+fsck instead).
+
+								Pavel
 -- 
-| Dave Jones.        http://www.codemonkey.org.uk
-| SuSE Labs
-
-
--------------------------------------------------------
-This SF.NET email is sponsored by:
-SourceForge Enterprise Edition + IBM + LinuxWorld = Something 2 See!
-http://www.vasoftware.com
+Worst form of spam? Adding advertisment signatures ala sourceforge.net.
+What goes next? Inserting advertisment *into* email?
