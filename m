@@ -1,51 +1,67 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [ACPI] RE: PATCH/RFC: driver model/pmcore wakeup hooks (1/4)
-Date: Wed, 20 Oct 2004 10:02:57 -0700
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <200410201002.58172.david-b@pacbell.net>
-References: <16A54BF5D6E14E4D916CE26C9AD3057559A042@pdsmsx402.ccr.corp.intel.com> <200410192251.14740.dtor_core@ameritech.net>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: acpi-thermal: fix confusing define
+Date: Wed, 20 Oct 2004 20:12:21 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20041020181221.GA25015@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S268750AbUJTRNa@vger.kernel.org>
-In-Reply-To: <200410192251.14740.dtor_core@ameritech.net>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-To: Dmitry Torokhov <dtor_core@ameritech.net>
-Cc: acpi-devel@lists.sourceforge.net, "Li, Shaohua" <shaohua.li@intel.com>, "Brown, Len" <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, linux-kernel@vger.kernel.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Rusty trivial patch monkey Russell <trivial-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>, Andrew Morton <akpm-LJ1TwQYPT6cQrrorzV6ljw@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday 19 October 2004 20:51, Dmitry Torokhov wrote:
-> On Tuesday 19 October 2004 04:11 am, Li, Shaohua wrote:
-> > A final solution is device core adds an ACPI layer. That is we can link
-> > ACPI device and physical device. This way, the PCI device can know which
-> > ACPI is linked with it, so the PCI API can use specific ACPI method. 
+Hi!
 
-The driver model core has platform_notify hooks for device add/remove,
-and ACPI should kick in that way ... they might well need tweaks though.
+We have PASSIVE, ACTIVE and CRT cooling policies... Ouch, the last one
+should probably be called CRITICAL otherwise everyone thinks
+"TV?". This patch fixes it, please apply,
+								Pavel
+
+--- foo/drivers/acpi/thermal.c	9 Oct 2004 04:09:18 -0000	1.27
++++ foo/drivers/acpi/thermal.c	20 Oct 2004 17:53:41 -0000
+@@ -60,8 +60,8 @@
+ #define ACPI_THERMAL_NOTIFY_HOT		0xF1
+ #define ACPI_THERMAL_MODE_ACTIVE	0x00
+ #define ACPI_THERMAL_MODE_PASSIVE	0x01
+-#define ACPI_THERMAL_MODE_CRT   	0xff
++#define ACPI_THERMAL_MODE_CRITICAL		0xff
+ #define ACPI_THERMAL_PATH_POWEROFF	"/sbin/poweroff"
+ 
+ #define ACPI_THERMAL_MAX_ACTIVE	10
+ 
+@@ -953,7 +964,7 @@
+ 		seq_puts(seq, "<setting not supported>\n");
+ 	}
+ 
+-	if ( tz->cooling_mode == ACPI_THERMAL_MODE_CRT )
++	if ( tz->cooling_mode == ACPI_THERMAL_MODE_CRITICAL )
+ 		seq_printf(seq, "cooling mode:	critical\n");
+ 	else
+ 		seq_printf(seq, "cooling mode:	%s\n",
+@@ -1262,7 +1276,7 @@
+ 			tz->cooling_mode = ACPI_THERMAL_MODE_ACTIVE;
+ 		} else {
+ 			/* _ACx and _PSV are optional, but _CRT is required */
+-			tz->cooling_mode = ACPI_THERMAL_MODE_CRT;
++			tz->cooling_mode = ACPI_THERMAL_MODE_CRITICAL;
+ 		}
+ 	}
+ 
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
-> > You are right, we currently haven't a method to reach the goal. To match
-> > a physical device and ACPI device, we need to know the ACPI device's
-> > _ADR and bus.
-> > I have a toy to link the PCI device and ACPI device, and some PCI
-> > function can use _SxD method and _PSx method to get some information for
-> > suspend/resume.
-> > 
-> 
-> The only caveat is that PCI core should not depend on ACPI because it is not
-> available on all platforms, not all world is x86.
-
-RIght!  Maybe something like:
-
-	int pci_enable_wake(pci_dev, on_or_off) {
-		...
-		if (dev->platform_data)
-			platform_enable_wake(dev, on_or_off)
-		...
-	}
-
-That'd call an acpi_enable_wake().  I guess OpenBoot would
-do its thing, and embedded boards could do all kinds of stuff.
-
-- Dave
+-------------------------------------------------------
+This SF.net email is sponsored by: IT Product Guide on ITManagersJournal
+Use IT products in your business? Tell us what you think of them. Give us
+Your Opinions, Get Free ThinkGeek Gift Certificates! Click to find out more
+http://productguide.itmanagersjournal.com/guidepromo.tmpl
