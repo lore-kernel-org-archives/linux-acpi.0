@@ -1,14 +1,12 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [BK PATCH] ACPI updates
-Date: Tue, 12 Aug 2003 18:09:50 -0400
+From: Santiago Garcia Mantinan <manty-gaW6/AuhO2xeoWH0uzbU5w@public.gmane.org>
+Subject: acpi breaking synaptics mouse support on Acer Travelmate 260
+Date: Wed, 13 Aug 2003 00:17:51 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <BF1FE1855350A0479097B3A0D2A80EE009FC3D@hdsmsx402.hd.intel.com>
+Message-ID: <20030812221751.GA2432@man.beta.es>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,50 +15,43 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: petero2-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Yes, this is intentional.
+Hi!
 
-We got complaints about the code duplication in 2.4 as table parsing
-code appeared both in both in mini-acpi (acpitable.c) as well as in the
-acpi driver.  Also, we want to keep 2.4 and 2.6 as similar as possible.
+I recently (the 11th) posted on lkml a message with subject "2.6.0test3
+problems on Acer TravelMate 260 (ALSA,ACPIvsSynaptics,yenta)" on which I
+commented all the major problems I was seing on this machine.
 
-Note that no functionality is lost, the CONFIG_ACPI_HT option simply
-pulls in the CONFIG_ACPI_BOOT table parsing code instead of the largely
-similar code in acpitable.c.
-If there was something you like about acpitable.c that we neglecected to
-learn from and could be used to improve the code in the driver -- let me
-know and we'll improve the code in the driver.  But maintaining two
-versions has already proven to be a mistake.
+I have not received any replies there about the ACPI problem, so I have done
+further testing and I'm posting here hoping this is a better place to give
+this info, if this is not the right place please tell me where could I post
+this (I'm not on the list but given the description my guess was that this
+was the right place).
 
-Thanks,
--Len
+The machine is a PIII mobile at 1GHz with intel chipset (i82801+i830M) 256
+Megs of RAM the mouse is a Synaptics touchpad. The problem is that the mouse
+gets crazy (if using the normal mouse driver) or looses sync (if using the
+synaptics driver). I have looked at the interrupts happening when one moves
+the mouse and the number is much higher (from 3 to 10 times) in 2.6 compared
+with 2.4, also when one stops moving the mouse in 2.6 the interrupts keep on
+happening for half a second or so, while it stops inmediately in 2.4.
 
-> -----Original Message-----
-> From: Matthew Wilcox [mailto:willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org]=20
-> Sent: Tuesday, August 12, 2003 3:14 PM
-> To: Brown, Len
-> Cc: Grover, Andrew; acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
-> Subject: Re: [ACPI] [BK PATCH] ACPI updates
->=20
->=20
-> On Tue, Aug 12, 2003 at 02:55:21PM -0400, Brown, Len wrote:
-> >  arch/i386/kernel/acpi/acpitable.c         |  553 ------------------
-> >  arch/i386/kernel/acpi/acpitable.h         |  260 --------
->=20
-> umm.. are these really supposed to go away?  I thought for 2.4, they
-> would be left intact.
->=20
-> --=20
-> "It's not Hollywood.  War is real, war is primarily not about=20
-> defeat or
-> victory, it is about death.  I've seen thousands and=20
-> thousands of dead bodies.
-> Do you think I want to have an academic debate on this=20
-> subject?" -- Robert Fisk
->=20
+I have tested this in 2.6.0test3 and test2 with and without the latest patch
+available on the acpi.sf.net site, the acpi-20030730-2.6.0-test2.diff.gz
+patch, I have also tested with and without APIC, having always the same
+result. The only way I found to get the mouse working ok was to fully remove
+ACPI, removing only some parts of it was of no use.
+
+Well, hope this helps to put a little bit of light on this problems, if you
+need more info to track this down, you want this as a bug on the bts, or
+whatever, just tell me.
+
+Regards...
+-- 
+Manty/BestiaTester -> http://manty.net
 
 
 -------------------------------------------------------
