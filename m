@@ -1,13 +1,14 @@
-From: Patrick Ale <patrick.ale-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Patching 2.6.9 for custom DSDT
-Date: Fri, 22 Oct 2004 11:07:29 +0200
+From: "Zhu, Yi" <yi.zhu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Patching 2.6.9 for custom DSDT
+Date: Fri, 22 Oct 2004 17:17:48 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <8d158e1f041022020763faf71a@mail.gmail.com>
-Reply-To: Patrick Ale <patrick.ale-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8403BD57D7@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -16,38 +17,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Patrick Ale <patrick.ale-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Good morning all!
+Patrick Ale wrote:
+> In the later case I have a problem since I get the following
+> error when applying the patch:
+> juliana:/usr/src/linux-2.6.9# patch -p1 -i ../osl.diff
+> patching file drivers/acpi/osl.c
+> patch: **** malformed patch at line 21: }
 
-I'd like to try the custom Acer Aspire 1703 DSDT found on the acpi.sf.net site.
+You don't need to patch it since 2.6.9 include this patch.
+You are supposed to set your dsdt path in make menuconfig.
 
-in drivers/acpi/osl.c I see the folloiwing
-
-#ifdef CONFIG_ACPI_CUSTOM_DSDT
-#include CONFIG_ACPI_CUSTOM_DSDT_FILE
-#endif
-
-
-Does this mean I can add the following to the top of the c file?
-
-#define CONFIG_ACPI_CUSTOM_DSDT_FILE "/path/to/dsdt.file"
-#define CONFIG_ACPI_CUSTOM_DSDT
-
-Or do I need the kernel patch mentioned on
-http://acpi.sourceforge.net/wiki/index.php/HowToOverrideTable
-
-In the later case I have a problem since I get the following error
-when applying the patch:
-juliana:/usr/src/linux-2.6.9# patch -p1 -i ../osl.diff
-patching file drivers/acpi/osl.c
-patch: **** malformed patch at line 21: }
-
-
-Thanks in advance for the replies :D
-
-Patrick
+Thanks,
+-yi
 
 
 -------------------------------------------------------
