@@ -1,8 +1,8 @@
-From: "Merle Battle" <merle_battle_tx-SSbqRGHBMvH10XsdtD+oqA@public.gmane.org>
-Subject: Lose your weight. New weightloss loses up to 19%.
-Date: Sat, 31 Jul 2004 14:01:08 +0100
+From: "Garry Fernandez" <garry.fernandezqb-nvdx8u2XelNQFI55V6+gNQ@public.gmane.org>
+Subject: Get $200 bonus at Casino Zeal!
+Date: Sat, 31 Jul 2004 18:53:15 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <c0c601c476fe$0c7f4c28$d3b7963e@unipower.co.uk>
+Message-ID: <4d1b01c4776a$8d16f437$f53d8dc9@mater.org.au>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -19,40 +19,30 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello, I have a special offer for you...
+Hello!
 
-WANT TO LOSE WEIGHT?
+Are you interested in trying out this special offer at
+our internet casino?
 
-The most powerful weightloss is now available
-without prescription. All natural Adipren720
-100% Money Back Guarantée!
+$20 to try our casino, no deposit is necessary!
+At the casino software's cashier enter bonus code: FR93P
 
-- Lose up to 19% Total Body Weight.
-- Up to 300% more Weight Loss while dieting.
-- Loss of 20-35% abdominal Fat.
-- Reduction of 40-70% overall Fat under skin.
-- Increase metabolic rate by 76.9% without Exercise.
-- Burns calorized fat.
-- Suppresses appetite for sugar.
-- Boost your Confidence level and Self Esteem.
+$200 bonus on your first deposit!
+At the casino software's cashier enter bonus code: FMJKU
 
-Get the facts about all-natural Adipren720: http://adipren12.com/
+Let us show you our quality operation, fast payouts,
+generous bonuses, and super friendly around-the-clock
+customer support. We guarantee that you will be
+satisfied.
 
+Click here: http://bigbonus-casino.com 
 
-
-
+Best regards,
+George Lincoln at Casino Zeal.
 
 
 
-
-
----- system information ----
-parties Service for danger associate helpful culturally name 
-contribution all knowledge non-proprietary which formatting) for kinds
-
-system any zh-Hant needed Japan calendars ordering language 
-description Many I-025: There same contributions based request 
-interplay weekday/weekend I-025: sender For review some resources 
+No thanks: http://bigbonus-casino.com/u/
 
 
 
