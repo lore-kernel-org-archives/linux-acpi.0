@@ -1,14 +1,14 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: PCI not restored correctly after suspend to ram
-Date: 19 Mar 2004 14:25:57 -0500
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: [PATCH] fix _MEM handling in Type Specific Flags (resend)
+Date: Fri, 19 Mar 2004 12:36:43 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1079724357.7278.72.camel@dhcppc4>
-References: <200403180935.09436.stefan.doesinger@gym-leoben.asn-graz.ac.at>
+Message-ID: <200403191236.43861.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200403180935.09436.stefan.doesinger-dYJrdcitkgg0+Ua9VpOLR6Q1ief8SNuKXqFh9Ls21Oc@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,64 +17,81 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: stefan.doesinger-dYJrdcitkgg0+Ua9VpOLR6Q1ief8SNuKXqFh9Ls21Oc@public.gmane.org
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matthew Wilcox <willy-+nN6oZZ19oAAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2004-03-18 at 03:35, Stefan D=F6singer wrote:
-> Hello list,
-> I have the following problems with suspend to ram on my Acer Travelmate=
- 803
-> (Centrino) notebook:
-> With the patch for radeon_driver.c(Xfree v. 4.4) I can suspend and resu=
-me my=20
-> notebook. After resume, the settings of most pci devices are not restor=
-ed=20
-> correctly and the devices do not work. See the attached lspci_before_su=
-spend=20
-> and lspci_after_suspend files for details.
-> Devices not working are:
-> *Soundcard(00:1f.5)
-> *All devices on bus 02
-> *The modem, but there's only a non-GPL driver available.
->=20
-> I can get most devices devies to work by setting the pci registers with=
- setpci=20
-> after resume. I use the attached fixpci.sh script to do so. I can get m=
-y=20
-> soundcard, the ethernet card(02:02.0) and the wireless(02:04.0) to work.
+I sent this earlier (Jan 20!), but I don't think I saw any response.
+Just wanted to make sure it's not dropped.  I checked, and it
+still applies cleanly to 2.6.5-rc1.
 
-02:04.0 Network controller: Intel Corp. PRO/Wireless LAN 2100 3B Mini
-PCI Adapter (rev 04)
-
-What wireless driver are you using?
-
-The latest version of ipw2100 from http://ipw2100.sf.net saves and
-restores pci config space across suspend, so this shouldn't be
-necessary. (indeed, that is about all it does, so it needs some work)
-
-Though when I disable that function and S3 suspend/resume my Toshiba,
-the only thing that changes in the ipw2100's config space is the
-interrupt line goes from 0b to ff.  Curious that your interrupt line
-goes from 0a to 00, and that you have other changes too, including the
-5th byte which goes from 16 to 00 -- which disables mastering -- surely
-a deal killer.
-
-#wireless lan
-DEV=3D02:04.0
-echo "Configuring $DEV"
-$SETPCI -s $DEV  04.w=3D0x0116
-$SETPCI -s $DEV  0c.w=3D0x4008
-$SETPCI -s $DEV  10.w=3D0x6000
-$SETPCI -s $DEV  12.w=3D0xd020
-$SETPCI -s $DEV  3c.w=3D0x010a
+It looks like cache_attribute is currently used by hot-plug.
+The current code sets cache_attribute incorrectly (it extracts
+(_MTP | _MEM) when it should extract only _MEM).
 
 
-> I use kernel 2.6.4 and xfree 4.4. I need X to soft-boot the VGA BIOS.
-> I use the pci=3Dnobios kernel options, pci=3Dbios does not help here an=
-d it causes=20
-> crashes on boot under certain conditions
+ACPI: Fix _MEM handling (it's only two bits, not four).
 
+The memory attributes (_MEM) in Type Specific Flags are only two bits,
+not four.  See ACPI spec 2.0c, Table 6-28.
+
+===== drivers/acpi/resources/rsaddr.c 1.15 vs edited =====
+--- 1.15/drivers/acpi/resources/rsaddr.c	Mon Oct  6 10:15:00 2003
++++ edited/drivers/acpi/resources/rsaddr.c	Tue Nov 18 12:43:44 2003
+@@ -149,7 +149,7 @@
+ 		output_struct->data.address16.attribute.memory.read_write_attribute =
+ 				(u16) (temp8 & 0x01);
+ 		output_struct->data.address16.attribute.memory.cache_attribute =
+-				(u16) ((temp8 >> 1) & 0x0F);
++				(u16) ((temp8 >> 1) & 0x03);
+ 	}
+ 	else {
+ 		if (ACPI_IO_RANGE == output_struct->data.address16.resource_type) {
+@@ -347,7 +347,7 @@
+ 
+ 		temp8 |=
+ 			(linked_list->data.address16.attribute.memory.cache_attribute &
+-			 0x0F) << 1;
++			 0x03) << 1;
+ 	}
+ 	else if (ACPI_IO_RANGE == linked_list->data.address16.resource_type) {
+ 		temp8 = (u8)
+@@ -539,7 +539,7 @@
+ 				(u16) (temp8 & 0x01);
+ 
+ 		output_struct->data.address32.attribute.memory.cache_attribute =
+-				(u16) ((temp8 >> 1) & 0x0F);
++				(u16) ((temp8 >> 1) & 0x03);
+ 	}
+ 	else {
+ 		if (ACPI_IO_RANGE == output_struct->data.address32.resource_type) {
+@@ -735,7 +735,7 @@
+ 
+ 		temp8 |=
+ 			(linked_list->data.address32.attribute.memory.cache_attribute &
+-			 0x0F) << 1;
++			 0x03) << 1;
+ 	}
+ 	else if (ACPI_IO_RANGE == linked_list->data.address32.resource_type) {
+ 		temp8 = (u8)
+@@ -926,7 +926,7 @@
+ 				(u16) (temp8 & 0x01);
+ 
+ 		output_struct->data.address64.attribute.memory.cache_attribute =
+-				(u16) ((temp8 >> 1) & 0x0F);
++				(u16) ((temp8 >> 1) & 0x03);
+ 	}
+ 	else {
+ 		if (ACPI_IO_RANGE == output_struct->data.address64.resource_type) {
+@@ -1124,7 +1124,7 @@
+ 
+ 		temp8 |=
+ 			(linked_list->data.address64.attribute.memory.cache_attribute &
+-			 0x0F) << 1;
++			 0x03) << 1;
+ 	}
+ 	else if (ACPI_IO_RANGE == linked_list->data.address64.resource_type) {
+ 		temp8 = (u8)
 
 
 
