@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: PROBLEM: ACPI crashes (2.6.2-rc2-mm1)
-Date: Tue, 3 Feb 2004 16:42:54 +0800
+Subject: RE: PROBLEM: CPU lockup during halt for Shuttle SB61G2 p4 with hyperthreading 2.4.24
+Date: Tue, 3 Feb 2004 16:47:07 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB675@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB676@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,13 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Greg Sarjeant <greg-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Tom Epperly <tomepperly-Wuw85uim5zDR7s880joybQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+> I saw there is a separate list for ACPI issues, and based on the
+> traceback, I thought this might be an ACPI issue. Please Cc me on
+> replies if there are any.
+
+How about UP kernel ?
+
 >=20
-> Looks like this didn't get through last night. Let me try it again.
+> Here is another oops. This one doesn't have the nvidia module loaded.
+> The hardware is identical to my original post.
 >=20
-what's your result?
+
+Would you please file this info on bugzilla.kernel.org in PM/ACPI
+component.
+
+--Luming
+
 
 
 -------------------------------------------------------
