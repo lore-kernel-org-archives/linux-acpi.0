@@ -1,16 +1,14 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: 2.6.9rc2-mm4 oops
-Date: Fri, 1 Oct 2004 09:04:52 -0600
+From: Christian Axelsson <smiler-pw/8oln/LLv0Dx+PQ6IoOQ@public.gmane.org>
+Subject: Re: Acer Travermate 8005 and battery info
+Date: Fri, 01 Oct 2004 18:58:55 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200410010904.52892.bjorn.helgaas@hp.com>
-References: <1096571653.11298.163.camel@cmn37.stanford.edu> <200409301704.28573.bjorn.helgaas@hp.com> <1096594616.11297.688.camel@cmn37.stanford.edu>
+Message-ID: <415D8CCF.8050602@lanil.mine.nu>
+References: <415C270F.5050306@lanil.mine.nu> <20041001102926.GD18786@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1096594616.11297.688.camel-+OMRr5b1p0xegcJQxxnBRDe48wsgrGvP@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20041001102926.GD18786-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -19,29 +17,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Fernando Pablo Lopez-Lezcano <nando-l0SEpsmuUtBegcJQxxnBRDe48wsgrGvP@public.gmane.org>
-Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mingo-X9Un+BFzKDI@public.gmane.org, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Bernhard Rosenkraenzer <bero-9zdaV+82baBg9hUCZPvPmw@public.gmane.org>
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday 30 September 2004 7:36 pm, Fernando Pablo Lopez-Lezcano wrote:
-> On Thu, 2004-09-30 at 16:04, Bjorn Helgaas wrote:
-> > Like Pierre, I was able to reproduce this with DEBUG_PAGEALLOC.
-> > I found a struct acpi_driver in hpet.c that was erroneously marked
-> > __init, and the attached patch fixed the oops for me.  Can you give
-> > this a whirl?
-> 
-> Sorry, I did, and still get the oops. This is it this time (looks the
-> same to me):
-> 
-> inserting floppy driver for 2.6.8.1-1.520.1nov.rhfc2.ccrma
-> Unable to handle kernel paging request at virtual address f8881920
+Pavel Machek wrote:
+> Acer problem, and known one too. Maybe if you fix their DSDT for
+> them.... Go bug Acer.
 
-Can you post your .config?  If you don't have CONFIG_HPET turned
-on, my patch wouldn't help.  Also, can you look up the bad address
-(e.g., f8881920) in /proc/kallsyms?  When I reproduced it, the
-faulting address was hpet_acpi_driver.  Maybe you've found a
-similar bug in a different driver.
+Okay.. Can you explain abit further for one who doesnt know jack about 
+the internals of ACPI? Is it something that is out of mine/our control? 
+Missing specs?
 
+Regards,
+Christian
 
 
 -------------------------------------------------------
