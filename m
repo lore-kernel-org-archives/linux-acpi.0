@@ -1,14 +1,11 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: S3 Resume working, but IDE disk hung
-Date: Sun, 6 Oct 2002 22:53:58 +0200
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [BK PATCH] ACPI updates (resend #1)
+Date: Mon, 7 Oct 2002 13:08:34 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021006205358.GA387@elf.ucw.cz>
-References: <1033746424.32384.41.camel@irongate.swansea.linux.org.uk> <Pine.LNX.4.10.10210042302000.10557-100000@master.linux-ide.org>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DF08@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.10.10210042302000.10557-100000-eTnbHd5RJ1QZiu+GbOt07GD2FQJk+8+b@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,41 +14,93 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: Andre Hedrick <andre-QA/0nRrxPJrNLxjTenLetw@public.gmane.org>
-Cc: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>, "Faraoni, Michael" <Michael.Faraoni-YwRvm6FT6jBDPfheJLI6IQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hi Linus, please do a
 
-[Note, you should look at the patch "to prevent data corruption". It
-could do the trick. At least it should be good as a base.
+	bk pull http://linux-acpi.bkbits.net/linux-acpi
 
-> Prior to suspend one needs to :
-> 
-> 	block all new coming requests.
-> 	flush cache and wait for return.
-> 	disable DMA, and switch to PIO 0.
+This will update the following files:
 
-Why would you want to switch off DMA and go PIO 0?
+ arch/i386/kernel/mpparse.c         |    6 +
+ drivers/acpi/acpi_ksyms.c          |    4 -
+ drivers/acpi/blacklist.c           |    2 
+ drivers/acpi/dispatcher/dsfield.c  |   17 ++--
+ drivers/acpi/dispatcher/dsobject.c |   24 +-----
+ drivers/acpi/dispatcher/dsutils.c  |   16 +---
+ drivers/acpi/dispatcher/dswload.c  |  133
++++++++++++++++++++------------------
+ drivers/acpi/dispatcher/dswscope.c |    6 -
+ drivers/acpi/events/evevent.c      |   16 ++--
+ drivers/acpi/executer/exconvrt.c   |   15 ++--
+ drivers/acpi/executer/excreate.c   |   65 ++++++++++++++----
+ drivers/acpi/executer/exdump.c     |   10 ++
+ drivers/acpi/executer/exoparg2.c   |   67 ++++++++++++++++--
+ drivers/acpi/executer/exresnte.c   |   13 +++
+ drivers/acpi/executer/exresop.c    |   92 ++++++++++++-------------
+ drivers/acpi/executer/exstore.c    |    8 +-
+ drivers/acpi/executer/exstorob.c   |   21 +++--
+ drivers/acpi/include/acconfig.h    |    4 -
+ drivers/acpi/include/acmacros.h    |    4 -
+ drivers/acpi/include/acnamesp.h    |   10 ++
+ drivers/acpi/include/acutils.h     |    2 
+ drivers/acpi/namespace/nsdump.c    |   13 ++-
+ drivers/acpi/namespace/nsutils.c   |   50 +++++++++++++
+ drivers/acpi/osl.c                 |   19 +----
+ drivers/acpi/pci_irq.c             |    6 +
+ drivers/acpi/processor.c           |    3 
+ drivers/acpi/sleep.c               |    2 
+ drivers/acpi/tables/tbxface.c      |    4 -
+ drivers/acpi/thermal.c             |   64 ++++++++++++++---
+ drivers/acpi/utilities/utmisc.c    |    2 
+ drivers/acpi/utils.c               |    2 
+ 31 files changed, 453 insertions(+), 247 deletions(-)
 
-As long as DMA is not happening (that is not disabled, we just don't
-ask drive to do it), you should be fine.
+through these ChangeSets:
 
-> Resume requires calling :
-> 
-> 	"do_reset()"
-> 	for (;;)
-> 		if ((check_power()) == active)
-> 			break;
-> 	"piix_config_drive_xfer_rate()" 
-> 	unblock request pathway.
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/10/02 1.593)
+   ACPI: Interpreter update to 200201002
+   - Fix problem where a store/copy of a string did not set string length
+properly.
+   - Fix ToString operator
+   - Fix CopyObject not updating internal node type
+   - Fix a memory leak during implicit operand source conversion
+   - Enhanced error messages for namespace lookup problems
+   - Revamped Alias support
 
-You don't need to block/unblock request pathways. kernel/suspend.c takes care of that.
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/10/01 1.590)
+   ACPI: Initialize thermal driver's timer before it is used (Knut Neumann)
 
-									Pavel
--- 
-I'm pavel-7aPAsKgELzg@public.gmane.org "In my country we have almost anarchy and I don't care."
-Panos Katsaloulis describing me w.r.t. patents at discuss-q33YXrgyAoMgsBAKwltoeQ@public.gmane.org
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/10/01 1.589)
+   ACPI: Add another cast to Bjoern's MADT walking fix to silence warning
+
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/10/01 1.588)
+   ACPI: Allow handling negative celsius values (Kochi Takayoshi)
+
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/10/01 1.587)
+   ACPI: Fix thermal management and make trip points R/W (Pavel Machek)
+
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/10/01 1.586)
+   ACPI: Fix /proc/acpi/sleep (P. Christeas)
+
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/10/01 1.585)
+   ACPI: IA64 fixes (David Mosberger)
+
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/10/01 1.584)
+   ACPI: Fix reversed logic in blacklist code (Sergio Monteiro Basto)
+
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/09/20 1.565.10.1)
+   ACPI: Replace ACPI_DEBUG define with ACPI_DEBUG_OUTPUT (Dominik
+Brodowski)
+
+
+-----------------------------
+Andrew Grover
+Intel Labs / Mobile Architecture
+andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+
 
 
 -------------------------------------------------------
