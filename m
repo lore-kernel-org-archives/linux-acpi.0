@@ -1,13 +1,10 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: 2.6.10 acpi patch
-Date: 06 Jan 2005 15:02:46 -0500
-Message-ID: <1105041766.18175.1290.camel@d845pe>
-References: <41DD908A.1000907@sectorb.msk.ru>
+From: Henrik Brix Andersen <brix-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
+Subject: Missing acpi-20050101-2.6.10 patch?
+Date: Thu, 06 Jan 2005 20:33:36 +0100
+Message-ID: <1105040016.11930.11.camel@sponge.fungus>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-nv0SV2vhlIdjyCsI8db/"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41DD908A.1000907-Mv9iWk4wWl8RDxlzMovjVg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,34 +14,45 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alexander Zubkov <green-Mv9iWk4wWl8RDxlzMovjVg@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2005-01-06 at 14:24, Alexander Zubkov wrote:
 
-> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.10/
->  there is some strange files for final release of the 2.6.10 kernel, 
-> which contains no patch - only some comments. Is it OK?
+--=-nv0SV2vhlIdjyCsI8db/
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-right now the early 2.6.11 tree is still called 2.6.10
-in the source, so my 2.6.11 patch (which is empty)
-over-wrote the 2.6.10 patch. [actually it isn't totally
-empty, it reflects that i back-ported linus' video.c
-slab corruption cset to 2.6.10, but as that was already
-in 2.6.11 the comments appear w/o any code chage.
+Hi,
 
-for some reason linus refuses to update the Makefile
-when he opens a new release -- benh brought this up
-on lkml back at the end of 2.6.9.  Many resolutions
-were proposed, but no action was taken.
+A new release of the acpi patch dating 2005-01-01 was announced at
+http://acpi.sf.net, but it is not present in the download directory at
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6=
+.10/
 
-i'll go ahead and push the 2.6.10 pach from the 26-stable-release
-tree into the 2.6.10 directory.  Of course this is a no-win
-situation because until the release makefile is updated,
-there are two patchs that want to have the same name...
+The latest patch available at the above mentioned ftp site is dated
+2004-12-10 and doesn't contain any patch - only a ChangeSet list.
 
--Len
+Where can I find the lastest ACPI patch?
+
+Sincerely,
+Brix
+--=20
+Henrik Brix Andersen <brix-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
+Gentoo Linux
+
+--=-nv0SV2vhlIdjyCsI8db/
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.6 (GNU/Linux)
+
+iD8DBQBB3ZKQv+Q4flTiePgRAqOKAJ4nBSfPbTJiZZQdiLoWpozZeuWC9gCghkm3
+YW6Ar5fLxzA336TVrAHGZXg=
+=xPsT
+-----END PGP SIGNATURE-----
+
+--=-nv0SV2vhlIdjyCsI8db/--
 
 
 
