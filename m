@@ -1,13 +1,11 @@
-From: "Wayne Wylupski" <wayne-/9RTSe/R4cJBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: video extensions (Re: Handling \_GPE._L03)
-Date: Mon, 26 Jul 2004 21:36:02 -0400
+From: Nuno Tavares <nunotavares-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Subject: ACPI and USB problems (usbnet)
+Date: Tue, 27 Jul 2004 02:49:21 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <004301c4737a$13db4cc0$6900a8c0@DEVELOPER>
-References: <003901c45b1c$91e1e910$6900a8c0@DEVELOPER> <1090878839.2063.5.camel@dhcppc4>
+Message-ID: <pan.2004.07.27.01.49.20.567519@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,58 +15,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hello,
 
-Thank you for responding. I've added the acpidmp output to the bug, and
-tried to write a comment to it as well.  In short, by echoing 0x11 to
-/proc/acpi/debug_level I can trace the ACPI events for the video functions.
+I have a USB cablemodem (RCA/Thomson DCM245) which uses 2.6/usbnet driver,
+and I'm using Fedora Core 2, but this problem remained since RedHat 9, at
+least.
 
-If here's anything else I can offer, please let me know.  I'm interested in
-getting this supported.
+If I boot with ACPI turned on (default), the USB device gets disconnected
+in random intervals, and later on it will even loose the cable signal
+(requiring a reset). If I turn off ACPI (kernel parameter), it won't give
+any problems.
 
-Wayne
+What can I do to help fixing this problem?
 
------ Original Message ----- 
-From: "Len Brown" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-To: "Wayne Wylupski" <wayne-/9RTSe/R4cJBDgjK7y7TUQ@public.gmane.org>
-Cc: "ACPI Developers" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sent: Monday, July 26, 2004 5:54 PM
-Subject: video extensions (Re: [ACPI] Handling \_GPE._L03)
+Motherboard: ECS P4VXASD2 
+BIOS: AMI version 07.00T, 04/02/01
 
-
-> On Fri, 2004-06-25 at 21:26, Wayne Wylupski wrote:
-> > Hello,
-> >
-> > My laptop is a Fujitsu Lifebook P2110.  I get ACPI events for the
-> > function keys for video (switch to other video adapter. or S-output,
-> > or shrink the screen).  The Method that gets called is \_GPE._L03.  I
-> > know that the ACPI portion of the kernel is handling the method, but
-> > how do I register my own handler so I may generate acpid events?  It's
-> > not obvious to me there's a device (_HID) associated with this method,
-> > and I don't see a precedent for this within the other drivers in
-> > drivers/acpi.
->
-> Wayne,
-> how did you confirm that the L03 is being called?
->
-> Bruno prototyped some of the display extensions here:
-> http://bugzilla.kernel.org/show_bug.cgi?id=1944
->
-> Perhaps you can attach your acpidmp output to that
-> bug report and we can see if we can't get the extensions
-> working on your laptop?
->
-> thanks,
-> -Len
->
->
->
->
-
+Tell me what else do you need.
+-
+Nuno Tavares
 
 
 
