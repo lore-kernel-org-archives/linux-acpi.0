@@ -1,15 +1,11 @@
-From: Andreas Leppert <wudmx-S0/GAf8tV78@public.gmane.org>
-Subject: Re: About DSDT fixing and debugging
-Date: Thu, 23 Sep 2004 16:59:05 +0200
+From: Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
+Subject: Re: suspend/resume support for driver requires an external firmware
+Date: Thu, 23 Sep 2004 07:00:18 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040923145905.GA14360@laptop>
-References: <I4HK00$27530FB661DF79A95160CDA9EDFBAE18@libero.it> <20040923125525.GA19982@laptop> <4152B880.6050001@pca.it> <20040923123751.GA29424@poupinou.org>
+Message-ID: <20040923140018.25346.qmail@web81309.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="CE+1k2dSO48ffgeK"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040923123751.GA29424-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,57 +14,59 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Zhu, Yi" <yi.zhu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Patrick Mochel <mochel-og82NyAXoxR0I81aPRRTmR2eb7JE58TQ@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi,
 
---CE+1k2dSO48ffgeK
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Apologies for breaking threading...
 
-On Thu, Sep 23, 2004 at 02:37:51PM +0200, Bruno Ducrot wrote:
-> > Hello,
-> >=20
-> > on 09/23/04 14:55, Andreas Leppert wrote:
-> > > just want to say that these are exactly the same problems i have with=
- my fujitsu amilo D 7830!
-> > > no throttling (always C1 =3D 12%), no cooling (always 75=B0 C). i hav=
-e already disassembled with a few=20
-> > > errors, but couldn't fix it correctly.
-> > about the C1 states: does your DSDT have a PBLK_lenght !=3D [0|6]? Plea=
-se
-> > see post [1] on ACPI-devel (sorry, I don't know how you can see the
-> > whole thread with gmane.com) and the first integration _CST method [2].
-didn't find PBLK_length in my dsdt.dsl because...
+Zhu, Yi wrote:
+> Hi,
+> 
+> I make the ipw2100 driver (http://ipw2100.sf.net) support suspend/resume
+> with below patch.
+> http://cache.gmane.org//gmane/linux/drivers/ipw2100/devel/2129-001.bin
+> 
+> Current state is the patch makes ipw2100 suspend/resume work in the
+> expense
+> of addtional ~200k kernel runtime memory. So I'd rather look on it as a
+> workaround instead of a finial solution.
+> 
+> The problem is ipw2100 requires an external on-disk firmware support. When
+> the device is put to D3 state, firmware needs to be unloaded. And the
+> firmware should be loaded again after the device is put to D0 state. But
+> currently there is no suspend/resume order(dependency) for the online
+> devices list in the kernel (dpm_active). So the ide disk might still be in
+> the suspend state when ipw2100->resume is called. This causes a deadlock.
+> 
+> 
+> I propose 2 choices to fix the problem.
+> 
+> Choice 1. In 2.5 kernel, there used to be a ->save_state method in the
+> device PM interface. From the "not yet updated" document
+> 
+> Choice 2. Add a notifier call chain for swsusp before prepare_suspend.
+> Each
+> driver requires the notification(i.e. ipw2100) registers its own callback.
+> For people who think device PM ->save_state is an overkill since 99%
+> devices
+> don't require firmwares (really today, who knows the future?), this can be
+> considered as another (better) solution.
+> 
+> 
+> Choice 3? or I missed something here?
+> 
 
-> >=20
->=20
-> I think OP meant s/C1/T1 ;)
->=20
-yes, i've really meant T1 =3D 12%... i was talking about the throttling=20
-state.
+What about splitting resume in 2 parts - the ->resume method
+would just schedule_work() real resume for the card out of
+line where it can safely wait for drive to be available without
+blocking other devices from resuming. This way you do not need
+to pre-load firmware on suspend.
 
-question: does a pentium 4 (not mobile) in a laptop support C2/C3? (i=20
-mean the processor states  when the cpu doesn't have much work!)
+-- 
+Dmitry
 
-thank you guys
-
-
---CE+1k2dSO48ffgeK
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFBUuS56EeWSkhF85cRAsOeAJ9pCHusGjC1wAkJc2o8bpwDFthPJACgq6Gr
-/peibmPIIrxYm7tF3CiGV0w=
-=bvQv
------END PGP SIGNATURE-----
-
---CE+1k2dSO48ffgeK--
 
 
 -------------------------------------------------------
