@@ -1,14 +1,12 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: Centrino question
-Date: Fri, 21 May 2004 13:52:07 +0200
+From: Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+Subject: Wake on RTC alarm?
+Date: Fri, 21 May 2004 23:14:34 +1000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040521115207.GA12775@hell.org.pl>
-References: <3ACA40606221794F80A5670F0AF15F8404622C57@PDSMSX403.ccr.corp.intel.com> <20040520015748.776d5b84.neurowork@free.fr> <1085111429.12352.563.camel@dhcppc4> <20040521125637.33f69fc6.neurowork@free.fr>
+Message-ID: <40AE00BA.3040603@linuxmail.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040521125637.33f69fc6.neurowork-GANU6spQydw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,26 +15,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Cyril Wattebled <neurowork-GANU6spQydw@public.gmane.org>
-Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Luming Yu <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, cpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi <linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Cyril Wattebled:
-> However, I don't understand, I was told that the centrino processor and chipset
-> supports C3 and even C4.
-> Why would they intend C3 to be disabled ?
-> By the way, I tried to change the value of ACPI_PROCESSOR_MAX_C3_LATENCY to
-> 1002 so that C3 is enabled. However, it doesn't change anything, C3 state
-> is never called.
+Hi all.
 
-You'd go for below 1000, that is 999 and less. But anyway, as Len already
-wrote, your OEM has probably explicitly disabled C3 (on a Pentium-M laptop?
-come on?), so be prepared to face problems such as data corruption.
-Best regards,
+Kernel 2.4.26.
 
+I've fiddled a little today with getting my laptop to wake when the RTC 
+alarm goes off. I can set the alarm, and can see that an interrupt 
+occurs at the appointed time (cat /proc/interrupts). If however I 
+suspend to disk, it doesn't power on. Is there further glue I need to 
+make the alarm actually trigger a wake? I've looked at documentation 
+that talks about enabling wake GPEs, and guess that is what I need. Am I 
+right?
+
+Laptop is an Omnibook XE3L-GF if its relevant.
+
+Nigel
 -- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+Nigel & Michelle Cunningham
+C/- Westminster Presbyterian Church Belconnen
+61 Templeton Street, Cook, ACT 2614.
++61 (2) 6251 7727(wk); +61 (2) 6254 0216 (home)
+
+Evolution (n): A hypothetical process whereby infinitely improbable 
+events occur
+with alarming frequency, order arises from chaos, and no one is given 
+credit.
 
 
 -------------------------------------------------------
