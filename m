@@ -1,60 +1,69 @@
-From: Keshavamurthy Anil S <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] ACPI based cpu hotplug
-Date: Wed, 27 Oct 2004 19:31:19 -0700
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041027193118.B6002@unix-os.sc.intel.com>
-Reply-To: Keshavamurthy Anil S <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: "Yu, Luming" <luming.yu@intel.com>
+Subject: Userspace ACPI interpreter ( was RE: [ACPI] [RFC] dev_acpi: support for userspace access to acpi)
+Date: Thu, 28 Oct 2004 12:04:31 +0800
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <3ACA40606221794F80A5670F0AF15F84041ABFFA@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-acpi <linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developer <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262745AbUJ1EFE@vger.kernel.org>
+Content-class: urn:content-classes:message
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>, "Brown, Len" <len.brown@intel.com>, "Moore, Robert" <robert.moore@intel.com>
+Cc: Alex Williamson <alex.williamson@hp.com>, linux-kernel <linux-kernel@vger.kernel.org>, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Len,
-	Couple of weeks back I had posted the ACPI based Physical CPU 
-hotplug patches onto the above mailing-list and I had resolved all the 
-issues that people on the mailing list had brough out. I was hoping to
-see that patches on 2.6.10-rc1-mm1 and since I did not see them there, 
-just checking to see whats your idea on this. I guess other companies 
-are working on this acpi based hotplug technologies and are dependent 
-on my patches which enhances core acpi and introduces the first version 
-of the container driver.
+>On Wednesday 27 October 2004 11:17 am, Yu, Luming wrote:
+>>   If don't use acpi_early_init , acpi is initialized in 
+>do_basic_setup() in kernel thread --init.
+>> It is very close to launch first user space 
+>process(/sbin/init ..). So, if we can invent 
+>> acpi_later_init, it is possible to move interpreter out of kernel.
+>
+>It's true that some early init stuff is based on the static tables
+>and doesn't require the interpreter.  But there is a lot of stuff
+>that DOES require the interpreter, like finding PCI root bridges,
+>PRTs, PCI interrupt link devices, etc.  It's not clear to me that
+>it's feasible to deal with all these from userspace.
 
-I had tested those patches in an emulation environment by overiding DSDT.
-I am attaching the links of those patches again for your refernece. 
+On IA64 platform, ACPI interpreter seems to be mandatory for those
+stuff, but IA32 is not.  So, the ram disk is the generic solution 
+for loading user space interpreter for boot. 
 
-http://marc.theaimsgroup.com/?l=acpi4linux&m=109606894724606&w=2
-http://marc.theaimsgroup.com/?l=acpi4linux&m=109606922621045&w=2
-http://marc.theaimsgroup.com/?l=acpi4linux&m=109632034413133&w=2
-http://marc.theaimsgroup.com/?l=linux-kernel&m=109606961524691&w=2
-http://marc.theaimsgroup.com/?l=linux-kernel&m=109607023225373&w=2
-http://marc.theaimsgroup.com/?l=linux-kernel&m=109607042100294&w=2
+>
+>>   The difficulty for inventing userspace interpreter is to 
+>eliminate the ACPI-interpreter dependency 
+>> of drivers for booting. But this dependency is not 
+>mandatory. Once kernel booted to be able
+>> to launch /sbin/init, it is also able to launch 
+>/sbin/user_space_interpreter, then kernel can enjoy
+>> acpi from then on, despite the acpi interpreter is a user 
+>space daemon, we just need to invent
+>> or user a communication method between kernel and user space daemon.
+>
+>Before the interpreter, you don't have ANY devices (legacy ones are
+>described via the namespace of course, and PCI devices depend on root
+>bridges that are also in the namespace).  So you end up at least
+>requiring a ramdisk, plus a bunch of encoding to communicate resource
+>information from the interpreter to the drivers.
+>
+>Maybe not impossible, but it certainly requires a lot of work.  Moving
+>the interpreter to userspace has been proposed many times, but I've
+>never seen any indication that anybody is actually working on it.
+>
 
-
-Please let me know if you would like to receive the patches rediffed 
-to the latest bits and I would be happy to resend it to you again.
+Yes, it needs a lot of work.  If we want to continue, we should find out
+what's the benefit of doing so. The biggest benefit could be that kernel
+will be less complex, thus kernel will be more stable.  At least, some
+ACPI operation (like information query) is not needed to be handled in
+kernel in synchronous manner, which is kernel invoking ACPI interpreter
+like calling a C function. On laptop, I DO get many bug reports that
+kernel 
+crashes, or hang for a while ,or input event lost..., just due to AML
+call executed
+by ACPI interpreter running in the kernel.  I expect all this symptom
+will
+be gone, if interpreter is running in user space.
 
 Thanks,
-
--Anil Keshavamurthy
-Sr. Software Engineer
-Linux OS Technology Team
-Intel Corp.
-(w) 503-712-4476
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by:
-Sybase ASE Linux Express Edition - download now for FREE
-LinuxWorld Reader's Choice Award Winner for best database on Linux.
-http://ads.osdn.com/?ad_id=5588&alloc_id=12065&op=click
+Luming
