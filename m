@@ -1,14 +1,12 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: S3 suspend code
-Date: Wed, 30 Jul 2003 14:25:25 +0200
+From: root <chp802-8tGg7S+viayFxr2TtlUqVg@public.gmane.org>
+Subject: Sleep button events on Compaq Evo.
+Date: Wed, 30 Jul 2003 16:45:58 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030730122525.GA4224@openzaurus.ucw.cz>
-References: <20030723162423.GD9013@atrey.karlin.mff.cuni.cz> <1059041888.19684.8.camel@bacchus.gpphy.uni-duesseldorf.de> <20030724104518.GA12041@paradigm.rfc822.org> <1059045536.19684.21.camel@bacchus.gpphy.uni-duesseldorf.de> <20030724144535.GA629@paradigm.rfc822.org> <20030724200411.GA444@elf.ucw.cz> <20030724204530.GA5907@laptop.6bone.nl> <20030724224141.GA430@elf.ucw.cz> <20030726234129.GA668@laptop.6bone.nl> <20030730082639.GD676@laptop.6bone.nl>
+Message-ID: <3F27E836.3080305@bangor.ac.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20030730082639.GD676-ScjxTogt4I4lGuH5DXb43w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,40 +15,99 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Mark Santcroos <marks-h3GR0owD+wQ@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hi,
 
-> > > > Like I said, the suspend returns immediately, but it does succeed.
-> > > > It seems that it gets a wakeup signal immediately though. 
-> > > 
-> > > Like it turns into sleep mode then wakes up? You probably have some
-> > > device that is enabled to wake the machine up, which should not really
-> > > do that... Check 2.6.0-t1.
-> > 
-> > I've put a different disk in my laptop and installed Linux on it.
-> > With 2.6.0-t1 it does the right thing. Also 2.5.75 works. 
-> > I'm going do to a binary search to find the specific change that fixed it.
-> 
-> It looks like I had confused my earlier tests with something else, because
-> also old Linux kernels do it "correctly".
-> 
-> My machine suspends as early as with 2.5.6 (the first kernel with
-> /proc/acpi/sleep), note that it doesn't resume correctly up until 2.5.30 or 
-> so, but that doesn't really matter.
-> 
-> Do you know if there is any way to find out what device or bus triggers
-> the wakeup? A state stored somewhere or so.
-> 
+I was just trying to get my sleep button to work, not that swsusp has
+gone gold. I've got three buttons, which are controlled by acpi; Sleep,
+Soft power and Lid. Kernel gives @ bootup;
 
-I do not know how to tell which device is that. Older kernels simply disabled all wakeups
-altogether (that change should be easy to spot, it is somewhere really close to entering sleep),
-which is wrong but worked for a lot of people. This change was taken/reverted few times, iirc.
--- 
-				Pavel
-Written on sharp zaurus, because my Velo1 broke. If you have Velo you don't need...
+ACPI: AC Adapter [AC] (on-line)
+ACPI: Battery Slot [BAT0] (battery present)
+ACPI: Power Button (FF) [PWRF]
+ACPI: Sleep Button (FF) [SLPF]
+ACPI: Lid Switch [LID]
+ACPI: Processor [CPU0] (supports C1 C2, 8 throttling states)
+ACPI: Thermal Zone [THRM] (59 C)
+
+Which seems to indicate fixed-featue buttons. I've set up acpid like this;
+
+------
+event=button/lid LID.*
+action=logger ACPI lid %e
+------
+event=button/power PWRF.*
+action=logger ACPI power %e
+------
+event=button/sleep SLPF.*
+action=logger ACPI sleep %e
+------
+
+Which makes Lid and Soft Power worky, but, alas, Sleep is noworky. I get
+no events whatsoever:(. Note, though, I've yet to see any docs of how to 
+setup acpid, so I'm just assuming this is right.
+
+DSDT gives this;
+
+Scope (_SB)
+    {
+        Device (SLPB)
+        {
+            Name (_HID, EisaId ("PNP0C0E"))
+            Name (_PRW, Package (0x02)
+            {
+                0x01,
+                0x03
+            })
+        }
+
+        Device (PWRB)
+        {
+            Name (_HID, EisaId ("PNP0C0C"))
+            Name (_PRW, Package (0x02)
+            {
+                0x01,
+                0x04
+            })
+        }
+
+        Device (LID)
+        {
+            Name (_HID, EisaId ("PNP0C0D"))
+            Name (_PRW, Package (0x02)
+            {
+                0x01,
+                0x03
+            })
+            Method (_LID, 0, NotSerialized)
+            {
+                If (\_SB.PCI0.ISA.EC.ECOK)
+                {
+                    If (\_SB.PCI0.ISA.EC.LIDS)
+                    {
+                        Return (0x00)
+                    }
+                    Else
+                    {
+                        Return (0x01)
+                    }
+                }
+                Else
+                {
+                    Return (0x00)
+                }
+            }
+        }
+
+
+I'm not sure where I go from here. Is this a bug, perhaps? I've
+tried to see if the buttons generate and scancodes, but they don't. So I
+assume they're indeed controlled by acpi directly. Cheers,
+
+/Chris
+
 
 
 
