@@ -1,11 +1,10 @@
-From: Pere =?ISO-8859-1?Q?Casta=F1er?= <XaRz69-pCzzcW6XgXY@public.gmane.org>
-Subject: About dsdt of clevo 5600N
-Date: Fri, 16 May 2003 02:17:32 +0200
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: DSDT in initrd
+Date: Thu, 15 May 2003 18:41:57 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030516021732.69eca85d.XaRz69@terra.es>
+Message-ID: <A5974D8E5F98D511BB910002A50A6647054FC400@hdsmsx103.hd.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="pgp-sha1"; boundary="=.7APt1EwX26FJ32"
+Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -15,60 +14,34 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: 'Michael Frank' <mflt1-DTdK3Ks6N5kHTnRCetW4+N0b+6lKrnBL@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
---=.7APt1EwX26FJ32
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+> IMHO this patch is very useful because it provides the 
+> equivalent of a "DSDT module" and avoids building a kernel 
+> for each DSDT.
 
+This is the 1st reason I've seen for not simply using an ACPI_DSDT_OVERRIDE
+config option to pull a DSDT into the kernel from a well-known file name.
 
-Hi all.
-I'm interested of fixing the dsdt tables of my clevo 5600N but I don't find=
- any clear information how can do it (yeah newbie here!).
+I figure that the set of people who go to the trouble to get a custom DSDT
+are mostly included in the set of people who config and build a kernel for
+their system.  As such, ACPI_DSDT_OVERRIDE would be simple and sufficient --
+without requiring admins to change any code.
 
-I checked acpi.sf.net/dsdt and I have all the howto's and guides for begin,=
- only I want to ask if there's any dsdt of any clevo already patched (in th=
-e repository, I can't see any).
+It makes me uneasy to append the DSDT to the initrd image.  This encumbers
+the initrd booting scheme with ACPI BIOS workarounds.  What happens when
+somebody changes how initrd works?  If appending a DSDT image to initrd is
+okay, why not append other things such as the ACPI black-list, for the same
+reasons?
 
-I think that the patch of Markus Gaugush is a clean way to do what I must d=
-o for obtain the suspend on ram state on my clevo.
+I think I'd be happier with the DSDT being _in_ the initrd as a named
+file/module -- just like the other boot-time modules, rather than being
+magically appended to the image.  Of course this would require you to run
+mkinitrd for each platform; unless multiple named tables were included in
+the initrd.
 
-Thanks for any addintional information, or tips that you could tell me for =
-helping me to do this whole thing.
-
-
---=20
-"The Wheel of Time turns, and Ages come and pass, leaving memories
-that become legends. Legend fades to myth, and even myth is long=20
-forgotten when the Age that gave it birth comes again. In one Age,
-called Third Age by some, an Age yet to come,an Age long past,=20
-wind rose in the Rhannon Hills. the wind was not the beginning.=20
-There are neither beginnings nor endings to turning of the Wheel=20
-of Time...But it was a beginning."
-					  	   Robert Jordan=20
-					  Wheel of Time(book 10)
-					  Crossroads of twilight
-------
-Pere Casta=F1er Sard=E0 - http://xarz.no-ip.org
-GnuPG Public key available - http://xarz.no-ip.org/keys.html
-Computer Science Student on UOC - http://www.uoc.edu
-Linux Registered User #232073=20
-Debian/GNU User - http://www.debian.org
----------------------
-
---=.7APt1EwX26FJ32
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-
-iD8DBQE+xC4fz9pL9wbHcwIRAkL/AJ9f/NcUwzI9hhNBIzf0wp9z3gPlLgCeM185
-Kmx0w/soxguLygorvYAvTdY=
-=jGFK
------END PGP SIGNATURE-----
-
---=.7APt1EwX26FJ32--
+-Len
 
 
 -------------------------------------------------------
