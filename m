@@ -1,13 +1,14 @@
-From: "Michel L. Cano" <mlcanott-lTrK0q8il+Q1GQ1Ptb7lUw@public.gmane.org>
-Subject: New powerful weightloss for you.
-Date: Sun, 13 Jun 2004 16:29:14 +0500
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: fan control based on temp
+Date: Sun, 13 Jun 2004 17:10:23 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <9e9b01c45139$6672657e$5cb7baa7@obi.at>
+Message-ID: <20040613151023.GA27597@hell.org.pl>
+References: <1087114303.21682.2.camel@nazgul.overridex.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1087114303.21682.2.camel-zaTuhZP8yyaauuQHeMDlAOTW4wlIGRCZ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,35 +17,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Dan <overridex-Kz9Au3A7zptBDgjK7y7TUQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello, I have a special_offer for you...
-WANT TO LOSE WEIGHT?
-The most powerful weightloss is now available
-without prescription. All natural Adipren720
-100% Money Back Guarantée!
-- Lose up to 19% Total Body Weight.
-- Up to 300% more Weight Loss while dieting.
-- Loss of 20-35% abdominal Fat.
-- Reduction of 40-70% overall Fat under skin.
-- Increase metabolic rate by 76.9% without Exercise.
-- Boost your Confidence level and Self Esteem.
-- Burns calorized fat.
-- Suppresses appetite for sugar.
-Get the facts about all-natural Adipren720 <http://diet50.com/>
+Thus wrote Dan:
+> When I have acpi enabled on my laptop, the cpu fan doesn't come on
+> unless I run acpi -t and my cpu temp happens to be too hot, likewise it
+> doesn't turn the fan off or to low unless I run acpi -t and the temp is
+> low enough.  Is there some standard automated way of having this checked
+> and kept up with?  My laptop's overheating way too often right now cuz
+> of this :)
 
+I'd guess your BIOS is buggy and neither generates thermal events nor
+reports it to the OS. echo <number> >
+/proc/acpi/thermal_zone/*/polling_frequency might help.
+Best regards,
 
-
----- system information ----
-produced even allows internationalized greater deployed invoke personalization
-
-Specifying linguistic allow Membership session-like items produce produces
-
-send Fallback substantial adapted values represented difficult To 
-meet there Scenarios patent xml:lang current location public 
-sort might zh-Hant future produce design designers sort 
-
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
