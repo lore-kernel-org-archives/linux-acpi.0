@@ -1,7 +1,7 @@
 From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 2/2] acpi video pointer size fix
-Date: Wed, 09 Mar 2005 00:56:43 -0800
-Message-ID: <200503090857.j298v8ln021826@shell0.pdx.osdl.net>
+Subject: [patch 1/1] Fix help for ACPI_CONTAINER
+Date: Wed, 09 Mar 2005 01:05:29 -0800
+Message-ID: <200503090905.j2995sO4022116@shell0.pdx.osdl.net>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -12,63 +12,42 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, pmarques-TSnNRl9vlf1Wk0Htik3J/w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-From: Paulo Marques <pmarques-TSnNRl9vlf1Wk0Htik3J/w@public.gmane.org>
+From: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 
-Fix two instances where we take &p instead of *p when calculating storage
-size.
+This is to fix Kconfig help of ACPI_CONTAINER that did not really help.  I
+posted the patch before, but it seems that it has not applied yet.  Sorry
+for the previous terrible help.
 
-Also, kfree(NULL) is legal, so remove some unneeded checks.
-
+Signed-off-by: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 ---
 
- 25-akpm/drivers/acpi/video.c |   13 ++++++-------
- 1 files changed, 6 insertions(+), 7 deletions(-)
+ 25-akpm/drivers/acpi/Kconfig |    9 +++++++--
+ 1 files changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/video.c~acpi-video-pointer-size-fix drivers/acpi/video.c
---- 25/drivers/acpi/video.c~acpi-video-pointer-size-fix	2005-03-09 00:55:00.000000000 -0800
-+++ 25-akpm/drivers/acpi/video.c	2005-03-09 00:55:00.000000000 -0800
-@@ -564,12 +564,13 @@ acpi_video_device_find_cap (struct acpi_
- 		int count = 0;
- 		union acpi_object *o;
- 		
--		br = kmalloc(sizeof &br, GFP_KERNEL);
-+		br = kmalloc(sizeof(*br), GFP_KERNEL);
- 		if (!br) {
- 			printk(KERN_ERR "can't allocate memory\n");
- 		} else {
--			memset(br, 0, sizeof &br);
--			br->levels = kmalloc(obj->package.count * sizeof &br->levels, GFP_KERNEL);
-+			memset(br, 0, sizeof(*br));
-+			br->levels = kmalloc(obj->package.count *
-+					sizeof *(br->levels), GFP_KERNEL);
- 			if (!br->levels)
- 				goto out;
+diff -puN drivers/acpi/Kconfig~fix-help-for-acpi_container drivers/acpi/Kconfig
+--- 25/drivers/acpi/Kconfig~fix-help-for-acpi_container	2005-03-09 01:05:00.000000000 -0800
++++ 25-akpm/drivers/acpi/Kconfig	2005-03-09 01:05:00.000000000 -0800
+@@ -328,8 +328,13 @@ config ACPI_CONTAINER
+ 	depends on EXPERIMENTAL
+ 	default (ACPI_HOTPLUG_MEMORY || ACPI_HOTPLUG_CPU || ACPI_HOTPLUG_IO)
+ 	 ---help---
+-	 	This is the ACPI generic container driver which supports
+-		ACPI0004, PNP0A05 and PNP0A06 devices
++	  This allows _physical_ insertion and removal of CPUs and memory.
++	  This can be useful, for example, on NUMA machines that support
++	  ACPI based physical hotplug of nodes, or non-NUMA machines that
++	  support physical cpu/memory hot-plug.
++
++	  If one selects "m", this driver can be loaded with
++	  "modprobe acpi_container".
  
-@@ -584,8 +585,7 @@ acpi_video_device_find_cap (struct acpi_
- 			}
- out:
- 			if (count < 2) {
--				if (br->levels)
--					kfree(br->levels);
-+				kfree(br->levels);
- 				kfree(br);
- 			} else {
- 				br->count = count;
-@@ -595,8 +595,7 @@ out:
- 		}
- 	}
+ endif	# ACPI
  
--	if (obj)
--		kfree(obj);
-+	kfree(obj);
- 
- 	return_VOID;
- }
 _
 
 
