@@ -1,14 +1,12 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: Re: [BKPATCH] ACPI for 2.6
-Date: Thu, 24 Jun 2004 22:16:03 +0200
+From: Charles Kendricks <ckendricks-rGvcZsxnnNR8Odgaehf8fA@public.gmane.org>
+Subject: Problem with acpi_power_off
+Date: Thu, 24 Jun 2004 13:21:17 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040624201603.GA20630@message-id.s3e.de>
-References: <6E0C289723A0564F9A8279E236E8565F07A55A53@pdsmsx402.pd.intel.com>
+Message-ID: <40DB37BD.3050904@accelerated.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <6E0C289723A0564F9A8279E236E8565F07A55A53-4yWAQGcml64divtuJNk2fFDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,20 +15,18 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Wang, Zhenyu Z" <zhenyu.z.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jun 24, 2004 at 12:22:14PM +0800, Wang, Zhenyu Z wrote:
->  
-> The patch there needs to be reviewed...not enough time to do it now.
-> Thanks for pointing it out.
+I am in charge of several linux 2.6.4 systems with Dragon P4I875P 
+motherboards.  I am relatively new to acpi so my question might seem a 
+little elementary, but I can't seem to get my systems to power off 
+consistently when I issue an init 0.  It seems that all of them will 
+power down sometimes, and at other times the same systems won't power 
+down.  Once powered down I have no problem (at least not yet anyway) 
+waking the systems back up.  What can be causing this inconsistent 
+behavior?????
 
-Pavel Machek sanity-checked it (my version, the simpler one in
-http://bugzilla.kernel.org/attachment.cgi?id=2730&action=view) so
-i believe it is not that bad :-))
--- 
-Stefan Seyfried
 
 
 -------------------------------------------------------
