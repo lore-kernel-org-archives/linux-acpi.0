@@ -1,35 +1,200 @@
 From: Matthew Wilcox <matthew@wil.cx>
-Subject: Re: [ACPI] A GPE block driver
-Date: Sun, 7 Nov 2004 14:43:15 +0000
-Message-ID: <20041107144315.GC23303@parcelfarce.linux.theplanet.co.uk>
-References: <20041106064442.GA21423@parcelfarce.linux.theplanet.co.uk> <20041106074900.GA29632@parcelfarce.linux.theplanet.co.uk>
+Subject: [PATCH] Teach OSL to handle multiple interrupts [1/2]
+Date: Sun, 7 Nov 2004 14:47:54 +0000
+Message-ID: <20041107144754.GD23303@parcelfarce.linux.theplanet.co.uk>
+References: <20041106064442.GA21423@parcelfarce.linux.theplanet.co.uk> <20041106074900.GA29632@parcelfarce.linux.theplanet.co.uk> <20041107144315.GC23303@parcelfarce.linux.theplanet.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-ia64-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20041106074900.GA29632@parcelfarce.linux.theplanet.co.uk>
+In-Reply-To: <20041107144315.GC23303@parcelfarce.linux.theplanet.co.uk>
 Sender: linux-ia64-owner@vger.kernel.org
 To: Matthew Wilcox <matthew@wil.cx>
 Cc: acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Nov 06, 2004 at 07:49:00AM +0000, Matthew Wilcox wrote:
-> Here's the driver.  I can't actually test it until someone goes into
-> the server room to push a button on the machine.
-> 
-> I do suspect there to be a problem though.  I get the message:
-> GSI 120 (level, low) -> CPU 3 (0x0c02) vector 63
-> but there is no entry in /proc/interrupts for vector 63.  I think the
-> right thing to do would be to add a request_irq() somewhere in the
-> acpi_install_gpe_block() call path.  FADT GPE blocks don't need this --
-> they use the sci_irq.  But other blocks can use their own IRQ.
 
-OK, the problem was more detailed and subtle than that.  osl.c assumes
-there will be only one interrupt, which is not true in the presence of
-GPE blocks.  So I rewrote the interrupt handler.  I'll send two follow-up
-mails to this; the first will be the changes I propose for the ACPI core
-and the second will be the new GPE block driver which has several bugs fixed
-over the one I posted yesterday.
+OSL assumed that there would only be one ACPI IRQ.  In the presence of
+GPE blocks, there are multiple ACPI IRQs.
+
+Index: linux-2.6/drivers/acpi/osl.c
+===================================================================
+RCS file: /var/cvs/linux-2.6/drivers/acpi/osl.c,v
+retrieving revision 1.13
+diff -u -p -r1.13 osl.c
+--- linux-2.6/drivers/acpi/osl.c	11 Oct 2004 21:41:01 -0000	1.13
++++ linux-2.6/drivers/acpi/osl.c	7 Nov 2004 14:34:33 -0000
+@@ -66,9 +66,6 @@ int acpi_in_debugger;
+ extern char line_buf[80];
+ #endif /*ENABLE_DEBUGGER*/
+ 
+-static unsigned int acpi_irq_irq;
+-static acpi_osd_handler acpi_irq_handler;
+-static void *acpi_irq_context;
+ static struct workqueue_struct *kacpid_wq;
+ 
+ acpi_status
+@@ -96,13 +93,12 @@ acpi_os_initialize1(void)
+ 	return AE_OK;
+ }
+ 
++static void acpi_os_remove_interrupt_handlers(void);
++
+ acpi_status
+ acpi_os_terminate(void)
+ {
+-	if (acpi_irq_handler) {
+-		acpi_os_remove_interrupt_handler(acpi_irq_irq,
+-						 acpi_irq_handler);
+-	}
++	acpi_os_remove_interrupt_handlers();
+ 
+ 	destroy_workqueue(kacpid_wq);
+ 
+@@ -255,52 +251,129 @@ acpi_os_table_override (struct acpi_tabl
+ 	return AE_OK;
+ }
+ 
++struct acpi_dev_id {
++	acpi_osd_handler handler;
++	void *context;
++	int irq;
++	struct acpi_dev_id *next;
++};
++
+ static irqreturn_t
+ acpi_irq(int irq, void *dev_id, struct pt_regs *regs)
+ {
+-	return (*acpi_irq_handler)(acpi_irq_context) ? IRQ_HANDLED : IRQ_NONE;
++	struct acpi_dev_id *irq_ctx = dev_id;
++	acpi_osd_handler handler = irq_ctx->handler;
++	void *context = irq_ctx->context;
++	return (*handler)(context) ? IRQ_HANDLED : IRQ_NONE;
++}
++
++struct acpi_dev_id *dev_id_list;
++
++static void *alloc_dev_id(acpi_osd_handler handler, void *context, int irq)
++{
++	struct acpi_dev_id *irq_ctx = kmalloc(sizeof(*irq_ctx), GFP_KERNEL);
++	irq_ctx->handler = handler;
++	irq_ctx->context = context;
++	irq_ctx->irq = irq;
++	irq_ctx->next = dev_id_list;
++	dev_id_list = irq_ctx;
++	return irq_ctx;
++}
++
++/*
++ * XXX: Ideally, we would match the context too, but that information
++ * isn't passed to the acpi_os_remove_interrupt_handler() function.
++ */
++static void *find_dev_id(int irq, acpi_osd_handler handler)
++{
++	struct acpi_dev_id *irq_ctx = dev_id_list;
++	for (irq_ctx = dev_id_list; irq_ctx; irq_ctx = irq_ctx->next) {
++		if ((irq_ctx->handler == handler) && (irq_ctx->irq == irq))
++			return irq_ctx;
++	}
++	printk("find_dev_id: handler %p for irq %d not found\n", handler, irq);
++	return NULL;
++}
++
++static void free_dev_id(struct acpi_dev_id *dev_id)
++{
++	struct acpi_dev_id **pprev = &dev_id_list;
++	for (;;) {
++		struct acpi_dev_id *irq_ctx = *pprev;
++		if (!irq_ctx)
++			break;
++		if (irq_ctx != dev_id) {
++			pprev = &irq_ctx->next;
++			continue;
++		}
++
++		*pprev = irq_ctx->next;
++		kfree(irq_ctx);
++		return;
++	}
++	printk("free_dev_id: dev_id %p not found\n", dev_id);
+ }
+ 
+ acpi_status
+ acpi_os_install_interrupt_handler(u32 gsi, acpi_osd_handler handler, void *context)
+ {
+ 	unsigned int irq;
++	void *dev_id;
+ 
+ 	/*
+-	 * Ignore the GSI from the core, and use the value in our copy of the
+-	 * FADT. It may not be the same if an interrupt source override exists
+-	 * for the SCI.
++	 * If this is the FADT interrupt, ignore the GSI from the core and
++	 * use the value in our copy of the FADT instead.  It may not be the
++	 * same if an interrupt source override exists for the SCI.
+ 	 */
+-	gsi = acpi_fadt.sci_int;
++	if (gsi == acpi_gbl_FADT->sci_int)
++		gsi = acpi_fadt.sci_int;
++
+ 	if (acpi_gsi_to_irq(gsi, &irq) < 0) {
+ 		printk(KERN_ERR PREFIX "SCI (ACPI GSI %d) not registered\n",
+ 		       gsi);
+ 		return AE_OK;
+ 	}
+ 
+-	acpi_irq_handler = handler;
+-	acpi_irq_context = context;
+-	if (request_irq(irq, acpi_irq, SA_SHIRQ, "acpi", acpi_irq)) {
++	dev_id = alloc_dev_id(handler, context, irq);
++	if (request_irq(irq, acpi_irq, SA_SHIRQ, "acpi", dev_id)) {
+ 		printk(KERN_ERR PREFIX "SCI (IRQ%d) allocation failed\n", irq);
++		free_dev_id(dev_id);
+ 		return AE_NOT_ACQUIRED;
+ 	}
+-	acpi_irq_irq = irq;
+ 
+ 	return AE_OK;
+ }
+ 
+ acpi_status
+-acpi_os_remove_interrupt_handler(u32 irq, acpi_osd_handler handler)
++acpi_os_remove_interrupt_handler(u32 gsi, acpi_osd_handler handler)
+ {
+-	if (irq) {
+-		free_irq(irq, acpi_irq);
+-		acpi_irq_handler = NULL;
+-		acpi_irq_irq = 0;
++	int irq;
++	void *dev_id;
++
++	if (gsi == acpi_gbl_FADT->sci_int)
++		gsi = acpi_fadt.sci_int;
++
++	if (acpi_gsi_to_irq(gsi, &irq) < 0) {
++		printk(KERN_ERR PREFIX "SCI (ACPI GSI %d) not registered\n",
++		       gsi);
++		return AE_OK;
+ 	}
+ 
++	dev_id = find_dev_id(irq, handler);
++	free_irq(irq, dev_id);
++	free_dev_id(dev_id);
++
+ 	return AE_OK;
+ }
+ 
++static void acpi_os_remove_interrupt_handlers(void)
++{
++	while (dev_id_list) {
++		acpi_os_remove_interrupt_handler(dev_id_list->irq,
++				dev_id_list->handler);
++	}
++}
++
+ /*
+  * Running in interpreter thread context, safe to sleep
+  */
 
 -- 
 "Next the statesmen will invent cheap lies, putting the blame upon 
