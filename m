@@ -1,11 +1,8 @@
-From: <R.E.Wolff-ijfVyLOlgnXGjfRZg6uqBA@public.gmane.org>
-Subject: Re: Details
-Date: Fri, 22 Aug 2003 20:16:24 +0900
+From: postmaster-/IYFIZglx74@public.gmane.org
+Subject: VIRUS IN YOUR MAIL TO bitbucket
+Date: Thu, 21 Aug 2003 17:09:29 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E19q9uA-0007z1-L9@externalmx.vasoftware.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_NextPart_000_021724FD"
+Message-ID: <200308211509.RAA28043@joe.ratio.intern>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -18,16 +15,15 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multipart message in MIME format
 
---_NextPart_000_021724FD
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+                   V I R U S   A L E R T
 
-Please see the attached file for details.
---_NextPart_000_021724FD--
+  Our viruschecker has found a VIRUS in a mail from you to "bitbucket".
+  The delivery of this mail has been canceled !!
 
+  If you need further information please contact postmaster-/IYFIZglx74@public.gmane.org
+
+  This is an automatically generated message.
 
 
 -------------------------------------------------------
