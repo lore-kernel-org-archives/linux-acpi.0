@@ -1,12 +1,10 @@
-From: "Estelle Cole" <estelle_colesy-A/bD0P3hG77LSf97qRSy8VAUjnlXr6A1@public.gmane.org>
-Subject: $77168
-Date: Wed, 14 Jul 2004 06:52:14 +0800
+From: "Dino Klein" <dinoklein-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Subject: RE: Why nobody help me?
+Date: Tue, 13 Jul 2004 22:46:44 -0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1b2001c4692c$b749ef94$f08fd53b@sicco.cz>
+Message-ID: <BAY16-F24kPqkap7p8b0001c9b6@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; format=flowed
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,24 +14,54 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: g.sferra.s2-jeWSZhyng+boZ1rtG9PHaQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-I sent you an email a few days ago, because you now qualify for a new mortgage.
-You could get $300,000 for as little as $700 a month!
-Bad credit is no problem, you can pull cash out or refinance.
+Which DSDT on on acpi.sf.net?
+I saw a single entry for Fujitsu-Siemens, but the name didn't say "Amilio 
+D".
 
-Please click on this link:
-http://www.web-lender.com/p3/li.php?weo=71
 
-Best Regards,
-Estelle
+>From: "Gaetano Sferra" <g.sferra.s2-jeWSZhyng+boZ1rtG9PHaQ@public.gmane.org>
+>To: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+>Subject: [ACPI] Why nobody help me?
+>Date: Tue, 13 Jul 2004 17:18:24 +0200
+>
+>Hello to all,
+>
+>ACPI errors on my AMILO D laptop still here, I'm waiting
+>support from you. In last post of mine there is all details on
+>AE_NOT_EXISTS boot errors and the dsdt attachment for my
+>laptop. There isn't a valid or patched dsdt in your database at
+>http://acpi.sourceforge.net so I still waiting for instructions.
+>I'm using a 2.4.26 acpi-patched kernel and in the /proc/acpi directory
+>all reports seems to be freezed, temperature 75C, trip points 85C,
+>polling frequency is disabled and the cooling mode isn't supported at all.
+>May be it is a config problem, I've readed all howtos in your site
+>but... nothing... can someone help me please?
+>
+>  See my previous postings for more details.... or ask to me...
+>
+>Thank you for your great job,
+>Gaetano Sferra
+>
+>
+>
+>
+>
+>-------------------------------------------------------
+>This SF.Net email sponsored by Black Hat Briefings & Training.
+>Attend Black Hat Briefings & Training, Las Vegas July 24-29 -
+>digital self defense, top technical experts, no vendor pitches,
+>unmatched networking opportunities. Visit www.blackhat.com
+>_______________________________________________
+>Acpi-devel mailing list
+>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
----- system information ----
-several following internal an CPP Policy uses serve 
-expecting require group within Working RFC3066 working description 
-mechanism may content zh-Hant many users provides contents 
+_________________________________________________________________
+MSN Messenger: instale grátis e converse com seus amigos. 
+http://messenger.msn.com.br
 
 
 
