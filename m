@@ -1,43 +1,42 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Proposed ACPI Licensing change
-Date: Fri, 6 Dec 2002 16:10:00 -0800
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A57F@orsmsx119.jf.intel.com>
+Subject: RE: ACPI patches updated (20021205)
+Date: Fri, 6 Dec 2002 16:13:40 -0800
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A580@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: 'Markus Gaugusch' <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all,
+> From: Markus Gaugusch [mailto:markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org] 
+> a) quering the battery info still takes about 0.6 sec
+> b) quering the battery state still takes about 0.1 sec
 
-The ACPI AML interpreter (i.e. code in directories under drivers/acpi, but
-not source in drivers/acpi directly) has been released by us (Intel) under
-the GPL. It has also been released separately under a looser license, so
-that other OS vendors may make use of it.
+We've had this problem for a long time - no solution yet.
 
-One consequence of this is that we have not been able to benefit directly
-from patches from other Linux contributors. The reason is, patches submitted
-to code only under the GPL must also be GPL, and therefore we cannot take
-them directly and still make our code available under a license other than
-the GPL. (We have to determine the problem the patch fixes and then do the
-fix ourselves.)
+>The battery information should also contain the model name of the battery,
+>but it doesn't:
+>cat /proc/acpi/battery/BAT1/info
+>battery type:            4 <-- Li-Ion?
+>OEM info:                5 <-- should be BP1N or something.
 
-This has slowed development and lessened community participation in the
-development process.
-
-In order to solve this, we are considering releasing the Linux version of
-the interpreter under a dual license. This would allow direct incorporation
-of changes. Any patches submitted against the ACPI core code would
-implicitly be allowed to be used by us in a non-GPL context. This is already
-done elsewhere in the Linux kernel source by the PCMCIA code, for example.
-
-Comments?
+I thought we fixed this. No? Sounds like we aren't dereferencing something
+properly.
 
 Regards -- Andy
 
------------------------------
-Andrew Grover
-Intel Labs / Mobile Architecture
-andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
