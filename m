@@ -1,40 +1,23 @@
-From: Greg Norris <haphazard-mqiTH3uDUMEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: sibling not found when "CPU Enumeration Only" selected
-Date: Mon, 23 Jun 2003 21:10:15 -0500
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030624021015.GA1585@glitch.localdomain>
-References: <F760B14C9561B941B89469F59BA3A847E96FC0@orsmsx401.jf.intel.com>
+From: Marek Michalkiewicz <marekm-HuSaFJn/uQtscumT1wHf3A@public.gmane.org>
+Subject: Re: [ACPI] MS-6368L ACPI IRQ problem still in 2.4.21
+Date: Tue, 24 Jun 2003 07:46:12 +0200
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <20030624054612.GA20235@alf.amelek.gda.pl>
+References: <20030623221541.GA8096@alf.amelek.gda.pl> <20030623222311.GD25982@parcelfarce.linux.theplanet.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <F760B14C9561B941B89469F59BA3A847E96FC0-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <20030623222311.GD25982-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>
+To: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jun 23, 2003 at 04:25:48PM -0700, Grover, Andrew wrote:
-> Fixed in bkbits.
-> 
-> http://linux-acpi.bkbits.net:8080/linux-acpi/cset@3ef6a0e1fW_wwsKM_DWINo
-> ixf_UtXQ?nav=index.html|ChangeSet@-3d
+On Mon, Jun 23, 2003 at 11:23:11PM +0100, Matthew Wilcox wrote:
+> Have you patched 2.4.21 with the latest ACPI patch, or is this vanilla
+> 2.4.21?
 
-Sure enough, after applying the patch it works beautifully.  As an
-added bonus, my other problem goes away under CONFIG_ACPI_HT_ONLY.
+Vanilla 2.4.21 - tried 2.4.21-ac1 once, but it said Oops at boot time
+(something about the VIA686A sound driver - not related to ACPI).
 
-Thanx!!!
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: INetU
-Attention Web Developers & Consultants: Become An INetU Hosting Partner.
-Refer Dedicated Servers. We Manage Them. You Get 10% Monthly Commission!
-INetU Dedicated Managed Hosting http://www.inetu.net/partner/index.php
+Marek
