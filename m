@@ -1,7 +1,7 @@
 From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: RE: Re: Samsung P35 and S3 suspend
-Date: Mon, 27 Dec 2004 09:43:53 +0800
-Message-ID: <16A54BF5D6E14E4D916CE26C9AD30575D82398@pdsmsx402.ccr.corp.intel.com>
+Date: Mon, 27 Dec 2004 10:08:16 +0800
+Message-ID: <16A54BF5D6E14E4D916CE26C9AD30575D823DC@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -21,6 +21,12 @@ To: Stefan D?singer <stefandoesinger-RbZlAiThDcE@public.gmane.org>, acpi-devel-5
 Cc: Carl-Daniel Hailfinger <c-d.hailfinger.kernel.2004-hi6Y0CQ0nG0@public.gmane.org>, Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+>I think this is the patch I sent to this list a few months ago. Here
+the
+>archive linksfor reference:
+>
+>http://sourceforge.net/mailarchive/message.php?msg_id=3D9091506
+>
 >The background is that any write access to the pci config registers of
 some
 >devices(sound card, usb 2.0 controler, and modem) cause a system lockup
@@ -39,9 +45,19 @@ promise
 >pm_ops->leave is set to NULL for apm. I haven't found this in the apm
 code
 >yet.
-This patch is quite interesting. If you just move '
-acpi_leave_sleep_state(acpi_state)' to acpi_pm_leave, what's the result?
-And please send me a copy of your acpidmp, I'd like look at it.
+>
+And also please try this one (in kernel/power/main.c):
+static void suspend_finish(suspend_state_t state)
+{
+-	device_resume();
+	if (pm_ops && pm_ops->finish)
+		pm_ops->finish(state);
++	device_resume();
+	thaw_processes();
+	pm_restore_console();
+}
+According to ACPI spec, device resume should be after _WAK method (in
+acpi_leave_sleep_state)
 
 Thanks,
 Shaohua
