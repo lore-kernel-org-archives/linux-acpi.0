@@ -1,12 +1,11 @@
-From: "Garry Fernandez" <garry.fernandezqb-nvdx8u2XelNQFI55V6+gNQ@public.gmane.org>
-Subject: Get $200 bonus at Casino Zeal!
-Date: Sat, 31 Jul 2004 18:53:15 -0700
+From: joanna marsden <jomarsden-zka7wQWIdxI3uPMLIKxrzw@public.gmane.org>
+Subject: acpi_pci_link_allocate() -- latent bug?
+Date: Sat, 31 Jul 2004 22:40:07 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4d1b01c4776a$8d16f437$f53d8dc9@mater.org.au>
+Message-ID: <410C5807.7000602@vassar.edu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,33 +15,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello!
 
-Are you interested in trying out this special offer at
-our internet casino?
+I am investigating an interrupt problem on my machine and came across 
+the following code, in drivers/acpi/pci_link.c
 
-$20 to try our casino, no deposit is necessary!
-At the casino software's cashier enter bonus code: FR93P
+What happens here if the BIOS sets up these links at the IRQ router at 
+boot time, but doesn't restore them after a resume from S3? Is this a 
+latent bug? Seems like this routine would eventually be called from 
+pci_device_enable, but wouldn't perform the setup we need.
 
-$200 bonus on your first deposit!
-At the casino software's cashier enter bonus code: FMJKU
+static int acpi_pci_link_allocate(struct acpi_pci_link* link) {
+        int irq;
+        int i;
 
-Let us show you our quality operation, fast payouts,
-generous bonuses, and super friendly around-the-clock
-customer support. We guarantee that you will be
-satisfied.
+        ACPI_FUNCTION_TRACE("acpi_pci_link_allocate");
 
-Click here: http://bigbonus-casino.com 
-
-Best regards,
-George Lincoln at Casino Zeal.
-
-
-
-No thanks: http://bigbonus-casino.com/u/
+        if (link->irq.setonboot)
+                return_VALUE(0);
 
 
 
