@@ -1,13 +1,12 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ACPI newbie: Device Power Consumption at Dx states
-Date: Mon, 17 Mar 2003 13:29:36 -0800
+From: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
+Subject: help needed with invalid method in GPE block
+Date: Mon, 17 Mar 2003 22:34:39 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A84725A200@orsmsx401.jf.intel.com>
+Message-ID: <20030317213439.GA32268@dutidad.twi.tudelft.nl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="ISO-8859-1"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,49 +15,68 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Manish Prasad <mprasad-EX0cT3Az47bauI2f2gSDlQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Manish Prasad [mailto:mprasad-EX0cT3Az47bauI2f2gSDlQ@public.gmane.org] 
-> > I don't think it is in there. The device's driver is responsible for
-> > doing any runtime power management based upon, say, idle 
-> detection, so
-> > it may know, but ACPI doesn't know.
-> >
-> But, the device manufacturer would know how much power it'll 
-> draw at each
-> of its supported power states. For example, if a hard disk supports 3
-> (Dx) states viz.
-> - full power on, disk spinning
-> - disk spun down, disk cache context maintained
-> - disk spun down. disk cache context cleared
-> ... the manufacturer would know how much power the disk would 
-> consume in
-> each of these states. So I wonder why the ACPI spec. doesn't 
-> support an
-> interface for the device to expose power consumption 
-> information for each
-> of its Dx states, when in fact it does support control method 
-> objects to
-> query the various power states supported and power resource 
-> requirements
-> (power planes, clock sources etc.) at each of the states.
+Dear list,
 
-First, the methods you mentioned in your original mail (_PSS and _CST)
-are for the processor. The processor is a special case. Unlike other
-devices, ACPI handles PM for the CPU itself, so it could potentially use
-latency and power info to make correct C state decisions.
+I'm still trying to get my stupid sleep/wake-button to wake my laptop.  This
+is quite interesting:
 
-Second, ACPI enumerates and provides "glue" PM functionality for
-motherboard devices only. A disk is not a motherboard device (although
-its controller might be.) Therefore, ACPI relies on the relevant bus,
-the device, and associated drivers to do PM. AFAIK the ATA spec does not
-cover a disk listing its power levels in each state, but it does discuss
-maximum latencies that the disk must meet to return to D0. Even if it
-did, would the device's power policy behave any differently?
+ACPI Namespace successfully loaded at root c02cdcfc
+evxfevnt-0092 [04] acpi_enable           : Transition to ACPI mode successful
+   evgpe-0416 [06] ev_create_gpe_block   : GPE Block: 2 registers at 0000000000001028
+   evgpe-0421 [06] ev_create_gpe_block   : GPE Block defined as GPE0 to GPE15
+   evgpe-0138 [08] ev_save_method_info   : GPE number associated with method _L1D is not valid
+   evgpe-0416 [06] ev_create_gpe_block   : GPE Block: 2 registers at 000000000000102C
+   evgpe-0421 [06] ev_create_gpe_block   : GPE Block defined as GPE16 to GPE31
+   evgpe-0138 [08] ev_save_method_info   : GPE number associated with method _L05 is not valid
+   evgpe-0138 [08] ev_save_method_info   : GPE number associated with method _L1D is not valid
 
-Regards -- Andy
+Coincidentally, in my dsdt _L1D (the one with invalid number above) is a
+control method for my sleep button (control method type, not hard-wired).
+This _could_ explain why the button is not doing anything when pressed
+during sleep:
+
+        Method (_L1D, 0, NotSerialized) 
+        {
+            Notify (\_SB.SLPB, 0x02)
+        }
+
+This is in the \_GPE scope.  I've tried hacking the control method sleep
+button example on page 66 of ACPIspec-2-0a.pdf into my dsdt as method _L01,
+but to no avail.  Then ACPI just claims that _L01 is invalid for the
+*second* GPE block:
+
+evxfevnt-0092 [04] acpi_enable           : Transition to ACPI mode successful
+evgpe-0416 [06] ev_create_gpe_block   : GPE Block: 2 registers at 0000000000001028
+evgpe-0421 [06] ev_create_gpe_block   : GPE Block defined as GPE0 to GPE15
+evgpe-0138 [08] ev_save_method_info   : GPE number associated with method _L1D is not valid
+evgpe-0416 [06] ev_create_gpe_block   : GPE Block: 2 registers at 000000000000102C
+evgpe-0421 [06] ev_create_gpe_block   : GPE Block defined as GPE16 to GPE31
+evgpe-0138 [08] ev_save_method_info   : GPE number associated with method _L05 is not valid
+evgpe-0138 [08] ev_save_method_info   : GPE number associated with method _L1D is not valid
+evgpe-0138 [08] ev_save_method_info   : GPE number associated with method _L01 is not valid
+
+In both cases, my fixed DSDT compiled with iasl 20030228 with no errors and
+no warnings.
+
+Can anyone explain to me why I have two GPE blocks?  This means (according
+to the code logic in the acpi driver) that a control method is ALWAYS going
+to have an invalid GPE number in at least one of the two blocks.
+
+If anyone is interested, my original dsdt is here:
+http://cpbotha.net/thingies/dsdt.asl.original
+and the hacked one is here:
+http://cpbotha.net/thingies/dsdt.asl
+
+The object of the game is to get my wake button to wake. :)
+
+Thanks,
+Charl
+
+-- 
+charl p. botha http://cpbotha.net/ http://visualisation.tudelft.nl/
 
 
 -------------------------------------------------------
