@@ -1,15 +1,15 @@
 From: Jan Frey <jfrey-Mmb7MZpHnFY@public.gmane.org>
 Subject: Re: ACPI throttling to death?
-Date: Tue, 5 Apr 2005 18:13:28 +0200
-Message-ID: <200504051813.28983.jfrey@gmx.de>
-References: <200504042214.15648.jfrey@gmx.de> <200504051638.22705.stefandoesinger@gmx.at>
+Date: Tue, 5 Apr 2005 18:16:30 +0200
+Message-ID: <200504051816.30397.jfrey@gmx.de>
+References: <200504042214.15648.jfrey@gmx.de> <20050405155910.GT2298@poupinou.org>
 Reply-To: jfrey-Mmb7MZpHnFY@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200504051638.22705.stefandoesinger-RbZlAiThDcE@public.gmane.org>
+In-Reply-To: <20050405155910.GT2298-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -21,19 +21,10 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+Cc: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday 05 April 2005 18:38, Stefan D=F6singer wrote:
-> Am Montag, 4. April 2005 20:14 schrieb Jan Frey:
-> > Hi,
-> >
-> > I'm observing strange behaviour with a Gericom notebook running a
-> > 2.6.9 vanilla kernel with custom configuration. The processor used is
-> > a P III (Tualatin) with 1.2GHz (which is quite rarely used). It is
-> > *not* a mobile processor (no speedstep etc.), instead it supports 16
-> > throttling levels.
-> >
+On Tuesday 05 April 2005 17:59, Bruno Ducrot wrote:
 > > Sometimes (I guess when the machine is getting overheated - the
 > > notebook design is really bad and the fan is quite lousy) ACPI
 > > temperature monitor shows >70 degrees (Celsius) and the system starts
@@ -45,32 +36,30 @@ On Tuesday 05 April 2005 18:38, Stefan D=F6singer wrote:
 > > reaches the last level (12%). Soon after that the whole machine is
 > > locked up hard, display still showing the current graphics. I guess it
 > > throttled to a "deathly" 0%...
-> >
-> > Is this more a linux acpi problem or a fault in this particular
-> > machine? What could be done about it? how can I debug further?
 >
-> My desktop machine locked up if it got to hot(70-75 degrees, amd duron
-> processor). I bought a better CPU fan and the problem is gone. Well,
-> that's impossible on notebooks.
->
-> Is there a 0% throttling level? What happens if you stop processor
-> hungry tasks to allow the machine to cool down?
+> There isn't 0% level, so I guess the laptop stop due to overheat
+> condition. Is it possible to control cpu fan in that machine?  Is there
 
-No, there is no 0% level. Unfortunately this also does not seem to be=20
-related to any level of CPU utilization: sometimes the machines locks up=20
-even if it is nearly idle, e.g. writing/sending email...
+It is possible to control the fan at two states, but I'm already drinving 
+it on the "loudest" one...
 
-Really astonishing: CPU temperature seems to go up to roughly 70 degrees=20
-quite quickly and then it stays there nearly forever: it does not matter=20
-whether CPU load is 0 or 1.. And: throttling also does not lower CPU temp,=
-=20
-I thought this would be main reason...
+> by chance support for power saving idling (at least C2)?
+
+Hmmm, if I recall correctly it had C1/C2, but I'm not 100% sure.
+
+> cat /proc/acpi/processor/*/power
+
+Currently I cannot get hold of that machine, I'll send you that ASAP.
+
+Why doesn't throttling reduce CPU temp? It seems to be stuck at about 70 
+degress all the time...
+
+"Stop due to overheat" seems to be best explanation currently...
 
 Br
 Jan
 
-
-=2D-=20
+-- 
 Jan Frey
 jfrey-Mmb7MZpHnFY@public.gmane.org
 
