@@ -1,14 +1,14 @@
-From: Sebastian Seifert <lathander-Mmb7MZpHnFY@public.gmane.org>
-Subject: Re: mutexes and preemption
-Date: Wed, 3 Mar 2004 08:24:24 +0100
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: ACPI C4 support
+Date: Tue, 2 Mar 2004 23:22:25 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040303072424.GA14439@ergo.gotdns.org>
-References: <3ACA40606221794F80A5670F0AF15F8401CBB713@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <20040302222225.GC4399@message-id.gmane0305.slipkontur.de>
+References: <F760B14C9561B941B89469F59BA3A84702C932FD@orsmsx401.jf.intel.com> <20040301192738.GA9459@elf.ucw.cz> <20040301193917.GA2869@poupinou.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401CBB713-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20040301193917.GA2869-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,40 +17,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Mar 03, 2004 at 03:05:11PM +0800, Yu, Luming wrote:
-> > 
-> > some vital information first: I'm using kernel 2.6.3-mm4 with 
-> > DSDT in ramdisk
-> > patch applied, preemption is enabled, SMP disabled. 
-> >
-> 
-> What about disable preemption?
-> 
+On Mon, Mar 01, 2004 at 08:39:17PM +0100, Bruno Ducrot wrote:
+ 
+> > If there is old BIOS guide telling them to use length of 7, could we
+> > make Linux accept that? Its likely a lot of developers have read
+> > that...
 
-If I disable kernel preemption,
-the second release of MUT1 by the running thread happens before the acquire by
-thread 3 and no error happens.
+Even non-intel developers. I have a ASUS L2400d, apparently intel-free
+(maybe this is why all the ACPI suspend stuff works reasonably well ;-))
+which has also the infamous "7" and so only supports C1.
 
-That is to say, the sequence looks as follows without preemption:
-ACQUIRE ... RELEASE
-ACQUIRE ... RELEASE
-ACQUIRE by thread 3 ... RELEASE by thread 3
+> > Allowing length of 7 is one line change; if we do it, such notebooks
+> > will be able to use C1..C3, but not C4. That does not seem too bad...
+ 
+> The problem is that, from strict acpi point of view, it will be too easy
+> to allow '7', and _CST support is much better.  Don't ask me why, I'm not
+> an expert.  So perhaps it may be possible to add the (bahh, beurk)
+> length of 7 if there exist a bad written bios developper guide released
+> apparently by Intel, at least as a non pedantic acpi option?
 
-instead of
-ACQUIRE ... RELEASE
-ACQUIRE ... ACQUIRE by thread 3 *ERROR* ... RELEASE by thread 3 ... RELEASE
-
-So, it seems the kernel thread that holds the mutex becomes scheduled
-away because of preemption. Should it?
-
-Sebastian
-
+Yes, please!
 -- 
-This sentence is false.
+Stefan Seyfried
 
 
 
