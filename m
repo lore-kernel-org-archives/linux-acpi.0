@@ -1,7 +1,7 @@
 From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RFC 3/4: fix acpi_os_sleep issue
-Date: Wed, 19 Jan 2005 11:17:34 +0800
-Message-ID: <1106104629.12957.278.camel@sli10-desk.sh.intel.com>
+Subject: RFC 2/4: fix memory allocating issue
+Date: Wed, 19 Jan 2005 11:17:11 +0800
+Message-ID: <1106104625.12957.274.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -20,31 +20,95 @@ Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pavel Machek 
 List-Id: linux-acpi@vger.kernel.org
 
 Hi,
-we replace 'acpi_os_sleep' with 'acpi_os_stall', in case jiffies isn't
-updated when suspend/resume time.
+free enough memory before suspend, so memory allocation will not fail.
 
 Thanks,
 Shaohua
 
 ---
 
- 2.5-root/drivers/acpi/osl.c |    4 ++++
- 1 files changed, 4 insertions(+)
+ 2.5-root/drivers/acpi/osl.c      |    2 ++
+ 2.5-root/drivers/acpi/pci_link.c |    2 +-
+ 2.5-root/kernel/power/main.c     |   18 ++++++++++++++++--
+ 3 files changed, 19 insertions(+), 3 deletions(-)
 
-diff -puN drivers/acpi/osl.c~acpi_os_sleep_fix drivers/acpi/osl.c
---- 2.5/drivers/acpi/osl.c~acpi_os_sleep_fix	2005-01-18 13:12:58.131542760 +0800
-+++ 2.5-root/drivers/acpi/osl.c	2005-01-18 13:12:58.134542304 +0800
-@@ -319,6 +319,10 @@ acpi_os_remove_interrupt_handler(u32 irq
- void
- acpi_os_sleep(acpi_integer ms)
+diff -puN kernel/power/main.c~free_enough_memory_before_suspend kernel/power/main.c
+--- 2.5/kernel/power/main.c~free_enough_memory_before_suspend	2005-01-18 13:01:37.765974048 +0800
++++ 2.5-root/kernel/power/main.c	2005-01-18 13:55:09.625697152 +0800
+@@ -19,6 +19,8 @@
+ 
+ #include "power.h"
+ 
++#define FREE_PAGE_NUMBER (100)
++
+ DECLARE_MUTEX(pm_sem);
+ 
+ struct pm_ops * pm_ops = NULL;
+@@ -49,6 +51,7 @@ void pm_set_ops(struct pm_ops * ops)
+ static int suspend_prepare(suspend_state_t state)
  {
-+	if (system_state == SYSTEM_SUSPEND) {
-+		acpi_os_stall(ms * 1000);
-+		return;
+ 	int error = 0;
++	unsigned int free_pages;
+ 
+ 	if (!pm_ops || !pm_ops->enter)
+ 		return -EPERM;
+@@ -64,9 +67,19 @@ static int suspend_prepare(suspend_state
+ 	system_state = SYSTEM_SUSPEND;
+ 	smp_wmb();
+ 
++	if ((free_pages = nr_free_pages()) < FREE_PAGE_NUMBER) {
++		pr_debug("PM: free some memory\n");
++		shrink_all_memory(FREE_PAGE_NUMBER - free_pages);
++		if (nr_free_pages() < FREE_PAGE_NUMBER) {
++			error = -ENOMEM;
++			printk(KERN_ERR "PM: No enough memory\n");
++			goto Freemem;
++		}
 +	}
- 	current->state = TASK_INTERRUPTIBLE;
- 	schedule_timeout(((signed long) ms * HZ) / 1000);
++
+ 	if (pm_ops->prepare) {
+ 		if ((error = pm_ops->prepare(state)))
+-			goto Thaw;
++			goto Freemem;
+ 	}
+ 
+ 	if ((error = device_suspend(state)))
+@@ -75,9 +88,10 @@ static int suspend_prepare(suspend_state
+  Finish:
+ 	if (pm_ops->finish)
+ 		pm_ops->finish(state);
+- Thaw:
++ Freemem:
+ 	system_state = SYSTEM_RUNNING;
+ 	smp_wmb();
++ Thaw:
+ 	thaw_processes();
+ 	pm_restore_console();
+ 	return error;
+diff -puN drivers/acpi/osl.c~free_enough_memory_before_suspend drivers/acpi/osl.c
+--- 2.5/drivers/acpi/osl.c~free_enough_memory_before_suspend	2005-01-18 13:01:37.767973744 +0800
++++ 2.5-root/drivers/acpi/osl.c	2005-01-18 13:54:30.171695072 +0800
+@@ -145,6 +145,8 @@ acpi_os_vprintf(const char *fmt, va_list
+ void *
+ acpi_os_allocate(acpi_size size)
+ {
++	if (system_state == SYSTEM_SUSPEND)
++		return kmalloc(size, GFP_ATOMIC);
+ 	return kmalloc(size, GFP_KERNEL);
  }
+ 
+diff -puN drivers/acpi/pci_link.c~free_enough_memory_before_suspend drivers/acpi/pci_link.c
+--- 2.5/drivers/acpi/pci_link.c~free_enough_memory_before_suspend	2005-01-18 13:02:10.745960328 +0800
++++ 2.5-root/drivers/acpi/pci_link.c	2005-01-18 13:03:26.860389176 +0800
+@@ -315,7 +315,7 @@ acpi_pci_link_set (
+ 	if (!link || !irq)
+ 		return_VALUE(-EINVAL);
+ 
+-	resource = kmalloc( sizeof(*resource)+1, GFP_KERNEL);
++	resource = acpi_os_allocate(sizeof(*resource)+1);
+ 	if(!resource)
+ 		return_VALUE(-ENOMEM);
+ 
 _
 
 
