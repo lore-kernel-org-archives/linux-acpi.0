@@ -1,49 +1,43 @@
-From: Erich Stamberger <eberger-95T/CBm+SuISFZ3009zmMyO7C/xPubJB@public.gmane.org>
-Subject: acpica-unix/iasl: shift/reduce conflicts
-Date: Sat, 23 Aug 2003 03:14:09 +0200 (CEST)
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.53.0308230311120.19598@gewi.kfunigraz.ac.at>
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [patch] 2.4.x ACPI updates
+Date: Fri, 22 Aug 2003 22:15:24 -0400
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <BF1FE1855350A0479097B3A0D2A80EE009FCC3@hdsmsx402.hd.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+content-class: urn:content-classes:message
+To: Marcelo Tosatti <marcelo-KCZ47A4bww4P48s/oLjRZg@public.gmane.org>
+Cc: Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "J.A. Magallon" <jamagallon-cer70A47DaU@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello
+Hi Marcelo,
+A small update to what you pulled this morning --
+fixes config options CONFIG_ACPI_HT_ONLY and CONFIG_HOTPLUG_PCI_ACPI.
 
-In an attempt to track ACPI problems down I'm having with an
-Asus PR-DLSW mainboard (see bugzilla bug #1127) I downloaded
-acpica-unix-20030714 from Intel's web site and tried to compile
-iasl. Due to shift/reduce conficts in the grammar it seems to
-be impossible to get a (correct) working compiler. I tried
-bison-1.875a and bison-1.35.
+I'm looking forward to deleting these #ifdef CONFIG_ACPI_HT_ONLY
+When we can (again) delete acpitable.[ch] in 2.4.23.
 
-These rules are never reduced because of conflicts:
+Please 
 
-TermArg: Type2IntegerOpcode
-TermArg: Type2StringOpcode
-TermArg: Type2BufferOpcode
-TermArg: Type2BufferOrStringOpcode
-CaseTermList: CaseTerm
-DefaultTermList: CaseTerm
+	bk pull http://linux-acpi.bkbits.net/linux-acpi-2.4.22
 
-Somebody out there who got that working?
+This 
 
-Thanks a lot
-Erich
+This will update the following files:
 
+ drivers/hotplug/Config.in |    5 +++--
+ include/asm-i386/acpi.h   |    7 +++++++
+ include/linux/acpi.h      |    6 ++++++
+ 3 files changed, 16 insertions(+), 2 deletions(-)
 
+through these ChangeSets:
 
--------------------------------------------------------
-This SF.net email is sponsored by: VM Ware
-With VMware you can run multiple operating systems on a single machine.
-WITHOUT REBOOTING! Mix Linux / Windows / Novell virtual machines
-at the same time. Free trial click here:http://www.vmware.com/wl/offer/358/0
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/08/22 1.1107)
+   linux-acpi-2.4.22.patch
+
+ps. the plain patch is also available here:
+http://prdownloads.sourceforge.net/acpi/acpi-20030813-2.4.22-rc2.diff?do
+wnload
