@@ -1,14 +1,14 @@
-From: "vincent.legarrec" <vincent.legarrec-39ZsbGIQGT5GWvitb5QawA@public.gmane.org>
-Subject: RE: Impossible to compile iasl
-Date: Fri, 26 Nov 2004 18:50:27 +0100
-Message-ID: <20041126174956.838EE1C0019D@mwinf0504.wanadoo.fr>
-References: <6EDC9204B3704C4C8522539D5C1185E568C8C8@mssmsx403.ccr.corp.intel.com>
+From: Arjen Verweij <a.verweij-oe7qfRrRQfeEZXFvZSAUrfP6llvjuJOh@public.gmane.org>
+Subject: Re: Impossible to compile iasl
+Date: Fri, 26 Nov 2004 20:54:01 +0100
+Message-ID: <41A789D9.4000804@student.tudelft.nl>
+References: <6EDC9204B3704C4C8522539D5C1185E565100D@mssmsx403.ccr.corp.intel.com>
+ <41A70D76.1080300@student.tudelft.nl> <41A77233.9000205@root.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <6EDC9204B3704C4C8522539D5C1185E568C8C8-g/v8ENnfjb4gGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-reply-to: <41A77233.9000205-Y6VGUYTwhu0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,20 +18,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Now iasl compile.
+That's nice, but that version isn't on:
+http://www.intel.com/technology/iapc/acpi/license2.htm
 
-Now, I just need to correct the file disassembled. I don't understand
-anything that the compiler say. I'll have a look on
-developer.intel.com/technology/iapc/acpi and read the documentation.
+Nate Lawson wrote:
 
-Thank you your help.
-
-Regards,
-Vincent
-
+> Arjen Verweij wrote:
+>
+>> sphere@barton:~/media/acpica-unix-20041105/compiler$ make
+>> cc -Wall -O2 -Wstrict-prototypes -D_LINUX -D_ACPI_ASL_COMPILER 
+>> -I../include    -c -o aslcompilerparse.o aslcompilerparse.c
+>> aslcompiler.y: In function `AslCompilerparse':
+>> aslcompiler.y:953: error: parse error before '}' token
+>> make: *** [aslcompilerparse.o] Error 1
+>>
+>> This behaviour is the same regardless of flex/flex-old.
+>
+>
+> That's an error in the src, just add the missing semicolon.  It's 
+> fixed in the 1119 dist.
+>
+> -Nate
 
 
 
