@@ -1,14 +1,14 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ASL help with latest acpi and compaq presario 2800t
-Date: Wed, 9 Apr 2003 11:33:43 +0800
+From: Matthew Harrell <lists-sender-12e533-bmWjYudjZeGERhycZ4x6Ig@public.gmane.org>
+Subject: Where to send dsdt to at HP
+Date: Wed, 09 Apr 2003 08:49:03 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F84272264@pdsmsx403.ccr.corp.intel.com>
+Message-ID: <20030409124903.GA11379@bittwiddlers.com>
+Reply-To: Matthew Harrell <mharrell-dated-1050324543.a78b14-bmWjYudjZeGERhycZ4x6Ig@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,205 +17,21 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Kevin Fenzi <kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
-Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Is dsdt.asl modified version. I compiled it, and my error message is =
-slightly different with yours.
 
-Would you please send the original dsdt.asl to me?
+Anyone have any recommendations?  I figure if I send the updated dsdt into
+the general technical support email address then I'll just get a form letter
+back and nobody will ever pay attention to it
 
-Thanks,
-Luming
-
------Original Message-----
-From: Kevin Fenzi [mailto:kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org]
-Sent: 2003?2?10? 8:51
-To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: [ACPI] ASL help with latest acpi and compaq presario 2800t
-
-
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
-
-
-Greetings.=20
-
-I have been running nicely on my presario 2800t for a while, but with
-kernel 2.4.18 and a pretty old acpi version.=20
-
-So, what better to do on a lazy sunday than try and upgrade to
-2.4.21-pre4 and the newest acpi? :)=20
-
-I pulled down the 2.4.21-pre4 kernel. Applied the
-acpi-20030125-2.4.21-pre3.diff.gz diff to it.=20
-Then applied the patch-acpi-acpi20030125-swsusp18.gz software
-suspend+acpi patch to that.=20
-
-First I tried just compiling that and seeing how acpi would work.=20
-It came up, but of course with no battery/ac, etc due to the broken
-compaq dsdt.=20
-
-So, I pulled down acpidump and iasl-linux-20030123.tar.gz
-dumped out the dsdt and tried to compile it.=20
-
-56 errors.=20
-
-I first fixed all the "String must be entirely alphanumeric" errors
-(compaq seems to like putting * in all their names.)
-I realize it's against the spec, but could something be added to
-change * to nothing if it finds it in a Name?=20
-
-Fixing those got me down to 21 errors.=20
-(Worth noting that at this point with the old iasl I was using with
-2.4.18 there were no further errors here).=20
-
-Any ideas on any of these:
-
-dsdt.asl-2003-02-09   168:                 If(\_OSI) {
-Error    1028 -                 Too few arguments ^  (\_OSI requires 1)
-dsdt.asl-2003-02-09   169:                     "Windows 2001"
-Error    1037 -                                             ^ parse =
-error, unexpected PARSEOP_STRING_LITERAL
-dsdt.asl-2003-02-09  1918:                         Method(_OFF) {
-Warning  2019 -         Not all control paths return a value ^  (_OFF)
-dsdt.asl-2003-02-09  2206:                         Method(_OFF) {
-Warning  2019 -         Not all control paths return a value ^  (_OFF)
-dsdt.asl-2003-02-09  2291:                 Name(_HID, "*SYN0100")
-Error    1068 -           String must be entirely alphanumeric ^  =
-(*SYN0100)
-dsdt.asl-2003-02-09  3293:         =
-Store(DerefOf(Index(DerefOf(Index(DerefOf(Index(C1AF, C1CD(Arg1), )), =
-Local0, )), Local1, )), Local2)
-Error    1022 -                                                 Object =
-does not exist ^  (C1AF)
-dsdt.asl-2003-02-09  3318:         Subtract(C1BA, 0x0aac, Local1)
-Error    1022 -          Object does not exist ^  (C1BA)
-dsdt.asl-2003-02-09  3321:         Subtract(C1BB, 0x0aac, Local1)
-Error    1022 -          Object does not exist ^  (C1BB)
-dsdt.asl-2003-02-09  3362:                 =
-Store(Match(DerefOf(Index(DerefOf(Index(C1AF, C1CD(Arg0), )), 0x1, )), =
-MGT, Local1, MTR, 0x0, 0x0), Local0)
-Error    1022 -                                                 Object =
-does not exist ^  (C1AF)
-dsdt.asl-2003-02-09  3365:                 =
-Store(Match(DerefOf(Index(DerefOf(Index(C1AF, C1CD(Arg0), )), 0x0, )), =
-MGT, Local1, MTR, 0x0, 0x0), Local0)
-Error    1022 -                                                 Object =
-does not exist ^  (C1AF)
-dsdt.asl-2003-02-09  3385:         =
-Store(DerefOf(Index(DerefOf(Index(DerefOf(Index(C1AF, C1CD(Arg1), )), =
-0x1, )), Arg0, )), Local0)
-Error    1022 -                                                 Object =
-does not exist ^  (C1AF)
-dsdt.asl-2003-02-09  3388:         =
-Store(DerefOf(Index(DerefOf(Index(DerefOf(Index(C1AF, C1CD(Arg1), )), =
-0x0, )), Arg0, )), Local0)
-Error    1022 -                                                 Object =
-does not exist ^  (C1AF)
-dsdt.asl-2003-02-09  3428:             Return(C1C9(0x1, C1B0))
-Error    1022 -                      Object does not exist ^  (C1B0)
-dsdt.asl-2003-02-09  3431:             C1CA(0x1, C1B0)
-Error    1022 -               Object does not exist ^  (C1B0)
-dsdt.asl-2003-02-09  3434:             C1CB(0x1, C1B1)
-Error    1022 -               Object does not exist ^  (C1B1)
-dsdt.asl-2003-02-09  3439:             Return(C1C9(0x2, C1B1))
-Error    1022 -                      Object does not exist ^  (C1B1)
-dsdt.asl-2003-02-09  3318:         Subtract(C1BA, 0x0aac, Local1)
-Error    1022 -          Object does not exist ^  (C1BA)
-dsdt.asl-2003-02-09  3321:         Subtract(C1BB, 0x0aac, Local1)
-Error    1022 -          Object does not exist ^  (C1BB)
-dsdt.asl-2003-02-09  3362:                 =
-Store(Match(DerefOf(Index(DerefOf(Index(C1AF, C1CD(Arg0), )), 0x1, )), =
-MGT, Local1, MTR, 0x0, 0x0), Local0)
-Error    1022 -                                                 Object =
-does not exist ^  (C1AF)
-dsdt.asl-2003-02-09  3365:                 =
-Store(Match(DerefOf(Index(DerefOf(Index(C1AF, C1CD(Arg0), )), 0x0, )), =
-MGT, Local1, MTR, 0x0, 0x0), Local0)
-Error    1022 -                                                 Object =
-does not exist ^  (C1AF)
-dsdt.asl-2003-02-09  3385:         =
-Store(DerefOf(Index(DerefOf(Index(DerefOf(Index(C1AF, C1CD(Arg1), )), =
-0x1, )), Arg0, )), Local0)
-Error    1022 -                                                 Object =
-does not exist ^  (C1AF)
-dsdt.asl-2003-02-09  3388:         =
-Store(DerefOf(Index(DerefOf(Index(DerefOf(Index(C1AF, C1CD(Arg1), )), =
-0x0, )), Arg0, )), Local0)
-Error    1022 -                                                 Object =
-does not exist ^  (C1AF)
-dsdt.asl-2003-02-09  3428:             Return(C1C9(0x1, C1B0))
-Error    1022 -                      Object does not exist ^  (C1B0)
-dsdt.asl-2003-02-09  3431:             C1CA(0x1, C1B0)
-Error    1022 -               Object does not exist ^  (C1B0)
-dsdt.asl-2003-02-09  3434:             C1CB(0x1, C1B1)
-Error    1022 -               Object does not exist ^  (C1B1)
-dsdt.asl-2003-02-09  3439:             Return(C1C9(0x2, C1B1))
-Error    1022 -                      Object does not exist ^  (C1B1)
-dsdt.asl-2003-02-09  3442:             C1CA(0x2, C1B1)
-Error    1022 -               Object does not exist ^  (C1B1)
-dsdt.asl-2003-02-09  3445:             C1CB(0x2, C1B2)
-Error    1022 -               Object does not exist ^  (C1B2)
-dsdt.asl-2003-02-09  3450:             Return(C1C9(0x4, C1B2))
-Error    1022 -                      Object does not exist ^  (C1B2)
-dsdt.asl-2003-02-09  3453:             C1CA(0x4, C1B2)
-Error    1022 -               Object does not exist ^  (C1B2)
-dsdt.asl-2003-02-09  3456:             C1CB(0x4, C1B3)
-Error    1022 -               Object does not exist ^  (C1B3)
-dsdt.asl-2003-02-09  3461:             Return(C1C9(0x8, C1B3))
-Error    1022 -                      Object does not exist ^  (C1B3)
-dsdt.asl-2003-02-09  3464:             C1CA(0x8, C1B3)
-Error    1022 -               Object does not exist ^  (C1B3)
-
-My dsdt.asl is located at:
-http://www.scrye.com/~kevin/acpi-2003-02-09/dsdt.asl
-
-Most of those look like thermal handling issues.=20
-Commenting those problems out or telling iasl to ignore them for now,
-I stick my custon dsdt.hex file into the 2.4.21-pre4 kernel and boot
-and I get:=20
-
-tbget-0273: *** Info: Table [DSDT] replaced by host OS
-tbrsdt-0208: *** Error: Invalid signature where RSDP indicates RSDT/XSDT =
-should be located
-RSDT/XSDT signature at 2FFF0C84 (2fff0c84) is invalid
-tbxface-0085: *** Error: acpi_load_tables: Could not load RSDT: =
-AE_BAD_SIGNATURE
-tbxface-0115: *** Error: acpi_load_tables: Could not load tables: =
-AE_BAD_SIGNATURE
-Unable to load the System Description Tables
-
-Anyone have any ideas on the problem there?
-
-Back to 2.4.18 for now I guess.=20
-Any help or pointers would be appreciated.=20
-
-kevin
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.7 (GNU/Linux)
-Comment: Processed by Mailcrypt 3.5.8 =
-<http://mailcrypt.sourceforge.net/>
-
-iD8DBQE+RvYE3imCezTjY0ERArt2AJ4vV/Ka8eZp3Hu5rJkEan+Lk6MshACeJz/R
-F3IkoiDztOr8GOudpNgW6t0=3D
-=3DFBk3
------END PGP SIGNATURE-----
+-- 
+  Matthew Harrell                          Nature abhors a vacuum.
+  Bit Twiddlers, Inc.                       Then again, so does my cat.
+  mharrell-bmWjYudjZeGERhycZ4x6Ig@public.gmane.org     
 
 
 -------------------------------------------------------
-This SF.NET email is sponsored by:
-SourceForge Enterprise Edition + IBM + LinuxWorld =3D Something 2 See!
-http://www.vasoftware.com
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: ValueWeb: 
-Dedicated Hosting for just $79/mo with 500 GB of bandwidth! 
-No other company gives more support or power for your dedicated server
-http://click.atdmt.com/AFF/go/sdnxxaff00300020aff/direct/01/
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
