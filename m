@@ -1,13 +1,15 @@
-From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
-Subject: Re: Re: Centrino speedstep
-Date: Fri, 7 Jan 2005 11:50:45 +0100
-Message-ID: <20050107105045.GA17839@dominikbrodowski.de>
-References: <20041229181834.GA19199@poupinou.org> <41D42E88.5080800@mega.ist.utl.pt> <m2llbfk931.fsf@phoenix.squirrel.nl> <41D43A9F.5050507@mega.ist.utl.pt> <16852.15668.315630.700537@phoenix.squirrel.nl> <41D4AA9F.7080200@mega.ist.utl.pt> <20041231082524.GA8312@dominikbrodowski.de> <16861.5376.560582.314813@aber.ac.uk> <20050106161440.GD10011@dominikbrodowski.de> <16862.25182.567350.575532@aber.ac.uk>
+From: Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
+Subject: Re: Wrong temperature and battery status when running on
+ battery (bug 3678)
+Date: Fri, 7 Jan 2005 12:22:24 +0000
+Message-ID: <16862.32512.874723.4759@aber.ac.uk>
+References: <16861.5954.584694.204594@aber.ac.uk>
+	<Pine.LNX.4.60.0501071144470.1259@frog.athome>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <16862.25182.567350.575532-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.60.0501071144470.1259-KnfdeQs3A3X/9pzu0YdTqQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,70 +19,40 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
+Cc: Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jan 07, 2005 at 10:20:14AM +0000, Fred Labrosse wrote:
-> Dominik Brodowski writes:
->  > On Thu, Jan 06, 2005 at 10:37:52AM +0000, Fred Labrosse wrote:
->  > > Dominik Brodowski writes:
->  > >  > On Fri, Dec 31, 2004 at 01:25:51AM +0000, Pedro Venda wrote:
->  > >  > > also, how exactly can I use ACPI throttling? because with the speestep 
->  > >  > > driver, I can't go below 600MHz, but 12% of maximum frequency is 180MHz 
->  > >  > > which I can reach using ACPI throttling.
->  > >  > 
->  > >  > but throttling doesn't save you anything.
->  > >  > 
->  > > 
->  > > Well, it makes it run slightly cooler, so saves on fan power.  Or am I
->  > > mistaken?
->  > If there is indeed a correlation with the fan power, indeed. Usually this
->  > isn't the case, and then it doesn't matter at all.
->  > 
-> 
-> How can it not be the case that there is correlation between the two?  The
-> processor produces heat
-Yes.
+liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org writes:
+ > -----BEGIN PGP SIGNED MESSAGE-----
+ > Hash: SHA1
+ > 
+ > Salut Fred,
+ > On Thu, 6 Jan 2005, Fred Labrosse wrote:
+ > > <http://bugme.osdl.org/show_bug.cgi?id=3678>.  Basically, it seems that
+ > > ACPI dies (wrong temperature and battery status and machine does not power
+ > > off anymore) shortly after doing:
+ > >
+ > > echo -n powersave > /sys/devices/sys/cpu0/cpufreq/scaling_governor
+ > >
+ > > This is on an ACER TM636 and started happening since 2.6.7 (included).
+ > > Could people having a similar hardware try that to see if it's just me?
+ > I am currently running 2.6.10-vanilla, on a TM634. But I am sorry, that I 
+ > cannot reproduce eighter of your findings. To be precise, the file on my 
+ > system ist located a bit different:
+ > echo -n powersave > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
 
-> (less if throttling down, right?)
-Not necessarily. Only if the average CPU load would be higher than
-the rate the CPU is throttled to, i.e. if the CPU load is >= 100% for
-siginifcant amounts of time[*]. If not the CPU is put into the same hardware
-state ("idle state") because there is no work to do as if there were
-throttling, i.e. if "x" means the CPU has work to do, "i" means the CPU is
-in an idle mode, and "t" means the CPU is throttled, we see the following
-behaviour:
+My mistake.  You are right.
 
-Much work to do:
------------------------------------> time
-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx	(no throttling)
-xxttxxttxxttxxttxxttxxttxxttxxttxxtt	(throttling 50%)
+I will try with 2.6.10 asap.
 
-(however, as the task now takes twice as long to complete, and the CPU still
-consumes power in "t", the CPU does consume more energy than if it weren't
-throttled. Only if the fan needs to run _because_ of the high CPU load and
-it consumes more power than the CPU in throttling mode, throttling may save
-energy.)
+It happens to me between 1min and 1hour following the change in scaling
+governor.  Did you wait a bit?
 
-50% load average
-xixixixixixixixixixixixixixixixixixi	(no throttling)
-xxttxxttxxttxxttxxttxxttxxttxxttxxtt	(throttling 50%)
-	=> as the CPU is in the same hardware state on "i" or "t", no power
-	   reduction is achieved because of throttling
+Cheers,
 
-10% load average
-xiiiiiiiiixiiiiiiiiixiiiiiiiiixiiii	(no throttling)
-xittiittiittxittiittxittiittiittxit	(throttling 50%)
-	=> the same is true again ==> throttling doesn't save you anything
+Fred
 
-And as 100% CPU usage isn't that common on notebooks...
-
-	Dominik
-
-
-
-[*] (>0.1/0.5s ?)
 
 
 -------------------------------------------------------
