@@ -1,13 +1,14 @@
-From: Mizu <michal-VaXaUECoPuY@public.gmane.org>
-Subject: Buttons
-Date: Wed, 11 Jun 2003 01:18:51 +0200
+From: Alfonso =?ISO-8859-1?Q?Mu=F1oz-Pomer?= Fuentes <etinarcadiaego-pCzzcW6XgXY@public.gmane.org>
+Subject: Re: Buttons
+Date: 11 Jun 2003 00:42:53 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030610231851.GA6109@mizu>
+Message-ID: <1055284972.660.2.camel@roamer>
+References: <20030610231851.GA6109@mizu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20030610231851.GA6109-+KSLakwpbd8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,40 +17,28 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Mizu <michal-VaXaUECoPuY@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi
+On Wed, 2003-06-11 at 01:18, Mizu wrote:
 
-  Mayby since 2.5.69(70) version, there is no functional acpi buttons
-  (in kernel)
- =20
-  ACPI: Subsystem revision 20030522
+>   And one more question. How can I start fan(s) control ?
+>   (i am afraid about my CPU   ;( )
+>   I have empty /proc/acpi/fan directory !
+> 
+>   Thx
+> 
+>   			mizu
+>   
 
-  ACPI: Power Button (FF) [PWRF]
-  ACPI: Sleep Button (CM) [SLPB]
-  ACPI: Lid Switch [LID]
- =20
-  ....but after pressing PowerButton, still nothing.
+They should be there... if you have a Toshiba laptop have a look also
+inside /proc/acpi/toshiba. That's all I can think of right now.
 
+Regards.
 
-  Until 2.5.68, it was OK.
-
-
-  And one more question. How can I start fan(s) control ?
-  (i am afraid about my CPU   ;( )
-  I have empty /proc/acpi/fan directory !
-
-  Thx
-
-  			mizu
- =20
---=20
-        -[ Mizu ]-
-#-------------------------#
-[-> E-mail:michal-VaXaUECoPuY@public.gmane.org   =20
-[-> ICQ:97165392
-[-> WWW: http://www.mizu.sk
+-- 
+Alfonso Muñoz-Pomer Fuentes <etinarcadiaego-pCzzcW6XgXY@public.gmane.org>
 
 
 
