@@ -1,63 +1,52 @@
-From: Alvaro Lopes <alvieboy-JkNoWtNHh5AAvxtiuMwx3w@public.gmane.org>
-Subject: ACPI Lock after resume from S3 [2.5.59+latest ACPI]
-Date: Thu, 06 Feb 2003 18:33:30 +0000
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3E42AA7A.1030207@alvie.com>
+From: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>
+Subject: Re: [ACPI] Re: [PATCH] s4bios for 2.5.59 + apci-20030123
+Date: Fri, 07 Feb 2003 08:41:27 +1300
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <1044560486.1700.13.camel@laptop-linux.cunninghams>
+References: <F760B14C9561B941B89469F59BA3A847137FFE@orsmsx401.jf.intel.com>
+ <20030204221003.GA250@elf.ucw.cz>
+ <1044477704.1648.19.camel@laptop-linux.cunninghams>
+ <20030206101645.GO1205@poup.poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-reply-to: <20030206101645.GO1205-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi list
+On Thu, 2003-02-06 at 23:16, Ducrot Bruno wrote:
+> On Thu, Feb 06, 2003 at 09:41:44AM +1300, Nigel Cunningham wrote:
+> > Whether its slower depends on the hardware; on my 128MB Celeron 933
+> > laptop (17MB/s HDD), I can write an image of about 120MB, reboot and get
+> > back up and running in around a minute and a half. That's about the same
+> > as far as I remember, but has (as you say) the advantage of not still
+> > having to get things swapped back in.
+> 
+> The problem is the speed of the suspending process, not the whole suspend/resume
+> sequence,  especially in case of emergency suspending due to thermal condition,
+> etc.
 
-here's the problem:
+Sorry. Perhaps I should have been clearer. I haven't spent a lot of time
+doing timings, but there doesn't seem to be any significant difference.
+In both versions, the amount of time varies with the amount of memory in
+use. When not much memory is in use, both are fast because there's not
+much to do anyway. When lots of memory is in use, both are slower. The
+old version is slower because it eats as much memory as it can, and this
+can take significant amounts of time, then makes a copy of every page
+remaining, before saving those pages to disk. The new version doesn't
+usually eat any memory, and when it does, not much is eaten. It then
+saves all the pages that aren't needed for the suspend process directly
+to disk; always more than half, sometimes all but about a few thousand
+pages. It then uses this memory for the copy & save of remaining pages.
+Thus, in one version, the major portion of time is taken in eating
+memory (and post resume, loading pages back in) whereas in the 'new'
+version, the time taken is almost purely a function of IO speed.
 
-My toshiba enters S3 via acpi_enter_sleep_state(). It goes to sleep=20
-right after writing PM1A_CONTROL with SLP_ENABLE.  It resumes then to=20
-the caller  [acpi_suspend()] and then calls acpi_restore_system_state()=20
-and finally acpi_leave_sleep_state().
+If you like, I'll do some timings on my 320MB desktop machine and post
+them later in the day.
 
-The problem is that it enters a deadlock because:
+Regards,
 
-    1- When setting PM1A_CONTROL with flag ACPI_MTX_LOCK, the hardware=20
-mutex is locked, the system enters sleep right after writing the=20
-register and never unlocks the mutex, because it resumes to a different=20
-point;
-
-    2- in acpi_leave_sleep_state() we disable BM artbitration, and here=20
-it locks forever, waiting a hardware mutex release.
-
-Disabling APCI_MTX_LOCK on the 1st point seems to go around the problem,=20
-and the system resumes almost OK, only HDD DMA is disabled:
-
-Feb  6 18:19:26 supernova kernel: hda: status timeout: status=3D0x80 { Bu=
-sy }
-Feb  6 18:19:26 supernova kernel: hda: DMA disabled
-Feb  6 18:19:26 supernova kernel: hda: drive not ready for command
-Feb  6 18:19:27 supernova kernel: ide0: reset: master: error (0x00?)
-
-=C1lvaro
-
---=20
-
-=C1lvaro Lopes=20
----------------------
-A .sig is just a .sig
-
-
-
-
--------------------------------------------------------
-This SF.NET email is sponsored by:
-SourceForge Enterprise Edition + IBM + LinuxWorld = Something 2 See!
-http://www.vasoftware.com
+Nigel
