@@ -1,14 +1,14 @@
-From: Dennis Campbell <denniscampbell-S0/GAf8tV78@public.gmane.org>
-Subject: acpi4asus compile problems
-Date: Wed, 26 May 2004 10:47:59 +0200
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: acpi4asus compile problems
+Date: Wed, 26 May 2004 11:01:09 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200405261047.59632.denniscampbell@web.de>
+Message-ID: <20040526090108.GA22530@hell.org.pl>
+References: <200405261047.59632.denniscampbell@web.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <200405261047.59632.denniscampbell-S0/GAf8tV78@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,19 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Dennis Campbell <denniscampbell-S0/GAf8tV78@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all,
-I have a problem compiling acpi4asus-0.28.
-I have a suse 9.1 system. 
-when trying to compile I get an error that the header file modsetver.h doesn't 
-exist. SuSE has removed this file from the kernel source. Maybe you know a 
-workaround.
-Thanx for your help.
+Thus wrote Dennis Campbell:
+> Hi all,
+> I have a problem compiling acpi4asus-0.28.
+> I have a suse 9.1 system. 
+> when trying to compile I get an error that the header file modsetver.h doesn't 
+> exist. SuSE has removed this file from the kernel source. Maybe you know a 
+> workaround.
 
-Ciao Dennis
+Hi,
+Please supply the exact make output, as well as kernel package version.
+Best regards,
 
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
