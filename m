@@ -1,38 +1,52 @@
 From: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
-Subject: Re: [ACPI] PATCH-ACPI based CPU hotplug[2/6]-ACPI Eject interface support
-Date: Wed, 22 Sep 2004 09:59:29 -0700
+Subject: Re: [ACPI] PATCH-ACPI based CPU hotplug[4/6]-Dynamic cpu register/unregister support
+Date: Wed, 22 Sep 2004 10:10:30 -0700
 Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <20040922095929.A2631@unix-os.sc.intel.com>
-References: <20040920092520.A14208@unix-os.sc.intel.com> <20040920093532.D14208@unix-os.sc.intel.com> <20040922131757.509ba88d.tokunaga.keiich@jp.fujitsu.com>
+Message-ID: <20040922101029.B2631@unix-os.sc.intel.com>
+References: <20040920092520.A14208@unix-os.sc.intel.com> <20040920094106.F14208@unix-os.sc.intel.com> <20040922173400.4e717946.tokunaga.keiich@jp.fujitsu.com>
 Reply-To: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-ia64-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20040922131757.509ba88d.tokunaga.keiich@jp.fujitsu.com>; from tokunaga.keiich@jp.fujitsu.com on Wed, Sep 22, 2004 at 01:17:57PM +0900
+In-Reply-To: <20040922173400.4e717946.tokunaga.keiich@jp.fujitsu.com>; from tokunaga.keiich@jp.fujitsu.com on Wed, Sep 22, 2004 at 05:34:00PM +0900
 To: Keiichiro Tokunaga <tokunaga.keiich@jp.fujitsu.com>
 Cc: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>, len.brown@intel.com, acpi-devel@lists.sourceforge.net, lhns-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-> In acpi_eject_store(), eject_operation() is called regardless of the
-> result of acpi_bus_trim().  I think that eject_operation() should be
-> called only when acpi_bus_trim() returns success.  Otherwise, a
-> device stil being online will be ejected forcibly.
+On Wed, Sep 22, 2004 at 05:34:00PM +0900, Keiichiro Tokunaga wrote:
+> On Mon, 20 Sep 2004 09:41:07 -0700 Keshavamurthy Anil S wrote:
+> > ---
+> > Name:topology.patch
+> > Status:Tested on 2.6.9-rc2
+> > Signed-off-by: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+> > Depends:	
+> > Version: applies on 2.6.9-rc2	
+> > Description:
+> > Extends support for dynamic registration and unregistration of the cpu,
+> > by implementing and exporting arch_register_cpu()/arch_unregister_cpu().
+> > Also combines multiple implementation of topology_init() functions to
+> > single topology_init() in case of ia64 architecture.
+> > ---
 > 
-> Two steps might be needed to do this.
+> > +void arch_unregister_cpu(int num)
+> > +{
+> > +	struct node *parent = NULL;
+> > +
+> > +#ifdef CONFIG_NUMA
+> > +	int node = cpu_to_node(num);
+> > +	if (node_online(node))
+> > +		parent = &sysfs_nodes[node];
+> > +#endif /* CONFIG_NUMA */
+> > +
+> > +	return unregister_cpu(&sysfs_cpus[num].cpu, parent);
+> > +}
 > 
->     1. Modify acpi_bus_trim() to return success only when all the
->         acpi_bus_remove() are done successfully.
->     2. Modify acpi_eject_store() to see the result and call eject_operation()
->         only when the result is success.
-Hi Kei-san,
-Your idea and the patch both looks good to me. 
-Thanks for eye balling the code and detecting the corner cases like this.
-> 
-> Here is a patch just to show what I have in mind.  It is still based on
-> the recursion, so please fix it as appropriate ;)
+> I don't think that the check 'if (node_online(node))' is necessary
+> because sysfs_nodes[node] is there no matter if the node is online
+> or offline.  sysfs_nodes[] is cleared only when unregister_node()
+> is called and it would be always called after unregister_cpu().
 
-I will merge this with my non-recursion version of the patch and post it ASAP.
-
+Yes, I agree with you. I will remove the check, or simply apply your patch:)
 thanks,
 Anil
