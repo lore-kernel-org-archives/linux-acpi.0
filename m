@@ -1,11 +1,13 @@
-From: ti-webmaster-l0cyMroinI0@public.gmane.org
-Subject: RE: hello
-Date: 5 Dec 2004 19:43:12 -0500
-Message-ID: <200412060143.iB61hCHd021104@dlep91.itg.ti.com>
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: #define ACPI_MAX_TABLES 256
+Date: Sun, 5 Dec 2004 21:37:59 -0500
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B300229FE09@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: Quoted-Printable
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,34 +17,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>, Jesse Barnes <jbarnes-sJ/iWh9BUns@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bjorn Helgaas <bjorn_helgaas-VXdhtT5mjnY@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-THIS IS AN AUTOMATED RESPONSE. PLEASE DO NOT RESPOND TO THIS EMAIL.
-***************************************************************************=
-****************************
-Thank you for your interest in Texas Instruments. Your message has been =
-routed to the Webmaster and has been logged for further consideration.
+Okay to reduce ACPI_MAX_TABLES to 64 from 256 for the forseeable future?
 
-If your e-mail concerns technical support for TI's Semiconductor products, =
-please use the e-mail form located at the following URL: http://support.ti.=
-com/.
+also, looks like acpi_sdt_entry[] can be __init since it is referenced
+only by code that is __init.
 
-Thank You,
-TI Webmaster, Texas Instruments
+thanks,
+-Len
+http://bugme.osdl.org/show_bug.cgi?id=3D1311=20
 
-[THREAD ID: 1-LE2DB]
-[SYS: Acknowledged]
-
------Original Message-----
-From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Sent: 12/05/04 8:40:40 PM
-To: ti-webmaster-l0cyMroinI0@public.gmane.org
-Subject: hello
-
-Mail  failed.  For further assistance, please contact!
-
-
+>-----Original Message-----
+>From: Bjorn Helgaas [mailto:bjorn.helgaas-VXdhtT5mjnY@public.gmane.org]=20
+>Sent: Monday, October 06, 2003 5:35 PM
+>To: Brown, Len; Jesse Barnes; Grover, Andrew; Bjorn Helgaas;=20
+>Moore, Robert
+>Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: Re: #define ACPI_MAX_TABLES 256
+>
+>On Friday 03 October 2003 11:56 am, Brown, Len wrote:
+>> Anybody know where the value 256 came from?
+>> (looks like we used to define ACPI_MAX_TABLES as=20
+>ACPI_TABLE_COUNT about
+>> a year ago)
+>>=20
+>> We use ACPI_MAX_TABLES to limit how many RSDT or XSDT entries we look
+>> at, but I didn't see any limit in the spec, so I was=20
+>wondering if this
+>> came from some practical experience.
+>
+>256 was just picked out of the blue.  It was previously about 17,
+>and we overflowed that with an HP box that was about half the
+>size of the current largest box.  So the minimum to support a
+>fully configured box would have been around 35.
+>
+>Bjorn
+>g
+>
+>
 
 
 -------------------------------------------------------
