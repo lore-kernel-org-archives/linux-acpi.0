@@ -1,14 +1,15 @@
-From: Nigel Cunningham <ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>
-Subject: Re: Help wanted with IRQ routing.
-Date: Tue, 15 Feb 2005 09:19:12 +1100
-Message-ID: <1108419552.12611.98.camel@desktop.cunningham.myip.net.au>
-References: <1108371574.12611.61.camel@desktop.cunningham.myip.net.au>
-	 <1108398282.4208.10.camel@eeyore>
-Reply-To: ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org
+From: Tim Dijkstra <newsuser-TpnWJeB+oO0hKRfeEwdQzg@public.gmane.org>
+Subject: Re: Acer TM636 won't wakeup after S3, USB, i8042
+Date: Mon, 14 Feb 2005 23:53:01 +0100
+Message-ID: <20050214235301.4ff45705@commensaal.drs.p>
+References: <20050111003537.13142400@bonenpikster.drs.p>
+	<20050117153245.GA1481@elf.ucw.cz>
+	<20050214223939.77016065@commensaal.drs.p>
+	<20050214215149.GJ12235@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <1108398282.4208.10.camel@eeyore>
+In-Reply-To: <20050214215149.GJ12235-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,44 +19,49 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: vojtech-AlSwsSmVLrQ@public.gmane.org, ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Bjorn.
+On Mon, 14 Feb 2005 22:51:49 +0100
+Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org> wrote:
 
-Thanks for the reply.
-
-On Tue, 2005-02-15 at 03:24, Bjorn Helgaas wrote:
-> On Mon, 2005-02-14 at 19:59 +1100, Nigel Cunningham wrote:
-> > While visiting the US, I purchased a Netgear 511T card for my laptop.
-> > ...
-> > The problem I see is that when I start wpa_supplicant (ie actually start
-> > to use the card), everything freezes up. If I pop the card out quickly,
-> > I see that a couple of thousand interrupts have occurred in the couple
-> > of seconds. If I'm too slow, I have to restart the machine.
+> Hi!
 > 
-> Did you try booting with "pci=routeirq" or turning off PNPACPI?
-> I've seen a few reports of IRQ problems with PCMCIA devices that
-> seemed to be related to one or both of these.
+> > > Tim :
+> > > > Reading some positive reports on S3 on a travelmate 632, I gave
+> > > > it another try with my 636. .....
+> > > > the resume process ends with:
+> > > > 
+> > > > i8042.c: Can't read CTR while initializing i8042.
+> > > > resume failed: i8042.c (Not sure about this line, typing it from
+> > > > memory)
+> > > > 
+> > > > 
+> > > > Is there anything I can do to help to debug this? I attached
+> > > > lspci-vvv, if there's any other log I can send, just ask.
+> > > 
+> > > Remove keyboard support and see what happens?
+> > 
+> > OK, I finally had some time to test this a bit. Indeed removing
+> > atkbd from the kernel seems to work! My notebook resumed fro S3 the
+> > first time in its life! Also compiling it in as a module won't hang
+> > the resume phase, it will unfortunately not (re)load on resume,/
+> > 
+> > So (one of) my problems with resume seems to come from atkbd. Should
+> > I report a bug some where? I do unfortunately don't have the time to
+> > become a kernel hacker and fix it myself at the moment ;(
+> 
+> Vojtech Pavlik (cc-ed) is good person to talk about inputs...
+> 								Pavel
 
-I tried pci=routeirq and it didn't make a difference. I assume PNPACPI
-is the ACPI Hotplug driver? If so, it didn't help either. It if helps at
-all, this is an Omnibook XE3-GF (4304 flavour).
+Hmm, now it even works with atkbd compiled in ... In trying to get S3 to
+work I more or less disabled everything. So the problem isn't solely
+atkbd, but a combination of atkbd and/or i8042 with some other driver.
+I'll try enabling some drivers and see what combinations generates the
+problem, but not very soon, this free evening is over for me...
 
-> If one of these makes a difference, I'd like to compare the dmesg
-> logs of the broken and working configurations.
-
-Regards,
-
-Nigel
--- 
-Nigel Cunningham
-Software Engineer, Canberra, Australia
-http://www.cyclades.com
-
-Ph: +61 (2) 6292 8028      Mob: +61 (417) 100 574
-
+grts Tim
 
 
 -------------------------------------------------------
