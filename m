@@ -1,11 +1,15 @@
-From: "Cassandra J. Conn" <cassandraconn_oh-nycK9bh8bEoQZ7m9OUuf1w@public.gmane.org>
-Subject: Italian Crafted Rolex from $75 to $275 - Free Shipping
-Date: Thu, 04 Nov 2004 16:23:07 +0300
-Message-ID: <facc01c4c271$dcd6419b$a657fc64@zebu.be>
+From: ole.rohne-vJEk5272eHo@public.gmane.org
+Subject: Re: Suspend-to-RAM on Sony Vaios
+Date: Thu, 04 Nov 2004 14:49:58 +0100
+Message-ID: <yzok6t14tbt.fsf@cern.ch>
+References: <88056F38E9E48644A0F562A38C64FB60033E4DDC@scsmsx403.amr.corp.intel.com> <20041103155217.GH24195@wotan.suse.de>
+ <yzosm7q97q2.fsf@cern.ch> <20041103172120.GB18092@wotan.suse.de>
+ <1099504898.31687.31.camel@elrond.flymine.org>
+ <20041104041525.GE21211@wotan.suse.de>
+ <1099564754.10723.24.camel@tyrosine>
+ <20041104105848.GB27533@wotan.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,29 +23,25 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Heya,
+Andi> I heard other people use LED on parport hacks, which probably works.
 
-Do you want a rolex watch?
+Modern laptops don't have parports either...
 
-In our online store you can buy replicas of Rolex watches. They look
-and feel exactly like the real thing.
+Anyway, my real objections to purely userspace POSTing are:
 
-- We have 20+ different brands in our selection
-- Free shipping if you order 5 or more
-- Save up to 40% compared to the cost of other replicas
-- Standard Features:
- - Screw-in crown
- - Unidirectional turning bezel where appropriate
- - All the appropriate rolex logos, on crown and dial
- - Heavy weight
+(1) it is hard to get it to work reliably (some method work with X11
+    but not with text mode console, other methods work without DRM etc)
+(2) the previous point goes to show that hardware sourcery belongs in
+    kernel space (or before), as this is the only way to ensure proper
+    ordering, bus mastering disable etc
 
-Visit us: http://www.roiex.com/rep/rolex/
+Andi> Anyways, this thread doesn't seem to serve any useful purpose
+Andi> anymore so I won't post to it anymore.
 
-Best regards,
-Hilton Jones
+???
 
+Ole
 
-No thanks: http://roiex.com/z.php
 
 
 
