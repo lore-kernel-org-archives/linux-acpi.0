@@ -1,110 +1,96 @@
-From: Hamie <hamish@travellingkiwi.com>
-Subject: ACPI vs Asus A8v
-Date: Fri, 04 Mar 2005 17:22:11 +0000
-Message-ID: <42289943.6030303@travellingkiwi.com>
-Reply-To: gentoo-amd64@lists.gentoo.org
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: toshiba tecra 8100 problems with ACPI
+Date: Thu, 3 Mar 2005 18:23:00 +0100
+Message-ID: <20050303172300.GA31985@poupinou.org>
+References: <200503031648.29509.bruno.biagini-anva@poste.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-List-Post: <mailto:gentoo-amd64@gentoo.org>
-List-Help: <mailto:gentoo-amd64-help@gentoo.org>
-List-Unsubscribe: <mailto:gentoo-amd64-unsubscribe@gentoo.org>
-List-Subscribe: <mailto:gentoo-amd64-subscribe@gentoo.org>
-To: gentoo-amd64@lists.gentoo.org, acpi-devel@lists.sourceforge.net
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <200503031648.29509.bruno.biagini-anva-Syd3ARw+vPY@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: bruno <bruno.biagini-anva-Syd3ARw+vPY@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all.
+On Thu, Mar 03, 2005 at 04:48:29PM +0100, bruno wrote:
+> Dear all
+> I'm posting after having read different messages in such mailing list.
+> I know that I should try to read more but ... I promise you I'll continue to 
+> read.
+> While I continue in reading I would like to ask you for very quick answers 
+> (yes or no, wrong or right) to my question in order to understand if I'm 
+> going in the right directions to find a solution to my problem.
+> 
+> The problem is the following:
+> 
+> This are the messages I got from DMESG (regarding ACPI only):
+> BIOS-provided physical RAM map:
+>  ..........
+>  BIOS-e820: 00000000000e8640 - 00000000000e8840 (ACPI NVS)
+>  .........
+>  BIOS-e820: 0000000013fe0000 - 0000000013ff0000 (ACPI data)
+> .........
+> 
+> ACPI: RSDP (v000 TOSHIB                                    ) @ 0x000f4fd0
+> ACPI: RSDT (v001 TOSHIB 750      0x00970814 TASM 0x04010000) @ 0x13fe0000
+> ACPI: FADT (v001 TOSHIB 750      0x00970814 TASM 0x04010000) @ 0x13fe0054
+> ACPI: DSDT (v001 TOSHIB 8100     0x20000614 MSFT 0x0100000a) @ 0x00000000
+> Kernel command line: BOOT_IMAGE=Linux ro root=304
+> ..........
+> ACPI: Subsystem revision 20040326
+                           ^^^^^^^^
+			This is the problem.
+		   Please upgrade your kernel.
+...
 
-I have an athlon64 in an Asus A8V motherboard, running gentoo with 
-kernel 2.6.11 (Also tried with 2.6.9 and 2.6.10). Although it works, and 
-cool&quiet kicks in before boot, I can get no thermal or fan information 
-from acpi... dmesg sees
+> ">> dsdt.asl 134: Method(_WAK, 1) {
+>  >> Warning 2026 - ^ Reserved method must return a value (_WAK)
+>  
+>  You should probably add a "Return(Package(0x02){0x00, 0x00})" on a new 
+>  line just before the closing curly brace like so:
+>  
+>  Method(_WAK, 1) {
+>  ... ... ...
+>  Return(Package(0x02){0x00, 0x00})
+>  }"
+> 
+> I used such workaround for all my warnings (adding such line) then I 
+> recompiled the new dsdt.dsl and I got 0 errors, 0 warnings, 0 remarks but .
+> 
 
-damned acpi # dmesg | grep -i acpi
-BIOS-e820: 000000003ffb0000 - 000000003ffc0000 (ACPI data)
-BIOS-e820: 000000003ffc0000 - 000000003fff0000 (ACPI NVS)
-ACPI: RSDP (v002 ACPIAM                                ) @ 
-0x00000000000fa810
-ACPI: XSDT (v001 A M I  OEMXSDT  0x10000427 MSFT 0x00000097) @ 
-0x000000003ffb0100
-ACPI: FADT (v003 A M I  OEMFACP  0x10000427 MSFT 0x00000097) @ 
-0x000000003ffb0290
-ACPI: MADT (v001 A M I  OEMAPIC  0x10000427 MSFT 0x00000097) @ 
-0x000000003ffb0390
-ACPI: OEMB (v001 A M I  OEMBIOS  0x10000427 MSFT 0x00000097) @ 
-0x000000003ffc0040
-ACPI: DSDT (v001  A0036 A0036001 0x00000001 MSFT 0x0100000d) @ 
-0x0000000000000000
-ACPI: Local APIC address 0xfee00000
-ACPI: LAPIC (acpi_id[0x01] lapic_id[0x00] enabled)
-ACPI: IOAPIC (id[0x01] address[0xfec00000] gsi_base[0])
-ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
-ACPI: IRQ0 used by override.
-ACPI: IRQ2 used by override.
-ACPI: IRQ9 used by override.
-Using ACPI (MADT) for SMP configuration information
-tbxface-0118 [02] acpi_load_tables      : ACPI Tables successfully acquired
-ACPI Namespace successfully loaded at root ffffffff805b8f00
-evxfevnt-0094 [03] acpi_enable           : Transition to ACPI mode 
-successful
-ACPI: Subsystem revision 20041105
-ACPI: Interpreter enabled
-ACPI: Using IOAPIC for interrupt routing
-ACPI: PCI Root Bridge [PCI0] (00:00)
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 7 10 *11 14 15)
-ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 *5 7 10 11 14 15)
-ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 *5 7 10 11 14 15)
-ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 7 10 11 14 15) *0, disabled.
-ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 7 10 11 14 15) *0, disabled.
-ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 7 10 11 14 15) *0, disabled.
-ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 5 7 10 11 14 15) *0, disabled.
-ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 7 10 11 14 15) *0, disabled.
-pnp: PnP ACPI init
-acpi_bus-0081 [03] acpi_bus_get_device   : Error getting context for 
-object [000001003ff8aa30]
-pnp: PnP ACPI: found 15 devices
-PCI: Using ACPI for IRQ routing
-ACPI: PCI interrupt 0000:01:00.0[A] -> GSI 16 (level, low) -> IRQ 169
-ACPI: PCI interrupt 0000:00:0f.1[A] -> GSI 20 (level, low) -> IRQ 177
-ACPI: PCI interrupt 0000:00:0f.0[B] -> GSI 20 (level, low) -> IRQ 177
-ACPI wakeup devices:
-ACPI: (supports S0 S1 S3 S4 S5)
-ACPI: PCI interrupt 0000:00:0a.0[A] -> GSI 17 (level, low) -> IRQ 185
-ACPI: PCI interrupt 0000:00:0a.0[A] -> GSI 17 (level, low) -> IRQ 185
-ACPI: PCI interrupt 0000:00:10.4[C] -> GSI 21 (level, low) -> IRQ 193
-ACPI: PCI interrupt 0000:00:07.0[A] -> GSI 16 (level, low) -> IRQ 169
-acpi_utils-0071 [04] acpi_extract_package  : Invalid 'package' argument
-acpi_processor-1046 [03] acpi_processor_get_per: Invalid _PSS data
+No.  This work only for _WAK.
 
-Modules are loaded...
-
-damned acpi # lsmod
-Module                  Size  Used by
-fan                     4872  0
-thermal                17676  0
-powernow_k8             8712  0
-freq_table              3720  1 powernow_k8
-processor              25212  2 thermal,powernow_k8
-ohci1394               27268  0
-ieee1394              352280  1 ohci1394
-ehci_hcd               26820  0
-ohci_hcd               18888  0
-sk98lin               148012  1
-damned acpi #
+> This is the story:
+> My question are:
+> Am I right with ACPI IRQ handler (it doesn't work because my DSDT is broken)?
+> the use of the workaround described for CRS, PRS, STA, PSC is correct or do I 
+> have to find a different solution studying the ACPI spec document?
+> 
+> please pardon me for the book I wrote but I was wondering if it would be 
+> possible to receive back a reply (also very short, it would be really 
+> appreciated :-) )
 
 
+Most recent versions of ACPI-CA do have already a quirk in order to
+fix those troubles for (older) Toshiba.
 
-But /proc/acpi/thermal_zone & fan are empty... (
+-- 
+Bruno Ducrot
 
-Is there something else I should be doing? I've also trued the acpi4asus 
-module, but it complains about missing hardware, so presumably that's 
-only any good for their laptops...
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
-What sort of info & control SHOULD I be able to see out of this 
-motherboard? How can I get the level of control that Asus offer with 
-their windoze applications?
 
-TIA
-
-hamish
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
