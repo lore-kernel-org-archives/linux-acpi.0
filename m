@@ -1,14 +1,11 @@
-From: Sean Middleditch <elanthis-LAuFFeG505qL5ISr76wZmQ@public.gmane.org>
-Subject: Re: lockup on boot
-Date: 28 Sep 2002 14:53:35 -0400
+From: "James H. Cloos Jr." <cloos-GRsvFm/Gh/pBDgjK7y7TUQ@public.gmane.org>
+Subject: Interupt routing
+Date: 28 Sep 2002 17:54:00 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1033239215.3157.2.camel@stargrazer>
-References: <1032631567.23480.23.camel@stargrazer>
+Message-ID: <m3u1k9dblz.fsf@lugabout.jhcloos.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1032631567.23480.23.camel-5lwDtw4hGk+puJRAN1am9g@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,52 +17,35 @@ List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Ack, sorry the third post, but it dawns on me I was an idiot and didn't
-post what machine I'm using:
+As I posted, I get the same interupt routing on the acpi 2.4 as I get
+w/o acpi.  But the following fromdmes suggests I can do better:
 
-It's a Compaq Presario 700US laptop.
+ACPI: Interpreter enabled
+ACPI: Using PIC for interrupt routing
+ACPI: PCI Root Bridge [PCI0] (00:00)
+PCI: Probing PCI hardware (bus 00)
+Transparent bridge - Intel Corp. 82801BAM/CAM PCI Bridge
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 9 10 *11 12 14 15)
+ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 *5 6 7 9 10 11 12 14 15)
+ACPI: PCI Interrupt Link [LNKC] (IRQs *3 4 5 6 7 9 10 11 12 14 15)
+ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 6 7 9 *10 11 12 14 15)
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.AGP_._PRT]
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCIE._PRT]
+PCI: Probing PCI hardware
+PCI: No IRQ known for interrupt pin A of device 08:04.0 - using IRQ 10
+PCI: No IRQ known for interrupt pin A of device 08:08.0 - using IRQ 10
+PCI: Using ACPI for IRQ routing
+PCI: if you experience problems, try using option 'pci=noacpi' or even 'acpi=off'
 
-On Sat, 2002-09-21 at 14:06, Sean Middleditch wrote:
-> Hi,
-> 
->  Using kernel 2.4.20-pre7 with the 20020918 ACPI patch, I'm unable to
-> boot the machine.
-> 
->  With debugin off, it gets as far as
-> PCI: Using configuration type 1
-> 
->  Turning debugging on, the messages following the above are
-> (approximately - no cut and paste ~,^):
-> 
->  tbxface-0099 [03] Acpi_load_tables    : ACPI Tables successfully loaded
-> Parsing Methods: ... (many dots)
-> Table [DSDT] - 441 Objects with 45 Devices 109 Methods 15 Regions
-> Parsing Methods: (complete lack of dots)
-> Table [SSDT] - 0 Objects with 0 Devices 0 Methods 0 Regions
-> ACPI Namespace successfully loaded at root c02f705c
-> 
->  And that's it.  It's sat there for around 10 minutes and nothing else
-> has happened.  Passing pci=noacpi results in no changes.
-> 
->  Passing acpi=off, the machine boots up much further, but some devices
-> don't seem to work properly (it may just be I didn't add support to the
-> correct devices in the kernel config - my working kernel is the default
-> Redhat 7.3 pcmcia-cs kernel image, which is great except the laptop gets
-> rather hotter than it did in WinXP...)
-> 
-> 
-> 
-> 
-> 
-> -------------------------------------------------------
-> This sf.net email is sponsored by:ThinkGeek
-> Welcome to geek heaven.
-> http://thinkgeek.com/sf
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+The problem with the default routing -- even under ExTRA pOKEY -- is
+that irg 10 gets dumped on:  usb, 1394, cardbus^2 and, due to the
+defaulting to 10, eth0 and ltserial.
 
+Is there any way I can move pin A of 08:04.0 and 08:08.0 somewhere
+else?  irq 6 would be nice, as it seems to be empty....
+
+-JimC
 
 
 
