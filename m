@@ -1,14 +1,14 @@
-From: "Herbert Nachtnebel" <Herbert.Nachtnebel-8zxNtbQCHXIjuwv8T7myQQ@public.gmane.org>
+From: Daniele Boffi <boffi-piYtxHxN1XRAly3Pu9w1wA@public.gmane.org>
 Subject: Re: fan control
-Date: Fri, 2 May 2003 13:41:37 +0200
+Date: Fri, 2 May 2003 13:43:02 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <B900970C7DD9474C972986EB3EC7C58F12ECA0@andromeda.agcad.local>
+Message-ID: <20030502134302.A3839@fermat.unipv.it>
+References: <B900970C7DD9474C972986EB3EC7C58F0D40A0@andromeda.agcad.local>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <B900970C7DD9474C972986EB3EC7C58F0D40A0-PWLG29+z7hEKeIAE67mlpo2P0GrZ+RbP@public.gmane.org>; from Herbert.Nachtnebel-8zxNtbQCHXIjuwv8T7myQQ@public.gmane.org on Fri, May 02, 2003 at 01:28:16PM +0200
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,33 +17,50 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Herbert Nachtnebel <Herbert.Nachtnebel-8zxNtbQCHXIjuwv8T7myQQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> > Please tell me the contents of =
-/proc/acpi/thermal_zone/THRM/trip_points.
->
-> I have three thermal zones. The one related to CPU is:
+> Ok, four trip points, four FAN "devices"/states, lowest one at 40 deg. 
+> You told us that your lowest temperature is about 50 deg. Hence the last one
+> should be on and you don't see it => something to investigate.
+> 
 
-Oops, sorry. To intimate with my rewritten naming and didn't expect more =
-than one tz.
+In this moment:
 
-> /proc/acpi/thermal_zone/TZ1/trip_points
->=20
-> critical (S5):           93 C
-> passive:                 91 C: tc1=3D1 tc2=3D2 tsp=3D100 =
-devices=3D0xc184c940
-> active[0]:               78 C: devices=3D0xc18f1a40
-> active[1]:               72 C: devices=3D0xc18f1b80
-> active[2]:               67 C: devices=3D0xc18f1c80
-> active[3]:               40 C: devices=3D0xc18f1d80
+$ cat /proc/acpi/thermal_zone/TZ1/temperature
+temperature:             50 C
 
-Ok, four trip points, four FAN "devices"/states, lowest one at 40 deg.=20
-You told us that your lowest temperature is about 50 deg. Hence the last =
-one
-should be on and you don't see it =3D> something to investigate.
+$ cat /proc/acpi/fan/FAN*/state
+status:                  on
+status:                  off
+status:                  off
+status:                  off
 
-What hardware are you using?
+(I changed the name of the fans to the more readable FAN[0-3], OK?)
+
+This is correct.
+If I  echo -n 3 > /proc/acpi/fan/FAN0/state
+
+then the fan stops.
+After reaching the second trip point, the fan starts up and I have the
+following status report
+
+$ cat /proc/acpi/fan/FAN*/state
+status:                  off
+status:                  on
+status:                  off
+status:                  off
+
+This is what is strange.
+
+> What hardware are you using?
+
+Compaq Evo N800v
+
+Cheers,
+
+Daniele
 
 
 -------------------------------------------------------
