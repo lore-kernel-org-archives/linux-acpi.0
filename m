@@ -1,14 +1,15 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: AE_AML_BUFFER_LIMIT errors with latest Linus tree
-Date: Tue, 18 Jan 2005 18:07:06 +0000
-Message-ID: <1106071626.32485.42.camel@elrond.flymine.org>
-References: <3ACA40606221794F80A5670F0AF15F8406B6551B@pdsmsx403>
-	 <200501040242.33765.dtor_core@ameritech.net>
+From: Jurgen Kramer <gtm.kramer-c1aixF9oqgPk1uMJSBkQmQ@public.gmane.org>
+Subject: Re: 2.6.10 and acpi_get_possible_resources? *solved*
+Date: Tue, 18 Jan 2005 19:41:27 +0100
+Message-ID: <1106073687.7545.2.camel@paragon.slim>
+References: <1105713621.10664.8.camel@paragon.slim>
+	 <1105833637.27841.4.camel@paragon.slim>
+	 <20050117113020.A19913@unix-os.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200501040242.33765.dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
+In-Reply-To: <20050117113020.A19913-39QZ/XbsZ5/mO6KZMuUCQVaTQe2KTcn/@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,22 +19,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2005-01-04 at 02:42 -0500, Dmitry Torokhov wrote:
-> On Tuesday 04 January 2005 02:29 am, Yu, Luming wrote:
-> > Not sure if  kernel option "acpi_os_name=Microsoft Windows" help this?
+On Mon, 2005-01-17 at 11:30 -0800, Rajesh Shah wrote:
+> On Sun, Jan 16, 2005 at 01:00:37AM +0100, Jurgen Kramer wrote:
+> > On Fri, 2005-01-14 at 15:40 +0100, Jurgen Kramer wrote:
+> > > I am trying to get the WACOM ACPI patches working on 2.6.10 but it bails
+> > > out on a missing function "acpi_get_possible_resources". On 2.6.9 the
+> > > needed symbol is exported by acpi_ksyms.c but this file no longer exists
+> > > in 2.6.10. 
+> > > 
+> > > What is the best way to get the acpi_get_possible_resources function
+> > > exported properly? It is defined in <acpi/acpxf.h> but adding this to
+> > > the wacom source files did not help.
+> > > 
+> > > The 2.6.9 version of the wacom patches are from:
+> > > 
+> > > http://www.theory.bham.ac.uk/staff/schofield/linux/tc1100/linux-2.6.9-
+> > > wacom_acpi.patch
 > > 
-> 
-> No, it does not.
+> > Problem solved. The functions from <acpi/acpixf.h> needed a #define
+> > ACPI_FUTURE_USAGE 1 to work again.
+> > 
+> > My wacom tablet is working again with 2.6.10.
+> > 
+> A better fix, though, would be to move the specific export you
+> need out of the FUTURE_USAGE define. This ifdef was introduced
+> to eliminate bloat due to unused exports, and including it all
+> back in defeats the purpose.
 
-I'm seeing several of these errors with the post-2.6.10 ACPI patches on
-various machines. On previous kernels, no errors were produced. What's
-changed that could cause this, and is it correct? 
+You are right of course but it only applies if the patches were to be
+included in the mainline ACPI tree. For now it's just me using the
+"acpi_get_possible_resources" function here at home.
 
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+Jurgen
+ 
 
 
 
