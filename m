@@ -1,14 +1,15 @@
-From: Matthew Tippett <matthew-+XluyfkzffvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: ospmd or acpid
-Date: Thu, 12 Dec 2002 10:48:13 -0500
+From: "P. Christeas" <p_christ-U04EIuiosng@public.gmane.org>
+Subject: Re: 2.5.51: sleep broken
+Date: Thu, 12 Dec 2002 20:22:57 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3DF8AFBD.1040200@casero.com>
-References: <3DF8A5CF.1000909@casero.com> <004c01c2a2bc$d19bdf80$8cfa6386@TRINITY>
+Message-ID: <200212122022.57930.p_christ@hol.gr>
+References: <200212101534.12838.p_christ@hol.gr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <004c01c2a2bc$d19bdf80$8cfa6386-naq7wT523jg@public.gmane.org>
+In-Reply-To: <200212101534.12838.p_christ-U04EIuiosng@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,33 +18,26 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
-Cc: Matthew Tippett <matthew-+XluyfkzffvQT0dZR+AlfA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thanks, you answered the question.
+I've had a better look at it...
 
-So I will be sticking with acpid until all the ACPI support for my 
-system is under control ;).
+I have written:
+> I 've just tested the 2.5.51 (w. official 20021205 ACPI)
+> I noted that S1 is broken now (had worked long since)
+>
+> In dmesg I note:
+> ACPI: Wakeup code way too big, will crash on attempt to suspend
+Seems irrelevant.
 
-Matt
-
-Knut Neumann wrote:
->>Just a quick question regarding the user space daemons for ACPI.  There
->>is ospmd which is part of the acpi project, and there is acpid which is
->>a seperate project which Andrew is a member of both.
-> 
-> 
-> Hmm...so what is your question? I assume you meant to ask which daemon to
-> use, so if thats right read on:
-> 
-> While acpid already reached version 1.0 and is quite ready to use, ospmd is
-> supposed to be better of the two but it is still under development - though
-> actually no one is really working on it. When its done it should replace not
-> only acpid but also apmd and it is thought to handle UPSes and other power
-> related devices as well.
-> 
-
+> However, /proc/acpi/sleep has all S0 S1 S2 S3 S4 S5
+> When I 'echo 1 >/proc/acpi/sleep', nothing happens.
+> I'll let you know if I have more details..
+I noticed I had some extra dbg code to indicate what's happening in the procfs 
+level.
+Now, it seems that "1" doesn't get written to the acpi/sleep entry. It's a 
+procfs bug.
 
 
 
