@@ -1,14 +1,14 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: does cpu_idle() halt CPU?
-Date: Sat, 29 Mar 2003 14:47:42 +0100
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: ACPI source release updated (20030328)
+Date: Sat, 29 Mar 2003 16:16:04 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030329134742.GD10287@poup.poupinou.org>
-References: <F760B14C9561B941B89469F59BA3A847E96D88@orsmsx401.jf.intel.com> <20030328150218.D10287@gateway.junsun.net>
+Message-ID: <20030329151604.GA19676@hell.org.pl>
+References: <F760B14C9561B941B89469F59BA3A847E96D8E@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20030328150218.D10287-Ht5ggzGNZTC9Yl/XQThFG6xOck334EZe@public.gmane.org>
+In-Reply-To: <F760B14C9561B941B89469F59BA3A847E96D8E-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,61 +17,29 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jun Sun <jsun-vWJf10E4RRusTnJN9+BGXg@public.gmane.org>
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Mar 28, 2003 at 03:02:18PM -0800, Jun Sun wrote:
-> On Fri, Mar 28, 2003 at 02:43:32PM -0800, Grover, Andrew wrote:
-> > 
-> > Your system either doesn't support C3, or the constant bus master
-> > activity is keeping it out of C3. USB can cause this, but also AC97.
-> >
-> 
-> No USB and AC97.  Have 802.11 card working.  Not sure if this matters.
+Thus wrote Grover, Andrew:
+> Fixed a problem where the error message "Failed to acquire semaphore"
+> would appear during operations on the embedded controller (EC). 
 
-Who knows..
+Thanks for that!
+I have one question though. Did you consider doing incremental ACPI
+patches? I'm using a heavily patched kernel with XFS filesystem support,
+and getting all these patches to work and applying all the rejects manually
+is a real pain. Incremental patches would really make life (mine, at least) 
+easier. What do you think about it?
 
-> 
->  
-> > > > - What does the ACPI: Processor line say in your dmesg say?
-> > 
-> > There should be a line that says, "ACPI: Processor found (x perf states
-> > y throttle)" Is that there? It may be occurring later on in the boot
-> > process.
-> >
-> 
-> I found this line:
->  
-> ACPI: Processor [CPU0] (supports C1 C2 C3, 2 performance states)
-> 
-> > > > What kind of laptop do you have? Does it support SpeedStep, 
-> > > PowerNow, or
-> > > > the like?
-> > > 
-> > > My laptop is Fujitsu S6110.  CPU supports speedstep.
-> > 
-> > Getting into the lowest SpeedStep state will help battery life. You may
-> > want to investigate the cpufreq project.
-> > 
-> 
-> So my previous conclusion about C1/C2 not saving power is right?
-> 
+(the above refers to the 2.4 kernel, with 2.5 changing so fast it isn't
+really a problem)
 
-No.  C2 will give you some power saving (try to disable explicitely and
-you will see a decrease of the battery life).
-
-You forgot at least disk activities especially if ext3, which
-prevent almost all IDE drivers to go to idle state.
-But that will not explain why you can not go to C3 though.
-
-Cheers,
+Best regards,
 
 -- 
-Ducrot Bruno
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
