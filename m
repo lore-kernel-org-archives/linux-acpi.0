@@ -1,13 +1,14 @@
-From: Carl Thompson <cet-GxmFRYwVNOxKOnpN5g9PlQ@public.gmane.org>
-Subject: C2 or C3 on Presario 2110US?
-Date: Wed,  5 Mar 2003 05:34:29 -0800
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Fujitsu P2120 S3 resume - no video, lost PCI config, suggestions?
+Date: Wed, 5 Mar 2003 16:07:29 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1046871269.3bf3b7b878989@carlthompson.net>
+Message-ID: <20030305150729.GJ7861@poup.poupinou.org>
+References: <ebw3cm26i25.fsf_-_@lxplus004.cern.ch> <Pine.LNX.4.33.0303041422450.1438-100000@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.33.0303041422450.1438-100000-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,48 +17,63 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
+Cc: Ole Rohne <ole.rohne-vJEk5272eHo@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Tue, Mar 04, 2003 at 02:26:55PM -0600, Patrick Mochel wrote:
+> 
+> On 4 Mar 2003, Ole Rohne wrote:
+> 
+> > In my quest to make S3 working on this platform, I've found the
+> > underlying reason why the display is black after a S3: the vga adapter
+> > (ATI Radeon M6 LY) looses its pci configuration and comes back with io
+> > and memory disabled, and BASE_ADDRESS_n, LATENCY_TIMER,
+> > CACHE_LINE_SIZE, and INTERRUPT_LINE containing garbage. At first I
+> > felt let down by the BIOS, but on reading the ACPI spec it seems that
+> > it is up to the OS to enumerate and configure devices on "known" buses.
+> > 
+> > So far I've tried calling pci_save_state/pci_restore_state from within
+> > the radeonfb pci driver suspend/resume routines. Unfortunately, that
+> > causes the machine to hang, probably just after PCI_COMMAND has been
+> > updated. Alternatively, I've tried rewriting the PCI configuration
+> > from userspace (setpci), which doesn't always hang but now the thing
+> > claims there is nothing connected when I eg reload radeonfb.
+> > 
+> > Questions:
+> > Is it really the job of the OS to configure PCI devices after a S3 sleep?
+> 
+> Yes. That's what the suspend()/resume() callbacks are for in the drivers. 
+> 
+> > What is the reason for the hanging when I try to restore PCI config?
+> 
+> I'm not sure. You're definitely writing on something that you shouldn't. 
+> What are you passing to pci_{save,restore}_state()? Are you giving it a 
+> buffer or not? 
+> 
+> > Is it possible that PCI "enumeration" and configuration needs to be
+> > done early, like in real mode or before irqs are enabled?
+> 
+> No. There's no need to do it that early. We should be able to handle most 
+> (read: sane) devices with interrupts enabled. If there are devices that 
+> need to be quieted with interrupts off, their resume() methods should do 
+> so during the first pass (RESUME_POWER_ON).
+> 
 
-Hello,
+There are more things to do when you want to save/restore video devices,
+as for example saving the framebuffer.  There are some code already
+present in some fb drivers, but for openfirmware use.  Perhaps we
+should as well enable them in general.
 
-     I just upgraded my laptop to a Compaq Presario 2110US and am
-pleased to report for the most part Linux ACPI works excellently on it
-(without the problems I have on my Sony Vaios).  The one exception is
-that Linux ACPI does not have any processor support for it (everything
-in /proc/acpi/processor/CPU0 reads "<not supported>" except power which
-tells me that only the C1 state is available.  I believe the problem is
-that the chipset used in the laptop is reasonably new (ATI/ALI combo),
-in particular the ATI bridges.  Is there any effort to get ACPI working
-on this chipset?  In particular I would like to see C2 or C3 because the
-2110 has the loudest fan I've heard on a laptop.  I am willing to help
-in any way I can and here is the output of lspci:
+-- 
+Ducrot Bruno
 
-00:00.0 Host bridge: ATI Technologies Inc: Unknown device cab0 (rev 13)
-00:01.0 PCI bridge: ATI Technologies Inc U1/A3 AGP Bridge [IGP 320M]
-(rev 01)
-00:02.0 USB Controller: ALi Corporation USB 1.1 Controller (rev 03)
-00:06.0 Multimedia audio controller: ALi Corporation M5451 PCI AC-Link
-Controller Audio Device (rev 02)
-00:07.0 ISA bridge: ALi Corporation M1533 PCI to ISA Bridge [Aladdin IV]
-00:08.0 Modem: ALi Corporation Intel 537 [M5457 AC-Link Modem]
-00:0a.0 CardBus bridge: O2 Micro, Inc. OZ6912 Cardbus Controller
-00:10.0 IDE interface: ALi Corporation M5229 IDE (rev c4)
-00:11.0 Bridge: ALi Corporation M7101 PMU
-00:12.0 Ethernet controller: National Semiconductor Corporation DP83815
-(MacPhyter) Ethernet Controller
-01:05.0 VGA compatible controller: ATI Technologies Inc Radeon Mobility U1
-
-The processor itself is a Mobile AMD Athlon 2000+.
-
-Thanks,
-Carl Thompson
-
-
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
+This SF.net email is sponsored by: Etnus, makers of TotalView, The debugger 
+for complex code. Debugging C/C++ programs can leave you feeling lost and 
+disoriented. TotalView can help you find your way. Available on major UNIX 
+and Linux platforms. Try it free. www.etnus.com
