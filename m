@@ -1,10 +1,9 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: smp/swsusp done right
-Date: Wed, 23 Mar 2005 21:40:19 +0100
-Message-ID: <20050323204019.GA11616@elf.ucw.cz>
+From: Ferenc Szalma <szalmaf-JAjqph6Yjy97jm546uhsrg@public.gmane.org>
+Subject: swsusp: FATAL: cannot find swap device, try swapon -a!
+Date: Wed, 23 Mar 2005 19:09:37 -0500 (EST)
+Message-ID: <Pine.GSO.4.61.0503231901190.15962@z.glue.umd.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,179 +13,84 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Cc: seife-l3A5Bk7waGM@public.gmane.org, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hi,
 
-This is against -mm kernel; it is smp swsusp done right, and it
-actually works for me. Unlike previous hacks, it uses cpu hotplug
-infrastructure. Disable CONFIG_MTRR before you try this...
+Swsusp comes back with the following error message on my Toshiba m200 
+laptop:
 
-Test this if you can, and report any problems. If not enough people
-scream, this is going to -mm.
-								Pavel
 
---- clean-mm/drivers/pci/pci.c	2005-03-21 11:39:32.000000000 +0100
-+++ linux-mm/drivers/pci/pci.c	2005-03-22 01:41:48.000000000 +0100
-@@ -376,11 +376,13 @@
- 	if (!pci_find_capability(dev, PCI_CAP_ID_PM))
- 		return PCI_D0;
- 
-+#if 0
- 	if (platform_pci_choose_state) {
- 		ret = platform_pci_choose_state(dev, state);
- 		if (ret >= 0)
- 			state = ret;
- 	}
-+#endif
- 	switch (state) {
- 	case 0: return PCI_D0;
- 	case 3: return PCI_D3hot;
---- clean-mm/kernel/power/Kconfig	2005-01-22 21:24:53.000000000 +0100
-+++ linux-mm/kernel/power/Kconfig	2005-03-23 11:40:14.000000000 +0100
-@@ -28,7 +28,7 @@
- 
- config SOFTWARE_SUSPEND
- 	bool "Software Suspend (EXPERIMENTAL)"
--	depends on EXPERIMENTAL && PM && SWAP
-+	depends on EXPERIMENTAL && PM && SWAP && (HOTPLUG_CPU || !SMP)
- 	---help---
- 	  Enable the possibility of suspending the machine.
- 	  It doesn't need APM.
---- clean-mm/kernel/power/smp.c	2005-03-19 00:32:32.000000000 +0100
-+++ linux-mm/kernel/power/smp.c	2005-03-23 15:38:30.000000000 +0100
-@@ -7,79 +7,53 @@
-  * This file is released under the GPLv2.
-  */
- 
--#undef DEBUG
--
- #include <linux/smp_lock.h>
- #include <linux/interrupt.h>
- #include <linux/suspend.h>
- #include <linux/module.h>
- #include <asm/atomic.h>
- #include <asm/tlbflush.h>
-+#include <asm/cpu.h>
- 
--static atomic_t cpu_counter, freeze;
--
--
--static void smp_pause(void * data)
--{
--	struct saved_context ctxt;
--	__save_processor_state(&ctxt);
--	printk("Sleeping in:\n");
--	dump_stack();
--	atomic_inc(&cpu_counter);
--	while (atomic_read(&freeze)) {
--		/* FIXME: restore takes place at random piece inside this.
--		   This should probably be written in assembly, and
--		   preserve general-purpose registers, too
--
--		   What about stack? We may need to move to new stack here.
--
--		   This should better be ran with interrupts disabled.
--		 */
--		cpu_relax();
--		barrier();
--	}
--	atomic_dec(&cpu_counter);
--	__restore_processor_state(&ctxt);
--}
--
--static cpumask_t oldmask;
-+cpumask_t frozen_cpus;
- 
- void disable_nonboot_cpus(void)
- {
--	printk("Freezing CPUs (at %d)", smp_processor_id());
--	oldmask = current->cpus_allowed;
--	set_cpus_allowed(current, cpumask_of_cpu(0));
--	current->state = TASK_INTERRUPTIBLE;
--	schedule_timeout(HZ);
--	printk("...");
--	BUG_ON(smp_processor_id() != 0);
--
--	/* FIXME: for this to work, all the CPUs must be running
--	 * "idle" thread (or we deadlock). Is that guaranteed? */
-+	int cpu, error;
- 
--	atomic_set(&cpu_counter, 0);
--	atomic_set(&freeze, 1);
--	smp_call_function(smp_pause, NULL, 0, 0);
--	while (atomic_read(&cpu_counter) < (num_online_cpus() - 1)) {
--		cpu_relax();
--		barrier();
-+	error = 0;
-+	cpus_clear(frozen_cpus);
-+	printk("Freezing cpus ...\n");
-+	for_each_online_cpu(cpu) {
-+		if (cpu == 0)
-+			continue;
-+		error = cpu_down(cpu);
-+		if (!error) {
-+			cpu_set(cpu, frozen_cpus);
-+			printk("CPU%d is down\n", cpu);
-+			continue;
-+		}
-+		printk("Error taking cpu %d down: %d\n", cpu, error);
- 	}
--	printk("ok\n");
-+	BUG_ON(smp_processor_id() != 0);
-+	if (error)
-+		panic("cpus not sleeping");
- }
- 
- void enable_nonboot_cpus(void)
- {
--	printk("Restarting CPUs");
--	atomic_set(&freeze, 0);
--	while (atomic_read(&cpu_counter)) {
--		cpu_relax();
--		barrier();
--	}
--	printk("...");
--	set_cpus_allowed(current, oldmask);
--	schedule();
--	printk("ok\n");
-+	int cpu, error;
- 
-+	printk("Thawing cpus ...\n");
-+	for_each_cpu_mask(cpu, frozen_cpus) {
-+		if (cpu == 0)
-+			continue;
-+		error = cpu_up(cpu);
-+		if (!error) {
-+			printk("CPU%d is up\n", cpu);
-+			continue;
-+		}
-+		printk("Error taking cpu %d up: %d\n", cpu, error);
-+		panic("Not enough cpus");
-+	}
- }
--
--
---- clean-mm/kernel/power/swsusp.c	2005-03-21 11:39:33.000000000 +0100
-+++ linux-mm/kernel/power/swsusp.c	2005-03-23 15:34:53.000000000 +0100
-@@ -1194,8 +1194,11 @@
- 		return "version";
- 	if (strcmp(swsusp_info.uts.machine,system_utsname.machine))
- 		return "machine";
-+#if 0
-+	/* We can't use number of CPUs when we use hotplug to remove them ;-))) */
- 	if(swsusp_info.cpus != num_online_cpus())
- 		return "number of cpus";
-+#endif
- 	return NULL;
- }
- 
+Stopping tasks: 
+==========================================================================|
+Freeing memory... done (35896 pages freed)
+BUG: using smp_processor_id() in preemptible [00000001] code: 
+acpitool/8191
+caller is disable_nonboot_cpus+0x10/0xdb
+  [<c025c6bf>] smp_processor_id+0xa3/0xb4
+  [<c013a2c5>] disable_nonboot_cpus+0x10/0xdb
+  [<c013a2c5>] disable_nonboot_cpus+0x10/0xdb
+  [<c013a4c7>] free_some_memory+0x5e/0x64
+  [<c013a53b>] prepare+0x2f/0xaf
+  [<c013a5c4>] pm_suspend_disk+0x9/0x73
+  [<c0138cac>] enter_state+0x8e/0x92
+  [<c0138dd4>] state_store+0xa4/0xb7
+  [<c0197015>] subsys_attr_store+0x34/0x3d
+  [<c0197299>] flush_write_buffer+0x3e/0x4a
+  [<c01972fd>] sysfs_write_file+0x58/0x80
+  [<c015da98>] vfs_write+0x148/0x14d
+  [<c015db6e>] sys_write+0x51/0x80
+  [<c010319f>] syscall_call+0x7/0xb
+Freezing CPUs (at 0)...ok
+eth1: Going into suspend...
+NVRM: RmPowerManagement: 3
+swsusp: FATAL: cannot find swap device, try swapon -a!
+PCI: Setting latency timer of device 0000:00:1d.0 to 64
+PCI: Setting latency timer of device 0000:00:1d.1 to 64
+PCI: Setting latency timer of device 0000:00:1d.2 to 64
+PCI: cache line size of 32 is not supported by device 0000:00:1d.7
+ehci_hcd 0000:00:1d.7: USB 2.0 restarted, EHCI 1.00, driver 10 Dec 2004
+ACPI: PCI Interrupt 0000:00:1f.1[A] -> Link [LNKC] -> GSI 11 (level, low) 
+-> IRQ 11
+ACPI: PCI Interrupt 0000:00:1f.5[B] -> Link [LNKB] -> GSI 11 (level, low) 
+-> IRQ 11
+PCI: Setting latency timer of device 0000:00:1f.5 to 64
+NVRM: RmPowerManagement: 4
+eth1: Coming out of suspend...
+PCI: Enabling device 0000:02:05.0 (0000 -> 0002)
+ACPI: PCI Interrupt 0000:02:05.0[A] -> Link [LNKC] -> GSI 11 (level, low) 
+-> IRQ 11
+Restarting CPUs...ok
+Restarting tasks... done
+usb 2-2: USB disconnect, address 2
+usb 2-2.1: USB disconnect, address 3
+usb 2-2.3: USB disconnect, address 4
+usb 2-2: new full speed USB device using uhci_hcd and address 5
+hub 2-2:1.0: USB hub found
+hub 2-2:1.0: 3 ports detected
+ALPS Touchpad (Glidepoint) detected
+   Disabling hardware tapping
+input: AlpsPS/2 ALPS TouchPad on isa0060/serio1
+usb 2-2.1: new full speed USB device using uhci_hcd and address 6
+input: USB HID v1.10 Keyboard [Dell Dell USB Keyboard Hub] on 
+usb-0000:00:1d.0-2.1
+input: USB HID v1.10 Device [Dell Dell USB Keyboard Hub] on 
+usb-0000:00:1d.0-2.1
+usb 2-2.3: new low speed USB device using uhci_hcd and address 7
+input: USB HID v1.10 Mouse [Logitech Optical USB Mouse] on 
+usb-0000:00:1d.0-2.3
 
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+I use gentoo linux with kernel-2.6.11.4 kernel (not gentoo-kernel!) 
+patched with acpi-20050309-2.6.11.diff.gz and boot with 
+resume=swap:/dev/hda3 where hda3 is my swap patition. I have searched the 
+web and I see that I am not the 1st one getting the same error message; 
+the question is if anybody has come up with a remedy to this problem.
+
+Thanks,
+
+Ferenc
+
 
 
 -------------------------------------------------------
