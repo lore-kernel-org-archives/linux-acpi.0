@@ -1,12 +1,14 @@
-From: Dan <overridex-Kz9Au3A7zptBDgjK7y7TUQ@public.gmane.org>
-Subject: throttling keeps resetting after acpi -t
-Date: Mon, 16 Feb 2004 01:31:07 -0500
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: ACPI_STRICT_COMPLIANCE (was RE: RE: ACPI -- Workaround forbroken DSDT)
+Date: Mon, 16 Feb 2004 09:34:35 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1076913067.9136.1.camel@nazgul.overridex.net>
+Message-ID: <20040216083435.GA23640@message-id.gmane0305.slipkontur.de>
+References: <C50AB9511EE59B49B2A503CB7AE1ABD106611260@cceexc19.americas.cpqcorp.net> <20040213005043.GE13262@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20040213005043.GE13262-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,18 +17,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uti2KpX7p8Fi@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-hi there,
+On Fri, Feb 13, 2004 at 01:50:43AM +0100, Bruno Ducrot wrote:
+ 
+> The 'toshiba return bug' is something like that:
+> 
+> Method(FOO) {
+> 	return (0)
+> }
+> 
+> Method(BAR) {
+> 	FOO()
+> }
+> 
+> If ACPI is pedantic, BAR return nothing.
 
-my cpu throttling that i echo into /proc/acpi/processor/CPU0/throttling
-works well until i run acpi -t or cat
-/proc/acpi/thermal_zone/THM0/temperature to see the temp, then it resets
-back to T0 - how can i stop this? thanks... -Dan
-
-please cc me any replies
-
+Well, but it is a bug, so it _should_ fail with "acpi=strict", shouldn't it?
+If "acpi=strict" is omitted, the bug can be worked around and the buyers of
+this crap can be happy.
+-- 
+Stefan Seyfried
 
 
 
