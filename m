@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: can't switch CPU frequency while running on batterypower
-Date: Mon, 12 Jan 2004 14:39:11 +0800
+Subject: RE: DELL inspiron 8200 fails to restore console after S1/S3
+Date: Mon, 12 Jan 2004 14:48:47 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CB1@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CB2@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,33 +17,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Defiant <mail-4AGA6j5e2AhmdDG0eupGX0B+6BGkLq7r@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ezra peisach <epeisach-AW32GngNFaTp5eoAjl1PXg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->=20
->=20
-> > When switching between AC and battery, _PPC method may=20
-> return a different
-> > P-state limit. Please verify if 'cat=20
-> /proc/acpi/processor/CPU0/limit' is
-> > different under the two situations.
-> >
-> > Thanks,
-> > Shaohua
->=20
-> No, it is not different.
-> I get both times
->=20
-> active limit:            P0:T0
-> platform limit:          P0:T0
-> user limit:              P0:T0
-> thermal limit:           P0:T0
->=20
-> I guess, this is not good?
 
-Did you find any warning or error message in boot log?
-Maybe there are some potential ACPI bug.
+>=20
+> \_SB.PCI0.AGP.VID
+>=20
 
+What is AGP.VID, I didn't find any information regarding VID in ACPI
+spec 2.0b.
+
+> and do the right thing?
+>=20
+> Perhaps the agp driver is the proper place.... I suspect it=20
+> may be a radeon=20
+> specific thing...
+>=20
+> For the X case - maybe it needs to observe the acpi events -=20
+> not just apm.
+>=20
+
+I think video driver should be responsible for turnning on/off console,
+becuase they have chance to run when entering/leaving S1/S3.
 
 
 -------------------------------------------------------
