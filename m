@@ -1,11 +1,14 @@
-From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Subject: Fw: [Bug 4416] New: Box hangs solid during swsusp resume
-Date: Tue, 29 Mar 2005 02:20:02 -0800
-Message-ID: <20050329022002.6b3abd0f.akpm@osdl.org>
+From: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+Subject: Re: Re: What's up with the Embedded Controller driver? [was
+ Re: [ACPI] patched sms-cm acpi/ec.c to 2.6.11.5]
+Date: Tue, 29 Mar 2005 09:50:25 -0500
+Message-ID: <42496B31.5010408@bartol.udel.edu>
+References: <3ACA40606221794F80A5670F0AF15F8407923522@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8407923522@pdsmsx403>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,52 +18,75 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: =?ISO-8859-1?Q?Fran=E7ois_Valenduc?= <fvalenduc-IWqWACnzNjyZIoH1IeqzKA@public.gmane.org>, ACPI devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Yu, Luming wrote:
+> You modified DSDT just remove some AML methods that related to EC.
+> That means it just delete the problem. 
+> I believe if you think this is the regression, just because the changeset
+> http://linux-acpi.bkbits.net:8080/26-latest-test/diffs/include/acpi/acconfig.h@1.55?nav=index.html|src/.|src/include|src/include/acpi|hist/include/acpi/acconfig.h
+> make _those AML methods just run.
+> So, this is NOT a regression problem.
+> 
+> Please cat /proc/interrupts to me before accessing EC and after accessing EC.(using burst mode EC patch)
+> 
 
-Could someone please take a look?
+Hi Yuming --
 
+I'm using your ec patch, plus a DSDT modified using my sbs-cm package
+(which accesses the Smart Battery system through the EC address space
+handler). Here's what happens to the interrupts when I access the battery:
 
-Begin forwarded message:
+rhdt@sto ~ $ cat /proc/interrupts
+           CPU0
+  0:  127116981          XT-PIC  timer
+  1:     213426          XT-PIC  i8042
+  2:          0          XT-PIC  cascade
+  6:     171382          XT-PIC  i915@pci:0000:00:02.0, uhci_hcd,
+uhci_hcd, uhci_hcd, eth1
+  8:          8          XT-PIC  rtc
+  9:    3305062          XT-PIC  acpi
+ 10:    1965890          XT-PIC  Intel 82801DB-ICH4, yenta, ehci_hcd,
+ipw2200
+ 12:    4335843          XT-PIC  i8042
+ 14:     466033          XT-PIC  ide0
+ 15:         28          XT-PIC  ide1
+NMI:          0
+LOC:          0
+ERR:          0
+rhdt@sto ~ $ cat /proc/acpi/battery/BAT0/state
+present:                 yes
+capacity state:          ok
+charging state:          charged
+present rate:            0 mA
+remaining capacity:      4081 mAh
+present voltage:         16699 mV
+rhdt@sto ~ $ cat /proc/interrupts
+           CPU0
+  0:  127131974          XT-PIC  timer
+  1:     213488          XT-PIC  i8042
+  2:          0          XT-PIC  cascade
+  6:     171462          XT-PIC  i915@pci:0000:00:02.0, uhci_hcd,
+uhci_hcd, uhci_hcd, eth1
+  8:          8          XT-PIC  rtc
+  9:    3305297          XT-PIC  acpi
+ 10:    1966133          XT-PIC  Intel 82801DB-ICH4, yenta, ehci_hcd,
+ipw2200
+ 12:    4335843          XT-PIC  i8042
+ 14:     466065          XT-PIC  ide0
+ 15:         28          XT-PIC  ide1
+NMI:          0
+LOC:          0
+ERR:          0
 
-Date: Tue, 29 Mar 2005 02:17:54 -0800
-From: bugme-daemon-3NddpPZAyC0@public.gmane.org
-To: akpm-LL/9OlyS9hIAvxtiuMwx3w@public.gmane.org
-Subject: [Bug 4416] New: Box hangs solid during swsusp resume
+Note that the battery access took over 5 seconds! And note, of course,
+the big jump in the acpi interrupt count.
 
+cheers,
 
-http://bugme.osdl.org/show_bug.cgi?id=4416
-
-           Summary: Box hangs solid during swsusp resume
-    Kernel Version: 2.6.12-rc1-mm[1-3]
-            Status: NEW
-          Severity: high
-             Owner: akpm-LL/9OlyS9hIAvxtiuMwx3w@public.gmane.org
-         Submitter: rjwysocki-KKrjLPT3xs0@public.gmane.org
-
-
-Distribution: SUSE 9.2 x86-64 
- 
-Hardware Environment: Asus L5D 
- 
-Problem Description: The box hangs solid while resuming from disk, after the 
-system image has been restored.  Apparently, the hang occurs as a result of the 
-call to pci_write_config_word() with pmcsr = 0 in 
-drivers/pci/pci.c:pci_set_power_state().  In fact, the function 
-pci_write_config_word() completes successfully but the box hangs during 
-msleep() afterwards.  It cartainly is related to the fact that ACPI PCI links 
-are not set before pci_set_power_state() is called. 
- 
-Steps to reproduce: Suspend the box to disk and try to resume it.  The problem 
-is 100% reproducible. 
- 
-Greets, 
-Rafael
-
-------- You are receiving this mail because: -------
-You are the assignee for the bug, or are watching the assignee.
+Rich
 
 
 -------------------------------------------------------
