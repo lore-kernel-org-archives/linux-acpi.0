@@ -1,8 +1,8 @@
-From: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
+From: Arndt Schoenewald <abs-SA7OhAOe25xnNxvc45mVi0K323yFvGpRdefyYXQ/eNw@public.gmane.org>
 Subject: Re: Why is the new patch against 2.4.20-pre3 and not 2.4.1 9?
-Date: Wed, 21 Aug 2002 10:15:14 +0200
+Date: Wed, 21 Aug 2002 11:38:54 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020821081514.GD10075@dutidad.twi.tudelft.nl>
+Message-ID: <20020821093854.GA14643@digda.intern.quelltext.com>
 References: <EDC461A30AC4D511ADE10002A5072CAD0236DDB1@orsmsx119.jf.intel.com> <3D634335.40207@crf.canon.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -17,11 +17,23 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: VALETTE Eric <valette-9L3uxOwa2HHHNWWW6QW1Ag@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
+
+Hi Eric!
 
 On Wed, Aug 21, 2002 at 09:37:25AM +0200, VALETTE Eric wrote:
 > Grover, Andrew wrote:
+> >>From: VALETTE Eric [mailto:valette-9L3uxOwa2HHHNWWW6QW1Ag@public.gmane.org] 
+> >>I've tried to apply it on 2.4.19, it fails. I've tried on 
+> >>2.4.20-pre4 it also fails :-(. So I have to stick with 2.4.20-pre3
+> >>which is known to cause some hangup on boot (see Marcello comment
+> >>for pre4).
+> >>
+> >>Can we have some light of why 20-pre3 instead of 19? Or is it just 
+> >>cahotic because of the temperature and beverage?
+> >
 > >Because that's what I originally merged against, and I didn't want to
 > >remerge against .19.
 > 
@@ -32,19 +44,22 @@ On Wed, Aug 21, 2002 at 09:37:25AM +0200, VALETTE Eric wrote:
 > packet writing for UDF). Again I think this is just a lack of methodlogy 
 >  (like non usage of acessible bug tracking system...).
 
-He applied against 2.4.20-pre3, deal with it.  You could:
-1. Run 2.4.18 OR
-2. Port the patch to 2.4.19 yourself if you are such a expert on
-   "methodology" OR
-3. Install Windows XP.
+It seems that Andrew's merge with 2.4.10-pre3 instead of 2.4.19 was an
+accident rather than a deliberate decision. When he announced the new
+ACPI source release on on Fri, 16 Aug 2002, he wrote:
 
-One of these three options is meant as a joke.
+    [snip]
+    Second, the Linux 2.5 patch is up on sf.net/projects/acpi, and
+    includes the changes listed below. Unfortunately, due to a BK error
+    on my part (I merged the ACPI patch onto the tip of the 2.4 BK tree,
+    instead of 2.4.19) the 2.4 patch is going to have to wait until
+    Marcelo releases 2.4.20-pre3.
+    [snip]
+
+So please don't get upset too much; mistakes like this can happen.
 
 Best regards,
-Charl
-
--- 
-charl p. botha http://cpbotha.net/ http://visualisation.tudelft.nl/
+Arndt
 
 
 -------------------------------------------------------
