@@ -1,88 +1,88 @@
-From: "Wang, Zhenyu Z" <zhenyu.z.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Badness in remove_proc_entry  when 'rmmod battery'
-Date: Mon, 17 May 2004 14:58:49 +0800
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <6E0C289723A0564F9A8279E236E8565F07668DFA@pdsmsx402.pd.intel.com>
+From: Jan De Luyck <lkml@kcore.org>
+Subject: Re: [2.6.6] Synaptics driver is 'jumpy'
+Date: Mon, 17 May 2004 09:04:20 +0200
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <200405170904.24471.lkml@kcore.org>
+References: <200405161222.48581.lkml@kcore.org> <200405170832.32256.lkml@kcore.org> <200405170142.41289.dtor_core@ameritech.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-2022-jp"
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jan De Luyck <lkml-gY0FE6dpLprYtjvyW6yDsg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S264916AbUEQHEE@vger.kernel.org>
+In-Reply-To: <200405170142.41289.dtor_core@ameritech.net>
+Content-Disposition: inline
+To: linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
- 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Pls, see http://bugme.osdl.org/show_bug.cgi?id=2705
+On Monday 17 May 2004 08:42, Dmitry Torokhov wrote:
+> On Monday 17 May 2004 01:32 am, Jan De Luyck wrote:
+> > On Sunday 16 May 2004 21:29, Dmitry Torokhov wrote:
+> > > On Sunday 16 May 2004 02:06 pm, Jan De Luyck wrote:
+> > > > On Sunday 16 May 2004 19:18, Dmitry Torokhov wrote:
+> > > > > Hmm.. there was no changes to PS/2 processing between 2.6.5 and
+> > > > > 2.6.6 except for some Logitech tweaking, but it should not affect
+> > > > > Synaptics handling in any way...
+> > > > >
+> > > > > Could you check if you still have DMA enabled on your disks, check
+> > > > > your time source (TSC, ACPI PM timer, etc) and probably boot with
+> > > > > acpi off?
+> > > > >
+> > > > > Thank you.
+> > > >
+> > > > Dmitry,
+> > > >
+> > > > Booting with acpi=off fixes the problem, although I'm curious to what
+> > > > the problem actually is.
+> > > >
+> > > > I've attached the dmesgs from 2.6.6, 2.6.5, and 2.6.6 with acpi=off.
+> > > >
+> > > > There is a line that says "Invalid control registers" that I wonder
+> > > > where it comes from, but you might see something more here than I do.
+> > >
+> > > It comes from speedstep-centrino module, could you please try booting
+> > > with ACPI but without speedstep-centrino loaded? Also, does it help if
+> > > you do not compile/ load ACPI battery module?
+> >
+> > Neither has any effect.
+> >
+> > I've also disabled CONFIG_X86_SPEEDSTEP_CENTRINO_ACPI, figuring there
+> > might be some problem with that, but that doesn't change a thing.
+>
+> Perhaps we need to check with ACPI guys as it seems that you are affected
+> by this code and there were some changes to ACPI subsystem between 2.6.5
+> and 2.6.6.
 
-thanks,
--zhen 
+Ok. Passing on to acpi-devel@lists.sourceforge.net.
 
------Original Message-----
-From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Jan De Luyck
-Sent: 2004年5月17日 14:54
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: [ACPI] Badness in remove_proc_entry when 'rmmod battery'
+I've looked in the archives, and the problem looks very much like the one in 
+this thread:
 
-This showed up in my logs today when rmmod'ing the battery module:
+http://sourceforge.net/mailarchive/forum.php?thread_id=4172848&forum_id=6102
 
-Badness in remove_proc_entry at fs/proc/generic.c:685
-Call Trace:
- [<c017964a>] remove_proc_entry+0x10a/0x150
- [<e1a09a4d>] acpi_battery_remove_fs+0x1d/0x2d [battery]
- [<e1a09bc5>] acpi_battery_remove+0x32/0x41 [battery]
- [<c02674d5>] acpi_driver_detach+0x39/0x7c
- [<c0267589>] acpi_bus_unregister_driver+0x12/0x51
- [<e1a09bde>] acpi_battery_exit+0xa/0x1e [battery]
- [<c012bace>] sys_delete_module+0x13e/0x180
- [<c014063a>] do_munmap+0x14a/0x190
- [<c010411b>] syscall_call+0x7/0xb
+And I've been noticing some keyboard glitches too, but these were to 
+unfrequent, and usually occur only in one application (gaim) so I figured it 
+might be a bug in gaim... guess not...
 
-Badness in remove_proc_entry at fs/proc/generic.c:685
-Call Trace:
- [<c017964a>] remove_proc_entry+0x10a/0x150
- [<e1a09a4d>] acpi_battery_remove_fs+0x1d/0x2d [battery]
- [<e1a09bc5>] acpi_battery_remove+0x32/0x41 [battery]
- [<c02674d5>] acpi_driver_detach+0x39/0x7c
- [<c0267589>] acpi_bus_unregister_driver+0x12/0x51
- [<e1a09bde>] acpi_battery_exit+0xa/0x1e [battery]
- [<c012bace>] sys_delete_module+0x13e/0x180
- [<c014063a>] do_munmap+0x14a/0x190
- [<c010411b>] syscall_call+0x7/0xb
+Unfortunately, the hints in this thread don't help. I've browsed the input 
+system FAQ, but no dice.
+
+The only thing that gives me a working synaptics touchpad is acpi=off.
+
+It worked fine with 2.6.5.
 
 Jan
 
--- 
-Bennett's Laws of Horticulture:
-	(1) Houses are for people to live in.
-	(2) Gardens are for plants to live in.
-	(3) There is no such thing as a houseplant.
+- -- 
+Those who do things in a noble spirit of self-sacrifice are to be avoided
+at all costs.
+		-- N. Alexander.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
 
-
--------------------------------------------------------
-This SF.Net email is sponsored by: SourceForge.net Broadband
-Sign-up now for SourceForge Broadband and get the fastest
-6.0/768 connection for only $19.95/mo for the first 3 months!
-http://ads.osdn.com/?ad_id=2562&alloc_id=6184&op=click
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
-
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: SourceForge.net Broadband
-Sign-up now for SourceForge Broadband and get the fastest
-6.0/768 connection for only $19.95/mo for the first 3 months!
-http://ads.osdn.com/?ad_id=2562&alloc_id=6184&op=click
+iD8DBQFAqGP3UQQOfidJUwQRAoXUAJ9nKMmfc6x72u3nJbJl+PZi3q0U3QCeO8N5
++KJEgm5HKq+gwOAh7A/Z3cA=
+=ONlN
+-----END PGP SIGNATURE-----
