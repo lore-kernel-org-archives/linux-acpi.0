@@ -1,19 +1,25 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [ACPI] acpi related problem on ACER TM 4002WLMi running SuSE
- 9.2
-Date: Mon, 21 Mar 2005 23:24:44 +0100
-Message-ID: <423F49AC.1030600@suse.de>
+From: "Thomas Renninger" <trenn-l3A5Bk7waGM@public.gmane.org>
+Subject: [suse-laptop] Re: acpi related problem on ACER TM 4002WLMi running SuSE 9.2
+Date: Mon, 21 Mar 2005 23:31:09 +0100
+Message-ID: <000201c52e65$ae1cba20$0173a8c0@karschnet.local>
 References: <d49121bb05031414506df19df@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-List-Post: <mailto:suse-laptop@suse.com>
-List-Help: <mailto:suse-laptop-help@suse.com>
-List-Unsubscribe: <mailto:suse-laptop-unsubscribe-glsl-suse-laptop=m.gmane.org@suse.com>
-List-Subscribe: <mailto:suse-laptop-subscribe@suse.com>
-In-Reply-To: <d49121bb05031414506df19df@mail.gmail.com>
-To: Carlos E Manglano-Villamarin <carlosemanglanov@gmail.com>
-Cc: acpi-devel@lists.sourceforge.net, "'suse-laptop@suse.com'" <suse-laptop@suse.com>
+In-Reply-To: <d49121bb05031414506df19df-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Class: urn:content-classes:message
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: skarsch-EZnA+GhA2Xev1Vk0o9suBQ@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, suse-laptop-IBi9RG/b67k@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Carlos E Manglano-Villamarin wrote:
@@ -133,6 +139,17 @@ http://www.suse.com/en/private/support/online_help/mailinglists/
 
 -- 
 Um die Liste abzubestellen, schicken Sie eine Mail an:
-    suse-laptop-unsubscribe@suse.com
+    suse-laptop-unsubscribe-IBi9RG/b67k@public.gmane.org
 Um eine Liste aller verfuegbaren Kommandos zu bekommen, schicken
-Sie eine Mail an: suse-laptop-help@suse.com
+Sie eine Mail an: suse-laptop-help-IBi9RG/b67k@public.gmane.org
+
+
+
+
+
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
