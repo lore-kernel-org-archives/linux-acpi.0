@@ -1,13 +1,12 @@
-From: Hiroyuki KAMEZAWA <kamezawa.hiroyu-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Subject: Re: [Lhms-devel] [PATCH] ACPI based Memory Hotplug Driver Patch
- Update
-Date: Wed, 13 Oct 2004 12:21:52 +0900
+From: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Subject: Re: [PATCH] ACPI based Memory Hotplug Driver Patch Update
+Date: Wed, 13 Oct 2004 15:02:17 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <416C9F50.901@jp.fujitsu.com>
+Message-ID: <20041013150217.7f232761.tokunaga.keiich@jp.fujitsu.com>
 References: <FEB6C4E97F6CAF41978FB2059D5454180F3910@bgsmsx402.gar.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 In-reply-to: <FEB6C4E97F6CAF41978FB2059D5454180F3910-OkeUvhg1trkFyVwBAnZdSLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,45 +18,20 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: "S, Naveen B" <naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Tolentino, Matthew E" <matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org
+Cc: tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Naveen,
 
-as Bjohn said.
-> I'm not sure you should assume the range will be the only item in _CRS
-> (i.e., you may need to iterate over all items using acpi_walk_resources()).
+On Wed, 13 Oct 2004 04:59:46 +0530 S, Naveen B wrote:
+> Tokunaga, 
+> This does not include your patch yet. Would like to test and consider it
+> in the subsequent patches once the base driver gets into the kernel.
 
-I think you should use acpi_walk_resources(), like below.
+Okay.  Thanks for letting me know about that.
 
-By the way,a _CRS cannot contain plural address information ?
-
-Kame <kamezawa.hiroyu-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-
-S, Naveen B wrote:
-+static int
-+acpi_memory_enable_device(struct acpi_memory_device *mem_device)
-+{
-+	int result;
-+	
-+	ACPI_FUNCTION_TRACE("acpi_memory_enable_device");
-+
-+	/* Get the range from the _CRS */
-+	result = acpi_memory_get_device_resources(mem_device);
-
-result = acpi_walk_resources(mem_device->handle, METHOD_NAME_CRS,
-                              acpi_memory_get_device_resources, mem_device);
-
-+	if (result) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-+			"\nget_device_resources failed\n"));
-+		mem_device->state = MEMORY_INVALID_STATE;		
-+		return result;
-+	}
-
--- 
---the clue is these footmarks leading to the door.--
-KAMEZAWA Hiroyuki <kamezawa.hiroyu-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-
+Thanks,
+Keiichiro Tokunaga
 
 
 -------------------------------------------------------
