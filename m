@@ -1,11 +1,12 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [20030321] Failed to acquire semaphore
-Date: Wed, 26 Mar 2003 08:30:53 -0800
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Timer interrupts after CPU speed change
+Date: Wed, 26 Mar 2003 19:06:52 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <B9ECACBD6885D5119ADC00508B68C1EA0D19BBFF@orsmsx107.jf.intel.com>
+Message-ID: <20030326190652.GA12645@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,80 +15,39 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "'bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org'" <bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thanks.
+For reasons that (as yet) aren't entirely clear to me, suspending my
+laptop to S3 when it's on battery results in it failing to resume
+correctly (hard drive LED comes on and stays on - it's probably a DMA 
+issue or something similarly entertaining, but I've got no console once 
+it resumes so it's hard to tell). However, booting on battery, 
+connecting it to AC and then suspending allows a resume to work. The 
+problem is as follows:
 
-We understand what the problem is and we are working to fix it.  In the
-meantime, it doesn't cause any issues other than a flurry of messages on
-machines that use the EC heavily.
+When booting on battery, the CPU runs at 133MHz. As far as I've been 
+able to tell, this machine doesn't support Speedstep (it's a mobile PIII 
+500, and the Intel information I've found seems to suggest that 
+Speedstep only appeared with the 600s) and from poking various registers 
+it seems to accomplish this by using throttling (if I force those 
+registers to the values that change when changing between AC and 
+battery, the selected throttling value in /proc/acpi/ changes).
 
-Bob
+Attaching power results in the processor speeding up again (and, though 
+I haven't checked, I /think/ that just starting ACPI when on battery 
+actually results in it running at full speed). If I now suspend, carry 
+my laptop around for a while, attach it to power and resume, the system 
+timer starts firing at 4096Hz rather than 1024Hz with fairly predictable 
+consequences. /proc/cpuinfo continues to say that the processor is 
+133MHz, though it's now running happily at 500 (and was running at 500 
+before being suspended as well).
 
+Is there any obvious fix for this?
 
-> -----Original Message-----
-> From: bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org [mailto:bperkins@netspace.org]
-> Sent: Tuesday, March 25, 2003 1:53 PM
-> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Cc: Grover, Andrew
-> Subject: Re: [ACPI] [20030321] Failed to acquire semaphore
-> 
-> Here's the stack trace from the error on bootup.
-> It's exaclty the same if I push a button, close a lid, chnage
-> brightness, etc.
-> 
-> 
-> Badness in acpi_os_wait_semaphore at drivers/acpi/osl.c:911
-> Call Trace:
->  [<c0223a03>] acpi_os_wait_semaphore+0x125/0x20a
->  [<c02470f4>] acpi_ut_acquire_mutex+0x92/0x164
->  [<c022ad37>] acpi_disable_gpe+0x33/0x96
->  [<c024cf63>] acpi_ec_gpe_handler+0x17/0x2a
->  [<c022cc9d>] acpi_ev_gpe_dispatch+0x18f/0x1d0
->  [<c022c9e6>] acpi_ev_gpe_detect+0x168/0x170
->  [<c022a7e8>] acpi_ev_sci_xrupt_handler+0x38/0x50
->  [<c0222f91>] acpi_irq+0xf/0x12
->  [<c010b595>] handle_IRQ_event+0x37/0x5e
->  [<c0222f82>] acpi_irq+0x0/0x12
->  [<c010b7ff>] do_IRQ+0xc5/0x184
->  [<c0109d9c>] common_interrupt+0x18/0x20
->  [<c0223116>] acpi_os_write_port+0x2e/0x46
->  [<c0237150>] acpi_hw_low_level_write+0xe6/0xee
->  [<c0247120>] acpi_ut_acquire_mutex+0xbe/0x164
->  [<c02362b5>] acpi_hw_enable_gpe+0x45/0x48
->  [<c022abe3>] acpi_enable_gpe+0x6f/0x9c
->  [<c024ced8>] acpi_ec_gpe_query+0xce/0x142
->  [<c022346c>] acpi_os_execute_deferred+0x3a/0x6c
->  [<c012f2cf>] worker_thread+0x1f9/0x2f4
->  [<c0223432>] acpi_os_execute_deferred+0x0/0x6c
->  [<c011b88a>] default_wake_function+0x0/0x12
->  [<c0109306>] ret_from_fork+0x6/0x14
->  [<c011b88a>] default_wake_function+0x0/0x12
->  [<c012f0d6>] worker_thread+0x0/0x2f4
->  [<c01072f1>] kernel_thread_helper+0x5/0xc
-> 
->      osl-0913 [31] os_wait_semaphore     : Failed to acquire
-> semaphore[cff62580|1|0], AE_TIME
->   utmisc-0743 [30] ut_acquire_mutex      : Thread 0 could not acquire
-> Mutex [ACPI_MTX_Events] AE_TIME
-> 
-> 
-> --
-> Pack my box with five dozen liquor jugs.
-> Brian Perkins                                bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org
-> 
-> 
-> -------------------------------------------------------
-> This SF.net email is sponsored by:
-> The Definitive IT and Networking Event. Be There!
-> NetWorld+Interop Las Vegas 2003 -- Register today!
-> http://ads.sourceforge.net/cgi-bin/redirect.pl?keyn0001en
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+Thanks,
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
 
 -------------------------------------------------------
