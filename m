@@ -1,32 +1,53 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: [PATCH 0/4]Bind physical devices with ACPI devices - take 2
-Date: Thu, 6 Jan 2005 10:57:31 +0100
-Message-ID: <20050106095731.GE24380@elf.ucw.cz>
-References: <1104893444.5550.127.camel@sli10-desk.sh.intel.com> <1104984055.18173.239.camel@d845pe> <1104997834.22886.17.camel@sli10-desk.sh.intel.com>
+From: Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
+Subject: Re: Re: Centrino speedstep
+Date: Thu, 6 Jan 2005 10:37:52 +0000
+Message-ID: <16861.5376.560582.314813@aber.ac.uk>
+References: <m2zmzyw4e7.fsf@phoenix.squirrel.nl>
+	<20041228212653.GA8436@dominikbrodowski.de>
+	<20041229181834.GA19199@poupinou.org>
+	<41D42E88.5080800@mega.ist.utl.pt>
+	<m2llbfk931.fsf@phoenix.squirrel.nl>
+	<41D43A9F.5050507@mega.ist.utl.pt>
+	<16852.15668.315630.700537@phoenix.squirrel.nl>
+	<41D4AA9F.7080200@mega.ist.utl.pt>
+	<20041231082524.GA8312@dominikbrodowski.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262800AbVAFJ5q@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1104997834.22886.17.camel@sli10-desk.sh.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Li Shaohua <shaohua.li@intel.com>
-Cc: Len Brown <len.brown@intel.com>, ACPI Developers <acpi-devel@lists.sourceforge.net>, lkml <linux-kernel@vger.kernel.org>, Greg <greg@kroah.com>, Patrick Mochel <mochel@digitalimplant.org>, Adam Belay <ambx1@neo.rr.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20041231082524.GA8312-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Dominik Brodowski writes:
+ > On Fri, Dec 31, 2004 at 01:25:51AM +0000, Pedro Venda wrote:
+ > > also, how exactly can I use ACPI throttling? because with the speestep 
+ > > driver, I can't go below 600MHz, but 12% of maximum frequency is 180MHz 
+ > > which I can reach using ACPI throttling.
+ > 
+ > but throttling doesn't save you anything.
+ > 
 
-> > It looks like some device drivers scribble on dev->platform_data;
-> > and we need to fix those drivers before deploying this patch.
-> > Alternatively, we could add a new field to struct device,
-> > but then we'd probably never get rid of it...
-> Yep, this is a big problem. According to the comments in the source
-> file, it's designed for firmware such as ACPI, but some drivers misused
-> it. A search shows there are many such drivers. Fixing the drivers is a
-> pain for me.
+Well, it makes it run slightly cooler, so saves on fan power.  Or am I
+mistaken?
 
-It is easy: remove the field for release or two, then readd it with
-your patch.
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Cheers,
+
+Fred
+
+
+
+-------------------------------------------------------
+The SF.Net email is sponsored by: Beat the post-holiday blues
+Get a FREE limited edition SourceForge.net t-shirt from ThinkGeek.
+It's fun and FREE -- well, almost....http://www.thinkgeek.com/sfshirt
