@@ -1,17 +1,14 @@
-From: Gunter Ohrner <G.Ohrner-6V9naDJErT6662+jY7v6MhvVK+yQ3ZXh@public.gmane.org>
-Subject: Re: ACPI S5 question
-Date: Mon, 12 May 2003 09:18:35 +0200
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Acpi on compaq evo N1000v
+Date: Mon, 12 May 2003 15:50:01 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200305120918.38684@mail.CustomCDROM.de>
-References: <CD08F83C0FFD554CBE4D42ABADAC140904A25E@tpeex03.intranet.compal>
+Message-ID: <3ACA40606221794F80A5670F0AF15F842722F4@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <CD08F83C0FFD554CBE4D42ABADAC140904A25E-264r6xcw3CrbFIwZ3jqLltv2kNAIRLhc@public.gmane.org>
-Content-Description: clearsigned data
-Content-Disposition: inline
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,39 +17,82 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: oystein.olsen-rcBQPNaXqvV2YatnTvQNog@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-=2D----BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On this mailing list, I saw some similar battery issues on various =
+Compaq laptop, such as (Presario 1500, 1505us, 2800T).
+I'm interested in the dsdt tables that can make battery status work on =
+your presario 2800T. Would you please share it with us?=20
+To let us better understand the original problme you ran into, would you =
+please send me the orginal DSDT on N800v as well as the fixed one.
+I hope guys who were defeated by battery could absorb some useful =
+information from your experience.  :)
+If you still have problem, please file it on bugzilla.kernel.org.
 
-Am Montag, 12. Mai 2003 08:18 schrieb Allen_Lee-uiv9WLrdKoDQT0dZR+AlfA@public.gmane.org:
-> damage my HDD. Who has good idea to deal with this problem? (How to umount
-> HDD before entering S5?)
+Thanks
+Luming
 
-I have. Just never switch to S5 directly but use your distros standard=20
-shutdown procedure. ;)
-Why would you want to do "echo -n 5 > /prof/acpi/sleep"?
+-----Original Message-----
+From: Oeystein Olsen [mailto:oystein.olsen-rcBQPNaXqvV2YatnTvQNog@public.gmane.org]
+Sent: 2003?5?11? 0:02
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: Re: [ACPI] Acpi on compaq evo N1000v
 
-Greetings,
 
-  Gunter
+Followup to my own post now.
 
-=2D --=20
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-+                   PGP-verschl=FCsselte Mails bevorzugt!                 +
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-"Bonsai!"
-        -- (Terry Pratchett, Reaper Man)
-+-+-+-+-+-+-+-+-+-+-+-+-+ http://www.lspace.org +-+-+-+-+-+-+-+-+-+-+-+-+
-=2D----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
+I've finally gotten battery status on my laptop:-) Acpi seems to fully=20
+functional now. I solved my last problems by looking at how dsdt-table =
+from=20
+evo N800v and presario 2800T loaded. I was rather suprised to see that =
+the=20
+presario-table produced battery-status. Hence I rewrote parts of my =
+original=20
+dsdt-table to reflect the battery part in the presario table and bingo! =
+I=20
+still get these errors at boot though:
+>
+> psparse-1121: *** Error: Method execution failed
+> [\_SB_.C03B.C04E.C0CF.C0D3] (Node c185e728), AE_NOT_EXIST
+>
+> Method execution failed [\_SB_.C03B.C04E.C0CF._INI] (Node c185b6a8),
+> AE_NOT_EXIST
+>
+> nsinit-0397 [06] ns_init_one_device    : \_SB_.C03B.C04E.C0CF._INI =
+failed:
+> AE_NOT_EXIST
+>
+>  .........................................evrgnini-0261: *** Error: =
+Could
+> not install pci_config handler for C03B, AE_ALREADY_EXISTS
+>
+=20
+but I'm happy for now.
 
-iD8DBQE+v0rM0ORHvREo8l8RAj5rAKCTvkTkSZI7AbFj5I/piP0omvC8lgCgmHOu
-6FL1A2zwb2/WMiCw2FKazsE=3D
-=3DdDY5
-=2D----END PGP SIGNATURE-----
+--=20
+=D8ystein Olsen, oystein.olsen-rcBQPNaXqvV2YatnTvQNog@public.gmane.org, http://folk.uio.no/oeysteio
+Institute of Theoretical Astrophysics, http://www.astro.uio.no
+University of Oslo, Norway
 
+
+
+
+
+
+
+
+
+-------------------------------------------------------
+Enterprise Linux Forum Conference & Expo, June 4-6, 2003, Santa Clara
+The only event dedicated to issues related to Linux enterprise solutions
+www.enterpriselinuxforum.com
+
+_______________________________________________
+Acpi-devel mailing list
+Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
