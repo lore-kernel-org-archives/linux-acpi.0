@@ -1,12 +1,12 @@
-From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
-Subject: Re: C2/C3 don't do anything
-Date: Sat, 5 Feb 2005 08:39:21 +0100
-Message-ID: <20050205073921.GD8019@dominikbrodowski.de>
-References: <20050203034639.GA29164@atomide.com> <20050204203026.GA8049@dominikbrodowski.de> <20050204213407.GA26515@hell.org.pl> <20050204225527.GA30585@atomide.com>
+From: matthieu castet <castet.matthieu-GANU6spQydw@public.gmane.org>
+Subject: Re: [PATCH] PNPACPI parser fix
+Date: Sat, 05 Feb 2005 10:07:08 +0100
+Message-ID: <42048CBC.8070700@free.fr>
+References: <4203AFC5.8070308@free.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20050204225527.GA30585-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Type: multipart/mixed;
+ boundary="------------000704070800050502040905"
+In-Reply-To: <4203AFC5.8070308-GANU6spQydw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,34 +16,84 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: matthieu castet <castet.matthieu-GANU6spQydw@public.gmane.org>
+Cc: Linux Kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Feb 04, 2005 at 02:55:28PM -0800, Tony Lindgren wrote:
-> > > > Should we have some extra code to scan the southbridges,
-> > > 
-> > > Definitely. There is already some "errata" handling in the processor module,
-> > > possibly this could get extended.
-> > 
-> > I'm still using the patch to enable C3 on ICHx-M I once posted. Basically,
-> > it provided a valid PM2_CNT_BLK address in case the OEM had forgotten to do
-> > that, which in turn enabled C3 by providing a valid ARB_DIS address
-> > (provided P_LVL3_LAT is valid).
-> 
-> I have some code for the amd76x_pm module that can be modified for
-> scanning various southbridges. And then add functions for the
-> to enable them. I don't know when I'll have time to play with that
-> though.
-> 
-> This could be a separate module to start with, and then get integrated
-> into the ACPI code later on.
+This is a multi-part message in MIME format.
+--------------000704070800050502040905
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Or this could be an extension of
-drivers/acpi/processor_core.c::acpi_processor_errata() from the beginning.
-Len, what do you think?
+Hi,
 
-	Dominik
+matthieu castet wrote:
+> Hi,
+> 
+> This patch is very old (11/2004), but never get merged even if acked by 
+> Shaohua Li.
+> As you can see in the bugzilla report 
+> (http://bugzilla.kernel.org/show_bug.cgi?id=3912), it solve parsing 
+> issue in the pnpacpi core : the pnpacpi parser supposed that are no
+> resource after EndDependentFn.
+> 
+> Please apply this patch.
+> Thanks.
+> 
+> Matthieu CASTET
+
+oops, the attachement was wrong.
+
+Here is the patch.
+
+
+Regards,
+
+Matthieu
+
+--------------000704070800050502040905
+Content-Type: text/x-patch;
+ name="pnpacpi_parser.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="pnpacpi_parser.patch"
+
+--- linux-2.6.9/drivers/pnp/pnpacpi/rsparser.c.old	2004-11-12 22:55:10.000000000 +0100
++++ linux-2.6.9/drivers/pnp/pnpacpi/rsparser.c	2004-11-20 10:44:36.000000000 +0100
+@@ -443,6 +443,7 @@
+ 
+ struct acpipnp_parse_option_s {
+ 	struct pnp_option *option;
++	struct pnp_option *option_independent;
+ 	struct pnp_dev *dev;
+ };
+ 
+@@ -506,7 +507,15 @@
+ 			parse_data->option = option;	
+ 			break;
+ 		case ACPI_RSTYPE_END_DPF:
+-			return AE_CTRL_TERMINATE;
++			/*only one EndDependentFn is allowed*/
++			if (!parse_data->option_independent) {
++				pnp_warn("PnPACPI: more than one EndDependentFn");
++				return AE_ERROR;
++			}
++			parse_data->option = parse_data->option_independent;
++			parse_data->option_independent = NULL;
++			break;
+ 		default:
+ 			pnp_warn("PnPACPI:Option type: %d not handle", res->id);
+ 			return AE_ERROR;
+@@ -524,6 +533,7 @@
+ 	parse_data.option = pnp_register_option_independent(dev);
+ 	if (!parse_data.option)
+ 		return AE_ERROR;
++	parse_data.option_independent = parse_data.option;
+ 	parse_data.dev = dev;
+ 	status = acpi_walk_resources(handle, METHOD_NAME__PRS, 
+ 		pnpacpi_option_resource, &parse_data);
+
+--------------000704070800050502040905--
 
 
 -------------------------------------------------------
