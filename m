@@ -1,77 +1,53 @@
-From: Nishanth Aravamudan <nacc@us.ibm.com>
-Subject: [KJ] [UPDATE PATCH] acpi/osl: correct HZ dependencies
-Date: Wed, 2 Mar 2005 11:59:14 -0800
-Message-ID: <20050302195914.GI2741@us.ibm.com>
-References: <20050302194821.GG2741@us.ibm.com>
+From: Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
+Subject: Re: [patch 11/12] new sony_acpi driver
+Date: Wed, 2 Mar 2005 21:53:24 +0100
+Message-ID: <20050302205324.GA5486@deep-space-9.dsnet>
+References: <200502230953.j1N9rPLp020723@shell0.pdx.osdl.net> <1109790760.2097.587.camel@d845pe>
+Reply-To: Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============23508219160255495=="
-In-Reply-To: <20050302194821.GG2741@us.ibm.com>
-List-Unsubscribe: <http://lists.osdl.org/mailman/listinfo/kernel-janitors>,
-	<mailto:kernel-janitors-request@lists.osdl.org?subject=unsubscribe>
-List-Archive: <http://lists.osdl.org/pipermail/kernel-janitors>
-List-Post: <mailto:kernel-janitors@lists.osdl.org>
-List-Help: <mailto:kernel-janitors-request@lists.osdl.org?subject=help>
-List-Subscribe: <http://lists.osdl.org/mailman/listinfo/kernel-janitors>,
-	<mailto:kernel-janitors-request@lists.osdl.org?subject=subscribe>
-Sender: kernel-janitors-bounces@lists.osdl.org
-Errors-To: kernel-janitors-bounces@lists.osdl.org
-To: len.brown@intel.com
-Cc: Kernel-Janitors <kernel-janitors@lists.osdl.org>, acpi-devel@lists.sourceforge.net
-List-Id: linux-acpi@vger.kernel.org
-
---===============23508219160255495==
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <1109790760.2097.587.camel@d845pe>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Mar 02, 2005 at 11:48:21AM -0800, Nishanth Aravamudan wrote:
-> Hi,
-> 
-> Please consider applying.
-> 
-> Description: The osl driver has a few dependencies on HZ which are not
-> handled correctly for all values. Use msleep_interruptible() and
-> jiffies_to_msecs() to rectify the situation. Patch is compile-tested.
+On Wed, Mar 02, 2005 at 02:12:40PM -0500, Len Brown wrote:
 
-Sorry forgot Signed-off-by line.
+> I'd like to keep this driver out-of-tree
+> until we prove that we can't enhance the
+> generic code to handle this hardware
+> without the addition of a new driver.
 
-Description: The osl driver has a few dependencies on HZ which are not
-handled correctly for all values. Use msleep_interruptible() and
-jiffies_to_msecs() to rectify the situation. Patch is compile-tested.
+I have no problem keeping it out of the tree, it has been this was
+for quite a long time now. Anyway the distro maintainers are starting
+to put it into their kernels so it won't be a problem for endusers
+any longer. BTW, it was those distro maintainers who asked me to
+resubmit the driver lately...
 
-Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
+But still, I don't see why there is no place for a sony acpi somewhere
+where there are already drivers for ibm, toshiba and asus laptops.
+
+I attached to the bugzilla entry the DSDTs for two Vaio laptops, which
+should hopefuly prove that those laptops do not support the standard
+ACPI way to access the video. Did you look at them ?
+
+Stelian.
+-- 
+Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
 
 
---- 2.6.11-kj-v/drivers/acpi/osl.c	2005-03-01 23:38:38.000000000 -0800
-+++ 2.6.11-kj/drivers/acpi/osl.c	2005-03-02 11:47:34.000000000 -0800
-@@ -317,8 +317,7 @@ acpi_os_remove_interrupt_handler(u32 irq
- void
- acpi_os_sleep(acpi_integer ms)
- {
--	current->state = TASK_INTERRUPTIBLE;
--	schedule_timeout(((signed long) ms * HZ) / 1000);
-+	msleep_interruptible((unsigned int)ms);
- }
- EXPORT_SYMBOL(acpi_os_sleep);
- 
-@@ -938,7 +937,7 @@ acpi_os_wait_semaphore(
- 		// TODO: A better timeout algorithm?
- 		{
- 			int i = 0;
--			static const int quantum_ms = 1000/HZ;
-+			unsigned int quantum_ms = jiffies_to_msecs(1);
- 
- 			ret = down_trylock(sem);
- 			for (i = timeout; (i > 0 && ret < 0); i -= quantum_ms) {
-
---===============23508219160255495==
-Content-Type: text/plain; charset="iso-8859-1"
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
-
-_______________________________________________
-Kernel-janitors mailing list
-Kernel-janitors@lists.osdl.org
-http://lists.osdl.org/mailman/listinfo/kernel-janitors
-
---===============23508219160255495==--
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
