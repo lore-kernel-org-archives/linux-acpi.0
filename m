@@ -1,13 +1,13 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: AW: iasl -d now gives segmentation fault !
-Date: Mon, 25 Nov 2002 09:21:13 -0800
+From: Richard Harman <acpi-Am9021/vqXxTGLny65vKQgC/G2K4zDHf@public.gmane.org>
+Subject: Compaq Evo N600c DSDT woes
+Date: Mon, 25 Nov 2002 13:31:03 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <B9ECACBD6885D5119ADC00508B68C1EA0D19B942@orsmsx107.jf.intel.com>
+Message-ID: <200211251831.gAPIV3L16208@xabean.net>
+Reply-To: Richard Harman <acpi-Am9021/vqXxTGLny65vKQgC/G2K4zDHf@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-ID: <16202.1038249055.1-EkWRDH7uiTINc2XoG/4OBl6hYfS7NtTn@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,107 +16,51 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?iso-8859-1?Q?=27S=E9rgio_Monteiro_Basto=27?= <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-There are 8 contiguous bytes in the DSDT that are very suspiciously =
-zero
-(and they do not disassemble to valid ASL).  I believe that this is =
-what
-causes the checksum to be incorrect.
+I read through the archives about the Bios Override procedure (http://www.intel.com/technology/iapc/acpi/bios_override.htm) and how to fix some of the common DSDT problems "*PNPFOO" v.s. "PNPFOO".  Did that.  I also saw somebody else had a N600c, but no fixed DSDT as far as I could tell.  I'm still getting errors from the iasl compiler, because I don't have any clue about the AML language (willing and eager to learn though).  Do I need to go download the AML docs in pdf and figure out what I need to "fix" based on what my hardware is?
 
-The fix for the segmentation fault appears in version 20021122 which =
-has
-been completed but I don't think the patches have been posted yet.
+Here are the errors from the iasl compiler (after taking out the *s in the name) -- My question is where do I go from here?
 
-Bob
-
-
------Original Message-----
-From: S=E9rgio Monteiro Basto [mailto:sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org]=20
-Sent: Friday, November 22, 2002 5:47 PM
-To: Moore, Robert; Andrew Grover
-Cc: acpi-devel
-Subject: RE: AW: [ACPI] iasl -d now gives segmentation fault !
-
-hi
-
-I download new iasl binary and sources=20
-
-with sources
+$ iasl -tc -p fixed dsdt.dsl
 
 Intel ACPI Component Architecture
-ASL Optimizing Compiler / AML Disassembler version 20021115 [Nov 21
-2002]
+ASL Optimizing Compiler / AML Disassembler version 20021115 [Nov 25 2002]
 Copyright (C) 2000 - 2002 Intel Corporation
 Supports ACPI Specification Revision 2.0b
 
-Loading Acpi table from file acpi_dsdt.dat
-Segmentation fault
+dsdt.dsl    53:             If (LEqual (\C001, 0x00))
+Error    1022 -       Object does not exist ^  (\C001)
 
-and with binary for the first time=20
+dsdt.dsl  2900:                             Method (_OFF, 0, NotSerialized)
+Warning  2019 -   Not all control paths return a value ^  (_OFF)
 
-./iasl: /lib/i686/libc.so.6: version `GLIBC_2.3' not found (required =
-by
-./iasl)
-./iasl: /lib/i686/libc.so.6: version `GLIBC_2.3' not found (required =
-by
-./iasl)
+dsdt.dsl  4866:                         \_SB.C03A.C04E.C189
+Error    1022 -                     Object does not exist ^  (\_SB.C03A.C04E.C18
+9)
 
-glibc2.3? redhat7.3 stills in 2.2
+dsdt.dsl  5760:                 Store (C106 (0x1F, 0x00, 0x00, 0x00), Local0)
+Error    1029 -                           ^ Called method returns no value
 
-btw
-what does mean zeroed bytes? I have one bios with some cleared
-information? and this gives wrong checksum ?
-or wrong checksum , clears the information?
-and can this information be in other "table"
-like the information that is SSDT (
-acpidmp SSDT | acpidisasm -n
-Scope \_PR_
-  Scope \_PR_.CPU0
-    Name \_PR_.CPU0._PCT
-    Name \_PR_.CPU0._PSS
-    Name \_PR_.CPU0._PPC
-)=20
-What could i do about it ? try clear bios...
-finally=20
-I am testing in other computer (one desktop with motherboard intel
-CAE810 or something like this)
-and with this dsdt.bin disassemble well without problems.=20
+dsdt.dsl  5827:             Store (C106 (0x08, 0x00, 0x00, 0x00), Local0)
+Error    1029 -                       ^ Called method returns no value
 
-On Mon, 2002-11-11 at 21:32, Moore, Robert wrote:
->=20
-> Disassembly works fine here, but as I think I mentioned before, the =
-posted
-> DSDT is corrupt;  The checksum is wrong and there are zeroed bytes in =
-the
-> file. =20
->=20
-> The resulting disassembly will not compile.
->=20
-> I've added a checksum check to the front end of the disassembler
->=20
-> Bob
->=20
->=20
-> -----Original Message-----
-> From: Grover, Andrew [mailto:andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]=20
-> Sent: Monday, November 11, 2002 1:15 PM
-> To: 'S=E9rgio Monteiro Basto'; Herbert Nachtnebel
-> Cc: acpi-devel
-> Subject: RE: AW: [ACPI] iasl -d now gives segmentation fault !
->=20
-> Hi Sergio,
->=20
-> Have you tried compiling your own iasl from the unix source =
-distribution?
->=20
-> (Just "cd compiler;make")
->=20
-> Disassembly seemed to work fine for me, with your DSDT.
->=20
-> Regards -- Andy
+dsdt.dsl  6016:                 \_PR.C000
+Error    1022 -   Object does not exist ^  (\_PR.C000)
+
+dsdt.dsl  6072:                         Notify (\_PR.C000, 0x80)
+Error    1022 -                   Object does not exist ^  (\_PR.C000)
+
+dsdt.dsl  6145:                         Notify (\_PR.C000, 0x80)
+Error    1022 -                   Object does not exist ^  (\_PR.C000)
+
+ASL Input:  dsdt.dsl - 6402 lines, 217515 bytes, 3840 keywords
+Compilation complete. 7 Errors, 1 Warnings, 0 Remarks, 1078 Optimizations
+
+
+-------------------------------------------------
+Richard G Harman Jr <acpi-Am9021/vqXxTGLny65vKQgC/G2K4zDHf@public.gmane.org>
 
 
 
