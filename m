@@ -1,15 +1,15 @@
-From: =?iso-8859-15?q?Ois=EDn_Mac_Fheara=ED?= <destynova-iUB+o6dfpG8i1yMB4YHZDQ@public.gmane.org>
-Subject: Re: Good news: video can be revived after S3 on Samsung P30 (Radeon 9200)
-Date: Fri, 26 Nov 2004 09:47:41 +0000
-Message-ID: <200411260947.41321.destynova@esatclear.ie>
+From: Matthias Hentges <mailinglisten-H4PcyxPeSRnR7s880joybQ@public.gmane.org>
+Subject: Re: Good news: video can be revived after S3 on Samsung P30
+	(Radeon 9200)
+Date: Fri, 26 Nov 2004 11:28:52 +0100
+Message-ID: <1101464932.17674.16.camel@mhcln03>
 References: <1101458866.15323.4.camel@mhcln03>
+	 <200411260947.41321.destynova@esatclear.ie>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1101458866.15323.4.camel@mhcln03>
-Content-Disposition: inline
+In-Reply-To: <200411260947.41321.destynova-iUB+o6dfpG8i1yMB4YHZDQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,39 +19,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: =?ISO-8859-1?Q?Ois=EDn?= Mac =?ISO-8859-1?Q?Fheara=ED?= <destynova-iUB+o6dfpG8i1yMB4YHZDQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I'd like to see that as a "standard suspend/resume procedure" in a machine 
-manual...
+Am Freitag, den 26.11.2004, 09:47 +0000 schrieb Oisín Mac Fhearaí:
+> I'd like to see that as a "standard suspend/resume procedure" in a machine 
+> manual...
 
-Talk about a -hack- ;)
-This is one of those things not to mention during one of those "reasons to use 
-linux over windows" debates :P
+Well, it would sure help if ATI would add a *working* resume support to
+their driver.
+Or just the details on how to POST a $RANDOM_ATI_CARD from scratch w/o
+BIOS.
+There are rumors that the windows driver does just that. 
 
-Oisín
+That's just one more reason why ATI sucks on Linux compared to NVidia. I
+heard NVidia at least added some resume code to their driver.
 
-On Friday 26 November 2004 08:47, Matthias Hentges wrote:
-> How to revive the monitor:
->
-> - Start X11 with radeon driver (DRI can be enabled) on :0
-> - Start X11 with *vesa* driver on :1 (use X
-> -xf86config /etc/X11/$some_XF86Config)
-> - Change to VT1 (chvt 1)
-> - Make sure that "dummydriver" is loaded
-> - Sync your disks (can't hurt heh)
-> - Enter S3 (echo -n mem >/sys/power/state)
-> - Hit the power button to resume
-> - Run boot-vga-bios (if you don't, the machine will freeze during the
-> next step)
-> - Just ignore the segfault it is causing
-> - Change to the running *vesa* X11 screen (eg: chvt 8)
-> - The vesa screen will crash and throw you back to VT1 - that's no
-> problem at all!
-> - The crashing vesa session revives your Monitor :)
-> - Change to the radeon X11 screen to re-init AGP (this is a *must*)
-> - Done !
-> - Repeat from step 2 ;)
+If the ATI driver situation doesn't change soon, that was sure as hell
+my first *and* *last* computer with ATI hardware. Ever.
+
+> Talk about a -hack- ;)
+
+:))
+
+> This is one of those things not to mention during one of those "reasons to use 
+> linux over windows" debates :P
+
+Indeed heh.
+
+-- 
+Matthias Hentges 
+Cologne / Germany
+
+[www.hentges.net] -> PGP welcome, HTML tolerated
+ICQ: 97 26 97 4   -> No files, no URL's
+
+My OS: Debian SID. Geek by Nature, Linux by Choice
+
 
 
 -------------------------------------------------------
