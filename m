@@ -1,16 +1,14 @@
-From: Shawn Starr <shawn.starr-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: was Confirmation of power management problem
-Date: Wed, 13 Oct 2004 15:30:55 -0400
+From: Alberto Piai <albeclemit-whZMOeQn8C0@public.gmane.org>
+Subject: Re: ACPI S3 resume only reboots
+Date: Thu, 14 Oct 2004 10:29:28 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200410131530.55713.shawn.starr@rogers.com>
-References: <F7DC2337C7631D4386A2DF6E8FB22B3001AD0A5C@hdsmsx401.amr.corp.intel.com>
+Message-ID: <20041014102928.5bd2cbc5.albeclemit@yahoo.it>
+References: <88056F38E9E48644A0F562A38C64FB600318A0CF@scsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <F7DC2337C7631D4386A2DF6E8FB22B3001AD0A5C-N2PTB0HCzHKkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <88056F38E9E48644A0F562A38C64FB600318A0CF-exJ48ZlmiLpQxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -19,43 +17,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I am now able to put laptop in S3 and resume fully excluding USB device(s) 
-such as this USB to PS2 keyboard, PS2 mouse device. 
+On Wed, 13 Oct 2004 06:39:26 -0700
+"Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 
-I am able to resume in console or with Xorg now.
+> >> I suspected 'pushl $0' cause reboot a little. I can't find 
+> >any fault in
+> >> the line. Is it the precise line to cause reboot?
+> >
+> >Yes, i tryed placing an infinite loop immediately before and 
+> >after that line, and that line causes reboot.
+> >
+> 
+> From the comment in those lines, push and pop are not required for all
+> platforms. Can you just comment out that push and pop and see how far
+> you can go.
 
-Great job!
+With those lines commented out it doesn't reboot, but hangs during the wakeup :(
+To spot the line where it hangs, could i insert some reboot statement in the code? How should this statement be?
+This way i could narrow down to the new problem (provided that the pushl and popfl lines weren't needed)
 
-Note: 2.6.9-rc4-mm1 blows up with Xorg
-
-I will provide you the suspend sequences for -mm1 and non -mm series once I 
-switch to my other email as yahoo filters any kernel dumps as spam :-(
-
-Shawn.
-
-On October 13, 2004 13:18, Brown, Len wrote:
-> yes, this patch is in 2.6.9-rc4.
->
-> cheers,
-> -Len
->
-> >yes, nolapic in 2.6.9-rc3-bk8 works. I will bump my kernel and
-> >apply this
-> >patch unless its merged into -rc4? If not apply manually.
->
-> -------------------------------------------------------
-> This SF.net email is sponsored by: IT Product Guide on ITManagersJournal
-> Use IT products in your business? Tell us what you think of them. Give us
-> Your Opinions, Get Free ThinkGeek Gift Certificates! Click to find out more
-> http://productguide.itmanagersjournal.com/guidepromo.tmpl
-> _______________________________________________
-> ipw2100-devel mailing list
-> ipw2100-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/ipw2100-devel
+Thanks,
+Alberto
 
 
 -------------------------------------------------------
