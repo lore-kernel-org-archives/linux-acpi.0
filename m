@@ -1,14 +1,12 @@
-From: Martin Lorenz <martin-2WKW0nu+7nMiq3RsQ1AnAw@public.gmane.org>
-Subject: Re: Re: kern 2.6.1 - suspend/resume still malfunctioning
-Date: Thu, 15 Jan 2004 15:53:35 +0100
+From: Jes Sorensen <jes-dtAfj9ClZIwnoBwkMbRkTB2eb7JE58TQ@public.gmane.org>
+Subject: [patch] 2.6.1-mm3 acpi frees free irq0
+Date: Thu, 15 Jan 2004 09:56:54 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4006A96F.1020502@lorenz.eu.org>
-References: <40069161.4040703@lorenz.eu.org> <20040115135532.GA11298@message-id.gmane0305.slipkontur.de>
+Message-ID: <16390.43574.867869.286685@gargle.gargle.HOWL>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040115135532.GA11298-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,46 +15,53 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: akpm-3NddpPZAyC0@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Jesse Barnes <jbarnes-sJ/iWh9BUns@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Stefan Seyfried wrote:
+Hi,
 
-> On Thu, Jan 15, 2004 at 02:10:57PM +0100, Martin Lorenz wrote:
-> 
->>Dear all,
->>
->>well I am playing around to get suspend/resume working on my PC-MM10 for
->>quite a while now, and have run from one failing into the next...
-> 
-> 
->>all the data, i reported about my laptop is recorded with bug #1773
->>http://bugme.osdl.org/show_bug.cgi?id=1773
-> 
-> 
-> have you tried S4, e.g. "echo 4 > /proc/acpi/sleep"?
-> S3 is probably harder to get working than S4, so try S4 first.
-> 
-well...
+There is a bug in the ACPI code found in 2.6.1-mm3 where if it can't
+find the interrupt source for the ACPI System Control Interrupt Handler,
+it end up trying to free irq 0.
 
-with S4 i get a message, saying that my drive was not ready for that
-command and it keeps telling me (lines by lines and never ending)
+Included patch fixes the problem.
 
-end_request: I/O error, dev hda, sector 1596164
+Cheers,
+Jes
 
-so i it doesent even go to suspend(off)
-
-greets
-mlo
--- 
-martin lorenz
---
-	They that can give up essential liberty
-	to obtain a little temporary safety
-	deserve neither liberty nor safety.
-				-- Benjamin Franklin
-
+--- linux-2.6.1-mm3/drivers/acpi/osl.c~	Wed Jan 14 05:00:25 2004
++++ linux-2.6.1-mm3/drivers/acpi/osl.c	Thu Jan 15 06:43:28 2004
+@@ -257,13 +257,13 @@
+ 		return AE_OK;
+ 	}
+ #endif
+-	acpi_irq_irq = irq;
+ 	acpi_irq_handler = handler;
+ 	acpi_irq_context = context;
+ 	if (request_irq(irq, acpi_irq, SA_SHIRQ, "acpi", acpi_irq)) {
+ 		printk(KERN_ERR PREFIX "SCI (IRQ%d) allocation failed\n", irq);
+ 		return AE_NOT_ACQUIRED;
+ 	}
++	acpi_irq_irq = irq;
+ 
+ 	return AE_OK;
+ }
+@@ -271,12 +271,13 @@
+ acpi_status
+ acpi_os_remove_interrupt_handler(u32 irq, OSD_HANDLER handler)
+ {
+-	if (acpi_irq_handler) {
++	if (irq) {
+ #if defined(CONFIG_IA64) || defined(CONFIG_PCI_USE_VECTOR)
+ 		irq = acpi_irq_to_vector(irq);
+ #endif
+ 		free_irq(irq, acpi_irq);
+ 		acpi_irq_handler = NULL;
++		acpi_irq_irq = 0;
+ 	}
+ 
+ 	return AE_OK;
 
 
 -------------------------------------------------------
