@@ -1,14 +1,14 @@
-From: Michael Wahlbrink <linux.wali-Mmb7MZpHnFY@public.gmane.org>
-Subject: Re: ibm-acpi-0.1
-Date: Tue, 10 Aug 2004 10:43:49 +0200
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ibm-acpi-0.1
+Date: Tue, 10 Aug 2004 16:58:53 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <41188AC5.2070805@gmx.de>
-References: <20040810080826.GD28939@aero.ensim.com>
+Message-ID: <B44D37711ED29844BEA67908EAF36F03860E23@pdsmsx401.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040810080826.GD28939-AKoe11r2kkOzaBltdDZI6w@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,44 +17,45 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Borislav Deianov <borislav-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-Borislav Deianov wrote:
-> Hi,
-> 
-> This is the first public release of my ACPI driver for IBM ThinkPad
-> laptops. The features currently supported are:
-> 
-> - hot keys (Fn key combinations)
+On Tuesday, August 10, 2004 4:38 PM Borislav Deianov wrote:
+>To: Li, Shaohua
+>Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: Re: [ACPI] ibm-acpi-0.1
+>
+>On Tue, Aug 10, 2004 at 04:24:39PM +0800, Li, Shaohua wrote:
+>>
+>> IBM hotkey has a unique ID. In T40, it's 'IBM0068'. I guess other
+>> IBM laptops also use it. Using a hardcode path in the patch possibly
+>> isn't a good idea.
+>
+>Agreed. I was originally using acpi_bus_register_driver() and refering
+>to devices by HID but that turned out to not work very well
+I guess only supporting hotkey is ok in the file. If you want to support
+docking station, use a new file.
 
-all working with my R32 without any special driver ;-)
+>dock (ACPI drops it if it's not present at boot) and embedded
+Actually supporting dock station isn't just executing _EJ0 and _DCK, you
+possibly need to scan the new PCI devices under the dock station.=20
 
-> - docking and undocking
-> - some basic fan speed control
+>controller (the ec driver has already grabbed it). So I switched to
+>looking things up by the path. I see your point, though, I'll see what
+>I can do.
+>
+>> BTW, I'm interested in how can you know the meaning of 'DHKC',
+>> 'MHKC' and etc. They are non-standard ACPI methods.
+>
+>Guesswork from the disassembled DSDT and trial and error...
+Great job!
 
-seems to work too with the basic acpi stuff in 2.6 kernels
-
-> 
-> Note that I've only tested on a ThinkPad X40 with the X4 UltraBase. I
-> suspect many other recent models are sufficiently similar to work with
-> this driver but I have no such reports yet.
-
-Ok, I've a IBM ThinkPad R32 but no docking station, so I can't test it.
-
-> I'll release this on the linux-thinkpad list as well, but I thought
-> I'd get some comments here first. This is my first foray into the ACPI
-> code, so do let me know if I'm doing something horribly wrong. :-)
-> 
-> (Sorry, no web page yet. One thing at a time.)
-Dont care, keep on hacking,
-
-> 
-> Thanks,
-> Boris
-hth&cu
-micha (who's glad to obviously don't need a special driver)
+Thanks,
+Shaohua
+>
+>Regards,
+>Boris
 
 
 -------------------------------------------------------
