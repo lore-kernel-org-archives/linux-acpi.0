@@ -1,93 +1,49 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [ACPI] acpi_irq_to_vector()
-Date: Mon, 23 Jun 2003 14:15:07 +0800
-Sender: linux-ia64-admin-WygotPe7DYIabbyE177sbg@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8427237E@pdsmsx403.ccr.corp.intel.com>
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [ACPI] _PDC method in DSDT
+Date: Mon, 23 Jun 2003 00:11:49 -0700
+Sender: cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
+Message-ID: <F760B14C9561B941B89469F59BA3A84725A301@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
+	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-ia64-admin-WygotPe7DYIabbyE177sbg@public.gmane.org>
+Return-path: <cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
 content-class: urn:content-classes:message
-Errors-To: linux-ia64-admin-WygotPe7DYIabbyE177sbg@public.gmane.org
-List-Help: <mailto:linux-ia64-request-WygotPe7DYL3TpFAQG+J+JSyx/Wj9/Chdaaq/uiDbmg@public.gmane.org>
-List-Post: <mailto:linux-ia64-WygotPe7DYIabbyE177sbg@public.gmane.org>
-List-Subscribe: <http://lists.linuxia64.org/lists/listinfo/linux-ia64>,
-	<mailto:linux-ia64-request-WygotPe7DYL3TpFAQG+J+EfZv34bSr6CyrRgqdI+6y4@public.gmane.org>
-List-Unsubscribe: <http://lists.linuxia64.org/lists/listinfo/linux-ia64>,
-	<mailto:linux-ia64-request-WygotPe7DYL3TpFAQG+J+I4vVymAtk2CuCKOA6ERizqzQB+pC5nmwQ@public.gmane.org>
-List-Archive: <http://lists.linuxia64.org/archives//linux-ia64/>
-To: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-ia64-WygotPe7DYIabbyE177sbg@public.gmane.org, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Mallick, Asit K" <asit.k.mallick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Errors-To: cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
+List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMm38Ik5SeuEX72+df2TVCvIA@public.gmane.org>
+List-Post: <mailto:cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
+List-Help: <mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMm4xOcYYyLxz0@public.gmane.org>
+List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMmEuNEP1Y2mCuZIoH1IeqzKA@public.gmane.org>
+List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq/>
+To: David Moore <dcm-HInyCGIudOg@public.gmane.org>, "Adachi, Kenichi" <adachi-fvZ7ij+YLgEZc9YY0SgeQc8NsWr+9BEh@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-To remove the ugly ifdef in the common part of ACPI code,=20
-I think the simple way is to define a acpi_irq_to_vector in =
-arch/i386/acpi which only return acpi_fadt.sci_int.=20
-Or someone can invent a method that can return correct value for each =
-platform.
+> From: David Moore [mailto:dcm-HInyCGIudOg@public.gmane.org]=20
+> Given this document, I think I have enough information now to patch
+> processor.c to support Enhanced Speedstep on Pentium M for=20
+> those BIOSes
+> that have a correctly written _PDC method in the DSDT.  Would the
+> maintainers of the ACPI driver be willing to accept such a patch?
 
-Thanks,
-Luming
+I don't think so, at least not right now.
 
------Original Message-----
-From: Matthew Wilcox [mailto:willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org]
-Sent: 2003?6?6? 3:23
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: [ACPI] acpi_irq_to_vector()
+_PDC is used for the OS to indicate to the firmware (the AML) if it
+supports native CPU perf transitions or not. If it does, then _PCT/_PSS
+returns one thing, if it doesn't, _PCT/_PSS returns something else.
+Typically, if _PDC is not called, the platform will indicate ACPI 2.0
+CPU perf state support instead of native support.
 
+However, since the recently added non-vendor-supported Pentium M cpufreq
+driver uses hardcoded tables and cpuid instead of relying on ACPI for
+this information anyways, adding _PDC support to processor.c would not
+affect its behavior. If that driver were changed to use ACPI for
+determining platform capabilities, like Windows and our released binary
+driver do, then yes, adding _PDC support would be important.
 
+Regards -- Andy
 
-In the 2.5 ia64 patch, there's a lot of places which look like this:
-
-@@ -251,7 +251,14 @@
-        irq =3D acpi_fadt.sci_int;
-
- #ifdef CONFIG_IA64
--       irq =3D gsi_to_vector(irq);
-+       int vector;
-+
-+       vector =3D acpi_irq_to_vector(irq);
-+       if (vector < 0) {
-+               printk(KERN_ERR PREFIX "SCI (IRQ%d) not registerd\n", =
-irq);
-+               return AE_OK;
-+       }
-+       irq =3D vector;
- #endif
-        acpi_irq_irq =3D irq;
-
-ok, we renamed gsi_to_vector to acpi_irq_to_vector(); that's fine.
-But we still have that ugly ifdef in there.  Any resistance to defining
-acpi_irq_to_vector to simply return its value on non-ia64 platforms?
-
-Then it'd look like:
-
-	irq =3D acpi_fadt.sci_int;
-	vector =3D acpi_irq_to_vector(irq);
-	if (vector < 0) {
-		printk(KERN_ERR PREFIX "SCI (IRQ%d) not registered\n", irq);
-		return AE_OK;
-	}
-	acpi_irq_irq =3D vector;
-	acpi_irq_handler =3D handler;
-	acpi_irq_context =3D context;
-	if (request_irq(vector, acpi_irq, SA_SHIRQ, "acpi", acpi_irq)) {
-...	=09
-
---=20
-"It's not Hollywood.  War is real, war is primarily not about defeat or
-victory, it is about death.  I've seen thousands and thousands of dead =
-bodies.
-Do you think I want to have an academic debate on this subject?" -- =
-Robert Fisk
-
-
--------------------------------------------------------
-This SF.net email is sponsored by:  Etnus, makers of TotalView, The best
-thread debugger on the planet. Designed with thread debugging features
-you've never dreamed of, try TotalView 6 free at www.etnus.com.
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
+btw my understanding is that _PDC will be actually in the ACPI spec in
+the near future.
