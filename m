@@ -1,16 +1,14 @@
-From: "Holger W." <info-IGm5bqYn3xwb1SvskN2V4Q@public.gmane.org>
-Subject: RE: problems with PRT and PCI routing table
-Date: Sat, 8 Mar 2003 23:47:33 +0100
+From: "Darren Benham" <dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org>
+Subject: Re: Semi-success story: Compaq Evo N410c
+Date: Sat, 8 Mar 2003 17:58:34 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <000201c2e5c4$b6120460$0200a8c0@brutzler>
-References: <000501c2e50c$d43b2790$0200a8c0@brutzler>
-Reply-To: <info-IGm5bqYn3xwb1SvskN2V4Q@public.gmane.org>
+Message-ID: <1440.192.168.10.253.1047175114.squirrel@benham.net>
+References: <20030308131257.GB1533@home.larve.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <000501c2e50c$d43b2790$0200a8c0-IGm5bqYn3xw@public.gmane.org>
+In-Reply-To: <20030308131257.GB1533-OcF6MH9IheHrhBy7cqgyXA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,73 +17,80 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: hugo-rQR7RsZM/uVeoWH0uzbU5w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I have to correct myself again. Let me see if I understood everything ...
+Add two lines... I think they are "external" (you can check the specs to
+be sure).  This tells the comiler that those symbols exist in an external
+table (your SSDTs if it's anything like my n600c.  I don't have it booted
+otherwise I'd give the exact lines.
 
-First of all my PCI interrupt links are detected and I get messages like "ACPI: PCI Interrupt
-Link [ALKA] (IRQs 20, disabled)". "Disabled" means in this special case that we have to
-choose/enable an IRQ later.
+Hugo Haas said:
+> Hi.
+>
+> I have seen people posting DSDT questions here, and found lots of
+> useful pointers in the archive, so I am sending a report on getting ACPI
+> to work on a Compaq Evo N410c.
+>
+> In a nutshell, some things were not detected, such as the fan, which was
+> a problem. After tweaking the DSDT, I got rid of most errors
+> (although one of my fixes is slightly random) and got most things
+> working. It is now usable. The fan is always on though, but I guess that
+> it's better than always off!
+>
+> I noted that the errors I got were _really_ similar to errors that
+> people with N600c got. I would appreciate a pointer to a diff of the
+> DSDT to try and complete my fixes since it seems that there were a few
+> discussions about this one.
+>
+> The errors I have left are about non existing objects that I have no
+> clue about:
+>
+> | dsdt.dsl    53:             If (LEqual (\C001, 0x00))
+> | Error    1022 -       Object does not exist ^  (\C001)
+> |
+> | dsdt.dsl  5602:                 \_PR.C000
+> | Error    1022 -   Object does not exist ^  (\_PR.C000)
+> |
+> | dsdt.dsl  5642:                 \_PR.C000
+> | Error    1022 -   Object does not exist ^  (\_PR.C000)
+> |
+> | dsdt.dsl  5710:                         Notify (\_PR.C000, 0x80) |
+> Error    1022 -                   Object does not exist ^  (\_PR.C000)
+>
+> Since I found it quite hard to find information to get a working ACPI, I
+> have documented what I have done, with the DSDT, the diffs, etc.
+> Hopefully that will be useful to people:
+>
+> 	 http://larve.net/people/hugo/2003/03/acpi-n410c.html
+>
+> If anybody has insight about how to get the fan not to always be on and
+> how to fix the rest of my errors, in particular Evo N600c owners, I'd be
+> grateful.
+>
+> Regards,
+>
+> Hugo
+>
+> --
+> Hugo Haas - http://larve.net/people/hugo/
+>
+>
+> -------------------------------------------------------
+> This SF.net email is sponsored by: Etnus, makers of TotalView, The
+> debugger  for complex code. Debugging C/C++ programs can leave you
+> feeling lost and  disoriented. TotalView can help you find your way.
+> Available on major UNIX  and Linux platforms. Try it free. www.etnus.com
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
-Now "acpi_pci_irq_init" is called and we have the following calling-structure ...
 
-acpi_irq_init {
-  -> acpi_pci_link_check -> acpi_pci_link_set
-  -> mp_parse_prt
-  -> iosapic_parse_prt
-  -> acpi_pci_irq_enable
-}
+-- 
+Darren
 
-"acpi_pci_link_check" will check all my devices for valid IRQs. In my special case it tries to
-find an IRQ for my interrupt link ALKA. Because we don't have more than one IRQ (20) for ALKA,
-we don't have a big choice. The attempt to set the IRQ for the link is done by
-"acpi_pci_link_set".
-
-Now we're here:
-
-acpi_pci_link_set {
-  -> acpi_set_current_resources
-  -> acpi_bus_get_status
-  -> acpi_pci_link_get_current
-}
-
-Everything works fine at this point up to "acpi_pci_link_get_current". And now we're one more
-step further ...
-
-acpi_pci_link_get_current {
-  -> acpi_bus_get_status
-  -> acpi_walk_resources -> acpi_pci_link_check_current
-}
-
-And after "acpi_walk_resources" ist the point where we fail. The condition "if (!irq)" is true
-because "acpi_pci_link_get_current" returns with the error "pci_link-0262 [21]
-acpi_pci_link_get_curr: No IRQ resource found".
-That is we have an error in "acpi_pci_link_set" and we will return with this code fragment to
-"acpi_pci_link_check":
-
-result = acpi_pci_link_get_current(link);
-if (result) {
-	return_VALUE(result);
-}
-
-Because we failed in "acpi_pci_link_get_current" the irq variable is NULL and we get a message
-like "ACPI: PCI Interrupt Link [ALKA] enabled at IRQ 0".
-
-Now we're back in "acpi_pci_irq_init". Another problem could be located in "mp_parse_prt":
-
-/* We're only interested in static (non-link) entries. */
-if (entry->link.handle)
-	continue;
-
-I don't understand why only non-link entries are being used !
-
-However, all side effects I mentioned in the last posting will occur due to these errors ...
-I hope I now analyzed the code properly. Would be nice if some developers could comment :-)
-
-Thanks for your attention !!!
-
-HOLGER W.
 
 
 
