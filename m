@@ -1,14 +1,17 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: Wrong AC state
-Date: Fri, 28 May 2004 15:03:08 -0000
+From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
+Subject: Re: 2.6 won't poweroff
+Date: Fri, 28 May 2004 23:38:44 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040528150308.GA5882@message-id.gmane0305.slipkontur.de>
-References: <40B346FC.9090908@mpi-magdeburg.mpg.de> <40B5156F.5020409@epost.de>
+Message-ID: <1085783923.3408.12.camel@darkstar>
+References: <20040527235535.GA21670@zimen.sk>
+	 <Pine.LNX.4.60.0405281036050.1313@frog.athome>
+	 <20040528093010.GA3070@zimen.sk>
+Reply-To: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <40B5156F.5020409-jy7zG81Tlw8@public.gmane.org>
+In-Reply-To: <20040528093010.GA3070-VaXaUECoPuY@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,25 +20,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: mizu <michal-VaXaUECoPuY@public.gmane.org>
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, May 27, 2004 at 12:08:47AM +0200, Martin Ginkel wrote:
+Hi,
+On Fri, 2004-05-28 at 10:30, mizu wrote:
+> I tried this command:
+>   	echo 5 >/proc/acpi/sleep
+> =09
+> 		=3D NOTHING
+> (but, 3,4 works well)
 
-> OSFL is returning 0x00 for win2000 and 0x04 for windows nt.
-> I defined as a dirty fix:
-> ./include/acpi/platform/aclinux.h:50:
-> #define ACPI_OS_NAME               "Microsoft Windows NT"
-> 
-> Now the Power Monitor reacts instantly.
-> 
-> Well: the Bios seems to be designed for Microsoft Windows ;-P
+Never heard anything like this, but just curious,
+echo 4  >/proc/acpi/sleep (S4) poweroff the computer ?=20
 
-FWIW: there is a boot parameter acpi_os_name=, at least at the
-kernel 2.6.4/5 delivered with suse 9.1. Don't know if this is
-some suse specific patch but it's pretty neat :-)
--- 
-Stefan Seyfried
+regards,=20
+--=20
+S=E9rgio M. B.
 
 
 
