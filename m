@@ -1,13 +1,13 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+From: Troy Schultz <tschultz-zzOxFVvAfJPQT0dZR+AlfA@public.gmane.org>
 Subject: Re: Problem with ACPI and vmware
-Date: Thu, 21 Nov 2002 16:29:57 +0100
+Date: 21 Nov 2002 11:14:03 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021121152957.GB1989@poup.poupinou.org>
+Message-ID: <1037895243.2221.9.camel@p2710>
 References: <1037834173.1868.10.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 In-Reply-To: <1037834173.1868.10.camel-bi+AKbBUZKZeoWH0uzbU5w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -18,10 +18,38 @@ List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Francis Yom <fyom-NeBS1MF9zuBBDgjK7y7TUQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: ACPI Development - Sourceforge <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Nov 20, 2002 at 06:16:13PM -0500, Francis Yom wrote:
+I am not sure what Idle patch you refer to, but I have found that you
+must hack processor.c to disable the CPU idle handler in the ACPI
+drivers to got VMware to work properly.
+
+The problem seems to be that when VMware's guest is using the CPU the
+CPU stays at C2 and is not promoted to C1.  This causes very high delays
+in some of the apps.
+
+I am running VMware 3.2 with kernel 2.4.19 and ACPI 20020821, I have
+been reluctant to try the newer ACPI drivers since I finally have things
+on my Presario 2710CA working quite well.  When I do get some time I do
+intend to try the newer ACPI driver though.  It has been a pain to go
+through each version and determine where I must hack to disable the CPU
+idle handler.
+
+I have also found that I must use a "corrected" DSDT since the one in
+the notebook is buggy.
+
+For what it is worth I too think this is an issue that VMware must
+correct.  I have sent them emails regarding this issue but have never
+seen any response.  I think more people have to complain about this
+problem before they will do anything to fix it.
+
+Feel free to email me if I can be of any assistance to you.
+
+Best Regards
+- Troy
+
+On Wed, 2002-11-20 at 18:16, Francis Yom wrote:
 > Hey guys,
 > 
 > I'm having a problem with ACPI and VMWare.  I am using ACPI 20021101 and
@@ -40,27 +68,24 @@ On Wed, Nov 20, 2002 at 06:16:13PM -0500, Francis Yom wrote:
 > I am looking for a solution that will give me my battery support back
 > and let me run VMWare without sluggishness.
 > 
-
-Please look at:
-http://marc.theaimsgroup.com/?l=acpi4linux&m=102017446630814&w=2
-and also at:
-http://marc.theaimsgroup.com/?l=acpi4linux&m=102018451910031&w=2
-
-My opinion is the same as Andy Groover.  Basically, it is a bug in
-vmware, so vmware people have to fix that.  Since anybody here
-have the source (apart the kernel modules), no one here can help
-you.
-
-The only possible workaround at this time for you if really you
-want both acpi and vmware is to take a look at:
-http://marc.theaimsgroup.com/?l=acpi4linux&m=101554163709698&w=2
-
-Cheers,
-
+> Can anyone suggest a solution?  Thanks!
+> Francis
+> 
+> 
+> 
+> 
+> -------------------------------------------------------
+> This sf.net email is sponsored by: 
+> Battle your brains against the best in the Thawte Crypto 
+> Challenge. Be the first to crack the code - register now: 
+> http://www.gothawte.com/rd521.html
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 -- 
-Ducrot Bruno
-http://www.poupinou.org        Page profaissionelle
-http://toto.tu-me-saoules.com  Haume page
+Troy Schultz <tschultz-zzOxFVvAfJPQT0dZR+AlfA@public.gmane.org>
+
 
 
 -------------------------------------------------------
