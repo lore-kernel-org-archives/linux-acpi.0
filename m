@@ -1,15 +1,15 @@
 From: Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
-Subject: [PATCH 2/4] event code fixes/cleanup
-Date: Tue, 24 Aug 2004 01:36:43 -0500
+Subject: [PATCH 3/4] use acpi_subsys.rwsem in acpi/scan.c
+Date: Tue, 24 Aug 2004 01:37:54 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200408240136.46113.dtor_core@ameritech.net>
-References: <200408240134.16962.dtor_core@ameritech.net>
+Message-ID: <200408240137.55691.dtor_core@ameritech.net>
+References: <200408240134.16962.dtor_core@ameritech.net> <200408240136.46113.dtor_core@ameritech.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200408240134.16962.dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
+In-Reply-To: <200408240136.46113.dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
 Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -27,664 +27,653 @@ List-Id: linux-acpi@vger.kernel.org
 ===================================================================
 
 
-ChangeSet@1.1843, 2004-08-24 01:11:02-05:00, dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org
-  ACPI: Move event handling code from bus.c into event.c to cut down
-        amount of exported implementation details. Also:
-  
-        - when closing /proc/acpi/event drop all events that have not
-          been read yet so next time it is opened userspace is not fed
-          old events;
-        - do not reimplement wait_event_interruptible, just use it;
-        - do not return -EIO if an event is 'stolen', 0 is proper return
-          code;
-        - tidy up read procedure (ensure that list is not empty before
-          fetching next event)
+ChangeSet@1.1844, 2004-08-24 01:11:37-05:00, dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org
+  ACPI: Do not use list_for_each_safe as it does not protect from
+        changes done by other thread, take acpi_subsys.rwsem instead.
   
   Signed-off-by: Dmitry Torokhov <dtor-JGs/UdohzUI@public.gmane.org>
 
 
- drivers/acpi/Makefile     |    4 -
- drivers/acpi/ac.c         |    4 -
- drivers/acpi/acpi_ksyms.c |    9 +-
- drivers/acpi/asus_acpi.c  |    5 -
- drivers/acpi/battery.c    |    3 
- drivers/acpi/bus.c        |   94 ----------------------------
- drivers/acpi/button.c     |    4 -
- drivers/acpi/event.c      |  152 ++++++++++++++++++++++++++++++++++------------
- drivers/acpi/processor.c  |    7 +-
- drivers/acpi/thermal.c    |    9 +-
- include/acpi/acpi_bus.h   |   16 ----
- include/acpi/acpi_event.h |   47 ++++++++++++++
- 12 files changed, 190 insertions(+), 164 deletions(-)
+ bus.c          |    6 --
+ scan.c         |  139 ++++++++++++++++++++++++++-------------------------------
+ sleep/main.c   |    2 
+ sleep/proc.c   |   34 ++++++-------
+ sleep/wakeup.c |  126 ++++++++++++++++++++++-----------------------------
+ 5 files changed, 139 insertions(+), 168 deletions(-)
 
 
 ===================================================================
 
 
 
-diff -Nru a/drivers/acpi/Makefile b/drivers/acpi/Makefile
---- a/drivers/acpi/Makefile	2004-08-24 01:16:54 -05:00
-+++ b/drivers/acpi/Makefile	2004-08-24 01:16:54 -05:00
-@@ -32,7 +32,7 @@
- # ACPI Bus and Device Drivers
- #
- obj-$(CONFIG_ACPI_BUS)		+= sleep/
--obj-$(CONFIG_ACPI_BUS)		+= bus.o
-+obj-$(CONFIG_ACPI_BUS)		+= bus.o event.o
- obj-$(CONFIG_ACPI_AC) 		+= ac.o
- obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
- obj-$(CONFIG_ACPI_BUTTON)	+= button.o
-@@ -42,7 +42,7 @@
- obj-$(CONFIG_ACPI_POWER)	+= power.o
- obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
- obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
--obj-$(CONFIG_ACPI_SYSTEM)	+= system.o event.o
-+obj-$(CONFIG_ACPI_SYSTEM)	+= system.o
- obj-$(CONFIG_ACPI_DEBUG)	+= debug.o
- obj-$(CONFIG_ACPI_NUMA)		+= numa.o
- obj-$(CONFIG_ACPI_ASUS)		+= asus_acpi.o
-diff -Nru a/drivers/acpi/ac.c b/drivers/acpi/ac.c
---- a/drivers/acpi/ac.c	2004-08-24 01:16:54 -05:00
-+++ b/drivers/acpi/ac.c	2004-08-24 01:16:54 -05:00
-@@ -29,7 +29,9 @@
- #include <linux/types.h>
+diff -Nru a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+--- a/drivers/acpi/bus.c	2004-08-24 01:17:20 -05:00
++++ b/drivers/acpi/bus.c	2004-08-24 01:17:20 -05:00
+@@ -27,7 +27,6 @@
+ #include <linux/list.h>
+ #include <linux/sched.h>
+ #include <linux/pm.h>
+-#include <linux/device.h>
  #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
-+
- #include <acpi/acpi_bus.h>
-+#include <acpi/acpi_event.h>
- #include <acpi/acpi_drivers.h>
+ #ifdef CONFIG_X86
+ #include <asm/mpspec.h>
+@@ -629,8 +628,6 @@
+ 	return_VALUE(-ENODEV);
+ }
  
- 
-@@ -220,7 +222,7 @@
- 	switch (event) {
- 	case ACPI_AC_NOTIFY_STATUS:
- 		acpi_ac_get_state(ac);
--		acpi_bus_generate_event(device, event, (u32) ac->state);
-+		acpi_generate_event(device, event, (u32) ac->state);
- 		break;
- 	default:
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-diff -Nru a/drivers/acpi/acpi_ksyms.c b/drivers/acpi/acpi_ksyms.c
---- a/drivers/acpi/acpi_ksyms.c	2004-08-24 01:16:54 -05:00
-+++ b/drivers/acpi/acpi_ksyms.c	2004-08-24 01:16:54 -05:00
-@@ -27,6 +27,7 @@
- #include <linux/acpi.h>
- #include <acpi/acpi.h>
- #include <acpi/acpi_bus.h>
-+#include <acpi/acpi_event.h>
- 
- 
- #ifdef CONFIG_ACPI_INTERPRETER
-@@ -120,10 +121,11 @@
- #endif /*CONFIG_ACPI_INTERPRETER*/
- 
- 
--/* ACPI Bus Driver (acpi_bus.c) */
-+/* ACPI Bus Driver */
- 
- #ifdef CONFIG_ACPI_BUS
- 
-+/* bus.c */
- EXPORT_SYMBOL(acpi_fadt);
- EXPORT_SYMBOL(acpi_walk_namespace);
- EXPORT_SYMBOL(acpi_root_dir);
-@@ -131,10 +133,11 @@
- EXPORT_SYMBOL(acpi_bus_get_status);
- EXPORT_SYMBOL(acpi_bus_get_power);
- EXPORT_SYMBOL(acpi_bus_set_power);
--EXPORT_SYMBOL(acpi_bus_generate_event);
--EXPORT_SYMBOL(acpi_bus_receive_event);
- EXPORT_SYMBOL(acpi_bus_register_driver);
- EXPORT_SYMBOL(acpi_bus_unregister_driver);
-+
-+/* event.c */
-+EXPORT_SYMBOL(acpi_generate_event);
- 
- #endif /*CONFIG_ACPI_BUS*/
- 
-diff -Nru a/drivers/acpi/asus_acpi.c b/drivers/acpi/asus_acpi.c
---- a/drivers/acpi/asus_acpi.c	2004-08-24 01:16:54 -05:00
-+++ b/drivers/acpi/asus_acpi.c	2004-08-24 01:16:54 -05:00
-@@ -40,6 +40,7 @@
- #include <linux/proc_fs.h>
- #include <acpi/acpi_drivers.h>
- #include <acpi/acpi_bus.h>
-+#include <acpi/acpi_event.h>
- #include <asm/uaccess.h>
- 
- #define ASUS_ACPI_VERSION "0.28"
-@@ -949,8 +950,8 @@
- 		hotk->brightness = (event & ~((u32) BR_DOWN));
+-decl_subsys(acpi,NULL,NULL);
+-
+ static int __init acpi_init (void)
+ {
+ 	int			result = 0;
+@@ -648,10 +645,7 @@
+ 		return -ENODEV;
  	}
  
--	acpi_bus_generate_event(hotk->device, event,
--				hotk->event_count[event % 128]++);
-+	acpi_generate_event(hotk->device, event,
-+			    hotk->event_count[event % 128]++);
+-	firmware_register(&acpi_subsys);
+-
+ 	result = acpi_bus_init();
+-
+ 	if (!result) {
+ #ifdef CONFIG_PM
+ 		if (!PM_IS_ACTIVE())
+diff -Nru a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+--- a/drivers/acpi/scan.c	2004-08-24 01:17:20 -05:00
++++ b/drivers/acpi/scan.c	2004-08-24 01:17:20 -05:00
+@@ -3,6 +3,7 @@
+  */
  
- 	return;
- }
-diff -Nru a/drivers/acpi/battery.c b/drivers/acpi/battery.c
---- a/drivers/acpi/battery.c	2004-08-24 01:16:54 -05:00
-+++ b/drivers/acpi/battery.c	2004-08-24 01:16:54 -05:00
-@@ -31,6 +31,7 @@
- #include <asm/uaccess.h>
- 
- #include <acpi/acpi_bus.h>
-+#include <acpi/acpi_event.h>
- #include <acpi/acpi_drivers.h>
- 
- 
-@@ -719,7 +720,7 @@
- 	case ACPI_BATTERY_NOTIFY_STATUS:
- 	case ACPI_BATTERY_NOTIFY_INFO:
- 		acpi_battery_check(battery);
--		acpi_bus_generate_event(device, event, battery->flags.present);
-+		acpi_generate_event(device, event, battery->flags.present);
- 		break;
- 	default:
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-diff -Nru a/drivers/acpi/bus.c b/drivers/acpi/bus.c
---- a/drivers/acpi/bus.c	2004-08-24 01:16:54 -05:00
-+++ b/drivers/acpi/bus.c	2004-08-24 01:16:54 -05:00
-@@ -272,100 +272,6 @@
- }
- 
- 
--
--/* --------------------------------------------------------------------------
--                                Event Management
--   -------------------------------------------------------------------------- */
--
--static spinlock_t		acpi_bus_event_lock = SPIN_LOCK_UNLOCKED;
--
--LIST_HEAD(acpi_bus_event_list);
--DECLARE_WAIT_QUEUE_HEAD(acpi_bus_event_queue);
--
--extern int			event_is_open;
--
--int
--acpi_bus_generate_event (
--	struct acpi_device	*device,
--	u8			type,
--	int			data)
--{
--	struct acpi_bus_event	*event = NULL;
--	unsigned long		flags = 0;
--
--	ACPI_FUNCTION_TRACE("acpi_bus_generate_event");
--
--	if (!device)
--		return_VALUE(-EINVAL);
--
--	/* drop event on the floor if no one's listening */
--	if (!event_is_open)
--		return_VALUE(0);
--
--	event = kmalloc(sizeof(struct acpi_bus_event), GFP_ATOMIC);
--	if (!event)
--		return_VALUE(-ENOMEM);
--
--	strcpy(event->device_class, device->pnp.device_class);
--	strcpy(event->bus_id, device->pnp.bus_id);
--	event->type = type;
--	event->data = data;
--
--	spin_lock_irqsave(&acpi_bus_event_lock, flags);
--	list_add_tail(&event->node, &acpi_bus_event_list);
--	spin_unlock_irqrestore(&acpi_bus_event_lock, flags);
--
--	wake_up_interruptible(&acpi_bus_event_queue);
--
--	return_VALUE(0);
--}
--
--int
--acpi_bus_receive_event (
--	struct acpi_bus_event	*event)
--{
--	unsigned long		flags = 0;
--	struct acpi_bus_event	*entry = NULL;
--
--	DECLARE_WAITQUEUE(wait, current);
--
--	ACPI_FUNCTION_TRACE("acpi_bus_receive_event");
--
--	if (!event)
--		return -EINVAL;
--
--	if (list_empty(&acpi_bus_event_list)) {
--
--		set_current_state(TASK_INTERRUPTIBLE);
--		add_wait_queue(&acpi_bus_event_queue, &wait);
--
--		if (list_empty(&acpi_bus_event_list))
--			schedule();
--
--		remove_wait_queue(&acpi_bus_event_queue, &wait);
--		set_current_state(TASK_RUNNING);
--
--		if (signal_pending(current))
--			return_VALUE(-ERESTARTSYS);
--	}
--
--	spin_lock_irqsave(&acpi_bus_event_lock, flags);
--	entry = list_entry(acpi_bus_event_list.next, struct acpi_bus_event, node);
--	if (entry)
--		list_del(&entry->node);
--	spin_unlock_irqrestore(&acpi_bus_event_lock, flags);
--
--	if (!entry)
--		return_VALUE(-ENODEV);
--
--	memcpy(event, entry, sizeof(struct acpi_bus_event));
--
--	kfree(entry);
--
--	return_VALUE(0);
--}
--
--
- /* --------------------------------------------------------------------------
-                              Notification Handling
-    -------------------------------------------------------------------------- */
-diff -Nru a/drivers/acpi/button.c b/drivers/acpi/button.c
---- a/drivers/acpi/button.c	2004-08-24 01:16:54 -05:00
-+++ b/drivers/acpi/button.c	2004-08-24 01:16:54 -05:00
-@@ -29,7 +29,9 @@
- #include <linux/types.h>
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
-+
- #include <acpi/acpi_bus.h>
-+#include <acpi/acpi_event.h>
- #include <acpi/acpi_drivers.h>
- 
- 
-@@ -290,7 +292,7 @@
- 
- 	switch (event) {
- 	case ACPI_BUTTON_NOTIFY_STATUS:
--		acpi_bus_generate_event(button->device, event, ++button->pushed);
-+		acpi_generate_event(button->device, event, ++button->pushed);
- 		break;
- 	default:
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-diff -Nru a/drivers/acpi/event.c b/drivers/acpi/event.c
---- a/drivers/acpi/event.c	2004-08-24 01:16:54 -05:00
-+++ b/drivers/acpi/event.c	2004-08-24 01:16:54 -05:00
-@@ -10,73 +10,141 @@
- #include <linux/proc_fs.h>
  #include <linux/init.h>
- #include <linux/poll.h>
-+#include <acpi/acpi_event.h>
++#include <linux/device.h>
+ #include <linux/acpi.h>
+ 
  #include <acpi/acpi_drivers.h>
+@@ -23,7 +24,6 @@
+ #define ACPI_BUS_DEVICE_NAME		"System Bus"
  
- #define _COMPONENT		ACPI_SYSTEM_COMPONENT
- ACPI_MODULE_NAME		("event")
+ static LIST_HEAD(acpi_device_list);
+-spinlock_t acpi_device_lock = SPIN_LOCK_UNLOCKED;
+ LIST_HEAD(acpi_wakeup_device_list);
  
--/* Global vars for handling event proc entry */
--static spinlock_t		acpi_system_event_lock = SPIN_LOCK_UNLOCKED;
--int				event_is_open = 0;
--extern struct list_head		acpi_bus_event_list;
--extern wait_queue_head_t	acpi_bus_event_queue;
-+DECLARE_WAIT_QUEUE_HEAD(acpi_event_queue);
-+LIST_HEAD(acpi_event_list);
-+static spinlock_t	acpi_event_lock = SPIN_LOCK_UNLOCKED;
-+static int		event_is_open;
+ static void acpi_device_release(struct kobject * kobj)
+@@ -34,14 +34,13 @@
+ 	kfree(dev);
+ }
+ 
++decl_subsys(acpi, NULL, NULL);
 +
-+int
-+acpi_generate_event(
-+	struct acpi_device	*device,
-+	u8			type,
-+	int			data)
-+{
-+	struct acpi_bus_event	*event;
-+	unsigned long		flags;
-+	int			result = 0;
+ static struct kobj_type ktype_acpi_ns = {
+ 	.release	= acpi_device_release,
+ };
+ 
+ static struct kset acpi_namespace_kset = {
+-	.kobj		= { 
+-		.name = "namespace",
+-	},
+ 	.subsys = &acpi_subsys,
+ 	.ktype	= &ktype_acpi_ns,
+ };
+@@ -49,6 +48,8 @@
+ 
+ static void acpi_device_register(struct acpi_device * device, struct acpi_device * parent)
+ {
++	ACPI_FUNCTION_TRACE("acpi_device_register");
 +
-+	ACPI_FUNCTION_TRACE("acpi_generate_event");
+ 	/*
+ 	 * Linkage
+ 	 * -------
+@@ -57,20 +58,28 @@
+ 	INIT_LIST_HEAD(&device->children);
+ 	INIT_LIST_HEAD(&device->node);
+ 	INIT_LIST_HEAD(&device->g_list);
+-
+-	spin_lock(&acpi_device_lock);
+-	if (device->parent) {
+-		list_add_tail(&device->node, &device->parent->children);
+-		list_add_tail(&device->g_list,&device->parent->g_list);
+-	} else
+-		list_add_tail(&device->g_list,&acpi_device_list);
+-	spin_unlock(&acpi_device_lock);
++	INIT_LIST_HEAD(&device->wakeup_list);
+ 
+ 	kobject_set_name(&device->kobj, device->pnp.bus_id);
+ 	if (parent)
+ 		device->kobj.parent = kobject_get(&parent->kobj);
+ 	device->kobj.kset = &acpi_namespace_kset;
+ 	kobject_register(&device->kobj);
 +
-+	if (!device)
-+		return_VALUE(-EINVAL);
++	down_write(&acpi_subsys.rwsem);
 +
-+	spin_lock_irqsave(&acpi_event_lock, flags);
++	if (device->parent) {
++		list_add_tail(&device->node, &device->parent->children);
++		list_add_tail(&device->g_list, &device->parent->g_list);
++	} else
++		list_add_tail(&device->g_list, &acpi_device_list);
 +
-+	/* drop event on the floor if no one's listening */
-+	if (!event_is_open)
-+		goto out;
++	if (device->wakeup.flags.valid)
++		list_add_tail(&device->wakeup_list, &acpi_wakeup_device_list);
 +
-+	event = kmalloc(sizeof(struct acpi_bus_event), GFP_ATOMIC);
-+	if (!event) {
-+		result = -ENOMEM;
-+		goto out;
-+	}
++	up_write(&acpi_subsys.rwsem);
 +
-+	strcpy(event->device_class, device->pnp.device_class);
-+	strcpy(event->bus_id, device->pnp.bus_id);
-+	event->type = type;
-+	event->data = data;
-+
-+	list_add_tail(&event->node, &acpi_event_list);
-+	wake_up_interruptible(&acpi_event_queue);
-+
-+out:
-+	spin_unlock_irqrestore(&acpi_event_lock, flags);
-+	return_VALUE(result);
-+}
-+
-+static struct acpi_bus_event *acpi_fetch_event(void)
-+{
-+	struct acpi_bus_event	*event = NULL;
-+	unsigned long		flags;
-+
-+	ACPI_FUNCTION_TRACE("acpi_fetch_event");
-+
-+	spin_lock_irqsave(&acpi_event_lock, flags);
-+
-+	if (!list_empty(&acpi_event_list)) {
-+		event = list_entry(acpi_event_list.next,
-+				   struct acpi_bus_event, node);
-+		list_del(&event->node);
-+	}
-+
-+	spin_unlock_irqrestore(&acpi_event_lock, flags);
-+
-+	return_PTR(event);
-+}
++	return_VOID;
+ }
  
  static int
- acpi_system_open_event(struct inode *inode, struct file *file)
+@@ -255,24 +264,17 @@
+ 
+ 	package = (union acpi_object *) buffer.pointer;
+ 	status = acpi_bus_extract_wakeup_device_power_package(device, package);
++	acpi_os_free(buffer.pointer);
+ 	if (ACPI_FAILURE(status)) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Error extracting _PRW package\n"));
+ 		goto end;
+ 	}
+ 
+-	acpi_os_free(buffer.pointer);
+-
+ 	device->wakeup.flags.valid = 1;
+ 	/* Power button, Lid switch always enable wakeup*/
+ 	if (!acpi_match_ids(device, "PNP0C0D,PNP0C0C,PNP0C0E"))
+ 		device->wakeup.flags.run_wake = 1;
+ 
+-	/* TBD: lock */
+-	INIT_LIST_HEAD(&device->wakeup_list);
+-	spin_lock(&acpi_device_lock);
+-	list_add_tail(&device->wakeup_list, &acpi_wakeup_device_list);
+-	spin_unlock(&acpi_device_lock);
+-
+ end:
+ 	if (ACPI_FAILURE(status))
+ 		device->flags.wake_capable = 0;
+@@ -296,8 +298,6 @@
+    -------------------------------------------------------------------------- */
+ 
+ static LIST_HEAD(acpi_bus_drivers);
+-static DECLARE_MUTEX(acpi_bus_drivers_lock);
+-
+ 
+ /**
+  * acpi_bus_match 
+@@ -367,54 +367,44 @@
+ 
+ static int acpi_driver_attach(struct acpi_driver * drv)
  {
--	spin_lock_irq (&acpi_system_event_lock);
-+	int rc = 0;
+-	struct list_head * node, * next;
++	struct acpi_device *dev;
+ 	int count = 0;
  
--	if(event_is_open)
--		goto out_busy;
-+	spin_lock_irq(&acpi_event_lock);
+ 	ACPI_FUNCTION_TRACE("acpi_driver_attach");
+ 
+-	spin_lock(&acpi_device_lock);
+-	list_for_each_safe(node, next, &acpi_device_list) {
+-		struct acpi_device * dev = container_of(node, struct acpi_device, g_list);
++	list_for_each_entry(dev, &acpi_device_list, g_list) {
+ 
+ 		if (dev->driver || !dev->status.present)
+ 			continue;
+-		spin_unlock(&acpi_device_lock);
+ 
+-		if (!acpi_bus_match(dev, drv)) {
+-			if (!acpi_bus_driver_init(dev, drv)) {
+-				atomic_inc(&drv->references);
+-				count++;
+-				ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found driver [%s] for device [%s]\n",
+-						  drv->name, dev->pnp.bus_id));
+-			}
++		if (acpi_bus_match(dev, drv) < 0)
++			continue;
 +
-+	if (event_is_open) {
-+		rc = -EBUSY;
-+		goto out;
-+	}
- 
- 	event_is_open = 1;
- 
--	spin_unlock_irq (&acpi_system_event_lock);
--	return 0;
-+out:
-+	spin_unlock_irq(&acpi_event_lock);
-+	return rc;
-+}
- 
--out_busy:
--	spin_unlock_irq (&acpi_system_event_lock);
--	return -EBUSY;
-+static inline int
-+event_to_string(struct acpi_bus_event *event, char *buffer)
-+{
-+	return sprintf(buffer, "%s %s %08x %08x\n",
-+		       event->device_class ? event->device_class : "<unknown>",
-+		       event->bus_id ? event->bus_id : "<unknown>",
-+		       event->type, event->data);
++		if (acpi_bus_driver_init(dev, drv) == 0) {
++			atomic_inc(&drv->references);
++			count++;
++			ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found driver [%s] for device [%s]\n",
++					  drv->name, dev->pnp.bus_id));
+ 		}
+-		spin_lock(&acpi_device_lock);
+ 	}
+-	spin_unlock(&acpi_device_lock);
+ 	return_VALUE(count);
  }
  
- static ssize_t
--acpi_system_read_event (
-+acpi_system_read_event(
- 	struct file		*file,
- 	char			__user *buffer,
+ static int acpi_driver_detach(struct acpi_driver * drv)
+ {
+-	struct list_head * node, * next;
++	struct acpi_device *dev;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_driver_detach");
+ 
+-	spin_lock(&acpi_device_lock);
+-	list_for_each_safe(node,next,&acpi_device_list) {
+-		struct acpi_device * dev = container_of(node,struct acpi_device,g_list);
+-
++	list_for_each_entry(dev, &acpi_device_list, g_list) {
+ 		if (dev->driver == drv) {
+-			spin_unlock(&acpi_device_lock);
+ 			if (drv->ops.remove)
+ 				drv->ops.remove(dev,ACPI_BUS_REMOVAL_NORMAL);
+-			spin_lock(&acpi_device_lock);
+ 			dev->driver = NULL;
+ 			dev->driver_data = NULL;
+ 			atomic_dec(&drv->references);
+ 		}
+ 	}
+-	spin_unlock(&acpi_device_lock);
+ 	return_VALUE(0);
+ }
+ 
+@@ -440,11 +430,13 @@
+ 	if (!driver)
+ 		return_VALUE(-EINVAL);
+ 
+-	spin_lock(&acpi_device_lock);
++	down_write(&acpi_subsys.rwsem);
++
+ 	list_add_tail(&driver->node, &acpi_bus_drivers);
+-	spin_unlock(&acpi_device_lock);
+ 	count = acpi_driver_attach(driver);
+ 
++	up_write(&acpi_subsys.rwsem);
++
+ 	return_VALUE(count);
+ }
+ 
+@@ -459,21 +451,21 @@
+ acpi_bus_unregister_driver (
+ 	struct acpi_driver	*driver)
+ {
+-	int error = 0;
+-
+ 	ACPI_FUNCTION_TRACE("acpi_bus_unregister_driver");
+ 
+-	if (driver) {
+-		acpi_driver_detach(driver);
++	if (!driver)
++		return_VALUE(-EINVAL);
++
++	down_write(&acpi_subsys.rwsem);
+ 
+-		if (!atomic_read(&driver->references)) {
+-			spin_lock(&acpi_device_lock);
+-			list_del_init(&driver->node);
+-			spin_unlock(&acpi_device_lock);
+-		} 
+-	} else 
+-		error = -EINVAL;
+-	return_VALUE(error);
++	acpi_driver_detach(driver);
++
++	if (!atomic_read(&driver->references))
++		list_del_init(&driver->node);
++
++	up_write(&acpi_subsys.rwsem);
++
++	return_VALUE(0);
+ }
+ 
+ /**
+@@ -487,30 +479,27 @@
+ 	struct acpi_device	*device)
+ {
+ 	int			result = 0;
+-	struct list_head	* node, *next;
++	struct acpi_driver	*driver;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_bus_find_driver");
+ 
+ 	if (!device->flags.hardware_id && !device->flags.compatible_ids)
+-		goto Done;
++		return_VALUE(0);
+ 
+-	spin_lock(&acpi_device_lock);
+-	list_for_each_safe(node,next,&acpi_bus_drivers) {
+-		struct acpi_driver * driver = container_of(node,struct acpi_driver,node);
+-
+-		atomic_inc(&driver->references);
+-		spin_unlock(&acpi_device_lock);
+-		if (!acpi_bus_match(device, driver)) {
+-			result = acpi_bus_driver_init(device, driver);
+-			if (!result)
+-				goto Done;
++	down_write(&acpi_subsys.rwsem);
++	list_for_each_entry(driver, &acpi_bus_drivers, node) {
++
++		if (acpi_bus_match(device, driver) < 0)
++			continue;
++
++		result = acpi_bus_driver_init(device, driver);
++		if (!result) {
++			atomic_inc(&driver->references);
++			break;
+ 		}
+-		atomic_dec(&driver->references);
+-		spin_lock(&acpi_device_lock);
+ 	}
+-	spin_unlock(&acpi_device_lock);
++	up_write(&acpi_subsys.rwsem);
+ 
+- Done:
+ 	return_VALUE(result);
+ }
+ 
+@@ -1044,6 +1033,8 @@
+ 	if (acpi_disabled)
+ 		return_VALUE(0);
+ 
++	firmware_register(&acpi_subsys);
++	kobject_set_name(&acpi_namespace_kset.kobj, "namespace");
+ 	kset_register(&acpi_namespace_kset);
+ 
+ 	/*
+diff -Nru a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
+--- a/drivers/acpi/sleep/main.c	2004-08-24 01:17:20 -05:00
++++ b/drivers/acpi/sleep/main.c	2004-08-24 01:17:20 -05:00
+@@ -89,9 +89,9 @@
+ 			return error;
+ 	}
+ 
++	acpi_enable_wakeup_device(acpi_state);
+ 
+ 	local_irq_save(flags);
+-	acpi_enable_wakeup_device(acpi_state);
+ 	switch (pm_state)
+ 	{
+ 	case PM_SUSPEND_STANDBY:
+diff -Nru a/drivers/acpi/sleep/proc.c b/drivers/acpi/sleep/proc.c
+--- a/drivers/acpi/sleep/proc.c	2004-08-24 01:17:20 -05:00
++++ b/drivers/acpi/sleep/proc.c	2004-08-24 01:17:20 -05:00
+@@ -354,22 +354,20 @@
+ }
+ 
+ extern struct list_head	acpi_wakeup_device_list;
+-extern spinlock_t acpi_device_lock;
+ 
+ static int
+ acpi_system_wakeup_device_seq_show(struct seq_file *seq, void *offset)
+ {
+-	struct list_head * node, * next;
++	struct acpi_device *dev;
+ 
+ 	seq_printf(seq, "Device	Sleep state	Status\n");
+ 
+-	spin_lock(&acpi_device_lock);
+-	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+-		struct acpi_device * dev = container_of(node, struct acpi_device, wakeup_list);
++	down_read(&acpi_subsys.rwsem);
++	list_for_each_entry(dev, &acpi_wakeup_device_list, wakeup_list) {
+ 
+ 		if (!dev->wakeup.flags.valid)
+ 			continue;
+-		spin_unlock(&acpi_device_lock);
++
+ 		if (dev->wakeup.flags.run_wake)
+ 			seq_printf(seq, "%4s	%4d		%8s\n",
+ 				dev->pnp.bus_id, (u32) dev->wakeup.sleep_state,
+@@ -378,9 +376,9 @@
+ 			seq_printf(seq, "%4s	%4d		%8s\n",
+ 				dev->pnp.bus_id, (u32) dev->wakeup.sleep_state,
+ 				dev->wakeup.state.enabled ? "enabled" : "disabled");
+-		spin_lock(&acpi_device_lock);
+ 	}
+-	spin_unlock(&acpi_device_lock);
++	up_read(&acpi_subsys.rwsem);
++
+ 	return 0;
+ }
+ 
+@@ -391,30 +389,32 @@
  	size_t			count,
  	loff_t			*ppos)
  {
--	int			result = 0;
--	struct acpi_bus_event	event;
-+	int			result;
-+	struct acpi_bus_event	*event;
- 	static char		str[ACPI_MAX_STRING];
--	static int		chars_remaining = 0;
-+	static int		chars_remaining;
- 	static char		*ptr;
+-	struct list_head * node, * next;
+-	char		strbuf[5];
+-	char		str[5] = "";
+-	int 		len = count;
++	struct acpi_device	*dev;
++	char			strbuf[5];
++	char			str[5] = "";
++	int 			len = count;
  
+ 	if (len > 4) len = 4;
  
- 	ACPI_FUNCTION_TRACE("acpi_system_read_event");
- 
- 	if (!chars_remaining) {
--		memset(&event, 0, sizeof(struct acpi_bus_event));
--
--		if ((file->f_flags & O_NONBLOCK)
--		    && (list_empty(&acpi_bus_event_list)))
-+		if (list_empty(&acpi_event_list) &&
-+		    (file->f_flags & O_NONBLOCK))
- 			return_VALUE(-EAGAIN);
- 
--		result = acpi_bus_receive_event(&event);
--		if (result) {
--			return_VALUE(-EIO);
--		}
--
--		chars_remaining = sprintf(str, "%s %s %08x %08x\n", 
--			event.device_class?event.device_class:"<unknown>",
--			event.bus_id?event.bus_id:"<unknown>", 
--			event.type, event.data);
-+		result = wait_event_interruptible(acpi_event_queue,
-+					!list_empty(&acpi_event_list));
-+		if (result)
-+			return_VALUE(result);
+ 	if (copy_from_user(strbuf, buffer, len))
+ 		return -EFAULT;
 +
-+		if ((event = acpi_fetch_event()) == NULL)
-+			return_VALUE(0);
+ 	strbuf[len] = '\0';
+ 	sscanf(strbuf, "%s", str);
+ 
+-	spin_lock(&acpi_device_lock);
+-	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+-		struct acpi_device * dev = container_of(node, struct acpi_device, wakeup_list);
++	down_write(&acpi_subsys.rwsem);
++	list_for_each_entry(dev, &acpi_wakeup_device_list, wakeup_list) {
 +
-+		chars_remaining = event_to_string(event, str);
- 		ptr = str;
-+		kfree(event);
+ 		if (!dev->wakeup.flags.valid)
+ 			continue;
+ 
+ 		if (!strncmp(dev->pnp.bus_id, str, 4)) {
+-			dev->wakeup.state.enabled = dev->wakeup.state.enabled ? 0:1;
++			dev->wakeup.state.enabled = dev->wakeup.state.enabled ? 0 : 1;
+ 			break;
+ 		}
  	}
- 
--	if (chars_remaining < count) {
-+	if (chars_remaining < count)
- 		count = chars_remaining;
--	}
- 
- 	if (copy_to_user(buffer, ptr, count))
- 		return_VALUE(-EFAULT);
-@@ -91,9 +159,19 @@
- static int
- acpi_system_close_event(struct inode *inode, struct file *file)
- {
--	spin_lock_irq (&acpi_system_event_lock);
-+	struct acpi_bus_event *event, *next;
+-	spin_unlock(&acpi_device_lock);
++	up_write(&acpi_subsys.rwsem);
 +
-+	spin_lock_irq(&acpi_event_lock);
-+
-+	/* We won't be interested in old events, will we? */
-+	list_for_each_entry_safe(event, next, &acpi_event_list, node) {
-+		list_del(&event->node);
-+		kfree(event);
-+	}
-+
- 	event_is_open = 0;
--	spin_unlock_irq (&acpi_system_event_lock);
-+
-+	spin_unlock_irq(&acpi_event_lock);
- 	return 0;
+ 	return count;
  }
  
-@@ -102,8 +180,8 @@
- 	struct file		*file,
- 	poll_table		*wait)
+diff -Nru a/drivers/acpi/sleep/wakeup.c b/drivers/acpi/sleep/wakeup.c
+--- a/drivers/acpi/sleep/wakeup.c	2004-08-24 01:17:20 -05:00
++++ b/drivers/acpi/sleep/wakeup.c	2004-08-24 01:17:20 -05:00
+@@ -20,31 +20,29 @@
+  * is higher than requested sleep level
+  */
+ extern struct list_head	acpi_wakeup_device_list;
+-extern spinlock_t acpi_device_lock;
+ 
+ void
+ acpi_enable_wakeup_device_prep(
+ 	u8		sleep_state)
  {
--	poll_wait(file, &acpi_bus_event_queue, wait);
--	if (!list_empty(&acpi_bus_event_list))
-+	poll_wait(file, &acpi_event_queue, wait);
-+	if (!list_empty(&acpi_event_list))
- 		return POLLIN | POLLRDNORM;
+-	struct list_head * node, * next;
++	struct acpi_device *dev;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_enable_wakeup_device_prep");
+ 
+-	spin_lock(&acpi_device_lock);
+-	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+-		struct acpi_device * dev = container_of(node, 
+-			struct acpi_device, wakeup_list);
+-		
+-		if (!dev->wakeup.flags.valid || 
+-			!dev->wakeup.state.enabled ||
+-			(sleep_state > (u32) dev->wakeup.sleep_state))
++	down_write(&acpi_subsys.rwsem);
++	list_for_each_entry(dev, &acpi_wakeup_device_list, wakeup_list) {
++
++		if (!dev->wakeup.flags.valid || !dev->wakeup.state.enabled)
++			continue;
++
++		if (sleep_state > (u32) dev->wakeup.sleep_state)
+ 			continue;
+ 
+-		spin_unlock(&acpi_device_lock);
+ 		acpi_enable_wakeup_device_power(dev);
+-		spin_lock(&acpi_device_lock);
+ 	}
+-	spin_unlock(&acpi_device_lock);
++	up_write(&acpi_subsys.rwsem);
++
++	return_VOID;
+ }
+ 
+ /**
+@@ -56,46 +54,40 @@
+ acpi_enable_wakeup_device(
+ 	u8		sleep_state)
+ {
+-	struct list_head * node, * next;
++	struct acpi_device *dev;
+ 
+-	/* 
+-	 * Caution: this routine must be invoked when interrupt is disabled 
+-	 * Refer ACPI2.0: P212
+-	 */
+ 	ACPI_FUNCTION_TRACE("acpi_enable_wakeup_device");
+-	spin_lock(&acpi_device_lock);
+-	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+-		struct acpi_device * dev = container_of(node, 
+-			struct acpi_device, wakeup_list);
++
++	down_write(&acpi_subsys.rwsem);
++	list_for_each_entry(dev, &acpi_wakeup_device_list, wakeup_list) {
+ 
+ 		/* If users want to disable run-wake GPE,
+ 		 * we only disable it for wake and leave it for runtime
+ 		 */
+ 		if (dev->wakeup.flags.run_wake && !dev->wakeup.state.enabled) {
+-			spin_unlock(&acpi_device_lock);
+-			acpi_set_gpe_type(dev->wakeup.gpe_device, 
+-				dev->wakeup.gpe_number, ACPI_GPE_TYPE_RUNTIME);
++			acpi_set_gpe_type(dev->wakeup.gpe_device,
++					  dev->wakeup.gpe_number, ACPI_GPE_TYPE_RUNTIME);
+ 			/* Re-enable it, since set_gpe_type will disable it */
+-			acpi_enable_gpe(dev->wakeup.gpe_device, 
+-				dev->wakeup.gpe_number, ACPI_ISR);
+-			spin_lock(&acpi_device_lock);
++			acpi_enable_gpe(dev->wakeup.gpe_device,
++					dev->wakeup.gpe_number, ACPI_NOT_ISR);
+ 			continue;
+ 		}
+ 
+-		if (!dev->wakeup.flags.valid ||
+-			!dev->wakeup.state.enabled ||
+-			(sleep_state > (u32) dev->wakeup.sleep_state))
++		if (!dev->wakeup.flags.valid || !dev->wakeup.state.enabled)
++			continue;
++
++		if (sleep_state > (u32) dev->wakeup.sleep_state)
+ 			continue;
+ 
+-		spin_unlock(&acpi_device_lock);
+ 		/* run-wake GPE has been enabled */
+ 		if (!dev->wakeup.flags.run_wake)
+-			acpi_enable_gpe(dev->wakeup.gpe_device, 
+-				dev->wakeup.gpe_number, ACPI_ISR);
++			acpi_enable_gpe(dev->wakeup.gpe_device,
++					dev->wakeup.gpe_number, ACPI_NOT_ISR);
+ 		dev->wakeup.state.active = 1;
+-		spin_lock(&acpi_device_lock);
+ 	}
+-	spin_unlock(&acpi_device_lock);
++	up_write(&acpi_subsys.rwsem);
++
++	return_VOID;
+ }
+ 
+ /**
+@@ -107,73 +99,67 @@
+ acpi_disable_wakeup_device (
+ 	u8		sleep_state)
+ {
+-	struct list_head * node, * next;
++	struct acpi_device *dev;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_disable_wakeup_device");
+ 
+-	spin_lock(&acpi_device_lock);
+-	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+-		struct acpi_device * dev = container_of(node, 
+-			struct acpi_device, wakeup_list);
++	down_write(&acpi_subsys.rwsem);
++	list_for_each_entry(dev, &acpi_wakeup_device_list, wakeup_list) {
+ 
+ 		if (dev->wakeup.flags.run_wake && !dev->wakeup.state.enabled) {
+-			spin_unlock(&acpi_device_lock);
+-			acpi_set_gpe_type(dev->wakeup.gpe_device, 
+-				dev->wakeup.gpe_number, ACPI_GPE_TYPE_WAKE_RUN);
++			acpi_set_gpe_type(dev->wakeup.gpe_device,
++					  dev->wakeup.gpe_number, ACPI_GPE_TYPE_WAKE_RUN);
+ 			/* Re-enable it, since set_gpe_type will disable it */
+-			acpi_enable_gpe(dev->wakeup.gpe_device, 
+-				dev->wakeup.gpe_number, ACPI_NOT_ISR);
+-			spin_lock(&acpi_device_lock);
++			acpi_enable_gpe(dev->wakeup.gpe_device,
++					dev->wakeup.gpe_number, ACPI_NOT_ISR);
+ 			continue;
+ 		}
+ 
+-		if (!dev->wakeup.flags.valid || 
+-			!dev->wakeup.state.active ||
+-			(sleep_state > (u32) dev->wakeup.sleep_state))
++		if (!dev->wakeup.flags.valid || !dev->wakeup.state.active)
++			continue;
++
++		if (sleep_state > (u32) dev->wakeup.sleep_state)
+ 			continue;
+ 
+-		spin_unlock(&acpi_device_lock);
+ 		acpi_disable_wakeup_device_power(dev);
+ 		/* Never disable run-wake GPE */
+ 		if (!dev->wakeup.flags.run_wake) {
+-			acpi_disable_gpe(dev->wakeup.gpe_device, 
+-				dev->wakeup.gpe_number, ACPI_NOT_ISR);
+-			acpi_clear_gpe(dev->wakeup.gpe_device, 
+-				dev->wakeup.gpe_number, ACPI_NOT_ISR);
++			acpi_disable_gpe(dev->wakeup.gpe_device,
++					 dev->wakeup.gpe_number, ACPI_NOT_ISR);
++			acpi_clear_gpe(dev->wakeup.gpe_device,
++				       dev->wakeup.gpe_number, ACPI_NOT_ISR);
+ 		}
+ 		dev->wakeup.state.active = 0;
+-		spin_lock(&acpi_device_lock);
+ 	}
+-	spin_unlock(&acpi_device_lock);
++	up_write(&acpi_subsys.rwsem);
++
++	return_VOID;
+ }
+ 
+ static int __init acpi_wakeup_device_init(void)
+ {
+-	struct list_head * node, * next;
++	struct acpi_device *dev;
+ 
+ 	if (acpi_disabled)
+ 		return 0;
++
+ 	printk("ACPI wakeup devices: \n");
+ 
+-	spin_lock(&acpi_device_lock);
+-	list_for_each_safe(node, next, &acpi_wakeup_device_list) {
+-		struct acpi_device * dev = container_of(node, 
+-			struct acpi_device, wakeup_list);
+-		
++	down_write(&acpi_subsys.rwsem);
++	list_for_each_entry(dev, &acpi_wakeup_device_list, wakeup_list) {
++
+ 		/* In case user doesn't load button driver */
+ 		if (dev->wakeup.flags.run_wake && !dev->wakeup.state.enabled) {
+-			spin_unlock(&acpi_device_lock);
+-			acpi_set_gpe_type(dev->wakeup.gpe_device, 
+-				dev->wakeup.gpe_number, ACPI_GPE_TYPE_WAKE_RUN);
+-			acpi_enable_gpe(dev->wakeup.gpe_device, 
+-				dev->wakeup.gpe_number, ACPI_NOT_ISR);
++			acpi_set_gpe_type(dev->wakeup.gpe_device,
++					  dev->wakeup.gpe_number, ACPI_GPE_TYPE_WAKE_RUN);
++			acpi_enable_gpe(dev->wakeup.gpe_device,
++					dev->wakeup.gpe_number, ACPI_NOT_ISR);
+ 			dev->wakeup.state.enabled = 1;
+-			spin_lock(&acpi_device_lock);
+ 		}
+ 		printk("%4s ", dev->pnp.bus_id);
+ 	}
+-	spin_unlock(&acpi_device_lock);
+ 	printk("\n");
++	up_write(&acpi_subsys.rwsem);
+ 
  	return 0;
  }
-@@ -130,7 +208,7 @@
- 	if (entry)
- 		entry->proc_fops = &acpi_system_event_ops;
- 	else {
--		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, 
-+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
- 				  "Unable to create '%s' proc fs entry\n","event" ));
- 		error = -EFAULT;
- 	}
-diff -Nru a/drivers/acpi/processor.c b/drivers/acpi/processor.c
---- a/drivers/acpi/processor.c	2004-08-24 01:16:54 -05:00
-+++ b/drivers/acpi/processor.c	2004-08-24 01:16:54 -05:00
-@@ -50,6 +50,7 @@
- 
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
-+#include <acpi/acpi_event.h>
- #include <acpi/processor.h>
- 
- 
-@@ -2312,12 +2313,12 @@
- 	switch (event) {
- 	case ACPI_PROCESSOR_NOTIFY_PERFORMANCE:
- 		acpi_processor_ppc_has_changed(pr);
--		acpi_bus_generate_event(device, event, 
--			pr->performance_platform_limit);
-+		acpi_generate_event(device, event,
-+				    pr->performance_platform_limit);
- 		break;
- 	case ACPI_PROCESSOR_NOTIFY_POWER:
- 		/* TBD */
--		acpi_bus_generate_event(device, event, 0);
-+		acpi_generate_event(device, event, 0);
- 		break;
- 	default:
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-diff -Nru a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
---- a/drivers/acpi/thermal.c	2004-08-24 01:16:54 -05:00
-+++ b/drivers/acpi/thermal.c	2004-08-24 01:16:54 -05:00
-@@ -42,6 +42,7 @@
- #include <asm/uaccess.h>
- 
- #include <acpi/acpi_bus.h>
-+#include <acpi/acpi_event.h>
- #include <acpi/acpi_drivers.h>
- 
- #define ACPI_THERMAL_COMPONENT		0x04000000
-@@ -469,7 +470,7 @@
- 		return_VALUE(result);
- 
- 	printk(KERN_EMERG "Critical temperature reached (%ld C), shutting down.\n", KELVIN_TO_CELSIUS(tz->temperature));
--	acpi_bus_generate_event(device, ACPI_THERMAL_NOTIFY_CRITICAL, tz->trips.critical.flags.enabled);
-+	acpi_generate_event(device, ACPI_THERMAL_NOTIFY_CRITICAL, tz->trips.critical.flags.enabled);
- 
- 	acpi_thermal_call_usermode(ACPI_THERMAL_PATH_POWEROFF);
- 
-@@ -500,7 +501,7 @@
- 	if (result)
- 		return_VALUE(result);
- 
--	acpi_bus_generate_event(device, ACPI_THERMAL_NOTIFY_HOT, tz->trips.hot.flags.enabled);
-+	acpi_generate_event(device, ACPI_THERMAL_NOTIFY_HOT, tz->trips.hot.flags.enabled);
- 
- 	/* TBD: Call user-mode "sleep(S4)" function */
- 
-@@ -1199,12 +1200,12 @@
- 	case ACPI_THERMAL_NOTIFY_THRESHOLDS:
- 		acpi_thermal_get_trip_points(tz);
- 		acpi_thermal_check(tz);
--		acpi_bus_generate_event(device, event, 0);
-+		acpi_generate_event(device, event, 0);
- 		break;
- 	case ACPI_THERMAL_NOTIFY_DEVICES:
- 		if (tz->flags.devices)
- 			acpi_thermal_get_devices(tz);
--		acpi_bus_generate_event(device, event, 0);
-+		acpi_generate_event(device, event, 0);
- 		break;
- 	default:
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-diff -Nru a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
---- a/include/acpi/acpi_bus.h	2004-08-24 01:16:54 -05:00
-+++ b/include/acpi/acpi_bus.h	2004-08-24 01:16:54 -05:00
-@@ -293,20 +293,6 @@
- 
- #define acpi_driver_data(d)	((d)->driver_data)
- 
--
--/*
-- * Events
-- * ------
-- */
--
--struct acpi_bus_event {
--	struct list_head	node;
--	acpi_device_class	device_class;
--	acpi_bus_id		bus_id;
--	u32			type;
--	u32			data;
--};
--
- extern struct subsystem acpi_subsys;
- 
- /*
-@@ -317,8 +303,6 @@
- int acpi_bus_get_status (struct acpi_device *device);
- int acpi_bus_get_power (acpi_handle handle, int *state);
- int acpi_bus_set_power (acpi_handle handle, int state);
--int acpi_bus_generate_event (struct acpi_device *device, u8 type, int data);
--int acpi_bus_receive_event (struct acpi_bus_event *event);
- int acpi_bus_register_driver (struct acpi_driver *driver);
- int acpi_bus_unregister_driver (struct acpi_driver *driver);
- 
-diff -Nru a/include/acpi/acpi_event.h b/include/acpi/acpi_event.h
---- /dev/null	Wed Dec 31 16:00:00 196900
-+++ b/include/acpi/acpi_event.h	2004-08-24 01:16:54 -05:00
-@@ -0,0 +1,47 @@
-+/*
-+ *  acpi_event.h - ACPI events to user space
-+ *
-+ *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-+ *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or (at
-+ *  your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful, but
-+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ *  General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License along
-+ *  with this program; if not, write to the Free Software Foundation, Inc.,
-+ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
-+ *
-+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+ */
-+
-+#ifndef __ACPI_EVENT_H__
-+#define __ACPI_EVENT_H__
-+
-+#include <linux/kobject.h>
-+
-+#include <acpi/acpi_bus.h>
-+
-+struct acpi_bus_event {
-+	struct list_head	node;
-+	acpi_device_class	device_class;
-+	acpi_bus_id		bus_id;
-+	u32			type;
-+	u32			data;
-+};
-+
-+/*
-+ * External Functions
-+ */
-+
-+int acpi_generate_event(struct acpi_device *device, u8 type, int data);
-+
-+#endif /*__ACPI_EVENT_H__*/
 
 
 -------------------------------------------------------
