@@ -1,14 +1,12 @@
-From: Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>
-Subject: Re: [BKPATCH] ACPI for 2.4
-Date: Fri, 18 Jun 2004 09:09:49 -0300
+From: "Randy.Dunlap" <rddunlap-3NddpPZAyC0@public.gmane.org>
+Subject: Fw: Re: 2.6.7 ACPI OOPS (random dereferrencing)
+Date: Fri, 18 Jun 2004 08:09:54 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040618120949.GA1956@logos.cnet>
-References: <1087540935.4488.214.camel@dhcppc4>
+Message-ID: <20040618080954.2b2ca202.rddunlap@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1087540935.4488.214.camel-D2Zvc0uNKG8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,60 +15,66 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: thomasz-VOwx7rlT0jVM656bX5wj8A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jun 18, 2004 at 03:32:49AM -0400, Len Brown wrote:
-> Hi Marcelo, please do a 
-> 
-> 	bk pull bk://linux-acpi.bkbits.net/linux-acpi-release-2.4.27
 
-Applied Len, thanks a lot.
+so send it to acpi-devel m.l. then....
 
-> ps. a plain patch is also available here:
-> ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.4.27/acpi-20040326-2.4.27.diff.gz
-> 
-> This will update the following files:
-> 
->  arch/i386/kernel/acpi.c      |    5 +++
->  arch/i386/kernel/mpparse.c   |   18 ++++++++++-
->  arch/x86_64/kernel/mpparse.c |    1 
->  drivers/acpi/asus_acpi.c     |    4 +-
->  drivers/acpi/pci_link.c      |   22 +------------
->  drivers/acpi/pci_root.c      |   49 ++++++++++++++++++++++++++++++-
->  drivers/acpi/thermal.c       |    7 ++++
->  7 files changed, 82 insertions(+), 24 deletions(-)
-> 
-> through these ChangeSets:
-> 
-> <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/06/18 1.1359.6.28)
->    [ACPI] handle SCI override to nth IOAPIC
->    http://bugzilla.kernel.org/show_bug.cgi?id=2835
-> 
-> <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/06/18 1.1359.6.27)
->    [ACPI] fix 2.4.27-pre3 IRQ override regression
->    due to dynamically allocated mp_irqs[].
->    http://bugzilla.kernel.org/show_bug.cgi?id=2834
-> 
-> <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/06/18 1.1359.6.26)
->    [ACPI] avoid spurious interrupts on VIA
->    http://bugzilla.kernel.org/show_bug.cgi?id=2243
-> 
-> <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/06/18 1.1359.6.25)
->    [ACPI] fix passive cooling mode indicator (Luming Yu)
->    http://bugzilla.kernel.org/show_bug.cgi?id=1770
-> 
-> <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/06/17 1.1359.6.24)
->    [ACPI] PCI bus numbering workaround for ServerWorks
->    from David Shaohua Li
->    http://bugzilla.kernel.org/show_bug.cgi?id=1662
-> 
-> <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org> (04/06/03 1.1359.6.23)
->    [PATCH] acpi4asus trivial sync with 2.6 (Karol 'sziwan' Kozimor)
-> 
-> 
-> 
+
+
+Begin forwarded message:
+
+Date: Fri, 18 Jun 2004 17:06:07 +0200
+From: Thomas Zehetbauer <thomasz-VOwx7rlT0jVM656bX5wj8A@public.gmane.org>
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: Re: 2.6.7 ACPI OOPS (random dereferrencing)
+
+
+Since at least 2.6.7-rc2 several people have hit this bug and posted
+here. Unfortunately I have not seen a single follow-up from the ACPI
+guys and somehow I doubt that they even read this list.
+
+From: 	Thomas Zehetbauer <thomasz-VOwx7rlT0jVM656bX5wj8A@public.gmane.org>
+Subject: 	Re: Linux 2.6.7 - ACPI still broken
+Date: 	Wed, 16 Jun 2004 19:42:57 +0200
+
+From: 	Kevin P. Fleming <kpfleming-DFjWRUvmMGj883oHs+z24VaTQe2KTcn/@public.gmane.org>
+Subject: 	Re: Linux 2.6.7 - ACPI still broken
+Date: 	Wed, 16 Jun 2004 21:15:05 -0700
+
+From: 	Grzegorz Kulewski <kangur-ghbW0t/Qn0CsTnJN9+BGXg@public.gmane.org>
+Subject: 	2.6.7-rc3-mm1 problems (ACPI and others)
+Date: 	Thu, 10 Jun 2004 21:57:58 +0200 (CEST)
+
+From: 	Pozsar Balazs <pozsy-c4XbFJfLs1iT9ig0jae3mg@public.gmane.org>
+Subject: 	Re: 2.6.7-rc3-mm1 problems (ACPI and others)
+Date: 	Fri, 11 Jun 2004 01:10:34 +0200
+
+From: 	Thomas Zehetbauer <thomasz-VOwx7rlT0jVM656bX5wj8A@public.gmane.org>
+Subject: 	Re: Linux 2.6.7-rc3 / ACPI broken
+Date: 	Mon, 07 Jun 2004 23:37:01 +0200
+
+From: 	Grzegorz Kulewski <kangur-ghbW0t/Qn0CsTnJN9+BGXg@public.gmane.org>
+Subject: 	modprobing ACPI(?) module gives oops (2.6.7-rc2-mm2)
+Date: 	Sat, 5 Jun 2004 23:33:57 +0200 (CEST)
+
+From: 	Sebastian Ley <ley-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Subject: 	modprobe acpi segfaults
+Date: 	Sat, 05 Jun 2004 02:18:09 +0200
+
+Tom
+
+-
+To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please read the FAQ at  http://www.tux.org/lkml/
+
+
+--
+~Randy
 
 
 -------------------------------------------------------
