@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Desktop and S3 suspend the Holy Grail of ACPI?
-Date: Thu, 4 Mar 2004 11:52:33 +0100
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: ASUS M6800N: processor has only C1
+Date: Thu, 4 Mar 2004 12:12:40 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040304105233.GA308@elf.ucw.cz>
-References: <20040225182030.GG1214@elf.ucw.cz> <40410A69.3070800@verizon.net> <20040228220435.GD10530@elf.ucw.cz> <4041136B.9000904@verizon.net> <20040228230941.GA488@elf.ucw.cz> <4043ECB4.7080203@verizon.net> <20040302101904.GA303@elf.ucw.cz> <404501D8.8090506@verizon.net> <20040302223446.GG1225@elf.ucw.cz> <40467B8E.7060709@verizon.net>
+Message-ID: <20040304111240.GN2869@poupinou.org>
+References: <404459FD.1000406@pca.it> <20040302110946.GF2869@poupinou.org> <40448169.6090507@pca.it> <40449D8E.4060402@pca.it> <20040303103528.GG2869@poupinou.org> <40463D80.8040800@pca.it>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <40467B8E.7060709-H+0wwilmMs3R7s880joybQ@public.gmane.org>
+In-Reply-To: <40463D80.8040800-wlebWZzHoyE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,29 +17,53 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nick Lidakis <nlidakis-H+0wwilmMs3R7s880joybQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
+Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Wed, Mar 03, 2004 at 09:18:08PM +0100, Luca Capello wrote:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+> 
+> Hello,
+> 
+> on 03/03/04 11:35, Bruno Ducrot wrote:
+> > Thanks.  Sound like that I send only an half patch, sorry.
+> nothing changed, well, I got one more error:
+> =====
+> acpi_processor-2490 [29] acpi_processor_get_inf: Invalid PBLK length [7]
+> acpi_processor-0654 [31] acpi_processor_get_pow: Invalid _CST data
+> ACPI: Processor [CPU1] (supports C1)
+> =====
+> 
+
+Could you please try:
+
+--- linux-2.6-bk/drivers/acpi/processor.c	2004/03/04 11:05:47	1.2
++++ linux-2.6-bk/drivers/acpi/processor.c	2004/03/04 11:09:21
+@@ -649,8 +649,8 @@ acpi_processor_get_power_info_cst (
+ 
+ 	count = cst->package.elements[0].integer.value;
+ 
+-	/* There must be at least 2 power states. */
+-	if (count <= 1 || count != cst->package.count - 1) {
++	/* There must be at least one power state (some bios forgot C1), and validate count */
++	if (count < 1 || count != cst->package.count - 1) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid _CST data\n"));
+ 		status = -EFAULT;
+ 		goto end;
 
 
-> So if there's anything you guys -- who have been more than helpful btw 
-> -- would like me to try as far as getting S3 functional, I'm all ears. 
-> I'm also assuming I need some kind of script for S4 to unload the USB 
-> and NIC modules, stop acpid, then revers all that upon resume. Is this 
-> something I'm going to have to write myself?
+I think also that the bios will only allow C2, not C3 nor C4 if you are on AC.
 
-Well, ideally you should not workaround e1000/usb problems with
-scripts, but add driver model support to both of those.
+Could you then try on battery also?  Note that I have not implemented
+yet the reevaluation of _CST in case of AC/battery switch...
 
-You may want to try S3 with those two modules unloaded. There's some
-chance it resumes with video not working (you can tell by typing find
-/ -- if hdd starts flashing, machine is okay but no video).
-								Pavel
 -- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
