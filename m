@@ -1,14 +1,14 @@
-From: Andre Eisenbach <int2str-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: S3 resume and other ACPI questions
-Date: Fri, 18 Mar 2005 19:33:48 -0800
-Message-ID: <7f800d9f050318193340df70a9@mail.gmail.com>
-References: <7f800d9f05022815286a10ddf6@mail.gmail.com>
-	 <20050308095722.GA16798@elf.ucw.cz>
-Reply-To: Andre Eisenbach <int2str-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
+Subject: Re: [patch 06/12] Link newly created pci child bus to its parent on creation
+Date: Fri, 18 Mar 2005 23:00:12 -0500
+Message-ID: <200503182300.12924.dtor_core@ameritech.net>
+References: <20050318133856.A878@unix-os.sc.intel.com> <20050318140922.F1145@unix-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <20050308095722.GA16798-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: base64
+In-Reply-To: <20050318140922.F1145-39QZ/XbsZ5/mO6KZMuUCQVaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,50 +18,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: gregkh-l3A5Bk7waGM@public.gmane.org, tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pcihpd-discuss-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 8 Mar 2005 10:57:22 +0100, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> wrote:
-> Read Doc*/power/video.txt. Send me a patch when you get it working.
-
-Hello Pavel, all,
-
-I've read video.txt and it got me further actually. Thanks for that.
-
-I've recompiled the kernel without any fbcon etc. and use the "radeon"
-display driver within X windows (Gentoo patched version). This way I
-can actually resume from S3 now, and get right back into X. Really
-quickly, too.
-
-However, the hard drive does not seem to fair so well. The hdd
-activity LED remains on and the drive does not seem responsive (but
-spinning). The laptop slows to a crawl and any executable that causes
-disc access (i.e. it's not cached or reads config files etc). Won't
-execute.
-
-dmesg seems to work, but doesn't really show anything. After the
-"stopping tasks" I get a weird "Back from C!" message, but that's
-about it.
-
-What could I try from here?
-
-I tried the suspend patch offered on the Acer TM 800 page linked in
-video.txt, but it did not make a difference.
-
-Side note:
-I'm sorry there is no patch attached to this email, or probably any
-email in the near future. I am trying to work myself into the subject,
-but - as you know - it's very hard. And asides from the ACPI specs,
-there doesn't even seem to be a good document describing how it's
-supposed to work and which elements have to be in which place for this
-all to work.
-However, I hope I can help debugging and contribute to your well
-appreciated efforts at least a little bit. Hey, maybe one day I'll
-even have a patch to attach - even if it only fixes a typo ;).
-
-Thanks,
-    Andre
+SGksCgpPbiBGcmlkYXkgMTggTWFyY2ggMjAwNSAxNzowOSwgUmFqZXNoIFNoYWggd3JvdGU6Cj4g
+K6CgoKCgoKCgoKCgoKCgoGlmIChkZXYtPnN1Ym9yZGluYXRlKSB7Cj4gK6CgoKCgoKCgoKCgoKCg
+oCCgIKAgoCBpZiAobGlzdF9lbXB0eSgmZGV2LT5zdWJvcmRpbmF0ZS0+bm9kZSkpIHsKPiAroKCg
+oKCgoKCgoKCgoKCgoKCgoKCgoKAgoCCgIKAgc3Bpbl9sb2NrKCZwY2lfYnVzX2xvY2spOwo+ICug
+oKCgoKCgoKCgoKCgoKCgoKCgoKCgoCCgIKAgoCBsaXN0X2FkZF90YWlsKCZkZXYtPnN1Ym9yZGlu
+YXRlLT5ub2RlLAo+ICugoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKAgoCCg
+IKAgJmRldi0+YnVzLT5jaGlsZHJlbik7Cj4gK6CgoKCgoKCgoKCgoKCgoKCgoKCgoKCgIKAgoCCg
+IHNwaW5fdW5sb2NrKCZwY2lfYnVzX2xvY2spOwo+ICugoKCgoKCgoKCgoKCgoKAgoCCgIKAgfQoK
+U2hvdWxkJ250IHNwaW5fbG9jay91bmxvY2sgYmUgYXJvdW5kIGVudGlyZSAiaWYiIHN0YXRlbWVu
+dD8gbGlzdF9lbXB0eQpjb3VsZCBiZWNvbWUgZmFsc2UgYWZ0ZXIgaXQgd2FzIGNoZWNrbGVkIGJ1
+dCBiZWZvcmUgc3BpbmxvY2sgd2FzIGFjcXVpcmVkLgoKLS0gCkRtaXRyeQo=
 
 
 -------------------------------------------------------
