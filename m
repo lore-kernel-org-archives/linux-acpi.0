@@ -1,16 +1,13 @@
-From: Micha Feigin <michf-+lLcF8/aw9x6auLlOhE+pQ@public.gmane.org>
+From: Christoph Plattner <christoph.plattner-RbZlAiThDcE@public.gmane.org>
 Subject: Re: S3 hangs Sony Notebook
-Date: Wed, 12 Nov 2003 18:44:17 +0200
+Date: Wed, 12 Nov 2003 22:36:38 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1068646281.4639.31.camel@litshi.luna.local>
+Message-ID: <3FB2A7E6.60106@gmx.at>
 References: <1068584857.1419.11.camel@garrett.darkzone>
-	 <1068588639.25527.19.camel@litshi.luna.local>
-	 <1068636191.6719.24.camel@garrett.darkzone>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1068636191.6719.24.camel-NZYYv2kObinUTSZfUHD3qA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,90 +16,53 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: emme-K4UpdBpcDjFP6xvG9yNuTA@public.gmane.org
+Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2003-11-12 at 13:23, Martin Emrich wrote:
-> Am Di, den 11.11.2003 schrieb Micha Feigin um 23:10:
-> > On Tue, 2003-11-11 at 23:07, Martin Emrich wrote:
-> 
-> > p3 450 sounds a bit old for acpi support but its possible (got a celron
-> > 450 hp to work but it needed a new bios).
-> 
-> Yes, but W2k works fine with ACPI, including S3 and BIOS-S4 (to a
-> Bios-used partition). 
-> 
-> > I have fxa-53 (athelon 1.3G) and acpi works but the dsdt table had to be
-> > replaced due to bugs.
-> 
-> I think this might help me, too. How difficult is this? I heard that I
-> have to learn some ACPI-Assembly-Language thingy, and I have of course
-> to know what to patch in there...
-> 
+I have similar problem on my FSC AmiloD 8820.
 
-Depends on how problematic you dsdt is.
-For the basic stuff I didn't need to know anything. I followed the dsdt
-links on the acpi site to the tools and an explanation on how to copy
-and recompile the dsdt. One of the sites linked from there gives you
-details on how to solve to common compile errors.
-I had a problem with reporting the ac status but some grepping through
-the file a comparing to the things that work I found out a solution. It
-mostly depends on how good you are with partially understanding code in
-a language you don't know.
+But by the way, before you take off the battery and unplug the
+PSU, try to switch of the notebook by pressing the power button
+for more than 5 seconds (perhaps even 10sec).
+As on the newer PCs, the button is a "soft button" and in most
+cases you can switchoff the system with holding down for such
+a time (hardware curcuit switches off, if system hangs !).
 
-> > > - When entering S3 state, some lines appear (something about hda, it is
-> > > gone too fast to read), then the screen blanks and the power LED blinks
-> > > red slowly, just like with Suspend-To-RAM in APM mode (which works fine
-> > > btw.). But then I can't turn it on again, neither can I turn it off. I
-> > > have to unplug the PSU and remove the battery to turn it off completely.
-> > > (IIRC somebody posted the same problem with a Dell notebook some time
-> > > ago).
-> > > 
-> > 
-> > S3 state is very difficult to implement. Most of the work is currently
-> > done on s4 state since its easier to implement.
-> > It will probably be some time before S3 will function properly.
-> 
-> So it might be as well not my notebook's fault, but just that the S3
-> code is not yet ready to work?
-> 
+Christoph P
 
-AFAIK its more probably the S3 code. I don't know how much work was
-actually done on it.
 
-> > If S4 doesn't work with 2.6 you could try the swsusp version
-> > (swsusp.sourceforge.net) there is an alpha version for 2.6 and a mostly
-> > stable version for 2.4 (a few issues but in most cases stable)
+Martin Emrich wrote:
+> Hi!
 > 
-> Where does Linux save the RAM contents? I'm not interested in the kernel
-> overwriting the first 260MB of my Harddrive... 
+> I'm experimenting with Kernel 2.6.0-test9 + acpi-20031002-2.6.0-test9
+> patch on my Sony Vaio PCG-F403 (P3-450, i440BX, PhoenixBIOS, both APM
+> and ACPI capable). But I have several problems:
 > 
-
-Linux saves the ram contents to the swap partition. The is partial
-support for swapfiles. Mostly working but not very well documented. Has
-some issues in some cases.
-You will need to have enough room on you swap space and specify the swap
-partition to resume from (actually one of them the actual image isn't
-necessarily on that partition. you can give it in lilo as if not suspend
-image is found it just does a regular boot).
-Notice that there are currently two implementation of swsusp I know of,
-which should merge at some time in the future. There is the 2.6 builtin
-version and the swsusp patch (swsusp.sourceforge.net). Couldn't get the
-first to work for me.
-
-> > You need to make sure you use hwclock to save system clock to hw be
-> > shutdown/suspend and restore it on resume (should be set up by the
-> > distribution). I don't think acpi should have anything to do with the
-> > clock.
+> - I have to use "acpi=force" because otherwise it says my BIOS is too
+> old. (Actually, I have the newest BIOS from Sony (dated 2000...*hmm*)
 > 
-> I'll keep an eye on it...
+> - reading Battery status works, but it always says "... battery will
+> never fully charge", although it charges up to 100%
 > 
-> According to bogomips, CPU throttling works, after echo 7 >
-> /proc/acpi/processor/CPU0/throttling, it has only 1/10 of the bogomips.
+> - When entering S3 state, some lines appear (something about hda, it is
+> gone too fast to read), then the screen blanks and the power LED blinks
+> red slowly, just like with Suspend-To-RAM in APM mode (which works fine
+> btw.). But then I can't turn it on again, neither can I turn it off. I
+> have to unplug the PSU and remove the battery to turn it off completely.
+> (IIRC somebody posted the same problem with a Dell notebook some time
+> ago).
 > 
-> Ciao
+> - Since I'm running ACPI, my system clock does weird things (going
+> forward/backward some hours or days - ntpdate is my friend ;-)
 > 
-> Martin
+> Most important for me is to get S3 working. Is there any chance?
+> Furthermore, what is the best way to test if the different cpu
+> throttling settings have any effect at all?
+> 
+> Thanks
+> 
+> Martin Emrich
 > 
 > 
 > 
@@ -115,6 +75,15 @@ first to work for me.
 > Acpi-devel mailing list
 > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 > https://lists.sourceforge.net/lists/listinfo/acpi-devel
+> 
+> 
+
+
+
+-- 
+-------------------------------------------------------
+private:	christoph.plattner-RbZlAiThDcE@public.gmane.org
+company:	christoph.plattner-xLnV79OblemzZXS1Dc/lvw@public.gmane.org
 
 
 
