@@ -1,14 +1,13 @@
-From: Faye Pearson <faye-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org>
-Subject: Re: Wakeup code way too big
-Date: Wed, 12 Feb 2003 15:41:58 +0000
+From: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
+Subject: Re: System hang when trying to enter sleep/standby state
+Date: Wed, 12 Feb 2003 10:47:59 -0600 (CST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030212154158.GA32406@clara.net>
-References: <3E451DDA.7010309@wanadoo.fr>
+Message-ID: <Pine.LNX.4.33.0302121042480.1479-100000@localhost.localdomain>
+References: <1044987042.1149.4.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3E451DDA.7010309-39ZsbGIQGT5GWvitb5QawA@public.gmane.org>
+In-Reply-To: <1044987042.1149.4.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,42 +16,42 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: VOLTZ st?phane <svoltz-39ZsbGIQGT5GWvitb5QawA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Erik van Pienbroek <admin-0LxUhLuGNoZIf6P1QZMOBw@public.gmane.org>
+Cc: ACPI Mailinglist <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-VOLTZ st?phane [svoltz-39ZsbGIQGT5GWvitb5QawA@public.gmane.org] wrote:
->        while booting 2.5.59, I got the following message :
-> ACPI: Wakeup code way too big, will crash on attempt to suspend
 
-2.5.60 same message, Sony GRX516MD.
+On 11 Feb 2003, Erik van Pienbroek wrote:
 
->        I added some printk to arch/i386/kernel/acpi.c in
-> acpi_reserve_bootmem() to get wakeup_end and wakeup_start values, and I got:
+> Hi,
 > 
-> ACPI: have wakeup address 0xc0001000
-> ACPI: have wakeup_end     0x00000000
-> ACPI: have wakeup_start   0xffffffb8
+> I've experimented a little bit more with ACPI and found out the
+> following things :
+> With kernel 2.4.21-pre4 when I tried to echo "5" to /proc/acpi/sleep
+> the console would be killed an the following Oops appeared in the logs :
 
-I have an identical wakeup address, haven't put the printks in yet, but
-I bet they're the same too :)
+I would recommend never, ever doing 'echo 5 > /proc/acpi/sleep', 
+especially if you're trying to suspend the system. 
 
-I don't think there's that many bytes from ffffffb8 to 100000000
-Perhaps that's the problem?
+S5 (the state the system enters when you do that) is defined as 'Soft 
+Off'. It is equivalent to what ACPI does when you shut down the system and 
+it automatically powers it off for you. You cannot resume from it; you 
+must restart the machine. 
 
-I see a couple of patches about wakeup, so I'll apply those first.
+The reason it's defined by the spec is to a) allow software to power down 
+the system, and b) allow some events to trigger a power on by the firmware 
+(like wake-on-lan). 
 
-I'm very interested in getting suspend working.
+ACPI should not allow a user to write '5' to that file. It used to be that 
+way, but someone clever decided that that interface should support _all_ 
+sleep states. (It might have been me, in one of my finer moments). 
 
 
-Faye
+Andy, I recommend removing that from 2.4, and I'll send you a patch for 
+2.5..
 
--- 
-Faye Pearson,
-Covert Development
-ClaraNET Ltd.       Tel 020 7903 3000
+	-pat
 
-Never be led astray onto the path of virtue.
 
 
 -------------------------------------------------------
