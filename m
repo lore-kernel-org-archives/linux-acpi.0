@@ -1,12 +1,16 @@
-From: "Andreas Leppert" <wudmx-S0/GAf8tV78@public.gmane.org>
-Subject: Re: RE: throttling is not changing
-Date: Fri, 17 Sep 2004 23:41:15 +0200
+From: Andre Eisenbach <andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org>
+Subject: Re: _PTS call hangs system
+Date: Fri, 17 Sep 2004 14:58:50 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1570523035@web.de>
+Message-ID: <200409171458.50843.andre@eisenbach.com>
+References: <6EDC9204B3704C4C8522539D5C1185E524462D@mssmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <6EDC9204B3704C4C8522539D5C1185E524462D-g/v8ENnfjb4gGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -15,34 +19,48 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Ronald.Hitz-1NtEGJHV5g0@public.gmane.org
+To: "Starikovskiy, Alexey Y" <alexey.y.starikovskiy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Roland,
+Am Freitag 17 September 2004 04:08 schrieb Starikovskiy, Alexey Y:
+> >I may try to go throught the _PTS procedure next to figure out which
+> > call specifically hangs - if that is of any use?
+>
+> I think Sleep(2000) is a main suspect here. That architecture are you
+> using? Is it 64 bit one?
 
-if you mean the howto on http://www.cpqlinux.com/acpi-howto.html, then i have to say "no". 
+It's a AMD XP (32-bit).
 
-i have got a reply from robert moore. he said that the if statements (the errors) cannot be in the definition block in my dsdt. he advised me to create a _INI method in the _SB scope. i did this and load the custom dsdt with the acpi-patch-kernel option, but that didn't the trick.
+I've tried it many times today and it crashes every time EXCEPT when I comment 
+out ALL lines in that S5 branch. As in, this works:
 
-anyway, thank you
-Andi Leppert
+        If (LEqual (Arg0, 0x05))
+        {
+/*
+            Store (0x00, \_SB.PCI0.ISA.EC0.WORE)
+            If (\_SB.PCI0.ISA.WOLE)
+            {
+                Store (0x01, \_SB.PCI0.ISA.EC0.WOLE)
+            }
+            Else
+            {
+                Store (0x00, \_SB.PCI0.ISA.EC0.WOLE)
+            }
 
-Ronald.Hitz-1NtEGJHV5g0@public.gmane.org schrieb am 17.09.04 22:05:51:
-> 
-> Hi Andi,
-> 
-> did You the failure in the acpi-howto ?
-> 
-> Maybe there is a hint to fix it.
-> 
-> regards
-> 
-> Ronald Hitz
-> 
-____________________________________________________
-Aufnehmen, abschicken, nah sein - So einfach ist 
-WEB.DE Video-Mail: http://freemail.web.de/?mc=021200
+            \_SB.PCI0.ISA.HPSS (0x02, 0x00)
+            Sleep (0x07D0)
+*/
+        }
 
+Every other combination (only the Sleep() enabled, only one other line 
+enabled, whatever) causes the system to hang on shutdown. So only not calling 
+that procedure or not doing anything inside seem to help at this point.
+
+Seems very odd.
+
+Cheers,
+    Andre
 
 
 -------------------------------------------------------
