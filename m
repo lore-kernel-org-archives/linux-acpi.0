@@ -1,12 +1,13 @@
-From: Justin Georgeson <justin.georgeson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: CM vs FF buttons
-Date: Sat, 27 Nov 2004 00:13:28 -0600
-Message-ID: <62c1cd2704112622137154df01@mail.gmail.com>
-Reply-To: Justin Georgeson <justin.georgeson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Arjen Verweij <a.verweij-oe7qfRrRQfeEZXFvZSAUrfP6llvjuJOh@public.gmane.org>
+Subject: Re: Impossible to compile iasl
+Date: Sat, 27 Nov 2004 07:24:40 +0100
+Message-ID: <41A81DA8.2040702@student.tudelft.nl>
+References: <20041126174956.838EE1C0019D@mwinf0504.wanadoo.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-reply-to: <20041126174956.838EE1C0019D-yfbLRZkFF/SeJ4+gcmcuWhXaG6MH5uyT@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,25 +17,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "vincent.legarrec" <vincent.legarrec-39ZsbGIQGT5GWvitb5QawA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I have an Inspiron 2600 laptop and the sleep button (Fn+Esc) doesn't
-seem to trigger an ACPI event. It works in Windows, so I tried
-recompiling my DSDT. But that didn't help. Checking out my dmesg
-output, I see this. I read some mention of FF vs CM on the gentoo
-forums post about fixing your DSDT. They mention a kernel patch to
-ignore FF buttons so they might be redetected as CM, but my sleep
-button is already CM. Is there a way to see it as FF?
+http://forums.gentoo.org/viewtopic.php?t=122145&highlight=iasl
 
-ACPI: Power Button (FF) [PWRF]
-ACPI: Sleep Button (CM) [SLPB]
+vincent.legarrec wrote:
 
--- 
-; Justin Georgeson
-; "Free the mallocs, delete the news"
-; http://www.openoffice.org
-; http://www.boycott-riaa.com
+>Now iasl compile.
+>
+>Now, I just need to correct the file disassembled. I don't understand
+>anything that the compiler say. I'll have a look on
+>developer.intel.com/technology/iapc/acpi and read the documentation.
+>
+>Thank you your help.
+>
+>Regards,
+>Vincent
+>
+>
+>
+>
+>-------------------------------------------------------
+>SF email is sponsored by - The IT Product Guide
+>Read honest & candid reviews on hundreds of IT Products from real users.
+>Discover which products truly live up to the hype. Start reading now. 
+>http://productguide.itmanagersjournal.com/
+>_______________________________________________
+>Acpi-devel mailing list
+>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>  
+>
 
 
 -------------------------------------------------------
