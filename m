@@ -1,11 +1,10 @@
-From: John Belmonte <jvb-ZFKsivP1bGvOQU1ULcgDhA@public.gmane.org>
-Subject: [PATCH] Toshiba Laptop Extras v0.13
-Date: Sat, 24 Aug 2002 19:56:08 +0900
+From: <joerg.beyer-htSm2yLGOjU@public.gmane.org>
+Subject: not all irqs detected
+Date: Sat, 24 Aug 2002 19:17:01 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3D676648.3060505@prairienet.org>
+Message-ID: <200208241717.g7OHH1X19234@mailgate5.cinetic.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------010005010501010705050000"
+Content-Type: multipart/mixed; boundary="STEFAN3d67bf8d5205"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -15,305 +14,356 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpilist <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------010005010501010705050000
-Content-Type: text/plain; charset=us-ascii; format=flowed
+This is a MIME encoded message.
+--STEFAN3d67bf8d5205
+Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 
-Hello Andy,
+Hi,
 
-Attached is a patch yielding version 0.13 of the Toshiba laptop extras. 
-  Changes:
+I have some trouble with the latest acpi-patch (older patches
+behave the same). Only IRQ 5 and 10 are mapped and this
+way e.g. the NIC is very slow.
 
-     * Fix sscanf overrun
-     * Add TV out support
-     * Add hotkey status
-     * Add version info
+My bios has not many things to adjust, but I can disable the
+psaux (mouse) and the bios says, if I disable psaux, then irq 12
+will be available. I attached a dmesg, with disabled psaux, and
+I would expect to see IRQ 12 used - but it isn't.
 
-The driver file should now be 2.4 friendly.  Will you accept a patch to 
-the ACPI-patched 2.4 kernel adding my driver?
+could anybody tell me, if it is correct to expect IRQ 12 used this
+way? 
 
-Regards,
--John
+I tried to read & understand the driver/acpi/pci_*.c code, but I need
+some help to get started: how are the free/usable IRQs found
+and mapped?
 
+I have no configuration of the notebook that maps the IRQ correct,
+so any help would be appreciated.
 
--- 
-http:// i      .   /
+    TIA
+    Joerg
+--STEFAN3d67bf8d5205
+Content-Type: application/octet-stream; name="log"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline; filename="log"
+Content-MD5: JpMcTYHE1UbZk5BaAUuEGw==
 
---------------010005010501010705050000
-Content-Type: text/plain;
- name="toshiba_acpi_0.13-linux_2.5.26.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="toshiba_acpi_0.13-linux_2.5.26.patch"
+Q2Fubm90IGZpbmQgbWFwIGZpbGUuCkxvYWRlZCAxOCBzeW1ib2xzIGZyb20gMSBtb2R1bGUu
+Cmtsb2dkIDEuNC4xLCBsb2cgc291cmNlID0ga3N5c2xvZyBzdGFydGVkLgpwY2lfaXJxLTAy
+MjMgWzAwMDFdIFswOF0gYWNwaV9wY2lfaXJxX2FkZF9wcnQgIDogLS0tLUV4aXQtIDAwMDAw
+MDAwMDAwMDAwMDAKPDQ+cGNpX3Jvb3QtMDI5NyBbMDAwMV0gWzA3XSBhY3BpX3BjaV9yb290
+X2FkZCAgICAgOiAtLS0tRXhpdC0gMDAwMDAwMDAwMDAwMDAwMAo8ND5wY2lfYmluZC0wMTM0
+IFswMDAxXSBbMDVdIGFjcGlfcGNpX2JpbmQgICAgICAgICA6IC0tLS1FbnRyeQo8ND5wY2lf
+YmluZC0wMTQ2IFswMDAxXSBbMDVdIGFjcGlfcGNpX2JpbmQgICAgICAgICA6IEJpbmRpbmcg
+UENJIGRldmljZSBbXF9TQl8uUENJMC5QSUJfXS4uLgo8ND5wY2lfYmluZC0wMTc2IFswMDAx
+XSBbMDVdIGFjcGlfcGNpX2JpbmQgICAgICAgICA6IC4uLnRvIDAwOjAwOjA3LjAwCjw0PnBj
+aV9iaW5kLTAyNjAgWzAwMDFdIFswNV0gYWNwaV9wY2lfYmluZCAgICAgICAgIDogLS0tLUV4
+aXQtIDAwMDAwMDAwMDAwMDAwMDAKPDQ+cGNpX2xpbmstMDUwMSBbMDAwMV0gWzA3XSBhY3Bp
+X3BjaV9saW5rX2FkZCAgICAgOiAtLS0tRW50cnkKPDQ+cGNpX2xpbmstMDA5OSBbMDAwMV0g
+WzA4XSBhY3BpX3BjaV9saW5rX2dldF9wb3NzOiAtLS0tRW50cnkKPDQ+cGNpX2xpbmstMDE2
+NCBbMDAwMV0gWzA4XSBhY3BpX3BjaV9saW5rX2dldF9wb3NzOiBGb3VuZCAxIHBvc3NpYmxl
+IElSUXMKPDQ+cGNpX2xpbmstMDE2OSBbMDAwMV0gWzA4XSBhY3BpX3BjaV9saW5rX2dldF9w
+b3NzOiAtLS0tRXhpdC0gMDAwMDAwMDAwMDAwMDAwMAo8ND5wY2lfbGluay0wMTgzIFswMDAx
+XSBbMDhdIGFjcGlfcGNpX2xpbmtfZ2V0X2N1cnI6IC0tLS1FbnRyeQo8ND5wY2lfbGluay0w
+MjU5IFswMDAxXSBbMDhdIGFjcGlfcGNpX2xpbmtfZ2V0X2N1cnI6IExpbmsgYXQgSVJRIDEw
+IAo8ND5wY2lfbGluay0wMjY0IFswMDAxXSBbMDhdIGFjcGlfcGNpX2xpbmtfZ2V0X2N1cnI6
+IC0tLS1FeGl0LSAwMDAwMDAwMDAwMDAwMDAwCjw0PkFDUEk6IFBDSSBJbnRlcnJ1cHQgTGlu
+ayBbTE5LQV0gKElSUXMgKjEwKQo8ND5wY2lfbGluay0wNTQ2IFswMDAxXSBbMDddIGFjcGlf
+cGNpX2xpbmtfYWRkICAgICA6IC0tLS1FeGl0LSAwMDAwMDAwMDAwMDAwMDAwCjw0PnBjaV9s
+aW5rLTA1MDEgWzAwMDFdIFswN10gYWNwaV9wY2lfbGlua19hZGQgICAgIDogLS0tLUVudHJ5
+Cjw0PnBjaV9saW5rLTAwOTkgWzAwMDFdIFswOF0gYWNwaV9wY2lfbGlua19nZXRfcG9zczog
+LS0tLUVudHJ5Cjw0PnBjaV9saW5rLTAxNjQgWzAwMDFdIFswOF0gYWNwaV9wY2lfbGlua19n
+ZXRfcG9zczogRm91bmQgMSBwb3NzaWJsZSBJUlFzCjw0PnBjaV9saW5rLTAxNjkgWzAwMDFd
+IFswOF0gYWNwaV9wY2lfbGlua19nZXRfcG9zczogLS0tLUV4aXQtIDAwMDAwMDAwMDAwMDAw
+MDAKPDQ+cGNpX2xpbmstMDE4MyBbMDAwMV0gWzA4XSBhY3BpX3BjaV9saW5rX2dldF9jdXJy
+OiAtLS0tRW50cnkKPDQ+cGNpX2xpbmstMDI1OSBbMDAwMV0gWzA4XSBhY3BpX3BjaV9saW5r
+X2dldF9jdXJyOiBMaW5rIGF0IElSUSAxMCAKPDQ+cGNpX2xpbmstMDI2NCBbMDAwMV0gWzA4
+XSBhY3BpX3BjaV9saW5rX2dldF9jdXJyOiAtLS0tRXhpdC0gMDAwMDAwMDAwMDAwMDAwMAo8
+ND5BQ1BJOiBQQ0kgSW50ZXJydXB0IExpbmsgW0xOS0JdIChJUlFzICoxMCkKPDQ+cGNpX2xp
+bmstMDU0NiBbMDAwMV0gWzA3XSBhY3BpX3BjaV9saW5rX2FkZCAgICAgOiAtLS0tRXhpdC0g
+MDAwMDAwMDAwMDAwMDAwMAo8ND5wY2lfbGluay0wNTAxIFswMDAxXSBbMDddIGFjcGlfcGNp
+X2xpbmtfYWRkICAgICA6IC0tLS1FbnRyeQo8ND5wY2lfbGluay0wMDk5IFswMDAxXSBbMDhd
+IGFjcGlfcGNpX2xpbmtfZ2V0X3Bvc3M6IC0tLS1FbnRyeQo8ND5wY2lfbGluay0wMTY0IFsw
+MDAxXSBbMDhdIGFjcGlfcGNpX2xpbmtfZ2V0X3Bvc3M6IEZvdW5kIDEgcG9zc2libGUgSVJR
+cwo8ND5wY2lfbGluay0wMTY5IFswMDAxXSBbMDhdIGFjcGlfcGNpX2xpbmtfZ2V0X3Bvc3M6
+IC0tLS1FeGl0LSAwMDAwMDAwMDAwMDAwMDAwCjw0PnBjaV9saW5rLTAxODMgWzAwMDFdIFsw
+OF0gYWNwaV9wY2lfbGlua19nZXRfY3VycjogLS0tLUVudHJ5Cjw0PnBjaV9saW5rLTAyNTkg
+WzAwMDFdIFswOF0gYWNwaV9wY2lfbGlua19nZXRfY3VycjogTGluayBhdCBJUlEgNSAKPDQ+
+cGNpX2xpbmstMDI2NCBbMDAwMV0gWzA4XSBhY3BpX3BjaV9saW5rX2dldF9jdXJyOiAtLS0t
+RXhpdC0gMDAwMDAwMDAwMDAwMDAwMAo8ND5BQ1BJOiBQQ0kgSW50ZXJydXB0IExpbmsgW0xO
+S0NdIChJUlFzICo1KQo8ND5wY2lfbGluay0wNTQ2IFswMDAxXSBbMDddIGFjcGlfcGNpX2xp
+bmtfYWRkICAgICA6IC0tLS1FeGl0LSAwMDAwMDAwMDAwMDAwMDAwCjw0PnBjaV9saW5rLTA1
+MDEgWzAwMDFdIFswN10gYWNwaV9wY2lfbGlua19hZGQgICAgIDogLS0tLUVudHJ5Cjw0PnBj
+aV9saW5rLTAwOTkgWzAwMDFdIFswOF0gYWNwaV9wY2lfbGlua19nZXRfcG9zczogLS0tLUVu
+dHJ5Cjw0PnBjaV9saW5rLTAxNjQgWzAwMDFdIFswOF0gYWNwaV9wY2lfbGlua19nZXRfcG9z
+czogRm91bmQgMSBwb3NzaWJsZSBJUlFzCjw0PnBjaV9saW5rLTAxNjkgWzAwMDFdIFswOF0g
+YWNwaV9wY2lfbGlua19nZXRfcG9zczogLS0tLUV4aXQtIDAwMDAwMDAwMDAwMDAwMDAKPDQ+
+cGNpX2xpbmstMDE4MyBbMDAwMV0gWzA4XSBhY3BpX3BjaV9saW5rX2dldF9jdXJyOiAtLS0t
+RW50cnkKPDQ+cGNpX2xpbmstMDI1OSBbMDAwMV0gWzA4XSBhY3BpX3BjaV9saW5rX2dldF9j
+dXJyOiBMaW5rIGF0IElSUSA1IAo8ND5wY2lfbGluay0wMjY0IFswMDAxXSBbMDhdIGFjcGlf
+cGNpX2xpbmtfZ2V0X2N1cnI6IC0tLS1FeGl0LSAwMDAwMDAwMDAwMDAwMDAwCjw0PkFDUEk6
+IFBDSSBJbnRlcnJ1cHQgTGluayBbTE5LRF0gKElSUXMgKjUpCjw0PnBjaV9saW5rLTA1NDYg
+WzAwMDFdIFswN10gYWNwaV9wY2lfbGlua19hZGQgICAgIDogLS0tLUV4aXQtIDAwMDAwMDAw
+MDAwMDAwMDAKPDQ+cGNpX2JpbmQtMDEzNCBbMDAwMV0gWzA1XSBhY3BpX3BjaV9iaW5kICAg
+ICAgICAgOiAtLS0tRW50cnkKPDQ+cGNpX2JpbmQtMDE0NiBbMDAwMV0gWzA1XSBhY3BpX3Bj
+aV9iaW5kICAgICAgICAgOiBCaW5kaW5nIFBDSSBkZXZpY2UgW1xfU0JfLlBDSTAuUFBCX10u
+Li4KPDQ+cGNpX2JpbmQtMDE3NiBbMDAwMV0gWzA1XSBhY3BpX3BjaV9iaW5kICAgICAgICAg
+OiAuLi50byAwMDowMDowMS4wMAo8ND5wY2lfYmluZC0wMjE3IFswMDAxXSBbMDVdIGFjcGlf
+cGNpX2JpbmQgICAgICAgICA6IERldmljZSAwMDowMDowMS4wMCBpcyBhIFBDSSBicmlkZ2UK
+PDQ+cGNpX2JpbmQtMDI2MCBbMDAwMV0gWzA1XSBhY3BpX3BjaV9iaW5kICAgICAgICAgOiAt
+LS0tRXhpdC0gMDAwMDAwMDAwMDAwMDAwMAo8ND5wY2lfYmluZC0wMTM0IFswMDAxXSBbMDVd
+IGFjcGlfcGNpX2JpbmQgICAgICAgICA6IC0tLS1FbnRyeQo8ND5wY2lfYmluZC0wMTQ2IFsw
+MDAxXSBbMDVdIGFjcGlfcGNpX2JpbmQgICAgICAgICA6IEJpbmRpbmcgUENJIGRldmljZSBb
+XF9TQl8uUENJMC5QUEJfLlZHQV9dLi4uCjw0PnBjaV9iaW5kLTAxNzYgWzAwMDFdIFswNV0g
+YWNwaV9wY2lfYmluZCAgICAgICAgIDogLi4udG8gMDA6MDE6MDAuMDAKPDQ+cGNpX2JpbmQt
+MDI2MCBbMDAwMV0gWzA1XSBhY3BpX3BjaV9iaW5kICAgICAgICAgOiAtLS0tRXhpdC0gMDAw
+MDAwMDAwMDAwMDAwMAo8ND5wY2lfYmluZC0wMTM0IFswMDAxXSBbMDVdIGFjcGlfcGNpX2Jp
+bmQgICAgICAgICA6IC0tLS1FbnRyeQo8ND5wY2lfYmluZC0wMTQ2IFswMDAxXSBbMDVdIGFj
+cGlfcGNpX2JpbmQgICAgICAgICA6IEJpbmRpbmcgUENJIGRldmljZSBbXF9TQl8uUENJMC5V
+U0IwXS4uLgo8ND5wY2lfYmluZC0wMTc2IFswMDAxXSBbMDVdIGFjcGlfcGNpX2JpbmQgICAg
+ICAgICA6IC4uLnRvIDAwOjAwOjA3LjAyCjw0PnBjaV9iaW5kLTAyNjAgWzAwMDFdIFswNV0g
+YWNwaV9wY2lfYmluZCAgICAgICAgIDogLS0tLUV4aXQtIDAwMDAwMDAwMDAwMDAwMDAKPDQ+
+cGNpX2JpbmQtMDEzNCBbMDAwMV0gWzA1XSBhY3BpX3BjaV9iaW5kICAgICAgICAgOiAtLS0t
+RW50cnkKPDQ+cGNpX2JpbmQtMDE0NiBbMDAwMV0gWzA1XSBhY3BpX3BjaV9iaW5kICAgICAg
+ICAgOiBCaW5kaW5nIFBDSSBkZXZpY2UgW1xfU0JfLlBDSTAuUE1fX10uLi4KPDQ+cGNpX2Jp
+bmQtMDE3NiBbMDAwMV0gWzA1XSBhY3BpX3BjaV9iaW5kICAgICAgICAgOiAuLi50byAwMDow
+MDowNy4wNAo8ND5wY2lfYmluZC0wMjYwIFswMDAxXSBbMDVdIGFjcGlfcGNpX2JpbmQgICAg
+ICAgICA6IC0tLS1FeGl0LSAwMDAwMDAwMDAwMDAwMDAwCjw0PnBjaV9iaW5kLTAxMzQgWzAw
+MDFdIFswNV0gYWNwaV9wY2lfYmluZCAgICAgICAgIDogLS0tLUVudHJ5Cjw0PnBjaV9iaW5k
+LTAxNDYgWzAwMDFdIFswNV0gYWNwaV9wY2lfYmluZCAgICAgICAgIDogQmluZGluZyBQQ0kg
+ZGV2aWNlIFtcX1NCXy5QQ0kwLkFVREldLi4uCjw0PnBjaV9iaW5kLTAxNzYgWzAwMDFdIFsw
+NV0gYWNwaV9wY2lfYmluZCAgICAgICAgIDogLi4udG8gMDA6MDA6MDcuMDUKPDQ+cGNpX2Jp
+bmQtMDI2MCBbMDAwMV0gWzA1XSBhY3BpX3BjaV9iaW5kICAgICAgICAgOiAtLS0tRXhpdC0g
+MDAwMDAwMDAwMDAwMDAwMAo8ND5wY2lfYmluZC0wMTM0IFswMDAxXSBbMDVdIGFjcGlfcGNp
+X2JpbmQgICAgICAgICA6IC0tLS1FbnRyeQo8ND5wY2lfYmluZC0wMTQ2IFswMDAxXSBbMDVd
+IGFjcGlfcGNpX2JpbmQgICAgICAgICA6IEJpbmRpbmcgUENJIGRldmljZSBbXF9TQl8uUENJ
+MC5NUEMyXS4uLgo8ND5wY2lfYmluZC0wMTc2IFswMDAxXSBbMDVdIGFjcGlfcGNpX2JpbmQg
+ICAgICAgICA6IC4uLnRvIDAwOjAwOjA5LjAwCjw0PnBjaV9iaW5kLTAyNjAgWzAwMDFdIFsw
+NV0gYWNwaV9wY2lfYmluZCAgICAgICAgIDogLS0tLUV4aXQtIDAwMDAwMDAwMDAwMDAwMDAK
+PDQ+cGNpX2JpbmQtMDEzNCBbMDAwMV0gWzA1XSBhY3BpX3BjaV9iaW5kICAgICAgICAgOiAt
+LS0tRW50cnkKPDQ+cGNpX2JpbmQtMDE0NiBbMDAwMV0gWzA1XSBhY3BpX3BjaV9iaW5kICAg
+ICAgICAgOiBCaW5kaW5nIFBDSSBkZXZpY2UgW1xfU0JfLlBDSTAuTVBDSV0uLi4KPDQ+cGNp
+X2JpbmQtMDE3NiBbMDAwMV0gWzA1XSBhY3BpX3BjaV9iaW5kICAgICAgICAgOiAuLi50byAw
+MDowMDowNi4wMAo8ND5wY2lfYmluZC0wMjYwIFswMDAxXSBbMDVdIGFjcGlfcGNpX2JpbmQg
+ICAgICAgICA6IC0tLS1FeGl0LSAwMDAwMDAwMDAwMDAwMDAwCjw0PnBjaV9iaW5kLTAxMzQg
+WzAwMDFdIFswNl0gYWNwaV9wY2lfYmluZCAgICAgICAgIDogLS0tLUVudHJ5Cjw0PnBjaV9i
+aW5kLTAxNDYgWzAwMDFdIFswNl0gYWNwaV9wY2lfYmluZCAgICAgICAgIDogQmluZGluZyBQ
+Q0kgZGV2aWNlIFtcX1NCXy5QQ0kwLkNSRDBdLi4uCjw0PnBjaV9iaW5kLTAxNzYgWzAwMDFd
+IFswNl0gYWNwaV9wY2lfYmluZCAgICAgICAgIDogLi4udG8gMDA6MDA6MGMuMDAKPDQ+cGNp
+X2JpbmQtMDIxNyBbMDAwMV0gWzA2XSBhY3BpX3BjaV9iaW5kICAgICAgICAgOiBEZXZpY2Ug
+MDA6MDA6MGMuMDAgaXMgYSBQQ0kgYnJpZGdlCjw0PnBjaV9iaW5kLTAyNjAgWzAwMDFdIFsw
+Nl0gYWNwaV9wY2lfYmluZCAgICAgICAgIDogLS0tLUV4aXQtIDAwMDAwMDAwMDAwMDAwMDAK
+PDQ+cGNpX2JpbmQtMDEzNCBbMDAwMV0gWzA3XSBhY3BpX3BjaV9iaW5kICAgICAgICAgOiAt
+LS0tRW50cnkKPDQ+cGNpX2JpbmQtMDE0NiBbMDAwMV0gWzA3XSBhY3BpX3BjaV9iaW5kICAg
+ICAgICAgOiBCaW5kaW5nIFBDSSBkZXZpY2UgW1xfU0JfLlBDSTAuQ1JEMV0uLi4KPDQ+cGNp
+X2JpbmQtMDE3NiBbMDAwMV0gWzA3XSBhY3BpX3BjaV9iaW5kICAgICAgICAgOiAuLi50byAw
+MDowMDowYy4wMQo8ND5wY2lfYmluZC0wMjE3IFswMDAxXSBbMDddIGFjcGlfcGNpX2JpbmQg
+ICAgICAgICA6IERldmljZSAwMDowMDowYy4wMSBpcyBhIFBDSSBicmlkZ2UKPDQ+cGNpX2Jp
+bmQtMDI2MCBbMDAwMV0gWzA3XSBhY3BpX3BjaV9iaW5kICAgICAgICAgOiAtLS0tRXhpdC0g
+MDAwMDAwMDAwMDAwMDAwMAo8Nj5BQ1BJOiBQb3dlciBSZXNvdXJjZSBbUEZBTl0gKG9uKQo8
+Nj5QQ0k6IFByb2JpbmcgUENJIGhhcmR3YXJlCjw0PiBwY2lfaXJxLTAzNzYgWzAwMDFdIFsw
+NF0gYWNwaV9wY2lfaXJxX2luaXQgICAgIDogLS0tLUVudHJ5Cjw0PnBjaV9saW5rLTAzODUg
+WzAwMDFdIFswNV0gYWNwaV9wY2lfbGlua19jaGVjayAgIDogLS0tLUVudHJ5Cjw0PnBjaV9s
+aW5rLTA0NDYgWzAwMDFdIFswNV0gYWNwaV9wY2lfbGlua19jaGVjayAgIDogLS0tLUV4aXQt
+IDAwMDAwMDAwMDAwMDAwMDAKPDQ+IHBjaV9pcnEtMDMxMSBbMDAwMV0gWzA1XSBhY3BpX3Bj
+aV9pcnFfZW5hYmxlICAgOiAtLS0tRW50cnkKPDQ+IHBjaV9pcnEtMDMxOCBbMDAwMV0gWzA1
+XSBhY3BpX3BjaV9pcnFfZW5hYmxlICAgOiBObyBpbnRlcnJ1cHQgcGluIGNvbmZpZ3VyZWQg
+Zm9yIGRldmljZSAwMDowMC4wCjw0PiBwY2lfaXJxLTAzMTkgWzAwMDFdIFswNV0gYWNwaV9w
+Y2lfaXJxX2VuYWJsZSAgIDogLS0tLUV4aXQtIDAwMDAwMDAwMDAwMDAwMDAKPDQ+IHBjaV9p
+cnEtMDMxMSBbMDAwMV0gWzA1XSBhY3BpX3BjaV9pcnFfZW5hYmxlICAgOiAtLS0tRW50cnkK
+PDQ+IHBjaV9pcnEtMDMxOCBbMDAwMV0gWzA1XSBhY3BpX3BjaV9pcnFfZW5hYmxlICAgOiBO
+byBpbnRlcnJ1cHQgcGluIGNvbmZpZ3VyZWQgZm9yIGRldmljZSAwMDowMS4wCjw0PiBwY2lf
+aXJxLTAzMTkgWzAwMDFdIFswNV0gYWNwaV9wY2lfaXJxX2VuYWJsZSAgIDogLS0tLUV4aXQt
+IDAwMDAwMDAwMDAwMDAwMDAKPDQ+IHBjaV9pcnEtMDMxMSBbMDAwMV0gWzA1XSBhY3BpX3Bj
+aV9pcnFfZW5hYmxlICAgOiAtLS0tRW50cnkKPDQ+IHBjaV9pcnEtMDI0MCBbMDAwMV0gWzA2
+XSBhY3BpX3BjaV9pcnFfbG9va3VwICAgOiAtLS0tRW50cnkKPDQ+IHBjaV9pcnEtMDI0NCBb
+MDAwMV0gWzA2XSBhY3BpX3BjaV9pcnFfbG9va3VwICAgOiBTZWFyY2hpbmcgZm9yIFBSVCBl
+bnRyeSBmb3IgMDA6MDA6MDZbQV0KPDQ+IHBjaV9pcnEtMDA2NiBbMDAwMV0gWzA3XSBhY3Bp
+X3BjaV9pcnFfZmluZF9wcnRfOiAtLS0tRW50cnkKPDQ+IHBjaV9pcnEtMDA4MCBbMDAwMV0g
+WzA3XSBhY3BpX3BjaV9pcnFfZmluZF9wcnRfOiAtLS0tRXhpdC0gYzEyOWZhYzAKPDQ+cGNp
+X2xpbmstMDQ1OSBbMDAwMV0gWzA3XSBhY3BpX3BjaV9saW5rX2dldF9pcnEgOiAtLS0tRW50
+cnkKPDQ+cGNpX2xpbmstMDQ4NCBbMDAwMV0gWzA3XSBhY3BpX3BjaV9saW5rX2dldF9pcnEg
+OiAtLS0tRXhpdC0gMDAwMDAwMDAwMDAwMDAwQQo8ND4gcGNpX2lycS0wMjY0IFswMDAxXSBb
+MDZdIGFjcGlfcGNpX2lycV9sb29rdXAgICA6IEZvdW5kIElSUSAxMAo8ND4gcGNpX2lycS0w
+MjY2IFswMDAxXSBbMDZdIGFjcGlfcGNpX2lycV9sb29rdXAgICA6IC0tLS1FeGl0LSAwMDAw
+MDAwMDAwMDAwMDBBCjw0PiBwY2lfaXJxLTAzNTQgWzAwMDFdIFswNV0gYWNwaV9wY2lfaXJx
+X2VuYWJsZSAgIDogRGV2aWNlIDAwOjA2LjAgdXNpbmcgSVJRIDEwCjw0PiBwY2lfaXJxLTAz
+NjEgWzAwMDFdIFswNV0gYWNwaV9wY2lfaXJxX2VuYWJsZSAgIDogU2V0dGluZyBJUlEgMTAg
+YXMgbGV2ZWwtdHJpZ2dlcmVkCjw0PiBwY2lfaXJxLTAzNjcgWzAwMDFdIFswNV0gYWNwaV9w
+Y2lfaXJxX2VuYWJsZSAgIDogLS0tLUV4aXQtIDAwMDAwMDAwMDAwMDAwMEEKPDQ+IHBjaV9p
+cnEtMDMxMSBbMDAwMV0gWzA1XSBhY3BpX3BjaV9pcnFfZW5hYmxlICAgOiAtLS0tRW50cnkK
+PDQ+IHBjaV9pcnEtMDMxOCBbMDAwMV0gWzA1XSBhY3BpX3BjaV9pcnFfZW5hYmxlICAgOiBO
+byBpbnRlcnJ1cHQgcGluIGNvbmZpZ3VyZWQgZm9yIGRldmljZSAwMDowNy4wCjw0PiBwY2lf
+aXJxLTAzMTkgWzAwMDFdIFswNV0gYWNwaV9wY2lfaXJxX2VuYWJsZSAgIDogLS0tLUV4aXQt
+IDAwMDAwMDAwMDAwMDAwMDAKPDQ+IHBjaV9pcnEtMDMxMSBbMDAwMV0gWzA1XSBhY3BpX3Bj
+aV9pcnFfZW5hYmxlICAgOiAtLS0tRW50cnkKPDQ+IHBjaV9pcnEtMDMxOCBbMDAwMV0gWzA1
+XSBhY3BpX3BjaV9pcnFfZW5hYmxlICAgOiBObyBpbnRlcnJ1cHQgcGluIGNvbmZpZ3VyZWQg
+Zm9yIGRldmljZSAwMDowNy4xCjw0PiBwY2lfaXJxLTAzMTkgWzAwMDFdIFswNV0gYWNwaV9w
+Y2lfaXJxX2VuYWJsZSAgIDogLS0tLUV4aXQtIDAwMDAwMDAwMDAwMDAwMDAKPDQ+IHBjaV9p
+cnEtMDMxMSBbMDAwMV0gWzA1XSBhY3BpX3BjaV9pcnFfZW5hYmxlICAgOiAtLS0tRW50cnkK
+PDQ+IHBjaV9pcnEtMDI0MCBbMDAwMV0gWzA2XSBhY3BpX3BjaV9pcnFfbG9va3VwICAgOiAt
+LS0tRW50cnkKPDQ+IHBjaV9pcnEtMDI0NCBbMDAwMV0gWzA2XSBhY3BpX3BjaV9pcnFfbG9v
+a3VwICAgOiBTZWFyY2hpbmcgZm9yIFBSVCBlbnRyeSBmb3IgMDA6MDA6MDdbRF0KPDQ+IHBj
+aV9pcnEtMDA2NiBbMDAwMV0gWzA3XSBhY3BpX3BjaV9pcnFfZmluZF9wcnRfOiAtLS0tRW50
+cnkKPDQ+IHBjaV9pcnEtMDA4MCBbMDAwMV0gWzA3XSBhY3BpX3BjaV9pcnFfZmluZF9wcnRf
+OiAtLS0tRXhpdC0gYzEyOWZhODAKPDQ+cGNpX2xpbmstMDQ1OSBbMDAwMV0gWzA3XSBhY3Bp
+X3BjaV9saW5rX2dldF9pcnEgOiAtLS0tRW50cnkKPDQ+cGNpX2xpbmstMDQ4NCBbMDAwMV0g
+WzA3XSBhY3BpX3BjaV9saW5rX2dldF9pcnEgOiAtLS0tRXhpdC0gMDAwMDAwMDAwMDAwMDAw
+NQo8ND4gcGNpX2lycS0wMjY0IFswMDAxXSBbMDZdIGFjcGlfcGNpX2lycV9sb29rdXAgICA6
+IEZvdW5kIElSUSA1Cjw0PiBwY2lfaXJxLTAyNjYgWzAwMDFdIFswNl0gYWNwaV9wY2lfaXJx
+X2xvb2t1cCAgIDogLS0tLUV4aXQtIDAwMDAwMDAwMDAwMDAwMDUKPDQ+IHBjaV9pcnEtMDM1
+NCBbMDAwMV0gWzA1XSBhY3BpX3BjaV9pcnFfZW5hYmxlICAgOiBEZXZpY2UgMDA6MDcuMiB1
+c2luZyBJUlEgNQo8ND4gcGNpX2lycS0wMzYxIFswMDAxXSBbMDVdIGFjcGlfcGNpX2lycV9l
+bmFibGUgICA6IFNldHRpbmcgSVJRIDUgYXMgbGV2ZWwtdHJpZ2dlcmVkCjw0PiBwY2lfaXJx
+LTAzNjcgWzAwMDFdIFswNV0gYWNwaV9wY2lfaXJxX2VuYWJsZSAgIDogLS0tLUV4aXQtIDAw
+MDAwMDAwMDAwMDAwMDUKPDQ+IHBjaV9pcnEtMDMxMSBbMDAwMV0gWzA1XSBhY3BpX3BjaV9p
+cnFfZW5hYmxlICAgOiAtLS0tRW50cnkKPDQ+IHBjaV9pcnEtMDMxOCBbMDAwMV0gWzA1XSBh
+Y3BpX3BjaV9pcnFfZW5hYmxlICAgOiBObyBpbnRlcnJ1cHQgcGluIGNvbmZpZ3VyZWQgZm9y
+IGRldmljZSAwMDowNy40Cjw0PiBwY2lfaXJxLTAzMTkgWzAwMDFdIFswNV0gYWNwaV9wY2lf
+aXJxX2VuYWJsZSAgIDogLS0tLUV4aXQtIDAwMDAwMDAwMDAwMDAwMDAKPDQ+IHBjaV9pcnEt
+MDMxMSBbMDAwMV0gWzA1XSBhY3BpX3BjaV9pcnFfZW5hYmxlICAgOiAtLS0tRW50cnkKPDQ+
+IHBjaV9pcnEtMDI0MCBbMDAwMV0gWzA2XSBhY3BpX3BjaV9pcnFfbG9va3VwICAgOiAtLS0t
+RW50cnkKPDQ+IHBjaV9pcnEtMDI0NCBbMDAwMV0gWzA2XSBhY3BpX3BjaV9pcnFfbG9va3Vw
+ICAgOiBTZWFyY2hpbmcgZm9yIFBSVCBlbnRyeSBmb3IgMDA6MDA6MDdbQ10KPDQ+IHBjaV9p
+cnEtMDA2NiBbMDAwMV0gWzA3XSBhY3BpX3BjaV9pcnFfZmluZF9wcnRfOiAtLS0tRW50cnkK
+PDQ+IHBjaV9pcnEtMDA4MCBbMDAwMV0gWzA3XSBhY3BpX3BjaV9pcnFfZmluZF9wcnRfOiAt
+LS0tRXhpdC0gYzEyOWZhNDAKPDQ+cGNpX2xpbmstMDQ1OSBbMDAwMV0gWzA3XSBhY3BpX3Bj
+aV9saW5rX2dldF9pcnEgOiAtLS0tRW50cnkKPDQ+cGNpX2xpbmstMDQ4NCBbMDAwMV0gWzA3
+XSBhY3BpX3BjaV9saW5rX2dldF9pcnEgOiAtLS0tRXhpdC0gMDAwMDAwMDAwMDAwMDAwNQo8
+ND4gcGNpX2lycS0wMjY0IFswMDAxXSBbMDZdIGFjcGlfcGNpX2lycV9sb29rdXAgICA6IEZv
+dW5kIElSUSA1Cjw0PiBwY2lfaXJxLTAyNjYgWzAwMDFdIFswNl0gYWNwaV9wY2lfaXJxX2xv
+b2t1cCAgIDogLS0tLUV4aXQtIDAwMDAwMDAwMDAwMDAwMDUKPDQ+IHBjaV9pcnEtMDM1NCBb
+MDAwMV0gWzA1XSBhY3BpX3BjaV9pcnFfZW5hYmxlICAgOiBEZXZpY2UgMDA6MDcuNSB1c2lu
+ZyBJUlEgNQo8ND4gcGNpX2lycS0wMzY3IFswMDAxXSBbMDVdIGFjcGlfcGNpX2lycV9lbmFi
+bGUgICA6IC0tLS1FeGl0LSAwMDAwMDAwMDAwMDAwMDA1Cjw0PiBwY2lfaXJxLTAzMTEgWzAw
+MDFdIFswNV0gYWNwaV9wY2lfaXJxX2VuYWJsZSAgIDogLS0tLUVudHJ5Cjw0PiBwY2lfaXJx
+LTAyNDAgWzAwMDFdIFswNl0gYWNwaV9wY2lfaXJxX2xvb2t1cCAgIDogLS0tLUVudHJ5Cjw0
+PiBwY2lfaXJxLTAyNDQgWzAwMDFdIFswNl0gYWNwaV9wY2lfaXJxX2xvb2t1cCAgIDogU2Vh
+cmNoaW5nIGZvciBQUlQgZW50cnkgZm9yIDAwOjAwOjA5W0FdCjw0PiBwY2lfaXJxLTAwNjYg
+WzAwMDFdIFswN10gYWNwaV9wY2lfaXJxX2ZpbmRfcHJ0XzogLS0tLUVudHJ5Cjw0PiBwY2lf
+aXJxLTAwODAgWzAwMDFdIFswN10gYWNwaV9wY2lfaXJxX2ZpbmRfcHJ0XzogLS0tLUV4aXQt
+IGMxMjlmYjAwCjw0PnBjaV9saW5rLTA0NTkgWzAwMDFdIFswN10gYWNwaV9wY2lfbGlua19n
+ZXRfaXJxIDogLS0tLUVudHJ5Cjw0PnBjaV9saW5rLTA0ODQgWzAwMDFdIFswN10gYWNwaV9w
+Y2lfbGlua19nZXRfaXJxIDogLS0tLUV4aXQtIDAwMDAwMDAwMDAwMDAwMEEKPDQ+IHBjaV9p
+cnEtMDI2NCBbMDAwMV0gWzA2XSBhY3BpX3BjaV9pcnFfbG9va3VwICAgOiBGb3VuZCBJUlEg
+MTAKPDQ+IHBjaV9pcnEtMDI2NiBbMDAwMV0gWzA2XSBhY3BpX3BjaV9pcnFfbG9va3VwICAg
+OiAtLS0tRXhpdC0gMDAwMDAwMDAwMDAwMDAwQQo8ND4gcGNpX2lycS0wMzU0IFswMDAxXSBb
+MDVdIGFjcGlfcGNpX2lycV9lbmFibGUgICA6IERldmljZSAwMDowOS4wIHVzaW5nIElSUSAx
+MAo8ND4gcGNpX2lycS0wMzY3IFswMDAxXSBbMDVdIGFjcGlfcGNpX2lycV9lbmFibGUgICA6
+IC0tLS1FeGl0LSAwMDAwMDAwMDAwMDAwMDBBCjw0PiBwY2lfaXJxLTAzMTEgWzAwMDFdIFsw
+NV0gYWNwaV9wY2lfaXJxX2VuYWJsZSAgIDogLS0tLUVudHJ5Cjw0PiBwY2lfaXJxLTAyNDAg
+WzAwMDFdIFswNl0gYWNwaV9wY2lfaXJxX2xvb2t1cCAgIDogLS0tLUVudHJ5Cjw0PiBwY2lf
+aXJxLTAyNDQgWzAwMDFdIFswNl0gYWNwaV9wY2lfaXJxX2xvb2t1cCAgIDogU2VhcmNoaW5n
+IGZvciBQUlQgZW50cnkgZm9yIDAwOjAwOjBjW0FdCjw0PiBwY2lfaXJxLTAwNjYgWzAwMDFd
+IFswN10gYWNwaV9wY2lfaXJxX2ZpbmRfcHJ0XzogLS0tLUVudHJ5Cjw0PiBwY2lfaXJxLTAw
+ODAgWzAwMDFdIFswN10gYWNwaV9wY2lfaXJxX2ZpbmRfcHJ0XzogLS0tLUV4aXQtIGMxMjlm
+YjQwCjw0PnBjaV9saW5rLTA0NTkgWzAwMDFdIFswN10gYWNwaV9wY2lfbGlua19nZXRfaXJx
+IDogLS0tLUVudHJ5Cjw0PnBjaV9saW5rLTA0ODQgWzAwMDFdIFswN10gYWNwaV9wY2lfbGlu
+a19nZXRfaXJxIDogLS0tLUV4aXQtIDAwMDAwMDAwMDAwMDAwMEEKPDQ+IHBjaV9pcnEtMDI2
+NCBbMDAwMV0gWzA2XSBhY3BpX3BjaV9pcnFfbG9va3VwICAgOiBGb3VuZCBJUlEgMTAKPDQ+
+IHBjaV9pcnEtMDI2NiBbMDAwMV0gWzA2XSBhY3BpX3BjaV9pcnFfbG9va3VwICAgOiAtLS0t
+RXhpdC0gMDAwMDAwMDAwMDAwMDAwQQo8ND4gcGNpX2lycS0wMzU0IFswMDAxXSBbMDVdIGFj
+cGlfcGNpX2lycV9lbmFibGUgICA6IERldmljZSAwMDowYy4wIHVzaW5nIElSUSAxMAo8ND4g
+cGNpX2lycS0wMzY3IFswMDAxXSBbMDVdIGFjcGlfcGNpX2lycV9lbmFibGUgICA6IC0tLS1F
+eGl0LSAwMDAwMDAwMDAwMDAwMDBBCjw0PiBwY2lfaXJxLTAzMTEgWzAwMDFdIFswNV0gYWNw
+aV9wY2lfaXJxX2VuYWJsZSAgIDogLS0tLUVudHJ5Cjw0PiBwY2lfaXJxLTAyNDAgWzAwMDFd
+IFswNl0gYWNwaV9wY2lfaXJxX2xvb2t1cCAgIDogLS0tLUVudHJ5Cjw0PiBwY2lfaXJxLTAy
+NDQgWzAwMDFdIFswNl0gYWNwaV9wY2lfaXJxX2xvb2t1cCAgIDogU2VhcmNoaW5nIGZvciBQ
+UlQgZW50cnkgZm9yIDAwOjAwOjBjW0JdCjw0PiBwY2lfaXJxLTAwNjYgWzAwMDFdIFswN10g
+YWNwaV9wY2lfaXJxX2ZpbmRfcHJ0XzogLS0tLUVudHJ5Cjw0PiBwY2lfaXJxLTAwODAgWzAw
+MDFdIFswN10gYWNwaV9wY2lfaXJxX2ZpbmRfcHJ0XzogLS0tLUV4aXQtIGMxMjlmYjgwCjw0
+PnBjaV9saW5rLTA0NTkgWzAwMDFdIFswN10gYWNwaV9wY2lfbGlua19nZXRfaXJxIDogLS0t
+LUVudHJ5Cjw0PnBjaV9saW5rLTA0ODQgWzAwMDFdIFswN10gYWNwaV9wY2lfbGlua19nZXRf
+aXJxIDogLS0tLUV4aXQtIDAwMDAwMDAwMDAwMDAwMEEKPDQ+IHBjaV9pcnEtMDI2NCBbMDAw
+MV0gWzA2XSBhY3BpX3BjaV9pcnFfbG9va3VwICAgOiBGb3VuZCBJUlEgMTAKPDQ+IHBjaV9p
+cnEtMDI2NiBbMDAwMV0gWzA2XSBhY3BpX3BjaV9pcnFfbG9va3VwICAgOiAtLS0tRXhpdC0g
+MDAwMDAwMDAwMDAwMDAwQQo8ND4gcGNpX2lycS0wMzU0IFswMDAxXSBbMDVdIGFjcGlfcGNp
+X2lycV9lbmFibGUgICA6IERldmljZSAwMDowYy4xIHVzaW5nIElSUSAxMAo8ND4gcGNpX2ly
+cS0wMzY3IFswMDAxXSBbMDVdIGFjcGlfcGNpX2lycV9lbmFibGUgICA6IC0tLS1FeGl0LSAw
+MDAwMDAwMDAwMDAwMDBBCjw0PiBwY2lfaXJxLTAzMTEgWzAwMDFdIFswNV0gYWNwaV9wY2lf
+aXJxX2VuYWJsZSAgIDogLS0tLUVudHJ5Cjw0PiBwY2lfaXJxLTAyNDAgWzAwMDFdIFswNl0g
+YWNwaV9wY2lfaXJxX2xvb2t1cCAgIDogLS0tLUVudHJ5Cjw0PiBwY2lfaXJxLTAyNDQgWzAw
+MDFdIFswNl0gYWNwaV9wY2lfaXJxX2xvb2t1cCAgIDogU2VhcmNoaW5nIGZvciBQUlQgZW50
+cnkgZm9yIDAwOjAxOjAwW0FdCjw0PiBwY2lfaXJxLTAwNjYgWzAwMDFdIFswN10gYWNwaV9w
+Y2lfaXJxX2ZpbmRfcHJ0XzogLS0tLUVudHJ5Cjw0PiBwY2lfaXJxLTAwODQgWzAwMDFdIFsw
+N10gYWNwaV9wY2lfaXJxX2ZpbmRfcHJ0XzogLS0tLUV4aXQtIDAwMDAwMDAwCjw0PiBwY2lf
+aXJxLTAyNDggWzAwMDFdIFswNl0gYWNwaV9wY2lfaXJxX2xvb2t1cCAgIDogUFJUIGVudHJ5
+IG5vdCBmb3VuZAo8ND4gcGNpX2lycS0wMjQ5IFswMDAxXSBbMDZdIGFjcGlfcGNpX2lycV9s
+b29rdXAgICA6IC0tLS1FeGl0LSAwMDAwMDAwMDAwMDAwMDAwCjw0PiBwY2lfaXJxLTAyNzgg
+WzAwMDFdIFswNl0gYWNwaV9wY2lfaXJxX2Rlcml2ZSAgIDogLS0tLUVudHJ5Cjw0PiBwY2lf
+aXJxLTAyNDAgWzAwMDFdIFswN10gYWNwaV9wY2lfaXJxX2xvb2t1cCAgIDogLS0tLUVudHJ5
+Cjw0PiBwY2lfaXJxLTAyNDQgWzAwMDFdIFswN10gYWNwaV9wY2lfaXJxX2xvb2t1cCAgIDog
+U2VhcmNoaW5nIGZvciBQUlQgZW50cnkgZm9yIDAwOjAwOjAxW0JdCjw0PiBwY2lfaXJxLTAw
+NjYgWzAwMDFdIFswOF0gYWNwaV9wY2lfaXJxX2ZpbmRfcHJ0XzogLS0tLUVudHJ5Cjw0PiBw
+Y2lfaXJxLTAwODQgWzAwMDFdIFswOF0gYWNwaV9wY2lfaXJxX2ZpbmRfcHJ0XzogLS0tLUV4
+aXQtIDAwMDAwMDAwCjw0PiBwY2lfaXJxLTAyNDggWzAwMDFdIFswN10gYWNwaV9wY2lfaXJx
+X2xvb2t1cCAgIDogUFJUIGVudHJ5IG5vdCBmb3VuZAo8ND4gcGNpX2lycS0wMjQ5IFswMDAx
+XSBbMDddIGFjcGlfcGNpX2lycV9sb29rdXAgICA6IC0tLS1FeGl0LSAwMDAwMDAwMDAwMDAw
+MDAwCjw0PiBwY2lfaXJxLTAyOTMgWzAwMDFdIFswNl0gYWNwaV9wY2lfaXJxX2Rlcml2ZSAg
+IDogVW5hYmxlIHRvIGRlcml2ZSBJUlEgZm9yIGRldmljZSAwMTowMC4wCjw0PiBwY2lfaXJx
+LTAyOTQgWzAwMDFdIFswNl0gYWNwaV9wY2lfaXJxX2Rlcml2ZSAgIDogLS0tLUV4aXQtIDAw
+MDAwMDAwMDAwMDAwMDAKPDQ+UENJOiBObyBJUlEga25vd24gZm9yIGludGVycnVwdCBwaW4g
+QSBvZiBkZXZpY2UgMDE6MDAuMCAtIHVzaW5nIElSUSA1Cjw0PiBwY2lfaXJxLTAzNDkgWzAw
+MDFdIFswNV0gYWNwaV9wY2lfaXJxX2VuYWJsZSAgIDogLS0tLUV4aXQtIDAwMDAwMDAwMDAw
+MDAwMDUKPDQ+IHBjaV9pcnEtMDM5NiBbMDAwMV0gWzA0XSBhY3BpX3BjaV9pcnFfaW5pdCAg
+ICAgOiAtLS0tRXhpdC0gMDAwMDAwMDAwMDAwMDAwMAo8Nj5BcHBseWluZyBWSUEgc291dGhi
+cmlkZ2Ugd29ya2Fyb3VuZC4KPDY+aXNhcG5wOiBTY2FubmluZyBmb3IgUG5QIGNhcmRzLi4u
+Cjw2PmlzYXBucDogTm8gUGx1ZyAmIFBsYXkgZGV2aWNlIGZvdW5kCjw2PkxpbnV4IE5FVDQu
+MCBmb3IgTGludXggMi40Cjw2PkJhc2VkIHVwb24gU3dhbnNlYSBVbml2ZXJzaXR5IENvbXB1
+dGVyIFNvY2lldHkgTkVUMy4wMzkKPDQ+SW5pdGlhbGl6aW5nIFJUIG5ldGxpbmsgc29ja2V0
+Cjw0PlN0YXJ0aW5nIGtzd2FwZAo8Nj5BQ1BJOiBBQyBBZGFwdGVyIFtBQ0FEXSAob24tbGlu
+ZSkKPDY+QUNQSTogQmF0dGVyeSBTbG90IFtCQVQwXSAoYmF0dGVyeSBwcmVzZW50KQo8Nj5B
+Q1BJOiBQb3dlciBCdXR0b24gKEZGKSBbUFdSRl0KPDY+QUNQSTogTGlkIFN3aXRjaCBbTElE
+XQo8Nj5BQ1BJOiBGYW4gW0ZBTl0gKG9uKQo8Nj5BQ1BJOiBQcm9jZXNzb3IgW0NQVTBdIChz
+dXBwb3J0cyBDMSBDMiwgMTYgdGhyb3R0bGluZyBzdGF0ZXMpCjw2PkFDUEk6IFRoZXJtYWwg
+Wm9uZSBbVEhSTV0gKDY3IEMpCjw2PnZlc2FmYjogZnJhbWVidWZmZXIgYXQgMHhmMDAwMDAw
+MCwgbWFwcGVkIHRvIDB4Y2Y4MDgwMDAsIHNpemUgMTUyOTZrCjw2PnZlc2FmYjogbW9kZSBp
+cyAxMDI0eDc2OHgxNiwgbGluZWxlbmd0aD0yMDQ4LCBwYWdlcz04Cjw2PnZlc2FmYjogcHJv
+dGVjdGVkIG1vZGUgaW50ZXJmYWNlIGluZm8gYXQgYzAwMDo3ZjIwCjw2PnZlc2FmYjogc2Ny
+b2xsaW5nOiByZWRyYXcKPDY+dmVzYWZiOiBkaXJlY3Rjb2xvcjogc2l6ZT0wOjU6Njo1LCBz
+aGlmdD0wOjExOjU6MAo8ND5Db25zb2xlOiBzd2l0Y2hpbmcgdG8gY29sb3VyIGZyYW1lIGJ1
+ZmZlciBkZXZpY2UgMTI4eDQ4Cjw2PmZiMDogVkVTQSBWR0EgZnJhbWUgYnVmZmVyIGRldmlj
+ZQo8Nz52Z2ExNmZiOiBpbml0aWFsaXppbmcKPDY+dmdhMTZmYjogbWFwcGVkIHRvIDB4YzAw
+YTAwMDAKPDY+ZmIxOiBWR0ExNiBWR0EgZnJhbWUgYnVmZmVyIGRldmljZQo8ND5wdHk6IDI1
+NiBVbml4OTggcHR5cyBjb25maWd1cmVkCjw2PlNlcmlhbCBkcml2ZXIgdmVyc2lvbiA1LjA1
+YyAoMjAwMS0wNy0wOCkgd2l0aCBNQU5ZX1BPUlRTIFNIQVJFX0lSUSBTRVJJQUxfUENJIElT
+QVBOUCBlbmFibGVkCjw2PlVuaWZvcm0gTXVsdGktUGxhdGZvcm0gRS1JREUgZHJpdmVyIFJl
+dmlzaW9uOiA2LjMxCjw0PmlkZTogQXNzdW1pbmcgMzNNSHogc3lzdGVtIGJ1cyBzcGVlZCBm
+b3IgUElPIG1vZGVzOyBvdmVycmlkZSB3aXRoIGlkZWJ1cz14eAo8ND5oZGE6IEhJVEFDSElf
+REsyM0RBLTIwLCBBVEEgRElTSyBkcml2ZQo8ND5oZGM6IFFTSSBEVkQtUk9NIFNEUi0wODEs
+IEFUQVBJIENEL0RWRC1ST00gZHJpdmUKPDQ+aWRlMCBhdCAweDFmMC0weDFmNywweDNmNiBv
+biBpcnEgMTQKPDQ+aWRlMSBhdCAweDE3MC0weDE3NywweDM3NiBvbiBpcnEgMTUKPDY+aGRh
+OiAzOTA3MDA4MCBzZWN0b3JzICgyMDAwNCBNQikgdy8yMDQ4S2lCIENhY2hlLCBDSFM9MjQz
+Mi8yNTUvNjMKPDQ+aGRjOiBBVEFQSSAyNFggRFZELVJPTSBkcml2ZSwgNTEya0IgQ2FjaGUK
+PDY+VW5pZm9ybSBDRC1ST00gZHJpdmVyIFJldmlzaW9uOiAzLjEyCjw2PlBhcnRpdGlvbiBj
+aGVjazoKPDY+IGhkYTogaGRhMSBoZGEyIGhkYTMKPDY+RmxvcHB5IGRyaXZlKHMpOiBmZDAg
+aXMgMS40NE0KPDY+RkRDIDAgaXMgYSBwb3N0LTE5OTEgODIwNzcKPDQ+UkFNRElTSyBkcml2
+ZXIgaW5pdGlhbGl6ZWQ6IDE2IFJBTSBkaXNrcyBvZiA0MDk2SyBzaXplIDEwMjQgYmxvY2tz
+aXplCjw2Pk5FVDQ6IExpbnV4IFRDUC9JUCAxLjAgZm9yIE5FVDQuMAo8Nj5JUCBQcm90b2Nv
+bHM6IElDTVAsIFVEUCwgVENQLCBJR01QCjw2PklQOiByb3V0aW5nIGNhY2hlIGhhc2ggdGFi
+bGUgb2YgMjA0OCBidWNrZXRzLCAxNktieXRlcwo8Nj5UQ1A6IEhhc2ggdGFibGVzIGNvbmZp
+Z3VyZWQgKGVzdGFibGlzaGVkIDE2Mzg0IGJpbmQgMTYzODQpCjw0PnJlaXNlcmZzOiBjaGVj
+a2luZyB0cmFuc2FjdGlvbiBsb2cgKGRldmljZSAwMzowMSkgLi4uCjw0PlVzaW5nIHI1IGhh
+c2ggdG8gc29ydCBuYW1lcwo8ND5SZWlzZXJGUyB2ZXJzaW9uIDMuNi4yNQo8ND5WRlM6IE1v
+dW50ZWQgcm9vdCAocmVpc2VyZnMgZmlsZXN5c3RlbSkgcmVhZG9ubHkuCjw2PkZyZWVpbmcg
+dW51c2VkIGtlcm5lbCBtZW1vcnk6IDI0MGsgZnJlZWQKPDY+TkVUNDogVW5peCBkb21haW4g
+c29ja2V0cyAxLjAvU01QIGZvciBMaW51eCBORVQ0LjAuCjw2PkFkZGluZyBTd2FwOiA0ODE5
+NDBrIHN3YXAtc3BhY2UgKHByaW9yaXR5IDQyKQo8ND5pc19sZWFmOiBmcmVlIHNwYWNlIHNl
+ZW1zIHdyb25nOiBsZXZlbD0xLCBucl9pdGVtcz0yNiwgZnJlZV9zcGFjZT0wIHJka2V5IAoK
+L3Byb2MvaW50ZXJydXB0czoKCiAgICAgICAgICAgQ1BVMCAgICAgICAKICAwOiAgICAgIDc5
+OTExICAgICAgICAgIFhULVBJQyAgdGltZXIKICAxOiAgICAgICAyMjAzICAgICAgICAgIFhU
+LVBJQyAga2V5Ym9hcmQKICAyOiAgICAgICAgICAwICAgICAgICAgIFhULVBJQyAgY2FzY2Fk
+ZQogIDk6ICAgICAgICAgIDAgICAgICAgICAgWFQtUElDICBhY3BpCiAxMDogICAgICAgMzI2
+MiAgICAgICAgICBYVC1QSUMgIGV0aDAKIDEyOiAgICAgIDEwMTk0ICAgICAgICAgIFhULVBJ
+QyAgUFMvMiBNb3VzZQogMTQ6ICAgICAgMTIzNzMgICAgICAgICAgWFQtUElDICBpZGUwCiAx
+NTogICAgICAgICAgMiAgICAgICAgICBYVC1QSUMgIGlkZTEKTk1JOiAgICAgICAgICAwIApF
+UlI6ICAgICAgICAgIDAK
 
-diff -urN linux-2.5.25-toshiba_acpi-old/drivers/acpi/toshiba_acpi.c linux-2.5.25-toshiba_acpi/drivers/acpi/toshiba_acpi.c
---- linux-2.5.25-toshiba_acpi-old/drivers/acpi/toshiba_acpi.c	Wed Aug 21 22:27:21 2002
-+++ linux-2.5.25-toshiba_acpi/drivers/acpi/toshiba_acpi.c	Wed Aug 21 21:52:35 2002
-@@ -26,15 +26,15 @@
-  *	Jonathan A. Buzzard - Toshiba HCI info, and critical tips on reverse
-  *		engineering the Windows drivers
-  *	Yasushi Nagato - changes for linux kernel 2.4 -> 2.5
-+ *	Rob Miller - TV out and hotkeys help
-  *
-  *
-  *  TODO
-- *	provide version info in proc
-- *	add Fn key status
-  *
-  */
- 
--#define TOSHIBA_ACPI_VERSION "0.12"
-+#define TOSHIBA_ACPI_VERSION	"0.13"
-+#define PROC_INTERFACE_VERSION	1
- 
- #include <linux/kernel.h>
- #include <linux/module.h>
-@@ -43,9 +43,10 @@
- #include <linux/proc_fs.h>
- #include <linux/version.h>
- 
--#define KERNEL24 (LINUX_VERSION_CODE < KERNEL_VERSION(2, 5, 0))
-+#include <acconfig.h>
-+#define OLD_ACPI_INTERFACE (ACPI_CA_VERSION < 0x20020000)
- 
--#if KERNEL24
-+#if OLD_ACPI_INTERFACE
- #include <acpi.h>
- extern struct proc_dir_entry* bm_proc_root;
- #define acpi_root_dir bm_proc_root
-@@ -82,10 +83,13 @@
- #define HCI_SUCCESS			0x0000
- #define HCI_FAILURE			0x1000
- #define HCI_NOT_SUPPORTED		0x8000
-+#define HCI_EMPTY			0x8c00
- 
- /* registers */
- #define HCI_FAN				0x0004
-+#define HCI_SYSTEM_EVENT		0x0016
- #define HCI_VIDEO_OUT			0x001c
-+#define HCI_HOTKEY_EVENT		0x001e
- #define HCI_LCD_BRIGHTNESS		0x002a
- 
- /* field definitions */
-@@ -94,6 +98,7 @@
- #define HCI_LCD_BRIGHTNESS_LEVELS	(1 << HCI_LCD_BRIGHTNESS_BITS)
- #define HCI_VIDEO_OUT_LCD		0x1
- #define HCI_VIDEO_OUT_CRT		0x2
-+#define HCI_VIDEO_OUT_TV		0x4
- 
- /* utility
-  */
-@@ -104,6 +109,23 @@
- 	*word = (*word & ~mask) | (mask * value);
- }
- 
-+/* an sscanf that takes explicit string length */
-+static int
-+snscanf(const char* str, int n, const char* format, ...)
-+{
-+	va_list args;
-+	int result;
-+	char* str2 = kmalloc(n + 1, GFP_KERNEL);
-+	if (str2 == 0) return 0;
-+	strncpy(str2, str, n);
-+	str2[n] = 0;
-+	va_start(args, format);
-+	result = vsscanf(str2, format, args);
-+	va_end(args);
-+	kfree(str2);
-+	return result;
-+}
-+
- /* This is the common code at the end of every proc read handler.  I don't
-  * understand it yet.
-  */
-@@ -226,14 +248,15 @@
- #define PROC_LCD		"lcd"
- #define PROC_VIDEO		"video"
- #define PROC_FAN		"fan"
-+#define PROC_KEYS		"keys"
-+#define PROC_VERSION		"version"
- 
- static struct proc_dir_entry*	toshiba_proc_dir = NULL;
- static int			force_fan;
-+static int			last_key_event;
-+static int			key_event_valid;
- 
- /* proc file handlers
-- *
-- * WARNING: The write handlers are using sscanf on non-zero-terminated
-- * buffers.  This may result in memory reads past the buffer bounds.
-  */
- 
- static int
-@@ -270,7 +293,7 @@
- 	u32 hci_result;
- 
- 	/* ISSUE: %i doesn't work with hex values as advertised */
--	if (sscanf(buffer, " brightness : %i", &value) == 1 &&
-+	if (snscanf(buffer, count, " brightness : %i", &value) == 1 &&
- 			value >= 0 && value < HCI_LCD_BRIGHTNESS_LEVELS) {
- 		value = value << HCI_LCD_BRIGHTNESS_SHIFT;
- 		hci_write1(HCI_LCD_BRIGHTNESS, value, &hci_result);
-@@ -297,8 +320,10 @@
- 	if (hci_result == HCI_SUCCESS) {
- 		int is_lcd = (value & HCI_VIDEO_OUT_LCD) ? 1 : 0;
- 		int is_crt = (value & HCI_VIDEO_OUT_CRT) ? 1 : 0;
-+		int is_tv  = (value & HCI_VIDEO_OUT_TV ) ? 1 : 0;
- 		p += sprintf(p, "lcd_out:                 %d\n", is_lcd);
- 		p += sprintf(p, "crt_out:                 %d\n", is_crt);
-+		p += sprintf(p, "tv_out:                  %d\n", is_tv);
- 	} else {
- 		p += sprintf(p, "ERROR\n");
- 		goto end;
-@@ -316,15 +341,18 @@
- 	const char* buffer_end = buffer + count;
- 	int lcd_out = -1;
- 	int crt_out = -1;
-+	int tv_out = -1;
- 	u32 hci_result;
- 	int video_out;
- 
- 	/* scan expression.  Multiple expressions may be delimited with ; */
- 	do {
--		if (sscanf(buffer, " lcd_out : %i", &value) == 1)
-+		if (snscanf(buffer, count, " lcd_out : %i", &value) == 1)
- 			lcd_out = value & 1;
--		else if (sscanf(buffer, " crt_out : %i", &value) == 1)
-+		else if (snscanf(buffer, count, " crt_out : %i", &value) == 1)
- 			crt_out = value & 1;
-+		else if (snscanf(buffer, count, " tv_out : %i", &value) == 1)
-+			tv_out = value & 1;
- 		/* advance to one character past the next ; */
- 		do ++buffer;
- 		while ((buffer < buffer_end) && (*(buffer-1) != ';'));
-@@ -337,6 +365,8 @@
- 			_set_bit(&new_video_out, HCI_VIDEO_OUT_LCD, lcd_out);
- 		if (crt_out != -1)
- 			_set_bit(&new_video_out, HCI_VIDEO_OUT_CRT, crt_out);
-+		if (tv_out != -1)
-+			_set_bit(&new_video_out, HCI_VIDEO_OUT_TV, tv_out);
- 		/* To avoid unnecessary video disruption, only write the new
- 		 * video setting if something changed. */
- 		if (new_video_out != video_out)
-@@ -376,7 +406,7 @@
- 	int value;
- 	u32 hci_result;
- 
--	if (sscanf(buffer, " force_on : %i", &value) == 1 &&
-+	if (snscanf(buffer, count, " force_on : %i", &value) == 1 &&
- 			value >= 0 && value <= 1) {
- 		hci_write1(HCI_FAN, value, &hci_result);
- 		if (hci_result != HCI_SUCCESS)
-@@ -390,6 +420,68 @@
- 	return count;
- }
- 
-+static int
-+proc_read_keys(char* page, char** start, off_t off, int count, int* eof,
-+	void* context)
-+{
-+	char* p = page;
-+	u32 hci_result;
-+	u32 value;
-+
-+	if (off != 0) goto end;
-+
-+	if (!key_event_valid) {
-+		hci_read1(HCI_SYSTEM_EVENT, &value, &hci_result);
-+		if (hci_result == HCI_SUCCESS) {
-+			key_event_valid = 1;
-+			last_key_event = value;
-+		} else if (hci_result == HCI_EMPTY) {
-+			/* better luck next time */
-+		} else {
-+			p += sprintf(p, "ERROR\n");
-+			goto end;
-+		}
-+	}
-+
-+	p += sprintf(p, "hotkey_ready:            %d\n", key_event_valid);
-+	p += sprintf(p, "hotkey:                  0x%04x\n", last_key_event);
-+
-+end:
-+	return end_proc_read(p, page, off, count, start, eof);
-+}
-+
-+static int
-+proc_write_keys(struct file* file, const char* buffer, unsigned long count,
-+	void* data)
-+{
-+	int value;
-+
-+	if (snscanf(buffer, count, " hotkey_ready : %i", &value) == 1 &&
-+			value == 0) {
-+		key_event_valid = 0;
-+	} else {
-+		return -EINVAL;
-+	}
-+
-+	return count;
-+}
-+
-+static int
-+proc_read_version(char* page, char** start, off_t off, int count, int* eof,
-+	void* context)
-+{
-+	char* p = page;
-+
-+	if (off != 0) goto end;
-+
-+	p += sprintf(p, "driver:                  %s\n", TOSHIBA_ACPI_VERSION);
-+	p += sprintf(p, "proc_interface:          %d\n",
-+		PROC_INTERFACE_VERSION);
-+
-+end:
-+	return end_proc_read(p, page, off, count, start, eof);
-+}
-+
- /* proc and module init
-  */
- 
-@@ -410,6 +502,13 @@
- 		toshiba_proc_dir, proc_read_fan, 0);
- 	if (proc) proc->write_proc = proc_write_fan;
- 
-+	proc = create_proc_read_entry(PROC_KEYS, S_IFREG | S_IRUGO | S_IWUSR,
-+		toshiba_proc_dir, proc_read_keys, 0);
-+	if (proc) proc->write_proc = proc_write_keys;
-+
-+	proc = create_proc_read_entry(PROC_VERSION, S_IFREG | S_IRUGO | S_IWUSR,
-+		toshiba_proc_dir, proc_read_version, 0);
-+
- 	return(AE_OK);
- }
- 
-@@ -419,6 +518,8 @@
- 	remove_proc_entry(PROC_LCD, toshiba_proc_dir);
- 	remove_proc_entry(PROC_VIDEO, toshiba_proc_dir);
- 	remove_proc_entry(PROC_FAN, toshiba_proc_dir);
-+	remove_proc_entry(PROC_KEYS, toshiba_proc_dir);
-+	remove_proc_entry(PROC_VERSION, toshiba_proc_dir);
- 	return(AE_OK);
- }
- 
-@@ -437,6 +538,10 @@
- 	printk("Toshiba Laptop ACPI Extras version %s\n", TOSHIBA_ACPI_VERSION);
- 
- 	force_fan = 0;
-+	key_event_valid = 0;
-+
-+	/* enable event fifo */
-+	hci_write1(HCI_SYSTEM_EVENT, 1, &hci_result);
- 
- 	toshiba_proc_dir = proc_mkdir(PROC_TOSHIBA, acpi_root_dir);
- 	if (!toshiba_proc_dir) {
+--STEFAN3d67bf8d5205--
 
---------------010005010501010705050000--
 
 
 
