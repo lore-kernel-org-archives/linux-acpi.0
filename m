@@ -1,14 +1,14 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: eisa_set_level_irq(acpi_fadt.sci_int)
-Date: Wed, 15 Oct 2003 15:09:59 -0700
+From: Alan Hourihane <alanh-ASBjxr/nLg+TY6FTCsQk+9Bc4/FLrbF6@public.gmane.org>
+Subject: Re: Re: Hardware state saving & X
+Date: Thu, 16 Oct 2003 01:10:01 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A8470255EF51@orsmsx401.jf.intel.com>
+Message-ID: <20031016001001.GH1921@fairlite.demon.co.uk>
+References: <20031014235240.GD20789@elf.ucw.cz> <Pine.LNX.4.44.0310150924400.953-100000@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44.0310150924400.953-100000-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,24 +17,41 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi <linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
+Cc: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Brown, Len=20
-> What does eisa_set_level_irq() do for us?
->=20
-> As its presence breaks the !CONFIG_PCI build, I deleted it and found
-> that ACPI in PIC mode seems to work just fine without it (at=20
-> least on 2
-> of 2 systems tested so far)
+On Wed, Oct 15, 2003 at 09:32:18AM -0700, Patrick Mochel wrote:
+> The fact that different behavior exists is completely obvious (refer to 
+> the question and documentation). The question was *how* it was different 
+> from a userpsace perspective. I.e. what exactly is saved, and what isn't. 
+> 
+> Under APM, the BIOS handles the state transition, but it does not know 
+> each device initimately, so the OS still has to handle some of the device 
+> state. 
+> 
+> Video devices have an int10 call to save/restore state, which is what the 
+> APM BIOS uses. Alan, would it suffice to call that from the kernel, in 
+> either vm86 mode or real mode to handle all the saving/restoring. If we 
+> were able to call that, what more would you have to do? 
 
-This is how you set a PIC interrupt to PCI semantics (active low, level
-triggered.) If your ACPI interrupt is shared, the PCI subsystem will
-call this for the irq and so whether ACPI calls it or not is not an
-issue, but if ACPI is alone on the irq, it must call it or the irq will
-have ISA semantics.
+I'm not sure you can call int10 from kernel space. But think about
+other architectures too that don't have int10/x86 available to them.
+XFree86 already has an x86 emulator to do the softbooting via int10 in
+userspace, but I appreciate if people are not running X, then the kernel
+needs to restore some sort of text mode too from the last session.
 
-Regards -- Andy
+It's never been an issue of what to save/restore for X - that's the drivers
+responsibility in X. And if it doesn't do it properly now, I'd consider it
+a bug in the driver and should be fixed.
+
+The main question was how to get events from suspend/resume so that we
+can do this saving and restoring.
+
+If the /sbin/hotplug & DBUS is the recommended route, then I really
+need to go look at these two pieces of software and craft something up for X.
+
+Alan.
 
 
 -------------------------------------------------------
