@@ -1,9 +1,15 @@
-From: Tom Duffy <tduffy-xsfywfwIY+M@public.gmane.org>
-Subject: APCI poweroff panic on shutdown
-Date: Thu, 24 Mar 2005 09:05:34 -0800
-Message-ID: <1111683934.3067.3.camel@duffman>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: Re: Fw: Anybody? 2.6.11 (stable and -rc) ACPI breaks USB
+Date: Thu, 24 Mar 2005 11:24:22 -0700
+Message-ID: <1111688662.24547.26.camel@eeyore>
+References: <41062.15.99.19.46.1111525073.squirrel@mail.atl.hp.com>
+	 <1111539249.18927.17.camel@sli10-desk.sh.intel.com>
+	 <1110.65.74.231.82.1111550240.squirrel@mail.cce.hp.com>
+	 <1111603235.17317.883.camel@d845pe>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-WLBrwcZmkHRbq/5OVb3g"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <1111603235.17317.883.camel@d845pe>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -13,79 +19,146 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Grzegorz Kulewski <kangur-ghbW0t/Qn0CsTnJN9+BGXg@public.gmane.org>, Zwane Mwaikambo <zwane-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Wed, 2005-03-23 at 13:40 -0500, Len Brown wrote:
+> But checking skip_ioapic_setup in the non-ACPI case
+> isn't quite right.  This is set for "noapic".  But
+> it is not set in the PIC-mode case where the kernel
+> supports IOAPIC but the hardware does not -- in that
+> case the quirk would erroneously exit.
 
---=-WLBrwcZmkHRbq/5OVb3g
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Ah, right, thanks.  I changed it to:
 
-I am seeing this panic when I poweroff my x86_64 machine.  It looks like
-ACPI is not quite right in this BIOS, but it shouldn't panic the kernel.
+	if (nr_ioapics && !skip_ioapic_setup)
+		return;
 
-acpi_power_off called
-    ACPI-0352: *** Error: Looking up [\_SB_.PCI0.NPTS] in namespace, AE_NOT=
-_FOUND
-search_node ffff81003ffe65b8 start_node ffff81003ffe65b8 return_node 000000=
-0000000000
-    ACPI-1138: *** Error: Method execution failed [\PTS_] (Node ffff81003ff=
-e65b8), AE_NOT_FOUND
-    ACPI-1138: *** Error: Method execution failed [\_PTS] (Node ffff8100bff=
-ccd48), AE_NOT_FOUND
-NMI Watchdog detected LOCKUP on CPU0CPU 0
-Modules linked in: ipmi_devintf ipmi_watchdog ipmi_poweroff ipmi_msghandler=
- mptscsih(U) scsi_mod mptbase(U) e1000(U) parport_pc lp parport autofs4 md5=
- ipv6 sunrpc pcmcia yenta_socket rsrc_nonstatic pcmcia_core video button ba=
-ttery ac ohci_hcd ehci_hcd i2c_nforce2 i2c_core forcedeth dm_snapshot dm_ze=
-ro dm_mirror ext3 jbd dm_mod
-Pid: 18326, comm: halt Not tainted 2.6.11-1.1191_FC4smp
-RIP: 0010:[<ffffffff8022f113>] <ffffffff8022f113>{acpi_os_read_port+44}
-RSP: 0018:ffff810036d11d60  EFLAGS: 00000046
-RAX: ffff810036d10011 RBX: ffffffff80446978 RCX: ffff8100400049a4
-RDX: 0000000000004000 RSI: ffff810036d11dac RDI: 0000000000004000
-RBP: 0000000000000001 R08: 0000000000000010 R09: 0000000000000001
-R10: 0000000000000001 R11: 0000000000000001 R12: 0000000000000000
-R13: ffff810036d11dec R14: 0000000000000000 R15: 0000000000000000
-FS:  00002aaaaaade3a0(0000) GS:ffffffff80505080(0000) knlGS:00000000f7fc66c=
-0
-CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-CR2: 0000003695c2c728 CR3: 000000007170b000 CR4: 00000000000006e0
-Process halt (pid: 18326, threadinfo ffff810036d10000, task ffff81013fa5b7c=
-0)
-Stack: 0000000000000010 0000000000000010 ffffffff8023ad6a ffffffff8038aed9
-       ffffffff8023affd 0000000000004000 ffffffff8023ade7 0000000000004023
-       0000000000000010 0000000000000000
-Call Trace:<ffffffff8023ad6a>{acpi_hw_low_level_read+126} <ffffffff8023affd=
->{acpi_hw_low_level_write+120}
-       <ffffffff8023ade7>{acpi_hw_register_read+116} <ffffffff8023af4a>{acp=
-i_get_register+80}
-       <ffffffff8023b120>{acpi_hw_register_write+282} <ffffffff8023b671>{ac=
-pi_enter_sleep_state+427}
-       <ffffffff80148c02>{sys_reboot+434} <ffffffff8014660e>{group_send_sig=
-_info+126}
-       <ffffffff80161991>{audit_syscall_entry+369} <ffffffff80111bec>{sysca=
-ll_trace_enter+92}
-       <ffffffff8010ead6>{tracesys+113} <ffffffff8010eb36>{tracesys+209}
+Is that better?
+
+> Also, the original quirk_via_irqpic()
+> had a udelay(15) before the write -- I have no idea
+> if that was significant or not -- maybe soembody else
+> on the list does -- as none of us have VIA documentation...
+
+Yes, I was worried about that, too.  I added it back.
+
+> ps. we need to fix this on 2.4 also.
+
+Here's yet another iteration for 2.6.  If this works OK,
+I can back-port it to 2.4.
 
 
-Code: 66 89 06 eb 14 0f b7 d7 ed 89 06 eb 0c 0f 0b d2 9d 38 80 ff
-Kernel panic - not syncing: nmi watchdog
+In PIC mode, some Via devices update IRQ routing when
+PCI_INTERRUPT_LINE is written.  So if we've updated the
+device's IRQ, we also need to update PCI_INTERRUPT_LINE.
+
+This also restores the mysterious "udelay(15)" before the
+update because we don't know whether it's necessary and
+haven't seen an argument for its removal.
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+
+===== arch/i386/pci/irq.c 1.55 vs edited =====
+--- 1.55/arch/i386/pci/irq.c	2005-02-07 22:39:15 -07:00
++++ edited/arch/i386/pci/irq.c	2005-03-15 10:11:44 -07:00
+@@ -1026,7 +1026,6 @@
+ static int pirq_enable_irq(struct pci_dev *dev)
+ {
+ 	u8 pin;
+-	extern int via_interrupt_line_quirk;
+ 	struct pci_dev *temp_dev;
+ 
+ 	pci_read_config_byte(dev, PCI_INTERRUPT_PIN, &pin);
+@@ -1081,10 +1080,6 @@
+ 		printk(KERN_WARNING "PCI: No IRQ known for interrupt pin %c of device %s.%s\n",
+ 		       'A' + pin, pci_name(dev), msg);
+ 	}
+-	/* VIA bridges use interrupt line for apic/pci steering across
+-	   the V-Link */
+-	else if (via_interrupt_line_quirk)
+-		pci_write_config_byte(dev, PCI_INTERRUPT_LINE, dev->irq & 15);
+ 	return 0;
+ }
+ 
+===== drivers/acpi/pci_irq.c 1.37 vs edited =====
+--- 1.37/drivers/acpi/pci_irq.c	2005-03-01 09:57:29 -07:00
++++ edited/drivers/acpi/pci_irq.c	2005-03-15 10:10:57 -07:00
+@@ -388,7 +388,6 @@
+ 	u8			pin = 0;
+ 	int			edge_level = ACPI_LEVEL_SENSITIVE;
+ 	int			active_high_low = ACPI_ACTIVE_LOW;
+-	extern int		via_interrupt_line_quirk;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_pci_irq_enable");
+ 
+@@ -437,9 +436,6 @@
+ 			return_VALUE(0);
+ 		}
+  	}
+-
+-	if (via_interrupt_line_quirk)
+-		pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq & 15);
+ 
+ 	dev->irq = acpi_register_gsi(irq, edge_level, active_high_low);
+ 
+===== drivers/pci/quirks.c 1.72 vs edited =====
+--- 1.72/drivers/pci/quirks.c	2005-03-10 01:38:25 -07:00
++++ edited/drivers/pci/quirks.c	2005-03-24 11:07:19 -07:00
+@@ -683,19 +683,41 @@
+ }
+ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82454NX,	quirk_disable_pxb );
+ 
+-/*
+- *	VIA northbridges care about PCI_INTERRUPT_LINE
+- */
+-int via_interrupt_line_quirk;
++#ifdef CONFIG_ACPI
++#include <linux/acpi.h>
++#endif
+ 
+-static void __devinit quirk_via_bridge(struct pci_dev *pdev)
++static void __devinit quirk_via_irqpic(struct pci_dev *dev)
+ {
+-	if(pdev->devfn == 0) {
+-		printk(KERN_INFO "PCI: Via IRQ fixup\n");
+-		via_interrupt_line_quirk = 1;
++	u8 irq, new_irq;
++
++#ifdef CONFIG_X86_IO_APIC
++	if (nr_ioapics && !skip_ioapic_setup)
++		return;
++#endif
++#ifdef CONFIG_ACPI
++	if (acpi_irq_model != ACPI_IRQ_MODEL_PIC)
++		return;
++#endif
++	/*
++	 * Some Via devices make an internal connection to the PIC when the
++	 * PCI_INTERRUPT_LINE register is written.  If we've changed the
++	 * device's IRQ, we need to update this routing.
++	 *
++	 * I suspect this only happens for devices on the same chip as the
++	 * PIC, but I don't know how to identify those without listing them
++	 * all individually, which is a maintenance problem.
++	 */
++	new_irq = dev->irq & 0xf;
++	pci_read_config_byte(dev, PCI_INTERRUPT_LINE, &irq);
++	if (new_irq != irq) {
++		printk(KERN_INFO "PCI: Via PIC IRQ fixup for %s, from %d to %d\n",
++			pci_name(dev), irq, new_irq);
++		udelay(15);
++		pci_write_config_byte(dev, PCI_INTERRUPT_LINE, new_irq);
+ 	}
+ }
+-DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_ANY_ID,                     quirk_via_bridge );
++DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_ANY_ID, quirk_via_irqpic);
+ 
+ /*
+  *	Serverworks CSB5 IDE does not fully support native mode
 
 
---=-WLBrwcZmkHRbq/5OVb3g
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.6 (GNU/Linux)
-
-iD8DBQBCQvNedY502zjzwbwRAsnuAJ0ZycGNBXuaKxfZy3Q+z6LYdZYIegCfYbV/
-h+jp0Rze8UeI+X87P0uh1ts=
-=gU3r
------END PGP SIGNATURE-----
-
---=-WLBrwcZmkHRbq/5OVb3g--
 
 
 -------------------------------------------------------
