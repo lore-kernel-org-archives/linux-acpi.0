@@ -1,13 +1,14 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: RE: Store(Local0, Local0) behavior?
-Date: Fri, 3 Oct 2003 18:01:36 -0700 (PDT)
+From: "Sander Wichers" <wichers-Jdbf3xiKgS8@public.gmane.org>
+Subject: Re: High pitch noise produced when ACPI processor module loaded
+Date: Sun, 5 Oct 2003 11:35:19 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031003180107.Y92654@root.org>
-References: <D3A3AA459175A44CB5326F26DA7A189C1C3DD6@orsmsx405.jf.intel.com>
+Message-ID: <000401c38b23$fddef730$2401a8c0@INSPIRON>
+References: <001001c38404_27b959a0_2001a8c0@silverstone> <20030926100512.X64952@root.org> <20031002111232.GC14859@openzaurus.ucw.cz>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <D3A3AA459175A44CB5326F26DA7A189C1C3DD6-sBd4vmA9Se58QrAoInS571DQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,39 +17,31 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thank you!  Here's a snippet of ASL from my BP6:
+Pavel, thanks for your reply!
 
-Scope(\_SI_) {
-    Method(_MSG, 1) {
-        Store(Local0, Local0)
-    }
+> > > My inspiron 8600 (intel centrino/855PM) is producing a strange high
+pitch
+> > > sound which comes from within the machine (definitly not the speakers)
+when
+> > > the acpi processor module get's loaded. When I unload the processor
+module
+> > > the high pitch sound goes away.
 
--Nate
+> Try running while1 program, see if it helps.
+Yes!, when there is intensive processor activity the sound goes away.
 
-On Fri, 3 Oct 2003, Moore, Robert wrote:
-> I will re-address this issue (in the case where Local0 is
-> uninitialized.)
->
-> -----Original Message-----
-> From: Nate Lawson [mailto:nate-Y6VGUYTwhu0@public.gmane.org]
-> Sent: Monday, September 29, 2003 12:50 PM
-> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Cc: Moore, Robert
-> Subject: Store(Local0, Local0) behavior?
->
-> Sometime around 0619, executing an opcode of Store(Local0, Local0)
-> started
-> generating an error instead of just being a no-op.  In reading the 2.0b
-> spec, there is no evidence that this is an illegal operation.  Could
-> someone restore the previous behavior?  What part of ACPICA handles the
-> Store opcode?
->
-> -Nate
->
+> If so you might want to disable CX sleep states.
+What's the name of the directive? Or do I have to manually remove some
+portions of the code?
+
+thanks,
+
+--Sander
+
 
 
 -------------------------------------------------------
