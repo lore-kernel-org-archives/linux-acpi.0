@@ -1,13 +1,11 @@
-From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Subject: 2.6.12-rc1-mm[1-3]: ACPI battery monitor does not work
-Date: Tue, 29 Mar 2005 11:56:18 +0200
-Message-ID: <200503291156.19112.rjw@sisk.pl>
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Subject: Fw: [Bug 4416] New: Box hangs solid during swsusp resume
+Date: Tue, 29 Mar 2005 02:20:02 -0800
+Message-ID: <20050329022002.6b3abd0f.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,33 +15,52 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
 
-There is a problem on my box (Asus L5D, x86-64 kernel) with the ACPI battery
-driver in the 2.6.12-rc1-mm[1-3] kernels.  Namely, the battery monitor that
-I use (the kpowersave applet from SUSE 9.2) is no longer able to report the
-battery status (ie how much % it is loaded).  It can only check if the AC power
-is connected (if it is connected, kpowersave behaves as though there was
-no battery in the box, and if it is not connected, kpowersave always shows
-that the battery is 1% loaded).
+Could someone please take a look?
 
-Also, there are big latencies on loading and accessing the battery module, but
-the module loads successfully and there's nothing suspicious in dmesg.
 
-Please let me know if you need any additional information.
+Begin forwarded message:
 
-Greets,
+Date: Tue, 29 Mar 2005 02:17:54 -0800
+From: bugme-daemon-3NddpPZAyC0@public.gmane.org
+To: akpm-LL/9OlyS9hIAvxtiuMwx3w@public.gmane.org
+Subject: [Bug 4416] New: Box hangs solid during swsusp resume
+
+
+http://bugme.osdl.org/show_bug.cgi?id=4416
+
+           Summary: Box hangs solid during swsusp resume
+    Kernel Version: 2.6.12-rc1-mm[1-3]
+            Status: NEW
+          Severity: high
+             Owner: akpm-LL/9OlyS9hIAvxtiuMwx3w@public.gmane.org
+         Submitter: rjwysocki-KKrjLPT3xs0@public.gmane.org
+
+
+Distribution: SUSE 9.2 x86-64 
+ 
+Hardware Environment: Asus L5D 
+ 
+Problem Description: The box hangs solid while resuming from disk, after the 
+system image has been restored.  Apparently, the hang occurs as a result of the 
+call to pci_write_config_word() with pmcsr = 0 in 
+drivers/pci/pci.c:pci_set_power_state().  In fact, the function 
+pci_write_config_word() completes successfully but the box hangs during 
+msleep() afterwards.  It cartainly is related to the fact that ACPI PCI links 
+are not set before pci_set_power_state() is called. 
+ 
+Steps to reproduce: Suspend the box to disk and try to resume it.  The problem 
+is 100% reproducible. 
+ 
+Greets, 
 Rafael
 
-
--- 
-- Would you tell me, please, which way I ought to go from here?
-- That depends a good deal on where you want to get to.
-		-- Lewis Carroll "Alice's Adventures in Wonderland"
+------- You are receiving this mail because: -------
+You are the assignee for the bug, or are watching the assignee.
 
 
 -------------------------------------------------------
