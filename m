@@ -1,15 +1,11 @@
-From: PSI-Systems <PSI-Systems-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Re: IBM A31 ACPI with 2.4.20-pre11 + ACPI20021022
-Date: Fri, 25 Oct 2002 14:19:05 +0200
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: ACPI small patch update (20021024)
+Date: Fri, 25 Oct 2002 12:44:43 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200210251419.05128.PSI-Systems@gmx.net>
-References: <EDC461A30AC4D511ADE10002A5072CAD0236DF75@orsmsx119.jf.intel.com>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A467@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD0236DF75-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,19 +14,36 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> Do you see: "ACPI: Could not use ECDT", or do you not have full ACPI
-> compiled into the kernel?
-I have patched with acpi-20021022-2.4.20-pre11.diff.gz with no errors.
+Hi all,
 
-Yes this also appears at boot:
-ACPI: Found ECDT
-ACPI: Could not use ECDT
+Just wanted to let everyone know I've updated the patches on sf.net. We
+received a few patches since Tuesday that deserved to get out there ASAP.
+These include:
 
-Sandro
+Implement support for cpufreq interface (2.5 patch only) (Dominik Brodowski)
+
+Eliminate duplicate lines of code in processor.c
+
+Add support for GPE1 block defined with no GPE0 block
+
+Fix IRQ bridge swizzling (Ville Syrjala & Kai Germaschewski)
+
+Remove too-broad blacklist entries
+
+As soon as Linus gets back, I'll be submitting all the outstanding changes
+to him, and all the patchsets are on linux-acpi.bkbits.net if anyone just
+wants to browse the most recent changes.
+
+Regards -- Andy
+
+-----------------------------
+Andrew Grover
+Intel Labs / Mobile Architecture
+andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+
 
 
 -------------------------------------------------------
