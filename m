@@ -1,11 +1,13 @@
-From: Nigel Cunningham <ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>
-Subject: Help wanted with IRQ routing.
-Date: Mon, 14 Feb 2005 19:59:34 +1100
-Message-ID: <1108371574.12611.61.camel@desktop.cunningham.myip.net.au>
-Reply-To: ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org
+From: Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
+Subject: Re: [PATCH, new ACPI driver] new sony_acpi driver
+Date: Mon, 14 Feb 2005 11:07:39 +0100
+Message-ID: <20050214100738.GC3233@crusoe.alcove-fr>
+References: <20050210161809.GK3493@crusoe.alcove-fr> <20050211113636.GI3263@crusoe.alcove-fr> <20050212142103.5e1a79f9.khali@linux-fr.org>
+Reply-To: Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20050212142103.5e1a79f9.khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,40 +17,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
+Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Pekka Enberg <penberg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all.
+On Sat, Feb 12, 2005 at 02:21:03PM +0100, Jean Delvare wrote:
 
-(Get to play the customer for once!)
+> > Based on feedback from Jean Delvare and Pekka Enberg, here is an
+> > updated version.
+> 
+> Works for me (Vaio PCG-GR214EP). Tested with 2.6.11-rc3-bk8.
+> 
+> I then enabled the debug mode. I couldn't find anything relevant WRT
+> what each additional file is supposed to do, but I still have noticed a
+> number of things you might be interested in.
+[...]
 
-While visiting the US, I purchased a Netgear 511T card for my laptop.
-It's being a pain to set up, and so I'm wanting to ask for some help.
-(For the record, I set up a 311 on my desktop machine, so I believe I
-know what I'm doing in general).
+I have some interesting information from one user, who noticed that:
 
-The problem I see is that when I start wpa_supplicant (ie actually start
-to use the card), everything freezes up. If I pop the card out quickly,
-I see that a couple of thousand interrupts have occurred in the couple
-of seconds. If I'm too slow, I have to restart the machine.
+* pbr is the power-on brightness. It's the brightness that the
+  laptop uses at power-on time.
 
-I've spent a fair while Googling with the result that I think my problem
-might be solved by getting the card on an interrupt line all by itself
-(feel free to tell me I'm wrong!). I'm not sure how to achieve that
-though. I've tried using setpci, but I don't have enough knowledge to do
-anything useful.
+* cdp is the CD-ROM power. Writing 0 to cdp turns off the cdrom in
+  order to save a bit of power consumption.
 
-Can someone help? I can provide the output dump_pirq, lspci and whatever
-else you want if you tell me what will be helpful.
+I'll add this information in the docs.
 
-Nigel
+Stelian.
 -- 
-Nigel Cunningham
-Software Engineer, Canberra, Australia
-http://www.cyclades.com
-
-Ph: +61 (2) 6292 8028      Mob: +61 (417) 100 574
-
+Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>
 
 
 -------------------------------------------------------
