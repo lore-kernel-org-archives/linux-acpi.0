@@ -1,82 +1,63 @@
-From: Rich Townsend <rhdt@bartol.udel.edu>
-Subject: Re: [ACPI] 2.6.11 acpi battery state readout as source of keyboard/touchpad
- troubles
-Date: Wed, 30 Mar 2005 14:21:31 -0500
-Message-ID: <424AFC3B.7090007@bartol.udel.edu>
-References: <424AF9C3.4000905@domdv.de>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Suspend-to-RAM on ThinkPad R51
+Date: Wed, 30 Mar 2005 22:24:16 +0200
+Message-ID: <20050330202416.GA1347@elf.ucw.cz>
+References: <200503261534.44710.barr.156@osu.edu> <200503282114.15289.barr.156@osu.edu> <20050329083823.GA3897@elf.ucw.cz> <200503301136.59046.barr.156@osu.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262383AbVC3T2M@vger.kernel.org>
-In-Reply-To: <424AF9C3.4000905@domdv.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andreas Steinmetz <ast@domdv.de>
-Cc: Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>, vojtech@suse.cz, dtor_core@ameritech.net, acpi-devel@lists.sourceforge.net
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <200503301136.59046.barr.156-ZbGKxL/pcrQ@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Andreas Steinmetz wrote:
-> In traceing the source of my sporadic synaptics touchpad troubles
-> 
-> psmouse.c: TouchPad at isa0060/serio4/input0 lost sync at byte 1
-> psmouse.c: TouchPad at isa0060/serio4/input0 lost sync at byte 1
-> psmouse.c: TouchPad at isa0060/serio4/input0 lost sync at byte 1
-> psmouse.c: TouchPad at isa0060/serio4/input0 lost sync at byte 1
-> psmouse.c: TouchPad at isa0060/serio4/input0 lost sync at byte 1
-> psmouse.c: TouchPad at isa0060/serio4/input0 - driver resynched.
-> 
-> and keyboard troubles (sporadically lost key up/down events) on an Acer
-> Aspire 1520 (x86_64, latest bios v1.09) I did enable the
-> report_lost_ticks option which did spit out stuff like the following at
-> regular intervals:
-> 
-> time.c: Lost 17 timer tick(s)! rip handle_IRQ_event+0x20/0x60)
-> time.c: Lost 8 timer tick(s)! rip handle_IRQ_event+0x20/0x60)
-> time.c: Lost 19 timer tick(s)! rip handle_IRQ_event+0x20/0x60)
-> time.c: Lost 8 timer tick(s)! rip handle_IRQ_event+0x20/0x60)
-> time.c: Lost 18 timer tick(s)! rip handle_IRQ_event+0x20/0x60)
-> time.c: Lost 8 timer tick(s)! rip handle_IRQ_event+0x20/0x60)
-> 
-> This looked suspiciously like it happended when the the kde laptop
-> applet polled the battery status. So I did terminate the applet.
-> 
-> The result was no more lost ticks, no lost keyboard events and no more
-> lost touchpad sync.
-> 
-> To verify ACPI battery data as the source of trouble i did a simple
-> 
-> cat /proc/acpi/battery/BAT0/state
-> 
-> which instantly resulted in:
-> 
-> time.c: Lost 19 timer tick(s)! rip handle_IRQ_event+0x20/0x60)
-> 
-> So it seems ACPI battery readout does cause some long running interrupt
-> disable and that it causes nasty side effects for the 8042 input.
-> 
-> Note that doing
-> 
-> cat /proc/acpi/battery/BAT0/info
-> 
-> doesn't cause any trouble (battery alarm is unsupported).
-> 
-> I can ignore the lost ticks but the keyboard/touchpad problems caused by
-> the state readout are definitely nasty.
-> 
-> Any ideas?
+Hi!
 
-Yes. I strongly suspect that your problems are caused by the embedded
-controller driver. On many laptop systems, the embedded controller is
-used to access and query the batter subsystem. Unfortunately, the driver
-code that performs embedded controller reads and writes currently uses a
-spinlock to prevent multiple accesses. A typical read/write operation
-can take around 2.5 ms, during which no interrupts can be serviced.
+> had less time to hack at this problem than before...
+> 
+> On Tuesday 29 March 2005 03:38 am, Pavel Machek wrote:
+> > I'd like
+> >
+> > CONFIG_SERIO=y
+> > CONFIG_SERIO_I8042=y
+> >
+> > ...to be done in modules. You'll probably need to modularize whole
+> > input to achieve that.
+> 
+> I tried this. I'm now removing the modules usbhid, psmouse, libps2, serio, 
+> i8042, and atkbd before suspend. It doesn't change anything, but I have a 
+> couple of questions/observations that could possibly point us in the right 
+> direction:
+> 
+> - Is there a possibility that some userspace program is locking up the video, 
+> keyboard, and mouse? I tried stopping all the services that I could 
+> (including X11) and although the video froze (display powered up, frozen 
+> cursor as before), the keyboard was responsive to a capslock press. I haven't  
+> had time to isolate the particular service that was causing that
+> behavior.
 
-I've been trying to make noise about this problem on the ACPI mailing
-list, but progress on this issue is still glacial. Luming Yu has posted
-a patch to 2.6.11 that appears to resolve the interrupt blocking, but it
-has the side effect that embedded controller access becomes unacceptably
-slow.
+Well, non-working video is common problem after suspend-to-ram, see
+Documentation/power/video.txt.
 
-cheers,
+Try init=/bin/bash to keep most of userspace out of picture...
+								Pavel
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
-Rich
+
+-------------------------------------------------------
+This SF.net email is sponsored by Demarc:
+A global provider of Threat Management Solutions.
+Download our HomeAdmin security software for free today!
+http://www.demarc.com/Info/Sentarus/hamr30
