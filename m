@@ -1,13 +1,14 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>
-Subject: RE: [patch] acpi-20020725-2.4.19rc3 and incremental patch
-	from acpi20020709
-Date: 30 Jul 2002 23:15:57 -0400
+From: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
+Subject: Re: suspend.c vs driver-model.txt
+Date: Wed, 31 Jul 2002 00:33:55 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1028084666.1109.29.camel@darkstar.portugal>
+Message-ID: <20020730223355.27937@192.168.4.1>
+References: <20020730200634.GA16297@atrey.karlin.mff.cuni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20020730200634.GA16297-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,79 +17,41 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2002-07-29 at 14:33, Grover, Andrew wrote:
-=20
-> Once 2.4.19 is out, and assuming there aren't
-> any big regressions, I will submit it to Marcelo for 2.4.20. It's a huge
-> patch. It's been nine months since the last 2.4 ACPI update.
->=20
-> Regards -- Andy
->=20
-Ok=20
+>I do not know if such feelings are worth the effort of driver authors.
 
-I would like that you or someone that understand the of meter
-see the file linux-2.4.19/arch/i386/kernel/pci-pc.c
+My experience with drivers here is that it isn't very difficult
+to get that done right, but well...
 
-is now like this:
+>Certainly, it feels safer that way. But I believe that what I
+>currently have is bulletproof...
 
-#ifdef CONFIG_ACPI_PCI
-    if (acpi_pci_irq_init() > 0)
-        pci_using_acpi_prt =3D 1;
-#endif
+If you say so... I'm still afraid with relying on the kernel
+not triggering any IO for whatever random reason, I'd rather
+have things designed to be bulletproof from the ground up, but
+that may well be due to my lack of intimate knowledge of various
+parts of the kernel not directly related to arch code & drivers.
 
-    printk(KERN_INFO "PCI: Probing PCI hardware\n");
-    if (!pci_using_acpi_prt) {
-        pci_root_bus =3D pci_scan_bus(0, pci_root_ops, NULL);
-    }
+We can end the debate here anyway, there is nothing in the
+driver semantics I propose incompatible with software suspend
+anyway, I'd suggest to document those semantics with blocking
+of IOs and time will show how drivers keep up.
 
-    if (clustered_apic_mode && (numnodes > 1)) {
-        for (quad =3D 1; quad < numnodes; ++quad) {
-            printk("Scanning PCI bus %d for quad %d\n",
-                QUADLOCAL2BUS(quad,0), quad);
-            pci_scan_bus(QUADLOCAL2BUS(quad,0),
-                pci_root_ops, NULL);
-        }
-    }
+Patrick: On my side, I'll start moving the pmac drivers to
+the new model as soon as I can get a recent 2.5 to boot a pmac
+again, then I'll move my PM stuff to the new model and see what
+issues arise. I'll try to have both suspend-to-RAM and suspend-
+to-disk using Pavel's stuff working so we can validate the whole
+mecanism.
 
-    if (!pci_using_acpi_prt) {
-        pcibios_irq_init();
-        pcibios_fixup_peer_bridges();
-        pcibios_fixup_irqs();
-    }
+No promise on time frame though, I've been pretty busy lately
+and I have to get 2.4 working on some new Apple HW as well...
 
+Ben.
 
-but I don't  know if should be:
-
-#ifdef CONFIG_ACPI_PCI
-    if (acpi_pci_irq_init() > 0)
-        pci_using_acpi_prt =3D 1;
-#endif
-
-    printk(KERN_INFO "PCI: Probing PCI hardware\n");
-    if (!pci_using_acpi_prt) {
-        pci_root_bus =3D pci_scan_bus(0, pci_root_ops, NULL);
-
-
-    if (clustered_apic_mode && (numnodes > 1)) {
-        for (quad =3D 1; quad < numnodes; ++quad) {
-            printk("Scanning PCI bus %d for quad %d\n",
-                QUADLOCAL2BUS(quad,0), quad);
-            pci_scan_bus(QUADLOCAL2BUS(quad,0),
-                pci_root_ops, NULL);
-        }
-    }
-
-        pcibios_irq_init();
-        pcibios_fixup_peer_bridges();
-        pcibios_fixup_irqs();
-    }
-   =20
-At least in this case I have no idea.=20
-S=E9rgiomb
 
 
 
