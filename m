@@ -1,51 +1,98 @@
-From: Keiichiro Tokunaga <tokunaga.keiich@jp.fujitsu.com>
-Subject: Re: [PATCH][4/4] Add NUMA node handling to the container driver
-Date: Fri, 24 Sep 2004 13:44:49 +0900
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Subject: [PATCH] Updated patches for PCI IRQ resource deallocation support [0/3]
+Date: Fri, 24 Sep 2004 14:45:22 +0900
 Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <20040924134449.7d4041f3.tokunaga.keiich@jp.fujitsu.com>
-References: <20040920092520.A14208@unix-os.sc.intel.com>
- <20040920094719.H14208@unix-os.sc.intel.com>
- <20040924012301.000007c6.tokunaga.keiich@jp.fujitsu.com>
- <20040924013642.00003b08.tokunaga.keiich@jp.fujitsu.com>
- <41534989.3070001@kolumbus.fi>
+Message-ID: <4153B472.5020109@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-ia64-owner@vger.kernel.org>
-In-reply-to: <41534989.3070001@kolumbus.fi>
-To: Mika Penttil_ <mika.penttila@kolumbus.fi>
-Cc: tokunaga.keiich@jp.fujitsu.com, anil.s.keshavamurthy@intel.com, len.brown@intel.com, acpi-devel@lists.sourceforge.net, lhns-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org
+To: greg@kroah.com, len.brown@intel.com, tony.luck@intel.com
+Cc: akpm@osdl.org, linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-> Keiichiro Tokunaga wrote:
-> 
-> >Name: container_for_numa.patch
-> >Status: Tested on 2.6.9-rc2
-> >Signed-off-by: Keiichiro Tokunaga <tokunaga.keiich@jp.fujitsu.com>
-> >Description:
-> >Add NUMA node handling to the container driver.
-> >
-> >Thanks,
-> >Keiichiro Tokunaga
-> >---
-> >@@ -198,6 +208,7 @@ container_device_add(struct acpi_device 
-> > 	if (acpi_bus_add(device, pdev, handle, ACPI_BUS_TYPE_DEVICE)) {
-> > 		return_VALUE(-ENODEV);
-> > 	}
-> >+	container_numa_add((*device)->handle);
-> >  
-> >
-> Maybe that should be :
-> 
-> container_numa_add(phandle);
->  
-> instead? Device is the child at this point.
+Hi Greg, Len and Tony,
 
-Thanks for looking!
+Here is an updated set of patches for PCI IRQ resource deallocation
+based on some feedbacks. This set of patches has the following three
+patches:
 
-A container's handle needs to be passed to the function here.
-The (*device)->handle is the handle.  So there is no problem.
-The phandle is just used for acpi_bus_add().
+    - Patch [1/3]: This is for PCI code that has no dependencies. This
+      is the latest version (against 2.6.9-rc2-mm1) of the patch
+      posted in the other therad. Please see:
+      http://marc.theaimsgroup.com/?l=linux-kernel&m=109533945101033&w=2
+
+    - Patch [2/3]: This is for ACPI code that has no dependencies.
+
+    - Patch [3/3]: This is for ia64 code that depends on patch [1/3]
+      and patch [2/3].
+
+Patch [3/3] is waiting for the others to be applied, because it
+depends on patch [1/3] and patch [2/3].
+
+Greg and Len, could you apply patch [1/3] and patch [2/3] onto each
+your tree first?
 
 Thanks,
-Keiichiro Tokunaga
+Kenji Kaneshige
+
+----
+Architecture dependent IRQ resources such as interrupt vector for PCI
+devices are allocated at pci_enable_device() time on i386, x86-64 and
+ia64 platform. Today, however, these IRQ resources are never
+deallocated even if they are no longer used. The following set of
+patches adds supports to deallocate IRQ resources at
+pci_disable_device() time.
+
+The motivation of the set of patches is as follows:
+
+    - IRQ resources such as interrupt vectors should be freed if they
+      are no longer used because the amount of these resources are
+      limited. By deallocating IRQ resources, we can recycle them.
+
+    - I think some hardwares will support hot-pluggable I/O units with
+      I/O xAPICs in the near future. So I/O xAPIC hot-plug support by
+      OS will be needed soon. IRQ resouces deallocation will be one of
+      the most important stuff for I/O xAPIC hot-plug.
+
+To realize IRQ resource deallocation, the following set of patches
+defines new interfaces:
+
+    - void pcibios_disable_device (struct pci_dev *dev)
+
+      This is a opposite portion of pcibios_enable_device(). It's a
+      hook to call architecture specific code for deallocating PCI
+      resources.
+      
+    - void acpi_unregister_gsi (int irq)
+
+      This is a opposite portion of acpi_register_gsi(). This has a
+      responsibility for deallocating IRQ resources associated with
+      the specified linux IRQ number. 
+
+For details of these interfaces, please see the description in each
+patch.
+
+The set of patches containes the following patches:
+
+    - add_pcibios_disable_device_hook.patch
+
+      This patch defines new a interface pcibios_disable_device(). It
+      has already been posted to LKML before. Please see:
+      http://marc.theaimsgroup.com/?l=linux-kernel&m=109533945101033&w=2
+
+    - IRQ_deallocation_acpi.patch
+
+      This is a acpi portion of IRQ resource deallocation. It defines
+      a new interface acpi_unregister_gsi().
+
+    - IRQ_deallocation_ia64.patch
+
+      This is a ia64 portion of IRQ resource deallocation. It
+      implements pcibios_disable_device() and acpi_unregister_gsi()
+      for ia64.
+
+For now, the following set of patches has ia64 implementation only.
+i386 and x86_64 implementations are TBD.
+
+
