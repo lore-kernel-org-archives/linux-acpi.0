@@ -1,9 +1,7 @@
-From: "admin" <admin-Qt13gs6zZMY@public.gmane.org>
-Subject: (^_______^)
-Date: Sat, 2 Apr 2005 06:52:58 +0800
-Message-ID: <E1DHV0I-0004Lr-V6@sc8-sf-mx1.sourceforge.net>
-Reply-To: admin-Qt13gs6zZMY@public.gmane.org
-Content-Type: text/plain;charset="EUC"
+From: akpm-3NddpPZAyC0@public.gmane.org
+Subject: [patch 1/1] bk-acpi alpha build fix
+Date: Sat, 02 Apr 2005 03:49:23 -0800
+Message-ID: <200504021149.j32BnaCk006108@shell0.pdx.osdl.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -14,50 +12,62 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
- 業界NEWS　Vol.032		仰天ニュースレポーター(強)メルマ
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-			アナタの元に信じられないNEWSをお届け！
-
-┏─┓　┏─┓　┏─┓　┏─┓　┏─┓　┏─┓　┏─┓　┏─┓
-│出│　│会│　│い│　│系│　│事│　│件│　│簿│　│！│
-┗─┛　┗─┛　┗─┛　┗─┛　┗─┛　┗─┛　┗─┛　┗─┛
-
-会えるサイトは事件が起きる可能性があるのだが、
-
-まぁ当方に言わせれば管理問題なわけで。
-
-続き：http://www.okidokiaiai.com/
 
 
-　 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━☆彡
-┌★　仰天⇔業界NEWS：最新記事ピックアップ
-┿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ACPI doesn't work on alphas.
+
+  CC      drivers/pci/quirks.o
+distcc[25816] ERROR: compile on localhost failed
+In file included from include/acpi/platform/acenv.h:123,
+                 from include/acpi/acpi.h:53,
+                 from include/linux/acpi.h:34,
+                 from drivers/pci/quirks.c:21:
+include/acpi/platform/aclinux.h:59:22: asm/acpi.h: No such file or directory
+In file included from include/acpi/acpi.h:54,
+                 from include/linux/acpi.h:34,
+                 from drivers/pci/quirks.c:21:
+include/acpi/actypes.h:110: error: parse error before "INT64"
+include/acpi/actypes.h:110: warning: type defaults to `int' in declaration of `INT64'
+include/acpi/actypes.h:110: warning: data definition has no type or storage class
+include/acpi/actypes.h:111: error: parse error before "UINT64"
+include/acpi/actypes.h:111: warning: type defaults to `int' in declaration of `UINT64'
+include/acpi/actypes.h:111: warning: data definition has no type or storage class
+In file included from drivers/pci/quirks.c:21:
+include/linux/acpi.h:37:22: asm/acpi.h: No such file or directory
 
 
-□┓　まずはネット交際からスタート「大手ポータルサイトの縁結び」
-┗┛━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-続き：http://www.okidokiaiai.com/
+I chose to fix it in acpi.h.  Seems cleaner than adding an ifdef to quirks.c.
 
+Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+---
 
-□┓　週末のデートの相手をネットの出会いで⇒女性：10人に1人
-┗┛━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-続き：http://www.okidokiaiai.com/
+ 25-alpha-akpm/include/linux/acpi.h |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletion(-)
 
-
-□┓　奈良県が少子化対策で「出会い系」？
-┗┛━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-続き：http://www.okidokiaiai.com/
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-　● 業界NEWS ●
-……………………………………………………………………………………………………
-　http://www.okidokiaiai.com/
-　王強 
+diff -puN include/linux/acpi.h~bk-acpi-alpha-build-fix include/linux/acpi.h
+--- 25-alpha/include/linux/acpi.h~bk-acpi-alpha-build-fix	2005-04-02 01:54:02.000000000 -0800
++++ 25-alpha-akpm/include/linux/acpi.h	2005-04-02 01:54:30.000000000 -0800
+@@ -25,6 +25,8 @@
+ #ifndef _LINUX_ACPI_H
+ #define _LINUX_ACPI_H
+ 
++#ifdef CONFIG_ACPI
++
+ #ifndef _LINUX
+ #define _LINUX
+ #endif
+@@ -536,4 +538,5 @@ static inline int acpi_get_pxm(acpi_hand
+ 
+ extern int pnpacpi_disabled;
+ 
+-#endif /*_LINUX_ACPI_H*/
++#endif	/* CONFIG_ACPI */
++#endif	/* _LINUX_ACPI_H */
+_
 
 
 -------------------------------------------------------
