@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: suspend/resume support for driver requires an external firmware
-Date: Thu, 23 Sep 2004 18:42:03 +0200
+From: =?ISO-8859-1?Q?Mika_Penttil=E4?= <mika.penttila-9Aww8k/80nUxHbG02/KK1g@public.gmane.org>
+Subject: Re: [PATCH][4/4] Add NUMA node handling to the container driver
+Date: Fri, 24 Sep 2004 01:09:13 +0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040923164203.GC6412@elf.ucw.cz>
-References: <20040923140018.25346.qmail@web81309.mail.yahoo.com>
+Message-ID: <41534989.3070001@kolumbus.fi>
+References: <20040920092520.A14208@unix-os.sc.intel.com>	<20040920094719.H14208@unix-os.sc.intel.com>	<20040924012301.000007c6.tokunaga.keiich@jp.fujitsu.com> <20040924013642.00003b08.tokunaga.keiich@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040923140018.25346.qmail-ockkSbn3fCqA/QwVtaZbd3CJp6faPEW9@public.gmane.org>
+In-Reply-To: <20040924013642.00003b08.tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,59 +17,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
-Cc: "Zhu, Yi" <yi.zhu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Patrick Mochel <mochel-og82NyAXoxR0I81aPRRTmR2eb7JE58TQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Cc: anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lhns-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Keiichiro Tokunaga wrote:
 
-> > I make the ipw2100 driver (http://ipw2100.sf.net) support suspend/resume
-> > with below patch.
-> > http://cache.gmane.org//gmane/linux/drivers/ipw2100/devel/2129-001.bin
-> > 
-> > Current state is the patch makes ipw2100 suspend/resume work in the
-> > expense
-> > of addtional ~200k kernel runtime memory. So I'd rather look on it as a
-> > workaround instead of a finial solution.
-> > 
-> > The problem is ipw2100 requires an external on-disk firmware support. When
-> > the device is put to D3 state, firmware needs to be unloaded. And the
-> > firmware should be loaded again after the device is put to D0 state. But
-> > currently there is no suspend/resume order(dependency) for the online
-> > devices list in the kernel (dpm_active). So the ide disk might still be in
-> > the suspend state when ipw2100->resume is called. This causes a deadlock.
-> > 
-> > 
-> > I propose 2 choices to fix the problem.
-> > 
-> > Choice 1. In 2.5 kernel, there used to be a ->save_state method in the
-> > device PM interface. From the "not yet updated" document
-> > 
-> > Choice 2. Add a notifier call chain for swsusp before prepare_suspend.
-> > Each
-> > driver requires the notification(i.e. ipw2100) registers its own callback.
-> > For people who think device PM ->save_state is an overkill since 99%
-> > devices
-> > don't require firmwares (really today, who knows the future?), this can be
-> > considered as another (better) solution.
-> > 
-> > 
-> > Choice 3? or I missed something here?
-> > 
-> 
-> What about splitting resume in 2 parts - the ->resume method
-> would just schedule_work() real resume for the card out of
-> line where it can safely wait for drive to be available without
-> blocking other devices from resuming. This way you do not need
-> to pre-load firmware on suspend.
+>Name: container_for_numa.patch
+>Status: Tested on 2.6.9-rc2
+>Signed-off-by: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+>Description:
+>Add NUMA node handling to the container driver.
+>
+>Thanks,
+>Keiichiro Tokunaga
+>---
+>  
+>
 
-That way, userspace could see wifi card in half-suspended state. Not
-good.
+>@@ -198,6 +208,7 @@ container_device_add(struct acpi_device 
+> 	if (acpi_bus_add(device, pdev, handle, ACPI_BUS_TYPE_DEVICE)) {
+> 		return_VALUE(-ENODEV);
+> 	}
+>+	container_numa_add((*device)->handle);
+>  
+>
+Maybe that should be :
 
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+container_numa_add(phandle);
+ 
+instead? Device is the child at this point.
+
+--Mika
+
+
+
 
 
 -------------------------------------------------------
