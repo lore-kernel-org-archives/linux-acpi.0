@@ -1,26 +1,74 @@
-From: "Kevin P. Fleming" <kpfleming@backtobasicsmgmt.com>
-Subject: Re: [ACPI] [PATCH] can we compile ACPI without define CONFIG_PM ?
-Date: Fri, 07 May 2004 07:52:34 -0700
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <409BA2B2.8050508@backtobasicsmgmt.com>
-References: <A6974D8E5F98D511BB910002A50A6647615F9FD0@hdsmsx403.hd.intel.com>	 <1083903538.2296.248.camel@dhcppc4> <1083929581.9706.35.camel@darkstar>
+From: "Michael Tuschik" <M.Tuschik-Mmb7MZpHnFY@public.gmane.org>
+Subject: S3 problems with VIA EPIA MII-6000
+Date: Sat, 8 May 2004 00:35:43 +0200 (CEST)
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <33293.192.168.10.18.1083969343.squirrel@192.168.10.18>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S263582AbUEGOwh@vger.kernel.org>
-In-Reply-To: <1083929581.9706.35.camel@darkstar>
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: ACPI Developers <acpi-devel@lists.sourceforge.net>
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-S=E9rgio Monteiro Basto wrote:
 
-> 1 - ACPI w/o CONFIG_PM (is not supported)
->=20
-> 2 - If accidentally we configure ACPI w/o CONFIG_PM. I tested and
-> doesn't power off correctly (at least on one Dell Precision 410).=20
+Hello,
 
-It works on my two server boxes here; ACPI turned on (button, fan,=20
-processor, thermal zone and timer options only), but power management=20
-not turned on. Both machines properly power off when asked.
+i'm trying to put my VIA EPIA MII-6000 into S3 sleep mode. After resume
+the OS is still working (this is good). Console is blank ant network
+doesn't work.
+
+I started to discover the network problem. The driver "via-rhine" does not
+contain any suspend/resume code (to bad). I looked at other drivers and
+added some code here like:
+
+static int via_rhine_suspend (struct pci_dev *pdev, u32 state)
+{
+	struct net_device *dev = pci_get_drvdata(pdev);
+	struct netdev_private *priv = netdev_priv(dev);
+	pci_save_state(pdev, priv->pm_state);
+	if (dev && netif_running (dev) && netif_device_present (dev)) {
+		netif_device_detach (dev);
+		via_rhine_close (dev);
+	}
+	return 0;
+}
+
+static int via_rhine_resume (struct pci_dev *pdev)
+{
+	struct net_device *dev = pci_get_drvdata(pdev);
+	struct netdev_private *priv = netdev_priv(dev);
+	pci_restore_state(pdev, priv->pm_state);
+	if (dev && netif_running (dev) && !netif_device_present (dev)) {
+		via_rhine_open (dev);
+		netif_device_attach (dev);
+		writew(readw(dev->base_addr + ChipCmd) | CmdRxOn | CmdRxDemand,
+dev->base_addr + ChipCmd);
+	}
+	return 0;
+}
+
+
+This does not work. I played arround a bit with no success so far. It
+seems that interrupts are not working after resume.
+
+As i don't know what i'm doing here i ask if someone has an idea, what's
+going wrong here. Maybe some hints to get closer to a solution.
+
+Thanks in advance
+Michael
+
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by Sleepycat Software
+Learn developer strategies Cisco, Motorola, Ericsson & Lucent use to deliver
+higher performing products faster, at low TCO.
+http://www.sleepycat.com/telcomwpreg.php?From=osdnemail3
