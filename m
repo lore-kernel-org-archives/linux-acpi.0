@@ -1,14 +1,14 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Re: ACPI S3 resume only reboots
-Date: Tue, 12 Oct 2004 14:54:03 -0700
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: early-init patch and allow "lapic" to force enable LAPIC patch
+Date: 12 Oct 2004 18:10:24 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <416C527B.4020609@root.org>
-References: <20041004133340.76ba05ba.albeclemit@yahoo.it>	<20041009130628.GA21781@elf.ucw.cz>	<20041010105635.GA3362@doc.ic.ac.uk>	<20041012175810.2920edf2.albeclemit@yahoo.it>	<416C0F14.5000107@root.org> <20041012231737.62c5b99b.albeclemit@yahoo.it>
+Message-ID: <1097619023.26145.2.camel@d845pe>
+References: <1097618643.32323.11.camel@darkstar>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041012231737.62c5b99b.albeclemit-whZMOeQn8C0@public.gmane.org>
+In-Reply-To: <1097618643.32323.11.camel@darkstar>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,38 +17,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alberto <albeclemit-whZMOeQn8C0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Alberto wrote:
-> On Tue, 12 Oct 2004 10:06:28 -0700
-> Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org> wrote:
-> 
-> 
->>>Code from arch/i386/kernel/acpi/wakeup.S
->>>
->>>[...] 
->>>	# setup data segment
->>>	movw	%cs, %ax
->>>	movw	%ax, %ds					# Make ds:0 point to wakeup_start
->>>	movw	%ax, %ss
->>>	mov	$(wakeup_stack - wakeup_code), %sp		# Private stack is needed for ASUS board
->>>	movw	$0x0e00 + 'S', %fs:(0x12)
->>>
->>>	pushl	$0		###THIS LINE CAUSES REBOOT###			# Kill any dangerous flags
->>>	popfl
->>
->>Hehe.  Look up above where the stack pointer is changed to point to the 
->>wakeup stack and then 0 is pushed on it.  It's likely there is some 
->>problem with the config or location of the wakeup stack.
-> 
-> 
-> Ok, so the question is: where should %sp point to?
+On Tue, 2004-10-12 at 18:04, S=E9rgio Monteiro Basto wrote:
+> Hi Len,
+> early-init patch http://bugme.osdl.org/show_bug.cgi?id=3D1269
+> allow "lapic" to force enable LAPIC patch
+> http://bugme.osdl.org/show_bug.cgi?id=3D3238
+>=20
+> I just check it now this 2 patches are included on 2.6.9-rc4
+> the question is simple, isn't the second patch a replace of the first?
 
-Dunno, we don't use a stack for the wake code.
+Nope.
 
--Nate
+There are systems that used to hang on boot in ACPI mode
+even though the BIOS enables the LAPIC by default.
+So the 2nd patch does not replace the 1st, which
+addresses those systems.
+
+cheers,
+-Len
+
 
 
 -------------------------------------------------------
