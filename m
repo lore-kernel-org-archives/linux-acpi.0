@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: standby resumes immediately in 2.6.0-test8
-Date: Thu, 30 Oct 2003 11:34:45 +0800
+Subject: RE: Re: Linux 2.4.23-pre8
+Date: Thu, 30 Oct 2003 11:42:08 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720B70@pdsmsx403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720B71@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -17,46 +17,85 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>, Bas Mevissen <ml-Y9IUUvl1dgU0Iwp8Nzs06g@public.gmane.org>
-Cc: Aviram Jenik <aviram-koYqR8i3DjZZkMgn48OZqdBPR1lH4CV8@public.gmane.org>, =?iso-8859-1?Q?=E9ric_Brunet?= <Eric.Brunet-l5PIGlIYzrxGWvitb5QawA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: David van Hoose <david.vanhoose-Wuw85uim5zDR7s880joybQ@public.gmane.org>, Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I don't know whether  patch at =
-http://bugme.osdl.org/show_bug.cgi?id=3D1433 address this issue.
---Luming
+ Could you please file a tracker on bugme.osdl.org
+
+-Luming
 
 -----Original Message-----
 From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org =
-[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org]On Behalf Of Patrick =
-Mochel
-Sent: 2003?10?29? 0:54
-To: Bas Mevissen
-Cc: Aviram Jenik; =A8=A6ric Brunet; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: Re: [ACPI] standby resumes immediately in 2.6.0-test8
+[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org]On Behalf Of David van =
+Hoose
+Sent: 2003?10?28? 3:35
+To: Marcelo Tosatti
+Cc: Brown, Len; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: Re: [ACPI] Re: Linux 2.4.23-pre8
 
 
+Marcelo Tosatti wrote:
+>=20
+> On Mon, 27 Oct 2003, Marcelo Tosatti wrote:
+>>
+>>On Fri, 24 Oct 2003, David van Hoose wrote:
+>>
+>>
+>>>Attached config, boot messages, and interrupts for 2.6.0-test8-bk2.
+>>>The boot messages do not have any USB debug, but do have ACPI debug.=20
+>>>Also, all of my USB ports work 100% of the time on 2.6 with ACPI =
+enabled.
+>>
+>>David,=20
+>>
+>>Have you tried what Len suggested in the bugzilla?
+>>
+>>----------
+>>Created an attachment (id=3D1185)
+>>SIS I2C quirk foundin 2.6 but not in 2.4
+>>
+>>One difference between 2.4 and 2.6 is the attached SIS quirk added for =
 
-> > # echo -n standby > /sys/power/state
->
-> Is there a certain reason why
->
-> # echo standby > /sys/power/state
->
-> (also without -n) is not accepted by the code?
+>>I2C.
+>>
+>>Please back that quirk out of your 2.6 tree like so:
+>>
+>>patch --dry-run -Rp1 </tmp/sis_quirk_26.diff
+>>
+>>remove the code that depends on it from your .config:
+>>CONFIG_I2C_SIS96X=3Dn
+>>
+>>and see if that makes 2.6 mis-behave like 2.4, or if USB still runs.
+>>
+>>Also, please verify for me that you get ACPI events properly.
+>>If you connect your USB mouse to one of the ports that isn't shared
+>>with acpi, then you should be able to trigger ACPI interrupts by
+>>pressing your power button.  (if acpid is enabled, it may shut down =
+your
+>>system,
+>>so you may want to disable that first), and observering the
+>>/proc/interrupts row for acpi incrementing for each button press.
+>=20
+>=20
+> Attached is a patch against -test9 to remove the SiS quirks.
 
-It's just pedantic about the parsing, which saves a couple of lines of
-code. If it's too inconvenient, please use a script to mask it. :)
+I patched test9 and it still works the same. My /proc/interrupts doesn't =
 
+change when I use the PM buttons on my keyboard. :-/
+USB works. All 6 ports.
 
-	Pat
+-David
+
+<SNIP>
 
 
 
 -------------------------------------------------------
-This SF.net email is sponsored by: SF.net Giveback Program.
-Does SourceForge.net help you be more productive?  Does it
-help you create better code?   SHARE THE LOVE, and help us help
-YOU!  Click Here: http://sourceforge.net/donate/
+This SF.net email is sponsored by: The SF.net Donation Program.
+Do you like what SourceForge.net is doing for the Open
+Source Community?  Make a contribution, and help us add new
+features and functionality. Click here: http://sourceforge.net/donate/
 _______________________________________________
 Acpi-devel mailing list
 Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
