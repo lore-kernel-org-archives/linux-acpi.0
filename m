@@ -1,13 +1,13 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: bug in acpid scripts
-Date: Fri, 13 Aug 2004 08:52:02 +0800
+From: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
+Subject: Re: bug in acpid scripts
+Date: Thu, 12 Aug 2004 20:55:15 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <B44D37711ED29844BEA67908EAF36F038ADB3E@pdsmsx401.ccr.corp.intel.com>
+Message-ID: <411C1173.9010100@optonline.net>
+References: <B44D37711ED29844BEA67908EAF36F038ADB3E@pdsmsx401.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----_=_NextPart_001_01C480CF.BFF7876F"
+Content-Type: multipart/mixed; boundary="Boundary_(ID_zfyM/OFUDdEO1l5qcf1Kow)"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-reply-to: <B44D37711ED29844BEA67908EAF36F038ADB3E-4yWAQGcml65pB2pF5aRoyrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -16,113 +16,123 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
+To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: russell-1vnkWVZi4QaVc3sceRu5cw@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 This is a multi-part message in MIME format.
 
-------_=_NextPart_001_01C480CF.BFF7876F
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+--Boundary_(ID_zfyM/OFUDdEO1l5qcf1Kow)
+Content-type: text/plain; charset=us-ascii; format=flowed
+Content-transfer-encoding: 7BIT
 
-Hi,
-Oops, I'm sorry the patch has typo. I changed the parameter name after
-my test, but I forgot changing all. Could you please try this one? Sorry
-for the inconvenience.
+Li, Shaohua wrote:
 
-Thanks,
-Shaohua
-
->-----Original Message-----
->From: Nathan Bryant [mailto:nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org]
->Sent: Friday, August 13, 2004 8:25 AM
->To: Li, Shaohua
->Cc: russell-1vnkWVZi4QaVc3sceRu5cw@public.gmane.org; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: Re: [ACPI] bug in acpid scripts
+>Hi,
+>Oops, I'm sorry the patch has typo. I changed the parameter name after
+>my test, but I forgot changing all. Could you please try this one? Sorry
+>for the inconvenience.
 >
->Li, Shaohua wrote:
+>Thanks,
+>Shaohua
 >
->>Russell Neches Sunday, July 25, 2004 9:42 AM wrote:
->>
->>
->>>To: Li, Shaohua
->>>Cc: ACPI-Devel
->>>Subject: RE: [ACPI] bug in acpid scripts
->>>
->>>Neat! I'd like to help test your patch, if you wouldn't mind posting
->>>
->>>
->>it.
->>
->>
->>>Is there anything specific behavior (good or bad) you would like me
-to
->>>check for?
->>>
->>>
->>Here is it. The patch is very sample. I didn't observe any side effect
->>of this patch, but maybe it must be tested widely. Could you please
-try
->>it?
->>
->>
->Shaohua,
->
->My system has the same problem. Unfortunately, your patch doesn't fix
->it. Also, I had to apply the attached just to get it to build (against
->current -rc4 bitkeeper plus linux-acpi-test-2.6.8)
->
->Nathan
+Yes, I just changed your patch to the following and it works. I can 
+confirm it fixes the problem, no adverse effects
 
-------_=_NextPart_001_01C480CF.BFF7876F
-Content-Type: application/octet-stream;
-	name="maskevent.patch"
-Content-Transfer-Encoding: base64
-Content-Description: maskevent.patch
-Content-Disposition: attachment;
-	filename="maskevent.patch"
+--Boundary_(ID_zfyM/OFUDdEO1l5qcf1Kow)
+Content-type: text/plain; name=maskevent.patch3
+Content-transfer-encoding: 7BIT
+Content-disposition: inline; filename=maskevent.patch3
 
-PT09PT0gZHJpdmVycy9hY3BpL2J1cy5jIDEuNDIgdnMgZWRpdGVkID09PT09Ci0tLSAxLjQyL2Ry
-aXZlcnMvYWNwaS9idXMuYwkyMDA0LTA1LTEyIDEyOjM2OjU1ICswODowMAorKysgZWRpdGVkL2Ry
-aXZlcnMvYWNwaS9idXMuYwkyMDA0LTA4LTEyIDE0OjM5OjQzICswODowMApAQCAtMjgzLDYgKzI4
-Myw3IEBAIExJU1RfSEVBRChhY3BpX2J1c19ldmVudF9saXN0KTsKIERFQ0xBUkVfV0FJVF9RVUVV
-RV9IRUFEKGFjcGlfYnVzX2V2ZW50X3F1ZXVlKTsKIAogZXh0ZXJuIGludAkJCWV2ZW50X2lzX29w
-ZW47CitleHRlcm4gaW50CQkJYWNwaV9ldmVudF9pc19tYXNrOwogCiBpbnQKIGFjcGlfYnVzX2dl
-bmVyYXRlX2V2ZW50ICgKQEAgLTI5OSw3ICszMDAsNyBAQCBhY3BpX2J1c19nZW5lcmF0ZV9ldmVu
-dCAoCiAJCXJldHVybl9WQUxVRSgtRUlOVkFMKTsKIAogCS8qIGRyb3AgZXZlbnQgb24gdGhlIGZs
-b29yIGlmIG5vIG9uZSdzIGxpc3RlbmluZyAqLwotCWlmICghZXZlbnRfaXNfb3BlbikKKwlpZiAo
-IWV2ZW50X2lzX29wZW4gfHwgYWNwaV9ldmVudF9pc19tYXNrKQogCQlyZXR1cm5fVkFMVUUoMCk7
-CiAKIAlldmVudCA9IGttYWxsb2Moc2l6ZW9mKHN0cnVjdCBhY3BpX2J1c19ldmVudCksIEdGUF9B
-VE9NSUMpOwo9PT09PSBkcml2ZXJzL2FjcGkvZXZlbnQuYyAxLjUgdnMgZWRpdGVkID09PT09Ci0t
-LSAxLjUvZHJpdmVycy9hY3BpL2V2ZW50LmMJMjAwNC0wNS0yOSAxNzoxMjo1NSArMDg6MDAKKysr
-IGVkaXRlZC9kcml2ZXJzL2FjcGkvZXZlbnQuYwkyMDA0LTA4LTEyIDE0OjQwOjEzICswODowMApA
-QCAtMTcsNyArMTcsOCBAQCBBQ1BJX01PRFVMRV9OQU1FCQkoImV2ZW50IikKIAogLyogR2xvYmFs
-IHZhcnMgZm9yIGhhbmRsaW5nIGV2ZW50IHByb2MgZW50cnkgKi8KIHN0YXRpYyBzcGlubG9ja190
-CQlhY3BpX3N5c3RlbV9ldmVudF9sb2NrID0gU1BJTl9MT0NLX1VOTE9DS0VEOwotaW50CQkJCWV2
-ZW50X2lzX29wZW4gPSAwOworaW50CQkJCWV2ZW50X2lzX29wZW47CitpbnQJCQkJYWNwaV9ldmVu
-dF9pc19tYXNrOwogZXh0ZXJuIHN0cnVjdCBsaXN0X2hlYWQJCWFjcGlfYnVzX2V2ZW50X2xpc3Q7
-CiBleHRlcm4gd2FpdF9xdWV1ZV9oZWFkX3QJYWNwaV9idXNfZXZlbnRfcXVldWU7CiAKPT09PT0g
-ZHJpdmVycy9hY3BpL3NsZWVwL21haW4uYyAxLjM4IHZzIGVkaXRlZCA9PT09PQotLS0gMS4zOC9k
-cml2ZXJzL2FjcGkvc2xlZXAvbWFpbi5jCTIwMDQtMDctMTQgMTM6Mjk6MTMgKzA4OjAwCisrKyBl
-ZGl0ZWQvZHJpdmVycy9hY3BpL3NsZWVwL21haW4uYwkyMDA0LTA4LTEyIDE0OjQxOjEzICswODow
-MApAQCAtNzAsNyArNzAsNyBAQCBzdGF0aWMgaW50IGFjcGlfcG1fcHJlcGFyZSh1MzIgcG1fc3Rh
-dGUpCiAgKglhcmNoLXNwZWNpZmljIGFzc2VtYmx5LCB3aGljaCBpbiB0dXJuIGNhbGwgYWNwaV9l
-bnRlcl9zbGVlcF9zdGF0ZSgpLgogICoJSXQncyB1bmZvcnR1bmF0ZSwgYnV0IGl0IHdvcmtzLiBQ
-bGVhc2UgZml4IGlmIHlvdSdyZSBmZWVsaW5nIGZyaXNreS4KICAqLwotCitleHRlcm4gaW50IGFj
-cGlfZXZlbnRfaXNfbWFzazsKIHN0YXRpYyBpbnQgYWNwaV9wbV9lbnRlcih1MzIgcG1fc3RhdGUp
-CiB7CiAJYWNwaV9zdGF0dXMgc3RhdHVzID0gQUVfT0s7CkBAIC04OSw2ICs4OSw3IEBAIHN0YXRp
-YyBpbnQgYWNwaV9wbV9lbnRlcih1MzIgcG1fc3RhdGUpCiAKIAlsb2NhbF9pcnFfc2F2ZShmbGFn
-cyk7CiAJYWNwaV9lbmFibGVfd2FrZXVwX2RldmljZShhY3BpX3N0YXRlKTsKKwlhY3BpX2V2ZW50
-X2lzX21hc2sgPSAxOwogCXN3aXRjaCAocG1fc3RhdGUpCiAJewogCWNhc2UgUE1fU1VTUEVORF9T
-VEFOREJZOgpAQCAtMTM5LDYgKzE0MCw3IEBAIHN0YXRpYyBpbnQgYWNwaV9wbV9maW5pc2godTMy
-IHBtX3N0YXRlKQogCiAJYWNwaV9sZWF2ZV9zbGVlcF9zdGF0ZShhY3BpX3N0YXRlKTsKIAlhY3Bp
-X2Rpc2FibGVfd2FrZXVwX2RldmljZShhY3BpX3N0YXRlKTsKKwlhY3BpX2V2ZW50X2lzX21hc2sg
-PSAwOwogCiAJLyogcmVzZXQgZmlybXdhcmUgd2FraW5nIHZlY3RvciAqLwogCWFjcGlfc2V0X2Zp
-cm13YXJlX3dha2luZ192ZWN0b3IoKGFjcGlfcGh5c2ljYWxfYWRkcmVzcykgMCk7Cg==
+# This is a BitKeeper generated diff -Nru style patch.
+#
+# ChangeSet
+#   2004/08/12 20:47:40-04:00 nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org 
+#   This is a fixed version of shaohua's double-button-event patch
+# 
+# drivers/acpi/sleep/main.c
+#   2004/08/12 20:47:32-04:00 nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org +3 -3
+#   Fixed shaohua's double-button event patch
+# 
+# drivers/acpi/event.c
+#   2004/08/12 20:47:32-04:00 nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org +1 -1
+#   Fixed shaohua's double-button event patch
+# 
+# drivers/acpi/sleep/main.c
+#   2004/08/12 02:41:13-04:00 nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org +3 -1
+#   Import patch maskevent.patch
+# 
+# drivers/acpi/event.c
+#   2004/08/12 02:40:13-04:00 nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org +2 -1
+#   Import patch maskevent.patch
+# 
+# drivers/acpi/bus.c
+#   2004/08/12 02:39:43-04:00 nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org +2 -1
+#   Import patch maskevent.patch
+# 
+diff -Nru a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+--- a/drivers/acpi/bus.c	2004-08-12 20:49:37 -04:00
++++ b/drivers/acpi/bus.c	2004-08-12 20:49:37 -04:00
+@@ -283,6 +283,7 @@
+ DECLARE_WAIT_QUEUE_HEAD(acpi_bus_event_queue);
+ 
+ extern int			event_is_open;
++extern int			acpi_event_is_masked;
+ 
+ int
+ acpi_bus_generate_event (
+@@ -299,7 +300,7 @@
+ 		return_VALUE(-EINVAL);
+ 
+ 	/* drop event on the floor if no one's listening */
+-	if (!event_is_open)
++	if (!event_is_open || acpi_event_is_masked)
+ 		return_VALUE(0);
+ 
+ 	event = kmalloc(sizeof(struct acpi_bus_event), GFP_ATOMIC);
+diff -Nru a/drivers/acpi/event.c b/drivers/acpi/event.c
+--- a/drivers/acpi/event.c	2004-08-12 20:49:37 -04:00
++++ b/drivers/acpi/event.c	2004-08-12 20:49:37 -04:00
+@@ -17,7 +17,8 @@
+ 
+ /* Global vars for handling event proc entry */
+ static spinlock_t		acpi_system_event_lock = SPIN_LOCK_UNLOCKED;
+-int				event_is_open = 0;
++int				event_is_open;
++int				acpi_event_is_masked;
+ extern struct list_head		acpi_bus_event_list;
+ extern wait_queue_head_t	acpi_bus_event_queue;
+ 
+diff -Nru a/drivers/acpi/sleep/main.c b/drivers/acpi/sleep/main.c
+--- a/drivers/acpi/sleep/main.c	2004-08-12 20:49:37 -04:00
++++ b/drivers/acpi/sleep/main.c	2004-08-12 20:49:37 -04:00
+@@ -73,7 +73,7 @@
+  *	arch-specific assembly, which in turn call acpi_enter_sleep_state().
+  *	It's unfortunate, but it works. Please fix if you're feeling frisky.
+  */
+-
++extern int acpi_event_is_masked;
+ static int acpi_pm_enter(u32 pm_state)
+ {
+ 	acpi_status status = AE_OK;
+@@ -92,6 +92,7 @@
+ 
+ 	local_irq_save(flags);
+ 	acpi_enable_wakeup_device(acpi_state);
++	acpi_event_is_masked = 1;
+ 	switch (pm_state)
+ 	{
+ 	case PM_SUSPEND_STANDBY:
+@@ -142,6 +143,7 @@
+ 
+ 	acpi_leave_sleep_state(acpi_state);
+ 	acpi_disable_wakeup_device(acpi_state);
++	acpi_event_is_masked = 0;
+ 
+ 	/* reset firmware waking vector */
+ 	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
 
-------_=_NextPart_001_01C480CF.BFF7876F--
+--Boundary_(ID_zfyM/OFUDdEO1l5qcf1Kow)--
 
 
 -------------------------------------------------------
