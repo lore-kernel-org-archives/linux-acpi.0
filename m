@@ -1,14 +1,12 @@
-From: "Ow Mun Heng" <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
-Subject: RE: fan status not working with kernel 2.6.0-test11 for Acer Travelmate 803 LCI
-Date: Wed, 3 Dec 2003 11:36:14 +0800
+From: Arjen Verweij <sphere-4V0eaZAy+Mi7Qac5JyVuKSvJykC1LJ6w@public.gmane.org>
+Subject: [OT] message fails to reach list?
+Date: Wed, 3 Dec 2003 10:59:51 +0100 (CET)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <C386328088ED7F4E9F81AFBABDDF60DA03386820@wdmyexch02.my.asia.wdc.com>
+Message-ID: <Pine.LNX.4.10.10312031056450.19433-100000@vengeance.et.tudelft.nl>
+Reply-To: a.verweij-oe7qfRrRQfeEZXFvZSAUrfP6llvjuJOh@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,26 +15,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?iso-8859-1?Q?Herv=E9_Eychenne?= <rv-tT0dJoOmRgdg9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi,
 
+I submitted a bugreport like a good little hobbit, but I have yet to see
+it turn up. Is congestion like this normal? It's been about a day since I
+sent it.
 
-> -----Original Message-----
-> From: Yu, Luming [mailto:luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
-> Sent: Wednesday, December 03, 2003 11:23 AM
-> To: Ow Mun Heng; Herv=E9 Eychenne; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Subject: RE: [ACPI] fan status not working with kernel=20
-> 2.6.0-test11 for
-> Acer Travelmate 803 LCI
->=20
->=20
-> Would you please collect any useful information, and file it=20
-> on bugzilla.kernel.org in PM/ACPI category.
-> You need post dmesg, /proc/interrupts ...
+Don't be alarmed, I won't re-send the message yet, I'm just curious. If it
+doesn't pop up here tomorrow I'll re-send it
 
+Regards,
 
-Just downloaded the dmidecode stuffs and will do it..
+Arjen
+
 
 
 -------------------------------------------------------
