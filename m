@@ -1,13 +1,11 @@
-From: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
-Subject: Re: device states supported by current drivers
-Date: Mon, 11 Aug 2003 08:39:07 -0700 (PDT)
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: Re: cvs commit: src/sys/contrib/dev/acpica osunixxf.c (fwd)
+Date: Mon, 11 Aug 2003 08:40:38 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0308110834030.14998-100000@cherise>
-References: <3F375AE9.1080202@samsung.com>
+Message-ID: <20030811083953.M86598@root.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3F375AE9.1080202-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,41 +14,45 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bharata B Rao <rao.bharata-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Cc: Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+FYI.  I hope Intel includes this fix in next drop.
 
-> Ok, I can see that now. Thanks.
-> 
-> Two more dumb questions (sorry for asking them here in devel list)
+---------- Forwarded message ----------
+From: Nate Lawson <njl-HZy0K5TPuP5AfugRpC6u6w@public.gmane.org>
 
-Actually, these don't belong on the acpi list at all. You should be asking 
-them on the linux-kernel list, as they are driver model questions. :)
+njl         2003/08/10 22:54:31 PDT
 
-> 1. When a particular sleep state (S1 - S5) is entered via 
-> /proc/acpi/sleep, the devices are put to one of the D states (D0 - D3)
->  From the code (device_suspend, e100_suspend, pci_set_power_state), it 
-> looks like the sleep states (Sx) are directly translated to device 
-> states (Dx) when it comes to device suspend. i,e., when I say enter S2, 
-> it will lead to device entering to D2. Is this how it should be ?
+  FreeBSD src repository
 
-S2 is not supported on any platform that I've ever seen. But, if it ever 
-is, the spec says that devices may enter a low power state, but not 
-necesarily D3 (which is what is recommended for S3). By coincidence, the 
-states translate directly, but this is not the case on other platforms. 
+  Modified files:        (Branch: INTEL)
+    sys/contrib/dev/acpica osunixxf.c
+  Log:
+  Fix AcpiOsMapMemory to match the function definition.  Don't use UINT32
+  as a cast for a pointer.  Change has been submitted to the vendor.
 
-> 2. Is there no interface exported by ACPI to control the devices 
-> independently. i,e., can't I just control the power state of a device 
-> from user space ? Currently I can see it only happens via 
-> /proc/acpi/sleep, which is for controlling the entire system sleep state.
+  Pointed out by:         marcel, obrien
 
-For now, each device exports a 'power' file in their sysfs directory. The 
-interface is pretty bad, and I'm working on a better one as we speak..
+  Revision  Changes    Path
+  1.1.1.3   +2 -2      src/sys/contrib/dev/acpica/osunixxf.c
 
 
-	-pat
+--- src/sys/contrib/dev/acpica/osunixxf.c:1.1.1.2	Thu Aug  7 11:19:12 2003
++++ src/sys/contrib/dev/acpica/osunixxf.c	Sun Aug 10 22:54:31 2003
+@@ -452,10 +452,10 @@
+ ACPI_STATUS
+ AcpiOsMapMemory (
+     ACPI_PHYSICAL_ADDRESS   where,
+-    UINT32                  length,
++    ACPI_SIZE               length,
+     void                    **there)
+ {
+-    *there = (void *) (UINT32) where;
++    *there = (void *) (uintptr_t) where;
 
+     return AE_OK;
+ }
 
 
 -------------------------------------------------------
