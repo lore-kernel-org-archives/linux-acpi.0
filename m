@@ -1,15 +1,11 @@
-From: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>
-Subject: Re: Re: S4bios support for 2.5.63
-Date: Fri, 07 Mar 2003 07:40:42 +1300
+From: Kevin Kress <kkress-SERwydS1y29eoWH0uzbU5w@public.gmane.org>
+Subject: Dell DSDT patch request
+Date: 06 Mar 2003 11:54:43 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1046976042.1699.13.camel@laptop-linux.cunninghams>
-References: <20030306072229.GA750@budgie.we1.client2.attbi.com>
- <20030306074226.GC750@budgie.we1.client2.attbi.com>
+Message-ID: <1046980416.915.11.camel@quark>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-/Eg74E38BHzFTZaJYgxd"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <20030306074226.GC750-peapQs0eLv2IgHrOsx/gaWNy84NFWbr7VpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,26 +14,41 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ken Hughes <khughes-kam3zbT8ll8@public.gmane.org>
-Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2003-03-06 at 20:42, Ken Hughes wrote:
-> I also noticed that when the suspend works, the "freeing memory: ....."
-> messages prints out about 100 periods.  The first 20 or so come slowly,
-> then it zips through most of the others.  When it oops's, it prints out
-> about 15 or so periods before the panic.  This seems similar to what 
-> Bert was
-> saying in an earlier message:
 
-This is because of the algorithm being used. 2.5 swsusp currently tries
-to free as much memory as it can, and then writes the remainder to disk.
-Freeing the memory can take quite a while. A port of the 2.4 code is in
-progress (hopefully it will be accepted :>).
+--=-/Eg74E38BHzFTZaJYgxd
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Regards,
+I saw a message in the archives from mid Jan 03 about a fixed DSDT for a
+Dell notebook.  It mentioned that the patch worked for both a 82k and
+another C class notebook.  I am assuming that said DSDT is the one
+linked from the Wiki for fixed DSDTs.  Unfortunately that link is dead.=20
 
-Nigel
+The original message said it contained a patch to fix the DSDT, but the
+archive does not appear to hold onto the attachments.  Could someone
+either resend the attachments to me or if anyone knows who to contact,
+have the the link to the fixed DSDT repaired.
+
+Thanks in advance,
+
+--Kevin Kress
+
+--=-/Eg74E38BHzFTZaJYgxd
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
+
+iD8DBQA+Z6dAaosyXJKUkDIRAsfHAJ0aR+pI7n+s8PEaFrwhbC4l25oRLQCfW11U
+N4sBHEo9Wt+KDQogKFhumSc=
+=beWs
+-----END PGP SIGNATURE-----
+
+--=-/Eg74E38BHzFTZaJYgxd--
 
 
 
