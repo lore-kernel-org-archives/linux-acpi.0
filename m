@@ -1,14 +1,19 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: ACPI issues - suspend-to-ram and processor speed
-Date: Mon, 31 May 2004 10:47:01 +0200
+From: Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
+Subject: Re: 2.6 won't poweroff
+Date: Mon, 31 May 2004 10:39:56 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040531084701.GC24008@elf.ucw.cz>
-References: <200405180213.34603.andre@eisenbach.com> <200405280536.50261.andre@eisenbach.com> <20040529114512.GD25121@elf.ucw.cz> <200405302100.36915.andre@eisenbach.com>
+Message-ID: <16570.64876.505843.115161@aber.ac.uk>
+References: <20040525044514.GC2217@smeagol>
+	<Pine.LNX.4.60.0405251112580.1337@frog.athome>
+	<1085638695.17686.64.camel@dhcppc4>
+	<Pine.LNX.4.60.0405271714330.4143@frog.athome>
+	<20040527160436.GE2810@smeagol>
+	<Pine.LNX.4.60.0405271903070.4655@frog.athome>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200405302100.36915.andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.60.0405271903070.4655-KnfdeQs3A3X/9pzu0YdTqQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,46 +22,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andre Eisenbach <andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
+Cc: Emma Jane Hogbin <emmajane-MHIYrZpDPrNWk0Htik3J/w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org writes:
+ > -----BEGIN PGP SIGNED MESSAGE-----
+ > Hash: SHA1
+ > 
+ > Salut Emma & Fred,
+ > On Thu, 27 May 2004, Emma Jane Hogbin wrote:
+ > > I was thinking some more about this...I read somewhere that the 2.4 
+ > > kernel uses /proc events and the 2.6 kernel uses /sys events and that if 
+ > > you're using old scripts with a new kernel "halt" won't work because 
+ > > it's trying to turn off /proc events. Does that make sense? How would I 
+ > > know what my system is doing? (Debian unstable.)
+ > I would check the software as a last resort...
+ > 
+ > >> Emma, does your TM634 has the latest BIOS from Acer, i.e. R01-C0O?
+ > > I'm not sure how I'd check. :/
+ > On startup press F2 to enter the CMOS-Setup. There you will be on the page 
+ > Information, where you can find on the line, starting with
+ >   SystemBIOS version: V4.R6.1-C0O
+ > So no need to hurry Fred ;-))))
+ > 
 
-> Am Samstag Mai 29 2004 04:45 schrieb Pavel Machek:
-> > Can you get any data out of notebook? Like 8 leds on paralel port, pci
-> > card decoding port 0x80 etc? [That's where soldering iron might be
-> > usefull].
-> 
-> Yes, I can hook up the parallel port. Just let me know where we're gonna use 
-> it.
+Here's my version: V4R6.1 R01-C0O (same as everybody else apparently).
 
-Not yet, but something like that is neccessary for debugging wakeup
-phase.
+I installed a vanilla 2.6.6 with Hartwig's config file (after a "make
+oldconfig", no other modification), and it doesn't power off.
 
-> > > 7. --> Not even 1/2 second later, all off. Notebook is off. On/Off
-> > > LED off
-> >
-> > Easy. Insert infinite loop at begining of wakeup_start. If it hangs,
-> > you know it reached wakeup_start, and fix wakeup code. If it does not,
-> > we left hardware at "bad" (i.e. bios did not like it) state before
-> > suspend, fix suspend code. (Turn off APIC etc). [This is where your
-> > assembly skills come handy.]
-> 
-> I put an endless loop into wakeup_start. Nothing changed. Same behaviour. I 
-> also recompiled the kernel without APIC, but I'm not sure thats what you 
-> meant.
+So it's not the kernel.  What can it be?
 
-Okay, so problem is with suspend. Recompiling without APIC was good
-idea, see also tricks.txt what more you can do.
+For reference, I run gentoo.
 
-> Where do I find the suspend code?
+TIA,
 
-Its all around acpi, last thing it does is in
-drivers/acpi/hardware/hwsleep.c.
-									Pavel
--- 
-934a471f20d6580d5aad759bf0d97ddc
+Fred
+
 
 
 -------------------------------------------------------
