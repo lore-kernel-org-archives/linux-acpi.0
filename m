@@ -1,14 +1,16 @@
-From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Subject: Re: PBLK length again
-Date: Fri, 25 Jun 2004 13:51:04 +0200
+From: wwp <subscript-GANU6spQydw@public.gmane.org>
+Subject: Re: reading files in /proc/acpi hangs machine for a short
+ time
+Date: Fri, 25 Jun 2004 13:50:36 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40DC11A8.8060705@pca.it>
-References: <BAY16-F112kKIBXEHt30004aded@hotmail.com>	 <20040620154726.GT20511@parcelfarce.linux.theplanet.co.uk>	 <1087770015.23371.27.camel@djinn>  <40D73F9E.4030805@pca.it> <1087850404.2501.43.camel@camel>
+Message-ID: <20040625135036.23f487a0@localhost>
+References: <20040625082929.45335181@tethys.solarsys.org>
+	<opr95d74mf4evsfm@smtp.pacific.net.th>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1087850404.2501.43.camel-O4LVqDAXoJg@public.gmane.org>
+In-Reply-To: <opr95d74mf4evsfm-TBR8pM7LtsqkE96DxU8f+dAkNl5+tjhE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,84 +19,73 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hello Michael,
 
-Hello,
 
-on 06/21/04 22:40, Herman Sheremetyev wrote:
+On Fri, 25 Jun 2004 19:29:54 +0800 "Michael Frank" <mhf-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org> wrote:
 
-> From the research I've done I am fairly certain that 7 is not a legal
-> value but Asus insists on breaking the spec by sticking 5's and 7's in
-> PBLK length even though they mean 6, and Windows doesn't seem to mind.
-> There should be a way for Linux to deal with this too I think.
-I agree. And it seems that after having informed ASUS of this problem,
-they don't care about it  :-(
+> On Fri, 25 Jun 2004 08:29:29 +0200, wwp <subscript-GANU6spQydw@public.gmane.org> wrote:
+> 
+> > Hi there,
+> >
+> > many acpi programs that show the battery/etc. usage that I tested are making
+> > my system not to respond for a very short while, but periodically. For
+> > instance, the mouse is being locked for 1/n of a second, which is not a big
+> > loss of performance, but it really damn itchy for a normal (intensive) usage
+> > of my Dell Inspiron 8200 laptop (kernel 2.4.26). I do remember of some
+> > programs that were not producing such itchyness a long time ago (maybe
+> > because the kernel things were different?).
+> >
+> > I've found that if I some files from /proc/acpi (let's say battery state), I
+> > get the same behaviour.
+> >
+> > So my questions are:
+> > - is this a known issue?
+> > - program/kernel/dsdt/what-else issued?
+> > - are there known workarounds?
+> > - is it possible to get the acpi states from another place that /proc (if only it
+> > doesn't show the same problem)?
+> >
+> 
+> First figure out whether it is the PM app or ACPI.
+> 
+> 1) Disable all PM apps touching /proc/acpi.
+> 
+> 2) In a seperate terminal or VT run a script like
+> 
+> while :; do cat /proc/acpi/xxx/xxx/what_you_want_to_test > /dev/null; usleep 300000; done
+> 
+> Example sleeps 300ms (300000us) after every read, try various settings
+>  from as low as 100ms to 10s and see how you system behaves.
+> 
+> If you don't have usleep sleep will do in 1s increments...
+> 
+> Note also can try cat /proc/acpi/battery/*/*
+> 
+> Run it continuously in the background and hopefully the test will show problems
+> due to ACPI proc accesses. If not, the PM  apps are the problem - are these running
+> big scripts or impose high system load somehow?
 
->> ASAP I'll try your patch, just to confirm that it works on different
->> machines.
-> Cool, I run a "Linux on the M6N" forum so you can post your results
-> there as it probably doesn't need to be on this list:
->
-> http://mrhammy2.ath.cx:81/forum/viewtopic.php?t=85
-I know your site: it's there that I found that the ASUS M6N has an
-S3_bios. Anyway, I'm posting here the results:
-=====
-luca-HSB4nKSusd8@public.gmane.org:~$ cat /proc/acpi/processor/CPU1/*
-processor id:            0
-acpi id:                 1
-bus mastering control:   yes
-power management:        yes
-throttling control:      yes
-limit interface:         yes
-active limit:            P0:T0
-user limit:              P0:T0
-thermal limit:           P0:T0
-active state:            C2
-default state:           C1
-bus master activity:     00000000
-states:
-  C1:          promotion[C2] demotion[--] latency[000] usage[00088150]
- *C2:          promotion[--] demotion[C1] latency[099] usage[00399406]
-  C3:          <not supported>
-state count:             8
-active state:            T0
-states:
-   *T0:                  00%
-    T1:                  12%
-    T2:                  25%
-    T3:                  37%
-    T4:                  50%
-    T5:                  62%
-    T6:                  75%
-    T7:                  87%
-luca-HSB4nKSusd8@public.gmane.org:~$
-=====
+Thanks for your reply :-).
 
-> What this patch does is really no different from using a custom DSDT,
-> in the end you're still overriding the value the BIOS provides with
-> one that make sense to the OSPM system.  I'm definitely no expert on
-> this stuff but I would think a kernel based solution (granted it
-> should be nicer than my initial patch) is better than a DSDT based
-> one.  Having either a compile-time or boot-time option to accept other
-> values or maybe override the PBLK length would probably benefit a lot
-> of people with broken BIOS's.
-I agree, I prefer to not have a custom DSDT, but it's now always
-possible  :-(
+Excepted acpid 1.0.3, no (known) tool is playing with ACPI. When I run
+wmpower/wmacpi or some other ACPI-aware PM tools, or if I do cat
+/proc/acpi/battery/*/* by myself, then I can see the slowlyness (the period
+depends on the wmpower refresh rate, or how often I do cat /proc/acpi/...).
 
-Thx, bye,
-Gismo / Luca
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
+Without any of these attempts (wmpower or cat /proc/acpi/...), my system
+behaves normally. So it seems to me that accessing to files ini
+/proc/acpi/bla/bla from C code or script behaves the same, it slows down the
+machine for a very short while, because of CPU eating.
 
-iD8DBQFA3BGoVAp7Xm10JmkRAh0WAJ91cJ/hIGiFJnNOpzuRk1gjjAH39gCfRyiS
-mEIR/2T80FKJsvHVPx2yLFs=
-=Bfr7
------END PGP SIGNATURE-----
+
+Regards,
+
+-- 
+wwp
 
 
 -------------------------------------------------------
