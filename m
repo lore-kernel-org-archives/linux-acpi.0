@@ -1,8 +1,8 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: iasl source code
-Date: Tue, 24 Feb 2004 09:56:28 -0800
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: mobo A7V600-F and problems with sound
+Date: Tue, 24 Feb 2004 13:07:17 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A84702C932DE@orsmsx401.jf.intel.com>
+Message-ID: <BF1FE1855350A0479097B3A0D2A80EE00273BCA2@hdsmsx402.hd.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,29 +17,58 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: wwp <subscript-GANU6spQydw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Toni Erdmann <toni.erdmann-S0/GAf8tV78@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Whups, we'll fix that link.
+Toni,
+Try
 
-Regards -- Andy=20
+Category: Power Management
+Component: ACPI
 
-> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
-> [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of wwp
-> On Tue, 24 Feb 2004 16:28:01 +0100 Thomas Renninger=20
-> <mail-smMupaH/RwJM7kwft8N7nw@public.gmane.org> wrote:
->=20
-> > Hi,
-> >=20
-> > where can I find recent sources of the iasl compiler?
-> > The link on intel's site,=20
-> >=20
-> http://developer.intel.com/technology/iapc/acpi/downloads.htm to the=20
-> > unix sources is broken.
-> > Thanks.
->=20
-> I've got a copy from Dec 15 2003:=20
-> http://nanabozo.free.fr/mollux.org/lsai/
+To get it into bugzilla.  We'll take a look at it and re-assign as
+appropriate.
+=20
+
+>-----Original Message-----
+>From: Toni Erdmann [mailto:toni.erdmann-S0/GAf8tV78@public.gmane.org]=20
+>Sent: Tuesday, February 24, 2004 10:38 AM
+>To: Brown, Len
+>Cc: ACPI Developers
+>Subject: Re: [ACPI] mobo A7V600-F and problems with sound
+>
+>Len Brown wrote
+>
+>>go ahead and file the bug and make the tar-ball an attachment.
+>>
+>>would be good if you can try a 2.6.3 kernel, I don't really=20
+>know what is
+>>in suse's 2.4.21-166-athlon kernel.
+>>
+>>thanks,
+>>-Len
+>>
+>Hello,
+>
+>I tried to post a bug at bugzilla.kernel.org for 'sound' and 2.6.3 but=20
+>got an internal
+>error : "THE MAINTAINER HAS NOT YET BEEN SET" and
+>"A legal Archtecture was not set".
+>
+>Anyway, there's no hint in 'dmesg' for problems with ACPI, but=20
+>sound does
+>not work with 2.6.3 either.
+>
+>"ALSA sound/pci/via82xx.c:585: codec_read: codec 0 is not=20
+>valid [0xfe0000]"
+>
+>Same message (with 'codec_valid') appeard with 2.4.21-...
+>
+>Thnaks,
+>Toni
+>
+>
 
 
 -------------------------------------------------------
