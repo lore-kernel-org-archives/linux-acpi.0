@@ -1,52 +1,92 @@
-From: Avuton Olrich <avuton@gmail.com>
-Subject: Re: Call for help: list of machines with working S3
-Date: Thu, 3 Mar 2005 09:49:29 -0800
-Message-ID: <3aa654a405030309493236ec34@mail.gmail.com>
-References: <20050214211105.GA12808@elf.ucw.cz>
-Reply-To: Avuton Olrich <avuton@gmail.com>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Help! I lost my C4 states :-)
+Date: 03 Mar 2005 16:38:49 -0500
+Message-ID: <1109885929.2103.813.camel@d845pe>
+References: <20050221081225.GA10848@message-id.gmane0305.slipkontur.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <20050214211105.GA12808@elf.ucw.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@suse.cz>
-Cc: ACPI mailing list <acpi-devel@lists.sourceforge.net>, kernel list <linux-kernel@vger.kernel.org>, seife@suse.de, rjw@sisk.pl
+In-Reply-To: <20050221081225.GA10848-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 14 Feb 2005 22:11:05 +0100, Pavel Machek <pavel@suse.cz> wrote:
-> Table of known working systems:
+On Mon, 2005-02-21 at 03:12, Stefan Seyfried wrote:
+> Hi,
 > 
-> Model                           hack (or "how to do it")
-> ------------------------------------------------------------------------------
-> IBM TP R32 / Type 2658-MMG      none (1)
-> Athlon HP Omnibook XE3          none (1)
-> Compaq Armada E500 - P3-700     none (1) (S1 also works OK)
-> IBM t41p                        none (1)
-> Athlon64 desktop prototype      s3_bios (2)
-> HP NC6000                       s3_bios (2)
-> Toshiba Satellite 4080XCDT      s3_mode (3)
-> Toshiba Satellite 4030CDT       s3_mode (3)
-> Dell D600, ATI RV250            vga=normal (**)
-> Asus L2400D                     s3_mode (3)(***) (S1 also works OK)
-> Toshiba Satellite P10-554       s3_bios,s3_mode (4)(****)
-> Acer TM 800                     vga=normal, X patches, see webpage (5)
-> Athlon64 Arima W730a            vbestate needed (6)
-> eMachines athlon64 machines     vbestate needed (6) (someone please get me model #s)
+> Just curious:
+> i'm tracking Linus-bk-head quite closely. In (late?) January,
+> i was able to get my DELL D600 into C4. It worked fine and it
+> even got me an estimated 15-30 extra minutes out of the battery
+> (usually it lasts ~3.5 hours, the projected time with C4 was more
+> like almost 4 hours). Although this is great (it is more than i
+> ever got from laptop_mode and spinning down the harddisk), it
+> suddenly stopped working in February. Now the machine almost
+> always stays in C2, it hardly enters C3 or C4.
 > 
-> (**) Text console is "strange" after resume. Backlight is switched on again
->      by the X server. X server is:
->      | X Window System Version 6.8.1.904 (6.8.2 RC 4)
->      | Release Date: 2 February 2005
->      | X Protocol Version 11, Revision 0, Release 6.8.1.904
->      | Build Operating System: SuSE Linux [ELF] SuSE
->      as present in SUSE 9.3preview3.
+> seife@strolchi:~> cat /proc/acpi/processor/CPU0/power
+> active state:            C2
+> max_cstate:              C8
+> bus master activity:     10000500
+> states:
+>     C1:                  type[C1] promotion[C2] demotion[--] latency[001] usage[00000010]
+>    *C2:                  type[C2] promotion[C3] demotion[C1] latency[001] usage[107659165]
+>     C3:                  type[C3] promotion[C4] demotion[C2] latency[085] usage[03505424]
+>     C4:                  type[C3] promotion[--] demotion[C3] latency[185] usage[06231087]
 > 
-> (***) To be tested with a newer kernel.
+> There is always some bus master activity which i have not been able to track
+> down. I tried unloading almost all modules, but it did not help. Of course
+> there is no sound running, no USB mouse attached etc. I have quiesced the
+> harddisk with laptop_mode and mounting filesystems noatime and commit=300.
 > 
-> (****) Not with SMP kernel, UP only.
+> The only thing that i can think of what has changed in my setup is that we
+> changed to modular IDE device drivers, but i cannot really imagine how that
+> would produce more bus master activity.
+> 
+> Any hints on how to track down what is causing bus master activity all the
+> time?
+> Has the calculation algorithm changed? Any default settings i could tweak?
 
-Toshiba Libretto L5 works completely with S3, not with S1 when the
-ali5451 ALSA module is unloaded.
+Did you notice a battery life decrease with this decrease in C4
+residency?
 
--- 
-  Anyone who quotes me in their sig is an idiot. -- Rusty Russell.
+On January 20th we pushed Dominik's jiffies based bm_activity patch
+in drivers/acpi/processor_idle.c  You might find that backing out
+that file a couple of revisions restores the previous behaviour.
+
+Just after that, I added a tunable that you can tweak --
+with 1000 HZ, its default is all bits enabled, but
+you can reduce this bit mask to make the driver
+ignore less recent history:
+
+# echo 0 > /sys/module/processor/parameters/bm_history
+
+Will cause the processor driver to ignore the bus master activity
+completely.  Note that this could cause a performance hit if
+there is BM activity since will just pop the system out of C4
+and no instructions are executed during the transition out of C4.
+
+cheers,
+-Len
+
+ps.
+If you're tracking battery life, I'd be interested to know if
+you notice a difference between when you build with HZ=100 and HZ=1000.
+
+
+
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
