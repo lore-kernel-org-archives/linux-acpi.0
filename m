@@ -1,14 +1,14 @@
-From: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
-Subject: RE: Re: Re: DSDT in initrd
-Date: 22 May 2003 12:40:52 +0100
+From: sjb <ottaky-XuTx12Z7TonQT0dZR+AlfA@public.gmane.org>
+Subject: Re: best acpi solution
+Date: Thu, 22 May 2003 14:03:56 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1053603651.2541.10.camel@dhcp22.swansea.linux.org.uk>
-References: <F760B14C9561B941B89469F59BA3A84725A2B3@orsmsx401.jf.intel.com>
+Message-ID: <3ECCD8CC.80704@ottaky.com>
+References: <3ECB3CE2.5000400@ottaky.com> <01db01c31f90$84ae6840$3746028e@bio.dfo.ca> <3ECB8ADF.5020108@ottaky.com> <20030521142117.GX346@poupinou.org> <3ECB9BB8.9070700@ottaky.com> <20030521150233.GY346@poupinou.org> <3ECBA777.9090100@ottaky.com> <20030521154428.GZ346@poupinou.org> <3ECBB096.3070207@ottaky.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <F760B14C9561B941B89469F59BA3A84725A2B3-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
+In-Reply-To: <3ECBB096.3070207-XuTx12Z7TonQT0dZR+AlfA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,56 +17,87 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Iau, 2003-05-22 at 08:48, Grover, Andrew wrote:
-> can load individual modules. The limitations of lilo should not be taken
-> to be the limitations of all boot loaders. lilo is the lowest common
-> denominator loader, and while we want Linux to work with it, Linux could
-> work *better* if we took advantage of grub's additional capabilities.
+Thanks to everyone who helped out with my question from yestrday.
 
-On a lot of non x86 platforms Lilo is considerably more featureful.
-Initrd basically exists as a way to take an arbitary bootloader and feed
-it stuff. In some cases the tools even nail the initrd onto the end of
-the binary because the boot loader isnt smart enough to load.
+Following the suggestions, I'm trying to build a new kernel based on 
+Alan Cox's patches to 2.4.21-rc2
 
-> What this enables is not only an elimination of the hassle of initrd, it
-> enables previously unmodularizable things like ACPI, or PCI, or all the
-> special code needed for x86 subarchs, or whatever other code that one
-> machine needs (highmem?) but that most do not to now be modularized.
+Everything goes fine until I try to make the modules, when I get the 
+attached error.
 
-I'm not sure it does. A lot of the stuff like handling multiple system
-variants requires you are able to handle all of them until you reach a 
-point where you know the one you want. 
+I know this isn't striclty an ACPI question, but I guess many of you 
+have been down this route before so I thought I'd ask here in case 
+somebody had seen this before.
 
-Modularisation is the key but I suspect we actually want to turn the
-problem inside out. If for example all the ACPI stuff was linked into an
-acpi.text and acpi.data section then we can boot, having established we
-don't need acpi we can eject acpi just like we eject __init code.
+My gcc version is
 
-> Having the modules specified individually to the bootloader makes things
-> simpler.
+linux:/usr/src/linux # gcc -v
+Reading specs from /usr/lib/gcc-lib/i486-suse-linux/3.3/specs
+Configured with: ../configure --enable-threads=posix --prefix=/usr 
+--with-local-prefix=/usr/local --infodir=/usr/share/info 
+--mandir=/usr/share/man --libdir=/usr/lib 
+--enable-languages=c,c++,f77,objc,java,ada --disable-checking 
+--enable-libgcj --with-gxx-include-dir=/usr/include/g++ 
+--with-slibdir=/lib --with-system-zlib --enable-shared 
+--enable-__cxa_atexit i486-suse-linux
+Thread model: posix
+gcc version 3.3 20030226 (prerelease) (SuSE Linux)
 
-Whats the difference between feedling the list to the bootloader or to
-mkinitrd ?
+Any help gratefully received since I'm now almost there ;-)
 
-> Having an in-kernel linker lets previously unmodularizable code be
-> modularized.
-
-Definitely - and Rusty has done that for 2.5.x
-
-> see ACPI worsening the problem. What if I'm not installing on an ACPI
-> system? Now either a) My distro has an ACPI and non-ACPI kernel image
-> and installed the right one or b) I've got unused code sitting in RAM,
-> useless. But it's not just ACPI. I can think of a ton of different
-> kernel options that may cause distros to generate a combinatorial number
-> of kernel images. Yuck.)
+sjb
 
 
-The big causes are SMP and CPU specific optimisation stuff. Those are
-much harder to handle than the ACPI one.
+
+make -C atm modules
+make[2]: Entering directory `/usr/src/linux-2.4.21-rc2-ac2/drivers/atm'
+gcc -D__KERNEL__ -I/usr/src/linux-2.4.21-rc2-ac2/include -Wall 
+-Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common 
+-fomit-frame-pointer -pipe -mpreferred-stack-boundary=2 -march=i686 
+-malign-functions=0 -malign-jumps=0 -malign-loops=0 -DMODULE 
+-DMODVERSIONS -include 
+/usr/src/linux-2.4.21-rc2-ac2/include/linux/modversions.h -g -nostdinc 
+-iwithprefix include -DKBUILD_BASENAME=ambassador  -c -o ambassador.o 
+ambassador.c
+cc1: warning: -malign-loops is obsolete, use -falign-loops
+cc1: warning: -malign-jumps is obsolete, use -falign-jumps
+cc1: warning: -malign-functions is obsolete, use -falign-functions
+In file included from 
+/usr/src/linux-2.4.21-rc2-ac2/include/linux/atmdev.h:212,
+                  from ambassador.c:31:
+/usr/src/linux-2.4.21-rc2-ac2/include/linux/skbuff.h: In function 
+`__pskb_pull':
+/usr/src/linux-2.4.21-rc2-ac2/include/linux/skbuff.h:855: warning: 
+comparison between signed and unsigned
+/usr/src/linux-2.4.21-rc2-ac2/include/linux/skbuff.h: In function 
+`pskb_may_pull':
+/usr/src/linux-2.4.21-rc2-ac2/include/linux/skbuff.h:871: warning: 
+comparison between signed and unsigned
+In file included from ambassador.c:31:
+/usr/src/linux-2.4.21-rc2-ac2/include/linux/atmdev.h: In function 
+`atm_may_send':
+/usr/src/linux-2.4.21-rc2-ac2/include/linux/atmdev.h:450: warning: 
+comparison between signed and unsigned
+ambassador.c:301:21: pasting "." and "start" does not give a valid 
+preprocessing token
+ambassador.c:305:23: pasting "." and "regions" does not give a valid 
+preprocessing token
+ambassador.c:310:20: pasting "." and "data" does not give a valid 
+preprocessing token
+ambassador.c: At top level:
+/usr/src/linux-2.4.21-rc2-ac2/include/linux/module.h:299: warning: 
+`__module_kernel_version' defined but not used
+/usr/src/linux-2.4.21-rc2-ac2/include/linux/module.h:302: warning: 
+`__module_using_checksums' defined but not used
+ambassador.c:2588: warning: `__module_license' defined but not used
+make[2]: *** [ambassador.o] Error 1
+make[2]: Leaving directory `/usr/src/linux-2.4.21-rc2-ac2/drivers/atm'
+make[1]: *** [_modsubdir_atm] Error 2
+make[1]: Leaving directory `/usr/src/linux-2.4.21-rc2-ac2/drivers'
+make: *** [_mod_drivers] Error 2
 
 
 
