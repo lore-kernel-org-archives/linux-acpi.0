@@ -1,37 +1,104 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Code obfuscation in acpi
-Date: Sat, 18 Jan 2003 23:39:59 +0100
+From: Adrian Bunk <bunk-cg1h10c7RbKzQB+pC5nmwQ@public.gmane.org>
+Subject: [2.5 patch] ACPI: remove #include <linux/compatmac.h>'s
+Date: Sun, 19 Jan 2003 11:15:57 +0100
 Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20030118223958.GC21720@atrey.karlin.mff.cuni.cz>
-References: <20030118213134.GA8968@elf.ucw.cz> <20030118223210.GA31860@gtf.org>
+Message-ID: <20030119101557.GZ10647@fs.tum.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20030118223210.GA31860-bB7D8CACdjo@public.gmane.org>
-To: Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+In 2.5.59 eight ACPI files #include <linux/compatmac.h> but none of them 
+uses anything from this header file.
 
-> > #define acpi_driver_data(d)     ((d)->driver_data)
-> > 
-> > ... very nice for obfuscating code ...
-> 
-> sysfs-based buses use <foo>_{get,set}_drvdata, which looks exactly the
-> same as this here.
+The patch below removes these #include <linux/compatmac.h>'s.
 
-I think such wrappers are really bad idea, see for example this: I
-thought "what kind of cleverness is going on here,", and it was very
-simple in fact.
+I've tested the compilation with 2.5.59.
 
-        else {
-                entry->proc_fops = &acpi_thermal_state_fops;
-                entry->data = acpi_driver_data(device);
-        }
+Please apply
+Adrian
 
 
--- 
-Casualities in World Trade Center: ~3k dead inside the building,
-cryptography in U.S.A. and free speech in Czech Republic.
+--- linux-2.5.59-full/drivers/acpi/button.c.old	2003-01-19 11:08:47.000000000 +0100
++++ linux-2.5.59-full/drivers/acpi/button.c	2003-01-19 11:08:56.000000000 +0100
+@@ -27,7 +27,6 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/types.h>
+-#include <linux/compatmac.h>
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
+ #include "acpi_bus.h"
+--- linux-2.5.59-full/drivers/acpi/fan.c.old	2003-01-19 11:08:57.000000000 +0100
++++ linux-2.5.59-full/drivers/acpi/fan.c	2003-01-19 11:09:05.000000000 +0100
+@@ -27,7 +27,6 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/types.h>
+-#include <linux/compatmac.h>
+ #include <linux/proc_fs.h>
+ #include "acpi_bus.h"
+ #include "acpi_drivers.h"
+--- linux-2.5.59-full/drivers/acpi/ac.c.old	2003-01-19 11:09:05.000000000 +0100
++++ linux-2.5.59-full/drivers/acpi/ac.c	2003-01-19 11:09:13.000000000 +0100
+@@ -27,7 +27,6 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/types.h>
+-#include <linux/compatmac.h>
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
+ #include "acpi_bus.h"
+--- linux-2.5.59-full/drivers/acpi/power.c.old	2003-01-19 11:09:14.000000000 +0100
++++ linux-2.5.59-full/drivers/acpi/power.c	2003-01-19 11:09:21.000000000 +0100
+@@ -27,7 +27,6 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/types.h>
+-#include <linux/compatmac.h>
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
+ #include "acpi_bus.h"
+--- linux-2.5.59-full/drivers/acpi/ec.c.old	2003-01-19 11:09:22.000000000 +0100
++++ linux-2.5.59-full/drivers/acpi/ec.c	2003-01-19 11:09:29.000000000 +0100
+@@ -28,7 +28,6 @@
+ #include <linux/init.h>
+ #include <linux/types.h>
+ #include <linux/delay.h>
+-#include <linux/compatmac.h>
+ #include <linux/proc_fs.h>
+ #include <asm/io.h>
+ #include "acpi_bus.h"
+--- linux-2.5.59-full/drivers/acpi/processor.c.old	2003-01-19 11:09:30.000000000 +0100
++++ linux-2.5.59-full/drivers/acpi/processor.c	2003-01-19 11:09:38.000000000 +0100
+@@ -38,7 +38,6 @@
+ #include <asm/io.h>
+ #include <asm/system.h>
+ #include <asm/delay.h>
+-#include <linux/compatmac.h>
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
+ #include "acpi_bus.h"
+--- linux-2.5.59-full/drivers/acpi/battery.c.old	2003-01-19 11:09:38.000000000 +0100
++++ linux-2.5.59-full/drivers/acpi/battery.c	2003-01-19 11:09:46.000000000 +0100
+@@ -27,7 +27,6 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/types.h>
+-#include <linux/compatmac.h>
+ #include <linux/proc_fs.h>
+ #include "acpi_bus.h"
+ #include "acpi_drivers.h"
+--- linux-2.5.59-full/drivers/acpi/thermal.c.old	2003-01-19 11:09:46.000000000 +0100
++++ linux-2.5.59-full/drivers/acpi/thermal.c	2003-01-19 11:09:54.000000000 +0100
+@@ -35,7 +35,6 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/types.h>
+-#include <linux/compatmac.h>
+ #include <linux/proc_fs.h>
+ #include <linux/sched.h>
+ #include <linux/kmod.h>
