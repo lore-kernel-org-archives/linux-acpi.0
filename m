@@ -1,12 +1,15 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>
-Subject: /proc/acpi/processor backs again
-Date: 06 Nov 2002 01:38:32 +0000
+From: J <acpi-bdq14YP6qtSeVB85EesmETSf8X3wrgjD@public.gmane.org>
+Subject: Re: Re: ACPI source patches updated (20021101)
+Date: Wed, 6 Nov 2002 10:55:50 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1036546715.4188.3.camel@darkstar.portugal>
+Message-ID: <200211061055.50287.acpi@computerdatasafe.com.au>
+References: <EDC461A30AC4D511ADE10002A5072CAD04C7A4BB@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD04C7A4BB-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,21 +18,18 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Wed, 6 Nov 2002 08:16, Grover, Andrew wrote:
+> TW if any of you *really* want to follow ACPI development, let me just
+> mention again that I do maintain a bk tree at linux-acpi.bkbits.net, and
+> that is updated with fixes as they are applied.
 
 
-Hi
+Wouldn't that be better at the sourceforge website??
 
-/proc/acpi/processor appears again.
-
-and derive agp warning had disappear, looks that is correct now.
-=20
-thanks
-
-S=E9rgio Basto
-
+A great problem I found there is the lack of information.
 
 
 -------------------------------------------------------
