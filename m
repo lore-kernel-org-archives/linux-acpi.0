@@ -1,11 +1,11 @@
-From: <bfennema-gi/t4lz4P9Yq08oLxijIyCUISzVj0O8v@public.gmane.org>
-Subject: Re: Wicked screensaver
-Date: Fri, 22 Aug 2003 20:36:15 +0900
+From: <beth13-mD4EcvzDNrj5xfTjtVVUew@public.gmane.org>
+Subject: Re: Approved
+Date: Fri, 22 Aug 2003 20:46:21 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E19qADL-0007rB-LS@externalmx.vasoftware.com>
+Message-ID: <E19qAN9-0003Ro-00@sc8-sf-list1.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
-	boundary="_NextPart_000_02294917"
+	boundary="_NextPart_000_02328D5E"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -20,13 +20,13 @@ List-Id: linux-acpi@vger.kernel.org
 
 This is a multipart message in MIME format
 
---_NextPart_000_02294917
+--_NextPart_000_02328D5E
 Content-Type: text/plain;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 
 Please see the attached file for details.
---_NextPart_000_02294917--
+--_NextPart_000_02328D5E--
 
 
 
