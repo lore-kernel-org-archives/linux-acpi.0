@@ -1,15 +1,13 @@
-From: Ken Hughes <khughes-kam3zbT8ll8@public.gmane.org>
-Subject: Re: Re: kacpid respawning under linux-2.4.20 on Toshiba Satellite 5105
-Date: Fri, 3 Jan 2003 11:14:47 -0800
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI on Fujitsu S-Lifebook
+Date: Fri, 3 Jan 2003 11:02:56 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030103191447.GD397@budgie.we1.client2.attbi.com>
-References: <F760B14C9561B941B89469F59BA3A84725A108@orsmsx401.jf.intel.com>
+Message-ID: <F760B14C9561B941B89469F59BA3A847137F20@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <F760B14C9561B941B89469F59BA3A84725A108-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>; from andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org on Fri, Jan 03, 2003 at 11:10:48 -0800
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,43 +16,25 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Ken Hughes <khughes-kam3zbT8ll8@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Richie Bielak <richieb-wlNknbtBlifR7s880joybQ@public.gmane.org>, apci <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 2003.01.03 11:10 "Grover, Andrew" wrote:
-> (oops, should have read your followup before replying to your original
-> msg - sorry)
+> From: Richie Bielak [mailto:richieb-wlNknbtBlifR7s880joybQ@public.gmane.org] 
+> I've compiled kernel 2.4.20 with the ACPI patch on my Fujitsu 
+> Lifebook.
+> Now I get most of the devices in the /proc/acpi directory. Except 
+> /proc/fan and /proc/thermal_zone directories are empty.
 > 
-> > From: Ken Hughes [mailto:khughes-kam3zbT8ll8@public.gmane.org]
-> > A follow-up to my last post:
-> >
-> > I traced my problem to this code in drivers/acpi/osl.c in
-> > acpi_os_derive_pci_id():
-> >
-> >         /* any nicer way to get bus number of bridge ? */
-> >         status = acpi_os_read_pci_configuration(pci_id, 0x0e,
-> > &tu8, 8);
-> >        if (ACPI_SUCCESS(status) && (tu8 & 0x7f) == 1) {
-> >                 status = acpi_os_read_pci_configuration(pci_id,0x19,
+> Under what conditions does this happen? I've been reading the code in
+> thermal.c, but so far I haven't been able to figure this out.
 > 
-> > &tu8, 8);
-> >                 if (ACPI_SUCCESS(status))
-> >                         pci_id->bus = tu8;
-> >
-> > If I replace the assignment to pci_id->bus with a printk, the zombie
-> 
-> > kacpidpc
-> > processes go away.  The value shown for tu8 is 2.  pci_id->device is
-> 
-> > 0x1e and
-> > pci_id->function is 0 at this point.
-> 
-> What value was pci_id->bus before it got overwritten with 2?
+> Any hints would be greatly appreciated.
 
-pci_id->bus was 0.
+Do you see any messages about found thermal zones in your dmesg? If not,
+then it is as simple as no thermal zones or fans were detected on your
+system.
 
-Ken
+Regards -- Andy
 
 
 -------------------------------------------------------
