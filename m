@@ -1,16 +1,13 @@
-From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
-Subject: Re: Radeon PM Support
-Date: Thu, 5 Aug 2004 21:53:25 +0200
+From: Rene Mayrhofer <rene.mayrhofer-xxJj0ogZBuJ4Lj/PQRBjDg@public.gmane.org>
+Subject: 2.4.27 usb uhci: 'usb_control/bulk_msg: timeout' when agpgart loaded
+ (ACPI problem?)
+Date: Sun, 15 Aug 2004 13:31:11 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200408052153.25467.stefandoesinger@gmx.at>
-References: <1091139240.26511.9.camel@6-allhosts> <200408051453.55710.stefandoesinger@gmx.at> <200408051914.39445.anib@anib.de>
-Reply-To: stefandoesinger-RbZlAiThDcE@public.gmane.org
+Message-ID: <411F497F.1090608@gibraltar.at>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_1ApEByUb7ileMU1"
+Content-Type: multipart/mixed;
+ boundary="------------050706000207050103030600"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200408051914.39445.anib-La3J9u0raUk@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -19,5756 +16,1847 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: anib-La3J9u0raUk@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------050706000207050103030600
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
---Boundary-00=_1ApEByUb7ileMU1
+Hi all,
+
+[This has been posted to LKML a few days ago, but it was probably just
+background noise there. This list seems more appropriate. Please CC me
+in replies, I am currently not subscribed to this list.]
+
+Since about a month, I have severe issues with a cable modem connected
+via USB, which behaves like an ethernet-on-USB adapter with the CDCEther
+module. It worked for a couple of months without issues with 2.4.23 and
+2.4.26, but makes problems since the update to 2.4.27. Downgrading to
+the previous kernels did not help, so I suspect a changed IRQ routing
+caused by a reboot or due to the 2.4.27 update.
+
+The problem manifests itself by the following syslog messages:
+
+Aug 13 10:32:00 whisper kernel: usb_control/bulk_msg: timeout
+Aug 13 10:32:35 whisper kernel: usb_control/bulk_msg: timeout
+Aug 13 10:35:30 whisper kernel: usb_control/bulk_msg: timeout
+Aug 13 10:51:08 whisper kernel: usb_control/bulk_msg: timeout
+Aug 13 10:55:58 whisper kernel: usb_control/bulk_msg: timeout
+
+whenever some transfer happens over the modem. During the first few
+hours after reboot, the messages seem harmless, but when running for a
+longer time the network interface (eth2 in this case) usually becomes
+unavailable and only a complete re-initialization of the USB subsystem
+by removing and modprobing all modules solves the issue.
+
+After 2 weeks I have tracked the problem down to the usage of the
+agpgart module. When I boot the system without this module being loaded
+(and consequently without X running), the messages do not appear and the
+modem connection is stable. As soon as agpgart is loaded with
+
+modprobe agpgart agp_try_unsupported=1
+
+and X is started, the syslog messages start coming (also when no X
+application actually changes the display output, it just sits there).
+
+Interestingly, when I stop X, the messages do not appear any more,
+although agpgart is still loaded. Currently, it seems like an interrupt
+conflict between the AGP and USB controllers.
+
+[root@whisper ~]# cat /proc/interrupts
+             CPU0
+    0:     962727          XT-PIC  timer
+    1:         10          XT-PIC  keyboard
+    2:          0          XT-PIC  cascade
+    8:          3          XT-PIC  rtc
+    9:          0          XT-PIC  acpi
+   10:          0          XT-PIC  usb-uhci, eth1
+   11:     722702          XT-PIC  usb-uhci, eth0
+   12:          0          XT-PIC  usb-uhci, via82cxxx
+   14:      18553          XT-PIC  ide0
+   15:      12351          XT-PIC  ide1
+NMI:          0
+LOC:          0
+ERR:          0
+MIS:          0
+
+Doesn't show the IRQ of the AGP controller, so I am not sure. During
+initialization, the agpart module also doesn't tell:
+
+Linux agpgart interface v0.99 (c) Jeff Hartmann
+agpgart: Maximum main memory to use for agp memory: 409M
+agpgart: Detected Via CLE266 chipset
+agpgart: AGP aperture is 128M @ 0xd0000000
+mtrr: 0xd8000000,0x2000000 overlaps existing 0xd8000000,0x800000
+[drm] Initialized via 1.3.0 20040411 on minor 0: PCI device 1106:3122
+mtrr: 0xd8000000,0x2000000 overlaps existing 0xd8000000,0x800000
+
+The board is a VIA EPIA M-6000 with the following PCI config:
+
+[root@whisper ~]# lspci
+00:00.0 Host bridge: VIA Technologies, Inc.: Unknown device 3123
+00:01.0 PCI bridge: VIA Technologies, Inc. VT8633 [Apollo Pro266 AGP]
+00:0d.0 FireWire (IEEE 1394): VIA Technologies, Inc. OHCI Compliant IEEE
+1394 Host Controller (rev 80)
+00:10.0 USB Controller: VIA Technologies, Inc. UHCI USB (rev 80)
+00:10.1 USB Controller: VIA Technologies, Inc. UHCI USB (rev 80)
+00:10.2 USB Controller: VIA Technologies, Inc. UHCI USB (rev 80)
+00:10.3 USB Controller: VIA Technologies, Inc.: Unknown device 3104 (rev 82)
+00:11.0 ISA bridge: VIA Technologies, Inc.: Unknown device 3177
+00:11.1 IDE interface: VIA Technologies, Inc. Bus Master IDE (rev 06)
+00:11.5 Multimedia audio controller: VIA Technologies, Inc. AC97 Audio
+Controller (rev 50)
+00:12.0 Ethernet controller: VIA Technologies, Inc. Ethernet Controller
+(rev 74)
+00:14.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL-8139
+(rev 10)
+01:00.0 VGA compatible controller: VIA Technologies, Inc.: Unknown
+device 3122 (rev 03)
+
+ACPI is used, but I have tried each of the kernel options
+acpi=off
+pci=noacpi
+pci=biosirq
+with no change. The kernel is a vanilla 2.4.27 with the -epia1 patch
+and, for testing, also the most recent ACPI4linux patch (which seems
+rather minor) for 2.4.27-pre<something>.
+
+Attached are the dmesg log after bootup, lsmod output (with modules
+loaded where it always works) and the kernel config.
+
+Any ideas on what's up ? ACPI ? I have not yet tried to set the IRQ
+routing manually in the BIOS, because the options there are rather
+restricted and I'm not sure that it would help.
+
+with best regards,
+Rene
+
+
+--------------050706000207050103030600
 Content-Type: text/plain;
-  charset="iso-8859-1"
+ name="config-2.4.27-epia1"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Content-Disposition: inline;
+ filename="config-2.4.27-epia1"
 
-Am Donnerstag, 5. August 2004 19:14 schrieb Alexander Bruder:
-> it also happends for the 80x series (in my case 801Lcib) with ATI
-> Technologies Inc Radeon R250 Lf [Radeon Mobility 9000] using the
-> framebuffer.
-I use an Acer TM 803.....
-Suspend to RAM works with user mode VGA ROM post.
+#
+# Automatically generated by make menuconfig: don't edit
+#
+CONFIG_X86=y
+# CONFIG_SBUS is not set
+CONFIG_UID16=y
 
-Just a short HOWTO(based on kernel 2.6.8-rc2 + recent acpi patch from 
-acpi.sf.net):
-*Apply the resume-finish-split patch to the kernel.
-*Use the attached dsdt(see acpi.sf.net how to do this)
-*the boot-radeon.c program can ROM-post the radeon card(compile with gcc 
-boot-radeon.c -o boot-radeon -llrmi) You need the lrmi libs+headers. Call it 
-after resuming from S3. You have to call it from console. If you use X, you 
-can do this:
-chvt 1
-boot-radeon
-chvt 7
+#
+# Code maturity level options
+#
+CONFIG_EXPERIMENTAL=y
 
-Before going to S3 you'll have to unload ehci-hcd. All other drivers may 
-remain loaded.
+#
+# Loadable module support
+#
+CONFIG_MODULES=y
+# CONFIG_MODVERSIONS is not set
+CONFIG_KMOD=y
 
-The things that do not work properly:
-*VGA resume with radeonfb, the most annoying problem
-*sending ehci-hcd to suspend fails. uhci works
-*restoring irq routing on resume. That's what the modified dsdt is for. It 
-forces the wlan card to use IRQ10 instead of IRQ11.
+#
+# Processor type and features
+#
+# CONFIG_M386 is not set
+# CONFIG_M486 is not set
+# CONFIG_M586 is not set
+# CONFIG_M586TSC is not set
+# CONFIG_M586MMX is not set
+# CONFIG_M686 is not set
+# CONFIG_MPENTIUMIII is not set
+# CONFIG_MPENTIUM4 is not set
+# CONFIG_MK6 is not set
+# CONFIG_MK7 is not set
+# CONFIG_MK8 is not set
+# CONFIG_MELAN is not set
+# CONFIG_MCRUSOE is not set
+# CONFIG_MWINCHIPC6 is not set
+# CONFIG_MWINCHIP2 is not set
+# CONFIG_MWINCHIP3D is not set
+CONFIG_MCYRIXIII=y
+# CONFIG_MVIAC3_2 is not set
+CONFIG_X86_WP_WORKS_OK=y
+CONFIG_X86_INVLPG=y
+CONFIG_X86_CMPXCHG=y
+CONFIG_X86_XADD=y
+CONFIG_X86_BSWAP=y
+CONFIG_X86_POPAD_OK=y
+# CONFIG_RWSEM_GENERIC_SPINLOCK is not set
+CONFIG_RWSEM_XCHGADD_ALGORITHM=y
+CONFIG_X86_L1_CACHE_SHIFT=5
+CONFIG_X86_HAS_TSC=y
+CONFIG_X86_ALIGNMENT_16=y
+CONFIG_X86_USE_3DNOW=y
+CONFIG_X86_USE_PPRO_CHECKSUM=y
+CONFIG_X86_F00F_WORKS_OK=y
+CONFIG_X86_MCE=y
 
-Stefan
+#
+# CPU Frequency scaling
+#
+CONFIG_CPU_FREQ=y
+CONFIG_CPU_FREQ_TABLE=y
+CONFIG_CPU_FREQ_PROC_INTF=y
+CONFIG_CPU_FREQ_GOV_USERSPACE=y
+CONFIG_CPU_FREQ_GOV_LONGHAUL=m
+CONFIG_CPU_FREQ_24_API=y
+# CONFIG_X86_POWERNOW_K6 is not set
+# CONFIG_X86_POWERNOW_K7 is not set
+# CONFIG_X86_POWERNOW_K8 is not set
+CONFIG_X86_LONGHAUL=m
+# CONFIG_X86_SPEEDSTEP_PIIX4 is not set
+# CONFIG_X86_SPEEDSTEP_SMI is not set
+# CONFIG_X86_SPEEDSTEP_ICH is not set
+# CONFIG_X86_SPEEDSTEP_CENTRINO is not set
+# CONFIG_X86_P4_CLOCKMOD is not set
+# CONFIG_X86_LONGRUN is not set
+# CONFIG_X86_GX_SUSPMOD is not set
+# CONFIG_TOSHIBA is not set
+# CONFIG_I8K is not set
+CONFIG_MICROCODE=m
+CONFIG_X86_MSR=m
+CONFIG_X86_CPUID=m
+CONFIG_EDD=m
+CONFIG_NOHIGHMEM=y
+# CONFIG_HIGHMEM4G is not set
+# CONFIG_HIGHMEM64G is not set
+# CONFIG_HIGHMEM is not set
+# CONFIG_MATH_EMULATION is not set
+CONFIG_MTRR=y
+# CONFIG_SMP is not set
+CONFIG_X86_UP_APIC=y
+CONFIG_X86_UP_IOAPIC=y
+CONFIG_X86_LOCAL_APIC=y
+CONFIG_X86_IO_APIC=y
+# CONFIG_X86_TSC_DISABLE is not set
+CONFIG_X86_TSC=y
 
---Boundary-00=_1ApEByUb7ileMU1
-Content-Type: text/x-diff;
-  charset="iso-8859-1";
-  name="resume-finish-split.patch"
+#
+# General setup
+#
+CONFIG_NET=y
+CONFIG_PCI=y
+# CONFIG_PCI_GOBIOS is not set
+# CONFIG_PCI_GODIRECT is not set
+CONFIG_PCI_GOANY=y
+CONFIG_PCI_BIOS=y
+CONFIG_PCI_DIRECT=y
+CONFIG_ISA=y
+# CONFIG_PCI_NAMES is not set
+# CONFIG_EISA is not set
+# CONFIG_MCA is not set
+CONFIG_HOTPLUG=y
+
+#
+# PCMCIA/CardBus support
+#
+# CONFIG_PCMCIA is not set
+
+#
+# PCI Hotplug Support
+#
+CONFIG_HOTPLUG_PCI=m
+# CONFIG_HOTPLUG_PCI_COMPAQ is not set
+# CONFIG_HOTPLUG_PCI_COMPAQ_NVRAM is not set
+# CONFIG_HOTPLUG_PCI_IBM is not set
+CONFIG_HOTPLUG_PCI_ACPI=m
+# CONFIG_HOTPLUG_PCI_SHPC is not set
+# CONFIG_HOTPLUG_PCI_SHPC_POLL_EVENT_MODE is not set
+CONFIG_HOTPLUG_PCI_PCIE=m
+# CONFIG_HOTPLUG_PCI_PCIE_POLL_EVENT_MODE is not set
+CONFIG_SYSVIPC=y
+CONFIG_BSD_PROCESS_ACCT=y
+CONFIG_SYSCTL=y
+CONFIG_KCORE_ELF=y
+# CONFIG_KCORE_AOUT is not set
+# CONFIG_BINFMT_AOUT is not set
+CONFIG_BINFMT_ELF=y
+CONFIG_BINFMT_MISC=m
+# CONFIG_OOM_KILLER is not set
+CONFIG_PM=y
+# CONFIG_APM is not set
+
+#
+# ACPI Support
+#
+CONFIG_ACPI=y
+CONFIG_ACPI_BOOT=y
+CONFIG_ACPI_BUS=y
+CONFIG_ACPI_INTERPRETER=y
+CONFIG_ACPI_EC=y
+CONFIG_ACPI_POWER=y
+CONFIG_ACPI_PCI=y
+CONFIG_ACPI_MMCONFIG=y
+CONFIG_ACPI_SLEEP=y
+CONFIG_ACPI_SYSTEM=y
+CONFIG_ACPI_AC=m
+CONFIG_ACPI_BATTERY=m
+CONFIG_ACPI_BUTTON=m
+CONFIG_ACPI_FAN=m
+CONFIG_ACPI_PROCESSOR=m
+CONFIG_ACPI_THERMAL=m
+# CONFIG_ACPI_ASUS is not set
+# CONFIG_ACPI_TOSHIBA is not set
+# CONFIG_ACPI_DEBUG is not set
+
+#
+# Memory Technology Devices (MTD)
+#
+# CONFIG_MTD is not set
+
+#
+# Parallel port support
+#
+CONFIG_PARPORT=m
+CONFIG_PARPORT_PC=m
+CONFIG_PARPORT_PC_CML1=m
+CONFIG_PARPORT_SERIAL=m
+CONFIG_PARPORT_PC_FIFO=y
+# CONFIG_PARPORT_PC_SUPERIO is not set
+# CONFIG_PARPORT_PC_PCMCIA is not set
+# CONFIG_PARPORT_AMIGA is not set
+# CONFIG_PARPORT_MFC3 is not set
+# CONFIG_PARPORT_ATARI is not set
+# CONFIG_PARPORT_GSC is not set
+# CONFIG_PARPORT_SUNBPP is not set
+# CONFIG_PARPORT_IP22 is not set
+# CONFIG_PARPORT_OTHER is not set
+# CONFIG_PARPORT_1284 is not set
+
+#
+# Plug and Play configuration
+#
+CONFIG_PNP=m
+CONFIG_ISAPNP=m
+
+#
+# Block devices
+#
+CONFIG_BLK_DEV_FD=m
+# CONFIG_BLK_DEV_XD is not set
+# CONFIG_PARIDE is not set
+# CONFIG_BLK_CPQ_DA is not set
+# CONFIG_BLK_CPQ_CISS_DA is not set
+# CONFIG_CISS_SCSI_TAPE is not set
+# CONFIG_CISS_MONITOR_THREAD is not set
+# CONFIG_BLK_DEV_DAC960 is not set
+# CONFIG_BLK_DEV_UMEM is not set
+# CONFIG_BLK_DEV_SX8 is not set
+CONFIG_BLK_DEV_LOOP=m
+CONFIG_BLK_DEV_CRYPTOLOOP=m
+CONFIG_BLK_DEV_NBD=m
+CONFIG_BLK_DEV_RAM=y
+CONFIG_BLK_DEV_RAM_SIZE=2048
+CONFIG_BLK_DEV_INITRD=y
+# CONFIG_BLK_STATS is not set
+
+#
+# Multi-device support (RAID and LVM)
+#
+CONFIG_MD=y
+CONFIG_BLK_DEV_MD=m
+CONFIG_MD_LINEAR=m
+CONFIG_MD_RAID0=m
+CONFIG_MD_RAID1=m
+CONFIG_MD_RAID5=m
+CONFIG_MD_MULTIPATH=m
+CONFIG_BLK_DEV_LVM=m
+
+#
+# Networking options
+#
+CONFIG_PACKET=y
+CONFIG_PACKET_MMAP=y
+CONFIG_NETLINK_DEV=m
+CONFIG_NETFILTER=y
+# CONFIG_NETFILTER_DEBUG is not set
+CONFIG_FILTER=y
+CONFIG_UNIX=y
+CONFIG_INET=y
+CONFIG_IP_MULTICAST=y
+CONFIG_IP_ADVANCED_ROUTER=y
+CONFIG_IP_MULTIPLE_TABLES=y
+CONFIG_IP_ROUTE_FWMARK=y
+CONFIG_IP_ROUTE_NAT=y
+CONFIG_IP_ROUTE_MULTIPATH=y
+CONFIG_IP_ROUTE_TOS=y
+CONFIG_IP_ROUTE_VERBOSE=y
+# CONFIG_IP_PNP is not set
+CONFIG_NET_IPIP=m
+CONFIG_NET_IPGRE=m
+CONFIG_NET_IPGRE_BROADCAST=y
+CONFIG_IP_MROUTE=y
+CONFIG_IP_PIMSM_V1=y
+CONFIG_IP_PIMSM_V2=y
+# CONFIG_ARPD is not set
+CONFIG_INET_ECN=y
+CONFIG_SYN_COOKIES=y
+
+#
+#   IP: Netfilter Configuration
+#
+CONFIG_IP_NF_CONNTRACK=m
+CONFIG_IP_NF_FTP=m
+CONFIG_IP_NF_AMANDA=m
+CONFIG_IP_NF_TFTP=m
+CONFIG_IP_NF_IRC=m
+CONFIG_IP_NF_QUEUE=m
+CONFIG_IP_NF_IPTABLES=m
+CONFIG_IP_NF_MATCH_LIMIT=m
+CONFIG_IP_NF_MATCH_MAC=m
+CONFIG_IP_NF_MATCH_PKTTYPE=m
+CONFIG_IP_NF_MATCH_MARK=m
+CONFIG_IP_NF_MATCH_MULTIPORT=m
+CONFIG_IP_NF_MATCH_TOS=m
+CONFIG_IP_NF_MATCH_RECENT=m
+CONFIG_IP_NF_MATCH_ECN=m
+CONFIG_IP_NF_MATCH_DSCP=m
+CONFIG_IP_NF_MATCH_AH_ESP=m
+CONFIG_IP_NF_MATCH_LENGTH=m
+CONFIG_IP_NF_MATCH_TTL=m
+CONFIG_IP_NF_MATCH_TCPMSS=m
+CONFIG_IP_NF_MATCH_HELPER=m
+CONFIG_IP_NF_MATCH_STATE=m
+CONFIG_IP_NF_MATCH_CONNTRACK=m
+CONFIG_IP_NF_MATCH_UNCLEAN=m
+CONFIG_IP_NF_MATCH_OWNER=m
+CONFIG_IP_NF_FILTER=m
+CONFIG_IP_NF_TARGET_REJECT=m
+CONFIG_IP_NF_TARGET_MIRROR=m
+CONFIG_IP_NF_NAT=m
+CONFIG_IP_NF_NAT_NEEDED=y
+CONFIG_IP_NF_TARGET_MASQUERADE=m
+CONFIG_IP_NF_TARGET_REDIRECT=m
+CONFIG_IP_NF_NAT_AMANDA=m
+CONFIG_IP_NF_NAT_LOCAL=y
+CONFIG_IP_NF_NAT_SNMP_BASIC=m
+CONFIG_IP_NF_NAT_IRC=m
+CONFIG_IP_NF_NAT_FTP=m
+CONFIG_IP_NF_NAT_TFTP=m
+CONFIG_IP_NF_MANGLE=m
+CONFIG_IP_NF_TARGET_TOS=m
+CONFIG_IP_NF_TARGET_ECN=m
+CONFIG_IP_NF_TARGET_DSCP=m
+CONFIG_IP_NF_TARGET_MARK=m
+CONFIG_IP_NF_TARGET_LOG=m
+CONFIG_IP_NF_TARGET_ULOG=m
+CONFIG_IP_NF_TARGET_TCPMSS=m
+CONFIG_IP_NF_ARPTABLES=m
+CONFIG_IP_NF_ARPFILTER=m
+CONFIG_IP_NF_ARP_MANGLE=m
+# CONFIG_IP_NF_COMPAT_IPCHAINS is not set
+# CONFIG_IP_NF_COMPAT_IPFWADM is not set
+
+#
+#   IP: Virtual Server Configuration
+#
+CONFIG_IP_VS=m
+# CONFIG_IP_VS_DEBUG is not set
+CONFIG_IP_VS_TAB_BITS=12
+CONFIG_IP_VS_RR=m
+CONFIG_IP_VS_WRR=m
+CONFIG_IP_VS_LC=m
+CONFIG_IP_VS_WLC=m
+CONFIG_IP_VS_LBLC=m
+CONFIG_IP_VS_LBLCR=m
+CONFIG_IP_VS_DH=m
+CONFIG_IP_VS_SH=m
+CONFIG_IP_VS_SED=m
+CONFIG_IP_VS_NQ=m
+CONFIG_IP_VS_FTP=m
+CONFIG_IPV6=m
+
+#
+#   IPv6: Netfilter Configuration
+#
+CONFIG_IP6_NF_QUEUE=m
+CONFIG_IP6_NF_IPTABLES=m
+CONFIG_IP6_NF_MATCH_LIMIT=m
+CONFIG_IP6_NF_MATCH_MAC=m
+CONFIG_IP6_NF_MATCH_RT=m
+CONFIG_IP6_NF_MATCH_OPTS=m
+CONFIG_IP6_NF_MATCH_FRAG=m
+CONFIG_IP6_NF_MATCH_HL=m
+CONFIG_IP6_NF_MATCH_MULTIPORT=m
+CONFIG_IP6_NF_MATCH_OWNER=m
+CONFIG_IP6_NF_MATCH_MARK=m
+CONFIG_IP6_NF_MATCH_IPV6HEADER=m
+CONFIG_IP6_NF_MATCH_AHESP=m
+CONFIG_IP6_NF_MATCH_LENGTH=m
+CONFIG_IP6_NF_MATCH_EUI64=m
+CONFIG_IP6_NF_FILTER=m
+CONFIG_IP6_NF_TARGET_LOG=m
+CONFIG_IP6_NF_MANGLE=m
+CONFIG_IP6_NF_TARGET_MARK=m
+# CONFIG_KHTTPD is not set
+
+#
+#    SCTP Configuration (EXPERIMENTAL)
+#
+CONFIG_IP_SCTP=m
+# CONFIG_SCTP_DBG_MSG is not set
+# CONFIG_SCTP_DBG_OBJCNT is not set
+# CONFIG_SCTP_HMAC_NONE is not set
+# CONFIG_SCTP_HMAC_SHA1 is not set
+CONFIG_SCTP_HMAC_MD5=y
+# CONFIG_ATM is not set
+CONFIG_VLAN_8021Q=m
+# CONFIG_IPX is not set
+# CONFIG_ATALK is not set
+
+#
+# Appletalk devices
+#
+# CONFIG_DEV_APPLETALK is not set
+# CONFIG_DECNET is not set
+CONFIG_BRIDGE=m
+# CONFIG_X25 is not set
+# CONFIG_LAPB is not set
+# CONFIG_LLC is not set
+CONFIG_NET_DIVERT=y
+# CONFIG_ECONET is not set
+# CONFIG_WAN_ROUTER is not set
+# CONFIG_NET_FASTROUTE is not set
+# CONFIG_NET_HW_FLOWCONTROL is not set
+
+#
+# QoS and/or fair queueing
+#
+CONFIG_NET_SCHED=y
+CONFIG_NET_SCH_CBQ=m
+CONFIG_NET_SCH_HTB=m
+CONFIG_NET_SCH_CSZ=m
+CONFIG_NET_SCH_HFSC=m
+CONFIG_NET_SCH_PRIO=m
+CONFIG_NET_SCH_RED=m
+CONFIG_NET_SCH_SFQ=m
+CONFIG_NET_SCH_TEQL=m
+CONFIG_NET_SCH_TBF=m
+CONFIG_NET_SCH_GRED=m
+CONFIG_NET_SCH_NETEM=m
+CONFIG_NET_SCH_DSMARK=m
+CONFIG_NET_SCH_INGRESS=m
+CONFIG_NET_QOS=y
+CONFIG_NET_ESTIMATOR=y
+CONFIG_NET_CLS=y
+CONFIG_NET_CLS_TCINDEX=m
+CONFIG_NET_CLS_ROUTE4=m
+CONFIG_NET_CLS_ROUTE=y
+CONFIG_NET_CLS_FW=m
+CONFIG_NET_CLS_U32=m
+CONFIG_NET_CLS_RSVP=m
+CONFIG_NET_CLS_RSVP6=m
+CONFIG_NET_CLS_POLICE=y
+
+#
+# Network testing
+#
+CONFIG_NET_PKTGEN=m
+CONFIG_IPSEC=m
+CONFIG_IPSEC_IPIP=y
+CONFIG_IPSEC_AH=y
+CONFIG_IPSEC_AUTH_HMAC_MD5=y
+CONFIG_IPSEC_AUTH_HMAC_SHA1=y
+CONFIG_IPSEC_ESP=y
+CONFIG_IPSEC_ENC_3DES=y
+CONFIG_IPSEC_IPCOMP=y
+CONFIG_IPSEC_DEBUG=y
+
+#
+# Telephony Support
+#
+CONFIG_PHONE=m
+# CONFIG_PHONE_IXJ is not set
+# CONFIG_PHONE_IXJ_PCMCIA is not set
+
+#
+# ATA/IDE/MFM/RLL support
+#
+CONFIG_IDE=y
+
+#
+# IDE, ATA and ATAPI Block devices
+#
+CONFIG_BLK_DEV_IDE=y
+# CONFIG_BLK_DEV_HD_IDE is not set
+# CONFIG_BLK_DEV_HD is not set
+CONFIG_BLK_DEV_IDEDISK=y
+CONFIG_IDEDISK_MULTI_MODE=y
+# CONFIG_IDEDISK_STROKE is not set
+# CONFIG_BLK_DEV_IDECS is not set
+CONFIG_BLK_DEV_IDECD=y
+CONFIG_BLK_DEV_IDETAPE=m
+CONFIG_BLK_DEV_IDEFLOPPY=m
+CONFIG_BLK_DEV_IDESCSI=m
+# CONFIG_IDE_TASK_IOCTL is not set
+# CONFIG_BLK_DEV_CMD640 is not set
+# CONFIG_BLK_DEV_CMD640_ENHANCED is not set
+# CONFIG_BLK_DEV_ISAPNP is not set
+CONFIG_BLK_DEV_IDEPCI=y
+# CONFIG_BLK_DEV_GENERIC is not set
+CONFIG_IDEPCI_SHARE_IRQ=y
+CONFIG_BLK_DEV_IDEDMA_PCI=y
+# CONFIG_BLK_DEV_OFFBOARD is not set
+# CONFIG_BLK_DEV_IDEDMA_FORCED is not set
+CONFIG_IDEDMA_PCI_AUTO=y
+# CONFIG_IDEDMA_ONLYDISK is not set
+CONFIG_BLK_DEV_IDEDMA=y
+# CONFIG_IDEDMA_PCI_WIP is not set
+# CONFIG_BLK_DEV_ADMA100 is not set
+# CONFIG_BLK_DEV_AEC62XX is not set
+# CONFIG_BLK_DEV_ALI15X3 is not set
+# CONFIG_WDC_ALI15X3 is not set
+# CONFIG_BLK_DEV_AMD74XX is not set
+# CONFIG_AMD74XX_OVERRIDE is not set
+# CONFIG_BLK_DEV_ATIIXP is not set
+# CONFIG_BLK_DEV_CMD64X is not set
+# CONFIG_BLK_DEV_TRIFLEX is not set
+# CONFIG_BLK_DEV_CY82C693 is not set
+# CONFIG_BLK_DEV_CS5530 is not set
+# CONFIG_BLK_DEV_HPT34X is not set
+# CONFIG_HPT34X_AUTODMA is not set
+# CONFIG_BLK_DEV_HPT366 is not set
+# CONFIG_BLK_DEV_PIIX is not set
+# CONFIG_BLK_DEV_NS87415 is not set
+# CONFIG_BLK_DEV_OPTI621 is not set
+# CONFIG_BLK_DEV_PDC202XX_OLD is not set
+# CONFIG_PDC202XX_BURST is not set
+# CONFIG_BLK_DEV_PDC202XX_NEW is not set
+# CONFIG_BLK_DEV_RZ1000 is not set
+# CONFIG_BLK_DEV_SC1200 is not set
+# CONFIG_BLK_DEV_SVWKS is not set
+# CONFIG_BLK_DEV_SIIMAGE is not set
+# CONFIG_BLK_DEV_SIS5513 is not set
+# CONFIG_BLK_DEV_SLC90E66 is not set
+# CONFIG_BLK_DEV_TRM290 is not set
+CONFIG_BLK_DEV_VIA82CXXX=y
+CONFIG_IDE_CHIPSETS=y
+# CONFIG_BLK_DEV_4DRIVES is not set
+# CONFIG_BLK_DEV_ALI14XX is not set
+# CONFIG_BLK_DEV_DTC2278 is not set
+# CONFIG_BLK_DEV_HT6560B is not set
+# CONFIG_BLK_DEV_PDC4030 is not set
+# CONFIG_BLK_DEV_QD65XX is not set
+# CONFIG_BLK_DEV_UMC8672 is not set
+CONFIG_IDEDMA_AUTO=y
+# CONFIG_IDEDMA_IVB is not set
+# CONFIG_DMA_NONPCI is not set
+# CONFIG_BLK_DEV_ATARAID is not set
+# CONFIG_BLK_DEV_ATARAID_PDC is not set
+# CONFIG_BLK_DEV_ATARAID_HPT is not set
+# CONFIG_BLK_DEV_ATARAID_MEDLEY is not set
+# CONFIG_BLK_DEV_ATARAID_SII is not set
+
+#
+# SCSI support
+#
+CONFIG_SCSI=m
+CONFIG_BLK_DEV_SD=m
+CONFIG_SD_EXTRA_DEVS=40
+# CONFIG_CHR_DEV_ST is not set
+# CONFIG_CHR_DEV_OSST is not set
+CONFIG_BLK_DEV_SR=m
+# CONFIG_BLK_DEV_SR_VENDOR is not set
+CONFIG_SR_EXTRA_DEVS=2
+CONFIG_CHR_DEV_SG=m
+# CONFIG_SCSI_DEBUG_QUEUES is not set
+CONFIG_SCSI_MULTI_LUN=y
+# CONFIG_SCSI_CONSTANTS is not set
+# CONFIG_SCSI_LOGGING is not set
+
+#
+# SCSI low-level drivers
+#
+# CONFIG_BLK_DEV_3W_XXXX_RAID is not set
+# CONFIG_SCSI_7000FASST is not set
+# CONFIG_SCSI_ACARD is not set
+# CONFIG_SCSI_AHA152X is not set
+# CONFIG_SCSI_AHA1542 is not set
+# CONFIG_SCSI_AHA1740 is not set
+# CONFIG_SCSI_AACRAID is not set
+# CONFIG_SCSI_AIC7XXX is not set
+# CONFIG_SCSI_AIC79XX is not set
+# CONFIG_SCSI_AIC7XXX_OLD is not set
+# CONFIG_SCSI_DPT_I2O is not set
+# CONFIG_SCSI_ADVANSYS is not set
+# CONFIG_SCSI_IN2000 is not set
+# CONFIG_SCSI_AM53C974 is not set
+# CONFIG_SCSI_MEGARAID is not set
+# CONFIG_SCSI_MEGARAID2 is not set
+# CONFIG_SCSI_SATA is not set
+# CONFIG_SCSI_SATA_SVW is not set
+# CONFIG_SCSI_SATA_PROMISE is not set
+# CONFIG_SCSI_SATA_SX4 is not set
+# CONFIG_SCSI_SATA_SIL is not set
+# CONFIG_SCSI_SATA_SIS is not set
+# CONFIG_SCSI_SATA_VIA is not set
+# CONFIG_SCSI_SATA_VITESSE is not set
+# CONFIG_SCSI_BUSLOGIC is not set
+# CONFIG_SCSI_CPQFCTS is not set
+# CONFIG_SCSI_DMX3191D is not set
+# CONFIG_SCSI_DTC3280 is not set
+# CONFIG_SCSI_EATA is not set
+# CONFIG_SCSI_EATA_DMA is not set
+# CONFIG_SCSI_EATA_PIO is not set
+# CONFIG_SCSI_FUTURE_DOMAIN is not set
+# CONFIG_SCSI_GDTH is not set
+# CONFIG_SCSI_GENERIC_NCR5380 is not set
+# CONFIG_SCSI_IPS is not set
+# CONFIG_SCSI_INITIO is not set
+# CONFIG_SCSI_INIA100 is not set
+# CONFIG_SCSI_PPA is not set
+# CONFIG_SCSI_IMM is not set
+# CONFIG_SCSI_NCR53C406A is not set
+# CONFIG_SCSI_NCR53C7xx is not set
+# CONFIG_SCSI_SYM53C8XX_2 is not set
+# CONFIG_SCSI_NCR53C8XX is not set
+# CONFIG_SCSI_SYM53C8XX is not set
+# CONFIG_SCSI_PAS16 is not set
+# CONFIG_SCSI_PCI2000 is not set
+# CONFIG_SCSI_PCI2220I is not set
+# CONFIG_SCSI_PSI240I is not set
+# CONFIG_SCSI_QLOGIC_FAS is not set
+# CONFIG_SCSI_QLOGIC_ISP is not set
+# CONFIG_SCSI_QLOGIC_FC is not set
+# CONFIG_SCSI_QLOGIC_1280 is not set
+# CONFIG_SCSI_SEAGATE is not set
+# CONFIG_SCSI_SIM710 is not set
+# CONFIG_SCSI_SYM53C416 is not set
+# CONFIG_SCSI_DC390T is not set
+# CONFIG_SCSI_T128 is not set
+# CONFIG_SCSI_U14_34F is not set
+# CONFIG_SCSI_ULTRASTOR is not set
+# CONFIG_SCSI_NSP32 is not set
+# CONFIG_SCSI_DEBUG is not set
+
+#
+# Fusion MPT device support
+#
+# CONFIG_FUSION is not set
+# CONFIG_FUSION_BOOT is not set
+# CONFIG_FUSION_ISENSE is not set
+# CONFIG_FUSION_CTL is not set
+# CONFIG_FUSION_LAN is not set
+
+#
+# IEEE 1394 (FireWire) support (EXPERIMENTAL)
+#
+CONFIG_IEEE1394=m
+# CONFIG_IEEE1394_PCILYNX is not set
+CONFIG_IEEE1394_OHCI1394=m
+CONFIG_IEEE1394_VIDEO1394=m
+CONFIG_IEEE1394_SBP2=m
+# CONFIG_IEEE1394_SBP2_PHYS_DMA is not set
+CONFIG_IEEE1394_ETH1394=m
+CONFIG_IEEE1394_DV1394=m
+CONFIG_IEEE1394_RAWIO=m
+CONFIG_IEEE1394_CMP=m
+CONFIG_IEEE1394_AMDTP=m
+# CONFIG_IEEE1394_VERBOSEDEBUG is not set
+# CONFIG_IEEE1394_OUI_DB is not set
+
+#
+# I2O device support
+#
+CONFIG_I2O=m
+CONFIG_I2O_PCI=m
+CONFIG_I2O_BLOCK=m
+CONFIG_I2O_LAN=m
+CONFIG_I2O_SCSI=m
+CONFIG_I2O_PROC=m
+
+#
+# Network device support
+#
+CONFIG_NETDEVICES=y
+
+#
+# ARCnet devices
+#
+# CONFIG_ARCNET is not set
+CONFIG_DUMMY=m
+CONFIG_BONDING=m
+CONFIG_EQUALIZER=m
+CONFIG_TUN=m
+# CONFIG_ETHERTAP is not set
+# CONFIG_NET_SB1000 is not set
+
+#
+# Ethernet (10 or 100Mbit)
+#
+CONFIG_NET_ETHERNET=y
+# CONFIG_SUNLANCE is not set
+# CONFIG_HAPPYMEAL is not set
+# CONFIG_SUNBMAC is not set
+# CONFIG_SUNQE is not set
+# CONFIG_SUNGEM is not set
+# CONFIG_NET_VENDOR_3COM is not set
+# CONFIG_LANCE is not set
+# CONFIG_NET_VENDOR_SMC is not set
+# CONFIG_NET_VENDOR_RACAL is not set
+# CONFIG_AT1700 is not set
+# CONFIG_DEPCA is not set
+# CONFIG_HP100 is not set
+# CONFIG_NET_ISA is not set
+CONFIG_NET_PCI=y
+# CONFIG_PCNET32 is not set
+# CONFIG_AMD8111_ETH is not set
+# CONFIG_ADAPTEC_STARFIRE is not set
+# CONFIG_AC3200 is not set
+# CONFIG_APRICOT is not set
+# CONFIG_B44 is not set
+# CONFIG_CS89x0 is not set
+# CONFIG_TULIP is not set
+# CONFIG_DE4X5 is not set
+# CONFIG_DGRS is not set
+# CONFIG_DM9102 is not set
+# CONFIG_EEPRO100 is not set
+# CONFIG_EEPRO100_PIO is not set
+# CONFIG_E100 is not set
+# CONFIG_LNE390 is not set
+# CONFIG_FEALNX is not set
+# CONFIG_NATSEMI is not set
+# CONFIG_NE2K_PCI is not set
+# CONFIG_FORCEDETH is not set
+# CONFIG_NE3210 is not set
+# CONFIG_ES3210 is not set
+CONFIG_8139CP=m
+CONFIG_8139TOO=m
+# CONFIG_8139TOO_PIO is not set
+CONFIG_8139TOO_TUNE_TWISTER=y
+CONFIG_8139TOO_8129=y
+# CONFIG_8139_OLD_RX_RESET is not set
+# CONFIG_SIS900 is not set
+# CONFIG_EPIC100 is not set
+# CONFIG_SUNDANCE is not set
+# CONFIG_SUNDANCE_MMIO is not set
+# CONFIG_TLAN is not set
+CONFIG_VIA_RHINE=m
+CONFIG_VIA_RHINE_MMIO=y
+# CONFIG_WINBOND_840 is not set
+# CONFIG_NET_POCKET is not set
+
+#
+# Ethernet (1000 Mbit)
+#
+# CONFIG_ACENIC is not set
+# CONFIG_DL2K is not set
+# CONFIG_E1000 is not set
+# CONFIG_MYRI_SBUS is not set
+# CONFIG_NS83820 is not set
+# CONFIG_HAMACHI is not set
+# CONFIG_YELLOWFIN is not set
+# CONFIG_R8169 is not set
+# CONFIG_SK98LIN is not set
+# CONFIG_TIGON3 is not set
+# CONFIG_FDDI is not set
+# CONFIG_HIPPI is not set
+CONFIG_PLIP=m
+CONFIG_PPP=m
+CONFIG_PPP_MULTILINK=y
+CONFIG_PPP_FILTER=y
+CONFIG_PPP_ASYNC=m
+CONFIG_PPP_SYNC_TTY=m
+CONFIG_PPP_DEFLATE=m
+CONFIG_PPP_BSDCOMP=m
+CONFIG_PPPOE=m
+CONFIG_SLIP=m
+CONFIG_SLIP_COMPRESSED=y
+# CONFIG_SLIP_SMART is not set
+# CONFIG_SLIP_MODE_SLIP6 is not set
+
+#
+# Wireless LAN (non-hamradio)
+#
+CONFIG_NET_RADIO=y
+# CONFIG_STRIP is not set
+# CONFIG_WAVELAN is not set
+# CONFIG_ARLAN is not set
+# CONFIG_AIRONET4500 is not set
+# CONFIG_AIRONET4500_NONCS is not set
+# CONFIG_AIRONET4500_PROC is not set
+CONFIG_AIRO=m
+CONFIG_HERMES=m
+CONFIG_PLX_HERMES=m
+CONFIG_TMD_HERMES=m
+CONFIG_PCI_HERMES=m
+CONFIG_NET_WIRELESS=y
+
+#
+# Token Ring devices
+#
+# CONFIG_TR is not set
+# CONFIG_NET_FC is not set
+# CONFIG_RCPCI is not set
+# CONFIG_SHAPER is not set
+
+#
+# Wan interfaces
+#
+# CONFIG_WAN is not set
+
+#
+# Amateur Radio support
+#
+# CONFIG_HAMRADIO is not set
+
+#
+# IrDA (infrared) support
+#
+CONFIG_IRDA=m
+CONFIG_IRLAN=m
+CONFIG_IRNET=m
+CONFIG_IRCOMM=m
+CONFIG_IRDA_ULTRA=y
+# CONFIG_IRDA_CACHE_LAST_LSAP is not set
+# CONFIG_IRDA_FAST_RR is not set
+# CONFIG_IRDA_DEBUG is not set
+
+#
+# Infrared-port device drivers
+#
+CONFIG_IRTTY_SIR=m
+CONFIG_IRPORT_SIR=m
+CONFIG_DONGLE=y
+CONFIG_ESI_DONGLE=m
+CONFIG_ACTISYS_DONGLE=m
+CONFIG_TEKRAM_DONGLE=m
+CONFIG_GIRBIL_DONGLE=m
+CONFIG_LITELINK_DONGLE=m
+CONFIG_MCP2120_DONGLE=m
+CONFIG_OLD_BELKIN_DONGLE=m
+CONFIG_ACT200L_DONGLE=m
+CONFIG_MA600_DONGLE=m
+CONFIG_USB_IRDA=m
+CONFIG_NSC_FIR=m
+CONFIG_WINBOND_FIR=m
+# CONFIG_TOSHIBA_OLD is not set
+CONFIG_TOSHIBA_FIR=m
+CONFIG_SMC_IRCC_FIR=m
+CONFIG_ALI_FIR=m
+CONFIG_VLSI_FIR=m
+CONFIG_VIA_IRCC_FIR=m
+
+#
+# ISDN subsystem
+#
+# CONFIG_ISDN is not set
+
+#
+# Old CD-ROM drivers (not SCSI, not IDE)
+#
+# CONFIG_CD_NO_IDESCSI is not set
+
+#
+# Input core support
+#
+CONFIG_INPUT=y
+CONFIG_INPUT_KEYBDEV=m
+CONFIG_INPUT_MOUSEDEV=m
+CONFIG_INPUT_MOUSEDEV_SCREEN_X=1024
+CONFIG_INPUT_MOUSEDEV_SCREEN_Y=768
+CONFIG_INPUT_JOYDEV=m
+CONFIG_INPUT_EVDEV=m
+CONFIG_INPUT_UINPUT=m
+
+#
+# Character devices
+#
+CONFIG_VT=y
+CONFIG_VT_CONSOLE=y
+CONFIG_SERIAL=m
+# CONFIG_SERIAL_EXTENDED is not set
+# CONFIG_SERIAL_NONSTANDARD is not set
+CONFIG_UNIX98_PTYS=y
+CONFIG_UNIX98_PTY_COUNT=256
+CONFIG_PRINTER=m
+# CONFIG_LP_CONSOLE is not set
+CONFIG_PPDEV=m
+# CONFIG_TIPAR is not set
+
+#
+# I2C support
+#
+CONFIG_I2C=m
+CONFIG_I2C_ALGOBIT=m
+# CONFIG_I2C_PHILIPSPAR is not set
+# CONFIG_I2C_ELV is not set
+# CONFIG_I2C_VELLEMAN is not set
+# CONFIG_SCx200_I2C is not set
+# CONFIG_SCx200_ACB is not set
+# CONFIG_I2C_ALGOPCF is not set
+CONFIG_I2C_CHARDEV=m
+CONFIG_I2C_PROC=m
+
+#
+# Mice
+#
+# CONFIG_BUSMOUSE is not set
+CONFIG_MOUSE=m
+CONFIG_PSMOUSE=y
+# CONFIG_82C710_MOUSE is not set
+# CONFIG_PC110_PAD is not set
+# CONFIG_MK712_MOUSE is not set
+
+#
+# Joysticks
+#
+CONFIG_INPUT_GAMEPORT=m
+CONFIG_INPUT_NS558=m
+# CONFIG_INPUT_LIGHTNING is not set
+# CONFIG_INPUT_PCIGAME is not set
+# CONFIG_INPUT_CS461X is not set
+# CONFIG_INPUT_EMU10K1 is not set
+# CONFIG_INPUT_SERIO is not set
+# CONFIG_INPUT_SERPORT is not set
+CONFIG_INPUT_ANALOG=m
+# CONFIG_INPUT_A3D is not set
+# CONFIG_INPUT_ADI is not set
+# CONFIG_INPUT_COBRA is not set
+# CONFIG_INPUT_GF2K is not set
+# CONFIG_INPUT_GRIP is not set
+# CONFIG_INPUT_INTERACT is not set
+# CONFIG_INPUT_TMDC is not set
+# CONFIG_INPUT_SIDEWINDER is not set
+# CONFIG_INPUT_IFORCE_USB is not set
+# CONFIG_INPUT_IFORCE_232 is not set
+# CONFIG_INPUT_WARRIOR is not set
+# CONFIG_INPUT_MAGELLAN is not set
+# CONFIG_INPUT_SPACEORB is not set
+# CONFIG_INPUT_SPACEBALL is not set
+# CONFIG_INPUT_STINGER is not set
+# CONFIG_INPUT_DB9 is not set
+# CONFIG_INPUT_GAMECON is not set
+# CONFIG_INPUT_TURBOGRAFX is not set
+# CONFIG_QIC02_TAPE is not set
+CONFIG_IPMI_HANDLER=m
+CONFIG_IPMI_PANIC_EVENT=y
+CONFIG_IPMI_DEVICE_INTERFACE=m
+CONFIG_IPMI_KCS=m
+CONFIG_IPMI_WATCHDOG=m
+
+#
+# Watchdog Cards
+#
+CONFIG_WATCHDOG=y
+# CONFIG_WATCHDOG_NOWAYOUT is not set
+# CONFIG_ACQUIRE_WDT is not set
+# CONFIG_ADVANTECH_WDT is not set
+# CONFIG_ALIM1535_WDT is not set
+# CONFIG_ALIM7101_WDT is not set
+# CONFIG_SC520_WDT is not set
+# CONFIG_PCWATCHDOG is not set
+# CONFIG_EUROTECH_WDT is not set
+# CONFIG_IB700_WDT is not set
+# CONFIG_WAFER_WDT is not set
+# CONFIG_I810_TCO is not set
+# CONFIG_MIXCOMWD is not set
+# CONFIG_60XX_WDT is not set
+# CONFIG_SC1200_WDT is not set
+# CONFIG_SCx200_WDT is not set
+CONFIG_SOFT_WATCHDOG=m
+# CONFIG_W83877F_WDT is not set
+# CONFIG_WDT is not set
+# CONFIG_WDTPCI is not set
+# CONFIG_MACHZ_WDT is not set
+# CONFIG_SCx200 is not set
+# CONFIG_SCx200_GPIO is not set
+# CONFIG_AMD_RNG is not set
+# CONFIG_INTEL_RNG is not set
+CONFIG_HW_RANDOM=m
+# CONFIG_AMD_PM768 is not set
+CONFIG_NVRAM=m
+# CONFIG_FUSION_DEVICE is not set
+CONFIG_RTC=m
+# CONFIG_DTLK is not set
+# CONFIG_R3964 is not set
+# CONFIG_APPLICOM is not set
+# CONFIG_SONYPI is not set
+
+#
+# Ftape, the floppy tape device driver
+#
+# CONFIG_FTAPE is not set
+CONFIG_CLE266VGAIO=m
+CONFIG_AGP=m
+# CONFIG_AGP_INTEL is not set
+# CONFIG_AGP_I810 is not set
+CONFIG_AGP_VIA=y
+# CONFIG_AGP_AMD is not set
+# CONFIG_AGP_AMD_K8 is not set
+# CONFIG_AGP_SIS is not set
+# CONFIG_AGP_ALI is not set
+# CONFIG_AGP_SWORKS is not set
+# CONFIG_AGP_NVIDIA is not set
+# CONFIG_AGP_ATI is not set
+
+#
+# Direct Rendering Manager (XFree86 DRI support)
+#
+CONFIG_DRM=y
+# CONFIG_DRM_OLD is not set
+CONFIG_DRM_NEW=y
+# CONFIG_DRM_TDFX is not set
+# CONFIG_DRM_R128 is not set
+# CONFIG_DRM_RADEON is not set
+# CONFIG_DRM_I810 is not set
+# CONFIG_DRM_I830 is not set
+# CONFIG_DRM_MGA is not set
+# CONFIG_DRM_SIS is not set
+CONFIG_DRM_VIA=m
+CONFIG_MWAVE=m
+# CONFIG_OBMOUSE is not set
+
+#
+# Multimedia devices
+#
+CONFIG_VIDEO_DEV=m
+
+#
+# Video For Linux
+#
+CONFIG_VIDEO_PROC_FS=y
+CONFIG_I2C_PARPORT=m
+CONFIG_VIDEO_BT848=m
+# CONFIG_VIDEO_PMS is not set
+# CONFIG_VIDEO_BWQCAM is not set
+# CONFIG_VIDEO_CQCAM is not set
+CONFIG_VIDEO_CPIA=m
+CONFIG_VIDEO_CPIA_USB=m
+# CONFIG_VIDEO_SAA5249 is not set
+# CONFIG_TUNER_3036 is not set
+# CONFIG_VIDEO_STRADIS is not set
+# CONFIG_VIDEO_ZORAN is not set
+# CONFIG_VIDEO_ZORAN_BUZ is not set
+# CONFIG_VIDEO_ZORAN_DC10 is not set
+# CONFIG_VIDEO_ZORAN_LML33 is not set
+# CONFIG_VIDEO_ZR36120 is not set
+# CONFIG_VIDEO_MEYE is not set
+CONFIG_VIDEO_CLE266=m
+
+#
+# Radio Adapters
+#
+# CONFIG_RADIO_CADET is not set
+# CONFIG_RADIO_RTRACK is not set
+# CONFIG_RADIO_RTRACK2 is not set
+# CONFIG_RADIO_AZTECH is not set
+# CONFIG_RADIO_GEMTEK is not set
+# CONFIG_RADIO_GEMTEK_PCI is not set
+# CONFIG_RADIO_MAXIRADIO is not set
+# CONFIG_RADIO_MAESTRO is not set
+# CONFIG_RADIO_MIROPCM20 is not set
+# CONFIG_RADIO_MIROPCM20_RDS is not set
+# CONFIG_RADIO_SF16FMI is not set
+# CONFIG_RADIO_SF16FMR2 is not set
+# CONFIG_RADIO_TERRATEC is not set
+# CONFIG_RADIO_TRUST is not set
+# CONFIG_RADIO_TYPHOON is not set
+# CONFIG_RADIO_ZOLTRIX is not set
+
+#
+# File systems
+#
+CONFIG_QUOTA=y
+# CONFIG_QFMT_V2 is not set
+# CONFIG_AUTOFS_FS is not set
+CONFIG_AUTOFS4_FS=m
+CONFIG_REISERFS_FS=m
+# CONFIG_REISERFS_CHECK is not set
+# CONFIG_REISERFS_PROC_INFO is not set
+# CONFIG_SUPERMOUNT is not set
+# CONFIG_ADFS_FS is not set
+# CONFIG_ADFS_FS_RW is not set
+# CONFIG_AFFS_FS is not set
+CONFIG_HFS_FS=m
+CONFIG_HFSPLUS_FS=m
+CONFIG_BEFS_FS=m
+# CONFIG_BEFS_DEBUG is not set
+# CONFIG_BFS_FS is not set
+CONFIG_EXT3_FS=y
+CONFIG_JBD=y
+# CONFIG_JBD_DEBUG is not set
+CONFIG_FAT_FS=m
+CONFIG_MSDOS_FS=m
+# CONFIG_UMSDOS_FS is not set
+CONFIG_VFAT_FS=m
+# CONFIG_EFS_FS is not set
+# CONFIG_JFFS_FS is not set
+# CONFIG_JFFS2_FS is not set
+CONFIG_CRAMFS=m
+CONFIG_TMPFS=y
+CONFIG_RAMFS=y
+CONFIG_ISO9660_FS=m
+CONFIG_JOLIET=y
+CONFIG_ZISOFS=y
+CONFIG_JFS_FS=m
+# CONFIG_JFS_DEBUG is not set
+# CONFIG_JFS_STATISTICS is not set
+CONFIG_MINIX_FS=m
+# CONFIG_VXFS_FS is not set
+CONFIG_NTFS_FS=m
+# CONFIG_NTFS_RW is not set
+# CONFIG_HPFS_FS is not set
+CONFIG_PROC_FS=y
+CONFIG_DEVFS_FS=y
+CONFIG_DEVFS_MOUNT=y
+# CONFIG_DEVFS_DEBUG is not set
+CONFIG_DEVPTS_FS=y
+# CONFIG_QNX4FS_FS is not set
+# CONFIG_QNX4FS_RW is not set
+CONFIG_ROMFS_FS=m
+CONFIG_EXT2_FS=y
+CONFIG_SYSV_FS=m
+CONFIG_UDF_FS=m
+# CONFIG_UDF_RW is not set
+CONFIG_UFS_FS=m
+# CONFIG_UFS_FS_WRITE is not set
+CONFIG_XFS_FS=y
+CONFIG_XFS_QUOTA=y
+# CONFIG_XFS_RT is not set
+# CONFIG_XFS_TRACE is not set
+# CONFIG_XFS_DEBUG is not set
+
+#
+# Network File Systems
+#
+CONFIG_CODA_FS=m
+CONFIG_INTERMEZZO_FS=m
+CONFIG_NFS_FS=m
+CONFIG_NFS_V3=y
+# CONFIG_NFS_DIRECTIO is not set
+# CONFIG_ROOT_NFS is not set
+# CONFIG_NFSD is not set
+# CONFIG_NFSD_V3 is not set
+# CONFIG_NFSD_TCP is not set
+CONFIG_SUNRPC=m
+CONFIG_LOCKD=m
+CONFIG_LOCKD_V4=y
+CONFIG_SMB_FS=m
+CONFIG_SMB_NLS_DEFAULT=y
+CONFIG_SMB_NLS_REMOTE="cp437"
+# CONFIG_SMB_UNIX is not set
+# CONFIG_NCP_FS is not set
+# CONFIG_NCPFS_PACKET_SIGNING is not set
+# CONFIG_NCPFS_IOCTL_LOCKING is not set
+# CONFIG_NCPFS_STRONG is not set
+# CONFIG_NCPFS_NFS_NS is not set
+# CONFIG_NCPFS_OS2_NS is not set
+# CONFIG_NCPFS_SMALLDOS is not set
+# CONFIG_NCPFS_NLS is not set
+# CONFIG_NCPFS_EXTRAS is not set
+CONFIG_ZISOFS_FS=m
+
+#
+# Partition Types
+#
+# CONFIG_PARTITION_ADVANCED is not set
+CONFIG_MSDOS_PARTITION=y
+CONFIG_SMB_NLS=y
+CONFIG_NLS=y
+
+#
+# Native Language Support
+#
+CONFIG_NLS_DEFAULT="utf8"
+CONFIG_NLS_CODEPAGE_437=m
+CONFIG_NLS_CODEPAGE_737=m
+CONFIG_NLS_CODEPAGE_775=m
+CONFIG_NLS_CODEPAGE_850=m
+CONFIG_NLS_CODEPAGE_852=m
+CONFIG_NLS_CODEPAGE_855=m
+CONFIG_NLS_CODEPAGE_857=m
+CONFIG_NLS_CODEPAGE_860=m
+CONFIG_NLS_CODEPAGE_861=m
+CONFIG_NLS_CODEPAGE_862=m
+CONFIG_NLS_CODEPAGE_863=m
+CONFIG_NLS_CODEPAGE_864=m
+CONFIG_NLS_CODEPAGE_865=m
+CONFIG_NLS_CODEPAGE_866=m
+CONFIG_NLS_CODEPAGE_869=m
+CONFIG_NLS_CODEPAGE_936=m
+CONFIG_NLS_CODEPAGE_950=m
+CONFIG_NLS_CODEPAGE_932=m
+CONFIG_NLS_CODEPAGE_949=m
+CONFIG_NLS_CODEPAGE_874=m
+CONFIG_NLS_ISO8859_8=m
+CONFIG_NLS_CODEPAGE_1250=m
+CONFIG_NLS_CODEPAGE_1251=m
+CONFIG_NLS_ISO8859_1=m
+CONFIG_NLS_ISO8859_2=m
+CONFIG_NLS_ISO8859_3=m
+CONFIG_NLS_ISO8859_4=m
+CONFIG_NLS_ISO8859_5=m
+CONFIG_NLS_ISO8859_6=m
+CONFIG_NLS_ISO8859_7=m
+CONFIG_NLS_ISO8859_9=m
+CONFIG_NLS_ISO8859_13=m
+CONFIG_NLS_ISO8859_14=m
+CONFIG_NLS_ISO8859_15=m
+CONFIG_NLS_KOI8_R=m
+CONFIG_NLS_KOI8_U=m
+CONFIG_NLS_UTF8=m
+
+#
+# Console drivers
+#
+CONFIG_VGA_CONSOLE=y
+CONFIG_VIDEO_SELECT=y
+# CONFIG_MDA_CONSOLE is not set
+
+#
+# Frame-buffer support
+#
+CONFIG_FB=y
+CONFIG_DUMMY_CONSOLE=y
+CONFIG_FB_LOGO_TUX=y
+# CONFIG_FB_LOGO_VIA is not set
+# CONFIG_FB_RIVA is not set
+# CONFIG_FB_CLGEN is not set
+# CONFIG_FB_PM2 is not set
+# CONFIG_FB_PM3 is not set
+# CONFIG_FB_CYBER2000 is not set
+CONFIG_FB_VESA=y
+# CONFIG_FB_VGA16 is not set
+# CONFIG_FB_HGA is not set
+CONFIG_VIDEO_SELECT=y
+# CONFIG_FB_MATROX is not set
+# CONFIG_FB_ATY is not set
+# CONFIG_FB_RADEON is not set
+# CONFIG_FB_ATY128 is not set
+# CONFIG_FB_INTEL is not set
+# CONFIG_FB_SIS is not set
+# CONFIG_FB_NEOMAGIC is not set
+# CONFIG_FB_3DFX is not set
+# CONFIG_FB_VOODOO1 is not set
+# CONFIG_FB_TRIDENT is not set
+# CONFIG_FB_IT8181 is not set
+# CONFIG_FB_VIRTUAL is not set
+CONFIG_FBCON_SPLASHSCREEN=y
+CONFIG_FBCON_CFB16=y
+# CONFIG_FBCON_ADVANCED is not set
+CONFIG_FBCON_CFB8=y
+CONFIG_FBCON_CFB16=y
+CONFIG_FBCON_CFB24=y
+CONFIG_FBCON_CFB32=y
+# CONFIG_FBCON_FONTWIDTH8_ONLY is not set
+# CONFIG_FBCON_FONTS is not set
+CONFIG_FONT_8x8=y
+CONFIG_FONT_8x16=y
+
+#
+# Sound
+#
+CONFIG_SOUND=m
+# CONFIG_SOUND_ALI5455 is not set
+CONFIG_SOUND_BT878=m
+# CONFIG_SOUND_CMPCI is not set
+# CONFIG_SOUND_EMU10K1 is not set
+# CONFIG_MIDI_EMU10K1 is not set
+# CONFIG_SOUND_FUSION is not set
+# CONFIG_SOUND_CS4281 is not set
+# CONFIG_SOUND_ES1370 is not set
+# CONFIG_SOUND_ES1371 is not set
+# CONFIG_SOUND_ESSSOLO1 is not set
+# CONFIG_SOUND_MAESTRO is not set
+# CONFIG_SOUND_MAESTRO3 is not set
+# CONFIG_SOUND_FORTE is not set
+# CONFIG_SOUND_ICH is not set
+# CONFIG_SOUND_RME96XX is not set
+# CONFIG_SOUND_SONICVIBES is not set
+# CONFIG_SOUND_TRIDENT is not set
+# CONFIG_SOUND_MSNDCLAS is not set
+# CONFIG_SOUND_MSNDPIN is not set
+CONFIG_SOUND_VIA82CXXX=m
+CONFIG_MIDI_VIA82CXXX=y
+# CONFIG_SOUND_OSS is not set
+# CONFIG_SOUND_TVMIXER is not set
+# CONFIG_SOUND_AD1980 is not set
+# CONFIG_SOUND_WM97XX is not set
+
+#
+# USB support
+#
+CONFIG_USB=m
+# CONFIG_USB_DEBUG is not set
+CONFIG_USB_DEVICEFS=y
+# CONFIG_USB_BANDWIDTH is not set
+CONFIG_USB_EHCI_HCD=m
+CONFIG_USB_UHCI=m
+CONFIG_USB_UHCI_ALT=m
+# CONFIG_USB_OHCI is not set
+# CONFIG_USB_SL811HS_ALT is not set
+# CONFIG_USB_SL811HS is not set
+CONFIG_USB_AUDIO=m
+CONFIG_USB_EMI26=m
+CONFIG_USB_MIDI=m
+CONFIG_USB_STORAGE=m
+# CONFIG_USB_STORAGE_DEBUG is not set
+CONFIG_USB_STORAGE_DATAFAB=y
+CONFIG_USB_STORAGE_FREECOM=y
+CONFIG_USB_STORAGE_ISD200=y
+CONFIG_USB_STORAGE_DPCM=y
+CONFIG_USB_STORAGE_HP8200e=y
+CONFIG_USB_STORAGE_SDDR09=y
+CONFIG_USB_STORAGE_SDDR55=y
+CONFIG_USB_STORAGE_JUMPSHOT=y
+CONFIG_USB_ACM=m
+CONFIG_USB_PRINTER=m
+CONFIG_USB_HID=m
+CONFIG_USB_HIDINPUT=y
+CONFIG_USB_HIDDEV=y
+CONFIG_USB_KBD=m
+CONFIG_USB_MOUSE=m
+CONFIG_USB_AIPTEK=m
+CONFIG_USB_WACOM=m
+CONFIG_USB_KBTAB=m
+CONFIG_USB_POWERMATE=m
+CONFIG_USB_DC2XX=m
+CONFIG_USB_MDC800=m
+CONFIG_USB_SCANNER=m
+CONFIG_USB_MICROTEK=m
+CONFIG_USB_HPUSBSCSI=m
+CONFIG_USB_IBMCAM=m
+CONFIG_USB_KONICAWC=m
+CONFIG_USB_OV511=m
+CONFIG_USB_PWC=m
+CONFIG_USB_SE401=m
+CONFIG_USB_STV680=m
+CONFIG_USB_W9968CF=m
+CONFIG_USB_VICAM=m
+CONFIG_USB_DSBR=m
+CONFIG_USB_DABUSB=m
+CONFIG_USB_PEGASUS=m
+CONFIG_USB_RTL8150=m
+CONFIG_USB_KAWETH=m
+CONFIG_USB_CATC=m
+CONFIG_USB_CDCETHER=m
+CONFIG_USB_USBNET=m
+CONFIG_USB_USS720=m
+
+#
+# USB Serial Converter support
+#
+CONFIG_USB_SERIAL=m
+# CONFIG_USB_SERIAL_DEBUG is not set
+CONFIG_USB_SERIAL_GENERIC=y
+CONFIG_USB_SERIAL_BELKIN=m
+CONFIG_USB_SERIAL_WHITEHEAT=m
+CONFIG_USB_SERIAL_DIGI_ACCELEPORT=m
+CONFIG_USB_SERIAL_EMPEG=m
+CONFIG_USB_SERIAL_FTDI_SIO=m
+CONFIG_USB_SERIAL_VISOR=m
+CONFIG_USB_SERIAL_IPAQ=m
+CONFIG_USB_SERIAL_IR=m
+CONFIG_USB_SERIAL_EDGEPORT=m
+CONFIG_USB_SERIAL_EDGEPORT_TI=m
+CONFIG_USB_SERIAL_KEYSPAN_PDA=m
+CONFIG_USB_SERIAL_KEYSPAN=m
+CONFIG_USB_SERIAL_KEYSPAN_USA28=y
+CONFIG_USB_SERIAL_KEYSPAN_USA28X=y
+CONFIG_USB_SERIAL_KEYSPAN_USA28XA=y
+CONFIG_USB_SERIAL_KEYSPAN_USA28XB=y
+CONFIG_USB_SERIAL_KEYSPAN_USA19=y
+CONFIG_USB_SERIAL_KEYSPAN_USA18X=y
+CONFIG_USB_SERIAL_KEYSPAN_USA19W=y
+CONFIG_USB_SERIAL_KEYSPAN_USA19QW=y
+CONFIG_USB_SERIAL_KEYSPAN_USA19QI=y
+CONFIG_USB_SERIAL_KEYSPAN_MPR=y
+CONFIG_USB_SERIAL_KEYSPAN_USA49W=y
+CONFIG_USB_SERIAL_KEYSPAN_USA49WLC=y
+CONFIG_USB_SERIAL_MCT_U232=m
+CONFIG_USB_SERIAL_KLSI=m
+CONFIG_USB_SERIAL_KOBIL_SCT=m
+CONFIG_USB_SERIAL_PL2303=m
+CONFIG_USB_SERIAL_CYBERJACK=m
+CONFIG_USB_SERIAL_XIRCOM=m
+CONFIG_USB_SERIAL_OMNINET=m
+CONFIG_USB_RIO500=m
+CONFIG_USB_AUERSWALD=m
+CONFIG_USB_TIGL=m
+CONFIG_USB_BRLVGER=m
+CONFIG_USB_LCD=m
+
+#
+# Support for USB gadgets
+#
+CONFIG_USB_GADGET=y
+CONFIG_USB_GADGET_NET2280=y
+# CONFIG_USB_GADGET_GOKU is not set
+# CONFIG_USB_GADGET_CONTROLLER is not set
+CONFIG_USB_NET2280=y
+CONFIG_USB_GADGET_CONTROLLER=y
+CONFIG_USB_GADGET_DUALSPEED=y
+CONFIG_USB_ZERO=m
+CONFIG_USB_ETH=m
+# CONFIG_USB_ETH_RNDIS is not set
+# CONFIG_USB_FILE_STORAGE is not set
+# CONFIG_USB_FILE_STORAGE_TEST is not set
+
+#
+# Bluetooth support
+#
+CONFIG_BLUEZ=m
+CONFIG_BLUEZ_L2CAP=m
+CONFIG_BLUEZ_SCO=m
+CONFIG_BLUEZ_RFCOMM=m
+CONFIG_BLUEZ_RFCOMM_TTY=y
+CONFIG_BLUEZ_BNEP=m
+CONFIG_BLUEZ_BNEP_MC_FILTER=y
+CONFIG_BLUEZ_BNEP_PROTO_FILTER=y
+
+#
+# Bluetooth device drivers
+#
+CONFIG_BLUEZ_HCIUSB=m
+CONFIG_BLUEZ_HCIUSB_SCO=y
+CONFIG_BLUEZ_HCIUART=m
+CONFIG_BLUEZ_HCIUART_H4=y
+CONFIG_BLUEZ_HCIUART_BCSP=y
+CONFIG_BLUEZ_HCIUART_BCSP_TXCRC=y
+# CONFIG_BLUEZ_HCIBFUSB is not set
+# CONFIG_BLUEZ_HCIDTL1 is not set
+# CONFIG_BLUEZ_HCIBT3C is not set
+# CONFIG_BLUEZ_HCIBLUECARD is not set
+# CONFIG_BLUEZ_HCIBTUART is not set
+# CONFIG_BLUEZ_HCIVHCI is not set
+
+#
+# Kernel hacking
+#
+# CONFIG_DEBUG_KERNEL is not set
+CONFIG_LOG_BUF_SHIFT=0
+
+#
+# Cryptographic options
+#
+CONFIG_CRYPTO=y
+CONFIG_CRYPTO_HMAC=y
+CONFIG_CRYPTO_NULL=m
+CONFIG_CRYPTO_MD4=m
+CONFIG_CRYPTO_MD5=m
+CONFIG_CRYPTO_SHA1=m
+CONFIG_CRYPTO_SHA256=m
+CONFIG_CRYPTO_SHA512=m
+CONFIG_CRYPTO_DES=m
+CONFIG_CRYPTO_BLOWFISH=m
+CONFIG_CRYPTO_TWOFISH=m
+CONFIG_CRYPTO_SERPENT=m
+CONFIG_CRYPTO_AES=m
+CONFIG_CRYPTO_CAST5=m
+CONFIG_CRYPTO_CAST6=m
+CONFIG_CRYPTO_TEA=m
+CONFIG_CRYPTO_ARC4=m
+CONFIG_CRYPTO_DEFLATE=m
+CONFIG_CRYPTO_MICHAEL_MIC=m
+CONFIG_CRYPTO_TEST=m
+
+#
+# Library routines
+#
+CONFIG_CRC32=m
+CONFIG_ZLIB_INFLATE=m
+CONFIG_ZLIB_DEFLATE=m
+CONFIG_FW_LOADER=m
+
+
+--------------050706000207050103030600
+Content-Type: text/plain;
+ name="dmesg-boot"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="resume-finish-split.patch"
+Content-Disposition: inline;
+ filename="dmesg-boot"
 
---- linux-2.6.8-rc2/include/linux/pm.h	2004-08-04 20:36:48.044455680 +0200
-+++ include/linux/pm.h	2004-08-04 19:50:07.000000000 +0200
-@@ -214,6 +214,7 @@
- 	u32	pm_disk_mode;
- 	int (*prepare)(u32 state);
- 	int (*enter)(u32 state);
-+	int (*leave)(u32 state);
- 	int (*finish)(u32 state);
- };
- 
---- linux-2.6.8-rc2/kernel/power/main.c	2004-08-04 20:36:17.755060368 +0200
-+++ kernel/power/main.c	2004-08-04 19:52:26.000000000 +0200
-@@ -108,6 +108,8 @@
- 
- static void suspend_finish(u32 state)
- {
-+	if (pm_ops && pm_ops->leave)
-+		pm_ops->leave(state);
- 	device_resume();
- 	if (pm_ops && pm_ops->finish)
- 		pm_ops->finish(state);
---- linux-2.6.8-rc2/drivers/acpi/sleep/main.c	2004-08-04 20:29:23.863981376 +0200
-+++ drivers/acpi/sleep/main.c	2004-08-04 20:33:41.348837728 +0200
-@@ -127,7 +127,23 @@
- 	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
- }
- 
-+/**
-+ *	acpi_pm_leave - Make system ready to resume devices.
-+ *	@pm_state:		State we're coming out of.
-+ *
-+ *	This is called after we wake back up and before device
-+ *	resume methods are called.
-+ */
-+
-+static int acpi_pm_leave(u32 pm_state)
-+{
-+	u32 acpi_state = acpi_suspend_states[pm_state];
- 
-+	acpi_leave_sleep_state(acpi_state);
-+	acpi_disable_wakeup_device(acpi_state);
-+	
-+	return 0;
-+}
- /**
-  *	acpi_pm_finish - Finish up suspend sequence.
-  *	@pm_state:		State we're coming out of.
-@@ -140,9 +156,6 @@
- {
- 	u32 acpi_state = acpi_suspend_states[pm_state];
- 
--	acpi_leave_sleep_state(acpi_state);
--	acpi_disable_wakeup_device(acpi_state);
--
- 	/* reset firmware waking vector */
- 	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
- 
-@@ -170,6 +183,7 @@
- static struct pm_ops acpi_pm_ops = {
- 	.prepare	= acpi_pm_prepare,
- 	.enter		= acpi_pm_enter,
-+	.leave		= acpi_pm_leave,
- 	.finish		= acpi_pm_finish,
- };
- 
+Linux version 2.4.27-epia1 (root@earth) (gcc-Version 3.3.4 (Debian 1:3.3.4-7)) #1 Mon Aug 9 23:35:04 CEST 2004
+BIOS-provided physical RAM map:
+ BIOS-e820: 0000000000000000 - 00000000000a0000 (usable)
+ BIOS-e820: 00000000000f0000 - 0000000000100000 (reserved)
+ BIOS-e820: 0000000000100000 - 000000001dff0000 (usable)
+ BIOS-e820: 000000001dff0000 - 000000001dff3000 (ACPI NVS)
+ BIOS-e820: 000000001dff3000 - 000000001e000000 (ACPI data)
+ BIOS-e820: 00000000ffff0000 - 0000000100000000 (reserved)
+479MB LOWMEM available.
+On node 0 totalpages: 122864
+zone(0): 4096 pages.
+zone(1): 118768 pages.
+zone(2): 0 pages.
+ACPI: RSDP (v000 VT9174                                    ) @ 0x000f6650
+ACPI: RSDT (v001 VT9174 AWRDACPI 0x42302e31 AWRD 0x00000000) @ 0x1dff3000
+ACPI: FADT (v001 VT9174 AWRDACPI 0x42302e31 AWRD 0x00000000) @ 0x1dff3040
+ACPI: DSDT (v001 VT9174 AWRDACPI 0x00001000 MSFT 0x0100000c) @ 0x00000000
+Kernel command line: root=/dev/hda1 ramdisk_size=65536 quiet video=vesa:ypan,mtrr
+No local APIC present or hardware disabled
+Initializing CPU#0
+Detected 597.880 MHz processor.
+Console: colour VGA+ 80x25
+Calibrating delay loop... 1192.75 BogoMIPS
+Memory: 482888k/491456k available (1708k kernel code, 8184k reserved, 311k data, 112k init, 0k highmem)
+Checking if this processor honours the WP bit even in supervisor mode... Ok.
+Dentry cache hash table entries: 65536 (order: 7, 524288 bytes)
+Inode cache hash table entries: 32768 (order: 6, 262144 bytes)
+Mount cache hash table entries: 512 (order: 0, 4096 bytes)
+Buffer cache hash table entries: 32768 (order: 5, 131072 bytes)
+Page-cache hash table entries: 131072 (order: 7, 524288 bytes)
+CPU: L1 I Cache: 64K (32 bytes/line), D cache 64K (32 bytes/line)
+CPU: L2 Cache: 64K (32 bytes/line)
+CPU:     After generic, caps: 00803135 80803035 00000000 00000000
+CPU:             Common caps: 00803135 80803035 00000000 00000000
+CPU: Centaur VIA Samuel 2 stepping 03
+Checking 'hlt' instruction... OK.
+POSIX conformance testing by UNIFIX
+mtrr: v1.40 (20010327) Richard Gooch (rgooch-r1x6VkxMR+00zabcByZE4g@public.gmane.org)
+mtrr: detected mtrr type: Intel
+ACPI: Subsystem revision 20040326
+PCI: PCI BIOS revision 2.10 entry at 0xfb260, last bus=1
+PCI: Using configuration type 1
+ACPI: IRQ9 SCI: Level Trigger.
+ACPI: Interpreter enabled
+ACPI: Using PIC for interrupt routing
+ACPI: System [ACPI] (supports S0 S1 S3 S4 S5)
+ACPI: PCI Root Bridge [PCI0] (00:00)
+PCI: Probing PCI hardware (bus 00)
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+ACPI: PCI Interrupt Link [LNKA] (IRQs 1 3 4 5 6 7 10 *11 12 14 15)
+ACPI: PCI Interrupt Link [LNKB] (IRQs 1 3 4 5 6 7 *10 11 12 14 15)
+ACPI: PCI Interrupt Link [LNKC] (IRQs 1 3 4 5 6 7 10 11 *12 14 15)
+ACPI: PCI Interrupt Link [LNKD] (IRQs 1 3 4 *5 6 7 10 11 12 14 15)
+PCI: Probing PCI hardware
+ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 10
+ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 11
+ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 12
+ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 5
+PCI: Using ACPI for IRQ routing
+Linux NET4.0 for Linux 2.4
+Based upon Swansea University Computer Society NET3.039
+Initializing RT netlink socket
+Starting kswapd
+VFS: Disk quotas vdquot_6.5.1
+Journalled Block Device driver loaded
+devfs: v1.12c (20020818) Richard Gooch (rgooch-r1x6VkxMR+00zabcByZE4g@public.gmane.org)
+devfs: boot_options: 0x1
+SGI XFS with no debug enabled
+SGI XFS Quota Management subsystem
+Detected PS/2 Mouse Port.
+pty: 256 Unix98 ptys configured
+NET4: Frame Diverter 0.46
+RAMDISK driver initialized: 16 RAM disks of 65536K size 1024 blocksize
+Uniform Multi-Platform E-IDE driver Revision: 7.00beta4-2.4
+ide: Assuming 33MHz system bus speed for PIO modes; override with idebus=xx
+VP_IDE: IDE controller at PCI slot 00:11.1
+VP_IDE: chipset revision 6
+VP_IDE: not 100% native mode: will probe irqs later
+ide: Assuming 33MHz system bus speed for PIO modes; override with idebus=xx
+VP_IDE: VIA vt8235 (rev 00) IDE UDMA133 controller on pci00:11.1
+    ide0: BM-DMA at 0xe000-0xe007, BIOS settings: hda:DMA, hdb:pio
+    ide1: BM-DMA at 0xe008-0xe00f, BIOS settings: hdc:DMA, hdd:pio
+hda: SAMSUNG SP1203N, ATA DISK drive
+blk: queue c0341200, I/O limit 4095Mb (mask 0xffffffff)
+hdc: TOSHIBA DVD-ROM SD-C2612, ATAPI CD/DVD-ROM drive
+ide0 at 0x1f0-0x1f7,0x3f6 on irq 14
+ide1 at 0x170-0x177,0x376 on irq 15
+hda: attached ide-disk driver.
+hda: host protected area => 1
+hda: 234493056 sectors (120060 MB) w/2048KiB Cache, CHS=14596/255/63, UDMA(100)
+hdc: attached ide-cdrom driver.
+hdc: ATAPI 24X DVD-ROM drive, 192kB Cache, UDMA(33)
+Uniform CD-ROM driver Revision: 3.12
+Partition check:
+ /dev/ide/host0/bus0/target0/lun0: p1 p2 p3
+Initializing Cryptographic API
+NET4: Linux TCP/IP 1.0 for NET4.0
+IP Protocols: ICMP, UDP, TCP, IGMP
+IP: routing cache hash table of 4096 buckets, 32Kbytes
+TCP: Hash tables configured (established 32768 bind 65536)
+Linux IP multicast router 0.06 plus PIM-SM
+NET4: Unix domain sockets 1.0/SMP for Linux NET4.0.
+kjournald starting.  Commit interval 5 seconds
+EXT3-fs: mounted filesystem with ordered data mode.
+VFS: Mounted root (ext3 filesystem) readonly.
+Mounted devfs on /dev
+Freeing unused kernel memory: 112k freed
+EXT3-fs warning: maximal mount count reached, running e2fsck is recommended
+EXT3 FS 2.4-0.9.19, 19 August 2002 on ide0(3,1), internal journal
+Real Time Clock Driver v1.10f
+usb.c: registered new driver usbdevfs
+usb.c: registered new driver hub
+usb-uhci.c: $Revision: 1.275 $ time 23:43:48 Aug  9 2004
+usb-uhci.c: High bandwidth mode enabled
+usb-uhci.c: USB UHCI at I/O 0xd400, IRQ 11
+usb-uhci.c: Detected 2 ports
+usb.c: new USB bus registered, assigned bus number 1
+hub.c: USB hub found
+hub.c: 2 ports detected
+usb-uhci.c: USB UHCI at I/O 0xd800, IRQ 10
+usb-uhci.c: Detected 2 ports
+usb.c: new USB bus registered, assigned bus number 2
+hub.c: USB hub found
+hub.c: 2 ports detected
+usb-uhci.c: USB UHCI at I/O 0xdc00, IRQ 12
+usb-uhci.c: Detected 2 ports
+usb.c: new USB bus registered, assigned bus number 3
+hub.c: USB hub found
+hub.c: 2 ports detected
+usb-uhci.c: v1.275:USB Universal Host Controller Interface driver
+SCSI subsystem driver Revision: 1.00
+via-rhine.c:v1.10-LK1.1.19  July-12-2003  Written by Donald Becker
+  http://www.scyld.com/network/via-rhine.html
+divert: allocating divert_blk for eth0
+eth0: VIA VT6102 Rhine-II at 0xde002000, 00:40:63:c5:7a:fc, IRQ 11.
+eth0: MII PHY found at address 1, status 0x786d advertising 05e1 Link 45e1.
+8139too Fast Ethernet driver 0.9.26
+divert: allocating divert_blk for eth1
+eth1: RealTek RTL8139 at 0xde84a000, 00:00:21:d2:18:a2, IRQ 10
+eth1:  Identified 8139 chip type 'RTL-8139A'
+hub.c: new USB device 00:10.0-1, assigned address 2
+CDCEther.c: CDCEther.c: 0.98.6 7 Jan 2002 Brad Hards and another
+usb.c: registered new driver CDCEther
+ACPI: Processor [CPU0] (supports C1 C2, 2 throttling states)
+ACPI: Power Button (FF) [PWRF]
+usb.c: USB device 2 (vend/prod 0x471/0x308) is not claimed by any active driver.
+Via 686a/8233/8235 audio driver 1.9.1-ac3
+via82cxxx: Six channel audio available
+PCI: Setting latency timer of device 00:11.5 to 64
+ac97_codec: AC97 Audio codec, id: ICE82 (Unknown)
+via82cxxx: board #1 at 0xE400, IRQ 12
+usb.c: registered new driver audio
+hub.c: new USB device 00:10.0-2, assigned address 3
+CDCEther.c: Found Header descriptor, CDC version 1001.
+CDCEther.c: Imperfect filtering support - need sw hashing
+CDCEther.c: Can't use SetEthernetMulticastFilters request
+CDCEther.c: detected BULK OUT packets of size 64
+CDCEther.c: interrupt address: 3
+CDCEther.c: interrupt interval: 255
+divert: allocating divert_blk for eth2
+CDCEther.c: eth2: Terayon Communication Systems Terayon DOCSIS USB Cable Modem SN_403230301591_7000561-07.06
+CDCEther.c: eth2: 00:E0:6F:59:E5:DF
+usbaudio: device 2 audiocontrol interface 1 has 1 input and 0 output AudioStreaming interfaces
+usbaudio: device 2 interface 2 altsetting 0 FORMAT_TYPE descriptor not found
+usbaudio: device 2 interface 2 altsetting 1 channels 1 framesize 2 configured
+usbaudio: valid input sample rate 44100
+usbaudio: device 2 interface 2 altsetting 1: format 0x00000010 sratelo 44100 sratehi 44100 attributes 0x00
+usbaudio: device 2 interface 2 altsetting 2 channels 1 framesize 2 configured
+usbaudio: valid input sample rate 22050
+usbaudio: device 2 interface 2 altsetting 2: format 0x00000010 sratelo 22050 sratehi 22050 attributes 0x00
+usbaudio: device 2 interface 2 altsetting 3 channels 1 framesize 2 configured
+usbaudio: valid input sample rate 11025
+usbaudio: device 2 interface 2 altsetting 3: format 0x00000010 sratelo 11025 sratehi 11025 attributes 0x00
+usbaudio: device 2 interface 2 altsetting 4 channels 1 framesize 2 configured
+usbaudio: valid input sample rate 8000
+usbaudio: device 2 interface 2 altsetting 4: format 0x00000010 sratelo 8000 sratehi 8000 attributes 0x00
+usbaudio: registered dsp 14,19
+usbaudio: constructing mixer for Terminal 3 type 0x0101
+usbaudio: warning: found 1 of 0 logical channels.
+usbaudio: assuming the channel found is the master channel (got a Philips camera?). Should be fine.
+usbaudio: registered mixer 14,16
+usb_audio_parsecontrol: usb_audio_state at dd7ebae0
+audio.c: v1.0.0:USB Audio Class driver
+Initializing USB Mass Storage driver...
+usb.c: registered new driver usb-storage
+USB Mass Storage support registered.
+ip_conntrack version 2.1 (3839 buckets, 30712 max) - 288 bytes per conntrack
+ip_tables: (C) 2000-2002 Netfilter core team
+lirc_serial: auto-detected active high receiver
+isapnp: Scanning for PnP cards...
+isapnp: No Plug & Play device found
+Serial driver version 5.05c (2001-07-08) with MANY_PORTS SHARE_IRQ SERIAL_PCI ISAPNP enabled
+ttyS01 at 0x02f8 (irq = 3) is a 16550A
+kjournald starting.  Commit interval 5 seconds
+EXT3-fs warning: maximal mount count reached, running e2fsck is recommended
+EXT3 FS 2.4-0.9.19, 19 August 2002 on ide0(3,3), internal journal
+EXT3-fs: recovery complete.
+EXT3-fs: mounted filesystem with ordered data mode.
+CDCEther.c: CDCEther_open failed intr_urb -22
+CDCEther.c: eth2: set multicast filters
+CDCEther.c: eth2: too many MC filters for hardware, using allmulti
+CDCEther.c: eth2: too many MC filters for hardware, using allmulti
+CDCEther.c: eth2: too many MC filters for hardware, using allmulti
+usb-uhci.c: interrupt, status 3, frame# 1378
+CDCEther.c: rx status -84
+CDCEther.c: BULK IN callback but driver is not active!
+CDCEther.c: CDCEther_open failed intr_urb -22
+CDCEther.c: eth2: set multicast filters
+CDCEther.c: eth2: too many MC filters for hardware, using allmulti
+CDCEther.c: eth2: too many MC filters for hardware, using allmulti
+HTB init, kernel part version 3.16
+eth0: Setting full-duplex based on MII #1 link partner capability of 45e1.
+eth1: link down
 
---Boundary-00=_1ApEByUb7ileMU1
-Content-Type: text/x-csrc;
-  charset="iso-8859-1";
-  name="ACER-TravelMate_800-4a12-custom.asl"
+
+--------------050706000207050103030600
+Content-Type: text/plain;
+ name="lsmod-works"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="ACER-TravelMate_800-4a12-custom.asl"
-
-/*
- * Intel ACPI Component Architecture
- * AML Disassembler version 20040527
- *
- * Disassembly of dsdt.dat, Wed Jul  7 22:53:26 2004
- */
-DefinitionBlock ("DSDT.aml", "DSDT", 1, "ACER  ", "Cardinal", 537003824)
-{
-    OperationRegion (DBG, SystemIO, 0x80, 0x01)
-    Field (DBG, ByteAcc, NoLock, Preserve)
-    {
-        DEBG,   8
-    }
-
-    Scope (_PR)
-    {
-        Processor (CPU0, 0x00, 0x00001010, 0x06)
-        {
-            Name (_PCT, Package (0x02)
-            {
-                ResourceTemplate ()
-                {
-                    Register (SystemIO, 0x08, 0x00, 0x00000000000000B2)
-                }, 
-
-                ResourceTemplate ()
-                {
-                    Register (SystemIO, 0x08, 0x00, 0x00000000000000B3)
-                }
-            })
-            Name (_PSS, Package (0x05)
-            {
-                Package (0x06)
-                {
-                    0x0640, 
-                    0x5DC0, 
-                    0x0A, 
-                    0x0A, 
-                    0x89, 
-                    0x00
-                }, 
-
-                Package (0x06)
-                {
-                    0x0578, 
-                    0x4E20, 
-                    0x0A, 
-                    0x0A, 
-                    0x8A, 
-                    0x01
-                }, 
-
-                Package (0x06)
-                {
-                    0x04B0, 
-                    0x4650, 
-                    0x0A, 
-                    0x0A, 
-                    0x8B, 
-                    0x02
-                }, 
-
-                Package (0x06)
-                {
-                    0x0320, 
-                    0x3E80, 
-                    0x0A, 
-                    0x0A, 
-                    0x8C, 
-                    0x03
-                }, 
-
-                Package (0x06)
-                {
-                    0x0258, 
-                    0x2EE0, 
-                    0x0A, 
-                    0x0A, 
-                    0x8D, 
-                    0x04
-                }
-            })
-            Method (_PPC, 0, NotSerialized)
-            {
-                Return (0x00)
-            }
-        }
-    }
-
-    Scope (_SI)
-    {
-        Method (_MSG, 1, NotSerialized)
-        {
-            If (Arg0)
-            {
-                Store (One, \_SB.PCI0.LPC0.BL27)
-            }
-            Else
-            {
-                Store (Zero, \_SB.PCI0.LPC0.BL27)
-            }
-        }
-    }
-
-    Name (\_S0, Package (0x02)
-    {
-        0x00, 
-        0x00
-    })
-    Name (\_S3, Package (0x02)
-    {
-        0x05, 
-        0x05
-    })
-    Name (\_S4, Package (0x02)
-    {
-        0x06, 
-        0x06
-    })
-    Name (\_S5, Package (0x02)
-    {
-        0x07, 
-        0x07
-    })
-    Method (_PTS, 1, NotSerialized)
-    {
-        Store (Arg0, \_SB.STAT)
-        Store (">>>> _PTS ------------", Debug)
-        Store (Arg0, Debug)
-        Store (Arg0, \_SB.SLEE)
-        Store (0x84, \_SB.PCI0.LPC0.BCMD)
-        Store (0x00, \_SB.PCI0.LPC0.SMIC)
-        If (Or (LEqual (Arg0, 0x03), LEqual (Arg0, 0x04)))
-        {
-            Store (0x01, \_SB.PCI0.LPC0.EC0.APWR)
-        }
-
-        If (LEqual (Arg0, 0x03))
-        {
-            Store (0x80, \_SB.PCI0.LPC0.BCMD)
-            Store (0x00, \_SB.PCI0.LPC0.SMIC)
-        }
-
-        If (LEqual (Arg0, 0x04))
-        {
-            Store (0x01, \_SB.S4WP)
-            Store (0x82, \_SB.PCI0.LPC0.BCMD)
-            Store (0x00, \_SB.PCI0.LPC0.SMIC)
-            Store (One, \_SB.PCI0.LPC0.EC0.PFLG)
-            Store (One, \_SB.PCI0.LPC0.EC0.S4LD)
-        }
-
-        If (LEqual (SizeOf (\_OS), 0x27))
-        {
-            Notify (\_SB.BAT1, 0x80)
-            Notify (\_SB.BAT2, 0x80)
-            Notify (\_SB.ACAD, 0x00)
-        }
-
-        If (LEqual (Arg0, 0x05))
-        {
-            Store (One, \_SB.PCI0.LPC0.EC0.S5LW)
-        }
-    }
-
-    Method (_WAK, 1, NotSerialized)
-    {
-        Store (">>>> _WAK ------------", Debug)
-        Store (Arg0, Debug)
-        Store (Arg0, \_SB.STAT)
-        If (LEqual (Arg0, 0x03))
-        {
-            Store (0x81, \_SB.PCI0.LPC0.BCMD)
-            Store (0x00, \_SB.PCI0.LPC0.SMIC)
-        }
-
-        If (LEqual (Arg0, 0x04))
-        {
-            Store (0x01, \_SB.OKEC)
-            Notify (\_SB.SLPB, 0x02)
-        }
-
-        If (LEqual (SizeOf (\_OS), 0x14))
-        {
-            Store (\_SB.PCI0.LPC0.RBID, Local0)
-            Store (\_SB.PCI0.IDE0.BAYR, Local1)
-            Store (Local0, \_SB.PCI0.IDE0.BAYR)
-            If (LNot (LEqual (Local0, Local1)))
-            {
-                If (Or (LEqual (Local1, 0x01), LEqual (Local1, 0x02)))
-                {
-                    If (And (LEqual (\_SB.PCI0.MYOS, 0x03), LEqual (Local0, 0x03)))
-                    {
-                        Notify (\_SB.PCI0.IDE0.SECN.BAY1, 0x03)
-                    }
-                    Else
-                    {
-                        Notify (\_SB.PCI0.IDE0.SECN.BAY1, 0x01)
-                    }
-                }
-            }
-
-            If (Or (LEqual (Local0, 0x01), LEqual (Local0, 0x02)))
-            {
-                Notify (\_SB.PCI0.IDE0.SECN.BAY1, 0x00)
-            }
-        }
-
-        If (LEqual (SizeOf (\_OS), 0x27))
-        {
-            Notify (\_SB.BAT1, 0x80)
-            Notify (\_SB.BAT2, 0x80)
-            Notify (\_SB.ACAD, 0x00)
-        }
-
-        Store (\_SB.PCI0.LPC0.EC0.ACDF, \_SB.ACST)
-        If (LEqual (SizeOf (\_OS), 0x11))
-        {
-            Notify (\_SB.SLPB, 0x02)
-        }
-
-        Store (0x00, \_SB.SLEE)
-    }
-
-    Scope (_GPE)
-    {
-        Method (_L05, 0, NotSerialized)
-        {
-            Notify (\_SB.PCI0.MDM0, 0x02)
-        }
-
-        Method (_L0B, 0, NotSerialized)
-        {
-            Notify (\_SB.PCI0.HUB, 0x00)
-            If (Or (LEqual (\_SB.PCI0.MYOS, 0x01), LEqual (\_SB.PCI0.MYOS, 0x03)))
-            {
-                Notify (\_SB.SLPB, 0x02)
-            }
-        }
-
-        Method (_L03, 0, NotSerialized)
-        {
-            Notify (\_SB.PCI0.USB1, 0x02)
-        }
-
-        Method (_L04, 0, NotSerialized)
-        {
-            Notify (\_SB.PCI0.USB2, 0x02)
-        }
-
-        Method (_L0C, 0, NotSerialized)
-        {
-            Notify (\_SB.PCI0.USB3, 0x02)
-        }
-
-        Method (_E18, 0, NotSerialized)
-        {
-            Sleep (0x01)
-        }
-    }
-
-    Scope (_SB)
-    {
-        Name (STAT, 0x00)
-        Name (D1ST, 0x00)
-        Name (D1SJ, 0x01)
-        Device (PCI0)
-        {
-            Name (MYOS, 0x02)
-            Method (_INI, 0, NotSerialized)
-            {
-                Store (0x01, \_SB.D1SJ)
-                Store (0x02, MYOS)
-                If (LEqual (SizeOf (\_OS), 0x14))
-                {
-                    Store (0x01, MYOS)
-                    Store (0x01, \_SB.W2KF)
-                    If (CondRefOf (_OSI, Local0))
-                    {
-                        If (\_OSI ("Windows 2001"))
-                        {
-                            Store (0x03, MYOS)
-                            Store (0x03, \_SB.W2KF)
-                        }
-                    }
-                }
-                Else
-                {
-                    If (LEqual (SizeOf (\_OS), 0x11))
-                    {
-                        Store (0x00, MYOS)
-                        Store (0x00, \_SB.W2KF)
-                    }
-                    Else
-                    {
-                        If (LEqual (SizeOf (\_OS), 0x27))
-                        {
-                            Store (0x02, MYOS)
-                            Store (0x02, \_SB.W2KF)
-                        }
-                    }
-                }
-            }
-
-            Name (_HID, EisaId ("PNP0A03"))
-            Name (_ADR, 0x00)
-            Name (_BBN, 0x00)
-            OperationRegion (HBUS, PCI_Config, 0x40, 0xC0)
-            Field (HBUS, DWordAcc, NoLock, Preserve)
-            {
-                Offset (0x20), 
-                DRB0,   8, 
-                DRB1,   8, 
-                DRB2,   8, 
-                DRB3,   8, 
-                Offset (0x50), 
-                    ,   4, 
-                PM0H,   2, 
-                Offset (0x51), 
-                PM1L,   2, 
-                    ,   2, 
-                PM1H,   2, 
-                Offset (0x52), 
-                PM2L,   2, 
-                    ,   2, 
-                PM2H,   2, 
-                Offset (0x53), 
-                PM3L,   2, 
-                    ,   2, 
-                PM3H,   2, 
-                Offset (0x54), 
-                PM4L,   2, 
-                    ,   2, 
-                PM4H,   2, 
-                Offset (0x55), 
-                PM5L,   2, 
-                    ,   2, 
-                PM5H,   2, 
-                Offset (0x56), 
-                PM6L,   2, 
-                    ,   2, 
-                PM6H,   2, 
-                Offset (0x57), 
-                FDHC,   8
-            }
-
-            Name (BUF0, ResourceTemplate ()
-            {
-                WordBusNumber (ResourceProducer, MinFixed, MaxFixed, PosDecode,
-                    0x0000,
-                    0x0000,
-                    0x00FF,
-                    0x0000,
-                    0x0100, 0x00)
-                DWordIO (ResourceProducer, MinFixed, MaxFixed, PosDecode, EntireRange,
-                    0x00000000,
-                    0x00000000,
-                    0x00000CF7,
-                    0x00000000,
-                    0x00000CF8, 0x00)
-                IO (Decode16, 0x0CF8, 0x0CF8, 0x01, 0x08)
-                DWordIO (ResourceProducer, MinFixed, MaxFixed, PosDecode, EntireRange,
-                    0x00000000,
-                    0x00000D00,
-                    0x0000FFFF,
-                    0x00000000,
-                    0x0000F300, 0x00)
-                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
-                    0x00000000,
-                    0x000A0000,
-                    0x000BFFFF,
-                    0x00000000,
-                    0x00020000, 0x00)
-                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
-                    0x00000000,
-                    0x000C0000,
-                    0x000C3FFF,
-                    0x00000000,
-                    0x00004000, 0x00)
-                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
-                    0x00000000,
-                    0x000C4000,
-                    0x000C7FFF,
-                    0x00000000,
-                    0x00004000, 0x00)
-                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
-                    0x00000000,
-                    0x000C8000,
-                    0x000CBFFF,
-                    0x00000000,
-                    0x00004000, 0x00)
-                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
-                    0x00000000,
-                    0x000CC000,
-                    0x000CFFFF,
-                    0x00000000,
-                    0x00004000, 0x00)
-                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
-                    0x00000000,
-                    0x000D0000,
-                    0x000D3FFF,
-                    0x00000000,
-                    0x00004000, 0x00)
-                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
-                    0x00000000,
-                    0x000D4000,
-                    0x000D7FFF,
-                    0x00000000,
-                    0x00004000, 0x00)
-                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
-                    0x00000000,
-                    0x000D8000,
-                    0x000DBFFF,
-                    0x00000000,
-                    0x00004000, 0x00)
-                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
-                    0x00000000,
-                    0x000DC000,
-                    0x000DFFFF,
-                    0x00000000,
-                    0x00004000, 0x00)
-                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
-                    0x00000000,
-                    0x000E0000,
-                    0x000E3FFF,
-                    0x00000000,
-                    0x00004000, 0x00)
-                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
-                    0x00000000,
-                    0x000E4000,
-                    0x000E7FFF,
-                    0x00000000,
-                    0x00004000, 0x00)
-                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
-                    0x00000000,
-                    0x000E8000,
-                    0x000EBFFF,
-                    0x00000000,
-                    0x00004000, 0x00)
-                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
-                    0x00000000,
-                    0x000EC000,
-                    0x000EFFFF,
-                    0x00000000,
-                    0x00004000, 0x00)
-                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
-                    0x00000000,
-                    0x000F0000,
-                    0x000FFFFF,
-                    0x00000000,
-                    0x00010000, 0x00)
-                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
-                    0x00000000,
-                    0x00000000,
-                    0xFEBFFFFF,
-                    0x00000000,
-                    0x00000000, 0x00)
-                DWordMemory (ResourceProducer, PosDecode, MinFixed, MaxFixed, Cacheable, ReadWrite,
-                    0x00000000,
-                    0x00000000,
-                    0x00000000,
-                    0x00000000,
-                    0x00000000, 0x00)
-            })
-            Method (_CRS, 0, Serialized)
-            {
-                If (PM1L)
-                {
-                    CreateDWordField (BUF0, 0x80, C0LN)
-                    Store (Zero, C0LN)
-                }
-
-                If (LEqual (PM1L, 0x01))
-                {
-                    CreateBitField (BUF0, 0x0378, C0RW)
-                    Store (Zero, C0RW)
-                }
-
-                If (PM1H)
-                {
-                    CreateDWordField (BUF0, 0x9B, C4LN)
-                    Store (Zero, C4LN)
-                }
-
-                If (LEqual (PM1H, 0x01))
-                {
-                    CreateBitField (BUF0, 0x0450, C4RW)
-                    Store (Zero, C4RW)
-                }
-
-                If (PM2L)
-                {
-                    CreateDWordField (BUF0, 0xB6, C8LN)
-                    Store (Zero, C8LN)
-                }
-
-                If (LEqual (PM2L, 0x01))
-                {
-                    CreateBitField (BUF0, 0x0528, C8RW)
-                    Store (Zero, C8RW)
-                }
-
-                If (PM2H)
-                {
-                    CreateDWordField (BUF0, 0xD1, CCLN)
-                    Store (Zero, CCLN)
-                }
-
-                If (LEqual (PM2H, 0x01))
-                {
-                    CreateBitField (BUF0, 0x0600, CCRW)
-                    Store (Zero, CCRW)
-                }
-
-                If (PM3L)
-                {
-                    CreateDWordField (BUF0, 0xEC, D0LN)
-                    Store (Zero, D0LN)
-                }
-
-                If (LEqual (PM3L, 0x01))
-                {
-                    CreateBitField (BUF0, 0x06D8, D0RW)
-                    Store (Zero, D0RW)
-                }
-
-                If (PM3H)
-                {
-                    CreateDWordField (BUF0, 0x0107, D4LN)
-                    Store (Zero, D4LN)
-                }
-
-                If (LEqual (PM3H, 0x01))
-                {
-                    CreateBitField (BUF0, 0x07B0, D4RW)
-                    Store (Zero, D4RW)
-                }
-
-                If (PM4L)
-                {
-                    CreateDWordField (BUF0, 0x0122, D8LN)
-                    Store (Zero, D8LN)
-                }
-
-                If (LEqual (PM4L, 0x01))
-                {
-                    CreateBitField (BUF0, 0x0888, D8RW)
-                    Store (Zero, D8RW)
-                }
-
-                If (PM4H)
-                {
-                    CreateDWordField (BUF0, 0x013D, DCLN)
-                    Store (Zero, DCLN)
-                }
-
-                If (LEqual (PM4H, 0x01))
-                {
-                    CreateBitField (BUF0, 0x0960, DCRW)
-                    Store (Zero, DCRW)
-                }
-
-                If (PM5L)
-                {
-                    CreateDWordField (BUF0, 0x0158, E0LN)
-                    Store (Zero, E0LN)
-                }
-
-                If (LEqual (PM5L, 0x01))
-                {
-                    CreateBitField (BUF0, 0x0A38, E0RW)
-                    Store (Zero, E0RW)
-                }
-
-                If (PM5H)
-                {
-                    CreateDWordField (BUF0, 0x0173, E4LN)
-                    Store (Zero, E4LN)
-                }
-
-                If (LEqual (PM5H, 0x01))
-                {
-                    CreateBitField (BUF0, 0x0B10, E4RW)
-                    Store (Zero, E4RW)
-                }
-
-                If (PM6L)
-                {
-                    CreateDWordField (BUF0, 0x018E, E8LN)
-                    Store (Zero, E8LN)
-                }
-
-                If (LEqual (PM6L, 0x01))
-                {
-                    CreateBitField (BUF0, 0x0BE8, E8RW)
-                    Store (Zero, E8RW)
-                }
-
-                If (PM6H)
-                {
-                    CreateDWordField (BUF0, 0x01A9, ECLN)
-                    Store (Zero, ECLN)
-                }
-
-                If (LEqual (PM6H, 0x01))
-                {
-                    CreateBitField (BUF0, 0x0CC0, ECRW)
-                    Store (Zero, ECRW)
-                }
-
-                If (PM0H)
-                {
-                    CreateDWordField (BUF0, 0x01C4, F0LN)
-                    Store (Zero, F0LN)
-                }
-
-                If (LEqual (PM0H, 0x01))
-                {
-                    CreateBitField (BUF0, 0x0D98, F0RW)
-                    Store (Zero, F0RW)
-                }
-
-                CreateDWordField (BUF0, 0x01D3, M1MN)
-                CreateDWordField (BUF0, 0x01D7, M1MX)
-                CreateDWordField (BUF0, 0x01DF, M1LN)
-                Multiply (0x02000000, DRB3, M1MN)
-                Add (Subtract (M1MX, M1MN), 0x01, M1LN)
-                ShiftRight (And (\_SB.PCI0.LPC0.MTSE, 0x0380), 0x07, Local0)
-                If (And (Local0, 0x04))
-                {
-                    CreateDWordField (BUF0, 0x01EE, M2MN)
-                    CreateDWordField (BUF0, 0x01F2, M2MX)
-                    CreateDWordField (BUF0, 0x01FA, M2LN)
-                    Store (0xFED00000, M2MN)
-                    Store (0xFED003FF, M2MX)
-                    Store (0x0400, M2LN)
-                    If (LEqual (Local0, 0x05))
-                    {
-                        Store (0xFED01000, M2MN)
-                        Store (0xFED013FF, M2MX)
-                    }
-
-                    If (LEqual (Local0, 0x06))
-                    {
-                        Store (0xFED02000, M2MN)
-                        Store (0xFED023FF, M2MX)
-                    }
-
-                    If (LEqual (Local0, 0x07))
-                    {
-                        Store (0xFED03000, M2MN)
-                        Store (0xFED033FF, M2MX)
-                    }
-                }
-
-                Return (BUF0)
-            }
-
-            Name (_PRT, Package (0x0F)
-            {
-                Package (0x04)
-                {
-                    0xFFFF, 
-                    0x00, 
-                    \_SB.PCI0.LPC0.LNKA, 
-                    0x00
-                }, 
-
-                Package (0x04)
-                {
-                    0xFFFF, 
-                    0x01, 
-                    \_SB.PCI0.LPC0.LNKB, 
-                    0x00
-                }, 
-
-                Package (0x04)
-                {
-                    0xFFFF, 
-                    0x02, 
-                    \_SB.PCI0.LPC0.LNKC, 
-                    0x00
-                }, 
-
-                Package (0x04)
-                {
-                    0xFFFF, 
-                    0x03, 
-                    \_SB.PCI0.LPC0.LNKD, 
-                    0x00
-                }, 
-
-                Package (0x04)
-                {
-                    0x0001FFFF, 
-                    0x00, 
-                    \_SB.PCI0.LPC0.LNKA, 
-                    0x00
-                }, 
-
-                Package (0x04)
-                {
-                    0x001DFFFF, 
-                    0x00, 
-                    \_SB.PCI0.LPC0.LNKA, 
-                    0x00
-                }, 
-
-                Package (0x04)
-                {
-                    0x001DFFFF, 
-                    0x01, 
-                    \_SB.PCI0.LPC0.LNKD, 
-                    0x00
-                }, 
-
-                Package (0x04)
-                {
-                    0x001DFFFF, 
-                    0x02, 
-                    \_SB.PCI0.LPC0.LNKC, 
-                    0x00
-                }, 
-
-                Package (0x04)
-                {
-                    0x001DFFFF, 
-                    0x03, 
-                    \_SB.PCI0.LPC0.LNKH, 
-                    0x00
-                }, 
-
-                Package (0x04)
-                {
-                    0x001EFFFF, 
-                    0x00, 
-                    \_SB.PCI0.LPC0.LNKA, 
-                    0x00
-                }, 
-
-                Package (0x04)
-                {
-                    0x001EFFFF, 
-                    0x01, 
-                    \_SB.PCI0.LPC0.LNKB, 
-                    0x00
-                }, 
-
-                Package (0x04)
-                {
-                    0x001EFFFF, 
-                    0x02, 
-                    \_SB.PCI0.LPC0.LNKC, 
-                    0x00
-                }, 
-
-                Package (0x04)
-                {
-                    0x001EFFFF, 
-                    0x03, 
-                    \_SB.PCI0.LPC0.LNKD, 
-                    0x00
-                }, 
-
-                Package (0x04)
-                {
-                    0x001FFFFF, 
-                    0x00, 
-                    \_SB.PCI0.LPC0.LNKC, 
-                    0x00
-                }, 
-
-                Package (0x04)
-                {
-                    0x001FFFFF, 
-                    0x01, 
-                    \_SB.PCI0.LPC0.LNKB, 
-                    0x00
-                }
-            })
-            Device (AGP)
-            {
-                Name (_ADR, 0x00010000)
-                Name (_PRT, Package (0x01)
-                {
-                    Package (0x04)
-                    {
-                        0xFFFF, 
-                        0x00, 
-                        \_SB.PCI0.LPC0.LNKA, 
-                        0x00
-                    }
-                })
-                Device (VGA)
-                {
-                    Name (_ADR, 0x00)
-                    Name (SWIT, 0x01)
-                    Name (CRTA, 0x01)
-                    Name (LCDA, 0x01)
-                    Name (TV0A, 0x01)
-                    Name (TOGF, 0x02)
-                    Method (_STA, 0, NotSerialized)
-                    {
-                        Return (0x0F)
-                    }
-
-                    Name (_PSC, 0x00)
-                    Name (USBF, 0x00)
-                    Method (_PS0, 0, NotSerialized)
-                    {
-                        Store (0x00, _PSC)
-                    }
-
-                    Method (_PS3, 0, NotSerialized)
-                    {
-                        Store (0x03, _PSC)
-                    }
-
-                    Method (_DOS, 1, NotSerialized)
-                    {
-                        Store (And (Arg0, 0x03), SWIT)
-                    }
-
-                    Method (_DOD, 0, NotSerialized)
-                    {
-                        Return (Package (0x03)
-                        {
-                            0x00010100, 
-                            0x00010110, 
-                            0x00010200
-                        })
-                    }
-
-                    Device (CRT)
-                    {
-                        Name (_ADR, 0x0100)
-                        Method (_DCS, 0, NotSerialized)
-                        {
-                            If (CRTA)
-                            {
-                                Return (0x1F)
-                            }
-                            Else
-                            {
-                                Return (0x1D)
-                            }
-                        }
-
-                        Method (_DGS, 0, NotSerialized)
-                        {
-                            If (CRTA)
-                            {
-                                Return (0x01)
-                            }
-                            Else
-                            {
-                                Return (0x00)
-                            }
-                        }
-
-                        Method (_DSS, 1, NotSerialized)
-                        {
-                            Store ("CRT --_DSS", Debug)
-                        }
-                    }
-
-                    Device (TV0)
-                    {
-                        Name (_ADR, 0x0200)
-                        Method (_DCS, 0, NotSerialized)
-                        {
-                            If (TV0A)
-                            {
-                                Return (0x1F)
-                            }
-                            Else
-                            {
-                                Return (0x1D)
-                            }
-                        }
-
-                        Method (_DGS, 0, NotSerialized)
-                        {
-                            If (TV0A)
-                            {
-                                Return (0x01)
-                            }
-                            Else
-                            {
-                                Return (0x00)
-                            }
-                        }
-
-                        Method (_DSS, 1, NotSerialized)
-                        {
-                            Store ("TV --_DSS", Debug)
-                        }
-                    }
-
-                    Device (LCD)
-                    {
-                        Name (_ADR, 0x0110)
-                        Method (_DCS, 0, NotSerialized)
-                        {
-                            If (LCDA)
-                            {
-                                Return (0x1F)
-                            }
-                            Else
-                            {
-                                Return (0x1D)
-                            }
-                        }
-
-                        Method (_DGS, 0, NotSerialized)
-                        {
-                            Store (LCDA, Local0)
-                            If (LCDA)
-                            {
-                                Return (0x01)
-                            }
-                            Else
-                            {
-                                Return (0x00)
-                            }
-                        }
-
-                        Method (_DSS, 1, NotSerialized)
-                        {
-                            Store ("LCD --_DSS", Debug)
-                        }
-                    }
-
-                    Method (SWIH, 0, NotSerialized)
-                    {
-                        Store (0x03, Local0)
-                        If (LEqual (Local0, 0x03))
-                        {
-                            Increment (TOGF)
-                            Store (TOGF, Local1)
-                            If (LEqual (Local1, 0x01))
-                            {
-                                Store (One, LCDA)
-                                Store (Zero, CRTA)
-                                Store (Zero, TV0A)
-                            }
-                            Else
-                            {
-                                If (LEqual (Local1, 0x02))
-                                {
-                                    Store (Zero, LCDA)
-                                    Store (One, CRTA)
-                                    Store (Zero, TV0A)
-                                }
-                                Else
-                                {
-                                    If (LEqual (Local1, 0x03))
-                                    {
-                                        Store (One, LCDA)
-                                        Store (One, CRTA)
-                                        Store (Zero, TV0A)
-                                    }
-                                    Else
-                                    {
-                                        Store (One, TOGF)
-                                        Store (One, LCDA)
-                                        Store (Zero, CRTA)
-                                        Store (Zero, TV0A)
-                                    }
-                                }
-                            }
-                        }
-                        Else
-                        {
-                            If (LEqual (Local0, 0x05))
-                            {
-                                Increment (TOGF)
-                                Store (TOGF, Local1)
-                                If (LEqual (Local1, 0x01))
-                                {
-                                    Store (One, LCDA)
-                                    Store (Zero, CRTA)
-                                    Store (Zero, TV0A)
-                                }
-                                Else
-                                {
-                                    Store (Zero, TOGF)
-                                    Store (Zero, LCDA)
-                                    Store (Zero, CRTA)
-                                    Store (One, TV0A)
-                                    Store (Zero, TV0A)
-                                }
-                            }
-                            Else
-                            {
-                                If (LEqual (Local0, 0x07))
-                                {
-                                    Increment (TOGF)
-                                    Store (TOGF, Local1)
-                                    If (LEqual (Local1, 0x01))
-                                    {
-                                        Store (0x01, LCDA)
-                                        Store (0x00, CRTA)
-                                        Store (0x00, TV0A)
-                                    }
-                                    Else
-                                    {
-                                        If (LEqual (Local1, 0x02))
-                                        {
-                                            Store (0x00, LCDA)
-                                            Store (0x01, CRTA)
-                                            Store (0x00, TV0A)
-                                        }
-                                        Else
-                                        {
-                                            If (LEqual (Local1, 0x03))
-                                            {
-                                                Store (0x01, LCDA)
-                                                Store (0x01, CRTA)
-                                                Store (0x00, TV0A)
-                                            }
-                                            Else
-                                            {
-                                                Store (0x00, TOGF)
-                                                Store (0x00, LCDA)
-                                                Store (0x00, CRTA)
-                                                Store (0x01, TV0A)
-                                                Store (0x00, TV0A)
-                                            }
-                                        }
-                                    }
-                                }
-                                Else
-                                {
-                                    Store (0x01, TOGF)
-                                    Store (0x01, LCDA)
-                                    Store (0x00, CRTA)
-                                    Store (0x00, TV0A)
-                                }
-                            }
-                        }
-
-                        Notify (\_SB.PCI0.AGP.VGA, 0x80)
-                    }
-
-                    Method (GETD, 0, NotSerialized)
-                    {
-                        Store (0x98, \_SB.PCI0.LPC0.BCMD)
-                        Store (0x00, \_SB.PCI0.LPC0.SMIC)
-                        Store (\_SB.DISD, Local0)
-                        If (LEqual (Local0, 0x01))
-                        {
-                            Store (0x01, TOGF)
-                        }
-
-                        If (LEqual (Local0, 0x02))
-                        {
-                            Store (0x02, TOGF)
-                        }
-
-                        If (LEqual (Local0, 0x03))
-                        {
-                            Store (0x03, TOGF)
-                        }
-
-                        If (LEqual (Local0, 0x04))
-                        {
-                            Store (0x00, TOGF)
-                        }
-                    }
-                }
-            }
-
-            Device (LPC0)
-            {
-                Name (_ADR, 0x001F0000)
-                Method (DECD, 4, NotSerialized)
-                {
-                    Store (Arg0, Debug)
-                }
-
-                OperationRegion (REGS, PCI_Config, 0x40, 0xC0)
-                Field (REGS, DWordAcc, NoLock, Preserve)
-                {
-                    PMBA,   16, 
-                    Offset (0x18), 
-                    GPBA,   16, 
-                    Offset (0x90), 
-                    POSD,   1, 
-                    Offset (0x91), 
-                    MTSE,   16, 
-                    Offset (0x94), 
-                    Offset (0xA0), 
-                    CMAD,   3, 
-                        ,   1, 
-                    CMBD,   3, 
-                    Offset (0xA1), 
-                    LPTD,   2, 
-                        ,   2, 
-                    FDDD,   1, 
-                    Offset (0xA6), 
-                    ECO1,   1, 
-                    ECO2,   1, 
-                    ELPT,   1, 
-                    EFDD,   1
-                }
-
-                OperationRegion (PIRX, PCI_Config, 0x60, 0x0C)
-                Field (PIRX, DWordAcc, NoLock, Preserve)
-                {
-                    AccessAs (ByteAcc, 0x00), 
-                    PIRA,   8, 
-                    PIRB,   8, 
-                    PIRC,   8, 
-                    PIRD,   8, 
-                    Offset (0x08), 
-                    PIRE,   8, 
-                    PIRF,   8, 
-                    PIRG,   8, 
-                    PIRH,   8
-                }
-
-                Device (MBRD)
-                {
-                    Name (_HID, EisaId ("PNP0C02"))
-                    Name (_UID, 0x1F)
-                    Name (RSRC, ResourceTemplate ()
-                    {
-                        IO (Decode16, 0x0010, 0x0010, 0x01, 0x10)
-                        IO (Decode16, 0x0024, 0x0024, 0x01, 0x02)
-                        IO (Decode16, 0x0028, 0x0028, 0x01, 0x02)
-                        IO (Decode16, 0x002C, 0x002C, 0x01, 0x02)
-                        IO (Decode16, 0x0030, 0x0030, 0x01, 0x02)
-                        IO (Decode16, 0x0034, 0x0034, 0x01, 0x02)
-                        IO (Decode16, 0x0038, 0x0038, 0x01, 0x02)
-                        IO (Decode16, 0x003C, 0x003C, 0x01, 0x02)
-                        IO (Decode16, 0x0050, 0x0050, 0x01, 0x04)
-                        IO (Decode16, 0x0072, 0x0072, 0x01, 0x06)
-                        IO (Decode16, 0x0080, 0x0080, 0x01, 0x01)
-                        IO (Decode16, 0x0090, 0x0090, 0x01, 0x10)
-                        IO (Decode16, 0x00A4, 0x00A4, 0x01, 0x02)
-                        IO (Decode16, 0x00A8, 0x00A8, 0x01, 0x02)
-                        IO (Decode16, 0x00AC, 0x00AC, 0x01, 0x02)
-                        IO (Decode16, 0x00B0, 0x00B0, 0x01, 0x06)
-                        IO (Decode16, 0x00B8, 0x00B8, 0x01, 0x02)
-                        IO (Decode16, 0x00BC, 0x00BC, 0x01, 0x02)
-                        IO (Decode16, 0x1000, 0x1000, 0x01, 0x80)
-                        IO (Decode16, 0x1180, 0x1180, 0x01, 0x40)
-                        IO (Decode16, 0x01C0, 0x01C0, 0x01, 0x10)
-                        IO (Decode16, 0x002E, 0x002E, 0x01, 0x02)
-                        IO (Decode16, 0x004E, 0x004E, 0x01, 0x02)
-                        IO (Decode16, 0x0068, 0x0068, 0x01, 0x01)
-                        IO (Decode16, 0x006C, 0x006C, 0x01, 0x01)
-                        IO (Decode16, 0xFE00, 0xFE00, 0x00, 0x01)
-                        IO (Decode16, 0x04D0, 0x04D0, 0x01, 0x02)
-                        IO (Decode16, 0x0600, 0x0600, 0x01, 0x10)
-                        IO (Decode16, 0x0610, 0x0610, 0x01, 0x10)
-                        IO (Decode16, 0x0068, 0x0068, 0x01, 0x01)
-                        IO (Decode16, 0x006C, 0x006C, 0x01, 0x01)
-                        Memory32Fixed (ReadOnly, 0xFF800000, 0x00400000)
-                        Memory32Fixed (ReadOnly, 0xFFF00000, 0x00100000)
-                        Memory32Fixed (ReadWrite, 0x00000000, 0x000A0000)
-                        Memory32Fixed (ReadOnly, 0x000E0000, 0x00020000)
-                        Memory32Fixed (ReadWrite, 0x00100000, 0x00000000)
-                    })
-                    Method (_CRS, 0, NotSerialized)
-                    {
-                        CreateWordField (RSRC, 0x92, PMMN)
-                        CreateWordField (RSRC, 0x94, PMMX)
-                        And (^^PMBA, 0xFF80, PMMN)
-                        Store (PMMN, PMMX)
-                        CreateWordField (RSRC, 0x9A, GPMN)
-                        CreateWordField (RSRC, 0x9C, GPMX)
-                        And (^^GPBA, 0xFF80, GPMN)
-                        Store (GPMN, GPMX)
-                        CreateDWordField (RSRC, 0x0130, TMEM)
-                        Store (\_SB.PCI0.DRB3, TMEM)
-                        ShiftLeft (TMEM, 0x19, TMEM)
-                        Subtract (TMEM, 0x00100000, TMEM)
-                        Return (RSRC)
-                    }
-                }
-
-                Device (DMAC)
-                {
-                    Name (_HID, EisaId ("PNP0200"))
-                    Name (_CRS, ResourceTemplate ()
-                    {
-                        IO (Decode16, 0x0000, 0x0000, 0x01, 0x10)
-                        IO (Decode16, 0x0081, 0x0081, 0x01, 0x0F)
-                        IO (Decode16, 0x00C0, 0x00C0, 0x01, 0x20)
-                        DMA (Compatibility, NotBusMaster, Transfer16) {4}
-                    })
-                }
-
-                Device (MATH)
-                {
-                    Name (_HID, EisaId ("PNP0C04"))
-                    Name (_CRS, ResourceTemplate ()
-                    {
-                        IO (Decode16, 0x00F0, 0x00F0, 0x01, 0x0F)
-                        IRQ (Edge, ActiveHigh, Exclusive) {13}
-                    })
-                }
-
-                Device (PIC)
-                {
-                    Name (_HID, EisaId ("PNP0000"))
-                    Name (_CRS, ResourceTemplate ()
-                    {
-                        IO (Decode16, 0x0020, 0x0020, 0x01, 0x02)
-                        IO (Decode16, 0x00A0, 0x00A0, 0x01, 0x02)
-                        IRQ (Edge, ActiveHigh, Exclusive) {2}
-                    })
-                }
-
-                Device (RTC)
-                {
-                    Name (_HID, EisaId ("PNP0B00"))
-                    Name (_CRS, ResourceTemplate ()
-                    {
-                        IO (Decode16, 0x0070, 0x0070, 0x01, 0x02)
-                        IRQ (Edge, ActiveHigh, Exclusive) {8}
-                    })
-                }
-
-                Device (SPKR)
-                {
-                    Name (_HID, EisaId ("PNP0800"))
-                    Name (_CRS, ResourceTemplate ()
-                    {
-                        IO (Decode16, 0x0061, 0x0061, 0x01, 0x01)
-                    })
-                }
-
-                Device (TIME)
-                {
-                    Name (_HID, EisaId ("PNP0100"))
-                    Name (_CRS, ResourceTemplate ()
-                    {
-                        IO (Decode16, 0x0040, 0x0040, 0x01, 0x04)
-                        IRQ (Edge, ActiveHigh, Exclusive) {0}
-                    })
-                }
-
-                Device (LNKA)
-                {
-                    Name (_HID, EisaId ("PNP0C0F"))
-                    Name (_UID, 0x01)
-                    Name (_PRS, ResourceTemplate ()
-                    {
-                        IRQ (Level, ActiveLow, Shared) {10}
-                    })
-                    Name (RSRC, ResourceTemplate ()
-                    {
-                        IRQ (Level, ActiveLow, Shared) {}
-                    })
-                    Method (_DIS, 0, NotSerialized)
-                    {
-                        Or (PIRA, 0x80, PIRA)
-                    }
-
-                    Method (_CRS, 0, NotSerialized)
-                    {
-                        CreateWordField (RSRC, 0x01, IRQ0)
-                        And (PIRA, 0x0F, Local0)
-                        ShiftLeft (0x01, Local0, IRQ0)
-                        Return (RSRC)
-                    }
-
-                    Method (_SRS, 1, NotSerialized)
-                    {
-                        CreateWordField (Arg0, 0x01, IRQ0)
-                        FindSetRightBit (IRQ0, Local0)
-                        Decrement (Local0)
-                        Or (Local0, And (PIRA, 0x70), PIRA)
-                    }
-
-                    Method (_STA, 0, NotSerialized)
-                    {
-                        If (And (PIRA, 0x80))
-                        {
-                            Return (0x09)
-                        }
-
-                        Return (0x0B)
-                    }
-                }
-
-                Device (LNKB)
-                {
-                    Name (_HID, EisaId ("PNP0C0F"))
-                    Name (_UID, 0x02)
-                    Name (_PRS, ResourceTemplate ()
-                    {
-                        IRQ (Level, ActiveLow, Shared) {10}
-                    })
-                    Name (RSRC, ResourceTemplate ()
-                    {
-                        IRQ (Level, ActiveLow, Shared) {}
-                    })
-                    Method (_DIS, 0, NotSerialized)
-                    {
-                        Or (PIRB, 0x80, PIRB)
-                    }
-
-                    Method (_CRS, 0, NotSerialized)
-                    {
-                        CreateWordField (RSRC, 0x01, IRQ0)
-                        And (PIRB, 0x0F, Local0)
-                        ShiftLeft (0x01, Local0, IRQ0)
-                        Return (RSRC)
-                    }
-
-                    Method (_SRS, 1, NotSerialized)
-                    {
-                        CreateWordField (Arg0, 0x01, IRQ0)
-                        FindSetRightBit (IRQ0, Local0)
-                        Decrement (Local0)
-                        Or (Local0, And (PIRB, 0x70), PIRB)
-                    }
-
-                    Method (_STA, 0, NotSerialized)
-                    {
-                        If (And (PIRB, 0x80))
-                        {
-                            Return (0x09)
-                        }
-
-                        Return (0x0B)
-                    }
-                }
-
-                Device (LNKC)
-                {
-                    Name (_HID, EisaId ("PNP0C0F"))
-                    Name (_UID, 0x03)
-                    Name (_PRS, ResourceTemplate ()
-                    {
-                        IRQ (Level, ActiveLow, Shared) {10}
-                    })
-                    Name (RSRC, ResourceTemplate ()
-                    {
-                        IRQ (Level, ActiveLow, Shared) {}
-                    })
-                    Method (_DIS, 0, NotSerialized)
-                    {
-                        Or (PIRC, 0x80, PIRC)
-                    }
-
-                    Method (_CRS, 0, NotSerialized)
-                    {
-                        CreateWordField (RSRC, 0x01, IRQ0)
-                        And (PIRC, 0x0F, Local0)
-                        ShiftLeft (0x01, Local0, IRQ0)
-                        Return (RSRC)
-                    }
-
-                    Method (_SRS, 1, NotSerialized)
-                    {
-                        CreateWordField (Arg0, 0x01, IRQ0)
-                        FindSetRightBit (IRQ0, Local0)
-                        Decrement (Local0)
-                        Or (Local0, And (PIRC, 0x70), PIRC)
-                    }
-
-                    Method (_STA, 0, NotSerialized)
-                    {
-                        If (And (PIRC, 0x80))
-                        {
-                            Return (0x09)
-                        }
-
-                        Return (0x0B)
-                    }
-                }
-
-                Device (LNKD)
-                {
-                    Name (_HID, EisaId ("PNP0C0F"))
-                    Name (_UID, 0x04)
-                    Name (_PRS, ResourceTemplate ()
-                    {
-                        IRQ (Level, ActiveLow, Shared) {5}
-                    })
-                    Name (RSRC, ResourceTemplate ()
-                    {
-                        IRQ (Level, ActiveLow, Shared) {}
-                    })
-                    Method (_DIS, 0, NotSerialized)
-                    {
-                        Or (PIRD, 0x80, PIRD)
-                    }
-
-                    Method (_CRS, 0, NotSerialized)
-                    {
-                        CreateWordField (RSRC, 0x01, IRQ0)
-                        And (PIRD, 0x0F, Local0)
-                        ShiftLeft (0x01, Local0, IRQ0)
-                        Return (RSRC)
-                    }
-
-                    Method (_SRS, 1, NotSerialized)
-                    {
-                        CreateWordField (Arg0, 0x01, IRQ0)
-                        FindSetRightBit (IRQ0, Local0)
-                        Decrement (Local0)
-                        Or (Local0, And (PIRD, 0x70), PIRD)
-                    }
-
-                    Method (_STA, 0, NotSerialized)
-                    {
-                        If (And (PIRD, 0x80))
-                        {
-                            Return (0x09)
-                        }
-
-                        Return (0x0B)
-                    }
-                }
-
-                Device (LNKE)
-                {
-                    Name (_HID, EisaId ("PNP0C0F"))
-                    Name (_UID, 0x05)
-                    Name (_PRS, ResourceTemplate ()
-                    {
-                        IRQ (Level, ActiveLow, Shared) {10}
-                    })
-                    Name (RSRC, ResourceTemplate ()
-                    {
-                        IRQ (Level, ActiveLow, Shared) {}
-                    })
-                    Name (INES, 0x00)
-                    Method (_DIS, 0, NotSerialized)
-                    {
-                        If (Or (LEqual (\_SB.PCI0.MYOS, 0x00), LEqual (\_SB.PCI0.MYOS, 0x02)))
-                        {
-                            Or (PIRE, 0x80, PIRE)
-                        }
-                        Else
-                        {
-                            Or (PIRE, 0x80, PIRE)
-                        }
-                    }
-
-                    Method (_CRS, 0, NotSerialized)
-                    {
-                        CreateWordField (RSRC, 0x01, IRQ0)
-                        And (PIRE, 0x0F, Local0)
-                        ShiftLeft (0x01, Local0, IRQ0)
-                        Return (RSRC)
-                    }
-
-                    Method (_SRS, 1, NotSerialized)
-                    {
-                        CreateWordField (Arg0, 0x01, IRQ0)
-                        FindSetRightBit (IRQ0, Local0)
-                        Decrement (Local0)
-                        Or (Local0, And (PIRE, 0x70), PIRE)
-                        Store (PIRE, INES)
-                    }
-
-                    Method (_STA, 0, NotSerialized)
-                    {
-                        If (Or (LEqual (\_SB.PCI0.MYOS, 0x00), LEqual (\_SB.PCI0.MYOS, 0x02)))
-                        {
-                            If (And (PIRE, 0x80))
-                            {
-                                Return (0x09)
-                            }
-                        }
-                        Else
-                        {
-                            If (And (PIRE, 0x80))
-                            {
-                                Return (0x09)
-                            }
-                        }
-
-                        Return (0x0B)
-                    }
-                }
-
-                Device (LNKF)
-                {
-                    Name (_HID, EisaId ("PNP0C0F"))
-                    Name (_UID, 0x06)
-                    Name (_PRS, ResourceTemplate ()
-                    {
-                        IRQ (Level, ActiveLow, Shared) {3,4,5,7,9,11,12}
-                    })
-                    Name (RSRC, ResourceTemplate ()
-                    {
-                        IRQ (Level, ActiveLow, Shared) {}
-                    })
-                    Method (_DIS, 0, NotSerialized)
-                    {
-                        Or (PIRF, 0x80, PIRF)
-                    }
-
-                    Method (_CRS, 0, NotSerialized)
-                    {
-                        CreateWordField (RSRC, 0x01, IRQ0)
-                        And (PIRF, 0x0F, Local0)
-                        ShiftLeft (0x01, Local0, IRQ0)
-                        Return (RSRC)
-                    }
-
-                    Method (_SRS, 1, NotSerialized)
-                    {
-                        CreateWordField (Arg0, 0x01, IRQ0)
-                        FindSetRightBit (IRQ0, Local0)
-                        Decrement (Local0)
-                        Or (Local0, And (PIRF, 0x70), PIRF)
-                    }
-
-                    Method (_STA, 0, NotSerialized)
-                    {
-                        If (And (PIRF, 0x80))
-                        {
-                            Return (0x09)
-                        }
-
-                        Return (0x0B)
-                    }
-                }
-
-                Device (LNKG)
-                {
-                    Name (_HID, EisaId ("PNP0C0F"))
-                    Name (_UID, 0x07)
-                    Name (_PRS, ResourceTemplate ()
-                    {
-                        IRQ (Level, ActiveLow, Shared) {10}
-                    })
-                    Name (RSRC, ResourceTemplate ()
-                    {
-                        IRQ (Level, ActiveLow, Shared) {}
-                    })
-                    Method (_DIS, 0, NotSerialized)
-                    {
-                        Or (PIRG, 0x80, PIRG)
-                    }
-
-                    Method (_CRS, 0, NotSerialized)
-                    {
-                        CreateWordField (RSRC, 0x01, IRQ0)
-                        And (PIRG, 0x0F, Local0)
-                        ShiftLeft (0x01, Local0, IRQ0)
-                        Return (RSRC)
-                    }
-
-                    Method (_SRS, 1, NotSerialized)
-                    {
-                        CreateWordField (Arg0, 0x01, IRQ0)
-                        FindSetRightBit (IRQ0, Local0)
-                        Decrement (Local0)
-                        Or (Local0, And (PIRG, 0x70), PIRG)
-                    }
-
-                    Method (_STA, 0, NotSerialized)
-                    {
-                        If (And (PIRG, 0x80))
-                        {
-                            Return (0x09)
-                        }
-
-                        Return (0x0B)
-                    }
-                }
-
-                Device (LNKH)
-                {
-                    Name (_HID, EisaId ("PNP0C0F"))
-                    Name (_UID, 0x08)
-                    Name (_PRS, ResourceTemplate ()
-                    {
-                        IRQ (Level, ActiveLow, Shared) {10}
-                    })
-                    Name (RSRC, ResourceTemplate ()
-                    {
-                        IRQ (Level, ActiveLow, Shared) {}
-                    })
-                    Method (_DIS, 0, NotSerialized)
-                    {
-                        Or (PIRH, 0x80, PIRH)
-                    }
-
-                    Method (_CRS, 0, NotSerialized)
-                    {
-                        CreateWordField (RSRC, 0x01, IRQ0)
-                        And (PIRH, 0x0F, Local0)
-                        ShiftLeft (0x01, Local0, IRQ0)
-                        Return (RSRC)
-                    }
-
-                    Method (_SRS, 1, NotSerialized)
-                    {
-                        CreateWordField (Arg0, 0x01, IRQ0)
-                        FindSetRightBit (IRQ0, Local0)
-                        Decrement (Local0)
-                        Or (Local0, And (PIRH, 0x70), PIRH)
-                    }
-
-                    Method (_STA, 0, NotSerialized)
-                    {
-                        If (And (PIRH, 0x80))
-                        {
-                            Return (0x09)
-                        }
-
-                        Return (0x0B)
-                    }
-                }
-
-                OperationRegion (GPOX, SystemIO, 0x1180, 0x40)
-                Field (GPOX, DWordAcc, Lock, Preserve)
-                {
-                    Offset (0x07), 
-                        ,   1, 
-                    IO25,   1, 
-                        ,   1, 
-                    IO27,   1, 
-                    Offset (0x0E), 
-                    LV16,   1, 
-                    LV17,   1, 
-                    Offset (0x0F), 
-                        ,   1, 
-                    LV25,   1, 
-                        ,   1, 
-                    LV27,   1, 
-                    Offset (0x1B), 
-                        ,   1, 
-                    BL25,   1, 
-                        ,   1, 
-                    BL27,   1, 
-                    Offset (0x38), 
-                    RBID,   2, 
-                    LV34,   1, 
-                    LV35,   1, 
-                    LV36,   1, 
-                    LV37,   1, 
-                    LV38,   1, 
-                    LV39,   1
-                }
-
-                OperationRegion (PMIO, SystemIO, 0x1000, 0x51)
-                Field (PMIO, WordAcc, Lock, Preserve)
-                {
-                    AccessAs (DWordAcc, 0x00), 
-                    Offset (0x29), 
-                        ,   3, 
-                    PMES,   1, 
-                    Offset (0x2B), 
-                        ,   3, 
-                    PMEE,   1, 
-                    Offset (0x2C), 
-                    GPI0,   1, 
-                    GPI1,   1, 
-                    GPI2,   1, 
-                    GPI3,   1, 
-                    GPI4,   1, 
-                    GPI5,   1, 
-                    GPI6,   1, 
-                    GPI7,   1, 
-                    GPI8,   1, 
-                    GPI9,   1, 
-                    GPIA,   1, 
-                    GPIB,   1, 
-                    GPIC,   1, 
-                    GPID,   1, 
-                    GPIE,   1, 
-                    GPIF,   1, 
-                        ,   6, 
-                    GPEE,   1
-                }
-
-                Device (KBC)
-                {
-                    Name (_HID, EisaId ("PNP0303"))
-                    Name (_CRS, ResourceTemplate ()
-                    {
-                        IO (Decode16, 0x0060, 0x0060, 0x01, 0x01)
-                        IO (Decode16, 0x0064, 0x0064, 0x01, 0x01)
-                        IRQNoFlags () {1}
-                    })
-                    Method (_STA, 0, NotSerialized)
-                    {
-                        Return (0x0F)
-                    }
-                }
-
-                Device (MOUE)
-                {
-                    Name (_HID, EisaId ("IBM3780"))
-                    Name (_CID, 0x130FD041)
-                    Name (_CRS, ResourceTemplate ()
-                    {
-                        IRQNoFlags () {12}
-                    })
-                    Method (_STA, 0, NotSerialized)
-                    {
-                        If (LEqual (SizeOf (\_OS), 0x14))
-                        {
-                            Return (0x00)
-                        }
-                        Else
-                        {
-                            If (\_SB.PS2M)
-                            {
-                                Return (0x0F)
-                            }
-                            Else
-                            {
-                                Return (0x00)
-                            }
-                        }
-                    }
-                }
-
-                Device (MOU2)
-                {
-                    Name (_HID, EisaId ("PNP0F13"))
-                    Name (_CRS, ResourceTemplate ()
-                    {
-                        IRQNoFlags () {12}
-                    })
-                    Method (_STA, 0, NotSerialized)
-                    {
-                        If (LEqual (SizeOf (\_OS), 0x14))
-                        {
-                            If (\_SB.PS2M)
-                            {
-                                Return (0x0F)
-                            }
-                            Else
-                            {
-                                Return (0x00)
-                            }
-                        }
-                        Else
-                        {
-                            Return (0x00)
-                        }
-                    }
-                }
-
-                Device (SIO)
-                {
-                    Name (_HID, EisaId ("PNP0A05"))
-                    OperationRegion (SIIO, SystemIO, 0x4E, 0x02)
-                    Field (SIIO, ByteAcc, NoLock, Preserve)
-                    {
-                        INDX,   8, 
-                        DATA,   8
-                    }
-
-                    Mutex (N393, 0x00)
-                    Method (SETD, 1, Serialized)
-                    {
-                        Store (0x07, INDX)
-                        Store (Arg0, DATA)
-                    }
-
-                    Method (READ, 1, Serialized)
-                    {
-                        Store (Arg0, INDX)
-                        Store (DATA, Local0)
-                        Return (Local0)
-                    }
-
-                    Method (WRIT, 2, Serialized)
-                    {
-                        Store (Arg0, INDX)
-                        Store (Arg1, DATA)
-                    }
-
-                    Method (LDRS, 3, NotSerialized)
-                    {
-                        Acquire (N393, 0xFFFF)
-                        Store (0x07, INDX)
-                        Store (Arg0, DATA)
-                        Store (Arg1, INDX)
-                        Store (Arg2, DATA)
-                        Release (N393)
-                    }
-
-                    Method (LDRG, 2, NotSerialized)
-                    {
-                        Acquire (N393, 0xFFFF)
-                        Store (0x07, INDX)
-                        Store (Arg0, DATA)
-                        Store (Arg1, INDX)
-                        Store (DATA, Local0)
-                        Release (N393)
-                        Return (Local0)
-                    }
-
-                    Method (RCF6, 1, NotSerialized)
-                    {
-                        Acquire (N393, 0xFFFF)
-                        Store (0x26, INDX)
-                        Store (DATA, Local0)
-                        And (Local0, Arg0, Local0)
-                        Release (N393)
-                        Return (XOr (Local0, Arg0))
-                    }
-
-                    Method (PDRS, 2, NotSerialized)
-                    {
-                        If (\_SB.PCI0.LPC0.POSD)
-                        {
-                            If (LEqual (Arg0, 0x00))
-                            {
-                                If (LEqual (Arg1, 0x03F0))
-                                {
-                                    Store (0x00, Local0)
-                                }
-                                Else
-                                {
-                                    If (LEqual (Arg1, 0x0370))
-                                    {
-                                        Store (0x01, Local0)
-                                    }
-                                }
-
-                                Store (Local0, \_SB.PCI0.LPC0.FDDD)
-                            }
-                            Else
-                            {
-                                If (LEqual (Arg0, 0x01))
-                                {
-                                    If (LEqual (Arg1, 0x0378))
-                                    {
-                                        Store (0x00, Local0)
-                                    }
-                                    Else
-                                    {
-                                        If (LEqual (Arg1, 0x0278))
-                                        {
-                                            Store (0x01, Local0)
-                                        }
-                                        Else
-                                        {
-                                            If (LEqual (Arg1, 0x03BC))
-                                            {
-                                                Store (0x02, Local0)
-                                            }
-                                        }
-                                    }
-
-                                    Store (Local0, \_SB.PCI0.LPC0.LPTD)
-                                }
-                                Else
-                                {
-                                    If (LEqual (Arg1, 0x03F8))
-                                    {
-                                        Store (0x00, Local0)
-                                    }
-                                    Else
-                                    {
-                                        If (LEqual (Arg1, 0x02F8))
-                                        {
-                                            Store (0x01, Local0)
-                                        }
-                                        Else
-                                        {
-                                            If (LEqual (Arg1, 0x0220))
-                                            {
-                                                Store (0x02, Local0)
-                                            }
-                                            Else
-                                            {
-                                                If (LEqual (Arg1, 0x0228))
-                                                {
-                                                    Store (0x03, Local0)
-                                                }
-                                                Else
-                                                {
-                                                    If (LEqual (Arg1, 0x0238))
-                                                    {
-                                                        Store (0x04, Local0)
-                                                    }
-                                                    Else
-                                                    {
-                                                        If (LEqual (Arg1, 0x02E8))
-                                                        {
-                                                            Store (0x05, Local0)
-                                                        }
-                                                        Else
-                                                        {
-                                                            If (LEqual (Arg1, 0x0338))
-                                                            {
-                                                                Store (0x06, Local0)
-                                                            }
-                                                            Else
-                                                            {
-                                                                If (LEqual (Arg1, 0x03E8))
-                                                                {
-                                                                    Store (0x07, Local0)
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    If (LEqual (Arg0, 0x02))
-                                    {
-                                        Store (Local0, \_SB.PCI0.LPC0.CMBD)
-                                    }
-                                    Else
-                                    {
-                                        If (LEqual (Arg0, 0x03))
-                                        {
-                                            Store (Local0, \_SB.PCI0.LPC0.CMAD)
-                                        }
-                                    }
-                                }
-                            }
-
-                            Return (0x01)
-                        }
-                        Else
-                        {
-                            Return (0x00)
-                        }
-                    }
-
-                    Device (ECP)
-                    {
-                        Name (_HID, EisaId ("PNP0401"))
-                        Name (_UID, 0x03)
-                        Method (_STA, 0, NotSerialized)
-                        {
-                            Store (LDRG (0x01, 0xF0), Local0)
-                            ShiftRight (Local0, 0x05, Local0)
-                            If (LAnd (RCF6 (0x02), LOr (LEqual (Local0, 0x04), LEqual (Local0, 0x07))))
-                            {
-                                ShiftLeft (LDRG (0x01, 0x30), 0x01, Local1)
-                                Add (0x0D, Local1, Local1)
-                                Return (Local1)
-                            }
-                            Else
-                            {
-                                Return (0x00)
-                            }
-                        }
-
-                        Method (_PS0, 0, NotSerialized)
-                        {
-                            LDRS (0x01, 0x30, 0x01)
-                        }
-
-                        Method (_PS3, 0, NotSerialized)
-                        {
-                            LDRS (0x01, 0x30, 0x00)
-                        }
-
-                        Method (_PRS, 0, NotSerialized)
-                        {
-                            Return (ResourceTemplate ()
-                            {
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x0378, 0x0378, 0x08, 0x08)
-                                    IO (Decode16, 0x0778, 0x0778, 0x08, 0x08)
-                                    IRQNoFlags () {7}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {3}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x0278, 0x0278, 0x08, 0x08)
-                                    IO (Decode16, 0x0678, 0x0678, 0x08, 0x08)
-                                    IRQNoFlags () {5}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {3}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x0378, 0x0378, 0x08, 0x08)
-                                    IO (Decode16, 0x0778, 0x0778, 0x08, 0x08)
-                                    IRQNoFlags () {5}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {3}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x0278, 0x0278, 0x08, 0x08)
-                                    IO (Decode16, 0x0678, 0x0678, 0x08, 0x08)
-                                    IRQNoFlags () {7}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {3}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x0378, 0x0378, 0x08, 0x08)
-                                    IO (Decode16, 0x0778, 0x0778, 0x08, 0x08)
-                                    IRQNoFlags () {7}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {1}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x0278, 0x0278, 0x08, 0x08)
-                                    IO (Decode16, 0x0678, 0x0678, 0x08, 0x08)
-                                    IRQNoFlags () {5}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {1}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x0378, 0x0378, 0x08, 0x08)
-                                    IO (Decode16, 0x0778, 0x0778, 0x08, 0x08)
-                                    IRQNoFlags () {5}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {1}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x0278, 0x0278, 0x08, 0x08)
-                                    IO (Decode16, 0x0678, 0x0678, 0x08, 0x08)
-                                    IRQNoFlags () {7}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {1}
-                                }
-                                EndDependentFn ()
-                            })
-                        }
-
-                        Method (_DIS, 0, NotSerialized)
-                        {
-                            LDRS (0x01, 0x30, 0x00)
-                        }
-
-                        Method (_CRS, 0, NotSerialized)
-                        {
-                            Name (DCRS, ResourceTemplate ()
-                            {
-                                IO (Decode16, 0x0378, 0x0378, 0x08, 0x08)
-                                IO (Decode16, 0x0778, 0x0778, 0x08, 0x08)
-                                IRQNoFlags () {7}
-                                DMA (Compatibility, NotBusMaster, Transfer8) {3}
-                            })
-                            Store (LDRG (0x01, 0x60), Local1)
-                            Store (LDRG (0x01, 0x61), Local0)
-                            Store (Local0, Index (DCRS, 0x02))
-                            Store (Local0, Index (DCRS, 0x0A))
-                            Store (Local0, Index (DCRS, 0x04))
-                            Store (Local0, Index (DCRS, 0x0C))
-                            Store (Local1, Index (DCRS, 0x03))
-                            Store (Local1, Index (DCRS, 0x05))
-                            Add (Local1, 0x04, Local1)
-                            Store (Local1, Index (DCRS, 0x0B))
-                            Store (Local1, Index (DCRS, 0x0D))
-                            ShiftLeft (0x01, LDRG (0x01, 0x70), Local0)
-                            Store (Local0, Index (DCRS, 0x11))
-                            ShiftRight (Local0, 0x08, Local1)
-                            Store (Local1, Index (DCRS, 0x12))
-                            ShiftLeft (0x01, LDRG (0x01, 0x74), Local0)
-                            Store (Local0, Index (DCRS, 0x14))
-                            ShiftRight (Local0, 0x08, Local1)
-                            Store (Local1, Index (DCRS, 0x15))
-                            Return (DCRS)
-                        }
-
-                        Method (_SRS, 1, NotSerialized)
-                        {
-                            CreateByteField (Arg0, 0x02, ADRL)
-                            CreateByteField (Arg0, 0x03, ADRM)
-                            CreateWordField (Arg0, 0x11, IRQM)
-                            CreateWordField (Arg0, 0x14, DMAM)
-                            FindSetRightBit (IRQM, Local0)
-                            Decrement (Local0)
-                            FindSetRightBit (DMAM, Local1)
-                            Decrement (Local1)
-                            LDRS (0x01, 0x70, Local0)
-                            LDRS (0x01, 0x74, Local1)
-                            LDRS (0x01, 0x60, ADRM)
-                            LDRS (0x01, 0x61, ADRL)
-                            LDRS (0x01, 0x30, 0x01)
-                        }
-                    }
-
-                    Device (EPP)
-                    {
-                        Name (_HID, EisaId ("PNP0400"))
-                        Name (_UID, 0x02)
-                        Method (_STA, 0, NotSerialized)
-                        {
-                            Store (LDRG (0x01, 0xF0), Local0)
-                            ShiftRight (Local0, 0x05, Local0)
-                            If (LAnd (RCF6 (0x02), LOr (LEqual (Local0, 0x02), LEqual (Local0, 0x03))))
-                            {
-                                ShiftLeft (LDRG (0x01, 0x30), 0x01, Local1)
-                                Add (0x0D, Local1, Local1)
-                                Return (Local1)
-                            }
-                            Else
-                            {
-                                Return (0x00)
-                            }
-                        }
-
-                        Method (_PS0, 0, NotSerialized)
-                        {
-                            LDRS (0x01, 0x30, 0x01)
-                        }
-
-                        Method (_PS3, 0, NotSerialized)
-                        {
-                            LDRS (0x01, 0x30, 0x00)
-                        }
-
-                        Method (_PRS, 0, NotSerialized)
-                        {
-                            Return (ResourceTemplate ()
-                            {
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x0378, 0x0378, 0x08, 0x08)
-                                    IO (Decode16, 0x0778, 0x0778, 0x08, 0x08)
-                                    IRQNoFlags () {7}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x0278, 0x0278, 0x08, 0x08)
-                                    IO (Decode16, 0x0678, 0x0678, 0x08, 0x08)
-                                    IRQNoFlags () {5}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x0378, 0x0378, 0x08, 0x08)
-                                    IO (Decode16, 0x0778, 0x0778, 0x08, 0x08)
-                                    IRQNoFlags () {5}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x0278, 0x0278, 0x08, 0x08)
-                                    IO (Decode16, 0x0678, 0x0678, 0x08, 0x08)
-                                    IRQNoFlags () {7}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x0178, 0x0178, 0x08, 0x08)
-                                    IO (Decode16, 0x0578, 0x0578, 0x08, 0x08)
-                                    IRQNoFlags () {7}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x0178, 0x0178, 0x08, 0x08)
-                                    IO (Decode16, 0x0578, 0x0578, 0x08, 0x08)
-                                    IRQNoFlags () {5}
-                                }
-                                EndDependentFn ()
-                            })
-                        }
-
-                        Method (_DIS, 0, NotSerialized)
-                        {
-                            LDRS (0x01, 0x30, 0x00)
-                        }
-
-                        Method (_CRS, 0, NotSerialized)
-                        {
-                            Name (DCRS, ResourceTemplate ()
-                            {
-                                IO (Decode16, 0x0378, 0x0378, 0x08, 0x08)
-                                IO (Decode16, 0x0778, 0x0778, 0x08, 0x08)
-                                IRQNoFlags () {7}
-                            })
-                            Store (LDRG (0x01, 0x60), Local1)
-                            Store (LDRG (0x01, 0x61), Local0)
-                            Store (Local0, Index (DCRS, 0x02))
-                            Store (Local0, Index (DCRS, 0x0A))
-                            Store (Local0, Index (DCRS, 0x04))
-                            Store (Local0, Index (DCRS, 0x0C))
-                            Store (Local1, Index (DCRS, 0x03))
-                            Store (Local1, Index (DCRS, 0x05))
-                            Add (Local1, 0x04, Local1)
-                            Store (Local1, Index (DCRS, 0x0B))
-                            Store (Local1, Index (DCRS, 0x0D))
-                            ShiftLeft (0x01, LDRG (0x01, 0x70), Local0)
-                            Store (Local0, Index (DCRS, 0x11))
-                            ShiftRight (Local0, 0x08, Local1)
-                            Store (Local1, Index (DCRS, 0x12))
-                            Return (DCRS)
-                        }
-
-                        Method (_SRS, 1, NotSerialized)
-                        {
-                            CreateByteField (Arg0, 0x02, ADRL)
-                            CreateByteField (Arg0, 0x03, ADRM)
-                            CreateWordField (Arg0, 0x11, IRQM)
-                            FindSetRightBit (IRQM, Local0)
-                            Decrement (Local0)
-                            LDRS (0x01, 0x70, Local0)
-                            LDRS (0x01, 0x60, ADRM)
-                            LDRS (0x01, 0x61, ADRL)
-                            LDRS (0x01, 0x30, 0x01)
-                        }
-                    }
-
-                    Device (LPTB)
-                    {
-                        Name (_HID, EisaId ("PNP0400"))
-                        Name (_UID, 0x01)
-                        Method (_STA, 0, NotSerialized)
-                        {
-                            Store (LDRG (0x01, 0xF0), Local0)
-                            ShiftRight (Local0, 0x05, Local0)
-                            If (LAnd (RCF6 (0x02), LEqual (Local0, 0x01)))
-                            {
-                                ShiftLeft (LDRG (0x01, 0x30), 0x01, Local1)
-                                Add (0x0D, Local1, Local1)
-                                Return (Local1)
-                            }
-                            Else
-                            {
-                                Return (0x00)
-                            }
-                        }
-
-                        Method (_PS0, 0, NotSerialized)
-                        {
-                            LDRS (0x01, 0x30, 0x01)
-                        }
-
-                        Method (_PS3, 0, NotSerialized)
-                        {
-                            LDRS (0x01, 0x30, 0x00)
-                        }
-
-                        Method (_PRS, 0, NotSerialized)
-                        {
-                            Return (ResourceTemplate ()
-                            {
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x0378, 0x0378, 0x08, 0x08)
-                                    IO (Decode16, 0x0778, 0x0778, 0x08, 0x08)
-                                    IRQNoFlags () {7}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x0278, 0x0278, 0x08, 0x08)
-                                    IO (Decode16, 0x0678, 0x0678, 0x08, 0x08)
-                                    IRQNoFlags () {5}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x0378, 0x0378, 0x08, 0x08)
-                                    IO (Decode16, 0x0778, 0x0778, 0x08, 0x08)
-                                    IRQNoFlags () {5}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x0278, 0x0278, 0x08, 0x08)
-                                    IO (Decode16, 0x0678, 0x0678, 0x08, 0x08)
-                                    IRQNoFlags () {7}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x03BC, 0x03BC, 0x04, 0x04)
-                                    IO (Decode16, 0x07BC, 0x07BC, 0x04, 0x04)
-                                    IRQNoFlags () {7}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x03BC, 0x03BC, 0x04, 0x04)
-                                    IO (Decode16, 0x07BC, 0x07BC, 0x04, 0x04)
-                                    IRQNoFlags () {5}
-                                }
-                                EndDependentFn ()
-                            })
-                        }
-
-                        Method (_DIS, 0, NotSerialized)
-                        {
-                            LDRS (0x01, 0x30, 0x00)
-                        }
-
-                        Method (_CRS, 0, NotSerialized)
-                        {
-                            Name (DCRS, ResourceTemplate ()
-                            {
-                                IO (Decode16, 0x0378, 0x0378, 0x08, 0x08)
-                                IO (Decode16, 0x0778, 0x0778, 0x08, 0x08)
-                                IRQNoFlags () {7}
-                            })
-                            Store (LDRG (0x01, 0x60), Local1)
-                            Store (LDRG (0x01, 0x61), Local0)
-                            Store (Local0, Index (DCRS, 0x02))
-                            Store (Local0, Index (DCRS, 0x0A))
-                            Store (Local0, Index (DCRS, 0x04))
-                            Store (Local0, Index (DCRS, 0x0C))
-                            Store (Local1, Index (DCRS, 0x03))
-                            Store (Local1, Index (DCRS, 0x05))
-                            Add (Local1, 0x04, Local1)
-                            Store (Local1, Index (DCRS, 0x0B))
-                            Store (Local1, Index (DCRS, 0x0D))
-                            If (And (Local0, 0x04))
-                            {
-                                Store (0x04, Local0)
-                            }
-                            Else
-                            {
-                                Store (0x08, Local0)
-                            }
-
-                            Store (Local0, Index (DCRS, 0x06))
-                            Store (Local0, Index (DCRS, 0x07))
-                            Store (Local0, Index (DCRS, 0x0E))
-                            Store (Local0, Index (DCRS, 0x0F))
-                            ShiftLeft (0x01, LDRG (0x01, 0x70), Local0)
-                            Store (Local0, Index (DCRS, 0x11))
-                            ShiftRight (Local0, 0x08, Local1)
-                            Store (Local1, Index (DCRS, 0x12))
-                            Return (DCRS)
-                        }
-
-                        Method (_SRS, 1, NotSerialized)
-                        {
-                            CreateByteField (Arg0, 0x02, ADRL)
-                            CreateByteField (Arg0, 0x03, ADRM)
-                            CreateWordField (Arg0, 0x11, IRQM)
-                            FindSetRightBit (IRQM, Local0)
-                            Decrement (Local0)
-                            LDRS (0x01, 0x70, Local0)
-                            LDRS (0x01, 0x60, ADRM)
-                            LDRS (0x01, 0x61, ADRL)
-                            LDRS (0x01, 0x30, 0x01)
-                        }
-                    }
-
-                    Device (LPT)
-                    {
-                        Name (_HID, EisaId ("PNP0400"))
-                        Name (_UID, 0x00)
-                        Method (_STA, 0, NotSerialized)
-                        {
-                            Store (LDRG (0x01, 0xF0), Local0)
-                            ShiftRight (Local0, 0x05, Local0)
-                            If (LAnd (RCF6 (0x02), LEqual (Local0, 0x00)))
-                            {
-                                ShiftLeft (LDRG (0x01, 0x30), 0x01, Local1)
-                                Add (0x0D, Local1, Local1)
-                                Return (Local1)
-                            }
-                            Else
-                            {
-                                Return (0x00)
-                            }
-                        }
-
-                        Method (_PS0, 0, NotSerialized)
-                        {
-                            LDRS (0x01, 0x30, 0x01)
-                        }
-
-                        Method (_PS3, 0, NotSerialized)
-                        {
-                            LDRS (0x01, 0x30, 0x00)
-                        }
-
-                        Method (_PRS, 0, NotSerialized)
-                        {
-                            Return (ResourceTemplate ()
-                            {
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x0378, 0x0378, 0x08, 0x08)
-                                    IO (Decode16, 0x0778, 0x0778, 0x08, 0x08)
-                                    IRQNoFlags () {7}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x0278, 0x0278, 0x08, 0x08)
-                                    IO (Decode16, 0x0678, 0x0678, 0x08, 0x08)
-                                    IRQNoFlags () {5}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x0378, 0x0378, 0x08, 0x08)
-                                    IO (Decode16, 0x0778, 0x0778, 0x08, 0x08)
-                                    IRQNoFlags () {5}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x0278, 0x0278, 0x08, 0x08)
-                                    IO (Decode16, 0x0678, 0x0678, 0x08, 0x08)
-                                    IRQNoFlags () {7}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x03BC, 0x03BC, 0x04, 0x04)
-                                    IO (Decode16, 0x07BC, 0x07BC, 0x04, 0x04)
-                                    IRQNoFlags () {7}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x03BC, 0x03BC, 0x04, 0x04)
-                                    IO (Decode16, 0x07BC, 0x07BC, 0x04, 0x04)
-                                    IRQNoFlags () {5}
-                                }
-                                EndDependentFn ()
-                            })
-                        }
-
-                        Method (_DIS, 0, NotSerialized)
-                        {
-                            LDRS (0x01, 0x30, 0x00)
-                        }
-
-                        Method (_CRS, 0, NotSerialized)
-                        {
-                            Name (DCRS, ResourceTemplate ()
-                            {
-                                IO (Decode16, 0x0378, 0x0378, 0x08, 0x08)
-                                IO (Decode16, 0x0778, 0x0778, 0x08, 0x08)
-                                IRQNoFlags () {7}
-                            })
-                            Store (LDRG (0x01, 0x60), Local1)
-                            Store (LDRG (0x01, 0x61), Local0)
-                            Store (Local0, Index (DCRS, 0x02))
-                            Store (Local0, Index (DCRS, 0x0A))
-                            Store (Local0, Index (DCRS, 0x04))
-                            Store (Local0, Index (DCRS, 0x0C))
-                            Store (Local1, Index (DCRS, 0x03))
-                            Store (Local1, Index (DCRS, 0x05))
-                            Add (Local1, 0x04, Local1)
-                            Store (Local1, Index (DCRS, 0x0B))
-                            Store (Local1, Index (DCRS, 0x0D))
-                            If (And (Local0, 0x04))
-                            {
-                                Store (0x04, Local0)
-                            }
-                            Else
-                            {
-                                Store (0x08, Local0)
-                            }
-
-                            Store (Local0, Index (DCRS, 0x06))
-                            Store (Local0, Index (DCRS, 0x07))
-                            Store (Local0, Index (DCRS, 0x0E))
-                            Store (Local0, Index (DCRS, 0x0F))
-                            ShiftLeft (0x01, LDRG (0x01, 0x70), Local0)
-                            Store (Local0, Index (DCRS, 0x11))
-                            ShiftRight (Local0, 0x08, Local1)
-                            Store (Local1, Index (DCRS, 0x12))
-                            Return (DCRS)
-                        }
-
-                        Method (_SRS, 1, NotSerialized)
-                        {
-                            CreateByteField (Arg0, 0x02, ADRL)
-                            CreateByteField (Arg0, 0x03, ADRM)
-                            CreateWordField (Arg0, 0x11, IRQM)
-                            FindSetRightBit (IRQM, Local0)
-                            Decrement (Local0)
-                            LDRS (0x01, 0x70, Local0)
-                            LDRS (0x01, 0x60, ADRM)
-                            LDRS (0x01, 0x61, ADRL)
-                            LDRS (0x01, 0x30, 0x01)
-                        }
-                    }
-
-                    Device (COMA)
-                    {
-                        Name (_HID, EisaId ("PNP0501"))
-                        Name (_UID, 0x00)
-                        Method (_STA, 0, NotSerialized)
-                        {
-                            If (RCF6 (0x08))
-                            {
-                                ShiftLeft (LDRG (0x03, 0x30), 0x01, Local1)
-                                Add (0x0D, Local1, Local1)
-                                Return (Local1)
-                            }
-                            Else
-                            {
-                                Return (0x00)
-                            }
-                        }
-
-                        Method (_PS0, 0, NotSerialized)
-                        {
-                            LDRS (0x03, 0x30, 0x01)
-                        }
-
-                        Method (_PS3, 0, NotSerialized)
-                        {
-                            LDRS (0x03, 0x30, 0x00)
-                        }
-
-                        Method (_PRS, 0, NotSerialized)
-                        {
-                            Return (ResourceTemplate ()
-                            {
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x03F8, 0x03F8, 0x08, 0x08)
-                                    IRQNoFlags () {4}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x02F8, 0x02F8, 0x08, 0x08)
-                                    IRQNoFlags () {3}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x03E8, 0x03E8, 0x08, 0x08)
-                                    IRQNoFlags () {4}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x02E8, 0x02E8, 0x08, 0x08)
-                                    IRQNoFlags () {3}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x03F8, 0x03F8, 0x08, 0x08)
-                                    IRQNoFlags () {3}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x02F8, 0x02F8, 0x08, 0x08)
-                                    IRQNoFlags () {4}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x03E8, 0x03E8, 0x08, 0x08)
-                                    IRQNoFlags () {3}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x02E8, 0x02E8, 0x08, 0x08)
-                                    IRQNoFlags () {4}
-                                }
-                                EndDependentFn ()
-                            })
-                        }
-
-                        Method (_DIS, 0, NotSerialized)
-                        {
-                            LDRS (0x03, 0x30, 0x00)
-                        }
-
-                        Method (_CRS, 0, NotSerialized)
-                        {
-                            Name (DCRS, ResourceTemplate ()
-                            {
-                                IO (Decode16, 0x03F8, 0x03F8, 0x08, 0x08)
-                                IRQNoFlags () {4}
-                            })
-                            Store (LDRG (0x03, 0x60), Local1)
-                            Store (LDRG (0x03, 0x61), Local0)
-                            Store (Local0, Index (DCRS, 0x02))
-                            Store (Local0, Index (DCRS, 0x04))
-                            Store (Local1, Index (DCRS, 0x03))
-                            Store (Local1, Index (DCRS, 0x05))
-                            ShiftLeft (0x01, LDRG (0x03, 0x70), Local0)
-                            Store (Local0, Index (DCRS, 0x09))
-                            ShiftRight (Local0, 0x08, Local1)
-                            Store (Local1, Index (DCRS, 0x0A))
-                            Return (DCRS)
-                        }
-
-                        Method (_SRS, 1, NotSerialized)
-                        {
-                            CreateByteField (Arg0, 0x02, ADRL)
-                            CreateByteField (Arg0, 0x03, ADRM)
-                            CreateWordField (Arg0, 0x09, IRQM)
-                            FindSetRightBit (IRQM, Local0)
-                            Decrement (Local0)
-                            LDRS (0x03, 0x70, Local0)
-                            LDRS (0x03, 0x60, ADRM)
-                            LDRS (0x03, 0x61, ADRL)
-                            LDRS (0x03, 0x30, 0x01)
-                        }
-                    }
-
-                    Device (FIR)
-                    {
-                        Method (_HID, 0, NotSerialized)
-                        {
-                            If (LOr (LEqual (MYOS, 0x01), LEqual (MYOS, 0x03)))
-                            {
-                                Return (0x0160633A)
-                            }
-                            Else
-                            {
-                                Return (0x0160633A)
-                            }
-                        }
-
-                        Name (_UID, 0x00)
-                        Method (_STA, 0, NotSerialized)
-                        {
-                            Store (LDRG (0x02, 0x74), Local0)
-                            If (LAnd (RCF6 (0x04), LNot (LEqual (Local0, 0x04))))
-                            {
-                                ShiftLeft (LDRG (0x02, 0x30), 0x01, Local1)
-                                Add (0x0D, Local1, Local1)
-                                Return (Local1)
-                            }
-                            Else
-                            {
-                                Return (0x00)
-                            }
-                        }
-
-                        Method (_PS0, 0, NotSerialized)
-                        {
-                            LDRS (0x02, 0x30, 0x01)
-                        }
-
-                        Method (_PS3, 0, NotSerialized)
-                        {
-                            LDRS (0x02, 0x30, 0x00)
-                        }
-
-                        Method (_PRS, 0, NotSerialized)
-                        {
-                            Return (ResourceTemplate ()
-                            {
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x03F8, 0x03F8, 0x08, 0x08)
-                                    IRQNoFlags () {4}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {0}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x02F8, 0x02F8, 0x08, 0x08)
-                                    IRQNoFlags () {3}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {0}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x03E8, 0x03E8, 0x08, 0x08)
-                                    IRQNoFlags () {4}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {0}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x02E8, 0x02E8, 0x08, 0x08)
-                                    IRQNoFlags () {3}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {0}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x03F8, 0x03F8, 0x08, 0x08)
-                                    IRQNoFlags () {3}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {0}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x02F8, 0x02F8, 0x08, 0x08)
-                                    IRQNoFlags () {4}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {0}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x03E8, 0x03E8, 0x08, 0x08)
-                                    IRQNoFlags () {3}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {0}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x02E8, 0x02E8, 0x08, 0x08)
-                                    IRQNoFlags () {4}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {0}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x03F8, 0x03F8, 0x08, 0x08)
-                                    IRQNoFlags () {4}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {1}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x02F8, 0x02F8, 0x08, 0x08)
-                                    IRQNoFlags () {3}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {1}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x03E8, 0x03E8, 0x08, 0x08)
-                                    IRQNoFlags () {4}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {1}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x02E8, 0x02E8, 0x08, 0x08)
-                                    IRQNoFlags () {3}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {1}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x03F8, 0x03F8, 0x08, 0x08)
-                                    IRQNoFlags () {3}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {1}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x02F8, 0x02F8, 0x08, 0x08)
-                                    IRQNoFlags () {4}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {1}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x03E8, 0x03E8, 0x08, 0x08)
-                                    IRQNoFlags () {3}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {1}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x02E8, 0x02E8, 0x08, 0x08)
-                                    IRQNoFlags () {4}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {1}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x03F8, 0x03F8, 0x08, 0x08)
-                                    IRQNoFlags () {4}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {3}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x02F8, 0x02F8, 0x08, 0x08)
-                                    IRQNoFlags () {3}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {3}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x03E8, 0x03E8, 0x08, 0x08)
-                                    IRQNoFlags () {4}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {3}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x02E8, 0x02E8, 0x08, 0x08)
-                                    IRQNoFlags () {3}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {3}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x03F8, 0x03F8, 0x08, 0x08)
-                                    IRQNoFlags () {3}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {3}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x02F8, 0x02F8, 0x08, 0x08)
-                                    IRQNoFlags () {4}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {3}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x03E8, 0x03E8, 0x08, 0x08)
-                                    IRQNoFlags () {3}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {3}
-                                }
-                                StartDependentFnNoPri ()
-                                {
-                                    IO (Decode16, 0x02E8, 0x02E8, 0x08, 0x08)
-                                    IRQNoFlags () {4}
-                                    DMA (Compatibility, NotBusMaster, Transfer8) {3}
-                                }
-                                EndDependentFn ()
-                            })
-                        }
-
-                        Method (_DIS, 0, NotSerialized)
-                        {
-                            LDRS (0x02, 0x30, 0x00)
-                            Store (0x00, \_SB.PCI0.LPC0.ECO1)
-                        }
-
-                        Method (_CRS, 0, NotSerialized)
-                        {
-                            Name (DCRS, ResourceTemplate ()
-                            {
-                                IO (Decode16, 0x02F8, 0x02F8, 0x08, 0x08)
-                                IRQNoFlags () {3}
-                                DMA (Compatibility, NotBusMaster, Transfer8) {0}
-                            })
-                            Store (LDRG (0x02, 0x60), Local1)
-                            Store (LDRG (0x02, 0x61), Local0)
-                            Store (Local0, Index (DCRS, 0x02))
-                            Store (Local0, Index (DCRS, 0x04))
-                            Store (Local1, Index (DCRS, 0x03))
-                            Store (Local1, Index (DCRS, 0x05))
-                            ShiftLeft (0x01, LDRG (0x02, 0x70), Local0)
-                            Store (Local0, Index (DCRS, 0x09))
-                            ShiftRight (Local0, 0x08, Local1)
-                            Store (Local1, Index (DCRS, 0x0A))
-                            ShiftLeft (0x01, LDRG (0x02, 0x74), Local0)
-                            Store (Local0, Index (DCRS, 0x0C))
-                            ShiftRight (Local0, 0x08, Local1)
-                            Store (Local1, Index (DCRS, 0x0D))
-                            Return (DCRS)
-                        }
-
-                        Method (_SRS, 1, NotSerialized)
-                        {
-                            Store (0x01, \_SB.PCI0.LPC0.ECO1)
-                            CreateByteField (Arg0, 0x02, ADRL)
-                            CreateByteField (Arg0, 0x03, ADRM)
-                            CreateWordField (Arg0, 0x09, IRQM)
-                            CreateWordField (Arg0, 0x0C, DMAM)
-                            FindSetRightBit (IRQM, Local0)
-                            Decrement (Local0)
-                            FindSetRightBit (DMAM, Local1)
-                            Decrement (Local1)
-                            LDRS (0x02, 0x70, Local0)
-                            LDRS (0x02, 0x74, Local1)
-                            LDRS (0x02, 0x60, ADRM)
-                            LDRS (0x02, 0x61, ADRL)
-                            PDRS (0x02, Add (ShiftLeft (ADRM, 0x08), ADRL))
-                            LDRS (0x02, 0x30, 0x01)
-                        }
-                    }
-                }
-
-                Device (EC0)
-                {
-                    Name (_HID, EisaId ("PNP0C09"))
-                    Name (_CRS, ResourceTemplate ()
-                    {
-                        IO (Decode16, 0x0062, 0x0062, 0x01, 0x01)
-                        IO (Decode16, 0x0066, 0x0066, 0x01, 0x01)
-                    })
-                    Name (_GPE, 0x1D)
-                    Name (OSEJ, 0x00)
-                    Method (_REG, 2, NotSerialized)
-                    {
-                        If (LEqual (Arg0, 0x03))
-                        {
-                            Store (Arg1, \_SB.OKEC)
-                            If (Or (LEqual (\_SB.PCI0.MYOS, 0x03), LEqual (\_SB.PCI0.MYOS, 0x01)))
-                            {
-                                If (Arg1)
-                                {
-                                    Store (0x01, \_SB.PCI0.LPC0.EC0.RG57)
-                                }
-                            }
-                        }
-                    }
-
-                    OperationRegion (ERAM, EmbeddedControl, 0x00, 0xFF)
-                    Field (ERAM, ByteAcc, NoLock, Preserve)
-                    {
-                        Offset (0x04), 
-                        CMCM,   8, 
-                        CMD1,   8, 
-                        CMD2,   8, 
-                        CMD3,   8, 
-                        Offset (0x18), 
-                        SMPR,   8, 
-                        SMST,   8, 
-                        SMAD,   8, 
-                        SMCM,   8, 
-                        SMD0,   256, 
-                        BCNT,   8, 
-                        SMAA,   8, 
-                        BATD,   16, 
-                        ACDF,   1, 
-                        Offset (0x41), 
-                            ,   4, 
-                        FPR1,   1, 
-                        S4LD,   1, 
-                        S5LW,   1, 
-                        PFLG,   1, 
-                        Offset (0x43), 
-                        TMSS,   2, 
-                            ,   2, 
-                        BANK,   4, 
-                        Offset (0x45), 
-                        VFAN,   1, 
-                        Offset (0x46), 
-                        RL01,   1, 
-                        RD01,   1, 
-                        RF01,   1, 
-                        RP01,   1, 
-                        RB01,   1, 
-                        RC01,   1, 
-                            ,   1, 
-                        R701,   1, 
-                        R801,   1, 
-                        RM01,   1, 
-                        RI01,   1, 
-                            ,   1, 
-                            ,   1, 
-                            ,   1, 
-                        RA01,   1, 
-                        RR01,   1, 
-                        RL10,   1, 
-                        RD10,   1, 
-                        RF10,   1, 
-                        RP10,   1, 
-                        RB10,   1, 
-                        RC10,   1, 
-                            ,   1, 
-                        R710,   1, 
-                        R810,   1, 
-                        RM10,   1, 
-                        RI10,   1, 
-                            ,   1, 
-                            ,   1, 
-                            ,   1, 
-                        RA10,   1, 
-                        RR10,   1, 
-                        WL01,   1, 
-                        WD01,   1, 
-                        WF01,   1, 
-                        WP01,   1, 
-                        WB01,   1, 
-                        WC01,   1, 
-                            ,   1, 
-                        W701,   1, 
-                        W801,   1, 
-                        WM01,   1, 
-                        WI01,   1, 
-                            ,   1, 
-                            ,   1, 
-                            ,   1, 
-                        WA01,   1, 
-                        WR01,   1, 
-                        WL10,   1, 
-                        WD10,   1, 
-                        WF10,   1, 
-                        WP10,   1, 
-                        WB10,   1, 
-                        WC10,   1, 
-                            ,   1, 
-                        W710,   1, 
-                        W810,   1, 
-                        WM10,   1, 
-                        WI10,   1, 
-                            ,   1, 
-                            ,   1, 
-                            ,   1, 
-                        WA10,   1, 
-                        WR10,   1, 
-                        LIDE,   1, 
-                        BAYE,   1, 
-                        EFDE,   1, 
-                        PRDE,   1, 
-                        BRBE,   1, 
-                        CRTE,   1, 
-                            ,   1, 
-                        W7BE,   1, 
-                        W8BE,   1, 
-                        PMEE,   1, 
-                        INTE,   1, 
-                            ,   1, 
-                            ,   1, 
-                            ,   1, 
-                        DB2E,   1, 
-                        DB3E,   1, 
-                        Offset (0x52), 
-                        LIDS,   1, 
-                        BAYS,   1, 
-                        EFDS,   1, 
-                        PRDS,   1, 
-                        BRBS,   1, 
-                        CRTS,   1, 
-                            ,   1, 
-                        W7BS,   1, 
-                        W8BS,   1, 
-                        DPEM,   1, 
-                        DINT,   1, 
-                            ,   1, 
-                            ,   1, 
-                            ,   1, 
-                        DB2S,   1, 
-                        DB3S,   1, 
-                        Offset (0x57), 
-                        RG57,   8, 
-                        CTMP,   8, 
-                        RG59,   8, 
-                        RG5A,   8, 
-                        RG5B,   8, 
-                        FSPD,   16, 
-                        Offset (0x5F), 
-                        FAN2,   1, 
-                        SFN2,   1, 
-                        Offset (0x60), 
-                            ,   1, 
-                        FANC,   1, 
-                        Offset (0x70), 
-                        MBID,   8, 
-                        MBTS,   1, 
-                        MBTF,   1, 
-                        Offset (0x72), 
-                        MBTC,   1, 
-                        Offset (0x77), 
-                        BA1C,   8, 
-                        MBVG,   16, 
-                        MCUR,   16, 
-                        Offset (0x80), 
-                        SBID,   8, 
-                        SBTS,   1, 
-                        SBTF,   1, 
-                        Offset (0x82), 
-                        SBTC,   1, 
-                        Offset (0x87), 
-                        BA2C,   8, 
-                        ABVG,   16, 
-                        ACUR,   16, 
-                        Offset (0xC3), 
-                        MBRM,   16, 
-                        Offset (0xCA), 
-                        ABRM,   16, 
-                        Offset (0xD0), 
-                        EBPL,   1, 
-                        Offset (0xD2), 
-                            ,   6, 
-                        APWR,   1, 
-                        Offset (0xD6), 
-                        DBPL,   8, 
-                        Offset (0xE7), 
-                        GQKS,   7
-                    }
-
-                    Field (ERAM, ByteAcc, NoLock, Preserve)
-                    {
-                        Offset (0x1C), 
-                        SMW0,   16
-                    }
-
-                    Field (ERAM, ByteAcc, NoLock, Preserve)
-                    {
-                        Offset (0x1C), 
-                        SMB0,   8
-                    }
-
-                    Field (ERAM, ByteAcc, NoLock, Preserve)
-                    {
-                        Offset (0x1C), 
-                        FLD0,   64
-                    }
-
-                    Field (ERAM, ByteAcc, NoLock, Preserve)
-                    {
-                        Offset (0x1C), 
-                        FLD1,   128
-                    }
-
-                    Field (ERAM, ByteAcc, NoLock, Preserve)
-                    {
-                        Offset (0x1C), 
-                        FLD2,   192
-                    }
-
-                    Field (ERAM, ByteAcc, NoLock, Preserve)
-                    {
-                        Offset (0x1C), 
-                        FLD3,   256
-                    }
-
-                    Mutex (MUT0, 0x00)
-                    Method (SMRD, 4, NotSerialized)
-                    {
-                        If (LNot (\_SB.OKEC))
-                        {
-                            Return (0xFF)
-                        }
-
-                        If (LNot (LEqual (Arg0, 0x07)))
-                        {
-                            If (LNot (LEqual (Arg0, 0x09)))
-                            {
-                                If (LNot (LEqual (Arg0, 0x0B)))
-                                {
-                                    Return (0x19)
-                                }
-                            }
-                        }
-
-                        Acquire (MUT0, 0xFFFF)
-                        Store (0x04, Local0)
-                        While (LGreater (Local0, 0x01))
-                        {
-                            And (SMST, 0x40, SMST)
-                            Store (Arg2, SMCM)
-                            Store (Arg1, SMAD)
-                            Store (Arg0, SMPR)
-                            Store (0x00, Local3)
-                            While (LNot (And (SMST, 0xBF, Local1)))
-                            {
-                                Sleep (0x02)
-                                Increment (Local3)
-                                If (LEqual (Local3, 0x32))
-                                {
-                                    And (SMST, 0x40, SMST)
-                                    Store (Arg2, SMCM)
-                                    Store (Arg1, SMAD)
-                                    Store (Arg0, SMPR)
-                                    Store (0x00, Local3)
-                                }
-                            }
-
-                            If (LEqual (Local1, 0x80))
-                            {
-                                Store (0x00, Local0)
-                            }
-                            Else
-                            {
-                                Decrement (Local0)
-                            }
-                        }
-
-                        If (Local0)
-                        {
-                            Store (And (Local1, 0x1F), Local0)
-                        }
-                        Else
-                        {
-                            If (LEqual (Arg0, 0x07))
-                            {
-                                Store (SMB0, Arg3)
-                            }
-
-                            If (LEqual (Arg0, 0x09))
-                            {
-                                Store (SMW0, Arg3)
-                            }
-
-                            If (LEqual (Arg0, 0x0B))
-                            {
-                                Store (BCNT, Local3)
-                                ShiftRight (0x0100, 0x03, Local2)
-                                If (LGreater (Local3, Local2))
-                                {
-                                    Store (Local2, Local3)
-                                }
-
-                                If (LLess (Local3, 0x09))
-                                {
-                                    Store (FLD0, Local2)
-                                }
-                                Else
-                                {
-                                    If (LLess (Local3, 0x11))
-                                    {
-                                        Store (FLD1, Local2)
-                                    }
-                                    Else
-                                    {
-                                        If (LLess (Local3, 0x19))
-                                        {
-                                            Store (FLD2, Local2)
-                                        }
-                                        Else
-                                        {
-                                            Store (FLD3, Local2)
-                                        }
-                                    }
-                                }
-
-                                Increment (Local3)
-                                Store (Buffer (Local3) {}, Local4)
-                                Decrement (Local3)
-                                Store (Zero, Local5)
-                                While (LGreater (Local3, Local5))
-                                {
-                                    GBFE (Local2, Local5, RefOf (Local6))
-                                    PBFE (Local4, Local5, Local6)
-                                    Increment (Local5)
-                                }
-
-                                PBFE (Local4, Local5, 0x00)
-                                Store (Local4, Arg3)
-                            }
-                        }
-
-                        Release (MUT0)
-                        Return (Local0)
-                    }
-
-                    Method (SMWR, 4, NotSerialized)
-                    {
-                        If (LNot (\_SB.OKEC))
-                        {
-                            Return (0xFF)
-                        }
-
-                        If (LNot (LEqual (Arg0, 0x06)))
-                        {
-                            If (LNot (LEqual (Arg0, 0x08)))
-                            {
-                                If (LNot (LEqual (Arg0, 0x0A)))
-                                {
-                                    Return (0x19)
-                                }
-                            }
-                        }
-
-                        Acquire (MUT0, 0xFFFF)
-                        Store (0x04, Local0)
-                        While (LGreater (Local0, 0x01))
-                        {
-                            If (LEqual (Arg0, 0x06))
-                            {
-                                Store (Arg3, SMB0)
-                            }
-
-                            If (LEqual (Arg0, 0x08))
-                            {
-                                Store (Arg3, SMW0)
-                            }
-
-                            If (LEqual (Arg0, 0x0A))
-                            {
-                                Store (Arg3, SMD0)
-                            }
-
-                            And (SMST, 0x40, SMST)
-                            Store (Arg2, SMCM)
-                            Store (Arg1, SMAD)
-                            Store (Arg0, SMPR)
-                            Store (0x00, Local3)
-                            While (LNot (And (SMST, 0xBF, Local1)))
-                            {
-                                Sleep (0x02)
-                                Increment (Local3)
-                                If (LEqual (Local3, 0x32))
-                                {
-                                    And (SMST, 0x40, SMST)
-                                    Store (Arg2, SMCM)
-                                    Store (Arg1, SMAD)
-                                    Store (Arg0, SMPR)
-                                    Store (0x00, Local3)
-                                }
-                            }
-
-                            If (LEqual (Local1, 0x80))
-                            {
-                                Store (0x00, Local0)
-                            }
-                            Else
-                            {
-                                Decrement (Local0)
-                            }
-                        }
-
-                        If (Local0)
-                        {
-                            Store (And (Local1, 0x1F), Local0)
-                        }
-
-                        Release (MUT0)
-                        Return (Local0)
-                    }
-
-                    Method (BPOL, 1, NotSerialized)
-                    {
-                        Store (Arg0, DBPL)
-                        Store (0x01, EBPL)
-                    }
-
-                    Name (ECUS, 0x00)
-                    Name (BATO, 0x00)
-                    Name (BATN, 0x00)
-                    Name (BATF, 0xC0)
-                    Method (_Q09, 0, NotSerialized)
-                    {
-                        If (LEqual (SizeOf (\_OS), 0x14))
-                        {
-                            Notify (\_SB.BAT1, 0x80)
-                            Notify (\_SB.BAT1, 0x00)
-                            Notify (\_SB.BAT2, 0x80)
-                            Notify (\_SB.BAT2, 0x00)
-                            Notify (\_SB.ACAD, 0x00)
-                        }
-
-                        If (LEqual (SizeOf (\_OS), 0x14))
-                        {
-                            BPOL (0x3C)
-                        }
-                    }
-
-                    Method (_Q20, 0, NotSerialized)
-                    {
-                        If (And (SMST, 0x40))
-                        {
-                            Store (SMAA, Local0)
-                            If (LEqual (Local0, 0x14))
-                            {
-                                SELE ()
-                                If (And (0x40, BATF))
-                                {
-                                    Notify (\_SB.BAT1, 0x81)
-                                }
-
-                                If (And (0x80, BATF))
-                                {
-                                    Notify (\_SB.BAT2, 0x81)
-                                }
-
-                                If (And (0x02, BATF))
-                                {
-                                    Notify (\_SB.ACAD, 0x80)
-                                }
-
-                                Notify (\_SB.BAT1, 0x80)
-                                Notify (\_SB.BAT2, 0x80)
-                                Store (BATD, BATO)
-                                And (SMST, 0xBF, SMST)
-                            }
-                        }
-                    }
-
-                    Method (SELE, 0, NotSerialized)
-                    {
-                        Store (BATD, BATN)
-                        Store (0x00, BATF)
-                        If (And (0xC0, BATN))
-                        {
-                            Or (BATF, 0x01, BATF)
-                        }
-
-                        If (And (0x0300, BATN))
-                        {
-                            Or (BATF, 0x04, BATF)
-                        }
-
-                        And (BATN, 0x01, Local0)
-                        And (BATO, 0x01, Local1)
-                        If (Local0)
-                        {
-                            Or (BATF, 0x0100, BATF)
-                        }
-                        Else
-                        {
-                            And (BATF, 0xFEFF, BATF)
-                        }
-
-                        If (Not (LEqual (Local0, Local1)))
-                        {
-                            Or (BATF, 0x40, BATF)
-                        }
-
-                        And (BATN, 0x02, Local0)
-                        And (BATO, 0x02, Local1)
-                        If (Local0)
-                        {
-                            Or (BATF, 0x0200, BATF)
-                        }
-                        Else
-                        {
-                            And (BATF, 0xFDFF, BATF)
-                        }
-
-                        If (Not (LEqual (Local0, Local1)))
-                        {
-                            Or (BATF, 0x80, BATF)
-                        }
-
-                        And (BATN, 0xC0, Local0)
-                        And (BATO, 0xC0, Local1)
-                        If (Not (LEqual (Local0, Local1)))
-                        {
-                            Or (BATF, 0x02, BATF)
-                        }
-
-                        If (And (0x01, BATF))
-                        {
-                            If (And (0x04, BATF))
-                            {
-                                If (And (BATN, 0x20))
-                                {
-                                    Or (BATF, 0x10, BATF)
-                                }
-                                Else
-                                {
-                                    Or (BATF, 0x20, BATF)
-                                }
-                            }
-                        }
-                    }
-
-                    Method (_Q0D, 0, NotSerialized)
-                    {
-                        Store ("Sleep Button Query: Fn+F4", Debug)
-                        Notify (\_SB.SLPB, 0x80)
-                    }
-
-                    Method (_Q0E, 0, NotSerialized)
-                    {
-                        \_SB.PCI0.AGP.VGA.SWIH ()
-                    }
-
-                    Method (_Q0F, 0, NotSerialized)
-                    {
-                        Store ("Display blank: Fn+F6", Debug)
-                        Not (LV16, Local0)
-                        Store (Local0, LV16)
-                    }
-
-                    Method (_Q13, 0, NotSerialized)
-                    {
-                        Store ("Brightness Up: Fn+->", Debug)
-                        Store (0x8C, \_SB.PCI0.LPC0.BCMD)
-                        Store (0x00, \_SB.PCI0.LPC0.SMIC)
-                    }
-
-                    Method (_Q12, 0, NotSerialized)
-                    {
-                        Store ("Brightness Down: Fn+<-", Debug)
-                        Store (0x8D, \_SB.PCI0.LPC0.BCMD)
-                        Store (0x00, \_SB.PCI0.LPC0.SMIC)
-                    }
-
-                    Method (_Q80, 0, NotSerialized)
-                    {
-                        Store ("Temperature increasing: _Q80", Debug)
-                        Notify (\_TZ.THRM, 0x80)
-                    }
-
-                    Method (_Q81, 0, NotSerialized)
-                    {
-                        Store ("Temperature decreasing: _Q81", Debug)
-                        Notify (\_TZ.THRM, 0x80)
-                    }
-
-                    Event (EJT1)
-                    Method (_Q8A, 0, NotSerialized)
-                    {
-                        Mutex (MUT0, 0x00)
-                        Mutex (MUT1, 0x00)
-                        Store ("------------------_Q0x8A --------------------------------------", Debug)
-                        If (LIDE)
-                        {
-                            Store (0x01, LIDE)
-                            Notify (\_SB.LID, 0x80)
-                        }
-
-                        If (DB2E)
-                        {
-                            Store ("-------- Device R-Bay Event ------", Debug)
-                            Store (0x01, DB2E)
-                            If (Or (LEqual (\_SB.PCI0.MYOS, 0x01), LEqual (\_SB.PCI0.MYOS, 0x03)))
-                            {
-                                If (DB2S)
-                                {
-                                    Store ("----------- Device Bay Change Status ---------- IN ", Debug)
-                                    Store (\_SB.PCI0.LPC0.RBID, Local0)
-                                    Store (Local0, \_SB.PCI0.IDE0.BAYR)
-                                    If (LEqual (Local0, 0x00))
-                                    {
-                                        Store (0x00, \_SB.PCI0.LPC0.LV37)
-                                    }
-                                    Else
-                                    {
-                                        Store (0x00, \_SB.PCI0.LPC0.LV37)
-                                        Store (0x00, \_SB.PCI0.LPC0.LV39)
-                                        Sleep (0x32)
-                                        Store (0x01, \_SB.PCI0.LPC0.LV39)
-                                        Sleep (0x09C4)
-                                        Store (0x01, \_SB.PCI0.IDE0.SSIG)
-                                        Store (0x01, \_SB.PCI0.IDE0.UDC1)
-                                        Store (0x02, \_SB.PCI0.IDE0.UDT1)
-                                        Or (\_SB.PCI0.IDE0.FSCB, 0x04, \_SB.PCI0.IDE0.FSCB)
-                                        Store (0xE303, \_SB.PCI0.IDE0.ITM1)
-                                        Store (0x00, \_SB.PCI0.IDE0.SSIG)
-                                        Notify (\_SB.PCI0.IDE0.SECN.BAY1, 0x00)
-                                    }
-                                }
-                                Else
-                                {
-                                    Store ("-------- Device Bay Event ------ OUT ", Debug)
-                                    Store (\_SB.PCI0.IDE0.BAYR, Local0)
-                                    Store (0x01, \_SB.PCI0.LPC0.LV37)
-                                    If (Or (LEqual (Local0, 0x01), LEqual (Local0, 0x02)))
-                                    {
-                                        Notify (\_SB.PCI0.IDE0.SECN.BAY1, 0x01)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                OperationRegion (SMI0, SystemIO, 0x0000FE00, 0x00000002)
-                Field (SMI0, AnyAcc, NoLock, Preserve)
-                {
-                    SMIC,   8
-                }
-
-                OperationRegion (SMI1, SystemMemory, 0x1FF7BEBD, 0x00000090)
-                Field (SMI1, AnyAcc, NoLock, Preserve)
-                {
-                    BCMD,   8, 
-                    DID,    32, 
-                    INFO,   1024
-                }
-
-                Field (SMI1, AnyAcc, NoLock, Preserve)
-                {
-                    AccessAs (ByteAcc, 0x00), 
-                    Offset (0x05), 
-                    INF,    8
-                }
-            }
-
-            Device (MDM0)
-            {
-                Name (_ADR, 0x001F0006)
-                Name (_PRW, Package (0x02)
-                {
-                    0x05, 
-                    0x03
-                })
-            }
-
-            Device (HUB)
-            {
-                Name (_ADR, 0x001E0000)
-                Name (_PRT, Package (0x05)
-                {
-                    Package (0x04)
-                    {
-                        0x0002FFFF, 
-                        0x00, 
-                        \_SB.PCI0.LPC0.LNKD, 
-                        0x00
-                    }, 
-
-                    Package (0x04)
-                    {
-                        0x0004FFFF, 
-                        0x00, 
-                        \_SB.PCI0.LPC0.LNKE, 
-                        0x00
-                    }, 
-
-                    Package (0x04)
-                    {
-                        0x0004FFFF, 
-                        0x01, 
-                        \_SB.PCI0.LPC0.LNKF, 
-                        0x00
-                    }, 
-
-                    Package (0x04)
-                    {
-                        0x0006FFFF, 
-                        0x00, 
-                        \_SB.PCI0.LPC0.LNKB, 
-                        0x00
-                    }, 
-
-                    Package (0x04)
-                    {
-                        0x0007FFFF, 
-                        0x00, 
-                        \_SB.PCI0.LPC0.LNKC, 
-                        0x00
-                    }
-                })
-                Device (GLAN)
-                {
-                    Name (_ADR, 0x00020000)
-                    Name (_PRW, Package (0x02)
-                    {
-                        0x0B, 
-                        0x05
-                    })
-                }
-            }
-
-            Device (IDE0)
-            {
-                Name (_ADR, 0x001F0001)
-                OperationRegion (PCI, PCI_Config, 0x00, 0x58)
-                Field (PCI, DWordAcc, NoLock, Preserve)
-                {
-                    Offset (0x03), 
-                        ,   7, 
-                    SIDE,   1, 
-                    Offset (0x42), 
-                        ,   1, 
-                    EIOR,   1, 
-                        ,   13, 
-                    ESID,   1, 
-                    Offset (0x48), 
-                    UMA0,   1, 
-                    UMA1,   1, 
-                    UMA2,   1, 
-                    UMA3,   1, 
-                    Offset (0x56), 
-                    PSIG,   2, 
-                    SSIG,   2
-                }
-
-                Field (PCI, DWordAcc, NoLock, Preserve)
-                {
-                    Offset (0x40), 
-                    ITM0,   16, 
-                    ITM1,   16, 
-                    SIT0,   4, 
-                    SIT1,   4, 
-                    Offset (0x48), 
-                    UDC0,   2, 
-                    UDC1,   2, 
-                    Offset (0x4A), 
-                    UDT0,   8, 
-                    UDT1,   8, 
-                    Offset (0x54), 
-                    ICF0,   2, 
-                    ICF1,   2, 
-                    CB80,   4, 
-                        ,   2, 
-                    WPPE,   1, 
-                        ,   1, 
-                    FSCB,   4, 
-                    TRIP,   2, 
-                    TRIS,   2, 
-                    FATS,   4
-                }
-
-                Name (TIM0, Package (0x01)
-                {
-                    Package (0x05)
-                    {
-                        0x78, 
-                        0xB4, 
-                        0xF0, 
-                        0x0186, 
-                        0x0258
-                    }
-                })
-                Name (TIM1, Package (0x01)
-                {
-                    Package (0x03)
-                    {
-                        0x78, 
-                        0x96, 
-                        0x01FE
-                    }
-                })
-                Name (TIM2, Package (0x01)
-                {
-                    Package (0x06)
-                    {
-                        0x18, 
-                        0x1E, 
-                        0x2D, 
-                        0x3C, 
-                        0x5A, 
-                        0x78
-                    }
-                })
-                Name (AT01, Buffer (0x07)
-                {
-                    0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0xEF
-                })
-                Name (AT02, Buffer (0x07)
-                {
-                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x90
-                })
-                Name (AT03, Buffer (0x07)
-                {
-                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC6
-                })
-                Name (AT04, Buffer (0x07)
-                {
-                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x91
-                })
-                Name (ATA0, Buffer (0x1D) {})
-                Name (ATA1, Buffer (0x1D) {})
-                Name (ATA2, Buffer (0x1D) {})
-                Name (ATA3, Buffer (0x1D) {})
-                Name (ATAB, Buffer (0x0E) {})
-                Name (CMDC, 0x00)
-                Name (BAYR, 0x00)
-                Method (_INI, 0, NotSerialized)
-                {
-                    Store (\_SB.PCI0.LPC0.RBID, BAYR)
-                }
-
-                Method (GTFB, 3, Serialized)
-                {
-                    Multiply (CMDC, 0x38, Local0)
-                    CreateField (ATAB, Local0, 0x38, CMDX)
-                    Multiply (CMDC, 0x07, Local0)
-                    CreateByteField (ATAB, Add (Local0, 0x01), A001)
-                    CreateByteField (ATAB, Add (Local0, 0x05), A005)
-                    Store (Arg0, CMDX)
-                    Store (Arg1, A001)
-                    Store (Arg2, A005)
-                    Increment (CMDC)
-                }
-
-                Mutex (GTFM, 0x00)
-                Method (GTF, 3, Serialized)
-                {
-                    Acquire (GTFM, 0xFFFF)
-                    CreateDWordField (Arg2, 0x00, PIO0)
-                    CreateDWordField (Arg2, 0x04, DMA0)
-                    CreateDWordField (Arg2, 0x08, PIO1)
-                    CreateDWordField (Arg2, 0x0C, DMA1)
-                    CreateDWordField (Arg2, 0x10, CHNF)
-                    Store (0x00, CMDC)
-                    Name (ID00, 0x80)
-                    Name (ID49, 0x0C00)
-                    Name (ID59, 0x00)
-                    Name (ID53, 0x04)
-                    Name (ID63, 0x0F00)
-                    Name (ID88, 0x0F00)
-                    Name (IRDY, 0x01)
-                    Name (PIOT, 0x00)
-                    Name (DMAT, 0x00)
-                    If (LEqual (SizeOf (Arg1), 0x0200))
-                    {
-                        CreateByteField (Arg1, 0x00, IB00)
-                        Store (IB00, ID00)
-                        CreateWordField (Arg1, 0x62, IW49)
-                        Store (IW49, ID49)
-                        CreateWordField (Arg1, 0x6A, IW53)
-                        Store (IW53, ID53)
-                        CreateWordField (Arg1, 0x7E, IW63)
-                        Store (IW63, ID63)
-                        CreateWordField (Arg1, 0x76, IW59)
-                        Store (IW59, ID59)
-                        CreateWordField (Arg1, 0xB0, IW88)
-                        Store (IW88, ID88)
-                    }
-                    Else
-                    {
-                        Return (ATAB)
-                    }
-
-                    Store (0xA0, Local7)
-                    If (Arg0)
-                    {
-                        Store (0xB0, Local7)
-                        And (CHNF, 0x08, IRDY)
-                        If (And (CHNF, 0x10))
-                        {
-                            Store (PIO1, PIOT)
-                        }
-                        Else
-                        {
-                            Store (PIO0, PIOT)
-                        }
-
-                        If (And (CHNF, 0x04))
-                        {
-                            If (And (CHNF, 0x10))
-                            {
-                                Store (DMA1, DMAT)
-                            }
-                            Else
-                            {
-                                Store (DMA0, DMAT)
-                            }
-                        }
-                    }
-                    Else
-                    {
-                        And (CHNF, 0x02, IRDY)
-                        Store (PIO0, PIOT)
-                        If (And (CHNF, 0x01))
-                        {
-                            Store (DMA0, DMAT)
-                        }
-                    }
-
-                    If (LAnd (And (ID53, 0x04), And (ID88, 0xFF)))
-                    {
-                        Store (0x00, Local1)
-                        And (ID88, 0xFF, Local2)
-                        While (ShiftRight (Local2, Local1))
-                        {
-                            Increment (Local1)
-                        }
-
-                        Decrement (Local1)
-                        GTFB (AT01, Or (0x40, Local1), Local7)
-                    }
-
-                    If (IRDY)
-                    {
-                        Store (Match (DerefOf (Index (TIM0, 0x00)), MGE, PIOT, MTR, 0x00, 0x00), Local1)
-                        If (LEqual (Local1, Ones))
-                        {
-                            Store (0x04, Local1)
-                        }
-
-                        Subtract (0x04, Local1, Local1)
-                        GTFB (AT01, Or (0x08, Local1), Local7)
-                    }
-                    Else
-                    {
-                        If (And (ID49, 0x0400))
-                        {
-                            GTFB (AT01, 0x01, Local7)
-                        }
-                    }
-
-                    Release (GTFM)
-                    Return (ATAB)
-                }
-
-                Method (RATA, 1, NotSerialized)
-                {
-                    CreateByteField (Arg0, 0x00, CMDN)
-                    Multiply (CMDN, 0x38, Local0)
-                    CreateField (Arg0, 0x08, Local0, RETB)
-                    Return (RETB)
-                }
-
-                Name (REGF, 0x01)
-                Method (_REG, 2, NotSerialized)
-                {
-                    If (LEqual (Arg0, 0x02))
-                    {
-                        Store (Arg1, REGF)
-                    }
-                }
-
-                Name (BAYD, 0x00)
-                Method (_STA, 0, NotSerialized)
-                {
-                    Return (0x0F)
-                }
-
-                Method (GTM, 6, NotSerialized)
-                {
-                    Store (Buffer (0x14) {}, Local0)
-                    CreateDWordField (Local0, 0x00, PIO0)
-                    CreateDWordField (Local0, 0x04, DMA0)
-                    CreateDWordField (Local0, 0x08, PIO1)
-                    CreateDWordField (Local0, 0x0C, DMA1)
-                    CreateDWordField (Local0, 0x10, FLAG)
-                    If (LOr (And (Arg0, 0x08), LNot (And (Arg0, 0x01))))
-                    {
-                        Store (0x0384, PIO0)
-                    }
-                    Else
-                    {
-                        Add (ShiftRight (And (Arg0, 0x0300), 0x08), ShiftRight (And (Arg0, 0x3000), 0x0C), Local1)
-                        Multiply (Subtract (0x09, Local1), 0x1E, PIO0)
-                    }
-
-                    If (And (Arg0, 0x4000))
-                    {
-                        If (LOr (And (Arg0, 0x80), LNot (And (Arg0, 0x10))))
-                        {
-                            Store (0x0384, PIO1)
-                        }
-                        Else
-                        {
-                            Add (And (Arg1, 0x03), ShiftRight (And (Arg1, 0x0C), 0x02), Local1)
-                            Multiply (Subtract (0x09, Local1), 0x1E, PIO1)
-                        }
-                    }
-                    Else
-                    {
-                        Store (PIO0, PIO1)
-                    }
-
-                    If (And (Arg2, 0x01))
-                    {
-                        If (And (Arg5, 0x01))
-                        {
-                            Store (0x08, DMA0)
-                        }
-                        Else
-                        {
-                            Subtract (0x04, And (Arg3, 0x03), Local1)
-                            If (And (Arg4, 0x01))
-                            {
-                                Multiply (Local1, 0x0F, DMA0)
-                            }
-                            Else
-                            {
-                                Multiply (Local1, 0x1E, DMA0)
-                            }
-                        }
-                    }
-                    Else
-                    {
-                        Store (PIO0, DMA0)
-                    }
-
-                    If (And (Arg0, 0x4000))
-                    {
-                        If (And (Arg2, 0x02))
-                        {
-                            If (And (Arg5, 0x02))
-                            {
-                                Store (0x08, DMA1)
-                            }
-                            Else
-                            {
-                                Subtract (0x04, ShiftRight (And (Arg3, 0x30), 0x04), Local1)
-                                If (And (Arg4, 0x02))
-                                {
-                                    Multiply (Local1, 0x0F, DMA1)
-                                }
-                                Else
-                                {
-                                    Multiply (Local1, 0x1E, DMA1)
-                                }
-                            }
-                        }
-                        Else
-                        {
-                            Store (PIO1, DMA1)
-                        }
-                    }
-                    Else
-                    {
-                        Store (DMA0, DMA1)
-                    }
-
-                    Store (Zero, FLAG)
-                    If (And (Arg0, 0x01))
-                    {
-                        Or (FLAG, 0x10, FLAG)
-                    }
-
-                    If (And (Arg2, 0x01))
-                    {
-                        Or (FLAG, 0x01, FLAG)
-                    }
-
-                    If (And (Arg0, 0x02))
-                    {
-                        Or (FLAG, 0x02, FLAG)
-                    }
-
-                    If (And (Arg2, 0x02))
-                    {
-                        Or (FLAG, 0x04, FLAG)
-                    }
-
-                    If (And (Arg0, 0x20))
-                    {
-                        Or (FLAG, 0x08, FLAG)
-                    }
-
-                    Return (Local0)
-                }
-
-                Method (STMS, 3, NotSerialized)
-                {
-                    Store (Buffer (0x18) {}, Local7)
-                    CreateDWordField (Local7, 0x00, ITM)
-                    CreateDWordField (Local7, 0x04, SIT)
-                    CreateDWordField (Local7, 0x08, UDC)
-                    CreateDWordField (Local7, 0x0C, UDT)
-                    CreateDWordField (Local7, 0x10, ICF)
-                    CreateDWordField (Local7, 0x14, A100)
-                    Store (0x01, WPPE)
-                    CreateDWordField (Arg0, 0x00, PIO0)
-                    CreateDWordField (Arg0, 0x04, DMA0)
-                    CreateDWordField (Arg0, 0x08, PIO1)
-                    CreateDWordField (Arg0, 0x0C, DMA1)
-                    CreateDWordField (Arg0, 0x10, FLAG)
-                    Store (FLAG, Local4)
-                    Store (0x4000, Local0)
-                    Name (W49M, 0x00)
-                    Name (W53M, 0x00)
-                    Name (W62M, 0x00)
-                    Name (W64M, 0x00)
-                    Name (W88M, 0x00)
-                    If (LEqual (SizeOf (Arg1), 0x0200))
-                    {
-                        CreateDWordField (Arg1, 0x00, W00A)
-                        CreateDWordField (Arg1, 0x62, W49A)
-                        CreateDWordField (Arg1, 0x6A, W53A)
-                        CreateDWordField (Arg1, 0x7C, W62A)
-                        CreateDWordField (Arg1, 0x80, W64A)
-                        CreateDWordField (Arg1, 0xB0, W88A)
-                        Store (W49A, W49M)
-                        Store (W53A, W53M)
-                        Store (W62A, W62M)
-                        Store (W64A, W64M)
-                        Store (W88A, W88M)
-                        If (W00A)
-                        {
-                            Or (Local0, 0x8000, Local0)
-                        }
-
-                        If (LNot (And (W00A, 0x80)))
-                        {
-                            Or (Local0, 0x04, Local0)
-                        }
-                    }
-                    Else
-                    {
-                        Store (0x00, W49M)
-                        Store (0x00, W53M)
-                        Store (0x00, W62M)
-                        Store (0x00, W64M)
-                        Store (0x00, W88M)
-                    }
-
-                    Name (W49S, 0x00)
-                    Name (W53S, 0x00)
-                    Name (W62S, 0x00)
-                    Name (W64S, 0x00)
-                    Name (W88S, 0x00)
-                    If (LEqual (SizeOf (Arg2), 0x0200))
-                    {
-                        CreateDWordField (Arg2, 0x00, W00B)
-                        CreateDWordField (Arg2, 0x62, W49B)
-                        CreateDWordField (Arg2, 0x6A, W53B)
-                        CreateDWordField (Arg2, 0x7C, W62B)
-                        CreateDWordField (Arg2, 0x80, W64B)
-                        CreateDWordField (Arg2, 0xB0, W88B)
-                        Store (W49B, W49S)
-                        Store (W53B, W53S)
-                        Store (W62B, W62S)
-                        Store (W64B, W64S)
-                        Store (W88B, W88S)
-                        If (W00B)
-                        {
-                            Or (Local0, 0x8000, Local0)
-                        }
-
-                        If (LNot (And (W00B, 0x80)))
-                        {
-                            Or (Local0, 0x40, Local0)
-                        }
-                    }
-                    Else
-                    {
-                        Store (0x00, W49S)
-                        Store (0x00, W53S)
-                        Store (0x00, W62S)
-                        Store (0x00, W64S)
-                        Store (0x00, W88S)
-                    }
-
-                    Store (0x00, A100)
-                    If (And (0x38, W88M))
-                    {
-                        If (And (0x20, W88M))
-                        {
-                            Store (0x08, DMA0)
-                            Or (A100, 0x00100010, A100)
-                        }
-                        Else
-                        {
-                            If (And (0x10, W88M))
-                            {
-                                Store (0x1E, DMA0)
-                                Or (A100, 0x10, A100)
-                            }
-                            Else
-                            {
-                                Store (0x2D, DMA0)
-                            }
-                        }
-                    }
-                    Else
-                    {
-                        If (And (0x07, W88M))
-                        {
-                            Or (0x0100, A100, A100)
-                            If (And (0x04, W88M))
-                            {
-                                Store (0x3C, DMA0)
-                            }
-                            Else
-                            {
-                                If (And (0x02, W88M))
-                                {
-                                    Store (0x5A, DMA0)
-                                }
-                                Else
-                                {
-                                    Store (0x78, DMA0)
-                                }
-                            }
-                        }
-                    }
-
-                    If (And (0x3F, W88S))
-                    {
-                        If (And (0x20, W88S))
-                        {
-                            Store (0x08, DMA1)
-                            Or (A100, 0x00200020, A100)
-                        }
-                        Else
-                        {
-                            If (And (0x10, W88S))
-                            {
-                                Store (0x1E, DMA1)
-                                Or (A100, 0x20, A100)
-                            }
-                            Else
-                            {
-                                Store (0x2D, DMA1)
-                            }
-                        }
-                    }
-
-                    If (LAnd (And (W49M, 0x0800), And (Local4, 0x02)))
-                    {
-                        Or (Local0, 0x02, Local0)
-                    }
-
-                    If (LLess (PIO0, 0x0384))
-                    {
-                        Or (Local0, 0x01, Local0)
-                    }
-
-                    If (LAnd (And (W49S, 0x0800), And (Local4, 0x08)))
-                    {
-                        Or (Local0, 0x20, Local0)
-                    }
-
-                    If (LLess (PIO1, 0x0384))
-                    {
-                        Or (Local0, 0x10, Local0)
-                    }
-
-                    If (And (Local4, 0x01))
-                    {
-                        Store (PIO0, Local1)
-                    }
-                    Else
-                    {
-                        Store (DMA0, Local1)
-                    }
-
-                    If (LNot (LLess (Local1, 0xF0)))
-                    {
-                        Or (Local0, 0x08, Local0)
-                    }
-                    Else
-                    {
-                        If (And (W53M, 0x02))
-                        {
-                            If (LAnd (And (W64M, 0x02), LNot (LGreater (Local1, 0x78))))
-                            {
-                                Or (Local0, 0x2301, Local0)
-                            }
-                            Else
-                            {
-                                If (LAnd (And (W64M, 0x01), LNot (LGreater (Local1, 0xB4))))
-                                {
-                                    Or (Local0, 0x2101, Local0)
-                                }
-                            }
-                        }
-                        Else
-                        {
-                            Or (Local0, 0x1001, Local0)
-                        }
-                    }
-
-                    Store (Local0, ITM)
-                    Store (Zero, Local0)
-                    If (And (Local4, 0x04))
-                    {
-                        Store (PIO1, Local1)
-                    }
-                    Else
-                    {
-                        Store (DMA1, Local1)
-                    }
-
-                    If (And (Local4, 0x10))
-                    {
-                        If (LNot (LLess (Local1, 0xF0)))
-                        {
-                            Or (0x80, ITM, ITM)
-                        }
-                        Else
-                        {
-                            Or (0x10, ITM, ITM)
-                            If (And (W53S, 0x02))
-                            {
-                                If (LAnd (And (W64S, 0x02), LNot (LGreater (Local1, 0x78))))
-                                {
-                                    Store (0x0B, Local0)
-                                }
-                                Else
-                                {
-                                    If (LAnd (And (W64S, 0x01), LNot (LGreater (Local1, 0xB4))))
-                                    {
-                                        Store (0x09, Local0)
-                                    }
-                                }
-                            }
-                            Else
-                            {
-                                Store (0x04, Local0)
-                            }
-                        }
-                    }
-
-                    Store (Local0, SIT)
-                    Store (0x00, Local0)
-                    If (LAnd (And (0x3F, W88M), And (Local4, 0x01)))
-                    {
-                        Or (Local0, 0x01, Local0)
-                    }
-
-                    If (And (Local4, 0x04))
-                    {
-                        Or (Local0, 0x02, Local0)
-                    }
-
-                    Store (Local0, UDC)
-                    Store (0x00, Local0)
-                    If (And (Local4, 0x01))
-                    {
-                        If (LLess (DMA0, 0x1E))
-                        {
-                            Or (A100, 0x1000, A100)
-                            Or (Local0, 0x01, Local0)
-                        }
-                        Else
-                        {
-                            If (LLess (DMA0, 0x3C))
-                            {
-                                Divide (DMA0, 0x0F, , Local1)
-                            }
-                            Else
-                            {
-                                Divide (DMA0, 0x1E, , Local1)
-                            }
-
-                            Subtract (0x04, Local1, Local0)
-                        }
-                    }
-
-                    If (And (Local4, 0x04))
-                    {
-                        If (LLess (DMA1, 0x1E))
-                        {
-                            Or (A100, 0x2000, A100)
-                            Or (Local0, 0x10, Local0)
-                        }
-                        Else
-                        {
-                            If (LLess (DMA1, 0x3C))
-                            {
-                                Divide (DMA1, 0x0F, , Local1)
-                            }
-                            Else
-                            {
-                                Divide (DMA1, 0x1E, , Local1)
-                            }
-
-                            Subtract (0x04, Local1, Local1)
-                            ShiftLeft (Local1, 0x04, Local1)
-                            Or (Local0, Local1, Local0)
-                        }
-                    }
-
-                    Store (Local0, UDT)
-                    Store (0x00, Local0)
-                    If (LLess (DMA0, 0x3C))
-                    {
-                        Or (Local0, 0x01, Local0)
-                    }
-
-                    If (LLess (DMA1, 0x3C))
-                    {
-                        Or (Local0, 0x02, Local0)
-                    }
-
-                    Store (Local0, ICF)
-                    Return (Local7)
-                }
-
-                Method (GTF0, 7, NotSerialized)
-                {
-                    Store (Buffer (0x07)
-                        {
-                            0x03, 0x00, 0x00, 0x00, 0x00, 0xA0, 0xEF
-                        }, Local7)
-                    CreateByteField (Local7, 0x01, MODE)
-                    If (And (Arg2, 0x01))
-                    {
-                        If (And (Arg6, 0x01))
-                        {
-                            Store (0x45, MODE)
-                        }
-                        Else
-                        {
-                            And (Arg3, 0x03, Local0)
-                            If (And (Arg4, 0x01))
-                            {
-                                Add (Local0, 0x02, Local0)
-                            }
-
-                            Or (Local0, 0x40, MODE)
-                        }
-                    }
-                    Else
-                    {
-                        Add (ShiftRight (And (Arg0, 0x0300), 0x08), ShiftRight (And (Arg0, 0x3000), 0x0C), Local0)
-                        If (LNot (LLess (Local0, 0x05)))
-                        {
-                            Store (0x22, MODE)
-                        }
-                        Else
-                        {
-                            If (LNot (LLess (Local0, 0x03)))
-                            {
-                                Store (0x21, MODE)
-                            }
-                            Else
-                            {
-                                Store (0x20, MODE)
-                            }
-                        }
-                    }
-
-                    Concatenate (Local7, Local7, Local6)
-                    If (LOr (And (Arg0, 0x08), LNot (And (Arg0, 0x01))))
-                    {
-                        If (And (Arg0, 0x02))
-                        {
-                            Store (0x00, MODE)
-                        }
-                        Else
-                        {
-                            Store (0x08, MODE)
-                        }
-                    }
-                    Else
-                    {
-                        Add (ShiftRight (And (Arg0, 0x0300), 0x08), ShiftRight (And (Arg0, 0x3000), 0x0C), Local0)
-                        If (LNot (LLess (Local0, 0x05)))
-                        {
-                            Store (0x0C, MODE)
-                        }
-                        Else
-                        {
-                            If (LNot (LLess (Local0, 0x03)))
-                            {
-                                Store (0x0B, MODE)
-                            }
-                            Else
-                            {
-                                Store (0x0A, MODE)
-                            }
-                        }
-                    }
-
-                    Concatenate (Local6, Local7, Local5)
-                    Return (Local5)
-                }
-
-                Name (B04, Buffer (0x04) {})
-                Name (B20, Buffer (0x04) {})
-                Name (B40, Buffer (0x04) {})
-                Device (PRIM)
-                {
-                    Name (_ADR, 0x00)
-                    Name (_PSC, 0x00)
-                    Method (_PS0, 0, NotSerialized)
-                    {
-                        Store (0x00, _PSC)
-                    }
-
-                    Method (_PS3, 0, NotSerialized)
-                    {
-                        Store (0x03, _PSC)
-                    }
-
-                    Method (_GTM, 0, NotSerialized)
-                    {
-                        Store (Buffer (0x14)
-                            {
-                                0x00
-                            }, Local0)
-                        Store (^^GTM (^^ITM0, ^^SIT0, ^^UDC0, ^^UDT0, ^^ICF0, ^^FSCB), Local0)
-                        Return (Local0)
-                    }
-
-                    Method (_STM, 3, NotSerialized)
-                    {
-                        Store (GTF (0x00, Arg1, Arg0), ATA0)
-                        Store (GTF (0x01, Arg2, Arg0), ATA1)
-                        Store (^^STMS (Arg0, Arg1, Arg2), Local0)
-                        CreateDWordField (Local0, 0x00, ITM)
-                        CreateDWordField (Local0, 0x04, SIT)
-                        CreateDWordField (Local0, 0x08, UDC)
-                        CreateDWordField (Local0, 0x0C, UDT)
-                        CreateDWordField (Local0, 0x10, ICF)
-                        Store (ITM, ^^ITM0)
-                        Store (SIT, ^^SIT0)
-                        Store (UDC, ^^UDC0)
-                        Store (UDT, ^^UDT0)
-                        CreateDWordField (Local0, 0x14, A100)
-                        Or (And (^^CB80, 0x0C), ShiftRight (And (0x30, A100), 0x04), ^^CB80)
-                        Or (And (^^FSCB, 0x0C), ShiftRight (And (0x3000, A100), 0x0C), ^^FSCB)
-                        Or (And (^^FATS, 0x0C), ShiftRight (And (0x00300000, A100), 0x14), ^^FATS)
-                        Store (ICF, ^^ICF0)
-                    }
-
-                    Device (MAST)
-                    {
-                        Name (_ADR, 0x00)
-                        Name (H15F, Zero)
-                        Method (_GTF, 0, NotSerialized)
-                        {
-                            Return (RATA (ATA0))
-                        }
-                    }
-                }
-
-                Device (SECN)
-                {
-                    Name (_ADR, 0x01)
-                    Name (FAST, 0x63)
-                    Method (_STA, 0, NotSerialized)
-                    {
-                        If (ESID)
-                        {
-                            Return (0x0F)
-                        }
-                        Else
-                        {
-                            Return (0x08)
-                        }
-                    }
-
-                    Name (_PSC, 0x00)
-                    Method (_PS0, 0, NotSerialized)
-                    {
-                        Store (0x00, _PSC)
-                    }
-
-                    Method (_PS3, 0, NotSerialized)
-                    {
-                        Store (0x03, _PSC)
-                    }
-
-                    Method (_GTM, 0, NotSerialized)
-                    {
-                        Store (Buffer (0x14)
-                            {
-                                0x00
-                            }, Local0)
-                        Store (^^FSCB, Local1)
-                        ShiftRight (Local1, 0x02, Local1)
-                        Store (^^GTM (^^ITM1, ^^SIT1, ^^UDC1, ^^UDT1, ^^ICF1, Local1), Local0)
-                        Return (Local0)
-                    }
-
-                    Method (_STM, 3, NotSerialized)
-                    {
-                        Store (GTF (0x00, Arg1, Arg0), ATA2)
-                        Store (GTF (0x01, Arg2, Arg0), ATA3)
-                        Store (^^STMS (Arg0, Arg1, Arg2), Local0)
-                        CreateDWordField (Local0, 0x00, ITM)
-                        CreateDWordField (Local0, 0x04, SIT)
-                        CreateDWordField (Local0, 0x08, UDC)
-                        CreateDWordField (Local0, 0x0C, UDT)
-                        CreateDWordField (Local0, 0x10, ICF)
-                        Store (ITM, ^^ITM1)
-                        Store (SIT, ^^SIT1)
-                        Store (UDC, ^^UDC1)
-                        Store (UDT, ^^UDT1)
-                        CreateDWordField (Local0, 0x14, A100)
-                        Or (And (^^CB80, 0x03), ShiftRight (And (0x30, A100), 0x02), ^^CB80)
-                        Or (And (^^FSCB, 0x03), ShiftRight (And (0x3000, A100), 0x0A), ^^FSCB)
-                        Or (And (^^FATS, 0x03), ShiftRight (And (0x00300000, A100), 0x12), ^^FATS)
-                        Store (ICF, ^^ICF1)
-                    }
-
-                    Device (BAY1)
-                    {
-                        Name (_ADR, 0x00)
-                        Name (H15F, Zero)
-                        Name (EJ0F, 0x00)
-                        Method (_GTF, 0, NotSerialized)
-                        {
-                            Return (RATA (ATA2))
-                        }
-
-                        Method (_STA, 0, NotSerialized)
-                        {
-                            If (\_SB.PCI0.IDE0.ESID)
-                            {
-                                \_SB.PCI0.IDE0.SECN.CBAY ()
-                                Store (^^BFLG, Local0)
-                                If (LEqual (^^BNUM, 0x01))
-                                {
-                                    If (And (Local0, 0x01))
-                                    {
-                                        If (\_SB.PCI0.LPC0.LV37)
-                                        {
-                                            Return (0x08)
-                                        }
-                                        Else
-                                        {
-                                            Return (0x0F)
-                                        }
-                                    }
-                                }
-                                Else
-                                {
-                                    If (LEqual (^^BNUM, 0x02))
-                                    {
-                                        If (\_SB.PCI0.LPC0.LV37)
-                                        {
-                                            Return (0x08)
-                                        }
-                                        Else
-                                        {
-                                            Return (0x0F)
-                                        }
-                                    }
-                                    Else
-                                    {
-                                        Return (0x08)
-                                    }
-                                }
-                            }
-                            Else
-                            {
-                                Return (0x08)
-                            }
-                        }
-
-                        Method (_EJ0, 1, NotSerialized)
-                        {
-                            If (Arg0)
-                            {
-                                Store (0x01, ^^^SSIG)
-                                Sleep (0x32)
-                                Store (0xC000, ^^^ITM1)
-                                Store (0x01, \_SB.PCI0.LPC0.LV37)
-                                Store (0x00, \_SB.PCI0.LPC0.LV39)
-                            }
-                        }
-                    }
-
-                    Name (BNUM, 0x00)
-                    Name (BFLG, 0x00)
-                    Method (CBAY, 0, NotSerialized)
-                    {
-                        Store (0x00, BNUM)
-                        Store (0x00, BFLG)
-                        Store (\_SB.PCI0.LPC0.RBID, Local0)
-                        If (Or (LEqual (Local0, 0x01), LEqual (Local0, 0x02)))
-                        {
-                            Increment (BNUM)
-                            Or (BFLG, 0x01, BFLG)
-                        }
-                    }
-                }
-
-                Method (_PS0, 0, NotSerialized)
-                {
-                    If (And (LEqual (_PSC, 0x03), LEqual (\_SB.STAT, 0x03)))
-                    {
-                        Store (0x89, \_SB.PCI0.LPC0.BCMD)
-                        Store (0x00, \_SB.PCI0.LPC0.SMIC)
-                    }
-
-                    Store (0x00, _PSC)
-                }
-
-                Method (_PS3, 0, NotSerialized)
-                {
-                    Store (0x03, _PSC)
-                }
-
-                Name (_PSC, 0x00)
-            }
-
-            Device (USB1)
-            {
-                Name (_ADR, 0x001D0000)
-                OperationRegion (USBO, PCI_Config, 0xC4, 0x04)
-                Field (USBO, ByteAcc, NoLock, Preserve)
-                {
-                    RSEN,   2
-                }
-
-                Name (_PRW, Package (0x02)
-                {
-                    0x03, 
-                    0x03
-                })
-                Method (_PSW, 1, NotSerialized)
-                {
-                    If (Arg0)
-                    {
-                        Store (0x03, \_SB.PCI0.USB1.RSEN)
-                    }
-                    Else
-                    {
-                        Store (0x00, \_SB.PCI0.USB1.RSEN)
-                    }
-                }
-            }
-
-            Device (USB2)
-            {
-                Name (_ADR, 0x001D0001)
-                OperationRegion (USBO, PCI_Config, 0xC4, 0x04)
-                Field (USBO, ByteAcc, NoLock, Preserve)
-                {
-                    RSEN,   2
-                }
-
-                Name (_PRW, Package (0x02)
-                {
-                    0x04, 
-                    0x03
-                })
-                Method (_PSW, 1, NotSerialized)
-                {
-                    If (Arg0)
-                    {
-                        Store (0x03, \_SB.PCI0.USB2.RSEN)
-                    }
-                    Else
-                    {
-                        Store (0x00, \_SB.PCI0.USB2.RSEN)
-                    }
-                }
-            }
-
-            Device (USB3)
-            {
-                Name (_ADR, 0x001D0002)
-                OperationRegion (USBO, PCI_Config, 0xC4, 0x04)
-                Field (USBO, ByteAcc, NoLock, Preserve)
-                {
-                    RSEN,   2
-                }
-
-                Name (_PRW, Package (0x02)
-                {
-                    0x0C, 
-                    0x03
-                })
-                Method (_PSW, 1, NotSerialized)
-                {
-                    If (Arg0)
-                    {
-                        Store (0x03, \_SB.PCI0.USB3.RSEN)
-                    }
-                    Else
-                    {
-                        Store (0x00, \_SB.PCI0.USB3.RSEN)
-                    }
-                }
-            }
-        }
-
-        Device (LID)
-        {
-            Name (_HID, EisaId ("PNP0C0D"))
-            Name (LSTS, 0x00)
-            Method (_LID, 0, NotSerialized)
-            {
-                If (\_SB.OKEC)
-                {
-                    If (\_SB.PCI0.LPC0.EC0.LIDS)
-                    {
-                        Store (Zero, LSTS)
-                    }
-                    Else
-                    {
-                        Store (One, LSTS)
-                    }
-                }
-                Else
-                {
-                    Store (Zero, LSTS)
-                }
-
-                Return (LSTS)
-            }
-        }
-
-        Device (ACAD)
-        {
-            Name (_HID, "ACPI0003")
-            Name (_PCL, Package (0x01)
-            {
-                \_SB
-            })
-            Name (ACWT, 0x00)
-            Method (_PSR, 0, NotSerialized)
-            {
-                Store (\_SB.ACST, ACWT)
-                If (\_SB.OKEC)
-                {
-                    Store (\_SB.PCI0.LPC0.EC0.ACDF, \_SB.ACST)
-                }
-
-                If (LNot (LEqual (ACWT, \_SB.ACST)))
-                {
-                    Store (0x8B, \_SB.PCI0.LPC0.BCMD)
-                    Store (0x00, \_SB.PCI0.LPC0.SMIC)
-                }
-
-                Return (\_SB.ACST)
-            }
-        }
-
-        Method (VTOB, 1, NotSerialized)
-        {
-            Store (0x01, Local0)
-            ShiftLeft (Local0, Arg0, Local0)
-            Return (Local0)
-        }
-
-        Method (BTOV, 1, NotSerialized)
-        {
-            ShiftRight (Arg0, 0x01, Local0)
-            Store (0x00, Local1)
-            While (Local0)
-            {
-                Increment (Local1)
-                ShiftRight (Local0, 0x01, Local0)
-            }
-
-            Return (Local1)
-        }
-
-        Method (MKWD, 2, NotSerialized)
-        {
-            If (And (Arg1, 0x80))
-            {
-                Store (0xFFFF0000, Local0)
-            }
-            Else
-            {
-                Store (Zero, Local0)
-            }
-
-            Or (Local0, Arg0, Local0)
-            Or (Local0, ShiftLeft (Arg1, 0x08), Local0)
-            Return (Local0)
-        }
-
-        Method (POSW, 1, NotSerialized)
-        {
-            If (And (Arg0, 0x8000))
-            {
-                If (LEqual (Arg0, 0xFFFF))
-                {
-                    Return (0xFFFFFFFF)
-                }
-                Else
-                {
-                    Not (Arg0, Local0)
-                    Increment (Local0)
-                    And (Local0, 0xFFFF, Local0)
-                    Return (Local0)
-                }
-            }
-            Else
-            {
-                Return (Arg0)
-            }
-        }
-
-        Method (GBFE, 3, NotSerialized)
-        {
-            CreateByteField (Arg0, Arg1, TIDX)
-            Store (TIDX, Arg2)
-        }
-
-        Method (PBFE, 3, NotSerialized)
-        {
-            CreateByteField (Arg0, Arg1, TIDX)
-            Store (Arg2, TIDX)
-        }
-
-        Method (ITOS, 1, NotSerialized)
-        {
-            Store (Buffer (0x09)
-                {
-                    0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-                    0x00
-                }, Local0)
-            Store (Buffer (0x11)
-                {
-                    "0123456789ABCDEF"
-                }, Local7)
-            Store (0x08, Local1)
-            Store (0x00, Local2)
-            Store (0x00, Local3)
-            While (Local1)
-            {
-                Decrement (Local1)
-                And (ShiftRight (Arg0, ShiftLeft (Local1, 0x02)), 0x0F, Local4)
-                If (Local4)
-                {
-                    Store (Ones, Local3)
-                }
-
-                If (Local3)
-                {
-                    GBFE (Local7, Local4, RefOf (Local5))
-                    PBFE (Local0, Local2, Local5)
-                    Increment (Local2)
-                }
-            }
-
-            Return (Local0)
-        }
-
-        Device (BAT1)
-        {
-            Name (_HID, EisaId ("PNP0C0A"))
-            Name (_UID, 0x01)
-            Name (_PCL, Package (0x01)
-            {
-                \_SB
-            })
-            Name (PBIF, Package (0x0D)
-            {
-                0x01, 
-                0xFFFFFFFF, 
-                0xFFFFFFFF, 
-                0x01, 
-                0xFFFFFFFF, 
-                0xFA, 
-                0x64, 
-                0x0A, 
-                0x19, 
-                "BAT1", 
-                " ", 
-                " ", 
-                " "
-            })
-            Name (PBST, Package (0x04)
-            {
-                0x00, 
-                0xFFFFFFFF, 
-                0xFFFFFFFF, 
-                0x2710
-            })
-            Name (BAST, 0x00)
-            Name (FAST, 0x00)
-            Name (B1ST, 0x0F)
-            Name (B1WT, 0x00)
-            Method (_STA, 0, NotSerialized)
-            {
-                If (LLess (FAST, 0x10))
-                {
-                    Increment (FAST)
-                    If (LEqual (FAST, 0x10))
-                    {
-                        Store (0x92, \_SB.PCI0.LPC0.BCMD)
-                        Store (0x00, \_SB.PCI0.LPC0.SMIC)
-                    }
-                }
-
-                If (\_SB.OKEC)
-                {
-                    If (\_SB.PCI0.LPC0.EC0.MBTS)
-                    {
-                        Store (0x1F, B1ST)
-                    }
-                    Else
-                    {
-                        Store (0x0F, B1ST)
-                    }
-                }
-                Else
-                {
-                    Store (0x0F, B1ST)
-                }
-
-                Return (B1ST)
-            }
-
-            Method (_BIF, 0, NotSerialized)
-            {
-                If (\_SB.OKEC)
-                {
-                    If (\_SB.PCI0.LPC0.EC0.MBTS)
-                    {
-                        UPBI ()
-                    }
-                    Else
-                    {
-                        IVBI ()
-                    }
-                }
-                Else
-                {
-                    IVBI ()
-                }
-
-                Return (PBIF)
-            }
-
-            Method (_BST, 0, NotSerialized)
-            {
-                If (\_SB.OKEC)
-                {
-                    If (\_SB.PCI0.LPC0.EC0.MBTS)
-                    {
-                        UPBS ()
-                    }
-                    Else
-                    {
-                        IVBS ()
-                    }
-                }
-                Else
-                {
-                    IVBS ()
-                }
-
-                Return (PBST)
-            }
-
-            Method (UPBI, 0, NotSerialized)
-            {
-                Store (0x1FFF, Local2)
-                \_SB.PCI0.LPC0.EC0.SMWR (0x08, 0x14, 0x01, Local2)
-                \_SB.PCI0.LPC0.EC0.SMRD (0x09, 0x14, 0x01, RefOf (Local3))
-                If (LEqual (Local2, Or (Local3, 0x0FFF)))
-                {
-                    If (LNot (\_SB.PCI0.LPC0.EC0.SMRD (0x09, 0x16, 0x10, RefOf (Local5))))
-                    {
-                        Store (Local5, Index (PBIF, 0x02))
-                    }
-                }
-
-                If (LEqual (\_SB.PCI0.LPC0.EC0.MBID, 0x01))
-                {
-                    Store (0x1130, Index (PBIF, 0x01))
-                    Store (0x39D0, Index (PBIF, 0x04))
-                    Store ("01ZG", Index (PBIF, 0x09))
-                    Store ("LION", Index (PBIF, 0x0B))
-                    Store ("SMP ", Index (PBIF, 0x0C))
-                }
-                Else
-                {
-                    If (LEqual (\_SB.PCI0.LPC0.EC0.MBID, 0x02))
-                    {
-                        Store (0x0E10, Index (PBIF, 0x01))
-                        Store (0x39D0, Index (PBIF, 0x04))
-                        Store ("02ZG", Index (PBIF, 0x09))
-                        Store ("LION", Index (PBIF, 0x0B))
-                        Store ("SANYO", Index (PBIF, 0x0C))
-                    }
-                    Else
-                    {
-                        If (LEqual (\_SB.PCI0.LPC0.EC0.MBID, 0x03))
-                        {
-                            Store (0x1130, Index (PBIF, 0x01))
-                            Store (0x39D0, Index (PBIF, 0x04))
-                            Store ("03ZG", Index (PBIF, 0x09))
-                            Store ("LION", Index (PBIF, 0x0B))
-                            Store ("SANYO", Index (PBIF, 0x0C))
-                        }
-                        Else
-                        {
-                            Store (0x1130, Index (PBIF, 0x01))
-                            Store (0x39D0, Index (PBIF, 0x04))
-                            Store ("01ZG", Index (PBIF, 0x09))
-                            Store ("LION", Index (PBIF, 0x0B))
-                            Store ("SMP ", Index (PBIF, 0x0C))
-                        }
-                    }
-                }
-
-                Store (0x01, Index (PBIF, 0x00))
-                If (LEqual (SizeOf (\_OS), 0x27))
-                {
-                    Store (0x00, Index (PBIF, 0x00))
-                }
-            }
-
-            Method (UPBS, 0, NotSerialized)
-            {
-                Store (\_SB.PCI0.LPC0.EC0.MCUR, Local5)
-                Store (POSW (Local5), Index (PBST, 0x01))
-                Store (\_SB.PCI0.LPC0.EC0.MBRM, Index (PBST, 0x02))
-                Store (\_SB.PCI0.LPC0.EC0.MBVG, Index (PBST, 0x03))
-                If (\_SB.PCI0.LPC0.EC0.MBTF)
-                {
-                    If (\_SB.PCI0.LPC0.EC0.ACDF)
-                    {
-                        Store (0x00, Index (PBST, 0x00))
-                    }
-                }
-                Else
-                {
-                    If (\_SB.PCI0.LPC0.EC0.MBTC)
-                    {
-                        If (\_SB.PCI0.LPC0.EC0.ACDF)
-                        {
-                            Store (0x02, Index (PBST, 0x00))
-                        }
-                        Else
-                        {
-                            Store (0x00, Index (PBST, 0x00))
-                        }
-                    }
-                    Else
-                    {
-                        If (\_SB.PCI0.LPC0.EC0.ACDF)
-                        {
-                            Store (0x00, Index (PBST, 0x00))
-                        }
-                        Else
-                        {
-                            Store (0x01, Index (PBST, 0x00))
-                        }
-                    }
-                }
-            }
-
-            Method (IVBI, 0, NotSerialized)
-            {
-                Store (0xFFFFFFFF, Index (PBIF, 0x01))
-                Store (0xFFFFFFFF, Index (PBIF, 0x02))
-                Store (0xFFFFFFFF, Index (PBIF, 0x04))
-                Store ("Bad", Index (PBIF, 0x09))
-                Store ("      ", Index (PBIF, 0x0A))
-                Store ("Bad", Index (PBIF, 0x0B))
-                Store ("Bad", Index (PBIF, 0x0C))
-            }
-
-            Method (IVBS, 0, NotSerialized)
-            {
-                Store (0x00, Index (PBST, 0x00))
-                Store (0xFFFFFFFF, Index (PBST, 0x01))
-                Store (0xFFFFFFFF, Index (PBST, 0x02))
-                Store (0x2710, Index (PBST, 0x03))
-            }
-        }
-
-        Device (BAT2)
-        {
-            Name (_HID, EisaId ("PNP0C0A"))
-            Name (_UID, 0x02)
-            Name (_PCL, Package (0x01)
-            {
-                \_SB
-            })
-            Name (B2ST, 0x0F)
-            Name (PBIF, Package (0x0D)
-            {
-                0x01, 
-                0xFFFFFFFF, 
-                0xFFFFFFFF, 
-                0x01, 
-                0xFFFFFFFF, 
-                0xFA, 
-                0x64, 
-                0x0A, 
-                0x19, 
-                "BAT1", 
-                " ", 
-                " ", 
-                " "
-            })
-            Name (PBST, Package (0x04)
-            {
-                0x00, 
-                0xFFFFFFFF, 
-                0xFFFFFFFF, 
-                0x2710
-            })
-            Method (_STA, 0, NotSerialized)
-            {
-                If (\_SB.OKEC)
-                {
-                    If (\_SB.PCI0.LPC0.EC0.SBTS)
-                    {
-                        Store (0x1F, B2ST)
-                    }
-                    Else
-                    {
-                        Store (0x0F, B2ST)
-                    }
-                }
-                Else
-                {
-                    Store (0x0F, B2ST)
-                }
-
-                Return (B2ST)
-            }
-
-            Method (_BIF, 0, NotSerialized)
-            {
-                If (\_SB.OKEC)
-                {
-                    If (\_SB.PCI0.LPC0.EC0.SBTS)
-                    {
-                        UPBI ()
-                    }
-                    Else
-                    {
-                        IVBI ()
-                    }
-                }
-                Else
-                {
-                    IVBI ()
-                }
-
-                Return (PBIF)
-            }
-
-            Method (_BST, 0, NotSerialized)
-            {
-                If (\_SB.OKEC)
-                {
-                    If (\_SB.PCI0.LPC0.EC0.SBTS)
-                    {
-                        UPBS ()
-                    }
-                    Else
-                    {
-                        IVBS ()
-                    }
-                }
-                Else
-                {
-                    IVBS ()
-                }
-
-                Return (PBST)
-            }
-
-            Method (UPBI, 0, NotSerialized)
-            {
-                Store (0x2FFF, Local2)
-                \_SB.PCI0.LPC0.EC0.SMWR (0x08, 0x14, 0x01, Local2)
-                \_SB.PCI0.LPC0.EC0.SMRD (0x09, 0x14, 0x01, RefOf (Local3))
-                If (LEqual (Local2, Or (Local3, 0x0FFF)))
-                {
-                    If (LNot (\_SB.PCI0.LPC0.EC0.SMRD (0x09, 0x16, 0x10, RefOf (Local5))))
-                    {
-                        Store (Local5, Index (PBIF, 0x02))
-                    }
-                }
-
-                If (LEqual (\_SB.PCI0.LPC0.EC0.SBID, 0x01))
-                {
-                    Store (0x1130, Index (PBIF, 0x01))
-                    Store (0x39D0, Index (PBIF, 0x04))
-                    Store ("01ZG", Index (PBIF, 0x09))
-                    Store ("LION", Index (PBIF, 0x0B))
-                    Store ("SMP ", Index (PBIF, 0x0C))
-                }
-                Else
-                {
-                    If (LEqual (\_SB.PCI0.LPC0.EC0.SBID, 0x02))
-                    {
-                        Store (0x0E10, Index (PBIF, 0x01))
-                        Store (0x39D0, Index (PBIF, 0x04))
-                        Store ("02ZG", Index (PBIF, 0x09))
-                        Store ("LION", Index (PBIF, 0x0B))
-                        Store ("SANYO", Index (PBIF, 0x0C))
-                    }
-                    Else
-                    {
-                        If (LEqual (\_SB.PCI0.LPC0.EC0.SBID, 0x03))
-                        {
-                            Store (0x1130, Index (PBIF, 0x01))
-                            Store (0x39D0, Index (PBIF, 0x04))
-                            Store ("03ZG", Index (PBIF, 0x09))
-                            Store ("LION", Index (PBIF, 0x0B))
-                            Store ("SANYO", Index (PBIF, 0x0C))
-                        }
-                        Else
-                        {
-                            Store (0x0E10, Index (PBIF, 0x01))
-                            Store (0x39D0, Index (PBIF, 0x04))
-                            Store ("02ZG", Index (PBIF, 0x09))
-                            Store ("LION", Index (PBIF, 0x0B))
-                            Store ("SANYO", Index (PBIF, 0x0C))
-                        }
-                    }
-                }
-
-                Store (0x01, Index (PBIF, 0x00))
-                If (LEqual (SizeOf (\_OS), 0x27))
-                {
-                    Store (0x00, Index (PBIF, 0x00))
-                }
-            }
-
-            Method (UPBS, 0, NotSerialized)
-            {
-                Store (\_SB.PCI0.LPC0.EC0.ACUR, Local5)
-                Store (POSW (Local5), Index (PBST, 0x01))
-                Store (\_SB.PCI0.LPC0.EC0.ABRM, Index (PBST, 0x02))
-                Store (\_SB.PCI0.LPC0.EC0.ABVG, Index (PBST, 0x03))
-                If (\_SB.PCI0.LPC0.EC0.SBTF)
-                {
-                    If (\_SB.PCI0.LPC0.EC0.ACDF)
-                    {
-                        Store (0x00, Index (PBST, 0x00))
-                    }
-                }
-                Else
-                {
-                    If (\_SB.PCI0.LPC0.EC0.SBTC)
-                    {
-                        If (\_SB.PCI0.LPC0.EC0.ACDF)
-                        {
-                            Store (0x02, Index (PBST, 0x00))
-                        }
-                        Else
-                        {
-                            Store (0x00, Index (PBST, 0x00))
-                        }
-                    }
-                    Else
-                    {
-                        If (\_SB.PCI0.LPC0.EC0.ACDF)
-                        {
-                            Store (0x00, Index (PBST, 0x00))
-                        }
-                        Else
-                        {
-                            Store (0x01, Index (PBST, 0x00))
-                        }
-                    }
-                }
-            }
-
-            Method (IVBI, 0, NotSerialized)
-            {
-                Store (0xFFFFFFFF, Index (PBIF, 0x01))
-                Store (0xFFFFFFFF, Index (PBIF, 0x02))
-                Store (0xFFFFFFFF, Index (PBIF, 0x04))
-                Store ("Bad", Index (PBIF, 0x09))
-                Store ("      ", Index (PBIF, 0x0A))
-                Store ("Bad", Index (PBIF, 0x0B))
-                Store ("Bad", Index (PBIF, 0x0C))
-            }
-
-            Method (IVBS, 0, NotSerialized)
-            {
-                Store (0x00, Index (PBST, 0x00))
-                Store (0xFFFFFFFF, Index (PBST, 0x01))
-                Store (0xFFFFFFFF, Index (PBST, 0x02))
-                Store (0x2710, Index (PBST, 0x03))
-            }
-        }
-
-        Scope (\_TZ)
-        {
-            Name (TPL, 0x0CA0)
-            Name (TAC1, 0x0D0E)
-            Name (TAC0, 0x0D54)
-            Name (TPAS, 0x0E44)
-            Name (TPC, 0x0E94)
-            Name (TPTM, 0x0C3C)
-            Name (TBSE, 0x0AAC)
-            Name (LTMP, 0x0CA0)
-            Name (TVAR, Buffer (0x05)
-            {
-                0x00, 0x20, 0x1F, 0x0C, 0x1F
-            })
-            CreateByteField (TVAR, 0x00, PLCY)
-            CreateWordField (TVAR, 0x01, CTOS)
-            CreateWordField (TVAR, 0x03, CTHY)
-            Device (FAN0)
-            {
-                Name (_HID, EisaId ("PNP0C0B"))
-                Name (_UID, 0x01)
-                Name (_PR0, Package (0x01)
-                {
-                    PFN0
-                })
-                Method (_PS0, 0, NotSerialized)
-                {
-                    Store ("Low Speed FAN - _PS0", Debug)
-                }
-
-                Method (_PS3, 0, NotSerialized)
-                {
-                    Store ("Low Speed FAN - _PS3", Debug)
-                }
-            }
-
-            PowerResource (PFN0, 0x00, 0x0000)
-            {
-                Name (FNS1, 0x00)
-                Name (FFST, 0x01)
-                Method (_STA, 0, NotSerialized)
-                {
-                    Store (FNS1, Local1)
-                    Return (Local1)
-                }
-
-                Method (_ON, 0, NotSerialized)
-                {
-                    Store (0x01, FNS1)
-                    If (\_TZ.PFN1.FNS2)
-                    {
-                        Store ("FAN 1 (High speed already turn on) ", Debug)
-                    }
-                    Else
-                    {
-                        If (\_SB.OKEC)
-                        {
-                            Store (0xB4, \_SB.PCI0.LPC0.EC0.FSPD)
-                            Store (0x01, \_SB.PCI0.LPC0.EC0.FPR1)
-                        }
-                    }
-
-                    If (Or (LEqual (\_SB.PCI0.MYOS, 0x01), LEqual (\_SB.PCI0.MYOS, 0x03)))
-                    {
-                        \_TZ.THRM._SCP (0x01)
-                    }
-                }
-
-                Method (_OFF, 0, NotSerialized)
-                {
-                    Store (0x00, FNS1)
-                    If (LEqual (SizeOf (\_OS), 0x14))
-                    {
-                        If (\_SB.OKEC)
-                        {
-                            If (\_TZ.PFN1.FNS2)
-                            {
-                                Store (One, \_SB.PCI0.LPC0.EC0.FPR1)
-                            }
-                            Else
-                            {
-                                Store (Zero, \_SB.PCI0.LPC0.EC0.FPR1)
-                            }
-                        }
-                    }
-                    Else
-                    {
-                        If (LLess (FFST, 0x02))
-                        {
-                            Store (0x86, \_SB.PCI0.LPC0.BCMD)
-                            Store (0x00, \_SB.PCI0.LPC0.SMIC)
-                            Increment (FFST)
-                        }
-                        Else
-                        {
-                            If (\_SB.OKEC)
-                            {
-                                Store (0x00, \_SB.PCI0.LPC0.EC0.FPR1)
-                            }
-                        }
-                    }
-
-                    If (Or (LEqual (\_SB.PCI0.MYOS, 0x01), LEqual (\_SB.PCI0.MYOS, 0x03)))
-                    {
-                        \_TZ.THRM._SCP (0x01)
-                    }
-                }
-            }
-
-            Device (FAN1)
-            {
-                Name (_HID, EisaId ("PNP0C0B"))
-                Name (_UID, 0x02)
-                Name (_PR0, Package (0x02)
-                {
-                    PFN0, 
-                    PFN1
-                })
-                Method (_PS0, 0, NotSerialized)
-                {
-                    Store ("High Speed FAN - _PS0", Debug)
-                }
-
-                Method (_PS3, 0, NotSerialized)
-                {
-                    Store ("High Speed FAN - _PS3", Debug)
-                }
-            }
-
-            PowerResource (PFN1, 0x00, 0x0000)
-            {
-                Name (FNS2, 0x00)
-                Method (_STA, 0, NotSerialized)
-                {
-                    Return (FNS2)
-                }
-
-                Method (_ON, 0, NotSerialized)
-                {
-                    Store (0x01, FNS2)
-                    If (\_SB.OKEC)
-                    {
-                        Store (0xFF, \_SB.PCI0.LPC0.EC0.FSPD)
-                        Store (0x01, \_SB.PCI0.LPC0.EC0.FPR1)
-                    }
-
-                    If (Or (LEqual (\_SB.PCI0.MYOS, 0x01), LEqual (\_SB.PCI0.MYOS, 0x03)))
-                    {
-                        \_TZ.THRM._SCP (0x01)
-                    }
-                }
-
-                Method (_OFF, 0, NotSerialized)
-                {
-                    Store (Zero, FNS2)
-                    Store (0x00, FNS2)
-                    If (\_TZ.PFN0.FNS1)
-                    {
-                        If (\_SB.OKEC)
-                        {
-                            Store (0xB4, \_SB.PCI0.LPC0.EC0.FSPD)
-                            Store (0x01, \_SB.PCI0.LPC0.EC0.FPR1)
-                        }
-                    }
-                    Else
-                    {
-                        If (\_SB.OKEC)
-                        {
-                            Store (0x00, \_SB.PCI0.LPC0.EC0.FPR1)
-                        }
-                    }
-
-                    If (Or (LEqual (\_SB.PCI0.MYOS, 0x01), LEqual (\_SB.PCI0.MYOS, 0x03)))
-                    {
-                        \_TZ.THRM._SCP (0x01)
-                    }
-                }
-            }
-
-            ThermalZone (THRM)
-            {
-                Name (_AL0, Package (0x01)
-                {
-                    FAN1
-                })
-                Method (_AC0, 0, NotSerialized)
-                {
-                    Return (TAC0)
-                }
-
-                Name (_AL1, Package (0x01)
-                {
-                    FAN0
-                })
-                Method (_AC1, 0, NotSerialized)
-                {
-                    Return (TAC1)
-                }
-
-                Method (_CRT, 0, NotSerialized)
-                {
-                    Return (TPC)
-                }
-
-                Method (_PSV, 0, NotSerialized)
-                {
-                    Return (TPAS)
-                }
-
-                Name (_TSP, 0x64)
-                Method (_TMP, 0, NotSerialized)
-                {
-                    If (\_SB.OKEC)
-                    {
-                        Store (\_SB.PCI0.LPC0.EC0.CTMP, Local1)
-                        Store ("Current Temperature is ----------- ", Debug)
-                        Store (Local1, Debug)
-                        Store (Local1, \_SB.CM25)
-                        Add (Multiply (Local1, 0x0A), TBSE, Local1)
-                    }
-                    Else
-                    {
-                        Store (LTMP, Local1)
-                    }
-
-                    Return (Local1)
-                }
-
-                Name (_PSL, Package (0x01)
-                {
-                    \_PR.CPU0
-                })
-                Name (_TC1, 0x02)
-                Name (_TC2, 0x03)
-                Method (_SCP, 1, NotSerialized)
-                {
-                    Store (Zero, PLCY)
-                    If (\_TZ.PFN0.FNS1)
-                    {
-                        If (LEqual (\_TZ.PFN1.FNS2, 0x00))
-                        {
-                            Store (0x0D22, TAC1)
-                            Store (0x0D86, TAC0)
-                        }
-                        Else
-                        {
-                            Store (0x0D22, TAC1)
-                            Store (0x0D40, TAC0)
-                        }
-                    }
-                    Else
-                    {
-                        If (\_TZ.PFN1.FNS2)
-                        {
-                            Store (0x0D22, TAC1)
-                            Store (0x0D40, TAC0)
-                        }
-                        Else
-                        {
-                            Store (0x0D40, TAC1)
-                            Store (0x0D86, TAC0)
-                        }
-                    }
-
-                    Store (0x0E44, TPAS)
-                    Notify (\_TZ.THRM, 0x81)
-                }
-            }
-        }
-
-        Device (SLPB)
-        {
-            Name (_HID, EisaId ("PNP0C0E"))
-        }
-
-        OperationRegion (EXCO, SystemIO, 0x72, 0x02)
-        Field (EXCO, ByteAcc, NoLock, Preserve)
-        {
-            INDX,   8, 
-            DATA,   8
-        }
-
-        IndexField (INDX, DATA, ByteAcc, NoLock, Preserve)
-        {
-            Offset (0x20), 
-            ACST,   1, 
-            OKEC,   1, 
-            POPF,   1, 
-            BLTF,   1, 
-            W2KF,   2, 
-            S4WP,   1, 
-            FLA7,   1, 
-            LSFG,   1, 
-            LD10,   1, 
-            PS2M,   1, 
-            DISD,   3, 
-            OVRL,   1, 
-            Offset (0x22), 
-            SLEE,   8, 
-            BPFG,   8, 
-            PWST,   8, 
-            CM25,   8, 
-            CM26,   8, 
-            CM27,   8, 
-            CM28,   16, 
-            CM2A,   16, 
-            F4FG,   1, 
-            Offset (0x30), 
-            CM30,   8, 
-            CM31,   8, 
-            CM32,   8
-        }
-    }
-}
-
-
---Boundary-00=_1ApEByUb7ileMU1
-Content-Type: text/x-csrc;
-  charset="iso-8859-1";
-  name="boot-radeon.c"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="boot-radeon.c"
-
-#define LRMI_DEBUG 1
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <lrmi.h>
-
-void err(char *function, int exitval) {
-	fprintf(stderr, "%s():\n");
-	exit(exitval);
-}
-
-int main () {
-	struct LRMI_regs regs;
-	
-	ioperm(0, 1024, 1);
-	iopl(3);
-
-	if (!LRMI_init()) {
-		err("LRMI_init", 1);
-	}
-
-	memset(&regs, 0, sizeof(regs));
-	
-	/*
-	   if ((pvp = xf86GetPciInfoForEntity(pInt->entityIndex)))
-	   	X86_AX = (pvp->bus << 8) | (pvp->device << 3) | (pvp->func & 0x7);
-	   pushw(pInt, X86_CS);
-	   pushw(pInt, X86_IP);
-	   X86_CS = pInt->BIOSseg;
-	   X86_EIP = 0x0003;
-	   X86_ES = 0;                  // standard pc es 
-	*/
-
-	regs.eax = ((1 << 8) | (0 << 3) | (0 & 0x7)) & 0x0000FFFF;
-	regs.cs = 0x0000c000;
-	regs.ip = 0x00000003;
-	//regs.ip = 0;
-	//regs.es = 0;
-
-	if (!LRMI_call(&regs)) {
-		err("LRMI_int", -1);
-	}
-
-
-	exit(0);
-}
-
---Boundary-00=_1ApEByUb7ileMU1--
+Content-Disposition: inline;
+ filename="lsmod-works"
+
+ipt_mark                 504  18
+ipt_mac                  664   0  (unused)
+ip_nat_irc              2192   0  (unused)
+ip_conntrack_irc        2800   1
+ipt_MARK                 760   1
+ipt_REDIRECT             760   4
+ipsec                 272128   4
+bnep                    8084   1  (autoclean)
+rfcomm                 28864   2  (autoclean)
+l2cap                  15216   3  (autoclean) [bnep rfcomm]
+hci_usb                 8472   0  (autoclean) (unused)
+bluez                  28420   1  (autoclean) [bnep rfcomm l2cap hci_usb]
+sch_ingress             1476   1  (autoclean)
+cls_u32                 4732   3  (autoclean)
+sch_sfq                 3360   3  (autoclean)
+sch_htb                19840   1  (autoclean)
+ipt_LOG                 3448   2  (autoclean)
+ipt_REJECT              3192   4  (autoclean)
+ipt_multiport            728   2  (autoclean)
+ipt_state                536   2  (autoclean)
+ipt_TOS                 1048   5  (autoclean)
+ipt_MASQUERADE          1304   7  (autoclean)
+iptable_mangle          2104   1  (autoclean)
+iptable_filter          1676   1  (autoclean)
+serial                 46084   0  (autoclean) (unused)
+isa-pnp                29968   0  (autoclean) [serial]
+lirc_serial             7520   0  (unused)
+ip_nat_ftp              2768   0  (unused)
+iptable_nat            16750   3  [ip_nat_irc ipt_REDIRECT ipt_MASQUERADE ip_nat_ftp]
+ip_tables              12064  15  [ipt_mark ipt_mac ipt_MARK ipt_REDIRECT ipt_LOG ipt_REJECT ipt_multiport ipt_state ipt_TOS ipt_MASQUERADE iptable_mangle iptable_filter iptable_nat]
+ip_conntrack_ftp        3696   1
+ip_conntrack           18564   2  [ip_nat_irc ip_conntrack_irc ipt_REDIRECT ipt_state ipt_MASQUERADE ip_nat_ftp iptable_nat ip_conntrack_ftp]
+isofs                  26548   0  (unused)
+vfat                    9868   0  (unused)
+fat                    30872   0  [vfat]
+cramfs                 37236   1
+zlib_inflate           18244   0  [isofs cramfs]
+usb-storage            63104   0  (unused)
+audio                  41976   0  (unused)
+via82cxxx_audio        19324   0  (unused)
+ac97_codec             11860   0  [via82cxxx_audio]
+uart401                 6148   0  [via82cxxx_audio]
+sound                  54504   0  [via82cxxx_audio uart401]
+soundcore               3524   6  [audio via82cxxx_audio sound]
+ac                      1760   0  (unused)
+fan                     1536   0  (unused)
+button                  2636   0  (unused)
+thermal                 6532   0  (unused)
+processor               8632   0  [thermal]
+CDCEther               11292   1
+8139too                13960   1
+via-rhine              12528   1
+mii                     2272   0  [8139too via-rhine]
+crc32                   2880   0  [bnep 8139too via-rhine]
+sd_mod                 11020   0  (unused)
+scsi_mod               55928   1  [usb-storage sd_mod]
+usb-uhci               22192   0  (unused)
+usbcore                58924   1  [hci_usb usb-storage audio CDCEther usb-uhci]
+rtc                     6088   0  (autoclean)
+
+
+--------------050706000207050103030600--
 
 
 -------------------------------------------------------
