@@ -1,13 +1,13 @@
-From: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
-Subject: Re: Re: No battery information on a ACER Travelmate 4001LMi
-Date: Tue, 09 Nov 2004 12:00:40 +0000
-Message-ID: <4190B168.1030905@mega.ist.utl.pt>
-References: <16A54BF5D6E14E4D916CE26C9AD3057583D4EB@pdsmsx402.ccr.corp.intel.com>
+From: Emmanuel =?iso-8859-1?Q?Thom=E9?= <Emmanuel.Thome-MZpvjPyXg2s@public.gmane.org>
+Subject: Re: Re: s3_late_bios
+Date: Tue, 9 Nov 2004 13:55:22 +0100
+Message-ID: <20041109125522.GA8015@tate.loria.fr>
+References: <20041108144947.GA31267@tate.loria.fr> <20041108213558.GB4607@elf.ucw.cz> <418FEAD5.1000007@root.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD3057583D4EB-4yWAQGcml66iAffOGbnezLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <418FEAD5.1000007-Y6VGUYTwhu0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,41 +17,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Li, Shaohua wrote:
->>On Mon, 08 Nov 2004 15:49:27 +0000, Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
->>wrote:
->>
->>>Absolutely no intention to criticise! just stating I did not see such
->>>post. On the other hand, I joined the list after Li, so he probably
-> 
-> said
-> 
->>>that before i joined.
->>
->>No problem. I was actually referring to this post:
->>http://sourceforge.net/mailarchive/message.php?msg_id=9485814
-> 
-> I'm sorry I possibly haven't enough time for this issue currently.
-> Somebody said he was working on this issue based on Bruno Ducrot
-> <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>'s EC-SMbus host driver. If anybody is willing to
-> do it, I'm glad to share my experience.
 
-I and someone else both said we'd be working on it.
+On Mon, Nov 08, 2004 at 01:53:25PM -0800, Nate Lawson wrote:
+> I'm not sure I understand the reason for this or how it works.  Does it 
+> POST VGA via the "lcall $0xc000,$3" or the "int 10h" method?  I assume 
 
-I am looking at the lmsensors code and trying to find enough time 
-between my student work to learn enough to start changing and coding. 
-The bruno ducrot's driver will also be a reference.
+lcall.
 
-don't hold your breath. this will take time.
+> the reason it's called by the PCI code is that you want the device to be 
+> set to D0 and device-specific resume methods called before POSTing it?
 
-thanks for the offered helo Shaohua.
+acpi_vgapost is meant to hook into the device-specific resume methods.
+Indeed, the pci device is set to D0 prior to calling acpi_vgapost.
 
-regards,
-pedro venda.
+Doing POST from the early resume phase seems just too early ; too many
+things are unitialized at this point. Doing it later on is more
+convenient.
+
+> Why the switch to real mode to run the BIOS call?  Can't this be done 
+> from vm86 mode?
+
+Yes it can, at least I think so. You're welcome to tweak this to do it in
+a vm86 mode if you like.
+
+E.
 
 
 -------------------------------------------------------
