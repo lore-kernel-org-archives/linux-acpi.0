@@ -1,12 +1,11 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ACPI not working - worked with earlier versions
-Date: Wed, 23 Oct 2002 09:50:49 -0700
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI-0361: *** Error: GPE0 block overlaps the GPE1 blo
+	 ck
+Date: Wed, 23 Oct 2002 09:52:45 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DF62@orsmsx119.jf.intel.com>
+Message-ID: <B9ECACBD6885D5119ADC00508B68C1EA0D19B889@orsmsx107.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -16,39 +15,94 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?iso-8859-1?Q?=27Hanno_B=F6ck=27?= <hanno-Mmb7MZpHnFY@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: 'Paul Hernandez' <ph-zlWNigPkEOiLxM0KKU+/dQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Hanno B=F6ck [mailto:hanno-Mmb7MZpHnFY@public.gmane.org]=20
-> Today i reinstalled Linux on my Athlon 700 System.
-> With earlier versions of acpi, i had no problems. but now, i=20
-> get the following error:
-> >ACPI: Vendor "VIA694" System "AWRDACPI" Revision 0x0 has a=20
-> known ACPI >BIOS problem.
-> >ACPI: Reason: Bogus table. This is a non-recoverable error
->=20
-> Well, I had working acpi before, so why this error?
-> I don't know if everything worked, but i could definitely=20
-> start acpid and shutdown my pc with the power-button. This is=20
-> no longer possible, since it seems that this "error"-check=20
-> disables acpi completely.
-> I don't have an acpi-proc-interface and my pc will not shut=20
-> down on halt.
 
-Looks like there is a too-generic DSDT signature in the blacklist. You =
-can
-remove it on your system for now, and I will remove it for the next =
-release.
+Apparently, this machine has a GPE1 block but no GPE0 block.  We will post a
+patch that handles this case correctly.
 
-BTW, I have now been convinced that ACPI table signatures are not =
-sufficient
-to differentiate between systems that work and systems that don't. We =
-need
-to expand blacklist.c to use DMI or other differentiating factors to =
-apply
-its rules.
+Bob Moore
 
-Regards -- Andy
+
+-----Original Message-----
+From: Moore, Robert [mailto:robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org] 
+Sent: Friday, October 18, 2002 9:14 AM
+To: 'Paul Hernandez'; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: RE: [ACPI] ACPI-0361: *** Error: GPE0 block overlaps the GPE1 blo
+ck
+
+
+Paul,
+
+Looking at the code in evevent.c, I have a theory about why this may be
+happening.  It would help greatly if you can send the binary FADT from this
+system.
+
+Thanks,
+Bob Moore
+
+
+-----Original Message-----
+From: Paul Hernandez [mailto:ph-zlWNigPkEOiLxM0KKU+/dQ@public.gmane.org] 
+Sent: Friday, October 18, 2002 8:38 AM
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: [ACPI] ACPI-0361: *** Error: GPE0 block overlaps the GPE1 block
+
+
+Hello,
+
+Received the  following is dmesg output:
+
+ ACPI: Subsystem revision 20020829
+ PCI: PCI BIOS revision 2.10 entry at 0xfd921, last bus=4
+ PCI: Using configuration type 1
+       ACPI-0361: *** Error: GPE0 block overlaps the GPE1 block
+ ACPI: Unable to start the ACPI Interpreter
+
+Using: 2.4.19.SuSE  (SuSE 8.1)
+Motherboard: Intel SE7500CW2 Dual CPU Xeon Server board
+with latest bios patch from Intel
+
+Will happily test patches for you if you'd like.
+
+Regards,
+
+		Paul Hernandez  408-374-8686  x202
+		Campbell, CA
+
+
+
+|
+| Does your patch resolve this as well?
+
+Nope, it does not.  I don't know anything about that one.
+If you want to follow-up on that problem, please send an
+email about it to acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org .
+
+~Randy
+
+
+
+
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
+_______________________________________________
+Acpi-devel mailing list
+Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+https://lists.sourceforge.net/lists/listinfo/acpi-devel
+
+
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
+_______________________________________________
+Acpi-devel mailing list
+Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
