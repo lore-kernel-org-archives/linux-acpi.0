@@ -1,14 +1,14 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: acpi on r40e
-Date: Tue, 17 Feb 2004 02:03:01 -0500
+From: Ian Pilcher <i.pilcher-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Subject: Re: acpi on r40e
+Date: Tue, 17 Feb 2004 01:40:30 -0600
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <BF1FE1855350A0479097B3A0D2A80EE0025A6413@hdsmsx402.hd.intel.com>
+Message-ID: <4031C56E.2090802@comcast.net>
+References: <BF1FE1855350A0479097B3A0D2A80EE0025A6413@hdsmsx402.hd.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <BF1FE1855350A0479097B3A0D2A80EE0025A6413-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,26 +17,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, Praveen C <cpravn-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Brown, Len wrote:
+>>The AML of T21 has HKEY Device like r40e.
+>>
+>>                   Device (HKEY)
+>>                   {
+>>                       Name (_HID, EisaId ("IBM0068"))
+> 
+> 
+> Interesting!
+> Yet your T21 brightness key is working when Linux is in ACPI mode.
+> Perhaps The brightness key is not one of the keys handled by this code?
+> Are there other hot keys on the T21?  Do they work?
+> 
+> Where is an IBM engineer when you need one?
+> 
 
->The AML of T21 has HKEY Device like r40e.
->
->                    Device (HKEY)
->                    {
->                        Name (_HID, EisaId ("IBM0068"))
+This might be of interest:
 
-Interesting!
-Yet your T21 brightness key is working when Linux is in ACPI mode.
-Perhaps The brightness key is not one of the keys handled by this code?
-Are there other hot keys on the T21?  Do they work?
+http://www-306.ibm.com/pc/support/site.wss/document.do?lndocid=MIGR-4GXPEG
 
-Where is an IBM engineer when you need one?
+-- 
+========================================================================
+Ian Pilcher                                        i.pilcher-Wuw85uim5zDR7s880joybQ@public.gmane.org
+========================================================================
 
-Thanks,
--Len
 
 
 -------------------------------------------------------
