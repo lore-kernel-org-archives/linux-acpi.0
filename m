@@ -1,17 +1,16 @@
-From: Matthew Harrell <mharrell-bmWjYudjZeGERhycZ4x6Ig@public.gmane.org>
-Subject: Fixing the DSDT
-Date: Wed, 02 Apr 2003 12:39:38 -0500
+From: Jan Rychter <jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: does cpu_idle() halt CPU?
+Date: Wed, 02 Apr 2003 09:05:06 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030402173934.GA6686@bittwiddlers.com>
-Reply-To: "Matthew Harrell,,,"
- <mharrell-dated-1049737232.fdb58f-bmWjYudjZeGERhycZ4x6Ig@public.gmane.org>
+Message-ID: <m24r5hwfa5.fsf@tnuctip.rychter.com>
+References: <F760B14C9561B941B89469F59BA3A847E96D88@orsmsx401.jf.intel.com>
+	<20030328150218.D10287@gateway.junsun.net>
+	<20030329134742.GD10287@poup.poupinou.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Resent-to: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Resent-message-id: <20030402174031.GA10112-bmWjYudjZeGERhycZ4x6Ig@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20030329134742.GD10287-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org> (Ducrot Bruno's
+ message of "Sat, 29 Mar 2003 14:47:42 +0100")
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,41 +19,29 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+>>>>> "DB" == Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>:
+[...]
+ DB> You forgot at least disk activities especially if ext3, which
+ DB> prevent almost all IDE drivers to go to idle state.  But that will
+ DB> not explain why you can not go to C3 though.
 
-In the standard DSDT entry for my HP zt1195 laptop I get the following messages
-in my kernel logs when attempting to access info about my battery
+By the way, let me ask here: does anybody know what would be the best
+filesystem to use on a laptop, power saving being the #1 priority? Are
+all journaling filesystems this bad?
 
-dsmthdat-0475 [39] ds_method_data_get_val: Uninitialized Local[1] at node def12d20
- dswexec-0421 [35] ds_exec_end_op        : [Multiply]: Could not resolve operands, AE_AML_UNINITIALIZED_LOCAL
- psparse-1121: *** Error: Method execution failed [\_SB_.PCI0.PIB_.BAT0._BIF] (Node deeff748), AE_AML_UNINITIALIZED_LOCAL
-acpi_battery-0144 [27] acpi_battery_get_info : Error evaluating _BIF
-dsmthdat-0475 [39] ds_method_data_get_val: Uninitialized Local[1] at node def12d20
- dswexec-0421 [35] ds_exec_end_op        : [Multiply]: Could not resolve operands, AE_AML_UNINITIALIZED_LOCAL
- psparse-1121: *** Error: Method execution failed [\_SB_.PCI0.PIB_.BAT0._BIF] (Node deeff748), AE_AML_UNINITIALIZED_LOCAL
-acpi_battery-0144 [27] acpi_battery_get_info : Error evaluating _BIF
+There was a project to teach the Linux kernel about drive spindown and
+manage drive accesses accordingly -- but last time I saw their docs they
+said that all journaling filesystems pose serious problems...
 
-First of all, which is the better way to grab it with
-  cp /proc/acpi/dsdt dsdt ; iasl -d dsdt
+USB preventing the machine from going into C3 is a serious problem. I
+still don't understand if that's a hardware thing or can we have a more
+reasonable HCI implementation that doesn't use DMA that much. How does
+Windows deal with it?
 
-or with 
-
-  acpidump > dsdt.asl
-
-When I try it the first way isal (20030228) gives me 86 errors.  When I try
-it the second way it gives me 3 errors.  Why the difference?
-
-Anyway, I repaired the three errors in the second one (two were easy) but I
-still get the same kernel message when attempting to read the battery so 
-obviously something else is broken.  Anyone have any pointers what I should
-try now?
-
--- 
-  Matthew Harrell                          Bill Gates is only a white Persian
-  Bit Twiddlers, Inc.                       cat and a monocle away from being
-  mharrell-bmWjYudjZeGERhycZ4x6Ig@public.gmane.org                 the villain in a James Bond movie.
+--J.
 
 
 -------------------------------------------------------
