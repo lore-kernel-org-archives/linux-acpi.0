@@ -1,14 +1,14 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: FW: Help with suspend / hybernate
-Date: Mon, 30 Jun 2003 09:34:22 -0700
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: System poweroff
+Date: Mon, 30 Jun 2003 18:46:21 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A847E96FE2@orsmsx401.jf.intel.com>
+Message-ID: <20030630164621.GG7796@poupinou.org>
+References: <0ee801c33efa$cd80eaf0$2a0806c0@wiproxcoio3398> <200306301339.45845.m.c.p@gmx.net> <3F0028B5.40400@relex.ru> <0f3001c33f02$254b4440$2a0806c0@wiproxcoio3398> <1056976699.25574.324.camel@passion.cambridge.redhat.com> <20030630145309.GD7796@poupinou.org> <1056988002.25574.614.camel@passion.cambridge.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <1056988002.25574.614.camel-U6vq7BvGKfF5pKCnmE3YQOkCa/Q774e0VpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,67 +17,31 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: siva <sivakumar.subramani-uxC5H9eHYlcAvxtiuMwx3w@public.gmane.org>, Yaroslav Rastrigin <yarick-343whMTK1pU@public.gmane.org>, ACPI-Devel mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Mon, Jun 30, 2003 at 04:46:43PM +0100, David Woodhouse wrote:
+> On Mon, 2003-06-30 at 15:53, Ducrot Bruno wrote:
+> > > You may be able to work this out by reverse-engineering the APM BIOS or
+> > > ACPI bytecode. There's nothing _special_ about them that makes them able
+> > > to turn the machine off -- they're only software, it's just that they're
+> > > binary-only software to which we don't have the source.
+> > 
+> > For ACPI, you are wrong.
+> 
+> Would you care to elaborate upon that rather terse contradiction of
+> common sense?
+> 
 
+Could you read ACPI specification before answering even if you 
+think that is 'common sense'?
 
------Original Message-----
-From: Frederik Nosi [mailto:fredi-X9IQk7V7lNg1GQ1Ptb7lUw@public.gmane.org]=20
-Sent: Monday, June 30, 2003 7:43 AM
-To: Grover, Andrew
-Subject: Help with suspend / hybernate
+-- 
+Ducrot Bruno
 
-
-Andrew,
-sorry to bother you with mailing directly but I subscribed at the=20
-linux-pm-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org and sourceforge seems to not accept
-mail=20
-from me. Tryed with acpi-support too but nothing. So I choosed to mail
-you=20
-directly becouse it seems you are the main ACPI developer.
-
-Hi to all!
-I have a compaq laptop (evo n1020v,=20
-http://h10010.www1.hp.com/wwpc/us/en/sm/WF06a/321957-64295-89315-212727-
-f1-240898.html)=20
-and I'm trying to get power management with this.
-Tryed with ACPI (latest 2.4 patch included in 2.4.21-pre[12]) , the BIOS
-
-passes the blacklist check just fine. With acpi I get the battery time
-left,=20
-events so I can poweroff with lkaptop's power key and the two termal=20
-controlls. Now, reading /proc/acpi/sleep I get this modes:
-S0 S3 S4 S5
-But trying with echo <n> > sleep I can only poweroff with S5. The other
-values=20
-for sleep do nothing, tried with debug enabled too and nothing in the
-logs. So=20
-I can not get the=20
-laptop in sleep or hybernate.
-With APM when doing "apm -S " everything is fine, the laptop goes to
-sleep and=20
-wakeyps when pressing some key. With "apm -s" The laptop goes in
-hybernate=20
-but I can't get it awake, I have to shutdown it pressing the power key
-for 4=20
-seconds.
-As It seems that this laptop's ACPI/BIOS is good, is there any chance to
-get=20
-sleep=20
-/ hybernate with ACPI on this laptop? This will be the best option if=20
-possible. And yes, I accept patches for this and I'll gladly try them
-and=20
-report if needed. If not, is there any way to wake up this laptop after
-a=20
-"apm -s" ?
-
-I'll provide any needed info, just ask. And sorry again if you are not
-the=20
-person to ask for this.
-
-Thank you for your attention,
-Fredi
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
