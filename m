@@ -1,13 +1,13 @@
-From: Damien Challet <dchallet-iYm916uyMS6cH/9ky42jgw@public.gmane.org>
-Subject: Re: enable sound card with PNPACPI
-Date: Thu, 20 Jan 2005 09:36:43 +0000
-Message-ID: <200501200936.43376.dchallet@netcourrier.com>
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: RFC 0/4: make ACPI interpret safe for suspend/resume
+Date: Thu, 20 Jan 2005 10:40:42 +0100
+Message-ID: <20050120094042.GC1452@elf.ucw.cz>
+References: <1106104620.12957.270.camel@sli10-desk.sh.intel.com> <20050119101858.GE25623@elf.ucw.cz> <1106184495.13181.68.camel@sli10-desk.sh.intel.com> <20050120091242.GB1452@elf.ucw.cz> <1106213207.16186.10.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <1106213207.16186.10.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,27 +17,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> I think you should try
-> echo activate > /sys/devices/pnp0/00:03/resources
- > and check dmesg for feedback
+Hi!
 
-That worked to the point that the module can be loaded. However, when I try to 
-play a sound, 
+> > > > Freezing all processes should not be required. 
+> > > How about just make suspend/resume task as a highest priority task with
+> > > FIFO scheduler policy? 
+> > 
+> > That might do the trick for S3,
+> What I like it is a) it speeds up freeze process in a system with many
+> tasks, b) easy to move to SMP case on the future.
+> 
+> >  but not for swsusp. Imagine normal
+> > process holding some lock you want (for writing image to disk). You
+> > can run on FIFO scheduler, but then you block on this lock, and
+> > userspace process gets to run, and gets confused.
+> Ok, that makes sense. Could we split S3 from swsusp? That is S3 doesn't
+> use freeze_process.
 
-e.g. aplay sound.wav, 
-
-aplay seems to wait for something (does not start playing).
-
-I tried to echo -n 1 to the power/state of everything.
-
-Thanks for the help.
-
-Damien
-
-
+Yes, that's certainly an option. I liked the idea of code being
+shared, and had refrigerator code handy...
+								Pavel
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
