@@ -1,14 +1,14 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: smartbattery support
-Date: Tue, 12 Oct 2004 18:58:42 +0200
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: Re: HP Pavilion zt3240ea and thermal zone
+Date: Tue, 12 Oct 2004 10:04:00 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041012165842.GC23992@poupinou.org>
-References: <16A54BF5D6E14E4D916CE26C9AD30575457124@pdsmsx402.ccr.corp.intel.com> <4166EC29.8070006@mega.ist.utl.pt> <20041011094935.GA23992@poupinou.org> <416AD2B3.9050403@mega.ist.utl.pt>
+Message-ID: <416C0E80.4050107@root.org>
+References: <416BAB60.7050809@estg.ipleiria.pt> <416BDF74.8070605@mega.ist.utl.pt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <416AD2B3.9050403-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
+In-Reply-To: <416BDF74.8070605-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,26 +18,46 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, =?ISO-8859-1?Q?Lu=EDs_Neves?= <lneves-3+EeCmRbAIqyvGiigdSjEg@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Oct 11, 2004 at 07:36:35PM +0100, Pedro Venda wrote:
-> why did you stop developing the module?
+Pedro Venda wrote:
+> | Is it normal that this kind of machine (a 1.6GHz centrino) do not have a
+> | thermal zone? I don't find thermal information under XP also but in my
+> | ignorance I thought this should exist.
+> |
+> | My first attempt was to dissassemble, correct and override the DSDT but
+> | the single bug found and corrected (a common ByteAccess type) didn't
+> | change anything.
+> 
+> the hardware/software acpi implementation on your laptop is independent
+> of the platform, whether it is centrino or other.
+> 
+> after inspection of your dsdt i didn't find references to any thermal 
+> zones.
+> 
+> for example, page 287 of the acpi specificatoin 2.0c states that every
+> thermal zone MUST have a _TMP object. there is no _TMP object on your
+> dsdt, so i deduct one of two things:
+> 1. your acpi code is not compliant with the standard
+> or
+> 2. you really don't have thermal zones.
+> 
+> since there are no _CRT, _HOT, _ALx, _PSL, _PSV, _SCP, _TMP, _TZD, _TZP
+> and unless there is/are other place/places where thermal zones are
+> defined, i conclude that you don't have thermal zones defined.
+> 
+> maybe someone else could confirm this...
+> 
+> is that odd? i don't know... i am just learning ACPI now, so i don't
+> have the experience.
 
-1- I haven't real use for it (I searched actually something else,
-   related to the LCD backlight at that time),
-2- it's very slow compared to a well wrotten EC firmware which will
-   cache the information needed for batteries and expose them in the EC
-   register space, so I thought no bios developper would use this at least
-   for modern laptops.
-
-Cheers,
+If you don't have a ThermalZone object, you don't have thermal zones. 
+It's quite common -- it means that the BIOS will handle fans independent 
+of the OS or ACPI.
 
 -- 
-Bruno Ducrot
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+Nate
 
 
 -------------------------------------------------------
