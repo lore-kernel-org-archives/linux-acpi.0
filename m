@@ -1,13 +1,14 @@
-From: "Vivian Wyatt" <vivian.wyatt_qe-9mBLTe1ZXUk@public.gmane.org>
-Subject: New! Vìagra soft tabs.
-Date: Sat, 02 Oct 2004 01:48:26 +0800
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: Re: [patch 1/1] thinkpad fn+fx key driver
+Date: Fri, 1 Oct 2004 19:32:58 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <650e01c4a7de$36550550$db0473da@cygnnet.jkl.fi>
+Message-ID: <20041001173258.GA22894@message-id.gmane0305.slipkontur.de>
+References: <F7DC2337C7631D4386A2DF6E8FB22B300179B935@hdsmsx401.amr.corp.intel.com> <20040923112457.GB1083@ucw.cz> <20040924134118.GA467@openzaurus.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20040924134118.GA467-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -19,20 +20,24 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello!
+On Fri, Sep 24, 2004 at 03:41:18PM +0200, Pavel Machek wrote:
+> Hi!
 
-We would like to offer V_I_A_G_R_A soft tabs,
+> > 4) Change ACPI to use the Input API and have a daemon that handles
+> >    all extra keys, including sound volume and application keys, possibly
+> >    using D-bus to send the events to the desktop environment.
+> 
+> I like this one.
+> [...] 
+> Hmm, the same daemon might know enough about machine's sound system
+> (on notebooks for example; to be able to setup initial mixer levels.
 
-These pills are just like regular Vìagra but they are specially formulated 
-to be soft and dissolvable under the tongue. The pill is absorbed at the 
-mouth and enters the bloodstream directly instead of going through the stomach. 
-This results in a faster more powerful effect which lasts as long as the normal.
+no. This daemon would only send the dbus event for volume change, but
+your mixer applet would also listen on dbus and take apropriate action.
 
-Soft Tabs also have less sidebacks (you can drive or mix alcohol drinks with them).
-
-You can get it at: http://888-luvu.com/st/?coupon
-
-No thanks: http://888-luvu.com/rm.html
+One job - one tool. At least in this case that's IMO the way to go.
+-- 
+Stefan Seyfried
 
 
 
