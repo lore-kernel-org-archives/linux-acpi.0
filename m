@@ -1,52 +1,41 @@
-From: Jan Bernatik <bernatik-nd92eFGgBBntwjQa/ONI9g@public.gmane.org>
-Subject: APM, ACPI and DPMS question
-Date: Tue, 14 Sep 2004 14:52:16 +0200
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4146E980.8040501@kn.vutbr.cz>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [ACPI] [PATCH] restore _OS object to "Linux" for ia64
+Date: Tue, 14 Sep 2004 08:00:00 -0700
+Sender: linux-ia64-owner@vger.kernel.org
+Message-ID: <37F890616C995246BE76B3E6B2DBE05501FB4E14@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Content-class: urn:content-classes:message
+To: Alex Williamson <alex.williamson@hp.com>
+Cc: Gerald Pfeifer <gp@suse.de>, "Brown, Len" <len.brown@intel.com>, linux-ia64@vger.kernel.org, ACPI Developers <acpi-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
 
-I'm studying ACPI, and I found that:
+> 
+>    But how can we be sure we're bug for bug and feature for feature
+> compatible with an arbitrary version of Windows?  I got curious and
+> looked at the DSDT on my home PC, generic VIA KM266 chipset.  Sure
+> enough:
 
-----------------------------------------------------------------------
-You should also be aware of another little glitch I discovered. The 
-XFree86 server has an option for DPMS (Energy Star) features. The DPMS 
-can states can be one of standby, suspend, off or on. Since the 2.4.x 
-kernels cannot suspend to disk, this can cause problems.
-----------------------------------------------------------------------
-source: http://www.tldp.org/HOWTO/ACPI-HOWTO/daemons.html
+We aren't ever "sure".
 
-I really doesn't understand this. I thought it's just about monitor 
-energy, so please could somebody just roughly explain this ?
+All I can say is that MS is the "defacto" implementation and that we
+attempt to both adhere to the ACPI spec and make some accommodations to
+the MS implementation (such as supporting the control method "implicit
+return")
 
-thanks, have a nice day
+The NT/XP MS implementation is their best version with the fewest bugs,
+so this is the version that we are compatible with.
 
-Jan Bernatik
--- 
-student VUT BRNO - FEEC / Czech Republic
-http://www.feec.vutbr.cz
+Given this, and the fact that most iA32 platform BIOSs are developed and
+tested with XP, using the "Microsoft Windows NT" identification string
+seems to be the best way to go.  By doing this, we have fixed at least
+several machines (maybe more) that were not working properly under
+Linux, and there haven't been any problems reported that I know of.
 
-registered user no. 207163 using Debian
-icq: 78209478
-home: linuxdesktop.kn.vutbr.cz
+Bob
 
 
--------------------------------------------------------
-This SF.Net email is sponsored by: YOU BE THE JUDGE. Be one of 170
-Project Admins to receive an Apple iPod Mini FREE for your judgement on
-who ports your project to Linux PPC the best. Sponsored by IBM. 
-Deadline: Sept. 13. Go here: http://sf.net/ppc_contest.php
