@@ -1,53 +1,28 @@
-From: Christian Vogel <vogel-ohJTLb+lN0D2l3tELKL2klGCwAZxyiatZ+vKCSbpVNE@public.gmane.org>
-Subject: linux-2.4.20-ac1-acpi: Is Alan compatible with ACPI?
-Date: Fri, 6 Dec 2002 05:30:54 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021206053054.A26735@skunk.physik.uni-erlangen.de>
+From: Hanno =?ISO-8859-15?B?QvZjaw==?= <hanno-Mmb7MZpHnFY@public.gmane.org>
+Subject: Re: [ACPI] RE: [BK PATCH] ACPI updates
+Date: Fri, 6 Dec 2002 12:59:43 +0100
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <20021206125943.2199892e.hanno@gmx.de>
+References: <EDC461A30AC4D511ADE10002A5072CAD04C7A576@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD04C7A576-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: pavel-+ZI9xUNit7I@public.gmane.org, arjanv-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, marcelo-KCZ47A4bww4P48s/oLjRZg@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+> Well after communicating with Marcelo it sounds like he'd like to hold off
+> taking it in 2.4.21 because IDE changes take priority, and two big changes
+> at once is too many for a stable kernel revision.
 
-has someone here successfully tested the ACPI patch for 2.4 vanilla
-with -ac-kernels? I've tried the patch for 2.4.20-rc?[1] on -ac1
-and so far it seems to work quite well but I'm interested if there
-are known issues[2] (I don't want to have my fan fail when I'm away
-for example...)
-
-        Chris
-
-[1]
-  acpi-20021126-2.4.20-rc3.diff.gz from sourceforge
-
-  I had to fix two #includes<> and arch/i386/kernel uses target_cpus()
-  which is not here, I did substitute __target_cpus() and defined
-  inline int __target_cpus(void){ return 0x01; } when it's not defined
-  (depends on CONFIG_MULTIQUAD).
-
-[2]
-  I have the following in my syslog:
-    ACPI: Embedded Controller [EC0] (gpe 9)
-    schedule_task(): keventd has not started
-  should I be worried?
+I think this is a very bad news.
+In my opinion, the ACPI-patch is the most-needed kernel-patch at the moment. For many laptop-users that don't know about this patch, Linux is nearly unuseable. And I already know at least two desktop-pcs that don't have any power-management without the acpi-patch.
+Andrew, I hope you can find a way to make a patch that the kernel-people will accept as soon as possible.
 
 -- 
-Top ten reasons to procrastinate:
- 1.
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
+Hanno Boeck - hanno-Mmb7MZpHnFY@public.gmane.org               /"\
+                                         \ / ASCII Ribbon Campaign
+Say no to DCMA, TCPA, Palladium!          X  Against HTML Mail
+www.stop1984.com                         / \
