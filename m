@@ -1,14 +1,12 @@
-From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] ACPI EC address space handler - Re: ACPI key events
-	handling
-Date: Fri, 11 Mar 2005 10:23:38 +0800
-Message-ID: <1110507818.3692.4.camel@sli10-desk.sh.intel.com>
-References: <16A54BF5D6E14E4D916CE26C9AD30575015B5180@pdsmsx402.ccr.corp.intel.com>
-	 <42307593.8040501@suse.de>
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Suggestion for improving the handling of GPE enabling.
+Date: Fri, 11 Mar 2005 10:30:32 +0800
+Message-ID: <16A54BF5D6E14E4D916CE26C9AD30575015B5546@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <42307593.8040501-l3A5Bk7waGM@public.gmane.org>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,104 +16,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
-Cc: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, Paulo Vitor Magacho da Silva <pvmagacho78-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is an updated patch.
-It fixes:
-1. changed *value when write
-2. wrong address offset for read/write with bit width > 8
-and some cleanup.
+>> > > an ACPI bus, we possibly can't show the bus hierarchy.
+>> >
+>> > Maybe ACPI device should be "under" real hardware one?
+>>
+>> I suspect that the current sysfs device tree hierarchy is largely
+>> fiction and that Linux would be better served by taking advantage of
+the
+>> hierarchy embodied in the DSDT.
+>>
+>> The "ACPI devices" such as power, sleep, lid as well as the battery
+are
+>> represented at the root level in the DSDT.
+>
+>Are the ACPI HID names exposed to userspace yet? At the moment
+userspace
+>tools need to try loading every ACPI module. If the HIDs were exported
+>via sysfs and the ACPI drivers exported the devices they could bind to,
+>we could use hotplug to autoload the correct drivers.
+Sure, after we add ACPI bus support, the ACPI module should be loaded
+dynamically.=20
+This makes me think another issue. You know PNPACPI also could export
+the HIDs to user space. We plan to add the hotplug in PNPACPI. So the
+question is who (PNP layer or ACPI) should export the HID?
 
 Thanks,
 Shaohua
-
----
-
- 2.5-root/drivers/acpi/ec.c |   32 ++++++++++++++------------------
- 1 files changed, 14 insertions(+), 18 deletions(-)
-
-diff -puN drivers/acpi/ec.c~ec_addr_space_handler drivers/acpi/ec.c
---- 2.5/drivers/acpi/ec.c~ec_addr_space_handler	2005-03-08 09:19:05.000000000 +0800
-+++ 2.5-root/drivers/acpi/ec.c	2005-03-11 10:18:25.595072776 +0800
-@@ -441,7 +441,7 @@ acpi_ec_space_handler (
- {
- 	int			result = 0;
- 	struct acpi_ec		*ec = NULL;
--	u32			temp = 0;
-+	u64			temp = *value;
- 	acpi_integer		f_v = 0;
- 	int 			i = 0;
- 
-@@ -450,10 +450,9 @@ acpi_ec_space_handler (
- 	if ((address > 0xFF) || !value || !handler_context)
- 		return_VALUE(AE_BAD_PARAMETER);
- 
--	if(bit_width != 8) {
-+	if (bit_width != 8 && acpi_strict) {
- 		printk(KERN_WARNING PREFIX "acpi_ec_space_handler: bit_width should be 8\n");
--		if (acpi_strict)
--			return_VALUE(AE_BAD_PARAMETER);
-+		return_VALUE(AE_BAD_PARAMETER);
- 	}
- 
- 	ec = (struct acpi_ec *) handler_context;
-@@ -461,11 +460,11 @@ acpi_ec_space_handler (
- next_byte:
- 	switch (function) {
- 	case ACPI_READ:
--		result = acpi_ec_read(ec, (u8) address, &temp);
--		*value = (acpi_integer) temp;
-+		temp = 0;
-+		result = acpi_ec_read(ec, (u8) address, (u32 *)&temp);
- 		break;
- 	case ACPI_WRITE:
--		result = acpi_ec_write(ec, (u8) address, (u8) *value);
-+		result = acpi_ec_write(ec, (u8) address, (u8) temp);
- 		break;
- 	default:
- 		result = -EINVAL;
-@@ -474,19 +473,18 @@ next_byte:
- 	}
- 
- 	bit_width -= 8;
--	if(bit_width){
--
--		if(function == ACPI_READ)
--			f_v |= (acpi_integer) (*value) << 8*i;
--		if(function == ACPI_WRITE)
--			(*value) >>=8; 
-+	if (bit_width) {
-+		if (function == ACPI_READ)
-+			f_v |= temp << 8 * i;
-+		if (function == ACPI_WRITE)
-+			temp >>= 8;
- 		i++;
-+		(u8)address ++;
- 		goto next_byte;
- 	}
- 
--
--	if(function == ACPI_READ){
--		f_v |= (acpi_integer) (*value) << 8*i;
-+	if (function == ACPI_READ) {
-+		f_v |= temp << 8 * i;
- 		*value = f_v;
- 	}
- 
-@@ -505,8 +503,6 @@ out:
- 	default:
- 		return_VALUE(AE_OK);
- 	}
--	
--
- }
- 
- 
-_
-
-
 
 
 -------------------------------------------------------
