@@ -1,16 +1,14 @@
-From: "=?iso-8859-2?q?Zdzis=B3aw_A=2E?= Kaleta" <sanskryt-FWhLrETftxM@public.gmane.org>
-Subject: Re: what is the worst laptop atm?
-Date: Tue, 4 Jan 2005 21:57:35 +0100
-Message-ID: <200501042157.36518.sanskryt@op.pl>
-References: <20041227165207.GB9606@poupinou.org> <200501042010.36874.sanskryt@op.pl> <20050104193314.GA25653@gamma.logic.tuwien.ac.at>
-Reply-To: sanskryt-FWhLrETftxM@public.gmane.org
+From: Sergio Monteiro Basto <sergio-qOf5bGQp09kptuEoxK/DLR2eb7JE58TQ@public.gmane.org>
+Subject: Re: Help Please: Cannot Unsubscribe
+Date: Tue, 04 Jan 2005 20:43:00 +0000
+Message-ID: <1104871380.25180.0.camel@localhost>
+References: <200501042028.j04KSewZ025192@ms-smtp-03-eri0.ohiordc.rr.com>
+Reply-To: sergio-qOf5bGQp09kptuEoxK/DLR2eb7JE58TQ@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050104193314.GA25653-DqSSrKF0TaySnEC3TeqHn5dqbFPxfnh/@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <200501042028.j04KSewZ025192-K2tQ5qX6MpX7FFLKsl504NjqZGFX0pdbUxqzstpZn2c@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,25 +18,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Dnia wtorek 04 stycznia 2005 20:33, Norbert Preining napisa=B3:
-> On Die, 04 Jan 2005, Zdzis?aw A. Kaleta wrote:
-> > "atkbd.c: Spurious ACK on isa0060/serio0. Some program [***] may be
-> > trying access hardware directly"
-> > It suggested X11 but the same is when no kdm, xdm or gdm is anabled.
-> > If you suggested any other checkig I am ready to try it. ;-/
->
-> Do you have acerhk loaded?
->
-> Best wishes
->
-> Norbert
-No, the acerhk module is not loaded.=20
 
-=2D-=20
-z.a.kaleta (sanskryt), registered Linux User #279350
+
+
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+
+
+
+Click on buttons don't press on enter=20
+--=20
+S=E9rgio M.B.
+
 
 
 -------------------------------------------------------
