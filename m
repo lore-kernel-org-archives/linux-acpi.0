@@ -1,12 +1,14 @@
-From: Melkor <sfnet-mail-8gZPSnQ9TUZeoWH0uzbU5w@public.gmane.org>
-Subject: Fan spinning speed
-Date: Sun, 12 Sep 2004 02:31:43 +0200
+From: Thomas Renninger <mail-smMupaH/RwJM7kwft8N7nw@public.gmane.org>
+Subject: Re: passive cooling policy
+Date: Sun, 12 Sep 2004 11:32:20 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040912021310.0838.SFNET-MAIL@melkor.st>
+Message-ID: <414417A4.3070009@renninger.de>
+References: <413CA0D9.5030901@renninger.de> <20040908085423.GA7785@dominikbrodowski.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20040908085423.GA7785-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -15,103 +17,67 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hi Dominik,
 
-I have a strange problem and it may be ACPI related (well, I think it is ;)
+Dominik Brodowski wrote:
+> Hi Thomas,
+> 
+>>3) If passive limit is reached, kernel throttles cpu and tries to set 
+>>cpufreq to lowest step. Only way to find out whether machine is 
+>>passively cooled is in polling /proc/acpi/thermal_zone/*/state.
+>>(Is it right that cpufreq daemons poll this file to be informed of 
+>>kernel forced cpufreq slow downs?)
+> 
+> Why do cpufreq daemons want to know that? And the ordering is important:
+> first scale CPU frequency be means of cpufreq, _then_ throttle the CPU.
+Maybe I miss some easy solution to work around this problem, but 
+currently I have the problem that:
 
-I own an ASUS P4P800-SE running Linux (Debian) with kernel 2.6.8.1 with
-built-in ACPI support (button, fan, processor and thermal_zone).
+E.g. machine enters passive cooling mode, cpu usage is high, cpufreq 
+daemon sets machine to highest cpufreq step, but it is ignored.
+Processor cools down, cpu usage is still high, cpufreq is still in 
+lowered step, because the daemon thinks it already set the frequency to 
+highest step.
 
-At boot, only processor and button are recognized as the excerpt of dmesg
-show (see below). My motherboard have the BIOS feature Q-Fan enabled which
-is controled by ACPI. What it does is adapting the fan speed according to CPU
-temperature. If disabled, the fan is always at max speed. When enabled, fan is
-at max speed during the boot process and after 15/20 seconds, it decreases fan
-speed by steps. I can distinctly hear 3 steps where fan spins slower and
-slower until it becomes hardly noticeable.
+I did a short test some time ago and I thought that kernel does not 
+remember userspace cpufreq settings while in passive mode.
+I currently see three solutions for this:
 
-But, as thermal_zone isn't working, I'd like at least to use the lm-sensors.
-To achieve that, I have to load 4 modules :
+Checking whether the cpufreq setting really took place.
+Polling whether machine is in passive cooling mode.
+Last and for my opinion most proper one is by just send a thermal event 
+when entering/leaving passive cooling mode. I saw that some kind of 
+hysteresis algorithm is implemented, so the event should not be thrown 
+too often.
 
-i2c-dev
-i2c-i801
-i2c-isa
-w83627hf
+> 
+>>1) inform userspace that cpu speed is increased/decreased through a 
+>>thermal event.
+>>-> avoid userspace progs polling /proc/acpi/thermal_zone/*/state to be 
+>>informed whether the system is slowed down.
+> 
+> Again, I do not see a reason for why this needs to be exported to userspace.
+My main concern is stated above, but it could also be convenient for 
+informing the user or monitoring programs.
+> 
+>>2) Allow setting a passive trip point even BIOS does not export a 
+>>passive trip point value and initialise tc1, tc2 and tsp with some 
+>>sensible default values.
+>>-> you could lower fan activity on every laptop/workstation that 
+>>supports throttling/cpufreq regardless whether the BIOS exports any 
+>>passive trip points/cooling mode (event most laptop vendors don't care 
+>>about trip points).
+> 
+> As long as this allows an additional, probably lower "trip point" for
+> _passive_ cooling, this sounds like a good idea. It cannot hurt as long as
+> it doesn't disable the BIOS-initialized active cooling.
+I currently have not much time, but I try to have a look at this soon.
 
-By itself, lm-sensors works perfectly but there's a drawback. When the module "w83627hf"
-is loaded (modprobe w83627hf) the fan switches to max speed and never
-decreases again (tested on about 1 hour delay).
-
-Has anyone already experienced a similar issue and would be in position to
-give any clue ? I've tried lots of configurations (removing ACPI 2.0 support
-in BIOS, removing thermal_zone support in kernel) but nothing seems to have
-any influence on this behaviour !
-
-Subsidiary question : All the motherboard I have access to (PII, PIII, P4 and
-AthlonXP) and supporting ACPI always show (kernel 2.6.8.1) processor only
-supporting C1 ! Are C2 and C3 only reserved for laptop machines ?
-
-
-Excerpt of DMESG : dmesg | grep -i acpi
-
- BIOS-e820: 000000003ffb0000 - 000000003ffc0000 (ACPI data)
- BIOS-e820: 000000003ffc0000 - 000000003fff0000 (ACPI NVS)
-ACPI: RSDP (v002 ACPIAM                                    ) @ 0x000fad60
-ACPI: XSDT (v001 A M I  OEMXSDT  0x03000426 MSFT 0x00000097) @ 0x3ffb0100
-ACPI: FADT (v003 A M I  OEMFACP  0x03000426 MSFT 0x00000097) @ 0x3ffb0290
-ACPI: MADT (v001 A M I  OEMAPIC  0x03000426 MSFT 0x00000097) @ 0x3ffb0390
-ACPI: OEMB (v001 A M I  OEMBIOS  0x03000426 MSFT 0x00000097) @ 0x3ffc0040
-ACPI: DSDT (v001  A0049 A0049000 0x00000000 INTL 0x02002026) @ 0x00000000
-ACPI: Local APIC address 0xfee00000
-ACPI: LAPIC (acpi_id[0x01] lapic_id[0x00] enabled)
-ACPI: LAPIC (acpi_id[0x02] lapic_id[0x01] enabled)
-ACPI: IOAPIC (id[0x02] address[0xfec00000] gsi_base[0])
-ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
-ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 high level)
-ACPI: IRQ0 used by override.
-ACPI: IRQ2 used by override.
-ACPI: IRQ9 used by override.
-Using ACPI (MADT) for SMP configuration information
-ACPI: Subsystem revision 20040326
-ACPI: Interpreter enabled
-ACPI: Using IOAPIC for interrupt routing
-ACPI: PCI Root Bridge [PCI0] (00:00)
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P4._PRT]
-ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 *10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 6 *7 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 *5 6 7 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKD] (IRQs *3 4 5 6 7 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 6 7 10 11 12 14 15) *0, disabled.
-ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 6 7 10 11 12 14 15) *0, disabled.
-ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 5 6 7 10 *11 12 14 15)
-ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 6 7 10 *11 12 14 15)
-PCI: Using ACPI for IRQ routing
-ACPI: PCI interrupt 0000:00:1d.0[A] -> GSI 16 (level, low) -> IRQ 16
-ACPI: PCI interrupt 0000:00:1d.1[B] -> GSI 19 (level, low) -> IRQ 19
-ACPI: PCI interrupt 0000:00:1d.2[C] -> GSI 18 (level, low) -> IRQ 18
-ACPI: PCI interrupt 0000:00:1d.3[A] -> GSI 16 (level, low) -> IRQ 16
-ACPI: PCI interrupt 0000:00:1d.7[D] -> GSI 23 (level, low) -> IRQ 23
-ACPI: PCI interrupt 0000:00:1f.1[A] -> GSI 18 (level, low) -> IRQ 18
-ACPI: PCI interrupt 0000:00:1f.2[A] -> GSI 18 (level, low) -> IRQ 18
-ACPI: PCI interrupt 0000:00:1f.3[B] -> GSI 17 (level, low) -> IRQ 17
-ACPI: PCI interrupt 0000:00:1f.5[B] -> GSI 17 (level, low) -> IRQ 17
-ACPI: PCI interrupt 0000:01:00.0[A] -> GSI 16 (level, low) -> IRQ 16
-ACPI: PCI interrupt 0000:02:05.0[A] -> GSI 22 (level, low) -> IRQ 22
-ACPI: Power Button (FF) [PWRF]
-ACPI: Processor [CPU1] (supports C1)
-ACPI: Processor [CPU2] (supports C1)
-ACPI: PCI interrupt 0000:00:1f.1[A] -> GSI 18 (level, low) -> IRQ 18
-ACPI: PCI interrupt 0000:00:1f.2[A] -> GSI 18 (level, low) -> IRQ 18
-ACPI: PCI interrupt 0000:02:05.0[A] -> GSI 22 (level, low) -> IRQ 22
-ACPI: PCI interrupt 0000:02:05.0[A] -> GSI 22 (level, low) -> IRQ 22
-
--- 
-Melkor
-
+     Thomas
 
 
 -------------------------------------------------------
