@@ -1,14 +1,14 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: broken bm_sts on 82801CA?
-Date: Fri, 10 Oct 2003 12:58:34 +0200
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: Applications & ACPI eventse
+Date: Fri, 10 Oct 2003 13:19:35 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031010105834.GM11391@poupinou.org>
-References: <20031006233406.N4792@root.org> <20031007085536.GB11391@poupinou.org> <20031007110948.V6708@root.org> <20031008123103.GG11391@poupinou.org> <20031008095321.B10515@root.org> <20031008172800.GI11391@poupinou.org> <20031008103531.B10689@root.org>
+Message-ID: <20031010111934.GA10620@hell.org.pl>
+References: <20031006124935.GQ11391@poupinou.org> <20031006130533.GA311@elf.ucw.cz> <20031008102745.GF11391@poupinou.org> <20031008191610.GB1035@elf.ucw.cz> <20031008215342.GE1920@fairlite.demon.co.uk> <20031008215850.GF1238@elf.ucw.cz> <20031009123620.GD13739@hell.org.pl> <20031009213245.GB365@elf.ucw.cz> <20031009235607.GA13514@hell.org.pl> <20031010071231.GA285@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20031008103531.B10689-Y6VGUYTwhu0@public.gmane.org>
+In-Reply-To: <20031010071231.GA285-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,68 +17,28 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Alan Hourihane <alanh-ASBjxr/nLg+TY6FTCsQk+9Bc4/FLrbF6@public.gmane.org>, Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Oct 08, 2003 at 10:40:21AM -0700, Nate Lawson wrote:
-> On Wed, 8 Oct 2003, Ducrot Bruno wrote:
-> > On Wed, Oct 08, 2003 at 09:55:35AM -0700, Nate Lawson wrote:
-> > > On Wed, 8 Oct 2003, Ducrot Bruno wrote:
-> > > > That more an hardware design issue due to how hotplug work in usb busses
-> > > > in general, and it may need to be workaround, so if anybody haven't yet worked on
-> > > > C-states on FreeBSD..  Please note also that Linux do not workaround that
-> > > > btw.
-> > >
-> > > I have implemented C-states in freebsd, that's how I ran into this
-> > > problem.  I'll be committing the code once it's cleaned up a little.
-> > >
-> > > Since Linux always demotes to "don't enter a Cx state" if bm_sts indicates
-> > > activity, are you saying that if you have a USB bus configured in Linux,
-> > > you don't even use C1 (HLT)?
-> >
-> > What?  If so, there is a bug somewhere since we should look at bm status only at
-> > C2 (only if we have to go to C3) or C3 state.
-> > Sound like you are right, btw.  I have to look a little deeper.  Thanks for pointing
-> > this.
-> 
-> This is from 2.5.74.  If C3 is supported by the platform, unconditionally
-> set flags.bm_check:
-> 
-> 		else {
-> 			pr->power.states[ACPI_STATE_C3].valid = 1;
-> 			pr->power.states[ACPI_STATE_C3].latency_ticks =
-> 				US_TO_PM_TIMER_TICKS(acpi_fadt.plvl3_lat);
-> 			pr->flags.bm_check = 1;
-> 		}
-> 
-> In acpi_processor_idle(), if bm_check, read the bm_sts register and if it
-> is non-zero, set next_state to be the demotion state but don't sleep this
-> quantum.  Instead, enable IRQs and stay active:
-> 
-> 		if (pr->power.bm_activity & cx->demotion.threshold.bm) {
-> 			local_irq_enable();
-> 			next_state = cx->demotion.state;
-> 			goto end;
-> 		}
-> 
-> However, since this code is run every time acpi_processor_idle() is
-> called, it will never enter even C2 if you have a bm_sts bit that is
-> always 1.
-> 
+Thus wrote Pavel Machek:
+> > > > That's how it's done with the Radeon driver, i.e. 1.9.0 DRM module and
+> > > > recent DRI snaphosts -- the engine is initialized / POSTed on VT switch.
+> > > Well, then radeon should "just work".
+> > It actually does, at least for S4 in 2.4 (Nigel's swsusp).
+> S4 is very different case, since card is already initialized by
+> BIOS. Don't mix these!
 
-I checked a little bit more, but I think you are wrong because
-acpi_processor_power_activate(pr, next_state), with next_state == ACPI_STATE_C2,
-will be called after the end label,
-and since pr->power.states[ACPI_STATE_C2].demotion.threshold.bm  
-is always 0 we do not go to the 'then' statement at the next run if we
-were at C3 state.
+But the DRI engine is not, so switching back to unpatched XFree86-4.3.0
+after resume corrupts the display and does other not-so-nice things.
+
+The S4 example was merely to illustrate what the radeon driver does.
+
+Best regards,
 
 -- 
-Ducrot Bruno
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
