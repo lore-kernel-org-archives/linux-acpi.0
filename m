@@ -1,65 +1,85 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Re: [PATCH 4/4]An ACPI callback for pci_set_power_state
-Date: Wed, 5 Jan 2005 10:11:41 +0100
-Message-ID: <20050105091141.GC5170@elf.ucw.cz>
-References: <1104893456.5550.135.camel@sli10-desk.sh.intel.com> <20050105084954.GA5170@elf.ucw.cz> <1104915909.17388.9.camel@sli10-desk.sh.intel.com>
+From: Paul Ionescu <i_p_a_u_l@yahoo.com>
+Subject: Re: [ACPI] Re: kernel 2.6.10 , uhci-hcd problem after ACPI S3 suspend.
+Date: Wed, 5 Jan 2005 08:46:55 -0800 (PST)
+Message-ID: <20050105164655.45860.qmail@web50204.mail.yahoo.com>
+References: <1104862529.1846.47.camel@eeyore>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1104915909.17388.9.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Greg <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Patrick Mochel <mochel-og82NyAXoxR0I81aPRRTmR2eb7JE58TQ@public.gmane.org>
+Return-path: <linux-usb-devel-admin@lists.sourceforge.net>
+In-Reply-To: <1104862529.1846.47.camel@eeyore>
+Sender: linux-usb-devel-admin@lists.sourceforge.net
+Errors-To: linux-usb-devel-admin@lists.sourceforge.net
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
+	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Post: <mailto:linux-usb-devel@lists.sourceforge.net>
+List-Help: <mailto:linux-usb-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
+	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-usb-devel>
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>, Alan Stern <stern@rowland.harvard.edu>
+Cc: Paul Ionescu <i_p_a_u_l@yahoo.com>, linux-usb-devel@lists.sourceforge.net, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hi Bjorn,
 
-> > > This is an ACPI callback for pci_set_power_state. Besides setting PCI
-> > > config space, changing device's power state sometimes requires to power
-> > > on device's power source and to invoke other firmware methods.
+I tried with "pci=routeirq" but the same behaviour.
+Then I isolate uhci_hcd to be alone on IRQ 9, and I
+can see that after a susp/resume cycle, the irq 9
+count is still incrementing, but lsusb shows no new
+device.
+If I rmmod/insmod the uhci-hcd at this point, it
+works.
+So I think is not an IRQ problem.
+
+Thanks,
+Paul
+
+--- Bjorn Helgaas <bjorn.helgaas@hp.com> wrote:
+
+> On Tue, 2004-12-28 at 22:11 -0500, Alan Stern wrote:
+> > On Tue, 28 Dec 2004, Paul Ionescu wrote:
 > > 
+> > > Hello all,
+> > > 
+> > > With kernel 2.6.10, I have the following problem
+> with uhci_hcd:
+> > > After an ACPI S3 suspend it fails to see any USB
+> device plugged in.
+> > > If I unload the module and load it again, it
+> works again.
+> > > I hadn't this problem with previous kernels,
+> where it worked just fine.
+> > > Do you know something that changed between 2.6.9
+> and 2.6.10 that could
+> > > lead to this behavior ?
+> > > It is ACPI or USB fault ?
 > > 
-> > > diff -puN drivers/pci/pci.h~acpi-pci-set-power-state-callback drivers/pci/pci.h
-> > > --- 2.5/drivers/pci/pci.h~acpi-pci-set-power-state-callback	2005-01-05 09:58:06.469923128 +0800
-> > > +++ 2.5-root/drivers/pci/pci.h	2005-01-05 09:58:06.473922520 +0800
-> > > @@ -13,6 +13,7 @@ extern int pci_bus_alloc_resource(struct
-> > >  				  void *alignf_data);
-> > >  /* Firmware callbacks */
-> > >  extern int (*platform_pci_get_suspend_state)(struct device *dev, u32 state);
-> > > +extern int (*platform_pci_set_power_state)(struct pci_dev *dev, int state);
-> > 
-> > What kind of state is passed here? Why is it u32 in one case and int
-> > in the second one?
-> This is the types of current pci routines (pci_set_power_state and pci_device_suspend). 
-> Both are PCI device states. I agree it's confused.
+> > Nothing relevant has changed in the uhci_hcd
+> driver, so far as I know.  
+> > I'd be inclined to guess that ACPI is the culprit.
+>  Have you tried booting 
+> > with "acpi=off", in both 2.6.9 and 2.6.10?
+> 
+> You might also try "pci=routeirq".  This works
+> around some known
+> issues with suspend/resume in 2.6.10.
+> 
+> 
 
-Ok, that should become pci_power_t in very near future, then.
 
-> > I'm about to introduce separate types for pci power states and system
-> > power states; could you at least add comments which states are which?
-> > Also few lines of documentation would be very usefull...
-> I planed post the patches after your patches enter before, but it seems
-> have a long delay. What's your plan? I'm ok to merge the patches after
-> yours.
 
-pci_power_t patches were merged to Greg, so I'd say they are going to
-linus "real soon now" :-).
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+		
+__________________________________ 
+Do you Yahoo!? 
+Take Yahoo! Mail with you! Get it on your mobile phone. 
+http://mobile.yahoo.com/maildemo 
 
 
 -------------------------------------------------------
 The SF.Net email is sponsored by: Beat the post-holiday blues
 Get a FREE limited edition SourceForge.net t-shirt from ThinkGeek.
 It's fun and FREE -- well, almost....http://www.thinkgeek.com/sfshirt
+_______________________________________________
+linux-usb-devel@lists.sourceforge.net
+To unsubscribe, use the last form field at:
+https://lists.sourceforge.net/lists/listinfo/linux-usb-devel
