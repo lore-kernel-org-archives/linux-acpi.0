@@ -1,15 +1,15 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Centrino question
-Date: 22 May 2004 23:22:34 -0400
+Subject: Re: Centrino question
+Date: 22 May 2004 23:24:10 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1085282554.12359.736.camel@dhcppc4>
-References: <7F740D512C7C1046AB53446D372001730177CF4E@scsmsx402.amr.corp.intel.com>
-	 <1085183136.9856.253.camel@Neuromancer.home.net>
+Message-ID: <1085282649.12352.739.camel@dhcppc4>
+References: <3ACA40606221794F80A5670F0AF15F84046AA243@PDSMSX403.ccr.corp.intel.com>
+	 <20040522005658.640e1d91.neurowork@free.fr>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1085183136.9856.253.camel-C9mHTC703ZUb5wn6fCfWY+TW4wlIGRCZ@public.gmane.org>
+In-Reply-To: <20040522005658.640e1d91.neurowork-GANU6spQydw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,23 +18,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
-Cc: Jun Nakajima <jun.nakajima-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Cyril Wattebled <neurowork-GANU6spQydw@public.gmane.org>
+Cc: Luming Yu <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi <linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2004-05-21 at 19:45, Ow Mun Heng wrote:
-> On Fri, 2004-05-21 at 14:27, Nakajima, Jun wrote:
-
-> > So how long does it last when you run the processor at full speed,
-> > rather than 600Hhz?
+On Fri, 2004-05-21 at 20:56, Cyril Wattebled wrote:
+> On Fri, 21 May 2004 19:42:58
+> "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 > 
-> Hmm.. frankly I have no idea.. I might just try that..
+> > How did you run windows ? 
+> Well, the first thing to say is that, on Windows, when the laptop is unplugged,
+> the processor slows down to 200 mhz instead of 600 mhz when plugged. That
+> says a lot of heat and, I guess power. When I say up to 6h, I mean when the
+> laptop is idle of course.
+> 
+> > How did you run Linux?
+> 
+> Same here, I tried to let it idle and it hold 2h30 ..
 
-Curious if you've also got numbers for the same hardware
-running 2.4.  I'd like to know if 2.4's 100HZ clock saved
-you anything over 2.6's 1000HZ clock.  C3 wouuld be more
-effective on an idle system with the slower clock.
+Linux slows the processor to 600MHz when Windows gets down to 200MHz?
 
+How about the display -- is the brightness comparable on Linux vs
+Windows?
+
+thanks,
 -Len
 
 
