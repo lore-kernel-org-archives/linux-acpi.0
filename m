@@ -1,14 +1,14 @@
-From: Christian Zoz <zoz-l3A5Bk7waGM@public.gmane.org>
+From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
 Subject: Re: DSDT in initrd
-Date: Tue, 20 May 2003 17:37:54 +0200
+Date: Tue, 20 May 2003 19:01:50 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030520153754.GG24453@suse.de>
-References: <F760B14C9561B941B89469F59BA3A84725A2A7@orsmsx401.jf.intel.com>
+Message-ID: <20030520180149.GJ31518@parcelfarce.linux.theplanet.co.uk>
+References: <A5974D8E5F98D511BB910002A50A6647054FC40A@hdsmsx103.hd.intel.com> <Pine.LNX.4.53.0305191725350.9728@dynast.gaugusch.at>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <F760B14C9561B941B89469F59BA3A84725A2A7-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.53.0305191725350.9728-sxQ525G0OhRQK2oVCIMtW7NldLUNz+W/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,69 +17,23 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, May 16, Grover, Andrew wrote:
-> 
-> It should be obvious that using DSDT override (however easy we make it)
-> is NOT an option for distributions or any sort of non-developer
-> solution. You mention that distributions could install DSDTs on
-> installation but I don't buy it. This is part of the reason that I
-> haven't been very receptive towards making DSDT override very easy.
+On Tue, May 20, 2003 at 06:56:59PM +0200, Markus Gaugusch wrote:
+> My patch is configurable (can be turned off via menuconfig), so please
+> apply it and do us hackers a favor.
 
-Distributors cannot ship fixed DSDTs. That would be to much work. But
-there are a lot of Linux Newbies with a laptop that worked so far with
-W*. Now they are going to try Linux and get ACPI troubles.
-It's far easier to explain them to place a fixed DSDT in a certain
-file and to call mkinitrd than to guide them trough a kernel
-complilation and installation.
-Life would be ways easier for supporters. 
-
-There are people wich benefit from this patch.
-Does this patch harm on the other side?
-
-> We need to look for solutions that make using an ACPI-enabled kernel
-> possible on the widest number of machines possible, *without* involving
-> DSDT override. If there are bugs in the interpreter, we need to fix
-> them.
-
-Yes.
-
-> If there are bugs in the DSDT, we need to get on OEMs to fix them.
-
-Yes.
-
-> Or, we need to have a blacklist that, either via specific system
-> signatures or just BIOS date, safely reverts to non-ACPI on machines on
-> which it has problems.
-
-You cannot always revert to non-ACPI without losing funcionality.
-
-At this point the average private laptop user is left alone. Why don't
-we help him to fix his buggy DSDT?
-
-> I really think it's kind of funny that so many people on this mailing
-> list have gotten so good at fixing their systems' DSDT (maybe they
-> should apply for BIOS engineer jobs!)
-
-Wonderfull! This maybe helps to come to more sophisticated BIOS
-engineer and thus better BIOSs. ;)))
-
-> but this skill is the equivalent of requiring someone to know how an
-> engine works in order to drive a car.
-
-Sometimes i were glad i could fix the programming of my bordcomputer
-myself.
+No.  Linus will take one look at it and vomit.  It'll harm the chances of
+getting ACPI into 2.4 (which is really necessary).  I disagree that this
+should be applied to the main tree, but it should be fairly prominently
+linked on http://acpi.sourceforge.net/
 
 -- 
-
-ciao, christian
-
-  --------------------------------------------------------------------
-    Verglichen mit jedem x-beliebigen Redmonder Betriebssystem-Clone
-    ist Linux geradezu eine leuchtende Perle der Datensicherheit.
-  ------ Frank Rennemann (http://www.linux-knowledge-portal.org) -----
+"It's not Hollywood.  War is real, war is primarily not about defeat or
+victory, it is about death.  I've seen thousands and thousands of dead bodies.
+Do you think I want to have an academic debate on this subject?" -- Robert Fisk
 
 
 -------------------------------------------------------
