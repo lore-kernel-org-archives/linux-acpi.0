@@ -1,8 +1,8 @@
 From: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
 Subject: Re: How do I measue latency?
-Date: 01 Aug 2002 14:57:51 +0100
+Date: 01 Aug 2002 14:58:30 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1028210271.15022.14.camel@irongate.swansea.linux.org.uk>
+Message-ID: <1028210310.14871.16.camel@irongate.swansea.linux.org.uk>
 References: <3D48B4D3.1050109@folkwolf.net>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -29,9 +29,8 @@ On Thu, 2002-08-01 at 05:10, Johnathan Hicks wrote:
 > used. Both measuring and inserting into that table are possible right?
 > As a side note, they goofed on the _S3_ object and wrote S_3_ instead in the DSDT.
 
-The current -ac tree has a non ACPI power management module that works
-on this board, if that helps. Its not perfect but -ac6 will have the
-updated one
+Doh and I just realised of course that you also worked on that so you
+knew there was a native one - sorry
 
 
 
