@@ -1,13 +1,11 @@
-From: Matthias Hentges <mailinglisten-H4PcyxPeSRnR7s880joybQ@public.gmane.org>
-Subject: Re: S3 broken Samsung P35 - howto debug?
-Date: Wed, 24 Nov 2004 14:13:47 +0100
-Message-ID: <1101302028.7910.14.camel@mhcln03>
-References: <200411211600.01820.od@fet.uni-hannover.de>
-	 <1101064133.7220.15.camel@mhcln03>  <41A4613F.2020905@helios.de>
+From: <mrfree-97W46K3QqA41GQ1Ptb7lUw@public.gmane.org>
+Subject: Re: Problem fixing DSDT (parse error)
+Date: Wed, 01 Dec 2004 09:53:59 +0100
+Message-ID: <web-25626849@infinito.it>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-GJc3uf76Xb1V+84vGpXr"
+Content-Type: text/plain; charset="ISO-8859-1"; format="flowed"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41A4613F.2020905-csNNzRR391izQB+pC5nmwQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,2281 +15,6958 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Oliver Dawid <oliver-csNNzRR391izQB+pC5nmwQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Tue, 30 Nov 2004 17:12:08 +0100
+  Thomas Renninger <mail-smMupaH/RwJM7kwft8N7nw@public.gmane.org> wrote:
 
---=-GJc3uf76Xb1V+84vGpXr
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-
-Am Mittwoch, den 24.11.2004, 11:23 +0100 schrieb Oliver Dawid:
-> Hi,
+> As far as I know this is how it should look like, 
+>putting the IF statements into an _INI method (please 
+>correct me if I am wrong):
 > 
-> now machine is resuming (unfortunately without display waking up) - so I 
-> got a little success but there is still work to be done.
-> 
-> Matthias Hentges wrote:
 
-[...]
+Thz,
+I've tryed your solution... when I've recompiled the dsl 
+file, iasl reported a parse error on another IF statement 
+and I've applyed the same solution to it; but now I obtain 
+a large number of error:
+dsdt.dsl.mrfree  2468: 
+                                    Store (0x1F, P378)
+Warning  2079 -                             Statement is 
+unreachable ^
 
-> > I've managed to get the backlight on, but that's it heh.
-> 
-> Now its time to switch on my backlight ;-)
+dsdt.dsl.mrfree  2473: 
+                                    Store (0x0F, P378)
+Warning  2079 -                             Statement is 
+unreachable ^
 
-It won't be of much use. For some reason the Radeon doesn't come back
-after S3.
-Trying video_post or boot_radeon or s3_late_bios will freeze the
-machine.
-Basically *any* access to the card will freeze the machine at this
-point.
+dsdt.dsl.mrfree  2615:                 Scope (\_SB.PCI0)
+Warning  2031 -               Internal compiler error ^ 
+ (Not using optimized name - did not find node)
 
-After manually restoring the PCI configuration data gathered with lspci
--x,
-the output of lspci -vvv is identical from before S3. No difference what
-so ever.
+dsdt.dsl.mrfree  3014:     Method (_INI, 0, NotSerialized)
+Error    1034 -                       ^ Name already 
+exists in scope (_INI)
 
-But:
-- running boot_radeon now segfaults instead of freezing the machine
-running video_boot does nothing (goes into an endless loop)
-switching back to VT7 (X11 w/ radeon driver and DRI)  switches the
-backlight
-on. XFree86.0.log says:
+dsdt.dsl.mrfree  3041:         Scope (PCI0)
+Error    1020 -                          ^ Object not 
+found or not accessible from scope (PCI0)
 
-(II) RADEON(0): Wrote: rd=6, fd=72, pd=4
-(II) RADEON(0): [RESUME] Attempting to re-init Radeon hardware.
-(II) RADEON(0): [agp] Mode 0x1f000207 [AGP 0x8086/0x3340; Card
-0x1002/0x5c63]
+dsdt.dsl.mrfree  3041:         Scope (PCI0)
+Error    1081 -                          ^ Forward 
+references from Scope() not allowed (PCI0)
 
-The system now suffers under a 100% CPU load. One can not switch back to
-VT[1-6].
+dsdt.dsl.mrfree  3043:             Name (CRS, 
+ResourceTemplate ()
+Error    1021 -                            ^ Object not 
+accessible from this scope (CRS_)
 
-If I start X after a resume, the log says:
-[...]
-(II) RADEON(0): Displays Detected: Monitor1--Type 1, Monitor2--Type 0
-[...]
-which is wrong. Monitor 1 is of Type 2 (LCD), the rest looks normal.
+And so on...
 
-Starting X using the fglrx driver i get:
+This is my ORIGINAL dsdt file (without any patch):
 
-(EE) fglrx(0): DRIScreenInit failed!
-(WW) fglrx(0): ***********************************************
-(WW) fglrx(0): * DRI initialization failed!                  *
-(WW) fglrx(0): * (maybe driver kernel module missing or bad) *
-(WW) fglrx(0): * 2D acceleraton available (MMIO)             *
-(WW) fglrx(0): * no 3D acceleration available                *
-(WW) fglrx(0): ********************************************* *
-(II) fglrx(0): FBADPhys: 0xd8000000 FBMappedSize: 0x08000000
+/*
 
-So, looking at the logs, the card almost works. Almost :(
+  * Intel ACPI Component Architecture
 
+  * AML Disassembler version 20040527
 
--- 
-Matthias Hentges 
-Cologne / Germany
+  *
 
-[www.hentges.net] -> PGP welcome, HTML tolerated
-ICQ: 97 26 97 4   -> No files, no URL's
+  * Disassembly of dsdt.dat, Thu Nov 11 19:51:36 2004
 
-My OS: Debian SID. Geek by Nature, Linux by Choice
+  */
 
---=-GJc3uf76Xb1V+84vGpXr
-Content-Description: 
-Content-Disposition: attachment; filename=XFree86.0.log.normal
-Content-Type: text/x-log; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+DefinitionBlock ("DSDT.aml", "DSDT", 1, "UW____", 
+"FSC_____", 22)
 
+{
 
-This is a pre-release version of XFree86, and is not supported in any
-way.  Bugs may be reported to XFree86-Mv/r+YdnZeCNvCAlj6F9uA@public.gmane.org and patches submitted
-to fixes-Mv/r+YdnZeCyi60V37fsNg@public.gmane.org  Before reporting bugs in pre-release versions,
-please check the latest version in the XFree86 CVS repository
-(http://www.XFree86.Org/cvs).
+     OperationRegion (BIOS, SystemMemory, 0x1FFDF064, 
+0xFF)
 
-XFree86 Version 4.3.99.902 (4.4.0 RC 2)
-Release Date: 18 December 2003
-X Protocol Version 11, Revision 0, Release 6.6
-Build Operating System: Linux 2.6.2-mm1 i686 [ELF] 
-Current Operating System: Linux mhcln03 2.6.9 #1 Wed Nov 24 08:29:51 CET 2004 i686
-Build Date: 06 February 2004
-Changelog Date: 04 February 2004
-	Before reporting problems, check http://www.XFree86.Org/
-	to make sure that you have the latest version.
-Module Loader present
-Markers: (--) probed, (**) from config file, (==) default setting,
-	(++) from command line, (!!) notice, (II) informational,
-	(WW) warning, (EE) error, (NI) not implemented, (??) unknown.
-(==) Log file: "/var/log/XFree86.0.log", Time: Wed Nov 24 13:51:47 2004
-(==) Using config file: "/etc/X11/XF86Config-4"
-(==) ServerLayout "Default Layout"
-(**) |-->Screen "Default Screen" (0)
-(**) |   |-->Monitor "Generic Monitor"
-(**) |   |-->Device "Generic Video Card"
-(**) |-->Input Device "Generic Keyboard"
-(**) Option "XkbRules" "xfree86"
-(**) XKB: rules: "xfree86"
-(**) Option "XkbModel" "pc105"
-(**) XKB: model: "pc105"
-(**) Option "XkbLayout" "de"
-(**) XKB: layout: "de"
-(==) Keyboard: CustomKeycode disabled
-(**) |-->Input Device "USB Mouse"
-(**) |-->Input Device "Touchpad"
-(WW) The directory "/usr/lib/X11/fonts/CID" does not exist.
-	Entry deleted from font path.
-(WW) The directory "/usr/lib/X11/fonts/cyrillic" does not exist.
-	Entry deleted from font path.
-(**) FontPath set to "unix/:7100,/usr/lib/X11/fonts/Type1,/usr/lib/X11/fonts/Speedo,/usr/lib/X11/fonts/misc,/usr/lib/X11/fonts/100dpi,/usr/lib/X11/fonts/75dpi"
-(==) RgbPath set to "/usr/X11R6/lib/X11/rgb"
-(==) ModulePath set to "/usr/X11R6/lib/modules"
-(WW) Open APM failed (/dev/apm_bios) (No such file or directory)
-(II) Module ABI versions:
-	XFree86 ANSI C Emulation: 0.2
-	XFree86 Video Driver: 0.7
-	XFree86 XInput driver : 0.4
-	XFree86 Server Extension : 0.2
-	XFree86 Font Renderer : 0.4
-(II) Loader running on linux
-(II) LoadModule: "bitmap"
-(II) Loading /usr/X11R6/lib/modules/fonts/libbitmap.a
-(II) Module bitmap: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	Module class: XFree86 Font Renderer
-	ABI class: XFree86 Font Renderer, version 0.4
-(II) Loading font Bitmap
-(II) LoadModule: "pcidata"
-(II) Loading /usr/X11R6/lib/modules/libpcidata.a
-(II) Module pcidata: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	ABI class: XFree86 Video Driver, version 0.7
-(++) using VT number 7
+     Field (BIOS, ByteAcc, NoLock, Preserve)
 
-(II) PCI: Probing config type using method 1
-(II) PCI: Config type is 1
-(II) PCI: stages = 0x03, oldVal1 = 0x80021040, mode1Res1 = 0x80000000
-(II) PCI: PCI scan (all values are in hex)
-(II) PCI: 00:00:0: chip 8086,3340 card 144d,c00c rev 21 class 06,00,00 hdr 00
-(II) PCI: 00:01:0: chip 8086,3341 card 0000,0000 rev 21 class 06,04,00 hdr 01
-(II) PCI: 00:1d:0: chip 8086,24c2 card 144d,c00c rev 03 class 0c,03,00 hdr 80
-(II) PCI: 00:1d:1: chip 8086,24c4 card 144d,c00c rev 03 class 0c,03,00 hdr 00
-(II) PCI: 00:1d:2: chip 8086,24c7 card 144d,c00c rev 03 class 0c,03,00 hdr 00
-(II) PCI: 00:1d:7: chip 8086,24cd card 144d,c00c rev 03 class 0c,03,20 hdr 00
-(II) PCI: 00:1e:0: chip 8086,2448 card 0000,0000 rev 83 class 06,04,00 hdr 01
-(II) PCI: 00:1f:0: chip 8086,24cc card 0000,0000 rev 03 class 06,01,00 hdr 80
-(II) PCI: 00:1f:1: chip 8086,24ca card 144d,c00c rev 03 class 01,01,8a hdr 00
-(II) PCI: 00:1f:5: chip 8086,24c5 card 144d,c00c rev 03 class 04,01,00 hdr 00
-(II) PCI: 00:1f:6: chip 8086,24c6 card 144d,c00c rev 03 class 07,03,00 hdr 00
-(II) PCI: 01:00:0: chip 1002,5c63 card 144d,c00c rev 01 class 03,00,00 hdr 00
-(II) PCI: 02:00:0: chip 10ec,8139 card 144d,c00c rev 10 class 02,00,00 hdr 00
-(II) PCI: 02:01:0: chip 1180,0476 card 4400,0000 rev ac class 06,07,00 hdr 82
-(II) PCI: 02:01:1: chip 1180,0476 card 4c00,0000 rev ac class 06,07,00 hdr 82
-(II) PCI: 02:01:2: chip 1180,0552 card 144d,c00c rev 04 class 0c,00,10 hdr 80
-(II) PCI: 02:02:0: chip 8086,1043 card 8086,2522 rev 04 class 02,80,00 hdr 00
-(II) PCI: End of PCI scan
-(II) Host-to-PCI bridge:
-(II) Bus 0: bridge is at (0:0:0), (0,0,7), BCTRL: 0x0008 (VGA_EN is set)
-(II) Bus 0 I/O range:
-	[0] -1	0	0x00000000 - 0x0000ffff (0x10000) IX[B]
-(II) Bus 0 non-prefetchable memory range:
-	[0] -1	0	0x00000000 - 0xffffffff (0x0) MX[B]
-(II) Bus 0 prefetchable memory range:
-	[0] -1	0	0x00000000 - 0xffffffff (0x0) MX[B]
-(II) PCI-to-PCI bridge:
-(II) Bus 1: bridge is at (0:1:0), (0,1,1), BCTRL: 0x000c (VGA_EN is set)
-(II) Bus 1 I/O range:
-	[0] -1	0	0x00003000 - 0x000030ff (0x100) IX[B]
-	[1] -1	0	0x00003400 - 0x000034ff (0x100) IX[B]
-	[2] -1	0	0x00003800 - 0x000038ff (0x100) IX[B]
-	[3] -1	0	0x00003c00 - 0x00003cff (0x100) IX[B]
-(II) Bus 1 non-prefetchable memory range:
-	[0] -1	0	0xd0100000 - 0xd01fffff (0x100000) MX[B]
-(II) Bus 1 prefetchable memory range:
-	[0] -1	0	0xd8000000 - 0xdfffffff (0x8000000) MX[B]
-(II) PCI-to-PCI bridge:
-(II) Bus 2: bridge is at (0:30:0), (0,2,4), BCTRL: 0x0004 (VGA_EN is cleared)
-(II) Bus 2 I/O range:
-	[0] -1	0	0x00004000 - 0x000040ff (0x100) IX[B]
-	[1] -1	0	0x00004400 - 0x000044ff (0x100) IX[B]
-	[2] -1	0	0x00004800 - 0x000048ff (0x100) IX[B]
-	[3] -1	0	0x00004c00 - 0x00004cff (0x100) IX[B]
-(II) Bus 2 non-prefetchable memory range:
-	[0] -1	0	0xd0200000 - 0xd02fffff (0x100000) MX[B]
-(II) PCI-to-ISA bridge:
-(II) Bus -1: bridge is at (0:31:0), (0,-1,-1), BCTRL: 0x0008 (VGA_EN is set)
-(II) PCI-to-CardBus bridge:
-(II) Bus 3: bridge is at (2:1:0), (2,3,6), BCTRL: 0x0580 (VGA_EN is cleared)
-(II) Bus 3 I/O range:
-	[0] -1	0	0x00004400 - 0x000044ff (0x100) IX[B]
-	[1] -1	0	0x00004800 - 0x000048ff (0x100) IX[B]
-(II) PCI-to-CardBus bridge:
-(II) Bus 7: bridge is at (2:1:1), (2,7,10), BCTRL: 0x0580 (VGA_EN is cleared)
-(II) Bus 7 I/O range:
-	[0] -1	0	0x00004c00 - 0x00004cff (0x100) IX[B]
-(--) PCI:*(1:0:0) ATI Technologies Inc unknown chipset (0x5c63) rev 1, Mem @ 0xd8000000/27, 0xd0100000/16, I/O @ 0x3000/8
-(II) Addressable bus resource ranges are
-	[0] -1	0	0x00000000 - 0xffffffff (0x0) MX[B]
-	[1] -1	0	0x00000000 - 0x0000ffff (0x10000) IX[B]
-(II) OS-reported resource ranges:
-	[0] -1	0	0xffe00000 - 0xffffffff (0x200000) MX[B](B)
-	[1] -1	0	0x00100000 - 0x3fffffff (0x3ff00000) MX[B]E(B)
-	[2] -1	0	0x000f0000 - 0x000fffff (0x10000) MX[B]
-	[3] -1	0	0x000c0000 - 0x000effff (0x30000) MX[B]
-	[4] -1	0	0x00000000 - 0x0009ffff (0xa0000) MX[B]
-	[5] -1	0	0x0000ffff - 0x0000ffff (0x1) IX[B]
-	[6] -1	0	0x00000000 - 0x000000ff (0x100) IX[B]
-(II) PCI Memory resource overlap reduced 0xe0000000 from 0xefffffff to 0xdfffffff
-(II) Active PCI resource ranges:
-	[0] -1	0	0xd0200000 - 0xd0200fff (0x1000) MX[B]
-	[1] -1	0	0xd0201000 - 0xd02017ff (0x800) MX[B]
-	[2] -1	0	0xd0201800 - 0xd02018ff (0x100) MX[B]
-	[3] -1	0	0xd0000800 - 0xd00008ff (0x100) MX[B]
-	[4] -1	0	0xd0000c00 - 0xd0000dff (0x200) MX[B]
-	[5] -1	0	0x20000000 - 0x200003ff (0x400) MX[B]
-	[6] -1	0	0xd0000000 - 0xd00003ff (0x400) MX[B]
-	[7] -1	0	0xe0000000 - 0xdfffffff (0x0) MX[B]O
-	[8] -1	0	0xd0100000 - 0xd010ffff (0x10000) MX[B](B)
-	[9] -1	0	0xd8000000 - 0xdfffffff (0x8000000) MX[B](B)
-	[10] -1	0	0x00004000 - 0x000040ff (0x100) IX[B]
-	[11] -1	0	0x00002000 - 0x0000207f (0x80) IX[B]
-	[12] -1	0	0x00002400 - 0x000024ff (0x100) IX[B]
-	[13] -1	0	0x00001880 - 0x000018bf (0x40) IX[B]
-	[14] -1	0	0x00001c00 - 0x00001cff (0x100) IX[B]
-	[15] -1	0	0x00001860 - 0x0000186f (0x10) IX[B]
-	[16] -1	0	0x00001840 - 0x0000185f (0x20) IX[B]
-	[17] -1	0	0x00001820 - 0x0000183f (0x20) IX[B]
-	[18] -1	0	0x00001800 - 0x0000181f (0x20) IX[B]
-	[19] -1	0	0x00003000 - 0x000030ff (0x100) IX[B](B)
-(II) Active PCI resource ranges after removing overlaps:
-	[0] -1	0	0xd0200000 - 0xd0200fff (0x1000) MX[B]
-	[1] -1	0	0xd0201000 - 0xd02017ff (0x800) MX[B]
-	[2] -1	0	0xd0201800 - 0xd02018ff (0x100) MX[B]
-	[3] -1	0	0xd0000800 - 0xd00008ff (0x100) MX[B]
-	[4] -1	0	0xd0000c00 - 0xd0000dff (0x200) MX[B]
-	[5] -1	0	0x20000000 - 0x200003ff (0x400) MX[B]
-	[6] -1	0	0xd0000000 - 0xd00003ff (0x400) MX[B]
-	[7] -1	0	0xe0000000 - 0xdfffffff (0x0) MX[B]O
-	[8] -1	0	0xd0100000 - 0xd010ffff (0x10000) MX[B](B)
-	[9] -1	0	0xd8000000 - 0xdfffffff (0x8000000) MX[B](B)
-	[10] -1	0	0x00004000 - 0x000040ff (0x100) IX[B]
-	[11] -1	0	0x00002000 - 0x0000207f (0x80) IX[B]
-	[12] -1	0	0x00002400 - 0x000024ff (0x100) IX[B]
-	[13] -1	0	0x00001880 - 0x000018bf (0x40) IX[B]
-	[14] -1	0	0x00001c00 - 0x00001cff (0x100) IX[B]
-	[15] -1	0	0x00001860 - 0x0000186f (0x10) IX[B]
-	[16] -1	0	0x00001840 - 0x0000185f (0x20) IX[B]
-	[17] -1	0	0x00001820 - 0x0000183f (0x20) IX[B]
-	[18] -1	0	0x00001800 - 0x0000181f (0x20) IX[B]
-	[19] -1	0	0x00003000 - 0x000030ff (0x100) IX[B](B)
-(II) OS-reported resource ranges after removing overlaps with PCI:
-	[0] -1	0	0xffe00000 - 0xffffffff (0x200000) MX[B](B)
-	[1] -1	0	0x00100000 - 0x1fffffff (0x1ff00000) MX[B]E(B)
-	[2] -1	0	0x000f0000 - 0x000fffff (0x10000) MX[B]
-	[3] -1	0	0x000c0000 - 0x000effff (0x30000) MX[B]
-	[4] -1	0	0x00000000 - 0x0009ffff (0xa0000) MX[B]
-	[5] -1	0	0x0000ffff - 0x0000ffff (0x1) IX[B]
-	[6] -1	0	0x00000000 - 0x000000ff (0x100) IX[B]
-(II) All system resource ranges:
-	[0] -1	0	0xffe00000 - 0xffffffff (0x200000) MX[B](B)
-	[1] -1	0	0x00100000 - 0x1fffffff (0x1ff00000) MX[B]E(B)
-	[2] -1	0	0x000f0000 - 0x000fffff (0x10000) MX[B]
-	[3] -1	0	0x000c0000 - 0x000effff (0x30000) MX[B]
-	[4] -1	0	0x00000000 - 0x0009ffff (0xa0000) MX[B]
-	[5] -1	0	0xd0200000 - 0xd0200fff (0x1000) MX[B]
-	[6] -1	0	0xd0201000 - 0xd02017ff (0x800) MX[B]
-	[7] -1	0	0xd0201800 - 0xd02018ff (0x100) MX[B]
-	[8] -1	0	0xd0000800 - 0xd00008ff (0x100) MX[B]
-	[9] -1	0	0xd0000c00 - 0xd0000dff (0x200) MX[B]
-	[10] -1	0	0x20000000 - 0x200003ff (0x400) MX[B]
-	[11] -1	0	0xd0000000 - 0xd00003ff (0x400) MX[B]
-	[12] -1	0	0xe0000000 - 0xdfffffff (0x0) MX[B]O
-	[13] -1	0	0xd0100000 - 0xd010ffff (0x10000) MX[B](B)
-	[14] -1	0	0xd8000000 - 0xdfffffff (0x8000000) MX[B](B)
-	[15] -1	0	0x0000ffff - 0x0000ffff (0x1) IX[B]
-	[16] -1	0	0x00000000 - 0x000000ff (0x100) IX[B]
-	[17] -1	0	0x00004000 - 0x000040ff (0x100) IX[B]
-	[18] -1	0	0x00002000 - 0x0000207f (0x80) IX[B]
-	[19] -1	0	0x00002400 - 0x000024ff (0x100) IX[B]
-	[20] -1	0	0x00001880 - 0x000018bf (0x40) IX[B]
-	[21] -1	0	0x00001c00 - 0x00001cff (0x100) IX[B]
-	[22] -1	0	0x00001860 - 0x0000186f (0x10) IX[B]
-	[23] -1	0	0x00001840 - 0x0000185f (0x20) IX[B]
-	[24] -1	0	0x00001820 - 0x0000183f (0x20) IX[B]
-	[25] -1	0	0x00001800 - 0x0000181f (0x20) IX[B]
-	[26] -1	0	0x00003000 - 0x000030ff (0x100) IX[B](B)
-(II) LoadModule: "GLcore"
-(II) Loading /usr/X11R6/lib/modules/extensions/libGLcore.a
-(II) Module GLcore: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	ABI class: XFree86 Server Extension, version 0.2
-(II) LoadModule: "bitmap"
-(II) Reloading /usr/X11R6/lib/modules/fonts/libbitmap.a
-(II) Loading font Bitmap
-(II) LoadModule: "dbe"
-(II) Loading /usr/X11R6/lib/modules/extensions/libdbe.a
-(II) Module dbe: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	Module class: XFree86 Server Extension
-	ABI class: XFree86 Server Extension, version 0.2
-(II) Loading extension DOUBLE-BUFFER
-(II) LoadModule: "ddc"
-(II) Loading /usr/X11R6/lib/modules/libddc.a
-(II) Module ddc: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	ABI class: XFree86 Video Driver, version 0.7
-(II) LoadModule: "dri"
-(II) Loading /usr/X11R6/lib/modules/extensions/libdri.a
-(II) Module dri: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	ABI class: XFree86 Server Extension, version 0.2
-(II) Loading sub module "drm"
-(II) LoadModule: "drm"
-(II) Loading /usr/X11R6/lib/modules/linux/libdrm.a
-(II) Module drm: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	ABI class: XFree86 Server Extension, version 0.2
-(II) Loading extension XFree86-DRI
-(II) LoadModule: "extmod"
-(II) Loading /usr/X11R6/lib/modules/extensions/libextmod.a
-(II) Module extmod: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	Module class: XFree86 Server Extension
-	ABI class: XFree86 Server Extension, version 0.2
-(II) Loading extension SHAPE
-(II) Loading extension MIT-SUNDRY-NONSTANDARD
-(II) Loading extension BIG-REQUESTS
-(II) Loading extension SYNC
-(II) Loading extension MIT-SCREEN-SAVER
-(II) Loading extension XC-MISC
-(II) Loading extension XFree86-VidModeExtension
-(II) Loading extension XFree86-Misc
-(II) Loading extension XFree86-DGA
-(II) Loading extension DPMS
-(II) Loading extension FontCache
-(II) Loading extension TOG-CUP
-(II) Loading extension Extended-Visual-Information
-(II) Loading extension XVideo
-(II) Loading extension XVideo-MotionCompensation
-(II) Loading extension X-Resource
-(II) LoadModule: "freetype"
-(II) Loading /usr/X11R6/lib/modules/fonts/libfreetype.a
-(II) Module freetype: vendor="The XFree86 Project & the After X-TT Project"
-	compiled for 4.3.99.902, module version = 2.1.0
-	Module class: XFree86 Font Renderer
-	ABI class: XFree86 Font Renderer, version 0.4
-(II) Loading font FreeType
-(II) LoadModule: "glx"
-(II) Loading /usr/X11R6/lib/modules/extensions/libglx.a
-(II) Module glx: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	ABI class: XFree86 Server Extension, version 0.2
-(II) Loading sub module "GLcore"
-(II) LoadModule: "GLcore"
-(II) Reloading /usr/X11R6/lib/modules/extensions/libGLcore.a
-(II) Loading extension GLX
-(II) LoadModule: "int10"
-(II) Loading /usr/X11R6/lib/modules/linux/libint10.a
-(II) Module int10: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	ABI class: XFree86 Video Driver, version 0.7
-(II) LoadModule: "record"
-(II) Loading /usr/X11R6/lib/modules/extensions/librecord.a
-(II) Module record: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.13.0
-	Module class: XFree86 Server Extension
-	ABI class: XFree86 Server Extension, version 0.2
-(II) Loading extension RECORD
-(II) LoadModule: "speedo"
-(II) Loading /usr/X11R6/lib/modules/fonts/libspeedo.a
-(II) Module speedo: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.1
-	Module class: XFree86 Font Renderer
-	ABI class: XFree86 Font Renderer, version 0.4
-(II) Loading font Speedo
-(II) LoadModule: "type1"
-(II) Loading /usr/X11R6/lib/modules/fonts/libtype1.a
-(II) Module type1: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.2
-	Module class: XFree86 Font Renderer
-	ABI class: XFree86 Font Renderer, version 0.4
-(II) Loading font Type1
-(II) Loading font CID
-(II) LoadModule: "vbe"
-(II) Loading /usr/X11R6/lib/modules/libvbe.a
-(II) Module vbe: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.1.0
-	ABI class: XFree86 Video Driver, version 0.7
-(II) LoadModule: "ati"
-(II) Loading /usr/X11R6/lib/modules/drivers/ati_drv.o
-(II) Module ati: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 6.5.5
-	Module class: XFree86 Video Driver
-	ABI class: XFree86 Video Driver, version 0.7
-(II) LoadModule: "mouse"
-(II) Loading /usr/X11R6/lib/modules/input/mouse_drv.o
-(II) Module mouse: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	Module class: XFree86 XInput Driver
-	ABI class: XFree86 XInput driver, version 0.4
-(II) ATI: ATI driver (version 6.5.5) for chipsets: ati, ativga
-(II) R128: Driver for ATI Rage 128 chipsets:
-	ATI Rage 128 Mobility M3 LE (PCI), ATI Rage 128 Mobility M3 LF (AGP),
-	ATI Rage 128 Mobility M4 MF (AGP), ATI Rage 128 Mobility M4 ML (AGP),
-	ATI Rage 128 Pro GL PA (PCI/AGP), ATI Rage 128 Pro GL PB (PCI/AGP),
-	ATI Rage 128 Pro GL PC (PCI/AGP), ATI Rage 128 Pro GL PD (PCI),
-	ATI Rage 128 Pro GL PE (PCI/AGP), ATI Rage 128 Pro GL PF (AGP),
-	ATI Rage 128 Pro VR PG (PCI/AGP), ATI Rage 128 Pro VR PH (PCI/AGP),
-	ATI Rage 128 Pro VR PI (PCI/AGP), ATI Rage 128 Pro VR PJ (PCI/AGP),
-	ATI Rage 128 Pro VR PK (PCI/AGP), ATI Rage 128 Pro VR PL (PCI/AGP),
-	ATI Rage 128 Pro VR PM (PCI/AGP), ATI Rage 128 Pro VR PN (PCI/AGP),
-	ATI Rage 128 Pro VR PO (PCI/AGP), ATI Rage 128 Pro VR PP (PCI),
-	ATI Rage 128 Pro VR PQ (PCI/AGP), ATI Rage 128 Pro VR PR (PCI),
-	ATI Rage 128 Pro VR PS (PCI/AGP), ATI Rage 128 Pro VR PT (PCI/AGP),
-	ATI Rage 128 Pro VR PU (PCI/AGP), ATI Rage 128 Pro VR PV (PCI/AGP),
-	ATI Rage 128 Pro VR PW (PCI/AGP), ATI Rage 128 Pro VR PX (PCI/AGP),
-	ATI Rage 128 GL RE (PCI), ATI Rage 128 GL RF (AGP),
-	ATI Rage 128 RG (AGP), ATI Rage 128 VR RK (PCI),
-	ATI Rage 128 VR RL (AGP), ATI Rage 128 4X SE (PCI/AGP),
-	ATI Rage 128 4X SF (PCI/AGP), ATI Rage 128 4X SG (PCI/AGP),
-	ATI Rage 128 4X SH (PCI/AGP), ATI Rage 128 4X SK (PCI/AGP),
-	ATI Rage 128 4X SL (PCI/AGP), ATI Rage 128 4X SM (AGP),
-	ATI Rage 128 4X SN (PCI/AGP), ATI Rage 128 Pro ULTRA TF (AGP),
-	ATI Rage 128 Pro ULTRA TL (AGP), ATI Rage 128 Pro ULTRA TR (AGP),
-	ATI Rage 128 Pro ULTRA TS (AGP?), ATI Rage 128 Pro ULTRA TT (AGP?),
-	ATI Rage 128 Pro ULTRA TU (AGP?)
-(II) RADEON: Driver for ATI Radeon chipsets: ATI Radeon QD (AGP),
-	ATI Radeon QE (AGP), ATI Radeon QF (AGP), ATI Radeon QG (AGP),
-	ATI Radeon VE/7000 QY (AGP/PCI), ATI Radeon VE/7000 QZ (AGP/PCI),
-	ATI Radeon Mobility M7 LW (AGP),
-	ATI Mobility FireGL 7800 M7 LX (AGP),
-	ATI Radeon Mobility M6 LY (AGP), ATI Radeon Mobility M6 LZ (AGP),
-	ATI Radeon IGP320 (A3) 4136, ATI Radeon IGP320M (U1) 4336,
-	ATI Radeon IGP330/340/350 (A4) 4137,
-	ATI Radeon IGP330M/340M/350M (U2) 4337,
-	ATI Radeon 7000 IGP (A4+) 4237, ATI Radeon Mobility 7000 IGP 4437,
-	ATI FireGL 8700/8800 QH (AGP), ATI Radeon 8500 QL (AGP),
-	ATI Radeon 9100 QM (AGP), ATI Radeon 8500 AIW BB (AGP),
-	ATI Radeon 8500 AIW BC (AGP), ATI Radeon 7500 QW (AGP/PCI),
-	ATI Radeon 7500 QX (AGP/PCI), ATI Radeon 9000/PRO If (AGP/PCI),
-	ATI Radeon 9000 Ig (AGP/PCI), ATI FireGL Mobility 9000 (M9) Ld (AGP),
-	ATI Radeon Mobility 9000 (M9) Lf (AGP),
-	ATI Radeon Mobility 9000 (M9) Lg (AGP),
-	ATI Radeon 9100 IGP (A5) 5834,
-	ATI Radeon Mobility 9100 IGP (U3) 5835,
-	ATI Radeon 9200PRO 5960 (AGP), ATI Radeon 9200 5961 (AGP),
-	ATI Radeon 9200 5962 (AGP), ATI Radeon 9200SE 5964 (AGP),
-	ATI Radeon Mobility 9200 (M9+) 5C61 (AGP),
-	ATI Radeon Mobility 9200 (M9+) 5C63 (AGP), ATI Radeon 9500 AD (AGP),
-	ATI Radeon 9500 AE (AGP), ATI Radeon 9600TX AF (AGP),
-	ATI FireGL Z1 AG (AGP), ATI Radeon 9700 Pro ND (AGP),
-	ATI Radeon 9700/9500Pro NE (AGP), ATI Radeon 9700 NF (AGP),
-	ATI FireGL X1 NG (AGP), ATI Radeon 9600 AP (AGP),
-	ATI Radeon 9600SE AQ (AGP), ATI Radeon 9600XT AR (AGP),
-	ATI Radeon 9600 AS (AGP), ATI FireGL T2 AT (AGP),
-	ATI FireGL RV360 AV (AGP), ATI Radeon Mobility 9600 (M10) NP (AGP),
-	ATI Radeon Mobility 9600 (M10) NQ (AGP),
-	ATI Radeon Mobility 9600 (M11) NR (AGP),
-	ATI Radeon Mobility 9600 (M10) NS (AGP),
-	ATI FireGL Mobility T2 (M10) NT (AGP),
-	ATI FireGL Mobility T2 (M11) NV (AGP), ATI Radeon 9800SE AH (AGP),
-	ATI Radeon 9800 AI (AGP), ATI Radeon 9800 AJ (AGP),
-	ATI FireGL X2 AK (AGP), ATI Radeon 9800PRO NH (AGP),
-	ATI Radeon 9800 NI (AGP), ATI FireGL X2 NK (AGP),
-	ATI Radeon 9800XT NJ (AGP)
-(II) Primary Device is: PCI 01:00:0
-(II) ATI:  Candidate "Device" section "Generic Video Card".
-(--) Assigning device section with no busID to primary device
-(--) Chipset ATI Radeon Mobility 9200 (M9+) 5C63 (AGP) found
-(II) resource ranges after xf86ClaimFixedResources() call:
-	[0] -1	0	0xffe00000 - 0xffffffff (0x200000) MX[B](B)
-	[1] -1	0	0x00100000 - 0x1fffffff (0x1ff00000) MX[B]E(B)
-	[2] -1	0	0x000f0000 - 0x000fffff (0x10000) MX[B]
-	[3] -1	0	0x000c0000 - 0x000effff (0x30000) MX[B]
-	[4] -1	0	0x00000000 - 0x0009ffff (0xa0000) MX[B]
-	[5] -1	0	0xd0200000 - 0xd0200fff (0x1000) MX[B]
-	[6] -1	0	0xd0201000 - 0xd02017ff (0x800) MX[B]
-	[7] -1	0	0xd0201800 - 0xd02018ff (0x100) MX[B]
-	[8] -1	0	0xd0000800 - 0xd00008ff (0x100) MX[B]
-	[9] -1	0	0xd0000c00 - 0xd0000dff (0x200) MX[B]
-	[10] -1	0	0x20000000 - 0x200003ff (0x400) MX[B]
-	[11] -1	0	0xd0000000 - 0xd00003ff (0x400) MX[B]
-	[12] -1	0	0xe0000000 - 0xdfffffff (0x0) MX[B]O
-	[13] -1	0	0xd0100000 - 0xd010ffff (0x10000) MX[B](B)
-	[14] -1	0	0xd8000000 - 0xdfffffff (0x8000000) MX[B](B)
-	[15] -1	0	0x0000ffff - 0x0000ffff (0x1) IX[B]
-	[16] -1	0	0x00000000 - 0x000000ff (0x100) IX[B]
-	[17] -1	0	0x00004000 - 0x000040ff (0x100) IX[B]
-	[18] -1	0	0x00002000 - 0x0000207f (0x80) IX[B]
-	[19] -1	0	0x00002400 - 0x000024ff (0x100) IX[B]
-	[20] -1	0	0x00001880 - 0x000018bf (0x40) IX[B]
-	[21] -1	0	0x00001c00 - 0x00001cff (0x100) IX[B]
-	[22] -1	0	0x00001860 - 0x0000186f (0x10) IX[B]
-	[23] -1	0	0x00001840 - 0x0000185f (0x20) IX[B]
-	[24] -1	0	0x00001820 - 0x0000183f (0x20) IX[B]
-	[25] -1	0	0x00001800 - 0x0000181f (0x20) IX[B]
-	[26] -1	0	0x00003000 - 0x000030ff (0x100) IX[B](B)
-(II) Loading sub module "radeon"
-(II) LoadModule: "radeon"
-(II) Loading /usr/X11R6/lib/modules/drivers/radeon_drv.o
-(II) Module radeon: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 4.0.1
-	Module class: XFree86 Video Driver
-	ABI class: XFree86 Video Driver, version 0.7
-(II) resource ranges after probing:
-	[0] -1	0	0xffe00000 - 0xffffffff (0x200000) MX[B](B)
-	[1] -1	0	0x00100000 - 0x1fffffff (0x1ff00000) MX[B]E(B)
-	[2] -1	0	0x000f0000 - 0x000fffff (0x10000) MX[B]
-	[3] -1	0	0x000c0000 - 0x000effff (0x30000) MX[B]
-	[4] -1	0	0x00000000 - 0x0009ffff (0xa0000) MX[B]
-	[5] -1	0	0xd0200000 - 0xd0200fff (0x1000) MX[B]
-	[6] -1	0	0xd0201000 - 0xd02017ff (0x800) MX[B]
-	[7] -1	0	0xd0201800 - 0xd02018ff (0x100) MX[B]
-	[8] -1	0	0xd0000800 - 0xd00008ff (0x100) MX[B]
-	[9] -1	0	0xd0000c00 - 0xd0000dff (0x200) MX[B]
-	[10] -1	0	0x20000000 - 0x200003ff (0x400) MX[B]
-	[11] -1	0	0xd0000000 - 0xd00003ff (0x400) MX[B]
-	[12] -1	0	0xe0000000 - 0xdfffffff (0x0) MX[B]O
-	[13] -1	0	0xd0100000 - 0xd010ffff (0x10000) MX[B](B)
-	[14] -1	0	0xd8000000 - 0xdfffffff (0x8000000) MX[B](B)
-	[15] 0	0	0x000a0000 - 0x000affff (0x10000) MS[B]
-	[16] 0	0	0x000b0000 - 0x000b7fff (0x8000) MS[B]
-	[17] 0	0	0x000b8000 - 0x000bffff (0x8000) MS[B]
-	[18] -1	0	0x0000ffff - 0x0000ffff (0x1) IX[B]
-	[19] -1	0	0x00000000 - 0x000000ff (0x100) IX[B]
-	[20] -1	0	0x00004000 - 0x000040ff (0x100) IX[B]
-	[21] -1	0	0x00002000 - 0x0000207f (0x80) IX[B]
-	[22] -1	0	0x00002400 - 0x000024ff (0x100) IX[B]
-	[23] -1	0	0x00001880 - 0x000018bf (0x40) IX[B]
-	[24] -1	0	0x00001c00 - 0x00001cff (0x100) IX[B]
-	[25] -1	0	0x00001860 - 0x0000186f (0x10) IX[B]
-	[26] -1	0	0x00001840 - 0x0000185f (0x20) IX[B]
-	[27] -1	0	0x00001820 - 0x0000183f (0x20) IX[B]
-	[28] -1	0	0x00001800 - 0x0000181f (0x20) IX[B]
-	[29] -1	0	0x00003000 - 0x000030ff (0x100) IX[B](B)
-	[30] 0	0	0x000003b0 - 0x000003bb (0xc) IS[B]
-	[31] 0	0	0x000003c0 - 0x000003df (0x20) IS[B]
-(II) Setting vga for screen 0.
-(II) RADEON(0): MMIO registers at 0xd0100000
-(II) Loading sub module "vgahw"
-(II) LoadModule: "vgahw"
-(II) Loading /usr/X11R6/lib/modules/libvgahw.a
-(II) Module vgahw: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 0.1.0
-	ABI class: XFree86 Video Driver, version 0.7
-(II) RADEON(0): vgaHWGetIOBase: hwp->IOBase is 0x03d0, hwp->PIOOffset is 0x0000
-(II) RADEON(0): PCI bus 1 card 0 func 0
-(**) RADEON(0): Depth 24, (--) framebuffer bpp 32
-(II) RADEON(0): Pixel depth = 24 bits stored in 4 bytes (32 bpp pixmaps)
-(==) RADEON(0): Default visual is TrueColor
-(**) RADEON(0): Option "AGPMode" "4"
-(==) RADEON(0): RGB weight 888
-(II) RADEON(0): Using 8 bits per RGB (8 bit DAC)
-(II) Loading sub module "int10"
-(II) LoadModule: "int10"
-(II) Reloading /usr/X11R6/lib/modules/linux/libint10.a
-(II) RADEON(0): initializing int10
-(II) RADEON(0): Primary V_BIOS segment is: 0xc000
-(--) RADEON(0): Chipset: "ATI Radeon Mobility 9200 (M9+) 5C63 (AGP)" (ChipID = 0x5c63)
-(--) RADEON(0): Linear framebuffer at 0xd8000000
-(--) RADEON(0): VideoRAM: 32768 kByte (64 bit DDR SDRAM)
-(II) RADEON(0): AGP card detected
-(II) Loading sub module "ddc"
-(II) LoadModule: "ddc"
-(II) Reloading /usr/X11R6/lib/modules/libddc.a
-(II) Loading sub module "i2c"
-(II) LoadModule: "i2c"
-(II) Loading /usr/X11R6/lib/modules/libi2c.a
-(II) Module i2c: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.2.0
-	ABI class: XFree86 Video Driver, version 0.7
-(II) RADEON(0): I2C bus "DDC" initialized.
-(II) RADEON(0): I2C device "DDC:ddc2" registered at address 0xA0.
-(II) RADEON(0): I2C device "DDC:ddc2" removed.
-(II) RADEON(0): I2C device "DDC:ddc2" registered at address 0xA0.
-(II) RADEON(0): I2C device "DDC:ddc2" removed.
-(II) RADEON(0): I2C device "DDC:ddc2" registered at address 0xA0.
-(II) RADEON(0): I2C device "DDC:ddc2" removed.
-(II) RADEON(0): DDC Type: 2, Detected Type: 0
-(II) RADEON(0): I2C device "DDC:ddc2" registered at address 0xA0.
-(II) RADEON(0): I2C device "DDC:ddc2" removed.
-(II) RADEON(0): I2C device "DDC:ddc2" registered at address 0xA0.
-(II) RADEON(0): I2C device "DDC:ddc2" removed.
-(II) RADEON(0): I2C device "DDC:ddc2" registered at address 0xA0.
-(II) RADEON(0): I2C device "DDC:ddc2" removed.
-(II) RADEON(0): DDC Type: 4, Detected Type: 0
-(II) RADEON(0): Non-DDC laptop panel detected
-(II) RADEON(0): I2C device "DDC:ddc2" registered at address 0xA0.
-(II) RADEON(0): I2C device "DDC:ddc2" removed.
-(II) RADEON(0): I2C device "DDC:ddc2" registered at address 0xA0.
-(II) RADEON(0): I2C device "DDC:ddc2" removed.
-(II) RADEON(0): I2C device "DDC:ddc2" registered at address 0xA0.
-(II) RADEON(0): I2C device "DDC:ddc2" removed.
-(II) RADEON(0): DDC Type: 3, Detected Type: 0
-(II) RADEON(0): I2C device "DDC:ddc2" registered at address 0xA0.
-(II) RADEON(0): I2C device "DDC:ddc2" removed.
-(II) RADEON(0): I2C device "DDC:ddc2" registered at address 0xA0.
-(II) RADEON(0): I2C device "DDC:ddc2" removed.
-(II) RADEON(0): I2C device "DDC:ddc2" registered at address 0xA0.
-(II) RADEON(0): I2C device "DDC:ddc2" removed.
-(II) RADEON(0): DDC Type: 4, Detected Type: 0
-(II) RADEON(0): Displays Detected: Monitor1--Type 2, Monitor2--Type 0
+     {
 
-(II) RADEON(0): 
-(II) RADEON(0): Primary Display == Type 2
-(II) RADEON(0): Panel ID string: Samsung LTN150P1-L02    
-(II) RADEON(0): Panel Size from BIOS: 1400x1050
-(II) RADEON(0): BIOS provided dividers will be used.
-(==) RADEON(0): Using gamma correction (1.0, 1.0, 1.0)
-(II) RADEON(0): Validating modes on Primary head ---------
-(II) RADEON(0): Total number of valid DDC mode(s) found: 0
-(II) RADEON(0): Valid mode using on-chip RMX: 1400x1050
-(II) RADEON(0): Valid mode using on-chip RMX: 1280x1024
-(II) RADEON(0): Valid mode using on-chip RMX: 1280x960
-(II) RADEON(0): Valid mode using on-chip RMX: 1024x768
-(II) RADEON(0): Valid mode using on-chip RMX: 800x600
-(II) RADEON(0): Valid mode using on-chip RMX: 640x480
-(II) RADEON(0): Total number of valid FP mode(s) found: 6
-(--) RADEON(0): Virtual size is 1400x1050 (pitch 1408)
-(**) RADEON(0): *Mode "1400x1050": 108.0 MHz (scaled from 0.0 MHz), 64.0 kHz, 60.2 Hz
-(II) RADEON(0): Modeline "1400x1050"  108.00  1400 34208 34320 1688  1050 1052 1055 1063
-(**) RADEON(0): *Mode "1280x1024": 108.0 MHz (scaled from 0.0 MHz), 64.0 kHz, 60.2 Hz
-(II) RADEON(0): Modeline "1280x1024"  108.00  1280 34208 34320 1688  1024 1052 1055 1063
-(**) RADEON(0): *Mode "1280x960": 108.0 MHz (scaled from 0.0 MHz), 64.0 kHz, 60.2 Hz
-(II) RADEON(0): Modeline "1280x960"  108.00  1280 34208 34320 1688  960 1052 1055 1063
-(**) RADEON(0): *Mode "1024x768": 108.0 MHz (scaled from 0.0 MHz), 64.0 kHz, 60.2 Hz
-(II) RADEON(0): Modeline "1024x768"  108.00  1024 34208 34320 1688  768 1052 1055 1063
-(**) RADEON(0): *Mode "800x600": 108.0 MHz (scaled from 0.0 MHz), 64.0 kHz, 60.2 Hz
-(II) RADEON(0): Modeline "800x600"  108.00  800 34208 34320 1688  600 1052 1055 1063
-(**) RADEON(0): *Mode "640x480": 108.0 MHz (scaled from 0.0 MHz), 64.0 kHz, 60.2 Hz
-(II) RADEON(0): Modeline "640x480"  108.00  640 34208 34320 1688  480 1052 1055 1063
-(**) RADEON(0):  Default mode "640x350": 108.0 MHz (scaled from 0.0 MHz), 64.0 kHz, 60.2 Hz
-(II) RADEON(0): Modeline "640x350"  108.00  640 34208 34320 1688  350 1052 1055 1063
-(**) RADEON(0):  Default mode "640x400": 108.0 MHz (scaled from 0.0 MHz), 64.0 kHz, 60.2 Hz
-(II) RADEON(0): Modeline "640x400"  108.00  640 34208 34320 1688  400 1052 1055 1063
-(**) RADEON(0):  Default mode "720x400": 108.0 MHz (scaled from 0.0 MHz), 64.0 kHz, 60.2 Hz
-(II) RADEON(0): Modeline "720x400"  108.00  720 34208 34320 1688  400 1052 1055 1063
-(**) RADEON(0):  Default mode "1152x864": 108.0 MHz (scaled from 0.0 MHz), 64.0 kHz, 60.2 Hz
-(II) RADEON(0): Modeline "1152x864"  108.00  1152 34208 34320 1688  864 1052 1055 1063
-(**) RADEON(0):  Default mode "832x624": 108.0 MHz (scaled from 0.0 MHz), 64.0 kHz, 60.2 Hz
-(II) RADEON(0): Modeline "832x624"  108.00  832 34208 34320 1688  624 1052 1055 1063
-(**) RADEON(0):  Default mode "1152x768": 108.0 MHz (scaled from 0.0 MHz), 64.0 kHz, 60.2 Hz
-(II) RADEON(0): Modeline "1152x768"  108.00  1152 34208 34320 1688  768 1052 1055 1063
-(==) RADEON(0): DPI set to (75, 75)
-(II) Loading sub module "fb"
-(II) LoadModule: "fb"
-(II) Loading /usr/X11R6/lib/modules/libfb.a
-(II) Module fb: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	ABI class: XFree86 ANSI C Emulation, version 0.2
-(II) Loading sub module "ramdac"
-(II) LoadModule: "ramdac"
-(II) Loading /usr/X11R6/lib/modules/libramdac.a
-(II) Module ramdac: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 0.1.0
-	ABI class: XFree86 Video Driver, version 0.7
-(II) Loading sub module "xaa"
-(II) LoadModule: "xaa"
-(II) Loading /usr/X11R6/lib/modules/libxaa.a
-(II) Module xaa: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.1.0
-	ABI class: XFree86 Video Driver, version 0.7
-(**) RADEON(0): Using AGP 4x mode
-(II) RADEON(0): AGP Fast Write disabled by default
-(II) RADEON(0): Depth moves disabled by default
-(II) Loading sub module "shadowfb"
-(II) LoadModule: "shadowfb"
-(II) Loading /usr/X11R6/lib/modules/libshadowfb.a
-(II) Module shadowfb: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	ABI class: XFree86 ANSI C Emulation, version 0.2
-(II) RADEON(0): Page flipping disabled
-(!!) RADEON(0): For information on using the multimedia capabilities
- of this adapter, please see http://gatos.sf.net.
-(--) Depth 24 pixmap format is 32 bpp
-(II) do I need RAC?  No, I don't.
-(II) resource ranges after preInit:
-	[0] 0	0	0xd0100000 - 0xd010ffff (0x10000) MX[B]
-	[1] 0	0	0xd8000000 - 0xdfffffff (0x8000000) MX[B]
-	[2] -1	0	0xffe00000 - 0xffffffff (0x200000) MX[B](B)
-	[3] -1	0	0x00100000 - 0x1fffffff (0x1ff00000) MX[B]E(B)
-	[4] -1	0	0x000f0000 - 0x000fffff (0x10000) MX[B]
-	[5] -1	0	0x000c0000 - 0x000effff (0x30000) MX[B]
-	[6] -1	0	0x00000000 - 0x0009ffff (0xa0000) MX[B]
-	[7] -1	0	0xd0200000 - 0xd0200fff (0x1000) MX[B]
-	[8] -1	0	0xd0201000 - 0xd02017ff (0x800) MX[B]
-	[9] -1	0	0xd0201800 - 0xd02018ff (0x100) MX[B]
-	[10] -1	0	0xd0000800 - 0xd00008ff (0x100) MX[B]
-	[11] -1	0	0xd0000c00 - 0xd0000dff (0x200) MX[B]
-	[12] -1	0	0x20000000 - 0x200003ff (0x400) MX[B]
-	[13] -1	0	0xd0000000 - 0xd00003ff (0x400) MX[B]
-	[14] -1	0	0xe0000000 - 0xdfffffff (0x0) MX[B]O
-	[15] -1	0	0xd0100000 - 0xd010ffff (0x10000) MX[B](B)
-	[16] -1	0	0xd8000000 - 0xdfffffff (0x8000000) MX[B](B)
-	[17] 0	0	0x000a0000 - 0x000affff (0x10000) MS[B](OprU)
-	[18] 0	0	0x000b0000 - 0x000b7fff (0x8000) MS[B](OprU)
-	[19] 0	0	0x000b8000 - 0x000bffff (0x8000) MS[B](OprU)
-	[20] 0	0	0x00003000 - 0x000030ff (0x100) IX[B]
-	[21] -1	0	0x0000ffff - 0x0000ffff (0x1) IX[B]
-	[22] -1	0	0x00000000 - 0x000000ff (0x100) IX[B]
-	[23] -1	0	0x00004000 - 0x000040ff (0x100) IX[B]
-	[24] -1	0	0x00002000 - 0x0000207f (0x80) IX[B]
-	[25] -1	0	0x00002400 - 0x000024ff (0x100) IX[B]
-	[26] -1	0	0x00001880 - 0x000018bf (0x40) IX[B]
-	[27] -1	0	0x00001c00 - 0x00001cff (0x100) IX[B]
-	[28] -1	0	0x00001860 - 0x0000186f (0x10) IX[B]
-	[29] -1	0	0x00001840 - 0x0000185f (0x20) IX[B]
-	[30] -1	0	0x00001820 - 0x0000183f (0x20) IX[B]
-	[31] -1	0	0x00001800 - 0x0000181f (0x20) IX[B]
-	[32] -1	0	0x00003000 - 0x000030ff (0x100) IX[B](B)
-	[33] 0	0	0x000003b0 - 0x000003bb (0xc) IS[B](OprU)
-	[34] 0	0	0x000003c0 - 0x000003df (0x20) IS[B](OprU)
-(WW) RADEON(0): Failed to set up write-combining range (0xd8000000,0x2000000)
-drmOpenDevice: minor is 0
-drmOpenDevice: node name is /dev/dri/card0
-drmOpenDevice: open result is -1, (Unknown error 999)
-drmOpenDevice: open result is -1, (Unknown error 999)
-drmOpenDevice: Open failed
-drmOpenDevice: minor is 0
-drmOpenDevice: node name is /dev/dri/card0
-drmOpenDevice: open result is -1, (Unknown error 999)
-drmOpenDevice: open result is -1, (Unknown error 999)
-drmOpenDevice: Open failed
-drmOpenDevice: minor is 0
-drmOpenDevice: node name is /dev/dri/card0
-drmOpenDevice: open result is 5, (OK)
-drmGetBusid returned ''
-(II) RADEON(0): [drm] loaded kernel module for "radeon" driver
-(II) RADEON(0): [drm] created "radeon" driver at busid "PCI:1:0:0"
-(II) RADEON(0): [drm] added 8192 byte SAREA at 0xe0b9b000
-(II) RADEON(0): [drm] mapped SAREA 0xe0b9b000 to 0xb5d7d000
-(II) RADEON(0): [drm] framebuffer handle = 0xd8000000
-(II) RADEON(0): [drm] added 1 reserved context for kernel
-(II) RADEON(0): [agp] Mode 0x1f000207 [AGP 0x8086/0x3340; Card 0x1002/0x5c63]
-(II) RADEON(0): [agp] 8192 kB allocated with handle 0x00000001
-(II) RADEON(0): [agp] ring handle = 0xe0000000
-(II) RADEON(0): [agp] Ring mapped at 0xb5c7c000
-(II) RADEON(0): [agp] ring read ptr handle = 0xe0101000
-(II) RADEON(0): [agp] Ring read ptr mapped at 0xb5c7b000
-(II) RADEON(0): [agp] vertex/indirect buffers handle = 0xe0102000
-(II) RADEON(0): [agp] Vertex/indirect buffers mapped at 0xb5a7b000
-(II) RADEON(0): [agp] GART texture map handle = 0xe0302000
-(II) RADEON(0): [agp] GART Texture map mapped at 0xb559b000
-(II) RADEON(0): [drm] register handle = 0xd0100000
-(II) RADEON(0): [dri] Visual configs initialized
-(II) RADEON(0): CP in BM mode
-(II) RADEON(0): Using 8 MB GART aperture
-(II) RADEON(0): Using 1 MB for the ring buffer
-(II) RADEON(0): Using 2 MB for vertex/indirect buffers
-(II) RADEON(0): Using 5 MB for GART textures
-(II) RADEON(0): Memory manager initialized to (0,0) (1408,5957)
-(II) RADEON(0): Reserved area from (0,1050) to (1408,1052)
-(II) RADEON(0): Largest offscreen area available: 1408 x 4905
-(II) RADEON(0): Will use back buffer at offset 0xb70000
-(II) RADEON(0): Will use depth buffer at offset 0x1114000
-(II) RADEON(0): Will use 9472 kb for textures at offset 0x16c0000
-(II) RADEON(0): Using XFree86 Acceleration Architecture (XAA)
-	Screen to screen bit blits
-	Solid filled rectangles
-	8x8 mono pattern filled rectangles
-	Indirect CPU to Screen color expansion
-	Solid Lines
-	Scanline Image Writes
-	Offscreen Pixmaps
-	Setting up tile and stipple cache:
-		32 128x128 slots
-		32 256x256 slots
-		15 512x512 slots
-(II) RADEON(0): Acceleration enabled
-(==) RADEON(0): Backing store disabled
-(==) RADEON(0): Silken mouse enabled
-(II) RADEON(0): Using hardware cursor (scanline 1052)
-(II) RADEON(0): Largest offscreen area available: 1408 x 4902
-(**) Option "dpms"
-(**) RADEON(0): DPMS enabled
-(II) RADEON(0): X context handle = 0x00000001
-(II) RADEON(0): [drm] installed DRM signal handler
-(II) RADEON(0): [DRI] installation complete
-(II) RADEON(0): [drm] Added 32 65536 byte vertex/indirect buffers
-(II) RADEON(0): [drm] Mapped 32 vertex/indirect buffers
-(II) RADEON(0): [drm] dma control initialized, using IRQ 5
-(II) RADEON(0): [drm] Initialized kernel GART heap manager, 5111808
-(II) RADEON(0): Direct rendering enabled
-(==) RandR enabled
-(II) Initializing built-in extension MIT-SHM
-(II) Initializing built-in extension XInputExtension
-(II) Initializing built-in extension XTEST
-(II) Initializing built-in extension XKEYBOARD
-(II) Initializing built-in extension LBX
-(II) Initializing built-in extension XC-APPGROUP
-(II) Initializing built-in extension SECURITY
-(II) Initializing built-in extension XINERAMA
-(II) Initializing built-in extension XFree86-Bigfont
-(II) Initializing built-in extension RENDER
-(II) Initializing built-in extension RANDR
-(II) Keyboard "Generic Keyboard" handled by legacy driver
-(**) Option "Protocol" "ImPS/2"
-(**) USB Mouse: Device: "/dev/input/mice"
-(**) USB Mouse: Protocol: "ImPS/2"
-(**) Option "CorePointer"
-(**) USB Mouse: Core Pointer
-(**) Option "Device" "/dev/input/mice"
-(**) USB Mouse: Emulate3Buttons, Emulate3Timeout: 50
-(**) Option "ZAxisMapping" "4 5"
-(**) USB Mouse: ZAxisMapping: buttons 4 and 5
-(**) USB Mouse: Buttons: 5
-(**) Option "Protocol" "ImPS/2"
-(**) Touchpad: Device: "/dev/psaux"
-(**) Touchpad: Protocol: "ImPS/2"
-(**) Option "Device" "/dev/psaux"
-(**) Option "Emulate3Buttons" "true"
-(**) Touchpad: Emulate3Buttons, Emulate3Timeout: 50
-(**) Option "ZAxisMapping" "4 5"
-(**) Touchpad: ZAxisMapping: buttons 4 and 5
-(**) Touchpad: Buttons: 5
-(II) XINPUT: Adding extended input device "Touchpad" (type: MOUSE)
-(II) XINPUT: Adding extended input device "USB Mouse" (type: MOUSE)
-(II) USB Mouse: ps2EnableDataReporting: succeeded
-Warning: font renderer for ".pcf" already registered at priority 0
-Warning: font renderer for ".pcf.Z" already registered at priority 0
-Warning: font renderer for ".pcf.gz" already registered at priority 0
-Warning: font renderer for ".snf" already registered at priority 0
-Warning: font renderer for ".snf.Z" already registered at priority 0
-Warning: font renderer for ".snf.gz" already registered at priority 0
-Warning: font renderer for ".bdf" already registered at priority 0
-Warning: font renderer for ".bdf.Z" already registered at priority 0
-Warning: font renderer for ".bdf.gz" already registered at priority 0
-Warning: font renderer for ".pmf" already registered at priority 0
-(II) Touchpad: ps2EnableDataReporting: succeeded
-GetModeLine - scrn: 0 clock: 108000
-GetModeLine - hdsp: 1400 hbeg: 34208 hend: 34320 httl: 1688
-              vdsp: 1050 vbeg: 1052 vend: 1055 vttl: 1063 flags: -2147483648
-(II) 3rd Button detected: disabling emulate3Button
+         SS1,    1,
 
---=-GJc3uf76Xb1V+84vGpXr
-Content-Disposition: attachment; filename=XFree86.0.log.fglrx.resume
-Content-Type: text/plain; name=XFree86.0.log.fglrx.resume; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+         SS2,    1,
+
+         SS3,    1,
+
+         SS4,    1,
+
+         Offset (0x01),
+
+         IOST,   16,
+
+         TOPM,   32,
+
+         ROMS,   32,
+
+         MG1B,   32,
+
+         MG1L,   32,
+
+         MG2B,   32,
+
+         MG2L,   32
+
+     }
 
 
-This is a pre-release version of XFree86, and is not supported in any
-way.  Bugs may be reported to XFree86-Mv/r+YdnZeCNvCAlj6F9uA@public.gmane.org and patches submitted
-to fixes-Mv/r+YdnZeCyi60V37fsNg@public.gmane.org  Before reporting bugs in pre-release versions,
-please check the latest version in the XFree86 CVS repository
-(http://www.XFree86.Org/cvs).
 
-XFree86 Version 4.3.99.902 (4.4.0 RC 2)
-Release Date: 18 December 2003
-X Protocol Version 11, Revision 0, Release 6.6
-Build Operating System: Linux 2.6.2-mm1 i686 [ELF] 
-Current Operating System: Linux mhcln03 2.6.10-rc2-mm3pci_resume #2 Tue Nov 23 08:38:51 CET 2004 i686
-Build Date: 06 February 2004
-Changelog Date: 04 February 2004
-	Before reporting problems, check http://www.XFree86.Org/
-	to make sure that you have the latest version.
-Module Loader present
-Markers: (--) probed, (**) from config file, (==) default setting,
-	(++) from command line, (!!) notice, (II) informational,
-	(WW) warning, (EE) error, (NI) not implemented, (??) unknown.
-(==) Log file: "/var/log/XFree86.0.log", Time: Tue Nov 23 09:07:58 2004
-(==) Using config file: "/etc/X11/XF86Config-4"
-(==) ServerLayout "Server Layout"
-(**) |-->Screen "Screen0" (0)
-(**) |   |-->Monitor "LCD"
-(**) |   |-->Device "ATI Graphics Adapter"
-(**) |-->Input Device "USB Mouse"
-(**) |-->Input Device "Touchpad"
-(**) |-->Input Device "Keyboard"
-(**) Option "AutoRepeat" "500 30"
-(**) Option "XkbRules" "xfree86"
-(**) XKB: rules: "xfree86"
-(**) Option "XkbModel" "pc105"
-(**) XKB: model: "pc105"
-(**) Option "XkbLayout" "de"
-(**) XKB: layout: "de"
-(**) Option "XkbVariant" "nodeadkeys"
-(**) XKB: variant: "nodeadkeys"
-(==) Keyboard: CustomKeycode disabled
-(WW) Duplicate core pointer devices.  Removing core pointer attribute from "Touchpad"
-(**) FontPath set to "/usr/X11R6/lib/X11/fonts/misc/,/usr/X11R6/lib/X11/fonts/75dpi/:unscaled,/usr/X11R6/lib/X11/fonts/100dpi/:unscaled,/usr/X11R6/lib/X11/fonts/Type1/,/usr/X11R6/lib/X11/fonts/Speedo/,/usr/X11R6/lib/X11/fonts/75dpi/,/usr/X11R6/lib/X11/fonts/100dpi/"
-(**) RgbPath set to "/usr/X11R6/lib/X11/rgb"
-(==) ModulePath set to "/usr/X11R6/lib/modules"
-(WW) Open APM failed (/dev/apm_bios) (No such file or directory)
-(II) Module ABI versions:
-	XFree86 ANSI C Emulation: 0.2
-	XFree86 Video Driver: 0.7
-	XFree86 XInput driver : 0.4
-	XFree86 Server Extension : 0.2
-	XFree86 Font Renderer : 0.4
-(II) Loader running on linux
-(II) LoadModule: "bitmap"
-(II) Loading /usr/X11R6/lib/modules/fonts/libbitmap.a
-(II) Module bitmap: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	Module class: XFree86 Font Renderer
-	ABI class: XFree86 Font Renderer, version 0.4
-(II) Loading font Bitmap
-(II) LoadModule: "pcidata"
-(II) Loading /usr/X11R6/lib/modules/libpcidata.a
-(II) Module pcidata: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	ABI class: XFree86 Video Driver, version 0.7
-(++) using VT number 8
+     Name (IO1B, 0x0680)
 
-(II) PCI: Probing config type using method 1
-(II) PCI: Config type is 1
-(II) PCI: stages = 0x03, oldVal1 = 0x00000000, mode1Res1 = 0x80000000
-(II) PCI: PCI scan (all values are in hex)
-(II) PCI: 00:00:0: chip 8086,3340 card 144d,c00c rev 21 class 06,00,00 hdr 00
-(II) PCI: 00:01:0: chip 8086,3341 card 0000,0000 rev 21 class 06,04,00 hdr 01
-(II) PCI: 00:1d:0: chip 8086,24c2 card 144d,c00c rev 03 class 0c,03,00 hdr 80
-(II) PCI: 00:1d:1: chip 8086,24c4 card 144d,c00c rev 03 class 0c,03,00 hdr 00
-(II) PCI: 00:1d:2: chip 8086,24c7 card 144d,c00c rev 03 class 0c,03,00 hdr 00
-(II) PCI: 00:1d:7: chip 8086,24cd card 144d,c00c rev 03 class 0c,03,20 hdr 00
-(II) PCI: 00:1e:0: chip 8086,2448 card 0000,0000 rev 83 class 06,04,00 hdr 01
-(II) PCI: 00:1f:0: chip 8086,24cc card 0000,0000 rev 03 class 06,01,00 hdr 80
-(II) PCI: 00:1f:1: chip 8086,24ca card 144d,c00c rev 03 class 01,01,8a hdr 00
-(II) PCI: 00:1f:5: chip 8086,24c5 card 144d,c00c rev 03 class 04,01,00 hdr 00
-(II) PCI: 00:1f:6: chip 8086,24c6 card 144d,c00c rev 03 class 07,03,00 hdr 00
-(II) PCI: 01:00:0: chip 1002,5c63 card 144d,c00c rev 01 class 03,00,00 hdr 00
-(II) PCI: 02:00:0: chip 10ec,8139 card 144d,c00c rev 10 class 02,00,00 hdr 00
-(II) PCI: 02:01:0: chip 1180,0476 card 0000,0000 rev ac class 06,07,00 hdr 82
-(II) PCI: 02:01:1: chip 1180,0476 card 0000,0000 rev ac class 06,07,00 hdr 82
-(II) PCI: 02:01:2: chip 1180,0552 card 144d,c00c rev 04 class 0c,00,10 hdr 80
-(II) PCI: 02:02:0: chip 8086,1043 card 8086,2522 rev 04 class 02,80,00 hdr 00
-(II) PCI: End of PCI scan
-(II) Host-to-PCI bridge:
-(II) Bus 0: bridge is at (0:0:0), (0,0,7), BCTRL: 0x0008 (VGA_EN is set)
-(II) Bus 0 I/O range:
-	[0] -1	0	0x00000000 - 0x0000ffff (0x10000) IX[B]
-(II) Bus 0 non-prefetchable memory range:
-	[0] -1	0	0x00000000 - 0xffffffff (0x0) MX[B]
-(II) Bus 0 prefetchable memory range:
-	[0] -1	0	0x00000000 - 0xffffffff (0x0) MX[B]
-(II) PCI-to-PCI bridge:
-(II) Bus 1: bridge is at (0:1:0), (0,1,1), BCTRL: 0x0008 (VGA_EN is set)
-(II) PCI-to-PCI bridge:
-(II) Bus 2: bridge is at (0:30:0), (0,2,4), BCTRL: 0x0004 (VGA_EN is cleared)
-(II) Bus 2 I/O range:
-	[0] -1	0	0x00004000 - 0x000040ff (0x100) IX[B]
-	[1] -1	0	0x00004400 - 0x000044ff (0x100) IX[B]
-	[2] -1	0	0x00004800 - 0x000048ff (0x100) IX[B]
-	[3] -1	0	0x00004c00 - 0x00004cff (0x100) IX[B]
-(II) Bus 2 non-prefetchable memory range:
-	[0] -1	0	0xd0200000 - 0xd02fffff (0x100000) MX[B]
-(II) PCI-to-ISA bridge:
-(II) Bus -1: bridge is at (0:31:0), (0,-1,-1), BCTRL: 0x0008 (VGA_EN is set)
-(II) PCI-to-CardBus bridge:
-(II) Bus 3: bridge is at (2:1:0), (2,3,6), BCTRL: 0x0780 (VGA_EN is cleared)
-(II) PCI-to-CardBus bridge:
-(II) Bus 7: bridge is at (2:1:1), (2,7,10), BCTRL: 0x0700 (VGA_EN is cleared)
-(--) PCI:*(1:0:0) ATI Technologies Inc unknown chipset (0x5c63) rev 1, Mem @ 0xd8000000/27, 0xd0100000/16, I/O @ 0x3000/8
-(II) Addressable bus resource ranges are
-	[0] -1	0	0x00000000 - 0xffffffff (0x0) MX[B]
-	[1] -1	0	0x00000000 - 0x0000ffff (0x10000) IX[B]
-(II) OS-reported resource ranges:
-	[0] -1	0	0xffe00000 - 0xffffffff (0x200000) MX[B](B)
-	[1] -1	0	0x00100000 - 0x3fffffff (0x3ff00000) MX[B]E(B)
-	[2] -1	0	0x000f0000 - 0x000fffff (0x10000) MX[B]
-	[3] -1	0	0x000c0000 - 0x000effff (0x30000) MX[B]
-	[4] -1	0	0x00000000 - 0x0009ffff (0xa0000) MX[B]
-	[5] -1	0	0x0000ffff - 0x0000ffff (0x1) IX[B]
-	[6] -1	0	0x00000000 - 0x000000ff (0x100) IX[B]
-(II) PCI Memory resource overlap reduced 0xe0000000 from 0xefffffff to 0xdfffffff
-(II) Active PCI resource ranges:
-	[0] -1	0	0xd0201000 - 0xd02017ff (0x800) MX[B]
-	[1] -1	0	0xd0201800 - 0xd02018ff (0x100) MX[B]
-	[2] -1	0	0xd0000000 - 0xd00003ff (0x400) MX[B]
-	[3] -1	0	0xe0000000 - 0xdfffffff (0x0) MX[B]O
-	[4] -1	0	0xd0100000 - 0xd010ffff (0x10000) MX[B](B)
-	[5] -1	0	0xd8000000 - 0xdfffffff (0x8000000) MX[B](B)
-	[6] -1	0	0x00004000 - 0x000040ff (0x100) IX[B]
-	[7] -1	0	0x00001500 - 0x0000157f (0x80) IX[B]
-	[8] -1	0	0x00001400 - 0x000014ff (0x100) IX[B]
-	[9] -1	0	0x00001300 - 0x0000133f (0x40) IX[B]
-	[10] -1	0	0x00001200 - 0x000012ff (0x100) IX[B]
-	[11] -1	0	0x00001860 - 0x0000186f (0x10) IX[B]
-	[12] -1	0	0x00001840 - 0x0000185f (0x20) IX[B]
-	[13] -1	0	0x00001820 - 0x0000183f (0x20) IX[B]
-	[14] -1	0	0x00001800 - 0x0000181f (0x20) IX[B]
-	[15] -1	0	0x00003000 - 0x000030ff (0x100) IX[B](B)
-(II) Active PCI resource ranges after removing overlaps:
-	[0] -1	0	0xd0201000 - 0xd02017ff (0x800) MX[B]
-	[1] -1	0	0xd0201800 - 0xd02018ff (0x100) MX[B]
-	[2] -1	0	0xd0000000 - 0xd00003ff (0x400) MX[B]
-	[3] -1	0	0xe0000000 - 0xdfffffff (0x0) MX[B]O
-	[4] -1	0	0xd0100000 - 0xd010ffff (0x10000) MX[B](B)
-	[5] -1	0	0xd8000000 - 0xdfffffff (0x8000000) MX[B](B)
-	[6] -1	0	0x00004000 - 0x000040ff (0x100) IX[B]
-	[7] -1	0	0x00001500 - 0x0000157f (0x80) IX[B]
-	[8] -1	0	0x00001400 - 0x000014ff (0x100) IX[B]
-	[9] -1	0	0x00001300 - 0x0000133f (0x40) IX[B]
-	[10] -1	0	0x00001200 - 0x000012ff (0x100) IX[B]
-	[11] -1	0	0x00001860 - 0x0000186f (0x10) IX[B]
-	[12] -1	0	0x00001840 - 0x0000185f (0x20) IX[B]
-	[13] -1	0	0x00001820 - 0x0000183f (0x20) IX[B]
-	[14] -1	0	0x00001800 - 0x0000181f (0x20) IX[B]
-	[15] -1	0	0x00003000 - 0x000030ff (0x100) IX[B](B)
-(II) OS-reported resource ranges after removing overlaps with PCI:
-	[0] -1	0	0xffe00000 - 0xffffffff (0x200000) MX[B](B)
-	[1] -1	0	0x00100000 - 0x3fffffff (0x3ff00000) MX[B]E(B)
-	[2] -1	0	0x000f0000 - 0x000fffff (0x10000) MX[B]
-	[3] -1	0	0x000c0000 - 0x000effff (0x30000) MX[B]
-	[4] -1	0	0x00000000 - 0x0009ffff (0xa0000) MX[B]
-	[5] -1	0	0x0000ffff - 0x0000ffff (0x1) IX[B]
-	[6] -1	0	0x00000000 - 0x000000ff (0x100) IX[B]
-(II) All system resource ranges:
-	[0] -1	0	0xffe00000 - 0xffffffff (0x200000) MX[B](B)
-	[1] -1	0	0x00100000 - 0x3fffffff (0x3ff00000) MX[B]E(B)
-	[2] -1	0	0x000f0000 - 0x000fffff (0x10000) MX[B]
-	[3] -1	0	0x000c0000 - 0x000effff (0x30000) MX[B]
-	[4] -1	0	0x00000000 - 0x0009ffff (0xa0000) MX[B]
-	[5] -1	0	0xd0201000 - 0xd02017ff (0x800) MX[B]
-	[6] -1	0	0xd0201800 - 0xd02018ff (0x100) MX[B]
-	[7] -1	0	0xd0000000 - 0xd00003ff (0x400) MX[B]
-	[8] -1	0	0xe0000000 - 0xdfffffff (0x0) MX[B]O
-	[9] -1	0	0xd0100000 - 0xd010ffff (0x10000) MX[B](B)
-	[10] -1	0	0xd8000000 - 0xdfffffff (0x8000000) MX[B](B)
-	[11] -1	0	0x0000ffff - 0x0000ffff (0x1) IX[B]
-	[12] -1	0	0x00000000 - 0x000000ff (0x100) IX[B]
-	[13] -1	0	0x00004000 - 0x000040ff (0x100) IX[B]
-	[14] -1	0	0x00001500 - 0x0000157f (0x80) IX[B]
-	[15] -1	0	0x00001400 - 0x000014ff (0x100) IX[B]
-	[16] -1	0	0x00001300 - 0x0000133f (0x40) IX[B]
-	[17] -1	0	0x00001200 - 0x000012ff (0x100) IX[B]
-	[18] -1	0	0x00001860 - 0x0000186f (0x10) IX[B]
-	[19] -1	0	0x00001840 - 0x0000185f (0x20) IX[B]
-	[20] -1	0	0x00001820 - 0x0000183f (0x20) IX[B]
-	[21] -1	0	0x00001800 - 0x0000181f (0x20) IX[B]
-	[22] -1	0	0x00003000 - 0x000030ff (0x100) IX[B](B)
-(II) LoadModule: "dbe"
-(II) Loading /usr/X11R6/lib/modules/extensions/libdbe.a
-(II) Module dbe: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	Module class: XFree86 Server Extension
-	ABI class: XFree86 Server Extension, version 0.2
-(II) Loading extension DOUBLE-BUFFER
-(II) LoadModule: "extmod"
-(II) Loading /usr/X11R6/lib/modules/extensions/libextmod.a
-(II) Module extmod: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	Module class: XFree86 Server Extension
-	ABI class: XFree86 Server Extension, version 0.2
-(II) Loading extension SHAPE
-(II) Loading extension MIT-SUNDRY-NONSTANDARD
-(II) Loading extension BIG-REQUESTS
-(II) Loading extension SYNC
-(II) Loading extension MIT-SCREEN-SAVER
-(II) Loading extension XC-MISC
-(II) Loading extension XFree86-VidModeExtension
-(II) Loading extension XFree86-Misc
-(II) Loading extension XFree86-DGA
-(II) Loading extension DPMS
-(II) Loading extension FontCache
-(II) Loading extension TOG-CUP
-(II) Loading extension Extended-Visual-Information
-(II) Loading extension XVideo
-(II) Loading extension XVideo-MotionCompensation
-(II) Loading extension X-Resource
-(II) LoadModule: "type1"
-(II) Loading /usr/X11R6/lib/modules/fonts/libtype1.a
-(II) Module type1: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.2
-	Module class: XFree86 Font Renderer
-	ABI class: XFree86 Font Renderer, version 0.4
-(II) Loading font Type1
-(II) Loading font CID
-(II) LoadModule: "freetype"
-(II) Loading /usr/X11R6/lib/modules/fonts/libfreetype.a
-(II) Module freetype: vendor="The XFree86 Project & the After X-TT Project"
-	compiled for 4.3.99.902, module version = 2.1.0
-	Module class: XFree86 Font Renderer
-	ABI class: XFree86 Font Renderer, version 0.4
-(II) Loading font FreeType
-(II) LoadModule: "glx"
-(II) Loading /usr/X11R6/lib/modules/extensions/libglx.a
-(II) Module glx: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	ABI class: XFree86 Server Extension, version 0.2
-(II) Loading sub module "GLcore"
-(II) LoadModule: "GLcore"
-(II) Loading /usr/X11R6/lib/modules/extensions/libGLcore.a
-(II) Module GLcore: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	ABI class: XFree86 Server Extension, version 0.2
-(II) Loading extension GLX
-(II) LoadModule: "dri"
-(II) Loading /usr/X11R6/lib/modules/extensions/libdri.a
-(II) Module dri: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	ABI class: XFree86 Server Extension, version 0.2
-(II) Loading sub module "drm"
-(II) LoadModule: "drm"
-(II) Loading /usr/X11R6/lib/modules/linux/libdrm.a
-(II) Module drm: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	ABI class: XFree86 Server Extension, version 0.2
-(II) Loading extension XFree86-DRI
-(II) LoadModule: "fglrx"
-(II) Loading /usr/X11R6/lib/modules/drivers/fglrx_drv.o
-(II) Module fglrx: vendor="Fire GL - ATI Research GmbH, Germany"
-	compiled for 4.3.0.1, module version = 3.14.1
-	Module class: XFree86 Video Driver
-	ABI class: XFree86 Video Driver, version 0.6
-(II) LoadModule: "mouse"
-(II) Loading /usr/X11R6/lib/modules/input/mouse_drv.o
-(II) Module mouse: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	Module class: XFree86 XInput Driver
-	ABI class: XFree86 XInput driver, version 0.4
-(II) FireGL8700/8800: Driver for chipset: ATI RV250 Id (R9000),
-	ATI RV250 Ie (R9000), ATI RV250 If (R9000), ATI RV250 Ig (R9000),
-	ATI RV250 Ld (M9), ATI RV250 Le (M9), ATI RV250 Lf (M9),
-	ATI RV250 Lg (M9), ATI RV280 5960 (R9200 PRO),
-	ATI RV280 Ya (R9200LE), ATI RV250SE Yd (R9200SE),
-	ATI RV250 5C61 (M9+), ATI RV250 5C63 (M9+), ATI R200 QH (R8500),
-	ATI R200 QL (R8500), ATI R200 QM (R9100), ATI R200 QT (R8500),
-	ATI R200 QU (R9100), ATI R200 BB (R8500), ATI RV350 AP (R9600),
-	ATI RV350SE AQ (R9600SE), ATI RV350 AR (R9600 PRO),
-	ATI RV350 NP (M10), ATI R300 AD (R9500), ATI R300 AE (R9500),
-	ATI R300 AF (R9500), ATI R300 AG (Fire GL Z1/X1),
-	ATI R300 ND (R9700 PRO), ATI R300 NE (R9700/R9500 PRO),
-	ATI R300 NF (R9600 TX), ATI R300 NG (Fire GL X1),
-	ATI R350SE AH (R9800SE), ATI R350 AK (Fire GL unknown),
-	ATI RV350 AS (Fire GL T2), ATI RV350 AT (Fire GL T2),
-	ATI RV350 AU (Fire GL T2), ATI RV350 AV (Fire GL T2),
-	ATI RV350 AW (Fire GL T2), ATI R350 NH (R9800),
-	ATI R350LE NI (R9800LE), ATI R350 NJ (R9800),
-	ATI R350 NK (Fire GL X2), ATI RV350 NT (WS/M10), ATI RV370 5B60,
-	ATI RV370 5B61, ATI RV370 5B62, ATI RV370 5B63, ATI RV370 5B64,
-	ATI RV370 5B66, ATI RV370 5B67, ATI RV370 5B70, ATI RV370 5B71,
-	ATI RV370 5B72, ATI RV370 5B73, ATI RV370 5460, ATI RV370 5461,
-	ATI RV370 5462, ATI RV370 5463, ATI RV370 5464, ATI RV370 5465,
-	ATI RV370 5466, ATI RV370 5467, ATI RV370 5470, ATI RV370 5471,
-	ATI RV370 5472, ATI RV370 5473, ATI RV380 AP, ATI RV380 AQ,
-	ATI RV380 AR, ATI RV380 AS, ATI RV380 AT, ATI RV380 AU, ATI RV380 AV,
-	ATI RV380 AW, ATI RV380 AP2, ATI RV380 AQ2, ATI RV380 AR2,
-	ATI RV380 AS2, ATI RV380 NP, ATI RV380 NQ, ATI RV380 NR,
-	ATI RV380 NS, ATI RV380 NT, ATI RV380 NU, ATI RV380 NV, ATI RV380 NW,
-	ATI RV380 NP2, ATI RV380 NQ2, ATI RV380 NR2, ATI RV380 NS2,
-	ATI R420 JH, ATI R420 JI, ATI R420 JJ, ATI R420 JK, ATI R420 JL,
-	ATI R420 JM, ATI R420 JN, ATI R420 JP, ATI R423 UH, ATI R423 UI,
-	ATI R423 UJ, ATI R423 UK, ATI R423 UL, ATI R423 UM, ATI R423 ]W,
-	ATI R423 UP, ATI R423 UQ, ATI R423 UR, ATI R423 UT, ATI R423 ]H,
-	ATI R423 ]I, ATI RV410 VJ, ATI RV410 VK, ATI RV410 VL, ATI RV410 VM,
-	ATI RV410 ^H, ATI RV410 ^I, ATI RV410 ^J, ATI RV410 ^K, ATI RV410 ^L,
-	ATI RV410 ^M, ATI RV410 ^O, ATI RV410 VR, ATI RV410 VS, ATI RV410 ^R,
-	ATI RV410 ^S, ATI RV410 ^U, ATI RS300 IGP, ATI RS350 IGP,
-	ATI RS300M IGP
-(II) Primary Device is: PCI 01:00:0
-(--) Chipset ATI RV250 5C63 (M9+) found
-(II) resource ranges after xf86ClaimFixedResources() call:
-	[0] -1	0	0xffe00000 - 0xffffffff (0x200000) MX[B](B)
-	[1] -1	0	0x00100000 - 0x3fffffff (0x3ff00000) MX[B]E(B)
-	[2] -1	0	0x000f0000 - 0x000fffff (0x10000) MX[B]
-	[3] -1	0	0x000c0000 - 0x000effff (0x30000) MX[B]
-	[4] -1	0	0x00000000 - 0x0009ffff (0xa0000) MX[B]
-	[5] -1	0	0xd0201000 - 0xd02017ff (0x800) MX[B]
-	[6] -1	0	0xd0201800 - 0xd02018ff (0x100) MX[B]
-	[7] -1	0	0xd0000000 - 0xd00003ff (0x400) MX[B]
-	[8] -1	0	0xe0000000 - 0xdfffffff (0x0) MX[B]O
-	[9] -1	0	0xd0100000 - 0xd010ffff (0x10000) MX[B](B)
-	[10] -1	0	0xd8000000 - 0xdfffffff (0x8000000) MX[B](B)
-	[11] -1	0	0x0000ffff - 0x0000ffff (0x1) IX[B]
-	[12] -1	0	0x00000000 - 0x000000ff (0x100) IX[B]
-	[13] -1	0	0x00004000 - 0x000040ff (0x100) IX[B]
-	[14] -1	0	0x00001500 - 0x0000157f (0x80) IX[B]
-	[15] -1	0	0x00001400 - 0x000014ff (0x100) IX[B]
-	[16] -1	0	0x00001300 - 0x0000133f (0x40) IX[B]
-	[17] -1	0	0x00001200 - 0x000012ff (0x100) IX[B]
-	[18] -1	0	0x00001860 - 0x0000186f (0x10) IX[B]
-	[19] -1	0	0x00001840 - 0x0000185f (0x20) IX[B]
-	[20] -1	0	0x00001820 - 0x0000183f (0x20) IX[B]
-	[21] -1	0	0x00001800 - 0x0000181f (0x20) IX[B]
-	[22] -1	0	0x00003000 - 0x000030ff (0x100) IX[B](B)
-(II) fglrx(0): pEnt->device->identifier=0x8209438
-(II) resource ranges after probing:
-	[0] -1	0	0xffe00000 - 0xffffffff (0x200000) MX[B](B)
-	[1] -1	0	0x00100000 - 0x3fffffff (0x3ff00000) MX[B]E(B)
-	[2] -1	0	0x000f0000 - 0x000fffff (0x10000) MX[B]
-	[3] -1	0	0x000c0000 - 0x000effff (0x30000) MX[B]
-	[4] -1	0	0x00000000 - 0x0009ffff (0xa0000) MX[B]
-	[5] -1	0	0xd0201000 - 0xd02017ff (0x800) MX[B]
-	[6] -1	0	0xd0201800 - 0xd02018ff (0x100) MX[B]
-	[7] -1	0	0xd0000000 - 0xd00003ff (0x400) MX[B]
-	[8] -1	0	0xe0000000 - 0xdfffffff (0x0) MX[B]O
-	[9] -1	0	0xd0100000 - 0xd010ffff (0x10000) MX[B](B)
-	[10] -1	0	0xd8000000 - 0xdfffffff (0x8000000) MX[B](B)
-	[11] 0	0	0x000a0000 - 0x000affff (0x10000) MS[B]
-	[12] 0	0	0x000b0000 - 0x000b7fff (0x8000) MS[B]
-	[13] 0	0	0x000b8000 - 0x000bffff (0x8000) MS[B]
-	[14] -1	0	0x0000ffff - 0x0000ffff (0x1) IX[B]
-	[15] -1	0	0x00000000 - 0x000000ff (0x100) IX[B]
-	[16] -1	0	0x00004000 - 0x000040ff (0x100) IX[B]
-	[17] -1	0	0x00001500 - 0x0000157f (0x80) IX[B]
-	[18] -1	0	0x00001400 - 0x000014ff (0x100) IX[B]
-	[19] -1	0	0x00001300 - 0x0000133f (0x40) IX[B]
-	[20] -1	0	0x00001200 - 0x000012ff (0x100) IX[B]
-	[21] -1	0	0x00001860 - 0x0000186f (0x10) IX[B]
-	[22] -1	0	0x00001840 - 0x0000185f (0x20) IX[B]
-	[23] -1	0	0x00001820 - 0x0000183f (0x20) IX[B]
-	[24] -1	0	0x00001800 - 0x0000181f (0x20) IX[B]
-	[25] -1	0	0x00003000 - 0x000030ff (0x100) IX[B](B)
-	[26] 0	0	0x000003b0 - 0x000003bb (0xc) IS[B]
-	[27] 0	0	0x000003c0 - 0x000003df (0x20) IS[B]
-(II) Setting vga for screen 0.
-(II) fglrx(0): === [R200PreInit] === begin, [s]
-(II) Loading sub module "vgahw"
-(II) LoadModule: "vgahw"
-(II) Loading /usr/X11R6/lib/modules/libvgahw.a
-(II) Module vgahw: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 0.1.0
-	ABI class: XFree86 Video Driver, version 0.7
-(II) fglrx(0): PCI bus 1 card 0 func 0
-(**) fglrx(0): Depth 24, (--) framebuffer bpp 32
-(II) fglrx(0): Pixel depth = 24 bits stored in 4 bytes (32 bpp pixmaps)
-(==) fglrx(0): Default visual is TrueColor
-(**) fglrx(0): Option "NoAccel" "no"
-(**) fglrx(0): Option "NoDRI" "no"
-(**) fglrx(0): Option "Capabilities" "0x00000000"
-(**) fglrx(0): Option "GammaCorrectionI" "0x00000000"
-(**) fglrx(0): Option "GammaCorrectionII" "0x00000000"
-(**) fglrx(0): Option "OpenGLOverlay" "off"
-(**) fglrx(0): Option "VideoOverlay" "on"
-(**) fglrx(0): Option "DesktopSetup" "0x00000100"
-(**) fglrx(0): Option "MonitorLayout" "AUTO, NONE"
-(**) fglrx(0): Option "HSync2" "unspecified"
-(**) fglrx(0): Option "VRefresh2" "unspecified"
-(**) fglrx(0): Option "ScreenOverlap" "0"
-(**) fglrx(0): Option "IgnoreEDID" "off"
-(**) fglrx(0): Option "UseInternalAGPGART" "yes"
-(**) fglrx(0): Option "Stereo" "off"
-(**) fglrx(0): Option "StereoSyncEnable" "1"
-(**) fglrx(0): Option "UseFastTLS" "0"
-(**) fglrx(0): Option "BlockSignalsOnLock" "on"
-(**) fglrx(0): Option "ForceGenericCPU" "no"
-(**) fglrx(0): Option "CenterMode" "off"
-(**) fglrx(0): Option "FSAAScale" "1"
-(**) fglrx(0): Option "FSAAEnable" "no"
-(**) fglrx(0): Option "FSAADisableGamma" "no"
-(**) fglrx(0): Option "FSAACustomizeMSPos" "no"
-(**) fglrx(0): Option "FSAAMSPosX0" "0.000000"
-(**) fglrx(0): Option "FSAAMSPosY0" "0.000000"
-(**) fglrx(0): Option "FSAAMSPosX1" "0.000000"
-(**) fglrx(0): Option "FSAAMSPosY1" "0.000000"
-(**) fglrx(0): Option "FSAAMSPosX2" "0.000000"
-(**) fglrx(0): Option "FSAAMSPosY2" "0.000000"
-(**) fglrx(0): Option "FSAAMSPosX3" "0.000000"
-(**) fglrx(0): Option "FSAAMSPosY3" "0.000000"
-(**) fglrx(0): Option "FSAAMSPosX4" "0.000000"
-(**) fglrx(0): Option "FSAAMSPosY4" "0.000000"
-(**) fglrx(0): Option "FSAAMSPosX5" "0.000000"
-(**) fglrx(0): Option "FSAAMSPosY5" "0.000000"
-(**) fglrx(0): Option "NoTV" "yes"
-(**) fglrx(0): Option "TVStandard" "NTSC-M"
-(**) fglrx(0): Option "TVHSizeAdj" "0"
-(**) fglrx(0): Option "TVVSizeAdj" "0"
-(**) fglrx(0): Option "TVHPosAdj" "0"
-(**) fglrx(0): Option "TVVPosAdj" "0"
-(**) fglrx(0): Option "TVHStartAdj" "0"
-(**) fglrx(0): Option "TVColorAdj" "0"
-(**) fglrx(0): Option "PseudoColorVisuals" "off"
-(**) fglrx(0): Qbs disabled
-(==) fglrx(0): RGB weight 888
-(II) fglrx(0): Using 8 bits per RGB (8 bit DAC)
-(**) fglrx(0): Gamma Correction for I is 0x00000000
-(**) fglrx(0): Gamma Correction for II is 0x00000000
-(==) fglrx(0): Buffer Tiling is ON
-(II) Loading sub module "int10"
-(II) LoadModule: "int10"
-(II) Loading /usr/X11R6/lib/modules/linux/libint10.a
-(II) Module int10: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	ABI class: XFree86 Video Driver, version 0.7
-(II) fglrx(0): initializing int10
-(II) fglrx(0): Primary V_BIOS segment is: 0xc000
-(**) fglrx(0): Option "mtrr" "off"
-(--) fglrx(0): Chipset: "ATI RV250 5C63 (M9+)" (Chipset = 0x5c63)
-(--) fglrx(0): (PciSubVendor = 0x144d, PciSubDevice = 0xc00c)
-(--) fglrx(0): board vendor info: third party grafics adapter - NOT original ATI
-(--) fglrx(0): Linear framebuffer (phys) at 0xd8000000
-(--) fglrx(0): MMIO registers at 0xd0100000
-(--) fglrx(0): ChipExtRevID = 0xFF
-(--) fglrx(0): ChipIntRevID = 0x0F
-(--) fglrx(0): VideoRAM: 131072 kByte (64-bit SDR SDRAM)
-(WW) fglrx(0): board is an unknown third party board, chipset is supported
-(II) Loading sub module "ddc"
-(II) LoadModule: "ddc"
-(II) Loading /usr/X11R6/lib/modules/libddc.a
-(II) Module ddc: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	ABI class: XFree86 Video Driver, version 0.7
-(II) Loading sub module "i2c"
-(II) LoadModule: "i2c"
-(II) Loading /usr/X11R6/lib/modules/libi2c.a
-(II) Module i2c: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.2.0
-	ABI class: XFree86 Video Driver, version 0.7
-(II) fglrx(0): I2C bus "DDC" initialized.
-(II) fglrx(0): Connector Layout from BIOS -------- 
-(II) fglrx(0): Connector1: DDCType-3, DACType-0, TMDSType--1, ConnectorType-2
-(**) fglrx(0): MonitorLayout Option: 
-	Monitor1--Type AUTO, Monitor2--Type NONE
+     Name (IO1L, 0x80)
 
-(II) fglrx(0): Primary head:
- Monitor   -- LVDS
- Connector -- None
- DAC Type  -- Unknown
- TMDS Type -- NONE
- DDC Type  -- NONE
-(II) fglrx(0): Secondary head:
- Monitor   -- NONE
- Connector -- VGA
- DAC Type  -- Primary
- TMDS Type -- NONE
- DDC Type  -- VGA_DDC
-(II) fglrx(0): 
-(WW) fglrx(0): Only single display is connected, DesktopOption will be ignored
-(II) fglrx(0): DesktopSetup 0x0000
-(II) fglrx(0): Panel ID string: Samsung LTN150P1-L02    
-(II) fglrx(0): Panel Size from BIOS: 1400x1050
-(**) fglrx(0):  PseudoColor visuals disabled
-(**) fglrx(0): Overlay disabled
-(**) fglrx(0): Overlay disabled
-(II) fglrx(0): PLL parameters: rf=2700 rd=12 min=20000 max=40000
-(==) fglrx(0): Using gamma correction (1.0, 1.0, 1.0)
-(**) fglrx(0): Center Mode is disabled 
-(==) fglrx(0): TMDS coherent mode is enabled 
-(II) fglrx(0): Valid mode using on-chip RMX: 1400x1050
-(II) fglrx(0): Total 1 valid mode(s) found.
-(--) fglrx(0): Virtual size is 1400x1050 (pitch 1408)
-(**) fglrx(0): *Mode "1400x1050": 108.0 MHz (scaled from 0.0 MHz), 64.0 kHz, 60.2 Hz
-(II) fglrx(0): Modeline "1400x1050"  108.00  1400 34208 34320 1688  1050 1052 1055 1063
-(==) fglrx(0): DPI set to (75, 75)
-(II) Loading sub module "fb"
-(II) LoadModule: "fb"
-(II) Loading /usr/X11R6/lib/modules/libfb.a
-(II) Module fb: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	ABI class: XFree86 ANSI C Emulation, version 0.2
-(II) Loading sub module "ramdac"
-(II) LoadModule: "ramdac"
-(II) Loading /usr/X11R6/lib/modules/libramdac.a
-(II) Module ramdac: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 0.1.0
-	ABI class: XFree86 Video Driver, version 0.7
-(**) fglrx(0): NoAccel = NO
-(II) Loading sub module "xaa"
-(II) LoadModule: "xaa"
-(II) Loading /usr/X11R6/lib/modules/libxaa.a
-(II) Module xaa: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.1.0
-	ABI class: XFree86 Video Driver, version 0.7
-(==) fglrx(0): HPV inactive
-(==) fglrx(0): FSAA enabled: NO
-(**) fglrx(0): FSAA Gamma enabled
-(**) fglrx(0): FSAA Multisample Position is fix
-(**) fglrx(0): NoDRI = NO
-(II) Loading sub module "fglrxdrm"
-(II) LoadModule: "fglrxdrm"
-(II) Loading /usr/X11R6/lib/modules/linux/libfglrxdrm.a
-(II) Module fglrxdrm: vendor="Fire GL - ATI Research GmbH, Germany"
-	compiled for 4.3.0.1, module version = 3.14.1
-	ABI class: XFree86 Server Extension, version 0.2
-(II) fglrx(0): Depth moves disabled by default
-(**) fglrx(0): Capabilities: 0x00000000
-(**) fglrx(0): cpuFlags: 0x8000001d
-(**) fglrx(0): cpuSpeedMHz: 0x000005d7
-(==) fglrx(0): OpenGL ClientDriverName: "fglrx_dri.so"
-(**) fglrx(0): using built in AGPGART module: yes
-(**) fglrx(0): UseFastTLS=0
-(**) fglrx(0): BlockSignalsOnLock=1
-(==) fglrx(0): EnablePrivateBackZ = NO
-(--) Depth 24 pixmap format is 32 bpp
-(II) do I need RAC?  No, I don't.
-(II) resource ranges after preInit:
-	[0] 0	0	0xd0100000 - 0xd010ffff (0x10000) MX[B]
-	[1] 0	0	0xd8000000 - 0xdfffffff (0x8000000) MX[B]
-	[2] -1	0	0xffe00000 - 0xffffffff (0x200000) MX[B](B)
-	[3] -1	0	0x00100000 - 0x3fffffff (0x3ff00000) MX[B]E(B)
-	[4] -1	0	0x000f0000 - 0x000fffff (0x10000) MX[B]
-	[5] -1	0	0x000c0000 - 0x000effff (0x30000) MX[B]
-	[6] -1	0	0x00000000 - 0x0009ffff (0xa0000) MX[B]
-	[7] -1	0	0xd0201000 - 0xd02017ff (0x800) MX[B]
-	[8] -1	0	0xd0201800 - 0xd02018ff (0x100) MX[B]
-	[9] -1	0	0xd0000000 - 0xd00003ff (0x400) MX[B]
-	[10] -1	0	0xe0000000 - 0xdfffffff (0x0) MX[B]O
-	[11] -1	0	0xd0100000 - 0xd010ffff (0x10000) MX[B](B)
-	[12] -1	0	0xd8000000 - 0xdfffffff (0x8000000) MX[B](B)
-	[13] 0	0	0x000a0000 - 0x000affff (0x10000) MS[B]
-	[14] 0	0	0x000b0000 - 0x000b7fff (0x8000) MS[B]
-	[15] 0	0	0x000b8000 - 0x000bffff (0x8000) MS[B]
-	[16] 0	0	0x00003000 - 0x000030ff (0x100) IX[B]
-	[17] -1	0	0x0000ffff - 0x0000ffff (0x1) IX[B]
-	[18] -1	0	0x00000000 - 0x000000ff (0x100) IX[B]
-	[19] -1	0	0x00004000 - 0x000040ff (0x100) IX[B]
-	[20] -1	0	0x00001500 - 0x0000157f (0x80) IX[B]
-	[21] -1	0	0x00001400 - 0x000014ff (0x100) IX[B]
-	[22] -1	0	0x00001300 - 0x0000133f (0x40) IX[B]
-	[23] -1	0	0x00001200 - 0x000012ff (0x100) IX[B]
-	[24] -1	0	0x00001860 - 0x0000186f (0x10) IX[B]
-	[25] -1	0	0x00001840 - 0x0000185f (0x20) IX[B]
-	[26] -1	0	0x00001820 - 0x0000183f (0x20) IX[B]
-	[27] -1	0	0x00001800 - 0x0000181f (0x20) IX[B]
-	[28] -1	0	0x00003000 - 0x000030ff (0x100) IX[B](B)
-	[29] 0	0	0x000003b0 - 0x000003bb (0xc) IS[B]
-	[30] 0	0	0x000003c0 - 0x000003df (0x20) IS[B]
-(WW) fglrx(0): Cannot read colourmap from VGA.  Will restore with default
-(II) fglrx(0): UMM area:     0xd87ad000 (size=0x07853000)
-(II) fglrx(0): driver needs XFree86 version: 4.3.x
-(II) fglrx(0): detected XFree86 version: 4.3.99
-(II) Loading extension ATIFGLRXDRI
-(II) fglrx(0): doing DRIScreenInit
-drmOpenDevice: minor is 0
-drmOpenDevice: node name is /dev/dri/card0
-drmOpenDevice: open result is -1, (Unknown error 999)
-drmOpenDevice: open result is -1, (Unknown error 999)
-drmOpenDevice: Open failed
-drmOpenDevice: minor is 0
-drmOpenDevice: node name is /dev/dri/card0
-drmOpenDevice: open result is -1, (Unknown error 999)
-drmOpenDevice: open result is -1, (Unknown error 999)
-drmOpenDevice: Open failed
-[drm] failed to load kernel module "fglrx"
-(II) fglrx(0): [drm] drmOpen failed
-(EE) fglrx(0): DRIScreenInit failed!
-(WW) fglrx(0): ***********************************************
-(WW) fglrx(0): * DRI initialization failed!                  *
-(WW) fglrx(0): * (maybe driver kernel module missing or bad) *
-(WW) fglrx(0): * 2D acceleraton available (MMIO)             *
-(WW) fglrx(0): * no 3D acceleration available                *
-(WW) fglrx(0): ********************************************* *
-(II) fglrx(0): FBADPhys: 0xd8000000 FBMappedSize: 0x08000000
+     Name (PMBS, 0x0400)
 
---=-GJc3uf76Xb1V+84vGpXr
-Content-Description: 
-Content-Disposition: attachment; filename=XFree86.0.log.radeon.resume
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+     Name (PMLN, 0x80)
+
+     Name (GPBS, 0x0500)
+
+     Name (GPLN, 0x40)
+
+     Name (SMBS, 0x0540)
+
+     Name (SMBL, 0x10)
+
+     Name (SPIO, 0x4E)
+
+     Name (APCB, 0xFEC00000)
+
+     Name (APCL, 0x1000)
+
+     Method (RRIO, 4, NotSerialized)
+
+     {
+
+         Store ("RRIO", Debug)
+
+     }
 
 
-This is a pre-release version of XFree86, and is not supported in any
-way.  Bugs may be reported to XFree86-Mv/r+YdnZeCNvCAlj6F9uA@public.gmane.org and patches submitted
-to fixes-Mv/r+YdnZeCyi60V37fsNg@public.gmane.org  Before reporting bugs in pre-release versions,
-please check the latest version in the XFree86 CVS repository
-(http://www.XFree86.Org/cvs).
 
-XFree86 Version 4.3.99.902 (4.4.0 RC 2)
-Release Date: 18 December 2003
-X Protocol Version 11, Revision 0, Release 6.6
-Build Operating System: Linux 2.6.2-mm1 i686 [ELF] 
-Current Operating System: Linux mhcln03 2.6.10-rc2-bk4 #5 Tue Nov 23 04:47:31 CET 2004 i686
-Build Date: 06 February 2004
-Changelog Date: 04 February 2004
-	Before reporting problems, check http://www.XFree86.Org/
-	to make sure that you have the latest version.
-Module Loader present
-Markers: (--) probed, (**) from config file, (==) default setting,
-	(++) from command line, (!!) notice, (II) informational,
-	(WW) warning, (EE) error, (NI) not implemented, (??) unknown.
-(==) Log file: "/var/log/XFree86.0.log", Time: Tue Nov 23 05:08:25 2004
-(==) Using config file: "/etc/X11/XF86Config-4"
-(==) ServerLayout "Default Layout"
-(**) |-->Screen "Default Screen" (0)
-(**) |   |-->Monitor "Generic Monitor"
-(**) |   |-->Device "Generic Video Card"
-(**) |-->Input Device "Generic Keyboard"
-(**) Option "XkbRules" "xfree86"
-(**) XKB: rules: "xfree86"
-(**) Option "XkbModel" "pc105"
-(**) XKB: model: "pc105"
-(**) Option "XkbLayout" "de"
-(**) XKB: layout: "de"
-(==) Keyboard: CustomKeycode disabled
-(**) |-->Input Device "USB Mouse"
-(**) |-->Input Device "Touchpad"
-(WW) The directory "/usr/lib/X11/fonts/CID" does not exist.
-	Entry deleted from font path.
-(WW) The directory "/usr/lib/X11/fonts/cyrillic" does not exist.
-	Entry deleted from font path.
-(**) FontPath set to "unix/:7100,/usr/lib/X11/fonts/Type1,/usr/lib/X11/fonts/Speedo,/usr/lib/X11/fonts/misc,/usr/lib/X11/fonts/100dpi,/usr/lib/X11/fonts/75dpi"
-(==) RgbPath set to "/usr/X11R6/lib/X11/rgb"
-(==) ModulePath set to "/usr/X11R6/lib/modules"
-(WW) Open APM failed (/dev/apm_bios) (No such file or directory)
-(II) Module ABI versions:
-	XFree86 ANSI C Emulation: 0.2
-	XFree86 Video Driver: 0.7
-	XFree86 XInput driver : 0.4
-	XFree86 Server Extension : 0.2
-	XFree86 Font Renderer : 0.4
-(II) Loader running on linux
-(II) LoadModule: "bitmap"
-(II) Loading /usr/X11R6/lib/modules/fonts/libbitmap.a
-(II) Module bitmap: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	Module class: XFree86 Font Renderer
-	ABI class: XFree86 Font Renderer, version 0.4
-(II) Loading font Bitmap
-(II) LoadModule: "pcidata"
-(II) Loading /usr/X11R6/lib/modules/libpcidata.a
-(II) Module pcidata: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	ABI class: XFree86 Video Driver, version 0.7
-(++) using VT number 7
+     Method (RDMA, 3, NotSerialized)
 
-(II) PCI: Probing config type using method 1
-(II) PCI: Config type is 1
-(II) PCI: stages = 0x03, oldVal1 = 0x80010014, mode1Res1 = 0x80000000
-(II) PCI: PCI scan (all values are in hex)
-(II) PCI: 00:00:0: chip 8086,3340 card 144d,c00c rev 21 class 06,00,00 hdr 00
-(II) PCI: 00:01:0: chip 8086,3341 card 0000,0000 rev 21 class 06,04,00 hdr 01
-(II) PCI: 00:1d:0: chip 8086,24c2 card 144d,c00c rev 03 class 0c,03,00 hdr 80
-(II) PCI: 00:1d:1: chip 8086,24c4 card 144d,c00c rev 03 class 0c,03,00 hdr 00
-(II) PCI: 00:1d:2: chip 8086,24c7 card 144d,c00c rev 03 class 0c,03,00 hdr 00
-(II) PCI: 00:1d:7: chip 8086,24cd card 144d,c00c rev 03 class 0c,03,20 hdr 00
-(II) PCI: 00:1e:0: chip 8086,2448 card 0000,0000 rev 83 class 06,04,00 hdr 01
-(II) PCI: 00:1f:0: chip 8086,24cc card 0000,0000 rev 03 class 06,01,00 hdr 80
-(II) PCI: 00:1f:1: chip 8086,24ca card 144d,c00c rev 03 class 01,01,8a hdr 00
-(II) PCI: 00:1f:5: chip 8086,24c5 card 144d,c00c rev 03 class 04,01,00 hdr 00
-(II) PCI: 00:1f:6: chip 8086,24c6 card 144d,c00c rev 03 class 07,03,00 hdr 00
-(II) PCI: 01:00:0: chip 1002,5c63 card 144d,c00c rev 01 class 03,00,00 hdr 00
-(II) PCI: 02:00:0: chip 10ec,8139 card 144d,c00c rev 10 class 02,00,00 hdr 00
-(II) PCI: 02:01:0: chip 1180,0476 card 0000,0000 rev ac class 06,07,00 hdr 82
-(II) PCI: 02:01:1: chip 1180,0476 card 0000,0000 rev ac class 06,07,00 hdr 82
-(II) PCI: 02:01:2: chip 1180,0552 card 144d,c00c rev 04 class 0c,00,10 hdr 80
-(II) PCI: 02:02:0: chip 8086,1043 card 8086,2522 rev 04 class 02,80,00 hdr 00
-(II) PCI: End of PCI scan
-(II) Host-to-PCI bridge:
-(II) Bus 0: bridge is at (0:0:0), (0,0,7), BCTRL: 0x0008 (VGA_EN is set)
-(II) Bus 0 I/O range:
-	[0] -1	0	0x00000000 - 0x0000ffff (0x10000) IX[B]
-(II) Bus 0 non-prefetchable memory range:
-	[0] -1	0	0x00000000 - 0xffffffff (0x0) MX[B]
-(II) Bus 0 prefetchable memory range:
-	[0] -1	0	0x00000000 - 0xffffffff (0x0) MX[B]
-(II) PCI-to-PCI bridge:
-(II) Bus 1: bridge is at (0:1:0), (0,1,1), BCTRL: 0x000c (VGA_EN is set)
-(II) Bus 1 I/O range:
-	[0] -1	0	0x00003000 - 0x000030ff (0x100) IX[B]
-	[1] -1	0	0x00003400 - 0x000034ff (0x100) IX[B]
-	[2] -1	0	0x00003800 - 0x000038ff (0x100) IX[B]
-	[3] -1	0	0x00003c00 - 0x00003cff (0x100) IX[B]
-(II) Bus 1 non-prefetchable memory range:
-	[0] -1	0	0xd0100000 - 0xd01fffff (0x100000) MX[B]
-(II) Bus 1 prefetchable memory range:
-	[0] -1	0	0xd8000000 - 0xdfffffff (0x8000000) MX[B]
-(II) PCI-to-PCI bridge:
-(II) Bus 2: bridge is at (0:30:0), (0,2,4), BCTRL: 0x0004 (VGA_EN is cleared)
-(II) Bus 2 I/O range:
-	[0] -1	0	0x00004000 - 0x000040ff (0x100) IX[B]
-	[1] -1	0	0x00004400 - 0x000044ff (0x100) IX[B]
-	[2] -1	0	0x00004800 - 0x000048ff (0x100) IX[B]
-	[3] -1	0	0x00004c00 - 0x00004cff (0x100) IX[B]
-(II) Bus 2 non-prefetchable memory range:
-	[0] -1	0	0xd0200000 - 0xd02fffff (0x100000) MX[B]
-(II) PCI-to-ISA bridge:
-(II) Bus -1: bridge is at (0:31:0), (0,-1,-1), BCTRL: 0x0008 (VGA_EN is set)
-(II) PCI-to-CardBus bridge:
-(II) Bus 3: bridge is at (2:1:0), (2,3,6), BCTRL: 0x0780 (VGA_EN is cleared)
-(II) PCI-to-CardBus bridge:
-(II) Bus 7: bridge is at (2:1:1), (2,7,10), BCTRL: 0x0700 (VGA_EN is cleared)
-(--) PCI:*(1:0:0) ATI Technologies Inc unknown chipset (0x5c63) rev 1, Mem @ 0xd8000000/27, 0xd0100000/16, I/O @ 0x3000/8
-(II) Addressable bus resource ranges are
-	[0] -1	0	0x00000000 - 0xffffffff (0x0) MX[B]
-	[1] -1	0	0x00000000 - 0x0000ffff (0x10000) IX[B]
-(II) OS-reported resource ranges:
-	[0] -1	0	0xffe00000 - 0xffffffff (0x200000) MX[B](B)
-	[1] -1	0	0x00100000 - 0x3fffffff (0x3ff00000) MX[B]E(B)
-	[2] -1	0	0x000f0000 - 0x000fffff (0x10000) MX[B]
-	[3] -1	0	0x000c0000 - 0x000effff (0x30000) MX[B]
-	[4] -1	0	0x00000000 - 0x0009ffff (0xa0000) MX[B]
-	[5] -1	0	0x0000ffff - 0x0000ffff (0x1) IX[B]
-	[6] -1	0	0x00000000 - 0x000000ff (0x100) IX[B]
-(II) PCI Memory resource overlap reduced 0xe0000000 from 0xefffffff to 0xdfffffff
-(II) Active PCI resource ranges:
-	[0] -1	0	0xd0201000 - 0xd02017ff (0x800) MX[B]
-	[1] -1	0	0xd0201800 - 0xd02018ff (0x100) MX[B]
-	[2] -1	0	0x00000800 - 0x000008ff (0x100) MX[B]
-	[3] -1	0	0xd0000c00 - 0xd0000dff (0x200) MX[B]
-	[4] -1	0	0xd0000000 - 0xd00003ff (0x400) MX[B]
-	[5] -1	0	0xe0000000 - 0xdfffffff (0x0) MX[B]O
-	[6] -1	0	0xd0100000 - 0xd010ffff (0x10000) MX[B](B)
-	[7] -1	0	0xd8000000 - 0xdfffffff (0x8000000) MX[B](B)
-	[8] -1	0	0x00004000 - 0x000040ff (0x100) IX[B]
-	[9] -1	0	0x00002000 - 0x0000207f (0x80) IX[B]
-	[10] -1	0	0x00002400 - 0x000024ff (0x100) IX[B]
-	[11] -1	0	0x00001880 - 0x000018bf (0x40) IX[B]
-	[12] -1	0	0x00001c00 - 0x00001cff (0x100) IX[B]
-	[13] -1	0	0x00001860 - 0x0000186f (0x10) IX[B]
-	[14] -1	0	0x00001840 - 0x0000185f (0x20) IX[B]
-	[15] -1	0	0x00001820 - 0x0000183f (0x20) IX[B]
-	[16] -1	0	0x00001800 - 0x0000181f (0x20) IX[B]
-	[17] -1	0	0x00003000 - 0x000030ff (0x100) IX[B](B)
-(II) Active PCI resource ranges after removing overlaps:
-	[0] -1	0	0xd0201000 - 0xd02017ff (0x800) MX[B]
-	[1] -1	0	0xd0201800 - 0xd02018ff (0x100) MX[B]
-	[2] -1	0	0x00000800 - 0x000008ff (0x100) MX[B]
-	[3] -1	0	0xd0000c00 - 0xd0000dff (0x200) MX[B]
-	[4] -1	0	0xd0000000 - 0xd00003ff (0x400) MX[B]
-	[5] -1	0	0xe0000000 - 0xdfffffff (0x0) MX[B]O
-	[6] -1	0	0xd0100000 - 0xd010ffff (0x10000) MX[B](B)
-	[7] -1	0	0xd8000000 - 0xdfffffff (0x8000000) MX[B](B)
-	[8] -1	0	0x00004000 - 0x000040ff (0x100) IX[B]
-	[9] -1	0	0x00002000 - 0x0000207f (0x80) IX[B]
-	[10] -1	0	0x00002400 - 0x000024ff (0x100) IX[B]
-	[11] -1	0	0x00001880 - 0x000018bf (0x40) IX[B]
-	[12] -1	0	0x00001c00 - 0x00001cff (0x100) IX[B]
-	[13] -1	0	0x00001860 - 0x0000186f (0x10) IX[B]
-	[14] -1	0	0x00001840 - 0x0000185f (0x20) IX[B]
-	[15] -1	0	0x00001820 - 0x0000183f (0x20) IX[B]
-	[16] -1	0	0x00001800 - 0x0000181f (0x20) IX[B]
-	[17] -1	0	0x00003000 - 0x000030ff (0x100) IX[B](B)
-(II) OS-reported resource ranges after removing overlaps with PCI:
-	[0] -1	0	0xffe00000 - 0xffffffff (0x200000) MX[B](B)
-	[1] -1	0	0x00100000 - 0x3fffffff (0x3ff00000) MX[B]E(B)
-	[2] -1	0	0x000f0000 - 0x000fffff (0x10000) MX[B]
-	[3] -1	0	0x000c0000 - 0x000effff (0x30000) MX[B]
-	[4] -1	0	0x00000000 - 0x000007ff (0x800) MX[B]
-	[5] -1	0	0x0000ffff - 0x0000ffff (0x1) IX[B]
-	[6] -1	0	0x00000000 - 0x000000ff (0x100) IX[B]
-(II) All system resource ranges:
-	[0] -1	0	0xffe00000 - 0xffffffff (0x200000) MX[B](B)
-	[1] -1	0	0x00100000 - 0x3fffffff (0x3ff00000) MX[B]E(B)
-	[2] -1	0	0x000f0000 - 0x000fffff (0x10000) MX[B]
-	[3] -1	0	0x000c0000 - 0x000effff (0x30000) MX[B]
-	[4] -1	0	0x00000000 - 0x000007ff (0x800) MX[B]
-	[5] -1	0	0xd0201000 - 0xd02017ff (0x800) MX[B]
-	[6] -1	0	0xd0201800 - 0xd02018ff (0x100) MX[B]
-	[7] -1	0	0x00000800 - 0x000008ff (0x100) MX[B]
-	[8] -1	0	0xd0000c00 - 0xd0000dff (0x200) MX[B]
-	[9] -1	0	0xd0000000 - 0xd00003ff (0x400) MX[B]
-	[10] -1	0	0xe0000000 - 0xdfffffff (0x0) MX[B]O
-	[11] -1	0	0xd0100000 - 0xd010ffff (0x10000) MX[B](B)
-	[12] -1	0	0xd8000000 - 0xdfffffff (0x8000000) MX[B](B)
-	[13] -1	0	0x0000ffff - 0x0000ffff (0x1) IX[B]
-	[14] -1	0	0x00000000 - 0x000000ff (0x100) IX[B]
-	[15] -1	0	0x00004000 - 0x000040ff (0x100) IX[B]
-	[16] -1	0	0x00002000 - 0x0000207f (0x80) IX[B]
-	[17] -1	0	0x00002400 - 0x000024ff (0x100) IX[B]
-	[18] -1	0	0x00001880 - 0x000018bf (0x40) IX[B]
-	[19] -1	0	0x00001c00 - 0x00001cff (0x100) IX[B]
-	[20] -1	0	0x00001860 - 0x0000186f (0x10) IX[B]
-	[21] -1	0	0x00001840 - 0x0000185f (0x20) IX[B]
-	[22] -1	0	0x00001820 - 0x0000183f (0x20) IX[B]
-	[23] -1	0	0x00001800 - 0x0000181f (0x20) IX[B]
-	[24] -1	0	0x00003000 - 0x000030ff (0x100) IX[B](B)
-(II) LoadModule: "GLcore"
-(II) Loading /usr/X11R6/lib/modules/extensions/libGLcore.a
-(II) Module GLcore: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	ABI class: XFree86 Server Extension, version 0.2
-(II) LoadModule: "bitmap"
-(II) Reloading /usr/X11R6/lib/modules/fonts/libbitmap.a
-(II) Loading font Bitmap
-(II) LoadModule: "dbe"
-(II) Loading /usr/X11R6/lib/modules/extensions/libdbe.a
-(II) Module dbe: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	Module class: XFree86 Server Extension
-	ABI class: XFree86 Server Extension, version 0.2
-(II) Loading extension DOUBLE-BUFFER
-(II) LoadModule: "ddc"
-(II) Loading /usr/X11R6/lib/modules/libddc.a
-(II) Module ddc: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	ABI class: XFree86 Video Driver, version 0.7
-(II) LoadModule: "dri"
-(II) Loading /usr/X11R6/lib/modules/extensions/libdri.a
-(II) Module dri: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	ABI class: XFree86 Server Extension, version 0.2
-(II) Loading sub module "drm"
-(II) LoadModule: "drm"
-(II) Loading /usr/X11R6/lib/modules/linux/libdrm.a
-(II) Module drm: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	ABI class: XFree86 Server Extension, version 0.2
-(II) Loading extension XFree86-DRI
-(II) LoadModule: "extmod"
-(II) Loading /usr/X11R6/lib/modules/extensions/libextmod.a
-(II) Module extmod: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	Module class: XFree86 Server Extension
-	ABI class: XFree86 Server Extension, version 0.2
-(II) Loading extension SHAPE
-(II) Loading extension MIT-SUNDRY-NONSTANDARD
-(II) Loading extension BIG-REQUESTS
-(II) Loading extension SYNC
-(II) Loading extension MIT-SCREEN-SAVER
-(II) Loading extension XC-MISC
-(II) Loading extension XFree86-VidModeExtension
-(II) Loading extension XFree86-Misc
-(II) Loading extension XFree86-DGA
-(II) Loading extension DPMS
-(II) Loading extension FontCache
-(II) Loading extension TOG-CUP
-(II) Loading extension Extended-Visual-Information
-(II) Loading extension XVideo
-(II) Loading extension XVideo-MotionCompensation
-(II) Loading extension X-Resource
-(II) LoadModule: "freetype"
-(II) Loading /usr/X11R6/lib/modules/fonts/libfreetype.a
-(II) Module freetype: vendor="The XFree86 Project & the After X-TT Project"
-	compiled for 4.3.99.902, module version = 2.1.0
-	Module class: XFree86 Font Renderer
-	ABI class: XFree86 Font Renderer, version 0.4
-(II) Loading font FreeType
-(II) LoadModule: "glx"
-(II) Loading /usr/X11R6/lib/modules/extensions/libglx.a
-(II) Module glx: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	ABI class: XFree86 Server Extension, version 0.2
-(II) Loading sub module "GLcore"
-(II) LoadModule: "GLcore"
-(II) Reloading /usr/X11R6/lib/modules/extensions/libGLcore.a
-(II) Loading extension GLX
-(II) LoadModule: "int10"
-(II) Loading /usr/X11R6/lib/modules/linux/libint10.a
-(II) Module int10: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	ABI class: XFree86 Video Driver, version 0.7
-(II) LoadModule: "record"
-(II) Loading /usr/X11R6/lib/modules/extensions/librecord.a
-(II) Module record: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.13.0
-	Module class: XFree86 Server Extension
-	ABI class: XFree86 Server Extension, version 0.2
-(II) Loading extension RECORD
-(II) LoadModule: "speedo"
-(II) Loading /usr/X11R6/lib/modules/fonts/libspeedo.a
-(II) Module speedo: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.1
-	Module class: XFree86 Font Renderer
-	ABI class: XFree86 Font Renderer, version 0.4
-(II) Loading font Speedo
-(II) LoadModule: "type1"
-(II) Loading /usr/X11R6/lib/modules/fonts/libtype1.a
-(II) Module type1: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.2
-	Module class: XFree86 Font Renderer
-	ABI class: XFree86 Font Renderer, version 0.4
-(II) Loading font Type1
-(II) Loading font CID
-(II) LoadModule: "vbe"
-(II) Loading /usr/X11R6/lib/modules/libvbe.a
-(II) Module vbe: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.1.0
-	ABI class: XFree86 Video Driver, version 0.7
-(II) LoadModule: "ati"
-(II) Loading /usr/X11R6/lib/modules/drivers/ati_drv.o
-(II) Module ati: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 6.5.5
-	Module class: XFree86 Video Driver
-	ABI class: XFree86 Video Driver, version 0.7
-(II) LoadModule: "mouse"
-(II) Loading /usr/X11R6/lib/modules/input/mouse_drv.o
-(II) Module mouse: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	Module class: XFree86 XInput Driver
-	ABI class: XFree86 XInput driver, version 0.4
-(II) ATI: ATI driver (version 6.5.5) for chipsets: ati, ativga
-(II) R128: Driver for ATI Rage 128 chipsets:
-	ATI Rage 128 Mobility M3 LE (PCI), ATI Rage 128 Mobility M3 LF (AGP),
-	ATI Rage 128 Mobility M4 MF (AGP), ATI Rage 128 Mobility M4 ML (AGP),
-	ATI Rage 128 Pro GL PA (PCI/AGP), ATI Rage 128 Pro GL PB (PCI/AGP),
-	ATI Rage 128 Pro GL PC (PCI/AGP), ATI Rage 128 Pro GL PD (PCI),
-	ATI Rage 128 Pro GL PE (PCI/AGP), ATI Rage 128 Pro GL PF (AGP),
-	ATI Rage 128 Pro VR PG (PCI/AGP), ATI Rage 128 Pro VR PH (PCI/AGP),
-	ATI Rage 128 Pro VR PI (PCI/AGP), ATI Rage 128 Pro VR PJ (PCI/AGP),
-	ATI Rage 128 Pro VR PK (PCI/AGP), ATI Rage 128 Pro VR PL (PCI/AGP),
-	ATI Rage 128 Pro VR PM (PCI/AGP), ATI Rage 128 Pro VR PN (PCI/AGP),
-	ATI Rage 128 Pro VR PO (PCI/AGP), ATI Rage 128 Pro VR PP (PCI),
-	ATI Rage 128 Pro VR PQ (PCI/AGP), ATI Rage 128 Pro VR PR (PCI),
-	ATI Rage 128 Pro VR PS (PCI/AGP), ATI Rage 128 Pro VR PT (PCI/AGP),
-	ATI Rage 128 Pro VR PU (PCI/AGP), ATI Rage 128 Pro VR PV (PCI/AGP),
-	ATI Rage 128 Pro VR PW (PCI/AGP), ATI Rage 128 Pro VR PX (PCI/AGP),
-	ATI Rage 128 GL RE (PCI), ATI Rage 128 GL RF (AGP),
-	ATI Rage 128 RG (AGP), ATI Rage 128 VR RK (PCI),
-	ATI Rage 128 VR RL (AGP), ATI Rage 128 4X SE (PCI/AGP),
-	ATI Rage 128 4X SF (PCI/AGP), ATI Rage 128 4X SG (PCI/AGP),
-	ATI Rage 128 4X SH (PCI/AGP), ATI Rage 128 4X SK (PCI/AGP),
-	ATI Rage 128 4X SL (PCI/AGP), ATI Rage 128 4X SM (AGP),
-	ATI Rage 128 4X SN (PCI/AGP), ATI Rage 128 Pro ULTRA TF (AGP),
-	ATI Rage 128 Pro ULTRA TL (AGP), ATI Rage 128 Pro ULTRA TR (AGP),
-	ATI Rage 128 Pro ULTRA TS (AGP?), ATI Rage 128 Pro ULTRA TT (AGP?),
-	ATI Rage 128 Pro ULTRA TU (AGP?)
-(II) RADEON: Driver for ATI Radeon chipsets: ATI Radeon QD (AGP),
-	ATI Radeon QE (AGP), ATI Radeon QF (AGP), ATI Radeon QG (AGP),
-	ATI Radeon VE/7000 QY (AGP/PCI), ATI Radeon VE/7000 QZ (AGP/PCI),
-	ATI Radeon Mobility M7 LW (AGP),
-	ATI Mobility FireGL 7800 M7 LX (AGP),
-	ATI Radeon Mobility M6 LY (AGP), ATI Radeon Mobility M6 LZ (AGP),
-	ATI Radeon IGP320 (A3) 4136, ATI Radeon IGP320M (U1) 4336,
-	ATI Radeon IGP330/340/350 (A4) 4137,
-	ATI Radeon IGP330M/340M/350M (U2) 4337,
-	ATI Radeon 7000 IGP (A4+) 4237, ATI Radeon Mobility 7000 IGP 4437,
-	ATI FireGL 8700/8800 QH (AGP), ATI Radeon 8500 QL (AGP),
-	ATI Radeon 9100 QM (AGP), ATI Radeon 8500 AIW BB (AGP),
-	ATI Radeon 8500 AIW BC (AGP), ATI Radeon 7500 QW (AGP/PCI),
-	ATI Radeon 7500 QX (AGP/PCI), ATI Radeon 9000/PRO If (AGP/PCI),
-	ATI Radeon 9000 Ig (AGP/PCI), ATI FireGL Mobility 9000 (M9) Ld (AGP),
-	ATI Radeon Mobility 9000 (M9) Lf (AGP),
-	ATI Radeon Mobility 9000 (M9) Lg (AGP),
-	ATI Radeon 9100 IGP (A5) 5834,
-	ATI Radeon Mobility 9100 IGP (U3) 5835,
-	ATI Radeon 9200PRO 5960 (AGP), ATI Radeon 9200 5961 (AGP),
-	ATI Radeon 9200 5962 (AGP), ATI Radeon 9200SE 5964 (AGP),
-	ATI Radeon Mobility 9200 (M9+) 5C61 (AGP),
-	ATI Radeon Mobility 9200 (M9+) 5C63 (AGP), ATI Radeon 9500 AD (AGP),
-	ATI Radeon 9500 AE (AGP), ATI Radeon 9600TX AF (AGP),
-	ATI FireGL Z1 AG (AGP), ATI Radeon 9700 Pro ND (AGP),
-	ATI Radeon 9700/9500Pro NE (AGP), ATI Radeon 9700 NF (AGP),
-	ATI FireGL X1 NG (AGP), ATI Radeon 9600 AP (AGP),
-	ATI Radeon 9600SE AQ (AGP), ATI Radeon 9600XT AR (AGP),
-	ATI Radeon 9600 AS (AGP), ATI FireGL T2 AT (AGP),
-	ATI FireGL RV360 AV (AGP), ATI Radeon Mobility 9600 (M10) NP (AGP),
-	ATI Radeon Mobility 9600 (M10) NQ (AGP),
-	ATI Radeon Mobility 9600 (M11) NR (AGP),
-	ATI Radeon Mobility 9600 (M10) NS (AGP),
-	ATI FireGL Mobility T2 (M10) NT (AGP),
-	ATI FireGL Mobility T2 (M11) NV (AGP), ATI Radeon 9800SE AH (AGP),
-	ATI Radeon 9800 AI (AGP), ATI Radeon 9800 AJ (AGP),
-	ATI FireGL X2 AK (AGP), ATI Radeon 9800PRO NH (AGP),
-	ATI Radeon 9800 NI (AGP), ATI FireGL X2 NK (AGP),
-	ATI Radeon 9800XT NJ (AGP)
-(II) Primary Device is: PCI 01:00:0
-(II) ATI:  Candidate "Device" section "Generic Video Card".
-(--) Assigning device section with no busID to primary device
-(--) Chipset ATI Radeon Mobility 9200 (M9+) 5C63 (AGP) found
-(II) resource ranges after xf86ClaimFixedResources() call:
-	[0] -1	0	0xffe00000 - 0xffffffff (0x200000) MX[B](B)
-	[1] -1	0	0x00100000 - 0x3fffffff (0x3ff00000) MX[B]E(B)
-	[2] -1	0	0x000f0000 - 0x000fffff (0x10000) MX[B]
-	[3] -1	0	0x000c0000 - 0x000effff (0x30000) MX[B]
-	[4] -1	0	0x00000000 - 0x000007ff (0x800) MX[B]
-	[5] -1	0	0xd0201000 - 0xd02017ff (0x800) MX[B]
-	[6] -1	0	0xd0201800 - 0xd02018ff (0x100) MX[B]
-	[7] -1	0	0x00000800 - 0x000008ff (0x100) MX[B]
-	[8] -1	0	0xd0000c00 - 0xd0000dff (0x200) MX[B]
-	[9] -1	0	0xd0000000 - 0xd00003ff (0x400) MX[B]
-	[10] -1	0	0xe0000000 - 0xdfffffff (0x0) MX[B]O
-	[11] -1	0	0xd0100000 - 0xd010ffff (0x10000) MX[B](B)
-	[12] -1	0	0xd8000000 - 0xdfffffff (0x8000000) MX[B](B)
-	[13] -1	0	0x0000ffff - 0x0000ffff (0x1) IX[B]
-	[14] -1	0	0x00000000 - 0x000000ff (0x100) IX[B]
-	[15] -1	0	0x00004000 - 0x000040ff (0x100) IX[B]
-	[16] -1	0	0x00002000 - 0x0000207f (0x80) IX[B]
-	[17] -1	0	0x00002400 - 0x000024ff (0x100) IX[B]
-	[18] -1	0	0x00001880 - 0x000018bf (0x40) IX[B]
-	[19] -1	0	0x00001c00 - 0x00001cff (0x100) IX[B]
-	[20] -1	0	0x00001860 - 0x0000186f (0x10) IX[B]
-	[21] -1	0	0x00001840 - 0x0000185f (0x20) IX[B]
-	[22] -1	0	0x00001820 - 0x0000183f (0x20) IX[B]
-	[23] -1	0	0x00001800 - 0x0000181f (0x20) IX[B]
-	[24] -1	0	0x00003000 - 0x000030ff (0x100) IX[B](B)
-(II) Loading sub module "radeon"
-(II) LoadModule: "radeon"
-(II) Loading /usr/X11R6/lib/modules/drivers/radeon_drv.o
-(II) Module radeon: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 4.0.1
-	Module class: XFree86 Video Driver
-	ABI class: XFree86 Video Driver, version 0.7
-(II) resource ranges after probing:
-	[0] -1	0	0xffe00000 - 0xffffffff (0x200000) MX[B](B)
-	[1] -1	0	0x00100000 - 0x3fffffff (0x3ff00000) MX[B]E(B)
-	[2] -1	0	0x000f0000 - 0x000fffff (0x10000) MX[B]
-	[3] -1	0	0x000c0000 - 0x000effff (0x30000) MX[B]
-	[4] -1	0	0x00000000 - 0x000007ff (0x800) MX[B]
-	[5] -1	0	0xd0201000 - 0xd02017ff (0x800) MX[B]
-	[6] -1	0	0xd0201800 - 0xd02018ff (0x100) MX[B]
-	[7] -1	0	0x00000800 - 0x000008ff (0x100) MX[B]
-	[8] -1	0	0xd0000c00 - 0xd0000dff (0x200) MX[B]
-	[9] -1	0	0xd0000000 - 0xd00003ff (0x400) MX[B]
-	[10] -1	0	0xe0000000 - 0xdfffffff (0x0) MX[B]O
-	[11] -1	0	0xd0100000 - 0xd010ffff (0x10000) MX[B](B)
-	[12] -1	0	0xd8000000 - 0xdfffffff (0x8000000) MX[B](B)
-	[13] 0	0	0x000a0000 - 0x000affff (0x10000) MS[B]
-	[14] 0	0	0x000b0000 - 0x000b7fff (0x8000) MS[B]
-	[15] 0	0	0x000b8000 - 0x000bffff (0x8000) MS[B]
-	[16] -1	0	0x0000ffff - 0x0000ffff (0x1) IX[B]
-	[17] -1	0	0x00000000 - 0x000000ff (0x100) IX[B]
-	[18] -1	0	0x00004000 - 0x000040ff (0x100) IX[B]
-	[19] -1	0	0x00002000 - 0x0000207f (0x80) IX[B]
-	[20] -1	0	0x00002400 - 0x000024ff (0x100) IX[B]
-	[21] -1	0	0x00001880 - 0x000018bf (0x40) IX[B]
-	[22] -1	0	0x00001c00 - 0x00001cff (0x100) IX[B]
-	[23] -1	0	0x00001860 - 0x0000186f (0x10) IX[B]
-	[24] -1	0	0x00001840 - 0x0000185f (0x20) IX[B]
-	[25] -1	0	0x00001820 - 0x0000183f (0x20) IX[B]
-	[26] -1	0	0x00001800 - 0x0000181f (0x20) IX[B]
-	[27] -1	0	0x00003000 - 0x000030ff (0x100) IX[B](B)
-	[28] 0	0	0x000003b0 - 0x000003bb (0xc) IS[B]
-	[29] 0	0	0x000003c0 - 0x000003df (0x20) IS[B]
-(II) Setting vga for screen 0.
-(II) RADEON(0): MMIO registers at 0xd0100000
-(II) Loading sub module "vgahw"
-(II) LoadModule: "vgahw"
-(II) Loading /usr/X11R6/lib/modules/libvgahw.a
-(II) Module vgahw: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 0.1.0
-	ABI class: XFree86 Video Driver, version 0.7
-(II) RADEON(0): vgaHWGetIOBase: hwp->IOBase is 0x03d0, hwp->PIOOffset is 0x0000
-(II) RADEON(0): PCI bus 1 card 0 func 0
-(**) RADEON(0): Depth 24, (--) framebuffer bpp 32
-(II) RADEON(0): Pixel depth = 24 bits stored in 4 bytes (32 bpp pixmaps)
-(==) RADEON(0): Default visual is TrueColor
-(**) RADEON(0): Option "AGPMode" "4"
-(==) RADEON(0): RGB weight 888
-(II) RADEON(0): Using 8 bits per RGB (8 bit DAC)
-(II) Loading sub module "int10"
-(II) LoadModule: "int10"
-(II) Reloading /usr/X11R6/lib/modules/linux/libint10.a
-(II) RADEON(0): initializing int10
-(II) RADEON(0): Primary V_BIOS segment is: 0xc000
-(--) RADEON(0): Chipset: "ATI Radeon Mobility 9200 (M9+) 5C63 (AGP)" (ChipID = 0x5c63)
-(--) RADEON(0): Linear framebuffer at 0xd8000000
-(--) RADEON(0): VideoRAM: 32768 kByte (64 bit DDR SDRAM)
-(II) RADEON(0): AGP card detected
-(II) Loading sub module "ddc"
-(II) LoadModule: "ddc"
-(II) Reloading /usr/X11R6/lib/modules/libddc.a
-(II) Loading sub module "i2c"
-(II) LoadModule: "i2c"
-(II) Loading /usr/X11R6/lib/modules/libi2c.a
-(II) Module i2c: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.2.0
-	ABI class: XFree86 Video Driver, version 0.7
-(II) RADEON(0): I2C bus "DDC" initialized.
-(II) RADEON(0): I2C device "DDC:ddc2" registered at address 0xA0.
-(II) RADEON(0): I2C device "DDC:ddc2" removed.
-(II) RADEON(0): I2C device "DDC:ddc2" registered at address 0xA0.
-(II) RADEON(0): I2C device "DDC:ddc2" removed.
-(II) RADEON(0): I2C device "DDC:ddc2" registered at address 0xA0.
-(II) RADEON(0): I2C device "DDC:ddc2" removed.
-(II) RADEON(0): DDC Type: 2, Detected Type: 0
-(II) RADEON(0): I2C device "DDC:ddc2" registered at address 0xA0.
-(II) RADEON(0): I2C device "DDC:ddc2" removed.
-(II) RADEON(0): I2C device "DDC:ddc2" registered at address 0xA0.
-(II) RADEON(0): I2C device "DDC:ddc2" removed.
-(II) RADEON(0): I2C device "DDC:ddc2" registered at address 0xA0.
-(II) RADEON(0): I2C device "DDC:ddc2" removed.
-(II) RADEON(0): DDC Type: 4, Detected Type: 0
-(II) RADEON(0): I2C device "DDC:ddc2" registered at address 0xA0.
-(II) RADEON(0): I2C device "DDC:ddc2" removed.
-(II) RADEON(0): I2C device "DDC:ddc2" registered at address 0xA0.
-(II) RADEON(0): I2C device "DDC:ddc2" removed.
-(II) RADEON(0): I2C device "DDC:ddc2" registered at address 0xA0.
-(II) RADEON(0): I2C device "DDC:ddc2" removed.
-(II) RADEON(0): DDC Type: 3, Detected Type: 0
-(II) RADEON(0): I2C device "DDC:ddc2" registered at address 0xA0.
-(II) RADEON(0): I2C device "DDC:ddc2" removed.
-(II) RADEON(0): I2C device "DDC:ddc2" registered at address 0xA0.
-(II) RADEON(0): I2C device "DDC:ddc2" removed.
-(II) RADEON(0): I2C device "DDC:ddc2" registered at address 0xA0.
-(II) RADEON(0): I2C device "DDC:ddc2" removed.
-(II) RADEON(0): DDC Type: 4, Detected Type: 0
-(II) RADEON(0): Displays Detected: Monitor1--Type 1, Monitor2--Type 0
+     {
 
-(II) RADEON(0): 
-(II) RADEON(0): Primary Display == Type 1
-(==) RADEON(0): Using gamma correction (1.0, 1.0, 1.0)
-(II) RADEON(0): Validating modes on Primary head ---------
-(II) RADEON(0): Generic Monitor: Using hsync range of 30.00-60.00 kHz
-(II) RADEON(0): Generic Monitor: Using vrefresh range of 50.00-75.00 Hz
-(II) RADEON(0): Clock range:  20.00 to 400.00 MHz
-(II) RADEON(0): Not using default mode "640x350" (vrefresh out of range)
-(II) RADEON(0): Not using default mode "320x175" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "640x400" (vrefresh out of range)
-(II) RADEON(0): Not using default mode "320x200" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "720x400" (vrefresh out of range)
-(II) RADEON(0): Not using default mode "360x200" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "320x240" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "320x240" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "320x240" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "640x480" (vrefresh out of range)
-(II) RADEON(0): Not using default mode "320x240" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "400x300" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "800x600" (vrefresh out of range)
-(II) RADEON(0): Not using default mode "400x300" (vrefresh out of range)
-(II) RADEON(0): Not using default mode "1024x768" (vrefresh out of range)
-(II) RADEON(0): Not using default mode "512x384" (vrefresh out of range)
-(II) RADEON(0): Not using default mode "512x384" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "512x384" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "512x384" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "1024x768" (hsync out of range)
-(II) RADEON(0): Not using default mode "512x384" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "1152x864" (hsync out of range)
-(II) RADEON(0): Not using default mode "576x432" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "640x480" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "1280x960" (hsync out of range)
-(II) RADEON(0): Not using default mode "640x480" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "1280x1024" (hsync out of range)
-(II) RADEON(0): Not using default mode "640x512" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "1280x1024" (hsync out of range)
-(II) RADEON(0): Not using default mode "640x512" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "1280x1024" (hsync out of range)
-(II) RADEON(0): Not using default mode "640x512" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "1600x1200" (hsync out of range)
-(II) RADEON(0): Not using default mode "800x600" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "1600x1200" (hsync out of range)
-(II) RADEON(0): Not using default mode "800x600" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "1600x1200" (hsync out of range)
-(II) RADEON(0): Not using default mode "800x600" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "1600x1200" (hsync out of range)
-(II) RADEON(0): Not using default mode "800x600" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "1600x1200" (hsync out of range)
-(II) RADEON(0): Not using default mode "800x600" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "1792x1344" (hsync out of range)
-(II) RADEON(0): Not using default mode "896x672" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "1792x1344" (hsync out of range)
-(II) RADEON(0): Not using default mode "896x672" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "1856x1392" (hsync out of range)
-(II) RADEON(0): Not using default mode "928x696" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "1856x1392" (hsync out of range)
-(II) RADEON(0): Not using default mode "928x696" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "1920x1440" (hsync out of range)
-(II) RADEON(0): Not using default mode "960x720" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "1920x1440" (hsync out of range)
-(II) RADEON(0): Not using default mode "960x720" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "576x384" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "1400x1050" (hsync out of range)
-(II) RADEON(0): Not using default mode "700x525" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "1400x1050" (hsync out of range)
-(II) RADEON(0): Not using default mode "700x525" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "1600x1024" (hsync out of range)
-(II) RADEON(0): Not using default mode "800x512" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "1920x1440" (hsync out of range)
-(II) RADEON(0): Not using default mode "960x720" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "2048x1536" (hsync out of range)
-(II) RADEON(0): Not using default mode "1024x768" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "2048x1536" (hsync out of range)
-(II) RADEON(0): Not using default mode "1024x768" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using default mode "2048x1536" (hsync out of range)
-(II) RADEON(0): Not using default mode "1024x768" (bad mode clock/interlace/doublescan)
-(II) RADEON(0): Not using mode "1400x1050" (no mode of this name)
-(II) RADEON(0): Not using mode "1280x1024" (no mode of this name)
-(--) RADEON(0): Virtual size is 1280x960 (pitch 1280)
-(**) RADEON(0): *Default mode "1280x960": 108.0 MHz, 60.0 kHz, 60.0 Hz
-(II) RADEON(0): Modeline "1280x960"  108.00  1280 1376 1488 1800  960 961 964 1000 +hsync +vsync
-(**) RADEON(0): *Default mode "1024x768": 78.8 MHz, 60.1 kHz, 75.1 Hz
-(II) RADEON(0): Modeline "1024x768"   78.80  1024 1040 1136 1312  768 769 772 800 +hsync +vsync
-(**) RADEON(0): *Default mode "800x600": 49.5 MHz, 46.9 kHz, 75.0 Hz
-(II) RADEON(0): Modeline "800x600"   49.50  800 816 896 1056  600 601 604 625 +hsync +vsync
-(**) RADEON(0): *Default mode "640x480": 31.5 MHz, 37.5 kHz, 75.0 Hz
-(II) RADEON(0): Modeline "640x480"   31.50  640 656 720 840  480 481 484 500 -hsync -vsync
-(**) RADEON(0):  Default mode "1152x768": 65.0 MHz, 44.2 kHz, 54.8 Hz
-(II) RADEON(0): Modeline "1152x768"   65.00  1152 1178 1314 1472  768 771 777 806 +hsync +vsync
-(**) RADEON(0):  Default mode "1024x768": 75.0 MHz, 56.5 kHz, 70.1 Hz
-(II) RADEON(0): Modeline "1024x768"   75.00  1024 1048 1184 1328  768 771 777 806 -hsync -vsync
-(**) RADEON(0):  Default mode "1024x768": 65.0 MHz, 48.4 kHz, 60.0 Hz
-(II) RADEON(0): Modeline "1024x768"   65.00  1024 1048 1184 1344  768 771 777 806 -hsync -vsync
-(**) RADEON(0):  Default mode "832x624": 57.3 MHz, 49.7 kHz, 74.6 Hz
-(II) RADEON(0): Modeline "832x624"   57.28  832 864 928 1152  624 625 628 667 -hsync -vsync
-(**) RADEON(0):  Default mode "800x600": 50.0 MHz, 48.1 kHz, 72.2 Hz
-(II) RADEON(0): Modeline "800x600"   50.00  800 856 976 1040  600 637 643 666 +hsync +vsync
-(**) RADEON(0):  Default mode "800x600": 40.0 MHz, 37.9 kHz, 60.3 Hz
-(II) RADEON(0): Modeline "800x600"   40.00  800 840 968 1056  600 601 605 628 +hsync +vsync
-(**) RADEON(0):  Default mode "800x600": 36.0 MHz, 35.2 kHz, 56.2 Hz
-(II) RADEON(0): Modeline "800x600"   36.00  800 824 896 1024  600 601 603 625 +hsync +vsync
-(**) RADEON(0):  Default mode "640x480": 31.5 MHz, 37.9 kHz, 72.8 Hz
-(II) RADEON(0): Modeline "640x480"   31.50  640 664 704 832  480 489 491 520 -hsync -vsync
-(**) RADEON(0):  Default mode "640x480": 25.2 MHz, 31.5 kHz, 60.0 Hz
-(II) RADEON(0): Modeline "640x480"   25.20  640 656 752 800  480 490 492 525 -hsync -vsync
-(**) RADEON(0):  Default mode "416x312": 28.6 MHz, 49.7 kHz, 74.7 Hz (D)
-(II) RADEON(0): Modeline "416x312"   28.64  416 432 464 576  312 312 314 333 doublescan -hsync -vsync
-(**) RADEON(0):  Default mode "400x300": 24.8 MHz, 46.9 kHz, 75.1 Hz (D)
-(II) RADEON(0): Modeline "400x300"   24.75  400 408 448 528  300 300 302 312 doublescan +hsync +vsync
-(**) RADEON(0):  Default mode "400x300": 25.0 MHz, 48.1 kHz, 72.2 Hz (D)
-(II) RADEON(0): Modeline "400x300"   25.00  400 428 488 520  300 318 321 333 doublescan +hsync +vsync
-(**) RADEON(0):  Default mode "400x300": 20.0 MHz, 37.9 kHz, 60.3 Hz (D)
-(II) RADEON(0): Modeline "400x300"   20.00  400 420 484 528  300 300 302 314 doublescan +hsync +vsync
-(==) RADEON(0): DPI set to (75, 75)
-(II) Loading sub module "fb"
-(II) LoadModule: "fb"
-(II) Loading /usr/X11R6/lib/modules/libfb.a
-(II) Module fb: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	ABI class: XFree86 ANSI C Emulation, version 0.2
-(II) Loading sub module "ramdac"
-(II) LoadModule: "ramdac"
-(II) Loading /usr/X11R6/lib/modules/libramdac.a
-(II) Module ramdac: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 0.1.0
-	ABI class: XFree86 Video Driver, version 0.7
-(II) Loading sub module "xaa"
-(II) LoadModule: "xaa"
-(II) Loading /usr/X11R6/lib/modules/libxaa.a
-(II) Module xaa: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.1.0
-	ABI class: XFree86 Video Driver, version 0.7
-(**) RADEON(0): Using AGP 4x mode
-(II) RADEON(0): AGP Fast Write disabled by default
-(II) RADEON(0): Depth moves disabled by default
-(II) Loading sub module "shadowfb"
-(II) LoadModule: "shadowfb"
-(II) Loading /usr/X11R6/lib/modules/libshadowfb.a
-(II) Module shadowfb: vendor="The XFree86 Project"
-	compiled for 4.3.99.902, module version = 1.0.0
-	ABI class: XFree86 ANSI C Emulation, version 0.2
-(II) RADEON(0): Page flipping disabled
-(!!) RADEON(0): For information on using the multimedia capabilities
- of this adapter, please see http://gatos.sf.net.
-(--) Depth 24 pixmap format is 32 bpp
-(II) do I need RAC?  No, I don't.
-(II) resource ranges after preInit:
-	[0] 0	0	0xd0100000 - 0xd010ffff (0x10000) MX[B]
-	[1] 0	0	0xd8000000 - 0xdfffffff (0x8000000) MX[B]
-	[2] -1	0	0xffe00000 - 0xffffffff (0x200000) MX[B](B)
-	[3] -1	0	0x00100000 - 0x3fffffff (0x3ff00000) MX[B]E(B)
-	[4] -1	0	0x000f0000 - 0x000fffff (0x10000) MX[B]
-	[5] -1	0	0x000c0000 - 0x000effff (0x30000) MX[B]
-	[6] -1	0	0x00000000 - 0x000007ff (0x800) MX[B]
-	[7] -1	0	0xd0201000 - 0xd02017ff (0x800) MX[B]
-	[8] -1	0	0xd0201800 - 0xd02018ff (0x100) MX[B]
-	[9] -1	0	0x00000800 - 0x000008ff (0x100) MX[B]
-	[10] -1	0	0xd0000c00 - 0xd0000dff (0x200) MX[B]
-	[11] -1	0	0xd0000000 - 0xd00003ff (0x400) MX[B]
-	[12] -1	0	0xe0000000 - 0xdfffffff (0x0) MX[B]O
-	[13] -1	0	0xd0100000 - 0xd010ffff (0x10000) MX[B](B)
-	[14] -1	0	0xd8000000 - 0xdfffffff (0x8000000) MX[B](B)
-	[15] 0	0	0x000a0000 - 0x000affff (0x10000) MS[B](OprU)
-	[16] 0	0	0x000b0000 - 0x000b7fff (0x8000) MS[B](OprU)
-	[17] 0	0	0x000b8000 - 0x000bffff (0x8000) MS[B](OprU)
-	[18] 0	0	0x00003000 - 0x000030ff (0x100) IX[B]
-	[19] -1	0	0x0000ffff - 0x0000ffff (0x1) IX[B]
-	[20] -1	0	0x00000000 - 0x000000ff (0x100) IX[B]
-	[21] -1	0	0x00004000 - 0x000040ff (0x100) IX[B]
-	[22] -1	0	0x00002000 - 0x0000207f (0x80) IX[B]
-	[23] -1	0	0x00002400 - 0x000024ff (0x100) IX[B]
-	[24] -1	0	0x00001880 - 0x000018bf (0x40) IX[B]
-	[25] -1	0	0x00001c00 - 0x00001cff (0x100) IX[B]
-	[26] -1	0	0x00001860 - 0x0000186f (0x10) IX[B]
-	[27] -1	0	0x00001840 - 0x0000185f (0x20) IX[B]
-	[28] -1	0	0x00001820 - 0x0000183f (0x20) IX[B]
-	[29] -1	0	0x00001800 - 0x0000181f (0x20) IX[B]
-	[30] -1	0	0x00003000 - 0x000030ff (0x100) IX[B](B)
-	[31] 0	0	0x000003b0 - 0x000003bb (0xc) IS[B](OprU)
-	[32] 0	0	0x000003c0 - 0x000003df (0x20) IS[B](OprU)
-(==) RADEON(0): Write-combining range (0xd8000000,0x2000000)
-(II) RADEON(0): Wrote: rd=12, fd=96, pd=1
-drmOpenDevice: minor is 0
-drmOpenDevice: node name is /dev/dri/card0
-drmOpenDevice: open result is -1, (Unknown error 999)
-drmOpenDevice: open result is -1, (Unknown error 999)
-drmOpenDevice: Open failed
-drmOpenDevice: minor is 0
-drmOpenDevice: node name is /dev/dri/card0
-drmOpenDevice: open result is -1, (Unknown error 999)
-drmOpenDevice: open result is -1, (Unknown error 999)
-drmOpenDevice: Open failed
-drmOpenDevice: minor is 0
-drmOpenDevice: node name is /dev/dri/card0
-drmOpenDevice: open result is 5, (OK)
-drmGetBusid returned ''
-(II) RADEON(0): [drm] loaded kernel module for "radeon" driver
-(II) RADEON(0): [drm] created "radeon" driver at busid "PCI:1:0:0"
-(II) RADEON(0): [drm] added 8192 byte SAREA at 0xe0884000
-(II) RADEON(0): [drm] mapped SAREA 0xe0884000 to 0xb5d8d000
-(II) RADEON(0): [drm] framebuffer handle = 0xd8000000
-(II) RADEON(0): [drm] added 1 reserved context for kernel
-(II) RADEON(0): [agp] Mode 0x1f000207 [AGP 0x8086/0x3340; Card 0x1002/0x5c63]
-(II) RADEON(0): [agp] 8192 kB allocated with handle 0x00000001
-(II) RADEON(0): [agp] ring handle = 0xe0000000
-(II) RADEON(0): [agp] Ring mapped at 0xb5c8c000
-(II) RADEON(0): [agp] ring read ptr handle = 0xe0101000
-(II) RADEON(0): [agp] Ring read ptr mapped at 0xb5c8b000
-(II) RADEON(0): [agp] vertex/indirect buffers handle = 0xe0102000
-(II) RADEON(0): [agp] Vertex/indirect buffers mapped at 0xb5a8b000
-(II) RADEON(0): [agp] GART texture map handle = 0xe0302000
-(II) RADEON(0): [agp] GART Texture map mapped at 0xb55ab000
-(II) RADEON(0): [drm] register handle = 0xd0100000
-(II) RADEON(0): [dri] Visual configs initialized
-(II) RADEON(0): CP in BM mode
-(II) RADEON(0): Using 8 MB GART aperture
-(II) RADEON(0): Using 1 MB for the ring buffer
-(II) RADEON(0): Using 2 MB for vertex/indirect buffers
-(II) RADEON(0): Using 5 MB for GART textures
-(II) RADEON(0): Memory manager initialized to (0,0) (1280,6553)
-(II) RADEON(0): Reserved area from (0,960) to (1280,962)
-(II) RADEON(0): Largest offscreen area available: 1280 x 5591
-(II) RADEON(0): Will use back buffer at offset 0x960000
-(II) RADEON(0): Will use depth buffer at offset 0xe10000
-(II) RADEON(0): Will use 13568 kb for textures at offset 0x12c0000
-(II) RADEON(0): Using XFree86 Acceleration Architecture (XAA)
-	Screen to screen bit blits
-	Solid filled rectangles
-	8x8 mono pattern filled rectangles
-	Indirect CPU to Screen color expansion
-	Solid Lines
-	Scanline Image Writes
-	Offscreen Pixmaps
-	Setting up tile and stipple cache:
-		32 128x128 slots
-		32 256x256 slots
-		16 512x512 slots
-(II) RADEON(0): Acceleration enabled
-(==) RADEON(0): Backing store disabled
-(==) RADEON(0): Silken mouse enabled
-(II) RADEON(0): Using hardware cursor (scanline 962)
-(II) RADEON(0): Largest offscreen area available: 1280 x 5587
-(**) Option "dpms"
-(**) RADEON(0): DPMS enabled
-(II) RADEON(0): X context handle = 0x00000001
-(II) RADEON(0): [drm] installed DRM signal handler
-(II) RADEON(0): [DRI] installation complete
-(II) RADEON(0): [drm] Added 32 65536 byte vertex/indirect buffers
-(II) RADEON(0): [drm] Mapped 32 vertex/indirect buffers
-(II) RADEON(0): [drm] dma control initialized, using IRQ 11
-(II) RADEON(0): [drm] Initialized kernel GART heap manager, 5111808
-(II) RADEON(0): Direct rendering enabled
-(==) RandR enabled
-(II) Initializing built-in extension MIT-SHM
-(II) Initializing built-in extension XInputExtension
-(II) Initializing built-in extension XTEST
-(II) Initializing built-in extension XKEYBOARD
-(II) Initializing built-in extension LBX
-(II) Initializing built-in extension XC-APPGROUP
-(II) Initializing built-in extension SECURITY
-(II) Initializing built-in extension XINERAMA
-(II) Initializing built-in extension XFree86-Bigfont
-(II) Initializing built-in extension RENDER
-(II) Initializing built-in extension RANDR
-(II) Keyboard "Generic Keyboard" handled by legacy driver
-(**) Option "Protocol" "ImPS/2"
-(**) USB Mouse: Device: "/dev/input/mice"
-(**) USB Mouse: Protocol: "ImPS/2"
-(**) Option "CorePointer"
-(**) USB Mouse: Core Pointer
-(**) Option "Device" "/dev/input/mice"
-(**) USB Mouse: Emulate3Buttons, Emulate3Timeout: 50
-(**) Option "ZAxisMapping" "4 5"
-(**) USB Mouse: ZAxisMapping: buttons 4 and 5
-(**) USB Mouse: Buttons: 5
-(**) Option "Protocol" "ImPS/2"
-(**) Touchpad: Device: "/dev/psaux"
-(**) Touchpad: Protocol: "ImPS/2"
-(**) Option "Device" "/dev/psaux"
-(**) Option "Emulate3Buttons" "true"
-(**) Touchpad: Emulate3Buttons, Emulate3Timeout: 50
-(**) Option "ZAxisMapping" "4 5"
-(**) Touchpad: ZAxisMapping: buttons 4 and 5
-(**) Touchpad: Buttons: 5
-(II) XINPUT: Adding extended input device "Touchpad" (type: MOUSE)
-(II) XINPUT: Adding extended input device "USB Mouse" (type: MOUSE)
-(II) USB Mouse: ps2EnableDataReporting: succeeded
-Warning: font renderer for ".pcf" already registered at priority 0
-Warning: font renderer for ".pcf.Z" already registered at priority 0
-Warning: font renderer for ".pcf.gz" already registered at priority 0
-Warning: font renderer for ".snf" already registered at priority 0
-Warning: font renderer for ".snf.Z" already registered at priority 0
-Warning: font renderer for ".snf.gz" already registered at priority 0
-Warning: font renderer for ".bdf" already registered at priority 0
-Warning: font renderer for ".bdf.Z" already registered at priority 0
-Warning: font renderer for ".bdf.gz" already registered at priority 0
-Warning: font renderer for ".pmf" already registered at priority 0
-Could not init font path element unix/:7100, removing from list!
-(II) Touchpad: ps2EnableDataReporting: succeeded
+         Store ("rDMA", Debug)
 
---=-GJc3uf76Xb1V+84vGpXr--
+     }
+
+
+
+     Name (PICM, 0x00)
+
+     Method (_PIC, 1, NotSerialized)
+
+     {
+
+         If (Arg0)
+
+         {
+
+             Store (0xAA, DBG8)
+
+         }
+
+         Else
+
+         {
+
+             Store (0xAC, DBG8)
+
+         }
+
+
+
+         Store (Arg0, PICM)
+
+     }
+
+
+
+     Name (OSVR, Ones)
+
+     Method (OSFL, 0, NotSerialized)
+
+     {
+
+         If (LNot (LEqual (OSVR, Ones)))
+
+         {
+
+             Return (OSVR)
+
+         }
+
+
+
+         If (LEqual (PICM, 0x00))
+
+         {
+
+             Store (0xAC, DBG8)
+
+         }
+
+
+
+         Store (0x01, OSVR)
+
+         If (MCTH (\_OS, "Microsoft Windows NT"))
+
+         {
+
+             If (LEqual (OSVR, 0x01))
+
+             {
+
+                 If (CondRefOf (_OSI, Local0))
+
+                 {
+
+                     If (\_OSI ("Windows 2001"))
+
+                     {
+
+                         Store (0x04, OSVR)
+
+                     }
+
+                 }
+
+                 Else
+
+                 {
+
+                     Store (0x00, OSVR)
+
+                 }
+
+             }
+
+         }
+
+         Else
+
+         {
+
+             If (MCTH (\_OS, "Microsoft WindowsME: 
+Millennium Edition"))
+
+             {
+
+                 Store (0x02, OSVR)
+
+             }
+
+         }
+
+
+
+         Return (OSVR)
+
+     }
+
+
+
+     Method (MCTH, 2, NotSerialized)
+
+     {
+
+         If (LLess (SizeOf (Arg0), SizeOf (Arg1)))
+
+         {
+
+             Return (Zero)
+
+         }
+
+
+
+         Add (SizeOf (Arg0), 0x01, Local0)
+
+         Name (BUF0, Buffer (Local0) {})
+
+         Name (BUF1, Buffer (Local0) {})
+
+         Store (Arg0, BUF0)
+
+         Store (Arg1, BUF1)
+
+         While (Local0)
+
+         {
+
+             Decrement (Local0)
+
+             If (LNot (LEqual (DerefOf (Index (BUF0, 
+Local0)), DerefOf (Index (BUF1, Local0)))))
+
+             {
+
+                 Return (Zero)
+
+             }
+
+         }
+
+
+
+         Return (One)
+
+     }
+
+
+
+     Method (GPRW, 2, NotSerialized)
+
+     {
+
+         Name (PRWP, Package (0x02)
+
+         {
+
+             0x00,
+
+             0x00
+
+         })
+
+         Store (Arg0, Index (PRWP, 0x00))
+
+         Store (Arg1, Index (PRWP, 0x01))
+
+         Store (0x00, Local0)
+
+         Or (Local0, ShiftLeft (SS1, 0x01), Local0)
+
+         Or (Local0, ShiftLeft (SS2, 0x02), Local0)
+
+         Or (Local0, ShiftLeft (SS3, 0x03), Local0)
+
+         Or (Local0, ShiftLeft (SS4, 0x04), Local0)
+
+         If (And (ShiftLeft (0x01, Arg1), Local0)) {}
+
+         Else
+
+         {
+
+             ShiftRight (Local0, 0x01, Local0)
+
+             If (LOr (LEqual (OSFL (), 0x01), LEqual (OSFL 
+(), 0x02)))
+
+             {
+
+                 FindSetLeftBit (Local0, Index (PRWP, 
+0x01))
+
+             }
+
+             Else
+
+             {
+
+                 FindSetRightBit (Local0, Index (PRWP, 
+0x01))
+
+             }
+
+         }
+
+
+
+         Return (PRWP)
+
+     }
+
+
+
+     Name (WAKP, Package (0x02)
+
+     {
+
+         0x00,
+
+         0x00
+
+     })
+
+     OperationRegion (DEB0, SystemIO, 0x0378, 0x01)
+
+     Field (DEB0, ByteAcc, NoLock, Preserve)
+
+     {
+
+         DBG8,   8
+
+     }
+
+
+
+     OperationRegion (DEB1, SystemIO, 0x90, 0x02)
+
+     Field (DEB1, WordAcc, NoLock, Preserve)
+
+     {
+
+         DBG9,   16
+
+     }
+
+
+
+     Scope (\_PR)
+
+     {
+
+         Processor (CPU1, 0x01, 0x00000100, 0x06) {}
+
+         Processor (CPU2, 0x02, 0x00000100, 0x06) {}
+
+     }
+
+
+
+     Scope (\_SB)
+
+     {
+
+         Name (PR00, Package (0x08)
+
+         {
+
+             Package (0x04)
+
+             {
+
+                 0x0001FFFF,
+
+                 0x00,
+
+                 LNKA,
+
+                 0x00
+
+             },
+
+
+
+             Package (0x04)
+
+             {
+
+                 0x0001FFFF,
+
+                 0x01,
+
+                 LNKB,
+
+                 0x00
+
+             },
+
+
+
+             Package (0x04)
+
+             {
+
+                 0x001FFFFF,
+
+                 0x01,
+
+                 LNKB,
+
+                 0x00
+
+             },
+
+
+
+             Package (0x04)
+
+             {
+
+                 0x001FFFFF,
+
+                 0x00,
+
+                 LNKC,
+
+                 0x00
+
+             },
+
+
+
+             Package (0x04)
+
+             {
+
+                 0x001DFFFF,
+
+                 0x00,
+
+                 LNKA,
+
+                 0x00
+
+             },
+
+
+
+             Package (0x04)
+
+             {
+
+                 0x001DFFFF,
+
+                 0x01,
+
+                 LNKD,
+
+                 0x00
+
+             },
+
+
+
+             Package (0x04)
+
+             {
+
+                 0x001DFFFF,
+
+                 0x02,
+
+                 LNKC,
+
+                 0x00
+
+             },
+
+
+
+             Package (0x04)
+
+             {
+
+                 0x001DFFFF,
+
+                 0x03,
+
+                 LNKH,
+
+                 0x00
+
+             }
+
+         })
+
+         Name (AR00, Package (0x08)
+
+         {
+
+             Package (0x04)
+
+             {
+
+                 0x0001FFFF,
+
+                 0x00,
+
+                 0x00,
+
+                 0x10
+
+             },
+
+
+
+             Package (0x04)
+
+             {
+
+                 0x0001FFFF,
+
+                 0x01,
+
+                 0x00,
+
+                 0x11
+
+             },
+
+
+
+             Package (0x04)
+
+             {
+
+                 0x001FFFFF,
+
+                 0x01,
+
+                 0x00,
+
+                 0x11
+
+             },
+
+
+
+             Package (0x04)
+
+             {
+
+                 0x001FFFFF,
+
+                 0x00,
+
+                 0x00,
+
+                 0x12
+
+             },
+
+
+
+             Package (0x04)
+
+             {
+
+                 0x001DFFFF,
+
+                 0x00,
+
+                 0x00,
+
+                 0x10
+
+             },
+
+
+
+             Package (0x04)
+
+             {
+
+                 0x001DFFFF,
+
+                 0x01,
+
+                 0x00,
+
+                 0x13
+
+             },
+
+
+
+             Package (0x04)
+
+             {
+
+                 0x001DFFFF,
+
+                 0x02,
+
+                 0x00,
+
+                 0x12
+
+             },
+
+
+
+             Package (0x04)
+
+             {
+
+                 0x001DFFFF,
+
+                 0x03,
+
+                 0x00,
+
+                 0x17
+
+             }
+
+         })
+
+         Name (PR02, Package (0x03)
+
+         {
+
+             Package (0x04)
+
+             {
+
+                 0x0003FFFF,
+
+                 0x00,
+
+                 LNKB,
+
+                 0x00
+
+             },
+
+
+
+             Package (0x04)
+
+             {
+
+                 0x000CFFFF,
+
+                 0x00,
+
+                 LNKB,
+
+                 0x00
+
+             },
+
+
+
+             Package (0x04)
+
+             {
+
+                 0x000AFFFF,
+
+                 0x00,
+
+                 LNKC,
+
+                 0x00
+
+             }
+
+         })
+
+         Name (AR02, Package (0x03)
+
+         {
+
+             Package (0x04)
+
+             {
+
+                 0x0003FFFF,
+
+                 0x00,
+
+                 0x00,
+
+                 0x11
+
+             },
+
+
+
+             Package (0x04)
+
+             {
+
+                 0x000CFFFF,
+
+                 0x00,
+
+                 0x00,
+
+                 0x11
+
+             },
+
+
+
+             Package (0x04)
+
+             {
+
+                 0x000AFFFF,
+
+                 0x00,
+
+                 0x00,
+
+                 0x12
+
+             }
+
+         })
+
+         Name (PRSA, ResourceTemplate ()
+
+         {
+
+             IRQ (Level, ActiveLow, Shared) 
+{3,4,5,6,7,9,10,11,12,14,15}
+
+         })
+
+         Alias (PRSA, PRSB)
+
+         Alias (PRSA, PRSC)
+
+         Alias (PRSA, PRSD)
+
+         Alias (PRSA, PRSE)
+
+         Alias (PRSA, PRSF)
+
+         Alias (PRSA, PRSG)
+
+         Alias (PRSA, PRSH)
+
+         Device (PCI0)
+
+         {
+
+             Name (_HID, EisaId ("PNP0A03"))
+
+             Name (_ADR, 0x00)
+
+             Name (_BBN, 0x00)
+
+             Name (_UID, 0x00)
+
+             Method (_PRT, 0, NotSerialized)
+
+             {
+
+                 If (PICM)
+
+                 {
+
+                     Return (AR00)
+
+                 }
+
+
+
+                 Return (PR00)
+
+             }
+
+
+
+             Device (P0P2)
+
+             {
+
+                 Name (_ADR, 0x001E0000)
+
+                 Method (_PRW, 0, NotSerialized)
+
+                 {
+
+                     Return (GPRW (0x0B, 0x03))
+
+                 }
+
+
+
+                 Method (_PRT, 0, NotSerialized)
+
+                 {
+
+                     If (PICM)
+
+                     {
+
+                         Return (AR02)
+
+                     }
+
+
+
+                     Return (PR02)
+
+                 }
+
+
+
+                 Device (LAN1)
+
+                 {
+
+                     Name (_ADR, 0x000C0000)
+
+                     Method (_PRW, 0, NotSerialized)
+
+                     {
+
+                         Return (GPRW (0x0B, 0x03))
+
+                     }
+
+                 }
+
+             }
+
+
+
+             Device (MC97)
+
+             {
+
+                 Name (_ADR, 0x001F0006)
+
+                 Method (_PRW, 0, NotSerialized)
+
+                 {
+
+                     Return (GPRW (0x05, 0x03))
+
+                 }
+
+             }
+
+
+
+             Device (IDE0)
+
+             {
+
+                 Name (_ADR, 0x001F0001)
+
+                 Name (REGF, 0x01)
+
+                 Method (_REG, 2, NotSerialized)
+
+                 {
+
+                     If (LEqual (Arg0, 0x02))
+
+                     {
+
+                         Store (Arg1, REGF)
+
+                     }
+
+                 }
+
+
+
+                 OperationRegion (BAR0, PCI_Config, 0x00, 
+0x0100)
+
+                 Field (BAR0, DWordAcc, NoLock, Preserve)
+
+                 {
+
+                     Offset (0x40),
+
+                     TIMP,   16,
+
+                     TIMS,   16,
+
+                     STMP,   4,
+
+                     STMS,   4,
+
+                     Offset (0x48),
+
+                     UDMP,   2,
+
+                     UDMS,   2,
+
+                     Offset (0x4A),
+
+                     UDTP,   6,
+
+                     Offset (0x4B),
+
+                     UDTS,   6,
+
+                     Offset (0x54),
+
+                     PCB0,   2,
+
+                     SCB0,   2,
+
+                     PCA0,   2,
+
+                     SCA0,   2,
+
+                         ,   4,
+
+                     FPB0,   2,
+
+                     FSB0,   2
+
+                 }
+
+
+
+                 Name (TIM0, Package (0x09)
+
+                 {
+
+                     Package (0x04)
+
+                     {
+
+                         0x78,
+
+                         0xB4,
+
+                         0xF0,
+
+                         0x0384
+
+                     },
+
+
+
+                     Package (0x04)
+
+                     {
+
+                         0x23,
+
+                         0x21,
+
+                         0x10,
+
+                         0x00
+
+                     },
+
+
+
+                     Package (0x04)
+
+                     {
+
+                         0x0B,
+
+                         0x09,
+
+                         0x04,
+
+                         0x00
+
+                     },
+
+
+
+                     Package (0x06)
+
+                     {
+
+                         0x70,
+
+                         0x49,
+
+                         0x36,
+
+                         0x27,
+
+                         0x19,
+
+                         0x0F
+
+                     },
+
+
+
+                     Package (0x06)
+
+                     {
+
+                         0x00,
+
+                         0x01,
+
+                         0x02,
+
+                         0x01,
+
+                         0x02,
+
+                         0x01
+
+                     },
+
+
+
+                     Package (0x06)
+
+                     {
+
+                         0x00,
+
+                         0x00,
+
+                         0x00,
+
+                         0x01,
+
+                         0x01,
+
+                         0x01
+
+                     },
+
+
+
+                     Package (0x06)
+
+                     {
+
+                         0x00,
+
+                         0x00,
+
+                         0x00,
+
+                         0x00,
+
+                         0x00,
+
+                         0x01
+
+                     },
+
+
+
+                     Package (0x04)
+
+                     {
+
+                         0x04,
+
+                         0x03,
+
+                         0x02,
+
+                         0x00
+
+                     },
+
+
+
+                     Package (0x04)
+
+                     {
+
+                         0x02,
+
+                         0x01,
+
+                         0x00,
+
+                         0x00
+
+                     }
+
+                 })
+
+                 Name (TMD0, Buffer (0x14) {})
+
+                 CreateDWordField (TMD0, 0x00, PIO0)
+
+                 CreateDWordField (TMD0, 0x04, DMA0)
+
+                 CreateDWordField (TMD0, 0x08, PIO1)
+
+                 CreateDWordField (TMD0, 0x0C, DMA1)
+
+                 CreateDWordField (TMD0, 0x10, CHNF)
+
+                 Name (GTIM, 0x00)
+
+                 Name (GSTM, 0x00)
+
+                 Name (GUDM, 0x00)
+
+                 Name (GUDT, 0x00)
+
+                 Name (GCB0, 0x00)
+
+                 Name (GFB0, 0x00)
+
+                 Device (CHN0)
+
+                 {
+
+                     Name (_ADR, 0x00)
+
+                     Method (_GTM, 0, NotSerialized)
+
+                     {
+
+                         Return (GTM (TIMP, STMP, UDMP, 
+UDTP, PCB0, FPB0))
+
+                     }
+
+
+
+                     Method (_STM, 3, NotSerialized)
+
+                     {
+
+                         Store (Arg0, Debug)
+
+                         Store (Arg0, TMD0)
+
+                         Store (TIMP, GTIM)
+
+                         Store (UDTP, GUDT)
+
+                         If (STM ())
+
+                         {
+
+                             Store (GTIM, TIMP)
+
+                             Store (GSTM, STMP)
+
+                             Store (GUDM, UDMP)
+
+                             Store (GUDT, UDTP)
+
+                             Store (GCB0, PCB0)
+
+                             Store (GFB0, FPB0)
+
+                         }
+
+
+
+                         Store (GTF (0x00, Arg1), ATA0)
+
+                         Store (GTF (0x01, Arg2), ATA1)
+
+                     }
+
+
+
+                     Device (DRV0)
+
+                     {
+
+                         Name (_ADR, 0x00)
+
+                         Method (_GTF, 0, NotSerialized)
+
+                         {
+
+                             Return (RATA (ATA0))
+
+                         }
+
+                     }
+
+
+
+                     Device (DRV1)
+
+                     {
+
+                         Name (_ADR, 0x01)
+
+                         Method (_GTF, 0, NotSerialized)
+
+                         {
+
+                             Return (RATA (ATA1))
+
+                         }
+
+                     }
+
+                 }
+
+
+
+                 Device (CHN1)
+
+                 {
+
+                     Name (_ADR, 0x01)
+
+                     Method (_GTM, 0, NotSerialized)
+
+                     {
+
+                         Return (GTM (TIMS, STMS, UDMS, 
+UDTS, SCB0, FSB0))
+
+                     }
+
+
+
+                     Method (_STM, 3, NotSerialized)
+
+                     {
+
+                         Store (Arg0, Debug)
+
+                         Store (Arg0, TMD0)
+
+                         Store (TIMS, GTIM)
+
+                         Store (UDTS, GUDT)
+
+                         If (STM ())
+
+                         {
+
+                             Store (GTIM, TIMS)
+
+                             Store (GSTM, STMS)
+
+                             Store (GUDM, UDMS)
+
+                             Store (GUDT, UDTS)
+
+                             Store (GCB0, SCB0)
+
+                             Store (GFB0, FSB0)
+
+                         }
+
+
+
+                         Store (GTF (0x00, Arg1), ATA2)
+
+                         Store (GTF (0x01, Arg2), ATA3)
+
+                     }
+
+
+
+                     Device (DRV0)
+
+                     {
+
+                         Name (_ADR, 0x00)
+
+                         Method (_GTF, 0, NotSerialized)
+
+                         {
+
+                             Return (RATA (ATA2))
+
+                         }
+
+                     }
+
+
+
+                     Device (DRV1)
+
+                     {
+
+                         Name (_ADR, 0x01)
+
+                         Method (_GTF, 0, NotSerialized)
+
+                         {
+
+                             Return (RATA (ATA3))
+
+                         }
+
+                     }
+
+                 }
+
+
+
+                 Method (GTM, 6, Serialized)
+
+                 {
+
+                     Store (Ones, PIO0)
+
+                     Store (PIO0, PIO1)
+
+                     Store (PIO0, DMA0)
+
+                     Store (PIO0, DMA1)
+
+                     Store (Zero, CHNF)
+
+                     If (REGF) {}
+
+                     Else
+
+                     {
+
+                         Return (TMD0)
+
+                     }
+
+
+
+                     If (And (Arg0, 0x02))
+
+                     {
+
+                         Or (CHNF, 0x02, CHNF)
+
+                     }
+
+
+
+                     ShiftRight (And (Arg0, 0x3300), 0x08, 
+Local5)
+
+                     Store (Match (DerefOf (Index (TIM0, 
+0x01)), MLE, Local5, MTR, 0x00, 0x00), Local6)
+
+                     Store (DerefOf (Index (DerefOf (Index 
+(TIM0, 0x00)), Local6)), Local7)
+
+                     Store (Local7, DMA0)
+
+                     If (And (Arg0, 0x08))
+
+                     {
+
+                         Store (0x0384, PIO0)
+
+                     }
+
+                     Else
+
+                     {
+
+                         Store (Local7, PIO0)
+
+                     }
+
+
+
+                     If (And (Arg0, 0x20))
+
+                     {
+
+                         Or (CHNF, 0x08, CHNF)
+
+                     }
+
+
+
+                     If (And (Arg0, 0x4000))
+
+                     {
+
+                         Or (CHNF, 0x10, CHNF)
+
+                         Store (Match (DerefOf (Index 
+(TIM0, 0x02)), MLE, Arg1, MTR, 0x00, 0x00), Local5)
+
+                         Store (DerefOf (Index (DerefOf 
+(Index (TIM0, 0x00)), Local5)), Local6)
+
+                         Store (Local6, DMA1)
+
+                         If (And (Arg0, 0x80))
+
+                         {
+
+                             Store (0x0384, PIO1)
+
+                         }
+
+                         Else
+
+                         {
+
+                             Store (Local6, PIO1)
+
+                         }
+
+                     }
+
+
+
+                     If (And (Arg2, 0x01))
+
+                     {
+
+                         And (Arg3, 0x03, Local5)
+
+                         If (LAnd (And (Arg5, 0x01), 
+LEqual (Local5, 0x01)))
+
+                         {
+
+                             Add (Local5, 0x04, Local5)
+
+                         }
+
+                         Else
+
+                         {
+
+                             If (And (Arg4, 0x01))
+
+                             {
+
+                                 Add (Local5, 0x02, 
+Local5)
+
+                             }
+
+                         }
+
+
+
+                         Store (DerefOf (Index (DerefOf 
+(Index (TIM0, 0x03)), Local5)), DMA0)
+
+                         Or (CHNF, 0x01, CHNF)
+
+                     }
+
+
+
+                     If (And (Arg2, 0x02))
+
+                     {
+
+                         And (ShiftRight (Arg3, 0x04), 
+0x03, Local5)
+
+                         If (LAnd (And (Arg5, 0x02), 
+LEqual (Local5, 0x01)))
+
+                         {
+
+                             Add (Local5, 0x04, Local5)
+
+                         }
+
+                         Else
+
+                         {
+
+                             If (And (Arg4, 0x02))
+
+                             {
+
+                                 Add (Local5, 0x02, 
+Local5)
+
+                             }
+
+                         }
+
+
+
+                         Store (DerefOf (Index (DerefOf 
+(Index (TIM0, 0x03)), Local5)), DMA1)
+
+                         Or (CHNF, 0x04, CHNF)
+
+                     }
+
+
+
+                     Store (TMD0, Debug)
+
+                     Return (TMD0)
+
+                 }
+
+
+
+                 Method (STM, 0, Serialized)
+
+                 {
+
+                     If (REGF) {}
+
+                     Else
+
+                     {
+
+                         Return (0x00)
+
+                     }
+
+
+
+                     And (GTIM, 0x8044, GTIM)
+
+                     Store (0x00, GSTM)
+
+                     Store (0x00, GUDM)
+
+                     Store (0x00, GCB0)
+
+                     And (GUDT, 0xCC, GUDT)
+
+                     Store (0x00, GFB0)
+
+                     If (And (CHNF, 0x01))
+
+                     {
+
+                         Store (Match (DerefOf (Index 
+(TIM0, 0x03)), MLE, DMA0, MTR, 0x00, 0x00), Local0)
+
+                         If (LGreater (Local0, 0x05))
+
+                         {
+
+                             Store (0x05, Local0)
+
+                         }
+
+
+
+                         Or (GUDT, DerefOf (Index (DerefOf 
+(Index (TIM0, 0x04)), Local0)), GUDT)
+
+                         Or (GCB0, DerefOf (Index (DerefOf 
+(Index (TIM0, 0x05)), Local0)), GCB0)
+
+                         Or (GFB0, DerefOf (Index (DerefOf 
+(Index (TIM0, 0x06)), Local0)), GFB0)
+
+                         Or (GUDM, 0x01, GUDM)
+
+                     }
+
+                     Else
+
+                     {
+
+                         If (Or (LEqual (PIO0, Ones), 
+LEqual (PIO0, 0x00)))
+
+                         {
+
+                             If (And (LLess (DMA0, Ones), 
+LGreater (DMA0, 0x00)))
+
+                             {
+
+                                 Store (DMA0, PIO0)
+
+                                 Or (GTIM, 0x08, GTIM)
+
+                             }
+
+                         }
+
+                     }
+
+
+
+                     If (And (CHNF, 0x04))
+
+                     {
+
+                         Store (Match (DerefOf (Index 
+(TIM0, 0x03)), MLE, DMA1, MTR, 0x00, 0x00), Local0)
+
+                         If (LGreater (Local0, 0x05))
+
+                         {
+
+                             Store (0x05, Local0)
+
+                         }
+
+
+
+                         Or (GUDT, ShiftLeft (DerefOf 
+(Index (DerefOf (Index (TIM0, 0x04)), Local0)), 0x04), 
+GUDT)
+
+                         Or (GCB0, ShiftLeft (DerefOf 
+(Index (DerefOf (Index (TIM0, 0x05)), Local0)), 0x01), 
+GCB0)
+
+                         Or (GFB0, ShiftLeft (DerefOf 
+(Index (DerefOf (Index (TIM0, 0x06)), Local0)), 0x01), 
+GFB0)
+
+                         Or (GUDM, 0x02, GUDM)
+
+                     }
+
+                     Else
+
+                     {
+
+                         If (Or (LEqual (PIO1, Ones), 
+LEqual (PIO1, 0x00)))
+
+                         {
+
+                             If (And (LLess (DMA1, Ones), 
+LGreater (DMA1, 0x00)))
+
+                             {
+
+                                 Store (DMA1, PIO1)
+
+                                 Or (GTIM, 0x80, GTIM)
+
+                             }
+
+                         }
+
+                     }
+
+
+
+                     If (And (CHNF, 0x02))
+
+                     {
+
+                         Or (GTIM, 0x03, GTIM)
+
+                     }
+
+
+
+                     If (And (CHNF, 0x08))
+
+                     {
+
+                         Or (GTIM, 0x30, GTIM)
+
+                     }
+
+
+
+                     And (Match (DerefOf (Index (TIM0, 
+0x00)), MGE, PIO0, MTR, 0x00, 0x00), 0x03, Local0)
+
+                     Store (DerefOf (Index (DerefOf (Index 
+(TIM0, 0x01)), Local0)), Local1)
+
+                     ShiftLeft (Local1, 0x08, Local2)
+
+                     Or (GTIM, Local2, GTIM)
+
+                     If (And (CHNF, 0x10))
+
+                     {
+
+                         Or (GTIM, 0x4000, GTIM)
+
+                         And (Match (DerefOf (Index (TIM0, 
+0x00)), MGE, PIO1, MTR, 0x00, 0x00), 0x03, Local0)
+
+                         Store (DerefOf (Index (DerefOf 
+(Index (TIM0, 0x02)), Local0)), GSTM)
+
+                     }
+
+
+
+                     Return (0x01)
+
+                 }
+
+
+
+                 Name (AT01, Buffer (0x07)
+
+                 {
+
+                     0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xEF
+
+                 })
+
+                 Name (AT02, Buffer (0x07)
+
+                 {
+
+                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0x90
+
+                 })
+
+                 Name (AT03, Buffer (0x07)
+
+                 {
+
+                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0xC6
+
+                 })
+
+                 Name (AT04, Buffer (0x07)
+
+                 {
+
+                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0x91
+
+                 })
+
+                 Name (ATA0, Buffer (0x1D) {})
+
+                 Name (ATA1, Buffer (0x1D) {})
+
+                 Name (ATA2, Buffer (0x1D) {})
+
+                 Name (ATA3, Buffer (0x1D) {})
+
+                 Name (ATAB, Buffer (0x1D) {})
+
+                 CreateByteField (ATAB, 0x00, CMDC)
+
+                 Method (GTFB, 3, Serialized)
+
+                 {
+
+                     Multiply (CMDC, 0x38, Local0)
+
+                     Add (Local0, 0x08, Local1)
+
+                     CreateField (ATAB, Local1, 0x38, 
+CMDX)
+
+                     Multiply (CMDC, 0x07, Local0)
+
+                     CreateByteField (ATAB, Add (Local0, 
+0x02), A001)
+
+                     CreateByteField (ATAB, Add (Local0, 
+0x06), A005)
+
+                     Store (Arg0, CMDX)
+
+                     Store (Arg1, A001)
+
+                     Store (Arg2, A005)
+
+                     Increment (CMDC)
+
+                 }
+
+
+
+                 Method (GTF, 2, Serialized)
+
+                 {
+
+                     Store (Arg1, Debug)
+
+                     Store (0x00, CMDC)
+
+                     Name (ID49, 0x0C00)
+
+                     Name (ID59, 0x00)
+
+                     Name (ID53, 0x04)
+
+                     Name (ID63, 0x0F00)
+
+                     Name (ID88, 0x0F00)
+
+                     Name (IRDY, 0x01)
+
+                     Name (PIOT, 0x00)
+
+                     Name (DMAT, 0x00)
+
+                     If (LEqual (SizeOf (Arg1), 0x0200))
+
+                     {
+
+                         CreateWordField (Arg1, 0x62, 
+IW49)
+
+                         Store (IW49, ID49)
+
+                         CreateWordField (Arg1, 0x6A, 
+IW53)
+
+                         Store (IW53, ID53)
+
+                         CreateWordField (Arg1, 0x7E, 
+IW63)
+
+                         Store (IW63, ID63)
+
+                         CreateWordField (Arg1, 0x76, 
+IW59)
+
+                         Store (IW59, ID59)
+
+                         CreateWordField (Arg1, 0xB0, 
+IW88)
+
+                         Store (IW88, ID88)
+
+                     }
+
+
+
+                     Store (0xA0, Local7)
+
+                     If (Arg0)
+
+                     {
+
+                         Store (0xB0, Local7)
+
+                         And (CHNF, 0x08, IRDY)
+
+                         If (And (CHNF, 0x10))
+
+                         {
+
+                             Store (PIO1, PIOT)
+
+                         }
+
+                         Else
+
+                         {
+
+                             Store (PIO0, PIOT)
+
+                         }
+
+
+
+                         If (And (CHNF, 0x04))
+
+                         {
+
+                             If (And (CHNF, 0x10))
+
+                             {
+
+                                 Store (DMA1, DMAT)
+
+                             }
+
+                             Else
+
+                             {
+
+                                 Store (DMA0, DMAT)
+
+                             }
+
+                         }
+
+                     }
+
+                     Else
+
+                     {
+
+                         And (CHNF, 0x02, IRDY)
+
+                         Store (PIO0, PIOT)
+
+                         If (And (CHNF, 0x01))
+
+                         {
+
+                             Store (DMA0, DMAT)
+
+                         }
+
+                     }
+
+
+
+                     If (LAnd (LAnd (And (ID53, 0x04), And 
+(ID88, 0xFF00)), DMAT))
+
+                     {
+
+                         Store (Match (DerefOf (Index 
+(TIM0, 0x03)), MLE, DMAT, MTR, 0x00, 0x00), Local1)
+
+                         If (LGreater (Local1, 0x05))
+
+                         {
+
+                             Store (0x05, Local1)
+
+                         }
+
+
+
+                         GTFB (AT01, Or (0x40, Local1), 
+Local7)
+
+                     }
+
+                     Else
+
+                     {
+
+                         If (LAnd (And (ID63, 0xFF00), 
+PIOT))
+
+                         {
+
+                             And (Match (DerefOf (Index 
+(TIM0, 0x00)), MGE, PIOT, MTR, 0x00, 0x00), 0x03, Local0)
+
+                             Or (0x20, DerefOf (Index 
+(DerefOf (Index (TIM0, 0x08)), Local0)), Local1)
+
+                             GTFB (AT01, Local1, Local7)
+
+                         }
+
+                     }
+
+
+
+                     If (IRDY)
+
+                     {
+
+                         And (Match (DerefOf (Index (TIM0, 
+0x00)), MGE, PIOT, MTR, 0x00, 0x00), 0x03, Local0)
+
+                         Or (0x08, DerefOf (Index (DerefOf 
+(Index (TIM0, 0x07)), Local0)), Local1)
+
+                         GTFB (AT01, Local1, Local7)
+
+                     }
+
+                     Else
+
+                     {
+
+                         If (And (ID49, 0x0400))
+
+                         {
+
+                             GTFB (AT01, 0x01, Local7)
+
+                         }
+
+                     }
+
+
+
+                     If (LAnd (And (ID59, 0x0100), And 
+(ID59, 0xFF)))
+
+                     {
+
+                         GTFB (AT03, And (ID59, 0xFF), 
+Local7)
+
+                     }
+
+
+
+                     Store (ATAB, Debug)
+
+                     Return (ATAB)
+
+                 }
+
+
+
+                 Method (RATA, 1, NotSerialized)
+
+                 {
+
+                     CreateByteField (Arg0, 0x00, CMDN)
+
+                     Multiply (CMDN, 0x38, Local0)
+
+                     CreateField (Arg0, 0x08, Local0, 
+RETB)
+
+                     Store (RETB, Debug)
+
+                     Return (RETB)
+
+                 }
+
+             }
+
+
+
+             Device (USB1)
+
+             {
+
+                 Name (_ADR, 0x001D0000)
+
+                 OperationRegion (BAR0, PCI_Config, 0xC0, 
+0x05)
+
+                 Field (BAR0, ByteAcc, NoLock, Preserve)
+
+                 {
+
+                     UBL1,   16,
+
+                     Offset (0x04),
+
+                     USBW,   8
+
+                 }
+
+
+
+                 Method (_PSW, 1, NotSerialized)
+
+                 {
+
+                     If (Arg0)
+
+                     {
+
+                         Store (0x03, USBW)
+
+                     }
+
+                     Else
+
+                     {
+
+                         Store (0x00, USBW)
+
+                     }
+
+                 }
+
+             }
+
+
+
+             Device (USB2)
+
+             {
+
+                 Name (_ADR, 0x001D0001)
+
+                 OperationRegion (BAR0, PCI_Config, 0xC0, 
+0x05)
+
+                 Field (BAR0, ByteAcc, NoLock, Preserve)
+
+                 {
+
+                     UBL1,   16,
+
+                     Offset (0x04),
+
+                     USBW,   8
+
+                 }
+
+
+
+                 Method (_PSW, 1, NotSerialized)
+
+                 {
+
+                     If (Arg0)
+
+                     {
+
+                         Store (0x03, USBW)
+
+                     }
+
+                     Else
+
+                     {
+
+                         Store (0x00, USBW)
+
+                     }
+
+                 }
+
+             }
+
+
+
+             Device (USB3)
+
+             {
+
+                 Name (_ADR, 0x001D0002)
+
+                 OperationRegion (BAR0, PCI_Config, 0xC0, 
+0x05)
+
+                 Field (BAR0, ByteAcc, NoLock, Preserve)
+
+                 {
+
+                     UBL1,   16,
+
+                     Offset (0x04),
+
+                     USBW,   8
+
+                 }
+
+
+
+                 Method (_PSW, 1, NotSerialized)
+
+                 {
+
+                     If (Arg0)
+
+                     {
+
+                         Store (0x03, USBW)
+
+                     }
+
+                     Else
+
+                     {
+
+                         Store (0x00, USBW)
+
+                     }
+
+                 }
+
+             }
+
+
+
+             Device (SBRG)
+
+             {
+
+                 Name (_ADR, 0x001F0000)
+
+                 Device (PIC)
+
+                 {
+
+                     Name (_HID, EisaId ("PNP0000"))
+
+                     Name (_CRS, ResourceTemplate ()
+
+                     {
+
+                         IO (Decode16, 0x0020, 0x0020, 
+0x00, 0x02)
+
+                         IO (Decode16, 0x00A0, 0x00A0, 
+0x00, 0x02)
+
+                         IRQNoFlags () {2}
+
+                     })
+
+                 }
+
+
+
+                 Device (DMAD)
+
+                 {
+
+                     Name (_HID, EisaId ("PNP0200"))
+
+                     Name (_CRS, ResourceTemplate ()
+
+                     {
+
+                         DMA (Compatibility, BusMaster, 
+Transfer8) {4}
+
+                         IO (Decode16, 0x0000, 0x0000, 
+0x00, 0x10)
+
+                         IO (Decode16, 0x0081, 0x0081, 
+0x00, 0x03)
+
+                         IO (Decode16, 0x0087, 0x0087, 
+0x00, 0x01)
+
+                         IO (Decode16, 0x0089, 0x0089, 
+0x00, 0x03)
+
+                         IO (Decode16, 0x008F, 0x008F, 
+0x00, 0x01)
+
+                         IO (Decode16, 0x00C0, 0x00C0, 
+0x00, 0x20)
+
+                     })
+
+                 }
+
+
+
+                 Device (TMR)
+
+                 {
+
+                     Name (_HID, EisaId ("PNP0100"))
+
+                     Name (_CRS, ResourceTemplate ()
+
+                     {
+
+                         IO (Decode16, 0x0040, 0x0040, 
+0x00, 0x04)
+
+                         IRQNoFlags () {0}
+
+                     })
+
+                 }
+
+
+
+                 Device (RTC0)
+
+                 {
+
+                     Name (_HID, EisaId ("PNP0B00"))
+
+                     Name (_CRS, ResourceTemplate ()
+
+                     {
+
+                         IO (Decode16, 0x0070, 0x0070, 
+0x00, 0x02)
+
+                         IRQNoFlags () {8}
+
+                     })
+
+                 }
+
+
+
+                 Device (SPKR)
+
+                 {
+
+                     Name (_HID, EisaId ("PNP0800"))
+
+                     Name (_CRS, ResourceTemplate ()
+
+                     {
+
+                         IO (Decode16, 0x0061, 0x0061, 
+0x00, 0x01)
+
+                     })
+
+                 }
+
+
+
+                 Device (COPR)
+
+                 {
+
+                     Name (_HID, EisaId ("PNP0C04"))
+
+                     Name (_CRS, ResourceTemplate ()
+
+                     {
+
+                         IO (Decode16, 0x00F0, 0x00F0, 
+0x00, 0x10)
+
+                         IRQNoFlags () {13}
+
+                     })
+
+                 }
+
+
+
+                 Device (RMSC)
+
+                 {
+
+                     Name (_HID, EisaId ("PNP0C02"))
+
+                     Name (_UID, 0x10)
+
+                     Name (CRS0, ResourceTemplate ()
+
+                     {
+
+                         IO (Decode16, 0x0010, 0x0010, 
+0x00, 0x10)
+
+                         IO (Decode16, 0x0022, 0x0022, 
+0x00, 0x1E)
+
+                         IO (Decode16, 0x0044, 0x0044, 
+0x00, 0x1C)
+
+                         IO (Decode16, 0x0063, 0x0063, 
+0x00, 0x01)
+
+                         IO (Decode16, 0x0065, 0x0065, 
+0x00, 0x01)
+
+                         IO (Decode16, 0x0067, 0x0067, 
+0x00, 0x09)
+
+                         IO (Decode16, 0x0072, 0x0072, 
+0x00, 0x0E)
+
+                         IO (Decode16, 0x0080, 0x0080, 
+0x00, 0x01)
+
+                         IO (Decode16, 0x0084, 0x0084, 
+0x00, 0x03)
+
+                         IO (Decode16, 0x0088, 0x0088, 
+0x00, 0x01)
+
+                         IO (Decode16, 0x008C, 0x008C, 
+0x00, 0x03)
+
+                         IO (Decode16, 0x0090, 0x0090, 
+0x00, 0x10)
+
+                         IO (Decode16, 0x00A2, 0x00A2, 
+0x00, 0x1E)
+
+                         IO (Decode16, 0x00E0, 0x00E0, 
+0x00, 0x10)
+
+                         IO (Decode16, 0x04D0, 0x04D0, 
+0x00, 0x02)
+
+                         IO (Decode16, 0x0000, 0x0000, 
+0x00, 0x00)
+
+                         IO (Decode16, 0x0000, 0x0000, 
+0x00, 0x00)
+
+                         Memory32 (ReadOnly, 0xFFE80000, 
+0xFFE80000, 0x00000000, 0x00080000)
+
+                         Memory32 (ReadOnly, 0xFFF80000, 
+0xFFF80000, 0x00000000, 0x00080000)
+
+                         Memory32 (ReadOnly, 0xFEE00400, 
+0xFEE00400, 0x00000000, 0x00DFFC00)
+
+                     })
+
+                     Name (CRS1, ResourceTemplate ()
+
+                     {
+
+                         IO (Decode16, 0x0010, 0x0010, 
+0x00, 0x10)
+
+                         IO (Decode16, 0x0022, 0x0022, 
+0x00, 0x1E)
+
+                         IO (Decode16, 0x0044, 0x0044, 
+0x00, 0x1C)
+
+                         IO (Decode16, 0x0063, 0x0063, 
+0x00, 0x01)
+
+                         IO (Decode16, 0x0065, 0x0065, 
+0x00, 0x01)
+
+                         IO (Decode16, 0x0067, 0x0067, 
+0x00, 0x09)
+
+                         IO (Decode16, 0x0072, 0x0072, 
+0x00, 0x0E)
+
+                         IO (Decode16, 0x0080, 0x0080, 
+0x00, 0x01)
+
+                         IO (Decode16, 0x0084, 0x0084, 
+0x00, 0x03)
+
+                         IO (Decode16, 0x0088, 0x0088, 
+0x00, 0x01)
+
+                         IO (Decode16, 0x008C, 0x008C, 
+0x00, 0x03)
+
+                         IO (Decode16, 0x0090, 0x0090, 
+0x00, 0x10)
+
+                         IO (Decode16, 0x00A2, 0x00A2, 
+0x00, 0x1E)
+
+                         IO (Decode16, 0x00E0, 0x00E0, 
+0x00, 0x10)
+
+                         IO (Decode16, 0x04D0, 0x04D0, 
+0x00, 0x02)
+
+                         IO (Decode16, 0x0000, 0x0000, 
+0x00, 0x00)
+
+                         IO (Decode16, 0x0000, 0x0000, 
+0x00, 0x00)
+
+                     })
+
+                     Method (_CRS, 0, NotSerialized)
+
+                     {
+
+                         If (LEqual (OSFL (), 0x00))
+
+                         {
+
+                             CreateWordField (CRS1, 0x7A, 
+GP00)
+
+                             CreateWordField (CRS1, 0x7C, 
+GP01)
+
+                             CreateByteField (CRS1, 0x7F, 
+GP0L)
+
+                             Store (PMBS, GP00)
+
+                             Store (PMBS, GP01)
+
+                             Store (PMLN, GP0L)
+
+                         }
+
+                         Else
+
+                         {
+
+                             CreateWordField (CRS0, 0x7A, 
+GPX0)
+
+                             CreateWordField (CRS0, 0x7C, 
+GPX1)
+
+                             CreateByteField (CRS0, 0x7F, 
+GPXL)
+
+                             Store (PMBS, GPX0)
+
+                             Store (PMBS, GPX1)
+
+                             Store (PMLN, GPXL)
+
+                         }
+
+
+
+                         If (GPBS)
+
+                         {
+
+                             If (LEqual (OSFL (), 0x00))
+
+                             {
+
+                                 CreateWordField (CRS1, 
+0x82, GP20)
+
+                                 CreateWordField (CRS1, 
+0x84, GP21)
+
+                                 CreateByteField (CRS1, 
+0x87, GP2L)
+
+                                 Store (GPBS, GP20)
+
+                                 Store (GPBS, GP21)
+
+                                 Store (GPLN, GP2L)
+
+                             }
+
+                             Else
+
+                             {
+
+                                 CreateWordField (CRS0, 
+0x82, GX20)
+
+                                 CreateWordField (CRS0, 
+0x84, GX21)
+
+                                 CreateByteField (CRS0, 
+0x87, GX2L)
+
+                                 Store (GPBS, GX20)
+
+                                 Store (GPBS, GX21)
+
+                                 Store (GPLN, GX2L)
+
+                             }
+
+                         }
+
+
+
+                         If (LEqual (OSFL (), 0x00))
+
+                         {
+
+                             Return (CRS1)
+
+                         }
+
+                         Else
+
+                         {
+
+                             Return (CRS0)
+
+                         }
+
+                     }
+
+                 }
+
+
+
+                 Device (OMSC)
+
+                 {
+
+                     Name (_HID, EisaId ("PNP0C02"))
+
+                     Name (_UID, 0x00)
+
+                     Name (CRS, ResourceTemplate ()
+
+                     {
+
+                         IO (Decode16, 0x1100, 0x1100, 
+0x00, 0x40)
+
+                         IO (Decode16, 0x1254, 0x1254, 
+0x00, 0x01)
+
+                         IO (Decode16, 0x12D4, 0x12D4, 
+0x00, 0x01)
+
+                         IO (Decode16, 0x1300, 0x1300, 
+0x00, 0x76)
+
+                         IO (Decode16, 0x1377, 0x1377, 
+0x00, 0x09)
+
+                         IO (Decode16, 0x0000, 0x0000, 
+0x00, 0x00)
+
+                         Memory32Fixed (ReadOnly, 
+0x00000000, 0x00000000)
+
+                         Memory32Fixed (ReadOnly, 
+0x00000000, 0x00000000)
+
+                     })
+
+                     Method (_CRS, 0, NotSerialized)
+
+                     {
+
+                         If (APCB)
+
+                         {
+
+                             If (OSFL ()) {}
+
+                             Else
+
+                             {
+
+                                 CreateDWordField (CRS, 
+0x38, ML01)
+
+                                 CreateDWordField (CRS, 
+0x34, MB01)
+
+                                 CreateDWordField (CRS, 
+0x44, ML02)
+
+                                 CreateDWordField (CRS, 
+0x40, MB02)
+
+                                 Store (APCB, MB01)
+
+                                 Store (APCL, ML01)
+
+                                 Store (0xFEE00000, MB02)
+
+                                 Store (0x1000, ML02)
+
+                             }
+
+                         }
+
+
+
+                         If (OSFL ()) {}
+
+                         Else
+
+                         {
+
+                             CreateWordField (CRS, 0x2A, 
+GP40)
+
+                             CreateWordField (CRS, 0x2C, 
+GP41)
+
+                             CreateByteField (CRS, 0x2F, 
+GP4L)
+
+                             Store (0x1376, GP40)
+
+                             Store (0x1376, GP41)
+
+                             Store (0x01, GP4L)
+
+                         }
+
+
+
+                         Return (CRS)
+
+                     }
+
+
+
+                     Method (_STA, 0, NotSerialized)
+
+                     {
+
+                         If (OSFL ())
+
+                         {
+
+                             Return (0x0F)
+
+                         }
+
+                         Else
+
+                         {
+
+                             Return (0x00)
+
+                         }
+
+                     }
+
+                 }
+
+
+
+                 Device (\_SB.RMEM)
+
+                 {
+
+                     Name (_HID, EisaId ("PNP0C01"))
+
+                     Name (_UID, 0x01)
+
+                     Name (CRS, ResourceTemplate ()
+
+                     {
+
+                         Memory32Fixed (ReadWrite, 
+0x00000000, 0x000A0000)
+
+                         Memory32Fixed (ReadOnly, 
+0x00000000, 0x00000000)
+
+                         Memory32Fixed (ReadOnly, 
+0x000E0000, 0x00020000)
+
+                         Memory32Fixed (ReadWrite, 
+0x00100000, 0x00000000)
+
+                         Memory32Fixed (ReadOnly, 
+0x00000000, 0x00000000)
+
+                     })
+
+                     Method (_STA, 0, NotSerialized)
+
+                     {
+
+                         If (OSFL ())
+
+                         {
+
+                             Return (0x0F)
+
+                         }
+
+                         Else
+
+                         {
+
+                             Return (0x00)
+
+                         }
+
+                     }
+
+
+
+                     Method (_CRS, 0, NotSerialized)
+
+                     {
+
+                         CreateDWordField (CRS, 0x10, 
+BAS1)
+
+                         CreateDWordField (CRS, 0x14, 
+LEN1)
+
+                         CreateDWordField (CRS, 0x1C, 
+BAS2)
+
+                         CreateDWordField (CRS, 0x20, 
+LEN2)
+
+                         CreateDWordField (CRS, 0x2C, 
+LEN3)
+
+                         CreateDWordField (CRS, 0x34, 
+BAS4)
+
+                         CreateDWordField (CRS, 0x38, 
+LEN4)
+
+                         If (OSFL ()) {}
+
+                         Else
+
+                         {
+
+                             If (MG1B)
+
+                             {
+
+                                 If (LGreater (MG1B, 
+0x000C0000))
+
+                                 {
+
+                                     Store (0x000C0000, 
+BAS1)
+
+                                     Subtract (MG1B, BAS1, 
+LEN1)
+
+                                 }
+
+                             }
+
+                             Else
+
+                             {
+
+                                 Store (0x000C0000, BAS1)
+
+                                 Store (0x00020000, LEN1)
+
+                             }
+
+
+
+                             If (Add (MG1B, MG1L, Local0))
+
+                             {
+
+                                 Store (Local0, BAS2)
+
+                                 Subtract (0x00100000, 
+BAS2, LEN2)
+
+                             }
+
+                         }
+
+
+
+                         Subtract (MG2B, 0x00100000, LEN3)
+
+                         Add (MG2B, MG2L, BAS4)
+
+                         Subtract (0x00, BAS4, LEN4)
+
+                         Return (CRS)
+
+                     }
+
+                 }
+
+
+
+                 Device (PS2K)
+
+                 {
+
+                     Name (_HID, EisaId ("PNP030B"))
+
+                     Name (_CID, 0x0B03D041)
+
+                     Method (_STA, 0, NotSerialized)
+
+                     {
+
+                         ShiftLeft (0x01, 0x0A, Local0)
+
+                         If (And (IOST, Local0))
+
+                         {
+
+                             Return (0x0F)
+
+                         }
+
+
+
+                         Return (0x00)
+
+                     }
+
+
+
+                     Name (_CRS, ResourceTemplate ()
+
+                     {
+
+                         IO (Decode16, 0x0060, 0x0060, 
+0x00, 0x01)
+
+                         IO (Decode16, 0x0064, 0x0064, 
+0x00, 0x01)
+
+                         IRQNoFlags () {1}
+
+                     })
+
+                 }
+
+
+
+                 Method (PS2K._PRW, 0, NotSerialized)
+
+                 {
+
+                     Return (GPRW (0x1D, 0x05))
+
+                 }
+
+
+
+                 Device (PS2M)
+
+                 {
+
+                     Name (_HID, EisaId ("PNP0F03"))
+
+                     Name (_CID, 0x130FD041)
+
+                     Method (_STA, 0, NotSerialized)
+
+                     {
+
+                         ShiftLeft (0x01, 0x0C, Local0)
+
+                         If (And (IOST, Local0))
+
+                         {
+
+                             Return (0x0F)
+
+                         }
+
+
+
+                         Return (0x00)
+
+                     }
+
+
+
+                     Name (CRS1, ResourceTemplate ()
+
+                     {
+
+                         IRQNoFlags () {12}
+
+                     })
+
+                     Name (CRS2, ResourceTemplate ()
+
+                     {
+
+                         IO (Decode16, 0x0060, 0x0060, 
+0x00, 0x01)
+
+                         IO (Decode16, 0x0064, 0x0064, 
+0x00, 0x01)
+
+                         IRQNoFlags () {12}
+
+                     })
+
+                     Method (_CRS, 0, NotSerialized)
+
+                     {
+
+                         ShiftLeft (0x01, 0x0A, Local0)
+
+                         If (And (IOST, Local0))
+
+                         {
+
+                             Return (CRS1)
+
+                         }
+
+                         Else
+
+                         {
+
+                             Return (CRS2)
+
+                         }
+
+                     }
+
+                 }
+
+
+
+                 Method (PS2M._PRW, 0, NotSerialized)
+
+                 {
+
+                     Return (GPRW (0x1D, 0x05))
+
+                 }
+
+
+
+                 OperationRegion (WIN1, SystemIO, SPIO, 
+0x02)
+
+                 Field (WIN1, ByteAcc, NoLock, Preserve)
+
+                 {
+
+                     INDX,   8,
+
+                     DATA,   8
+
+                 }
+
+
+
+                 IndexField (INDX, DATA, ByteAcc, NoLock, 
+Preserve)
+
+                 {
+
+                     Offset (0x02),
+
+                     CFG,    8,
+
+                     Offset (0x07),
+
+                     LDN,    8,
+
+                     Offset (0x22),
+
+                         ,   4,
+
+                     PPPD,   1,
+
+                     Offset (0x23),
+
+                     Offset (0x30),
+
+                     ACTR,   8,
+
+                     Offset (0x60),
+
+                     IOAH,   8,
+
+                     IOAL,   8,
+
+                     Offset (0x70),
+
+                     INTR,   8,
+
+                     Offset (0x74),
+
+                     DMCH,   8,
+
+                     Offset (0xF0),
+
+                     OPT0,   8,
+
+                     OPT1,   8,
+
+                     OPT2,   8,
+
+                     OPT3,   8,
+
+                     OPT4,   8,
+
+                     OPT5,   8,
+
+                     OPT6,   8,
+
+                     OPT7,   8
+
+                 }
+
+
+
+                 Method (ENFG, 0, NotSerialized)
+
+                 {
+
+                     Store (0x87, INDX)
+
+                     Store (0x87, INDX)
+
+                 }
+
+
+
+                 Method (EXFG, 0, NotSerialized)
+
+                 {
+
+                     Store (0xAA, INDX)
+
+                 }
+
+
+
+                 Name (LDFD, 0x00)
+
+                 Name (LDLP, 0x01)
+
+                 Name (LDU1, 0x02)
+
+                 Name (LDU2, 0x03)
+
+                 Name (LDIR, 0x0C)
+
+                 Name (LDMD, 0x06)
+
+                 Name (LDGM, 0x07)
+
+                 Method (SIOS, 1, NotSerialized)
+
+                 {
+
+                 }
+
+
+
+                 Method (SIOH, 0, NotSerialized)
+
+                 {
+
+                 }
+
+
+
+                 Method (SIOW, 1, NotSerialized)
+
+                 {
+
+                 }
+
+
+
+                 Name (FDST, 0x00)
+
+                 Name (U1ST, 0x00)
+
+                 Name (U2ST, 0x00)
+
+                 Name (IRST, 0x00)
+
+                 Name (LPST, 0x00)
+
+                 Name (GMST, 0x00)
+
+                 Name (MDST, 0x00)
+
+                 Method (_INI, 0, NotSerialized)
+
+                 {
+
+                     If (LNot (LEqual (GSTA (LDFD), 
+0x00)))
+
+                     {
+
+                         Store (0x01, FDST)
+
+                     }
+
+
+
+                     If (LNot (LEqual (GSTA (LDU1), 
+0x00)))
+
+                     {
+
+                         Store (0x01, U1ST)
+
+                     }
+
+
+
+                     If (LNot (LEqual (GSTA (LDU2), 
+0x00)))
+
+                     {
+
+                         Store (0x01, U2ST)
+
+                     }
+
+
+
+                     If (LNot (LEqual (GSTA (LDIR), 
+0x00)))
+
+                     {
+
+                         Store (0x01, IRST)
+
+                     }
+
+
+
+                     If (LNot (LEqual (GSTA (LDGM), 
+0x00)))
+
+                     {
+
+                         Store (0x01, GMST)
+
+                     }
+
+
+
+                     If (LNot (LEqual (GSTA (LDMD), 
+0x00)))
+
+                     {
+
+                         Store (0x01, MDST)
+
+                     }
+
+
+
+                     ENFG ()
+
+                     Store (LDLP, LDN)
+
+                     If (LNot (LEqual (ACTR, 0x03)))
+
+                     {
+
+                         Store (0x01, LPST)
+
+                     }
+
+
+
+                     EXFG ()
+
+                 }
+
+
+
+                 Device (LPT)
+
+                 {
+
+                     Name (_HID, EisaId ("PNP0400"))
+
+                     Method (_STA, 0, NotSerialized)
+
+                     {
+
+                         If (LPST)
+
+                         {
+
+                             ENFG ()
+
+                             Store (LDLP, LDN)
+
+                             Store (ACTR, Local0)
+
+                             Store (IOAH, Local1)
+
+                             EXFG ()
+
+                             And (Local0, 0x01, Local0)
+
+                             If (LAnd (LNot (Local0), 
+Local1))
+
+                             {
+
+                                 Return (0x0F)
+
+                             }
+
+                         }
+
+
+
+                         Return (Zero)
+
+                     }
+
+
+
+                     Method (_DIS, 0, NotSerialized)
+
+                     {
+
+                         ENFG ()
+
+                         Store (One, PPPD)
+
+                         EXFG ()
+
+                     }
+
+
+
+                     Method (_CRS, 0, NotSerialized)
+
+                     {
+
+                         Name (BUFE, ResourceTemplate ()
+
+                         {
+
+                             IO (Decode16, 0x0378, 0x0378, 
+0x08, 0x08)
+
+                             IRQNoFlags () {7}
+
+                         })
+
+                         CreateWordField (BUFE, 0x02, 
+IMI1)
+
+                         CreateWordField (BUFE, 0x04, 
+IMA1)
+
+                         CreateByteField (BUFE, 0x06, 
+ALN1)
+
+                         CreateByteField (BUFE, 0x07, 
+LEN1)
+
+                         CreateWordField (BUFE, 0x09, 
+IRQ0)
+
+                         ENFG ()
+
+                         Store (LDLP, LDN)
+
+                         Store (IOAH, Local0)
+
+                         ShiftLeft (Local0, 0x02, Local0)
+
+                         Store (Local0, IMI1)
+
+                         Store (Local0, IMA1)
+
+                         If (LEqual (IMI1, 0x03BC))
+
+                         {
+
+                             Store (0x04, ALN1)
+
+                             Store (0x04, LEN1)
+
+                         }
+
+                         Else
+
+                         {
+
+                             Store (0x08, ALN1)
+
+                             Store (0x08, LEN1)
+
+                         }
+
+
+
+                         Store (INTR, Local0)
+
+                         Store (0x01, Local1)
+
+                         ShiftLeft (Local1, Local0, IRQ0)
+
+                         EXFG ()
+
+                         Return (BUFE)
+
+                     }
+
+
+
+                     Method (_SRS, 1, NotSerialized)
+
+                     {
+
+                         CreateWordField (Arg0, 0x02, 
+IOAR)
+
+                         CreateWordField (Arg0, 0x09, 
+IRQ0)
+
+                         ENFG ()
+
+                         Store (LDLP, LDN)
+
+                         Store (ACTR, Local2)
+
+                         Or (Local2, 0x03, Local3)
+
+                         Store (Local3, ACTR)
+
+                         Store (IOAR, Local0)
+
+                         ShiftRight (Local0, 0x02, Local0)
+
+                         Store (Local0, IOAH)
+
+                         FindSetRightBit (IRQ0, Local0)
+
+                         If (LGreater (Local0, 0x00))
+
+                         {
+
+                             Decrement (Local0)
+
+                         }
+
+
+
+                         Store (Local0, INTR)
+
+                         Store (Local2, ACTR)
+
+                         Store (Zero, PPPD)
+
+                         EXFG ()
+
+                     }
+
+
+
+                     Name (_PRS, ResourceTemplate ()
+
+                     {
+
+                         StartDependentFnNoPri ()
+
+                         {
+
+                             IO (Decode16, 0x0378, 0x0378, 
+0x08, 0x08)
+
+                             IRQNoFlags () {5,7}
+
+                         }
+
+                         StartDependentFnNoPri ()
+
+                         {
+
+                             IO (Decode16, 0x0278, 0x0278, 
+0x08, 0x08)
+
+                             IRQNoFlags () {5,7}
+
+                         }
+
+                         StartDependentFnNoPri ()
+
+                         {
+
+                             IO (Decode16, 0x03BC, 0x03BC, 
+0x04, 0x04)
+
+                             IRQNoFlags () {5,7}
+
+                         }
+
+                         EndDependentFn ()
+
+                     })
+
+                 }
+
+
+
+                 Device (ECP)
+
+                 {
+
+                     Name (_HID, EisaId ("PNP0401"))
+
+                     Method (_STA, 0, NotSerialized)
+
+                     {
+
+                         If (LPST)
+
+                         {
+
+                             ENFG ()
+
+                             Store (LDLP, LDN)
+
+                             Store (ACTR, Local0)
+
+                             Store (IOAH, Local1)
+
+                             EXFG ()
+
+                             And (Local0, 0x03, Local0)
+
+                             If (LAnd (LEqual (Local0, 
+0x01), Local1))
+
+                             {
+
+                                 Return (0x0F)
+
+                             }
+
+                         }
+
+
+
+                         Return (Zero)
+
+                     }
+
+
+
+                     Method (_DIS, 0, NotSerialized)
+
+                     {
+
+                         ENFG ()
+
+                         Store (One, PPPD)
+
+                         EXFG ()
+
+                     }
+
+
+
+                     Method (_CRS, 0, NotSerialized)
+
+                     {
+
+                         Name (BUFE, ResourceTemplate ()
+
+                         {
+
+                             IO (Decode16, 0x0378, 0x0378, 
+0x08, 0x08)
+
+                             IO (Decode16, 0x0778, 0x0778, 
+0x04, 0x04)
+
+                             IRQNoFlags () {7}
+
+                             DMA (Compatibility, 
+NotBusMaster, Transfer8) {3}
+
+                         })
+
+                         CreateWordField (BUFE, 0x02, 
+IMI1)
+
+                         CreateWordField (BUFE, 0x04, 
+IMA1)
+
+                         CreateByteField (BUFE, 0x06, 
+ALN1)
+
+                         CreateByteField (BUFE, 0x07, 
+LEN1)
+
+                         CreateWordField (BUFE, 0x0A, 
+IMI2)
+
+                         CreateWordField (BUFE, 0x0C, 
+IMA2)
+
+                         CreateWordField (BUFE, 0x11, 
+IRQ0)
+
+                         CreateByteField (BUFE, 0x14, 
+DMA0)
+
+                         ENFG ()
+
+                         Store (LDLP, LDN)
+
+                         Store (IOAH, Local0)
+
+                         ShiftLeft (Local0, 0x02, Local0)
+
+                         Store (Local0, IMI1)
+
+                         Store (Local0, IMA1)
+
+                         Add (Local0, 0x0400, Local0)
+
+                         Store (Local0, IMI2)
+
+                         Store (Local0, IMA2)
+
+                         If (LEqual (IMI1, 0x03BC))
+
+                         {
+
+                             Store (0x04, ALN1)
+
+                             Store (0x04, LEN1)
+
+                         }
+
+                         Else
+
+                         {
+
+                             Store (0x08, ALN1)
+
+                             Store (0x08, LEN1)
+
+                         }
+
+
+
+                         Store (INTR, Local0)
+
+                         Store (0x01, Local1)
+
+                         ShiftLeft (Local1, Local0, IRQ0)
+
+                         Store (DMCH, Local0)
+
+                         And (Local0, 0x03, Local0)
+
+                         Store (0x01, Local1)
+
+                         ShiftLeft (Local1, Local0, DMA0)
+
+                         EXFG ()
+
+                         Return (BUFE)
+
+                     }
+
+
+
+                     Method (_SRS, 1, NotSerialized)
+
+                     {
+
+                         CreateWordField (Arg0, 0x02, 
+IOAR)
+
+                         CreateWordField (Arg0, 0x11, 
+IRQ0)
+
+                         CreateByteField (Arg0, 0x14, 
+DMA0)
+
+                         ENFG ()
+
+                         Store (LDLP, LDN)
+
+                         Store (ACTR, Local2)
+
+                         Or (Local2, 0x03, Local3)
+
+                         Store (Local3, ACTR)
+
+                         Store (IOAR, Local0)
+
+                         ShiftRight (Local0, 0x02, Local0)
+
+                         Store (Local0, IOAH)
+
+                         FindSetRightBit (IRQ0, Local0)
+
+                         If (LGreater (Local0, 0x00))
+
+                         {
+
+                             Decrement (Local0)
+
+                         }
+
+
+
+                         Store (Local0, INTR)
+
+                         FindSetRightBit (DMA0, Local0)
+
+                         If (LGreater (Local0, 0x00))
+
+                         {
+
+                             Decrement (Local0)
+
+                         }
+
+
+
+                         Store (Local0, DMCH)
+
+                         Store (Local2, ACTR)
+
+                         Store (Zero, PPPD)
+
+                         EXFG ()
+
+                     }
+
+
+
+                     Name (_PRS, ResourceTemplate ()
+
+                     {
+
+                         StartDependentFnNoPri ()
+
+                         {
+
+                             IO (Decode16, 0x0378, 0x0378, 
+0x08, 0x08)
+
+                             IO (Decode16, 0x0778, 0x0778, 
+0x04, 0x04)
+
+                             IRQNoFlags () {5,7}
+
+                             DMA (Compatibility, 
+NotBusMaster, Transfer8) {0,1,3}
+
+                         }
+
+                         StartDependentFnNoPri ()
+
+                         {
+
+                             IO (Decode16, 0x0278, 0x0278, 
+0x08, 0x08)
+
+                             IO (Decode16, 0x0678, 0x0678, 
+0x04, 0x04)
+
+                             IRQNoFlags () {5,7}
+
+                             DMA (Compatibility, 
+NotBusMaster, Transfer8) {0,1,3}
+
+                         }
+
+                         StartDependentFnNoPri ()
+
+                         {
+
+                             IO (Decode16, 0x03BC, 0x03BC, 
+0x04, 0x04)
+
+                             IO (Decode16, 0x07BC, 0x07BC, 
+0x04, 0x04)
+
+                             IRQNoFlags () {5,7}
+
+                             DMA (Compatibility, 
+NotBusMaster, Transfer8) {0,1,3}
+
+                         }
+
+                         EndDependentFn ()
+
+                     })
+
+                 }
+
+
+
+                 Method (GSTA, 1, NotSerialized)
+
+                 {
+
+                     ENFG ()
+
+                     Store (Arg0, LDN)
+
+                     If (ACTR)
+
+                     {
+
+                         Store (0x0F, Local0)
+
+                     }
+
+                     Else
+
+                     {
+
+                         If (IOAH)
+
+                         {
+
+                             Store (0x0D, Local0)
+
+                         }
+
+                         Else
+
+                         {
+
+                             Store (0x00, Local0)
+
+                         }
+
+                     }
+
+
+
+                     EXFG ()
+
+                     Return (Local0)
+
+                 }
+
+
+
+                 Method (DDIS, 1, NotSerialized)
+
+                 {
+
+                     ENFG ()
+
+                     Store (Arg0, LDN)
+
+                     Store (Zero, ACTR)
+
+                     EXFG ()
+
+                 }
+
+
+
+                 Method (DENB, 1, NotSerialized)
+
+                 {
+
+                     ENFG ()
+
+                     Store (Arg0, LDN)
+
+                     Store (One, ACTR)
+
+                     EXFG ()
+
+                 }
+
+
+
+                 Name (CSCP, 0x00)
+
+                 PowerResource (URP1, 0x01, 0x0000)
+
+                 {
+
+                     Method (_STA, 0, NotSerialized)
+
+                     {
+
+                         Return (CSCP)
+
+                     }
+
+
+
+                     Method (_ON, 0, NotSerialized)
+
+                     {
+
+                         Store (0x01, CSCP)
+
+                     }
+
+
+
+                     Method (_OFF, 0, NotSerialized)
+
+                     {
+
+                         Store (0x00, CSCP)
+
+                     }
+
+                 }
+
+
+
+                 PowerResource (URP2, 0x01, 0x0000)
+
+                 {
+
+                     Method (_STA, 0, NotSerialized)
+
+                     {
+
+                         Return (CSCP)
+
+                     }
+
+
+
+                     Method (_ON, 0, NotSerialized)
+
+                     {
+
+                         Store (0x01, CSCP)
+
+                     }
+
+
+
+                     Method (_OFF, 0, NotSerialized)
+
+                     {
+
+                         Store (0x00, CSCP)
+
+                     }
+
+                 }
+
+
+
+                 PowerResource (FDDP, 0x00, 0x0000)
+
+                 {
+
+                     Method (_STA, 0, NotSerialized)
+
+                     {
+
+                         Return (CSCP)
+
+                     }
+
+
+
+                     Method (_ON, 0, NotSerialized)
+
+                     {
+
+                         Store (0x01, CSCP)
+
+                     }
+
+
+
+                     Method (_OFF, 0, NotSerialized)
+
+                     {
+
+                         Store (0x00, CSCP)
+
+                     }
+
+                 }
+
+
+
+                 PowerResource (LPTP, 0x00, 0x0000)
+
+                 {
+
+                     Method (_STA, 0, NotSerialized)
+
+                     {
+
+                         Return (CSCP)
+
+                     }
+
+
+
+                     Method (_ON, 0, NotSerialized)
+
+                     {
+
+                         Store (0x01, CSCP)
+
+                     }
+
+
+
+                     Method (_OFF, 0, NotSerialized)
+
+                     {
+
+                         Store (0x00, CSCP)
+
+                     }
+
+                 }
+
+
+
+                 Name (FCRS, ResourceTemplate ()
+
+                 {
+
+                     IO (Decode16, 0x03F2, 0x03F2, 0x01, 
+0x02)
+
+                     IO (Decode16, 0x03F4, 0x03F4, 0x01, 
+0x02)
+
+                     IO (Decode16, 0x03F7, 0x03F7, 0x01, 
+0x01)
+
+                     IRQNoFlags () {6}
+
+                     DMA (Compatibility, NotBusMaster, 
+Transfer8) {2}
+
+                 })
+
+                 Name (FPRS, ResourceTemplate ()
+
+                 {
+
+                     StartDependentFn (0x00, 0x00)
+
+                     {
+
+                         IO (Decode16, 0x03F2, 0x03F2, 
+0x01, 0x02)
+
+                         IO (Decode16, 0x03F4, 0x03F4, 
+0x01, 0x02)
+
+                         IO (Decode16, 0x03F7, 0x03F7, 
+0x01, 0x01)
+
+                         IRQNoFlags () {6}
+
+                         DMA (Compatibility, NotBusMaster, 
+Transfer8) {2}
+
+                     }
+
+                     EndDependentFn ()
+
+                 })
+
+                 OperationRegion (OPR0, SystemIO, 0x0378, 
+0x80)
+
+                 Field (OPR0, ByteAcc, NoLock, Preserve)
+
+                 {
+
+                     P378,   8
+
+                 }
+
+
+
+                 Field (BIOS, ByteAcc, NoLock, Preserve)
+
+                 {
+
+                     Offset (0x80),
+
+                     BIF0,   16,
+
+                     BIF1,   16,
+
+                     BIF2,   16,
+
+                     BIF3,   16,
+
+                     BIF4,   16,
+
+                     BIF5,   16,
+
+                     BIF6,   16,
+
+                     BIF7,   16,
+
+                     BIF8,   16,
+
+                     BIF9,   64,
+
+                     BIFA,   64,
+
+                     BIFB,   64,
+
+                     BIFC,   64,
+
+                     BST0,   16,
+
+                     BST1,   16,
+
+                     BST2,   16,
+
+                     BST3,   16,
+
+                     BTP0,   16,
+
+                     ACIN,   1,
+
+                         ,   1,
+
+                     BTIN,   1,
+
+                     Offset (0xC0),
+
+                     OSEC,   8,
+
+                     SLPT,   8
+
+                 }
+
+
+
+                 Scope (\_SB.PCI0.SBRG)
+
+                 {
+
+                     Device (EC0)
+
+                     {
+
+                         Name (_HID, EisaId ("PNP0C09"))
+
+                         Name (_CRS, ResourceTemplate ()
+
+                         {
+
+                             IO (Decode16, 0x0062, 0x0062, 
+0x00, 0x01)
+
+                             IO (Decode16, 0x0066, 0x0066, 
+0x00, 0x01)
+
+                         })
+
+                         Name (FGEC, 0x00)
+
+                         Method (_REG, 2, NotSerialized)
+
+                         {
+
+                             If (LEqual (Arg0, 0x03))
+
+                             {
+
+                                 Store (Arg1, FGEC)
+
+                             }
+
+
+
+                             If (LEqual (OSFL (), 0x01))
+
+                             {
+
+                                 Store (0x01, OSEC)
+
+                             }
+
+                             Else
+
+                             {
+
+                                 If (LEqual (OSFL (), 
+0x00))
+
+                                 {
+
+                                     Store (0x02, OSEC)
+
+                                 }
+
+                                 Else
+
+                                 {
+
+                                     If (LEqual (OSFL (), 
+0x02))
+
+                                     {
+
+                                         Store (0x03, 
+OSEC)
+
+                                     }
+
+
+
+                                     If (LEqual (OSFL (), 
+0x04))
+
+                                     {
+
+                                         Store (0x04, 
+OSEC)
+
+                                     }
+
+                                 }
+
+                             }
+
+
+
+                             Store (0xB8, SWI0)
+
+                         }
+
+
+
+                         OperationRegion (ECXP, 
+EmbeddedControl, 0x00, 0x0100)
+
+                         Field (ECXP, ByteAcc, Lock, 
+Preserve)
+
+                         {
+
+                             XIF0,   16,
+
+                             XIF1,   16,
+
+                             XIF2,   16,
+
+                             XIF3,   16,
+
+                             XIF4,   16,
+
+                             XIF5,   16,
+
+                             XIF6,   16,
+
+                             XIF7,   16,
+
+                             XIF8,   16,
+
+                             XIF9,   64,
+
+                             XIFA,   64,
+
+                             XIFB,   64,
+
+                             XIFC,   64,
+
+                             XST0,   16,
+
+                             XST1,   16,
+
+                             XST2,   16,
+
+                             XST3,   16,
+
+                             XTP0,   16,
+
+                             XCIN,   1,
+
+                                 ,   1,
+
+                             XTIN,   1,
+
+                             Offset (0x3D),
+
+                             Offset (0x3E),
+
+                             XHPP,   7,
+
+                             Offset (0x3F),
+
+                             Offset (0x40),
+
+                             XSEC,   8,
+
+                             XLPT,   8
+
+                         }
+
+
+
+                         Name (_GPE, 0x1C)
+
+                         Method (_Q06, 0, NotSerialized)
+
+                         {
+
+                             If (LEqual (OSFL (), 0x03))
+
+                             {
+
+                                 If (BTIN)
+
+                                 {
+
+                                     Notify 
+(\_SB.PCI0.BAT0, 0x01)
+
+                                 }
+
+                                 Else
+
+                                 {
+
+                                     Notify 
+(\_SB.PCI0.BAT0, 0x00)
+
+                                 }
+
+
+
+                                 Notify (\_SB.PCI0.BAT0, 
+0x80)
+
+                             }
+
+
+
+                             If (LEqual (OSFL (), 0x01))
+
+                             {
+
+                                 If (BTIN)
+
+                                 {
+
+                                     Notify 
+(\_SB.PCI0.BAT0, 0x01)
+
+                                 }
+
+                                 Else
+
+                                 {
+
+                                     Notify 
+(\_SB.PCI0.BAT0, 0x00)
+
+                                 }
+
+
+
+                                 Notify (\_SB.PCI0.BAT0, 
+0x80)
+
+                                 Notify (\_SB.PCI0, 0x00)
+
+                             }
+
+
+
+                             If (LEqual (OSFL (), 0x02))
+
+                             {
+
+                                 Store (0x01, FAKE)
+
+                                 Notify (\_SB.PCI0.AC0, 
+0x00)
+
+                                 Store (0x00, FAKE)
+
+                                 Notify (\_SB.PCI0.AC0, 
+0x00)
+
+                                 If (BTIN)
+
+                                 {
+
+                                     Notify 
+(\_SB.PCI0.BAT0, 0x00)
+
+                                 }
+
+                                 Else
+
+                                 {
+
+                                     Notify 
+(\_SB.PCI0.BAT0, 0x03)
+
+                                 }
+
+
+
+                                 Notify (\_SB.PCI0.BAT0, 
+0x81)
+
+                                 Notify (\_SB.PCI0.BAT0, 
+0x80)
+
+                             }
+
+
+
+                             If (LOr (LEqual (OSFL (), 
+0x00), LEqual (OSFL (), 0x04)))
+
+                             {
+
+                                 Sleep (0x01F4)
+
+                                 If 
+(\_SB.PCI0.SBRG.EC0.XTIN)
+
+                                 {
+
+                                     Notify 
+(\_SB.PCI0.BAT0, 0x01)
+
+                                 }
+
+                                 Else
+
+                                 {
+
+                                     Notify 
+(\_SB.PCI0.BAT0, 0x00)
+
+                                 }
+
+
+
+                                 Notify (\_SB.PCI0.BAT0, 
+0x80)
+
+                             }
+
+                         }
+
+
+
+                         Method (_Q07, 0, NotSerialized)
+
+                         {
+
+                             Store (0x07, P378)
+
+                             If (LEqual (OSFL (), 0x01))
+
+                             {
+
+                                 Store (0x00, FAKE)
+
+                                 Notify (\_SB.PCI0.AC0, 
+0x00)
+
+                             }
+
+
+
+                             If (LEqual (OSFL (), 0x02))
+
+                             {
+
+                                 Store (0x00, FAKE)
+
+                                 Notify (\_SB.PCI0.AC0, 
+0x00)
+
+                             }
+
+
+
+                             If (LOr (LEqual (OSFL (), 
+0x00), LEqual (OSFL (), 0x04)))
+
+                             {
+
+                                 Notify (\_SB.PCI0.AC0, 
+0x80)
+
+                                 Notify (\_SB.PCI0.BAT0, 
+0x80)
+
+                             }
+
+                         }
+
+
+
+                         Method (_Q0A, 0, NotSerialized)
+
+                         {
+
+                             Store (0xF1, P378)
+
+                             Notify (\_SB.SLPB, 0x80)
+
+                         }
+
+
+
+                         Method (_Q0B, 0, NotSerialized)
+
+                         {
+
+                             Store (0xF2, P378)
+
+                         }
+
+
+
+                         Method (_Q0C, 0, NotSerialized)
+
+                         {
+
+                             Store (0xF3, P378)
+
+                         }
+
+
+
+                         Method (_Q0D, 0, NotSerialized)
+
+                         {
+
+                             Store (0xF4, P378)
+
+                             If (LEqual 
+(\_SB.PCI0.AGP.VGA.SWIT, 0x00))
+
+                             {
+
+                                 If (LEqual 
+(\_SB.PCI0.AGP.VGA.GDFG, 0x01))
+
+                                 {
+
+                                     Notify 
+(\_SB.PCI0.AGP.VGA, 0x80)
+
+                                     Store (0x00, 
+\_SB.PCI0.AGP.VGA.GDFG)
+
+                                     Sleep (0x07D0)
+
+                                 }
+
+
+
+                                 If (LEqual 
+(\_SB.PCI0.AGP.VGA.GDTS, 0x00))
+
+                                 {
+
+                                     If (LEqual 
+(\_SB.PCI0.AGP.VGA.GDGS, 0x01))
+
+                                     {
+
+                                         Store (0x00, 
+\_SB.PCI0.AGP.VGA.LCD._DGS)
+
+                                         Store (0x01, 
+\_SB.PCI0.AGP.VGA.CRT._DGS)
+
+                                     }
+
+
+
+                                     If (LEqual 
+(\_SB.PCI0.AGP.VGA.GDGS, 0x02))
+
+                                     {
+
+                                         Store (0x01, 
+\_SB.PCI0.AGP.VGA.LCD._DGS)
+
+                                         Store (0x00, 
+\_SB.PCI0.AGP.VGA.CRT._DGS)
+
+                                     }
+
+
+
+                                     If (LEqual 
+(\_SB.PCI0.AGP.VGA.GDGS, 0x03))
+
+                                     {
+
+                                         Store (0x01, 
+\_SB.PCI0.AGP.VGA.LCD._DGS)
+
+                                         Store (0x01, 
+\_SB.PCI0.AGP.VGA.CRT._DGS)
+
+                                     }
+
+
+
+                                     Notify 
+(\_SB.PCI0.AGP.VGA, 0x80)
+
+                                     If (LEqual 
+(\_SB.PCI0.AGP.VGA.GDGS, 0x03))
+
+                                     {
+
+                                         Store (0x01, 
+\_SB.PCI0.AGP.VGA.GDGS)
+
+                                     }
+
+                                     Else
+
+                                     {
+
+                                         Add (0x01, 
+\_SB.PCI0.AGP.VGA.GDGS, \_SB.PCI0.AGP.VGA.GDGS)
+
+                                     }
+
+                                 }
+
+                             }
+
+                         }
+
+
+
+                         Method (_Q0E, 0, NotSerialized)
+
+                         {
+
+                             Store (0xF5, P378)
+
+                             If (LEqual (OSFL (), 0x01))
+
+                             {
+
+                                 Store (0xA4, SWI0)
+
+                             }
+
+                         }
+
+
+
+                         Method (_Q0F, 0, NotSerialized)
+
+                         {
+
+                             Store (0xF6, P378)
+
+                             If (LEqual (OSFL (), 0x01))
+
+                             {
+
+                                 Store (0xA5, SWI0)
+
+                             }
+
+                         }
+
+
+
+                         Method (_Q1C, 0, NotSerialized)
+
+                         {
+
+                             Store (0x1C, P378)
+
+                             If (LEqual (OSFL (), 0x01))
+
+                             {
+
+                                 Store (0xBE, SWI0)
+
+                             }
+
+                         }
+
+
+
+                         Method (_Q1D, 0, NotSerialized)
+
+                         {
+
+                             Store (0x1D, P378)
+
+                             If (LEqual (OSFL (), 0x01))
+
+                             {
+
+                                 Store (0xBF, SWI0)
+
+                             }
+
+                         }
+
+
+
+                         Method (_Q10, 0, NotSerialized)
+
+                         {
+
+                             Store (0xF7, P378)
+
+                             Store (0xA6, SWI0)
+
+                         }
+
+
+
+                         Method (_Q11, 0, NotSerialized)
+
+                         {
+
+                             Store (0xF8, P378)
+
+                             Store (0xA7, SWI0)
+
+                         }
+
+
+
+                         Method (_Q12, 0, NotSerialized)
+
+                         {
+
+                             Store (0xF9, P378)
+
+                         }
+
+
+
+                         Method (_Q13, 0, NotSerialized)
+
+                         {
+
+                             Store (0xFA, P378)
+
+                         }
+
+
+
+                         Method (_Q14, 0, NotSerialized)
+
+                         {
+
+                             Store (0xFB, P378)
+
+                         }
+
+
+
+                         Method (_Q15, 0, NotSerialized)
+
+                         {
+
+                             Store (0xFC, P378)
+
+                         }
+
+
+
+                         Method (_Q16, 0, NotSerialized)
+
+                         {
+
+                             Store (0x16, P378)
+
+                             Store (0x01, LIDS)
+
+                             Notify (\_SB.PCI0.SBRG.LID, 
+0x80)
+
+                         }
+
+
+
+                         Method (_Q19, 0, NotSerialized)
+
+                         {
+
+                             Store (0x19, P378)
+
+                             Store (0x00, LIDS)
+
+                             Notify (\_SB.PCI0.SBRG.LID, 
+0x80)
+
+                         }
+
+
+
+                         Method (_Q1A, 0, NotSerialized)
+
+                         {
+
+                             Store (0x1A, P378)
+
+                             If (LEqual (OSFL (), 0x01))
+
+                             {
+
+                                 Store (0xBC, SWI0)
+
+                             }
+
+                         }
+
+
+
+                         Method (_Q1B, 0, NotSerialized)
+
+                         {
+
+                             Store (0x1B, P378)
+
+                             If (LEqual (OSFL (), 0x01))
+
+                             {
+
+                                 Store (0xBD, SWI0)
+
+                             }
+
+                         }
+
+
+
+                         Method (_Q1E, 0, NotSerialized)
+
+                         {
+
+                             Store (0x1E, P378)
+
+                             Store (0x00, THRT)
+
+                         }
+
+
+
+                         Method (_Q1F, 0, NotSerialized)
+
+                         {
+
+                             Store (0x1F, P378)
+
+                             Store (0x1E, THRT)
+
+                         }
+
+
+
+                         Method (_Q20, 0, NotSerialized)
+
+                         {
+
+                             Store (0x20, P378)
+
+                             Store (0x1C, THRT)
+
+                         }
+
+
+
+                         Method (_Q21, 0, NotSerialized)
+
+                         {
+
+                             Store (0x21, P378)
+
+                             Store (0x1A, THRT)
+
+                         }
+
+
+
+                         Method (_Q22, 0, NotSerialized)
+
+                         {
+
+                             Store (0x22, P378)
+
+                             Store (0x18, THRT)
+
+                         }
+
+
+
+                         Method (_Q23, 0, NotSerialized)
+
+                         {
+
+                             Store (0x23, P378)
+
+                             Store (0x16, THRT)
+
+                         }
+
+
+
+                         Method (_Q24, 0, NotSerialized)
+
+                         {
+
+                             Store (0x24, P378)
+
+                             Store (0x14, THRT)
+
+                         }
+
+
+
+                         Method (_Q25, 0, NotSerialized)
+
+                         {
+
+                             Store (0x25, P378)
+
+                             Store (0xB5, SWI0)
+
+                         }
+
+
+
+                         Method (_Q26, 0, NotSerialized)
+
+                         {
+
+                             Store (0x26, P378)
+
+                             Store (0xB6, SWI0)
+
+                         }
+
+
+
+                         Method (_Q27, 0, NotSerialized)
+
+                         {
+
+                             Store (0x27, P378)
+
+                             Store (0x69, THPP)
+
+                             Notify (\_TZ.THRM, 0x80)
+
+                         }
+
+
+
+                         Device (\_SB.PCI0.BAT0)
+
+                         {
+
+                             Name (_HID, EisaId 
+("PNP0C0A"))
+
+                             Name (_UID, 0x00)
+
+                             Name (_PCL, Package (0x01)
+
+                             {
+
+                                 \_SB.PCI0.SBRG.EC0
+
+                             })
+
+                             Name (PAK1, Package (0x0D)
+
+                             {
+
+                                 0x00,
+
+                                 0x0C56,
+
+                                 0x0C56,
+
+                                 0x00,
+
+                                 0x2A30,
+
+                                 0x013B,
+
+                                 0x9D,
+
+                                 0x10,
+
+                                 0x08,
+
+                                 "755",
+
+                                 "001",
+
+                                 "LiON",
+
+                                 "OEM"
+
+                             })
+
+                             Method (_BIF, 0, 
+NotSerialized)
+
+                             {
+
+                                 Store ("BIf", Debug)
+
+                                 If (LOr (LEqual (OSFL (), 
+0x00), LEqual (OSFL (), 0x04)))
+
+                                 {
+
+                                     Store 
+(\_SB.PCI0.SBRG.EC0.XIF0, Index (PAK1, 0x00))
+
+                                     Store 
+(\_SB.PCI0.SBRG.EC0.XIF1, Index (PAK1, 0x01))
+
+                                     Store 
+(\_SB.PCI0.SBRG.EC0.XIF2, Local0)
+
+                                     Store (Local0, Index 
+(PAK1, 0x02))
+
+                                     Store 
+(\_SB.PCI0.SBRG.EC0.XIF3, Index (PAK1, 0x03))
+
+                                     Store 
+(\_SB.PCI0.SBRG.EC0.XIF4, Index (PAK1, 0x04))
+
+                                     Store (Divide 
+(Local0, 0x0A, ), Index (PAK1, 0x05))
+
+                                     Store (Divide 
+(Local0, 0x14, ), Index (PAK1, 0x06))
+
+                                     Store 
+(\_SB.PCI0.SBRG.EC0.XIF7, Index (PAK1, 0x07))
+
+                                 }
+
+                                 Else
+
+                                 {
+
+                                     Store (0xB9, SWI0)
+
+                                     Store (BIF0, Index 
+(PAK1, 0x00))
+
+                                     Store (BIF1, Index 
+(PAK1, 0x01))
+
+                                     Store (BIF2, Local0)
+
+                                     Store (Local0, Index 
+(PAK1, 0x02))
+
+                                     Store (BIF3, Index 
+(PAK1, 0x03))
+
+                                     Store (BIF4, Index 
+(PAK1, 0x04))
+
+                                     Store (Divide 
+(Local0, 0x0A, ), Index (PAK1, 0x05))
+
+                                     Store (Divide 
+(Local0, 0x14, ), Index (PAK1, 0x06))
+
+                                     Store (BIF7, Index 
+(PAK1, 0x07))
+
+                                 }
+
+
+
+                                 Return (PAK1)
+
+                             }
+
+
+
+                             Name (BFB0, Package (0x04)
+
+                             {
+
+                                 0x00,
+
+                                 0xFFFFFFFF,
+
+                                 0x1034,
+
+                                 0x2A30
+
+                             })
+
+                             Method (_BST, 0, 
+NotSerialized)
+
+                             {
+
+                                 Store ("BST Start", 
+Debug)
+
+                                 If (LOr (LEqual (OSFL (), 
+0x00), LEqual (OSFL (), 0x04)))
+
+                                 {
+
+                                     Store 
+(\_SB.PCI0.SBRG.EC0.XST0, Index (BFB0, 0x00))
+
+                                     Store 
+(\_SB.PCI0.SBRG.EC0.XST2, Index (BFB0, 0x02))
+
+                                     Store 
+(\_SB.PCI0.SBRG.EC0.XST3, Index (BFB0, 0x03))
+
+                                 }
+
+                                 Else
+
+                                 {
+
+                                     Store (0xBA, SWI0)
+
+                                     Store (BST0, Index 
+(BFB0, 0x00))
+
+                                     Store (BST1, Index 
+(BFB0, 0x01))
+
+                                     Store (BST2, Index 
+(BFB0, 0x02))
+
+                                     Store (BST3, Index 
+(BFB0, 0x03))
+
+                                 }
+
+
+
+                                 Store ("BST End", Debug)
+
+                                 Return (BFB0)
+
+                             }
+
+
+
+                             Method (_BTP, 1, 
+NotSerialized)
+
+                             {
+
+                                 If (LOr (LEqual (OSFL (), 
+0x00), LEqual (OSFL (), 0x04)))
+
+                                 {
+
+                                     Store (Arg0, 
+\_SB.PCI0.SBRG.EC0.XTP0)
+
+                                 }
+
+                                 Else
+
+                                 {
+
+                                     Store (Arg0, BTP0)
+
+                                     Store (0x33, SWI0)
+
+                                 }
+
+                             }
+
+
+
+                             Method (_STA, 0, 
+NotSerialized)
+
+                             {
+
+                                 Store ("BAT_STA Start", 
+Debug)
+
+                                 If (LOr (LEqual (OSFL (), 
+0x00), LEqual (OSFL (), 0x04)))
+
+                                 {
+
+                                     If (LEqual 
+(\_SB.PCI0.SBRG.EC0.FGEC, 0x00))
+
+                                     {
+
+                                         Store (0xB8, 
+SWI0)
+
+                                         Store (BTIN, 
+Local0)
+
+                                     }
+
+                                     Else
+
+                                     {
+
+                                         Store 
+(\_SB.PCI0.SBRG.EC0.XTIN, Local0)
+
+                                     }
+
+                                 }
+
+                                 Else
+
+                                 {
+
+                                     Store (0xB8, SWI0)
+
+                                     Store (BTIN, Local0)
+
+                                 }
+
+
+
+                                 If (Local0)
+
+                                 {
+
+                                     Return (0x1F)
+
+                                     Store (0x1F, P378)
+
+                                 }
+
+                                 Else
+
+                                 {
+
+                                     Return (0x0F)
+
+                                     Store (0x0F, P378)
+
+                                 }
+
+
+
+                                 Store ("BAT_STA END", 
+Debug)
+
+                             }
+
+                         }
+
+
+
+                         Device (\_SB.PCI0.AC0)
+
+                         {
+
+                             Name (_HID, "ACPI0003")
+
+                             Name (_PCL, Package (0x01)
+
+                             {
+
+                                 \_SB.PCI0.SBRG.EC0
+
+                             })
+
+                             Method (_PSR, 0, 
+NotSerialized)
+
+                             {
+
+                                 If (LNot (LEqual (FAKE, 
+0x00)))
+
+                                 {
+
+                                     Return (0x00)
+
+                                 }
+
+                                 Else
+
+                                 {
+
+                                     If (LOr (LEqual (OSFL 
+(), 0x00), LEqual (OSFL (), 0x04)))
+
+                                     {
+
+                                         Store 
+(\_SB.PCI0.SBRG.EC0.XCIN, Local0)
+
+                                     }
+
+                                     Else
+
+                                     {
+
+                                         Store (ACIN, 
+Local0)
+
+                                     }
+
+
+
+                                     Return (Local0)
+
+                                 }
+
+                             }
+
+                         }
+
+
+
+                         Scope (\_TZ)
+
+                         {
+
+                             ThermalZone (THRM)
+
+                             {
+
+                                 Method (KELV, 1, 
+NotSerialized)
+
+                                 {
+
+                                     If (LGreater (Arg0, 
+0x7F))
+
+                                     {
+
+                                         XOr (Arg0, 0xFF, 
+Local0)
+
+                                         Add (Local0, 
+0x01, Local0)
+
+                                         Multiply (Local0, 
+0x0A, Local0)
+
+                                         Subtract (0x0AAC, 
+Local0, Local1)
+
+                                     }
+
+                                     Else
+
+                                     {
+
+                                         Multiply (Arg0, 
+0x0A, Local0)
+
+                                         Add (Local0, 
+0x0AAC, Local1)
+
+                                     }
+
+
+
+                                     Return (Local1)
+
+                                 }
+
+
+
+                                 Method (_TMP, 0, 
+NotSerialized)
+
+                                 {
+
+                                     Return (KELV (THPP))
+
+                                 }
+
+
+
+                                 Method (_CRT, 0, 
+NotSerialized)
+
+                                 {
+
+                                     Return (KELV (0x55))
+
+                                 }
+
+                             }
+
+                         }
+
+                     }
+
+                 }
+
+
+
+                 Scope (\_SB)
+
+                 {
+
+                     Method (_INI, 0, NotSerialized)
+
+                     {
+
+                         Store (DCPU, Local0)
+
+                         And (Local0, 0xF7, DCPU)
+
+                     }
+
+
+
+                     Device (\_SB.PCI0.SBRG.LID)
+
+                     {
+
+                         Name (_HID, EisaId ("PNP0C0D"))
+
+                         Method (_LID, 0, NotSerialized)
+
+                         {
+
+                             Return (LIDS)
+
+                         }
+
+                     }
+
+
+
+                     Device (\_SB.SLPB)
+
+                     {
+
+                         Name (_HID, EisaId ("PNP0C0E"))
+
+                         Method (_STA, 0, NotSerialized)
+
+                         {
+
+                             Return (0x0B)
+
+                         }
+
+
+
+                         Method (SBEV, 0, NotSerialized)
+
+                         {
+
+                             If (SLPP)
+
+                             {
+
+                                 Store (0x00, SLPP)
+
+                                 Notify (SLPB, 0x02)
+
+                             }
+
+                             Else
+
+                             {
+
+                                 Store (0x01, SLPP)
+
+                                 Notify (SLPB, 0x80)
+
+                             }
+
+                         }
+
+                     }
+
+
+
+                     Device (\_SB.PCI0.P0P2.CBC0)
+
+                     {
+
+                         Name (_ADR, 0x00030000)
+
+                         Name (_PRW, Package (0x02)
+
+                         {
+
+                             0x0B,
+
+                             0x04
+
+                         })
+
+                         OperationRegion (CBR0, 
+PCI_Config, 0x00, 0xFF)
+
+                         Field (CBR0, DWordAcc, NoLock, 
+Preserve)
+
+                         {
+
+                             Offset (0x44),
+
+                             C044,   32,
+
+                             Offset (0xA4),
+
+                             C0A4,   8,
+
+                             C0A5,   8
+
+                         }
+
+
+
+                         Method (_STA, 0, NotSerialized)
+
+                         {
+
+                             Return (0x0F)
+
+                         }
+
+
+
+                         Method (_INI, 0, NotSerialized)
+
+                         {
+
+                             Store (0x00, 
+\_SB.PCI0.P0P2.CBC0.C044)
+
+                         }
+
+                     }
+
+                 }
+
+
+
+                 Scope (\_SB.PCI0)
+
+                 {
+
+                     Device (AGP)
+
+                     {
+
+                         Name (_ADR, 0x00010000)
+
+                         Device (VGA)
+
+                         {
+
+                             Name (_ADR, 0x00)
+
+                             Method (_DOS, 1, 
+NotSerialized)
+
+                             {
+
+                                 Store (Arg0, SWIT)
+
+                             }
+
+
+
+                             Name (_DOD, Package (0x02)
+
+                             {
+
+                                 0x00010100,
+
+                                 0x00010110
+
+                             })
+
+                             Device (CRT)
+
+                             {
+
+                                 Name (_ADR, 0x0100)
+
+                                 Name (_DCS, 0x1F)
+
+                                 Name (_DGS, 0x01)
+
+                                 Method (_DSS, 1, 
+NotSerialized)
+
+                                 {
+
+                                 }
+
+                             }
+
+
+
+                             Device (LCD)
+
+                             {
+
+                                 Name (_ADR, 0x0110)
+
+                                 Name (_DCS, 0x1F)
+
+                                 Name (_DGS, 0x01)
+
+                                 Method (_DSS, 1, 
+NotSerialized)
+
+                                 {
+
+                                 }
+
+
+
+                                 Method (_BCM, 1, 
+NotSerialized)
+
+                                 {
+
+                                 }
+
+
+
+                                 Name (PBCL, Package 
+(0x07)
+
+                                 {
+
+                                     0x50,
+
+                                     0x32,
+
+                                     0x14,
+
+                                     0x28,
+
+                                     0x3C,
+
+                                     0x50,
+
+                                     0x64
+
+                                 })
+
+                                 Method (_BCL, 0, 
+NotSerialized)
+
+                                 {
+
+                                     Return (PBCL)
+
+                                 }
+
+                             }
+
+
+
+                             Name (SWIT, 0x00)
+
+                             Name (GDCS, 0x02)
+
+                             Name (GDGS, 0x01)
+
+                             Name (GDTS, 0x00)
+
+                             Name (GDFG, 0x01)
+
+                         }
+
+                     }
+
+                 }
+
+             }
+
+         }
+
+
+
+         Scope (\_GPE)
+
+         {
+
+             Method (_L0B, 0, NotSerialized)
+
+             {
+
+                 Notify (\_SB.PCI0.P0P2, 0x02)
+
+                 Notify (\_SB.PCI0.P0P2.LAN1, 0x02)
+
+                 Notify (\_SB.PWRB, 0x02)
+
+             }
+
+
+
+             Method (_L05, 0, NotSerialized)
+
+             {
+
+                 Notify (\_SB.PCI0.MC97, 0x02)
+
+                 Notify (\_SB.PWRB, 0x02)
+
+             }
+
+
+
+             Method (_L1D, 0, NotSerialized)
+
+             {
+
+                 \_SB.PCI0.SBRG.SIOH ()
+
+                 Notify (\_SB.PWRB, 0x02)
+
+             }
+
+         }
+
+
+
+         Device (PWRB)
+
+         {
+
+             Name (_HID, EisaId ("PNP0C0C"))
+
+             Name (_UID, 0x1D)
+
+             Name (_STA, 0x0B)
+
+             Method (_PRW, 0, NotSerialized)
+
+             {
+
+                 Return (GPRW (0x1D, 0x05))
+
+             }
+
+         }
+
+     }
+
+
+
+     Scope (\_SB)
+
+     {
+
+         OperationRegion (\_SB.PCI0.SBRG.IROR, PCI_Config, 
+0x00, 0xFF)
+
+         Field (\_SB.PCI0.SBRG.IROR, ByteAcc, NoLock, 
+Preserve)
+
+         {
+
+             Offset (0x60),
+
+             PIRA,   8,
+
+             PIRB,   8,
+
+             PIRC,   8,
+
+             PIRD,   8,
+
+             Offset (0x68),
+
+             PIRE,   8,
+
+             PIRF,   8,
+
+             PIRG,   8,
+
+             PIRH,   8
+
+         }
+
+
+
+         Name (BUFA, ResourceTemplate ()
+
+         {
+
+             IRQ (Level, ActiveLow, Shared) {15}
+
+         })
+
+         CreateWordField (BUFA, 0x01, ICRS)
+
+         Method (LSTA, 1, NotSerialized)
+
+         {
+
+             And (Arg0, 0x80, Local0)
+
+             If (Local0)
+
+             {
+
+                 Return (0x09)
+
+             }
+
+             Else
+
+             {
+
+                 Return (0x0B)
+
+             }
+
+         }
+
+
+
+         Method (LCRS, 1, NotSerialized)
+
+         {
+
+             And (Arg0, 0x0F, Local0)
+
+             ShiftLeft (0x01, Local0, ICRS)
+
+             Return (BUFA)
+
+         }
+
+
+
+         Method (LSRS, 1, NotSerialized)
+
+         {
+
+             CreateWordField (Arg0, 0x01, ISRS)
+
+             FindSetRightBit (ISRS, Local0)
+
+             Return (Decrement (Local0))
+
+         }
+
+
+
+         Method (LDIS, 1, NotSerialized)
+
+         {
+
+             Return (Or (Arg0, 0x80))
+
+         }
+
+
+
+         Device (LNKA)
+
+         {
+
+             Name (_HID, EisaId ("PNP0C0F"))
+
+             Name (_UID, 0x01)
+
+             Method (_STA, 0, NotSerialized)
+
+             {
+
+                 Return (LSTA (PIRA))
+
+             }
+
+
+
+             Method (_PRS, 0, NotSerialized)
+
+             {
+
+                 Return (PRSA)
+
+             }
+
+
+
+             Method (_DIS, 0, NotSerialized)
+
+             {
+
+                 Store (LDIS (PIRA), PIRA)
+
+             }
+
+
+
+             Method (_CRS, 0, NotSerialized)
+
+             {
+
+                 Return (LCRS (PIRA))
+
+             }
+
+
+
+             Method (_SRS, 1, NotSerialized)
+
+             {
+
+                 Store (LSRS (Arg0), PIRA)
+
+             }
+
+         }
+
+
+
+         Device (LNKB)
+
+         {
+
+             Name (_HID, EisaId ("PNP0C0F"))
+
+             Name (_UID, 0x02)
+
+             Method (_STA, 0, NotSerialized)
+
+             {
+
+                 Return (LSTA (PIRB))
+
+             }
+
+
+
+             Method (_PRS, 0, NotSerialized)
+
+             {
+
+                 Return (PRSB)
+
+             }
+
+
+
+             Method (_DIS, 0, NotSerialized)
+
+             {
+
+                 Store (LDIS (PIRB), PIRB)
+
+             }
+
+
+
+             Method (_CRS, 0, NotSerialized)
+
+             {
+
+                 Return (LCRS (PIRB))
+
+             }
+
+
+
+             Method (_SRS, 1, NotSerialized)
+
+             {
+
+                 Store (LSRS (Arg0), PIRB)
+
+             }
+
+         }
+
+
+
+         Device (LNKC)
+
+         {
+
+             Name (_HID, EisaId ("PNP0C0F"))
+
+             Name (_UID, 0x03)
+
+             Method (_STA, 0, NotSerialized)
+
+             {
+
+                 Return (LSTA (PIRC))
+
+             }
+
+
+
+             Method (_PRS, 0, NotSerialized)
+
+             {
+
+                 Return (PRSC)
+
+             }
+
+
+
+             Method (_DIS, 0, NotSerialized)
+
+             {
+
+                 Store (LDIS (PIRC), PIRC)
+
+             }
+
+
+
+             Method (_CRS, 0, NotSerialized)
+
+             {
+
+                 Return (LCRS (PIRC))
+
+             }
+
+
+
+             Method (_SRS, 1, NotSerialized)
+
+             {
+
+                 Store (LSRS (Arg0), PIRC)
+
+             }
+
+         }
+
+
+
+         Device (LNKD)
+
+         {
+
+             Name (_HID, EisaId ("PNP0C0F"))
+
+             Name (_UID, 0x04)
+
+             Method (_STA, 0, NotSerialized)
+
+             {
+
+                 Return (LSTA (PIRD))
+
+             }
+
+
+
+             Method (_PRS, 0, NotSerialized)
+
+             {
+
+                 Return (PRSD)
+
+             }
+
+
+
+             Method (_DIS, 0, NotSerialized)
+
+             {
+
+                 Store (LDIS (PIRD), PIRD)
+
+             }
+
+
+
+             Method (_CRS, 0, NotSerialized)
+
+             {
+
+                 Return (LCRS (PIRD))
+
+             }
+
+
+
+             Method (_SRS, 1, NotSerialized)
+
+             {
+
+                 Store (LSRS (Arg0), PIRD)
+
+             }
+
+         }
+
+
+
+         Device (LNKE)
+
+         {
+
+             Name (_HID, EisaId ("PNP0C0F"))
+
+             Name (_UID, 0x05)
+
+             Method (_STA, 0, NotSerialized)
+
+             {
+
+                 Return (LSTA (PIRE))
+
+             }
+
+
+
+             Method (_PRS, 0, NotSerialized)
+
+             {
+
+                 Return (PRSE)
+
+             }
+
+
+
+             Method (_DIS, 0, NotSerialized)
+
+             {
+
+                 Store (LDIS (PIRE), PIRE)
+
+             }
+
+
+
+             Method (_CRS, 0, NotSerialized)
+
+             {
+
+                 Return (LCRS (PIRE))
+
+             }
+
+
+
+             Method (_SRS, 1, NotSerialized)
+
+             {
+
+                 Store (LSRS (Arg0), PIRE)
+
+             }
+
+         }
+
+
+
+         Device (LNKF)
+
+         {
+
+             Name (_HID, EisaId ("PNP0C0F"))
+
+             Name (_UID, 0x06)
+
+             Method (_STA, 0, NotSerialized)
+
+             {
+
+                 Return (LSTA (PIRF))
+
+             }
+
+
+
+             Method (_PRS, 0, NotSerialized)
+
+             {
+
+                 Return (PRSF)
+
+             }
+
+
+
+             Method (_DIS, 0, NotSerialized)
+
+             {
+
+                 Store (LDIS (PIRF), PIRF)
+
+             }
+
+
+
+             Method (_CRS, 0, NotSerialized)
+
+             {
+
+                 Return (LCRS (PIRF))
+
+             }
+
+
+
+             Method (_SRS, 1, NotSerialized)
+
+             {
+
+                 Store (LSRS (Arg0), PIRF)
+
+             }
+
+         }
+
+
+
+         Device (LNKG)
+
+         {
+
+             Name (_HID, EisaId ("PNP0C0F"))
+
+             Name (_UID, 0x07)
+
+             Method (_STA, 0, NotSerialized)
+
+             {
+
+                 Return (LSTA (PIRG))
+
+             }
+
+
+
+             Method (_PRS, 0, NotSerialized)
+
+             {
+
+                 Return (PRSG)
+
+             }
+
+
+
+             Method (_DIS, 0, NotSerialized)
+
+             {
+
+                 Store (LDIS (PIRG), PIRG)
+
+             }
+
+
+
+             Method (_CRS, 0, NotSerialized)
+
+             {
+
+                 Return (LCRS (PIRG))
+
+             }
+
+
+
+             Method (_SRS, 1, NotSerialized)
+
+             {
+
+                 Store (LSRS (Arg0), PIRG)
+
+             }
+
+         }
+
+
+
+         Device (LNKH)
+
+         {
+
+             Name (_HID, EisaId ("PNP0C0F"))
+
+             Name (_UID, 0x08)
+
+             Method (_STA, 0, NotSerialized)
+
+             {
+
+                 Return (LSTA (PIRH))
+
+             }
+
+
+
+             Method (_PRS, 0, NotSerialized)
+
+             {
+
+                 Return (PRSH)
+
+             }
+
+
+
+             Method (_DIS, 0, NotSerialized)
+
+             {
+
+                 Store (LDIS (PIRH), PIRH)
+
+             }
+
+
+
+             Method (_CRS, 0, NotSerialized)
+
+             {
+
+                 Return (LCRS (PIRH))
+
+             }
+
+
+
+             Method (_SRS, 1, NotSerialized)
+
+             {
+
+                 Store (LSRS (Arg0), PIRH)
+
+             }
+
+         }
+
+     }
+
+
+
+     Scope (\_SB)
+
+     {
+
+         Scope (PCI0)
+
+         {
+
+             Name (CRS, ResourceTemplate ()
+
+             {
+
+                 WordBusNumber (ResourceProducer, 
+MinFixed, MaxFixed, PosDecode,
+
+                     0x0000,
+
+                     0x0000,
+
+                     0x00FF,
+
+                     0x0000,
+
+                     0x0100)
+
+                 IO (Decode16, 0x0CF8, 0x0CF8, 0x01, 0x08)
+
+                 WordIO (ResourceProducer, MinFixed, 
+MaxFixed, PosDecode, EntireRange,
+
+                     0x0000,
+
+                     0x0000,
+
+                     0x0CF7,
+
+                     0x0000,
+
+                     0x0CF8)
+
+                 WordIO (ResourceProducer, MinFixed, 
+MaxFixed, PosDecode, EntireRange,
+
+                     0x0000,
+
+                     0x0D00,
+
+                     0xFFFF,
+
+                     0x0000,
+
+                     0xF300)
+
+                 DWordMemory (ResourceProducer, PosDecode, 
+MinFixed, MaxFixed, Cacheable, ReadWrite,
+
+                     0x00000000,
+
+                     0x000A0000,
+
+                     0x000BFFFF,
+
+                     0x00000000,
+
+                     0x00020000)
+
+                 DWordMemory (ResourceProducer, PosDecode, 
+MinFixed, MaxFixed, Cacheable, ReadWrite,
+
+                     0x00000000,
+
+                     0x00000000,
+
+                     0x00000000,
+
+                     0x00000000,
+
+                     0x00000000)
+
+                 DWordMemory (ResourceProducer, PosDecode, 
+MinFixed, MaxFixed, Cacheable, ReadWrite,
+
+                     0x00000000,
+
+                     0x00000000,
+
+                     0x00000000,
+
+                     0x00000000,
+
+                     0x00000000)
+
+             })
+
+             CreateDWordField (CRS, 0x5C, MIN5)
+
+             CreateDWordField (CRS, 0x60, MAX5)
+
+             CreateDWordField (CRS, 0x68, LEN5)
+
+             CreateDWordField (CRS, 0x76, MIN6)
+
+             CreateDWordField (CRS, 0x7A, MAX6)
+
+             CreateDWordField (CRS, 0x82, LEN6)
+
+             Method (_CRS, 0, NotSerialized)
+
+             {
+
+                 Store (MG1B, MIN5)
+
+                 Store (MG1L, LEN5)
+
+                 Store (MG1L, Local0)
+
+                 If (Local0)
+
+                 {
+
+                     Add (MIN5, Decrement (Local0), MAX5)
+
+                 }
+
+
+
+                 Store (MG2B, MIN6)
+
+                 Store (MG2L, LEN6)
+
+                 Store (MG2L, Local0)
+
+                 Add (MIN6, Decrement (Local0), MAX6)
+
+                 Return (CRS)
+
+             }
+
+         }
+
+     }
+
+
+
+     If (SS1)
+
+     {
+
+         Name (\_SB.PCI0._S1D, 0x02)
+
+         Name (\_SB.PCI0.P0P2._S1D, 0x02)
+
+         Name (\_SB.PCI0.USB1._S1D, 0x02)
+
+         Name (\_SB.PCI0.USB2._S1D, 0x02)
+
+         Name (\_SB.PCI0.USB3._S1D, 0x02)
+
+     }
+
+
+
+     If (SS3)
+
+     {
+
+         Name (\_SB.PCI0._S3D, 0x02)
+
+         Name (\_SB.PCI0.P0P2._S3D, 0x02)
+
+         Name (\_SB.PCI0.USB1._S3D, 0x02)
+
+         Name (\_SB.PCI0.USB2._S3D, 0x02)
+
+         Name (\_SB.PCI0.USB3._S3D, 0x02)
+
+     }
+
+
+
+     If (SS4)
+
+     {
+
+         Name (\_SB.PCI0._S4D, 0x02)
+
+         Name (\_SB.PCI0.P0P2._S4D, 0x02)
+
+     }
+
+
+
+     Method (_PTS, 1, NotSerialized)
+
+     {
+
+         Store (Arg0, P378)
+
+         PTS (Arg0)
+
+         Store (0x00, Index (WAKP, 0x00))
+
+         Store (0x00, Index (WAKP, 0x01))
+
+     }
+
+
+
+     Method (_WAK, 1, NotSerialized)
+
+     {
+
+         ShiftLeft (Arg0, 0x04, P378)
+
+         WAK (Arg0)
+
+         If (LEqual (Arg0, 0x04))
+
+         {
+
+             Notify (\_SB.PWRB, 0x02)
+
+             If (LEqual (OSFL (), 0x01))
+
+             {
+
+                 Store (0x01, OSEC)
+
+             }
+
+             Else
+
+             {
+
+                 If (LEqual (OSFL (), 0x00))
+
+                 {
+
+                     Store (0x02, OSEC)
+
+                 }
+
+                 Else
+
+                 {
+
+                     If (LEqual (OSFL (), 0x02))
+
+                     {
+
+                         Store (0x03, OSEC)
+
+                     }
+
+                 }
+
+             }
+
+
+
+             Store (0xB8, SWI0)
+
+         }
+
+
+
+         If (DerefOf (Index (WAKP, 0x00)))
+
+         {
+
+             Store (0x00, Index (WAKP, 0x01))
+
+         }
+
+         Else
+
+         {
+
+             Store (Arg0, Index (WAKP, 0x01))
+
+         }
+
+
+
+         Return (WAKP)
+
+     }
+
+
+
+     OperationRegion (PMRG, SystemIO, 0x0400, 0x80)
+
+     Field (PMRG, ByteAcc, NoLock, Preserve)
+
+     {
+
+         Offset (0x04),
+
+         SCIF,   1,
+
+         Offset (0x06),
+
+         RTCS,   8,
+
+         Offset (0x10),
+
+         THRT,   8,
+
+         Offset (0x2D),
+
+         DCPU,   8,
+
+         Offset (0x30),
+
+             ,   4,
+
+         SLPS,   1
+
+     }
+
+
+
+     OperationRegion (OPR1, SystemIO, 0xB2, 0x02)
+
+     Field (OPR1, ByteAcc, NoLock, Preserve)
+
+     {
+
+         SWI0,   8
+
+     }
+
+
+
+     OperationRegion (OPR2, SystemIO, 0x0378, 0x02)
+
+     Field (OPR2, ByteAcc, NoLock, Preserve)
+
+     {
+
+         P378,   8
+
+     }
+
+
+
+     Name (THPP, 0x4B)
+
+     Name (FAKE, 0x00)
+
+     Name (LIDS, 0x01)
+
+     Name (SLPP, 0x00)
+
+     Field (BIOS, ByteAcc, NoLock, Preserve)
+
+     {
+
+         Offset (0x80),
+
+         BIF0,   16,
+
+         BIF1,   16,
+
+         BIF2,   16,
+
+         BIF3,   16,
+
+         BIF4,   16,
+
+         BIF5,   16,
+
+         BIF6,   16,
+
+         BIF7,   16,
+
+         BIF8,   16,
+
+         BIF9,   64,
+
+         BIFA,   64,
+
+         BIFB,   64,
+
+         BIFC,   64,
+
+         BST0,   16,
+
+         BST1,   16,
+
+         BST2,   16,
+
+         BST3,   16,
+
+         BTP0,   16,
+
+         ACIN,   1,
+
+             ,   1,
+
+         BTIN,   1,
+
+         Offset (0xC0),
+
+         OSEC,   8,
+
+         SLPT,   8
+
+     }
+
+
+
+     Name (\_S0, Package (0x04)
+
+     {
+
+         0x00,
+
+         0x00,
+
+         0x00,
+
+         0x00
+
+     })
+
+     If (SS1)
+
+     {
+
+         Name (\S3, Package (0x04)
+
+         {
+
+             0x01,
+
+             0x00,
+
+             0x00,
+
+             0x00
+
+         })
+
+     }
+
+
+
+     If (SS3)
+
+     {
+
+         Name (\_S3, Package (0x04)
+
+         {
+
+             0x05,
+
+             0x00,
+
+             0x00,
+
+             0x00
+
+         })
+
+     }
+
+
+
+     If (SS4)
+
+     {
+
+         Name (\_S4, Package (0x04)
+
+         {
+
+             0x07,
+
+             0x00,
+
+             0x00,
+
+             0x00
+
+         })
+
+     }
+
+
+
+     Name (\_S5, Package (0x04)
+
+     {
+
+         0x07,
+
+         0x00,
+
+         0x00,
+
+         0x00
+
+     })
+
+     Method (PTS, 1, NotSerialized)
+
+     {
+
+         If (Arg0)
+
+         {
+
+             \_SB.PCI0.SBRG.SIOS (Arg0)
+
+         }
+
+     }
+
+
+
+     Method (WAK, 1, NotSerialized)
+
+     {
+
+         \_SB.PCI0.SBRG.SIOW (Arg0)
+
+     }
+
+}
+
+
+
+Can you make a try?
+Thz in advance
+_______________________________________
+Connessione ed e-mail gratuita da 10 mb
+consultabile tramite web e tramite pop.
+www.infinito.it vieni a scoprire tutti 
+i nostri servizi!
+
+http://www.infinito.it/xmail
 
 
 
