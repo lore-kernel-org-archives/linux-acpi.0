@@ -1,14 +1,17 @@
-From: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
-Subject: Re: acpi-20040715: functional regression on ASUS M2N
-Date: Fri, 06 Aug 2004 15:32:01 -0400
+From: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: Radeon PM Support
+Date: Fri, 06 Aug 2004 13:03:30 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4113DCB1.7010205@optonline.net>
-References: <4112814C.2070808@optonline.net> <1091805831.3893.6.camel@tyrosine>
+Message-ID: <1091822609.16369.29.camel@neuromancer.home.net>
+References: <1091139240.26511.9.camel@6-allhosts>
+	 <yzo7jse5999.fsf@localhost.localdomain>
+	 <200408051453.55710.stefandoesinger@gmx.at>
+	 <200408051914.39445.anib@anib.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1091805831.3893.6.camel@tyrosine>
+In-Reply-To: <200408051914.39445.anib-La3J9u0raUk@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,22 +20,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>
+To: Acpi-List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Matthew Garrett wrote:
-> As
-> another example, I just had my wireless card fail to resume correctly.
-> It tried to do a hotplug firmware load on resume. Which was difficult,
-> because it was resumed before the IDE interface was. How can this sort
-> of thing be avoided?
+On Thu, 2004-08-05 at 10:14, Alexander Bruder wrote:
+> Hi,
 > 
+> > Intel's new graphics chipset probably. Owners of Acer Travelmate 60X told
+> > me that the video doesn't come back. But in the these case the whole system
+> > locked up on resume, so we can't tell if the video resume works.
+> 
+> it also happends for the 80x series (in my case 801Lcib) with ATI Technologies 
+> Inc Radeon R250 Lf [Radeon Mobility 9000] using the framebuffer. 
+> "echo 3 > /proc/acpi/sleep" and "echo 4 > /proc/acpi/sleep" doesn't work 
 
-Notwithstanding all the overly grandiose crap I posted earlier 
-(Honestly, I wasn't smoking anything) even on APM systems this sort of 
-thing was typically handled by downing the network interfaces from 
-userspace scripts before suspending.
+echo 4 works on My D600 Radeon 9000. S3 doesn't. FC2 on 2.6.7 kernel
+
+
+-- 
+Ow Mun Heng
+Fedora GNU/Linux Core 2 on D600 1.4Ghz CPU kernel
+2.6.7-2.jul1-interactive 
+Neuromancer 13:01:00 up 4:19, 5 users, load average: 2.28, 1.93, 2.64 
 
 
 -------------------------------------------------------
