@@ -1,32 +1,41 @@
-From: Dmitry Torokhov <dtor_core@ameritech.net>
-Subject: Re: 2.6.10-rc1-mm3: ACPI problem due to un-exported hotplug_path
-Date: Sat, 6 Nov 2004 00:50:32 -0500
-Message-ID: <200411060050.32816.dtor_core@ameritech.net>
-References: <20041105001328.3ba97e08.akpm@osdl.org> <20041105204209.GA1204@kroah.com> <20041105211848.A21098@unix-os.sc.intel.com>
+From: Matthew Wilcox <matthew-Ztpu424NOJ8@public.gmane.org>
+Subject: A GPE block driver
+Date: Sat, 6 Nov 2004 06:44:42 +0000
+Message-ID: <20041106064442.GA21423@parcelfarce.linux.theplanet.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261308AbUKFFui@vger.kernel.org>
-In-Reply-To: <20041105211848.A21098@unix-os.sc.intel.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
-Cc: Greg KH <greg@kroah.com>, Kay Sievers <kay.sievers@vrfy.org>, tokunaga.keiich@jp.fujitsu.com, motoyuki@soft.fujitsu.com, Adrian Bunk <bunk@stusta.de>, Andrew Morton <akpm@osdl.org>, rml@novell.com, len.brown@intel.com, acpi-devel@lists.sourceforge.net
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Saturday 06 November 2004 12:18 am, Keshavamurthy Anil S wrote:
-> Also, since you have brought this, I have one another question to you.
-> Now in the new kernel, I see whenever anybody calls sysdev_register(kobj),
-> an "ADD" notification is sent. why is this? I would like to call
-> kobject_hotplug(kobj, ADD) later.
-> 
 
-Hi Anil,
+I have a GPE block driver (PNP ID ACPI0006) almost written.  I have
+a couple of questions though ...
 
-Please take a look at drivers/base/firmware_class.c to see how one can
-suppress initial hotplug notification and call hotplug when object is
-finally ready. Hopefully you can use similar solution.
+1. Given an acpi_device, how do I get an acpi_namespace_node?
+2. Where does gpe_block_base_number come from?  Is that the _UID?
 
 -- 
-Dmitry
+"Next the statesmen will invent cheap lies, putting the blame upon 
+the nation that is attacked, and every man will be glad of those
+conscience-soothing falsities, and will diligently study them, and refuse
+to examine any refutations of them; and thus he will by and by convince 
+himself that the war is just, and will thank God for the better sleep 
+he enjoys after this process of grotesque self-deception." -- Mark Twain
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by:
+Sybase ASE Linux Express Edition - download now for FREE
+LinuxWorld Reader's Choice Award Winner for best database on Linux.
+http://ads.osdn.com/?ad_id=5588&alloc_id=12065&op=click
