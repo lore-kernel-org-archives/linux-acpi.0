@@ -1,14 +1,14 @@
 From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: ac status broken with kernel 2.6.8-rc2
-Date: Wed, 11 Aug 2004 08:09:54 +0200
+Subject: Re: noise from Dell laptops
+Date: Wed, 11 Aug 2004 08:25:39 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040811060953.GC9232@message-id.gmane0305.slipkontur.de>
-References: <20040808115101.GA3498@luna.mooo.com> <20040808195210.GC7765@elf.ucw.cz>
+Message-ID: <20040811062538.GE9232@message-id.gmane0305.slipkontur.de>
+References: <1092071674.2229.23.camel@dhcppc4>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040808195210.GC7765-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <1092071674.2229.23.camel@dhcppc4>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -20,19 +20,14 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Aug 08, 2004 at 09:52:10PM +0200, Pavel Machek wrote:
-> Hi!
- 
-> > On cold boot the power is always reported as off-line. After suspend
-       ^^^^^^^^^              ^^^^^^             ^^^^^^^^
-> > (swsusp2) the power is stuck on on-line. It doesn't matter for both
-> > whether the power is actually connected or if the battery is in.
+On Mon, Aug 09, 2004 at 01:14:34PM -0400, Len Brown wrote:
+> Do people with Dell laptops that are make noise in idle
+> find that Jos's patch along with acpi_cstate_limit=2
+> makes it quiet?
 
-> I have seen similar issues on nx5k, see archives for hacky
-> patch. Right solution is to use "platform" method of powerdown...
-
-I believe this is a different issue. Also, swsusp _does_ or at least can
-use S4 AFAIK.
+my D600 does not buzz even when using C3, but since apparently there are
+still some device drivers around which have problems with C3, this option
+may be of use for other people, too.
 -- 
 Stefan Seyfried
 
