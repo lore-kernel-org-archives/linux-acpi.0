@@ -1,14 +1,14 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] Stall semantics
-Date: Tue, 30 Sep 2003 15:04:35 -0700
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RESEND] Asus ACPI 0.26 released
+Date: 30 Sep 2003 20:48:32 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <D3A3AA459175A44CB5326F26DA7A189C1C3DAF@orsmsx405.jf.intel.com>
+Message-ID: <1064969312.2583.181.camel@dhcppc4>
+References: <20030930202435.GA4242@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Class: urn:content-classes:message
+In-Reply-To: <20030930202435.GA4242-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,47 +17,33 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+> Len, could you consider merging them and pushing to Linus and Marcelo as
+> soon as it's possible? Those patches contain a couple of important fixes,
+> as well as bugzilla bug #1138, add support for laptops that quite a lot 
+> people use right now (ASUS Centrino models), and are really, *really* long 
+> due (esp. the 0.25 one).
+> 
+> TIA, best regards,
 
-I'm questioning whether it is appropriate to *ever* call sleep since
-this behavior seems to violate the spec.
+This fix has been integrated with others in the ACPI patch,
+and is available for test now in these bitkeeper trees:
+
+http://linux-acpi.bkbits.net/linux-acpi-test-2.4.22
+http://linux-acpi.bkbits.net/linux-acpi-test-2.4.23
+http://linux-acpi.bkbits.net/linux-acpi-test-2.6.0
+
+It is also available as a plain patch "*asus*-.patch" here:
+
+ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/test/
+
+thanks,
+-Len
 
 
------Original Message-----
-From: Nate Lawson [mailto:nate-Y6VGUYTwhu0@public.gmane.org]=20
-Sent: Tuesday, September 30, 2003 2:45 PM
-To: Moore, Robert
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: RE: [ACPI] [PATCH] Stall semantics
-
-On Tue, 30 Sep 2003, Moore, Robert wrote:
-> The ACPI spec says this:
->
-> 16.2.3.4.1.15  Stall (Stall for a Short Time)
-
-Yes, this is what I was referring to.
-
-> StallTerm	:=3D Stall(
-> 	MicroSecs	//TermArg=3D>Integer
-> )
-> The Stall term is used to implement short-term timing requirements.
-> Execution is delayed for at least the required number of microseconds.
-> The implementation of Stall is OS-specific, but must not relinquish
-> control of the processor. Because of this, delays longer than 100
-> microseconds must use Sleep instead of Stall.
------
->
-> This seems to imply that sleep() cannot be used to implement long
-> "stalls" because it can relinquish the cpu.
-
-Please read the patch and the last sentence you quoted from the spec.
-Your code already calls Sleep instead of Stall for values > 1000 us.  I
-simply made it stick to the spec of > 100 us.
-
--Nate
 
 
 -------------------------------------------------------
