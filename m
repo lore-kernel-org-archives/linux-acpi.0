@@ -1,77 +1,96 @@
 From: Keiichiro Tokunaga <tokunaga.keiich@jp.fujitsu.com>
-Subject: Re: [ACPI] PATCH-ACPI based CPU hotplug[4/6]-Dynamic cpu
- register/unregister support
-Date: Wed, 22 Sep 2004 17:34:00 +0900
+Subject: Re: [ACPI] PATCH-ACPI based CPU hotplug[5/6]-ACPI processor driver
+ extension
+Date: Wed, 22 Sep 2004 18:57:53 +0900
 Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <20040922173400.4e717946.tokunaga.keiich@jp.fujitsu.com>
+Message-ID: <20040922185753.4f57d124.tokunaga.keiich@jp.fujitsu.com>
 References: <20040920092520.A14208@unix-os.sc.intel.com>
- <20040920094106.F14208@unix-os.sc.intel.com>
+ <20040920094352.G14208@unix-os.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-ia64-owner@vger.kernel.org>
-In-reply-to: <20040920094106.F14208@unix-os.sc.intel.com>
+In-reply-to: <20040920094352.G14208@unix-os.sc.intel.com>
 To: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
 Cc: tokunaga.keiich@jp.fujitsu.com, len.brown@intel.com, acpi-devel@lists.sourceforge.net, lhns-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 20 Sep 2004 09:41:07 -0700 Keshavamurthy Anil S wrote:
+On Mon, 20 Sep 2004 09:43:52 -0700 Keshavamurthy Anil S wrote:
+> Changes form previous version
+> 1) Added depends on EXPERIMENTAL in kconfig file
+> 
 > ---
-> Name:topology.patch
+> Name:processor_drv.patch
 > Status:Tested on 2.6.9-rc2
 > Signed-off-by: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
 > Depends:	
 > Version: applies on 2.6.9-rc2	
 > Description:
-> Extends support for dynamic registration and unregistration of the cpu,
-> by implementing and exporting arch_register_cpu()/arch_unregister_cpu().
-> Also combines multiple implementation of topology_init() functions to
-> single topology_init() in case of ia64 architecture.
-> ---
+> Extends the processor driver to support ACPI based Physical CPU hotplug.
 
-> +void arch_unregister_cpu(int num)
+> +static int
+> +is_processor_present(
+> +	acpi_handle handle)
 > +{
-> +	struct node *parent = NULL;
+> +	acpi_status 		status;
+> +	unsigned long		sta = 0;
 > +
-> +#ifdef CONFIG_NUMA
-> +	int node = cpu_to_node(num);
-> +	if (node_online(node))
-> +		parent = &sysfs_nodes[node];
-> +#endif /* CONFIG_NUMA */
+> +	ACPI_FUNCTION_TRACE("is_processor_present");
 > +
-> +	return unregister_cpu(&sysfs_cpus[num].cpu, parent);
+> +	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
+> +	if (ACPI_FAILURE(status) || !(sta & ACPI_STA_PRESENT)) {
+> +		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
+> +			"Processor Device is not present\n"));
+> +		return_VALUE(0);
+> +	}
+> +	return_VALUE(1);
 > +}
 
-I don't think that the check 'if (node_online(node))' is necessary
-because sysfs_nodes[node] is there no matter if the node is online
-or offline.  sysfs_nodes[] is cleared only when unregister_node()
-is called and it would be always called after unregister_cpu().
+This assumes that a device is not present if acpi_evaluate_integer()
+returns failure.  But, from the ACPI spec, I think we should assume
+the device is present if the function fails due to a failure in finding
+_STA method.
+
+I am attaching a patch to fix this.  Please see it below.
 
 Thanks,
 Keiichiro Tokunaga
 
 
-Name: arch_register_cpu_fix.patch
+Name: cpu_hp_sta_fix.patch
 Status: Tested on 2.6.9-rc2
 Signed-off-by: Keiichiro Tokunaga <tokunaga.keiich@jp.fujitsu.com>
+Description:
+Fix the evaluation method of _STA in drivers/acpi/processor.c.  If a processor
+object does not have _STA, we should consider it as present.
+
 
 ---
 
- linux-2.6.9-rc2-fix-kei/arch/ia64/kernel/topology.c |    3 +--
- 1 files changed, 1 insertion(+), 2 deletions(-)
+ linux-2.6.9-rc2-fix-kei/drivers/acpi/processor.c |   12 +++++++++++-
+ 1 files changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN arch/ia64/kernel/topology.c~arch_register_cpu_fix arch/ia64/kernel/topology.c
---- linux-2.6.9-rc2-fix/arch/ia64/kernel/topology.c~arch_register_cpu_fix	2004-09-22 11:56:58.793274256 +0900
-+++ linux-2.6.9-rc2-fix-kei/arch/ia64/kernel/topology.c	2004-09-22 11:56:58.795227390 +0900
-@@ -46,8 +46,7 @@ void arch_unregister_cpu(int num)
+diff -puN drivers/acpi/processor.c~cpu_hp_sta_fix drivers/acpi/processor.c
+--- linux-2.6.9-rc2-fix/drivers/acpi/processor.c~cpu_hp_sta_fix	2004-09-22 11:56:58.000000000 +0900
++++ linux-2.6.9-rc2-fix-kei/drivers/acpi/processor.c	2004-09-22 18:36:34.000000000 +0900
+@@ -2551,7 +2551,17 @@ is_processor_present(
+ 	ACPI_FUNCTION_TRACE("is_processor_present");
  
- #ifdef CONFIG_NUMA
- 	int node = cpu_to_node(num);
--	if (node_online(node))
--		parent = &sysfs_nodes[node];
-+	parent = &sysfs_nodes[node];
- #endif /* CONFIG_NUMA */
- 
- 	return unregister_cpu(&sysfs_cpus[num].cpu, parent);
+ 	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
+-	if (ACPI_FAILURE(status) || !(sta & ACPI_STA_PRESENT)) {
++	if (ACPI_FAILURE(status)) {
++		/* Assume device is present if it does not have _STA. */
++		if (status == AE_NOT_FOUND)
++			return_VALUE(1);
++		else {
++			printk(KERN_WARNING "Failed to evaluate _STA.\n");
++			return_VALUE(0);
++		}
++	}
++
++	if (!(sta & ACPI_STA_PRESENT)) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
+ 			"Processor Device is not present\n"));
+ 		return_VALUE(0);
 
 _
