@@ -1,35 +1,48 @@
-From: Lorenzo Colitti <lorenzo@colitti.com>
-Subject: Re: [ACPI] Re: Call for help: list of machines with working S3
-Date: Tue, 15 Feb 2005 17:07:55 +0100
-Message-ID: <42121E5B.2010503@colitti.com>
-References: <20050214211105.GA12808@elf.ucw.cz> <200502150605.11683.s0348365@sms.ed.ac.uk> <4211E729.1090305@colitti.com> <200502151317.15633.s0348365@sms.ed.ac.uk>
+From: Romano Giannetti <romanol-qvIf60buks8@public.gmane.org>
+Subject: Re: [PATCH, new ACPI driver] new sony_acpi driver
+Date: Tue, 15 Feb 2005 17:14:12 +0100
+Message-ID: <20050215161412.GC20951@pern.dea.icai.upco.es>
+References: <20050210161809.GK3493@crusoe.alcove-fr> <E1D0dqo-00041G-00@chiark.greenend.org.uk> <20050214105837.GE3233@crusoe.alcove-fr> <20050214203211.GA8007@ucw.cz>
+Reply-To: romano-1BxYRfzsdQW8A8a7gxElqg@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <200502151317.15633.s0348365@sms.ed.ac.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: s0348365@sms.ed.ac.uk
-Cc: Pavel Machek <pavel@suse.cz>, ACPI mailing list <acpi-devel@lists.sourceforge.net>, kernel list <linux-kernel@vger.kernel.org>, seife@suse.de, rjw@sisk.pl
+Content-Type: text/plain; charset=iso-8859-15
+Content-Disposition: inline
+In-Reply-To: <20050214203211.GA8007-+ZI9xUNit7I@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Vojtech Pavlik <vojtech-AlSwsSmVLrQ@public.gmane.org>
+Cc: Stelian Pop <stelian-ibX4/ixPftWsTnJN9+BGXg@public.gmane.org>, Matthew Garrett <mgarrett-QGMSyCZBOSwv4zxTlrOuLwNdhmdF6hFW@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Alistair John Strachan wrote:
->>.config attached.
+On Mon, Feb 14, 2005 at 09:32:11PM +0100, Vojtech Pavlik wrote:
+>  
+> Yes, I'd like to see that. The other possible way is have the input
+> layer generate ACPI events for power-related keys.
 > 
-> As recommended elsewhere in this thread, I'm not using any sort of framebuffer 
-> driver, but vesafb IS compiled in (but no vga= option is present). Does it 
-> need to be compiled out completely?
 
-I don't remember, maybe you can deduce it from the .config I sent?
+I beg your pardon, but I have a very strange problem with ACPI event on a
+Sony laptop. Probably it's completely unraleted, but if you have time to
+have a look, it is on bugzilla too:
 
-> I have acpi_sleep=s3_bios on cmdline. I am not using swsusp2 (and I can't see 
-> how this is at all related to software suspend).
+http://bugme.osdl.org/show_bug.cgi?id=4124
 
-It works with or without swsusp2.
+Thanks! 
+        Romano
 
-> Perhaps it is the machine BIOS. Which version do you have?
+-- 
+Romano Giannetti             -  Univ. Pontificia Comillas (Madrid, Spain)
+Electronic Engineer - phone +34 915 422 800 ext 2416  fax +34 915 596 569
 
-I think it's vF.0F from July 2004.
 
-
-Cheers,
-Lorenzo
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
