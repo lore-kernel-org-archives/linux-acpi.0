@@ -1,11 +1,14 @@
-From: Irene Zubarev <zubarev-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Subject: small status catching patch
-Date: Thu, 13 Mar 2003 17:13:36 -0500
+From: Matthew Harrell <lists-sender-12e533-bmWjYudjZeGERhycZ4x6Ig@public.gmane.org>
+Subject: Re: odd irq routing errors?
+Date: Thu, 13 Mar 2003 17:13:21 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <OFA9812763.63F0B8C8-ON87256CE8.007843A2@us.ibm.com>
+Message-ID: <20030313221321.GA21296@bittwiddlers.com>
+Reply-To: Matthew Harrell <mharrell-dated-1048025602.5b63c9-bmWjYudjZeGERhycZ4x6Ig@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,47 +17,49 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 
+So is this problem listed below the same as the one I'm having on my laptop?
+I cannot boot any 2.5.6? kernels with acpi turned on since once acpid starts
+the laptop slows down horrendously, many programs seg fault or the scripts
+give bizarre results, and the ide controller spits out numerous messages.  Is
+there anything I can do to fix this problem?  
 
 
 
-Hello, I'm not sure if anyone caught this, but it seems that in nswalk.c,
-in acpi_ns_walk_namespace, there should be an extra variable for status,
-otherwise, we always think it is a good status.  (this is on the 2nd "if
-(unlock_before_callback)" statement).  Please see patch below (against
-2/28/2003 version):
+: Faye Pearson writes:
+: > This is for the IRQ allocation gurus.
+: > More information on http://dude.noc.clara.net/~faye/
+: >
+: > All refer to the IDE controller...
+: >
+: > PCI: Ignoring BAR0-3 of IDE controller 00:1f.1
+: >  pci_irq-0297 [09] acpi_pci_irq_derive   : Unable to derive IRQ for
+: >  device 00:1f.1
+: > PCI: No IRQ known for interrupt pin A of device 00:1f.1 - using IRQ 255
+: > ICH3M: IDE controller at PCI slot 00:1f.1
+: > PCI: Enabling device 00:1f.1 (0005 -> 0007)
+: >  pci_irq-0297 [12] acpi_pci_irq_derive   : Unable to derive IRQ for
+: >  device 00:1f.1
+: > PCI: No IRQ known for interrupt pin A of device 00:1f.1 - using IRQ 255
+: >
+: > But then:
+: >
+: > ide0 at 0x1f0-0x1f7,0x3f6 on irq 14
+: > ide1 at 0x170-0x177,0x376 on irq 15
+: >
+: > Looks like it has the correct IRQs.
+: 
+: I've had the same problem with acpi assigning IRQ 255 to some devices
+: but in my case I wasn't even able to boot. All of this was explained
+: in my last mail to this list. My ide controller is a ICH2M.
 
-diff -Nru 1/drivers/acpi/namespace/nswalk.c 2/drivers/acpi/namespace/nswalk.c
---- 1/drivers/acpi/namespace/nswalk.c     Thu Mar 13 19:58:30 2003
-+++ 2/drivers/acpi/namespace/nswalk.c     Thu Mar 13 19:59:02 2003
-@@ -164,6 +164,7 @@
-      void                            **return_value)
- {
-      acpi_status                     status;
-+     acpi_status             unlock_status;
-      struct acpi_namespace_node      *child_node;
-      struct acpi_namespace_node      *parent_node;
-      acpi_object_type                child_type;
-@@ -221,9 +222,9 @@
-                                     context, return_value);
-
-                        if (unlock_before_callback) {
--                             status = acpi_ut_acquire_mutex (ACPI_MTX_NAMESPACE);
--                             if (ACPI_FAILURE (status)) {
--                                   return_ACPI_STATUS (status);
-+                             unlock_status = acpi_ut_acquire_mutex (ACPI_MTX_NAMESPACE);
-+                             if (ACPI_FAILURE (unlock_status)) {
-+                                   return_ACPI_STATUS (unlock_status);
-                              }
-                        }
-
-Thanks,
-
-Irene Zubarev
-
+-- 
+  Matthew Harrell                          Programmer - a red-eyed mumbling
+  Bit Twiddlers, Inc.                       mammal capable of conversing with
+  mharrell-bmWjYudjZeGERhycZ4x6Ig@public.gmane.org                 inanimate objects.
 
 
 -------------------------------------------------------
