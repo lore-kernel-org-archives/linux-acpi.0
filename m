@@ -1,8 +1,8 @@
 From: "Mr. Godstime Nkomo" <gnkomo1-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Subject: THE PRESIDENT { URGENT }
-Date: Tue, 13 May 2003 04:29:05 +0200
+Date: Tue, 13 May 2003 04:31:24 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E19FPXM-0004fN-00@panoramix.vasoftware.com>
+Message-ID: <E19FPZb-0002KI-00@panoramix.vasoftware.com>
 Reply-To: gnkomo1-j5/qNLkfQH1BDgjK7y7TUQ@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
