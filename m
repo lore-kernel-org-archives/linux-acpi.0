@@ -1,12 +1,12 @@
-From: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
 Subject: Re: sbs-linux acpi-ec-nospinlock patch for 2.6.11
-Date: Fri, 11 Mar 2005 11:37:26 -0500
-Message-ID: <4231C946.4090301@bartol.udel.edu>
-References: <3ACA40606221794F80A5670F0AF15F8407663381@pdsmsx403>
+Date: Fri, 11 Mar 2005 18:54:52 +0100
+Message-ID: <20050311175452.GB21611@message-id.gmane0305.slipkontur.de>
+References: <3ACA40606221794F80A5670F0AF15F8407663381@pdsmsx403> <4231C946.4090301@bartol.udel.edu> <4231CD8E.5080105@bartol.udel.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F8407663381@pdsmsx403>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4231CD8E.5080105-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,35 +16,18 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Fri, Mar 11, 2005 at 11:55:42AM -0500, Rich Townsend wrote:
+ 
+> This clearly makes the patch of limited usefullness. What can be done to 
+> increase the speed?
 
+Do you have CONFIG_ACPI_DEBUG enabled? Switch it off, it is slow as hell.
+-- 
+Stefan Seyfried
 
-Yu, Luming wrote:
-> I don't know what is acpi-ec-nospinlock patch.
-> But the patch at http://bugzilla.kernel.org/show_bug.cgi?id=3851#c52 is worthy testing, if you have EC related issue.
-> Thanks,
-> Luming
-
-It was a small patch I wrote, to lock EC access using a semaphore rather 
-than a spinlock. This was to stop the stuttering caused when the EC 
-driver was polling for completion of a transaction.
-
-Eventually, of course, we want to switch over to event-based EC 
-management. I already tried one of the older EC/event patches on the 
-page you give above, with not much success; but I'll give one of the 
-newer ones a shot.
-
-I'm currently also playing around with a patch sent to me by Dmitry 
-Torokhov, which I believe was a fork from the EC/event patches. It seems 
-to work (in that there is no more stuttering), but there are a lot of 
-AE_TIME errors returned by the address-space handler, which screws up 
-execution of many DSDT methods that use the EC.
-
-cheers,
-
-Rich
 
 
 -------------------------------------------------------
