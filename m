@@ -1,11 +1,10 @@
-From: James Bromberger <james-Q/PxBS77Xz0@public.gmane.org>
-Subject: SYM53c8xx 2.6.0-test1-ac3 ACPI IRQ mismatch?
-Date: Sat, 26 Jul 2003 04:39:22 +0800
+From: jbarnes-sJ/iWh9BUns@public.gmane.org (Jesse Barnes)
+Subject: [PATCH] Kconfig update
+Date: Fri, 25 Jul 2003 13:45:34 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030725203921.GA13042@phobe.internal.pelicanmanufacturing.com.au>
+Message-ID: <20030725204534.GC16854@sgi.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="zhXaljGHf11kAtnf"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -16,49 +15,28 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Just a small patch to fix the ACPI_NUMA default for ia64 and sn2.
 
---zhXaljGHf11kAtnf
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Btw, I'm not on the list, so if you reply please Cc: me.
 
+Thanks,
+Jesse
 
-Hello,
-
-I've been trying to get the SMB53C5XX scsi driver to detect my=20
-LSI 1010-66 scsi adapter, and found that it fails to detect it completely
-under 2.6.0-test1-ac3 with the SMB53C8XX driver and ACPI turned on,
-however, it appears to work with ACPI disabled. Would anyone like any
-specific information from the card/logs? The controller has my root
-filesystem on an attached disk, so when it fails, I get an obvious
-kernel panic with root FS not found.
-
-Regards,
-
-  James
-  (PS: I am not on acpi-devel, please email me directly)
---=20
- James Bromberger <james_AT_rcpt.to> www.james.rcpt.to
- Remainder moved to http://www.james.rcpt.to/james/sig.html
-
-I am in London on UK mobile +44 7952 042920.
-
---zhXaljGHf11kAtnf
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-
-iD8DBQE/IZV5pfJwKAkXqeQRAnEaAKCmIBg/FCXQZ1EI+YNjEsj6whdZSQCgmcGy
-LtCmL1H/Wc3caGWvt3ku9c0=
-=UeiE
------END PGP SIGNATURE-----
-
---zhXaljGHf11kAtnf--
+diff -Nru a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+--- a/drivers/acpi/Kconfig	Thu Jul 17 16:59:05 2003
++++ b/drivers/acpi/Kconfig	Thu Jul 17 16:59:05 2003
+@@ -133,7 +133,7 @@
+ 
+ config ACPI_NUMA
+ 	bool "NUMA support" if NUMA && (IA64 && !IA64_HP_SIM || X86 && ACPI && !ACPI_HT_ONLY && !X86_64)
+-	default y if IA64 && IA64_SGI_SN
++	default y if IA64_GENERIC || IA64_SGI_SN2
+ 
+ config ACPI_ASUS
+         tristate "ASUS/Medion Laptop Extras"
 
 
 -------------------------------------------------------
