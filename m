@@ -1,14 +1,14 @@
-From: Brian Perkins <bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org>
-Subject: Re: 2.4.24 patch apply failed on vanilla kernel
-Date: Thu, 08 Jan 2004 17:13:41 -0500
+From: "Ow Mun Heng" <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
+Subject: Kernel 2.6 + RH9 + Laptop + Suspend + ACPI
+Date: Fri, 9 Jan 2004 10:20:46 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3FFDD615.1090107@netspace.org>
-References: <3ACA40606221794F80A5670F0AF15F8401720CA3@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <C386328088ED7F4E9F81AFBABDDF60DA03B370F6@wdmyexch02.my.asia.wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401720CA3-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,35 +17,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Acpi-List (E-mail)" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Yu, Luming wrote:
+Hi All,
 
-> 0001	 ( 1<< 33 , It's overflowed, but it should be 0 )
-> 0002	 ( 1<< 34 , It's overflowed, but it should be 0 )
+	Wondering how many ppl in this list is using
+the spanking new 2.6 kernel on a RH9 laptop box.=20
 
-According to all the doc that talk about this, the result is "undefined" 
-for bit > word_size.
+I've heard many thing about 2.6 (but still using 2.4.24=20
+kernel) and it's supposed support for laptop interms of=20
+suspend/resume.
 
-In fact:
+I'm writing this "general" email to determine if there are=20
+any success stories from anyone using this setup.
 
-#cat > bar.c
+If everything's positive, I might just join the bandwagon.
 
-main() {
-(1ul <<33);
-}
-# gcc bar.c
+Thanks for any and all comments.
 
-bar.c: In function `main':
-bar.c:2: warning: left shift count >= width of type
+Cheers,                                                =20
+Mun Heng, Ow                                        =20
 
--- 
-"I know you believe you understand what you think I said, but I am not
-             sure you realise that what you heard is not what I meant."
-			    -- Alan Greenspan
-Brian Perkins                                bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org
-
+       =20
 
 
 -------------------------------------------------------
