@@ -1,14 +1,12 @@
-From: "Michael Frank" <mhf-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
-Subject: Re: Re: AC adapter status wrong after resume (swsusp, pmdsik)
-Date: Sun, 28 Mar 2004 04:10:59 +0800
+From: Cam <camilo-Nk/s8sJ9yP7QXOPxS62xeg@public.gmane.org>
+Subject: acpi problems on Sharp PC-AR50 notebook
+Date: Sat, 27 Mar 2004 22:21:15 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <opr5jecleg4evsfm@smtp.pacific.net.th>
-References: <20040322154654.GA10305@pern.dea.icai.upco.es> <20040322223145.GA2549@luna.mooo.com> <20040323090055.GA8857@message-id.gmane0305.slipkontur.de> <20040327195842.GB2737@luna.mooo.com>
+Message-ID: <4065FE5B.8090903@mesias.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; delsp=yes; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040327195842.GB2737-4cxDFgrrBECgSpxsJD1C4w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,55 +15,89 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Micha Feigin <michf-+lLcF8/aw9x6auLlOhE+pQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, 27 Mar 2004 21:58:42 +0200, Micha Feigin <michf-+lLcF8/aw9x6auLlOhE+pQ@public.gmane.org> w=
-rote:
+Hi ACPI list,
 
-> On Tue, Mar 23, 2004 at 10:00:55AM +0100, Stefan Seyfried wrote:
->> On Tue, Mar 23, 2004 at 12:31:45AM +0200, Micha Feigin wrote:
->>
->> > >       Iam an user of linux 2.6.x on a Vaio FX701 laptop. I found a=
- little
->> > >       problem with AC charger status and the suspend/resume softwa=
-re, and so
->> >
->> > I saw this same problem with swsusp2. The solution was to compile th=
-e
->> > battery support as a module, unload it before suspend and reload it
->> > after resume.
->>
->> Well, of course this is a workaround, not a solution ;-)
->> Are you sure it's the battery and not the ac module? The reason i'm
->
-> Yes, I tried first with the ac module since it looked more logical but
-> that didn't effect things, doing the same with the battery module did
-> help.
->
->> asking is: i have a similar problem and unloading / reloading modules
->> after suspend does not help, though i never tried unloading before
->> and reloading after suspend.
->> Since this seems to be a generic bug and not only on my hardware, i
->> will file a bug for it.
->
-> Of course its a work around and not a solution, but if it solves things
-> then it can help point at the problem, especially considering that it
-> seems that the battery module affects the ac status in this case.
->
->
+I'm trying to get ACPI working on my notebook - since upgrading to 
+kernel 2.6 linux is trying to use ACPI. I know I can tell the kernel 
+acpi=no but I would like to get ACPI to work if possible.
 
-IME, all acpi modules except toshiba-acpi must be removed prior to suspen=
-d.
+I have looked at web searches and FAQs and found this list, here are 
+some details of the problem.
 
-The fundamental reason for the malfunction is that acpi modules do
-not listen to PM events resulting in their (suspended) state on resume be=
-ing
-inonsistent with what the BIOS set prior to returning control (S3) / boot=
-ing (S4).
+The battery/power info is missing. The lid switch doesn't trigger 
+suspend. Also suspend (from apmd when acpi=no is set) can be entered but 
+exited only by a reboot.
 
-Regards
-Michael
+Here are highlights from the output of dmesg... I have put the full 
+text, along with dmidecode and acpidmp output at:
+
+   http://userca029.dsl.pipex.com/acpi
+
+Any help gratefully received, if I can't fix this then it's back to good 
+old APM...
+
+Thanks in advance,
+
+-Cam
+
+The dmseg output, edited highlights...
+
+Linux version 2.6.4-1.290 (bhcompile-D6sxawzOL17RXHVDFo1lHKfLeoKvNuZc@public.gmane.org) (gcc 
+version 3.3.3 20040311 (Red Hat Linux 3.3.3-3)) #1 Thu Mar 25 08:43:52 
+EST 2004
+ACPI: RSDP (v000 PTLTD                                     ) @ 0x000f7190
+ACPI: RSDT (v001 SHARP  PC-XJ800 0x20000517  LTP 0x00000000) @ 0x17ffbc12
+ACPI: FADT (v001 SHARP  QS1      0x20000517 PTL  0x000f4240) @ 0x17fffb65
+ACPI: BOOT (v001 SHARP  PC-XJ820 0x20000517  LTP 0x00000001) @ 0x17fffbd9
+ACPI: DSDT (v001 SHARP  QS1      0x20000517 MSFT 0x0100000d) @ 0x00000000
+ACPI: PM-Timer IO Port: 0x8008
+Built 1 zonelists
+ACPI: Subsystem revision 20040311
+ACPI: IRQ9 SCI: Level Trigger.
+     ACPI-1133: *** Error: Method execution failed 
+[\_SB_.PCI0.QSB_.WQS_] (Node 19eff9c4), AE_NOT_EXIST
+     ACPI-1133: *** Error: Method execution failed 
+[\_SB_.PCI0.QSB_.WENR] (Node 19effc2c), AE_NOT_EXIST
+     ACPI-1133: *** Error: Method execution failed [\_SB_.PCI0._INI] 
+(Node 19fa7e3c), AE_NOT_EXIST
+ACPI: Interpreter enabled
+ACPI: Using PIC for interrupt routing
+ACPI: PCI Root Bridge [PCI0] (00:00)
+PCI: Probing PCI hardware (bus 00)
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.AGP_._PRT]
+ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 9 10 *11 14 15)
+ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 6 7 *9 10 11 14 15)
+ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 6 7 9 *10 11 14 15)
+ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 *5 6 7 9 10 11 14 15)
+ACPI: Embedded Controller [EC0] (gpe 0)
+ACPI: Power Resource [PIDE] (on)
+ACPI: Power Resource [PFN0] (off)
+Linux Plug and Play Support v0.97 (c) Adam Belay
+ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 5
+ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 11
+ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 10
+ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 9
+PCI: Using ACPI for IRQ routing
+PCI: if you experience problems, try using option 'pci=noacpi' or even 
+'acpi=off'
+Simple Boot Flag at 0x63 set to 0x1
+cpufreq: Intel(R) SpeedStep(TM) for this chipset not (yet) available.
+apm: BIOS version 1.2 Flags 0x03 (Driver version 1.16ac)
+apm: overridden by ACPI.
+ACPI: Fan [FAN0] (off)
+ACPI: Processor [CPU0] (supports C1 C2, 8 throttling states)
+ACPI: Thermal Zone [THRM] (50 C)
+ACPI: (supports S0 S3 S4 S5)
+ACPI: AC Adapter [ACAD] (off-line)
+ACPI: Battery Slot [BAT1] (battery absent)
+ACPI: Battery Slot [BAT2] (battery absent)
+ACPI: Power Button (FF) [PWRF]
+ACPI: Lid Switch [LID]
+ACPI: Sleep Button (CM) [SBTN]
 
 
 -------------------------------------------------------
