@@ -1,14 +1,14 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Subject: Re: Several problems with sleep states
-Date: Fri, 27 Feb 2004 11:33:12 +0100
+Date: Fri, 27 Feb 2004 13:18:24 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040227103312.GM2869@poupinou.org>
-References: <403F0BA9.6060905@lip6.fr>
+Message-ID: <20040227121824.GA8316@hell.org.pl>
+References: <403F0BA9.6060905@lip6.fr> <1077876965.10771.15.camel@homer>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <403F0BA9.6060905-L2FTfq7BK8M@public.gmane.org>
+In-Reply-To: <1077876965.10771.15.camel-0dCjsm2Eg2I@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,38 +17,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nicolas Sabouret <Nicolas.Sabouret-L2FTfq7BK8M@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Peter Meier <crazy-b-Mmb7MZpHnFY@public.gmane.org>
+Cc: Nicolas Sabouret <Nicolas.Sabouret-L2FTfq7BK8M@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Feb 27, 2004 at 10:19:37AM +0100, Nicolas Sabouret wrote:
-> Hi,
-> 
-> following problems:
-> 1. echo -n "disk" > /sys/power/state => nothing happens
-> 2. echo -n "mem" > /sys/power/state => the computer enters "suspend on 
-> ram" mode (the suspend light gets on, etc...) when I try to wake up the 
-> computer, it hangs (some noise indicating that the disks are woken up 
-> and then nothing but a blank screen, even starting from console).
+Thus wrote Peter Meier:
+> Also, if you have a radeon gfx card, you wont get your console frame
+> buffer back to life yet. If you use the ATI-Binary drivers, you wont get
 
-You should try with swsusp instead and with /proc/acpi/sleep by now.
-pmdisk apparently does support only S4BIOS (and you don't have s4bios,
-looking the dmesg), not S4.
-
-> 
-> 3. It has certainly nothing to do with what I said before, but I cannot 
-> find a /proc/acpi/processor/CPU0/performance (I have all the other files 
-> you mention in your Documentation section).
-
-It has been deprecated.  Look at /sys/devices/system/cpu0/cpufreq instead.
-
-Cheers,
+On the contrary, the current radeonfb from 2.6.3 does restore the console
+contents. That said, the backlight might still be a problem, but this is
+usually independent of the display driver.
+Best regards,
 
 -- 
-Bruno Ducrot
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
