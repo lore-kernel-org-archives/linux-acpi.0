@@ -1,14 +1,13 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: C3 support w/o ARB_DIS (P4-M on i845)
-Date: Wed, 12 May 2004 21:55:47 +0200
+From: "Leigh Richmond" <kellievalasco-kEQ+eIniSuXtt0EhB6fy4g@public.gmane.org>
+Subject: University Certificates, No Classes Needed, Wed, 12 May 2004 16:11:17 -0500
+Date: Wed, 12 May 2004 16:11:17 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040512195546.GA19939@hell.org.pl>
-References: <20040512102527.GA8050@hell.org.pl> <20040512160353.GA7906@dominikbrodowski.de>
+Message-ID: <VFOCKAZKWXJATSTZEOVBWX@yahoo.com>
+Reply-To: "Leigh Richmond" <kellievalasco-kEQ+eIniSuXtt0EhB6fy4g@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: multipart/alternative;
+	boundary="--4477731077475806"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040512160353.GA7906-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,30 +16,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: tallyman-intl-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, btdiary-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Dominik Brodowski:
-> Well, there had been some discussion about that approximately two years ago,
-> maybe it's still in the archives. Major problems, IIRC:
-> 
-> a) occasional hangs on my system
-> b) unpredictable time of execution of WBINVD command (results in high latency)
-> 
-> I had posted some implementation back then, don't know whether it still
-> works. If you can't find it, contact me again, please.
+----4477731077475806
+Content-Type: text/plain;
+Content-Transfer-Encoding: 7Bit
 
-OK, I find the discussion, thanks for pointing that out. that out. Related
-question: the ICH3-M spec specifies the PM2_CNT address at PMBASE + 0x20,
-just before the GPE block. This seems consistent with my FADT, which places
-PMBASE at 0xe400 and GPE0_BLK at 0xe428. Would manual poking at the
-presumed location of ARB_DIS or FADT override work?
-Best regards,
+Wed, 12 May 2004 16:11:17 -0500
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+Academic-Qualifications from NON–ACCR. Universities.
+
+No exams. No classes. No books.
+
+Call to register and get yours in days - 1 203 286 2403.
+
+
+
+No more ads: elizslifer-wo4oW1Pw1HF3vZ0LZ0W7Rg@public.gmane.org
+
+secrete dramatist werther cryptology cripple nair wavy averse boxwood cornmeal bangui indecision chrysolite ahmedabad 
+
+lord mayor desultory beijing precursor apathy coliform betroth coop bernoulli marathon springy improbable noreen mutilate holcomb dinah misnomer quadrilateral rayleigh disposable loathe divorce bayonne twitch fujitsu instinctual billfold moorish cytology showpiece topology kaiser hydrolysis accident 
+
+----4477731077475806--
 
 
 -------------------------------------------------------
