@@ -1,135 +1,118 @@
-From: "Test Person2" <TestP2-AP8L3A0T/wQqdlJmJB21zg@public.gmane.org>
-Subject: Delivery Status Notification (Failure)
-Date: Tue, 3 Aug 2004 15:02:22 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <k2o4wMcmT00000c78@GENERAL.hq.farsitecommunications.com>
+From: Alex Williamson <alex.williamson@hp.com>
+Subject: [RFC] dev_acpi: device driver for userspace access to ACPI
+Date: Tue, 03 Aug 2004 11:00:26 -0600
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <1091552426.4981.103.camel@tdi>
 Mime-Version: 1.0
-Content-Type: multipart/report;
-	report-type=delivery-status;
-	boundary="----_=_NextPart_001_01C47962.7F61BE62"
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Class: urn:content-classes:dsn
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S266726AbUHCRAd@vger.kernel.org>
+To: acpi-devel@lists.sourceforge.net
+Cc: linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
 
-------_=_NextPart_001_01C47962.7F61BE62
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+   This is by no means ready for release, but I wanted to get a sanity
+check.  I'm still stuck on this idea that userspace needs access to ACPI
+namespace.  Manageability apps might use this taking inventory of
+devices not exposed by other means, things like X can locate chipset
+components that don't live in PCI space, there's even the possibility of
+making user space drivers.
 
-Your message
+  Populating the sysfs tree didn't seem to generate as much interest as
+I'd hoped and I don't think it kept with the spirit of sysfs very well.
+So, now I present dev_acpi (name suggestions welcome).  The link below
+is a tarball with a first stab at the driver as well as a simple proof
+of concept application.  It should build against any 2.6 kernel as long
+as you have the include files available.  There are no kernel changes
+required, thus it doesn't expose anything not already exposed as a
+symbol.
 
-  To:      bob.dunlop-AP8L3A0T/wQqdlJmJB21zg@public.gmane.org
-  Subject: Re: Hello
-  Sent:    Tue, 3 Aug 2004 15:02:17 +0100
+   The basic concept of operation is that the ioctl operates on the ACPI
+path passed into the ioctl call.  The ioctl may return the result of the
+operation either in the status field of the argument or use that to
+indicate the number of bytes available to read(2) for the result.  The
+header file included describes the input and output for each operation.
+If the status field indicates a byte count to read, the calling
+application can easily size buffers, and call read(2) on the device file
+to get the results.  I've also include support for write(2) that could
+allow writing arguments for method calls that take input (completely
+untested).  I've limited some of the output (for instance in GET_NEXT)
+to try to only print out standard ACPI objects, but the filter is pretty
+simple (objects beginning w/ '_').  I know the completely open interface
+from the sysfs implementation scared some people.  Non-standard objects
+can still be operated on, but you've got to know what to look for.
 
-did not reach the following recipient(s):
+   Many of the ioctls mimic the behavior of the acpi calls that are
+already exported.  What I have now is only a start at what could be
+provided.  The sample, proof-of-concept app, is called acpitree.  It's
+much like the tree app for listing files and directories.  It does
+evaluate and print _HIDs represented by integers, but that's about it.
+Here's some sample output (sorry anyone not using fixed width fonts):
 
-bob.dunlop-AP8L3A0T/wQqdlJmJB21zg@public.gmane.org on Tue, 3 Aug 2004 15:02:22 +0100
-    The e-mail account does not exist at the organization this message
-was sent to.  Check the e-mail address, or contact the recipient
-directly to find out the correct address.
-    <GENERAL.hq.farsitecommunications.com #5.1.1>
+>From an rx4640 ia64 server:
+\\
+|-- _GPE
+|-- _PR_
+|-- _SB_
+|   |-- SBA0
+|   |   |-- _HID (HWP0001)
+|   |   |-- _CID
+|   |   |-- _CRS
+|   |   |-- _INI
+|   |   |-- _UID
+|   |   |-- MI0_
+|   |   |   |-- _HID (IPI0001)
+|   |   |   |-- _UID
+|   |   |   |-- _STA
+|   |   |   `-- _CRS
+|   |   |-- PCI0
+|   |   |   |-- _UID
+|   |   |   |-- _STA
+|   |   |   |-- _BBN
+|   |   |   |-- _HID (HWP0002)
+|   |   |   |-- _CID
+|   |   |   |-- _PRT
+...
 
+>From an nc6000 laptop:
+\\
+|-- _GPE
+|-- _PR_
+|-- _SB_
+|   |-- _INI
+|   |-- C00C
+|   |   |-- _HID (PNP0C01)
+|   |   `-- _CRS
+|   |-- C046
+|   |   |-- _HID (PNP0A03)
+|   |   |-- _ADR
+|   |   |-- C047
+|   |   |   |-- _ADR
+|   |   |   |-- C0D1
+|   |   |   |   |-- _ADR
+|   |   |   |   |-- _REG
+|   |   |   |   |-- _S3D
+|   |   |   |   |-- _S4D
+|   |   |   |   |-- _DOS
+|   |   |   |   |-- C0DD
+|   |   |   |   |   |-- _ADR
+...
 
-------_=_NextPart_001_01C47962.7F61BE62
-Content-Type: message/delivery-status
-Content-Transfer-Encoding: 7bit
+  You can find the driver and sample app here:
 
-Reporting-MTA: dns; general.hq.farsitecommunications.com
+http://free.linux.hp.com/~awilliam/acpi/dev_acpi/dev_acpi-20040803.tar.bz2
 
-Final-Recipient: RFC822; bob.dunlop-AP8L3A0T/wQqdlJmJB21zg@public.gmane.org
-Action: failed
-Status: 5.1.1
-X-Supplementary-Info: <GENERAL.hq.farsitecommunications.com #5.1.1>
-X-Display-Name: bob.dunlop-AP8L3A0T/wQqdlJmJB21zg@public.gmane.org
+There's a brutally short README there.  Caveat: the driver is hardcoded
+to use an experimental major number, you'll have to mknod it, see the
+README.
 
-------_=_NextPart_001_01C47962.7F61BE62
-Content-Type: message/rfc822
-Content-Transfer-Encoding: 7bit
+Please try it out, let me know if it sucks.  I make no guarantees it
+won't kill your system, but it shouldn't unless you start evaluating
+dangerous objects (ie, if you don't know what it does, don't do it).
+And of course, if you have any suggestions, I welcome feedback.  Thanks,
 
-MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----_=_NextPart_002_01C47962.7DF23E00"
-Return-Path: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-X-OriginalArrivalTime: 03 Aug 2004 14:02:21.0095 (UTC) FILETIME=[7E995370:01C47962]
-X-MimeOLE: Produced By Microsoft Exchange V6.0.6487.1
-Content-Class: urn:content-classes:message
-Subject: Hello
-Date: Tue, 3 Aug 2004 15:02:17 +0100
-Message-ID: <GENERAL1dSlWnPdQ2KJ0000b6ff-ZZP+BBBrG0WkgvwBEQO/tkSdnDkjUD96wRGifH+7rbhWk0Htik3J/w@public.gmane.org>
-X-MS-Has-Attach: yes
-X-MS-TNEF-Correlator: 
-From: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-To: <bob.dunlop-AP8L3A0T/wQqdlJmJB21zg@public.gmane.org>
-
-This is a multi-part message in MIME format.
-
-------_=_NextPart_002_01C47962.7DF23E00
-Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_003_01C47962.7DF23E00"
-
-
-------_=_NextPart_003_01C47962.7DF23E00
-Content-Type: text/plain;
-	charset="Windows-1252"
-Content-Transfer-Encoding: quoted-printable
-
-Your document is attached.
-
-------_=_NextPart_003_01C47962.7DF23E00
-Content-Type: text/html;
-	charset="Windows-1252"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
-<HTML>
-<HEAD>
-<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
-charset=3DWindows-1252">
-<META NAME=3D"Generator" CONTENT=3D"MS Exchange Server version =
-6.0.6487.1">
-<TITLE>Hello</TITLE>
-</HEAD>
-<BODY>
-<!-- Converted from text/plain format -->
-
-<P><FONT SIZE=3D2>Your document is attached.</FONT>
-</P>
-
-</BODY>
-</HTML>
-------_=_NextPart_003_01C47962.7DF23E00--
-
-------_=_NextPart_002_01C47962.7DF23E00
-Content-Type: text/plain;
-	name="Quarantined Attachment.txt"
-Content-Transfer-Encoding: base64
-Content-Description: Quarantined Attachment Report
-Content-Disposition: attachment;
-	filename="Quarantined Attachment.txt"
-
-WW91ciBhdHRhY2htZW50ICJ5b3VyX3BpY3R1cmUucGlmIiBjb250YWluZWQgdmlydXM6DQogICAg
-ICAgICAiVzMyLk5ldHNreS5LQG1tIi4NCg0KSXQgd2FzIHF1YXJhbnRpbmVkIGFuZCByZXBsYWNl
-ZCB3aXRoIHRoaXMgdGV4dCBmaWxlLg0KDQpJRDpHRU5FUkFMOjpTWVE0ZjAwNDkxNg==
-
-------_=_NextPart_002_01C47962.7DF23E00--
-
-------_=_NextPart_001_01C47962.7F61BE62--
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by OSTG. Have you noticed the changes on
-Linux.com, ITManagersJournal and NewsForge in the past few weeks? Now,
-one more big change to announce. We are now OSTG- Open Source Technology
-Group. Come see the changes on the new OSTG site. www.ostg.com
+	Alex
+   
+-- 
+Alex Williamson                             HP Linux & Open Source Lab
