@@ -1,12 +1,12 @@
 From: Zwane Mwaikambo <zwane-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Subject: Re: [RFC 1/6]SEP initialization rework
-Date: Mon, 4 Apr 2005 13:10:25 -0600 (MDT)
-Message-ID: <Pine.LNX.4.61.0504041235001.30273@montezuma.fsmlabs.com>
-References: <1112580349.4194.331.camel@sli10-desk.sh.intel.com>
+Subject: Re: [RFC 5/6]clean cpu state after hotremove CPU
+Date: Mon, 4 Apr 2005 13:11:32 -0600 (MDT)
+Message-ID: <Pine.LNX.4.61.0504041242420.30273@montezuma.fsmlabs.com>
+References: <1112580367.4194.344.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1112580349.4194.331.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
+In-Reply-To: <1112580367.4194.344.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -22,26 +22,33 @@ List-Id: linux-acpi@vger.kernel.org
 
 On Mon, 4 Apr 2005, Li Shaohua wrote:
 
->  linux-2.6.11-root/arch/i386/kernel/smpboot.c           |    6 ++++++
->  linux-2.6.11-root/arch/i386/kernel/sysenter.c          |   10 ++++++----
->  linux-2.6.11-root/arch/i386/mach-voyager/voyager_smp.c |    6 ++++++
->  3 files changed, 18 insertions(+), 4 deletions(-)
-> 
-> diff -puN arch/i386/kernel/sysenter.c~sep_init_cleanup arch/i386/kernel/sysenter.c
-> --- linux-2.6.11/arch/i386/kernel/sysenter.c~sep_init_cleanup	2005-03-28 09:32:30.936304248 +0800
-> +++ linux-2.6.11-root/arch/i386/kernel/sysenter.c	2005-03-28 09:58:20.703703792 +0800
-> @@ -26,6 +26,11 @@ void enable_sep_cpu(void *info)
->  	int cpu = get_cpu();
->  	struct tss_struct *tss = &per_cpu(init_tss, cpu);
+> Clean up all CPU states including its runqueue and idle thread, 
+> so we can use boot time code without any changes.
+> Note this makes /sys/devices/system/cpu/cpux/online unworkable.
 >  
-> +	if (!boot_cpu_has(X86_FEATURE_SEP)) {
-> +		put_cpu();
-> +		return;
-> +	}
+>  #ifdef CONFIG_HOTPLUG_CPU
+>  #include <asm/nmi.h>
 > +
+> +#ifdef CONFIG_STR_SMP
+> +extern void cpu_exit_clear(int);
+> +#endif
 
-Do you have systems like this? Is it really skipping SEP if the boot 
-processor doesn't have SEP?
+Perhaps change that ifdef to denote something which clearly shows that its 
+physical hotplug as we'll need this for other users too.
+
+> +#ifdef CONFIG_STR_SMP
+> +extern void do_exit_idle(void);
+> +extern void cpu_uninit(void);
+> +void cpu_exit_clear(int cpu)
+> +{
+> +	int sibling;
+> +	cpucount --;
+
+Is that protected by the cpu_control semaphore?
+
+Thanks,
+	Zwane
+
 
 
 -------------------------------------------------------
