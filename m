@@ -1,12 +1,11 @@
-From: "Amie Clemons" <iqvlh9-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Boost Your  Car's Gas Mileage 27%+.....chastity
-Date: Fri, 12 Dec 2003 08:32:02 +0400
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Linux/ACPI 2.4 release status
+Date: 12 Dec 2003 01:15:52 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <ror9b8523-5w$bn-1@pd2098c0>
-Reply-To: "Amie Clemons" <iqvlh9-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Message-ID: <1071209752.2542.688.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="E65.C40C4F19_D32"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,73 +15,233 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: javamusictag-cvs-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, libpal-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Folks,
+2.4.23 shipped -- and I'd like to thank all of you for helping build the
+best stable ACPI kernel yet!
 
---E65.C40C4F19_D32
-Content-Type: text/plain;
-Content-Transfer-Encoding: quoted-printable
+There is a new 2.4.24 BK tree on bkbits and corresponding patch
+directory on kernel.org (below).  The latest ACPI patch integrated with
+2.4.24 will live there.  At the same time, I'll also export the latest
+ACPI patch backported to the 2.4.22 and 2.4.23 BK trees and patch
+directories.
 
-FUEL SAVER PRO
+The latest patch (below) contains two ACPICA updates, as well as a
+handful of other patches.  Please try it out and let me know how it
+goes.
 
-This revolutionary device Boosts Gas Mileage 27%+ by helping fuel burn bet=
-ter using three patented processes from General Motors.
-www.iqkm.org?axel=3D49
+Yes, this is a good time to remind me about, or update and re-send
+patches that we were not able to handle in time for 2.4.23.
 
-PROVEN TECHNOLOGY
-A certified U.S. Environmental Protection Agency (EPA) laboratory recently=
- completed tests on the new Fuel Saver. The results were astounding! Maste=
-r Service, a subsidiary of Ford Motor Company, also conducted extensive em=
-issions testing and obtained similar, unheard of results. The achievements=
- of the Fuel Saver is so noteworthy to the environmental community, that C=
-ommercial News has featured it as their cover story in their June, 2000 ed=
-ition.
+thanks,
+-Len
+----
 
-Take a test drive Today - www.iqkm.org?axel=3D49
+bk pull http://linux-acpi.bkbits.net/linux-acpi-release-2.4.24
+or
+ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.4.24-pre1/acpi-20031203-2.4.24-pre1.diff.gz
+
+This will update the following files:
+
+ arch/i386/kernel/mpparse.c         |    8 -
+ arch/i386/kernel/smpboot.c         |    2 
+ drivers/acpi/Config.in             |    3 
+ drivers/acpi/dispatcher/dsinit.c   |    4 
+ drivers/acpi/dispatcher/dsmethod.c |    4 
+ drivers/acpi/dispatcher/dsmthdat.c |   45 ++++--
+ drivers/acpi/dispatcher/dsopcode.c |   22 +-
+ drivers/acpi/dispatcher/dswexec.c  |   22 ++
+ drivers/acpi/dispatcher/dswload.c  |    8 -
+ drivers/acpi/dispatcher/dswscope.c |    8 -
+ drivers/acpi/events/evgpe.c        |   59 +++-----
+ drivers/acpi/events/evgpeblk.c     |    5 
+ drivers/acpi/events/evmisc.c       |    3 
+ drivers/acpi/events/evregion.c     |  134 ++++++++++++------
+ drivers/acpi/events/evrgnini.c     |   32 +++-
+ drivers/acpi/events/evxfregn.c     |   24 ++-
+ drivers/acpi/executer/exdump.c     |   50 +++---
+ drivers/acpi/executer/exfldio.c    |  184 ++++++++++++-------------
+ drivers/acpi/executer/exmisc.c     |    6 
+ drivers/acpi/executer/exmutex.c    |   12 -
+ drivers/acpi/executer/exoparg1.c   |    3 
+ drivers/acpi/executer/exoparg3.c   |    5 
+ drivers/acpi/executer/exprep.c     |    4 
+ drivers/acpi/executer/exregion.c   |   10 -
+ drivers/acpi/executer/exresolv.c   |    6 
+ drivers/acpi/executer/exresop.c    |    4 
+ drivers/acpi/executer/exstore.c    |    3 
+ drivers/acpi/executer/exsystem.c   |   21 ++
+ drivers/acpi/hardware/hwacpi.c     |   13 -
+ drivers/acpi/hardware/hwregs.c     |   12 -
+ drivers/acpi/hardware/hwsleep.c    |   89 ++++++++----
+ drivers/acpi/namespace/nsaccess.c  |    8 -
+ drivers/acpi/namespace/nsalloc.c   |    7 
+ drivers/acpi/namespace/nsdump.c    |   37 ++---
+ drivers/acpi/namespace/nsdumpdv.c  |    2 
+ drivers/acpi/namespace/nsinit.c    |   63 +++++---
+ drivers/acpi/namespace/nsobject.c  |    7 
+ drivers/acpi/namespace/nssearch.c  |    4 
+ drivers/acpi/namespace/nsutils.c   |    6 
+ drivers/acpi/namespace/nsxfname.c  |    2 
+ drivers/acpi/parser/psargs.c       |    4 
+ drivers/acpi/parser/psparse.c      |    4 
+ drivers/acpi/parser/psxface.c      |   34 +++-
+ drivers/acpi/processor.c           |   73 ++++++++-
+ drivers/acpi/resources/rscalc.c    |    4 
+ drivers/acpi/resources/rscreate.c  |    2 
+ drivers/acpi/resources/rsdump.c    |   18 --
+ drivers/acpi/resources/rsirq.c     |   38 ++---
+ drivers/acpi/resources/rslist.c    |    4 
+ drivers/acpi/tables.c              |   30 ++--
+ drivers/acpi/tables/tbget.c        |   10 -
+ drivers/acpi/tables/tbgetall.c     |    3 
+ drivers/acpi/tables/tbrsdt.c       |    3 
+ drivers/acpi/tables/tbxface.c      |    2 
+ drivers/acpi/tables/tbxfroot.c     |    3 
+ drivers/acpi/thermal.c             |    1 
+ drivers/acpi/utilities/utalloc.c   |   55 -------
+ drivers/acpi/utilities/utdebug.c   |    2 
+ drivers/acpi/utilities/utdelete.c  |    4 
+ drivers/acpi/utilities/uteval.c    |    4 
+ drivers/acpi/utilities/utglobal.c  |   99 +++++++++++++
+ drivers/acpi/utilities/utobject.c  |   28 ---
+ include/acpi/acconfig.h            |    4 
+ include/acpi/acevents.h            |   11 +
+ include/acpi/acglobal.h            |    3 
+ include/acpi/acmacros.h            |   27 +--
+ include/acpi/acobject.h            |   35 ++--
+ include/acpi/acutils.h             |    8 +
+ 68 files changed, 884 insertions(+), 570 deletions(-)
+
+through these ChangeSets:
+
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/12/11 1.1063.46.61)
+   [ACPI] Update Linux to ACPICA 20031203 (Bob Moore)
+   
+   Changed the initialization of Operation Regions during subsystem init
+to
+   perform two entire walks of the ACPI namespace; The first to
+initialize
+   the regions themselves, the second to execute the _REG methods.  This
+   fixed some interdependencies across _REG methods found on some
+machines.
+   
+   Fixed a problem where a Store(Local0, Local1) could simply update the
+   object reference count, and not create a new copy of the object if
+the
+   Local1 is uninitialized.
+   
+   Implemented support for the _SST reserved method during sleep
+   transitions.
+   
+   Implemented support to clear the SLP_TYP and SLP_EN bits when waking
+up,
+   this is apparently required by some machines.
+   
+   When sleeping, clear the wake status only if SleepState is not S5.
+   
+   Fixed a problem in AcpiRsExtendedIrqResource() where an incorrect
+   pointer arithmetic advanced a string pointer too far.
+   
+   Fixed a problem in AcpiTbGetTablePtr() where a garbage pointer could
+be
+   returned if the requested table has not been loaded.
+   
+   Within the support for IRQ resources, restructured the handling of
+the
+   active and edge/level bits.
+   
+   Fixed a few problems in AcpiPsxExecute() where memory could be leaked
+   under certain error conditions.
+   
+   Improved error messages for the cases where the ACPI mode could not
+be
+   entered.
+
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/12/11 1.1063.46.60)
+   [ACPI] update Linux to ACPICA 20031029 (Bob Moore)
+   
+   Fixed a problem where a level-triggered GPE with an associated _Lxx
+   control method was incorrectly cleared twice.
+   
+   Fixed a problem with the Field support code where an access can occur
+   beyond the end-of-region if the field is non-aligned but extends to
+the
+   very end of the parent region (resulted in an AE_AML_REGION_LIMIT
+   exception.)
+   
+   Fixed a problem with ACPI Fixed Events where an RT Clock handler
+would
+   not get invoked on an RTC event.  The RTC event bitmasks for the PM1
+   registers were not being initialized properly.
+   
+   Implemented support for executing _STA and _INI methods for Processor
+   objects.  Although this is currently not part of the ACPI
+specification,
+   there is existing ASL code that depends on the init-time execution of
+   these methods.
+   
+   Implemented and deployed a GetDescriptorName function to decode the
+   various types of internal descriptors.  Guards against null
+descriptors
+   during debug output also.
+   
+   Implemented and deployed a GetNodeName function to extract the
+   4-character namespace node name.  This function simplifies the debug
+and
+   error output, as well as guarding against null pointers during
+output.
+   
+   Implemented and deployed the ACPI_FORMAT_UINT64 helper macro to
+simplify
+   the debug and error output of 64-bit integers.  This macro replaces
+the
+   HIDWORD and LODWORD macros for dumping these integers.
+   
+   Updated the implementation of the Stall() operator to only call
+   AcpiOsStall(), and also return an error if the operand is larger than
+   255.  This preserves the required behavior of not relinquishing the
+   processor, as would happen if AcpiOsSleep() was called for "long
+   stalls".
+   
+   Constructs of the form "Store(LocalX,LocalX)" where LocalX is not
+   initialized are now treated as NOOPs.
+   
+   Cleaned up a handful of warnings during 64-bit generation.
+   
+   Fixed a reported error where and incorrect GPE number was passed to
+the
+   GPE dispatch handler.  This value is only used for error output,
+   however.  Used this opportunity to clean up and streamline the GPE
+   dispatch code.
+
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/12/11 1.1063.46.59)
+   [ACPI] revert two fixes in preparation for ACPICA merge
+
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/12/10 1.1063.46.58)
+   [ACPI] set APIC ACPI SCI OVR default to level/low
+     http://bugzilla.kernel.org/show_bug.cgi?id=1351
+
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/12/10 1.1063.46.57)
+   [ACPI] change hard-coded IO width to programmable width (Shaohua
+David Li)
+     http://bugzilla.kernel.org/show_bug.cgi?id=1349
+
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/12/02 1.1063.46.56)
+   [ACPI] add warning to thermal shutdown (Pavel Machek)
+
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/12/02 1.1063.46.55)
+   [ACPI] handle sparse APIC-IDs in the face of reduced NR_CPUS
+
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/11/20 1.1063.46.54)
+   [ACPI]  fix xconfig failure (Matt Wilcox)
+   http://bugzilla.kernel.org/show_bug.cgi?id=1568
+   
 
 
 
-
-
-
-No more advertisements, thanks - http://www.evkm.org/out5s/pre-rem2e.asp
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-ji zw 
-g teelchr y
-j yr jzdtioin
-
---E65.C40C4F19_D32--
 
 
 
