@@ -1,55 +1,76 @@
-From: Dmitry Torokhov <dtor_core@ameritech.net>
-Subject: Re: [ACPI] PATCH-ACPI based CPU hotplug[2/6]-ACPI Eject interface support
-Date: Mon, 20 Sep 2004 18:12:45 -0500
-Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <200409201812.45933.dtor_core@ameritech.net>
-References: <20040920092520.A14208@unix-os.sc.intel.com> <200409201333.42857.dtor_core@ameritech.net> <20040920122404.B15677@unix-os.sc.intel.com>
+From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Fwd: [RFC/patch] ACPI in linux PnP layer
+Date: Tue, 21 Sep 2004 08:27:12 +0800
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <1095726432.1370.6.camel@sli10-desk.sh.intel.com>
+References: <c0a09e5c040920150413cbc270@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <20040920122404.B15677@unix-os.sc.intel.com>
-Content-Disposition: inline
-To: acpi-devel@lists.sourceforge.net, Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
-Cc: "Brown, Len" <len.brown@intel.com>, LHNS list <lhns-devel@lists.sourceforge.net>, Linux IA64 <linux-ia64@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <c0a09e5c040920150413cbc270-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Andrew Grover <andy.grover-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, castet.matthieu-GANU6spQydw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday 20 September 2004 02:24 pm, Keshavamurthy Anil S wrote:
-> On Mon, Sep 20, 2004 at 01:33:42PM -0500, Dmitry Torokhov wrote:
-> > On Monday 20 September 2004 11:35 am, Keshavamurthy Anil S wrote:
-> > > This patch support /sys/firmware/acpi/eject interface where in 
-> > > the ACPI device say "LSB0" can be ejected by echoing "\_SB.LSB0" > 
-> > > /sys/firmware/acpi/eject
-> > > 
-> > 
-> > I wonder if eject should be an attribute of an individual device and visible
-> > only when device can be ejected. Reading from it could show eject level
-> > (_EJ0/_EJ3 etc).
-> Hi Dmitry,
-> 	Today there is really no sysfs representation of acpi devices apart from
-> the acpi namespace representation. Evaluating acpi namespaces's _EJ0 method won't help,
-> as we need acpi device and all its child devices to be removed as part of the eject.
+On Tue, 2004-09-21 at 06:04, Andrew Grover wrote:
+> Did anyone else see Matthieu's post to lkml a while back and were
+> there any comments? Is this going to get applied, or if not why not?
 > 
-> Also for there is no 1:1 maping of acpi devices to pci devices to consider eject to be
-> part of the pci devices.
+Yes, Andy. I'm working on enhancing Matthieu's driver, if he didn't mind
+:). I have some ideas about the driver, such as D-state support, IRQ
+usage (avoid link device use legacy devices' IRQ) and etc. 
+
+Thanks,
+Shaohua
 > 
-> Hence the best solution for now is to echo ACPI full path name of the device to be
-> ejected onto the eject file and the code will make sure that the device supports _EJx method before actuall removing the device.
+> ---------- Forwarded message ----------
+> From: castet.matthieu-GANU6spQydw@public.gmane.org <castet.matthieu-GANU6spQydw@public.gmane.org>
+> Date: Sat,  4 Sep 2004 15:22:54 +0200
+> Subject: [RFC/patch] ACPI in linux PnP layer
+> To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> 
+> Hi,
+> 
+> I have started to plug acpi in PnP layer.
+> A first patch add the function acpi_driver_scan, that allow to call a
+> function
+> for each acpi device.
+> I have to do that because acpi is load before PnP, and it can't add my
+> function
+> in acpi_bus_add (driver/acpi/scan.c).
+> 
+> The second patch is the PnP acpi driver.
+> It parse possible and activated resources.
+> It use acpi_register_gsi to activate irq (is that need ???)
+> 
+> Also there are no disable/set acpi resource support, nor ADDRESS
+> resource
+> support.
+> 
+> But it work well with drivers that work with pnpbios(parport, serial,
+> ...).
+> 
+> What do you think of it ?
+> Any comment ?
+> 
+> Matthieu
+> 
+> PS : please CC me since I'm not subscribed to lkml.
 > 
 
-Hi Anil,
 
-I obviously failed to deliver my idea :) I meant that I would like add eject
-attribute (along with maybe status, hid and some others) to kobjects in
-/sys/firmware/acpi tree.
 
-I also wonder if userspace should traverse tree and emit eject requests for
-children. While it is OK for user[space]-initiated removal what about surprise
-removal. My concern that scripts will not be ready for all devices to be
-suddently gone... Would not it be beter if generic handler for BUS_CHECK was
-implemented in acpi/bus.c that would add/remove acpi devices and notify
-userspace via hotplug?
-
--- 
-Dmitry
+-------------------------------------------------------
+This SF.Net email is sponsored by: YOU BE THE JUDGE. Be one of 170
+Project Admins to receive an Apple iPod Mini FREE for your judgement on
+who ports your project to Linux PPC the best. Sponsored by IBM.
+Deadline: Sept. 24. Go here: http://sf.net/ppc_contest.php
