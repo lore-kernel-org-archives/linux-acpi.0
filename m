@@ -1,14 +1,13 @@
-From: Lyle Seaman <lws-RAHWjsxJnJUdnm+yROfE0A@public.gmane.org>
-Subject: Re: Re: [PATCH] s4bios for 2.5.59 + apci-20030123
-Date: Thu, 06 Feb 2003 11:53:35 -0500
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [BK PATCH] ACPI Update (resend 1)
+Date: Thu, 6 Feb 2003 09:56:23 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030206165340.D7D361480A@o-o.yi.org>
-References: <pavel@ucw.cz>
+Message-ID: <F760B14C9561B941B89469F59BA3A84713801D@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="ISO-8859-1"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: Message from Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-   of "Thu, 06 Feb 2003 16:37:57 +0100." <20030206153757.GB19350-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,19 +16,88 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>, Linus Torvalds <torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Linus, please do a
 
+	bk pull http://linux-acpi.bkbits.net/linux-acpi
+
+This will update the following files:
+
+ drivers/acpi/processor.c |    2 ++
+ 1 files changed, 2 insertions(+)
+
+through these ChangeSets:
+
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/02/06 1.968)
+   ACPI: Enable compilation w/o cpufreq
+
+Thanks -- Andy
+
+> -----Original Message-----
+> From: Dominik Brodowski [mailto:linux-JhLEnvuH02M@public.gmane.org] 
+> Sent: Thursday, February 06, 2003 1:27 AM
+> To: Linus Torvalds; Grover, Andrew
+> Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: Re: [BK PATCH] ACPI Update (resend 1)
 > 
-> No, no. It has to be exactly the same kernel, otherwise you get a nice
-> crash (if you are lucky) and ugly data corruption (when you are not);
-> there's check to prevent that and panic, however.
-
-but why does this happen?  is the kernel text not being replaced?
-
-
+> 
+> Sorry ...
+> 
+> On Wed, Feb 05, 2003 at 06:42:20PM -0800, Grover, Andrew wrote:
+> > Dominik, I can come up with a quick fix (put a 
+> CONFIG_CPU_FREQ around
+> > the code block at line 1044 in processor.c) but is there a 
+> better way?
+> No, there's no better way ... even though this code block can 
+> only be called
+> when CONFIG_CPU_FREQ is enabled -- pr->flags.performance is 
+> zero otherwise.
+> 
+> > > -----Original Message-----
+> > > From: Linus Torvalds [mailto:torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org] 
+> > > 
+> > > On Wed, 5 Feb 2003, Grover, Andrew wrote:
+> > > > 
+> > > > 	bk pull http://linux-acpi.bkbits.net/linux-acpi
+> > > 
+> > > Hmm..
+> > > 
+> > >   drivers/built-in.o(.text+0x32f93): In function 
+> > > `acpi_processor_apply_limit':
+> > >   : undefined reference to `cpufreq_get_policy'
+> > > 
+> > > This seems to happen if ACPI is on, but CPUFREQ isn't.. Which 
+> > > is my normal 
+> > > dual P4-HT desktop requirement.
+> > > 
+> > > 		Linus
+> > > 
+> 
+> --- linux/drivers/acpi/processor.c.original	2003-02-06 
+> 10:13:50.000000000 +0100
+> +++ linux/drivers/acpi/processor.c	2003-02-06 
+> 10:16:55.000000000 +0100
+> @@ -1041,6 +1041,7 @@
+>  		return_VALUE(-ENODEV);
+>  
+>  	if (pr->flags.performance) {
+> +#ifdef CONFIG_CPU_FREQ
+>  		px = pr->performance_platform_limit;
+>  		if (pr->limit.user.px > px)
+>  			px = pr->limit.user.px;
+> @@ -1055,6 +1056,7 @@
+>  		}
+>  		if (result)
+>  			goto end;
+> +#endif
+>  	} else if (pr->performance_platform_limit) {
+>  		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Platform limit 
+> event detected. Consider using ACPI P-States CPUfreq driver\n"));
+>  	}
+> 
 
 
 -------------------------------------------------------
