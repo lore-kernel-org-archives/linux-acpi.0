@@ -1,23 +1,13 @@
-From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
-Subject: Re: first shoot for smartbattery
-Date: Tue, 18 Jan 2005 10:49:07 +0100
-Message-ID: <m2brbnxe24.fsf@phoenix.squirrel.nl>
-References: <20041231092156.GA612@phys.ethz.ch>
-	<m2acrth375.fsf@phoenix.squirrel.nl>
-	<20050103143902.GQ19199@poupinou.org>
-	<41D97AF3.7000409@arrakis.dhis.org>
-	<41D98251.9020002@arrakis.dhis.org>
-	<20050103180219.GX19199@poupinou.org>
-	<41D9A1F5.1060508@arrakis.dhis.org>
-	<m2mzvq5k7u.fsf@phoenix.squirrel.nl>
-	<47e0449d05011304446094c8b@mail.gmail.com>
-	<m2fz11gl3c.fsf@phoenix.squirrel.nl>
-	<47e0449d050117114113973694@mail.gmail.com>
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Re: Smart Battery System driver
+Date: Tue, 18 Jan 2005 11:26:35 +0100
+Message-ID: <20050118102635.GV19199@poupinou.org>
+References: <41E81C2C.8010809@bartol.udel.edu> <1105747983.7368.3.camel@tyrosine> <47e0449d05011419037877f931@mail.gmail.com> <m2fz13x8mw.fsf@phoenix.squirrel.nl> <41EA2C1D.3030909@bartol.udel.edu> <41EC7C7D.1070003@bartol.udel.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <47e0449d050117114113973694-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org> (Johannes
- Kuhlmann's message of "Mon, 17 Jan 2005 20:41:48 +0100")
+Content-Disposition: inline
+In-Reply-To: <41EC7C7D.1070003-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -27,20 +17,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Johannes Kuhlmann <jkuhlmann-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> writes:
+On Mon, Jan 17, 2005 at 10:03:25PM -0500, Rich Townsend wrote:
+> What could be going wrong? Some thoughts:
+> *) maybe there is already a driver registered for SMBus alarms, that 
+> prevents them from getting through?
+> *) I'm assuming its already there, but maybe the functionality described 
+> in 5.6.2.2.2 actually needs to be implemented in the i2c-acpi-ec code?
 
-> It works really well. :) How did you know how to speak to the LED?
+Exactly.  This must be implemented in i2c-acpi-ec, and a event notifier
+sohuld be done in order to pass this to the children.  Also I have to
+modify i2c-acpi-ec in order to make this driver event driven (we write to
+the PCRTL, then wait for an event (query number will be 0x20 in this
+perticular case) from the EC before processing further), and in the
+handler, if the alarm bit is set, then notify the child.
+That what I meant in a previous mail with 'overriden the _Q20',
+by the fact that I think its only a dummy alarm ack in order to be
+sure the smbus is still functionnal even if the OS do not provide
+a driver for accessing the smbus.  I never meant to do this in DSDT.
+I'm sorry for the confusion.
 
-I've studied some other code (like acerhk[1] and acertm[2]) and
-carefully cut/pasted pieces of code :-).
+> *) perhaps the battery simply isn't generating the alarms?
 
--- Johan
+This may be another trouble.
 
-[1] http://www.informatik.hu-berlin.de/~tauber/acerhk/
-[2] http://www.math.columbia.edu/~jensen/linux/acertm/
+
+-- 
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
