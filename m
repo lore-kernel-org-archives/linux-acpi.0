@@ -1,23 +1,11 @@
-From: Johannes Kuhlmann <jkuhlmann-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Re: first shoot for smartbattery
-Date: Thu, 13 Jan 2005 13:44:02 +0100
-Message-ID: <47e0449d05011304446094c8b@mail.gmail.com>
-References: <20041231092156.GA612@phys.ethz.ch>
-	 <20041231181628.GL19199@poupinou.org>
-	 <20050101082605.GA24896@phys.ethz.ch>
-	 <m2acrth375.fsf@phoenix.squirrel.nl>
-	 <20050103143902.GQ19199@poupinou.org>
-	 <41D97AF3.7000409@arrakis.dhis.org>
-	 <41D98251.9020002@arrakis.dhis.org>
-	 <20050103180219.GX19199@poupinou.org>
-	 <41D9A1F5.1060508@arrakis.dhis.org>
-	 <m2mzvq5k7u.fsf@phoenix.squirrel.nl>
-Reply-To: Johannes Kuhlmann <jkuhlmann-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Paul Ionescu <i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: ACPI hotplug
+Date: Thu, 13 Jan 2005 15:02:37 +0100
+Message-ID: <pan.2005.01.13.14.02.37.561980@yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <m2mzvq5k7u.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -32,15 +20,22 @@ List-Id: linux-acpi@vger.kernel.org
 
 Hi,
 
-that would be pretty cool, if you could post it.
+I just read that 2.6.11-rc1 does support ACPI hotplug.
+What does this really mean ?
+I found some new files in /sys/firmware:
+find /sys/firmware/ | grep eject
+/sys/firmware/acpi/namespace/ACPI/_SB/PCI0/USB7/URTH/UPDK/eject
+/sys/firmware/acpi/namespace/ACPI/_SB/PCI0/USB0/URTH/UPDK/eject
+/sys/firmware/acpi/namespace/ACPI/_SB/PCI0/IDE0/SCND/MSTR/eject
+/sys/firmware/acpi/namespace/ACPI/_SB/PCI0/LPC/EC/BAT1/eject
+/sys/firmware/acpi/namespace/ACPI/_SB/PCI0/LPC/FDC/FDD0/eject
 
-Regards,
-Johannes
+But what can I do with them, and what else is there for hotplug ?
+Does it support docking stations ?
 
-On Mon, 03 Jan 2005 21:30:29 +0100, Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org> wrote:
-> .....
-> PS: I hacked a kernel module to control the email led on this (and
-> maybe other) TravelMate. Will post soon.
+Thanks,
+Paul
+
 
 
 -------------------------------------------------------
