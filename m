@@ -1,14 +1,14 @@
-From: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
-Subject: Re: current ACPI status in 2.6.7 kernel
-Date: Wed, 11 Aug 2004 10:35:21 -0400
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: lost thermal zones on 20040715 nc6000
+Date: Wed, 11 Aug 2004 09:42:53 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <411A2EA9.6000000@optonline.net>
-References: <411881B1.9000903@ti.com> <1092132146.2666.3.camel@laptop.cunninghams> <4118D40D.5030404@ti.com> <4118F918.7070909@optonline.net>
+Message-ID: <37F890616C995246BE76B3E6B2DBE05501A8B206@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <4118F918.7070909-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,27 +17,108 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: Alexander Sirotkin <demiurg-l0cyMroinI0@public.gmane.org>, ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org
+To: Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Nathan Bryant wrote:
-> Alexander Sirotkin wrote:
-> 
->>>> I could not find this information in neither mailing list archive 
->>>> nor the web site.
->>>> What is the current status of ACPI ? I'm mainly interested in one 
->>>> simple question -
->>>> does suspend work ? If so, how stable it is.
-> 
-> 
-> Don't try it if you use any SCSI disks. IDE should be OK.
-> 
 
-I've just fixed S3 suspend for SCSI disks. See 
-http://marc.theaimsgroup.com/?l=linux-scsi&m=109218292625235&w=2
 
-Nathan
+Alex,
+
+This is an interesting problem, and I do not think it is a problem with
+the AML interpreter.  The machine's AML code seems to be either ignoring
+an error case or accidentally generating an improper value used during a
+package comparison (Match).
+
+1) For TZ1._TMP, C201 is called with an arg of 0.  For TZ2._TMP, C201 is
+called with an arg of 1.  For TZ3._TMP, C201 is called with an arg of 2.
+
+2) When C201 is called with an arg < 2, a different code path is
+followed.  This code path invokes another method, C08F, which is
+returning a value of 0x1C00 (in what appears to be the "normal" code
+path)
+
+3) This return value (in Local1) in turn gets compared to elements of
+the package C1EE as follows:
+
+Store (Match (DerefOf (Index (DerefOf (Index (C1EE, C200 (Arg0))),
+0x01)), MGT, Local1, MTR, 0x00, 0x00), Local0)
+
+4) None of the elements of C1EE are greater than 0x1C00, so the Match()
+operator returns 0xFFFFFFFF (indicating failure).  This is stored in
+Local0.
+
+5) Local0 is then passed to C202 as follows:
+
+C202 (Local0, Arg0)
+
+6) In C202, the zeroth argument is used as an index into package C1EE.
+
+7) Since this argument is 0xFFFFFFFF, the Index() operation fails.
+
+It's hard to guess what the original code is attempting, but I do not
+see any errors in the interpretation of the code.
+
+Did this actually work at some time in the past?
+
+Bob
+
+
+> -----Original Message-----
+> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
+> admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Alex Williamson
+> Sent: Tuesday, August 10, 2004 8:51 AM
+> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: [ACPI] lost thermal zones on 20040715 nc6000
+>=20
+>=20
+>    FYI, running 2.6.8-rc4-mm1 on a HP nc6000 laptop, I now get these:
+>=20
+> exoparg2-0462 [70] ex_opcode_2A_1T_1R    : Index value (FFFFFFFF)
+beyond
+> package end (6)
+>  psparse-1133: *** Error: Method execution failed [\_TZ_.C202] (Node
+> c21adc28), AE_AML_PACKAGE_LIMIT
+>  psparse-1133: *** Error: Method execution failed [\_TZ_.C201] (Node
+> c21add28), AE_AML_PACKAGE_LIMIT
+>  psparse-1133: *** Error: Method execution failed [\_TZ_.TZ1_._TMP]
+(Node
+> c21b3728), AE_AML_PACKAGE_LIMIT
+> exoparg2-0462 [71] ex_opcode_2A_1T_1R    : Index value (FFFFFFFF)
+beyond
+> package end (2)
+>  psparse-1133: *** Error: Method execution failed [\_TZ_.C202] (Node
+> c21adc28), AE_AML_PACKAGE_LIMIT
+>  psparse-1133: *** Error: Method execution failed [\_TZ_.C201] (Node
+> c21add28), AE_AML_PACKAGE_LIMIT
+>  psparse-1133: *** Error: Method execution failed [\_TZ_.TZ2_._TMP]
+(Node
+> c21b3a28), AE_AML_PACKAGE_LIMIT
+>=20
+> Unfortunately TZ1 is the CPU thermal zone, so I have to manually turn
+on
+> the fans to feel comfortable running with these errors (acpi -V
+reports
+> only 1 of the expected 3 thermal zones).  Looking at the code, I
+assume
+> this is an AML bug as the index value appears to be -1.  Should ACPI
+be
+> a bit more graceful w/ this?  This works just fine w/ the ACPI in
+2.6.8-
+> rc4.  Thanks,
+>=20
+> 	Alex
+>=20
+>=20
+>=20
+> -------------------------------------------------------
+> SF.Net email is sponsored by Shop4tech.com-Lowest price on Blank Media
+> 100pk Sonic DVD-R 4x for only $29 -100pk Sonic DVD+R for only $33
+> Save 50% off Retail on Ink & Toner - Free Shipping and Free Gift.
+> http://www.shop4tech.com/z/Inkjet_Cartridges/9_108_r285
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
