@@ -1,14 +1,15 @@
-From: sjb <ottaky-XuTx12Z7TonQT0dZR+AlfA@public.gmane.org>
-Subject: Re: iasl
-Date: Fri, 09 May 2003 22:37:08 +0000
+From: Chris Howells <chrish-puGfsi27rH1aa/9Udqfwiw@public.gmane.org>
+Subject: Not enough IRQs for multiple PCMCIA cards
+Date: Sat, 10 May 2003 01:48:07 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3EBC2D94.7040801@ottaky.com>
-References: <D3A3AA459175A44CB5326F26DA7A189C1C3C62@orsmsx405.jf.intel.com>
+Message-ID: <200305100148.12713.chrish@gmx.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <D3A3AA459175A44CB5326F26DA7A189C1C3C62-sBd4vmA9Se58QrAoInS571DQ4js95KgL@public.gmane.org>
+Content-Description: clearsigned data
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,29 +18,71 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Moore, Robert wrote:
+=2D----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> In this case, we know that PCI_Config space is always accessed by 32-bit
-> reads/writes, so change the Op region definition to length 4.
+Hi,
 
-OK .. so I change the 0x01 here
+I'm having huge problems trying to get enough IRQs for me to be able
+to use a PCMCIA modem (D-Link 560) and a Wifi card (Netgear MA401)
+simultaneously.
 
->>>>                OperationRegion (PIUC, PCI_Config, 0x74, 0x01)
+Basically, after PCI devices have been assigned IRQs there is only one
+free IRQ which can be allocated to a PCMCIA card. If I disable some
+stuff like the onboard serial and parallel ports, PCI devices get
+assigned the IRQs that I have just disabled, which is of absolutely no
+use.
 
-to a 0x04 and re-compile and .. *drum roll* ..
+=46or example, if I plug my modem in, it gets assigned IRQ 7. If I
+remove it, and plug the Wifi card in, it gets assigned IRQ 7. If I put
+both in simultaneously, the last one to be inserted does not get an
+IRQ.
 
-Compilation complete. 0 Errors, 0 Warnings, 0 Remarks, 380 Optimizations
+I have tried with ACPI enabled and with pci=3Dnoacpi.
 
-Excellent!
+Regrettably, my BIOS (Award Asus L3800C BIOS) does not give me any
+control how IRQs are designed or PnP OS settings.
 
-Thanks to everybody who helped ;-)
+Currently, the IRQs look something like this:
 
-sjb
+chris@galadriel:~> cat /proc/interrupts
+           CPU0
+  0:     255219          XT-PIC  timer
+  1:      11434          XT-PIC  keyboard
+  2:          0          XT-PIC  cascade
+  3:          6          XT-PIC  eth0, usb-uhci
+  5:     163935          XT-PIC  usb-uhci, Ricoh Co Ltd RL5c476 II,
+radeon@PCI:1:0:0
+  7:      56829          XT-PIC  serial
+  8:          2          XT-PIC  rtc
+  9:         17          XT-PIC  acpi
+ 11:      29726          XT-PIC  Intel 82801CA-ICH3, Ricoh Co Ltd
+RL5c476 II (#2)
+ 12:         75          XT-PIC  PS/2 Mouse
+ 14:      20172          XT-PIC  ide0
+ 15:         88          XT-PIC  ide1
 
+(this is with the serial and parallel ports disabled in an attempt to
+free some IRQs, which is something that I do not want to have set
+permanently).
+
+Thanks for any ideas
+=2D --=20
+Cheers, Chris Howells -- chris-NvB7AskkBIqIudiWw5vspbVCufUGDwFn@public.gmane.org, howells@kde.org
+Web: http://chrishowells.co.uk, PGP ID: 33795A2C
+KDE: http://www.koffice.org, http://printing.kde.org, http://usability.kde.=
+org
+
+=2D----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2-rc1-SuSE (GNU/Linux)
+
+iD8DBQE+vExMF8Iu1zN5WiwRAteVAJ9K2mj+vnwWfX6RKZ/qM1IE+bUi0gCeI75e
+cmFCA1Icv4qEZFCl0l2Gl8c=3D
+=3Dy+hM
+=2D----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
