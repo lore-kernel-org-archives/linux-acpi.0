@@ -1,8 +1,8 @@
 From: Bita Gorji-Ara <bita_gorjiara-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Subject: questions
-Date: Mon, 29 Jul 2002 18:44:17 -0700 (PDT)
+Date: Mon, 29 Jul 2002 20:31:07 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020730014417.69105.qmail@web9806.mail.yahoo.com>
+Message-ID: <20020730033107.80348.qmail@web9806.mail.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,7 +17,9 @@ List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+
 Hi everybody,
+
 I'm investigating the capabilities of ACPI and see if
 it is appropriate for us or not. Our system is a
 real-time complex embedded system, running Linux on
@@ -31,10 +33,8 @@ commercial. does anybody have any good set of links to
 ACPI alternative approaches?
 
 thanks,
+
 Bita.
-
-
-
 
 __________________________________________________
 Do You Yahoo!?
