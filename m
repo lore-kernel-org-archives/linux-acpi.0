@@ -1,12 +1,13 @@
-From: Daniele Boffi <boffi-piYtxHxN1XRAly3Pu9w1wA@public.gmane.org>
-Subject: fan control
-Date: Thu, 1 May 2003 18:51:37 +0200
+From: Raul Aranda Blasco <raul.aranda-fE4FmR91nWqXOwHavGvsmg@public.gmane.org>
+Subject: Re: fan control
+Date: 01 May 2003 20:23:28 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030501185137.C926@fermat.unipv.it>
+Message-ID: <1051813408.607.3.camel@localhost>
+References: <20030501185137.C926@fermat.unipv.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-fKRtzd4wiixwtcGS1ZRw"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20030501185137.C926-xzhXYMPkGmXoPXhRcRtihA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,83 +16,44 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Daniele Boffi <boffi-piYtxHxN1XRAly3Pu9w1wA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I noticed that not only can I check the status of the fan in /proc/acpi/fan but
-I can change it. Since this issue does not seem to be documented (am I wrong?)
-I want to be sure I am not doing anything wrong.
 
-Here is the structure of my /proc/acpi/fan directory
+--=-fKRtzd4wiixwtcGS1ZRw
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-$ ls -R /proc/acpi/fan
-/proc/acpi/fan:
-C1D9  C1DA  C1DB  C1DC
+> I understand this procedure might be very dangerous. How am I sure that, =
+after
+> playing with the fans, the control of them goes back to the thermal zones=
+?
 
-/proc/acpi/fan/C1D9:
-state
+  After stop it, try to compile a kernel, it must level up the
+temperature and spin up the fan.
 
-/proc/acpi/fan/C1DA:
-state
 
-/proc/acpi/fan/C1DB:
-state
+--=20
+Un saludo
+    Raul Aranda Blasco
+    raul.aranda-fE4FmR91nWqXOwHavGvsmg@public.gmane.org
+    http://elistan.dragon-lance.net
 
-/proc/acpi/fan/C1DC:
-state
+--=-fKRtzd4wiixwtcGS1ZRw
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
-If the fan is off, I see:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
 
-$ cat /proc/acpi/fan/*/*
-status:                  off
-status:                  off
-status:                  off
-status:                  off
+iD8DBQA+sWYfThWTEkNSi5cRApeEAJ9xforuuhhtXy/pUK79hyyUe2KtjgCgw5Vp
+f4bQbG0+XhPNxa0AbgIhBFA=
+=Zpmd
+-----END PGP SIGNATURE-----
 
-If it is spinning slowly, I get
+--=-fKRtzd4wiixwtcGS1ZRw--
 
-$ cat /proc/acpi/fan/*/*
-status:                  off
-status:                  off
-status:                  off
-status:                  on
-
-If it is at maximum speed, I have
-
-$ cat /proc/acpi/fan/*/*
-status:                  on
-status:                  on
-status:                  on
-status:                  on
-
-And analogous things for the intermediate situations.
-
-Now, I noticed that if I echo 0 into the state files, the fan start spinning.
-So that, for instance, if I am in the case when only the first state is on,
-then
-
-$ cat /proc/acpi/fan/*/*
-status:                  off
-status:                  off
-status:                  off
-status:                  on
-$ echo -n 0 > /proc/acpi/fan/C1DB/state
-$ cat /proc/acpi/fan/*/*
-status:                  off
-status:                  off
-status:                  on
-status:                  on
-
-and the fan spins faster...
-
-To go back, it is sufficient to echo 3 into the same file and the
-corresponding state goes off.
-I understand this procedure might be very dangerous. How am I sure that, after
-playing with the fans, the control of them goes back to the thermal zones?
-
-Any pointer is appreciated.
-
-Daniele
 
 
 -------------------------------------------------------
