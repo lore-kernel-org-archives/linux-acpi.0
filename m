@@ -1,14 +1,14 @@
 From: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
 Subject: Re: An embedded-Linux power-management framework
-Date: 03 Aug 2002 14:32:01 +0100
+Date: 03 Aug 2002 14:40:09 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1028381521.31718.26.camel@irongate.swansea.linux.org.uk>
-References: <OF4415334C.6C7486B8-ON86256C0A.00081BB4@pok.ibm.com>
+Message-ID: <1028382009.31733.32.camel@irongate.swansea.linux.org.uk>
+References: <OF94EF243F.A49E95B4-ON86256C09.00716EF4@pok.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <OF4415334C.6C7486B8-ON86256C0A.00081BB4-yJlKWOkj9xhBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <OF94EF243F.A49E95B4-ON86256C09.00716EF4-yJlKWOkj9xhBDgjK7y7TUQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -21,37 +21,39 @@ To: Bishop Brock <bcbrock-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 Cc: Linux Power Management Development <linux-pm-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux ACPI Development <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux APMD <apmd-list-+wEybqfU8vgCzWx7n4ubxQ@public.gmane.org>, CPU Frequency <cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, 2002-08-03 at 03:29, Bishop Brock wrote:
-> On the first point, we're concerned with system-wide power management,
-> which includes the
-> memory subsystem.  Our processors are so power-efficient today that we burn
-> more power
+On Sat, 2002-08-03 at 02:28, Bishop Brock wrote:m
+> We are proposing a scalable solution that naturally extends the
+> capabilities of cpufreq. We encapsulate all of the mutually constrained
+> physical and abstract parameters of a power management policy into
+> a system-dependent object called an "operating point", and propose
+> standard ways to manipulate operating points and sets of operating points.
+> This mechanism will be integrated with the device model in such a way
+> that as devices come on and off line, the optimum operating point is always
+> available.
 
-IBM's may be, but this isnt an IBM PPC specific operating system
-project. If the servers are for example AMD dual Athlons or 1U Pentium
-IV rack boxes then it -really- begins to matter. To put the scale of
-this into perspective on x86 - I can run another entire system in the
-power differential between idle and full running dual athlon.
+Each operating point being some appropriate categorised and chip
+supported combination of power state ? So for something simple like a
+mobile K6 we'd have something like
 
-In some respects the Athlon is closer to what you claim since there is a
-chunk of power saving that occurs only when both cpus are stopped.
+			Full on
+			STPCLK and Powernow combinations
+			hlt
 
-I'm not arguing against your claim. I want to be sure we can support
-both.behaviours.
+> We also add another dimension not present in the current solution, i.e.,
+> kernel control of dynamic power management at critical points in the
+> OS, particularly the entry and exit of the idle (halt) state, consistent
 
-> power management policy lead to slack, i.e., idle time.  Our proposal
-> allows the system to
-> capture the slack by aggressively idling the processor for short periods,
-> e.g., between video
-> frames, without any effect on the application, and with significant energy
-> reduction.
+You install your own idle handler to replace the default one - there are
+some examples of people doing this already. The amd76x_pm code for
+example installs its own idle handler which is needed because both
+processors must be idle to drop into most powersaving states.
 
-Some processes show short interactive behaviours. You can quantify and
-measure that, indeed the scheduler already has an extremely good idea
-what is and is not an interactive process that will execute short bursts
-then sleep a lot. Whether that is enough I don't know.
+> with policies defined in advance.  As we noted in the original posting,
+> significant system-wide energy savings are possible by rapidly scaling
+> frequencies during even short idle periods, and only the OS has the
+> visibility required to actively manage these events.
 
-Alan
+Clearly true
 
 
 
