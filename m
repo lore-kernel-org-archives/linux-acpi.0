@@ -1,15 +1,14 @@
-From: =?iso-8859-1?Q?Emilio_Mej=EDa_Fern=E1ndez_de_Velasco?= <emejia-XnAhQTnVLytMqUckJh7upg@public.gmane.org>
-Subject: RE: ACPI freezes laptop
-Date: Wed, 21 Apr 2004 23:35:47 +0200
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Fix wake GPE enabling
+Date: Wed, 21 Apr 2004 23:57:40 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <001701c427e8$9d3b4660$0301a8c0@portatil>
-References: <1082575281.26454.21.camel@darkstar>
+Message-ID: <20040421215740.GA14898@elf.ucw.cz>
+References: <37F890616C995246BE76B3E6B2DBE0554F1A53@orsmsx403.amr.corp.intel.com> <20040408211323.GB7340@dominikbrodowski.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <1082575281.26454.21.camel-4/PLUo9XfK8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20040408211323.GB7340-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,27 +17,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
-Cc: 'acpi-devel' <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Cc: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-OK, then I'll open a ticket.
-Hopefully some day I can see this laptop working properly.
-Thank you for all, you have spent a lot of time these days and I
-appreciate that.
+Hi!
 
->well maybe the better is open a ticket on bugzilla with this errors.
->
->not related with acpi but what is this can't be turned off ?
->atkbd.c: Unknown key released (translated set 2, code 0x7a on
->isa0060/serio0).
->atkbd.c: This is an XFree86 bug. It shouldn't access hardware directly.
+> > > However, the ACPI subsystem, and I do not care whether it is the CA
+> > core
+> > > or
+> > > any other part, currently does not enable any(!) wake GPEs.
+> > > 
+> > 
+> > Linux needs a user interface and some additional OSPM software to
+> > identify and program the wake devices, as well as handle the other
+> > information in the _PRW methods.
+> > 
+> > The ACPI CA core subsystem will only identify wake vs. runtime GPEs.
+> 
+> OK, as long as it gets into Linux, I do not care whether its the ACPI CA or
+> the ACPI OSPM part. It just seemed to me that the ACPI CA were the place to
+> do it, but as its contrary to spec I'll only use it on my own notebook [so
+> that it wakes up from sleep] until a proper patch / proper code in Linux
+> drivers/acpi/* exists.
 
+If upper layers do not exist, it is right thing to do some minimal
+default in low layer. Do not give that patch up so quickly ;-).
 
-Best regards
-
-Emilio
-
+								Pavel
+-- 
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
 
 
 -------------------------------------------------------
