@@ -1,30 +1,33 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [ACPI] Re: problem with suspend and usb
-Date: Fri, 24 Sep 2004 22:22:40 +0200
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20040924202239.GB826@openzaurus.ucw.cz>
-References: <1095685487.4294.14.camel@taz.graycell.biz> <20040922094844.GA9197@elf.ucw.cz> <1095870490.3809.3.camel@taz.graycell.biz> <20040922175058.GA14891@elf.ucw.cz> <1095981566.4339.16.camel@taz.graycell.biz>
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [ACPI] [PATCH] PCI IRQ resource deallocation support [2/3]
+Date: Fri, 24 Sep 2004 22:39:12 +0200 (CEST)
+Sender: linux-ia64-owner@vger.kernel.org
+Message-ID: <Pine.LNX.4.60.0409242236330.7426@poirot.grange>
+References: <414FEBDB.2050201@soft.fujitsu.com> <200409210857.59457.bjorn.helgaas@hp.com>
+ <4150D458.3050400@jp.fujitsu.com> <20040924.145229.108814142.t-kochi@bq.jp.nec.com>
+ <4153BEBA.5030202@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S269137AbUIXUmZ@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1095981566.4339.16.camel@taz.graycell.biz>
-To: Nuno Ferreira <nuno.ferreira@graycell.biz>
-Cc: Pavel Machek <pavel@ucw.cz>, Linux Kernel <linux-kernel@vger.kernel.org>, acpi-devel@lists.sourceforge.net
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <4153BEBA.5030202@jp.fujitsu.com>
+To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Cc: Takayoshi Kochi <t-kochi@bq.jp.nec.com>, bjorn.helgaas@hp.com, acpi-devel@lists.sourceforge.net, kaneshige.kenji@soft.fujitsu.com, akpm@osdl.org, greg@kroah.com, len.brown@intel.com, tony.luck@intel.com, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Fri, 24 Sep 2004, Kenji Kaneshige wrote:
 
-> OK, I inserted a printk between each line of acpi_power_off, I see
-> set_cpus_allowed finished and then the pause, then after ~30s the
-> poweroff, I never get to see the remaining printk.
+> Takayoshi Kochi wrote:
+> I'll change my patch to leave dev->irq as it is. And then I'll
+> investigate about defining PCI_UNDEFINED_IRQ.
 
-Uh, can you quote lines that cause slowdown? This is probably best done
-on acpi list, perhaps even go to bugzilla.kernel.org.
+Some platforms (arm, arm26, ppc64) define a macro NO_IRQ:
 
-> By the way, is there a swsusp specific list?
-> 
+include/asm-arm/irq.h:#define NO_IRQ        ((unsigned int)(-1))
+include/asm-arm26/irq.h:#define NO_IRQ      ((unsigned int)(-1))
+include/asm-ppc64/irq.h:#define NO_IRQ      (-1)
 
-No. There's suspend2-specific list, but thats different codebase.
--- 
-64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski
+
