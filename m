@@ -1,13 +1,14 @@
-From: "Guadalupe Chapman" <760jjhjj-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: LIVE LONGER with H-uman...G-rowth...H-ormone...kaylana
-Date: Sun, 16 Nov 2003 07:12:53 +0600
+From: Marc Franquesa <mark-KaoEA2pfkXWsTnJN9+BGXg@public.gmane.org>
+Subject: Re: Suspend 2 disk
+Date: Sat, 15 Nov 2003 14:44:09 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <6r0866j3p321d3i425of3i8g34b9@8y7pfw>
-Reply-To: "Guadalupe Chapman" <760jjhjj-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Message-ID: <1068903849.940.45.camel@nexus.l3jane.net>
+References: <1068895745.944.9.camel@nexus.l3jane.net>
+	 <20031115130211.GA12062@server.by>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="5F.70785D3_2F"
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-7GUp2jgeKzx9nOR5+0KF"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20031115130211.GA12062-skno0aUYb0LHCqZ3qdFy9g@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,82 +21,47 @@ To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---5F.70785D3_2F
-Content-Type: text/plain;
+--=-7GUp2jgeKzx9nOR5+0KF
+Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-H-uman...G-rowth...H-ormone Therapy
+On ds, 2003-11-15 at 14:02, Alex Yustasov wrote:
 
-"Overall deterioration of the body that comes with growing old is not inev=
-itable."---Dr. Daniel Rudman's in the New England Journal of Medicine.
+> > I know what says the docs, that I need to patch the kernel and use
+> > additional software, but if in the past my Laptop made it without any
+> > special software, I belive that it can make it now also without any
+>=20
+> and without any special hardware?
 
+No, without any special hardware. Only the standard BIOS of the Dell
+Inspiron Laptop.
 
-Follow me to longer living: http://www.mmv9.org?affil=3D49
+Actually I can start my system using 2 kernels: the standard 2.4.20
+non-patched (Red Hat) and the 2.4.22 vanilla kernel patched with the
+ACPI patch.
 
-
-Scientific research and evidence overwhelmingly demonstrates that, in addi=
-tion to genetic and environmental factors, our body's reduced production o=
-f H-uman...G-rowth...H-ormone is a direct cause of aging. Between the ages=
- of 20 to 70, our levels can fall by more than 75%. This may cause us to l=
-ook and feel older and less energetic. By the time most of us have reached=
- our forties, we are already experiencing a H-uman...G-rowth...H-ormone de=
-ficiency.
-
-
-Follow me to longer living: http://www.mmv9.org?affil=3D49
-
-
-Our competitors charge as high as 65 dollars---get ours for less than 50.
+In the first kernel (2.4.20-8 with apm) if i do a 'apm -s' it suspends
+to disk (on a suspend partition on /dev/hda1) and resumes OK. In the
+second kernel (2.4.22 acpi-patched) I can't (and I don't know how)
+suspend to disk.
 
 
-Follow me to longer living: http://www.mmv9.org?affil=3D49
+Thanks.
 
 
+--=-7GUp2jgeKzx9nOR5+0KF
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
 
+iD8DBQA/ti2o4CVRFTc6wP8RAmpwAKCGn4IIpy7bYRk3omwJldIpoEvNtgCgtBsC
+XHR/VNB7N3SHGZ6yGyiaMnM=
+=oxQw
+-----END PGP SIGNATURE-----
 
-
-
-
-
-No more advertisements, thanks - http://www.aqmp.net/out5s/rem2e.asp
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-om x jjo   hxsvfkjp
-gmax
-lkltvmqyiakizmfhth zfcu djkffmcu l tivi
-efz
-aejqzbyjwfhacwj
-oqs
-z xwdt
-
---5F.70785D3_2F--
+--=-7GUp2jgeKzx9nOR5+0KF--
 
 
 
