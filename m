@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: acpi-20040715+D600+Suspend
-Date: Fri, 10 Sep 2004 12:46:41 +0200
+From: "S, Naveen B" <naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [Lhms-devel] [PATCH] ACPI based Memory HotplugDriverPatch
+Date: Fri, 10 Sep 2004 18:10:30 +0530
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040910104641.GA24171@atrey.karlin.mff.cuni.cz>
-References: <1093972503.9372.38.camel@neuromancer.home.net> <20040902143034.GA676@elf.ucw.cz> <1094442085.21466.29.camel@neuromancer.home.net> <20040906171349.GC26195@atrey.karlin.mff.cuni.cz> <1094527351.25454.14.camel@neuromancer.home.net> <20040907093424.GA30810@atrey.karlin.mff.cuni.cz> <1094768209.2843.6.camel@laptop.cunninghams> <1094811463.27216.117.camel@neuromancer.home.net>
+Message-ID: <FEB6C4E97F6CAF41978FB2059D5454180F37F0@bgsmsx402.gar.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1094811463.27216.117.camel-/ZsuMndpQpsb5wn6fCfWY+TW4wlIGRCZ@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,27 +17,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
-Cc: ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Tolentino, Matthew E" <matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dave Hansen <haveblue-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Cc: keith <kmannth-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lhms <lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "S, Naveen B" <naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
 
-> > > For suspend work, ext2 is the safest. I'm now using ext3 on less
-> > > important machines -- at least fsck works there.
-> > 
-> > Ditto here. On the occasions when I have damaged my filesystem, I've had
-> > much better success recovering while using ext3. I tried xfs, but gave
-> > up on it quickly because of the zeroing-out-files issue.
-> Okay.. But here's another question. Is it recommended that _all_
-> partitions be ext3 or only the root partition??
 
-All partitions with valuable data :-). Actually, ext2 is even better
-idea. It should work with any filesystem, it is just that ext2/ext3
-has very good filesystem check... And I managed to find bugs even if
-fsck.ext2. You'll probably be luckier, but...
+> >> Currently, it names it memory.ko.  Len has also suggested that it
+be
+> >> something more like memory_hotplug.ko or memory_hp.ko or something
+> >> like that, because the ACPI spec does include verbage about the
+> >> system memory map...  As this driver does handle "memory"
+> >> devices, it kinda makes sense, but we're not wed to any particular
+> >> name...  ;-)
+> >
+> >How about including acpi in the name?  acpi_memory.o?
+> >acpi_memhotplug.o?
+>=20
+> Sure, either is fine with me...  Perhaps being as descriptive as
+> possible is best and just go with acpi_memhotplug.o
 
-								Pavel
+I agree with matt. acpi_memhotplug.o is more descriptive and I think
+this should be fine.
 
 
 -------------------------------------------------------
