@@ -1,48 +1,47 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: Re: [patch 1/1] thinkpad fn+fx key driver
-Date: Fri, 1 Oct 2004 19:32:58 +0200
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041001173258.GA22894@message-id.gmane0305.slipkontur.de>
-References: <F7DC2337C7631D4386A2DF6E8FB22B300179B935@hdsmsx401.amr.corp.intel.com> <20040923112457.GB1083@ucw.cz> <20040924134118.GA467@openzaurus.ucw.cz>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: 2.6.9rc2-mm4 oops
+Date: Fri, 1 Oct 2004 16:33:10 -0600
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <200410011633.10171.bjorn.helgaas@hp.com>
+References: <1096571653.11298.163.camel@cmn37.stanford.edu> <200410010904.52892.bjorn.helgaas@hp.com> <1096653158.7485.17.camel@cmn37.stanford.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S266768AbUJAWfK@vger.kernel.org>
+In-Reply-To: <1096653158.7485.17.camel@cmn37.stanford.edu>
 Content-Disposition: inline
-In-Reply-To: <20040924134118.GA467-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Fernando Pablo Lopez-Lezcano <nando@ccrma.stanford.edu>
+Cc: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, mingo@elte.hu, Len Brown <len.brown@intel.com>, acpi-devel@lists.sourceforge.net, Bernhard Rosenkraenzer <bero@arklinux.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Sep 24, 2004 at 03:41:18PM +0200, Pavel Machek wrote:
-> Hi!
-
-> > 4) Change ACPI to use the Input API and have a daemon that handles
-> >    all extra keys, including sound volume and application keys, possibly
-> >    using D-bus to send the events to the desktop environment.
+On Friday 01 October 2004 11:52 am, Fernando Pablo Lopez-Lezcano wrote:
+> On Fri, 2004-10-01 at 08:04, Bjorn Helgaas wrote:
+> >  Also, can you look up the bad address
+> > (e.g., f8881920) in /proc/kallsyms? 
 > 
-> I like this one.
-> [...] 
-> Hmm, the same daemon might know enough about machine's sound system
-> (on notebooks for example; to be able to setup initial mixer levels.
+> This is what I find:
+> f8880f80 ? __mod_vermagic5      [xor]
+> f8880fcd ? __module_depends     [xor]
+> f8881000 t acpi_button_init     [button]
+> f8881000 t init_module  [button]
+> f8884000 t xor_pII_mmx_2        [xor]
+> f8884130 t xor_pII_mmx_3        [xor]
 
-no. This daemon would only send the dbus event for volume change, but
-your mixer applet would also listen on dbus and take apropriate action.
+You are remembering that /proc/kallsyms isn't sorted, right?
 
-One job - one tool. At least in this case that's IMO the way to go.
--- 
-Stefan Seyfried
+If you still can't match the address to anything interesting,
+can you see whether it's related to any of the other modules
+(i.e., see whether it happens even if you don't load any of
+the other ACPI drivers, or try leaving out any other drivers
+you can get along without)?  Maybe try loading an ACPI driver
+other than floppy, at the same point in the module load sequence,
+to see if the problem is specific to floppy, or if floppy is
+just an innocent bystander?
 
+I looked at all the callers of acpi_bus_register_driver(), and
+they all look fine (except the hpet one I found yesterday).  But
+maybe there's something I missed, or maybe the acpi_bus_drivers
+list got corrupted somehow.
 
-
--------------------------------------------------------
-This SF.net email is sponsored by: IT Product Guide on ITManagersJournal
-Use IT products in your business? Tell us what you think of them. Give us
-Your Opinions, Get Free ThinkGeek Gift Certificates! Click to find out more
-http://productguide.itmanagersjournal.com/guidepromo.tmpl
+If you don't load the floppy driver, is the system stable?
