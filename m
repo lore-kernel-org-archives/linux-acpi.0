@@ -1,11 +1,13 @@
-From: Alexander Nyberg <alexn-auIyqT/O9BSzQB+pC5nmwQ@public.gmane.org>
-Subject: ACPI-1138: *** Error: Method execution failed
-Date: Fri, 07 Jan 2005 15:36:17 +0100
-Message-ID: <1105108577.697.12.camel@boxen>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] debug.c: don't invent NUM_OF
+Date: 07 Jan 2005 13:39:12 -0500
+Message-ID: <1105123150.18166.2646.camel@d845pe>
+References: <41DEC35C.9020604@osdl.org>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <41DEC35C.9020604-3NddpPZAyC0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,48 +17,69 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Randy.Dunlap" <rddunlap-3NddpPZAyC0@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+applied.
 
-These "Method execution failed" messages haven't turned up before and I just noticed them,
-I don't think I ever saw them in 2.6.9. Running 2.6-bk now.
+thanks,
+-len
 
-I'm clueless on acpi so if you need any debugging info please tell.
-
-
-checking TSC synchronization across 2 CPUs: passed.
-time.c: Using HPET based timekeeping.
-Brought up 2 CPUs
-CPU0:
- domain 0: span 3
-  groups: 1 2
-CPU1:
- domain 0: span 3
-  groups: 2 1
-NET: Registered protocol family 16
-PCI: Using configuration type 1
-mtrr: v2.0 (20020519)
-ACPI: Subsystem revision 20041210
-    ACPI-1138: *** Error: Method execution failed [\MCTH] (Node ffff81003ffd2a30), AE_AML_BUFFER_LIMIT
-    ACPI-1138: *** Error: Method execution failed [\OSFL] (Node ffff81003ffd2a88), AE_AML_BUFFER_LIMIT
-    ACPI-1138: *** Error: Method execution failed [\GPRW] (Node ffff81003ffd29d8), AE_AML_BUFFER_LIMIT
-    ACPI-1138: *** Error: Method execution failed [\_SB_.PCI0.SBRG.PS2K._PRW] (Node ffff81003ffd0f00), AE_AML_BUFFER_LIMIT
-    ACPI-0158: *** Error: Method execution failed [\_SB_.PCI0.SBRG.PS2K._PRW] (Node ffff81003ffd0f00), AE_AML_BUFFER_LIMIT
-ACPI: Interpreter enabled
-ACPI: Using IOAPIC for interrupt routing
-ACPI: PCI Root Bridge [PCI0] (00:00)
-PCI: Probing PCI hardware (bus 00)
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCI1._PRT]
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P2._PRT]
-ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 9 10 *11 12 14 15)
-ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 6 7 *9 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 *5 6 7 9 10 11 12 14 15)
-ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 6 7 9 *10 11 12 14 15)
-PCI: Using ACPI for IRQ routing
-
+On Fri, 2005-01-07 at 12:14, Randy.Dunlap wrote:
+> Use kernel.h for ARRAY_SIZE() instead of using local NUM_OF().
+> I.e., use kernel-supplied functions or macros when available.
+> 
+> Signed-off-by: Randy Dunlap <rddunlap-3NddpPZAyC0@public.gmane.org>
+> 
+> diffstat:=
+>   drivers/acpi/debug.c |    6 +++---
+>   1 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> ---
+> 
+> 
+> 
+> 
+> ______________________________________________________________________
+> 
+> diff -Naurp ./drivers/acpi/debug.c~acpi_array_size ./drivers/acpi/debug.c
+> --- ./drivers/acpi/debug.c~acpi_array_size	2004-12-24 13:35:23.000000000 -0800
+> +++ ./drivers/acpi/debug.c	2005-01-07 07:56:19.279389952 -0800
+> @@ -4,6 +4,7 @@
+>  
+>  #include <linux/proc_fs.h>
+>  #include <linux/init.h>
+> +#include <linux/kernel.h>
+>  #include <linux/moduleparam.h>
+>  #include <asm/uaccess.h>
+>  #include <acpi/acpi_drivers.h>
+> @@ -87,7 +88,6 @@ const struct acpi_dlevel acpi_debug_leve
+>  	ACPI_DEBUG_INIT(ACPI_LV_FULL_TABLES),
+>  	ACPI_DEBUG_INIT(ACPI_LV_EVENTS),             
+>  };
+> -#define NUM_OF(v)	( sizeof(v)/sizeof(v[0]) )
+>  
+>  static int
+>  acpi_system_read_debug (
+> @@ -109,7 +109,7 @@ acpi_system_read_debug (
+>  
+>  	switch ((unsigned long) data) {
+>  	case 0:
+> -		for (i = 0; i < NUM_OF(acpi_debug_layers); i++) {
+> +		for (i = 0; i < ARRAY_SIZE(acpi_debug_layers); i++) {
+>  			p += sprintf(p, "%-25s\t0x%08lX [%c]\n",
+>  				acpi_debug_layers[i].name,
+>  				acpi_debug_layers[i].value,
+> @@ -126,7 +126,7 @@ acpi_system_read_debug (
+>  			acpi_dbg_layer);
+>  		break;
+>  	case 1:
+> -		for (i = 0; i < NUM_OF(acpi_debug_levels); i++) {
+> +		for (i = 0; i < ARRAY_SIZE(acpi_debug_levels); i++) {
+>  			p += sprintf(p, "%-25s\t0x%08lX [%c]\n",
+>  				acpi_debug_levels[i].name,
+>  				acpi_debug_levels[i].value,
 
 
 
