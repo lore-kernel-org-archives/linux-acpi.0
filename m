@@ -1,11 +1,12 @@
-From: moali-ArvQUR6U0fYD0fefG/KofA@public.gmane.org
-Subject: Fwd: processor and thermal in acpi-20021022/2.4.20-re11
-Date: Mon, 04 Nov 2002 08:57:40 +0100 (MET)
+From: ruud koendering <ruud.koendering-EIBgga6/0yRmR6Xm/wNWPw@public.gmane.org>
+Subject: RE: Presario DANGER
+Date: Mon, 4 Nov 2002 11:30:43 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1036396660.3dc62874d6df8@sbox.tugraz.at>
+Message-ID: <200211041130.44371.ruud.koendering@planet.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -18,37 +19,25 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Sorry for the unnecessary porting.
+All the Compaq Presario's are in danger without ACPI. This is confirmed b=
+y new=20
+HP. (They d'ont feel to be responcible as always in certain companies. Ma=
+ke=20
+something, sell it and then so0rry c'ant help you)
 
-I should have read the anouncing and the release notes of the new version (acpi-
-20021101) in SF first.
+When will companies like Suse, RedHat, Mandrake etc. do something about i=
+t?
 
-Maier Gerfried
-
-
------ Weitergeleitete Nachricht von moali-ArvQUR6U0fYD0fefG/KofA@public.gmane.org -----
-Date: Mon, 04 Nov 2002 08:52:30 +0100 (MET)
-From: moali-ArvQUR6U0fYD0fefG/KofA@public.gmane.org
-Reply-To: moali-ArvQUR6U0fYD0fefG/KofA@public.gmane.org
-Subject: processor and thermal in acpi-20021022/2.4.20-re11
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-
-Hi!
-
-I've just tried out the above mentioned acpi-patch against kernel 2.4.20-pre11
-and I experienced, that the files (directories) /proc/acpi/thermal
-and /proc/acpi/processor where not there any more (They have been there using
-an erlier release e.g the one used in the Suse 8.1-kernel (unfortunately I do
-not know bs now which version of acpi it was), but from this release the
-thermal and/or the processor module caused an Oops resulting in a complete
-standstill when unloading them). Have these directories been removed? Or is
-this a malfunction of my system/configuration?
-
-The modules thermal and processor load without any errors.
-
-Thanks for your help
-Maier Gerfried
------ Ende der weitergeleiteten Nachricht -----
+--=20
+regards,=09=09=09=09=09=09=09RedHat7.3
+Ruud koendering=09=09=09=09=09=09Mandrake9.0
+Sr. Program/Project/Interim manager
+De Wickelaan 11
+2265 DG Leidschendam
+Netherlands
+Phone:+31(0)703271506
+          +31(0)641372381
+E-mail:ruud.koendering-EIBgga6/0yRmR6Xm/wNWPw@public.gmane.org
 
 
 -------------------------------------------------------
