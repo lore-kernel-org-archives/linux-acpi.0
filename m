@@ -1,14 +1,14 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Eternal S3 and \_WAK method
-Date: Tue, 18 Mar 2003 13:20:36 +0100
+From: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
+Subject: RE: help needed with invalid method in GPE block
+Date: 18 Mar 2003 13:54:42 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030318122036.GS8319@poup.poupinou.org>
-References: <20030317184143.GA31878@dutidad.twi.tudelft.nl>
+Message-ID: <1047992082.2783.24.camel@dutidad>
+References: <F760B14C9561B941B89469F59BA3A84725A201@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20030317184143.GA31878-V1rPnKwUOrA59+mn7qD7y50iERQUc4G+@public.gmane.org>
+In-Reply-To: <F760B14C9561B941B89469F59BA3A84725A201-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,51 +17,37 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Mar 17, 2003 at 07:41:43PM +0100, Charl P. Botha wrote:
-> Dear list (and ACPI gurus),
+On Tue, 2003-03-18 at 01:34, Grover, Andrew wrote:
+> > From: Charl P. Botha [mailto:c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org] 
+> > My frikking sleep button is still not waking my laptop up 
+> > though.  I would
+> > appreciate any other tips for debugging that problem.
 > 
-> Could it be that the fact that my \_WAK method returns no value is
-> preventing my system waking up from S3?  I can get it into S3, but I can
-> never get it out... no amount of button pushing, mouse moving or shouting
-> seems to help: that durn suspend-led just continues flashing.
+> I would guess that we are disabling your sleep button's GPE when we are
+> sleeping.
 > 
-> The ACPI spec says:
-> "After the system wakes from a sleeping state, it will invoke the \_WAK
-> method and pass the sleeping state value that has ended."
-> which implies that this method is called AFTER wake-up, from which one can
-> draw the conclusion that the return value isn't that important.
-> 
-> However, further down it comments about the result code for this call, with
-> possibilities like: "0x00000001 Wake was signaled but failed due to lack of
-> power." which implies that the \_WAK method could be involved in a failed
-> state transition.
+> To verify this, you might try calling _PRW from the button driver (or
+> just look at the ASL), and then using that GPE number call
+> acpi_enable_gpe(gpe_num, NULL, ACPI_EVENT_WAKE_ENABLE).
 
-ACPI4Linux currently do not check the return of the _WAK method ;
-but a _WAK method is mainly used by laptops manufacturer (especially
-ancient models which claims to be 1.0b compliant) in order to
+Can I assume that you mean:
+acpe_enable_event(gpe_num, ACPI_EVENT_GPE, ACPI_EVENT_WAKE_ENABLE);
+where gpe_num is in my case 0x1D (the method in the asl is _L1D)?
 
-o call a SMIC interface for doing 'strange' things by the BIOS (and is
-most of the time dependant of the \_OS value),
-o 'Notify' other components (AC, Battery, VGA, etc.) of the system
-in order to check their status, reconfigure, etc.
+I was planning on adding this just after the
+status = acpi_hw_enable_gpe (gpe_event_info);
+call in the acpi_ev_save_method_info() function of evgpeblk.c IF the
+gpe_num is 0x1D.  Is this okay for verifying?
 
-o some manufacturers (in rare case though) also call explicitely
-_INI methods (I prefer to not give any comment).
-
-Most of the time (in the laptops word), I do not see any
-'return' statements in their ASL.
-
-Cheers,
+Thanks,
+Charl
 
 -- 
-Ducrot Bruno
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+charl p. botha http://cpbotha.net/ http://visualisation.tudelft.nl/
 
 
 -------------------------------------------------------
