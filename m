@@ -1,14 +1,13 @@
-From: =?iso-8859-1?q?Will=20Woods?= <will_woods2-/E1597aS9LT10XsdtD+oqA@public.gmane.org>
-Subject: Re: S3 resume only reboots (long)
-Date: Thu, 8 Jul 2004 18:10:03 +0100 (BST)
+From: Christian Casteyde <casteyde.christian-GANU6spQydw@public.gmane.org>
+Subject: DSDT for Acer Aspire 1511 LMi
+Date: Thu, 8 Jul 2004 19:55:25 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040708171004.34704.qmail@web25005.mail.ukl.yahoo.com>
-References: <200407081339.40357.jak97@doc.ic.ac.uk>
+Message-ID: <200407081955.25840.casteyde.christian@free.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_NqY7A7KMOgfyHlk"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200407081339.40357.jak97-CezfXpuMXD6Fxr2TtlUqVg@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,779 +17,302 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: John Knottenbelt <jak97-CezfXpuMXD6Fxr2TtlUqVg@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
---- John Knottenbelt <jak97-CezfXpuMXD6Fxr2TtlUqVg@public.gmane.org> wrote: > Hi
-Will
-> 
-> Please could you post your machine configuration. I
-> have the same problem, and 
-> it would be good to see if we have any common
-> hardware. You can find out more 
-> about my machine at 
-> 
-> 	http://www.doc.ic.ac.uk/~jak97/dsdt/
-> 
-> Items of interest is the output of
-> 
-> 	/proc/config.gz (if it's there)
-> 	/proc/cpuinfo
-> 	/proc/interrupts
-> 	dmesg
-> 	lspci
-> 	lspci -v
-> 
-> Cheers
-> 
-> John
-> 
 
-Ok here is most of the info you asked for - but not
-all the config.gz (3000 lines!). It looks like we have
-similar motherboards...
+--Boundary-00=_NqY7A7KMOgfyHlk
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Will
+Hello,
 
+  I followed the thread on the Acer Aspire 1511LMi
+and found that none ASL file was posted. I therefore
+took the time to fix mine, following the partial instructions
+I found in this thread. I tried to add this DSDT in the
+database, but I couldn't register as a new user.
 
-part of /proc/config.gz
+  Here my DSDT table for this notebook, in ASL format,
+do whatever you want with it, I hope it will be usefull to
+other users.
 
-#
-# Power management options (ACPI, APM)
-#
-CONFIG_PM=y
-CONFIG_SOFTWARE_SUSPEND=y
-CONFIG_PM_DISK=y
-CONFIG_PM_DISK_PARTITION=""
+ Sorry for posting such a big post, but it really can help
+some people I think.
 
-#
-# ACPI (Advanced Configuration and Power Interface)
-Support
-#
-CONFIG_ACPI=y
-CONFIG_ACPI_BOOT=y
-CONFIG_ACPI_INTERPRETER=y
-CONFIG_ACPI_SLEEP=y
-CONFIG_ACPI_SLEEP_PROC_FS=y
-CONFIG_ACPI_AC=m
-CONFIG_ACPI_BATTERY=m
-CONFIG_ACPI_BUTTON=y
-CONFIG_ACPI_FAN=y
-CONFIG_ACPI_PROCESSOR=y
-CONFIG_ACPI_THERMAL=y
-CONFIG_ACPI_ASUS=m
-CONFIG_ACPI_TOSHIBA=m
-# CONFIG_ACPI_DEBUG is not set
-CONFIG_ACPI_BUS=y
-CONFIG_ACPI_EC=y
-CONFIG_ACPI_POWER=y
-CONFIG_ACPI_PCI=y
-CONFIG_ACPI_SYSTEM=y
-CONFIG_X86_PM_TIMER=y
+Best regards,
 
+C. Casteyde
 
+--Boundary-00=_NqY7A7KMOgfyHlk
+Content-Type: application/x-gzip;
+  name="asp1511lmi.asl.gz"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+	filename="asp1511lmi.asl.gz"
 
-cat /proc/cpuinfo
+H4sICPAU60AAA2RzZHRfYXNwMTUxMS5hc2wA7X1tc9s4r+j3/RWefmrOZHok2Y6d800vdupbv2gt
+p+52njmdbKK0mSdN+jjO3vbu7H+/gijJegFJUJIdOxZnWrUmCYAgCIIgSP73f/3W+q/W6GHt37dM
+2x217MfvPx4f/Id1y1xdf7tb+9fr55UPhczJuOXcPV09Pfnf/7z3V62//NXT3eNDy9C0jtY1ekEh
+KLcp86v1eNu6ebpZn7a854fW/3m+b7U6Lf38f7Sz/zHaYb2gwn//5vi3dw936wCWdf94/e/W2zeO
+5yzeXX2/f3PaCv8dfPXgn9OPI2dkwo/2hz78pmnnRrfT0U5++/u3VpBmP/zVFQCa+1+BtLduX7sI
+sP96WvvfR7PTlvazr8Hfmn4SVhje+fc3cTHr19o3r69PW9PHcUDHactd+U/+6i+flWUoIAXF358G
+3374yz+/hZ/p1Xe/9db7FILXTlK/jabYr//64gWkuFfX/776Gvw3yO7k8UCV05bCfxk9OSxtOZZu
+Fk63BJaOHMtZFs5ZCSxdOZZeFk6PjmXir789BtLwcTGzQoGbPq49f3V3dX/3//ybPCpv/bhiVAQl
+A3m5uo+6N8z8dne7Hvu369ZblnUajKevWrHg3A/G10Nc6iQtUDE51mL2kUAOYJzfff0WoGSoOJQl
+ZMfU6JvM5be7ez9LTBYLpNHD9cr/Diribb5+npC47TgpUTsLbNBRNkw+LJ3TliFhw+g2aP7DTcgD
+nY33E15DElYMg6RpGtI9/yT/Gtw/+WI4n/3Vo7CRs5VMGtIlUiIUt0Xrn5SSIHfmLeUSlGadxlin
+8ZkHpceD/zxf3W8qAB9PstKQrZSmlxUPq2TK/JP5X4btOMCgUTEJed4kxOZEFikStnwjr0AXHx7G
+8yL9JOGJQUED8nKX68YLazg4bbUl3Wiv/Ku1D3NZNLkx1jAZWoycTwVdAD+GBQxceraEFhCms3Jo
+R4uZR9bC1vPtbWCSgFo7lwmg9rPNVBLxbwRANG8kvcVVsxu6dF1G1xtNN9qd7lmvf25atjMYvkGR
+9DBd3i/q8qKiN0SZbXwW0Hnj3/GFs0A4nIpzUn5eZGrNODkJv/GI62RhhaoG+b3IwqhZswf/qdis
+kIm/4ZDbMsgw9qKyvZjK02Dw3s5iEN2Top5wN7WSToi+XbmWMviKhaL9vevHH6HV5M4LBuzq8dp/
+enoMJNN2LzPyrml9TWf/PuP1/eDn2l89gOb/4ro2R2sl6D0rj56ZcwN79iFtFm9yFjNQvtkcx//r
+7jrImwwmXMuE1f7yfhQYCoNgGTIKZPCNO3U1W9Pf5LonVjNf7HmgZkA0czoGR7FBExAyBwl4enxe
+XfsL//uP+0ABtt4W+7UIgRHw/XH1q20M7376AR1z/+pm9nD/i00+tsbsEeBBJ/x3ESwHyHIVrNpC
+KIM0FC3o1XJQBikoeklatCil/12E8k/xJzatOMvH1U00rzC+az+NQOdNLNNTqmNDnfEAGXu3TFTf
+ufZIezd2be3dZGGZ1M6MFA8CgUdkqlYwOYSswSnLqSxI8aCHZhF0RDx0gDDJ0HHny+wKy5ANBv4c
+2clSdoLjW2Tx9WT4kOWfuEJMpKYzm45bgJOV6lNvYgnqF3suKLw7+vV9p9+ozP9Lj1doD+gn8P/S
+4xXaA/oNCv28Qrug/6yy/Jj2aH/pJ8jPRJF+ggIu2kqm1s7bSlFZ05nnrbJUrmVNsdzEzvIWZmhn
+Icu5OImcBVrBTYCjGU1HamhygApmK5+4grfZ9MZO7G1m1hBwJNDbvaEDpkdk++iY7ROvmkMQ5sMv
+gSNaTBWkxWwC/ulW25AJxW9IV9rW5VBu2RYxg8FlPT9Nn7//CWveGECw2Lh5vvZXgYFz9xAah8G/
+rn5G/3Ifn4Kl5OONf8ofOVq5vGC0lamHds9o1nrL6NTPwo60h/3MN3bQoVyB2qrsaA0e1ncrf371
+8LV+3tjDXsl6+9RCh58X6toSMIdtrPfDtQQb0VgzU03CWmxfXX/zr/6892FQxYsiAW2SXjUl+Zas
+7ZL6Br442yce6ML84SBkQWkeRLsB6jzwnv8U8WD6+FCzKNjS/GqioOnJmv0AmKHL8o+JGYYs/5iY
+0ZblHxMzOrL8Y2JGV5Z/TMw4k+UfEzN6svxjYkZfln9MzDiX5R8TM0xZ/jExw5LlHxMzbFn+MTHD
+keUfEzMGsvxjYsZQln9EzHCk+cfEDIk/wzkmf4Yj8Wc4x+TPcCT+DOeY/BmOxJ/hHJM/w5H4M5xj
+8mc4En+Gc0z+DEfiz3COyZ/hSPwZzjH5MxyJP8M5Jn+GI/FnOMfkz3Ak/gznmPwZjsSf4RyTP8OR
++DOcY/JnOBJ/hnNM/gxH4s9wtuXPyMU3Fs53KMUdFo8QsKA47WfXPm25k8mUcuwgrnPWhzpjpM7k
++X599+P+V3R0IIzbg6ZFAS4cTEGnrldX1+vwEGVyygPK8vBEp/Pu1jnKtHY/oM3W5kuV9vQNqIPh
+2RzA4kHNnXnAwSCnMbz3NiL9wtMYwEgeBuRUBZdHnTMAo6vx6NyBOlIeoVDzPELB4DzSy/EIxaDC
+o24b5MhQ45EV1pHyCIWa5xEKBueRUY5HKAYVHp3BuTq7rcYjpw11pDxCoeZ5hILBedQuxyMUgxKP
+BiATHTUeDQZQR8ojFGqeRygYnEfk8P8sj1AMKjzq2QCmq8ajYEo5h1pSLqFw81xCweBcQg66UriE
+YlDhUv8cJOlMlUtGB2pJuYTCzXMJBYNz6awcl1AMKlw67wGYniqX2kOoJeUSCjfPJRQMzqVeOS6h
+GFS4ZHZAlvqqXOqaUEvKJRRunksoGJxLSIg+hUsoBhUuWQaAOVflUq8LtaRcQuHmuYSCwbl0Xo5L
+KAYlLsGBEdtU5dI5IDelXELh5rmEgsG5pHoCOuISikGFS7YDYCxVLpkW1JJyCYWb5xIKBueSVY5L
+KAYVLjkmyJKtyiX7DGpJuYTCzXMJBYNzyS7HJRSDCpcGcOeb7ahyaaBDLSmXULh5LqFgcC455biE
+YlDh0rALsjRQ5dLQhlpSLqFw81xCweBcQi5KoHAJxaDAJV2Du4PsoSKXDL0HtaRcQuHmuYSCwbk0
+LMclFIMKl3S4kMhR9CppRtuAWjIu4XBzXMLBoFxyyvmVcAxKXBoAGEW/kmZ0HKgl5RLFs4SDwblU
+zrOEY1DhkgFeIkfRs6QZZ2EtKZcoviUcDM6lcr4lHIMKl9pgHzqKviXN6LehlpRLFO8SDgbnUjnv
+Eo5BhUudUCoUvUuacT6AWlIuUfxLOBicS+X8SzgGFS51OwBG1b9kWOdQS8olin8JB4NzqZx/Cceg
+wqUzHWRJ1b9kOB2oJeUSxb+Eg8G5VM6/hGNQ4tIQwKj6l4zBEGpJuUTxL+FgcC6V8y/hGFS41LNB
+llT9S23NhFpSLlH8SzgYnEvl/Es4BhUu9U0Ao+pfahtdqCXlEsW/hIPBuVTOv4RjUOHSeQ9kSdW/
+1A51vtS/hMPNc4nuX3LK+ZdwDCpcMrsARtW/1O5aUEvKJYp/CQeDc6mcfwnHoMIlCy5ZdFT9S+3e
+GdSSconiX8LB4Fwq51/CMahwyQ7BqPqX2uc61JJyieJfwsHgXCrnX8IxKHHJAVlS9S+1TRtqSblE
+8S/hYHAulfMv4RhUuORYAEbVv9S2e1BLyiWKfwkHg3OpnH8JxyC45xTama2QKxzfcAp0ZQvybu/d
+XGbHYq2K9BTfEoEwoKD5X+zHh9u7r2FgF4tEQxb98cMiUKLqbW7uxJrDdW76GYVpCN2dAt0dKd2d
+6nRPP3pWJbr7Bbr7Urr71ek2p+OLKnR3CvzuMH4jC/qY7k4N/GbXDXNu/ZPTfeHCCzmZt3I6LNRy
+yL+vkFUCnVSJ9Nnt7ZMfxjPawxPOHZeQoHldTv545Hhht1Fan9yJPBnNyPLMv17cyF+ZmatzCXVA
+UeOlVIJVxTRucI5mzoR2P7kcIqTCDYhJHG785YUoxwm53jtPMlwHvUOS4xdiGih7DqWzdSgC4WSG
+V8ruYnKqhXcmj3QsQltetRNW/VSmaqDkR0Y5rHZYtQxWHdraLoVV74RVS2GFtnbKYbXDqmWwGtDW
+bimsED4YVC2FFdp6Vg6rHVYtgxX2XEe9UljbnbBqKazQ1n45rHZYVYA1fHuGGc3hZZ62bJRGqxMo
+JBuV5s1NXJC9Jch7IioHO34DRjxwi4VlzWQ2dtJM4QCNm9kOmykckKyZ7fLNFI7ZYmFZM5lJnjRT
+ODbjZnbDZgrHImtmt3wzhcO1WFjWzM0K25tYwV9WV0u1WjhK41b3wlYLRyUHVSeFSjg0Y1T9EJVw
+KILbQDz2xBZcjCoc+7LO+YebU3hFrgQFYE3LKeBmiZ6M21QnAIxXLt4fHjlwpYaVCxL+kSoVrluo
+hjuf4UUzLnqKKv7qLAhLIHAFCDCZp74MAuLe40OIVu/xl0FAnM18CGdG5hu/eqYCoZv5MgjItgAf
+Qs/IfEvQ0OtkvgyCEh/O9cxXF62JORB6mS+DgGy18SGYRuZbQh4GWuarLpMdR8t8hX2BLExE/owR
+/ZgkVysESaIVtjbeDS3z5fop+RBMLfOVQ5j/3no7uPnqn7bM6/XdX/77u6/fAob8vL5/fgr+e9L6
+28BnFtWeWVTvGf3leqajpb+RPkY8mgkEOV+1OvjqTMzqfDVejq+Yo0JNo4FDIPVlEJCAHz6Evp75
+ltDL/V7mq4tsBg6E88y3DA3DzLcEDbaW+TLNrqR9nE7mK50jA+ltvbUfv/+4Wt/9eXd/t/512rKe
+nyZXT2u4vmGxunp4uvVX/WC0dOoYLZ77ofpo6b/caDnTM19hH6txZr6oYea0Xo4zPS3zldt3cv3c
+r0PiJov3daxTOi/F16GW+dbBV71dB2M/WOSAFy5f28XH3nJ1Xnj9F+2wx98SOj3a646/cgjz36eP
+w/urr08B/UFf1WL7ecakcl8NdWpfcdYiNfcVQc5rMZy9GnZoTa3L411hH9wb5ffBOwPRoI/806ya
+9WvtE3fC+c2ANJo6n2A3uy/YDXfMRbjh3+d4k9CfJ89r/2fr7bR93hYJy+jhxv8Zu95DWhi22hq4
+2fLXeqIt/7EzDd8yFDFiA8s4E8EaOvYgDBEQ4XMX0jKfQ2tdWkaXldnQ3dZEdJv2Yk6HdSaENZqZ
+72WCFZQZy8ps8PXE+KaMdiKsjgiWM7GltAdlFGgfCmmfuQtdfYBFwRyD6fDiFLqsUjCHef2f5zvw
+QMcDFu5Pk/rmYVCdhjpEWtRcfdXY4OY5pcWt/AStrBqyMvfv/aunqJVKdMSzxBAL/xUj5c4WPb4V
+n6onmW0hqTx+S6MZEggWi6WUBEXctt6OB/95vroP2TOIqBVXEqOOwYJCEsOhwYK0EdmhfIclTvy9
+njgJ93zKUujURaE4V0q7nO5MxC2FZsHeVUjSJxA6MQjKHpcEVTJinBE5Eg5SPSMmwzS5jGeKwzyn
+UjyYhtWKjxWKw0QpLi7rT0EfMf039+b2VoP12tGKu51ZeQv8mhwovcxXuv4LoWTXgGfi0Yr58AKx
+5bjxOGsiSIIYtDIRopDEPC8E2bBO1Vhk20yXiBy/eiesLhFBfnWIDpoZpbHbYfWy2PVARAIBEFhO
+m+qwGspXhwO+E1NSPRqtn/3VI4XT+eI01REXl3EyX1wJupRTmeJyzijqarY0okxwlBksNJkIsMjz
+7xc39LYEslFp9o1nVjEgqc6OqGl09m51tgdcpy0EIZECktiyTS5YEhVP0nIvpSSpqiAMaAvawpbH
+JGPp293ten739ds6qQhXFsmNsuHdw43ns6rWHdQOmEDTP/XplmCwrPzv/sOaBlCiW/JhilI7tsAD
+6MlXxQO5+byxtnXKSkFubSsQnbg8Rhysii6PqQcvP+sil8eWHRmC7TRIaUfG5831/40jozyFjSND
+VGb/HRmSEXNEjox8cQn0yn6Pum1ob321Wjv+D//hJpjNhg/TR3d1JxNQgnIrGtX9zDf6Wz7+c4Y1
+JwwpndSMa04UYJzEubvinhFxzajIPU7kRzq9Qu61B/3Mt5E9QSrKXsQ1oyL3jlT2atJ7x8m9uvTe
+cY7cuvTekcpeTXrvSGVvX+09TkRlnPaDe3tr7x0E9/bW3jsI7u2tvXcQ3Ntbe+8guLe39t5BcG9v
+7b2D4N7e2nsHwb29tfckwrwf3Ntbe+8guLe39t5BcG9v7b2D4N7e2nsHwb29tfcOgnt7a+8dBPf2
+1t6rxL3Bw02Kd8Kt5l2He7MNbEfpADANMiTp1SZ7Mzpk/ltiVCIhakkeekEOgGHnNsOIFEkkbLbS
+mB7pk48EhCPAsbyE7a0MoqMIQi+CaFcH0aWAgAjRsX+7joP82DnWmlh5TqUgilGN4bBRpCgEPDaY
+ZdjAjuDWxAZ7H9jgSIjYbYRbhUGHA1AYcjgAhQGHAyANNxEA0mgRASBJuggASVBFAORCJpYyhaBF
+wFktZLHW8wqFMwDs5IIWHkAwnTnplBdWvR1WR+5VKVZPHWBIqp+HBxhKV7fDAwyS6thpAcI1spAU
+49uxmPwJTUXmMUmKK4ag0o8V5NQ0OfIThEAhDBVETi0MlRThP1tBWbhDml0aAX+/wJkAezbh3ONQ
+4h6E7oseChDc/QcpdyhAbw4FVKawORQgKrP/hwIkI+aQDwU0YfvbddDuiUdwN7tw+9HYHW2a7Udj
+d7THtR+N3dGW1H40dkc7SPvR2B1t+OxHY3e0P7MfjW3m2dcqxs08+2p7tplnX6kYN/Psq+3ZZp59
+pWLczLOvtmebefaVinEzz+66Z5vwwB2HB1Kj+QjbjU00XxPNd7DRfE0Y26sPY2uCyJSr7yKIbHdR
+YIqRAMqxWfsRarWVwKmB7dYWN9URx03l3o8R9NWWI6wkk07ULSyejSJ+nDmuq3A3cHiVcxzWxZ7i
+Al14EoCACLskZwMdHoxCfu6dnFSOBUtZDeyaeSah1AnbvLnJhFURq75A8JSUotrmFRm6lwueagaD
+OClGjxWqyCeZYhXpRINVkUw2hSryQGOsigRLxSHzesPZev3Ml77oz0PqRRB6ypCy7oPeXp0e3Zkv
+LOKaUbkfziIIZxX7oXuU/bB/4+E4+2H/xsNx6qX9Gw+198NB3Ca1f+Ohdr10EP2wf+PhOPth/8bD
+fumlZluz+rbmtjZId25JEJ3Usgf9mh3XKhcZ1LVpW+02hBfe9w1dsDEALXyXtqbtVqt6A2R3QoQg
+trlxret7sHGtk4bFNq+h0UlDYttskInzge/fV76CpXIAQOU7XF4+gkBB6eAASCpHAICmMUQAqgoS
+bbCKAMgHWm27XU0URaE6EkURvSVcunrn6K/ioe1dHstVPNuJD3HrjA/RFOJDBPcsNfEh8i1xA98S
+bzfxIbzUxIekiW8GA6TjiQ9pIjfCdAA7ERK/ZrNxEENS2sDZD7btn7QdBNv2T9oqDdJmV+lgd5Wa
+TaBmE6jZBJKDaDaBSG7hZvej2f04gt2PZu9Bufou9h5e4ATnllz6r9hDP3YX1gu56AWd1bjoU17J
+oudRb7zwnNR44dPEN/Keb2PjaG8c7RJIjaO9cbTnSdx/aTsItu2ftB3EIG1bdubbiZwbJaQtgtBT
+htSwrQa2VRqkzbZOs63TbOs02zpHvq0TDoKHm8z6kNKDqs/6dehS/kIPD/ZVKKwq4WfVB0mvOohB
+dRDDZuuw2TqUA2i2Dputw2brsNk6jFOzdZik1NbhC+0cCvq02TkU7qRozc4hJzU7h2niG3nPt7HZ
+OZRp52bnsNk5bHYOcyTuv7QdBNv2T9oOYpDu3xZYw7Zm5zCVmp3DZudQVKnZOcyBaHYOm53DyhQ2
+O4dlQDQ7h83OIQFAs3PY7Bw2O4fNzmGcjnPnsPhL4afZD391tb57fJj7X4O/W2+9yShgkPfrae1/
+H83i5dVwsFlqBQm52C8SFFbdfPhlXl/DUAg4/u/Tlrvyn/zVX36xGj4KAijBUr3V6pdtgh43YeJ/
+f1z9CkV3OOwNB4aTNEM3EOHaNEOv3gzLnjhhM05baL4zCrNbbYNTYDQdhgVIfKiV9Nnt7ZMfGlC6
+Dts6eDe9tzWgT+fn65J8Q5LfluR3JPldSf6ZJL8nye9L8s8l+aYk35Lk25J8R5I/kOQPxfmOpP8d
+Sf87kv53JP3vSPrfkfS/I+l/R9L/jqT/HUn/O5L+dyT970j635H0vyPpf0fY/2kl0eUpCWsxmIqA
+LMcmy6fouMnzGgxE15t84gWhxPaY+94LFn2G1B7D9Z95/Z/nO5ij//XFs9659kh7N3Zt7V2MeRgk
+fEJO5vbzYGzADCAsxgyrYCKQlQqXsWKUn/3V42k4dwqLhZOKyLia+/f+1RPedl6NVAwFAhXpyc3r
+1Uh5vE+4gUu2ds4LXIrqKPm2+ZZ50QN9ZmS+zCsnMEYRCNmvEALHEx018sINwzCMrqiUNxiHltyQ
+0/mslDUcX4iivJJFz3xwQRlkkARsvd0Ek2wWKoK1nyxoITVoyCEthHIqbpEA9cCefdgnN00VegQL
+YOBeqCnE8MXE8vRtoB7eTS4XuljnxmnT3MBuQCDNL7rnJAi5umwOQwBa4wVtZZiryyY9BCBkKKwd
+EQi2Ox7IXB64fo95rb7QFOuI3w2Nulkp1hF7ImXJHoY38RZQpaPVFeDmTUyT7qlO682Nm5n0zght
+tyLTSmsIxoXHiTfmNMhdzgd0rzekRBkTy9NakiKJKUMgjIYgU1UP5jqYHOlVbXc2prio4iTfjiJs
+B3Ekg7INtCvJYJt04UC0zIX+zrLnIxqAQI/c3f6KBjHUBRr6+7vTp6k3UxZpsl/6XTvfE/1e5Hm2
+9a63MMXM33TUZ00zZJsHGUk0bdOhSKJ37/s/mEYYSoKQSkl6wkkmbwvZCzhycd5Au7RGQxlT+ITT
+9z0Lo0baCpHpiv8qWP7Y7uWCtPz5vf+6TBvcWg3NysXEpVkmdasfSEK9TNQJBiHiQqBZvec/16ur
+69SOfti+xWwocadACufjQEiCv8f+01N6Uj4TXqwmidxLhtni87vFe9irEusHyTIuOteBE9q1T1Ln
+O1JDpOpCnS1lACBJON3pJfFRsrBJrBn/+uLOg6XRpfbui+vaSfWazPY4TCOLRUVNRvWolozCHKKq
+GCFVGG4FMboI95JXGUnqhZLE8jF5qs8No1EEq1CFuv4omNl63ISajMiU3ojQ5AVZNgLVcULKTcNq
+Uh2n0tKdUEGX8jhRVk/lckvaxn29uoGATKRgefAMMbm97lSnKWPheWPXEnWunKJBnVwyL1zt3ccL
+850zvxSuveV0DavRxUFQCFkYzOGhzcH3P/2bG//GfnxYrx7v2eBmhhuONNryZ7Uh2oe4588nOKQu
+2dbTOrxdPUj2xJ6IwhtYGbYFLCljEMq0ZWVS25F9Ed3exJ3LYDHXhqyMKQzvYGXkPPImbBvd6J4J
+Sln2lEKRKSsTrKfYprAImWmLd34hbdjd0UXshgSwOoIyQ3cujBQIy4w94W5/GpeojBvubZHb1ha1
+bTHxvLDrCDSJyljm9IOMRymauJvtkD4OTeGGew7WmQjWfKxJ+2XuEMoMCWVcQhmLUMaWl4EkhdMj
+4OoTykwIZUb10FxXmblJoHlOKDPWhRFCYRmHUGZIKOMSyliEMra8DCS5/BBw9QllJoQyo3porqvM
+3CTQPJeXWRL0z5Kgf5YE/bMk6J8lQf8sa9I/S4L+WRL0z5Kgf5Z7pn+WBP2zJOifJUH/LAn6Z0nQ
+P0uC/lkS9M+yJv2zJOifJUH/LAn6Z7ln+mdJ0D9Lgv4Zj8QRkpAs8w9pmcFQDsedE3DNLWkZe76Q
+loEklx85rmVfXsadDKRlRtN6aK6rjGMZUnocqy0ts7Gzu4bIzg7kzCPImbRMIGfSMoGcyXHNLWmZ
+QM6kZSAR5EwKJ5AzaRnHHUykZUZsEb1HciZvl9WWlknJWU+4nrvo9qSulnCnT1wGAukIZaTOiKCM
+JSsz9Fy5wyLFgKGIAUm0uUj4x4v3UuF3xwqD/0zoILHm449031ZPCGtiyQdlUEbBudMTKq4AlvAI
+Qg6WUDgtU7fpfOgL+eAR+OAp8aEv5IOnxIe+hA+GlA+m9fGC4MW7nCuMHFssWRRgE2s+IRQi0B70
+n9TdmSLdFJFuUqjaAHO4B94gDSx3TO9pR8hTFh1JhiWUQEgAS9TGj+blJwV8QtegE/GB1kGO0CM/
+HkYH2SQSMSUUciiQnI+EQpOprH1BGekOwIYHA+Gov/j9Q6ixejRY5yJYv/fFB/dysISDx7WX0n4O
+yryXlVnMGdPbaAnORtm2N7h0W7xRtGQrxLNDotkKaS4eGd5bkodjtv911jkompnzyTgsRrPztufG
+QREd7vwaXaVRGJ0UnVwuNGEkZ1JMpwR8epN5oPA7NZ53SwI/pZFD4uid+AgmP1gAkiz+LxNqlBzF
+65UP8RNAPa8e5yWAblGComgBURvW6pLTY5DKxxfx7dc4tjeWZnEgr9ItaMtvd/c+HqanieIjJdHI
+2eNRlOMhm1ObxmkYNkEtrp+GkRjU4iExLu36l1Q0YFtcIWZjKIyFwzFxtGnluMYkIA65gSWfRg/Z
+q3QkLQir5OMZ29CCNuU+rxLHhmhyESdF+ShWI8lJsRpJXnLV6HIDqdJhHzwEtV/bicRUUySRm1s/
+zKx4N1Tpw8wy4LTT58kllzq7feiEcvqAl1M1IBuZ0esRD7bcCOBK5FxBitMGQl1ELrdGpOyWPTKR
+LL6PqjPSN0zCTK0lt7uFECjTw21h1t/Urkvfp89HGCoakUZ+6ohKmyQyypSztSmVpzs9YIpygHTn
+Ih0HpA0ndDonIMm5AYnEEUh0inHOUGRDHRekDYcMNQ5BonEJEplTkMq2QEGDxInWgnrOtavbtLF6
+fb693Si6k9bf/0QNJRwsyRsedKzsSqawEudWnnTC12LtBEBduu3CGg5ySrkL1yPdzmLrh3JRACR3
+A6mzgRSBoGmxXI8S2ESQE5wuvn8nndJzVodmNpSgNDklC2t6PnzZzVoCLBuf1XJ+fD6rs634rPpb
+9VmZjc/qBX1WqHkvU4Rk8x7UyGm4O1P/GqRfN5HLLRApu9NdmUinGpGNi7JxUWKpcVEiqXFR0ig6
+AhflHli0pjsbU59a4HMiewOv5Qru7M9e68ktKrxTyGWPYUu3mO1aGpcecynM9ZnEhTVA1cFshvfk
+QW+oXNYR8El+qZf6pQ7iX3L9HF9lXDTuiq2Oruo1nXn0DoEOf4rkI48aQEiXa4++2I8Pt3dfw9mp
+f8p5yTB5CwAqVX+NwQ3DJ4vhOaTXGCxTyxPe1WSEh5UqE251efFbRMr1AuXcxyM3lOu1UN7hUi5o
+RyyKl14JUTTgVYwihcnL0sugHVfX/7766vPsO7wxWvjQPC+rGA+Yu+Wa30S9VBOR0VZHE+2tNNEo
+1USE7jqa2K2/iaY9UhfUs6KgcsBPyoLfkpDwgnsrcHDkDNSb2BcNdW/kdHiWSlKC606NSggukE9g
+cCPzkhLcoLykhCEt0eaVKCh8UzvnTFU68qhs/DRWWMmBx7IqqfygKZowKD11LQ83mH7kRMdeeECC
+Aq6kgBHGiHLfJLqMrjzhQggKuPRZl3VTIMRBnXiPJrzDuvU38tpBUtqjlI5N6ovFhGJRc/oFc2bx
+LGnpaoPxX7bKigozTsouo0sgD1zx3h1u7HJXvZS2eCpt8VTa4snagv7MHq5zUi/Xxbtc0a3foxmH
+VGHNQB06E7NMzX6Ik9NiYU07xFmiJpxqH45NzhXlm5vMhcXyb/QOZd6iXIWhllTgbLAW3khtxwwT
+oSnU6sTMEuHaPJscb6Z2xGgmz/frux/3v4Ihn64azvYhjwciWUqtlpMtCigd+lo7vKWyIFR+BVvz
+JptQDVG3cYZF9tVlnXk2SyixDCG6iBBIOYxaj+JxLCcWYc1I0RiLxJssGrZ1a0PWwSJ8tIGmOMwU
+B1kn1mcvMVw4yowzXPRahku/ruFSjYyO8mApL/Dcyy6xXysJvC7GtwN7Kp72wPqR+5z5pepmToou
+wbPCKbo4pUiPuMZ2biAJL27nbgIP2pyrglXkgrebT8Hf5XiFVfDzthUp+HvImlEVP+8RNAr+c04E
+lgp+3lNCFPwGZx9TBT8v5o2CX+e876OCnxf+QcLPmV05+DcVNSRORjDqF8ZlxVGfzLpxu3u8iBJK
+uzXOlCXie4GCLi9chESB2qIRpyBQXxUoKDEnFigIBlAFCtTMUJyCYAhVoEBN/jkUVNFAGieYVImC
+YDRWoEBNB6cq9hR1gFO3DtD0QZXZ3ywx+yE09Kto4B7CRGUahlW40KmDAqvKGGjXoY3Pq/SCUYc2
+rjQjGWraOFWR9pZxEmkNfmZ5oDV/FHqc95Wlyw22mQJbCNLlIttVAd8tpWi4hFkIllabou2QAEHU
+36ZowCPwB1OKdsOiO1q1sT0YYCbBRQ3Ob2AmpagbFpXzhu2+ADOJDnVgJnEfAZipNA4y4XU80Sx6
+ojeLRzV/+2bRoeZt34RBq/nak3qKnvbENBE60HPLiXY1NwcbicStFjZqRFstdY8bplPo5HVk5PFZ
+mglCi53qwyip+wrz/lTCW26hT3Xs365Ds4sRcZJxUgvG+Sx1WiFzAKuEuZ5nhV4zKyhRten2xNzQ
+JXGkMq/rZoehQhv0THeKlHS6Oy9bb0PVo9Kd2k97s9lFOACasCwuq+9osBaFBtpKERoxXEglxhGk
+/FhSYj4k1fEESeklr6JUqlvjBamkvDEXixaMKyaWybg6GOEiaSQxXEilNBOkgnZKc7FOCalvpo/J
+JVndcQ/vzkJOkSc331Pk1bG9cQHX9Roll1e5Y+C4h0UMIk7sno34bbbi30ynDoZ88RJLIDM54aK9
+dGyHFm+6T2YOx7MtqhhYhM589JGzTZw+gcQvVncoVBKwtCMzNRVWpGZ5csJt9NJhRXrpsCK9dFiR
+XjqsSN8sdy44y8CcaOhsHJQVDWbXy+a6qDAzYmSb5dEcfvFpE7vCa8t2NsrprdFVW9MRt0Y05BkM
+0ZBA7gkySvtmiyf2th2ryCOf69YVg8s2gtCt27vTC2kU11NMAwtp0zjiXTZbP1PJayzXJawGHtKm
+0QrX3+z0sqfi/QiVKazpqWO2Ttms10QGSs6IFLUDep2v1JTGe1u4oSwGl6KadmJ6V+O9LdyjpoGF
+VFRmpW+7gbSd8d4WboergYdUVHKVz8BDqvtyN4QJ3B35cmggFZUfgRmQXvZ+N4w5sumvHDpIRf1L
+ZBKkvbjijcc0bnxDPWghbZjXVWceJDoDISkxEVKVFp1tu0X13a5XLldw4wOb+jvJrCia+us16AsX
+wGycjCWnWMq1FPx2QNrC/M6Nu6CBhaR83cuLze9bseeJRg2kF7Lna7NAJLfwsMFqkAYrHxnPQfb4
+cB3050Pwh7Mfw/EuZIYdUgbBFx98duf5s92QcPbnD0DjxMSO5i/hgVGt4hUscdMy51RLKggYHRyX
+M/r7LoHpVrESX6qUnFRJh4SRVe2qF/4sJrHfmrko2UVdyrGyyeUCJu9iMD4NNEGElBLGIVUYxbgh
+xUIZAI0nBYGjFpJArcQ3Ing2uTGup9XXmMzcBmSUakWKtvY2aGvLaIMUXqfk2iPt3di1tXfue28e
+VxZzNsSV3LmnDwUqhn7ZEVfnegO7rM7lTACNzj1Snau2A/eadK54cwxSrdeSuYarfkGMKbwL6nLk
+RMfjCiWQS1X6Wv5SFf2cJwLJpSpQSeGtOc6m/8C28McQBWEGXyxrSul8HGXc2YCaZM6mxptZHS35
+9Fhym9Eie5sREiKMY0xX4uhY/rAIZewMFuwCVSfRhKkpc/qBd1tNDAcfUEGlLbWtV2Pb2ofXNtHD
+s5m28a4Ui5Htum39Gvutc3ht23K/FRVTsSHxtHUxukAOcNOW99gNcbmylGvc+AghSUQBugnngoiu
+sTl1SS4K11vWe0usNKBLDApS1tcYtGTHbtSs268E/pIWlnlRwsKySBYW4hUsWlj6oISFFVZqLKzd
+W1hIn2zFwqpxJhNNC/Vo+4/llb1EURI7nY8Pkrjzw7aJ7v6WucjKuMeIQXZ815Ns/e96ep206NVo
+MeqkxahGC9lNSKFF6B4USpUzAhuA70phpaaOJ7QoWKmPc28iL+WSYNmkUouLcU4xKuu4dGXOdQNi
+AJAkVu/rLcK3jXhLEEg75LloTR8VES2N6YganidFROs6OpS9KrL3PK9Hzveq51TXXZKJQjidxCbk
+2OZcOEbeGdB1wd4AfbMzKum1uUu4OB3ItijZDlShTWgP0ml7mS1b+aa4Y3vhOhxZouZLXnjkfSkH
+7vygeX0gkdrLHD+U47TZe1E14Rl9GgkpMt4E4/cdNPCtftIKwN/7N29Og8H95/NXeWQUBDclhi7w
+x+EdiI3T1sPcCs3S1JsVMjtu13BAa5cwO9d9cHOBtrm9QNL/ucp9pcrFA+IpKarh/ag8v09bzz9u
+IB7twf+5bsEoUxOnsLH/+78MHBvMQ+fkNH1lQaZ7NP0k+WyqKeGy54ssriwCI4QcF1KCvPiINCK6
+FzqLpJNuRVRNjuoyYG/rbdkRpxRqGE/3AR+qTveESfz1xDY1k7gCbc0krkBCiow3TDvVMIkbezWJ
+J82qPIk7zSQuSHl+N5P4657EF5ybRshzuNHM4VVpa+bwZg5Pk/Fm8fFLPXN4Z6/m8KRZledwq5nD
+BSnP72YOf51zeKILR9NR9Q3xS29higiPpIrtLbvC0ZcpSrlmsdAJ6VuvTiInfvi/wHonSBTATOCm
+JDR1DZexASvAbkTYOyfsC+jlYkdAHwmXIUbfidB3U+ilklh4ckynzQXx7cB5cjIDP+ZbOCpYxgXh
+GvECzPQAz8BkGaVgpoZ2BmT4Ow+ibGw5M7KdIQ02YfYFRI2UpcWpL5Iqvb8q2CGT7q9qmg6OPPme
+ZFhQJxY0aj9O5cwvx9V7UqYli3N7KJtJ3E4vnsvszS/l72WlTDYKeltgMRVVuvwmvdQgp0wCXI1p
+0BS2UVDYeaXrnJDUd0x+ok9k1wMQqJfqe6Og7zd57Q31Uu2v9IobJMLFGOEtvmm9Des0JuVFba6D
+BQvR3xudnC+eUtRh6coWL2UcQJK/zhSnrS+KAnbc3f4K427ZCmI31PNzSr9clTx+WEugbzT4eMex
+4/foT1u2UJVldSzhFvrCrTZ6pG5q8e9ACI1I7/Jyql5pU2wQ70E/GlBImSheccMg7eY6m2JDe9u5
+nFLeYEgvdJWNVg99Na9PL5lfr6JiSK9FIj8h4cmT9AX0+ek5NZllnRaVgCYz3gamQYAZ3z7sr/zb
+WSDRo4cb/2fx/yxoO+zkDdATuXrLm0I6bfnGX5omKyzamk0AKDaN5Cs18S+8s2GT/FtO8rNhOjj0
+KCe/PvSH7fzJr4EWGTaF6tHJL1bJfPhV6eDX7Pb2yV9HR8Y5i6rPGqisVusMYV3hJ1V3kvCaf4Y5
+nMUXsyF6Xgv/X4ow7/rxB5gCm8pZlNGRiJE9xHYNNjsjI1u27is2JbNiBxQnIlkryEXefBnNf8+L
+SY/tieW2ViIRQevTJKbYltF0sQQpwI5DB3mfBHl/CPI+C/IGvLyU1HYwqR159ogLd2HPuHnexOLm
+XcLhJTwPEuTpWAz4aAGHQLlANUGezs2bmDaBOSbKHFPAnIkgzxW0w4vy6OMxlk3xuLQuh8FyYO4/
+PT6vrv2F//3HfXg5nVRa578H04P/l38fSPz1+u4vf/z4f2GevVoFw7b1d/u0c9o9PTvtneraqa6f
+Bj2nd071bk6hnOAkWdsgSYiaPemQetGBUcGmzgDyR1xt2XPmd6SrrHBPMtBXZE29sVwYMUzZFUkK
+G1X4BTVgxXOCv3rkwy/8lFwlFfBLqH2T1z+VWVbom43HJCQUncMfbjyf2TLWXcA7KMY37xz/euV/
+9x9iXzxSRHTxaa6lTIyDubVTSowf1v5q9fwjoCWuHExHT8/f/VXQAJ54E/s49NuC6/bsVDbXc4bm
+aH/b1Cm2KZPfVWxzapCPFEWWsWs0/9yVs4vfsprYxkcAKWaP1sPZRzqfXhiirOnsvNVo+hm5Lql4
+4y4y6lA/KXYBrlClwfV2fByIUkPRYvfqy9B2q6M1SqA9U0Kbf7MM7a5Y/0HHUvW86qjhK3qQovln
+5JV4ZSkCMOHKD7sEX8LX5PUO9e5M0GKePRlapzpa7IZsGVrBG5ECQ4A8QQaTyWB/JxNNMpnoknxD
+kt8uPxkNyk5GveOdjHqpyQh50XC3k5EAB3VWwPYKZWgFjthtTkZqaqS2qbddcQ5EpCQ1B/aoc6Dq
+YJXNgcgh+zJzYD/e1t3tHMjQlhBe0S4CFW0J4VWcA1G02OZkvTO+wtSb3AIw/aDT5o0v78H1NLh7
+uhoF0vjGnbqarQ3fII3K3cmG7HPUc8UYcBm8paqTS2rvnBPlXtvrKylU5/R9Ej6/nBFpb04mVqFm
+wxgnwu3OK+DeRFqF7vmyXQZuyh11GZildXSZvQdsC2iIhsqOmAfWqSJG4U2Ec1JY51Z4GAewAgtD
+hy1v7ODNglT+LVwv5GMJtKTNVrgIesvKH4k7rFX5Kz942Sh/pvwRxjXK/1Ur/087V/50jIel/Hf0
+EHpe+ZPRUpU/NdKmrPJHYnJqVf5/NMqfRlBe+SOMa5T/q1b+f+xc+dMxHpby5yidbSt/Mlqq8u9s
+Wfkj1xPXqvw/N8qfRlBe+SOMa5T/q1b+n3eu/OkYD0v5c5TOtpU/GS1V+Xe3rPyRwJFalT9niDbK
+P5/yyh9hXKP8X7XyH+xc+dMxHpbyJ4sGpPqUv4JEZv+HK39vYm1Z+SPheTUq/wL94jqQGuUPyh9l
+XKP806hGr0v5Q4/vTvmPFDEekvLnKp0tKP9RKbQ05X/pUV9eLKv8kXC5GpV/gX5xHUiN8gfljzKu
+Uf6vWPlDj+9W+atgPCTlz1U621X+Cmipyn/boZ5IUHKtyp9zZUaj/PMpr/wRxjXK/1Urf94lcttT
+/nSMh6X8OUpn28qfjJaq/Lcd6olovVqVP+cKy0b551Ne+SOMa5T/q1b+2AknvEWQ6lD+dIyHpfw5
+Smfbyp+Mlqb8J6a9ZeWPjNYalX+BfnEdSI3yB+WPMq5R/q9Y+UOP71b5q2A8JOXPVTrbVf4KaGnK
+37RHW1b+iIKtUfkX6BfXgdQof1D+KOMa5Z+ggpvZXpfyhx7frfJXwXhIyp+rdLar/BXQEi3/rSt/
+ZLaq0/JvlH9Jy79R/jJUr83y37nyV8F4SMqfq3S2bPnXrfzdkbNl5e9sVfkX6BfXgdQof1D+XMbl
+IkKxYs0c8YrnCBCM3c4RKhgPaY7gDjFeBXSwsVZjv9Y1qRDpHJUilDYNLbY+DSFHJGqchgr0i+tA
+aqYhmF9QxjXzyyueXxY7n19UMB7S/MJVOtudLhTQ5pX/5l/JP+MpwF3OU2owS5JA9dtp1Y+AHaeJ
+JUN18hNKVNadL09b6XeWpQFT2k9jiDzSAzcfZXmTBZTI3HgkfSG6iBRkLffgVAAHeYUN7/nUdIEG
+heZ/UXg4RvwmqYK4eGO3jLgMJOJi2iZXXpI+eV+mT+KWvzFtdwSP0b05ybUWFTh7nBU4aXg29LtI
+shhg0/YW4jfWvHkFuRvYsw9UaTOv//N8h7wQOwj+TC4X4ZOCwyH24hwk/HVZqGvaTjDyoKF4zbl/
+71898fHWLPmZ66lxqji3ROOFCVhEL1RmrLCQA5a50N9Z9hz1Ced/KdVwtbvsxTdVIxXjMQwNKaEa
+TI7O59xRzXJtazHCxlH0kqEwN8icinLt94Lc0VAA2RuMNUHdoI9FNI+GWZUjXZkxaUN+1vW2ppbB
+AWRYXZtT3sAz+tjTePCaPP3nNyBI0T+xbF1P/lktW66uXQvUdbpTpFdzsfFW+Wejp2ty+gbzuc0X
+qS3MYipLd3yegtGnbhDp0odPIZUziAhvquI8CEdsGR7E7w+ktAmVJZsp4zKojT0NAykzHQEWJc0P
+qohgJI2Htn0aKRVcSi5Lc2hvrBlr4dikGR2pyxgkelBaiPdjVJcTcCyqO4kfp0CueZXWnUZ1OQE4
+orpeXBe5ZAqSuu2Xwpg8/MIe8GYTJuednXw1vViNFxafrmYUq2FvkqWqvRmPZtM3xWq8uxdyRILI
+4AU3j323Q4BDcQ+n1UyqFo9XUlfEm8+upiPtOt+2T4nTEF7viYHlGmQoNIjfKEjchsnp4TQQe5KG
+DhRSqqFtxYZC4jcWz0EmFEiF5nW4b3JBkgviZLaYzWdjE2nS1sOrOY3BXu6TA0s3yhtN3PFMoUn8
+ZkGqUxw70a2BdYmjZ07/UG0pJH5rIQlbTCOQ03KewlcDDinhwGz6RwkGQBIzoaYhG9E5Wsy81tvF
+o2U7EUMCISiSbSJkC+1nZj3ObdMVesLCpVcl63qzzi+3RxY3NHHZSYztYZSKVSUmiqiqxEwRVeVN
+IRs7X8EbtjcW+cRalLbIJ9Z8UtYin1gfL8pa5BP7cl7eIofuLGeRB7waii1ymR83rIvcGgipnDUf
+DlEBVIXZtyscXGJgqcanXKTIFVlIBfnCDtJWpufis4cCknlaX4kmqUWWcnpzaOHMM5slTTTTisVc
+cX7m0z1bRQB6McJS5KeXbj36dLHZkN60P1SGfQ3qlDSLC6tcyfQhstZzxBn1EIewiDdBiRmuOtEK
+PV35GZDj6/uswXjbiSeLr5G9ydxhwUSh242Jvw4PRt/OYqWqgYkm0kybHs6MpWg6rtbFAX9gC4Sv
+kDIvBycCFj+XXFGbp4GndtZEViAdeKqpjOlpDPZ7ueXO2/hDnbPpxBkMUqIwN/sGJi+nppUjwn9R
+x8qBQ9pz/mtV+b8VN4ViT1CtD8UeyHBJzHMBv5V5XSoyyrt+/BEq4PTbDlm+LL75q+9X958fH4KC
+i/fziWwmSFa1i4lbLR5QMJ/wK0Kqth6DxJ+Z7LBZojUZpHLrhRDz85/r1dX1ejNhhCAWs+GQgpZN
+9uZN0AGT5/v13Y/7X5mpx2RTj7m7+xnA3dNWuEyAL1Cu97G8QHFYo/3sduWMQaiK95098b4zn6B/
+fXHn72z3UitiK4KIsC280JFkIDdcxiVs/ZTz4m1SwjiVPYtoz6UOKX7DuJw+0ymcxv/H/hX1w0Yi
+Ftxw2Q1tuSHovvfmYU+d5X1yHJ2TbWU53VKYpsKKruFq7y5GF+a7sTl1UdOtyOLizJAl4qN5mXui
+M8vTwlAWodDJKDL/pau/VMWMxbz6qhWWvHV0hKxpw7GXW5OrqfIM/NE0DQwV4X99WZof5DIc8iZc
+zBcZFEwL+R/bJ1y24TObtRhMUX5Y48V7tIW5sstAglEAkKHWBbY7HtAFpM1tKW/cF+LWystg7l2j
+bG8TFVBKgJjmfBtNJyz4++8NxdG8EEGObLcvF+4gLy2b0O6wKleP5wIXH9d3t7/y+ik/m6TalULT
+rYLm0rMMGppeFTST4C8aGrtiawpTMI5GGOJNQENrjSGMSxKgYecCfvY1jgqb/fBXV+u7x4e5/zX4
+u/V2+jFouPfrae1/H82gai/TrcM7//4mKmX9Wvvm9TWQFRin/w5MqJX/5K/+8guKb+p8Og2+/VTo
+oGNCRF7wW5qa0D0WoWCVWDEyptnt7ZO/Dn1uzkkKmzu9nOQpgKEOv+lpCph9NVx6QdvfwOfNyW/B
+Cu//A5B/MCL08AIA
 
-processor       : 0
-vendor_id       : AuthenticAMD
-cpu family      : 6
-model           : 8
-model name      : AMD Athlon(tm) XP 2400+
-stepping        : 1
-cpu MHz         : 2005.022
-cache size      : 256 KB
-fdiv_bug        : no
-hlt_bug         : no
-f00f_bug        : no
-coma_bug        : no
-fpu             : yes
-fpu_exception   : yes
-cpuid level     : 1
-wp              : yes
-flags           : fpu vme de pse tsc msr pae mce cx8
-apic sep mtrr pge mca cmov pat pse36 mmx fxsr sse
-syscall mmxext 3dnowext 3dnow
-bogomips        : 3973.12
-
-
-cat /proc/interrupts
-
-           CPU0
-  0:     800388    IO-APIC-edge  timer
-  1:        388    IO-APIC-edge  i8042
-  3:      54557    IO-APIC-edge  serial
-  8:          1    IO-APIC-edge  rtc
-  9:          0   IO-APIC-level  acpi
- 12:      13842    IO-APIC-edge  i8042
- 14:       7210    IO-APIC-edge  ide2
- 15:       6571    IO-APIC-edge  ide3
- 16:      24475   IO-APIC-level  r128-D5X1nVylZaA@public.gmane.org:1:0:0
- 18:          5   IO-APIC-level  eth0
- 21:          0   IO-APIC-level  uhci_hcd, uhci_hcd,
-uhci_hcd, uhci_hcd, ehci_hcd
- 22:        190   IO-APIC-level  VIA8233
-NMI:          0
-LOC:     800333
-ERR:          0
-MIS:          0
-
-
-lspci
-
-00:00.0 Host bridge: VIA Technologies, Inc. VT8377
-[KT400 AGP] Host Bridge (rev 80)
-00:01.0 PCI bridge: VIA Technologies, Inc. VT8237 PCI
-Bridge
-00:0b.0 Ethernet controller: Broadcom Corporation
-BCM4401 100Base-T (rev 01)
-00:0f.0 RAID bus controller: VIA Technologies, Inc.:
-Unknown device 3149 (rev 80)
-00:0f.1 IDE interface: VIA Technologies, Inc.
-VT82C586A/B/VT82C686/A/B/VT8233/A/C/VT8235 PIPC Bus
-Master IDE (rev 06)
-00:10.0 USB Controller: VIA Technologies, Inc. USB
-(rev 81)
-00:10.1 USB Controller: VIA Technologies, Inc. USB
-(rev 81)
-00:10.2 USB Controller: VIA Technologies, Inc. USB
-(rev 81)
-00:10.3 USB Controller: VIA Technologies, Inc. USB
-(rev 81)
-00:10.4 USB Controller: VIA Technologies, Inc. USB 2.0
-(rev 86)
-00:11.0 ISA bridge: VIA Technologies, Inc.: Unknown
-device 3227
-00:11.5 Multimedia audio controller: VIA Technologies,
-Inc. VT8233/A/8235 AC97 Audio Controller (rev 60)
-01:00.0 VGA compatible controller: ATI Technologies
-Inc Rage 128 PF/PRO AGP 4x TMDS
-
-
-
-lspci -v
-
-00:00.0 Host bridge: VIA Technologies, Inc. VT8377
-[KT400 AGP] Host Bridge (rev 80)
-        Subsystem: VIA Technologies, Inc.: Unknown
-device 0000
-        Flags: bus master, 66Mhz, medium devsel,
-latency 8
-        Memory at e0000000 (32-bit, prefetchable)
-[size=128M]
-        Capabilities: [80] AGP version 3.5
-        Capabilities: [c0] Power Management version 2
-
-00:01.0 PCI bridge: VIA Technologies, Inc. VT8237 PCI
-Bridge (prog-if 00 [Normal decode])
-        Flags: bus master, 66Mhz, medium devsel,
-latency 0
-        Bus: primary=00, secondary=01, subordinate=01,
-sec-latency=0
-        I/O behind bridge: 0000b000-0000bfff
-        Memory behind bridge: dfe00000-dfefffff
-        Prefetchable memory behind bridge:
-d7d00000-dfcfffff
-        Capabilities: [80] Power Management version 2
-
-00:0b.0 Ethernet controller: Broadcom Corporation
-BCM4401 100Base-T (rev 01)
-        Subsystem: Micro-Star International Co., Ltd.:
-Unknown device 590c
-        Flags: bus master, fast devsel, latency 32,
-IRQ 18
-        Memory at dfffa000 (32-bit, non-prefetchable)
-[size=8K]
-        Capabilities: [40] Power Management version 2
-
-00:0f.0 RAID bus controller: VIA Technologies, Inc.:
-Unknown device 3149 (rev 80)
-        Subsystem: Micro-Star International Co., Ltd.:
-Unknown device 5901
-        Flags: bus master, medium devsel, latency 32,
-IRQ 20
-        I/O ports at ec00 [size=8]
-        I/O ports at e800 [size=4]
-        I/O ports at e400 [size=8]
-        I/O ports at e000 [size=4]
-        I/O ports at dc00 [size=16]
-        I/O ports at d800 [size=256]
-        Capabilities: [c0] Power Management version 2
-
-00:0f.1 IDE interface: VIA Technologies, Inc.
-VT82C586A/B/VT82C686/A/B/VT8233/A/C/VT8235 PIPC Bus
-Master IDE (rev 06) (prog-if 8a [Master SecP PriP])
-        Subsystem: Micro-Star International Co., Ltd.:
-Unknown device 5901
-        Flags: bus master, medium devsel, latency 32,
-IRQ 20
-        I/O ports at fc00 [size=16]
-        Capabilities: [c0] Power Management version 2
-
-00:10.0 USB Controller: VIA Technologies, Inc. USB
-(rev 81) (prog-if 00 [UHCI])
-        Subsystem: Micro-Star International Co., Ltd.:
-Unknown device 5901
-        Flags: bus master, medium devsel, latency 32,
-IRQ 21
-        I/O ports at c800 [size=32]
-        Capabilities: [80] Power Management version 2
-
-00:10.1 USB Controller: VIA Technologies, Inc. USB
-(rev 81) (prog-if 00 [UHCI])
-        Subsystem: Micro-Star International Co., Ltd.:
-Unknown device 5901
-        Flags: bus master, medium devsel, latency 32,
-IRQ 21
-        I/O ports at cc00 [size=32]
-        Capabilities: [80] Power Management version 2
-
-00:10.2 USB Controller: VIA Technologies, Inc. USB
-(rev 81) (prog-if 00 [UHCI])
-        Subsystem: Micro-Star International Co., Ltd.:
-Unknown device 5901
-        Flags: bus master, medium devsel, latency 32,
-IRQ 21
-        I/O ports at d000 [size=32]
-        Capabilities: [80] Power Management version 2
-
-00:10.3 USB Controller: VIA Technologies, Inc. USB
-(rev 81) (prog-if 00 [UHCI])
-        Subsystem: Micro-Star International Co., Ltd.:
-Unknown device 5901
-        Flags: bus master, medium devsel, latency 32,
-IRQ 21
-        I/O ports at d400 [size=32]
-        Capabilities: [80] Power Management version 2
-
-00:10.4 USB Controller: VIA Technologies, Inc. USB 2.0
-(rev 86) (prog-if 20 [EHCI])
-        Subsystem: Micro-Star International Co., Ltd.:
-Unknown device 5901
-        Flags: bus master, medium devsel, latency 32,
-IRQ 21
-        Memory at dfff9e00 (32-bit, non-prefetchable)
-[size=256]
-        Capabilities: [80] Power Management version 2
-
-00:11.0 ISA bridge: VIA Technologies, Inc.: Unknown
-device 3227
-        Subsystem: VIA Technologies, Inc.: Unknown
-device 0000
-        Flags: bus master, stepping, medium devsel,
-latency 0
-        Capabilities: [c0] Power Management version 2
-
-00:11.5 Multimedia audio controller: VIA Technologies,
-Inc. VT8233/A/8235 AC97 Audio Controller (rev 60)
-        Subsystem: Micro-Star International Co., Ltd.:
-Unknown device 5901
-        Flags: medium devsel, IRQ 22
-        I/O ports at c400 [size=256]
-        Capabilities: [c0] Power Management version 2
-
-01:00.0 VGA compatible controller: ATI Technologies
-Inc Rage 128 PF/PRO AGP 4x TMDS (prog-if 00 [VGA])
-        Subsystem: ATI Technologies Inc Rage Fury
-Pro/Xpert 2000 Pro
-        Flags: bus master, stepping, 66Mhz, medium
-devsel, latency 32, IRQ 16
-        Memory at d8000000 (32-bit, prefetchable)
-[size=64M]
-        I/O ports at b800 [size=256]
-        Memory at dfefc000 (32-bit, non-prefetchable)
-[size=16K]
-        Expansion ROM at dfec0000 [disabled]
-[size=128K]
-        Capabilities: [50] AGP version 2.0
-        Capabilities: [5c] Power Management version 2
-
-
-
-
-
-dmesg
-
-Linux version 2.6.7-1acpi (root-bi+AKbBUZKZeoWH0uzbU5w@public.gmane.org) (gcc
-version 3.3.2 (Mandrake Linux 10.0 3.3.2-6mdk)) #1 Mon
-Jul 5 18:56:08 BST 2004
-BIOS-provided physical RAM map:
- BIOS-e820: 0000000000000000 - 000000000009fc00
-(usable)
- BIOS-e820: 000000000009fc00 - 00000000000a0000
-(reserved)
- BIOS-e820: 00000000000f0000 - 0000000000100000
-(reserved)
- BIOS-e820: 0000000000100000 - 000000000fff0000
-(usable)
- BIOS-e820: 000000000fff0000 - 000000000fff8000 (ACPI
-data)
- BIOS-e820: 000000000fff8000 - 0000000010000000 (ACPI
-NVS)
- BIOS-e820: 00000000fec00000 - 00000000fec01000
-(reserved)
- BIOS-e820: 00000000fee00000 - 00000000fee01000
-(reserved)
- BIOS-e820: 00000000fff80000 - 0000000100000000
-(reserved)
-255MB LOWMEM available.
-found SMP MP-table at 000fb990
-On node 0 totalpages: 65520
-  DMA zone: 4096 pages, LIFO batch:1
-  Normal zone: 61424 pages, LIFO batch:14
-  HighMem zone: 0 pages, LIFO batch:1
-DMI 2.3 present.
-ACPI: RSDP (v000 AMI                                  
-    ) @ 0x000faa00
-ACPI: RSDT (v001 AMIINT VIA_K7   0x00000010 MSFT
-0x00000097) @ 0x0fff0000
-ACPI: FADT (v001 AMIINT VIA_K7   0x00000011 MSFT
-0x00000097) @ 0x0fff0030
-ACPI: MADT (v001 AMIINT VIA_K7   0x00000009 MSFT
-0x00000097) @ 0x0fff00c0
-ACPI: DSDT (v001    VIA   VIA_K7 0x00001000 MSFT
-0x0100000d) @ 0x00000000
-ACPI: PM-Timer IO Port: 0x808
-ACPI: Local APIC address 0xfee00000
-ACPI: LAPIC (acpi_id[0x01] lapic_id[0x00] enabled)
-Processor #0 6:8 APIC version 16
-ACPI: IOAPIC (id[0x02] address[0xfec00000]
-global_irq_base[0x0])
-IOAPIC[0]: Assigned apic_id 2
-IOAPIC[0]: apic_id 2, version 3, address 0xfec00000,
-GSI 0-23
-ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl
-dfl)
-ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 low
-level)
-Enabling APIC mode:  Flat.  Using 1 I/O APICs
-Using ACPI (MADT) for SMP configuration information
-Built 1 zonelists
-Kernel command line: auto BOOT_IMAGE=linux-acpi ro
-root=2105 devfs=mount resume=/dev/hde6 splash=silent
-acpi=on
-Initializing CPU#0
-PID hash table entries: 1024 (order 10: 8192 bytes)
-Detected 2005.022 MHz processor.
-Using pmtmr for high-res timesource
-Console: colour dummy device 80x25
-Memory: 255720k/262080k available (1809k kernel code,
-5616k reserved, 900k data, 260k init, 0k highmem)
-Checking if this processor honours the WP bit even in
-supervisor mode... Ok.
-Calibrating delay loop... 3973.12 BogoMIPS
-Dentry cache hash table entries: 32768 (order: 5,
-131072 bytes)
-Inode-cache hash table entries: 16384 (order: 4, 65536
-bytes)
-Mount-cache hash table entries: 512 (order: 0, 4096
-bytes)
-CPU:     After generic identify, caps: 0383fbff
-c1c3fbff 00000000 00000000
-CPU:     After vendor identify, caps: 0383fbff
-c1c3fbff 00000000 00000000
-CPU: CLK_CTL MSR was 6003d22f. Reprogramming to
-2003d22f
-CPU: L1 I Cache: 64K (64 bytes/line), D cache 64K (64
-bytes/line)
-CPU: L2 Cache: 256K (64 bytes/line)
-CPU:     After all inits, caps: 0383fbff c1c3fbff
-00000000 00000020
-Intel machine check architecture supported.
-Intel machine check reporting enabled on CPU#0.
-CPU: AMD Athlon(tm) XP 2400+ stepping 01
-Enabling fast FPU save and restore... done.
-Enabling unmasked SIMD FPU exception support... done.
-Checking 'hlt' instruction... OK.
-enabled ExtINT on CPU#0
-ESR value before enabling vector: 00000080
-ESR value after enabling vector: 00000000
-ENABLING IO-APIC IRQs
-init IO_APIC IRQs
- IO-APIC (apicid-pin) 2-0, 2-16, 2-17, 2-18, 2-19,
-2-20, 2-21, 2-22, 2-23 not connected.
-..TIMER: vector=0x31 pin1=2 pin2=-1
-Using local APIC timer interrupts.
-calibrating APIC timer ...
-..... CPU clock speed is 2004.0347 MHz.
-..... host bus clock speed is 267.0246 MHz.
-checking if image is initramfs...it isn't (no cpio
-magic); looks like an initrd
-Freeing initrd memory: 218k freed
-NET: Registered protocol family 16
-EISA bus registered
-PCI: PCI BIOS revision 2.10 entry at 0xfdb11, last
-bus=1
-PCI: Using configuration type 1
-mtrr: v2.0 (20020519)
-ACPI: Subsystem revision 20040326
-ACPI: Interpreter enabled
-ACPI: Using IOAPIC for interrupt routing
-ACPI: PCI Root Bridge [PCI0] (00:00)
-PCI: Probing PCI hardware (bus 00)
-ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-ACPI: Power Resource [URP1] (off)
-ACPI: Power Resource [URP2] (off)
-ACPI: Power Resource [FDDP] (off)
-ACPI: Power Resource [LPTP] (off)
-ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 10 *11
-12 14 15)
-ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 6 7 *10 11
-12 14 15)
-ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 *5 6 7 10 11
-12 14 15)
-ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 *5 6 7 10 11
-12 14 15)
-ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 6 7 10 11
-12 14 15) *0, disabled.
-ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 6 7 10 11
-12 14 15) *0, disabled.
-ACPI: PCI Interrupt Link [LNKG] (IRQs 3 4 5 6 7 10 11
-12 14 15) *0, disabled.
-ACPI: PCI Interrupt Link [LNKH] (IRQs 3 4 5 6 7 10 11
-12 14 15) *0, disabled.
-Linux Plug and Play Support v0.97 (c) Adam Belay
-PnPBIOS: Scanning system for PnP BIOS support...
-PnPBIOS: Found PnP BIOS installation structure at
-0xc00f7900
-PnPBIOS: PnP BIOS version 1.0, entry 0xf0000:0x67ab,
-dseg 0xf0000
-PnPBIOS: 14 nodes reported by PnP BIOS; 14 recorded by
-driver
-00:00:01[A] -> 2-16 -> IRQ 16 level low
-00:00:01[B] -> 2-17 -> IRQ 17 level low
-00:00:11[A] -> 2-20 -> IRQ 20 level low
-00:00:11[C] -> 2-22 -> IRQ 22 level low
-00:00:05[C] -> 2-18 -> IRQ 18 level low
-00:00:05[D] -> 2-19 -> IRQ 19 level low
-00:00:10[A] -> 2-21 -> IRQ 21 level low
-00:00:12[A] -> 2-23 -> IRQ 23 level low
-number of MP IRQ sources: 15.
-number of IO-APIC #2 registers: 24.
-testing the IO APIC.......................
-IO APIC #2......
-.... register #00: 02000000
-.......    : physical APIC id: 02
-.......    : Delivery Type: 0
-.......    : LTS          : 0
-.... register #01: 00178003
-.......     : max redirection entries: 0017
-.......     : PRQ implemented: 1
-.......     : IO APIC version: 0003
-.... IRQ redirection table:
- NR Log Phy Mask Trig IRR Pol Stat Dest Deli Vect:
- 00 000 00  1    0    0   0   0    0    0    00
- 01 001 01  0    0    0   0   0    1    1    39
- 02 001 01  0    0    0   0   0    1    1    31
- 03 001 01  0    0    0   0   0    1    1    41
- 04 001 01  0    0    0   0   0    1    1    49
- 05 001 01  0    0    0   0   0    1    1    51
- 06 001 01  0    0    0   0   0    1    1    59
- 07 001 01  0    0    0   0   0    1    1    61
- 08 001 01  0    0    0   0   0    1    1    69
- 09 001 01  0    1    0   1   0    1    1    71
- 0a 001 01  0    0    0   0   0    1    1    79
- 0b 001 01  0    0    0   0   0    1    1    81
- 0c 001 01  0    0    0   0   0    1    1    89
- 0d 001 01  0    0    0   0   0    1    1    91
- 0e 001 01  0    0    0   0   0    1    1    99
- 0f 001 01  0    0    0   0   0    1    1    A1
- 10 001 01  1    1    0   1   0    1    1    A9
- 11 001 01  1    1    0   1   0    1    1    B1
- 12 001 01  1    1    0   1   0    1    1    C9
- 13 001 01  1    1    0   1   0    1    1    D1
- 14 001 01  1    1    0   1   0    1    1    B9
- 15 001 01  1    1    0   1   0    1    1    D9
- 16 001 01  1    1    0   1   0    1    1    C1
- 17 001 01  1    1    0   1   0    1    1    E1
-IRQ to pin mappings:
-IRQ0 -> 0:2
-IRQ1 -> 0:1
-IRQ3 -> 0:3
-IRQ4 -> 0:4
-IRQ5 -> 0:5
-IRQ6 -> 0:6
-IRQ7 -> 0:7
-IRQ8 -> 0:8
-IRQ9 -> 0:9
-IRQ10 -> 0:10
-IRQ11 -> 0:11
-IRQ12 -> 0:12
-IRQ13 -> 0:13
-IRQ14 -> 0:14
-IRQ15 -> 0:15
-IRQ16 -> 0:16
-IRQ17 -> 0:17
-IRQ18 -> 0:18
-IRQ19 -> 0:19
-IRQ20 -> 0:20
-IRQ21 -> 0:21
-IRQ22 -> 0:22
-IRQ23 -> 0:23
-.................................... done.
-PCI: Using ACPI for IRQ routing
-vesafb: framebuffer at 0xd8000000, mapped to
-0xd0807000, size 1875k
-vesafb: mode is 800x600x16, linelength=1600, pages=33
-vesafb: protected mode interface info at c000:4d22
-vesafb: scrolling: redraw
-vesafb: directcolor: size=0:5:6:5, shift=0:11:5:0
-fb0: VESA VGA frame buffer device
-apm: BIOS version 1.2 Flags 0x03 (Driver version
-1.16ac)
-apm: overridden by ACPI.
-VFS: Disk quotas dquot_6.5.1
-Dquot-cache hash table entries: 1024 (order 0, 4096
-bytes)
-devfs: 2004-01-31 Richard Gooch (rgooch-r1x6VkxMR+00zabcByZE4g@public.gmane.org)
-devfs: boot_options: 0x1
-Initializing Cryptographic API
-PCI: Via IRQ fixup for 0000:00:10.3, from 10 to 5
-PCI: Via IRQ fixup for 0000:00:10.2, from 10 to 5
-PCI: Via IRQ fixup for 0000:00:10.1, from 11 to 5
-PCI: Via IRQ fixup for 0000:00:10.0, from 11 to 5
-ACPI: Power Button (FF) [PWRF]
-ACPI: Sleep Button (CM) [SLPB]
-ACPI: Processor [CPU1] (supports C1)
-isapnp: Scanning for PnP cards...
-isapnp: No Plug & Play device found
-Console: switching to colour frame buffer device
-100x37
-Serial: 8250/16550 driver $Revision: 1.90 $ 8 ports,
-IRQ sharing enabled
-ttyS0 at I/O 0x3f8 (irq = 4) is a 16550A
-ttyS1 at I/O 0x2f8 (irq = 3) is a 16550A
-RAMDISK driver initialized: 16 RAM disks of 32000K
-size 1024 blocksize
-Uniform Multi-Platform E-IDE driver Revision:
-7.00alpha2
-ide: Assuming 33MHz system bus speed for PIO modes;
-override with idebus=xx
-VIA8237SATA: IDE controller at PCI slot 0000:00:0f.0
-VIA8237SATA: chipset revision 128
-VIA8237SATA: 100% native mode on irq 20
-    ide0: BM-DMA at 0xdc00-0xdc07, BIOS settings:
-hda:pio, hdb:pio
-    ide1: BM-DMA at 0xdc08-0xdc0f, BIOS settings:
-hdc:pio, hdd:pio
-VP_IDE: IDE controller at PCI slot 0000:00:0f.1
-VP_IDE: chipset revision 6
-VP_IDE: not 100% native mode: will probe irqs later
-VP_IDE: VIA vt8237 (rev 00) IDE UDMA133 controller on
-pci0000:00:0f.1
-    ide2: BM-DMA at 0xfc00-0xfc07, BIOS settings:
-hde:DMA, hdf:pio
-    ide3: BM-DMA at 0xfc08-0xfc0f, BIOS settings:
-hdg:DMA, hdh:pio
-hde: SAMSUNG SP1203N, ATA DISK drive
-Using anticipatory io scheduler
-ide2 at 0x1f0-0x1f7,0x3f6 on irq 14
-hdg: Pioneer DVD-ROM ATAPIModel DVD-114 0110, ATAPI
-CD/DVD-ROM drive
-ide3 at 0x170-0x177,0x376 on irq 15
-hde: max request size: 1024KiB
-hde: 234493056 sectors (120060 MB) w/2048KiB Cache,
-CHS=16383/255/63, UDMA(100)
- /dev/ide/host2/bus0/target0/lun0: p1 p2 < p5 p6 > p3
-mice: PS/2 mouse device common for all mice
-serio: i8042 AUX port at 0x60,0x64 irq 12
-input: ImPS/2 Generic Wheel Mouse on isa0060/serio1
-serio: i8042 KBD port at 0x60,0x64 irq 1
-input: AT Translated Set 2 keyboard on isa0060/serio0
-md: md driver 0.90.0 MAX_MD_DEVS=256, MD_SB_DISKS=27
-EISA: Probing bus 0 at eisa0
-NET: Registered protocol family 2
-IP: routing cache hash table of 2048 buckets, 16Kbytes
-TCP: Hash tables configured (established 16384 bind
-32768)
-NET: Registered protocol family 1
-Resume Machine: resuming from /dev/hde6
-Resuming from device hde6
-Resume Machine: This is normal swap space
-PM: Reading pmdisk image.
-PM: Resume from disk failed.
-ACPI: (supports S0 S3 S4 S5)
-BIOS EDD facility v0.15 2004-May-17, 1 devices found
-md: Autodetecting RAID arrays.
-md: autorun ...
-md: ... autorun DONE.
-RAMDISK: Compressed image found at block 0
-VFS: Mounted root (ext2 filesystem).
-Mounted devfs on /dev
-SCSI subsystem initialized
-libata version 1.02 loaded.
-kjournald starting.  Commit interval 5 seconds
-EXT3-fs: mounted filesystem with ordered data mode.
-Mounted devfs on /dev
-Freeing unused kernel memory: 260k freed
-Real Time Clock Driver v1.12
-usbcore: registered new driver usbfs
-usbcore: registered new driver hub
-USB Universal Host Controller Interface driver v2.2
-uhci_hcd 0000:00:10.0: VIA Technologies, Inc.
-VT82xxxxx UHCI USB 1.1 Controller
-uhci_hcd 0000:00:10.0: irq 21, io base 0000c800
-uhci_hcd 0000:00:10.0: new USB bus registered,
-assigned bus number 1
-hub 1-0:1.0: USB hub found
-hub 1-0:1.0: 2 ports detected
-uhci_hcd 0000:00:10.1: VIA Technologies, Inc.
-VT82xxxxx UHCI USB 1.1 Controller (#2)
-uhci_hcd 0000:00:10.1: irq 21, io base 0000cc00
-uhci_hcd 0000:00:10.1: new USB bus registered,
-assigned bus number 2
-hub 2-0:1.0: USB hub found
-hub 2-0:1.0: 2 ports detected
-uhci_hcd 0000:00:10.2: VIA Technologies, Inc.
-VT82xxxxx UHCI USB 1.1 Controller (#3)
-uhci_hcd 0000:00:10.2: irq 21, io base 0000d000
-uhci_hcd 0000:00:10.2: new USB bus registered,
-assigned bus number 3
-hub 3-0:1.0: USB hub found
-hub 3-0:1.0: 2 ports detected
-uhci_hcd 0000:00:10.3: VIA Technologies, Inc.
-VT82xxxxx UHCI USB 1.1 Controller (#4)
-uhci_hcd 0000:00:10.3: irq 21, io base 0000d400
-uhci_hcd 0000:00:10.3: new USB bus registered,
-assigned bus number 4
-hub 4-0:1.0: USB hub found
-hub 4-0:1.0: 2 ports detected
-ehci_hcd 0000:00:10.4: VIA Technologies, Inc. USB 2.0
-ehci_hcd 0000:00:10.4: irq 21, pci mem d09e8e00
-ehci_hcd 0000:00:10.4: new USB bus registered,
-assigned bus number 5
-ehci_hcd 0000:00:10.4: USB 2.0 enabled, EHCI 1.00,
-driver 2004-May-10
-hub 5-0:1.0: USB hub found
-hub 5-0:1.0: 8 ports detected
-EXT3 FS on hde5, internal journal
-Adding 811240k swap on /dev/hde6.  Priority:-1
-extents:1
-Linux agpgart interface v0.100 (c) Dave Jones
-agpgart: Detected VIA CLE266 chipset
-agpgart: Maximum main memory to use for agp memory:
-203M
-agpgart: AGP aperture is 128M @ 0xe0000000
-NTFS driver 2.1.14 [Flags: R/O MODULE].
-NTFS volume version 3.1.
-b44.c:v0.94 (May 4, 2004)
-eth0: Broadcom 4400 10/100BaseT Ethernet
-00:0c:76:5b:b0:79
-ip_tables: (C) 2000-2002 Netfilter core team
-ip_conntrack version 2.1 (2047 buckets, 16376 max) -
-296 bytes per conntrack
-inserting floppy driver for 2.6.7-1acpi
-Floppy drive(s): fd0 is 1.44M
-FDC 0 is a post-1991 82077
-hdg: ATAPI DVD-ROM drive, 512kB Cache, UDMA(33)
-Uniform CD-ROM driver Revision: 3.20
-ide-floppy driver 0.99.newide
-NET: Registered protocol family 17
-PCI: Setting latency timer of device 0000:00:11.5 to
-64
-b44: eth0: Link is down.
-mtrr: 0xd8000000,0x2000000 overlaps existing
-0xd8000000,0x100000
-mtrr: 0xd8000000,0x2000000 overlaps existing
-0xd8000000,0x100000
-[drm] Initialized r128 2.5.0 20030725 on minor 0: ATI
-Technologies Inc Rage 128 PF/PRO AGP 4x TMDS
-mtrr: 0xd8000000,0x2000000 overlaps existing
-0xd8000000,0x100000
-agpgart: Found an AGP 3.5 compliant device at
-0000:00:00.0.
-agpgart: Device is in legacy mode, falling back to 2.x
-agpgart: Putting AGP V2 device at 0000:00:00.0 into 1x
-mode
-agpgart: Putting AGP V2 device at 0000:01:00.0 into 1x
-mode
-atkbd.c: Spurious ACK on isa0060/serio0. Some program,
-like XFree86, might be trying access hardware
-directly.
-CSLIP: code copyright 1989 Regents of the University
-of California
-PPP generic driver version 2.4.2
-PPP BSD Compression module registered
-PPP Deflate Compression module registered
-NET: Registered protocol family 10
-Disabled Privacy Extensions on device c0367e40(lo)
-IPv6 over IPv4 tunneling driver
-eth0: no IPv6 routers present
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-> On Wednesday 07 July 2004 10:57, Will Woods wrote:
-> > Ok, I have compiled the 2.6.7 kernel with latest
-> acpi
-> > patch (acpi-20040326-2.6.7.diff), and I still have
-> the
-> > same problem (and yes, I have checked that I'm
-> running
-> > the new kernel :)
-> >
-> > Any ideas would be much appreciated.
-> >
-> > Will
-> >
-> >
-> > --- Will Woods <will_woods2-/E1597aS9LT10XsdtD+oqA@public.gmane.org> wrote: >
-> >
-> > > Hi,
-> > >
-> > > I think I can get my machine to suspend to ram
-> with
-> > > 'echo 3 > /proc/aci/sleep', but a subsequent
-> press
-> > > of
-> > > the power button just starts a fresh boot. The
-> only
-> > > other button I have is the reset, which does
-> > > nothing,
-> > > and the keyboard is also ignored. I can't figure
-> out
-> > > if the machine is just powering off (in about 1
-> > > second), or if I'm really getting the S3 mode.
-> If I
-> > > am, is there anything I can configure to ensure
-> the
-> > > power button does not do a reboot? S3 works fine
-> > > under
-> > > windows XP, so I assume that the problem is not
-> with
-> > > the hardware.
-> > >
-> > > I'm running Mandrake 10 with kernel 2.6.3-7mdk.
-> > >
-> > >
-> > > Will
-> >
-> >
-> 
-
-
-	
-	
-		
-___________________________________________________________ALL-NEW Yahoo! Messenger - sooooo many all-new ways to express yourself http://uk.messenger.yahoo.com
+--Boundary-00=_NqY7A7KMOgfyHlk--
 
 
 -------------------------------------------------------
