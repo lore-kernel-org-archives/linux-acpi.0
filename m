@@ -1,45 +1,59 @@
-From: Andre Eisenbach <andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org>
-Subject: Re: 2.6.9-rc2-mm4 freezes at boot: ACPI IRQ9 SCI
-Date: Wed, 29 Sep 2004 11:59:00 -0500 (CDT)
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.61.0409291157020.12406@gsf.ironcreek.net>
-References: <415A721B.5060005@pca.it>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: [PATCH] better encapsulate eisa_set_level_irq()
+Date: Wed, 29 Sep 2004 11:51:01 -0600
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <1096480261.26691.12.camel@eeyore>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <415A721B.5060005-wlebWZzHoyE@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S268756AbUI2RvY@vger.kernel.org>
+To: Len Brown <len.brown@intel.com>
+Cc: Andrew Morton <akpm@osdl.org>, acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+Move the "only do this once" stuff from acpi_register_gsi() into
+eisa_set_level().
 
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-On Wed, 29 Sep 2004, Luca Capello wrote:
-
-> So, I suppose this isn't an ACPI error, but I'm not sure. Solutions?
-
-
-No, this is not an ACPI error. It's a problem with the "Preempt big kernel 
-lock" feature. Check a Linux Kernel Mailing List archive for the 
-2.6.9-rc2-mm4 announcement thread.
-
-Ingo Molnar has replied to the announcement thread with a tiny patch which 
-fixes this problem.
-
-Cheers,
-   Andre
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: IT Product Guide on ITManagersJournal
-Use IT products in your business? Tell us what you think of them. Give us
-Your Opinions, Get Free ThinkGeek Gift Certificates! Click to find out more
-http://productguide.itmanagersjournal.com/guidepromo.tmpl
+diff -u -ur 2.6.9-rc2-mm4/arch/i386/kernel/acpi/boot.c pic/arch/i386/kernel/acpi/boot.c
+--- 2.6.9-rc2-mm4/arch/i386/kernel/acpi/boot.c	2004-09-27 10:12:15.000000000 -0600
++++ pic/arch/i386/kernel/acpi/boot.c	2004-09-28 16:06:37.000000000 -0600
+@@ -457,16 +457,10 @@
+ 	 * Make sure all (legacy) PCI IRQs are set as level-triggered.
+ 	 */
+ 	if (acpi_irq_model == ACPI_IRQ_MODEL_PIC) {
+-		static u16 irq_mask;
+ 		extern void eisa_set_level_irq(unsigned int irq);
+ 
+-		if (edge_level == ACPI_LEVEL_SENSITIVE) {
+-			if ((gsi < 16) && !((1 << gsi) & irq_mask)) {
+-				Dprintk(KERN_DEBUG PREFIX "Setting GSI %u as level-triggered\n", gsi);
+-				irq_mask |= (1 << gsi);
++		if (edge_level == ACPI_LEVEL_SENSITIVE)
+ 				eisa_set_level_irq(gsi);
+-			}
+-		}
+ 	}
+ #endif
+ 
+diff -u -ur 2.6.9-rc2-mm4/arch/i386/pci/irq.c pic/arch/i386/pci/irq.c
+--- 2.6.9-rc2-mm4/arch/i386/pci/irq.c	2004-09-27 10:12:15.000000000 -0600
++++ pic/arch/i386/pci/irq.c	2004-09-29 08:39:37.000000000 -0600
+@@ -127,8 +127,15 @@
+ {
+ 	unsigned char mask = 1 << (irq & 7);
+ 	unsigned int port = 0x4d0 + (irq >> 3);
+-	unsigned char val = inb(port);
++	unsigned char val;
++	static u16 eisa_irq_mask;
+ 
++	if (irq >= 16 || (1 << irq) & eisa_irq_mask)
++		return;
++
++	eisa_irq_mask |= (1 << irq);
++	printk("PCI: setting IRQ %u as level-triggered\n", irq);
++	val = inb(port);
+ 	if (!(val & mask)) {
+ 		DBG(" -> edge");
+ 		outb(val | mask, port);
