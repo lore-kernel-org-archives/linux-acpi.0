@@ -1,8 +1,8 @@
 From: "Zhu, Yi" <yi.zhu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: RE: suspend/resume support for driver requires an external firmware
-Date: Fri, 24 Sep 2004 08:02:04 +0800
+Date: Fri, 24 Sep 2004 08:05:24 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8403BD5785@pdsmsx403>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8403BD5786@pdsmsx403>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -22,19 +22,17 @@ Cc: Patrick Mochel <mochel-og82NyAXoxR0I81aPRRTmR2eb7JE58TQ@public.gmane.org>, a
 List-Id: linux-acpi@vger.kernel.org
 
 Pavel Machek wrote:
-> Are you sure you'll be able to allocate 200KB of memory at runtime?
-> Well, you probably can using vmalloc or such.
+> Hi!
+>=20
+> Docs is needed for the patch. What happens if you save_state
+> and then suspend fails for whatever reason?
+> 								Pavel
 
-If malloc fails in ->save_state, the system cannot go to suspend.
-The same as ->suspend fails.
+Yes, good point. ->resume is supposed to roll back whatever
+->save_state and ->suspend did both in a success and a failure
+case.
 
-> Yes, this looks like reasonable way to go. I guess I'd
-> survive notifier chain, too, because saving state can be done
-> at any order for todays devices, but this looks better with
-> the driver model.
-
-Thanks for your feedback.
-
+Thanks,
 -yi
 
 
