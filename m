@@ -1,18 +1,14 @@
-From: "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>
+From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
 Subject: Re: Re: PROBLEM: ACPI freezes 2.6.1 on boot
-Date: Thu, 22 Jan 2004 15:26:01 +0100
+Date: Thu, 22 Jan 2004 15:28:09 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <m3llo0qcue.fsf@reason.gnu-hamburg>
-References: <7F740D512C7C1046AB53446D3720017361885C@scsmsx402.sc.intel.com>
-	<m3u12pgfpr.fsf@reason.gnu-hamburg>
-	<m3ptddgckg.fsf@reason.gnu-hamburg>
-	<20040122120854.GB3534@hell.org.pl>
-	<m3browulc7.fsf@reason.gnu-hamburg>
+Message-ID: <400FDDF9.8020001@pca.it>
+References: <7F740D512C7C1046AB53446D3720017361885C@scsmsx402.sc.intel.com> <m3u12pgfpr.fsf@reason.gnu-hamburg> <m3ptddgckg.fsf@reason.gnu-hamburg> <20040122120854.GB3534@hell.org.pl> <16399.55109.244040.516731@alkaid.it.uu.se> <20040122140546.GD5194@hell.org.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <m3browulc7.fsf-glUV91rXKAHWIjgkaejU9x2eb7JE58TQ@public.gmane.org> (Georg C. F. Greve's
- message of "Thu, 22 Jan 2004 15:08:56 +0100")
+In-Reply-To: <20040122140546.GD5194-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -21,33 +17,42 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Nakajima, Jun" <jun.nakajima-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Martin Loschwitz <madkiss-R0iKqZn4BxJAfugRpC6u6w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
- || On Thu, 22 Jan 2004 15:08:56 +0100
- || "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org> wrote: 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
- gg> Could we please make sure this doesn't get lost again and makes
- gg> it into the kernel?
+Hello,
 
-By the way, it seems that 
+on 01/22/04 15:05, Karol Kozimor wrote:
+> I don't really know. I'm not the author of the patch, I just found it
+on my
+> disk and I remember it allowed me to boot with LAPIC compiled in, as the
+> system would otherwise hang during _STA and _INI execution. I don't even
+> know if the patch is still correct.
+IIRC and AFAIK, I guess Georg has an ASUS Centrino notebook (M2N), so
+this problem is common on all ASUS Centrino (M2N and M3N at least) and
+it is known since a while in the ancient ACPI-support mailing-list:
 
- http://bugzilla.kernel.org/show_bug.cgi?id=1774
- http://bugzilla.kernel.org/show_bug.cgi?id=1677
- http://bugzilla.kernel.org/show_bug.cgi?id=1530
- http://bugzilla.kernel.org/show_bug.cgi?id=1171
+http://sourceforge.net/mailarchive/forum.php?thread_id=3210431&forum_id=7803
+http://sourceforge.net/mailarchive/forum.php?thread_id=3165365&forum_id=7803
 
-are probably related. So this could get rid of four bugzilla entries
-at once. :)
+So, should the patch maybe work even on my ASUS M3N?
 
-Regards,
-Georg
+Obviously, if I complete missunderstood the problem, please excuse me.
 
--- 
-Georg C. F. Greve                                       <greve-mXXj517/zsQ@public.gmane.org>
-Free Software Foundation Europe	                 (http://fsfeurope.org)
-Brave GNU World	                           (http://brave-gnu-world.org)
+Thx, bye,
+Gismo / Luca
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
+
+iD8DBQFAD934VAp7Xm10JmkRAvnnAJ4/d26VPNw4LsRoWSr+Pre2HnchJwCfZKHu
+gvIIn7cZ7568sybh45sfF/0=
+=1tJU
+-----END PGP SIGNATURE-----
+
 
 
 -------------------------------------------------------
