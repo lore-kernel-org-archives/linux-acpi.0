@@ -1,14 +1,11 @@
-From: Martin Waitz <tali-4e/A4rHm86X2JYTphGNI2Q@public.gmane.org>
-Subject: Re: [RFC 1/6]SEP initialization rework
-Date: Wed, 6 Apr 2005 21:31:26 +0200
-Message-ID: <20050406193126.GA4458@admingilde.org>
-References: <1112580349.4194.331.camel@sli10-desk.sh.intel.com>
+From: Andrej Prsa <andrej.prsa-zs/Xt9NzJtxxh+DGd0HQrg@public.gmane.org>
+Subject: ACPI reboot hangs HP/Compaq 6120
+Date: Wed, 6 Apr 2005 22:43:45 +0200
+Message-ID: <20050406224345.1ece1377.andrej.prsa@guest.arnes.si>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="cNdxnHkX5QqsyA0e"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1112580349.4194.331.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,42 +15,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Zwane Mwaikambo <zwane-T6AQWPvKiI1fDP7aoN8Z5Q@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi,
 
---cNdxnHkX5QqsyA0e
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I'm continuing to experience problems with HP/Compaq 6120. This issue
+isn't a killer, but is still annoying: when trying to reboot the
+computer, it hangs at the very last step that says:
 
-hoi :)
+Rebooting...
 
-On Mon, Apr 04, 2005 at 10:05:56AM +0800, Li Shaohua wrote:
-> -	on_each_cpu(enable_sep_cpu, NULL, 1, 1);
+After that only cold-boot helps. Any generic way to analyse the problem?
 
-with this on_each_cpu call gone, you should also be able to remove the
-useless info pointer in enable_sep_cpu.
+The original DSDT table:
 
---=20
-Martin Waitz
+	http://www.fiz.uni-lj.si/~prsa/acpi/dsdt.aml
 
---cNdxnHkX5QqsyA0e
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+The disassembled DSDT table using iasl -d:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.0 (GNU/Linux)
+	http://www.fiz.uni-lj.si/~prsa/acpi/dsdt.dsl
 
-iD8DBQFCVDkNj/Eaxd/oD7IRAsm6AJ0Yp8v8DgJoRk4Jyef2YfDTYIPn0gCbBaoU
-PpP73OaO2mgaJ815ZACXC2s=
-=XlG5
------END PGP SIGNATURE-----
+The precompiled DSDT table using iasl -tc:
 
---cNdxnHkX5QqsyA0e--
+	http://www.fiz.uni-lj.si/~prsa/acpi/dsdt.hex
 
+Finally, perhaps a silly question: should APM by any chance be enabled
+in kernel for rebooting to work? I presume not, since it's ACPI's job,
+but I may be mistaking.
+
+Thanks,
+
+Andrej
 
 
 -------------------------------------------------------
