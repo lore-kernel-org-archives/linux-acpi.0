@@ -1,16 +1,14 @@
-From: "Ow Mun Heng" <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: noise from Dell laptops
-Date: Wed, 11 Aug 2004 09:42:41 +0800
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: Re: ibm-acpi-0.1
+Date: Wed, 11 Aug 2004 09:30:44 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1092134028.15108.1.camel@neuromancer.home.net>
-References: <1092071674.2229.23.camel@dhcppc4>
+Message-ID: <20040811073044.GA965@hell.org.pl>
+References: <20040810080826.GD28939@aero.ensim.com> <pan.2004.08.10.10.18.05.651578@yahoo.com> <pan.2004.08.10.11.37.29.407984@yahoo.com> <20040810231129.GN28939@aero.ensim.com> <20040810233238.GB16896@hell.org.pl> <20040811012143.GO28939@aero.ensim.com>
 Mime-Version: 1.0
-Content-Type: application/ms-tnef;
-	name="winmail.dat"
-Content-Transfer-Encoding: binary
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1092071674.2229.23.camel@dhcppc4>
-content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <20040811012143.GO28939-AKoe11r2kkOzaBltdDZI6w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -19,39 +17,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Borislav Deianov <borislav-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-xŸ>"
-€
+Thus wrote Borislav Deianov:
+> That'd be easier but a lot less flexible. Besides, I'd like to expose
+> the bluetooth presence and status to user space anyway. Any particular
+> reason not to give full control to user space? That'd be more in line
 
+No, none at all, control from userspace is needed too.
 
+> with how the other keys work, too. All of them now just generate ACPI
+> events and it's up to the acpid handler to make them do whatever is
+> necessary. I find that very useful for taking pre- and post-event
+> actions, or for remapping keys.
 
+>From my experience, users find it confusing if something works before the
+module loads but stops afterwards (and that would be common since you can't
+force a sane configuration, especially that you'll probably find machines
+that do the BT stuff differently).
+Best regards,
 
-
-
-€¤ä€ó
-Àset2
-¢
-€> Do (peo
-PePitòh 0el 
-`0 ¿ !
-À À
-°tĞ
-°ng Ô
-à+
-!m·*€!„#0sÄ
-€c
-@
-±¾a€4¡"Ğ\Á mM‚=/Àg#A%÷!ñ`gh»SY
- @¥ÑÆA!5
-P]ıÆ*½Ä
-Å’Å¾ Å¹€Æ‡496477®4Ç‡VĞ<À<Zed>×ÿrg6
-°P’uÿgà‘eQ\L›ôĞtÆ¿%ÁÀ( º f °÷dñ+21€F¡h
-P˜£°'ã“Îo=1"
-P”ª ı °v
-ÔÚ0yYñíßóBĞ2
-
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
