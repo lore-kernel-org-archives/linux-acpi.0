@@ -1,12 +1,15 @@
-From: Mirko Werneke <mirko.werneke-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Acer TM 661 does not wake up from STR
-Date: Wed, 25 Aug 2004 16:51:37 +0200
+From: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
+Subject: Re: b44 driver suspend/resume (was Re: Re: Re: various problems
+ with Acer TM654, suspend, ACAD, radeon)
+Date: Wed, 25 Aug 2004 10:53:18 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <412CA779.8000602@gmx.net>
+Message-ID: <412CA7DE.8050706@optonline.net>
+References: <20040820161911.GA24510@gamma.logic.tuwien.ac.at> <20040823070534.GD24853@message-id.gmane0305.slipkontur.de> <20040823103515.GH8635@gamma.logic.tuwien.ac.at> <20040824233153.GA15474@message-id.gmane0305.slipkontur.de> <20040825131109.GD6119@gamma.logic.tuwien.ac.at> <412C9980.803@optonline.net> <412CA0F5.4@optonline.net> <20040825144038.GA17522@gamma.logic.tuwien.ac.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20040825144038.GA17522-DqSSrKF0TaySnEC3TeqHn5dqbFPxfnh/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -15,42 +18,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>
+Cc: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-net-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi list!
+Norbert Preining wrote:
+> Hi Nathan!
+> 
+> On Mit, 25 Aug 2004, Nathan Bryant wrote:
+>>
+>>Oops, never mind that. That's just because you hadn't ifup'd the device 
+> 
+> 
+> I did.
 
-I'm using kernel 2.6.8.1 with ACPI 20040715
+Before you ran cat /proc/interrupts after resume? Are you sure? eth0 
+didn't appear anywhere in there...
 
-I've a really big problem with my Acer Travelmate 661 laptop: Once 
-suspended to ram, it won't wake up again! The laptop seems to suspend 
-corretly (no error messages while suspending; Power LED switches from 
-green to orange). But after a key press to wake it up the only reaction 
-the laptop shows is switching the power led to green again. Nothing more 
-happens. I've to press the power button for 4 seconds to switch the 
-laptop completely off. After that i can reboot normally.
+> 
+> 
+>>yet. But I still suspect a driver issue; your IRQ routing looks like it 
+>>should be OK, but somebody is sending repeated interrupts. You could 
+>>test with "acpi=noirq", but I don't think that will help.
+> 
+> 
+> It worked!!!! Yes, no problems. Booting with acpi=noirq and loading the
+> b44 module let it find irq 5 and it is working. I am writing this email
+> from after a resume, even X worked out of the box.
 
-Besides from playing around withh several parameters ("noapic", 
-"pci=routeirq", "acpi_sleep=s3_bios"/"s3_mode") i tried with help from 
-Stefan Dösinger the following:
-
-I compiled a minimal kernel (without usb/wlan drivers, etc.) with a 
-little patch in wakeup.S.
-I inserted after .code16 the line "lcall $0xffff,$0". This should - 
-according to Stefan - immediatly call the BIOS reset code after the 
-kernel gets control back from BIOS. But the situation did not change (no 
-"automatic" reboot after resume). So we came to the conclusion, that the 
-kernel does not get the control back when the system wakes up.
-So i think that there is a problem with the BIOS or the kernel does 
-something wrong while suspending.
-
-Any ideas how i can get a sign of life after waking up the laptop or 
-continiue debug the problem?
-
-Let me know if you need more information.
-
-Regards
-Mirko Werneke
+Back to the drawing board. :( That means there's still something wrong 
+with pci_link.c
 
 
 -------------------------------------------------------
