@@ -1,91 +1,61 @@
-From: Christian Brix Folsted Andersen <folsted-TJNDrJVYK8B/SzgSGea1oA@public.gmane.org>
-Subject: Re: Problems installing ACPI
-Date: 21 Jan 2003 12:06:30 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1043147191.1205.8.camel@gregers.imsb.au.dk>
-References: <1043083690.1702.15.camel@localhost.localdomain>
-	<3E2C43D3.3020307@gmx.net>  <3E2C70FB.1090905@gmx.net>
+From: Andre Hedrick <andre-QA/0nRrxPJrNLxjTenLetw@public.gmane.org>
+Subject: Re: Ask devices to powerdown before S3 sleep
+Date: Tue, 21 Jan 2003 03:38:35 -0800 (PST)
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <Pine.LNX.4.10.10301210326580.16070-100000@master.linux-ide.org>
+References: <20030121104737.GC24349@atrey.karlin.mff.cuni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3E2C70FB.1090905-hi6Y0CQ0nG0@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Heiko Ettelbrueck <hbruckynews-hi6Y0CQ0nG0@public.gmane.org>
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20030121104737.GC24349-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Heiko
 
-Thank you so much for your help.
+Pavel,
 
-However i am having a bit of a problem applying your patch. The file
-drivers/acpi/osl.c does not exist instead there is a file called os.c.
-I looked at the file and tried to patch it manualy, but can not find the
-position of the last part of the patch.
+I failed to make the point clear.
+One thing I learned was never trust the BIOS, even if you wrote it.
 
-The first part was added at line 85 of os.c
+Now if you are missing ACPI hooks to beat the BIOS silly for whatever
+reason you want, I will load two barrels towards Andy for not finishing
+the task or not explaining how to throttle them.
 
-static int acpi_irq_irq = 0;
-static OSD_HANDLER acpi_irq_handler = NULL;
-static void *acpi_irq_context = NULL;
+I do not care if the BIOS want to do monkey flips.
+If there is an event any piece of hardware can not handle, ie where you
+have inserted tests that default to panic, it had better allow you to
+throttle to full enable.
 
-extern unsigned char AmlCode[];
+If it does not, the solution is to make a blackball list of hardware
+which fails to conform to acpi rules.  Fair warning you had better have a
+means to prove it because, public lists make companies nervous.
 
-In which function is the last part supposed to go?
-Which kernel did you use?
+So, that I am clear ... would you consider changing the default method of
+operations for errors.
 
-regards Christian
+How a BUG() and a really long long timer until the battery dies, a panic
+gives little or no information, but this is my opinion.
+
+Cheers,
 
 
+Andre Hedrick
+LAD Storage Consulting Group
 
-On Mon, 2003-01-20 at 22:58, Heiko Ettelbrueck wrote:
-> Hi Christian,
+On Tue, 21 Jan 2003, Pavel Machek wrote:
+
+> Hi!
 > 
-> > Steps:
-> > - Get a fixed DSDT. You could try mine from 
-> > http://www.ettelbrueck.de/linux-acpi/compaq-evo-n160/acpi_dsdt.asl , but 
-> > you should alter it to fit to your battery. I've coded the current 
-> > maximum capacity of my battery (3357 mAh instead of 4000 mAh for a new 
-> > battery) into it - see my posting of 14 december 2002 for details about 
-> > the battery part.
+> > Could you do me just one tiny favor?
+> > Please consider attempting an error recovery level path, maybe ...
+> > 
+> > Every patch I have glanced at has 'panic("blah blah");'
+> > 
+> > If you do not have enough hardware to generate an accurate path for
+> > recovery, then please do not force the kernel into panic.  Would you
+> > consider failing the request making it jump back to S1 ?  This at least
+> > allows it crash like a power failure.
 > 
-> I've updated the DSDT files on my web server concerning the maximum and 
-> last known capacity of the battery: Both are now set to the default 
-> value of 4000 mAh, so there's no longer a need for you to change anything.
-> 
-> > - Compile your DSDT with Intel's ASL compiler into a c source code file 
-> > and copy it to kernel-src-dir/drivers/acpi/tables/acpi_dsdt.c.
-> 
-> You can now skip this part and directly use
-> http://www.ettelbrueck.de/linux-acpi/compaq-evo-n160/acpi_dsdt.c
-> 
-> > - [Don't know by heart if this is needed with current acpi patches] 
-> > Apply a patch to your kernel that makes it use your DSDT.
-> 
-> I found the patch I used to make my kernel use my fixed DSDT. You can 
-> download it from
-> http://www.ettelbrueck.de/linux-acpi/compaq-evo-n160/acpi_use_own_dsdt-2.4.20.diff
-> 
-> > - Compile your kernel once again.
-> > - Boot it...
-> 
-> These two steps are obviously still needed ;-)
-> 
-> Kind regards
-> Heiko
-
-
-
-
--------------------------------------------------------
-This SF.NET email is sponsored by:
-SourceForge Enterprise Edition + IBM + LinuxWorld = Something 2 See!
-http://www.vasoftware.com
+> If I make it go S1, auto-reboot will not apply etc, and machine will
+> crash during ENABLE, anyway...
