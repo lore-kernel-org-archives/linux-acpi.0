@@ -1,14 +1,14 @@
-From: "Ow Mun Heng" <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
+From: Diego SANTA CRUZ <Diego.SantaCruz-p8DiymsW2f8@public.gmane.org>
 Subject: RE: ACPI + Laptop Power Management
-Date: Fri, 28 Nov 2003 11:21:19 +0800
+Date: Fri, 28 Nov 2003 10:32:57 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <C386328088ED7F4E9F81AFBABDDF60DA0338640F@wdmyexch02.my.asia.wdc.com>
+Message-ID: <1070011976.2409.8.camel@ltspc67.epfl.ch>
+References: <C386328088ED7F4E9F81AFBABDDF60DA0338640F@wdmyexch02.my.asia.wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <C386328088ED7F4E9F81AFBABDDF60DA0338640F-Yw6hFe9C1vnHQcBQSaPqJq0fmWJ9l57d0E9HWUfgJXw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,64 +17,50 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Micha Feigin <michf-+lLcF8/aw9x6auLlOhE+pQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Fri, 2003-11-28 at 04:21, Ow Mun Heng wrote:
 
+> The thing here is, even though it's flushing the buffers when there are
+> others to flush, it makes not difference if the drive is still spinning and
+> not in standby-mode! I can't figure out what is making the HD _not_ spin
+> down.
+> 
 
-> -----Original Message-----
-> From: Micha Feigin [mailto:michf-+lLcF8/aw9x6auLlOhE+pQ@public.gmane.org]
-> Sent: Friday, November 21, 2003 7:13 PM
-> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Subject: Re: [ACPI] ACPI + Laptop Power Management
->=20
->=20
-> On Fri, Nov 21, 2003 at 11:12:32AM +0100, Ducrot Bruno wrote:
-> like said here, laptopmode is what you want since it holds back dirty
-> buffer flushes which is what you are experiencing. It will fire up the
-> disk on reads though. I attached a script that you can use to enter
-> laptopmode (was actually distributed with laptopmode as far as I could
-> tell when googling for the original patch). I call it in responce to
-> ac events from acpid to get it running when the power is disconnected.
-> Will have to make sure that you get those event though since I had to
-> twik my dsdt for that.
-> You can also look at cpufreq of acpi cpu throttling to=20
-> throttle down you
-> cpu when on battery to conserve power (assuming you cpu=20
-> supports that).
+Just a thing to check: syslogd will (by default) sync the log file after
+each write. If you have a daemon that write syslog messages often then
+syslogd will keep your HD active all the time, despite any laptop-mode.
 
-I took a look at laptop mode. However, as the author said "it adds a
-non-significant" amount of battery time.
+Two, possibly complementary, solutions
 
-The thing here is, even though it's flushing the buffers when there are
-others to flush, it makes not difference if the drive is still spinning =
-and
-not in standby-mode! I can't figure out what is making the HD _not_ spin
-down.
+1) Find the offending daemon(s) and modify their settings or disable
+them if not necessary.
 
-BTW, Laptop_mode is merged into the 2.4.23-rc5 kernel (based on the
-changelogs)
+2) Prepend the log file name with a - on the /etc/syslog.conf file. This
+prevents the sync on every write default.
 
-With regard to ACPId events, can you tell me how yo get it to work? I'm
-having problems getting it running. It gets lodaded up during init, and =
-it's
-running as root, but after logging in (GDM desktop), the events won't =
-fire
-until I kill the acpid process and re-run it again. (once I logged in)
+If this does not solve your problem you can check (in dmesg) what is
+writing to disk by doing
 
-I can't figure out how to get it to work. I read in one page where the
-auther said to put xhost +local somewhere at the end of =
-/etc/X11/xinitrc.
-That didn't work either.
+echo -n 1 > /proc/sys/vm/block_dump
 
-> I patched reiserfs to change the journal commit time=20
-> according to the entry in
-> bdflush so that I can get the regular 30 sec journal flush=20
-> time when on
-> ac and 10 minutes when of battery.
-> I could try making such a patch for ext3 if you want.
+But BE CAREFUL!. You have to disable klogd before doing this or you will
+likely end up in an infinite loop.
 
-You mean that has to be patched at the Kernel Code Level?? Ah.. Dang!
+Hope this helps.
+-- 
+-------------------------------------------------------
+Diego Santa Cruz - PhD
+Publications available at http://ltswww.epfl.ch/~dsanta
+Signal Processing Institute (LTS1 / ITS / STI)
+Swiss Federal Institute of Technology (EPFL)
+EPFL - STI - ITS, CH-1015 Lausanne, Switzerland
+E-mail:     Diego.SantaCruz-p8DiymsW2f8@public.gmane.org
+Phone:      +41 - 21 - 693 26 57
+Fax:        +41 - 21 - 693 76 00
+-------------------------------------------------------
+
 
 
 -------------------------------------------------------
