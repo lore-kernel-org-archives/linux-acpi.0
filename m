@@ -1,11 +1,13 @@
-From: Alexander Hoogerhuis <alexh-RsuaBgf086Q@public.gmane.org>
-Subject: HP DL360G3 and ACPI
-Date: Fri, 23 Apr 2004 06:49:48 +0200
+From: "Ruedl, Jorg (BRIXIA)" <j.ruedl-SQY4UJCu5DxBDgjK7y7TUQ@public.gmane.org>
+Subject: Out of Office AutoReply: Mail Delivery (failure j.ruedl@it.head.c
+ om)
+Date: Fri, 23 Apr 2004 08:47:40 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1082695788.7450.3.camel@dorker.boxed.no>
+Message-ID: <B0AA922E82AC6947B25B96D5298CE9F4010364F8@itrapex>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,25 +20,11 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I have a few of these beasts onsite at a customers site, and they ahve a
-tendency to wind up the fans and not come back ddown again. I'm
-currently running 2.6.5-mm6 on them and the only piece of suspicious
-output I can find int he boot log is this:
+Sorry, I'll be out of the office until 26 of April (Buisness trip in
+Canada). Unfortunately I'll be not able to check my e-mails.=20
 
-...
-ACPI: Subsystem revision 20040326
-ACPI: IRQ9 SCI: Level Trigger.
-    ACPI-1059: *** Info: There are no GPE blocks defined in the FADT
-ACPI: Interpreter enabled
-ACPI: Using PIC for interrupt routing
-ACPI: PCI Root Bridge [PCI0] (00:00)
-...
-
-Is there any harm here or just me barking up the wrong tree?
-
-mvh,
-A
-
+Kind regards
+J=F2rg
 
 
 -------------------------------------------------------
