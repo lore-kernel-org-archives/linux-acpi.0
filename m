@@ -1,8 +1,8 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: ACPI source release updated (20020829)
-Date: Thu, 29 Aug 2002 16:01:53 -0700
+Subject: [BK PATCH] ACPI update
+Date: Thu, 29 Aug 2002 16:02:31 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DDF1@orsmsx119.jf.intel.com>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DDF2@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,72 +14,46 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: 'Linus Torvalds' <torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org>
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Patches against 2.4.20-pre5 and 2.5.32 are up on http://sf.net/projects/acpi
-now. iasl and other source releases will be updated by tomorrow on the
-developer.intel.com site, as usual.
+Hi Linus,
 
-----------------------------------------
-29 August 2002.  Summary of changes for this release.
+Hey, these more frequent, smaller pushes are kinda nice.
 
-1) ACPI CA Core Subsystem Version 20020829:
+Please pull from http://linux-acpi.bkbits.net/linux-acpi
+<http://linux-acpi.bkbits.net/linux-acpi>  .
 
-If the target of a Scope() operator already exists, it must
-be an object type that actually opens a scope -- such as a
-Device, Method, Scope, etc.  This is a fatal runtime error.
-Similar error check has been added to the iASL compiler
-also.
+Regards -- Andy
 
-Tightened up the namespace load to disallow multiple names
-in the same scope.  This previously was allowed if both
-objects were of the same type.  (i.e., a lookup was the same
-as entering a new name).
+ChangeSet-xVCD6yrqPxE@public.gmane.org, 2002-08-29 13:12:56-07:00, agrover@groveronline.com
+  ACPI interpreter update
 
+ChangeSet-r978YHqf9BuKN0S5hHIosQ@public.gmane.org, 2002-08-21 14:21:04-07:00, agrover@groveronline.com
+  ACPI Remove unused file
 
-2) Linux
+ChangeSet-r978YHqf9BtJcjYr3e4UJg@public.gmane.org, 2002-08-20 15:18:01-07:00, agrover@groveronline.com
+  Ensure that the ACPI interrupt has the proper trigger and polarity
 
-Ensure that the ACPI interrupt has the proper trigger and
-polarity.
+ChangeSet-WeBolnSZrjmAmxt+E6XRvg@public.gmane.org, 2002-08-20 14:15:57-07:00, agrover@groveronline.com
+  local_irq_disable is extraneous (Matthew Wilcox)
 
-local_irq_disable is extraneous. (Matthew Wilcox)
+ChangeSet-WeBolnSZrjnBkAz3hwFLjg@public.gmane.org, 2002-08-20 13:29:41-07:00, agrover@groveronline.com
+  There are a few problems with ACPI init. One of these is that acpi=off
+  will disable the ACPI interpreter init, but not stop the OS from using
+  ACPI tables for finding CPUs and IOAPICs. Another problem is that if we
+  use the tables, but then the interpreter fails to init, we are in deep
+  trouble, because it is too late to revert to using MPS, but we cannot get
+  _PRT info without the interpreter.
+  
+  This changeset doesn't fix the latter problem, but it does at least make
+  "acpi=off" actually do what it says, and not use the ACPI interpreter *or*
+  the tables.
 
-Make "acpi=off" actually do what it says, and not use the
-ACPI interpreter *or* the tables.
-
-Added arch-neutral support for parsing SLIT and SRAT tables
-(Kochi Takayoshi)
-
-
-3) iASL Compiler/Disassembler  Version 20020829:
-
-Implemented namepath optimization for name declarations.
-For example, a declaration like "Method (\_SB_.ABCD)" would
-get optimized to "Method (ABCD)" if the declaration is
-within the \_SB_ scope.  This optimization is in addition to
-the named reference path optimization first released in the
-previous version. This would seem to complete all possible
-optimizations for namepaths within the ASL/AML.
-
-If the target of a Scope() operator already exists, it must
-be an object type that actually opens a scope -- such as a
-Device, Method, Scope, etc.
-
-Implemented a check and warning for unreachable code in the
-same block below a Return() statement.
-
-Fixed a problem where the listing file was not generated if
-the compiler aborted if the maximum error count was exceeded
-(200).
-
-Fixed a problem where the typechecking of method return
-values was broken.  This includes the check for a return
-value when the method is invoked as a TermArg (a return
-value is expected.)
-
-Fixed a reported problem where EOF conditions during a
-quoted string or comment caused a fault.
+ChangeSet-WeBolnSZrjkqMp+WYRx65w@public.gmane.org, 2002-08-19 11:35:40-07:00, agrover@groveronline.com
+  Add arch-neutral support for parsing SLIT and SRAT tables (Kochi
+Takayoshi)
 
 -----------------------------
 Andrew Grover
