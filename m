@@ -1,13 +1,16 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+From: Matthias Hentges <mailinglisten-H4PcyxPeSRnR7s880joybQ@public.gmane.org>
 Subject: Re: S3 broken on a Samsung P30
-Date: Fri, 12 Nov 2004 20:55:30 +0100
-Message-ID: <20041112195530.GA1123@elf.ucw.cz>
-References: <1099605010.5191.20.camel@mhcln03> <20041110231802.GA1099@elf.ucw.cz> <1100263919.3523.3.camel@mhcln03> <20041112160435.GC1858@elf.ucw.cz> <1100283009.3608.2.camel@mhcln03>
+Date: Fri, 12 Nov 2004 21:55:09 +0100
+Message-ID: <1100292909.3499.3.camel@mhcln03>
+References: <1099605010.5191.20.camel@mhcln03>
+	 <20041110231802.GA1099@elf.ucw.cz> <1100263919.3523.3.camel@mhcln03>
+	 <20041112160435.GC1858@elf.ucw.cz> <1100283009.3608.2.camel@mhcln03>
+	 <20041112195530.GA1123@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1100283009.3608.2.camel@mhcln03>
+In-Reply-To: <20041112195530.GA1123-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,34 +20,53 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthias Hentges <mailinglisten-H4PcyxPeSRnR7s880joybQ@public.gmane.org>
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hello Pavel,
 
-> [...]
-> > Hmm, you may want to add "jmp $" just after the beep, and apply recent
-> > intel fixes...
+Am Freitag, den 12.11.2004, 20:55 +0100 schrieb Pavel Machek:
+
+[...]
+
 > 
-> Adding "jmp $" right after BEEP gives me a compile error:
+> Okay, oops, do
 > 
-> arch/i386/kernel/acpi/wakeup.S: Assembler messages:
-> arch/i386/kernel/acpi/wakeup.S:40: Error: missing or invalid immediate
-> expression `' taken as 0
-> arch/i386/kernel/acpi/wakeup.S:40: Error: suffix or operands invalid for
-> `jmp'
+> 1:
+> 	jmp 1b
+> 
+> instead.
 
-Okay, oops, do
+I hope the following is correct:
 
-1:
-	jmp 1b
+[snip]
+ENTRY(wakeup_start)
+wakeup_code:
+	wakeup_code_start = .
+	.code16
 
-instead.
-								Pavel
+	BEEP
+1:	
+	jmp	1b
+	
+ 	movw	$0xb800, %ax
+	movw	%ax,%fs
+[/snip]
+
+Tried again with 2.6.10-rc1-bk22 (latest ACPI patches IIRC) and the
+patched wakeup.S
+Still no beep :(
+
 -- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Matthias Hentges 
+Cologne / Germany
+
+[www.hentges.net] -> PGP welcome, HTML tolerated
+ICQ: 97 26 97 4   -> No files, no URL's
+
+My OS: Debian SID. Geek by Nature, Linux by Choice
+
 
 
 -------------------------------------------------------
