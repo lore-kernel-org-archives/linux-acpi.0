@@ -1,14 +1,15 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: [Fwd: [PATCH] Don't save state in ACPI on shutdown/reboot]
-Date: Tue, 11 Nov 2003 18:00:35 +0100
+From: maximE bizon <maximE.bizon-ZrNlpQwM5lQ@public.gmane.org>
+Subject: Re: Bitfield usage in FADT table?
+Date: Tue, 11 Nov 2003 18:18:45 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031111170035.GD29175@poupinou.org>
-References: <1068567824.24982.21.camel@dhcppc4>
+Message-ID: <20031111171845.GA19024@dabelg.epita.fr>
+References: <20031111161527.GC23128@sh.epita.fr> <20031111170245.GE29175@poupinou.org>
+Reply-To: max-ZrNlpQwM5lQ@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1068567824.24982.21.camel-D2Zvc0uNKG8@public.gmane.org>
+In-Reply-To: <20031111170245.GE29175-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,53 +18,60 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 11, 2003 at 11:23:44AM -0500, Len Brown wrote:
+
+On Tue, Nov 11, 2003 at 06:02:45PM +0100, Ducrot Bruno wrote:
+
+> > begin dump of fadt:
+> > [...]
+> > 6e	0
+> > 6f	0
+> > 70	f1
+> > 71	a2
+> > 72	35
+> > 73	78
+> > 74	0
+> > 75	0
+> > [...]
+> > bit wb_invd is 1
+> > bit wb_invd_flush is 0
+> > bit proc_c1 is 0
+> > bit plvl2_up is 0
+> > bit pwr_button is 1
+> > bit sleep_button is 1
+> > bit fixed_rTC is 1
+> > bit rtcs4 is 1
+> > bit tmr_val_ext is 0
+> > bit dock_cap is 1
+> > bit reset_reg_sup is 0
+> > bit sealed_case is 0
+> > bit headless is 0
+> > bit cpu_sw_sleep is 1
+> > 
+
+> > Is it really what it is supposed to be?
 > 
+> To be what?
 
-Content-Description: Forwarded message - [PATCH] Don't save state in ACPI on shutdown/reboot
-> From: Andi Kleen <ak-h9bWGtP8wOw@public.gmane.org>
-> To: marcelo.tosatti-3EexvZdKGZRWk0Htik3J/w@public.gmane.org, len.brown@intel.com
-> Subject: [PATCH] Don't save state in ACPI on shutdown/reboot
-> X-Scanned-By: MIMEDefang 2.31 (www . roaringpenguin . com / mimedefang)
-> X-OriginalArrivalTime: 11 Nov 2003 13:15:03.0923 (UTC)
-> 	FILETIME=[D1A1BC30:01C3A855]
-> 
-> 
-> The ACPI code in 2.4 currently saves the machine state as for a 
-> suspend when doing an reboot or shutdown. This fails on x86-64
-> on some boxes.
-> 
-> Don't save/restore state in ACPI when entering S5.
+According to the ACPI specs:
 
-That break also some i386 boxes.  That why I submitted another patch (do
-I have to post it again?)
+value		bit offset
+=====		==========
+wb_invd		0
+wb_invd_flush	1
+proc_c1		2
+plvl2_up	3
+pwr_button	4
+sleep_button	5
+[...]
 
-> 
-> -Andi
-> 
-
-...
-
-> @@ -127,6 +128,7 @@
->  		 * interrupts.
->  		 */
->  #ifdef CONFIG_X86
-> +		/* AK: this looks rather broken in APIC mode */
->  		init_8259A(0);
-
-I know.  In fact, this may be not sufficiant for PIC mode
-as well.
-
+So, for instance, sleep_button should be 0, no ?
 
 -- 
-Ducrot Bruno
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+Maxime
 
 
 -------------------------------------------------------
