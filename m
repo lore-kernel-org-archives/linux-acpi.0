@@ -1,14 +1,12 @@
-From: roychris <roychris-GANU6spQydw@public.gmane.org>
-Subject: Re: Re: psmouse.c, throwing 3 bytes away
-Date: Mon, 09 Feb 2004 16:12:09 +0100
+From: Chad LeClair <celeclai-CgpX1INfHeY@public.gmane.org>
+Subject: ACPI events generated on PCI usage.
+Date: Mon, 09 Feb 2004 13:26:32 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4027A349.8090908@free.fr>
-References: <20040208215935.GA13280@ucw.cz> <20040208221933.92D0B3F1B@latitude.mynet.no-ip.org> <20040208230314.GA21937@fubini.pci.uni-heidelberg.de> <20040208233052.GA17570@ucw.cz>
+Message-ID: <4027D0D8.2020908@mtu.edu>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
- boundary="------------080704050205090909050805"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040208233052.GA17570-+ZI9xUNit7I@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,212 +15,151 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Vojtech Pavlik <vojtech-AlSwsSmVLrQ@public.gmane.org>
-Cc: Bernd Schubert <Bernd.Schubert-ZRyP5vvp4SQZDP5dtiX3a0ZMdOyQQXjt@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------080704050205090909050805
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
-X-MIME-Autoconverted: from 8bit to quoted-printable by esstin.uhp-nancy.fr id i19FEVJa031471
+Sorry if this is a repeat, the list seemed to have filtered out the last 
+one.
 
-I resolved this problem. It's the fault of the multiplexing on i8042.=20
-You must pass i8042_nomux=3D1 to the kernel for 2.4.X or 2.6.0 or you mus=
-t=20
-modify
-linux-2.6.x/drivers/input/serio/i8042.c by quoting many lines if > 2.6.0=20
-because nomux doesn't work :
+Since upgrading to the 2.6 series of kernel I have
+noticed the events/0 process consuming processor time
+any time I use a PCI device. For example, when I play
+sound on my SB Live, the events/0 consumes ~15% of my
+processor. It doesn't effect AGP, or onboard devices.
+I turned ACPI debugging on and found that when these
+devies are in use a constant stream of DEVICE WAKE
+events are generated.
+
+Is there any way to prevent or ignore these events to
+avoid wasting processor time on them?
+
+Debug log with debug_level=0xff:
+
+Execute Method: [\_GPE._L05] (Node dff61e68)
+  psxface-0124 [18] psx_execute           : **** Begin
+Method Parse **** Entry=dff61e68 obj=dff61de8
+  psparse-1062 [19] ps_parse_aml          : Entered
+with walk_state=dff6a428 Aml=e0802a16 size=0
+  psparse-1085 [19] ps_parse_aml          :
+State=dff6a428
+  psparse-0672 [20] ps_parse_loop         : Opcode 0086
+[Notify] Op dff691e8 Aml e0802a17 aml_offset 00000
+  psparse-0672 [20] ps_parse_loop         : Opcode 000A
+[ByteConst] Op dfe81368 Aml e0802a22 aml_offset 0000B
+  psscope-0254 [21] ps_pop_scope          : Popped Op
+dff691e8 Args 0
+  psparse-0967 [20] ps_parse_loop         : Popped
+scope, Op=dff691e8
+  psscope-0254 [21] ps_pop_scope          : Popped Op
+00000000 Args 0
+  psparse-0967 [20] ps_parse_loop         : Popped
+scope, Op=00000000
+  psparse-0982 [20] ps_parse_loop         : AML package
+complete at Op 00000000
+  psscope-0254 [21] ps_pop_scope          : Popped Op
+00000000 Args 0
+  psparse-1099 [19] ps_parse_aml          : Completed
+one call to walk loop, AE_OK State=dff6a428
+  psparse-1152 [19] ps_parse_aml          :
+return_value=00000000, State=dff6a428
+dswstate-0743 [19] ds_get_current_walk_st: Current
+walk_state 00000000
+  psxface-0170 [18] psx_execute           : **** Begin
+Method Execution **** Entry=dff61e68 obj=dff61de8
+  psparse-1062 [19] ps_parse_aml          : Entered
+with walk_state=dff6a428 Aml=e0802a16 size=0
+  psparse-1085 [19] ps_parse_aml          :
+State=dff6a428
+  psparse-0672 [20] ps_parse_loop         : Opcode 0086
+[Notify] Op dff691e8 Aml e0802a17 aml_offset 00000
+  psparse-0672 [20] ps_parse_loop         : Opcode 000A
+[ByteConst] Op dff68d68 Aml e0802a22 aml_offset 0000B
+  psscope-0254 [21] ps_pop_scope          : Popped Op
+dff691e8 Args 0
+  psparse-0967 [20] ps_parse_loop         : Popped
+scope, Op=dff691e8
+  exnames-0289 [24] ex_get_name_string    :
+root_prefix(\) at e0802a17
+  exnames-0330 [24] ex_get_name_string    :
+dual_name_prefix at e0802a18
+  exnames-0188 [25] ex_name_segment       : Bytes from
+stream:
+  exnames-0194 [25] ex_name_segment       : _
+  exnames-0194 [25] ex_name_segment       : S
+  exnames-0194 [25] ex_name_segment       : B
+  exnames-0194 [25] ex_name_segment       : _
+  exnames-0188 [25] ex_name_segment       : Bytes from
+stream:
+  exnames-0194 [25] ex_name_segment       : P
+  exnames-0194 [25] ex_name_segment       : C
+  exnames-0194 [25] ex_name_segment       : I
+  exnames-0194 [25] ex_name_segment       : 0
+   evmisc-0121 [22] ev_queue_notify_reques: Dispatching
+Notify(2) on node dff610e8
+   evmisc-0133 [22] ev_queue_notify_reques: Notify
+value: Device Wake
+   evmisc-0199 [22] ev_queue_notify_reques: No notify
+handler for [PCI0] node dff610e8
+  psscope-0254 [21] ps_pop_scope          : Popped Op
+00000000 Args 0
+  psparse-0967 [20] ps_parse_loop         : Popped
+scope, Op=00000000
+  psparse-0982 [20] ps_parse_loop         : AML package
+complete at Op 00000000
+  psscope-0254 [21] ps_pop_scope          : Popped Op
+00000000 Args 0
+  psparse-1099 [19] ps_parse_aml          : Completed
+one call to walk loop, AE_OK State=dff6a428
+  psparse-1152 [19] ps_parse_aml          :
+return_value=00000000, State=dff6a428
+dswstate-0743 [19] ds_get_current_walk_st: Current
+walk_state 00000000
+acpi_bus-0492 [15] acpi_bus_notify       : Received
+DEVICE WAKE notification for device [PCI0]
+...
 
 
-/*      if (!i8042_noaux && !i8042_check_aux(&i8042_aux_values)) {
-                if (!i8042_nomux && !i8042_check_mux(&i8042_aux_values))
-                        for (i =3D 0; i < 4; i++) {
-                                i8042_init_mux_values(i8042_mux_values +=20
-i, i804
-2_mux_port + i, i);
-                                i8042_port_register(i8042_mux_values +=20
-i, i8042_
-mux_port + i);
-                        }
-                else
-*/                   =20
-             i8042_port_register(&i8042_aux_values, &i8042_aux_port);
-//      }
+I am running a vanilla 2.6.2 kernel.  I also tried
+adding the latest ACPI patches which had no effect.
 
-I know it's a very bad way to solve the problem but it's working and I=20
-don't have more time.
+I am using an Epox 8kha+ mobo, with an AthlonXP 2200+
+output of lspci:
 
+00:00.0 Host bridge: VIA Technologies, Inc. VT8366/A/7
+[Apollo KT266/A/333]
+00:01.0 PCI bridge: VIA Technologies, Inc. VT8366/A/7
+[Apollo KT266/A/333 AGP]
+00:0a.0 Multimedia audio controller: Creative Labs SB
+Live! EMU10k1 (rev 0a)
+00:0a.1 Input device controller: Creative Labs SB
+Live! MIDI/Game Port (rev 0a)
+00:0b.0 Multimedia video controller: Brooktree
+Corporation Bt878 Video Capture (rev 02)
+00:0b.1 Multimedia controller: Brooktree Corporation
+Bt878 Audio Capture (rev 02)
+00:0c.0 Ethernet controller: Linksys Network
+Everywhere Fast Ethernet 10/100 model NC100 (rev 11)
+00:11.0 ISA bridge: VIA Technologies, Inc. VT8233 PCI
+to ISA Bridge
+00:11.1 IDE interface: VIA Technologies, Inc.
+VT82C586A/B/VT82C686/A/B/VT8233/A/C/VT8235 PIPC Bus
+Master IDE (rev 06)
+00:11.2 USB Controller: VIA Technologies, Inc. USB
+(rev 1b)
+00:11.3 USB Controller: VIA Technologies, Inc. USB
+(rev 1b)
+00:11.4 USB Controller: VIA Technologies, Inc. USB
+(rev 1b)
+00:11.5 Multimedia audio controller: VIA Technologies,
+Inc. VT8233/A/8235 AC97 Audio Controller (rev 30)
+01:00.0 VGA compatible controller: Matrox Graphics,
+Inc. MGA G400 AGP (rev 03)
 
-Vojtech Pavlik a =E9crit :
-
->On Mon, Feb 09, 2004 at 12:03:14AM +0100, Bernd Schubert wrote:
->
-> =20
->
->>On Sun, Feb 08, 2004 at 11:19:32PM +0100, aeriksson-97jfqw80gc6171pxa8y+qA@public.gmane.org wrote:
->>   =20
->>
->>>>>Problem still occurs :-(
->>>>>         =20
->>>>>
->>>>I have good news - I've managed to reliably reproduce the bug on my
->>>>machine and that means I now have a good chance to find and fix it.
->>>>
->>>>       =20
->>>>
->>>Another data point. I just tried switching to a non-preempt kernel as
->>>was suggested by someone. The problem still occurs.
->>>     =20
->>>
->
-> =20
->
->>Hello,
->>
->>on IBM Thinkpads R31 this is also easiliy to reproduce:
->>
->>For 2.6. one only needs to read from /proc/apm or /proc/acpic/...
->>and the mouse becomes crazy and one gets the throwing 2 bytes away
->>messages in the log files. By fast reading in an endless loop even
->>input from the keyboard is ignored.
->>
->>For 2.4. this only happens on reading from /proc/apm, somehow acpi is n=
-ot
->>affected in 2.4. kernel versions.
->>
->>Well, for R31's it is said that it is the bad bios, but maybe its
->>related? Any ideas why it doesn't happen with acpi and 2.4.?=20
->>   =20
->>
->
->There are many reasons why it can happen. I'm currently debugging the
->one where no APM or ACPI or anything else is needed.
->
-> =20
->
->>My knowlege of the kernel interals is quite low and pretty much limited
->>to the basic vfs area, so could you please give me some good advises ho=
-w to
->>debug this?
->>   =20
->>
->
->You can enable DEBUG in i8042.c, and then look at 'dmesg' when the
->problem happens. There will be a missing byte in the stream ...
->
-> =20
->
+Thanks!
+--
+Chad LeClair
 
 
---------------080704050205090909050805
-Content-Type: text/html; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
-  <title></title>
-</head>
-<body text="#000000" bgcolor="#ffffff">
-<meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
-<title></title>
-I resolved this problem. It's the fault of the multiplexing on i8042.
-You must pass i8042_nomux=1 to the kernel for 2.4.X or 2.6.0 or you
-must modify <br>
-linux-2.6.x/drivers/input/serio/i8042.c by quoting many lines if &gt;
-2.6.0 because nomux doesn't work :<br>
-<br>
-<br>
-/*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (!i8042_noaux &amp;&amp;
-!i8042_check_aux(&amp;i8042_aux_values)) {<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (!i8042_nomux &amp;&amp;
-!i8042_check_mux(&amp;i8042_aux_values))<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; for (i = 0; i &lt; 4; i++) {<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; i8042_init_mux_values(i8042_mux_values
-+ i, i804<br>
-2_mux_port + i, i);<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; i8042_port_register(i8042_mux_values +
-i, i8042_<br>
-mux_port + i);<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; else<br>
-*/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br>
-&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; i8042_port_register(&amp;i8042_aux_values,
-&amp;i8042_aux_port);<br>
-//&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }<br>
-<br>
-I know it's a very bad way to solve the problem but it's working and I
-don't have more time.<br>
-<br>
-<br>
-Vojtech Pavlik a &eacute;crit&nbsp;:
-<blockquote cite="mid20040208233052.GA17570-+ZI9xUNit7I@public.gmane.org" type="cite">
-  <pre wrap="">On Mon, Feb 09, 2004 at 12:03:14AM +0100, Bernd Schubert wrote:
-
-  </pre>
-  <blockquote type="cite">
-    <pre wrap="">On Sun, Feb 08, 2004 at 11:19:32PM +0100, <a
- class="moz-txt-link-abbreviated" href="mailto:aeriksson-97jfqw80gc6171pxa8y+qA@public.gmane.org">aeriksson@fastmail.fm</a> wrote:
-    </pre>
-    <blockquote type="cite">
-      <blockquote type="cite">
-        <blockquote type="cite">
-          <pre wrap="">Problem still occurs :-(
-          </pre>
-        </blockquote>
-        <pre wrap="">I have good news - I've managed to reliably reproduce the bug on my
-machine and that means I now have a good chance to find and fix it.
-
-        </pre>
-      </blockquote>
-      <pre wrap="">Another data point. I just tried switching to a non-preempt kernel as
-was suggested by someone. The problem still occurs.
-      </pre>
-    </blockquote>
-  </blockquote>
-  <pre wrap=""><!---->
-  </pre>
-  <blockquote type="cite">
-    <pre wrap="">Hello,
-
-on IBM Thinkpads R31 this is also easiliy to reproduce:
-
-For 2.6. one only needs to read from /proc/apm or /proc/acpic/...
-and the mouse becomes crazy and one gets the throwing 2 bytes away
-messages in the log files. By fast reading in an endless loop even
-input from the keyboard is ignored.
-
-For 2.4. this only happens on reading from /proc/apm, somehow acpi is not
-affected in 2.4. kernel versions.
-
-Well, for R31's it is said that it is the bad bios, but maybe its
-related? Any ideas why it doesn't happen with acpi and 2.4.? 
-    </pre>
-  </blockquote>
-  <pre wrap=""><!---->
-There are many reasons why it can happen. I'm currently debugging the
-one where no APM or ACPI or anything else is needed.
-
-  </pre>
-  <blockquote type="cite">
-    <pre wrap="">My knowlege of the kernel interals is quite low and pretty much limited
-to the basic vfs area, so could you please give me some good advises how to
-debug this?
-    </pre>
-  </blockquote>
-  <pre wrap=""><!---->
-You can enable DEBUG in i8042.c, and then look at 'dmesg' when the
-problem happens. There will be a missing byte in the stream ...
-
-  </pre>
-</blockquote>
-<br>
-</body>
-</html>
-
---------------080704050205090909050805--
 
 
 -------------------------------------------------------
