@@ -1,17 +1,16 @@
-From: jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org (Johan Vromans)
+From: "=?iso-8859-2?q?Zdzis=B3aw_A=2E?= Kaleta" <sanskryt-FWhLrETftxM@public.gmane.org>
 Subject: Re: Re: first shoot for smartbattery
-Date: Mon, 10 Jan 2005 20:44:00 +0100
-Message-ID: <16866.56064.819016.126757@phoenix.squirrel.nl>
-References: <41D56002.5060008@mega.ist.utl.pt>
-	<41DAB539.2020605@arrakis.dhis.org>
-	<m2oefyzplr.fsf@phoenix.squirrel.nl>
-	<200501101524.58077.sanskryt@op.pl>
-	<m28y71fi1s.fsf@phoenix.squirrel.nl>
-	<41E2A2B2.4010204@arrakis.dhis.org>
+Date: Mon, 10 Jan 2005 23:41:07 +0100
+Message-ID: <200501102341.07731.sanskryt@op.pl>
+References: <41D56002.5060008@mega.ist.utl.pt> <200501101736.24293.sanskryt@op.pl> <m27jmlf57y.fsf@phoenix.squirrel.nl>
+Reply-To: sanskryt-FWhLrETftxM@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <m27jmlf57y.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,17 +20,61 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pedro Venda <pjvenda-pQd4kjVL+RHfqL7NgpvPWWD2FQJk+8+b@public.gmane.org>
-Cc: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-[Quoting Pedro Venda, on January 10 2005, 15:43, in "Re: [ACPI] Re: first"]
-> If you want, I can write some code to output information
-> in a desired way for your frontend.
+Dnia poniedzia=B3ek 10 stycznia 2005 20:34, Johan Vromans napisa=B3:
+> "Zdzis=B3aw A. Kaleta" <sanskryt-FWhLrETftxM@public.gmane.org> writes:
+> > Sorry to insist but still a mistake and I am not a coder ;-(
+> > "Use of uninitialized value in concatenation (.) or string at
+> > ./battstat.pl line 95."
+> >
+> > Line 95 is "$mw->title("Battery: $time ($status%)");"
+> >
+> > and there is no info in the windows
+>
+> 1. Would it be possible that you are running the 'original'
+> smartbattery application, and not Pedro's enhanced version? [cut]
+Probably You are right. I use smartbattery package from  =20
+http://www.poupinou.org/acpi/smartbatt/smartbatt/ from Bruno Duclrot site.=
+=20
+When I try to use a patch from Pedro Venda e-mail from 03/01/2005 I has a=20
+smartbattery.c.rej with:
+sanskryt@kender:/usr/local/src/modules/smartbatt$ cat smartbattery.c.rej
+"***************
+*** 300,307 ****
+        time_to_empty =3D i2c_smbus_read_word_data(file, 0x11);
+        time_to_full =3D i2c_smbus_read_word_data(file, 0x11);
 
-That won't be necessary. Perl is quite good at parsing program output :-).
+=2D       printf("current:       %d mA\n", current & 0xffff);
+=2D       printf("remain:        %d mA or mWh\n", remain & 0xffff);
+        printf("time to empty: %d minutes\n", time_to_empty & 0xffff);
+        printf("time to full:  %d minutes\n", time_to_full & 0xffff);
+        printf("temperature:   %2.1f C\n", ((temp & 0xffff) - 2730) / 10.);
+=2D-- 300,307 ----
+        time_to_empty =3D i2c_smbus_read_word_data(file, 0x11);
+        time_to_full =3D i2c_smbus_read_word_data(file, 0x11);
 
--- Johan
++       printf("current:       %d mA\n", (current & 0xffff));
++       printf("remain:        %d mAh or mW\n", remain & 0xffff);
+        printf("time to empty: %d minutes\n", time_to_empty & 0xffff);
+        printf("time to full:  %d minutes\n", time_to_full & 0xffff);
+        printf("temperature:   %2.1f C\n", ((temp & 0xffff) - 2730) / 10.);"
+So it look like that I realy have the not proper smartbattery.c version. Wh=
+ere=20
+I can find proper one?
+>
+> 2. You seem to be using SMbus #1, so did you change the line
+>
+>     my $prog =3D "smartbattery2 0";
+> to
+>     my $prog =3D "smartbattery2 1";
+Yes I have noticed it and change acordingly
+>
+> -- Johan
+
+=2D-=20
+z.a.kaleta (sanskryt), registered Linux User #279350
 
 
 -------------------------------------------------------
