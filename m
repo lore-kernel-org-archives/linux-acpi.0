@@ -1,147 +1,58 @@
-From: Nathan Lynch <ntl-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Re: [RFC 5/6]clean cpu state after hotremove CPU
-Date: Mon, 4 Apr 2005 10:33:45 -0500
-Message-ID: <20050404153345.GC3611@otto>
-References: <1112580367.4194.344.camel@sli10-desk.sh.intel.com> <20050404052844.GB3611@otto> <1112593338.4194.362.camel@sli10-desk.sh.intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [ACPI] 2.6.12-rc1-mm[1-3]: ACPI battery monitor does not work
+Date: Mon, 4 Apr 2005 18:04:56 +0200
+Message-ID: <200504041804.57166.rjw@sisk.pl>
+References: <200503291156.19112.rjw@sisk.pl> <200504011151.48468.rjw@sisk.pl> <200504041734.23178.luming.yu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261264AbVDDQEl@vger.kernel.org>
+In-Reply-To: <200504041734.23178.luming.yu@intel.com>
 Content-Disposition: inline
-In-Reply-To: <1112593338.4194.362.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Zwane Mwaikambo <zwane-T6AQWPvKiI1fDP7aoN8Z5Q@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: luming.yu@intel.com
+Cc: acpi-devel@lists.sourceforge.net, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Apr 04, 2005 at 01:42:18PM +0800, Li Shaohua wrote:
-> Hi,
-> On Mon, 2005-04-04 at 13:28, Nathan Lynch wrote:
-> > On Mon, Apr 04, 2005 at 10:07:02AM +0800, Li Shaohua wrote:
-> > > Clean up all CPU states including its runqueue and idle thread, 
-> > > so we can use boot time code without any changes.
-> > > Note this makes /sys/devices/system/cpu/cpux/online unworkable.
-> > 
-> > In what sense does it make the online attribute unworkable?
-> I removed the idle thread and other CPU states, and makes the dead CPU
-> into a 'halt' busy loop. 
+Hi,
+
+On Monday, 4 of April 2005 11:34, Yu, Luming wrote:
+> Please testing patch filed at
+> http://bugzilla.kernel.org/show_bug.cgi?id=3851#c64
+> My testing results on toshiba satellite M20 is:
 > 
-> > 
-> > > diff -puN kernel/exit.c~cpu_state_clean kernel/exit.c
-> > > --- linux-2.6.11/kernel/exit.c~cpu_state_clean	2005-03-31 10:50:27.000000000 +0800
-> > > +++ linux-2.6.11-root/kernel/exit.c	2005-03-31 10:50:27.000000000 +0800
-> > > @@ -845,6 +845,65 @@ fastcall NORET_TYPE void do_exit(long co
-> > >  	for (;;) ;
-> > >  }
-> > >  
-> > > +#ifdef CONFIG_STR_SMP
-> > > +void do_exit_idle(void)
-> > > +{
-> > > +	struct task_struct *tsk = current;
-> > > +	int group_dead;
-> > > +
-> > > +	BUG_ON(tsk->pid);
-> > > +	BUG_ON(tsk->mm);
-> > > +
-> > > +	if (tsk->io_context)
-> > > +		exit_io_context();
-> > > +	tsk->flags |= PF_EXITING;
-> > > + 	tsk->it_virt_expires = cputime_zero;
-> > > + 	tsk->it_prof_expires = cputime_zero;
-> > > +	tsk->it_sched_expires = 0;
-> > > +
-> > > +	acct_update_integrals(tsk);
-> > > +	update_mem_hiwater(tsk);
-> > > +	group_dead = atomic_dec_and_test(&tsk->signal->live);
-> > > +	if (group_dead) {
-> > > + 		del_timer_sync(&tsk->signal->real_timer);
-> > > +		acct_process(-1);
-> > > +	}
-> > > +	exit_mm(tsk);
-> > > +
-> > > +	exit_sem(tsk);
-> > > +	__exit_files(tsk);
-> > > +	__exit_fs(tsk);
-> > > +	exit_namespace(tsk);
-> > > +	exit_thread();
-> > > +	exit_keys(tsk);
-> > > +
-> > > +	if (group_dead && tsk->signal->leader)
-> > > +		disassociate_ctty(1);
-> > > +
-> > > +	module_put(tsk->thread_info->exec_domain->module);
-> > > +	if (tsk->binfmt)
-> > > +		module_put(tsk->binfmt->module);
-> > > +
-> > > +	tsk->exit_code = -1;
-> > > +	tsk->exit_state = EXIT_DEAD;
-> > > +
-> > > +	/* in release_task */
-> > > +	atomic_dec(&tsk->user->processes);
-> > > +	write_lock_irq(&tasklist_lock);
-> > > +	__exit_signal(tsk);
-> > > +	__exit_sighand(tsk);
-> > > +	write_unlock_irq(&tasklist_lock);
-> > > +	release_thread(tsk);
-> > > +	put_task_struct(tsk);
-> > > +
-> > > +	tsk->flags |= PF_DEAD;
-> > > +#ifdef CONFIG_NUMA
-> > > +	mpol_free(tsk->mempolicy);
-> > > +	tsk->mempolicy = NULL;
-> > > +#endif
-> > > +}
-> > > +#endif
-> > 
-> > I don't understand why this is needed at all.  It looks like a fair
-> > amount of code from do_exit is being duplicated here.  
-> Yes, exactly. Someone who understand do_exit please help clean up the
-> code. I'd like to remove the idle thread, since the smpboot code will
-> create a new idle thread.
-
-I'd say fix the smpboot code so that it doesn't create new idle tasks
-except during boot.
-
+> /proc/acpi/battery/BAT0#time cat state
+> present:                 yes
+> capacity state:          ok
+> charging state:          charging
+> present rate:            1500 mA
+> remaining capacity:      4064 mAh
+> present voltage:         15000 mV
 > 
-> > We've been
-> > doing cpu removal on ppc64 logical partitions for a while and never
-> > needed to do anything like this. 
-> Did it remove idle thread? or dead cpu is in a busy loop of idle?
+> real    0m0.023s
+> user    0m0.000s
+> sys     0m0.020s
 
-Neither.  The cpu is definitely offline, but there is no reason to
-free the idle thread.
+Here's my result on Asus L5D ("plain" 2.6.12-rc1-mm3 with the patch):
 
-> 
-> >  Maybe idle_task_exit would suffice?
-> idle_task_exit seems just drop mm. We need destroy the idle task for
-> physical CPU hotplug, right?
+rafael@albercik:/proc/acpi/battery/BAT0> time cat state
+present:                 yes
+capacity state:          ok
+charging state:          charged
+present rate:            unknown
+remaining capacity:      unknown
+present voltage:         unknown
 
-No.
+real    0m15.113s
+user    0m0.000s
+sys     0m0.034s
 
-> > 
-> > I don't understand the need for this, either.  The existing cpu
-> > hotplug notifier in the scheduler takes care of initializing the sched
-> > domains and groups appropriately for online/offline events; why do you
-> > need to touch the runqueue structures?
-> If a CPU is physically hotremoved from the system, shouldn't we clean
-> its runqueue?
-
-No.  It should make zero difference to the scheduler whether the "play
-dead" cpu hotplug or "physical" hotplug is being used.  
+Greets,
+Rafael
 
 
-Nathan
-
-
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+-- 
+- Would you tell me, please, which way I ought to go from here?
+- That depends a good deal on where you want to get to.
+		-- Lewis Carroll "Alice's Adventures in Wonderland"
