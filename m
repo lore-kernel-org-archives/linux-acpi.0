@@ -1,35 +1,45 @@
-From: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
-Subject: Re: S4bios support for 2.5.63
-Date: 02 Mar 2003 22:22:38 +0000
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <1046643757.3700.20.camel@irongate.swansea.linux.org.uk>
-References: <20030226211347.GA14903@elf.ucw.cz>
-	 <20030302133138.GA27031@outpost.ds9a.nl>
-	 <1046630641.3610.13.camel@laptop-linux.cunninghams>
-	 <20030302202118.GA2201@outpost.ds9a.nl>
+From: AnonimoVeneziano <voloterreno-nc/lrvXPQ4s@public.gmane.org>
+Subject: Re: ACPI + IO-APIC power off by button problems
+Date: Sun, 02 Mar 2003 23:33:39 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <3E6286C3.1050504@tin.it>
+References: <C50AB9511EE59B49B2A503CB7AE1ABD10440E41B@cceexc19.americas.cpqcorp.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20030302202118.GA2201-Q4cIvbmc/GjIwqSPmO0L4w@public.gmane.org>
-To: bert hubert <ahu-yMKkj5jtC+M@public.gmane.org>
-Cc: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <C50AB9511EE59B49B2A503CB7AE1ABD10440E41B-Iar2LzuD2f6P0FQRY6S+e9kSKC0Mw0DFJ8am2ALHCgk@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: "Cagle, John (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 2003-03-02 at 20:21, bert hubert wrote:
-> On Mon, Mar 03, 2003 at 07:44:03AM +1300, Nigel Cunningham wrote:
-> > Hi.
-> > 
-> > This bug is fixed in Linus tree. If you want swsusp to work in the mean
-> > time, look for a couple of patches Pavel sent recently.
-> 
-> Ok,
-> 
-> In 2.5.63bk5 I get a BUG on drivers/ide/ide-disk.c:1557:
-> 
-> 
->         BUG_ON (HWGROUP(drive)->handler);
+So, this means that there is no  solution for my problem? Only a bios 
+update that have that problem solved?
 
-Looks like swsuspend attempted to run an operation while one was in
-progress. IDE tries to catch that because the result of missing it isnt
-very pretty at fsck time.
+My machine at boot says , in a moment , No IRQ known for 00.11.1 
+ Probably Buggy MP Table,   if I have ACPI disabled. 00.11.1 is the IDE 
+COntroller , and I've searched for help for this yet , and in the 
+linux-kernel ML they have said me that this "problem" is hidden by the 
+fact that the IDE Channels  (ide0, ide1) takes indipendent IRQs  (14, 15 
+if I remember well) .
+
+The problem of ACPI can be related to this? When the system starts I see 
+the message "WARNING:Unexpected IO-APIC" , this can  be a problem too?
+
+Thanks
+
+
+
+
+
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
