@@ -1,51 +1,71 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: System hang when trying to enter sleep/standby state
-Date: Wed, 12 Feb 2003 21:36:37 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030212203637.GA32274@hell.org.pl>
-References: <1044987042.1149.4.camel@localhost.localdomain> <Pine.LNX.4.33.0302121042480.1479-100000@localhost.localdomain>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Sleep fixes
+Date: Tue, 11 Feb 2003 19:50:21 +0100
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <20030211185021.GA25067@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.33.0302121042480.1479-100000-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
-Cc: Erik van Pienbroek <admin-0LxUhLuGNoZIf6P1QZMOBw@public.gmane.org>, ACPI Mailinglist <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Patrick Mochel:
-> ACPI should not allow a user to write '5' to that file. It used to be that 
-> way, but someone clever decided that that interface should support _all_ 
-> sleep states. (It might have been me, in one of my finer moments). 
+Hi!
 
-May I ask: why? Is it really dangerous to leave it like it is now? Does it
-break anything? I actually used it a couple of times, not bothering to hold
-my poweroff button for the time needed to poweroff the machine completely.
-As for potential dangers, I see many other ways of using the /proc 
-interface that can be really *much* more harmful to the system, yet they
-don't cease to exist. However confusing it might be now, it is fully
-functional, at least. I can't really see any reason for crippling that
-functionality. Please, do leave it the way it is.
+This fixes error conditions in sleep, and makes acpi ask for
+suspend_disable. Please apply,
+								Pavel
 
-Gosh, where's my manners... I hereby say hello to everyone. Hope you don't
-take the above too personal or whatever, I'm a newbie to ACPI and I might
-as well miss the whole point there.
-Regards,
+
+
+--- clean/arch/i386/kernel/acpi.c	2003-02-11 17:40:33.000000000 +0100
++++ linux/arch/i386/kernel/acpi.c	2003-02-11 17:43:30.000000000 +0100
+@@ -480,6 +480,8 @@
+ 	panic("S3 and PAE do not like each other for now.");
+ 	return 1;
+ #endif
++	if (!acpi_wakeup_address)
++		return 1;
+ 	init_low_mapping(swapper_pg_dir, USER_PTRS_PER_PGD);
+ 	memcpy((void *) acpi_wakeup_address, &wakeup_start, &wakeup_end - &wakeup_start);
+ 	acpi_copy_wakeup_routine(acpi_wakeup_address);
+@@ -507,17 +509,18 @@
+ /**
+  * acpi_reserve_bootmem - do _very_ early ACPI initialisation
+  *
+- * We allocate a page in low memory for the wakeup
++ * We allocate a page from the first 1MB of memory for the wakeup
+  * routine for when we come back from a sleep state. The
+- * runtime allocator allows specification of <16M pages, but not
+- * <1M pages.
++ * runtime allocator allows specification of <16MB pages, but not
++ * <1MB pages.
+  */
+ void __init acpi_reserve_bootmem(void)
+ {
+ 	acpi_wakeup_address = (unsigned long)alloc_bootmem_low(PAGE_SIZE);
++	if (!acpi_wakeup_address)
++		printk(KERN_ERR "ACPI: Cannot allocate lowmem. S3 disabled.\n");
+ 	if ((&wakeup_end - &wakeup_start) > PAGE_SIZE)
+ 		printk(KERN_CRIT "ACPI: Wakeup code way too big, will crash on attempt to suspend\n");
+-	printk(KERN_DEBUG "ACPI: have wakeup address 0x%8.8lx\n", acpi_wakeup_address);
+ }
+ 
+ static int __init acpi_sleep_setup(char *str)
+--- clean/drivers/acpi/sleep.c	2003-01-05 22:58:25.000000000 +0100
++++ linux/drivers/acpi/sleep.c	2003-02-10 18:17:00.000000000 +0100
+@@ -143,6 +143,10 @@
+ 			return error;
+ 		}
+ 
++		error = device_suspend(state, SUSPEND_DISABLE);
++		if (error)
++			panic("Sorry, devices really should know how to disable\n");
++
+ 		/* flush caches */
+ 		ACPI_FLUSH_CPU_CACHE();
+ 
 
 -- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
