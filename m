@@ -1,14 +1,12 @@
-From: Carlos Morgado <chbm-tNiY1ywYjSU@public.gmane.org>
-Subject: geting the dsdt from windows ?
-Date: Mon, 5 Aug 2002 16:26:40 +0100
+From: Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
+Subject: 2.5.30 on Sony Z600TEK
+Date: Mon, 05 Aug 2002 17:49:32 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020805152640.GE24832@whisky.cprm.net>
-Reply-To: chbm-tNiY1ywYjSU@public.gmane.org
+Message-ID: <1028562571.21094.1.camel@bacchus.gpphy.uni-duesseldorf.de>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,16 +18,48 @@ List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi there,
 
-Is it possible to get the working dsdt from a running windows ? there's
-a registry entry containing it but it's humm .. 'binary data' :)
+since I got my notebook right back from repair I gave 2.5.29 a try and
+noticed S4 is working great - since it does several suspend-resume
+cycles
+without any problems. Though some other stuff stopped working (or
+did
+never)
 
-cheers
+* Suddenly it does no longer reboot when I enter reboot on the shell
+* Processor Performance seems to be not supported - though the cpu has
+two
+speedstep states and I thought performance would use speedstep - did I
+got
+that wrong?
+* S1/S3 do not work - in the latter case the notebook is put to sleep
+but
+it does not wake up - when switching it on again with the powerbutton
+the
+lights go on but nothing more: no fan, display, proc, hd or anything. in
+the S1 case it suspends with lcd on, but does not come bad. Could the
+wakeup address (0xc0001000) might be wrong? Could someone clue me, how
+to
+check that?
+
+Thanks in advance
+-Knut
 
 -- 
-Carlos Morgado - chbm(at)chbm(dot)nu - http://chbm.nu/ -- gpgkey: 0x1FC57F0A
-http://wwwkeys.pgp.net/ FP:0A27 35D3 C448 3641 0573 6876 2A37 4BB2 1FC5 7F0A
-Software is like sex; it's better when it's free. - Linus Torvalds
+Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
+Physikalische Grundpraktika - Heinrich-Heine Universitaet Duesseldorf
+Raum 25.33.01.63  -   Universitaetsstrasse 1   -  D-40225 Duesseldorf
+fon: +49-211-81-11314                           fax: +49-211-81-13105
+
+
+
+
+
+
+
+
+
 
 
 -------------------------------------------------------
