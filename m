@@ -1,52 +1,121 @@
-From: Stefan Seyfried <seife@suse.de>
+From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
 Subject: Re: Call for help: list of machines with working S3
-Date: Tue, 15 Feb 2005 17:05:04 +0100
-Message-ID: <42121DB0.8080602@suse.de>
-References: <20050214211105.GA12808@elf.ucw.cz> <200502150605.11683.s0348365@sms.ed.ac.uk>
+Date: Tue, 15 Feb 2005 17:09:41 +0100
+Message-ID: <42121EC5.8000004@gmx.net>
+References: <20050214211105.GA12808@elf.ucw.cz> <20050215125555.GD16394@gamma.logic.tuwien.ac.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261767AbVBOQF0@vger.kernel.org>
-In-Reply-To: <200502150605.11683.s0348365@sms.ed.ac.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alistair John Strachan <s0348365@sms.ed.ac.uk>
-Cc: Pavel Machek <pavel@suse.cz>, ACPI mailing list <acpi-devel@lists.sourceforge.net>, kernel list <linux-kernel@vger.kernel.org>, rjw@sisk.pl
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <20050215125555.GD16394-DqSSrKF0TaySnEC3TeqHn5dqbFPxfnh/@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>
+Cc: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, seife-l3A5Bk7waGM@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Alistair John Strachan wrote:
-> On Monday 14 Feb 2005 21:11, Pavel Machek wrote:
-> [snip]
->>Table of known working systems:
+Norbert Preining schrieb:
+> On Mon, 14 Feb 2005, Pavel Machek wrote:
+> 
+>>(1) systems where video state is preserved over S3.
 >>
->>Model                           hack (or "how to do it")
->>---------------------------------------------------------------------=
-------
->>--- IBM TP R32 / Type 2658-MMG      none (1)
->>Athlon HP Omnibook XE3		none (1)
->>Compaq Armada E500 - P3-700     none (1) (S1 also works OK)
->>IBM t41p			none (1)
->>Athlon64 desktop prototype	s3_bios (2)
->>HP NC6000			s3_bios (2)
->=20
-> The above report is incorrect. On 2.6.11-rc4, even with the s3_bios o=
-ption,=20
-> the NC6000 (which I own) still does not wake up from S3 sleep. The wi=
-ki=20
-> linked somewhere else in this thread also identifies these machines a=
-s not=20
-> working.
+>>(2) systems where it is possible to call video bios during S3
+>>  resume. Unfortunately, it is not correct to call video BIOS at that
+>>  point, but it happens to work on some machines. Use
+>>  acpi_sleep=s3_bios.
+>>
+>>(3) systems that initialize video card into vga text mode and where BIOS
+>>  works well enough to be able to set video mode. Use
+>>  acpi_sleep=s3_mode on these.
+>>
+>>(4) on some systems s3_bios kicks video into text mode, and
+>>  acpi_sleep=s3_bios,s3_mode is needed.
+>>
+>>(5) radeon systems, where X can soft-boot your video card. You'll need
+>>  patched X, and plain text console (no vesafb or radeonfb), see
+>>  http://www.doesi.gmxhome.de/linux/tm800s3/s3.html.
+>>
+>>(6) other radeon systems, where vbetool is enough to bring system back
+>>  to life. Do vbetool vbestate save > /tmp/delme; echo 3 > /proc/acpi/sleep;
+>>  vbetool post; vbetool vbestate restore < /tmp/delme; setfont
+>>  <whatever>, and your video should work.
+>>
+>>Acer TM 800			vga=normal, X patches, see webpage (5)
+> 
+> 
+> 
+> Acer TM 650 (Radeon M7)
+> 
+> vga=normal plus boot-radeon (webpage(5)) works to get text console
+> back. But switching to X freezes the computer completely.
 
-I just retried it with a nc6000, it worked with "vga=3Dnormal
-acpi_sleep=3Ds3_bios rw init=3D/bin/bash".
-It did not work from a full blown system including X etc, but this is
-probably a driver problem, the machine was sitting in a docking station
-which connects everything via USB. Sorry, right now i cannot debug this
-further, but it basically works and should not be too hard to get going=
-=2E
+Please try method (6). It should work perfectly because it is the successor
+for method (5) and works even without special patches for X.
 
-Also, it does not work with vesafb (I have not tried radeonfb)
---=20
-Stefan Seyfried, QA / R&D Team Mobile Devices, SUSE LINUX N=FCrnberg.
 
-"Any ideas, John?"
-"Well, surrounding them's out."
+> X from debian sid. 
+> XFree86 Version 4.3.0.1 (Debian 4.3.0.dfsg.1-10 20041215174925 fabbione-hi90JgxQ6n/k1uMJSBkQmQ@public.gmane.org)
+> Release Date: 15 August 2003
+> X Protocol Version 11, Revision 0, Release 6.6
+> Build Operating System: Linux 2.4.26 i686 [ELF] 
+> Build Date: 15 December 2004
+> 
+> 
+> I would like to get X running to, but there are no traces in the logfile
+> whatsoever to be seen. Pity.
+
+First, boot into X and run the following script ONCE:
+#!/bin/bash
+statedir=/root/s3/state
+mkdir -p $statedir
+chvt 2
+sleep 1
+vbetool vbestate save >$statedir/vbe
+
+
+To suspend and resume properly, call the following script as root:
+#!/bin/bash
+statedir=/root/s3/state
+curcons=`fgconsole`
+fuser /dev/tty$curcons 2>/dev/null|xargs ps -o comm= -p|grep -q X && chvt 2
+cat /dev/vcsa >$statedir/vcsa
+sync
+echo 3 >/proc/acpi/sleep
+sync
+vbetool post
+vbetool vbestate restore <$statedir/vbe
+cat $statedir/vcsa >/dev/vcsa
+rckbd restart
+chvt $[curcons%6+1]
+chvt $curcons
+
+
+Unless you change your grahics card or other hardware configuration,
+the state once saved will be OK for every resume afterwards.
+NOTE: The "rckbd restart" command may be different for your
+distribution. Simply replace it with the command you would use to
+set the fonts on screen.
+
+
+> So it seems that my laptop does not fall in any of these categories.
+
+Please try my scripts and resport back.
+
+
+Regards,
+Carl-Daniel
+-- 
+http://www.hailfinger.org/
+
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
