@@ -1,37 +1,56 @@
 From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: [ACPI] S4bios support for 2.5.63
-Date: Tue, 4 Mar 2003 13:00:15 +0100
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20030304120015.GB7861@poup.poupinou.org>
-References: <20030226211347.GA14903@elf.ucw.cz> <20030227141322.GV13404@poup.poupinou.org> <20030304132329.GF618@zaurus.ucw.cz>
+Subject: Re: Report Toshiba Satellite300-214
+Date: Tue, 4 Mar 2003 12:52:08 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20030304115208.GA7861@poup.poupinou.org>
+References: <microsoft-free.m3k7fg49lq.fsf@grisu.schuckeduster.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20030304132329.GF618-VNkyu7EogrqGmfs5Z0+9fw@public.gmane.org>
-To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <microsoft-free.m3k7fg49lq.fsf-NYHFM3qjxh+4Q6RjEJEvzQmWJwt+BgR4@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Thomas Kosch <t.kosch-FfjHXTYIe3sI54nVjq4dGti2O/JbrIOy@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Mar 04, 2003 at 02:23:29PM +0100, Pavel Machek wrote:
-> Hi!
-> 
-> 
-> > > +
-> > > +	do {
-> > > +		acpi_os_stall(1000);
-> > > +		status = acpi_get_register (ACPI_BITREG_WAKE_STATUS, &in_value, ACPI_MTX_LOCK);
-> > 
-> > Please use ACPI_MTX_DO_NOT_LOCK flags.
-> 
-> Is s/MTX_LOCK/MTX_DO_NOT_LOCK/
-> enough?
+On Mon, Mar 03, 2003 at 06:56:49PM +0100, Thomas Kosch wrote:
+> Hi,
+> i wuold like to give you an report for my satellite3000-214. I use the
+> latest patch with Brunos dsdt, SuSEs TIOCGDEV-patch, packet writing
+> patch and SuSEs boot-splash patch.
 > 
 
-Never mind.  Someone has already made the modif.
+Could you give a try to
+tosh3k-214-v2 that I just released ?
+
+This will fix the following :
+
+correct detection of batteries (that is it will say
+at boot that the second batterie is not present..)
+
+corrected info file and state file for all batteries i.e.
+you now have the correct value for 'last full capacity' and
+friend.
+
+Cheers,
 
 -- 
 Ducrot Bruno
 
 --  Which is worse:  ignorance or apathy?
 --  Don't know.  Don't care.
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: Etnus, makers of TotalView, The debugger 
+for complex code. Debugging C/C++ programs can leave you feeling lost and 
+disoriented. TotalView can help you find your way. Available on major UNIX 
+and Linux platforms. Try it free. www.etnus.com
