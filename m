@@ -1,9 +1,9 @@
 From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/4]bind physical devices with ACPI devices framework
-Date: Wed, 05 Jan 2005 10:50:50 +0800
-Message-ID: <1104893447.5550.129.camel@sli10-desk.sh.intel.com>
+Subject: [PATCH 3/4]ACPI callback to get correct PCI device suspend state
+Date: Wed, 05 Jan 2005 10:51:23 +0800
+Message-ID: <1104893454.5550.133.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-wfwOPoQTLYs8frb4jTsC"
+Content-Type: multipart/mixed; boundary="=-xPVoT0OXtcMyCbH9SxFJ"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,24 +19,14 @@ Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Greg <greg-U8
 List-Id: linux-acpi@vger.kernel.org
 
 
---=-wfwOPoQTLYs8frb4jTsC
+--=-xPVoT0OXtcMyCbH9SxFJ
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
 Hi,
-This patch implemented the framework for binding physical devices with
-ACPI devices. It's based on Pat's suggestion and uses 'platform_notify'
-and 'platform_notify_remove' callbacks. It would be better the device
-core can unified handle this, but it requires big device core changes,
-so we use helper here.
-Every physical bus type should provide a helper ACPI bus type and
-provides two callbacks.
-.find_device:
-	For device which has parent such as normal PCI devices.
-.find_bridge:
-	It's for special devices, such as PCI root bridge and IDE controller.
-such devices generally haven't parent or bus type. We use the special
-method to get an ACPI handle.
+This is an ACPI callback to get correct PCI device suspend state. BIOS
+sometimes reports a different device state from the maximum D-state
+gotten from PCI config space.
 
 Thanks,
 Shaohua
@@ -44,700 +34,244 @@ Shaohua
 Signed-off-by: Li Shaohua<shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 
- 2.5-root/drivers/acpi/Makefile   |    2 
- 2.5-root/drivers/acpi/glue.c     |  283 +++++++++++++++++++++++++++++++++++++++
- 2.5-root/include/acpi/acpi_bus.h |   21 ++
- 3 files changed, 305 insertions(+), 1 deletion(-)
+ 2.5-root/drivers/pci/pci-acpi.c   |   19 +++++++++++++++++++
+ 2.5-root/drivers/pci/pci-driver.c |   29 ++++++++++++++++++++++-------
+ 2.5-root/drivers/pci/pci.h        |    3 +++
+ 3 files changed, 44 insertions(+), 7 deletions(-)
 
-diff -puN /dev/null drivers/acpi/glue.c
---- /dev/null	2004-02-24 05:02:56.000000000 +0800
-+++ 2.5-root/drivers/acpi/glue.c	2005-01-05 09:56:48.762736416 +0800
-@@ -0,0 +1,283 @@
-+/*
-+ * Link physical devices with ACPI devices support
-+ */
-+#include <linux/init.h>
-+#include <linux/list.h>
-+#include <linux/device.h>
-+#include <linux/rwsem.h>
-+#include <linux/acpi.h>
-+
-+#define _COMPONENT              ACPI_BUS_COMPONENT
-+ACPI_MODULE_NAME                ("acpi_glue")
-+
-+static LIST_HEAD(bus_type_list);
-+static DECLARE_RWSEM(bus_type_sem);
-+
-+int register_acpi_bus_type(struct acpi_bus_type *type)
+diff -puN drivers/pci/pci-acpi.c~acpi-pci-get-suspend-state-callback drivers/pci/pci-acpi.c
+--- 2.5/drivers/pci/pci-acpi.c~acpi-pci-get-suspend-state-callback	2005-01-05 09:57:46.949890624 +0800
++++ 2.5-root/drivers/pci/pci-acpi.c	2005-01-05 09:57:46.956889560 +0800
+@@ -16,6 +16,7 @@
+ #include <acpi/acpi_bus.h>
+ 
+ #include <linux/pci-acpi.h>
++#include "pci.h"
+ 
+ static u32 ctrlset_buf[3] = {0, 0, 0};
+ static u32 global_ctrlsets = 0;
+@@ -208,6 +209,23 @@ acpi_status pci_osc_control_set(u32 flag
+ }
+ EXPORT_SYMBOL(pci_osc_control_set);
+ 
++static int acpi_get_suspend_state(struct device *dev, u32 state)
 +{
-+	if (acpi_disabled)
-+		return -ENODEV;
-+	if (type && type->bus) {
-+		down_write(&bus_type_sem);
-+		list_add_tail(&type->list, &bus_type_list);
-+		up_write(&bus_type_sem);
-+		return 0;
-+	}
-+	return -ENODEV;
-+}
-+EXPORT_SYMBOL(register_acpi_bus_type);
-+
-+int unregister_acpi_bus_type(struct acpi_bus_type *type)
-+{
-+	if (acpi_disabled)
-+		return 0;
-+	if (type) {
-+		down_write(&bus_type_sem);
-+		list_del_init(&type->list);
-+		up_write(&bus_type_sem);
-+		return 0;
-+	}
-+	return -ENODEV;
-+}
-+EXPORT_SYMBOL(unregister_acpi_bus_type);
-+
-+static struct acpi_bus_type *
-+acpi_get_bus_type(struct bus_type *type)
-+{
-+	struct acpi_bus_type *tmp, *ret = NULL;
-+
-+	down_read(&bus_type_sem);
-+	list_for_each_entry(tmp, &bus_type_list, list) {
-+		if (tmp->bus == type) {
-+			ret = tmp;
-+			break;
-+		}
-+	}
-+	up_read(&bus_type_sem);
-+	return ret;
-+}
-+
-+static int
-+acpi_find_bridge_device(struct device *dev, acpi_handle *handle)
-+{
-+	struct acpi_bus_type *tmp;
-+	int	ret = -ENODEV;
-+
-+	down_read(&bus_type_sem);
-+	list_for_each_entry(tmp, &bus_type_list, list) {
-+		if (tmp->find_bridge && !tmp->find_bridge(dev, handle)) {
-+			ret = 0;
-+			break;
-+		}
-+	}
-+	up_read(&bus_type_sem);
-+	return ret;
-+}
-+
-+/* Get PCI root bridge's handle from its segment and bus number */
-+struct acpi_find_pci_root {
-+	unsigned int seg;
-+	unsigned int bus;
-+	acpi_handle handle;
-+};
-+
-+static acpi_status
-+find_pci_rootbridge(acpi_handle handle, u32 lvl, void *context, void **rv)
-+{
-+	struct acpi_find_pci_root *find = (struct acpi_find_pci_root *)context;
-+	unsigned long seg, bus;
++	char dstate_str[] = "_S0D";
 +	acpi_status status;
++	unsigned long val;
 +
-+	status = acpi_evaluate_integer(handle, METHOD_NAME__SEG, NULL,
-+		&seg);
-+	if (status == AE_NOT_FOUND) {
-+		/* Assume seg = 0 */
-+		status = AE_OK;
-+		seg = 0;
-+	}
-+	if (ACPI_FAILURE(status))
-+		return AE_CTRL_DEPTH;
-+
-+	status = acpi_evaluate_integer(handle, METHOD_NAME__BBN, NULL,
-+		&bus);
-+	if (status == AE_NOT_FOUND) {
-+		/* Assume bus = 0 */
-+		status = AE_OK;
-+		bus = 0;
-+	}
-+	if (ACPI_FAILURE(status))
-+		return AE_CTRL_DEPTH;
-+
-+	if (seg == find->seg && bus == find->bus)
-+		find->handle = handle;
-+	return AE_OK;
-+}
-+
-+acpi_handle
-+acpi_get_pci_rootbridge_handle(unsigned int seg, unsigned int bus)
-+{
-+	struct acpi_find_pci_root find = {seg, bus, NULL};
-+
-+	acpi_get_devices(PCI_ROOT_HID_STRING,
-+		find_pci_rootbridge,
-+		&find,
-+		NULL);
-+	return find.handle;
-+}
-+
-+/* Get device's handler per its address under its parent */
-+struct acpi_find_child {
-+	acpi_handle     handle;
-+	acpi_integer    address;
-+};
-+
-+static acpi_status
-+find_child(acpi_handle handle, u32 lvl, void *context, void **rv)
-+{
-+	acpi_status     status;
-+	struct acpi_device_info *info;
-+	struct acpi_buffer      buffer = {ACPI_ALLOCATE_BUFFER, NULL};
-+	struct acpi_find_child *find = (struct acpi_find_child*)context;
-+
-+	status = acpi_get_object_info(handle, &buffer);
-+	if (ACPI_SUCCESS(status)) {
-+		info = buffer.pointer;
-+		if (info->address == find->address)
-+			find->handle = handle;
-+		acpi_os_free(buffer.pointer);
-+	}
-+	return AE_OK;
-+}
-+
-+acpi_handle
-+acpi_get_child(acpi_handle parent, acpi_integer address)
-+{
-+	struct acpi_find_child find = {NULL, address};
-+
-+	if (!parent)
-+		return NULL;
-+	acpi_walk_namespace(ACPI_TYPE_DEVICE, parent,
-+		1, find_child,
-+		&find, NULL);
-+	return find.handle;
-+}
-+EXPORT_SYMBOL(acpi_get_child);
-+
-+/* Link ACPI devices with physical devices */
-+static void acpi_device_glue_handle(acpi_handle handle, u32 function, void *context)
-+{
-+	/* do nothing */
-+}
-+
-+/* Note: a success call will increase reference count by one */
-+struct device *acpi_get_physical_device(acpi_handle handle)
-+{
-+	acpi_status status;
-+	struct device *dev;
-+
-+	status = acpi_get_data(handle, acpi_device_glue_handle, (void **)&dev);
++	/* state is PM_SUSPEND_* */
++	if ((state >= PM_SUSPEND_MAX) || !DEVICE_ACPI_HANDLE(dev))
++		return -EINVAL;
++	dstate_str[2] += state;
++	status = acpi_evaluate_integer(DEVICE_ACPI_HANDLE(dev), dstate_str,
++		NULL, &val);
 +	if (ACPI_SUCCESS(status))
-+		return get_device(dev);
-+	return NULL;
-+}
-+EXPORT_SYMBOL(acpi_get_physical_device);
-+
-+static int acpi_bind_one(struct device *dev, acpi_handle handle)
-+{
-+	acpi_status status;
-+
-+	ACPI_FUNCTION_TRACE("acpi_bind_one");
-+
-+	if (dev->platform_data) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-+		    "Drivers changed 'platform_data' for %s\n",
-+		    dev->bus_id));
-+		return_VALUE(-EINVAL);
-+	}
-+	get_device(dev);
-+	status = acpi_attach_data(handle, acpi_device_glue_handle, dev);
-+	if (ACPI_FAILURE(status)) {
-+		put_device(dev);
-+		return_VALUE(-EINVAL);
-+	}
-+	dev->platform_data = handle;
-+
-+	return_VALUE(0);
++		return val;
++	return -ENODEV;
 +}
 +
-+static int acpi_unbind_one(struct device *dev)
-+{
-+	ACPI_FUNCTION_TRACE("acpi_unbind_one");
-+
-+	if (!dev->platform_data)
-+		return_VALUE(0);
-+	if (dev == acpi_get_physical_device(dev->platform_data)) {
-+		/* For acpi_get_physical_device */
-+		put_device(dev);
-+		acpi_detach_data(dev->platform_data, acpi_device_glue_handle);
-+		dev->platform_data = NULL;
-+		/* For acpi_bind_one */
-+		put_device(dev);
-+	} else {
-+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-+		  "Oops, data corrupt for %s\n", dev->bus_id));
-+	}
-+	return_VALUE(0);
-+}
-+
-+static int acpi_platform_notify (struct device *dev)
-+{
-+	struct acpi_bus_type	*type;
-+	acpi_handle		handle;
-+	int			ret = -EINVAL;
-+
-+	ACPI_FUNCTION_TRACE("acpi_platform_notify");
-+
-+	if (!dev->bus || !dev->parent) {
-+		/* bridge devices genernally haven't bus or parent */
-+		ret = acpi_find_bridge_device(dev, &handle);
-+		goto end;
-+	}
-+	type = acpi_get_bus_type(dev->bus);
-+	if (!type) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No ACPI bus support"));
-+		ret = -EINVAL;
-+		goto end;
-+	}
-+	if ((ret = type->find_device(dev, &handle)))
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Can't find child"));
-+end:
-+	if (!ret)
-+		acpi_bind_one(dev, handle);
-+
-+#if 0
-+	if (!ret) {
-+		struct acpi_buffer      buffer = {ACPI_ALLOCATE_BUFFER, NULL};
-+
-+		acpi_get_name(dev->platform_data, ACPI_FULL_PATHNAME, &buffer);
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device %s -> %s\n",
-+			dev->bus_id, (char *)buffer.pointer));
-+		acpi_os_free(buffer.pointer);
-+	} else
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device %s -> No ACPI support\n",
-+			dev->bus_id));
-+#endif
-+
-+	return_VALUE(ret);
-+}
-+
-+static int acpi_platform_notify_remove(struct device *dev)
-+{
-+	acpi_unbind_one(dev);
-+	return 0;
-+}
-+
-+static int __init init_acpi_device_notify(void)
-+{
-+	if (acpi_disabled)
-+		return 0;
-+	platform_notify = acpi_platform_notify;
-+	platform_notify_remove = acpi_platform_notify_remove;
-+	return 0;
-+}
-+arch_initcall(init_acpi_device_notify);
-diff -puN drivers/acpi/Makefile~bind-acpi-devcore drivers/acpi/Makefile
---- 2.5/drivers/acpi/Makefile~bind-acpi-devcore	2005-01-05 09:56:48.756737328 +0800
-+++ 2.5-root/drivers/acpi/Makefile	2005-01-05 09:56:48.762736416 +0800
-@@ -36,7 +36,7 @@ processor-objs	+= processor_perflib.o			
- endif
+ /* ACPI bus type */
+ int pci_acpi_bind_device(struct device *dev, acpi_handle *handle)
+ {
+@@ -250,6 +268,7 @@ static int __init pci_acpi_init(void)
+ 	ret = register_acpi_bus_type(&pci_acpi_bus);
+ 	if (ret)
+ 		return 0;
++	platform_pci_get_suspend_state = acpi_get_suspend_state;
+ 	return 0;
+ }
+ arch_initcall(pci_acpi_init);
+diff -puN drivers/pci/pci-driver.c~acpi-pci-get-suspend-state-callback drivers/pci/pci-driver.c
+--- 2.5/drivers/pci/pci-driver.c~acpi-pci-get-suspend-state-callback	2005-01-05 09:57:46.951890320 +0800
++++ 2.5-root/drivers/pci/pci-driver.c	2005-01-05 09:57:46.956889560 +0800
+@@ -284,13 +284,13 @@ static int pci_device_remove(struct devi
+ 	return 0;
+ }
  
- obj-$(CONFIG_ACPI_BUS)		+= sleep/
--obj-$(CONFIG_ACPI_BUS)		+= bus.o
-+obj-$(CONFIG_ACPI_BUS)		+= bus.o glue.o
- obj-$(CONFIG_ACPI_AC) 		+= ac.o
- obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
- obj-$(CONFIG_ACPI_BUTTON)	+= button.o
-diff -puN include/acpi/acpi_bus.h~bind-acpi-devcore include/acpi/acpi_bus.h
---- 2.5/include/acpi/acpi_bus.h~bind-acpi-devcore	2005-01-05 09:56:48.758737024 +0800
-+++ 2.5-root/include/acpi/acpi_bus.h	2005-01-05 09:56:48.762736416 +0800
-@@ -337,6 +337,27 @@ int acpi_match_ids (struct acpi_device	*
- int acpi_create_dir(struct acpi_device *);
- void acpi_remove_dir(struct acpi_device *);
- 
-+
+-static int pci_device_suspend(struct device * dev, u32 state)
 +/*
-+ * Bind physical devices with ACPI devices
++ * return value: failed < 0, success >= 0
 + */
-+#include <linux/device.h>
-+struct acpi_bus_type {
-+	struct list_head	list;
-+	struct bus_type		*bus;
-+	/* For general devices under the bus*/
-+	int (*find_device)(struct device *, acpi_handle*);
-+	/* For bridges, such as PCI root bridge, IDE controller */
-+	int (*find_bridge)(struct device *, acpi_handle *);
-+};
-+int register_acpi_bus_type(struct acpi_bus_type *);
-+int unregister_acpi_bus_type(struct acpi_bus_type *);
-+struct device *acpi_get_physical_device(acpi_handle);
-+/* helper */
-+acpi_handle acpi_get_child(acpi_handle, acpi_integer);
-+acpi_handle acpi_get_pci_rootbridge_handle(unsigned int, unsigned int);
-+#define DEVICE_ACPI_HANDLE(dev) ((acpi_handle)((dev)->platform_data))
-+
- #endif /*CONFIG_ACPI_BUS*/
++int (*platform_pci_get_suspend_state) (struct device *, u32) = NULL;
++static int pci_get_suspend_state(struct device *dev, u32 state)
+ {
+-	struct pci_dev * pci_dev = to_pci_dev(dev);
+-	struct pci_driver * drv = pci_dev->driver;
+-	u32 dev_state;
+-	int i = 0;
+-
++	int dev_state = -1;
+ 	/* Translate PM_SUSPEND_xx states to PCI device states */
+ 	static u32 state_conversion[] = {
+ 		[PM_SUSPEND_ON] = 0,
+@@ -299,10 +299,25 @@ static int pci_device_suspend(struct dev
+ 		[PM_SUSPEND_DISK] = 3,
+ 	};
  
- #endif /*__ACPI_BUS_H__*/
++	if (platform_pci_get_suspend_state)
++		dev_state = platform_pci_get_suspend_state(dev, state);
++	if (dev_state >= 0)
++		return dev_state;
+ 	if (state >= sizeof(state_conversion) / sizeof(state_conversion[1]))
+ 		return -EINVAL;
++	return state_conversion[state];
++}
+ 
+-	dev_state = state_conversion[state];
++static int pci_device_suspend(struct device * dev, u32 state)
++{
++	struct pci_dev * pci_dev = to_pci_dev(dev);
++	struct pci_driver * drv = pci_dev->driver;
++	int dev_state;
++	int i = 0;
++
++	dev_state = pci_get_suspend_state(dev, state);
++	if (dev_state < 0)
++		return -EINVAL;
+ 	if (drv && drv->suspend)
+ 		i = drv->suspend(pci_dev, dev_state);
+ 	else
+diff -puN drivers/pci/pci.h~acpi-pci-get-suspend-state-callback drivers/pci/pci.h
+--- 2.5/drivers/pci/pci.h~acpi-pci-get-suspend-state-callback	2005-01-05 09:57:46.952890168 +0800
++++ 2.5-root/drivers/pci/pci.h	2005-01-05 09:57:46.956889560 +0800
+@@ -11,6 +11,9 @@ extern int pci_bus_alloc_resource(struct
+ 				  void (*alignf)(void *, struct resource *,
+ 					  	 unsigned long, unsigned long),
+ 				  void *alignf_data);
++/* Firmware callbacks */
++extern int (*platform_pci_get_suspend_state)(struct device *dev, u32 state);
++
+ /* PCI /proc functions */
+ #ifdef CONFIG_PROC_FS
+ extern int pci_proc_attach_device(struct pci_dev *dev);
 _
 
 
---=-wfwOPoQTLYs8frb4jTsC
-Content-Disposition: attachment; filename=p00001_bind-acpi-devcore.patch
-Content-Type: text/x-patch; name=p00001_bind-acpi-devcore.patch; charset=UTF-8
+--=-xPVoT0OXtcMyCbH9SxFJ
+Content-Disposition: attachment; filename=p00003_acpi-pci-get-suspend-state-callback.patch
+Content-Type: text/x-patch; name=p00003_acpi-pci-get-suspend-state-callback.patch; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 
-This patch implemented the framework for binding physical devices with ACPI
-devices. A physical bus like PCI bus should create a 'acpi_bus_type'.
-The method in 'acpi_bus_type':
-.find_device:
-	For device which has parent such as normal PCI devices.
-.find_bridge:
-	It's for special devices, such as PCI root bridge and IDE controller. 
-such devices generally haven't parent or ->bus. We use the special method 
-to get an ACPI handle.
+An ACPI callback to get suspend state from firmware.
 
 ---
 
- 2.5-root/drivers/acpi/Makefile   |    2 
- 2.5-root/drivers/acpi/glue.c     |  283 +++++++++++++++++++++++++++++++++++++++
- 2.5-root/include/acpi/acpi_bus.h |   21 ++
- 3 files changed, 305 insertions(+), 1 deletion(-)
+ 2.5-root/drivers/pci/pci-acpi.c   |   19 +++++++++++++++++++
+ 2.5-root/drivers/pci/pci-driver.c |   29 ++++++++++++++++++++++-------
+ 2.5-root/drivers/pci/pci.h        |    3 +++
+ 3 files changed, 44 insertions(+), 7 deletions(-)
 
-diff -puN /dev/null drivers/acpi/glue.c
---- /dev/null	2004-02-24 05:02:56.000000000 +0800
-+++ 2.5-root/drivers/acpi/glue.c	2005-01-05 09:56:48.762736416 +0800
-@@ -0,0 +1,283 @@
-+/*
-+ * Link physical devices with ACPI devices support
-+ */
-+#include <linux/init.h>
-+#include <linux/list.h>
-+#include <linux/device.h>
-+#include <linux/rwsem.h>
-+#include <linux/acpi.h>
-+
-+#define _COMPONENT              ACPI_BUS_COMPONENT
-+ACPI_MODULE_NAME                ("acpi_glue")
-+
-+static LIST_HEAD(bus_type_list);
-+static DECLARE_RWSEM(bus_type_sem);
-+
-+int register_acpi_bus_type(struct acpi_bus_type *type)
+diff -puN drivers/pci/pci-acpi.c~acpi-pci-get-suspend-state-callback drivers/pci/pci-acpi.c
+--- 2.5/drivers/pci/pci-acpi.c~acpi-pci-get-suspend-state-callback	2005-01-05 09:57:46.949890624 +0800
++++ 2.5-root/drivers/pci/pci-acpi.c	2005-01-05 09:57:46.956889560 +0800
+@@ -16,6 +16,7 @@
+ #include <acpi/acpi_bus.h>
+ 
+ #include <linux/pci-acpi.h>
++#include "pci.h"
+ 
+ static u32 ctrlset_buf[3] = {0, 0, 0};
+ static u32 global_ctrlsets = 0;
+@@ -208,6 +209,23 @@ acpi_status pci_osc_control_set(u32 flag
+ }
+ EXPORT_SYMBOL(pci_osc_control_set);
+ 
++static int acpi_get_suspend_state(struct device *dev, u32 state)
 +{
-+	if (acpi_disabled)
-+		return -ENODEV;
-+	if (type && type->bus) {
-+		down_write(&bus_type_sem);
-+		list_add_tail(&type->list, &bus_type_list);
-+		up_write(&bus_type_sem);
-+		return 0;
-+	}
-+	return -ENODEV;
-+}
-+EXPORT_SYMBOL(register_acpi_bus_type);
-+
-+int unregister_acpi_bus_type(struct acpi_bus_type *type)
-+{
-+	if (acpi_disabled)
-+		return 0;
-+	if (type) {
-+		down_write(&bus_type_sem);
-+		list_del_init(&type->list);
-+		up_write(&bus_type_sem);
-+		return 0;
-+	}
-+	return -ENODEV;
-+}
-+EXPORT_SYMBOL(unregister_acpi_bus_type);
-+
-+static struct acpi_bus_type *
-+acpi_get_bus_type(struct bus_type *type)
-+{
-+	struct acpi_bus_type *tmp, *ret = NULL;
-+
-+	down_read(&bus_type_sem);
-+	list_for_each_entry(tmp, &bus_type_list, list) {
-+		if (tmp->bus == type) {
-+			ret = tmp;
-+			break;
-+		}
-+	}
-+	up_read(&bus_type_sem);
-+	return ret;
-+}
-+
-+static int
-+acpi_find_bridge_device(struct device *dev, acpi_handle *handle)
-+{
-+	struct acpi_bus_type *tmp;
-+	int	ret = -ENODEV;
-+
-+	down_read(&bus_type_sem);
-+	list_for_each_entry(tmp, &bus_type_list, list) {
-+		if (tmp->find_bridge && !tmp->find_bridge(dev, handle)) {
-+			ret = 0;
-+			break;
-+		}
-+	}
-+	up_read(&bus_type_sem);
-+	return ret;
-+}
-+
-+/* Get PCI root bridge's handle from its segment and bus number */
-+struct acpi_find_pci_root {
-+	unsigned int seg;
-+	unsigned int bus;
-+	acpi_handle handle;
-+};
-+
-+static acpi_status
-+find_pci_rootbridge(acpi_handle handle, u32 lvl, void *context, void **rv)
-+{
-+	struct acpi_find_pci_root *find = (struct acpi_find_pci_root *)context;
-+	unsigned long seg, bus;
++	char dstate_str[] = "_S0D";
 +	acpi_status status;
++	unsigned long val;
 +
-+	status = acpi_evaluate_integer(handle, METHOD_NAME__SEG, NULL,
-+		&seg);
-+	if (status == AE_NOT_FOUND) {
-+		/* Assume seg = 0 */
-+		status = AE_OK;
-+		seg = 0;
-+	}
-+	if (ACPI_FAILURE(status))
-+		return AE_CTRL_DEPTH;
-+
-+	status = acpi_evaluate_integer(handle, METHOD_NAME__BBN, NULL,
-+		&bus);
-+	if (status == AE_NOT_FOUND) {
-+		/* Assume bus = 0 */
-+		status = AE_OK;
-+		bus = 0;
-+	}
-+	if (ACPI_FAILURE(status))
-+		return AE_CTRL_DEPTH;
-+
-+	if (seg == find->seg && bus == find->bus)
-+		find->handle = handle;
-+	return AE_OK;
-+}
-+
-+acpi_handle
-+acpi_get_pci_rootbridge_handle(unsigned int seg, unsigned int bus)
-+{
-+	struct acpi_find_pci_root find = {seg, bus, NULL};
-+
-+	acpi_get_devices(PCI_ROOT_HID_STRING,
-+		find_pci_rootbridge,
-+		&find,
-+		NULL);
-+	return find.handle;
-+}
-+
-+/* Get device's handler per its address under its parent */
-+struct acpi_find_child {
-+	acpi_handle     handle;
-+	acpi_integer    address;
-+};
-+
-+static acpi_status
-+find_child(acpi_handle handle, u32 lvl, void *context, void **rv)
-+{
-+	acpi_status     status;
-+	struct acpi_device_info *info;
-+	struct acpi_buffer      buffer = {ACPI_ALLOCATE_BUFFER, NULL};
-+	struct acpi_find_child *find = (struct acpi_find_child*)context;
-+
-+	status = acpi_get_object_info(handle, &buffer);
-+	if (ACPI_SUCCESS(status)) {
-+		info = buffer.pointer;
-+		if (info->address == find->address)
-+			find->handle = handle;
-+		acpi_os_free(buffer.pointer);
-+	}
-+	return AE_OK;
-+}
-+
-+acpi_handle
-+acpi_get_child(acpi_handle parent, acpi_integer address)
-+{
-+	struct acpi_find_child find = {NULL, address};
-+
-+	if (!parent)
-+		return NULL;
-+	acpi_walk_namespace(ACPI_TYPE_DEVICE, parent,
-+		1, find_child,
-+		&find, NULL);
-+	return find.handle;
-+}
-+EXPORT_SYMBOL(acpi_get_child);
-+
-+/* Link ACPI devices with physical devices */
-+static void acpi_device_glue_handle(acpi_handle handle, u32 function, void *context)
-+{
-+	/* do nothing */
-+}
-+
-+/* Note: a success call will increase reference count by one */
-+struct device *acpi_get_physical_device(acpi_handle handle)
-+{
-+	acpi_status status;
-+	struct device *dev;
-+
-+	status = acpi_get_data(handle, acpi_device_glue_handle, (void **)&dev);
++	/* state is PM_SUSPEND_* */
++	if ((state >= PM_SUSPEND_MAX) || !DEVICE_ACPI_HANDLE(dev))
++		return -EINVAL;
++	dstate_str[2] += state;
++	status = acpi_evaluate_integer(DEVICE_ACPI_HANDLE(dev), dstate_str,
++		NULL, &val);
 +	if (ACPI_SUCCESS(status))
-+		return get_device(dev);
-+	return NULL;
-+}
-+EXPORT_SYMBOL(acpi_get_physical_device);
-+
-+static int acpi_bind_one(struct device *dev, acpi_handle handle)
-+{
-+	acpi_status status;
-+
-+	ACPI_FUNCTION_TRACE("acpi_bind_one");
-+
-+	if (dev->platform_data) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-+		    "Drivers changed 'platform_data' for %s\n",
-+		    dev->bus_id));
-+		return_VALUE(-EINVAL);
-+	}
-+	get_device(dev);
-+	status = acpi_attach_data(handle, acpi_device_glue_handle, dev);
-+	if (ACPI_FAILURE(status)) {
-+		put_device(dev);
-+		return_VALUE(-EINVAL);
-+	}
-+	dev->platform_data = handle;
-+
-+	return_VALUE(0);
++		return val;
++	return -ENODEV;
 +}
 +
-+static int acpi_unbind_one(struct device *dev)
-+{
-+	ACPI_FUNCTION_TRACE("acpi_unbind_one");
-+
-+	if (!dev->platform_data)
-+		return_VALUE(0);
-+	if (dev == acpi_get_physical_device(dev->platform_data)) {
-+		/* For acpi_get_physical_device */
-+		put_device(dev);
-+		acpi_detach_data(dev->platform_data, acpi_device_glue_handle);
-+		dev->platform_data = NULL;
-+		/* For acpi_bind_one */
-+		put_device(dev);
-+	} else {
-+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-+		  "Oops, data corrupt for %s\n", dev->bus_id));
-+	}
-+	return_VALUE(0);
-+}
-+
-+static int acpi_platform_notify (struct device *dev)
-+{
-+	struct acpi_bus_type	*type;
-+	acpi_handle		handle;
-+	int			ret = -EINVAL;
-+
-+	ACPI_FUNCTION_TRACE("acpi_platform_notify");
-+
-+	if (!dev->bus || !dev->parent) {
-+		/* bridge devices genernally haven't bus or parent */
-+		ret = acpi_find_bridge_device(dev, &handle);
-+		goto end;
-+	}
-+	type = acpi_get_bus_type(dev->bus);
-+	if (!type) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No ACPI bus support"));
-+		ret = -EINVAL;
-+		goto end;
-+	}
-+	if ((ret = type->find_device(dev, &handle)))
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Can't find child"));
-+end:
-+	if (!ret)
-+		acpi_bind_one(dev, handle);
-+
-+#if 0
-+	if (!ret) {
-+		struct acpi_buffer      buffer = {ACPI_ALLOCATE_BUFFER, NULL};
-+
-+		acpi_get_name(dev->platform_data, ACPI_FULL_PATHNAME, &buffer);
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device %s -> %s\n",
-+			dev->bus_id, (char *)buffer.pointer));
-+		acpi_os_free(buffer.pointer);
-+	} else
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device %s -> No ACPI support\n",
-+			dev->bus_id));
-+#endif
-+
-+	return_VALUE(ret);
-+}
-+
-+static int acpi_platform_notify_remove(struct device *dev)
-+{
-+	acpi_unbind_one(dev);
-+	return 0;
-+}
-+
-+static int __init init_acpi_device_notify(void)
-+{
-+	if (acpi_disabled)
-+		return 0;
-+	platform_notify = acpi_platform_notify;
-+	platform_notify_remove = acpi_platform_notify_remove;
-+	return 0;
-+}
-+arch_initcall(init_acpi_device_notify);
-diff -puN drivers/acpi/Makefile~bind-acpi-devcore drivers/acpi/Makefile
---- 2.5/drivers/acpi/Makefile~bind-acpi-devcore	2005-01-05 09:56:48.756737328 +0800
-+++ 2.5-root/drivers/acpi/Makefile	2005-01-05 09:56:48.762736416 +0800
-@@ -36,7 +36,7 @@ processor-objs	+= processor_perflib.o			
- endif
+ /* ACPI bus type */
+ int pci_acpi_bind_device(struct device *dev, acpi_handle *handle)
+ {
+@@ -250,6 +268,7 @@ static int __init pci_acpi_init(void)
+ 	ret = register_acpi_bus_type(&pci_acpi_bus);
+ 	if (ret)
+ 		return 0;
++	platform_pci_get_suspend_state = acpi_get_suspend_state;
+ 	return 0;
+ }
+ arch_initcall(pci_acpi_init);
+diff -puN drivers/pci/pci-driver.c~acpi-pci-get-suspend-state-callback drivers/pci/pci-driver.c
+--- 2.5/drivers/pci/pci-driver.c~acpi-pci-get-suspend-state-callback	2005-01-05 09:57:46.951890320 +0800
++++ 2.5-root/drivers/pci/pci-driver.c	2005-01-05 09:57:46.956889560 +0800
+@@ -284,13 +284,13 @@ static int pci_device_remove(struct devi
+ 	return 0;
+ }
  
- obj-$(CONFIG_ACPI_BUS)		+= sleep/
--obj-$(CONFIG_ACPI_BUS)		+= bus.o
-+obj-$(CONFIG_ACPI_BUS)		+= bus.o glue.o
- obj-$(CONFIG_ACPI_AC) 		+= ac.o
- obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
- obj-$(CONFIG_ACPI_BUTTON)	+= button.o
-diff -puN include/acpi/acpi_bus.h~bind-acpi-devcore include/acpi/acpi_bus.h
---- 2.5/include/acpi/acpi_bus.h~bind-acpi-devcore	2005-01-05 09:56:48.758737024 +0800
-+++ 2.5-root/include/acpi/acpi_bus.h	2005-01-05 09:56:48.762736416 +0800
-@@ -337,6 +337,27 @@ int acpi_match_ids (struct acpi_device	*
- int acpi_create_dir(struct acpi_device *);
- void acpi_remove_dir(struct acpi_device *);
- 
-+
+-static int pci_device_suspend(struct device * dev, u32 state)
 +/*
-+ * Bind physical devices with ACPI devices
++ * return value: failed < 0, success >= 0
 + */
-+#include <linux/device.h>
-+struct acpi_bus_type {
-+	struct list_head	list;
-+	struct bus_type		*bus;
-+	/* For general devices under the bus*/
-+	int (*find_device)(struct device *, acpi_handle*);
-+	/* For bridges, such as PCI root bridge, IDE controller */
-+	int (*find_bridge)(struct device *, acpi_handle *);
-+};
-+int register_acpi_bus_type(struct acpi_bus_type *);
-+int unregister_acpi_bus_type(struct acpi_bus_type *);
-+struct device *acpi_get_physical_device(acpi_handle);
-+/* helper */
-+acpi_handle acpi_get_child(acpi_handle, acpi_integer);
-+acpi_handle acpi_get_pci_rootbridge_handle(unsigned int, unsigned int);
-+#define DEVICE_ACPI_HANDLE(dev) ((acpi_handle)((dev)->platform_data))
-+
- #endif /*CONFIG_ACPI_BUS*/
++int (*platform_pci_get_suspend_state) (struct device *, u32) = NULL;
++static int pci_get_suspend_state(struct device *dev, u32 state)
+ {
+-	struct pci_dev * pci_dev = to_pci_dev(dev);
+-	struct pci_driver * drv = pci_dev->driver;
+-	u32 dev_state;
+-	int i = 0;
+-
++	int dev_state = -1;
+ 	/* Translate PM_SUSPEND_xx states to PCI device states */
+ 	static u32 state_conversion[] = {
+ 		[PM_SUSPEND_ON] = 0,
+@@ -299,10 +299,25 @@ static int pci_device_suspend(struct dev
+ 		[PM_SUSPEND_DISK] = 3,
+ 	};
  
- #endif /*__ACPI_BUS_H__*/
++	if (platform_pci_get_suspend_state)
++		dev_state = platform_pci_get_suspend_state(dev, state);
++	if (dev_state >= 0)
++		return dev_state;
+ 	if (state >= sizeof(state_conversion) / sizeof(state_conversion[1]))
+ 		return -EINVAL;
++	return state_conversion[state];
++}
+ 
+-	dev_state = state_conversion[state];
++static int pci_device_suspend(struct device * dev, u32 state)
++{
++	struct pci_dev * pci_dev = to_pci_dev(dev);
++	struct pci_driver * drv = pci_dev->driver;
++	int dev_state;
++	int i = 0;
++
++	dev_state = pci_get_suspend_state(dev, state);
++	if (dev_state < 0)
++		return -EINVAL;
+ 	if (drv && drv->suspend)
+ 		i = drv->suspend(pci_dev, dev_state);
+ 	else
+diff -puN drivers/pci/pci.h~acpi-pci-get-suspend-state-callback drivers/pci/pci.h
+--- 2.5/drivers/pci/pci.h~acpi-pci-get-suspend-state-callback	2005-01-05 09:57:46.952890168 +0800
++++ 2.5-root/drivers/pci/pci.h	2005-01-05 09:57:46.956889560 +0800
+@@ -11,6 +11,9 @@ extern int pci_bus_alloc_resource(struct
+ 				  void (*alignf)(void *, struct resource *,
+ 					  	 unsigned long, unsigned long),
+ 				  void *alignf_data);
++/* Firmware callbacks */
++extern int (*platform_pci_get_suspend_state)(struct device *dev, u32 state);
++
+ /* PCI /proc functions */
+ #ifdef CONFIG_PROC_FS
+ extern int pci_proc_attach_device(struct pci_dev *dev);
 _
 
---=-wfwOPoQTLYs8frb4jTsC--
+--=-xPVoT0OXtcMyCbH9SxFJ--
 
 
 
