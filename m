@@ -1,45 +1,49 @@
-From: Hamie <hamish@travellingkiwi.com>
-Subject: Re: [ACPI] No APIC interrupts after ACPI suspend
-Date: Sat, 26 Jun 2004 19:03:38 +0100
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <40DDBA7A.6010404@travellingkiwi.com>
-References: <1088160505.3702.4.camel@tyrosine> <1088268145.14987.248.camel@zion.2good.net>
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: Re: Still problems with ACPI sleep state
+Date: Sat, 26 Jun 2004 12:03:52 -0700 (PDT)
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20040626120209.Y12968@root.org>
+References: <200406251547.21050.mailinglisten@merula.de>  <1088172763.1918.1.camel@camel>
+  <20040625211440.P5510@root.org> <1088254830.4302.1.camel@tyrosine>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S266345AbUFZSEH@vger.kernel.org>
-In-Reply-To: <1088268145.14987.248.camel@zion.2good.net>
-To: David Eriksson <david@2good.nu>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1088254830.4302.1.camel-myFlNLNQP+Q@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-David Eriksson wrote:
+On Sat, 26 Jun 2004, Matthew Garrett wrote:
+> On Fri, 2004-06-25 at 21:15 -0700, Nate Lawson wrote:
+>
+> > Could someone familiar with Linux let me know what s3_bios does
+> > differently from a normal S3?
+>
+> It tries to reinitialise the video bios after resume. This sometimes
+> helps get some amount of video functionality back. The actual sleep and
+> resume process is identical other than that.
 
->On Fri, 2004-06-25 at 12:48, Matthew Garrett wrote:
->  
->
->>If I do an S3 suspend, my machine resumes correctly (Thinkpad X40,
->>acpi_sleep=s3_bios passed on the command line). If I have the ioapic
->>enabled, however, I get no interrupts after resume. Hacking in a call to
->>APIC_init_uniprocessor in the resume path improves things - I get edge
->>triggered interrupts, but anything flagged as level triggered doesn't
->>work. How can I get the ioapic fully initialised on resume?
->>    
->>
->
->Maybe you've found this bug?
->
->http://bugme.osdl.org/show_bug.cgi?id=2643
->
->  
->
-I think you're right... I've applied the patch to 2.6.7, and I'm still 
-running after a boot-suspend-resume cycle. Hopefully it isn't just a 
-fluke :)
+I see.  I didn't know if it was something else.  This is just the lcall
+hack.  We do that too:
 
-The original patch seems to have been logged at the time of 2.6.6. Was 
-it just too late to make 2.6.7? Will it be fixed in 2.6.8?
+        /* Re-initialize video BIOS if the reset_video tunable is set. */
+        cmp     $0,reset_video
+        je      wakeup_16_gdt
+        lcall   $0xc000,$3
 
-Thanks.
+-Nate
 
-  Hamish.
+
+-------------------------------------------------------
+This SF.Net email sponsored by Black Hat Briefings & Training.
+Attend Black Hat Briefings & Training, Las Vegas July 24-29 - 
+digital self defense, top technical experts, no vendor pitches, 
+unmatched networking opportunities. Visit www.blackhat.com
