@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [BUG] - Thermal or BIOS on VIA_kt-400
-Date: Thu, 25 Dec 2003 13:40:50 +0800
+Subject: RE: problems with acpi (sleep states) on vaio notebook z1sp
+Date: Thu, 25 Dec 2003 15:35:24 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C5B@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C5E@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,21 +17,16 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Damian Kolkowski <damian-8hv6UaVLA0HLQ3KC8Z2sWkB+6BGkLq7r@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Nils Spengler <nils.spengler-JAEaK7xBpqGzQB+pC5nmwQ@public.gmane.org>, Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->> > > my _thermal_ module shows always "40 C" - why?
->> > Maybe this is a bug relative to DSDT.
->>=20
->> So how can I use my own dsdt table and is this a fix, or how can I
-fix that
->> dsdt bug, so my thermal.o can work correct?
->
->So answer for my questions is on http://acpi.sf.net/dsdt/; I'll read it
-:-)
+>are there any other possibilities to debug pm or to support the
+developers in any
+>way?
 
-First, you need to verify whether _TMP return reasonable value.
+I think we need to find out common things , and fix them one by one!
+bugzilla.kernel.org will help us to track any ACPI issue.
+
 
 
 -------------------------------------------------------
