@@ -1,15 +1,16 @@
-From: tmc-+XVqjN4+fIJfbCVcMT5z6Ydd74u8MsAO@public.gmane.org (Tomasz Ciolek)
-Subject: Re: ACPI PM Timer
-Date: Wed, 25 Feb 2004 08:32:34 +1100
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: b44 -- Re: No network after S3
+Date: 24 Feb 2004 17:00:24 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040224213234.GB8166@dreamcraft.com.au>
-References: <F760B14C9561B941B89469F59BA3A8470255F022@orsmsx401.jf.intel.com>
+Message-ID: <1077660024.3036.56.camel@dhcppc4>
+References: <BF1FE1855350A0479097B3A0D2A80EE0025A6344@hdsmsx402.hd.intel.com>
+	 <1077000806.2515.46.camel@dhcppc4> <200402170856.42059.t.zachmann@zagge.de>
+	 <200402240741.30530.t.zachmann@zagge.de>  <1077640877.5369.12.camel@homer>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <F760B14C9561B941B89469F59BA3A8470255F022-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
+In-Reply-To: <1077640877.5369.12.camel-0dCjsm2Eg2I@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,56 +19,68 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>, john stultz <johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Peter Meier <crazy-b-Mmb7MZpHnFY@public.gmane.org>
+Cc: Thorsten Zachmann <t.zachmann-c61pB8mzqkY@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, pp-YuCZbdju05vHOG6cAo2yLw@public.gmane.org, davem-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-That has been there for quite a while - since 2.6.1-rc something or
-another....
+On Tue, 2004-02-24 at 11:41, Peter Meier wrote:
+> <snip>
+> 
+> I'm having the same problem that my network is dead after I resume
+> from
+> S3, but I'm getting some kind of (maybe?) helpfull error message:
+> 
+> b44: eth0: BUG!  Timeout waiting for bit 80000000 of register 428 to
+> clear.
+> b44: eth0: BUG!  Timeout waiting for bit 80000000 of register 428 to
+> clear.
 
-TMC
+from b44.h:
 
-On Tue, Feb 24, 2004 at 01:08:08PM -0800, Grover, Andrew wrote:
-> So 2.6.4 will support the option of using the PM timer as the main
-> kernel timesource!
->=20
-> This is great. This has been on my personal wish list for, oh, about 4
-> years now. I just wanted to say thanks to Dominik, John, and Dmitry for
-> making it happen.
->=20
-> Regards -- Andy
->=20
-> -----------------------------
-> Andrew Grover
-> Intel Labs / Mobile Architecture
-> andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
->=20
->=20
->=20
-> -------------------------------------------------------
-> SF.Net is sponsored by: Speed Start Your Linux Apps Now.
-> Build and deploy apps & Web services for Linux with
-> a free DVD software kit from IBM. Click Now!
-> http://ads.osdn.com/?ad_id=1356&alloc_id438&op=3Dclick
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+#define B44_CAM_CTRL    0x0428UL /* EMAC CAM Control */
+#define  CAM_CTRL_BUSY          0x80000000 /* CAM Busy */
 
---=20
-Tomasz M. Ciolek=09
-***************************************************************************=
-****
- tmc at dreamcraft dot com dot au or tmc at goldweb dot com dot au =09
-***************************************************************************=
-****
-	GPG Key ID: 0x41C4C2F0  Key available on www.pgp.net=09
-***************************************************************************=
-****
-  Everything falls under the law of change;=09
-  Like a dream, a phantom, a bubble, a shadow,
-  like dew of flash of lightning.
-  You should contemplate like this.=20
+looks like this bit is polled after writing to the CAM.
+I have no idea what would cause the CAM busy bit to stay set forever.
+
+> I can rmmod b44 then, and modprobe it again, which leads to the
+> following:
+> 
+> b44.c:v0.92 (Nov 4, 2003)
+> PCI: Enabling device 0000:02:02.0 (0000 -> 0002)
+> PCI: Setting latency timer of device 0000:02:02.0 to 64
+> eh0: Broadcom 4400 10/100BaseT Ethernet ff:ff:ff:ff:ff:ff
+> eth0: PHY Reset would not complete.
+> b44: eth0: BUG!  Timeout waiting for bit 80000000 of register 428 to
+> clear. (several times)
+> 
+> So, somehow, the MAC address is incorrect. I can ping my local IP
+> address, but nothing else. There is no way to get the network card
+> back
+> to live, except rebooting. If I rmmod b44 *before* going to sleep, and
+> modprobing it after I resume, I'm getting the same faulty MAC address
+> and no network.
+
+apparently, the hardware is in a broken state, and re-loading the driver
+doesn't seem to clear it.
+
+It would be interesting to know if you can unload the driver before
+going to S3, and then load it after resuming from S3.  ie. can the b44
+hardware survive the S3 transition if it is quiescent?
+
+> Kernel is 2.6.3-mm3; I have IO-APIC enabled. cat /proc/interrupts
+> gives
+> me the idea that the network card uses PIC.
+
+system will be in XT-PIC mode or IO-APIC mode -- can't be both.  I
+assume that /proc/interrupts shows this device receiving no interrupts
+after the S3 resume?
+
+thanks,
+-Len
+
+
+
 
 
 -------------------------------------------------------
