@@ -1,10 +1,13 @@
-From: Lorenzo Colitti <lorenzo-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>
-Subject: [patch] swsusp2 should execute _WAK on resume
-Date: Mon, 07 Mar 2005 15:41:30 +0100
-Message-ID: <422C681A.5040208@colitti.com>
+From: John M Flinchbaugh <john-sQWoH1wgGpLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Re: [Suspend2-devel] Cause of Suspend2 resume failures on Toshiba laptops
+Date: Mon, 7 Mar 2005 11:48:00 -0500
+Message-ID: <20050307164800.GA28079@butterfly.hjsoft.com>
+References: <20050304175058.GA4042@blackham.com.au> <1110012298.6028.10.camel@DustPuppy.LNX.RO> <20050305100254.GH4042@blackham.com.au> <20050305175640.GL3485@openzaurus.ucw.cz> <20050305203533.GI4042@blackham.com.au>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------070804090804030801090305"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="LQksG6bCIzRHxTLp"
+Content-Disposition: inline
+In-Reply-To: <20050305203533.GI4042-4vSAtV5O1nc0n/F98K4Iww@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,78 +17,65 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: softwaresuspend-devel-0fE9KPoRgkgATYTw5x5z8w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, Dumitru Ciobarcianu <swsusp-devel-P4rH+HwZiSk@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, suspend2-devel-g/J2nbn7YhmWn91e4EydUaxOck334EZe@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------070804090804030801090305
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+
+--LQksG6bCIzRHxTLp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On Sun, Mar 06, 2005 at 04:35:33AM +0800, Bernard Blackham wrote:
+> So, combining this patch with the previous kacpid NOFREEZE patch...
+> Does this make people happy? :) (And should it be submitted via Len
+> or akpm?)
+> --=20
+>  Bernard Blackham <bernard at blackham dot com dot au>
 
-[CCing ACPI-devel in case someone wants to comment]
+> --- linux-2.6.9-rc1/drivers/acpi/events/evgpe.c.orig	2005-03-06 04:29:40.=
+000000000 +0800
+> +++ linux-2.6.9-rc1/drivers/acpi/events/evgpe.c	2005-03-06 04:29:49.00000=
+0000 +0800
+> @@ -253,10 +253,6 @@
+>  	ACPI_FUNCTION_TRACE ("ev_disable_gpe");
+> =20
+> =20
+> -	if (!(gpe_event_info->flags & ACPI_GPE_ENABLE_MASK)) {
+> -		return_ACPI_STATUS (AE_OK);
+> -	}
+> -
+>  	/* Make sure HW enable masks are updated */
+> =20
+>  	status =3D acpi_ev_update_gpe_enable_masks (gpe_event_info, ACPI_GPE_DI=
+SABLE);
 
-Using swsusp2 2.1.8 on a vanilla 2.6.11 kernel (but I have been seeing=20
-this since v2.1 on 2.6.9), my laptop (HP nc6000) doesn't generate any=20
-ACPI thermal events after resume. This means the fans only come on=20
-(screaming) if the CPU reaches 85 =B0C or so, which is not very healthy.
+I'm looking into your patches in hopes to eliminate system freezes
+related to ACPI and swsusp on my Thinkpad R40.
 
-This is due to the fact that unlike swsusp and S3, swsusp2 does not call=20
-the ACPI _WAK method, which the ACPI spec says should be called when the=20
-machine comes out of a sleep state. If I hack swsusp2 so that it calls=20
-the _WAK method on resume, the fans work correctly after resume.
+I can apply this patch to 2.6.11.1, but the previous PF_NOFREEZE patch
+won't compile.  Would you mind providing a proper patch for 2.6.11.1
+that makes all the changes you intend?
 
-I do this via the attached hack, but I don't know much about the=20
-workings of swsusp2, so I don't know if it's the right approach. It does=20
-work for me though, and even if the details of the patch aren't right,=20
-based on my reading of the ACPI spec I think this should be done.
+Thanks.
+--=20
+John M Flinchbaugh
+john-sQWoH1wgGpLQT0dZR+AlfA@public.gmane.org
 
-Comments? Is it fit to apply to the swsusp2 tree?
+--LQksG6bCIzRHxTLp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.0 (GNU/Linux)
 
-Cheers,
-Lorenzo
+iD8DBQFCLIXACGPRljI8080RAllLAJ9uP/b9/M+qTxbUsiZ4tdvQBMV8mwCgiS4/
+DEOBcS3yiBkdjr0lFe2ecRE=
+=ic0B
+-----END PGP SIGNATURE-----
 
-P.S. I have been using swsusp2 since v2.1 for 2.6.9, and it works like a=20
-charm. A big thank you to the people that made it possible. :)
-
---------------070804090804030801090305
-Content-Type: text/plain;
- name="patch-swsusp2-acpiwakeonresume.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="patch-swsusp2-acpiwakeonresume.diff"
-
-diff -u linux-2.6.11/kernel/power/suspend2_core/suspend.c linux-2.6.11-patched/kernel/power/suspend2_core/suspend.c
---- linux-2.6.11/kernel/power/suspend2_core/suspend.c	2005-03-07 15:17:31.000000000 +0100
-+++ linux-2.6.11-patched/kernel/power/suspend2_core/suspend.c	2005-03-07 15:18:47.000000000 +0100
-@@ -404,6 +404,10 @@
-  * Called From     : do_suspend2_lowlevel
-  */
- 
-+#ifdef CONFIG_ACPI
-+extern u32 acpi_leave_sleep_state (u8 sleep_state);
-+#endif
-+
- static void do_suspend2_resume_2(void)
- {
- 	set_suspend_state(SUSPEND_NOW_RESUMING);
-@@ -433,6 +437,11 @@
- 	suspend_checksum_print_differences();
- 
- 	prepare_status(0, 0, "Cleaning up...");
-+
-+#ifdef CONFIG_ACPI
-+	if (suspend_powerdown_method)
-+		acpi_leave_sleep_state(suspend_powerdown_method);
-+#endif
- }
- 
- /*
-
---------------070804090804030801090305--
+--LQksG6bCIzRHxTLp--
 
 
 -------------------------------------------------------
