@@ -1,17 +1,14 @@
-From: Pavel Vondricka <Pavel.Vondricka-1W7zqEVgo5LrBKCeMvbIDA@public.gmane.org>
-Subject: Re: Freezing more and more (Gericom Supersonic M6T)
-Date: Sat, 8 Mar 2003 15:49:13 -0100
+From: Daniele Boffi <boffi-piYtxHxN1XRAly3Pu9w1wA@public.gmane.org>
+Subject: Re: Compaq evo n800v
+Date: Sat, 8 Mar 2003 20:59:45 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200303081549.13137.Pavel.Vondricka@ff.cuni.cz>
-References: <200303041529.11172.Pavel.Vondricka@ff.cuni.cz> <200303072309.59986.Pavel.Vondricka@ff.cuni.cz> <20030308110505.GA21057@atrey.karlin.mff.cuni.cz>
-Reply-To: Pavel.Vondricka-1W7zqEVgo5LrBKCeMvbIDA@public.gmane.org
+Message-ID: <20030308205945.A17123@fermat.unipv.it>
+References: <1047125223.5077.28.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030308110505.GA21057-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <1047125223.5077.28.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>; from anders.persson-sT6loi8rTDSci/EUP2OQSw@public.gmane.org on Sat, Mar 08, 2003 at 01:07:03PM +0100
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,30 +17,52 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+To: Anders Persson <anders.persson-sT6loi8rTDSci/EUP2OQSw@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> If you are using binary-only module... Well... Do not complain.
+Anders,
+I have a Compaq EVO N800v too.
 
-I compiled the ltmodem package myself. I think, there is some precompiled 
-binary module inside already. However, the system was stable before, even 
-though I used a module, which officially SHOULDN'T compile and run with gcc 
-3.2 compiler/ compiled kernel - I had to use "forced insmode" and it run and 
-was stable! Now I use officially supported version for gcc3.2 and do not need 
-forced insmod. And, BTW, I often do not use the modem (i.e. the module is 
-usually not loaded at all, so far I know) and the computer HAS problems. 
-There are mostly no problems when using the modem.
+> 2.4.20 kernel +
+> patch-2.4.21-pre4.gz +
+> acpi-20030218-2.4.21-pre4.diff.gz +
+> linux-2.4.18-acpi-20020709-dsdt.patch +
+> custom dsdt
 
-Pavel
--- 
-###########################################################################
-# mailto:Pavel.Vondricka-1W7zqEVgo5LrBKCeMvbIDA@public.gmane.org / ICQ:143159880 
-# http://web.ff.cuni.cz/~vondric
-#
-# Muzete mi psat cesky s libovolnym kodovanim (UTF-8, ISO-8859-2,
-# windows-1250, atd. ...)
-###########################################################################
+I am using 2.4.20, no 21-pre patch.
+
+> 
+> AC- and battery-status works just fine, as well as the Fn-combinations
+> for screen-brightness. 
+
+Same to me.
+
+> But no matter how low the CPU-load, the clock frequency is always at
+> max.
+
+Same, is that different under Windows?
+
+> Also, the fan(s?) are always on making noise (at relatively low
+> speed but still too high compared to under Win-XPP).  
+
+I am not experiencing that. I can see 4 fans in /proc/acpi/fan and their status
+depends on the (three) thermal zones.
+I guess you did something wrong with your custom dsdt.
+
+FYI:
+
+ls /proc/acpi/fan
+
+C1D9  C1DA  C1DB  C1DC
+
+ls /proc/acpi/thermal_zone
+
+TZ1  TZ2  TZ3
+
+
+
+Daniele
 
 
 -------------------------------------------------------
