@@ -1,12 +1,12 @@
 From: Sourav K Mandal <smandal-DPNOqEs/LNQ@public.gmane.org>
-Subject: Re: Re: Compaq Presario 2800T
-Date: Wed, 07 Aug 2002 18:57:25 -0400
+Subject: Re: acpi debug messages from compaq presario 2800...
+Date: Wed, 07 Aug 2002 19:07:04 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200208072257.SAA04328@magic-pi-ball.mit.edu>
-References: <20020807224648.5744.qmail@scrye.com>
+Message-ID: <200208072307.TAA05468@magic-pi-ball.mit.edu>
+References: <20020807225425.5804.qmail@scrye.com>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: Your message of "Wed, 07 Aug 2002 16:46:43 MDT."
-             <20020807224648.5744.qmail-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: Your message of "Wed, 07 Aug 2002 16:54:19 MDT."
+             <20020807225425.5804.qmail-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,28 +20,37 @@ Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-> The Fn f7 (dim) and Fn-f8 (brighten) and Fn-F4 (monitor) all work fine
-> when I first boot up. They also work fine if I start X with no DRM. If
-> I start X with drm, then they stop working and won't work again until
-> I reboot. 
 
-Exactly what I'm getting, but with stock DRI modules.
+> Could not install Pci_config handler for C03C, AE_ALREADY_EXISTS 
+> ....evrgnini-0243: *** Error: Could not install Pci_config handler for
+> C03C, AE_ALREADY_EXISTS
+> 
+> Is this a problem? Any ideas what C03C is? 
 
-> Any ideas? Could be a XFree86 version problem? 
+I have the exact same error messsages.  As I speculated earlier,
+this could be affecting the soundcard and modem, which are both
+PCI.  The soundcard ALSA drivers must be unloaded and reloaded
+on suspend, sound apps die when I hit "pause", and Quake 3 
+doesn't work any more (complains of "broken pipe" when 
+accessing the emulated OSS device).  Second, modem has gotten 
+flakier -- it refuses to connect after coming out of a suspend, 
+requiring a reboot.  I'm trying out unloading/reloading those 
+modules as well in my suspend script ...
 
-Unforunately, not really.  :-(
+None of these problems occurred prior to modifying my DSDT.
 
-My (layman's) guess is that it has something to do with the GPU's
-power state.  The BIOS won't shut down the LCD until it's
-satisfied with the Radeon's power state; once DRM is used
- the Radeon cannot enter an acceptable power state.
+Can you verify these effects?
 
-This is the inverse of the DRI-on-resume problem, that once
-the Radeon is shutdown w/o reset, the DRM "parts" don't 
-wake up properoly.
+Unfortunately, I haven't yet figured out what C03C is.
 
 
 Sourav
+
+
+PS:  There's also token in the DSDT that starts with "*SYN" ...
+i wonder if that needs to be changed to "SYN" as well.
+
+
 
 
 -------------------------------------------------------
