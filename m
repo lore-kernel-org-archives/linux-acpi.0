@@ -1,14 +1,16 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Fujitsu P2120 S3 resume - no video, lost PCI config, suggestions?
-Date: Wed, 5 Mar 2003 21:20:02 +0100
+From: "DPR" <info-IGm5bqYn3xwb1SvskN2V4Q@public.gmane.org>
+Subject: RE: mpparse.c APIC/ACPI support
+Date: Wed, 5 Mar 2003 22:51:22 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030305202002.GA12499@poup.poupinou.org>
-References: <20030305150729.GJ7861@poup.poupinou.org> <Pine.LNX.4.33.0303051119320.994-100000@localhost.localdomain>
+Message-ID: <000501c2e361$5f21d1e0$0200a8c0@brutzler>
+References: <000001c2e27f$74ae2910$0200a8c0@brutzler>
+Reply-To: <info-IGm5bqYn3xwb1SvskN2V4Q@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.33.0303051119320.994-100000-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+In-Reply-To: <000001c2e27f$74ae2910$0200a8c0-IGm5bqYn3xw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,30 +19,40 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
-Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Ole Rohne <ole.rohne-vJEk5272eHo@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "'Grover, Andrew'" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "'Cagle, John (ISS-Houston)'" <john.cagle-VXdhtT5mjnY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: alan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Mar 05, 2003 at 11:22:24AM -0600, Patrick Mochel wrote:
-> 
-> > There are more things to do when you want to save/restore video devices,
-> > as for example saving the framebuffer.  There are some code already
-> > present in some fb drivers, but for openfirmware use.  Perhaps we
-> > should as well enable them in general.
-> 
-> Defintely. However, what I was more concerned with was the fact that there
-> is a definite hang when writing PCI config space. Getting around that will
-> enable progess in saving/restoring the rest of the state..
-> 
+> Perhaps these messages from "pcibios_enable_irq" will help 
+> you finding the error ...
 
-Correct.  Perhaps then the bridge between the host and the video device
-is not well restored (imo this card is AGP)?
+Sorry, the messages don't come from "pcibios_enable_irq" but from "acpi_pci_irq_init".
+So this seems to be my problem because the following code snippet in "acpi_pci_irq_enable" will
+never be executed (at least in my case)
 
--- 
-Ducrot Bruno
+	dev->irq = irq;
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device %s using IRQ %d\n", dev->slot_name, dev->irq));
+
+	/* 
+	 * Make sure all (legacy) PCI IRQs are set as level-triggered.
+	 */
+#ifdef CONFIG_X86
+	if ((dev->irq < 16) &&  !((1 << dev->irq) & irq_mask)) {
+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Setting IRQ %d as level-triggered\n",
+dev->irq));
+		irq_mask |= (1 << dev->irq);
+		eisa_set_level_irq(dev->irq);
+	}
+#endif
+
+	return_VALUE(dev->irq);
+
+
+Regards,
+
+HOLGER
+
 
 
 -------------------------------------------------------
