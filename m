@@ -1,14 +1,17 @@
-From: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
-Subject: Re: performance mgt and sleep don't work on Acer TM621
-Date: Mon, 13 Jan 2003 15:07:31 +0100
+From: Thomas Estaben <tom-GJzCDJVA6d1BDgjK7y7TUQ@public.gmane.org>
+Subject: Re: Thinkpad users
+Date: Mon, 13 Jan 2003 15:32:18 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030113140731.GA7365@brodo.de>
-References: <200301131416.14923.mrvanes@bigfoot.com>
+Message-ID: <200301131532.18120.tom@supinfo.com>
+References: <200301110231.56806.dom@wahuu.at>
+Reply-To: tom-GJzCDJVA6d1BDgjK7y7TUQ@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200301110231.56806.dom-K271P2BsTd0@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200301131416.14923.mrvanes-jG/AHqQBv7lBDgjK7y7TUQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,50 +20,59 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Martin van Es <mrvanes-jG/AHqQBv7lBDgjK7y7TUQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hello Dom,
 
-On Mon, Jan 13, 2003 at 02:16:14PM +0100, Martin van Es wrote:
->  Recently I started experimenting with the 'write' interface and tried to
->  get the performance of my coppermine PIII 1G to switch from 1G to 733MHz
->  or vise versa using
->  echo -n 1 > /proc/acpi/CPU0/performance
->  
->  But both 'cat'ing performance to see what happened and running bogomips
->  show my processor is still running @ 1GHz. It is also the other way round.
->  Once booted at 733MHz (because of absence of AC adapter) it cannot be forced
->  into 1G, even with AC attached.
->  
->  Info tells me performance management is available:
->  cat /proc/acpi/processor/CPU0/info:
->  processor id:            0
->  acpi id:                 1
->  bus mastering control:   yes
->  power management:        yes
->  throttling control:      no
->  performance management:  yes
->  limit interface:         yes
->  
->  cat /proc/acpi/processor/CPU0/performance:
->  state count:             2
->  active state:            P0
->  states:
->     *P0:                  1000 MHz, 20000 mW, 500 uS
->      P1:                  733 MHz, 10000 mW, 500 uS
->  
->  Am I doing something wrong? Forgot to compile in something?
+i am the owner of a thinkpad t30, and i have exactly the same problem you a=
+re=20
+describing..
+I also tried to join ibm by phone, but no-one seems able of doing something=
+=2E.=20
+ibm is too big.
+I think a petition would be a good manner to prove them that we are numerou=
+s=20
+to want a good bios. I would easily obtain more than 100 signature (more th=
+an=20
+200 persons have bought this laptop in my school).
 
-Have you compiled CONFIG_ACPI_DEBUG in? Are there any "strange" messages in
-"dmesg" after you try such a frequency transition? 
+My 2=E2=82=AC cents..
 
-BTW, if this is an Intel mobile processor and an Intel southbridge (ICH2-M 
-or ICH3-M), you might want to try cpufreq instead 
-( http://www.brodo.de/cpufreq/advanced.html ).
+Tom
 
-	Dominik
+PS:
+xcuse fo my bad english..
+
+On Saturday 11 January 2003 02:31, Dominik Bartenstein wrote:
+> To ALL Thinkpad users:
+>
+> I have written many emails and messages (http://www7.pc.ibm.com/~Thinkpad,
+> askibm-DhXWPJtHtuFWk0Htik3J/w@public.gmane.org, ...) but so far I have not received a satisfying
+> response from IBM. :-(
+>
+> Some questions:
+> o How many Thinkpad users are out there (or on this mailing list ;-))
+> craving for ACPI support under Linux?
+> o Do you think that a petition "Thinkpad ACPI support 4 Linux" might help?
+> o How difficult is it for you ACPI-developers to create an ugly work arou=
+nd
+> so that the buggy Thinkpad ACPI implementation would be supported?
+> o Any other ideas?
+>
+> Thanks,
+> Dom
+>
+>
+> -------------------------------------------------------
+> This SF.NET email is sponsored by:
+> SourceForge Enterprise Edition + IBM + LinuxWorld =3D Something 2 See!
+> http://www.vasoftware.com
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+
 
 
 -------------------------------------------------------
