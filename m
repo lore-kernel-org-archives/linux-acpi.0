@@ -1,15 +1,14 @@
-From: Bas Mevissen <ml-Y9IUUvl1dgU0Iwp8Nzs06g@public.gmane.org>
-Subject: Re: Fixing broken DSDT - code suggestions for comment
-	please!
-Date: Tue, 18 May 2004 17:30:10 +0200
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: ACPI HOWTO
+Date: Tue, 18 May 2004 17:36:36 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1084894210.8613.1.camel@localhost.localdomain>
-References: <1084889946.5037.2.camel@laptop.hydeco.com>
+Message-ID: <20040518153636.GE29214@poupinou.org>
+References: <B774920D825C2D4880A3C1B0D6EF94189A5063@ssdmx.ssd.fsi.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1084889946.5037.2.camel-t0Me6uhKnbVYViWeMKg0xQC/G2K4zDHf@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <B774920D825C2D4880A3C1B0D6EF94189A5063-YbQoUGCEyAW+LrQOllSzDQC/G2K4zDHf@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,32 +17,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: marmon-GymH4r+vMzPQT0dZR+AlfA@public.gmane.org
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Rockefeller, Harry" <harryr-UjZhlPPWhclBDgjK7y7TUQ@public.gmane.org>
+Cc: acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2004-05-18 at 16:19, Franklin Marmon wrote:
-> I've posted this question before, if its just a question that shall go
-> unanswered someone please let me know so I stop reposting it different
-> ways:
+On Tue, May 18, 2004 at 09:50:53AM -0500, Rockefeller, Harry wrote:
+> Several tech HowTos are maturing via direct input from users using
+> a wiki of some sort.  The ones I have used and seen however
+> suffer from poor organization.
 > 
-> Where would start searching for information on debugging a compiled
-> DSDT?  The iasl compiler believes it is fine, 0 errors, 0 warnings; but
-> I kernel panic in the one_complete_parse phase when booting using the
-> custom dsdt table.
+> I would suggest readers of this group pound out some kind of
+> a framework (outline?) that someone could host on a wiki where
+> everyone/anyone can ask questions and provide answers.
 > 
+> So, here is my attempt at getting it started:
+...
 
-Enable debugging in APCI and write down the call trace from syslog. Post
-it here and hopefully it will ring a bell.
-
-N.B. You are running a current kernel and using the latest ACPI patches?
-Please check that before trying. Because getting the answer that you've
-spent the whole night on hunting an old bug is quite frustrating...
-
-Bas.
+Basically, you are describing
+<http://acpi.sourceforge.net/wiki/index.php>, aren't you?
 
 
+-- 
+Bruno Ducrot
 
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
