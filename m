@@ -1,11 +1,11 @@
-From: Maier Gerfried <moali-ArvQUR6U0fYD0fefG/KofA@public.gmane.org>
-Subject: Re: Changing temperature trip points
-Date: Fri, 08 Nov 2002 12:29:58 +0100 (MET)
+From: <joerg.beyer-htSm2yLGOjU@public.gmane.org>
+Subject: Re: Battery charging state: unknown
+Date: Fri, 8 Nov 2002 13:16:57 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1036754998.3dcba03635bd3@sbox.tugraz.at>
+Message-ID: <200211081216.gA8CGuX15381@mailgate5.cinetic.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -15,33 +15,25 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, DanielHoffend <mail-nf-Mmb7MZpHnFY@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Zitiere Arndt Schoenewald <abs-SA7OhAOe25xnNxvc45mVi0K323yFvGpRdefyYXQ/eNw@public.gmane.org>:
-
-> Yes, /proc/acpi/fan/... should be present, also in 2.4.x kernels; I had
-> it all the time since 2.4.18+acpi-20020329 (the first Linux+ACPI kernel
-> I put on my then brandnew Gericom M6-T laptop). I haven't tried kernel
-> 2.4.20-rc1 yet, though.
+Daniel Hoffend <mail-nf-Mmb7MZpHnFY@public.gmane.org> schrieb am 07.11.02 23:09:43:
+> Hello 
 > 
-> Are you using the ACPI patch from http://sf.net/projects/acpi?
+> i have compiled my kernel (2.4.19) with the current patch
+> (acpi-20021022-2.4.19.diff.gz). The /proc/acpi/battery/BAT1/state shows
+> that there is an unknown charging stage, but when i remove the power 
+> supply of my Toshiba Notebook, then it turned to "discharging".
 
-Yes. With the suggested debugging-patch _HIGH -> _LOW and with acpi-debugging 
-enabled.
+I get this, when the Laptop is connected to power supply _and_
+is fully charged.
 
-> Of course the fan can only be controlled through ACPI if there is a fan
-> and it is listed correctly in the ACPI description tables. This is
-> typically the case for laptops and notebooks (but not for all of them),
-> and typically not the case for desktop machines.
+I get "charging" (or something similar - I have the laptop not with
+me right now), when it is charging.
 
-It's a Acer Travelmate Notebook and it has got a fan. I'm afraid, that I am not 
-able to have a look to the ACPI-description table with my recent knowlege. How 
-could I check this?
+    Joerg
 
-(According to lsmod the fan-module is loaded.)
-
-Gerfried
 
 
 -------------------------------------------------------
