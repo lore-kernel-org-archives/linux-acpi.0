@@ -1,10 +1,9 @@
-From: Thomas Geiger <geiger-Cb7RZHV19h45EzxeNYqZ9w@public.gmane.org>
+From: Dom <dom-K271P2BsTd0@public.gmane.org>
 Subject: Re: Re: IBM Thinkpad A31 | ACPI problems
-Date: Thu, 2 Jan 2003 21:27:24 +0100
+Date: Thu, 2 Jan 2003 21:25:03 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200301022127.25055.geiger@solution2u.net>
+Message-ID: <200301022125.03358.dom@wahuu.at>
 References: <000301c2b284$8a15d8f0$232202d3@sayonara>
-Reply-To: geiger-Cb7RZHV19h45EzxeNYqZ9w@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
@@ -23,13 +22,18 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Dear Kenichi,
 
-i'm also encountering the same problems with my (beloved ;) ) A31. So if there 
-is a possible workaround - is anyone already working on it/how difficult 
-would it be to implement such that hack?
+sorry - i did not see Andy Grover's reply to Sandro earlier on. So the problem 
+is a bug in the BIOS implementation. I have already contacted IBM via "Ask an 
+expert" and posted a message to http://www7.pc.ibm.com/~Thinkpad and I really 
+hope that they will reply. I will keep you up to date.
 
-Tom
+Thanks,
+Dominik
+
+p.s. How ugly would a work around for the BIOS problem be? Aren't there 
+already several work arounds for buggy BIOSes in the Linux kernel code?
 
 On Thursday 02 January 2003 18:29, Adachi, Kenichi wrote:
 > > I browsed the mailing list archives (December 2002, November 2002) and
@@ -61,27 +65,7 @@ On Thursday 02 January 2003 18:29, Adachi, Kenichi wrote:
 > You can work around your problem by adding hack code, but it makes OS
 > code dirty to save broken BIOSes and it allows BIOS vendor not to fix
 > their problem.
->
->
->
->
-> -------------------------------------------------------
-> This sf.net email is sponsored by:ThinkGeek
-> Welcome to geek heaven.
-> http://thinkgeek.com/sf
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
-
--- 
-thomas geiger
-solution2u.net gmbh * am hof 4 * a-6861 alberschwende
-fon +43 5579 85777-0 * fax +43 5574 54445-20 * mobil +43 664 38 12 645
-http://solution2u.net/ * geiger-Cb7RZHV19h45EzxeNYqZ9w@public.gmane.org
-
-have a nice day
 
 
 -------------------------------------------------------
