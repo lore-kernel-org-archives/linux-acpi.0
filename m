@@ -1,50 +1,30 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: S5 not working, and another problem
-Date: Sun, 21 Nov 2004 20:42:52 +0100
-Message-ID: <20041121194251.GA1133@elf.ucw.cz>
-References: <20041120025533.GA2384@prog3>
+From: Shawn Starr <shawn.starr@rogers.com>
+Subject: [BUG][2.6.10-rc2-mm2] ACPI S3 suspend to RAM broken (may be USB unable to resume)
+Date: Sun, 21 Nov 2004 18:11:07 -0500
+Message-ID: <200411211811.07785.shawn.starr@rogers.com>
+References: <200411161838.28344.shawn.starr@rogers.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261830AbUKUXLM@vger.kernel.org>
+In-Reply-To: <200411161838.28344.shawn.starr@rogers.com>
 Content-Disposition: inline
-In-Reply-To: <20041120025533.GA2384@prog3>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Kysilka <goldenfish-kkCZSxYw6FY@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
 
-> i was testing today acpi with 2.6.10-rc2 kernel on my computer.
-> 
-> 0) 
-> there are difference with dmesg and /proc/acpi/sleep
-> 
-> dmesg::
-> ACPI: (supports S0 S1 S4bios S5)
-> 
-> cat /proc/acpi/sleep ::
-> S0 S1 S4 S4bios S5 
-> 
-> feature or error ?
+-mm2 suffers this problem as well. I still am looking at what is causing it.
 
-Feature.
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
-
-
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now. 
-http://productguide.itmanagersjournal.com/
+On November 16, 2004 18:38, Shawn Starr wrote:
+> As of 2.6.10-rc1 + I can no longer resume from S3 (suspend-to-RAM),  When
+> it begins to resume, it seems to get stuck with USB (going to confirm)..
+> The laptop stays in a stuck state (cresent-moon remains lit).
+>
+> I have IBM-ACPI extras turned on (compiled in).
+>
+> Anyone else report this?
+>
+> Shawn.
