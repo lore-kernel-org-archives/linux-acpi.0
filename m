@@ -1,15 +1,15 @@
 From: Mario Lang <mlang-0OxMAPPu35xAfugRpC6u6w@public.gmane.org>
 Subject: Re: Switching LCD off on a laptop (or change to CRT)
-Date: Wed, 25 Sep 2002 19:07:05 +0200
+Date: Wed, 25 Sep 2002 19:09:25 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <87vg4uf16u.fsf@lexx.delysid.org>
+Message-ID: <87ptv2f12y.fsf@lexx.delysid.org>
 References: <871y7kkd7s.fsf@lexx.delysid.org>
-	<1032798967.1161.9.camel@paragon.slim>
+	<20020923153550.GA324@poup.poupinou.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1032798967.1161.9.camel-AynNu1t4G8oLie942ae2tA@public.gmane.org> (Jurgen Kramer's message
- of "23 Sep 2002 18:36:07 +0200")
+In-Reply-To: <20020923153550.GA324-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org> (Ducrot Bruno's
+ message of "Mon, 23 Sep 2002 17:35:50 +0200")
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,33 +18,31 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: Jurgen Kramer <gtm.kramer-c1aixF9oqgPk1uMJSBkQmQ@public.gmane.org>
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Jurgen Kramer <gtm.kramer-c1aixF9oqgPk1uMJSBkQmQ@public.gmane.org> writes:
+Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> writes:
 
-> I have the Japanese version of this laptop (Victor MP-XP7210) do the
-> Fn+F4, Fn+F5, Fn+F6 and Fn+F7 work for you?
-
-No.
-
-> BTW Fn+F10 works for me with kernel 2.4.19 + ACPI 20020918. The LCD does
-> go off. I do not have the VGA connector cable so I cannot see if it
-> switches to VGA output.
-Thanks for that tip, it actually works!
-
-I'm using 2.4.20-pre7-acpi-20020918 now, and it boots fine,
-all devices continue to work, Fn+F10 switches my LCD off, and
-setting limit in /proc/acpi/processor/CPU0/ also works, nice!
-
-(Btw, I'm wndering why it always shows P0:T0 as active state,
-even if I do nothing on the machine.  Is there a way to
-set it such that it automatically sets T1 or some higher state it the
-system load is effectively 0?
+>> I recently got a JVC MP-XP7210DE.  First of all, congrats,
+>> ACPI worked out of the box with 2.4.20pre7.  I have correct
+>> ac_adaptor info, correct battery info (even for both
+>> slots), and the power button works too under acpid.
+>
+> Have you patched your kernel with the current acpi for linux,
+> or did you mean the 'old' one?
+No, I ment the 'old' acpi.  I now patched 2.4.20-pre7 with acpi20020918,
+and everything works fine.
+>> One remaining glitch I have is getting the internal
+>> display to switch off.  Under XP, this works fine
+>> with Fn-F10.  If I do this under Linux, I get a message
+>> telling me that this button is not implemented (on the console).
+>
+> Could you send the actual message, please ?
+Under acpi20020918, it does no longer happen.
 
 -- 
-A happy,
+CYa,
   Mario
 
 
