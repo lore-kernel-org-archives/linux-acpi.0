@@ -1,13 +1,9 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Re: does cpu_idle() halt CPU?
-Date: Wed, 2 Apr 2003 14:20:41 -0800
+From: bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org
+Subject: Question about space handling
+Date: Wed, 02 Apr 2003 18:14:32 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A84725A245@orsmsx401.jf.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Message-ID: <200304022314.h32NEWi28650@throb.netspace.org>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,36 +12,51 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jan Rychter <jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Jan Rychter [mailto:jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org] 
-> USB preventing the machine from going into C3 is a serious 
-> problem. I still don't understand if that's a hardware thing 
-> or can we have a more reasonable HCI implementation that 
-> doesn't use DMA that much. How does Windows deal with it?
+I'm investigating the space handling issues on my Thinkpad R32 (and
+others).  The problem is that some AML seems to fail with
+AE_BAD_PARAMETER, as I reported on this list a week or two ago.  Lu
+Tong came up with a hack that fixes it, but I'm trying to get a "real"
+fix.
 
-Busmaster PCI devices keep us from using C3, because the CPU needs to be
-in C2 or higher to handle bus snoops, needed for cache coherency.
+Anyway, I've tracked things down a bit and gotten the following
+(heavily digested) info from debug traces:
 
-USB is a particular problem, because unlike other devices (like IDE)
-which only do busmaster when active, USB does them to its task list *all
-the time*. This is inherent in the hardware's design.
+evregion-0422 [26] ev_detach_region      : Removing Region cfec63a8 from address handler c135a128
+evregion-0422 [26] ev_detach_region      : Removing Region cfeccfa8 from address handler c135a128
+evregion-0535 [27] ev_attach_region      : Adding Region cfeccfa8 to address handler c135bda8 [EmbeddedControl]
+evregion-0535 [27] ev_attach_region      : Adding Region cfec63a8 to address handler c135bda8 [EmbeddedControl]
+evregion-0320 [43] ev_address_space_dispa: Addrhandler c135bda8 (c024cf8e), Address 000000000FF7BFC0
 
-Software can mitigate this in several ways. First, if there are no
-devices attached, then we can put the host controller into Global
-Suspend until a device is inserted. UHCI does not scan its task list
-when suspended. Windows does this (and so does the Linux "uhci" driver,
-but not "uhci-usb"). Another way is selective suspend. In this case, if
-*all* the attached devices suspend themselves, we can suspend the HC.
-Linux doesn't do this, but Win XP does. The worst scenario is any active
-device on the USB. This rules out any technique to minimize busmaster
-activity.
+The AE_BAD_PARAMETER comes shortly after these messages.  
 
-This is one reason why laptops have not switched to using internal USB
-connections for mouse and keyboard.
+The first two lines seem to detach the "makeshift" handlers. The second
+two are the handlers that are getting installed that are causing the
+problem.  My question is how to I determine what  c135bda8 refers to(*)?
 
-Regards -- Andy
+
+FWIW the new BIOS update that was mentioned on this list doesn't seem
+to do very much of anything.  There's a one line change on the DSDT
+and ECDT is still broken.  To add to the insult, it appears that
+things have changed enough that you can't use the old corrected ecdt
+table, you have to go through the rebuild process again.
+
+
+
+(*)I suspect that if I could look at _all_ the tracing info, I'd be able to
+find out, but I don't currently have a serial port, and there's more
+information than can fit in the kmsg buffer (CONFIG_LOG_BUF_SHIFT of
+greater than 21 prevents my machine from booting).  I was only able
+to get this info by targeting areas I was interested in.  If someone
+could give me a hint on where I should turn on tracing to get this
+info I'd appreciated it.
+
+
+--
+Brian Perkins                bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org 
+
 
 
 -------------------------------------------------------
