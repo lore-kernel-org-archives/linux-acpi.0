@@ -1,43 +1,60 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [patch] 2.4.x ACPI updates
-Date: Fri, 22 Aug 2003 22:15:24 -0400
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <BF1FE1855350A0479097B3A0D2A80EE009FCC3@hdsmsx402.hd.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-content-class: urn:content-classes:message
-To: Marcelo Tosatti <marcelo-KCZ47A4bww4P48s/oLjRZg@public.gmane.org>
-Cc: Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "J.A. Magallon" <jamagallon-cer70A47DaU@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+From: vscan-/F25LVKnkZ/cOiiuOcLwfw@public.gmane.org
+Subject: VIRUS IN DEINER MAIL
+Date: Sat, 23 Aug 2003 05:10:45 +0200 (CEST)
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20030823031045.25FE946B38@steve.prima.de>
+Reply-To: admin-MwLGnmOyd6g@public.gmane.org
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Marcelo,
-A small update to what you pulled this morning --
-fixes config options CONFIG_ACPI_HT_ONLY and CONFIG_HOTPLUG_PCI_ACPI.
+                           V I R U S  A L A R M
 
-I'm looking forward to deleting these #ifdef CONFIG_ACPI_HT_ONLY
-When we can (again) delete acpitable.[ch] in 2.4.23.
+Unser eMail-Virenscanner hat den/die Virus(e)
 
-Please 
+	Worm/Sobig.F virus
 
-	bk pull http://linux-acpi.bkbits.net/linux-acpi-2.4.22
+in Deiner Mail an:
 
-This 
+-> jano-VvDbUoaMBTznM6i0RdQ7NcGQWYsfwQaK@public.gmane.org
 
-This will update the following files:
+gefunden.
+Bitte ueberpruefe Dein System, ob Du einen Virus "eingefangen" hast,
+oder bitte Deinen Administrator, dies zu tun.
 
- drivers/hotplug/Config.in |    5 +++--
- include/asm-i386/acpi.h   |    7 +++++++
- include/linux/acpi.h      |    6 ++++++
- 3 files changed, 16 insertions(+), 2 deletions(-)
+Um Dir einen Ueberblick zu geben sind hier die Header Deiner Mail:
 
-through these ChangeSets:
+------------------------- BEGINN HEADER -----------------------------
+Received: from HXYONG (unknown [218.70.84.254])
+	by steve.prima.de (Postfix) with ESMTP id 1B0C246A1F
+	for <jano-VW/W2atD70tKfC+4CEGZ7Q@public.gmane.org>; Sat, 23 Aug 2003 05:10:06 +0200 (CEST)
+From: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: <jano-VW/W2atD70tKfC+4CEGZ7Q@public.gmane.org>
+Subject: Re: Thank you!
+Date: Sat, 23 Aug 2003 11:07:12 +0800
+X-MailScanner: Found to be clean
+Importance: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2600.0000
+X-MSMail-Priority: Normal
+X-Priority: 3 (Normal)
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="_NextPart_000_00DA4B99"
+Message-Id: <20030823031006.1B0C246A1F-R7ij+cZAMVtAxQJGcf1Z0A@public.gmane.org>
+-------------------------- ENDE HEADER ------------------------------
 
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/08/22 1.1107)
-   linux-acpi-2.4.22.patch
 
-ps. the plain patch is also available here:
-http://prdownloads.sourceforge.net/acpi/acpi-20030813-2.4.22-rc2.diff?do
-wnload
+
+-------------------------------------------------------
+This SF.net email is sponsored by: VM Ware
+With VMware you can run multiple operating systems on a single machine.
+WITHOUT REBOOTING! Mix Linux / Windows / Novell virtual machines
+at the same time. Free trial click here:http://www.vmware.com/wl/offer/358/0
