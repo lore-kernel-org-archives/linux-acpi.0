@@ -1,11 +1,11 @@
-From: Gerfried Maier <moali-ArvQUR6U0fYD0fefG/KofA@public.gmane.org>
-Subject: Zeroed field in /proc/..../CPU/performance
-Date: Fri, 22 Aug 2003 10:59:06 +0200
+From: <pgmdsg-/X6VYK7xyaY@public.gmane.org>
+Subject: Re: Approved
+Date: Thu, 21 Aug 2003 17:24:39 --0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3F45DB5A.2040001@sbox.tugraz.at>
+Message-ID: <E19pwvB-0000Ll-00@sc8-sf-list1.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+	boundary="_NextPart_000_00F6AE15"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -18,32 +18,25 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-/Dear acpi-list,
+This is a multipart message in MIME format
 
-Im running kernel 2.4.21 with acpi-20030619 on my Acer Travelmate.
-Almost everything works quite fine but when looking at 
-/proc/acpi/processor/CPU0/performance the fields which should 
-indicate/display power consumption information are zero:
+--_NextPart_000_00F6AE15
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 
-cat /proc/acpi/processor/CPU0/performance
-//state count:             2
-//active state:            P0
-//states:
-//   *P0:                  1800 MHz, 0 mW, 250 uS
-//    P1:                  1200 MHz, 0 mW, 250 uS
+See the attached file for details
+--_NextPart_000_00F6AE15
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-The CPU is an Intel P4-mobile, 1.8G
 
-The zeros shown are not specific to this version of acpi, the zeros are there 
-since the first time I tried out the acpi-patch somewhen in autumn 2002, but
-I did not worry about them...
+------------------  Virus Warning Message (on the network)
 
-Do these zeros have any effect or are they just for (user-) information?
+wicked_scr.scr is removed from here because it contains a virus.
 
-Regards,
-Maier Gerfried
-/
-
+---------------------------------------------------------
+--_NextPart_000_00F6AE15--
 
 
 
