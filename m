@@ -1,16 +1,18 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: PATCH: remove unused PCI root bridge resource stuff
-Date: Tue, 23 Sep 2003 11:15:40 -0600
+From: liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
+Subject: Re: Battery status reading problems
+Date: Tue, 23 Sep 2003 20:11:38 +0200 (CEST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200309231115.40415.bjorn.helgaas@hp.com>
-References: <200308061644.53928.bjorn.helgaas@hp.com> <200309171150.34360.bjorn.helgaas@hp.com>
+Message-ID: <Pine.LNX.4.58.0309232001000.1228@frog.athome>
+References: <m2vfrpthxt.fsf@tnuctip.rychter.com>
+ <Pine.LNX.4.58.0309192257480.1613@phoenix.kerstin.at>  <3F6EAADC.4020509@basmevissen.nl>
+  <Pine.LNX.4.53.0309220954120.9385@dynast.gaugusch.at>
+ <1064230622.8592.14.camel@dhcp23.swansea.linux.org.uk>  <3F703933.50604@basmevissen.nl>
+ <1064334307.14784.92.camel@idoru.kc.de>
+Reply-To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200309171150.34360.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1064334307.14784.92.camel-65LrUGLyukAb1SvskN2V4Q@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,236 +21,63 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Nils Faerber <nils-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
+Cc: Bas Mevissen <ml-Y9IUUvl1dgU0Iwp8Nzs06g@public.gmane.org>, Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>, Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Just checking again.  It just removes unused code.  In one
-sense, nobody uses it, so it's not hurting anything, but it
-would be a poor example for somebody to follow, too, so I
-think it really would be good to remove it.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-On Wednesday 17 September 2003 11:50 am, Bjorn Helgaas wrote:
-> Any news on this patch?  I'm just checking to make sure it doesn't
-> get dropped (and to see whether any you want any additional legwork
-> from me).
-> 
-> Bjorn
-> 
-> On Wednesday 06 August 2003 4:44 pm, Bjorn Helgaas wrote:
-> > This patch against the current 2.4 tree removes a bunch of
-> > ill-advised code I added to get _TRA information from PCI
-> > root bridges.
-> > 
-> > This was the wrong approach because for one thing, it only
-> > handled one MEM window and one IO window, and root bridges
-> > may have several of each.
-> > 
-> > This patch can be applied for both 2.4 and 2.5.  ia64 was the
-> > only user of this code, and we no longer need it.  The current
-> > approach we use is to walk the _CRS in pcibios_scan_root(),
-> > as shown here:
-> > 
-> > http://lia64.bkbits.net:8080/linux-ia64-2.4/anno/arch/ia64/kernel/pci.c-2AEWtv2qSSY@public.gmane.org?nav=index.html|src/.|src/arch|src/arch/ia64|src/arch/ia64/kernel
-> > 
-> > #### AUTHOR bjorn.helgaas-VXdhtT5mjnY@public.gmane.org
-> > #### COMMENT START
-> > ### Comments for ChangeSet
-> > ACPI: Remove acpi_pci_get_translations() and support.  pcibios_scan_root()
-> > 	should walk the _CRS if necessary.
-> > ### Comments for include/acpi/acpi_drivers.h
-> > (acpi_pci_get_translations): Removed.
-> > ### Comments for drivers/acpi/pci_root.c
-> > (acpi_pci_get_translations)
-> > (acpi_pci_root_bus_tra)
-> > (acpi_pci_evaluate_crs): Removed.
-> > #### COMMENT END
-> > 
-> > # This is a BitKeeper generated patch for the following project:
-> > # Project Name: Linux kernel tree
-> > # This patch format is intended for GNU patch command version 2.5 or higher.
-> > # This patch includes the following deltas:
-> > #	           ChangeSet	1.1066  -> 1.1067 
-> > #	drivers/acpi/pci_root.c	1.5     -> 1.6    
-> > #	include/acpi/acpi_drivers.h	1.5     -> 1.6    
-> > #
-> > # The following is the BitKeeper ChangeSet Log
-> > # --------------------------------------------
-> > # 03/08/06	bjorn.helgaas-VXdhtT5mjnY@public.gmane.org	1.1067
-> > # ACPI: Remove acpi_pci_get_translations() and support.  pcibios_scan_root()
-> > # 	should walk the _CRS if necessary.
-> > # --------------------------------------------
-> > #
-> > diff -Nru a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> > --- a/drivers/acpi/pci_root.c	Wed Aug  6 17:29:00 2003
-> > +++ b/drivers/acpi/pci_root.c	Wed Aug  6 17:29:00 2003
-> > @@ -61,8 +61,6 @@
-> >  	acpi_handle		handle;
-> >  	struct acpi_pci_id	id;
-> >  	struct pci_bus		*bus;
-> > -	u64			mem_tra;
-> > -	u64			io_tra;
-> >  };
-> >  
-> >  struct list_head		acpi_pci_roots;
-> > @@ -114,97 +112,6 @@
-> >  	}
-> >  }
-> >  
-> > -void
-> > -acpi_pci_get_translations (
-> > -	struct acpi_pci_id	*id,
-> > -	u64			*mem_tra,
-> > -	u64			*io_tra)
-> > -{
-> > -	struct list_head	*node = NULL;
-> > -	struct acpi_pci_root	*entry;
-> > -
-> > -	/* TBD: Locking */
-> > -	list_for_each(node, &acpi_pci_roots) {
-> > -		entry = list_entry(node, struct acpi_pci_root, node);
-> > -		if ((id->segment == entry->id.segment)
-> > -			&& (id->bus == entry->id.bus)) {
-> > -			*mem_tra = entry->mem_tra;
-> > -			*io_tra = entry->io_tra;
-> > -			return;
-> > -		}
-> > -	}
-> > -
-> > -	*mem_tra = 0;
-> > -	*io_tra = 0;
-> > -}
-> > -
-> > -
-> > -static u64
-> > -acpi_pci_root_bus_tra (
-> > -       struct acpi_resource	*resource,
-> > -       int			type)
-> > -{
-> > -	struct acpi_resource_address16 *address16;
-> > -	struct acpi_resource_address32 *address32;
-> > -	struct acpi_resource_address64 *address64;
-> > -
-> > -	while (1) {
-> > -		switch (resource->id) {
-> > -		case ACPI_RSTYPE_END_TAG:
-> > -			return 0;
-> > -
-> > -		case ACPI_RSTYPE_ADDRESS16:
-> > -			address16 = (struct acpi_resource_address16 *) &resource->data;
-> > -			if (type == address16->resource_type) {
-> > -				return address16->address_translation_offset;
-> > -			}
-> > -			break;
-> > -
-> > -		case ACPI_RSTYPE_ADDRESS32:
-> > -			address32 = (struct acpi_resource_address32 *) &resource->data;
-> > -			if (type == address32->resource_type) {
-> > -				return address32->address_translation_offset;
-> > -			}
-> > -			break;
-> > -
-> > -		case ACPI_RSTYPE_ADDRESS64:
-> > -			address64 = (struct acpi_resource_address64 *) &resource->data;
-> > -			if (type == address64->resource_type) {
-> > -				return address64->address_translation_offset;
-> > -			}
-> > -			break;
-> > -		}
-> > -		resource = ACPI_PTR_ADD (struct acpi_resource,
-> > -				resource, resource->length);
-> > -	}
-> > -
-> > -	return 0;
-> > -}
-> > -
-> > -
-> > -static int
-> > -acpi_pci_evaluate_crs (
-> > -	struct acpi_pci_root	*root)
-> > -{
-> > -	acpi_status		status;
-> > -	struct acpi_buffer	buffer = {ACPI_ALLOCATE_BUFFER, NULL};
-> > -
-> > -	ACPI_FUNCTION_TRACE("acpi_pci_evaluate_crs");
-> > -
-> > -	status = acpi_get_current_resources (root->handle, &buffer);
-> > -	if (ACPI_FAILURE(status))
-> > -		return_VALUE(-ENODEV);
-> > -
-> > -	root->io_tra = acpi_pci_root_bus_tra ((struct acpi_resource *)
-> > -			buffer.pointer, ACPI_IO_RANGE);
-> > -	root->mem_tra = acpi_pci_root_bus_tra ((struct acpi_resource *)
-> > -			buffer.pointer, ACPI_MEMORY_RANGE);
-> > -
-> > -	acpi_os_free(buffer.pointer);
-> > -	return_VALUE(0);
-> > -}
-> > -
-> > -
-> >  static int
-> >  acpi_pci_root_add (
-> >  	struct acpi_device	*device)
-> > @@ -287,10 +194,8 @@
-> >  	root->id.function = device->pnp.bus_address & 0xFFFF;
-> >  
-> >  	/*
-> > -	 * Evaluate _CRS to get root bridge resources
-> >  	 * TBD: Need PCI interface for enumeration/configuration of roots.
-> >  	 */
-> > - 	acpi_pci_evaluate_crs(root);
-> >  
-> >   	/* TBD: Locking */
-> >   	list_add_tail(&root->node, &acpi_pci_roots);
-> > diff -Nru a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-> > --- a/include/acpi/acpi_drivers.h	Wed Aug  6 17:29:00 2003
-> > +++ b/include/acpi/acpi_drivers.h	Wed Aug  6 17:29:00 2003
-> > @@ -162,7 +162,6 @@
-> >  
-> >  int acpi_pci_root_init (void);
-> >  void acpi_pci_root_exit (void);
-> > -void acpi_pci_get_translations (struct acpi_pci_id* id, u64* mem_tra, u64* io_tra);
-> >  
-> >  /* ACPI PCI Interrupt Link (pci_link.c) */
-> >  
-> > 
-> > 
-> > 
-> > -------------------------------------------------------
-> > This SF.Net email sponsored by: Free pre-built ASP.NET sites including
-> > Data Reports, E-commerce, Portals, and Forums are available now.
-> > Download today and enter to win an XBOX or Visual Studio .NET.
-> > http://aspnet.click-url.com/go/psa00100003ave/direct;at.aspnet_072303_01/01
-> > _______________________________________________
-> > Acpi-devel mailing list
-> > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> > https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> > 
-> > 
-> 
-> -- 
-> Bjorn Helgaas - bjorn.helgaas at hp.com
-> Linux and Open Source Lab
-> Hewlett-Packard Company
-> 
-> 
-> 
-> -------------------------------------------------------
-> This sf.net email is sponsored by:ThinkGeek
-> Welcome to geek heaven.
-> http://thinkgeek.com/sf
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> 
-> 
+Salut Nils,
 
--- 
-Bjorn Helgaas - bjorn.helgaas at hp.com
-Linux and Open Source Lab
-Hewlett-Packard Company
+On Tue, 23 Sep 2003, Nils Faerber wrote:
+> Am Di, 2003-09-23 um 14.14 schrieb Bas Mevissen:
+> > Alan Cox wrote:
+> > > Several vendors implement the actual battery reading logic as an SMI
+> > > trap and disable interrupts during their slow chat with the battery.
+> > > There isnt much anyone can do about that bit alas (except read it a lot
+> > > less often)
+> > (or does the AC/battery power work with an event? The my assumption
+> > won't hold then)
+I commented on that before!
 
+> I could very well accept CPU load.
+> I would even accept delays, given they are small.
+> But I experienced kernel hangs, i.e. short periods of no I/O activity at
+> all when querying the battery status. And even that could be acceptable.
+> What was not acceptable were very bizarre happenings that lokked like
+> lost interrupts!? Events that did not cause the reaction they should
+> have. Less severe were lost mouse events but more severe was packet loss
+> on network.
+That are the things that follow from, what Alan is saying - interrupts are
+disabled over some time.
+
+> So for me it looks more like a bug in the ACPI code than just a
+> performnce issue or hardware misdesign.
+> The other thing that leads to this assumption is that so many of us see
+> this happening, with various notebooks by various manufacturers. It is
+> not bound to certain or limited number of "bad" machines.
+Sorry to tell you, that I have no problems with my Acer TM630. I did try a
+bash-loop with a uspleep 10, always querrying the battery-state, that did
+not consume any interrupts on my maschine. May you collect, what various
+notebooks you claim are affected?
+
+cheers
+  hartwig felger
+
+Hartwig Felger informatics
+
+- -- 
+1024D/339FD693 Hartwig Felger <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
+Key fingerprint = FB2F 3EE9 345A D55B 6FF2  0EC1 F5B0 684F 339F D693
+For the pulic keys, please visit my page.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2 (GNU/Linux)
+
+iD8DBQE/cIzk9bBoTzOf1pMRAhgYAJ0ahmECCs2WUEBv+ahfJib4gunLiACgwfik
+DKz65xiT5jrtei4LU7EGe9k=
+=FEqF
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
