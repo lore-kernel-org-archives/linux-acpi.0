@@ -1,8 +1,8 @@
 From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Subject: Re: Compaq 1720US, 2.4.18, acpi-7,24 - Help
-Date: Tue, 13 Aug 2002 11:55:53 +0200
+Date: Tue, 13 Aug 2002 12:06:15 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020813095553.GB2605@poup.poupinou.org>
+Message-ID: <20020813100615.GC2605@poup.poupinou.org>
 References: <Pine.GSO.4.21.0208122148460.7266-100000@sediment.umd.edu> <1029213980.18063.3.camel@anodyne.mandal>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -30,35 +30,9 @@ On Tue, Aug 13, 2002 at 12:46:15AM -0400, Sourav K. Mandal wrote:
 > This might already be done in the newest ACPI, but I had to change osl.c
 > in the acpi directory, reflected in the patch below:
 > 
-> ===============================================================
-> 
-> @@ -71,6 +71,9 @@
->  static void *acpi_irq_context = NULL;
->  
->  
-> +#include "dsdt.hex"
-> +acpi_table_header *myDST = (acpi_table_header *) AmlCode;
-> +
->  acpi_status
->  acpi_os_initialize(void)
->  {
-> @@ -221,7 +224,11 @@
->         if (!existing_table || !new_table)
->                 return AE_BAD_PARAMETER;
->  
-> -       *new_table = NULL;
-> +       /* *new_table = NULL; */
-> +       if (!strncmp(existing_table->signature, DSDT_SIG, 4))
-> +         *new_table = myDST;
-> +       else
-> +         *new_table = NULL ;
->         return AE_OK;
->  }
->  
 
-Just a though: why not directly making something like
-*new_table = (acpi_table_header*) AmlCode;
-instead of declaring another variable ?
+Thank for that.  I update soon http://www.poupinou.org/acpi/over.html
+with your patch, if you agreed.
 
 -- 
 Ducrot Bruno
