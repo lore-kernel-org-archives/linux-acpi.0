@@ -1,16 +1,11 @@
-From: "Antonio G. - Geotronix" <antonio-OL5acaPONM41GQ1Ptb7lUw@public.gmane.org>
-Subject: Re: Is it possibile that ACPi messes my battery ...
-Date: Wed, 2 Oct 2002 21:32:24 +0200
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [BK PATCH] ACPI updates
+Date: Wed, 2 Oct 2002 13:00:40 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021002193224.GA1907@geolandia.home>
-References: <20021001001656.GC9965@geolandia.home> <20021002180521.50011a7f.g.ficara@linuxpratico.com> <E17wmQM-0000n7-00@noys.inf.tu-dresden.de>
-Reply-To: antonio-OL5acaPONM41GQ1Ptb7lUw@public.gmane.org
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DEF7@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="FL5UXtIhxfXey3p5"
+Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <E17wmQM-0000n7-00-Hkr6DilkjYZTIIw02KIYYwp9XTrnmqkB@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,52 +14,96 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Linus, please do a
 
---FL5UXtIhxfXey3p5
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+	bk pull http://linux-acpi.bkbits.net/linux-acpi
+<http://linux-acpi.bkbits.net/linux-acpi> 
 
-* mercoled=EC 02 ottobre 2002, alle 18:32, Frank Mehnert scrive:
->=20
-> You battery gets older. Its normal.
-> Read=20
->=20
+This will update the following files:
 
-I can understand that the battery gets older but not so fast especially
-if it's under small stess (I use it 4-5 hours a week).
+ arch/i386/kernel/mpparse.c         |    6 +
+ drivers/acpi/acpi_ksyms.c          |    4 -
+ drivers/acpi/blacklist.c           |    2 
+ drivers/acpi/dispatcher/dsfield.c  |   17 ++--
+ drivers/acpi/dispatcher/dsobject.c |   24 +-----
+ drivers/acpi/dispatcher/dsutils.c  |   16 +---
+ drivers/acpi/dispatcher/dswload.c  |  133
++++++++++++++++++++------------------
+ drivers/acpi/dispatcher/dswscope.c |    6 -
+ drivers/acpi/events/evevent.c      |   16 ++--
+ drivers/acpi/executer/exconvrt.c   |   15 ++--
+ drivers/acpi/executer/excreate.c   |   65 ++++++++++++++----
+ drivers/acpi/executer/exdump.c     |   10 ++
+ drivers/acpi/executer/exoparg2.c   |   67 ++++++++++++++++--
+ drivers/acpi/executer/exresnte.c   |   13 +++
+ drivers/acpi/executer/exresop.c    |   92 ++++++++++++-------------
+ drivers/acpi/executer/exstore.c    |    8 +-
+ drivers/acpi/executer/exstorob.c   |   21 +++--
+ drivers/acpi/include/acconfig.h    |    4 -
+ drivers/acpi/include/acmacros.h    |    4 -
+ drivers/acpi/include/acnamesp.h    |   10 ++
+ drivers/acpi/include/acutils.h     |    2 
+ drivers/acpi/namespace/nsdump.c    |   13 ++-
+ drivers/acpi/namespace/nsutils.c   |   50 +++++++++++++
+ drivers/acpi/osl.c                 |   19 +----
+ drivers/acpi/pci_irq.c             |    6 +
+ drivers/acpi/processor.c           |    3 
+ drivers/acpi/sleep.c               |    2 
+ drivers/acpi/tables/tbxface.c      |    4 -
+ drivers/acpi/thermal.c             |   64 ++++++++++++++---
+ drivers/acpi/utilities/utmisc.c    |    2 
+ drivers/acpi/utils.c               |    2 
+ 31 files changed, 453 insertions(+), 247 deletions(-)
 
-However i want to add more to my initial message. When I called those
-Compaq guys at Milan they told me I had to "calibrate" my battery.
-Nothing else than let it charge to full capacity then let it down till
-it goes on ibernation on it's own. Well what I noticed was that the
-orange charge LED started blinking after only 1 hour under XP. I
-expected the laptop to turn off in 2-4 minutes but instead it kept
-running for 1 1/2 hours. So I say that OK, maybe ACPI is not getting
-things right for the battery (the "last full capacity" can't be 26600mWh
-and then run for 2 1/2 hours ......) but there's something that's not
-working under XP nither. COuld this mean that ACPI is working but the
-hardware or BIOS are messed up? How do we figure this out?
+through these ChangeSets:
 
-Bye
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/10/02 1.593)
+   ACPI: Interpreter update to 200201002
+   - Fix problem where a store/copy of a string did not set string length
+properly.
+   - Fix ToString operator
+   - Fix CopyObject not updating internal node type
+   - Fix a memory leak during implicit operand source conversion
+   - Enhanced error messages for namespace lookup problems
+   - Revamped Alias support
 
---FL5UXtIhxfXey3p5
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/10/01 1.590)
+   ACPI: Initialize thermal driver's timer before it is used (Knut Neumann)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: Per informazioni si veda http://www.gnupg.org
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/10/01 1.589)
+   ACPI: Add another cast to Bjoern's MADT walking fix to silence warning
 
-iD8DBQE9m0nIIRaQQEznKxURAkv8AKC4jch/4SoYdj+Wkv/tejG2ZxRETACfeoAO
-Fx5181IN+rkGkJSJA8T+y7A=
-=i8DH
------END PGP SIGNATURE-----
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/10/01 1.588)
+   ACPI: Allow handling negative celsius values (Kochi Takayoshi)
 
---FL5UXtIhxfXey3p5--
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/10/01 1.587)
+   ACPI: Fix thermal management and make trip points R/W (Pavel Machek)
+
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/10/01 1.586)
+   ACPI: Fix /proc/acpi/sleep (P. Christeas)
+
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/10/01 1.585)
+   ACPI: IA64 fixes (David Mosberger)
+
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/10/01 1.584)
+   ACPI: Fix reversed logic in blacklist code (Sergio Monteiro Basto)
+
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/09/20 1.565.10.1)
+   ACPI: Replace ACPI_DEBUG define with ACPI_DEBUG_OUTPUT (Dominik
+Brodowski)
+
+
+
+
+-----------------------------
+Andrew Grover
+Intel Labs / Mobile Architecture
+andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+
 
 
 -------------------------------------------------------
