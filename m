@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Re: Tell user when ACPI is killing machine
-Date: Sat, 6 Dec 2003 12:14:00 +0100
+From: Pere =?ISO-8859-15?Q?Casta=F1er?= <XaRz-NOlniwl8E+FeoWH0uzbU5w@public.gmane.org>
+Subject: Re: Laptops that work
+Date: Sat, 6 Dec 2003 20:43:12 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031206111400.GA403@elf.ucw.cz>
-References: <3ACA40606221794F80A5670F0AF15F8401720BFD@pdsmsx403.ccr.corp.intel.com> <20031204095454.GC6911@atrey.karlin.mff.cuni.cz> <1070532076.1645.42.camel@golgoth01> <20031204105621.GE11044@atrey.karlin.mff.cuni.cz> <yw1x8ylsltb3.fsf@kth.se>
+Message-ID: <20031206204312.2f4730c4.XaRz@menta.net>
+References: <3FCF7EB2.4030708@net-bizz.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <yw1x8ylsltb3.fsf-UNjuZkX4dYU@public.gmane.org>
+In-Reply-To: <3FCF7EB2.4030708-np7M/f4w+dNWk0Htik3J/w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,30 +17,40 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: M?ns Rullg?rd <mru-UNjuZkX4dYU@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Thu, 04 Dec 2003 11:36:34 -0700
+Adam Olsen <adamolsen-np7M/f4w+dNWk0Htik3J/w@public.gmane.org> wrote:
 
-> >> I have a similar problem since test10 and test11 (2.4.23 is ok, test9 is
-> >> ok too). ACPI reports bogus temperatures and powers the machine
-> >> down.
-> >
-> >> If you have a patch that could fix that problem, I'm ready to try it and
-> >> report success or failure ;)
-> >
-> > I have ugly workaround ("if temperature reported is > 200Celsius,
-> > ignore it").
-> 
-> I'm just curious, are these (and other ACPI related) problems caused
-> by bugs in Linux, or by hardware/firmware bugs?
+> I was wondering if someone could perhaps give me some recommendations=20
+> for laptops that work well with ACPI on Linux - specifically the suspend=
+=20
+> stuff.=20
+>=20
 
-Its hard to tell one from another without extensive debugging...
-								Pavel
--- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+In DELL 8500 suspend/resume works well with linux2.6-test9 (but with test 1=
+1 don't, I think that's a problem of actual test11 bug).
+The nvidia binary drivers don't work with suspend at this moment but with n=
+v driver works well.
+
+Hope it helps.
+regards,
+
+--=20
+"Soy una piedra, no muevo ni un m=FAsculo,lentamente me pongo nieve=20
+en la boca para que no vea mi aliento , me tomo mi tiempo,=20
+dejo que se acerque, s=F3lo tengo una bala, apunto a sus ojos, muy=20
+suavemente mi dedo presiona el gatillo,mi pulso no tiembla, no=20
+tengo miedo: ahora ya soy mayor"
+					     Enemy at gates
+------
+Pere Casta=F1er Sard=E0=A0 - http://xarz.no-ip.org
+GnuPG Public key available - http://xarz.no-ip.org/keys.html
+Computer Science Student on UOC - http://www.uoc.edu
+Linux Registered User #232073=20
+Debian/GNU User - http://www.debian.org
+---------------------
 
 
 -------------------------------------------------------
