@@ -1,12 +1,14 @@
-From: Borislav Deianov <borislav-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: ibm-acpi-0.1
-Date: Tue, 10 Aug 2004 01:08:26 -0700
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ibm-acpi-0.1
+Date: Tue, 10 Aug 2004 16:24:39 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040810080826.GD28939@aero.ensim.com>
+Message-ID: <B44D37711ED29844BEA67908EAF36F03860DC2@pdsmsx401.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="bg08WKrSYDhXBjb5"
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -15,223 +17,48 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Borislav Deianov <borislav-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-
---bg08WKrSYDhXBjb5
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
 Hi,
-
-This is the first public release of my ACPI driver for IBM ThinkPad
-laptops. The features currently supported are:
-
-- hot keys (Fn key combinations)
-- docking and undocking
-- some basic fan speed control
-
-Note that I've only tested on a ThinkPad X40 with the X4 UltraBase. I
-suspect many other recent models are sufficiently similar to work with
-this driver but I have no such reports yet.
-
-I'll release this on the linux-thinkpad list as well, but I thought
-I'd get some comments here first. This is my first foray into the ACPI
-code, so do let me know if I'm doing something horribly wrong. :-)
-
-(Sorry, no web page yet. One thing at a time.)
+IBM hotkey has a unique ID. In T40, it's 'IBM0068'. I guess other IBM
+laptops also use it. Using a hardcode path in the patch possibly isn't a
+good idea.=20
+BTW, I'm interested in how can you know the meaning of 'DHKC', 'MHKC'
+and etc. They are non-standard ACPI methods.
 
 Thanks,
-Boris
+Shaohua
 
---bg08WKrSYDhXBjb5
-Content-Type: application/x-gzip
-Content-Disposition: attachment; filename="ibm-acpi-0.1.tar.gz"
-Content-Transfer-Encoding: base64
-
-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
-twHkOziszmGn+2Hw+uJVzTroDAb8q00DJJGH9nobQOpN+QUueN2FnakIzMN8unQj6CUZtRdl
-Fxv1aS8KvR5qwyTMYrVbQjh6O6Jdg0QignDVddJYNf7r7qu6rcanXy11tXt+conXa5oy/rOB
-f+E4wjH6rjcN6r2EvwEZCeeD2uYQVzuHOTByaNOKdpDIqPwIhO0wKCMX5fbuvfMT2MdtX8qU
-d4Ajs3IO0mQ7h/zuZmX7Xru7XlbtsvpAtdV2nHsNuJqWQvkSnmseQtWVN3hdkIulX4PM98H+
-4T/un/Ww2MUB2K3WZ7T+xiws1cioYPvPjR4tuvc7Wuh7Uy/F0KBCh4RqOo2qlZ9qZZ8CQxE6
-crasSnA/zxUFW2GguCcThT7Nny9fzglyNPptkjSK95vESYvnlfLUhvAF8qz/JmnyuCxN4wrW
-LM3czj9VmjIRzl8GHSyP/5zV+f3z/3t7ef6vZavnf+3WJv6vozya/5MTx/swcdwi4zeVUzLd
-ZJZUo/AWQxvHtU3O76suy+3/KVb/n7D+N8//aP1v0/mPe+12fWP/6yhrX/+vepXm8TX746kD
-pNMRwWZR/xvKw/avNpE/1TbAz9n/VW+S/bft1mb/31rKUvmTQT7BGHz+Y7P5OP5rNQr52/z8
-p17f5H/XUljSr3ZWvGj969KDVlC83+3qd9hfPQoiNr75z1iW2j9v//ryMVbaf93O93/t1epk
-/3a7vbH/dRRl/6vMu/W4dZstghvz/irLUvvn7d9fPsZn2H+juWcr+9/kf9ZSPs3+G4/bv3lF
-YGP/X2VZav+c/v3yMVbaf6Nu7L/ebtP7X3uNzf7P9RSN/+fPH1sJ9ptLwL55YrBxB19HWWr/
-anPNF4+xev3fyu3fbtL7f3vN9mb9v5aybP1fnOO20iV8v8Ql5JsINz7hz1eW2r/vuU8xxir7
-r7Xrev8Xrv5b9P5/e2/z/Zf1FGX/xU7ux81YP4X5ownelCctS+0/f/3ry8ZYjf/z+E9PAGj/
-R72x2f+5lrKI/3lfx8pg7ywJ9vNvDG58xZ+/LLV/4TzJGKvjf8vs/67bbcr/tVvtjf2vpSj7
-L/YrL0n0FZu6/miiN+XJyoL951/zfBq7N2X59x8bLbu2p8//atl8vd6iLaEb+19Dqb6w4AUU
-33F1oPzo1yCxpvoP4DCMZvwVANg53OVPUt37gqOpyqfYRnE4jsWUjnEc0dGwSThK6czFl/kH
-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
-WB/rY32sj/WxPtbH+lgf/5fHfwF3AfakAMgAAA==
-
---bg08WKrSYDhXBjb5--
+>-----Original Message-----
+>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
+>admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Borislav Deianov
+>Sent: Tuesday, August 10, 2004 4:08 PM
+>To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: [ACPI] ibm-acpi-0.1
+>
+>Hi,
+>
+>This is the first public release of my ACPI driver for IBM ThinkPad
+>laptops. The features currently supported are:
+>
+>- hot keys (Fn key combinations)
+>- docking and undocking
+>- some basic fan speed control
+>
+>Note that I've only tested on a ThinkPad X40 with the X4 UltraBase. I
+>suspect many other recent models are sufficiently similar to work with
+>this driver but I have no such reports yet.
+>
+>I'll release this on the linux-thinkpad list as well, but I thought
+>I'd get some comments here first. This is my first foray into the ACPI
+>code, so do let me know if I'm doing something horribly wrong. :-)
+>
+>(Sorry, no web page yet. One thing at a time.)
+>
+>Thanks,
+>Boris
 
 
 -------------------------------------------------------
