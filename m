@@ -1,13 +1,13 @@
 From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
 Subject: Re: 2.5.34?
-Date: Tue, 17 Sep 2002 15:49:15 +0000
+Date: Tue, 17 Sep 2002 15:51:47 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020917154914.E39@toy.ucw.cz>
-References: <willy@debian.org> <200209161130.g8GBUo024143@p2.parker.boston.ma.us>
+Message-ID: <20020917155146.F39@toy.ucw.cz>
+References: <willy@debian.org> <200209161612.g8GGCtv24883@p2.parker.boston.ma.us>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200209161130.g8GBUo024143-paYRYfI9b/YMuHHiPFXXZ1fOaUvyCJUZ@public.gmane.org>; from brad-2nKKSigPee+ibv+y4V69FXNtEUiqdi9I@public.gmane.org on Mon, Sep 16, 2002 at 07:30:50AM -0400
+In-Reply-To: <200209161612.g8GGCtv24883-paYRYfI9b/YMuHHiPFXXZ1fOaUvyCJUZ@public.gmane.org>; from brad-2nKKSigPee+ibv+y4V69FXNtEUiqdi9I@public.gmane.org on Mon, Sep 16, 2002 at 12:12:55PM -0400
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -22,20 +22,38 @@ List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> Can anyone provide a coherent description of the S3 support in 2.5.34?
-> Is it close?  does it need patches (like the one above?)
-
-It worked before. IDE support is recommended, through.
-
-> I'm willing to put some work into it but I'd benefit from whom ever is
-> closest to it giving a quick status.
+> >but 2.5.35 is out, so there's no need any more ;-)
 > 
-> It seems like if S4 can be made to work, S3 should be straightforward
-> (heh).  If tried it in a stock 2.5.34 and found no difference from the
-> 2.2.x acpi patched kernels I use...
+> ok, I'll try 2.5.35;  Is there a changelog for acpi? (other than the
+> kernel changelog)
+> 
+> S1 is working for me with 2.4.19, but even if I throttle back the cpu it
+> eats a lot of power (and generates a lot of heat!)
+> 
+> I've been fooling around with S3.  It looks like the big recent
+> additions (in 2.5) are to try and set the video mode in the wakeup
+> callback.  I keep sending email to the list but I have not heard from
+> anyone talk about the status of this code.
 
-S3 is not as simple as you think, but as it worked before... It should
-be easy.
+In such case... you are not listening.
+
+> I want to ask "does the s3 wakeup code work for anyone?"; I suspect it
+> does since I've read reports that S4 is working for some and it uses
+> the same code path (for wakeup anyway).
+
+No. S3 wakeup is completely different from S4 wakeup.
+
+And bothworked for me in 2.5.32 IIRC.
+
+> Any suggestions how to debug this?  I would hack in some code to spit
+> messages out the uart but my hp laptop doesn't have one :-) I may try
+> a pcmcia 16550 card and a kgdb hack...
+> 
+> S3 puts it to sleep fine but when I wake up it seem to be hung - no lcd,
+> no keyboard...  It's pretty hard to say how far it gets.
+
+Look at acpi_wakeup.S. If your mode is in  text VGA you can just write
+to videoram. Maybe code to do that is still there?
 								Pavel
 -- 
 Philips Velo 1: 1"x4"x8", 300gram, 60, 12MB, 40bogomips, linux, mutt,
