@@ -1,14 +1,14 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: sysdev suspend/resume order?
-Date: Fri, 13 Aug 2004 15:37:07 +0800
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: Re: question about ACPI & Smart Batteries
+Date: Fri, 13 Aug 2004 09:40:55 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <B44D37711ED29844BEA67908EAF36F038F7E8A@pdsmsx401.ccr.corp.intel.com>
+Message-ID: <20040813074055.GA17097@hell.org.pl>
+References: <F760B14C9561B941B89469F59BA3A8470726AFF5@orsmsx401.amr.corp.intel.com> <20040812222936.GD30862@miramar.cse.ucsc.edu> <pan.2004.08.12.22.40.32.120142@yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <pan.2004.08.12.22.40.32.120142-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,20 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Patrick Mochel <mochel-og82NyAXoxR0I81aPRRTmR2eb7JE58TQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Paul Ionescu <i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Patrick,
-My sound card dies after S3 sometimes. Basically, if it dies depends on
-the order of sysdev's resume. If IRQ router resume before PIC (I use a
-tricky method to change order. It's changing the initcall level of the
-sysfs initialization for the device), the sound card die. Otherwise, it
-works. Is it possible that we add some levels for sysdev? I'd like some
-sysdevs resume before other sysdevs. Does this make sense?=20
+Thus wrote Paul Ionescu:
+> In CM case I think that when you look into /proc/acpi/battery/BAT0/state,
+> you get the instantaneous value.
+> So the state file is not updated unless you look in it, and then you get
+> the values at that moment, because the APCI code will just call _BST
+> method to tell you the actual values.
+> So, I think you can trust those values as being pretty accurate.
 
-Thanks,
-Shaohua
+I suppose most ECs cache that information and update only in EC-specific
+intervals.
+Best regards,
+
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
