@@ -1,58 +1,104 @@
-From: "Christopher N. Deckard" <cnd@ecn.purdue.edu>
-Subject: Re: cpu temp probs?
-Date: Mon, 17 May 2004 19:41:06 -0500
-Sender: swsusp-devel-admin@lists.sourceforge.net
-Message-ID: <40A95BA2.5050008@ecn.purdue.edu>
-References: <40A8D431.9090506@ecn.purdue.edu> <1084824054.23442.6.camel@localhost> <40A9272D.7040405@ecn.purdue.edu> <20040517211849.GB24480@hell.org.pl> <40A937F4.8090601@ecn.purdue.edu> <20040518000603.GA28576@hell.org.pl>
+From: Cam <camilo-Nk/s8sJ9yP7QXOPxS62xeg@public.gmane.org>
+Subject: Re: Fixing broken DSDT - code suggestions for comment	please!
+Date: Tue, 18 May 2004 01:54:11 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <40A95EB3.5070206@mesias.co.uk>
+References: <40A73460.2070407@mesias.co.uk> <1084822558.12353.365.camel@dhcppc4>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <swsusp-devel-admin@lists.sourceforge.net>
-In-Reply-To: <20040518000603.GA28576@hell.org.pl>
-Errors-To: swsusp-devel-admin@lists.sourceforge.net
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/swsusp-devel>,
-	<mailto:swsusp-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Post: <mailto:swsusp-devel@lists.sourceforge.net>
-List-Help: <mailto:swsusp-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/swsusp-devel>,
-	<mailto:swsusp-devel-request@lists.sourceforge.net?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=swsusp-devel>
-To: Karol Kozimor <sziwan@hell.org.pl>
-Cc: Jon Olson <morph@damogran.org>, Software Suspend Mailing List <swsusp-devel@lists.sourceforge.net>, acpi-devel@lists.sourceforge.net
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1084822558.12353.365.camel-D2Zvc0uNKG8@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Karol Kozimor wrote:
-> Thus wrote Christopher N. Deckard:
+Len
+
+thanks for the feedback and comments,
+
+Len Brown wrote:
+> Please verify that you still have this problem
+> when running the latest iasl:
 > 
->>>>I don't close the screen while suspending.  I have been waiting for 
->>>>a complete power off just to make sure it's doing it's thing...
->>>
->>>What does /proc/acpi/processor/*/* say before and after suspend (cat it
->>>several times at least)?
+> http://www.intel.com/technology/IAPC/acpi/downloads.htm
+
+I was working with iasl-linux-20030918 which I think is the latest. Do 
+you think the Store(Local0, Local0) is an iasl bug? I can send the dsdt 
+binary if you are interested.
+
+>>Later there are two other errors not mentioned in the FAQ:
 >>
->>After a normal boot, I seem to stay mostly in C2, but every now and 
->>then I see it jump to C1.  Jumps back to C2 almost immediately. 
->>After a suspend and resume I stay in C1.
-> 
-> That's odd. Are you sure it's not due to a run-away process or kernel
-> thread such as keventd? If it's not, could you try reloading the processor
-> module, or possibly unloading it before suspend and loading back after?
-> Best regards,
-> 
+>>dsdt.dsl  2390:                     Return (WQS (0x0E, Arg0))
+>>Error    1029 -                               ^ Called method returns no 
+>>value
+>> 
+>>
+>>dsdt.dsl  2395:                     Return (WQSB (0x0E, Arg0))
+>>Error    1029 - Called method returns no value ^
+>> 
 
-In /etc/suspend.conf I have this:
+[... my bad fix snipped ...]
 
-SWSUSP_REMOVEMODS="thermal fan button processor ac battery nvidia"
+> no. the problem is that WQS and WQSB need to have Return() statements.
 
-When acpid is started on resume, it reloads those modules.  You can 
-see output from dmesg after a resume here:
+OK from another look at the code I see the declarations for the WQS and 
+WQSB methods. I am struggling what to return from these. Zero? Arg0? 
+Arg1? Some success/fail code? Any ideas? There are lots of calls to WQS 
+and WQSB that mostly seem to discard the (not yet) returned value.
 
-http://globalfoo.net/Linux/Laptop/DellD800/20040512_suspend_resume.log
 
-This is kernel 2.6.6 + swsusp2 2.0.0.72.  I don't see any runaway 
-processes or kernel threads, or at least top isn't seeing any.
+                 Method (WQSB, 2, NotSerialized)
+                 {
+                     If (LNot (LOr (\_SB.PCI0.ISA.EC0.FBAT, 
+\_SB.PCI0.ISA.EC0.FTMP)))
+                     {
+                         Store (0x01, \_SB.PCI0.ISA.EC0.FQSB)
+                         And (Arg1, 0xFF, Local0)
+                         ShiftRight (Arg1, 0x08, Local1)
+                         And (Local1, 0xFF, Local1)
+                         Acquire (\_SB.PCI0.ISA.EC0.BNKM, 0xFFFF)
+                         Store (Local1, \_SB.PCI0.ISA.EC0.CMD3)
+                         Store (Local0, \_SB.PCI0.ISA.EC0.CMD2)
+                         Store (Arg0, \_SB.PCI0.ISA.EC0.CMD1)
+                         Store (0xE9, \_SB.PCI0.ISA.EC0.CMCM)
+                         Release (\_SB.PCI0.ISA.EC0.BNKM)
+                         Store (0x00, \_SB.PCI0.ISA.EC0.FQSB)
+                     }
+                 }
+ 
 
--Chris
+                 Method (WQS, 2, NotSerialized)
+                 {
+                     While (LOr (\_SB.PCI0.ISA.EC0.FBAT, 
+\_SB.PCI0.ISA.EC0.FTMP))                    {
+                         Noop
+                     }
+ 
+
+                     Store (0x01, \_SB.PCI0.ISA.EC0.FQSB)
+                     And (Arg1, 0xFF, Local0)
+                     ShiftRight (Arg1, 0x08, Local1)
+                     And (Local1, 0xFF, Local1)
+                     Acquire (\_SB.PCI0.ISA.EC0.BNKM, 0xFFFF)
+                     Store (Local1, \_SB.PCI0.ISA.EC0.CMD3)
+                     Store (Local0, \_SB.PCI0.ISA.EC0.CMD2)
+                     Store (Arg0, \_SB.PCI0.ISA.EC0.CMD1)
+                     Store (0xE9, \_SB.PCI0.ISA.EC0.CMCM)
+                     Release (\_SB.PCI0.ISA.EC0.BNKM)
+                     Store (0x00, \_SB.PCI0.ISA.EC0.FQSB)
+                 }
+
+
+-Cam
 
 
 -------------------------------------------------------
