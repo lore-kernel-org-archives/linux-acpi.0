@@ -1,14 +1,18 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: System hang when trying to enter sleep/standby state
-Date: Sat, 8 Feb 2003 19:59:03 +0100
+From: =?ISO-8859-1?Q?Axel_M=FCller?= <axel.mueller-qenKrGB1/YlH8HOlP0F5JqhivhuVJJ3m@public.gmane.org>
+Subject: Re: Issue reading files under /proc/acpi using python.
+Date: Sun, 09 Feb 2003 13:28:29 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030208185903.GA539@elf.ucw.cz>
-References: <026401c2cf88$9b26d330$0a0110ac@erik>
+Message-ID: <13620000.1044815309@iwe070.etec.uni-karlsruhe.de>
+References: <200302062245.44847.harisri@bigpond.com>
+ <200302062343.38789.harisri@bigpond.com>
+ <20030206140059.GR1205@poup.poupinou.org>
+ <200302080009.18002.harisri@bigpond.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200302080009.18002.harisri-bzGI/hKkdgRBDgjK7y7TUQ@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <026401c2cf88$9b26d330$0a0110ac-QyX2VyNvpUU@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,23 +21,35 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Erik van Pienbroek <admin-0LxUhLuGNoZIf6P1QZMOBw@public.gmane.org>
+To: Srihari Vijayaraghavan <harisri-bzGI/hKkdgRBDgjK7y7TUQ@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hello,
+there exists a patch for the klaptopdaemon, which is in kdeutils-src.rpm on =
 
-> The /proc/acpi/sleep same story..if I echo '4' in it the notebook would
-> continue to work..if I echo '3' the
-> notebook would hang...with echo '5' the notebook would also hang...
-> Is this because the ACPI support isn't complete yet or am I doing something
-> wrong ?
+Redhat 8.0 CD 5, you can get from the ACPI-Sourceforge-Homepage. It worked=20
+well for me.
+  Axel
 
-At least '5' should work. Something is wrong ACPI.
-								Pavel
--- 
-Worst form of spam? Adding advertisment signatures ala sourceforge.net.
-What goes next? Inserting advertisment *into* email?
+<-snip->
+
+> The real problem is KDE 3.0.x in RH 8.0 doesn't work with newer ACPI
+> code, of  course I have verified that KDE 3.1 on Rh 8.1 Beta works fine
+> however. I  guess I am lazy to find a utility in the internet that could
+> do that under RH  8.0.
+>
+<-snip->
+
+
+
+--
+Dipl.Phys. Axel M=FCller (axel.mueller-qenKrGB1/YlH8HOlP0F5JqhivhuVJJ3m@public.gmane.org)
+Institut f=FCr Werkstoffe der Elektrotechnik IWE
+Universit=E4t Karlsruhe
+Tel. 0721/608-7569   Fax  0721/608-7492
+http://www.iwe.uni-karlsruhe.de
+
 
 
 -------------------------------------------------------
