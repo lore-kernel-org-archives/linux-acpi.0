@@ -1,42 +1,159 @@
-From: Sergey Vlasov <vsu@altlinux.ru>
-Subject: Re: libata Promise driver regression 2.6.5->2.6.6
-Date: Sun, 16 May 2004 21:49:17 +0400
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <pan.2004.05.16.17.49.14.823495@altlinux.ru>
-References: <40A7A278.7010405@wasp.net.au>
+From: "Furrow K. Forehand" <mgardi-JGs/UdohzUI@public.gmane.org>
+Subject: =?windows-1251?B?z+7q8+/g5ewg4S/zIODi8u7s7uHo6+ggLi4uICAgIPXu8v8g7eDn++Lg?=
+ =?windows-1251?B?5fLx/yAg4u7w7uH85ewg7+4=?=
+Date: Mon, 17 May 2004 05:29:30 +0400
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <000001c43bae$b36aef8c$e64efda2@mail.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S264652AbUEPRte@vger.kernel.org>
-To: linux-kernel@vger.kernel.org
-Cc: acpi-devel@lists.sourceforge.net
+Content-Type: multipart/related;
+	boundary="----=_NextPart_000_0005_98214078.F6598096"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 16 May 2004 21:18:48 +0400, Brad Campbell wrote:
+------=_NextPart_000_0005_98214078.F6598096
+Content-Type: text/html;
+	charset=windows-1251
+Content-Transfer-Encoding: quoted-printable
 
-> I have been using 2.6.5 happily for a while now on this machine.
-> It's an Asus A7V600 with 3 Promise SATA150-TX4 SATA cards.
-> 
-> With 2.6.6 (and 2.6.6-bk3) it hangs with a dma timeout on boot detecting the 9th sata drive (there 
-> are 10). I left it for about 10 minutes to see if anything else transpired but it just sat there.
-> I'm on a serial console to this machine at the moment and I could not get it to respond to the magic 
-> sysrq key over serial either.
-> 
-> I have placed all relevant info including a capture of 2.6.5 boot and 2.6.6 boot, plus all requested 
-> info from linux/REPORTING-BUGS on my webpage
-> 
-> Normal working dmesg
-> http://www.wasp.net.au/~brad/2.6.5.log
-> 
-> Hung up dmesg
-> http://www.wasp.net.au/~brad/2.6.6.log
-> 
-> .config and all other info I could gather.
-> http://www.wasp.net.au/~brad/2.6.6.config
-> Much as I'd love to be subscribed, I just can't keep up with the volume so please cc: me.
-> Willing to try patches/hacks/suggestions
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4=2e0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3dContent-Type content=3d"text/html; charset=3dwindows-1=
+251">
+<META content=3d"MSHTML 6=2e00=2e2737=2e800" name=3dGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3d#ffffff>
+<DIV><FONT face=3dArial size=3d1><IMG alt=3d"" hspace=3d0=20
+src=3d"cid:endure=2egif" align=3dbaseline=20
+border=3d0></FONT></DIV>
+<DIV><FONT face=3dArial size=3d1></FONT>&nbsp;</DIV>
+<DIV><FONT face=3dArial size=3d1></FONT>&nbsp;</DIV>
+<DIV><FONT face=3dArial=20
+size=3d1>=e2=e5=f1=eb=e0=ec=e8; =ee=ed=e8 =ef=ee=f1=e0=e6=e5=ed=fb  =ee=f7=
+=e5=ed=fc</FONT></DIV></BODY></HTML>
 
-Looks like ACPI problems.  First, for some reason ACPI in 2.6.6 decided to
-use PIC mode, while 2.6.5 used IOAPIC mode.  Second, IRQ 12 was chosen for
-the Promise controller which failed; this is a known problem in 2.6.6,
-the patch at http://bugzilla.kernel.org/show_bug.cgi?id=2665 should fix it.
+
+------=_NextPart_000_0005_98214078.F6598096
+Content-Type: image/gif;
+	name="endure.gif"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+	filename="endure.gif"
+Content-ID: <endure.gif>
+
+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
+GEBB2ANLKAJNeG/vJ2zwVmsngIRJ2D8yB0FPuAZZGHkd0IUeYIVXOIZkWIZmeIZomIZquIZA
+OG5q8YOqV1gs14F6NIVsiIXkBmp2WALyhgKWV3aAqEdgeIfqlodnEIdQMFmHF4iE2IjNhnps
+1mGMaHCC9ncwWH2390xyRnRhpmpnF2Js53gM+IKM5npsdf9omOZysQeB9QVtjrg/hmV+cwd0
+fIWDIviARPdzAydWBHhoidV04IdjBQhO/XeKeSdk2sSJxseIrwiLbIVx9BdYHpaBsmddKPhX
++wd3p2iN1Adlg3eNLFWMqQaMd5d0L4aNyziIzbhqtBh2uveLf8h46Gd6NDhaothmvwWPCAdx
+pEdO6ed98nh8TLaBdEePPUZx3HeAH7eK9tWQ6+g/psR7OyZ86/ePyjh88bVkzLdWzreNBphf
+30h9xHiLI3lk1ZePGbl8E/mQEGlbkFhQopdlCNaK4zhx2rWLw3h/I+dm4CiQA6mL5QiArYeO
+KDl/gLeSLFmImsZ320eJO/dopRj/ebFUWnEmjjBFgutXdlnnWeJ2cSDIXBVnivo3XHWmfQK4
+YEnpbPCzhT4lhGmZhmwZBXFZbiMwl29pROr4a6A2a3Z5l375l4AZmII5mIRZmIZ5mIiZmIq5
+mIzZmI75mJAZmZI5mZRZmZZ5mZiZmZq5mZzZmZ75maAZmqI5mqRZmqZ5mqiZmqq5mqzZmq75
+mrAZm7I5m7SZBv5Xm7j5BHCWm7z5am7Ym8Apa1QVgbYkjSvYSSX3cCsHlaJGcLqlivuonDTZ
+cNlUiaWHgcj5lJhHklHpaCS3Td12iZJ3dmCJi1eJeE7ZncUZWo93g5loeuNHWtx5gi1EfgO5
+cLI3gd9n/5Vt93WAd45MGWNBJnEm+JPf53SBp3MIWqCoeFkHWndGdnABumbPZ4k5uWBSJ3Xa
+xXYqZJ/COItZuZUJpnx8dmSSWI84B2P9GaEV2ZMhJnja6KA9GXFjGVUw2qAH942Xl5Jkt1iK
+136SBqMSiWAz9kJe13iPp2K4OIHOVJBh+WablZBNxqQMqZDsdV7bmV59V5IulVtHGp0gt3k/
+ulAG6V4MGZCA+GfVCaasp4+gmIt6FqQaeGaytVuep2Uu1KQf2n0YKZJDOaEAOYfvyKNH6Xdj
+x6M06qIxuHo9xl1TNnXcx6DhhXeCKqE1SaK+J1zmyYupt58NqmN7ladyep/qZ/99yViLQ/ph
+Y5mpKfmPOLmURcqd+rmopOqohAqOiwipJHmjg7WoZvV2gEqRUrh4t1qWA3aWHtqXBbRdM+hw
+a4eekfaV6lmm9OmAZSmBZ9lnlZaBFEaKQNac4CZ9zGRoVCqtmkZw1IpwaqpqMimftySAOYhb
+veeVCseC2rmCWcaf0vlDcLhsXnhsQzesLembYUiFAguXsaaE/1pH83qwSimX+WawhmiG/Wqk
+E9ZAeQmE16WswdmxHvuxIBuyIvtGmZaUiLgFJ8tHXdlBKVtc9XObjdiHXCCzfJR7HESz0Wc/
+MDuyEOuTMcSxw9aJ5KpcqriKyXmim+Wt6NqeQyum3jn/cJvIaEn7cna2j5H4pPtqoddpisEK
+qek5evEqoZH4nNM1qqn2efPJkYlaenbqnuvatijoTdkZqqFIeWSpoODJpYsmcuJqs8WKtAZ6
+k2qWtpJapFjaqkLpftW4tlv6t9KYq1ZplBepooSbrQRokY+KffNoc/kpk2aqd0C5pwL6V5f3
+q9nYtaGbd8e6t+KVedd3sTQIjSA6pipIuA5quJYquZ9aol5ru5SbdriadMCKqcDLie5IY8GI
+oa3Wd7JrosZ5pdP5epsrukbXV/35u696Y0Hpo0SZoBLbukQGe587qKXKtmQaekkWpwQaWXRa
+peqFvnTbu5jmXH9oeXaLVO77/6Wz95GLW7yp2r60a5Iat7L763m/x38Be5XcimKK5ZSd513x
+CJOz6pAmhV6/GZPsqo846rNoCcFTuqX0FZNHB28keqi4y3ue28F9i4DEK1EVKlgDWKj1qpH9
+G2cn+ZGueLvLC8M+ZsOGSo4XOXZDhrev+sKcu43nZavBVaGqh5O96oVIyao3Oro2HI/FWpCJ
+y6I2R8Plx7ssHL0u/MNei4z+ycXQF6G0mqw957N72sOhm10/qqFuPH5xm2JGvLrOG8aOq7g7
+vJE5zJUNfIMlpacnB3zjlbcPl5AWZ69yFrtZC69xi0ZRy77WGbadW6/hCsZCzIoMasnwF3WS
+HL5oFf+1xNurcByCmDy2lSeOC6q1YHueXZzIDlyiC6yue1izXfS9txxBO4uygNSzX6jL7Cqc
+ejkFQLsBobawFdTLWhCXx6zLOYvM//rMfqsj1BzMuQyYGVtY14yQEYtd2Zwy3cyz5FzO5nzO
+6JzO6rzO7NzO7vzO8BzP8jzP9FzP9nzP+JzP+rzP/NzP/vzPAB3QAj3QBF3QBn3QCC1BmQMD
+A5AP1dMOEYE43mIL2QAMg6ELb0EyLDEWAlDRFGEVi+DQYsMBEj0tCQ1CC+0CGZE4FYAXNDES
+Q5IfQSMY1aI0HhHTZZIBK03TIJ0kd2MBrnLSIUQ/KEA9m+AdGjEH0RIkjPH/BxHh1BANKiqx
+EBbQ1JtCAYTw0OaROKlB1R6g1LMhOpEh1CitEsJDJhugIUctGMQQH79BCBiQB6fzB9UD1wki
+1yAA1XT9AW19FWQ91NGwNGitAVl91PnSGmotK9SjO9Mw0Y2RD7szDfly1RwgM3YwB5Cd1iQS
+GkT91xRUMaYxKBwQADhz2HcBNCKjEoWdFXeQL0HzFC3N0gCA1x4wEaftNBlACMHRNGbh2R/k
+J1sRPRaQNe0jCkNiDKT9MMGBN9FQ2I+tDrptLF+tEc6N2Rpw3Hfi2x0E3C1DGhvg3FA9OsIA
+JXzBHOpBP3EQL5K90fKD1FdSAbeAJLoCK9pdQelz0yudndh5symUES1SrRqoYNfs0N8WQNvi
+gNVv3STnwzBoUd8YVDEMUdOOogFG7TaHTQh2QDLOXeE/8hZ5gDz5QjCyvdWRjQHqYjAXoOF/
+cg0O/uCB7TSLQjQYcQXVoyte8hWF0xJBYxPMQQke4RXd7QHEXd7hcwE3Ttkr0dktjkD/sDpJ
+IeNJktkzHi2tkiMs7tETYODDg9GtgBZK3je4Qw9czgFVbtK4suRChOQoIOBovpkajQJ/0ead
+WdNrDttyfud4nud6vud83ud+/ueAHugvFAEAOw==
+
+------=_NextPart_000_0005_98214078.F6598096--
+
+
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: SourceForge.net Broadband
+Sign-up now for SourceForge Broadband and get the fastest
+6.0/768 connection for only $19.95/mo for the first 3 months!
+http://ads.osdn.com/?ad_id=2562&alloc_id=6184&op=click
