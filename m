@@ -1,15 +1,15 @@
 From: Keshavamurthy Anil S <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: PATCH-ACPI based CPU hotplug[4/6]-Dynamic cpu register/unregister support
-Date: Fri, 24 Sep 2004 16:40:14 -0700
+Subject: Re: PATCH-ACPI based CPU hotplug[5/6]-ACPI processor driver extension
+Date: Fri, 24 Sep 2004 16:48:38 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040924164014.D27778@unix-os.sc.intel.com>
-References: <20040920092520.A14208@unix-os.sc.intel.com> <20040920094106.F14208@unix-os.sc.intel.com> <20040922173400.4e717946.tokunaga.keiich@jp.fujitsu.com>
+Message-ID: <20040924164837.E27778@unix-os.sc.intel.com>
+References: <20040920092520.A14208@unix-os.sc.intel.com> <20040920094352.G14208@unix-os.sc.intel.com>
 Reply-To: Keshavamurthy Anil S <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040922173400.4e717946.tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>; from tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org on Wed, Sep 22, 2004 at 05:34:00PM +0900
+In-Reply-To: <20040920094352.G14208-39QZ/XbsZ5/mO6KZMuUCQVaTQe2KTcn/@public.gmane.org>; from anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org on Mon, Sep 20, 2004 at 09:43:52AM -0700
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,403 +18,661 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Cc: Keshavamurthy Anil S <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lhns-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developer <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, LHNS list <lhns-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux IA64 <linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Sep 22, 2004 at 05:34:00PM +0900, Keiichiro Tokunaga wrote:
-> On Mon, 20 Sep 2004 09:41:07 -0700 Keshavamurthy Anil S wrote:
-> I don't think that the check 'if (node_online(node))' is necessary
-> because sysfs_nodes[node] is there no matter if the node is online
-> or offline.  sysfs_nodes[] is cleared only when unregister_node()
-> is called and it would be always called after unregister_cpu().
-
-Refreshed this patch to address the above issues. Please let me know if you see
-any other issue with this patch.
+On Mon, Sep 20, 2004 at 09:43:52AM -0700, Keshavamurthy Anil S wrote:
+> Changes form previous version
+> 1) Added depends on EXPERIMENTAL in kconfig file
+Changes from previous version
+	Added prink for ACPI_NOTIFY_BUS_CHECK and for ACPI_NOTIFY_DEVICE_CHECK based on
+the community feedback. 
 
 
 ---
-Name:topology.patch
+Name:processor_drv.patch
 Status:Tested on 2.6.9-rc2
 Signed-off-by: Anil S Keshavamurthy <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Depends:	
 Version: applies on 2.6.9-rc2	
 Description:
-Extends support for dynamic registration and unregistration of the cpu,
-by implementing and exporting arch_register_cpu()/arch_unregister_cpu().
-Also combines multiple implementation of topology_init() functions to
-single topology_init() in case of ia64 architecture.
+Extends the processor driver to support ACPI based Physical CPU hotplug.
+
 ---
 
- /dev/null                                                  |   43 ------
- linux-2.6.9-rc2-askeshav/arch/i386/mach-default/topology.c |   31 ++++
- linux-2.6.9-rc2-askeshav/arch/ia64/dig/Makefile            |    5 
- linux-2.6.9-rc2-askeshav/arch/ia64/kernel/Makefile         |    3 
- linux-2.6.9-rc2-askeshav/arch/ia64/kernel/topology.c       |   90 +++++++++++++
- linux-2.6.9-rc2-askeshav/arch/ia64/mm/numa.c               |   35 -----
- linux-2.6.9-rc2-askeshav/drivers/base/cpu.c                |   20 ++
- linux-2.6.9-rc2-askeshav/include/asm-i386/cpu.h            |   17 --
- linux-2.6.9-rc2-askeshav/include/asm-ia64/cpu.h            |    5 
- linux-2.6.9-rc2-askeshav/include/linux/cpu.h               |    3 
- 10 files changed, 153 insertions(+), 99 deletions(-)
+ include/linux/cpu.h                               |    0 
+ kernel/cpu.c                                      |    0 
+ linux-2.6.9-rc2-askeshav/drivers/acpi/Kconfig     |    8 
+ linux-2.6.9-rc2-askeshav/drivers/acpi/processor.c |  485 ++++++++++++++++++----
+ 4 files changed, 424 insertions(+), 69 deletions(-)
 
-diff -L arch/ia64/dig/topology.c -puN arch/ia64/dig/topology.c~topology /dev/null
---- linux-2.6.9-rc2/arch/ia64/dig/topology.c
-+++ /dev/null	2004-06-30 13:03:36.000000000 -0700
-@@ -1,43 +0,0 @@
--/*
-- * arch/ia64/dig/topology.c
-- *	Popuate driverfs with topology information.
-- *	Derived entirely from i386/mach-default.c
-- *  Intel Corporation - Ashok Raj
-- */
--#include <linux/init.h>
--#include <linux/smp.h>
--#include <linux/cpumask.h>
--#include <linux/percpu.h>
--#include <linux/notifier.h>
--#include <linux/cpu.h>
--#include <asm/cpu.h>
--
--static DEFINE_PER_CPU(struct ia64_cpu, cpu_devices);
--
--/*
-- * First Pass: simply borrowed code for now. Later should hook into
-- * hotplug notification for node/cpu/memory as applicable
-- */
--
--static int arch_register_cpu(int num)
--{
--	struct node *parent = NULL;
--
--#ifdef CONFIG_NUMA
--	//parent = &node_devices[cpu_to_node(num)].node;
--#endif
--
--	return register_cpu(&per_cpu(cpu_devices,num).cpu, num, parent);
--}
--
--static int __init topology_init(void)
--{
--    int i;
--
--    for_each_cpu(i) {
--        arch_register_cpu(i);
--	}
--    return 0;
--}
--
--subsys_initcall(topology_init);
-diff -puN arch/ia64/dig/Makefile~topology arch/ia64/dig/Makefile
---- linux-2.6.9-rc2/arch/ia64/dig/Makefile~topology	2004-09-24 15:26:26.939098651 -0700
-+++ linux-2.6.9-rc2-askeshav/arch/ia64/dig/Makefile	2004-09-24 15:26:27.062145524 -0700
-@@ -6,9 +6,4 @@
- #
+diff -puN drivers/acpi/Kconfig~processor_drv drivers/acpi/Kconfig
+--- linux-2.6.9-rc2/drivers/acpi/Kconfig~processor_drv	2004-09-24 15:26:30.480114232 -0700
++++ linux-2.6.9-rc2-askeshav/drivers/acpi/Kconfig	2004-09-24 15:26:30.587536106 -0700
+@@ -129,6 +129,14 @@ config ACPI_PROCESSOR
+ 	  ACPI C2 and C3 processor states to save power, on systems that
+ 	  support it.
  
- obj-y := setup.o
--
--ifndef CONFIG_NUMA
--obj-$(CONFIG_IA64_DIG) += topology.o
--endif
--
- obj-$(CONFIG_IA64_GENERIC) += machvec.o
-diff -puN arch/ia64/mm/numa.c~topology arch/ia64/mm/numa.c
---- linux-2.6.9-rc2/arch/ia64/mm/numa.c~topology	2004-09-24 15:26:26.943004901 -0700
-+++ linux-2.6.9-rc2-askeshav/arch/ia64/mm/numa.c	2004-09-24 15:26:27.063122087 -0700
-@@ -20,8 +20,6 @@
- #include <asm/mmzone.h>
- #include <asm/numa.h>
- 
--static struct node *sysfs_nodes;
--static struct cpu *sysfs_cpus;
- 
- /*
-  * The following structures are usually initialized by ACPI or
-@@ -50,36 +48,3 @@ paddr_to_nid(unsigned long paddr)
- 	return (i < num_node_memblks) ? node_memblk[i].nid : (num_node_memblks ? -1 : 0);
- }
- 
--static int __init topology_init(void)
--{
--	int i, err = 0;
--
--	sysfs_nodes = kmalloc(sizeof(struct node) * numnodes, GFP_KERNEL);
--	if (!sysfs_nodes) {
--		err = -ENOMEM;
--		goto out;
--	}
--	memset(sysfs_nodes, 0, sizeof(struct node) * numnodes);
--
--	sysfs_cpus = kmalloc(sizeof(struct cpu) * NR_CPUS, GFP_KERNEL);
--	if (!sysfs_cpus) {
--		kfree(sysfs_nodes);
--		err = -ENOMEM;
--		goto out;
--	}
--	memset(sysfs_cpus, 0, sizeof(struct cpu) * NR_CPUS);
--
--	for (i = 0; i < numnodes; i++)
--		if ((err = register_node(&sysfs_nodes[i], i, 0)))
--			goto out;
--
--	for (i = 0; i < NR_CPUS; i++)
--		if (cpu_online(i))
--			if((err = register_cpu(&sysfs_cpus[i], i,
--					       &sysfs_nodes[cpu_to_node(i)])))
--				goto out;
-- out:
--	return err;
--}
--
--__initcall(topology_init);
-diff -puN include/linux/cpu.h~topology include/linux/cpu.h
---- linux-2.6.9-rc2/include/linux/cpu.h~topology	2004-09-24 15:26:26.946911150 -0700
-+++ linux-2.6.9-rc2-askeshav/include/linux/cpu.h	2004-09-24 15:26:27.063122087 -0700
-@@ -32,6 +32,9 @@ struct cpu {
- };
- 
- extern int register_cpu(struct cpu *, int, struct node *);
-+#ifdef CONFIG_HOTPLUG_CPU
-+extern void unregister_cpu(struct cpu *, struct node *);
-+#endif
- struct notifier_block;
- 
- #ifdef CONFIG_SMP
-diff -puN include/asm-ia64/cpu.h~topology include/asm-ia64/cpu.h
---- linux-2.6.9-rc2/include/asm-ia64/cpu.h~topology	2004-09-24 15:26:26.951793963 -0700
-+++ linux-2.6.9-rc2-askeshav/include/asm-ia64/cpu.h	2004-09-24 15:26:27.064098649 -0700
-@@ -14,4 +14,9 @@ DECLARE_PER_CPU(struct ia64_cpu, cpu_dev
- 
- DECLARE_PER_CPU(int, cpu_state);
- 
-+extern int arch_register_cpu(int num);
-+#ifdef CONFIG_HOTPLUG_CPU
-+extern void arch_unregister_cpu(int);
-+#endif
++config ACPI_HOTPLUG_CPU
++	bool "Processor Hotplug (EXPERIMENTAL)"
++	depends on ACPI_PROCESSOR && HOTPLUG_CPU && EXPERIMENTAL
++	depends on !IA64_SGI_SN
++	default n
++	 ---help---
++	 Select this option if your platform support physical CPU hotplug.
 +
- #endif /* _ASM_IA64_CPU_H_ */
-diff -puN /dev/null arch/ia64/kernel/topology.c
---- /dev/null	2004-06-30 13:03:36.000000000 -0700
-+++ linux-2.6.9-rc2-askeshav/arch/ia64/kernel/topology.c	2004-09-24 15:26:27.065075212 -0700
-@@ -0,0 +1,90 @@
-+/*
-+ * This file is subject to the terms and conditions of the GNU General Public
-+ * License.  See the file "COPYING" in the main directory of this archive
-+ * for more details.
-+ *
-+ * This file contains NUMA specific variables and functions which can
-+ * be split away from DISCONTIGMEM and are used on NUMA machines with
-+ * contiguous memory.
-+ * 		2002/08/07 Erich Focht <efocht-+HQ0pkNQ8fyELgA04lAiVw@public.gmane.org>
-+ * Populate cpu entries in sysfs for non-numa systems as well
-+ *  	Intel Corporation - Ashok Raj
-+ */
-+
-+#include <linux/config.h>
-+#include <linux/cpu.h>
-+#include <linux/kernel.h>
-+#include <linux/mm.h>
-+#include <linux/node.h>
-+#include <linux/init.h>
-+#include <linux/bootmem.h>
-+#include <asm/mmzone.h>
-+#include <asm/numa.h>
-+#include <asm/cpu.h>
-+
-+#ifdef CONFIG_NUMA
-+static struct node *sysfs_nodes;
-+#endif
-+static struct ia64_cpu *sysfs_cpus;
-+
-+int arch_register_cpu(int num)
-+{
-+	struct node *parent = NULL;
-+	
-+#ifdef CONFIG_NUMA
-+	parent = &sysfs_nodes[cpu_to_node(num)];
-+#endif /* CONFIG_NUMA */
-+
-+	return register_cpu(&sysfs_cpus[num].cpu, num, parent);
-+}
-+
-+#ifdef CONFIG_HOTPLUG_CPU
-+
-+void arch_unregister_cpu(int num)
-+{
-+	struct node *parent = NULL;
-+
-+#ifdef CONFIG_NUMA
-+	int node = cpu_to_node(num);
-+	parent = &sysfs_nodes[node];
-+#endif /* CONFIG_NUMA */
-+
-+	return unregister_cpu(&sysfs_cpus[num].cpu, parent);
-+}
-+EXPORT_SYMBOL(arch_register_cpu);
-+EXPORT_SYMBOL(arch_unregister_cpu);
-+#endif /*CONFIG_HOTPLUG_CPU*/
-+
-+
-+static int __init topology_init(void)
-+{
-+	int i, err = 0;
-+
-+#ifdef CONFIG_NUMA
-+	sysfs_nodes = kmalloc(sizeof(struct node) * MAX_NUMNODES, GFP_KERNEL);
-+	if (!sysfs_nodes) {
-+		err = -ENOMEM;
-+		goto out;
-+	}
-+	memset(sysfs_nodes, 0, sizeof(struct node) * MAX_NUMNODES);
-+
-+	for (i = 0; i < numnodes; i++)
-+		if ((err = register_node(&sysfs_nodes[i], i, 0)))
-+			goto out;
-+#endif
-+
-+	sysfs_cpus = kmalloc(sizeof(struct ia64_cpu) * NR_CPUS, GFP_KERNEL);
-+	if (!sysfs_cpus) {
-+		err = -ENOMEM;
-+		goto out;
-+	}
-+	memset(sysfs_cpus, 0, sizeof(struct ia64_cpu) * NR_CPUS);
-+
-+	for_each_present_cpu(i)
-+		if((err = arch_register_cpu(i)))
-+			goto out;
-+out:
-+	return err;
-+}
-+
-+__initcall(topology_init);
-diff -puN arch/ia64/kernel/Makefile~topology arch/ia64/kernel/Makefile
---- linux-2.6.9-rc2/arch/ia64/kernel/Makefile~topology	2004-09-24 15:26:26.956676775 -0700
-+++ linux-2.6.9-rc2-askeshav/arch/ia64/kernel/Makefile	2004-09-24 15:26:27.065075212 -0700
-@@ -6,7 +6,8 @@ extra-y	:= head.o init_task.o vmlinux.ld
- 
- obj-y := acpi.o entry.o efi.o efi_stub.o gate-data.o fsys.o ia64_ksyms.o irq.o irq_ia64.o	\
- 	 irq_lsapic.o ivt.o machvec.o pal.o patch.o process.o perfmon.o ptrace.o sal.o		\
--	 salinfo.o semaphore.o setup.o signal.o sys_ia64.o time.o traps.o unaligned.o unwind.o mca.o mca_asm.o
-+	 salinfo.o semaphore.o setup.o signal.o sys_ia64.o time.o traps.o unaligned.o \
-+	 unwind.o mca.o mca_asm.o topology.o
- 
- obj-$(CONFIG_IA64_BRL_EMU)	+= brl_emu.o
- obj-$(CONFIG_IA64_GENERIC)	+= acpi-ext.o
-diff -puN include/asm-i386/cpu.h~topology include/asm-i386/cpu.h
---- linux-2.6.9-rc2/include/asm-i386/cpu.h~topology	2004-09-24 15:26:26.960583025 -0700
-+++ linux-2.6.9-rc2-askeshav/include/asm-i386/cpu.h	2004-09-24 15:26:27.066051774 -0700
-@@ -11,18 +11,9 @@ struct i386_cpu {
- 	struct cpu cpu;
- };
- extern struct i386_cpu cpu_devices[NR_CPUS];
--
--
--static inline int arch_register_cpu(int num){
--	struct node *parent = NULL;
--	
--#ifdef CONFIG_NUMA
--	int node = cpu_to_node(num);
--	if (node_online(node))
--		parent = &node_devices[node].node;
--#endif /* CONFIG_NUMA */
--
--	return register_cpu(&cpu_devices[num].cpu, num, parent);
--}
-+extern int arch_register_cpu(int num);
-+#ifdef CONFIG_HOTPLUG_CPU
-+extern void arch_unregister_cpu(int);
-+#endif
- 
- #endif /* _ASM_I386_CPU_H_ */
-diff -puN arch/i386/mach-default/topology.c~topology arch/i386/mach-default/topology.c
---- linux-2.6.9-rc2/arch/i386/mach-default/topology.c~topology	2004-09-24 15:26:26.966442400 -0700
-+++ linux-2.6.9-rc2-askeshav/arch/i386/mach-default/topology.c	2004-09-24 15:26:27.067028336 -0700
-@@ -31,6 +31,37 @@
- 
- struct i386_cpu cpu_devices[NR_CPUS];
- 
-+int arch_register_cpu(int num){
-+	struct node *parent = NULL;
-+	
-+#ifdef CONFIG_NUMA
-+	int node = cpu_to_node(num);
-+	if (node_online(node))
-+		parent = &node_devices[node].node;
-+#endif /* CONFIG_NUMA */
-+
-+	return register_cpu(&cpu_devices[num].cpu, num, parent);
-+}
-+
-+#ifdef CONFIG_HOTPLUG_CPU
-+
-+void arch_unregister_cpu(int num) {
-+	struct node *parent = NULL;
-+
-+#ifdef CONFIG_NUMA
-+	int node = cpu_to_node(num);
-+	if (node_online(node))
-+		parent = &node_devices[node].node;
-+#endif /* CONFIG_NUMA */
-+
-+	return unregister_cpu(&cpu_devices[num].cpu, parent);
-+}
-+EXPORT_SYMBOL(arch_register_cpu);
-+EXPORT_SYMBOL(arch_unregister_cpu);
-+#endif /*CONFIG_HOTPLUG_CPU*/
-+
-+
-+
- #ifdef CONFIG_NUMA
- #include <linux/mmzone.h>
- #include <asm/node.h>
-diff -puN drivers/base/cpu.c~topology drivers/base/cpu.c
---- linux-2.6.9-rc2/drivers/base/cpu.c~topology	2004-09-24 15:26:26.971325213 -0700
-+++ linux-2.6.9-rc2-askeshav/drivers/base/cpu.c	2004-09-24 15:26:27.068004899 -0700
-@@ -46,10 +46,23 @@ static ssize_t store_online(struct sys_d
- }
- static SYSDEV_ATTR(online, 0600, show_online, store_online);
- 
--static void __init register_cpu_control(struct cpu *cpu)
-+static void __devinit register_cpu_control(struct cpu *cpu)
- {
- 	sysdev_create_file(&cpu->sysdev, &attr_online);
- }
-+void unregister_cpu(struct cpu *cpu, struct node *root)
-+{
-+
-+	if (root)
-+		sysfs_remove_link(&root->sysdev.kobj,
-+				  kobject_name(&cpu->sysdev.kobj));
-+	sysdev_remove_file(&cpu->sysdev, &attr_online);
-+
-+	sysdev_unregister(&cpu->sysdev);
-+
-+	return;
-+}
-+EXPORT_SYMBOL(unregister_cpu);
- #else /* ... !CONFIG_HOTPLUG_CPU */
- static inline void register_cpu_control(struct cpu *cpu)
- {
-@@ -64,7 +77,7 @@ static inline void register_cpu_control(
+ config ACPI_THERMAL
+ 	tristate "Thermal Zone"
+ 	depends on ACPI_PROCESSOR
+diff -puN include/linux/cpu.h~processor_drv include/linux/cpu.h
+diff -puN kernel/cpu.c~processor_drv kernel/cpu.c
+diff -puN drivers/acpi/processor.c~processor_drv drivers/acpi/processor.c
+--- linux-2.6.9-rc2/drivers/acpi/processor.c~processor_drv	2004-09-24 15:26:30.495739232 -0700
++++ linux-2.6.9-rc2-askeshav/drivers/acpi/processor.c	2004-09-24 15:26:30.591442356 -0700
+@@ -4,6 +4,8 @@
+  *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+  *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+  *  Copyright (C) 2004       Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
++ *  Copyright (C) 2004  Anil S Keshavamurthy <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
++ *  			- Added processor hotplug support
   *
-  * Initialize and register the CPU device.
-  */
--int __init register_cpu(struct cpu *cpu, int num, struct node *root)
-+int __devinit register_cpu(struct cpu *cpu, int num, struct node *root)
- {
- 	int error;
+  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  *
+@@ -37,11 +39,13 @@
+ #include <linux/pci.h>
+ #include <linux/pm.h>
+ #include <linux/cpufreq.h>
++#include <linux/cpu.h>
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
  
-@@ -81,6 +94,9 @@ int __init register_cpu(struct cpu *cpu,
- 		register_cpu_control(cpu);
- 	return error;
+ #include <asm/io.h>
+ #include <asm/system.h>
++#include <asm/cpu.h>
+ #include <asm/delay.h>
+ #include <asm/uaccess.h>
+ #include <asm/processor.h>
+@@ -69,10 +73,11 @@
+ #define C2_OVERHEAD			4	/* 1us (3.579 ticks per us) */
+ #define C3_OVERHEAD			4	/* 1us (3.579 ticks per us) */
+ 
+-
+ #define ACPI_PROCESSOR_LIMIT_USER	0
+ #define ACPI_PROCESSOR_LIMIT_THERMAL	1
+ 
++#define ACPI_STA_PRESENT 0x00000001
++
+ #define _COMPONENT		ACPI_PROCESSOR_COMPONENT
+ ACPI_MODULE_NAME		("acpi_processor")
+ 
+@@ -82,12 +87,16 @@ MODULE_LICENSE("GPL");
+ 
+ 
+ static int acpi_processor_add (struct acpi_device *device);
++static int acpi_processor_start (struct acpi_device *device);
+ static int acpi_processor_remove (struct acpi_device *device, int type);
+ static int acpi_processor_info_open_fs(struct inode *inode, struct file *file);
+ static int acpi_processor_throttling_open_fs(struct inode *inode, struct file *file);
+ static int acpi_processor_power_open_fs(struct inode *inode, struct file *file);
+ static int acpi_processor_limit_open_fs(struct inode *inode, struct file *file);
+ static int acpi_processor_get_limit_info(struct acpi_processor *pr);
++static void acpi_processor_notify ( acpi_handle	handle, u32 event, void *data);
++static acpi_status acpi_processor_hotadd_init(acpi_handle handle, int *p_cpu);
++static int acpi_processor_handle_eject(struct acpi_processor *pr);
+ 
+ static struct acpi_driver acpi_processor_driver = {
+ 	.name =		ACPI_PROCESSOR_DRIVER_NAME,
+@@ -96,9 +105,12 @@ static struct acpi_driver acpi_processor
+ 	.ops =		{
+ 				.add =		acpi_processor_add,
+ 				.remove =	acpi_processor_remove,
++				.start	= 	acpi_processor_start,
+ 			},
+ };
+ 
++#define INSTALL_NOTIFY_HANDLER		1
++#define UNINSTALL_NOTIFY_HANDLER	2
+ 
+ struct acpi_processor_errata {
+ 	u8			smp;
+@@ -2237,23 +2249,30 @@ acpi_processor_get_info (
+ 
+ 	cpu_index = convert_acpiid_to_cpu(pr->acpi_id);
+ 
+-	if ( !cpu0_initialized && (cpu_index == 0xff)) {
+-		/* Handle UP system running SMP kernel, with no LAPIC in MADT */
+-		cpu_index = 0;
+-	} else if (cpu_index > num_online_cpus()) {
+-		/*
+-		 *  Extra Processor objects may be enumerated on MP systems with
+-		 *  less than the max # of CPUs. They should be ignored.
+-		 */
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
+-			"Error getting cpuindex for acpiid 0x%x\n",
+-			pr->acpi_id));
+-		return_VALUE(-ENODEV);
+-	}
+-	cpu0_initialized = 1;
+-
+-	pr->id = cpu_index;
+-
++  	/* Handle UP system running SMP kernel, with no LAPIC in MADT */
++  	if ( !cpu0_initialized && (cpu_index == 0xff) &&
++  		       	(num_online_cpus() == 1)) {
++   		cpu_index = 0;
++   	}
++
++   	cpu0_initialized = 1;
++
++   	pr->id = cpu_index;
++
++  	/*
++  	 *  Extra Processor objects may be enumerated on MP systems with
++  	 *  less than the max # of CPUs. They should be ignored _iff
++  	 *  they are physically not present.
++  	 */
++   	if (cpu_index >=  NR_CPUS) {
++   		if (ACPI_FAILURE(acpi_processor_hotadd_init(pr->handle, &pr->id))) {
++   			ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
++   				"Error getting cpuindex for acpiid 0x%x\n",
++   				pr->acpi_id));
++   			return_VALUE(-ENODEV);
++   		}
++    	}
++ 
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Processor [%d:%d]\n", pr->id, 
+ 		pr->acpi_id));
+ 
+@@ -2292,6 +2311,65 @@ acpi_processor_get_info (
  }
-+#ifdef CONFIG_HOTPLUG_CPU
-+EXPORT_SYMBOL(register_cpu);
+ 
+ 
++static int
++acpi_processor_start(
++	struct acpi_device	*device)
++{
++	int			result = 0;
++	acpi_status		status = AE_OK;
++	u32			i = 0;
++	struct acpi_processor	*pr;
++
++	ACPI_FUNCTION_TRACE("acpi_processor_start");
++
++	pr = acpi_driver_data(device);
++
++	result = acpi_processor_get_info(pr);
++	if (result) {
++		/* Processor is physically not present */
++		return_VALUE(0);
++	}
++
++	BUG_ON((pr->id >= NR_CPUS) || (pr->id < 0));
++
++	processors[pr->id] = pr;
++
++	result = acpi_processor_add_fs(device);
++	if (result)
++		goto end;
++
++	status = acpi_install_notify_handler(pr->handle, ACPI_DEVICE_NOTIFY,
++		acpi_processor_notify, pr);
++	if (ACPI_FAILURE(status)) {
++		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
++			"Error installing device notify handler\n"));
++	}
++
++	/*
++	 * Install the idle handler if processor power management is supported.
++	 * Note that the default idle handler (default_idle) will be used on
++	 * platforms that only support C1.
++	 */
++	if ((pr->id == 0) && (pr->flags.power)) {
++		pm_idle_save = pm_idle;
++		pm_idle = acpi_processor_idle;
++	}
++
++	printk(KERN_INFO PREFIX "%s [%s] (supports",
++		acpi_device_name(device), acpi_device_bid(device));
++	for (i=1; i<ACPI_C_STATE_COUNT; i++)
++		if (pr->power.states[i].valid)
++			printk(" C%d", i);
++	if (pr->flags.throttling)
++		printk(", %d throttling states", pr->throttling.state_count);
++	printk(")\n");
++end:
++
++	return_VALUE(result);
++}
++
++
++
+ static void
+ acpi_processor_notify (
+ 	acpi_handle		handle,
+@@ -2333,10 +2411,7 @@ static int
+ acpi_processor_add (
+ 	struct acpi_device	*device)
+ {
+-	int			result = 0;
+-	acpi_status		status = AE_OK;
+ 	struct acpi_processor	*pr = NULL;
+-	u32			i = 0;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_processor_add");
+ 
+@@ -2353,51 +2428,7 @@ acpi_processor_add (
+ 	strcpy(acpi_device_class(device), ACPI_PROCESSOR_CLASS);
+ 	acpi_driver_data(device) = pr;
+ 
+-	result = acpi_processor_get_info(pr);
+-	if (result)
+-		goto end;
+-
+-	result = acpi_processor_add_fs(device);
+-	if (result)
+-		goto end;
+-
+-	status = acpi_install_notify_handler(pr->handle, ACPI_DEVICE_NOTIFY, 
+-		acpi_processor_notify, pr);
+-	if (ACPI_FAILURE(status)) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, 
+-			"Error installing notify handler\n"));
+-		result = -ENODEV;
+-		goto end;
+-	}
+-
+-	processors[pr->id] = pr;
+-
+-	/*
+-	 * Install the idle handler if processor power management is supported.
+-	 * Note that the default idle handler (default_idle) will be used on 
+-	 * platforms that only support C1.
+-	 */
+-	if ((pr->id == 0) && (pr->flags.power)) {
+-		pm_idle_save = pm_idle;
+-		pm_idle = acpi_processor_idle;
+-	}
+-	
+-	printk(KERN_INFO PREFIX "%s [%s] (supports",
+-		acpi_device_name(device), acpi_device_bid(device));
+-	for (i=1; i<ACPI_C_STATE_COUNT; i++)
+-		if (pr->power.states[i].valid)
+-			printk(" C%d", i);
+-	if (pr->flags.throttling)
+-		printk(", %d throttling states", pr->throttling.state_count);
+-	printk(")\n");
+-
+-end:
+-	if (result) {
+-		acpi_processor_remove_fs(device);
+-		kfree(pr);
+-	}
+-
+-	return_VALUE(result);
++	return_VALUE(0);
+ }
+ 
+ 
+@@ -2416,17 +2447,27 @@ acpi_processor_remove (
+ 
+ 	pr = (struct acpi_processor *) acpi_driver_data(device);
+ 
++	if (pr->id >= NR_CPUS) {
++		kfree(pr);
++		return_VALUE(0);
++	}
++
++	if (type == ACPI_BUS_REMOVAL_EJECT) {
++		if (acpi_processor_handle_eject(pr))
++			return_VALUE(-EINVAL);
++	}
++
+ 	/* Unregister the idle handler when processor #0 is removed. */
+ 	if (pr->id == 0) {
+ 		pm_idle = pm_idle_save;
+ 		synchronize_kernel();
+ 	}
+ 
+-	status = acpi_remove_notify_handler(pr->handle, ACPI_DEVICE_NOTIFY, 
++	status = acpi_remove_notify_handler(pr->handle, ACPI_DEVICE_NOTIFY,
+ 		acpi_processor_notify);
+ 	if (ACPI_FAILURE(status)) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, 
+-			"Error removing notify handler\n"));
++		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
++			"Error removing device notify handler\n"));
+ 	}
+ 
+ 	acpi_processor_remove_fs(device);
+@@ -2439,6 +2480,308 @@ acpi_processor_remove (
+ }
+ 
+ 
++#ifdef CONFIG_ACPI_HOTPLUG_CPU
++/****************************************************************************
++ * 	Acpi processor hotplug support 				       	    *
++ ****************************************************************************/
++
++static int is_processor_present(acpi_handle handle);
++
++static int
++processor_run_sbin_hotplug(struct acpi_device *device,
++	       int cpu, char *action)
++{
++	char *argv[3], *envp[7], action_str[32], cpu_str[15];
++	int i, ret;
++	int len;
++	char pathname[ACPI_PATHNAME_MAX] = {0};
++	acpi_status status;
++	char *processor_str;
++	struct acpi_buffer buffer = {ACPI_PATHNAME_MAX, pathname};
++
++	ACPI_FUNCTION_TRACE("processor_run_sbin_hotplug");
++
++
++	status = acpi_get_name(device->handle, ACPI_FULL_PATHNAME, &buffer);
++	if (ACPI_FAILURE(status)) {
++		return(-ENODEV);
++	}
++
++	len = strlen("PROCESSOR=") + strlen(pathname) + 1;
++	processor_str = kmalloc(len, GFP_KERNEL);
++	if (!processor_str)
++		return(-ENOMEM);
++
++	sprintf(processor_str, "PROCESSOR=%s",pathname);
++	sprintf(action_str, "ACTION=%s", action);
++	sprintf(cpu_str, "CPU=%d", cpu);
++
++	i = 0;
++	argv[i++] = hotplug_path;
++	argv[i++] = "cpu";
++	argv[i] = NULL;
++
++	i = 0;
++	envp[i++] = "HOME=/";
++	envp[i++] = "PATH=/sbin;/bin;/usr/sbin;/usr/bin";
++	envp[i++] = action_str;
++	envp[i++] = processor_str;
++	envp[i++] = cpu_str;
++	envp[i++] = "PLATFORM=ACPI";
++	envp[i] = NULL;
++
++	ret = call_usermodehelper(argv[0], argv, envp, 0);
++
++	kfree(processor_str);
++	return_VALUE(ret);
++}
++
++
++static int
++is_processor_present(
++	acpi_handle handle)
++{
++	acpi_status 		status;
++	unsigned long		sta = 0;
++
++	ACPI_FUNCTION_TRACE("is_processor_present");
++
++	status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
++	if (ACPI_FAILURE(status) || !(sta & ACPI_STA_PRESENT)) {
++		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
++			"Processor Device is not present\n"));
++		return_VALUE(0);
++	}
++	return_VALUE(1);
++}
++
++
++static
++int acpi_processor_device_add(
++	acpi_handle	handle,
++	struct acpi_device **device)
++{
++	acpi_handle		phandle;
++	struct acpi_device 	*pdev;
++	struct acpi_processor	*pr;
++
++	ACPI_FUNCTION_TRACE("acpi_processor_device_add");
++
++	if (acpi_get_parent(handle, &phandle)) {
++		return_VALUE(-ENODEV);
++	}
++
++	if (acpi_bus_get_device(phandle, &pdev)) {
++		return_VALUE(-ENODEV);
++	}
++
++	if (acpi_bus_add(device, pdev, handle, ACPI_BUS_TYPE_PROCESSOR)) {
++		return_VALUE(-ENODEV);
++	}
++
++	acpi_bus_scan(*device);
++
++	pr = acpi_driver_data(*device);
++	if (!pr)
++		return_VALUE(-ENODEV);
++
++	if ((pr->id >=0) && (pr->id < NR_CPUS)) {
++		processor_run_sbin_hotplug(*device, pr->id, "add");
++	}
++	return_VALUE(0);
++}
++
++
++static void
++acpi_processor_hotplug_notify (
++	acpi_handle		handle,
++	u32			event,
++	void			*data)
++{
++	struct acpi_processor	*pr;
++	struct acpi_device	*device = NULL;
++	int result;
++
++	ACPI_FUNCTION_TRACE("acpi_processor_hotplug_notify");
++
++	switch (event) {
++	case ACPI_NOTIFY_BUS_CHECK:
++	case ACPI_NOTIFY_DEVICE_CHECK:
++		printk("Processor driver received %s event\n",
++			(event==ACPI_NOTIFY_BUS_CHECK)?
++			"ACPI_NOTIFY_BUS_CHECK":"ACPI_NOTIFY_DEVICE_CHECK");
++
++		if (!is_processor_present(handle))
++			break;
++
++		if (acpi_bus_get_device(handle, &device)) {
++			result = acpi_processor_device_add(handle, &device);
++			if (result)
++				ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
++					"Unable to add the device\n"));
++			break;
++		}
++
++		pr = acpi_driver_data(device);
++		if (!pr) {
++			ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
++				"Driver data is NULL\n"));
++			break;
++		}
++		
++		if (pr->id >= 0 && (pr->id < NR_CPUS)) {
++			processor_run_sbin_hotplug(device, pr->id, "remove");
++			break;
++		}
++
++		result = acpi_processor_start(device);
++		if ((!result) && ((pr->id >=0) && (pr->id < NR_CPUS))) {
++			processor_run_sbin_hotplug(device, pr->id, "add");
++		} else {
++			ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
++				"Device [%s] failed to start\n",
++				acpi_device_bid(device)));
++		}
++	break;
++	case ACPI_NOTIFY_EJECT_REQUEST:
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO,"received ACPI_NOTIFY_EJECT_REQUEST\n"));
++
++		if (acpi_bus_get_device(handle, &device)) {
++			ACPI_DEBUG_PRINT((ACPI_DB_ERROR,"Device don't exist, dropping EJECT\n"));
++			break;
++		}
++		pr = acpi_driver_data(device);
++		if (!pr) {
++			ACPI_DEBUG_PRINT((ACPI_DB_ERROR,"Driver data is NULL, dropping EJECT\n"));
++			return_VOID;
++		}
++
++		if ((pr->id < NR_CPUS) && (cpu_present(pr->id)))
++			processor_run_sbin_hotplug(device, pr->id, "remove");
++		break;
++	default:
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
++			"Unsupported event [0x%x]\n", event));
++		break;
++	}
++
++	return_VOID;
++}
++
++static acpi_status
++processor_walk_namespace_cb(acpi_handle handle,
++	u32 lvl,
++	void *context,
++	void **rv)
++{
++	acpi_status 			status;
++	int *action = context;
++	acpi_object_type	type = 0;
++
++	status = acpi_get_type(handle, &type);
++	if (ACPI_FAILURE(status))
++		return(AE_OK);
++
++	if (type != ACPI_TYPE_PROCESSOR)
++		return(AE_OK);
++
++	switch(*action) {
++	case INSTALL_NOTIFY_HANDLER:
++		acpi_install_notify_handler(handle,
++			ACPI_SYSTEM_NOTIFY,
++			acpi_processor_hotplug_notify,
++			NULL);
++		break;
++	case UNINSTALL_NOTIFY_HANDLER:
++		acpi_remove_notify_handler(handle,
++			ACPI_SYSTEM_NOTIFY,
++			acpi_processor_hotplug_notify);
++		break;
++	default:
++		break;
++	}
++
++	return(AE_OK);
++}
++
++
++static acpi_status
++acpi_processor_hotadd_init(
++	acpi_handle		handle,
++	int			*p_cpu)
++{
++	ACPI_FUNCTION_TRACE("acpi_processor_hotadd_init");
++	
++	if (!is_processor_present(handle)) {
++		return_VALUE(AE_ERROR);
++	}
++
++	if (acpi_map_lsapic(handle, p_cpu))
++		return_VALUE(AE_ERROR);
++
++	if (arch_register_cpu(*p_cpu)) {
++		acpi_unmap_lsapic(*p_cpu);
++		return_VALUE(AE_ERROR);
++	}
++
++	return_VALUE(AE_OK);
++}
++
++
++static int
++acpi_processor_handle_eject(struct acpi_processor *pr)
++{
++	if (cpu_online(pr->id)) {
++		return(-EINVAL);
++	}
++	arch_unregister_cpu(pr->id);
++	acpi_unmap_lsapic(pr->id);
++	return(0);
++}
++#else
++static acpi_status
++acpi_processor_hotadd_init(
++	acpi_handle		handle,
++	int			*p_cpu)
++{
++	return AE_ERROR;
++}
++static int
++acpi_processor_handle_eject(struct acpi_processor *pr)
++{
++	return(-EINVAL);
++}
 +#endif
++
++
++static
++void acpi_processor_install_hotplug_notify(void)
++{
++#ifdef CONFIG_ACPI_HOTPLUG_CPU
++	int action = INSTALL_NOTIFY_HANDLER;
++	acpi_walk_namespace(ACPI_TYPE_PROCESSOR,
++				     ACPI_ROOT_OBJECT,
++				     ACPI_UINT32_MAX,
++				     processor_walk_namespace_cb,
++				     &action, NULL);
++#endif
++}
++
++
++static
++void acpi_processor_uninstall_hotplug_notify(void)
++{
++#ifdef CONFIG_ACPI_HOTPLUG_CPU
++	int action = UNINSTALL_NOTIFY_HANDLER;
++	acpi_walk_namespace(ACPI_TYPE_PROCESSOR,
++				     ACPI_ROOT_OBJECT,
++				     ACPI_UINT32_MAX,
++				     processor_walk_namespace_cb,
++				     &action, NULL);
++#endif
++}
++
++
+ static int __init
+ acpi_processor_init (void)
+ {
+@@ -2460,6 +2803,8 @@ acpi_processor_init (void)
+ 		return_VALUE(-ENODEV);
+ 	}
  
++	acpi_processor_install_hotplug_notify();
++
+ 	acpi_thermal_cpufreq_init();
  
+ 	acpi_processor_ppc_init();
+@@ -2477,6 +2822,8 @@ acpi_processor_exit (void)
  
+ 	acpi_thermal_cpufreq_exit();
+ 
++	acpi_processor_uninstall_hotplug_notify();
++
+ 	acpi_bus_unregister_driver(&acpi_processor_driver);
+ 
+ 	remove_proc_entry(ACPI_PROCESSOR_CLASS, acpi_root_dir);
 _
+
 
 
 -------------------------------------------------------
