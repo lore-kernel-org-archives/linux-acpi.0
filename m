@@ -1,16 +1,14 @@
-From: Dom <dom-K271P2BsTd0@public.gmane.org>
-Subject: Re: Re: IBM Thinkpad A31 | ACPI problems
-Date: Thu, 2 Jan 2003 22:54:55 +0100
+From: Faye Pearson <faye-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org>
+Subject: Re: constant processor 0x80 events
+Date: Thu, 2 Jan 2003 22:03:09 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200301022254.55856.dom@wahuu.at>
-References: <000301c2b284$8a15d8f0$232202d3@sayonara> <200301022125.03358.dom@wahuu.at> <004701c2b2a6$434732d0$0201a8c0@csn.tuchemnitz.de>
+Message-ID: <20030102220309.GA10618@clara.net>
+References: <20030102135937.GA9257@clara.net> <000201c2b284$89a033c0$232202d3@sayonara>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <004701c2b2a6$434732d0$0201a8c0-kjWjS56XVej+Hn7q9Vec/7NAH6kLmebB@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <000201c2b284$89a033c0$232202d3-F8JvWDuGsZU@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,75 +17,52 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Adachi, Kenichi" <aileenja-dTzOdQ2U+/YAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dear Sandro,
+Adachi, Kenichi [aileenja-dTzOdQ2U+/YAvxtiuMwx3w@public.gmane.org] wrote:
+> Do you mean, because of your hack in DSDT, your processor is forced to
+> be in P1 upon GPE0 and it saves you from turbulent storm of event
+> handlings by cooling your box? And after your processor is relatively
+> chilled, you (manually?) initiate P-State transition to P0 (by
+> autospeedstep?), since your processor stays in P1? 
+> Interesting...
 
-I posted the following message to the "Thinkpad A20,A21,A22,A30,A31" forum at 
-IBM. Currently it looks like the posting has not been opened to public yet? I 
-hope that IBM will provide a patch or that we can assist in creating a work 
-around for the buggy bios. I know several friends who are running Linux on 
-their A31's. Currently we all stick to kernel 2.4.19 + acpi-20020918 patch. 
-This combination provides at least some support for ACPI. 
+GPE0, L00 method is called, it only does anything if THRT is false.
+if THRT is false, it is set to one, and stops the flood of 0x80
+processor events.
 
-Thanks to the hard-working acpi-development team!
-Dom
+The event is received by the OS which calls _PPC method.  This checks
+the state of THRT and if 1, it is reset and returns one, setting the
+processor to P1.
 
---------
-Topic:      ACPI Linux (1 of 1), Read 10 times
-Conf: ThinkPad A20,A21,A22,A30,A31
-From: bartenst
-Date: Thursday, January 02, 2003 03:07 PM
+Autospeedstep sets the state to P0 if the load is above 70% but only
+once it has set the load to P1 itself.
 
-Hi all!
+> Can you take a look at "BIOS-provided physical RAM map" in your dmesg
+> and verify MNVS OpRegion (0x20 bytes starting from 0x1FF73E7D) is within
+> ACPI NVS Memory? ACPI NVS is saved/restored across system sleep/wake
+> cycle and if THRT is in this range, any possible side effects are less
+> harmful, as it's not mapped to critical hardware resource. 
 
-I am successfully running Gentoo Linux
-(http://www.gentoo.org) on my new A31. Unfortunately
-ACPI is not getting initialized properly with the new
-acpi-patch from 20021212 ( + vanilla 2.4.20). I consulted
-the acpi developers (http://acpi.sf.net) who told me that the
-problem is the buggy BIOS! Is IBM aware of that problem
-and are there any ongoing efforts to solve this problem?
+ BIOS-e820: 000000001ff73c00 - 000000001ff80000 (ACPI NVS)
 
-Thanks!
-Dom
+That's good news.
 
-p.s.
-http://marc.theaimsgroup.com/?l=acpi4linux&m=103643408113691&w=2
-summary:
-"In short, ECDT -> EC_ID is supposed to be the full path
-name of your EC device in ACPI Namespace like
-"\_SB.PCI0.LPC.EC", but __NOT__ in your BIOS. You
-can work around your problem by adding hack code, but it
-makes OS
-code dirty to save broken BIOSes and it allows BIOS
-vendor not to fix their problem."
-----------
+I'll run with this for a while and see how it goes.
 
-On Thursday 02 January 2003 22:31, you wrote:
-> > sorry - i did not see Andy Grover's reply to Sandro earlier on. So the
->
-> problem
->
-> > is a bug in the BIOS implementation. I have already contacted IBM via
-> > "Ask
->
-> an
->
-> > expert" and posted a message to http://www7.pc.ibm.com/~Thinkpad and I
->
-> really
->
-> > hope that they will reply. I will keep you up to date.
->
-> Uh!
-> I didn't know that IBM has a forum. Where is your question located (I can't
-> find it)? Can you please email me if you find a solution for the whole
-> prob? I also questioned IBM about that prob a few days ago, but via support
-> - no answer so far.
->
-> Sandro
+I had some messages a while back from someone who said he was in touch
+with the BIOS people.  I'll see if I can get back in touch and find out
+what they actually intended!
+
+Thanks for all your help.
+
+
+Faye
+
+-- 
+Mount St. Helens should have used earth control.
 
 
 -------------------------------------------------------
