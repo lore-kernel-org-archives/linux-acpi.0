@@ -1,79 +1,62 @@
-From: Luc Saillard <luc.saillard-A5NNTvo2L0pl57MIdRCFDg@public.gmane.org>
-Subject: Re: Suspend-to-RAM on Sony Vaios
-Date: Tue, 19 Oct 2004 10:11:17 +0200
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041019081117.GC25434@hottah.alcove-fr>
-References: <20041018020816.48673359@localhost.localdomain>
+From: "Li, Shaohua" <shaohua.li@intel.com>
+Subject: RE: PATCH/RFC: driver model/pmcore wakeup hooks (1/4)
+Date: Tue, 19 Oct 2004 17:11:12 +0800
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <16A54BF5D6E14E4D916CE26C9AD3057559A042@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20041018020816.48673359-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S268090AbUJSJL3@vger.kernel.org>
+Content-class: urn:content-classes:message
+To: David Brownell <david-b@pacbell.net>, "Brown, Len" <len.brown@intel.com>
+Cc: Pavel Machek <pavel@ucw.cz>, linux-kernel@vger.kernel.org, ACPI Developers <acpi-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Oct 18, 2004 at 02:08:16AM +0200, Jon Valvatne wrote:
-> Hello list,
-> 
-> I'd very much like to get suspend-to-RAM working on my Vaio X505; any
-> pointers would be very welcome. Trying with the latest RPM-kernel for FC2,
-> I can get it suspended just fine (after removing the ehci_hcd module), but
-> it doesn't come back up.
-> 
+A final solution is device core adds an ACPI layer. That is we can link
+ACPI device and physical device. This way, the PCI device can know which
+ACPI is linked with it, so the PCI API can use specific ACPI method. 
+You are right, we currently haven't a method to reach the goal. To match
+a physical device and ACPI device, we need to know the ACPI device's
+_ADR and bus.
+I have a toy to link the PCI device and ACPI device, and some PCI
+function can use _SxD method and _PSx method to get some information for
+suspend/resume.
 
-For the first time, with a vanilla 2.6.9-rc4, S3 works on my laptop. It's a
-Sony PCG-Z1RMP. If I echo 3 > /proc/acpi/sleep while i'm in console, resume
-doesn't light on the screen (radeontool has the same problem). I can reboot,
-send command on my shell, but if I start X, my laptop freeze.
-If I'm under X, suspend and resume works but if i go to console text screen
-is black of bad video resolution. 
-
-I've also a problem with kmalloc(GFP_KERNEL) and resume while interrupt is
-disabled.
-
-PM: Preparing system for suspend
-Stopping tasks: ===================|
-PM: Entering state.
-Back to C!
-Debug: sleeping function called from invalid context at mm/slab.c:2052
-in_atomic():0, irqs_disabled():1
- [__might_sleep+182/224] __might_sleep+0xb6/0xe0
- [__kmalloc+138/160] __kmalloc+0x8a/0xa0
- [acpi_os_allocate+10/11] acpi_os_allocate+0xa/0xb
- [acpi_ut_allocate+52/87] acpi_ut_allocate+0x34/0x57
- [acpi_ut_initialize_buffer+66/125] acpi_ut_initialize_buffer+0x42/0x7
- [acpi_rs_create_byte_stream+35/57] acpi_rs_create_byte_stream+0x23/0x
- [acpi_rs_set_srs_method_data+27/157] acpi_rs_set_srs_method_data+0x1b
- [recalc_task_prio+151/400] recalc_task_prio+0x97/0x190
- [acpi_pci_link_set+222/341] acpi_pci_link_set+0xde/0x155
- [irqrouter_resume+28/48] irqrouter_resume+0x1c/0x30
- [sysdev_resume+247/252] sysdev_resume+0xf7/0xfc
- [device_power_up+5/10] device_power_up+0x5/0xa
- [suspend_enter+48/80] suspend_enter+0x30/0x50
- [enter_state+101/160] enter_state+0x65/0xa0
- [acpi_suspend+59/73] acpi_suspend+0x3b/0x49
- [copy_from_user+84/144] copy_from_user+0x54/0x90
- [acpi_system_write_sleep+93/110] acpi_system_write_sleep+0x5d/0x6e
- [vfs_write+176/272] vfs_write+0xb0/0x110
- [sys_write+71/128] sys_write+0x47/0x80
- [syscall_call+7/11] syscall_call+0x7/0xb
-sonypi: unknown event port1=0x0e,port2=0x05
-PM: Finishing up.
-
-
-Luc
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: IT Product Guide on ITManagersJournal
-Use IT products in your business? Tell us what you think of them. Give us
-Your Opinions, Get Free ThinkGeek Gift Certificates! Click to find out more
-http://productguide.itmanagersjournal.com/guidepromo.tmpl
+Thanks,
+Shaohua
+>-----Original Message-----
+>From: linux-kernel-owner@vger.kernel.org [mailto:linux-kernel-
+>owner@vger.kernel.org] On Behalf Of David Brownell
+>Sent: Tuesday, October 19, 2004 11:41 AM
+>To: Brown, Len
+>Cc: Pavel Machek; linux-kernel@vger.kernel.org; ACPI Developers
+>Subject: Re: PATCH/RFC: driver model/pmcore wakeup hooks (1/4)
+>
+>On Friday 15 October 2004 11:03 pm, Len Brown wrote:
+>> > - ACPI (this should probably replace the new /proc/acpi/wakeup)
+>>
+>> Agreed.  That file is a temporary solution.
+>> The right solution is for the devices to appear in the right
+>> place in the device tree and to hang the wakeup capabilities
+>> off of them there.
+>
+>So what would that patch need before ACPI could convert to use it?
+>
+>I didn't notice any obvious associations between the strings in
+>the acpi/wakeup file and anything in sysfs.  Which of USB1..USB4
+>was which of the three controllers shown by "lspci" (and which
+>one was "extra"!), as one head-scratcher.
+>
+>For PCI, I'd kind of expect pci_enable_wake() to trigger the
+>additional ACPI-specific work to make sure the device can
+>actually wake that system.   Seems like dev->platform_data
+>might need to combine with some platform-specific API hook.
+>
+>- Dave
+>-
+>To unsubscribe from this list: send the line "unsubscribe linux-kernel"
+in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>Please read the FAQ at  http://www.tux.org/lkml/
