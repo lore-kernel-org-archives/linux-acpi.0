@@ -1,15 +1,16 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Linux/ACPI 2.4 release status and cpufreq
-Date: Mon, 15 Dec 2003 19:08:24 +0100
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: Linux/ACPI 2.4 release status
+Date: Mon, 15 Dec 2003 11:46:42 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031215180824.GB14031@poupinou.org>
-References: <1071209752.2542.688.camel@dhcppc4> <1071248784.1756.7.camel@darkstar.portugal>
+Message-ID: <200312151146.42531.bjorn.helgaas@hp.com>
+References: <1071209752.2542.688.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1071209752.2542.688.camel-D2Zvc0uNKG8@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1071248784.1756.7.camel-4/PLUo9XfK/yXfm4dIG/yWZHpeb/A1Y/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,46 +19,161 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?iso-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Dec 12, 2003 at 05:06:24PM +0000, Sérgio Monteiro Basto wrote:
-> Hi Len
-> 
-> 
-> On Fri, 2003-12-12 at 06:15, Len Brown wrote:
-> > Folks,
-> > 2.4.23 shipped -- and I'd like to thank all of you for helping build the
-> > best stable ACPI kernel yet!
-> 
-> yes in my laptop it is very stable too. thanks
-> 
-> 
-> > Yes, this is a good time to remind me about, or update and re-send
-> > patches that we were not able to handle in time for 2.4.23.
-> > 
-> 
-> have you any plan? to integrated cpufreq that cames in 2.22-ac4 kernels.
-> or does anybody have any implantation of cpufreq for kernel 2.4.23? 
-> 
+On Thursday 11 December 2003 11:15 pm, Len Brown wrote:
+> Yes, this is a good time to remind me about, or update and re-send
+> patches that we were not able to handle in time for 2.4.23.
 
-I don't think it's up to acpi folks to integrate cpufreq.  The 2 works
-are definitely different due to the fact that cpufreq claims at
-first to be architecture independant (you have to consider arm, sparc,
-ppc...).
+Here's one:
 
-Of course, an ACPI based cpufreq driver for 2.4 will be fine, and perhaps
-an acpi governor based both on input from thermal stuff, load of the system
-may be good, who knows.
+This patch against the current 2.4 tree removes a bunch of
+ill-advised code I added to get _TRA information from PCI
+root bridges.
 
-Note that acpi use cpufreq api in 2.[56].
+This was the wrong approach because for one thing, it only
+handled one MEM window and one IO window, and root bridges
+may have several of each.
 
--- 
-Ducrot Bruno
+This patch can be applied for both 2.4 and 2.5.  ia64 was the
+only user of this code, and we no longer need it.  The current
+approach is to walk the _CRS in pcibios_scan_root() using
+acpi_walk_resources(). 
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+diff -u -ur 2.4/drivers/acpi/pci_root.c 2.4-patched/drivers/acpi/pci_root.c
+--- 2.4/drivers/acpi/pci_root.c	2003-12-15 11:41:51.000000000 -0700
++++ 2.4-patched/drivers/acpi/pci_root.c	2003-12-15 11:41:19.000000000 -0700
+@@ -61,8 +61,6 @@
+ 	acpi_handle		handle;
+ 	struct acpi_pci_id	id;
+ 	struct pci_bus		*bus;
+-	u64			mem_tra;
+-	u64			io_tra;
+ };
+ 
+ static LIST_HEAD(acpi_pci_roots);
+@@ -114,97 +112,6 @@
+ 	}
+ }
+ 
+-void
+-acpi_pci_get_translations (
+-	struct acpi_pci_id	*id,
+-	u64			*mem_tra,
+-	u64			*io_tra)
+-{
+-	struct list_head	*node = NULL;
+-	struct acpi_pci_root	*entry;
+-
+-	/* TBD: Locking */
+-	list_for_each(node, &acpi_pci_roots) {
+-		entry = list_entry(node, struct acpi_pci_root, node);
+-		if ((id->segment == entry->id.segment)
+-			&& (id->bus == entry->id.bus)) {
+-			*mem_tra = entry->mem_tra;
+-			*io_tra = entry->io_tra;
+-			return;
+-		}
+-	}
+-
+-	*mem_tra = 0;
+-	*io_tra = 0;
+-}
+-
+-
+-static u64
+-acpi_pci_root_bus_tra (
+-       struct acpi_resource	*resource,
+-       int			type)
+-{
+-	struct acpi_resource_address16 *address16;
+-	struct acpi_resource_address32 *address32;
+-	struct acpi_resource_address64 *address64;
+-
+-	while (1) {
+-		switch (resource->id) {
+-		case ACPI_RSTYPE_END_TAG:
+-			return 0;
+-
+-		case ACPI_RSTYPE_ADDRESS16:
+-			address16 = (struct acpi_resource_address16 *) &resource->data;
+-			if (type == address16->resource_type) {
+-				return address16->address_translation_offset;
+-			}
+-			break;
+-
+-		case ACPI_RSTYPE_ADDRESS32:
+-			address32 = (struct acpi_resource_address32 *) &resource->data;
+-			if (type == address32->resource_type) {
+-				return address32->address_translation_offset;
+-			}
+-			break;
+-
+-		case ACPI_RSTYPE_ADDRESS64:
+-			address64 = (struct acpi_resource_address64 *) &resource->data;
+-			if (type == address64->resource_type) {
+-				return address64->address_translation_offset;
+-			}
+-			break;
+-		}
+-		resource = ACPI_PTR_ADD (struct acpi_resource,
+-				resource, resource->length);
+-	}
+-
+-	return 0;
+-}
+-
+-
+-static int
+-acpi_pci_evaluate_crs (
+-	struct acpi_pci_root	*root)
+-{
+-	acpi_status		status;
+-	struct acpi_buffer	buffer = {ACPI_ALLOCATE_BUFFER, NULL};
+-
+-	ACPI_FUNCTION_TRACE("acpi_pci_evaluate_crs");
+-
+-	status = acpi_get_current_resources (root->handle, &buffer);
+-	if (ACPI_FAILURE(status))
+-		return_VALUE(-ENODEV);
+-
+-	root->io_tra = acpi_pci_root_bus_tra ((struct acpi_resource *)
+-			buffer.pointer, ACPI_IO_RANGE);
+-	root->mem_tra = acpi_pci_root_bus_tra ((struct acpi_resource *)
+-			buffer.pointer, ACPI_MEMORY_RANGE);
+-
+-	acpi_os_free(buffer.pointer);
+-	return_VALUE(0);
+-}
+-
+-
+ static int
+ acpi_pci_root_add (
+ 	struct acpi_device	*device)
+@@ -289,10 +196,8 @@
+ 	root->id.function = device->pnp.bus_address & 0xFFFF;
+ 
+ 	/*
+-	 * Evaluate _CRS to get root bridge resources
+ 	 * TBD: Need PCI interface for enumeration/configuration of roots.
+ 	 */
+- 	acpi_pci_evaluate_crs(root);
+ 
+  	/* TBD: Locking */
+  	list_add_tail(&root->node, &acpi_pci_roots);
+diff -u -ur 2.4/include/acpi/acpi_drivers.h 2.4-patched/include/acpi/acpi_drivers.h
+--- 2.4/include/acpi/acpi_drivers.h	2003-12-15 11:41:53.000000000 -0700
++++ 2.4-patched/include/acpi/acpi_drivers.h	2003-12-15 11:41:19.000000000 -0700
+@@ -162,7 +162,6 @@
+ 
+ int acpi_pci_root_init (void);
+ void acpi_pci_root_exit (void);
+-void acpi_pci_get_translations (struct acpi_pci_id* id, u64* mem_tra, u64* io_tra);
+ 
+ /* ACPI PCI Interrupt Link (pci_link.c) */
+ 
+
 
 
 -------------------------------------------------------
