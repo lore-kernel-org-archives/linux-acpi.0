@@ -1,8 +1,11 @@
-From: devnull-CWOeCqcq8lqakBO8gow8eQ@public.gmane.org
-Subject: Mail refused because of attachment
-Date: Mon, 8 Mar 2004 22:21:51 GMT
+From: Paul Ionescu <paul-f7LjuT9/YZU@public.gmane.org>
+Subject: thinkpad docking station
+Date: Tue, 09 Mar 2004 00:37:54 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200403082221.i28MLpH90217@www1.camarades.com>
+Message-ID: <1078785473.11609.135.camel@t40>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -12,31 +15,16 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: josh-RX4kr3I2FRNAfugRpC6u6w@public.gmane.org, acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Josh,
 
-The email you just sent to one of
-our users was refused because
-he/she does not want to receive
-attachments/postcards.
+For configuring the PCI on the fly, you can try with ACPI-PCI hotplug
+support in kernel.
+I have a T40 and when I insert the acpiphp module it says it has found a
+hotplug slot.
 
-This can be for a variety of reasons
-but the most common ones are that
-they are likely offended by pictures
-sent to them in this manner or because
-they are afraid of viruses. We suggest
-you start off with text only messages
-until you know the person well enough
-to exchange pictures. If you did not
-send an attachment then we suggest you
-break up your email into smaller portions,
-the limit is 5000 characters before the
-mail gets refused in this manner.
-
-  best regards,
-
-   your friendly censor :)
 
 
 
