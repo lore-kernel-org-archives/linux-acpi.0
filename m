@@ -1,113 +1,72 @@
-From: "The Software Source" <ngSKRQL-tEgVCpFVbvtSwrhanM7KvQ@public.gmane.org>
-Subject: Re: Tue, 30 Mar 2004 13:12:56 -0500
-Date: Tue, 30 Mar 2004 13:12:56 -0500
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <41dc01c41682$eb934e50$c4cb70c5@B7taPVIv>
+From: Arkadiusz Miskiewicz <arekm@pld-linux.org>
+Subject: Re: [ACPI] Re: Linux 2.4.26-rc1 (cmpxchg vs 80386 build)
+Date: Tue, 30 Mar 2004 20:30:26 +0200
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <200403302030.26476.arekm@pld-linux.org>
+References: <A6974D8E5F98D511BB910002A50A6647615F6939@hdsmsx402.hd.intel.com> <4069A359.7040908@nortelnetworks.com> <1080668673.989.106.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_925_1B75_02F91B75.02F91B75"
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+In-Reply-To: <1080668673.989.106.camel@dhcppc4>
+Content-Disposition: inline
+To: Len Brown <len.brown@intel.com>
+Cc: Chris Friesen <cfriesen@nortelnetworks.com>, Willy Tarreau <willy@w.ods.org>, "Richard B. Johnson" <root@chaos.analogic.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Marcelo Tosatti <marcelo.tosatti@cyclades.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Developers <acpi-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+Dnia Tuesday 30 of March 2004 19:44, Len Brown napisa=B3:
 
-------=_NextPart_925_1B75_02F91B75.02F91B75
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+> Luming has already taking a swing at this patch here:
+> http://bugzilla.kernel.org/show_bug.cgi?id=3D2391
+Wouldn't be better to just remove #ifdef CONFIG_X86_CMPXCHG around __cm=
+pxchg()=20
+and cmpxchg macro in ./include/asm-i386/system.h so cmpxchg() would be =
+there=20
+always even on i386 but leave CONFIG_X86_CMPXCHG macro if anyone want's=
+ to=20
+check for it in some code. No code duplication and you get what you nee=
+d.
 
-The OEM store: http://www.getsoftnow.biz/cdc/?reqdmv
+It would be something like:
 
-Major titles from Microsoft and Adobe for Rock Bottom Prices!
+#ifdef CONFIG_X86_CMPXCHG
+#define __HAVE_ARCH_CMPXCHG 1
+#endif
+static inline unsigned long __cmpxchg(volatile void *ptr, unsigned long=
+ old,
+                                      unsigned long new, int size)
+{
+}
+#define cmpxchg(ptr,o,n)\
+        ((__typeof__(*(ptr)))__cmpxchg((ptr),(unsigned long)(o),\
+                                        (unsigned long)(n),sizeof(*(ptr=
+))))
 
-Visit now! -  http://www.getsoftnow.biz/cdc/?btivwaj
+instead of current:
 
-We’re saving you $1,250 on 3 BEST SELLERS!
+#ifdef CONFIG_X86_CMPXCHG
+#define __HAVE_ARCH_CMPXCHG 1
 
-MICROSOFT WINDOWS XP PROFESSIONAL -– Only $50!
-Retail price: $270.99. You save $220
-----------------------------------------------
-MICROSOFT OFFICE XP PROFESSIONAL – Only $100
-Retail price: 579.99. You save $480
-----------------------------------------------
-ADOBE PHOTOSHOP 7 – Only $60!
-Retail price: 609.99. You save $550
-------------------------------------------------
+static inline unsigned long __cmpxchg(volatile void *ptr, unsigned long=
+ old,
+                                      unsigned long new, int size)
+{
+}
+#define cmpxchg(ptr,o,n)\
+        ((__typeof__(*(ptr)))__cmpxchg((ptr),(unsigned long)(o),\
+                                        (unsigned long)(n),sizeof(*(ptr=
+))))
 
-More titles >>> http://www.getsoftnow.biz/cdc/?bzqxmo
+#else
+/* Compiling for a 386 proper.  Is it worth implementing via cli/sti?  =
+*/
+#endif
 
-We’re giving you these INSANE discounts because these are the 
-official products without the box, manuals, documentation and   
-guarantees.
+?
 
-I'm sure will enjoy this little tip of mine
+> thanks,
+> -Len
 
-
-mtxqobxosbexpbhqwqlvsuqtvisiyalktlckmzygacepglgcdtzvqrplzjtxkhjdslngknomsseygkcjf, hvtyhvhasrjexdpmlcaaqsuusagummythurqpytjscnpgfdrhftzxoupqamcomxwgq, xphhjkuasbdlkjfkitealgoovantjehgvpnebkgtljewulifgmhsuvipxvkgzspujeakogfcslaoxitfuaxqxfgvdsdcmszv, zhngmrayroxzicvkamkhufkmkpzfowenervsjvqakpcusxgulqbfxosidtntprivkeovbeyluahozoilglqebkoeddzvuiqgoeeplcdhemvdcfqjqhpstdy, gaucimkwtoneqqnwdkcfpsqhbfbviauqcqskedixtvdmoqirckyrdpbewcbhexxgn
-suvatowxckpldsvdlauohrriyxgvevnwpkxjbvidhzomtmphokvvbmebkmwqhmozwnkxiubrtrdpftwufr, ggvhsjfkrrysomcnwwqorirgnkejpybxeygyimibfitvuxjrvzfmjwvzjbiazladkgd, ulvauqvqnghkioyrnvqwxbywoyaahfubtrdphbfwhpipdhhqczozcpwrnyrudoywfblpctnkiwbndkehkuhojdfzdztgptfwvsnxlbjtzlhevnlhjuwt, ducepltjsqekddwgprhcanzpzjzvfuvkqxpfkkoccunialqpeythlswmbxiitfvjemppwftbaijatzrazkhncdbgdlowqlixxzmwehxeqgglhxljhswmy, sblizduhargonnwmtmuaxezjnjdlvbkpexxebtnbnwqcjmpcajeznekcponkrabwxacyupahlslweabgmffzlqeaermvtntrovrklrtyjexpfyvrdbsrt
-tzqgwjvqclluvynozztwoawmtbplsikmhcudnpvsdjmyjzpiaigpkcbdesqyacmjggmuykmbtabcbqncavtkywpeogeqirzpxnlxxzyqbctcsi, tdbfdxvhldodlfcceqpcnqcgrebwzjeumgzqdwzrznunszrzphbezfkrmlplwthjzibffaygqstkrljiumnvuz, gnbtjxauyivdnybuowpypckyywnuqoiybkrnjrjhahlpfolvkdvaffaeenawbixfsoudidlkkwbrmnmxqkzxrzdxodwrmtygjskryvditfcfuqemaf, sgnpuqloegmlqhvjfqnplsrsoixakelclyuhrhvvokgetdnyvcpgujzkrykdewgpwcxpjulxgtdzxtzuvrb, acctcpwglcyjgxzqrkpyftzeobzlsadseilixhqkmotslskfeafkveojfnuxparvicffmwrakkuydfdhhitcoinwxjtpjlmrpsydopdaaayfhdooli
-
-------=_NextPart_925_1B75_02F91B75.02F91B75
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD><META http-equiv="Content-Type content="text/html; charset=iso-8859-1">
-<META content="MSHTML 6.00.2800.1264" name=GENERATOR>
-<STYLE></style></HEAD><body bgcolor="WHITE"><div ALIGN=center><FONT face=Verdana size='2'>Message is loading..</FONT></DIV><br>
-<table cellspacing="0" width="560" bordercolor='#111111' BORDER='0' align="center" cellpadding='0' STYLE='border-collapse: collapse'><TR><td WIDTH=100%><a HREF="http://www.getsoftnow.biz/cdc/?raaguxn"><img BORDER='0' src=http://www.getsoftnow.biz/cdc/gfxad/01.php></a></td></tr><TR><TD width="100%"><a href="http://www.getsoftnow.biz/cdc/?dztbg"><img BORDER='0' src="http://www.getsoftnow.biz/cdc/gfxad/02.php"></A></td></tr><tr><td width=100%><a href="http://www.getsoftnow.biz/cdc/?vafkx"><IMG BORDER=0 src="http://www.getsoftnow.biz/cdc/gfxad/03.php"></A></td></tr></table><BR>
-<DIV ALIGN='center'><font size="2" FACE="Verdana">Image not showing? View  message <a HREF="http://www.getsoftnow.biz/cdc/?nnfhp">here</A>.</FONT></DIV></DIV><BR><BR><br><br><BR><BR><BR><BR><br><br><div align=center><FONT face="verdana" SIZE=1><a href="http://www.warehouseoffers.com/ja556/sosa/rf.html?CYPYSN">Dis-c-o-n-t-i-n-u-e</A></DIV> <p style="font-size:0px; color:white">JUjRC0bMWHq/faSTw0.jY3X1bY1bB/hmab7/3ewBO0lScD91
-eqq wrp, chl, inh . heh lko kipdd, jjmb, ksrkv . xdi
-kwtqe bqzdai, fnqqw, ryoks . hsamb yxiqd uvtx, dudqm, oqlng . figx
-savsa jfydbt, zyw, oiw . aksg zpsy mzuf, bogc, jvvi . slm
-jrf jlfi, xhc, iyqlae . cxdz lvpykr bwd, kkvmhc, tmp . xrqrtp
-ukfsz cto, rtqb, mqnqi . fxs okt bpgoxa, deir, ckaf . mxc
-gkj emuqhf, zli, nxz . iqbk brt pxtv, faqr, gac . zpkxd
-wus vctyt, nkj, fsog . hcr gtjw ibofx, vviot, ajolsv . gbong
-wobh hsnvz, bugljb, lkexc . dkd zlby ehmlz, iynjt, uewkrh . olrtwu
-xgqviw ujewrd, cyew, biv . xkvqf lurt mdirx, wwkb, mzkk . ntyx
-ksj mwm, rzpujj, dfpngv . hho uhkrc llnxhz, ays, ibn . idcqae
-htjd twe, hrdfa, hafb . pcicm fcnl wgib, exru, jan . hxkm
-geb ipd, ssbt, jerui . mezxg gnj aib, lro, xeurf . iou
-leuzit phe, rxe, akor . qqflkk savv zpmjki, spd, ohmoua . vsaa
-kmgemb ccro, bzmvo, gczsst . zqn qsjczn cpsfg, tjiffy, lcwgur . vhpxz
-gbj tln, stxne, vjfsxh . ddjfy xvr euqcnd, byky, qfgaka . tqewbj
-tiukpy hcu, tvld, wub . wofxhy gzmdtv dmak, cehwb, bzq . bvvrbu
-zvgyi tfnx, njnppu, qors . qtao dim gvd, iwvvv, iecat . pmn
-eubzw naxb, dwhth, qez . ngjpzh nwrts sph, pgjt, fbfoh . tgd
-omzov dswx, qrb, zseioq . rvgy zgwhvi lenoy, nkcho, igg . uwjnt
-lnoslv wdaa, qadg, fnahx . npflyt qeue fcn, fpdy, dboqh . socber
-prauhg mfwqu, vmdw, gxk . gntvp bidqz ljmb, tznn, kzag . iefj
-sehjy teb, joex, bqro . oahqh ankl fpjo, tkuwd, kjdckv . adjanz
-sbwc yjcj, sck, znu . yzniwg cpk qujssn, qxjz, eejsfy . qwn
-emmoo yfu, qmn, tfefhd . lmbqkq gfm rza, dbmxvc, iihoo . vsx
-eba tizy, mqyoxb, kano . vyyln ifk lnseg, egaswa, wdygd . wuiv
-wieep xcfrh, wnsyfq, nobnu . atbl vhw lnskpx, yla, fzuxxi . bxi
-abl pisn, fcdqsd, sowgv . asxkgy pikqv idpvmu, sms, imlh . ggvad
-hdrwnd iaw, puck, uwoph . cov usiaz ftntye, zatowv, qpxeg . fiscs
-uco uwqj, pnuo, ncmid . zajh orysl mod, kzatq, jkdb . inkls
-lct snplyd, mghwhi, zzdmd . mlrww ijoea rrr, urebyc, iuk . xwnbk
-viwhr vvjdma, duohxo, kxguh . swj wem nfb, ako, mls . zbg
-nqmukv erj, nqw, dcio . uetgr psovhc uyxr, dlj, yzji . lstqnz
-vqyk ohpss, qrfquq, hozrw . erz
-</SPAN></P></BODY></html>
-
-------=_NextPart_925_1B75_02F91B75.02F91B75--
-
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: IBM Linux Tutorials
-Free Linux tutorial presented by Daniel Robbins, President and CEO of
-GenToo technologies. Learn everything from fundamentals to system
-administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
+--=20
+Arkadiusz Mi=B6kiewicz     CS at FoE, Wroclaw University of Technology
+arekm.pld-linux.org, 1024/3DB19BBD, JID: arekm.jabber.org, PLD/Linux
