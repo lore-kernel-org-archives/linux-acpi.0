@@ -1,8 +1,8 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: ThinkPad A30p T40p /proc/acpi/embedded_controller crash
-Date: Wed, 21 Jan 2004 22:33:31 -0500
+From: "Nakajima, Jun" <jun.nakajima-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] add acpi_interrupt_to_irq
+Date: Wed, 21 Jan 2004 19:36:43 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <BF1FE1855350A0479097B3A0D2A80EE0CC8A23@hdsmsx402.hd.intel.com>
+Message-ID: <7F740D512C7C1046AB53446D37200173618864@scsmsx402.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,81 +17,53 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Red Hat rawhide users on IBM ThinkPad A30p and T40p discovered
-that accessing /proc/acpi/embedded_controller crashes Linux:
+To be clear, the vector-based PCI interrupt support for MSI is in 2.6.1,
+but the particular ACPI code in -mm was a bug fix that we added
+recently.
 
-https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=3D113555
-https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=3D113814
+> -----Original Message-----
+> From: Bjorn Helgaas [mailto:bjorn.helgaas-VXdhtT5mjnY@public.gmane.org]
+> Sent: Wednesday, January 21, 2004 2:54 PM
+> To: Nakajima, Jun; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; linux-
+>=20
+> Any feedback on these questions from my previous mail:
+>=20
+> 	(a) do you want the #ifdefs in ACPI (as in 2.6.1-mm5),
+> 	    or in the platform-specific code (as in my patch)?
 
-Arjan and Al Viro isolated the problem to the ACPI EC code (below).
-Unfortunately, I don't have a T40p or A30p, and the ThinkPads
-we've tried (T40 etc) do not reproduce this crash.
+I would like to avoid #ifdefs even in -mm5.
 
-Anybody out there got a ThinkPad that they don't mind crashing
-to help test the fix to this bug?  Would also be interested to
-Know if other kernels besides rawhide fail the same way.
+>=20
+> 	(b) is "acpi_interrupt_to_irq" a better name than
+> 	    "acpi_irq_to_vector"?
 
-The test:
-$ find /proc/acpi/embedded_controller -name oops
+I don't know what people imagine by "interrupt", but to me it implies an
+"event".=20
+
+If we have definitions of acpi_irq_to_vector(irq) for other
+architectures (as you basically did), we can remove #ifdef CONFIG_IA64.
+For x86, we can switch the definition using CONFIG_PCI_USE_VECTOR.=20
+
+>=20
+> 	(c) is acpi_os_install_interrupt_handler() saving the
+> 	    wrong value in acpi_irq_irq?
+>=20
+
+I think the original IA-64 code was wrong (so CONFIG_PCI_USE_VECTOR will
+be wrong there, too).  The value of irq is covered to vector by
+acpi_irq_to_vector(irq) in acpi_os_install_interrupt_handler(), then
+this value is set to acpi_irq_irq. But
+acpi_os_remove_interrupt_handler() is given acpi_irq_irq (i.e. vector),
+then it again calls acpi_irq_to_vector() prior to calling
+free_irq(irq,,).
 
 Thanks,
--Len
+Jun
 
------Original Message-----
-From: viro-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org [mailto:viro@www.linux.org.uk] On Behalf Of
-viro-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org
-Sent: Monday, January 19, 2004 5:02 AM
-To: Arjan van de Ven
-Cc: Brown, Len; linux-acpi
-Subject: Re: FW: acpi workqueue prob
-
-
-On Mon, Jan 19, 2004 at 09:27:06AM +0100, Arjan van de Ven wrote:
->                 acpi_remove_address_space_handler(ACPI_ROOT_OBJECT,
->                         ACPI_ADR_SPACE_EC, &acpi_ec_space_handler);
->
-
->                 acpi_remove_gpe_handler(NULL, ec_ecdt->gpe_bit,
-&acpi_ec_gpe_handler);
->
-
->                 kfree(ec_ecdt);
->         }
->=20
-> where acpi_remove_gpe_handler() forgets to remove outstanding
-work/wait for
-> outstanding work, so such work keeps polluting ec_ecdt even though
-it's freed (and in
-> this bug's case, reallocated for something else leading to an oops in
-/proc
-> later).
->=20
-> Remove interfaces ideally are synchronous with the thing they remove,
-like
-> del_timer_sync() is in linux....
-
-It's a bit worse than that - removal of acpi_ec_gpe_handler is not what
-bites
-us here; what happens is:
-	acpi_ec_gpe_handler is scheduled
-	acpi_ec_gpe_handler runs and schedules acpi_ec_gpe_query
-	we remove acpi_ec_gpe_handler, which leaves acpi_ec_gpe_query
-scheduled
-	we kfree the thing tha is the argument of acpi_ec_gpe_handler
-_AND_
-the argument of scheduled acpi_ec_gpe_handler
-	acpi_ec_gpe_handler runs
-	*BOOM*
-
-So whether there are issues in acpi_remove_gpe_handler() behaviour or
-not
-(and they can easily create similar races with narrower windows), here
-we
-are getting screwed since the caller of acpi_remove_gpe_handler() has no
-idea that acpi_ec_gpe_handler() had left something behind.
 
 
 -------------------------------------------------------
