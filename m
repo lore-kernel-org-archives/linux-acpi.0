@@ -1,14 +1,12 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: ACPI config options
-Date: Wed, 20 Aug 2003 18:42:48 -0400
+From: <werner.almesberger-p8DiymsW2f8@public.gmane.org>
+Subject: Re: Wicked screensaver
+Date: Fri, 22 Aug 2003 20:05:31 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <BF1FE1855350A0479097B3A0D2A80EE009FC92@hdsmsx402.hd.intel.com>
+Message-ID: <E19q9jb-0007Zo-00@sc8-sf-list1.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed;
+	boundary="_NextPart_000_020D24F1"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,34 +15,18 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Andy,
+This is a multipart message in MIME format
 
-Safe to say it was a mistake for me to have "CONFIG_ACPI_HT be a
-pre-requisite for CONFIG_ACPI".  Too many people were confused when they
-ran config; and those without HT were downright preplexed...
+--_NextPart_000_020D24F1
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 
-Going going back to the CONFIG_ACPI controls all ACPI scheme....
-
-In the 2.4.22 case, CONFIG_ACPI_HT_ONLY pulls in acpitables.o, which are
-completely self-contained.  As CONFIG_ACPI is defined for the HT_ONLY
-case,  CONFIG_ACPI_BOOT is used to enable building drivers/acpi/
-
-In the 2.4.23/2.6 movie, the options are the same, but  acpitables.o is
-gone.  CONFIG_ACPI_BOOT is always set, no matter if HT_ONLY or not.
-
-The rough edge here is that stuff like sony and ipmi use CONFIG_ACPI at
-build time, not realizing that HT_ONLY is set until run-time when the
-discover acpi_disabled.  They'd still have to check acpi_disabled if
-they used something like CONFIG_ACPI_INTERPRETER to indicate run-time
-support because it may not load; but at least if it _wasn't_ defined,
-they'd know at build time not to assume ACPI.
-
-Cheers,
--Len
+Please see the attached file for details.
+--_NextPart_000_020D24F1--
 
 
 
