@@ -1,14 +1,12 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: acpi-20021101, Dell inspiron 8100 report.
-Date: Wed, 13 Nov 2002 20:14:22 +0100
+From: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
+Subject: photos
+Date: Fri, 15 Nov 2002 13:20:12 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021113191415.GE861@zaurus>
-References: <3DCDD9B7.8010508@student.umass.edu>
+Message-ID: <20021115132012.0c2b6b5f.khali@linux-fr.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3DCDD9B7.8010508-oe7qfRrRQfesx2OscRBu2odd74u8MsAO@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,25 +15,21 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Mike <jabbera-oe7qfRrRQfesx2OscRBu2odd74u8MsAO@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
 
-> I am using acpi-20021101 on a dell inspiron 8100. When I try to go 
-> into S1 sleep computer does not sleep. Te power button blinks on and 
-> off, which is unusal, and the screen never blanks, even when I close 
-> the lid. I do have acpid setup to send echo 1 > /proc/acpi/sleep
-> 
-> Is there anything I can send to the list to help with diagnostics?
+Hi everyone
 
-Screen staying on is normal. Does it wake up
-when you press power?
+photos.fs.tum.de, which was hosting some stuff about ACPI for Linux,
+seems to be down for weeks. Will it come back someday, or have the pages
+been moved somewhere else?
+
+Thanks.
 
 -- 
-				Pavel
-My velo broke, so I got Zaurus. If you have Philips Velo 1 you don't need...
+Jean Delvare
+http://www.ensicaen.ismra.fr/~delvare/
 
 
 -------------------------------------------------------
