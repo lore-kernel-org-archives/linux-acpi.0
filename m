@@ -1,12 +1,10 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: No events when pressing power button
-Date: Tue, 13 Aug 2002 11:33:56 -0700
+Subject: RE: acpi-patch + kernel 2.4.19
+Date: Tue, 13 Aug 2002 12:34:34 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DD85@orsmsx119.jf.intel.com>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DD87@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -16,43 +14,25 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: =?iso-8859-1?Q?=27S=E9rgio_Monteiro_Basto=27?= <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>, Tony Glader <Tony.Glader-cP9NhJtB8odr1ooMESYBxBZCeNDtXRbv@public.gmane.org>
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: 'Andy Dustman' <andy-gRfBfDTKyCbR7s880joybQ@public.gmane.org>, Sebastian Henschel <s.henschel-TGKKaGbebvyzQB+pC5nmwQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: S=E9rgio Monteiro Basto [mailto:sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org]=20
-> > I patched my kernel (2.4.18) today with latest version of=20
-> acpi-patch=20
-> > (acpi-20020726-2.4.18.diff). My power button gets detected=20
-> but I dont get=20
-> > any events from it. I have a ABit BP6 with dual celeron processors.
-> > ACPI: Power Button (FF) [PWRF]
-> > What could be wrong? I tried latest acpid rpm and 'cat=20
-> /proc/acpi/event'=20
-> > without results. Acpid doesn't write nothing to=20
-> /var/log/acpid when I=20
-> > press power button.=20
-> >=20
-> had you try kacpid patch=20
-> that detects lost acpi events
+> From: Andy Dustman [mailto:andy-gRfBfDTKyCbR7s880joybQ@public.gmane.org] 
+> Just for fun, I tried to merge the current patch into 2.4.19 
+> last night.
+> It wasn't fun.
+> 
+> Actually, I wrote a script that does a three-way merge, in the same
+> manner as diff3 -m, but working recursively. There are a number of
+> conflicts, which you would likely get just applying the patch directly
+> as well. Some of the conflicts are non-trivial, or at least, they were
+> non-trivial for me to fix them, but I may give it another look.
 
-Hi,
+For those of you using BK, the linux-2.4-acpi tree at linux-acpi.bkbits.net
+is merged up to 2.4.20-pre2 and contains the latest ACPI patch.
 
-The problem *may* be that the ACPI interrupt is not being set to =
-active-low,
-level-triggered properly (we do this for PCI irqs but not our own ;-)
-
-Is your acpi interrupt shared with any PCI devices? If the above =
-hypothesis
-is true, the answer should be "no".
-
-I don't know about people's comfort level with the code, but you might =
-try
-adding a call to eisa_set_level_irq(<ACPI irq #>) and seeing if that =
-gets
-interrupts happening properly. kacpid should not be necessary but =
-obviously
-until SCIs work 100% it remains useful for some people.
+(yes, the merge wasn't fun...)
 
 Regards -- Andy
 
