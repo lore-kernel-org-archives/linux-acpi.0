@@ -1,14 +1,14 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Issue reading files under /proc/acpi using python.
-Date: Fri, 7 Feb 2003 15:46:32 +0100
+From: Alvaro Lopes <alvieboy-JkNoWtNHh5AAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Thermal module errors
+Date: Fri, 07 Feb 2003 19:08:21 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030207144632.GB1205@poup.poupinou.org>
-References: <200302062245.44847.harisri@bigpond.com> <200302062343.38789.harisri@bigpond.com> <20030206140059.GR1205@poup.poupinou.org> <200302080009.18002.harisri@bigpond.com>
+Message-ID: <3E440425.1080006@alvie.com>
+References: <32774.192.168.10.204.1044602945.squirrel@benham.net>        <3E4398A4.6040907@alvie.com> <64330.64.164.111.5.1044640843.squirrel@benham.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200302080009.18002.harisri-bzGI/hKkdgRBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <64330.64.164.111.5.1044640843.squirrel-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,52 +17,91 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Srihari Vijayaraghavan <harisri-bzGI/hKkdgRBDgjK7y7TUQ@public.gmane.org>
-Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Darren Benham <dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Feb 08, 2003 at 12:09:17AM +1100, Srihari Vijayaraghavan wrote:
-> Hello Ducrot,
-> 
-> On Friday 07 February 2003 01:00, Ducrot Bruno wrote:
-> > [...]
-> > BTW, you want to write a generic python acpi class, do you ?
-> 
-> While I am no python guru (not just yet), I hope to write a text based utility 
-> (great if it is a GUI one) in python to display things like:
-> 1. Battery charge remaining
-> 2. AC adapter status
-> 3. Thermal information
-> 4. etc..
-> (In fact I have written a text based python utility to display some of those 
-> by reading /proc/acpi files). I can send you that in a private e-mail if you 
-> wish, it isn't complete yet though.
+Darren Benham wrote:
 
-Yep, if you can provide me some codes in Python in that area, I will be really
-happy!
-I am not a great python guru, though.
+>I had a feeling it was going to come to that.  I had already disassemble=
+d
+>the DSDT but it doesn't mean anything to me.
+>
+Well, to me it means just a little bit more :)
 
-> 
-> The real problem is KDE 3.0.x in RH 8.0 doesn't work with newer ACPI code, of 
-> course I have verified that KDE 3.1 on Rh 8.1 Beta works fine however. I 
-> guess I am lazy to find a utility in the internet that could do that under RH 
-> 8.0.
-> 
-> Anyway if you know of any open-source code in python that would help me, 
-> please provide me an URL if you can.
+Lets see, here's the cause of one of the errors:
 
-Well.. Sorry, I am not aware of such URL, but I guess it would be just fine
-to have a generic acpi class under python (I don't have time to do it myself
-at this time, even though I have some ideas on how to implement such
-class).
+dsdt-darren.dsl  5892:                 Store (C11A (0x1F, 0x00, 0x00,=20
+0x00), Local0)
+Error    1029 -   Called method returns no value ^
 
-Cheers,
+OK, let's look at method C11A (in namespace _TZ_):
 
--- 
-Ducrot Bruno
+        Method (C11A, 4, Serialized)
+        {
+            \_SB.C03E.C053.C0D1.C11A (Arg0, Arg1, Arg2, Arg3)
+        }
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+And \_SB.C03E.C053.C0D1.C11A looks like it does return a value:
+
+                    Method (C11A, 4, NotSerialized)
+                    {
+                        Acquire (C10B, 0xFFFF)
+                        Acquire (\_GL, 0xFFFF)
+                        [snip]
+                        Release (\_GL)
+                        Release (C10B)
+                        Return (Local7)
+                    }
+
+Ok, here's the bug. This method calls another and discards its value.=20
+So, it should be like this:
+
+        Method (C11A, 4, Serialized)
+        {
+           Return (  \_SB.C03E.C053.C0D1.C11A (Arg0, Arg1, Arg2, Arg3) )
+        }
+
+I am not able to compile your DSDT. Can you please try to compile it=20
+yourself ?
+
+ASL Input:  dsdt-darren.dsl - 6545 lines, 222603 bytes, 3917 keywords
+Compilation complete. 39 Errors, 2 Warnings, 0 Remarks, 1109 Optimization=
+s
+
+=C1lvaro
+
+>Alvaro Lopes said:
+> =20
+>
+>>There's a problem with your DSDT. Can you sent it to this list ? I
+>>believe there's already a DSTD patch for your compaq or a similar one.
+>>
+>>Install the Intel iasl package (you can find it at
+>>http://www.intel.com/technology/iapc/acpi/downloads.htm )  and do a
+>>'iasl -d /proc/acpi/dsdt'. Send here the results, please.
+>>
+>>=C1lvaro
+>>
+>>--
+>>
+>>=C1lvaro Lopes
+>>---------------------
+>>A .sig is just a .sig
+>>   =20
+>>
+>
+>
+> =20
+>
+
+--=20
+
+=C1lvaro Lopes=20
+---------------------
+A .sig is just a .sig
+
+
 
 
 -------------------------------------------------------
