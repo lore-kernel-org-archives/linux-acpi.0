@@ -1,14 +1,12 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: DSDT problems
-Date: Fri, 16 May 2003 13:10:18 +0200
+From: matt mercer <fl0yd-mn4gwa5WIIQysxA8WJXlww@public.gmane.org>
+Subject: FADT question
+Date: Fri, 16 May 2003 11:34:32 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030516111018.GE346@poupinou.org>
-References: <200305160621.25645.mark@ale8.org>
+Message-ID: <3EC50508.4060909@mindspring.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200305160621.25645.mark-pX1FbxK42pU@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,99 +15,89 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Mark Stocker <mark-pX1FbxK42pU@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, May 16, 2003 at 06:21:25AM -0400, Mark Stocker wrote:
-> Hi!  i've been working for a while now on getting acpi functioning completly 
-> on my toshiba satellite 1625CDT.  I was having problems with the fan and 
-> thermal zone, both of which i've fixed in the DSDT by removing these if 
-> statements from the fan control methods and _TMP method in the TZ.
-> 
->  If (LAnd (\_SB.PCI0.ISA.ECOK (), LEqual (ECDY, 0x00))) {}
-> 
-> i dont know what these statements are for, the best i can guess is ECOK 
-> meaning if the EC is ready to be accessed?
-> 
-> the ECOK method is:
-> 
->                 Method (ECOK, 0, NotSerialized)
->                 {
->                     If (LAnd (And (\_SB.PCI0.ISA.EC0.OPRG, 0x08), And (MFLG, 
-> 0x01)))
->                     {
->                         Return (0x01)
->                     }
->                     Else
->                     {
->                         Return (0x00)
->                     }
->                 }
-> 
-> It seems anything that checks ECOK will not work properly.  is it dangerous to 
-> remove the if statements like i have done?  I've tried editing the ECOK 
-> method but nothing seems to help.
-> The only problem im still having is battery info.  Battery shows as present no 
-> matter what.  Removing the ECOK statements from the BAT0 device compiles DSDT 
-> with no errors but i get this at boot:
-> 
-> Executing all Device _STA and_INI methods:...evregion-0251 [23] 
-> ev_address_space
-> _dispa: no handler for region(cbfce7c8) [EmbeddedControl]
->  exfldio-0235 [22] ex_access_region      : Region EmbeddedControl(3) has no 
-> hand
-> ler
->  psparse-1121: *** Error: Method execution failed [\_SB_.BAT0._STA] (Node 
-> cbfe39
-> 68), AE_NOT_EXIST
->   uteval-0098: *** Error: Method execution failed [\_SB_.BAT0._STA] (Node 
-> cbfe39
-> 68), AE_NOT_EXIST
-> 
-> battery info no longer shows up under /proc/acpi when i get the errors above.
-> i cant think of anything else to try for now, any help or suggestions would be 
-
-1. Remove any ECDY found (even the Name()).  Restore all
-the removed ECOK() you did.
-2. Try if you can change change ECOK:
-
-Method (ECOK, 0, NotSerialized)
-{
-	Return (\_SB.PCI0.ISA.EC0.ECOK)
-}
-
-Change the Method \_SB.PCI0.ISA.EC0.ECOK._REG() to look like this:
-
-                    Name (ECOK, Zero)
-                    Method (_REG, 2, NotSerialized)
-                    {
-                        If (LEqual (Arg0, 0x03))
-                        {
-                            Store (Arg1, ECOK)
-                        }
-                    }
-(also a better solution should be to add an ECDT table).
+I think I found a bug in my FADT. Could someone eye this for sanity 
+please. It sure looks wrong to me... Any suggestions for fix would be 
+appreciated.
 
 
+We see PM2_CNT_BLK as 0x803e. However according to my datasheet, I show 
+this register at 0x8030.  See the data below.
 
-The whole ECDY trick etc. seems to be more for an old
-version of a OS that is not used here.
+ACPI IO Registers: (ranged by 0x8000)
+--------------------------------------
+01h-00h		PM1_STS
+03h-02h		PM1_EN
+05h-04h		PM1_CTL
+07h-06h		reserved
+0Bh-08h		PM1_TMR
+0Fh-0Ch		reserved
+13h-10h		P_CNTRL
+14h     	P_LVL2
+15h     	P_LVL3
+17h-16h 	reserved
+1Fh-18h 	GPE_STS0
+27h-20h 	GPE_EN0
+2Bh-28h 	reserved
+2Ch     	GPE_CTL
+2Eh-2Dh 	reserved
+2Fh     	GT_CTL
+30h     	PM2_CTL
+3Bh-31h 	reserved
+3Fh-3Ch 	AC_CTL
 
 
-PS: sound like it can use the omke kernel module
-found in http://www.sf.net/projects/omke/
+FADT dump:
+---------------------------------------
+Signature:        FACP
+Length:           116
+Revision:         0x01
+Checksum:         0x52
+OEMID:            TMETA
+OEM Table ID:     PDB.ALI
+OEM Revision:     0x06040003
+Creator ID:       PTL
+Creator Revision: 0x000f4240
+FIRMWARE_CTRL:    0x06ffffc0
+DSDT:             0x06ffcbf4
+INT_MODEL:        0x00
+SCI_INT:          9
+SMI_CMD:          0x000000b1
+ACPI_ENABLE:      0xf0
+ACPI_DISABLE:     0xf1
+S4BIOS_REQ:       0xf2
+PM1a_EVT_BLK:     0x00008000
+PM1b_EVT_BLK:     0x00000000
+PM1a_CNT_BLK:     0x00008004
+PM1b_CNT_BLK:     0x00000000
+PM2_CNT_BLK:      0x0000803e
+PM_TMR_BLK:       0x00008008
+GPE0_BLK:         0x00008018
+GPE1_BLK:         0x00000000
+PM1_EVT_LEN:      4
+PM1_CNT_LEN:      2
+PM2_CNT_LEN:      1
+PM_TM_LEN:        4
+GPE0_BLK_LEN:     16
+GPE1_BLK_LEN:     0
+GPE1_BASE:        0
+P_LVL2_LAT:       15
+P_LVL3_LAT:       82
+FLUSH_SIZE:       0
+FLUSH_STRIDE:     0
+DUTY_OFFSET:      1
+DUTY_WIDTH:       3
+DAY_ALRM:         0x0d
+MON_ALRM:         0x00
+CENTURY:          0x32
+Flags:            0x00000125
 
-Please give me (but privately or in omnibook ML)
-the output of a dmesg.
 
-Note: it will faill, though, but it may work soon.
+Thanks in advance,
+Matt
 
--- 
-Ducrot Bruno
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
 
 
 -------------------------------------------------------
