@@ -1,11 +1,12 @@
-From: Michael Grigoriev <mag-wxkiEGMmYARAfugRpC6u6w@public.gmane.org>
-Subject: Regression: S4/S5 wake up immediately
-Date: Thu, 02 Sep 2004 15:46:25 -0700
+From: Nicolas Sabouret <Nicolas.Sabouret-L2FTfq7BK8M@public.gmane.org>
+Subject: fan & thermal
+Date: Fri, 03 Sep 2004 09:35:18 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <pan.2004.09.02.22.46.23.624873@luminal.org>
+Message-ID: <41381EB6.9060600@lip6.fr>
+Reply-To: Nicolas Sabouret <Nicolas.Sabouret-L2FTfq7BK8M@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,20 +19,35 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-My laptop (HP ZT3000 series) does not seem to be able to reliably enter S4
-and S5 states anymore. It used to work with 2.6.7-mm2, but with
-2.6.8.1-mm2 and 2.6.9-rc1 + acpi-20040816, it powers down (harddrive
-clicks off, leds go out, etc), but then turn back on right away.
+Hi,
 
-Any idea what's changed between now and then that could lead this
-behaviour? If not, any clues on how to debug it?
+Please excuse me if this question has already been raised but I couldn't 
+find an answer in the archive.
 
+I have a compaq laptop with ACPI running Debian with acpid and acpi 
+installed. My problem is that the fan is always on (whereas it is mostly 
+silent when running on windows).
+
+I looked in the doc and I don't understand why I am on active cooling 
+whereas the temperature is below the trip point:
+$ cat trip_points
+critical (S5):           96 C
+passive:                 90 C: tc1=4 tc2=3 tsp=40 devices=0xcbf6e6e8
+$ cat temperature
+temperature:             49 C
+
+Note that I do not have an "active" trip point defined. Also note that 
+/proc/acpi/fan is empty.
+
+Thanks in advance for your help,
+	Nico.
+
+PS: Please CC me in your answer.
 -- 
-Have fun,                                      "I tried to no avail
-Michael "mag" Grigoriev           To keep my eyes from growing pale
-mag-wxkiEGMmYARAfugRpC6u6w@public.gmane.org                         But my vision came too late
-http://www.luminal.org               And my belief started to abate"
-
+Nicolas SABOURET
+Laboratoire d'Informatique de Paris 6 (LIP6)
+8, rue du Capitaine Scott, 75015 Paris, France
+http://www-poleia.lip6.fr/~sabouret
 
 
 -------------------------------------------------------
