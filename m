@@ -1,11 +1,8 @@
-From: <kurt-oTvHDeDkaKMb1SvskN2V4Q@public.gmane.org>
-Subject: Thank you!
-Date: Thu, 21 Aug 2003 14:25:36 --0400
+From: "MailScanner" <postmaster-NGV0IFAH2s9QFI55V6+gNQ@public.gmane.org>
+Subject: Warning: E-mail viruses detected
+Date: Thu, 21 Aug 2003 18:52:54 -0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E19pu7t-0007Lm-00@sc8-sf-list1.sourceforge.net>
-Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_NextPart_000_0052C0B1"
+Message-ID: <200308212152.h7LLqst23738@celia.df.uba.ar>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -18,26 +15,23 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multipart message in MIME format
+Our virus detector has just been triggered by a message you sent:-
+  To: <miquel-NGV0IFAH2s9QFI55V6+gNQ@public.gmane.org>
+  Subject: Re: Re: My details
+  Date: Thu Aug 21 18:52:54 2003
+Any infected parts of the message have not been delivered.
 
---_NextPart_000_0052C0B1
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+This message is simply to warn you that your computer system may have a
+virus present and should be checked.
 
-Please see the attached file for details.
---_NextPart_000_0052C0B1
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+The virus detector said this about the message:
+Report: >>> Virus 'W32/Sobig-F' found in file ./h7LLqpM23729/document_9446.pif
+Shortcuts to MS-Dos programs are very dangerous in email (document_9446.pif)
 
-
-------------------  Virus Warning Message (on the network)
-
-your_details.pif is removed from here because it is of type pif
-
----------------------------------------------------------
---_NextPart_000_0052C0B1--
-
+-- 
+MailScanner
+Email Virus Scanner
+www.mailscanner.info
 
 
 -------------------------------------------------------
