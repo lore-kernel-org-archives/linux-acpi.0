@@ -1,16 +1,12 @@
-From: Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Legacy IO spaces (was Re: [RFC] Reliable video POSTing on resume)
-Date: Fri, 4 Feb 2005 19:48:45 -0500
-Message-ID: <9e47339105020416486cf19738@mail.gmail.com>
-References: <20050122134205.GA9354@wsc-gmbh.de>
-	 <200502041010.13220.jbarnes@engr.sgi.com>
-	 <9e4733910502041459500ae8d3@mail.gmail.com>
-	 <200502041534.03004.jbarnes@engr.sgi.com>
-Reply-To: Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
+Subject: Re: [RFC] Reliable video POSTing on resume
+Date: Sat, 05 Feb 2005 01:52:23 +0100
+Message-ID: <420418C7.5010309@gmx.net>
+References: <20050122134205.GA9354@wsc-gmbh.de>	 <e796392205020221387d4d8562@mail.gmail.com> <420217DB.709@gmx.net>	 <4202A972.1070003@gmx.net> <20050203225410.GB1110@elf.ucw.cz>	 <1107474198.5727.9.camel@desktop.cunninghams>	 <4202DF7B.2000506@gmx.net>	 <1107485504.5727.35.camel@desktop.cunninghams>	 <9e4733910502032318460f2c0c@mail.gmail.com>	 <20050204074454.GB1086@elf.ucw.cz> <9e473391050204093837bc50d3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <200502041534.03004.jbarnes-UzQTBcouhwxWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <9e473391050204093837bc50d3-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,62 +16,49 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jesse Barnes <jbarnes-UzQTBcouhwxWk0Htik3J/w@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+To: Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> > /sys/class/pci_bus I show three buses. You wouldn't want the
-> > legacy_io/mem attributes on each of these three buses since that
-> > implies three independent address spaces.
-> >
-> > [jonsmirl@jonsmirl pci_bus]$ ls /sys/class/pci_bus
-> > 0000:00  0000:01  0000:02
+Jon Smirl schrieb:
+> On Fri, 4 Feb 2005 08:44:54 +0100, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> wrote:
 > 
-> In that case they'll all point to the same memory and I/O space.  On the
-> machines I coded it on, each bus has its own space.
-
-If they all point to the same space, I can't tell whether I have three
-legacy spaces or one. I need to know how many legacy spaces there are
-in order to know how many VGA cards can simultaneously be enabled.
-
-> We might have to add more arch code in that case, but I thought it might be
-> easiest for apps if they could just open the space for the bus they're
-> interested in and it would be routed correctly.  I think that'll be ok so
-> long as two apps aren't trying to do stuff on the bus at the same time.
+>>We already try to do that, but it hangs on 70% of machines. See
+>>Documentation/power/video.txt.
 > 
-> > In order to know how many VGA many simultaneous VGA devices you can
-> > have there needs to be some way to count the number of legacy address
-> > spaces. Maybe there should be a /sys/class/legacy to describe the
-> > legacy spaces. Is it possible to have the same legacy space aliased at
-> > two different addresses depending on which root bus is used to get to
-> > it?
+> We know that all of these ROMs are run at power on so they have to
+> work. This implies that there must be something wrong with the
+> environment the ROM are being run in. Video ROMs make calls into the
+> INT vectors of the system BIOS. If these haven't been set up yet
+> running the VBIOS is sure to hang.  Has someone with ROM source and
+> the appropriate debugging tools tried to debug one of these hangs?
+> Alternatively code could be added to wakeup.S to try and set these up
+> or dump the ones that are there and see if they are sane.
 
-What I meant by the questions is how can my video reset program ask
-these questions, it needs to know the answers in order to properly
-reset the VGA hardware.  There needs to be some way to figure out the
-answers from sysfs info.
+My problem (Samsung P35) is that the BIOS wants to call code which
+is no longer mapped because the BIOS is too big to fit into the
+standard area. Since that additional area has been overwritten, we
+are out of luck. Maybe if we did something like backing up all
+untouched real mode memory immediately after switching to protected
+mode, it could work. But I don't know whether that is feasible on
+boot. Anyways, you don't want to run possibly buggy closed source
+bios code in an environment where a single random memory write
+may corrupt the kernel without debuggability.
 
-1) how many legacy spaces are there
-no way to tell 
-2) how many VGA devices are in each space
-no way to tell, you need to know which legacy space each card is in
-3) how do I do VGA bus routing to access the VGA device
-I've posted code that starts doing this
-4) how do I address each of the devices.
-The routing code I posted needs to be update to handle multiple spaces.
+And sometimes there is BIOS code which is can't be run twice.
+Period.
+Don't believe that one? I have a machine where calling EDD code
+in the BIOS twice will hang the second time. See boot parameter
+edd=off for reference :-(
 
-For example I might have a machine with 3 spaces, 2 vga in #1, 1 in #2
-and zero in #3. In that case I can have two active VGA's. My home
-machine has one space and 2 vga's so I can have one active. There
-needs to be enough info available to figure this out.
+So I agree that we could try to preserve the state better, but
+I also can guarantee you it won't help everywhere.
 
-Or maybe the answer is simpler, if the legacy_io/mem attributes exist,
-then you can assume each bus has it's own legacy space. If they don't
-exist then there is a single legacy space. Is this a safe assumption?
 
+Regards,
+Carl-Daniel
 -- 
-Jon Smirl
-jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+http://www.hailfinger.org/
 
 
 -------------------------------------------------------
