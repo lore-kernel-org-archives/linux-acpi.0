@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Subject: Re: ACPI C4 support
-Date: Mon, 1 Mar 2004 20:27:38 +0100
+Date: Mon, 1 Mar 2004 20:39:17 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040301192738.GA9459@elf.ucw.cz>
-References: <F760B14C9561B941B89469F59BA3A84702C932FD@orsmsx401.jf.intel.com>
+Message-ID: <20040301193917.GA2869@poupinou.org>
+References: <F760B14C9561B941B89469F59BA3A84702C932FD@orsmsx401.jf.intel.com> <20040301192738.GA9459@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <F760B14C9561B941B89469F59BA3A84702C932FD-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
+In-Reply-To: <20040301192738.GA9459-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,54 +17,63 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Stefan Behlert <behlert-l3A5Bk7waGM@public.gmane.org>, Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, trenn-l3A5Bk7waGM@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Stefan Behlert <behlert-l3A5Bk7waGM@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, trenn-l3A5Bk7waGM@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-
-> > [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of 
-> > Stefan Behlert
-> > > No.  pblk_length is 0 or 6.  Not 5 nor 7 ;)
+On Mon, Mar 01, 2004 at 08:27:38PM +0100, Pavel Machek wrote:
+> Hi!
+> 
+> > > [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of 
+> > > Stefan Behlert
+> > > > No.  pblk_length is 0 or 6.  Not 5 nor 7 ;)
+> > > 
+> > > Sorry, I don't understand: We've a Laptop with a DSDT with
+> > >   Processor (\_PR.CPU0, 0x01, 0x00001010, 0x07)
+> > > in it.
+> > > Comment from the responsible BIOS-team:
+> > > "Our processor block object is 7 bytes in length because we 
+> > > also support
+> > >  C4 (P_LVL4) which is at <P_BLK>+6.  Therefore, the 
+> > > size/length must be
+> > >  reported as 7 and not 6."
+> > > 
+> > > Is the '7' the BIOS-developer mentioned the same '7' as 
+> > > mentioned by you?
 > > 
-> > Sorry, I don't understand: We've a Laptop with a DSDT with
-> >   Processor (\_PR.CPU0, 0x01, 0x00001010, 0x07)
-> > in it.
-> > Comment from the responsible BIOS-team:
-> > "Our processor block object is 7 bytes in length because we 
-> > also support
-> >  C4 (P_LVL4) which is at <P_BLK>+6.  Therefore, the 
-> > size/length must be
-> >  reported as 7 and not 6."
+> > This is wrong.
 > > 
-> > Is the '7' the BIOS-developer mentioned the same '7' as 
-> > mentioned by you?
+> > There is confusion here because what older systems do on C3 is different
+> > from what more recent systems do on C3, at the electrical level. I know
+> > at least internally the improved C3-like state was called "C4" but to
+> > the OS it just looks just like C3, and the value for C4 should go in
+> > P_LVL3. P_BLK length should remain 6.
+> > 
+> > The only way to get more than C1, C2, and C3 is via the _CST object.
+> > 
+> > Please tell the BIOS developer this. I have an old BIOS developers guide
+> > version that agrees with them but I just asked the experts internally
+> > and they said no.
 > 
-> This is wrong.
+> If there is old BIOS guide telling them to use length of 7, could we
+> make Linux accept that? Its likely a lot of developers have read
+> that...
 > 
-> There is confusion here because what older systems do on C3 is different
-> from what more recent systems do on C3, at the electrical level. I know
-> at least internally the improved C3-like state was called "C4" but to
-> the OS it just looks just like C3, and the value for C4 should go in
-> P_LVL3. P_BLK length should remain 6.
+> Allowing length of 7 is one line change; if we do it, such notebooks
+> will be able to use C1..C3, but not C4. That does not seem too bad...
 > 
-> The only way to get more than C1, C2, and C3 is via the _CST object.
-> 
-> Please tell the BIOS developer this. I have an old BIOS developers guide
-> version that agrees with them but I just asked the experts internally
-> and they said no.
 
-If there is old BIOS guide telling them to use length of 7, could we
-make Linux accept that? Its likely a lot of developers have read
-that...
+The problem is that, from strict acpi point of view, it will be too easy
+to allow '7', and _CST support is much better.  Don't ask me why, I'm not
+an expert.  So perhaps it may be possible to add the (bahh, beurk)
+length of 7 if there exist a bad written bios developper guide released
+apparently by Intel, at least as a non pedantic acpi option?
 
-Allowing length of 7 is one line change; if we do it, such notebooks
-will be able to use C1..C3, but not C4. That does not seem too bad...
-
-								Pavel
 -- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
