@@ -1,16 +1,19 @@
-From: Diego SANTA CRUZ <Diego.SantaCruz-p8DiymsW2f8@public.gmane.org>
-Subject: RE: Processor C states and USB problem
-Date: Fri, 09 Jan 2004 11:15:22 +0100
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: 2.4.24 patch apply failed on vanilla kernel
+Date: 09 Jan 2004 05:19:29 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1073643322.10144.23.camel@ltspc67.epfl.ch>
-References: <571ACEFD467F7749BC50E0A98C17CDD8E84E6C@PDSMSX403.ccr.corp.intel.com>
-	 <1073640699.10144.14.camel@ltspc67.epfl.ch>
-	 <Pine.LNX.4.58.0401091102120.20682@pcd403z.vsb.cz>
+Message-ID: <1073643569.2447.66.camel@dhcppc4>
+References: <20040107134658.5afa9142.acpi@thermoman.de>
+	 <20040107155325.5bfceba0@tethys>
+	 <20040107163907.391c146e.acpi@thermoman.de>
+	 <20040107165054.1fbfc829@tethys>
+	 <1073505678.7422.24.camel@darkstar.portugal>
+	 <20040107225650.388f96d4@tethys>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.58.0401091102120.20682-Rd/Vp7eeBLeOZheNW5JDhQ@public.gmane.org>
+In-Reply-To: <20040107225650.388f96d4-qdKmdXVU2OY@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -19,96 +22,46 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Petr Olivka <petr.olivka-jmYXjVuSQ4U@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: wwp <subscript-GANU6spQydw@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2004-01-09 at 11:05, Petr Olivka wrote:
-> in 2.4 kernel I have to unload all usb modules. Then power drop to C3
-> state. If I remember, only usbcore can be loaded (on my D600).
-> 
+Two problems here -- both caused my me -- both now fixed.
 
-But even booting with init=/bin/sh and without ever loading any USB
-module I get permanent bus mastering activity. Any ideas?
+1. I mis-merged the line in smpboot.c
+when I first found and fixed that bug i replaced NR_CPUS
+with MAX_APICS, which made perfect sense for the non-numa
+case where MAX_APICS is 16.  wli checked in the BITS_PER_LONG
+fix (32) and I mistakenly over-wrote it -- now restored.
 
-Diego
+2. Marcelo re-named the 2.4.24 bk tree to be 2.4.25
+and quickly released a new 2.4.24 tree with just a couple of
+changes.  Until tonight, my ACPI patch on kernel.org was
+against the 'old' 2.4.24.  I've since updated both the trees
+at http://linux-acpi.bkbits.net/ as well as the plain patches
+up on http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches
 
-> poli
-> 
-> 
-> On Fri, 9 Jan 2004, Diego SANTA CRUZ wrote:
-> 
-> > Hi,
-> >
-> > I picked up this thread and I'm interested in knowing a bit more about
-> > bus mastering and C3, as my laptop never goes into C3. I own a Dell
-> > Inspiron 8500 (details at
-> > http://ltswww.epfl.ch/~dsanta/resources/dell-i8500-linux).
-> >
-> > This is what I get for the power states:
-> > # cat /proc/acpi/processor/CPU0/power
-> > active state:            C2
-> > default state:           C1
-> > bus master activity:     ffffffff
-> > states:
-> >     C1:                  promotion[C2] demotion[--] latency[000] usage[00039800]
-> >    *C2:                  promotion[C3] demotion[C1] latency[050] usage[00573330]
-> >     C3:                  promotion[--] demotion[C2] latency[050] usage[00000004]
-> >
-> > I tried booting with init=/bin/sh and manually loading the processor
-> > module, without any external hardware attached, so that no special
-> > hardware is initialized, but still there is non-stopping bus mastering
-> > activity. What could be causing it? Any ideas how could I find out?
-> >
-> > BTW, I'm running the latest Fedora Core 1 kernel (2.4.22-1.2140.nptl)
-> >
-> > Thanks for any info,
-> >
-> > Diego
-> >
-> > On Mon, 2004-01-05 at 10:06, Li, Shaohua wrote:
-> > > Hi,
-> > > C3 is a kind of idle, it means deep power saving.
-> > > Actually, I observed the same symptom as you: USB devices caused many bus master activities, which make processor can't enter C3.
-> > >
-> > > Thanks,
-> > > Shaohua
-> >
-> > --
-> > -------------------------------------------------------
-> > Diego Santa Cruz - PhD
-> > Publications available at http://ltswww.epfl.ch/~dsanta
-> > Signal Processing Institute (LTS1 / ITS / STI)
-> > Swiss Federal Institute of Technology (EPFL)
-> > EPFL - STI - ITS, CH-1015 Lausanne, Switzerland
-> > E-mail:     Diego.SantaCruz-p8DiymsW2f8@public.gmane.org
-> > Phone:      +41 - 21 - 693 26 57
-> > Fax:        +41 - 21 - 693 76 00
-> > -------------------------------------------------------
-> >
-> >
-> >
-> > -------------------------------------------------------
-> > This SF.net email is sponsored by: Perforce Software.
-> > Perforce is the Fast Software Configuration Management System offering
-> > advanced branching capabilities and atomic changes on 50+ platforms.
-> > Free Eval! http://www.perforce.com/perforce/loadprog.html
-> > _______________________________________________
-> > Acpi-devel mailing list
-> > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> > https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> >
--- 
--------------------------------------------------------
-Diego Santa Cruz - PhD
-Publications available at http://ltswww.epfl.ch/~dsanta
-Signal Processing Institute (LTS1 / ITS / STI)
-Swiss Federal Institute of Technology (EPFL)
-EPFL - STI - ITS, CH-1015 Lausanne, Switzerland
-E-mail:     Diego.SantaCruz-p8DiymsW2f8@public.gmane.org
-Phone:      +41 - 21 - 693 26 57
-Fax:        +41 - 21 - 693 76 00
--------------------------------------------------------
+Let me know if I missed anything.
+
+thanks,
+-Len
+
+On Wed, 2004-01-07 at 16:56, wwp wrote:
+> Hi S=E9rgio Monteiro Basto,
+>=20
+>=20
+> On 07 Jan 2004 20:01:17 +0000 S=E9rgio Monteiro Basto <sergiomb-2XwKdJGMC1E@public.gmane.org=
+.pt> wrote:
+>=20
+> > I think=20
+> > Full version of kernel2.4.24 have all apci patches updated=20
+>=20
+> Forgotten to say that 2.4.24 doesn't include any change around acpi sin=
+ce
+> 2.4.23, it was only a security fix release (see the Changelog).
+>=20
+>=20
+> Regards,
 
 
 
