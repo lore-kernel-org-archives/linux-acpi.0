@@ -1,11 +1,11 @@
-From: Ashley Brown <ming-zHj4dg9XzGHk1uMJSBkQmQ@public.gmane.org>
-Subject: Replica watch models
-Date: Sun, 19 Dec 2004 15:51:36 +0000
-Message-ID: <e10101c4e5e2$0f57bc79$405afbee@aceinter.net>
+From: "Tomas Galindo" <tomas.galindo87-zS2xCpDNwCaJOZk8TUI7T1pr/1R2p/CL@public.gmane.org>
+Subject: Order Royal Replica Watches Online
+Date: Mon, 20 Dec 2004 00:12:26 -0600
+Message-ID: <4c9a01c4e65a$f07f6020$6d5048fc@arvalphh.co.uk>
 Mime-Version: 1.0
-Content-Type: multipart/related;
-    type="multipart/alternative";
-    boundary="----=_NextPart_000_0000_1C9FC65F.0D83DFB8"
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -16,76 +16,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+Get the Finest Rolex Watch Replica!
 
-------=_NextPart_000_0000_1C9FC65F.0D83DFB8
-Content-Type: multipart/alternative;
-    boundary="----=_NextPart_001_0001_E148EF6A.F601F3FA"
+We only sell premium watches. There's no battery in these replicas just
+like the real ones since they charge themselves as you move. The second hand
+moves JUST like the real ones, too. These original watches sell in stores
+for thousands of dollars. We sell them for much less. 
 
+- Replicated to the Smallest Detail
+- 98% Perfectly Accurate Markings 
+- Signature Green Sticker w/ Serial Number on Watch Back
+- Magnified Quickset Date
+- Includes all Proper Markings
 
-------=_NextPart_001_0001_E148EF6A.F601F3FA
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 7bit
+Visit us: http://www.vanai.com/rep/rolx/
 
-REPLICA WATCH MODELS
-
-Rolex, Patek Philippe, Bvlgari
-Cartier, Gucci, Franck Muller
-
-.. and 25 other most famous manufacturers.
-
-http://www.allthewatches.info
-
-All for only $229.99! 
+Christmas discount this week only! Make your order before the prices go up.
 
 
-_________________________________________________________________________
-To change your mail preferences, go here:
-http://www.allthewatches.info/diamondtron.php?affiliate_id=233922&campaign_id=1000&email=do
-_________________________________________________________________________
-
-
-------=_NextPart_001_0001_E148EF6A.F601F3FA
-Content-Type: text/html; charset=iso-8859-1
-Content-Transfer-Encoding: 7bit
-
-<body>
-<html>
-<CENTER>
-<TABLE cellSpacing=0 cellPadding=0 width=600 align=center border=0>
-  <TBODY>
-  <TR>
-    <TD>
-      <P>
-
-
-REPLICA WATCH MODELS<br><br>
-
-Rolex, Patek Philippe, Bvlgari<br>
-Cartier, Gucci, Franck Muller<br><br>
-
-.. and 25 other most famous manufacturers.<br><br>
-
-<a href="http://www.allthewatches.info">http://www.allthewatches.info</a><br><br>
-
-All for only $229.99!<br><br><br>
-
-_________________________________________________________________________<br>
-To change your mail preferences, go <a href="http://www.allthewatches.info/diamondtron.php?affiliate_id=233922&campaign_id=1000&email=do">here</a><br>
-_________________________________________________________________________
-
-
-</P></TD></TR></TBODY></TABLE></CENTER></BODY></HTML>
-
-
-------=_NextPart_001_0001_E148EF6A.F601F3FA--
-
-
-
-------=_NextPart_000_0000_1C9FC65F.0D83DFB8--
+No thanks: http://www.vanai.com/z.php
 
 
 
