@@ -1,129 +1,66 @@
-From: Tobias Ringstrom <tori-cF8t/dA0MSs0DrVG+m1MRYdd74u8MsAO@public.gmane.org>
-Subject: [PATCH] ACPI power-down in Linux 2.5.59
-Date: Tue, 21 Jan 2003 00:02:06 +0100 (CET)
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0301202353530.21175-200000@boris.prodako.se>
+From: Andre Hedrick <andre-QA/0nRrxPJrNLxjTenLetw@public.gmane.org>
+Subject: Re: Ask devices to powerdown before S3 sleep
+Date: Mon, 20 Jan 2003 17:27:06 -0800 (PST)
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <Pine.LNX.4.10.10301201714120.16070-100000@master.linux-ide.org>
+References: <20030119214642.GA27885@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-1463811717-1889751922-1043103726=:21175"
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20030119214642.GA27885-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime-oOUblnuQwHKola3qYQ6TW/IULO3mGbRi9nwVQlTi/Pw@public.gmane.org for more info.
 
----1463811717-1889751922-1043103726=:21175
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Hi! Pavel,
 
-Dear ACPI experts,
+Could you do me just one tiny favor?
+Please consider attempting an error recovery level path, maybe ...
 
-I noticed that Linux 2.5.59 did not power-down when using ACPI. The reason 
-is that you need CONFIG_ACPI_SLEEP which needs CONFIG_SOFTWARE_SUSPEND.  
-Both are described as a bit dangerous in the config help.
+Every patch I have glanced at has 'panic("blah blah");'
 
-As an experiment, I moved the power-down code from sleep.c to bus.c (which
-seemed like a top-level file) and it seems to work well.  I've attached
-the patch to this email.  Perhaps something like this can be considered
-for future updates?  What do you think?
+If you do not have enough hardware to generate an accurate path for
+recovery, then please do not force the kernel into panic.  Would you
+consider failing the request making it jump back to S1 ?  This at least
+allows it crash like a power failure.
 
-/Tobias
+Cheers,
 
----1463811717-1889751922-1043103726=:21175
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name="linux-2.5.59-acpi-power-down.diff"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.44.0301210002060.21175-CWfOIYxxj7kInT2dYjKYhA@public.gmane.org>
-Content-Description: 
-Content-Disposition: attachment; filename="linux-2.5.59-acpi-power-down.diff"
-
-ZGlmZiAtcnUgbGludXgtMi41LjU5Lm9yaWcvZHJpdmVycy9hY3BpL2J1cy5j
-IGxpbnV4LTIuNS41OS9kcml2ZXJzL2FjcGkvYnVzLmMNCi0tLSBsaW51eC0y
-LjUuNTkub3JpZy9kcml2ZXJzL2FjcGkvYnVzLmMJMjAwMy0wMS0xMSAxMTo1
-MDoyMy4wMDAwMDAwMDAgKzAxMDANCisrKyBsaW51eC0yLjUuNTkvZHJpdmVy
-cy9hY3BpL2J1cy5jCTIwMDMtMDEtMTkgMTc6NDI6MDEuMDAwMDAwMDAwICsw
-MTAwDQpAQCAtMjksNiArMjksNyBAQA0KICNpbmNsdWRlIDxsaW51eC9wbS5o
-Pg0KICNpbmNsdWRlIDxsaW51eC9kZXZpY2UuaD4NCiAjaW5jbHVkZSA8bGlu
-dXgvcHJvY19mcy5oPg0KKyNpbmNsdWRlIDxsaW51eC9zeXNycS5oPg0KICNp
-ZmRlZiBDT05GSUdfWDg2DQogI2luY2x1ZGUgPGFzbS9tcHNwZWMuaD4NCiAj
-ZW5kaWYNCkBAIC02NzYsMTEgKzY3NywzOCBAQA0KIAlyZXR1cm5fVkFMVUUo
-LUVOT0RFVik7DQogfQ0KIA0KK3N0YXRpYyB2b2lkDQorYWNwaV9wb3dlcl9v
-ZmYgKHZvaWQpDQorew0KKwlhY3BpX2VudGVyX3NsZWVwX3N0YXRlX3ByZXAo
-QUNQSV9TVEFURV9TNSk7DQorCUFDUElfRElTQUJMRV9JUlFTKCk7DQorCWFj
-cGlfZW50ZXJfc2xlZXBfc3RhdGUoQUNQSV9TVEFURV9TNSk7DQorfQ0KKw0K
-KyNpZiBkZWZpbmVkKENPTkZJR19NQUdJQ19TWVNSUSkgJiYgZGVmaW5lZChD
-T05GSUdfUE0pDQorDQorLyogU2ltcGxlIHdyYXBwZXIgY2FsbGluZyBwb3dl
-ciBkb3duIGZ1bmN0aW9uLiAqLw0KK3N0YXRpYyB2b2lkIGFjcGlfc3lzcnFf
-cG93ZXJfb2ZmKGludCBrZXksIHN0cnVjdCBwdF9yZWdzICpwdF9yZWdzLA0K
-KwlzdHJ1Y3QgdHR5X3N0cnVjdCAqdHR5KQ0KK3sNCisJYWNwaV9wb3dlcl9v
-ZmYoKTsNCit9DQorDQorc3RydWN0IHN5c3JxX2tleV9vcCBzeXNycV9hY3Bp
-X3Bvd2Vyb2ZmX29wID0gew0KKwkuaGFuZGxlciA9CSZhY3BpX3N5c3JxX3Bv
-d2VyX29mZiwNCisJLmhlbHBfbXNnID0JIk9mZiIsDQorCS5hY3Rpb25fbXNn
-ID0JIlBvd2VyIE9mZlxuIg0KK307DQorDQorI2VuZGlmICAvKiBDT05GSUdf
-TUFHSUNfU1lTUlEgKi8NCisNCiBkZWNsX3N1YnN5cyhhY3BpLE5VTEwpOw0K
-IA0KIHN0YXRpYyBpbnQgX19pbml0IGFjcGlfaW5pdCAodm9pZCkNCiB7DQog
-CWludAkJCXJlc3VsdCA9IDA7DQorCWFjcGlfc3RhdHVzCQlzdGF0dXM7DQor
-CXU4CQkJdHlwZV9hLCB0eXBlX2I7DQogDQogCUFDUElfRlVOQ1RJT05fVFJB
-Q0UoImFjcGlfaW5pdCIpOw0KIA0KQEAgLTcxMiw2ICs3NDAsMTMgQEANCiAJ
-fSBlbHNlDQogCQlhY3BpX2Rpc2FibGVkID0gMTsNCiANCisJLyogSW5zdGFs
-bCB0aGUgc29mdC1vZmYgKFM1KSBoYW5kbGVyLiAqLw0KKwlzdGF0dXMgPSBh
-Y3BpX2dldF9zbGVlcF90eXBlX2RhdGEoQUNQSV9TVEFURV9TNSwgJnR5cGVf
-YSwgJnR5cGVfYik7DQorCWlmIChBQ1BJX1NVQ0NFU1Moc3RhdHVzKSkgew0K
-KwkJcG1fcG93ZXJfb2ZmID0gYWNwaV9wb3dlcl9vZmY7DQorCQlyZWdpc3Rl
-cl9zeXNycV9rZXkoJ28nLCAmc3lzcnFfYWNwaV9wb3dlcm9mZl9vcCk7DQor
-CX0NCisNCiAJcmV0dXJuX1ZBTFVFKHJlc3VsdCk7DQogfQ0KIA0KZGlmZiAt
-cnUgbGludXgtMi41LjU5Lm9yaWcvZHJpdmVycy9hY3BpL3NsZWVwLmMgbGlu
-dXgtMi41LjU5L2RyaXZlcnMvYWNwaS9zbGVlcC5jDQotLS0gbGludXgtMi41
-LjU5Lm9yaWcvZHJpdmVycy9hY3BpL3NsZWVwLmMJMjAwMy0wMS0wNiAyMzoy
-Njo1MS4wMDAwMDAwMDAgKzAxMDANCisrKyBsaW51eC0yLjUuNTkvZHJpdmVy
-cy9hY3BpL3NsZWVwLmMJMjAwMy0wMS0xOSAxNzo0MToxNC4wMDAwMDAwMDAg
-KzAxMDANCkBAIC05LDcgKzksNiBAQA0KICAqLw0KIA0KICNpbmNsdWRlIDxs
-aW51eC9wcm9jX2ZzLmg+DQotI2luY2x1ZGUgPGxpbnV4L3N5c3JxLmg+DQog
-I2luY2x1ZGUgPGxpbnV4L2RlbGF5Lmg+DQogI2luY2x1ZGUgPGxpbnV4L2ly
-cS5oPg0KICNpbmNsdWRlIDxsaW51eC9wbS5oPg0KQEAgLTUzLDE0ICs1Miw2
-IEBADQogCS5yZWxlYXNlCT0gc2luZ2xlX3JlbGVhc2UsDQogfTsNCiANCi1z
-dGF0aWMgdm9pZA0KLWFjcGlfcG93ZXJfb2ZmICh2b2lkKQ0KLXsNCi0JYWNw
-aV9lbnRlcl9zbGVlcF9zdGF0ZV9wcmVwKEFDUElfU1RBVEVfUzUpOw0KLQlB
-Q1BJX0RJU0FCTEVfSVJRUygpOw0KLQlhY3BpX2VudGVyX3NsZWVwX3N0YXRl
-KEFDUElfU1RBVEVfUzUpOw0KLX0NCi0NCiAvKioNCiAgKiBhY3BpX3N5c3Rl
-bV9yZXN0b3JlX3N0YXRlIC0gT1Mtc3BlY2lmaWMgcmVzdG9yYXRpb24gb2Yg
-c3RhdGUNCiAgKiBAc3RhdGU6CXNsZWVwIHN0YXRlIHdlJ3JlIGV4aXRpbmcN
-CkBAIC02MjUsMjQgKzYxNiw2IEBADQogCXJldHVybl9WQUxVRShyZXN1bHQg
-PyByZXN1bHQgOiBjb3VudCk7DQogfQ0KIA0KLQ0KLSNpZiBkZWZpbmVkKENP
-TkZJR19NQUdJQ19TWVNSUSkgJiYgZGVmaW5lZChDT05GSUdfUE0pDQotDQot
-LyogU2ltcGxlIHdyYXBwZXIgY2FsbGluZyBwb3dlciBkb3duIGZ1bmN0aW9u
-LiAqLw0KLXN0YXRpYyB2b2lkIGFjcGlfc3lzcnFfcG93ZXJfb2ZmKGludCBr
-ZXksIHN0cnVjdCBwdF9yZWdzICpwdF9yZWdzLA0KLQlzdHJ1Y3QgdHR5X3N0
-cnVjdCAqdHR5KQ0KLXsNCi0JYWNwaV9wb3dlcl9vZmYoKTsNCi19DQotDQot
-c3RydWN0IHN5c3JxX2tleV9vcCBzeXNycV9hY3BpX3Bvd2Vyb2ZmX29wID0g
-ew0KLQkuaGFuZGxlciA9CSZhY3BpX3N5c3JxX3Bvd2VyX29mZiwNCi0JLmhl
-bHBfbXNnID0JIk9mZiIsDQotCS5hY3Rpb25fbXNnID0JIlBvd2VyIE9mZlxu
-Ig0KLX07DQotDQotI2VuZGlmICAvKiBDT05GSUdfTUFHSUNfU1lTUlEgKi8N
-Ci0NCiBzdGF0aWMgaW50IF9faW5pdCBhY3BpX3NsZWVwX2luaXQodm9pZCkN
-CiB7DQogCXN0cnVjdCBwcm9jX2Rpcl9lbnRyeQkqZW50cnkgPSBOVUxMOw0K
-QEAgLTY5MCwxMSArNjYzLDcgQEANCiAJCWVudHJ5LT5wcm9jX2ZvcHMtPndy
-aXRlID0gYWNwaV9zeXN0ZW1fd3JpdGVfYWxhcm07DQogCX0NCiANCi0JLyog
-SW5zdGFsbCB0aGUgc29mdC1vZmYgKFM1KSBoYW5kbGVyLiAqLw0KIAlpZiAo
-c2xlZXBfc3RhdGVzW0FDUElfU1RBVEVfUzVdKSB7DQotCQlwbV9wb3dlcl9v
-ZmYgPSBhY3BpX3Bvd2VyX29mZjsNCi0JCXJlZ2lzdGVyX3N5c3JxX2tleSgn
-bycsICZzeXNycV9hY3BpX3Bvd2Vyb2ZmX29wKTsNCi0NCiAJCS8qIHdvcmth
-cm91bmQ6IHNvbWUgc3lzdGVtcyBkb24ndCBjbGFpbSBTNCBzdXBwb3J0LCBi
-dXQgdGhleQ0KICAgICAgICAgICAgICAgICAgICBkbyBzdXBwb3J0IFM1IChw
-b3dlci1kb3duKS4gVGhhdCBpcyBhbGwgd2UgbmVlZCwgc28NCiAJCSAgIGlu
-ZGljYXRlIHN1cHBvcnQuICovDQo=
----1463811717-1889751922-1043103726=:21175--
+Andre Hedrick
+LAD Storage Consulting Group
 
 
--------------------------------------------------------
-This SF.NET email is sponsored by: FREE  SSL Guide from Thawte
-are you planning your Web Server Security? Click here to get a FREE
-Thawte SSL guide and find the answers to all your  SSL security issues.
-http://ads.sourceforge.net/cgi-bin/redirect.pl?thaw0026en
+On Sun, 19 Jan 2003, Pavel Machek wrote:
+
+> Hi!
+> 
+> SUSPEND_RESUME phase is needed for turning off IO-APIC. [I believe
+> SUSPEND_DISABLE should be so simple that errors just should not be
+> there, and besides we would not know how to safely enable devices from
+> such weird state, anyway]. Please apply,
+> 
+> 								Pavel
+> 
+> --- clean/drivers/acpi/sleep.c	2003-01-05 22:58:25.000000000 +0100
+> +++ linux-swsusp/drivers/acpi/sleep.c	2003-01-19 21:27:00.000000000 +0100
+> @@ -143,6 +143,10 @@
+>  			return error;
+>  		}
+>  
+> +		error = device_suspend(state, SUSPEND_DISABLE);
+> +		if (error)
+> +			panic("Sorry, devices really should know how to disable\n");
+> +
+>  		/* flush caches */
+>  		ACPI_FLUSH_CPU_CACHE();
+> 
+> -- 
+> Worst form of spam? Adding advertisment signatures ala sourceforge.net.
+> What goes next? Inserting advertisment *into* email?
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+> 
