@@ -1,15 +1,11 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Instability without ACPI
-Date: Fri, 11 Jul 2003 20:46:48 +0200
+From: ¿µ¾î<fg2o0jdkas9ks-2tEErhHEdp9Wk0Htik3J/w@public.gmane.org>
+Subject: (±¤°í)1:1 ¿Ü±¹ÀÎ ¹æ¹® ¸ÂÃã ¿µ¾îÈ¸È­!!!
+Date: Sat, 12 Jul 2003 05:17:56 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030711184648.GN22636@poupinou.org>
-References: <200307110022.29512.adq_dvb@lidskialf.net> <200307111356.22376.adq_dvb@lidskialf.net> <20030711140227.GF22636@poupinou.org> <200307111806.57883.adq_dvb@lidskialf.net> <20030711172639.GL22636@poupinou.org> <1057947446.1451.51.camel@darkstar.portugal>
+Message-ID: <E19b4KO-0001nY-8N@externalmx.vasoftware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/html; charset="euc-kr"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1057947446.1451.51.camel-4/PLUo9XfK/yXfm4dIG/yWZHpeb/A1Y/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,55 +14,172 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?iso-8859-1?Q?S=E9rgio?= Monteiro Basto <sbasto-n97bsLhj/YhQPh2TJV30h1aTQe2KTcn/@public.gmane.org>
-Cc: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jul 11, 2003 at 07:17:25PM +0100, Sérgio Monteiro Basto wrote:
-> On Fri, 2003-07-11 at 18:26, Ducrot Bruno wrote:
-> > 
-> > You probably need acpi due to power states for the cpu.  Common problem
-> > with laptop shipped with athlon in general (there is a tool called
-> > lvcool though if you do not have acpi).
-> 
-> sounds cool
-> I have one athlon 4 on one KT133.
-> but after reading 
-> http://cip.uni-trier.de/nofftz/linux/Athlon-Powersaving-HOWTO.html
-> 
-> in 2.5
-> This is the only solution which does not use the ACPI system of the
-> Linux kernel. 
+<html>
 
-This one will do exactly what ACPI does (that is, in the main loop,
-read LVL2 register).  So the exact same issue will likely happens.
+<head>
+<meta http-equiv="content-type" content="text/html; charset=euc-kr">
+<title>Á¦¸ñ ¾øÀ½</title>
+<meta name="generator" content="Namo WebEditor v5.0">
+</head>
 
-...
+<BODY text=black vLink=purple aLink=red link=blue bgColor=white>
+<TABLE cellSpacing=0 cellPadding=1 width=530 align=center bgColor=#000000 
+border=0>
+  <TBODY>
+  <TR>
+    <TD bgColor=#232687>
+      <TABLE cellSpacing=0 cellPadding=0 width="100%" bgColor=#232687 
+        border=0><TBODY>
+        <TR>
+          <TD width=5></TD>
+          <TD bgColor=#232687></TD>
+          <TD width=5></TD></TR>
+        <TR>
+          <TD></TD>
+          <TD align=middle><A href="http://www.g-study.co.kr/main/index.htm" 
+            target=_blank><IMG height=196 
+            src="http://www.g-study.co.kr/mailform/top.jpg" width=478 
+            border=0></A></TD>
+          <TD></TD></TR>
+        <TR>
+          <TD></TD>
+          <TD></TD>
+          <TD></TD></TR>
+        <TR>
+          <TD></TD>
+          <TD bgColor=#ffffff></TD>
+          <TD></TD></TR>
+        <TR>
+          <TD></TD>
+          <TD align=middle bgColor=#ffffff><A 
+            href="http://www.g-study.co.kr/main/index.htm" target=_blank><IMG 
+            height=159 src="http://www.g-study.co.kr/mailform/body1.jpg" 
+            width=487 border=0></A></TD>
+          <TD></TD></TR>
+        <TR>
+          <TD></TD>
+          <TD>
+            <TABLE cellSpacing=5 cellPadding=0 width="100%" bgColor=#ffffff 
+            border=0>
+              <TBODY>
+              <TR>
+                <TD vAlign=center width=320 bgColor=#66ccff 
+                  height=20><STRONG><FONT color=#ffffff size=2><IMG height=10 
+                  src="http://www.g-study.co.kr/mailform/bullet1.gif" width=6> 
+                  ¼­ºñ½ºÆ¯Â¡</FONT></STRONG></TD>
+                <TD align=middle rowSpan=4><IMG height=141 
+                  src="http://www.g-study.co.kr/mailform/body2.jpg" 
+              width=139></TD></TR>
+              <TR>
+                <TD>
+                  <TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+                    <TBODY>
+                    <TR>
+                      <TD width=10></TD>
+                      <TD><FONT face=±¼¸²Ã¼ size=2><IMG height=8 
+                        src="http://www.g-study.co.kr/mailform/bullet3.gif" 
+                        width=8> Ã¶ÀúÇÑ °³º° ¹æ¹®À» ÅëÇÑ ¸ÂÃã±³À°</FONT></TD></TR>
+                    <TR>
+                      <TD></TD>
+                      <TD><FONT face=±¼¸²Ã¼ size=2><IMG height=8 
+                        src="http://www.g-study.co.kr/mailform/bullet3.gif" 
+                        width=8> ´Ü±â°£³» ¿µ¾îÈ¸È­¿¡ ´ëÇÑ µÎ·Á¿ò ±Øº¹</FONT></TD></TR>
+                    <TR>
+                      <TD></TD>
+                      <TD><FONT face=±¼¸²Ã¼ size=2><IMG height=8 
+                        src="http://www.g-study.co.kr/mailform/bullet3.gif" 
+                        width=8> °³°³ÀÎ¿¡ ¸Â´Â ÃÖ°íÀÇ °­»ç ÁÖ¼±</FONT></TD></TR>
+                    <TR>
+                      <TD></TD>
+                      <TD><FONT face=±¼¸²Ã¼ size=2><IMG height=8 
+                        src="http://www.g-study.co.kr/mailform/bullet3.gif" 
+                        width=8> ±³À°½Ã°£¿Ü °­»çµé°úÀÇ Ä£¸ñ¸ðÀÓ ÁÖ¼±</FONT></TD></TR>
+                    <TR>
+                      <TD></TD>
+                      <TD><FONT face=±¼¸²Ã¼ size=2><IMG height=8 
+                        src="http://www.g-study.co.kr/mailform/bullet3.gif" 
+                        width=8> 1:1 È¸È­ ¹× ´ÜÃ¼È¸È­ 
+              °¡´É</FONT></TD></TR></TBODY></TABLE></TD></TR>
+              <TR>
+                <TD vAlign=center bgColor=#ffcc00 height=20><STRONG><FONT 
+                  color=#ffffff size=2><IMG height=10 
+                  src="http://www.g-study.co.kr/mailform/bullet1.gif" 
+                  width=6>°­»çÁø ¼Ò°³</FONT></STRONG></TD></TR>
+              <TR>
+                <TD>
+                  <TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+                    <TBODY>
+                    <TR>
+                      <TD width=10></TD>
+                      <TD><FONT face=±¼¸²Ã¼ size=2><IMG height=8 
+                        src="http://www.g-study.co.kr/mailform/bullet3.gif" 
+                        width=8> ¹Ì±¹, Ä³³ª´Ùµî ÇöÁö À¯¼ö´ëÇÐ B.A. ÇÐÀ§Ãëµæ</FONT></TD></TR>
+                    <TR>
+                      <TD></TD>
+                      <TD><FONT face=±¼¸²Ã¼ size=2><IMG height=8 
+                        src="http://www.g-study.co.kr/mailform/bullet3.gif" 
+                        width=8> TESOL / CELTA ÀÚ°ÝÁõ Ãëµæ</FONT></TD></TR>
+                    <TR>
+                      <TD></TD>
+                      <TD><FONT face=±¼¸²Ã¼ size=2><IMG height=8 
+                        src="http://www.g-study.co.kr/mailform/bullet3.gif" 
+                        width=8> ÇöÀç ±¹³» ¾îÇÐ¿ø ¹× ´ëÇÐ±³ °­»ç·Î È°µ¿Áß</FONT></TD></TR>
+                    <TR>
+                      <TD></TD>
+                      <TD><FONT face=±¼¸²Ã¼ size=2><IMG height=8 
+                        src="http://www.g-study.co.kr/mailform/bullet3.gif" 
+                        width=8> °³ÀÎÁöµµ ¹× ÇÐ¿ø°­»ç °æ·Â 2³â 
+                ÀÌ»ó</FONT></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE></TD>
+          <TD></TD></TR>
+        <TR>
+          <TD></TD>
+          <TD vAlign=center align=middle bgColor=#adf8fe height=80><FONT 
+            color=#3333ff size=5><STRONG>¹®ÀÇ ¹× »ó´ã : 02) 583-3556<FONT 
+            size=3><BR><BR><FONT color=#330099>Áö±Ý ÀüÈ­ÁÖ½Ã¸é ¿Ü±¹ÀÎ¼±»ý´ÔÀÌ ¿©·¯ºÐÀÇ °çÀ¸·Î ´Ù°¡ 
+            °©´Ï´Ù.</FONT></FONT></STRONG></FONT></TD>
+          <TD></TD></TR>
+        <TR>
+          <TD></TD>
+          <TD align=middle bgColor=#a4d1ff height=30><BR><FONT 
+            size=3><STRONG>Total Education Consulting 
+            Service....</STRONG><BR><FONT size=2>(ÁÖ)±Û·Î¹ú¼¼ÀÌ<BR></FONT></FONT>
+            <P><A href="http://www.g-study.co.kr/main/index.htm" 
+            target=_blank><B>È¨ÆäÀÌÁö ¹Ù·Î°¡±â</B></A><BR><BR></P></TD>
+          <TD></TD></TR>
+        <TR>
+          <TD></TD>
+          <TD bgColor=#232687></TD>
+          <TD></TD></TR>
+        <TR>
+          <TD height=214></TD>
+          <TD bgColor=#e0e0e0>
+            <P><FONT color=#333333 size=2>±ÍÇÏÀÇ Çã¶ô ¾øÀÌ ±¤°í ¸ÞÀÏÀ» º¸³»°Ô µÈ Á¡ Á¤ÁßÈ÷ »ç°ú µå¸³´Ï´Ù. 
+            <BR></FONT><FONT face=±¼¸² color=#333333 size=2>º» ¸ÞÀÏÀº Á¤º¸Åë½Å¸Á ÀÌ¿ëÃËÁø ¹× 
+            Á¤º¸º¸È£ µî¿¡ °üÇÑ ¹ý·ü Á¦ 50Á¶¿¡ ÀÇ°ÅÇÑ <BR>[±¤°í] ¸ÞÀÏÀÔ´Ï´Ù. <BR>e-mailÁÖ¼Ò´Â ÀÎÅÍ³Ý»ó¿¡¼­ 
+            ÃëµæÇÏ¿´À¸¸ç, ÁÖ¼Ò¿Ü ¾î¶°ÇÑ °³ÀÎ Á¤º¸µµ <BR>°¡Áö°í ÀÖÁö ¾Ê½À´Ï´Ù.<BR>¼ö½Å°ÅºÎ¸¦ ¿øÇÏ½Ã¸é </FONT><FONT 
+            size=2><A href="mailto:bjlim74-2tEErhHEdp9Wk0Htik3J/w@public.gmane.org"><B><FONT 
+            color=red>[¼ö½Å°ÅºÎ]</FONT></B></A> <FONT face=±¼¸² color=#333333>¸¦ ÇØÁÖ¼¼¿ä. 
+            <BR>´Ù½Ã ÇÑ¹ø Á¤º¸¸¦ ¿øÇÏÁö ¾Ê´Â ºÐ²²´Â ´ë´ÜÈ÷ ÁË¼ÛÇÕ´Ï´Ù.<BR>¹ø°Å·Î¿ì½Ã´õ¶óµµ ÇÑ¹ø ´õ ¼ö½Å°ÅºÎ¸¦ ÇØÁÖ½Ã¸é 
+            °¨»çÇÏ°Ú½À´Ï´Ù.</FONT></FONT></P>
+            <P align=left><FONT face=±¼¸² color=#333333 size=2>ÁÖ¼Ò : ¼­¿ï ¼­ÃÊ±¸ ¼­ÃÊ2µ¿ 
+            1337-8 º¸Åëºôµù 405È£ (ÁÖ)±Û·Î¹ú¼¼ÀÌ (bjlim74-2tEErhHEdp9Wk0Htik3J/w@public.gmane.org)</FONT></P>
+            <P align=center><FONT color=#333333 size=2>If you want to be removed 
+            from our recipient list, please click</FONT><FONT size=2> <A href="mailto:bjlim74-2tEErhHEdp9Wk0Htik3J/w@public.gmane.org"><B><FONT 
+            color=red>[unsubscribe]</FONT></B></A>. </FONT></P></TD>
+          <TD></TD></TR>
+        <TR>
+          <TD></TD>
+          <TD></TD>
+          <TD></TD></TR></TBODY></TABLE></TD></TR></TBODY></TABLE>
+<P><IMG 
+src="http://www.gillajabi.net/supercounter/count.cgi?gstudy"></P>
+</BODY>
 
-> 2.1. The Command-line Hack
-> you can enable/disable the power-saving right from the command-line
-> without any need for rebooting.
-> 
-> on KT133/133A, KX133, KL/KLE133, KM/KN133, ...:
-> enable: setpci -v -H1 -s 0:0.0 52=$(printf %x $((0x$(setpci -H1 -s 0:0.0
-> 52) | 0x80)))
-> disable: setpci -v -H1 -s 0:0.0 52=$(printf %x $((0x$(setpci -H1 -s
-> 0:0.0 52) & 0x7f))) 
-> 
-> How I know if it enable or disable ?
+</html>
 
-setpci -H1 -s 0:0.0 52
-then look if bit 8 is set (enable) or not (disable).
-
-> is it safe try this commands?
-
-I don't know.
-
--- 
-Ducrot Bruno
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
 
 
 -------------------------------------------------------
