@@ -1,15 +1,14 @@
-From: Jonathan Gold <jgold-VmQCmMdMyN0AvxtiuMwx3w@public.gmane.org>
-Subject: Re: ethernet effectively hangs machine (2.4.22+acpi)
-Date: Tue, 4 Nov 2003 12:09:34 -0500 (EST)
+From: Lindsey Simon <lsimon-kAMMLXQ8Af9Wk0Htik3J/w@public.gmane.org>
+Subject: Re: Unable to turn fan on - Asus M3N - 2.6.0-test9bk4
+Date: Tue, 4 Nov 2003 11:32:16 -0600
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.NEB.4.58.0311041209100.6985@panix2.panix.com>
-References: <Pine.NEB.4.58.0311022050090.24086@panix1.panix.com>
- <1067830424.1434.6.camel@darkstar.portugal> <1067928463.2727.50.camel@dhcppc4>
+Message-ID: <20031104173216.GH26114@austinchronicle.com>
+References: <20031101193817.GA19198@austinchronicle.com> <20031102174730.GB2819@krikkit> <3FA561F7.5030706@pca.it>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=X-UNKNOWN
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1067928463.2727.50.camel-D2Zvc0uNKG8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <3FA561F7.5030706-wlebWZzHoyE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,84 +17,65 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
+Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-thanks. i installed it, and the network comes up. now to the
-interesting stuff ...
+My FN00/state's change from on to off as well, but the fan doesn't actually
+turn on when the state says it's on.
 
-jon
+Do you insmod the fan module or not? I do, but maybe I shouldn't?
 
-On Tue, 4 Nov 2003, Len Brown wrote:
+Which of the ACPI modules do you turn on and which do you not?
 
-> The latest ACPI patch against 2.4.22 lives here:
->
-> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2=
-=2E4.22/
->
-> If you apply this patch to 2.4.22 and find that the default
-> configuration hangs, but acpi=3Dht, acpi=3Doff, noapic, or acpi=3Doff
-> work, then please let me know.
->
-> Note that the -ac patch below and the ACPI patch above are mutually
-> exclusive (unless you manually merge the conflicts).
->
-> thanks,
-> -Len
->
->
->
-> On Sun, 2003-11-02 at 22:33, S=E9rgio Monteiro Basto wrote:
-> > Hi
-> > if for you, it is simple .
-> > Can you make the same test
-> > withhttp://www.kernel.org/pub/linux/kernel/people/alan/linux-2.4/2.4.22=
-/patch-2.4.22-ac4.bz2
-> >
-> > you can use almost the same kernel configuration.
-> > This version are very stable (for me).
-> > If you made some tests with it, let me know!
-> >
-> > thanks
-> >
-> > On Mon, 2003-11-03 at 01:50, Jonathan Gold wrote:
-> > > i've been reading through the last month or so of this list, and
-> > > trying various searches on google for this issue, but can't find
-> > > anything. i imagine it's something fairly basic which i'm not doing,
-> > > but i don't know what that might be.
-> > >
-> > > i compiled a 2.4.22 from scratch with the acpi stuff statically linke=
-d
-> > > into the kernel. i had some problems with usb for awhile, but got tha=
-t
-> > > figured out. now i can boot into the acpi-enable kernel, but the
-> > > system essentially hangs when bringing up eth0 (it might timeout
-> > > eventually, but i haven't seen it do that yet). i tried manually
-> > > bringing up eth0 and assigning it a static ip, which worked, but when
-> > > i tried to ping another machine, i froze up again.
-> > >
-> > > can someone possible forward me an earlier discussion of this issue. =
-i
-> > > can't be the first.
-> > >
-> > > thank you,
-> > >
-> > > jon
-> > >
-> > >
-> > > -------------------------------------------------------
-> > > This SF.net email is sponsored by: SF.net Giveback Program.
-> > > Does SourceForge.net help you be more productive?  Does it
-> > > help you create better code?   SHARE THE LOVE, and help us help
-> > > YOU!  Click Here: http://sourceforge.net/donate/
-> > > _______________________________________________
-> > > Acpi-devel mailing list
-> > > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> > > https://lists.sourceforge.net/lists/listinfo/acpi-devel
->
->
->
+Maybe that's the ticket?
+
+Luca Capello in message Re: [ACPI] Unable to turn fan on - Asus M3N - 2.6.0-test9bk4 (Sun, 11/02 20:58):
+
+> Hello,
+> 
+> on 11/02/03 18:47, Robert Vollmert wrote:
+> >are you sure the fan doesn't turn on? What kind of temperatures have
+> >you been seing? As Karol noted, the fan isn't controlled the way the
+> >spec intends (which would require implementing n fan devices for an
+> >n-level fan, I think). Instead, TCHG is called every time the
+> >temperature changes, which sets the fan speed directly based on some
+> >threshold temperatures which vary based on cooling mode
+> >(active/passive). That's the only place you can take influence wihtout
+> >modifying the DSDT, though changing the mode to passive will increase
+> >the thresholds. IIRC, these temperatures are quite high, though I don't
+> >remember exact values. In the region of 70?C, for the lowest, I think.
+> I think the fan is correctly managed, as you can see from my attached:
+> =====
+> luca@gismo:~$ cat /proc/acpi/thermal_zone/THRM/temperature
+> temperature:             68 C
+> luca@gismo:~$ date
+> Sun Nov  2 20:50:06 CET 2003
+> luca@gismo:~$ cat /proc/acpi/thermal_zone/THRM/temperature
+> temperature:             55 C
+> luca@gismo:~$ date
+> Sun Nov  2 20:52:44 CET 2003
+> luca@gismo:~$ cat /proc/acpi/fan/FN00/state
+> status:                  on
+> luca@gismo:~$ cat /proc/acpi/fan/FN00/state
+> status:                  off
+> luca@gismo:~$
+> =====
+> 
+> The temperature went high compiling the kernel, but suddenly the fan 
+> went on and at high RPM (I could hear it), just for 5min and then it 
+> went normal again.
+> 
+> I have always the 'os_wait_semaphore' problem, but, as Karol said in 
+> another post, this doens't cause any big problems, just the already 
+> reported keyboard bug (for less than 5min you can't type anything or if 
+> you were typing sometimes it's as if you go on typing the last character).
+> 
+> Thx, bye,
+> Gismo / Luca
+> 
+> 
+> 
 > -------------------------------------------------------
 > This SF.net email is sponsored by: SF.net Giveback Program.
 > Does SourceForge.net help you be more productive?  Does it
@@ -105,7 +85,6 @@ i
 > Acpi-devel mailing list
 > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 > https://lists.sourceforge.net/lists/listinfo/acpi-devel
->
 
 
 -------------------------------------------------------
