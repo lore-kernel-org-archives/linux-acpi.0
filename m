@@ -1,15 +1,12 @@
-From: Bob Lees <bob-l+PWtdWbHAsG2Il/BtU0GPXRex20P6io@public.gmane.org>
-Subject: Re: DSDT in initrd?
-Date: Tue, 6 May 2003 00:07:49 +0100
+From: Stian Jordet <liste-NI9zH3lwcMKHXe+LvDLADg@public.gmane.org>
+Subject: ACPI in kernel 2.5.68 works better (for me) than 2.5.69
+Date: 06 May 2003 02:29:46 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200305060007.49847.bob@diamond.demon.co.uk>
-References: <Pine.LNX.4.53.0304282017540.1928@phoenix.kerstin.at> <20030504215051.GA488@elf.ucw.cz> <Pine.LNX.4.53.0305050829420.25721@dynast.gaugusch.at>
+Message-ID: <1052180986.1005.3.camel@chevrolet.hybel>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.53.0305050829420.25721-sxQ525G0OhRQK2oVCIMtW7NldLUNz+W/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,46 +15,26 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Why use initrd?  Why not allow a file name to be passed to the kernel at =
-boot=20
-a la acpi=3Doff, acpi=3Dmydst.hex or whatever?  Put the file in the /boot=
-=20
-directory?
+Hi,
 
-Just my two pennies worth
+Since kernel 2.5.69, usb no longer work with acpi on my computer. With
+2.5.68 it did. Do you know what changes you have done might cause this?
 
-Bob
+I get this error, but this one is with both .68 and .69.
 
-On Monday 05 May 2003 07:39, Markus Gaugusch wrote:
-> > > Has anybody thought about putting the dsdt into the initial ramdisk=
-?
-> > > This would make changing/updating it much easier.
-> >
-> > I guess initrd is too late to override it...
->
-> If I would mount it, probably yes. But I rather thought about the way t=
-hat
-> bootsplash uses: Scan the initrd for a magic signature and read it 'raw=
-'.
-> The dsdt would not be in the filesystem of the initrd, but just appende=
-d
-> to the compressed initrd. I think that something that is early enough f=
-or
-> bootsplash should be early enough for the dsdt as well.
->
-> Markus
+ACPI-0109: *** Error: No object was returned from
+[\_SB_.PCI0.PX40.IRDA._STA] (Node dff5cc80), AE_NOT_EXIST
 
---=20
-Bob Lees
-Diamond Consulting Services Ltd
-Aylesbury, Bucks, HP17 8UG
-Phone: +44 (0) 1296 747667
-Fax: +44 (0) 1296 747557
-email: bob-l+PWtdWbHAsG2Il/BtU0GPXRex20P6io@public.gmane.org
+This is a Asus CUV266-DLS smp motherboard, and thus I need acpi to power
+it off, and it would have been very, very much apprpeciated if this
+somehow could be fixed before 2.6, atleast. I don't want to be running
+2.5.68 for ever :)
 
+Best regards,
+Stian
 
 
 
