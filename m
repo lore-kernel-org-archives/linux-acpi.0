@@ -1,40 +1,58 @@
-From: Design Patterns Source reflector <dpsrc-Tmj1lob9twqVc3sceRu5cw@public.gmane.org>
-Subject: Re:
-Date: Tue, 3 Feb 2004 23:04:56 -0600 (CST)
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200402040504.XAA03056@chip.cs.uiuc.edu>
-References: <200402040504.i1454nSA026612@dcs-server4.cs.uiuc.edu>
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200402040504.i1454nSA026612-X7uhcDA/9l0r6e4dAyNacUYNSvWw4lR0@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: ACPI -- Workaround for broken DSDT
+Date: Wed, 4 Feb 2004 02:22:18 -0500
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <BF1FE1855350A0479097B3A0D2A80EE0CC8A9F@hdsmsx402.hd.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+content-class: urn:content-classes:message
+To: trelane@digitasaru.net
+Cc: bluefoxicy@linux.net, linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-To get the source for the Design Patterns book, please send
-a message with "send design pattern source" as the subject.
-If you want a version that is zipped (instead of tarred),
-please use "send zipped" as the subject.  If you want a version
-in German, send "send German design pattern source" as the subject.
+> From Brown, Len on Sunday, 01 February, 2004:
+> >The vendor should supply a correct DSDT with their BIOS.
+> >In the case of Dell, you might inquire here: http://linux.dell.com/
+> >For non-vendor supplied solutions, you might also follow the 
+> DSDT link
+> >here: http://acpi.sourceforge.net/  
+> 
+> Hmm.  Do vendors generally release these?  I know Dell's very shaky on
+>   the Linux support front, at least for desktop/laptop.
+> Also, how do non-vendor supplied ones get made?  Seems like something
+>   you need NDA'ed docs for.
 
-You can also try ftp to st.cs.uiuc.edu in /pub/patterns/dpcat,
-or look at the patterns home page
-(http://st-www.cs.uiuc.edu/patterns/patterns.html)
+Non-vendor supplied DSDTs are created by end-users who bought machines
+that don't work.  Per the DSDT link above, one can extract,
+dis-assemble, modify a DSDT -- and tell Linux to use your copy instead
+of the version burned into PROM.
 
-If you can't get ANYTHING to work, complain to johnson-Tmj1lob9twqeodoxqx+5/w@public.gmane.org
+While detailed hardware docs would be required to understand all the
+code, that is not necessary to fix the majority of DSDT errors that
+confuse Linux.  The common errors generally result from simple
+programming blunders that are not caught at build-time by the partciular
+AML compiler the vendor uses, nor at run-time by the particular OS the
+vendor uses for validation.
 
-Thanks!
-The source server.
+When vendors use an improved AML compiler (such as the one freely
+available from Intel;-), and test their platforms on ACPI-enabled Linux,
+these problems generally go away and so does the topic of fixing broken
+DSDTs.
 
+Indeed, I'm not confident that fixing DSDTs for vendors is always a good
+idea -- particularly if the vendors don't take the feedback.  I'd rather
+see Linux users able to vote with their dollars to support vendors that
+best support Linux.
 
--------------------------------------------------------
-The SF.Net email is sponsored by EclipseCon 2004
-Premiere Conference on Open Tools Development and Integration
-See the breadth of Eclipse activity. February 3-5 in Anaheim, CA.
-http://www.eclipsecon.org/osdn
+That said, if you're stuck with a box that needs a DSDT fix -- I
+encourage you to work with the vendor to get the DSDT fixed.  Yes, I've
+seen handing them the fix on a silver platter work just fine;-)
+However, as I'm not a lawyer and don't play one on TV, note that I can't
+give anybody permission to _publish_ modified vendor firmware -- only
+the vendor can do that. 
+
+Cheers,
+-Len
