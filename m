@@ -1,13 +1,14 @@
-From: Hiroshi 2 Itoh <HIROIT-JE5g2YyFxFHQT0dZR+AlfA@public.gmane.org>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 Subject: Re: [PATCH] GDT table patch for resume only reboots problem
-Date: Sat, 23 Oct 2004 21:05:47 +0900
+Date: Sat, 23 Oct 2004 13:44:48 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <OF38C223A3.5509B742-ON49256F36.00412958-49256F36.0041FAA1@jp.ibm.com>
-References: <1098530036.3996.18.camel@tyrosine>
+Message-ID: <1098535488.3996.21.camel@tyrosine>
+References: <OF38C223A3.5509B742-ON49256F36.00412958-49256F36.0041FAA1@jp.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1098530036.3996.18.camel@tyrosine>
+In-Reply-To: <OF38C223A3.5509B742-ON49256F36.00412958-49256F36.0041FAA1-JE5g2YyFxFHQT0dZR+AlfA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -16,25 +17,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+To: Hiroshi 2 Itoh <HIROIT-JE5g2YyFxFHQT0dZR+AlfA@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Sat, 2004-10-23 at 21:05 +0900, Hiroshi 2 Itoh wrote:
 
+> Yes, nothing is bad. Try to write the value in both etc...
 
+Writing the value into both makes no difference. I also tried pushing
+the wakeup address higher up into lowmem (around 256K), but that makes
+no difference either.
 
-
->
-> Further digging - the machine claims that the FACS revision is 0, the
-> table length is 64 and that xfirmware_waking_vector is set to 0, As a
-> result of the first and last of these things, firmware_waking_vector is
-> used instead of xfirmware_waking_vector. This shouldn't be an issue,
-> right?
-> --
-
-Yes, nothing is bad. Try to write the value in both etc...
-
-- Hiro.
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
 
 
