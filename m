@@ -1,39 +1,46 @@
-From: Thomas Andrews <tandrews-Dza9YrynN5pWaveUIWBRJg@public.gmane.org>
-Subject: Re: Starting AML
-Date: Sat, 1 May 2004 12:43:59 +0200
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040501104359.GC17352@gaspode.nextlink.co.za>
-References: <20040429192133.GI28420@gaspode.nextlink.co.za> <4091F662.EF7F0B1C@monetplus.cz> <20040501092338.GA17352@gaspode.nextlink.co.za>
+From: Adrian Bunk <bunk@fs.tum.de>
+Subject: 2.6.6-rc3-mm1: modular ACPI button broken
+Date: Sat, 1 May 2004 13:44:21 +0200
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <20040501114420.GF2541@fs.tum.de>
+References: <20040430014658.112a6181.akpm@osdl.org> <87ad0sshku.fsf@basilikum.skogtun.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S261638AbUEALo2@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20040501092338.GA17352-beYWCVBHuyQmjp9Ioln+9+7fARiR49SZ@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <87ad0sshku.fsf@basilikum.skogtun.org>
+To: Harald Arnesen <harald@skogtun.org>, len.brown@intel.com, luming.yu@intel.com
+Cc: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, May 01, 2004 at 11:23:38AM +0200, Thomas Andrews wrote:
-
-> > As for debuging DSDT, you could you DSDT's debug facility, ex:
-> > Store("Some text you want to be printed",Debug)
+On Sat, May 01, 2004 at 10:00:01AM +0200, Harald Arnesen wrote:
+> I don't see this in plain 2.6.6-rc3 or 2.6.6-rc2-mm2:
 > 
-> Thanks. I assume the output just goes to dmesg ?
+> 
+> $ sudo make modules_install
+> INSTALL...
+> if [ -r System.map ]; then /sbin/depmod -ae -F System.map
+> 2.6.6-rc3-mm1; fi
+> WARNING: /lib/modules/2.6.6-rc3-mm1/kernel/drivers/acpi/button.ko needs
+> unknown symbol acpi_fixed_sleep_button
+> WARNING: /lib/modules/2.6.6-rc3-mm1/kernel/drivers/acpi/button.ko needs
+> unknown symbol acpi_fixed_pwr_button
+> $
+>...
 
-Sorry - dumb question - I had CONFIG_ACPI_DEBUG off :p
+Thanks for this report.
 
--Thomas
+This seems to be introduced by the button driver unload unload patch 
+(Bugzilla #2281) included in the ACPI BK patch.
 
+It seems two EXPORT_SYMBOL's are missing in scan.c?
 
--------------------------------------------------------
-This SF.Net email is sponsored by: Oracle 10g
-Get certified on the hottest thing ever to hit the market... Oracle 10g. 
-Take an Oracle 10g class now, and we'll give you the exam FREE.
-http://ads.osdn.com/?ad_id=3149&alloc_id=8166&op=click
+cu
+Adrian
+
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
