@@ -1,38 +1,45 @@
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Subject: Re: [ACPI] [PATCH] Updated patches for PCI IRQ resource deallocation
- support [2/3]
-Date: Fri, 01 Oct 2004 16:49:27 +0900
-Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <415D0C07.2070806@jp.fujitsu.com>
-References: <Pine.LNX.4.53.0409251356110.2914@musoma.fsmlabs.com>
- <Pine.LNX.4.53.0409251401560.2914@musoma.fsmlabs.com>
- <Pine.LNX.4.53.0409251416570.2908@musoma.fsmlabs.com>
- <4157A9D7.4090605@jp.fujitsu.com>
- <Pine.LNX.4.61.0409281702580.3052@musoma.fsmlabs.com>
- <415A28B9.6080504@jp.fujitsu.com>
- <Pine.LNX.4.61.0409291809270.3056@musoma.fsmlabs.com>
- <415B8A16.9070101@jp.fujitsu.com>
- <Pine.LNX.4.61.0409301601240.3069@musoma.fsmlabs.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Acer Travermate 8005 and battery info
+Date: Fri, 1 Oct 2004 12:29:26 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20041001102926.GD18786@elf.ucw.cz>
+References: <415C270F.5050306@lanil.mine.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-reply-to: <Pine.LNX.4.61.0409301601240.3069@musoma.fsmlabs.com>
-To: Zwane Mwaikambo <zwane@linuxpower.ca>
-Cc: Linux Kernel <linux-kernel@vger.kernel.org>, long <tlnguyen@snoqualmie.dp.intel.com>, Andrew Morton <akpm@osdl.org>, Greg Kroah-Hartmann <greg@kroah.com>, Len Brown <len.brown@intel.com>, tony.luck@intel.com, acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <415C270F.5050306-pw/8oln/LLv0Dx+PQ6IoOQ@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Christian Axelsson <smiler-pw/8oln/LLv0Dx+PQ6IoOQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Zwane Mwaikambo wrote:
+Hi!
 
-> 
-> Can't you declare "extern void acpi_unregister_gsi(int gsi)" in 
-> include/asm/acpi.h? That way it stays arch specific and you don't have the 
-> conflicting declarations. You can also move acpi_unregister_gsi into arch 
-> specific headers too.
-> 
+> Ive got a my new acer 8000 laptop and Im having some problems with
+> getting battery status info.
+> Here are outputs from /proc/acpi/battery/BAT1/state with AC-adapter
+> plugged in and without:
 
-OK. I'll update my patch based on your feedback.
+Acer problem, and known one too. Maybe if you fix their DSDT for
+them.... Go bug Acer.
 
-Thanks,
-Kenji Kaneshige
+								Pavel
 
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: IT Product Guide on ITManagersJournal
+Use IT products in your business? Tell us what you think of them. Give us
+Your Opinions, Get Free ThinkGeek Gift Certificates! Click to find out more
+http://productguide.itmanagersjournal.com/guidepromo.tmpl
