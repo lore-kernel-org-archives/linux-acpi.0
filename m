@@ -1,13 +1,12 @@
-From: Andre Hedrick <andre-QA/0nRrxPJrNLxjTenLetw@public.gmane.org>
-Subject: Re: S3 Resume working, but IDE disk hung
-Date: Mon, 7 Oct 2002 20:57:00 -0700 (PDT)
+From: <T.Hubbert-Mmb7MZpHnFY@public.gmane.org>
+Subject: ACPI Patch How to ???
+Date: Tue, 8 Oct 2002 13:01:38 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.10.10210072045080.31069-100000@master.linux-ide.org>
-References: <20021006205358.GA387@elf.ucw.cz>
+Message-ID: <000001c26eba$136b5990$0700a8c0@Lapi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0001_01C26ECA.D6F42990"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20021006205358.GA387-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,73 +15,185 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>, "Faraoni, Michael" <Michael.Faraoni-YwRvm6FT6jBDPfheJLI6IQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 6 Oct 2002, Pavel Machek wrote:
+This is a multi-part message in MIME format.
 
-> Hi!
-> 
-> [Note, you should look at the patch "to prevent data corruption". It
-> could do the trick. At least it should be good as a base.
-> 
-> > Prior to suspend one needs to :
-> > 
-> > 	block all new coming requests.
-> > 	flush cache and wait for return.
-> > 	disable DMA, and switch to PIO 0.
-> 
-> Why would you want to switch off DMA and go PIO 0?
+------=_NextPart_000_0001_01C26ECA.D6F42990
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-Because it is a known state when we drop out of the driver.
-99% of the failures of ACPI (please read the fine print, where it requires
-discrete access to "task file registers") is not knowing where or what
-stated the device and driver is set in.
+Hi!
+I like to patch my Kernel 2.4.19 but i am a newbie and I don't know what
+to do with a .diff file. Can someone help me please?
+With a step for step answere?
+ 
+Thx
 
-The reality is it does not matter if it is in PIO 0 to the hardware, but
-setting the values in the kernel so it knows what to do is critical.
+------=_NextPart_000_0001_01C26ECA.D6F42990
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-> As long as DMA is not happening (that is not disabled, we just don't
-> ask drive to do it), you should be fine.
-                       ^^^^^^^^^^^^^^^^^^
+<html xmlns:o=3D"urn:schemas-microsoft-com:office:office" =
+xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
+xmlns=3D"http://www.w3.org/TR/REC-html40">
 
-Should does not cut it, period.
-Either you are or are not correct.
-Guessing in the middle is unacceptable to me.
-Call me Andre "The Anal Retentive Dude Wielding a SPEC" Hedrick, but
-building from the top down is how and why the driver got in the mess it
-is/was today.
+<head>
+<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
+charset=3Dus-ascii">
 
-> > Resume requires calling :
-> > 
-> > 	"do_reset()"
-> > 	for (;;)
-> > 		if ((check_power()) == active)
-> > 			break;
-> > 	"piix_config_drive_xfer_rate()" 
-> > 	unblock request pathway.
-> 
-> You don't need to block/unblock request pathways. kernel/suspend.c
-> takes care of that.
 
-Really, try sending a command to a drive when it is not ready.  Try send
-it to after a sleep, and watch it eat the command and hang the bus.
+<meta name=3DProgId content=3DWord.Document>
+<meta name=3DGenerator content=3D"Microsoft Word 10">
+<meta name=3DOriginator content=3D"Microsoft Word 10">
+<link rel=3DFile-List href=3D"cid:filelist.xml-4MVrD8u5OkE4E061Evh/OjRmByFHzeGd@public.gmane.org">
+<!--[if gte mso 9]><xml>
+ <o:OfficeDocumentSettings>
+  <o:DoNotRelyOnCSS/>
+ </o:OfficeDocumentSettings>
+</xml><![endif]--><!--[if gte mso 9]><xml>
+ <w:WordDocument>
+  <w:SpellingState>Clean</w:SpellingState>
+  <w:GrammarState>Clean</w:GrammarState>
+  <w:DocumentKind>DocumentEmail</w:DocumentKind>
+  <w:HyphenationZone>21</w:HyphenationZone>
+  <w:EnvelopeVis/>
+  <w:Compatibility>
+   <w:UseFELayout/>
+  </w:Compatibility>
+  <w:BrowserLevel>MicrosoftInternetExplorer4</w:BrowserLevel>
+ </w:WordDocument>
+</xml><![endif]-->
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:SimSun;
+	panose-1:2 1 6 0 3 1 1 1 1 1;
+	mso-font-alt:\5B8B\4F53;
+	mso-font-charset:134;
+	mso-generic-font-family:auto;
+	mso-font-pitch:variable;
+	mso-font-signature:3 135135232 16 0 262145 0;}
+@font-face
+	{font-family:"\@SimSun";
+	panose-1:2 1 6 0 3 1 1 1 1 1;
+	mso-font-charset:134;
+	mso-generic-font-family:auto;
+	mso-font-pitch:variable;
+	mso-font-signature:3 135135232 16 0 262145 0;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{mso-style-parent:"";
+	margin:0cm;
+	margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:12.0pt;
+	font-family:"Times New Roman";
+	mso-fareast-font-family:SimSun;
+	mso-ansi-language:DE-CH;}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;
+	text-underline:single;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;
+	text-underline:single;}
+span.EmailFormatvorlage17
+	{mso-style-type:personal-compose;
+	mso-style-noshow:yes;
+	mso-ansi-font-size:10.0pt;
+	mso-bidi-font-size:10.0pt;
+	font-family:Arial;
+	mso-ascii-font-family:Arial;
+	mso-hansi-font-family:Arial;
+	mso-bidi-font-family:Arial;
+	color:windowtext;}
+span.SpellE
+	{mso-style-name:"";
+	mso-spl-e:yes;}
+span.GramE
+	{mso-style-name:"";
+	mso-gram-e:yes;}
+@page Section1
+	{size:595.3pt 841.9pt;
+	margin:72.0pt 90.0pt 72.0pt 90.0pt;
+	mso-header-margin:35.4pt;
+	mso-footer-margin:35.4pt;
+	mso-paper-source:0;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
+<!--[if gte mso 10]>
+<style>
+ /* Style Definitions */=20
+ table.MsoNormalTable
+	{mso-style-name:"Normale Tabelle";
+	mso-tstyle-rowband-size:0;
+	mso-tstyle-colband-size:0;
+	mso-style-noshow:yes;
+	mso-style-parent:"";
+	mso-padding-alt:0cm 5.4pt 0cm 5.4pt;
+	mso-para-margin:0cm;
+	mso-para-margin-bottom:.0001pt;
+	mso-pagination:widow-orphan;
+	font-size:10.0pt;
+	font-family:"Times New Roman";}
+</style>
+<![endif]-->
+</head>
 
-It really seems like you can not or will not listen to real-documented
-logical concerns.  So please do as you wish and push it through, it does
-not bother me.  It will give me another chance to blast Linus and deflect
-it to you at the next Summit when people start badgering me again over the
-order of operations for suspend.  Sheesh, even Andy Grover at the 2.5
-summit in San Jose admitted I was correct in the model.
+<body lang=3DDE link=3Dblue vlink=3Dpurple =
+style=3D'tab-interval:35.4pt'>
 
-I am now out of the issue directly, please send to Alan Cox, and I will
-address is concerns about the issues.
+<div class=3DSection1>
 
-Cheers,
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span lang=3DEN-GB =
+style=3D'font-size:
+10.0pt;font-family:Arial;mso-ansi-language:EN-GB'>Hi!<o:p></o:p></span></=
+font></p>
 
-Andre Hedrick
-LAD Storage Consulting Group
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span lang=3DEN-GB =
+style=3D'font-size:
+10.0pt;font-family:Arial;mso-ansi-language:EN-GB'>I like to patch my =
+Kernel
+2.4.19 but <span class=3DSpellE>i</span> am a newbie and I don&#8217;t =
+know what
+to do with a .diff file. Can someone help me =
+please?<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><span class=3DGramE><font size=3D2 =
+face=3DArial><span lang=3DEN-GB
+style=3D'font-size:10.0pt;font-family:Arial;mso-ansi-language:EN-GB'>With=
+ a step
+for step <span class=3DSpellE>answere</span>?</span></font></span><font =
+size=3D2
+face=3DArial><span lang=3DEN-GB =
+style=3D'font-size:10.0pt;font-family:Arial;
+mso-ansi-language:EN-GB'><o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span lang=3DEN-GB =
+style=3D'font-size:
+10.0pt;font-family:Arial;mso-ansi-language:EN-GB'><o:p>&nbsp;</o:p></span=
+></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span lang=3DEN-GB =
+style=3D'font-size:
+10.0pt;font-family:Arial;mso-ansi-language:EN-GB'>Thx<o:p></o:p></span></=
+font></p>
+
+</div>
+
+</body>
+
+</html>
+
+------=_NextPart_000_0001_01C26ECA.D6F42990--
 
 
 
