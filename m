@@ -1,13 +1,12 @@
-From: Ultrakorne <ultrakorne-XtQPfPCVGG7srOwW+9ziJQ@public.gmane.org>
-Subject: Re: Re: bluetooth button is dead
-Date: Wed, 22 Dec 2004 13:34:32 +0100
-Message-ID: <41C969D8.5080709@paranoici.org>
-References: <20041221150316.14A5D9DA3B@phoenix.squirrel.nl>	<41C84078.9060402@mega.ist.utl.pt> <16840.23466.968238.615803@phoenix.squirrel.nl>
+From: "Robbie J. Painter" <robbie_jpainter-HLHuuU4wj+ve5aOfsHch1g@public.gmane.org>
+Subject: Order Royal Replica Watches Online
+Date: Wed, 22 Dec 2004 05:28:55 -0400
+Message-ID: <758e01c4e808$c16bb0aa$e846d98c@mail.entelnet.bo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <16840.23466.968238.615803-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,28 +19,26 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Johan Vromans wrote:
-> [Quoting Pedro Venda, on December 21 2004, 15:25, in "Re: [ACPI] Re: bluet"]
-> 
->>but does it return such a message? mine does.
->>
->>atkbd.c: Unknown key pressed (translated set 2, code 0xd5 on isa0060/serio0).
->>atkbd.c: Use 'setkeycodes e055 <keycode>' to make it known.
->>atkbd.c: Unknown key released (translated set 2, code 0xd5 on isa0060/serio0).
->>atkbd.c: Use 'setkeycodes e055 <keycode>' to make it known.
-> 
-> 
-> Yes, it does. When I press the BlueTooth button I get a e058, and the
-> WiFi button alternates e055 (On) and e056 (Off). This is a TravelMate
-> 4001WLMi; your actual codes can differ. 
-> 
-> -- Johan
-> 
+Get the Finest Rolex Watch Replica!
 
-k, but binding a keycode didnt enable BT, we need to know the values to
-write to the control and data registry of the keyboard controller.
-with such 2 values it's then easy to enable Bt...
-but how pich then without reverse engineering the windows drivers?
+We only sell premium watches. There's no battery in these replicas just
+like the real ones since they charge themselves as you move. The second hand
+moves JUST like the real ones, too. These original watches sell in stores
+for thousands of dollars. We sell them for much less. 
+
+- Replicated to the Smallest Detail
+- 98% Perfectly Accurate Markings 
+- Signature Green Sticker w/ Serial Number on Watch Back
+- Magnified Quickset Date
+- Includes all Proper Markings
+
+Visit us: http://www.mecei.com/rep/rolx/
+
+Christmas discount this week only! Make your order before the prices go up.
+
+
+No thanks: http://www.mecei.com/z.php
+
 
 
 -------------------------------------------------------
