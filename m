@@ -1,13 +1,10 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: system does not wake up sometimes
-Date: Wed, 2 Feb 2005 00:44:40 +0100
-Message-ID: <20050201234440.GA2764@hell.org.pl>
-References: <16A54BF5D6E14E4D916CE26C9AD3057501168084@pdsmsx402.ccr.corp.intel.com> <Pine.LNX.4.58.0501312317420.31879@gaston.free.fr> <1107218653.26227.3.camel@sli10-desk.sh.intel.com> <Pine.LNX.4.58.0502012022280.24529@gaston.free.fr>
+From: Pierre Ossman <drzeus-list-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org>
+Subject: Strange device init (_STA)
+Date: Wed, 02 Feb 2005 16:29:18 +0100
+Message-ID: <4200F1CE.1010500@drzeus.cx>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0502012022280.24529-iBKnCo7tEuSksujEA26zIQ@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,20 +14,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Peter =?iso-8859-2?Q?M=FCnster?= <pmlists-GANU6spQydw@public.gmane.org>
-Cc: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: ACPI devel list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Peter M=FCnster:
-> Here is the kernel message when interrupt arrives:
-> ACPI-0286: *** Error: No installed handler for fixed event [00000004]
+I'm having problem with a card reader on a laptop (Acer Aspire 1501). 
+The device doesn't get its resources configured properly.
 
-Please see http://bugme.osdl.org/show_bug.cgi?id=3D1320.
-Best regards,
+The reader is connected to the LPC bus so there is no standardised way 
+to configure the device. On other laptops the configuration is done via 
+ACPI (_STA & co. in the DSDT). On this laptop these functions don't do a 
+damn thing.
+In Windows this device gets configured through some other means. It's 
+not in the driver (I've disected it to confirm this). But under Linux 
+the device is left unconfigured.
 
---=20
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+So my question is if anyone has any ideas on how this device gets 
+configured by Windows and possibly how we can get this to work on Linux.
+
+The reason this is an issue is that one cannot detect all the quirks of 
+the hardware so a PNP solution is prefered. In those cases the 
+manufacturer has chosen resources that work ok.
+
+For some context: I am the maintainer of the driver for this hardware. I 
+have a laptop where the DSDT properly sets up the hardware. The Acer 
+belongs to some of my users but they are not familiar with the kernel so 
+I'm trying to fix this for them.
+
+Rgds
+Pierre
 
 
 -------------------------------------------------------
