@@ -1,80 +1,67 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: ACPI patches updated (20021115)
-Date: Mon, 18 Nov 2002 18:09:16 -0800
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A51C@orsmsx119.jf.intel.com>
+From: "Russ Neff" <russ-rjAkyXQP36HLeiHq/WgCfg@public.gmane.org>
+Subject: Re: ACPI and Shutdown on VAIO FXA-49
+Date: Tue, 19 Nov 2002 07:56:47 -0500
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <000c01c28fcb$1ec6bff0$e90015ac@HHN.INC>
+References: <Pine.LNX.4.44.0211182029520.981-100000@schneck.daheim>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
-Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: feuerblume-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all,
+Thanks,
+I did try the 200211 patch and had the same results. i wll try the 2.4.18
+kernel and patch as suggested by Markus and see what it yields.
 
-Linux patches are now available at http://sf.net/projects/acpi.
-Non-Linux-specific patches should be available by tomorrow night at
-http://developer.intel.com/technology/iapc/acpi/downloads.htm . For real
-this time. ;-)
+Thanks Again,
+Russ
+----- Original Message -----
+From: <feuerblume-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Russ Neff" <russ-rjAkyXQP36HLeiHq/WgCfg@public.gmane.org>
+Cc: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sent: Monday, November 18, 2002 2:32 PM
+Subject: Re: [ACPI] ACPI and Shutdown on VAIO FXA-49
 
-Regards -- Andy
 
-----------------------------------------
-15 November 2002.  Summary of changes for version 20021115.
+> Hi Russ,
+>
+> the latest 11.11.2002 patch works very fine with my VAIO FXA-49. No
+> problems with shutdown. I guess your machine should be quite similar, so
+> it is probably a good idea to try the latest patch.
+> I don't know whether you are using the mdk kernel, if so, go ahead and get
+> the standard kernel.
+>
+> cheers
+>
+> Stefan
+>
+>
+>
+> -------------------------------------------------------
+> This sf.net email is sponsored by: To learn the basics of securing
+> your web site with SSL, click here to get a FREE TRIAL of a Thawte
+> Server Certificate: http://www.gothawte.com/rd524.html
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>
 
-1) Linux
 
-Changed the implementation of the ACPI semaphores to use
-down() instead of down_interruptible().  It is important that
-the execution of ACPI control methods not be interrupted by
-signals.  Methods must run to completion, or the system may be
-left in an unknown/unstable state.
 
-Fixed a compilation error when CONFIG_SOFTWARE_SUSPEND is not
-set. (Shawn Starr)
-
-2) ACPI CA Core Subsystem:
-
-Fixed a memory leak problem where an error during resolution
-of method arguments during a method invocation from another
-method failed to cleanup properly by deleting all successfully
-resolved argument objects.
-
-Fixed a problem where the target of the Index() operator was
-not correctly constructed if the source object was a package.
-This problem has not been detected because the use of a target
-operand with Index() is very rare.
-
-Fixed a problem with the Index() operator where an attempt was
-made to delete the operand objects twice.
-
-Fixed a problem where an attempt was made to delete an operand
-twice during execution of the CondRefOf() operator if the
-target did not exist.
-
-Implemented the first of perhaps several internal create
-object functions that create and initialize a specific object
-type.  This consolidates duplicated code wherever the object
-is created, thus shrinking the size of the subsystem.
-
-Implemented improved debug/error messages for errors that
-occur during nested method invocations.  All executing method
-pathnames are displayed (with the error) as the call stack is
-unwound - thus simplifying debug.
-
-Fixed a problem introduced in the 10/02 release that caused
-premature deletion of a buffer object if a buffer was used as
-an ASL operand where an integer operand is required (Thus
-causing an implicit object conversion from Buffer to Integer.)
-The change in the 10/02 release was attempting to fix a memory
-leak (albeit incorrectly.)
-
-3) iASL Compiler/Disassembler
-
-Changed the default location of output files.  All output
-files are now placed in the current directory by default
-instead of in the directory of the source file.  This change
-may affect some existing makefiles, but it brings the behavior
-of the compiler in line with other similar tools.  The
-location of the output files can be overridden with the -p
-command line switch.
+-------------------------------------------------------
+This sf.net email is sponsored by: To learn the basics of securing 
+your web site with SSL, click here to get a FREE TRIAL of a Thawte 
+Server Certificate: http://www.gothawte.com/rd524.html
