@@ -1,17 +1,13 @@
-From: Andrej Prsa <andrej.prsa-zs/Xt9NzJtxxh+DGd0HQrg@public.gmane.org>
-Subject: Re: HP/Compaq NC6120 ACPI problems
-Date: Sat, 19 Mar 2005 10:35:50 +0100
-Message-ID: <20050319103550.2cd6bd9d.andrej.prsa@guest.arnes.si>
-References: <20050317200052.686d683f.andrej.prsa@guest.arnes.si>
-	<1111088904.11380.36.camel@eeyore>
-	<20050317215635.1c788c09.andrej.prsa@guest.arnes.si>
-	<1111104319.8136.182.camel@tyrosine>
-	<20050318192300.629e2148.andrej.prsa@guest.arnes.si>
-	<1111202374.8136.210.camel@tyrosine>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: S3 resume and other ACPI questions
+Date: Sat, 19 Mar 2005 11:48:33 +0100
+Message-ID: <20050319104833.GA1345@elf.ucw.cz>
+References: <7f800d9f05022815286a10ddf6@mail.gmail.com> <20050308095722.GA16798@elf.ucw.cz> <7f800d9f050318193340df70a9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <1111202374.8136.210.camel@tyrosine>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+In-Reply-To: <7f800d9f050318193340df70a9-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,34 +17,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+To: Andre Eisenbach <int2str-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+On P=E1 18-03-05 19:33:48, Andre Eisenbach wrote:
+> On Tue, 8 Mar 2005 10:57:22 +0100, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> wrote:
+> > Read Doc*/power/video.txt. Send me a patch when you get it working.
+>=20
+> Hello Pavel, all,
+>=20
+> I've read video.txt and it got me further actually. Thanks for that.
+>=20
+> I've recompiled the kernel without any fbcon etc. and use the "radeon"
+> display driver within X windows (Gentoo patched version). This way I
+> can actually resume from S3 now, and get right back into X. Really
+> quickly, too.
+>=20
+> However, the hard drive does not seem to fair so well. The hdd
+> activity LED remains on and the drive does not seem responsive (but
+> spinning). The laptop slows to a crawl and any executable that causes
+> disc access (i.e. it's not cached or reads config files etc). Won't
+> execute.
+>=20
+> dmesg seems to work, but doesn't really show anything. After the
+> "stopping tasks" I get a weird "Back from C!" message, but that's
+> about it.
+>=20
+> What could I try from here?
 
-just a small observational update:
+I'd do it from text console, and insert printks just about everywhere
+to see what is going on. See if disk is getting interrupts, for
+example.
 
-* applying the latest ACPI patch + the patch you recommended doesn't
-  solve the issue
-* during boot-up, the fan.ko module doesn't get loaded automatically
-  and hence there is no /proc/acpi/fan entry. If I modprobe it manually,
-  the fan/ directory is created with four subdirectories C253 through
-  C256, each having only a state entry; all are set to off
-* if I try to change them to on by 'echo 0 > ...' or 'echo on > ...',
-  it doesn't work - they all remain set to "off".
-
-> Hmm. Yes, I can now repeat this with a 6220, though most of the time I
-> manage it it seems to be linked to a suspend to disk beforehand. I
-> suspect this /may/ be linked to the fact that on the 6120, only the
-> first lid event is received. I'll see if I can track this down over
-> the weekend.
-
-Thanks; if there's anything I can do to help, please let me know!
-
-Bye,
-
-Andrej
+								Pavel
+--=20
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
