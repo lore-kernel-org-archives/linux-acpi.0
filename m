@@ -1,13 +1,16 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: RFC 0/4: make ACPI interpret safe for suspend/resume
-Date: Thu, 20 Jan 2005 10:12:42 +0100
-Message-ID: <20050120091242.GB1452@elf.ucw.cz>
-References: <1106104620.12957.270.camel@sli10-desk.sh.intel.com> <20050119101858.GE25623@elf.ucw.cz> <1106184495.13181.68.camel@sli10-desk.sh.intel.com>
+From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
+Subject: Re: Smart Battery System driver
+Date: Thu, 20 Jan 2005 10:22:40 +0100
+Message-ID: <m2mzv4pi8v.fsf@phoenix.squirrel.nl>
+References: <41E81C2C.8010809@bartol.udel.edu>
+	<200501192010.25975.o.jansen@orb-net.de>
+	<m28y6pytgs.fsf@phoenix.squirrel.nl>
+	<200501200936.21831.o.jansen@orb-net.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1106184495.13181.68.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
+In-Reply-To: <200501200936.21831.o.jansen-n+qsWun7DryELgA04lAiVw@public.gmane.org> (Olaf Jansen-Olliges's
+ message of "Thu, 20 Jan 2005 09:36:21 +0100")
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,43 +20,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Olaf Jansen-Olliges <o.jansen-n+qsWun7DryELgA04lAiVw@public.gmane.org> writes:
 
-> > [Or perhaps you want this variable to be acpi-local?]
-> For the memory allocating issue and semaphore issue, we actually can not
-> use the new system state, we can just do:
-> if (in_atomic() || in_interrupt())
-> 	kmalloc(.., GFP_ATOMIC)
-> But this possibly will mask some real runtime errors, so we want to add
-> a new system state to make suspend/resume work and not break normal
-> process. But If new system state is a bad idea, we can make it
-> acpi-local.
+> Hi Johan, 
+>
+>>    # Experimental: drivers for smartbattery reading.
+>>    modprobe i2c-dev
+>>    modprobe i2c-acpi-ec
+>>    modprobe -r ac
+>>    modprobe -r battery
+>>    modprobe acpi-sbs
+>
+>
+> i've tested it again on my machine. I only get values for my battery
+> when i disable in my kernel configuration. Even when they are marked
+> to be build as modules i get no values! Perhaps you should try to
+> compile a new kernel with this variables set to no.
 
-Actually, I do not quite like new system state, but introducing new
-"in_suspend()" macro would certainly be ok. We actually talked about
-that one on linux-pm, just noone got around to implement it.
+Sorry for the confusion -- with these settings in my rc.local I _DO_
+get correct values, so there should be no need to recompile the kernel
+if ac and battery are modules. Just make sure they're unloaded before
+you load acpi-sbs.
 
-> > > P.S. Did anybody know why we should freeze all processes for S3 and
-> > > S4BIOS? I checked FreeBSD code, it doesn't. I know it's safer, but if
-> > > all device drivers can freeze request to them, it's possibly not
-> > > required to me.
-> > 
-> > Freezing all processes should not be required. 
-> How about just make suspend/resume task as a highest priority task with
-> FIFO scheduler policy? 
-
-That might do the trick for S3, but not for swsusp. Imagine normal
-process holding some lock you want (for writing image to disk). You
-can run on FIFO scheduler, but then you block on this lock, and
-userspace process gets to run, and gets confused.
-							Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+-- Johan
 
 
 -------------------------------------------------------
