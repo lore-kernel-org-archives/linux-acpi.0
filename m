@@ -1,11 +1,11 @@
-From: "Bill Chmura" <Bill-1SCLyN8z2KOgSpxsJD1C4w@public.gmane.org>
-Subject: ACPI Stangeness in Kernel 2.6.0 test 11
-Date: Sat, 13 Dec 2003 17:11:10 -0500
+From: Erico M Mendonca <erico-cz9lu//xMc+vYRxJAoKWRg@public.gmane.org>
+Subject: Toshiba 1905S303: update
+Date: Sun, 14 Dec 2003 00:50:59 -0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <000501c3c1c6$03bd5150$6400a8c0@loki>
+Message-ID: <3FDBD013.3070709@techisa.srv.br>
+Reply-To: erico-cz9lu//xMc+vYRxJAoKWRg@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,20 +19,37 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all,
+Updating on my problem with Fn-F5 (switch video out) hanging the machine...
 
-I am running the 2.6 kernel from gentoo-sources and have a strange
-problem with my ACPI...
+I recompiled the latest known kernel working for me (2.4.21-013mdk,
+shipped with Mandrake 9.1) with ACPI debug, and the current DSDT table
+I'm using. I do see "QUERY_1C" messages with this kernel on
+/var/log/messages, whereas with a newer kernel I do not (the machine
+hangs first...).
 
-If I warm boot it seems to work (reboot) but if it is coming up cold it
-does not find the batteries (looks like they are not there)...
+I have this in my DSDT:
 
-Is this a known problem?  I know that you guys have a patch out for an
-early 2.6 test... Has this been incorporated?
+                    Method (_Q1C, 0, NotSerialized)
+                    {
+                        Store ("=====QUERY_1C=====", Debug)
+                        If (\_SB.PCI0.LPC0.EC0.VIDO)
+                        {
+                            PHSS (0x01)
+                            Store (0x00, \_SB.PCI0.LPC0.EC0.VIDO)
+                        }
+                    }
 
-Thanks for any info
 
-Bill
+So the problem would be related to EC code. Were there any significant
+changes to this code that could be causing this?
+
+-- 
+
+-- Erico Mendonca
+Techisa do Brasil
+
+
+
 
 
 
