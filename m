@@ -1,13 +1,14 @@
-From: "Ashlyn Cedeno" <ashlyncedeno-dpJYCBBG3R3dqKNVfwApsbjNSxfzlW+d@public.gmane.org>
-Subject: Register me for FREE!!!
-Date: Sun, 18 May 2003 21:10:52 +0800
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: 2.5.69 - S3
+Date: Sun, 18 May 2003 23:12:45 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E19HNoi-0004fp-00@sc8-sf-list1.sourceforge.net>
-Reply-To: "Ashlyn Cedeno" <ccedeno-dpJYCBBG3R3dqKNVfwApsbjNSxfzlW+d@public.gmane.org>
+Message-ID: <20030518211245.GA452@elf.ucw.cz>
+References: <200305140140.02188.mflt1@micrologica.com.hk> <200305180523.25157.mflt1@micrologica.com.hk> <20030518104852.GA324@elf.ucw.cz> <200305182005.30192.mflt1@micrologica.com.hk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <200305182005.30192.mflt1-DTdK3Ks6N5kHTnRCetW4+N0b+6lKrnBL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,31 +17,83 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Michael Frank <mflt1-DTdK3Ks6N5kHTnRCetW4+N0b+6lKrnBL@public.gmane.org>
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi, my name is Ashlyn Cedeno. I would like to share with you a unique
-internet buyer's club that enables you to get great discounts on
-everything you buy at over 200 online stores worldwide including Wal-Mart,
-Dell Computer, Disney & Staples! Membership is FREE and has many benefits!
+Hi!
 
-To get your FREE membership ID, send an email to
-ashcedeno-dpJYCBBG3R3dqKNVfwApsbjNSxfzlW+d@public.gmane.org and put "REGISTER ME FOR FREE" in the
-subject and your full name in the body of your email. I will then register
-you into the system. You will receive a confirmation email asking you to
-verify. Open it up and activate your free membership immediately.
+> > > > > Was playing a bit with S3 - Single user mode, console, ACPI
+> > > > > core only, no modules.
+> > > > >
+> > > > > Suspending always works.
+> > > > >
+> > > > > Resuming performs somewhat randomly as follows:
+> > > > >
+> > > > > 1) Linux! - hang
+> > > > >
+> > > > > 2) Resume failed
+> > > > >
+> > > > > 3) Resumes with lots of shell prompts scrolling, and seems to
+> > > > > be functional thereafter
+> > > > >
+> > > > > What is the expected behaviour at this time?
+> > > >
+> > > > 3) is expected. You held down enter
+> > > > when you did echo, so it still sees
+> > > > enter down after resume.
+> > >
+> > > Thank you,  a script which delays a few seconds before suspend
+> > > should fix 3)
+> > >
+> > > How to get rid of 1) and 2) ?
+> >
+> > For 4) (harddisk problems from other mail): does it work after IDE
+> > reset? If not, try disabling DMA with hdparm.
+> 
+> Seems to work after hard disk reset. Problem seems to depend on disk
+> activity. 
 
-Remember, there is no cost, no risk and no obligation to join.  You have
-nothing to lose and possibly a lot to gain!
+Okay, so it works when you are lucky.
 
-Best Regards
+> > As for 1) and 2): Good luck debugging 1) [adding more letters to
+> > see where it hangs etc]; 
+> 
+> The disk LED stays on, so perhaps it hangs in IDE. 
+> 
+> > what exactly means 2)?
+> 
+>   This is Toshiba BIOS message. System does cold reboot thereafter.
 
-Ashlyn Cedeno
+There's not much I can do about this one. Perhaps toshiba bios does
+something stupid with disk during resume and needs to have it in some
+particular state? But then, after S3, disk should be powering up...
 
-----------------------------------------------
-If you would prefer not to receive messages from me in the future, please
-send an email to ashcedeno-dpJYCBBG3R3dqKNVfwApsbjNSxfzlW+d@public.gmane.org with REMOVE in the
-subject line. Thanks.
+>   Q? How does BIOS know whether to do resume or reboot?
+
+Either bit in CMOS-RAM or some other magic.
+
+> further, there is mode 5)
+> 
+>   which is mode 4) _plus_ disk reset fails, and disk won't spin up again, and kjournald gets mad....
+
+Disk reset should never ever fail. Can you try to debug that?
+
+> and mode 6)
+> 
+>   System hangs after all tasks left fridge with disk led on.
+
+> I suppose IDE gets false interupt upon resume.
+
+Spurious interrupts should be handled gracefully by IDE. On velo I ran
+my machine with IDE interrupt connected to 1kHz timer, and it more or
+less worked ("IDE0: spurious interrupt", "Last message repeated 1539
+times").
+
+								Pavel
+-- 
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
 
 
 -------------------------------------------------------
