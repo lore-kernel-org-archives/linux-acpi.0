@@ -1,12 +1,15 @@
-From: Pierre Chifflier <chifflier-Rhs21ED664o@public.gmane.org>
-Subject: Acpi on compaq N620C
-Date: Mon, 27 Oct 2003 11:28:34 +0100
+From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
+Subject: Re: Failed compile kernel with apci patch applied
+Date: Mon, 27 Oct 2003 14:19:53 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031027102834.GA22841@image4.cpe.fr>
+Message-ID: <20031027131953.GB1934@enigma.daemon.sh>
+References: <BF1FE1855350A0479097B3A0D2A80EE0CC87C5@hdsmsx402.hd.intel.com> <1066907937.1880.11.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="OwLcNYc0lM97+oe1"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <1066907937.1880.11.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,61 +18,78 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: ACPI devel mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
 
-I'm trying to get ACPI working on a Compaq Evo N620C.
+--OwLcNYc0lM97+oe1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Whatever version of the kernel i try (2.4.22, 2.6.0-test[89]) i'm
-getting these messages at boot:
+salut fred..
 
-ACPI: Subsystem revision 20031002
-ACPI: IRQ 9 was Edge Triggered, setting to Level Triggerd
-ACPI: Interpreter enabled
-ACPI: Using PIC for interrupt routing
-    ACPI-1120: *** Error: Method execution failed [\_SB_.C046.C052] (Node cffbdc40), AE_AML_BUFFER_LIMIT
-    ACPI-1120: *** Error: Method execution failed [\_SB_.C046.C056] (Node cffbdc20), AE_AML_BUFFER_LIMIT
-    ACPI-1120: *** Error: Method execution failed [\_SB_.C046._CRS] (Node cffbdc00), AE_AML_BUFFER_LIMIT
-    ACPI-0098: *** Error: Method execution failed [\_SB_.C046._CRS] (Node cffbdc00), AE_AML_BUFFER_LIMIT
-ACPI: PCI Root Bridge [C046] (00:00)
+* Frederic Dernbach <fredatwork-GANU6spQydw@public.gmane.org> [2003-10-27 10:04 +0100]:
+>=20
+> I followed the steps you recommended.
+>=20
+> I restarted the whole process from scratch. I installed the 2.4.22
+> baseline kernel source files as well as the 2.4.22 acpi patch
+> (acpi-20031002-2.4.22.diff.gz).
+>=20
+> "make bzImage" went fine. "make modules" went fine I presume (I did not
+> spot any error in the std output or std error that I kept).
+>=20
+> However "make modules_install" terminated with :
+> depmod:*** Unresolved symbols in
+> /lib/modules/2.4.22-22-acpi/kernel/crypto/autoload.o
+> depmod:		crypto_alg_lookup
+> depmod:*** Unresolved symbols in
+> /lib/modules/2.4.22-22-acpi/kernel/crypto/proc.o
+> depmod:		crypto_alg_sem
+> depmod:		crypto_alg_list
+>=20
+> Is there anythting wrong that I dod ?=20
 
-Despite this message, ACPI *seems* to work
+i suppose you did not do anything wrong. it looks like some relations in
+your .config could not be resolved completely by the scripts. at least,
+my builds of 2.4.22 did not show these errors. :)
 
-I can load modules processor, thermal, ac, fan & button without errors
+> Can I continue installing the
+> newly compiles kernel ? (I'm a newbee with linux kernel).
 
-'modprobe battery' gives:
-    ACPI-1120: *** Error: Method execution failed [\_SB_.C046.C059.C0E4.C153] (Node c12c2940), AE_AML_UNINITIALIZED_LOCAL
-    ACPI-1120: *** Error: Method execution failed [\_SB_.C046.C059.C0E4.C162] (Node c12c2840), AE_AML_UNINITIALIZED_LOCAL
-    ACPI-1120: *** Error: Method execution failed [\_SB_.C1B1._BTP] (Node c12c0c40), AE_AML_UNINITIALIZED_LOCAL
-ACPI: Battery Slot [C1B1] (battery present)
-ACPI: Battery Slot [C1B2] (battery absent)
+yes, usually it poses no problem if some modules unnecessary for your setup
+are dysfunctional. but do not expect the crypto-system to work.
 
+> For your information that my .config file include the option
+> "Cryptographic API" in the "Cyptographic" options of the kernel config
+> menu (I use "make menuconfig"). It is checked. Maybe it has something to
+> do with.
 
-Now, it gets worse:
+looks like that. you can uncheck that option and the unresolved symbols
+should disappear after a rebuild.
 
-I often have two progs reading battery level: gkrellm and wmbattery. I can't
-tell when this happends exactly (mainly if I switch from console to X) but
-these processes frequently get stuck in "D" state.
+hth,
+ sebastian
+--=20
+::: sebastian henschel
+::: kodeaffe
+::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
 
-If I try acpi sleep functions the screen goes black and nothing will get it
-back (I need to force hard reboot 2 times)
+--OwLcNYc0lM97+oe1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-I do not know well ACPI, but i'd like to help if it is possible ... just tell
-me how.
-I have dumped all infos (using acpidmp, dmidecode, iasl etc.) but as it
-is quite big i've not attached it to this mail.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
 
+iD8DBQE/nRt4reHfL3pi+bQRAsyPAJ0QoVbEyDmGVXGKHBRmW1mejMhf+gCgiN3g
++9vtEuRAxhyj/SP6OnxGzA8=
+=wwqt
+-----END PGP SIGNATURE-----
 
-Thank you for your help,
-
-/P
--- 
-chifflier-Rhs21ED664o@public.gmane.org
-BOFH excuse #348:
-
-We're on Token Ring, and it looks like the token got loose.
+--OwLcNYc0lM97+oe1--
 
 
 -------------------------------------------------------
