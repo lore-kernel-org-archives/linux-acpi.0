@@ -1,7 +1,7 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: acpi: sleep/proc.c cleanups
-Date: Sat, 19 Mar 2005 12:06:57 +0100
-Message-ID: <20050319110657.GA1530@elf.ucw.cz>
+Subject: acpi: right error level for fan failures
+Date: Sat, 19 Mar 2005 12:09:54 +0100
+Message-ID: <20050319110954.GA1550@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
@@ -19,43 +19,36 @@ List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-This removes strange constructs and makes code shorter/clearer. Please
-apply,
-
+This prints messages on fan failures in KERN_ERR level (so that user
+actually has chance to see them). It also does not retry all the
+time. On evo560c, fan failures do happen, and trying again in a loop
+only makes things worse. Please apply,
 								Pavel
 Signed-off-by: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
 
---- clean/drivers/acpi/sleep/proc.c	2005-01-12 11:07:39.000000000 +0100
-+++ linux/drivers/acpi/sleep/proc.c	2005-01-12 11:20:13.000000000 +0100
-@@ -372,14 +368,10 @@
- 		if (!dev->wakeup.flags.valid)
- 			continue;
- 		spin_unlock(&acpi_device_lock);
--		if (dev->wakeup.flags.run_wake)
--			seq_printf(seq, "%4s	%4d		%8s\n",
--				dev->pnp.bus_id, (u32) dev->wakeup.sleep_state,
--				dev->wakeup.state.enabled ? "*enabled" : "*disabled");
--		else
--			seq_printf(seq, "%4s	%4d		%8s\n",
--				dev->pnp.bus_id, (u32) dev->wakeup.sleep_state,
--				dev->wakeup.state.enabled ? "enabled" : "disabled");
-+		seq_printf(seq, "%4s	%4d		%s%8s\n",
-+			   dev->pnp.bus_id, (u32) dev->wakeup.sleep_state,
-+			   dev->wakeup.flags.run_wake ? "*" : "",
-+			   dev->wakeup.state.enabled ? "enabled" : "disabled");
- 		spin_lock(&acpi_device_lock);
- 	}
- 	spin_unlock(&acpi_device_lock);
-@@ -413,7 +405,7 @@
- 			continue;
- 
- 		if (!strncmp(dev->pnp.bus_id, str, 4)) {
--			dev->wakeup.state.enabled = dev->wakeup.state.enabled ? 0:1;
-+			dev->wakeup.state.enabled = !dev->wakeup.state.enabled;
- 			found_dev = dev;
- 			break;
- 		}
- 
+--- clean/drivers/acpi/thermal.c	2005-01-12 11:07:39.000000000 +0100
++++ linux/drivers/acpi/thermal.c	2005-01-12 11:12:02.000000000 +0100
+@@ -612,8 +625,7 @@
+ 				for (j = 0; j < active->devices.count; j++) {
+ 					result = acpi_bus_set_power(active->devices.handles[j], ACPI_STATE_D0);
+ 					if (result) {
+-						ACPI_DEBUG_PRINT((ACPI_DB_WARN, "Unable to turn cooling device [%p] 'on'\n", active->devices.handles[j]));
+-						continue;
++						printk(KERN_ERR "Unable to turn cooling device [%p] 'on'\n", active->devices.handles[j]);
+ 					}
+ 					active->flags.enabled = 1;
+ 					ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Cooling device [%p] now 'on'\n", active->devices.handles[j]));
+@@ -630,8 +642,7 @@
+ 			for (j = 0; j < active->devices.count; j++) {
+ 				result = acpi_bus_set_power(active->devices.handles[j], ACPI_STATE_D3);
+ 				if (result) {
+-					ACPI_DEBUG_PRINT((ACPI_DB_WARN, "Unable to turn cooling device [%p] 'off'\n", active->devices.handles[j]));
+-					continue;
++					printk(KERN_ERR "Unable to turn cooling device [%p] 'off'\n", active->devices.handles[j]);
+ 				}
+ 				active->flags.enabled = 0;
+ 				ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Cooling device [%p] now 'off'\n", active->devices.handles[j]));
+
 -- 
 People were complaining that M$ turns users into beta-testers...
 ...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
