@@ -1,11 +1,11 @@
-From: julius <julius.junghans-S0/GAf8tV78@public.gmane.org>
+From: "Julius Junghans" <julius.junghans-Mmb7MZpHnFY@public.gmane.org>
 Subject: (no subject)
-Date: Mon, 22 Dec 2003 14:18:53 +0100
+Date: Mon, 22 Dec 2003 13:15:14 +0100 (MET)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031222141853.34e6e81c.julius.junghans@web.de>
+Message-ID: <29457.1072095314@www5.gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,6 +19,12 @@ To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 confirm 277401
+
+-- 
++++ GMX - die erste Adresse für Mail, Message, More +++
+Neu: Preissenkung für MMS und FreeMMS! http://www.gmx.net
+
+
 
 
 -------------------------------------------------------
