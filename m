@@ -1,13 +1,13 @@
 From: Pedro Venda <pjvenda-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
 Subject: Re: Re: first shoot for smartbattery
-Date: Tue, 11 Jan 2005 10:12:43 +0000
-Message-ID: <41E3A69B.2020506@arrakis.dhis.org>
-References: <41D56002.5060008@mega.ist.utl.pt> <41DAB539.2020605@arrakis.dhis.org> <m2oefyzplr.fsf@phoenix.squirrel.nl> <200501101451.36702.sanskryt@op.pl>
+Date: Tue, 11 Jan 2005 11:44:06 +0000
+Message-ID: <41E3BC06.30408@arrakis.dhis.org>
+References: <41D56002.5060008@mega.ist.utl.pt> <200501101451.36702.sanskryt@op.pl> <41E3A69B.2020506@arrakis.dhis.org> <200501111149.55615.sanskryt@o2.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200501101451.36702.sanskryt-FWhLrETftxM@public.gmane.org>
+In-Reply-To: <200501111149.55615.sanskryt-h7QdYz1kt/Q@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,57 +17,45 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: sanskryt-FWhLrETftxM@public.gmane.org
+To: sanskryt-h7QdYz1kt/Q@public.gmane.org
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-Zdzis=B3aw A. Kaleta wrote:
-| Dnia niedziela 09 stycznia 2005 14:41, Johan Vromans napisa=B3:
+z.a.kaleta wrote:
+| Dnia wtorek 11 stycznia 2005 11:12, Pedro Venda napisa=B3:
 |
-|>Pedro Venda <pjvenda-pQd4kjVL+RHfqL7NgpvPWWD2FQJk+8+b@public.gmane.org> writes:
+|>the smartbattery program is just a hack to see things working. people
+|>shouldn't be using it in "production".
 |>
-|>>I actually read some of the pdf you pointed me to and implemented a
-|>>couple of functions on the smartbattery.c. It now gets much more
-|>>information from the battery. If you find it relevant, I'll clean it
-|>>up a bit and post a patch for you. I know it will soon be dumped,
-|>>but it may show useful when debugging other driver informations.
+|>soon there will be an emulation driver that will allow you to use curre=
+nt
+|>battery monitoring tools.
 |>
-|>The attached program produces a nice battery status display using your
-|>modified version of battstat. It may be temporary, but at least now I
-|>have decent battery info at hand.
-|>
-|>-- Johan
+|>regards,
+|>pedro venda.
 |
-| First thank to all (especially to Bruno) for moving "smart battery prob=
-lem
-| ahead)
-| The module and smartbattery program has compiled at kernels 2.6.10 (van=
-ilia
-| and with the ac8, bk7, bk11 and bk12 patches)
-| The effect was
-| sanskryt@kender:/usr/local/download/acpi/smartbattery$ smartbattery 1
-| status: charging
-| current:       1957 mA
-| time to full:  105 minutes
-| remain:        3020 mAh
-| charge state:  74%
-| temperature:   35.8 C
-| voltage:       16451 mV
-| So it look great.
-| Two problems:
-| First the /dev/i2c-1 node can be read only by root. I think that the ba=
-ttery
-| status has to be readably for ordinary user.
+| Better such wonderfull hack then the situation when my laptop "died" in=
+ the
+| middle of important text before I have a chance to save it.
 
-the smartbattery program is just a hack to see things working. people sho=
-uldn't
-be using it in "production".
+true, but you knew there were no battery information, so you did it on yo=
+ur own
+risk.
 
-soon there will be an emulation driver that will allow you to use current
-battery monitoring tools.
+if you didn't know... these things must be tested before we can rely on t=
+hem.
+linux is developed by a community of interested users and developers, so =
+you
+can't generally complain to anybody and nobody garantees driver implement=
+ation
+for your specific hardware. you had bad luck. my laptop shut itself down =
+on me
+once, but because I forgot the AC-power was unplugged :-/
+
+fortunately we learn mostly from mistakes, so it won't happen again.
 
 regards,
 pedro venda.
@@ -80,9 +68,9 @@ http://arrakis.dhis.org
 Version: GnuPG v1.2.6 (GNU/Linux)
 Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
 
-iD8DBQFB46abeRy7HWZxjWERAtC7AKCUtdkb4+8LzCZ97VoyRhqgqJYgpQCfWNpd
-gxA0h0lobTX1tHOJNX9OZmk=3D
-=3DTyWZ
+iD8DBQFB47wGeRy7HWZxjWERAokYAJ43jF4KdPsYK+eVM30V3ZZgktgbZgCfR+IK
+fPnfi5EDyQeKHZMU9jtaorQ=3D
+=3DLYlJ
 -----END PGP SIGNATURE-----
 
 
