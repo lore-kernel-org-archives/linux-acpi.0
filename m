@@ -1,12 +1,12 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
+From: Ferenc Szalma <szalmaf-JAjqph6Yjy97jm546uhsrg@public.gmane.org>
 Subject: Re: swsusp: FATAL: cannot find swap device, try swapon -a!
-Date: Thu, 24 Mar 2005 01:26:39 +0100
-Message-ID: <4242093F.2080203@gmx.net>
+Date: Wed, 23 Mar 2005 19:48:07 -0500 (EST)
+Message-ID: <Pine.GSO.4.61.0503231942360.5100@y.glue.umd.edu>
 References: <Pine.GSO.4.61.0503231901190.15962@z.glue.umd.edu>
+ <4242093F.2080203@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <Pine.GSO.4.61.0503231901190.15962@z.glue.umd.edu>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+In-Reply-To: <4242093F.2080203-hi6Y0CQ0nG0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,63 +16,70 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ferenc Szalma <szalmaf-JAjqph6Yjy97jm546uhsrg@public.gmane.org>
+To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Ferenc Szalma schrieb:
-> Hi,
-> 
-> Swsusp comes back with the following error message on my Toshiba m200
-> laptop:
-> 
-> 
-> Stopping tasks:
-> ==========================================================================|
-> Freeing memory... done (35896 pages freed)
-> BUG: using smp_processor_id() in preemptible [00000001] code: acpitool/8191
-> caller is disable_nonboot_cpus+0x10/0xdb
->  [<c025c6bf>] smp_processor_id+0xa3/0xb4
->  [<c013a2c5>] disable_nonboot_cpus+0x10/0xdb
->  [<c013a2c5>] disable_nonboot_cpus+0x10/0xdb
->  [<c013a4c7>] free_some_memory+0x5e/0x64
->  [<c013a53b>] prepare+0x2f/0xaf
->  [<c013a5c4>] pm_suspend_disk+0x9/0x73
->  [<c0138cac>] enter_state+0x8e/0x92
->  [<c0138dd4>] state_store+0xa4/0xb7
->  [<c0197015>] subsys_attr_store+0x34/0x3d
->  [<c0197299>] flush_write_buffer+0x3e/0x4a
->  [<c01972fd>] sysfs_write_file+0x58/0x80
->  [<c015da98>] vfs_write+0x148/0x14d
->  [<c015db6e>] sys_write+0x51/0x80
->  [<c010319f>] syscall_call+0x7/0xb
 
-That's another bug. It doesn't correspond to your problems.
 
-> Freezing CPUs (at 0)...ok
-> eth1: Going into suspend...
-> NVRM: RmPowerManagement: 3
-> swsusp: FATAL: cannot find swap device, try swapon -a!
+On Thu, 24 Mar 2005, Carl-Daniel Hailfinger wrote:
 
-That's the real reason for the failure. Do you have IDE built as modules?
-Basically, the kernel checks whether it can access the device at boot
-time before mounting anything. For 2.6.11.4 this is not possible with
-swap devices which depend on any modules loaded. Compile in every driver
-needed to access your swap device.
+> That's another bug. It doesn't correspond to your problems.
+>
+>> Freezing CPUs (at 0)...ok
+>> eth1: Going into suspend...
+>> NVRM: RmPowerManagement: 3
+>> swsusp: FATAL: cannot find swap device, try swapon -a!
+>
+> That's the real reason for the failure. Do you have IDE built as modules?
+> Basically, the kernel checks whether it can access the device at boot
+> time before mounting anything. For 2.6.11.4 this is not possible with
+> swap devices which depend on any modules loaded. Compile in every driver
+> needed to access your swap device.
+>
 
-> I use gentoo linux with kernel-2.6.11.4 kernel (not gentoo-kernel!)
-> patched with acpi-20050309-2.6.11.diff.gz and boot with
-> resume=swap:/dev/hda3 where hda3 is my swap patition. I have searched
-> the web and I see that I am not the 1st one getting the same error
-> message; the question is if anybody has come up with a remedy to this
-> problem.
+Thanks for the quick reply.
+These are the lines in my kernel config file with "ide" in it (sorry for 
+the not appropriate lines). So what should I exactly do?
 
-Yes, see above.
-
-HTH,
-Carl-Daniel
--- 
-http://www.hailfinger.org/
+mozart linux # more .config|grep -i ide
+CONFIG_ACPI_VIDEO=y
+# CONFIG_PARIDE is not set
+CONFIG_IDE=y
+CONFIG_BLK_DEV_IDE=y
+# Please see Documentation/ide.txt for help/info on IDE drives
+# CONFIG_BLK_DEV_IDE_SATA is not set
+# CONFIG_BLK_DEV_HD_IDE is not set
+CONFIG_BLK_DEV_IDEDISK=y
+CONFIG_IDEDISK_MULTI_MODE=y
+CONFIG_BLK_DEV_IDECS=y
+CONFIG_BLK_DEV_IDECD=y
+# CONFIG_BLK_DEV_IDETAPE is not set
+# CONFIG_BLK_DEV_IDEFLOPPY is not set
+# CONFIG_BLK_DEV_IDESCSI is not set
+# CONFIG_IDE_TASK_IOCTL is not set
+# IDE chipset support/bugfixes
+CONFIG_IDE_GENERIC=y
+# CONFIG_BLK_DEV_IDEPNP is not set
+CONFIG_BLK_DEV_IDEPCI=y
+CONFIG_IDEPCI_SHARE_IRQ=y
+CONFIG_BLK_DEV_IDEDMA_PCI=y
+# CONFIG_BLK_DEV_IDEDMA_FORCED is not set
+CONFIG_IDEDMA_PCI_AUTO=y
+# CONFIG_IDEDMA_ONLYDISK is not set
+# CONFIG_IDE_ARM is not set
+# CONFIG_IDE_CHIPSETS is not set
+CONFIG_BLK_DEV_IDEDMA=y
+# CONFIG_IDEDMA_IVB is not set
+CONFIG_IDEDMA_AUTO=y
+# Old CD-ROM drivers (not SCSI, not IDE)
+CONFIG_CD_NO_IDESCSI=y
+# CONFIG_VIDEO_DEV is not set
+# Digital Video Broadcasting Devices
+# CONFIG_VIDEO_SELECT is not set
+# CONFIG_FB_TRIDENT is not set
+# CONFIG_SND_TRIDENT is not set
+# Video4Linux support is needed for USB Multimedia device support
 
 
 -------------------------------------------------------
