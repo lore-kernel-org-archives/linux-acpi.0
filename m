@@ -1,7 +1,12 @@
-From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 1/1] Fix help for ACPI_CONTAINER
-Date: Wed, 23 Feb 2005 02:02:32 -0800
-Message-ID: <200502231002.j1NA2kpS021098@shell0.pdx.osdl.net>
+From: Miroslav Ruda <ruda-8qz54MUs51PtwjQa/ONI9g@public.gmane.org>
+Subject: Re: S3+S4 combination fails on M2000E
+Date: Wed, 23 Feb 2005 15:24:09 +0100
+Message-ID: <421C9209.6090700@ics.muni.cz>
+References: <16A54BF5D6E14E4D916CE26C9AD30575010A9BA0@pdsmsx402.ccr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD30575010A9BA0-4yWAQGcml66iAffOGbnezLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -11,44 +16,63 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Li, Shaohua wrote:
+>>> I have Asus M2000E, running 2.6.10+acpi patches (but the same
+> 
+> problem
+> 
+>>> appears with previous 2.6 kernels too, with Suse 2.6.5-7.111 and
+> 
+> also
+> 
+>>with
+>>
+>>>swsups2 patches). Both suspend to disk and suspend to memory works,
+> 
+> but
+> 
+>>I'm
+>>
+>>>still not happy :-)
+>>>
+>>>After suspend to memory is used, first suspend to disk is able to
+> 
+> suspend,
+> 
+>>>but machine is frozen in wake-up. When acpi modules are unloaded
+> 
+> before
+> 
+>>>suspend and loaded in wake-up, machine is frozen in first acpi module
+>>
+>>load
+>>
+>>>(thermal?). When
+>>
+>>Try to find out which module causes the freeze, then add printks to
+>>find out where it freezes.
+> 
+> And also please try the suspend-to-disk mode 'platform' (set in
+> /sys/power/disk).
 
-From: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+I was finally able to make some tests. Still testing 2.6.10+acpi patches. I have
+tried to boot and suspend kernel with acpi compiled in, but none of acpi modules
+were loaded. Plain S3 or S4 works fine, resume from S4 (when S3 suspend/resume
+was already done) froze complete machine when using 'platform'. With 'shutdown'
+mode resume works fine, but first modprobe of ANY acpi modules freeze machine
+(testbed with ac, battery, button).
 
-This is to fix Kconfig help of ACPI_CONTAINER that did not really help.  I
-posted the patch before, but it seems that it has not applied yet.  Sorry
-for the previous terrible help.
+My guess is that during S3 suspend, some memory is freed but still
+used/referenced somewhere in acpi code. When acpi module is loaded after resume
+from S3, freed memory still contains expected data. But after S4 resume, memory
+is cleaned ...
 
-Signed-off-by: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
----
+                 Mirek Ruda
 
- 25-akpm/drivers/acpi/Kconfig |    9 +++++++--
- 1 files changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/Kconfig~fix-help-for-acpi_container drivers/acpi/Kconfig
---- 25/drivers/acpi/Kconfig~fix-help-for-acpi_container	Thu Feb 17 17:13:31 2005
-+++ 25-akpm/drivers/acpi/Kconfig	Thu Feb 17 17:13:31 2005
-@@ -359,8 +359,13 @@ config ACPI_CONTAINER
- 	depends on EXPERIMENTAL
- 	default (ACPI_HOTPLUG_MEMORY || ACPI_HOTPLUG_CPU || ACPI_HOTPLUG_IO)
- 	 ---help---
--	 	This is the ACPI generic container driver which supports
--		ACPI0004, PNP0A05 and PNP0A06 devices
-+	  This allows _physical_ insertion and removal of CPUs and memory.
-+	  This can be useful, for example, on NUMA machines that support
-+	  ACPI based physical hotplug of nodes, or non-NUMA machines that
-+	  support physical cpu/memory hot-plug.
-+
-+	  If one selects "m", this driver can be loaded with
-+	  "modprobe acpi_container".
- 
- endif	# ACPI
- 
-_
 
 
 -------------------------------------------------------
