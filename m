@@ -1,11 +1,13 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
-Subject: S3 suspend and serial console
-Date: Thu, 03 Feb 2005 15:09:07 +0100
-Message-ID: <42023083.8030508@gmx.net>
+From: Jim Summers <jsummers-5f/76mLIbwCHXe+LvDLADg@public.gmane.org>
+Subject: Re: Nothing in /proc/acpi/events
+Date: Thu, 03 Feb 2005 10:10:23 -0600
+Message-ID: <42024CEF.9020308@cs.ou.edu>
+References: <4202321C.3060103@gmail.com>
+Reply-To: jsummers-5f/76mLIbwCHXe+LvDLADg@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7BIT
+In-reply-to: <4202321C.3060103-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,29 +20,51 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Simon Walters wrote:
+> Hi, I'm running Slackware 10.0 (and have tried others) on a Dell 
+> Inspiron 1150. I have got acpi support in my kernel, but when I press 
+> the power button or close the lid, nothing shows up in the 
+> /proc/acpi/events file. I close acpid and cat the file, then press the 
+> button or close the lid, and nothing comes up.
 
-on resume from S3, my serial console prints garbage and stops working.
-I assume the BIOS resets the serial port on resume, but I have
-abolutely no idea how to find out what speed and parity the serial
-port has after resume. A quick try of 9600,57600,115200 didn't
-succeed and I now wonder if
-- the kernel could reset the serial ports on resume
-- the kernel could read the current parameters from the UART and print
-them out so I can adjust my serial console.
+Does the state file get updated?
 
-Oh well... after some investigation, it seems the serial console
-goes back to normal after issuing the command
-echo foo >/dev/ttyS0
+  What's wrong? I have
+> tried it on the 2.4 and 2.6 kernels and neither work.
 
-Could it be that the UART state is out-of-sync or something like that
-after resume and the serial console code doesn't notice?
+I am experiencing the same problem with a Dell 5100.
 
-Regards,
-Carl-Daniel
+The list mentioned that the state files are polled and the events are 
+int driven.  A question I have is why can events not be polled?  If it 
+is an int problem, is that fixable with a modded dsdt?
+
+I think Dell was putting out non-complying acpi stuff in their bios. 
+One of the faculty in my department has a new Dell M60 and it seems to 
+recognoze the PWRBTN event.  I haven't had time to mess with the lid on 
+it.  But my bios is at the latest available and still nada.
+
+
+
+
+> 
+> Thanks in advance,
+> Simon
+> 
+> 
+> -------------------------------------------------------
+> This SF.Net email is sponsored by: IntelliVIEW -- Interactive Reporting
+> Tool for open source databases. Create drag-&-drop reports. Save time
+> by over 75%! Publish reports on the web. Export to DOC, XLS, RTF, etc.
+> Download a FREE copy at http://www.intelliview.com/go/osdn_nl
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+
 -- 
-http://www.hailfinger.org/
-
+Jim Summers
+School of Computer Science-University of Oklahoma
+-------------------------------------------------
 
 
 -------------------------------------------------------
