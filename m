@@ -1,13 +1,12 @@
-From: Marc-Christian Petersen <m.c.p-hi6Y0CQ0nG0@public.gmane.org>
-Subject: 2.4.20-pre7 ACPI of September, 18th
-Date: Sat, 21 Sep 2002 17:49:13 +0200
+From: Philipp Matthias Hahn <pmhahn-u4khhh1J0LzF41mA0N3lWw@public.gmane.org>
+Subject: RE: CALL FOR TESTING
+Date: Sat, 21 Sep 2002 19:07:43 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200209211744.59739.m.c.p@gmx.net>
+Message-ID: <20020921170743.GA13738@titan.lahn.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,37 +18,57 @@ List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi there,
+Hi!
 
-I've just patched 2.4.20-pre7 with latest ACPI patches and I must say, ag=
-ain,=20
-jep, AGAIN, network cards are _NOT_ working.
+"Grover, Andrew" wrote:
+> The main issues of importance are:
+> 
+> - DOES IT BOOT?
+> - DOES IT ASSIGN INTERRUPTS PROPERLY?
 
-It is somewhat funny that really _every 2nd_ release breaks my network ca=
-rds=20
-;) ... Anyway, "pci=3Dnoacpi" helps but is that the desired behaviour?
+I have an ASUS L8400B Notebook with a slightly patched DSDT, which boots
+and assigns innterrupts fine.
 
-P.S.: 2.5.xx behaves the same. Hmm ...
+But I get the following messages for "echo 1 > sleep":
 
-I have 2 EtherExpress PRO/100 cards and 1 RTL8139C.
+ACPI-0102 Could not acquire interpreter mutex
+ACPI-0140 Could not release interpreter mutex
 
-If it's the desired behaviour, tell me and I shut up, if not, tell me wha=
-t to=20
-do to help debugging (it seems that you forget every 2nd release the fix =
-for=20
-that?! ;))
-
---=20
-Kind regards
-        Marc-Christian Petersen
-
-http://sourceforge.net/projects/wolk
-
-PGP/GnuPG Key: 1024D/569DE2E3DB441A16
-Fingerprint: 3469 0CF8 CA7E 0042 7824 080A 569D E2E3 DB44 1A16
-Key available at www.keyserver.net. Encrypted e-mail preferred.
+Any idea where the problem might be ?
 
 
+Our Fujitsu-Siemens Desktop-PCs boot and assign interrupts, but
+acpi-interrupts are generated like crazy:
+
+$ cat /proc/uptime /proc/interrupts 
+1052.20 753.82
+           CPU0       
+  0:     105220    IO-APIC-edge  timer
+  1:       1349    IO-APIC-edge  keyboard
+  2:          0          XT-PIC  cascade
+  8:          3    IO-APIC-edge  rtc
+  9:   76381891   IO-APIC-level  acpi
+ 12:       2002    IO-APIC-edge  PS/2 Mouse
+ 14:      10206    IO-APIC-edge  ide0
+ 15:         12    IO-APIC-edge  ide1
+ 17:       8996   IO-APIC-level  Intel ICH2
+ 19:         92   IO-APIC-level  usb-uhci
+ 20:       1126   IO-APIC-level  eth0
+ 23:          0   IO-APIC-level  usb-uhci
+NMI:          0 
+LOC:     105176 
+ERR:          0
+MIS:          0
+
+
+All DSDT/DMI are available from http://pint.pmhahn.de/pmhahn/misc/
+
+BYtE
+Philipp
+-- 
+  / /  (_)__  __ ____  __ Philipp Hahn
+ / /__/ / _ \/ // /\ \/ /
+/____/_/_//_/\_,_/ /_/\_\ pmhahn-u4khhh1J0LzF41mA0N3lWw@public.gmane.org
 
 
 -------------------------------------------------------
