@@ -1,19 +1,15 @@
-From: Kevin Fenzi <kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
+From: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
 Subject: Re: Re: Compaq Presario 2800T
-Date: Tue, 6 Aug 2002 09:31:24 -0600
+Date: Tue, 6 Aug 2002 17:36:47 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020806153127.23056.qmail@scrye.com>
-References: <200208010551.BAA23125@biohazard-cafe.mit.edu>
-	<20020803220614.21895.qmail@scrye.com>
-	<1028528792.7332.14.camel@anodyne.mandal>
-	<20020805150428.10039.qmail@scrye.com>
-	<1028614416.4553.3.camel@localhost.localdomain>
-	<20020806081618.GA7148@dutidad.twi.tudelft.nl>
+Message-ID: <20020806153647.GP7148@dutidad.twi.tudelft.nl>
+References: <200208010551.BAA23125@biohazard-cafe.mit.edu> <20020803220614.21895.qmail@scrye.com> <1028528792.7332.14.camel@anodyne.mandal> <20020805150428.10039.qmail@scrye.com> <1028614416.4553.3.camel@localhost.localdomain> <20020806081618.GA7148@dutidad.twi.tudelft.nl> <20020806153127.23056.qmail@scrye.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20020806081618.GA7148-V1rPnKwUOrA59+mn7qD7y50iERQUc4G+@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20020806153127.23056.qmail-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -22,40 +18,33 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
+To: Kevin Fenzi <kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Tue, Aug 06, 2002 at 09:31:24AM -0600, Kevin Fenzi wrote:
+> Charl> FWIW, my dim/bright keys (Fn-F6 and Fn-F6) always work and the
+> Charl> brightness level is even retained across reboots.  The binaries
+> Charl> on http://cpbotha.net/dri_reinit.html have been updated,
+> Charl> although I doubt that thet changes have to do with your
+> Charl> brightness settings.
+> 
+> Thanks, I will try the updated ones as soon as I get a chance. 
+> Whats changed? Same diff against newer dri? 
 
->>>>> "Charl" == Charl P Botha <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org> writes:
+There is more detail at cpbotha.net/dri_reinit.html.
 
-Charl> On Tue, Aug 06, 2002 at 02:13:32AM -0400, Sourav K. Mandal
-Charl> wrote:
->> 
->> I have yet to apply Charl's patch, and so I alternate between DRI
->> and no-DRI XF86Configs.  I don't know if the patch fixes the
->> backlight thing ...
+Basically, Michel Dänzer has re-engineered my concept to make it more
+stable.  You can now do things like run multiple DRI-capable servers at the
+same time and switch between them... they will automatically switch between
+hardware and software 3D depending on who's holding a lock on the Radeon
+hardware.  My kludge could also do this, but would break under certain
+circumstances.
 
-Charl> FWIW, my dim/bright keys (Fn-F6 and Fn-F6) always work and the
-Charl> brightness level is even retained across reboots.  The binaries
-Charl> on http://cpbotha.net/dri_reinit.html have been updated,
-Charl> although I doubt that thet changes have to do with your
-Charl> brightness settings.
+The suspend/resume software is still more or less the same.
 
-Thanks, I will try the updated ones as soon as I get a chance. 
-Whats changed? Same diff against newer dri? 
-
-kevin
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.7 (GNU/Linux)
-Comment: Processed by Mailcrypt 3.5.6 and Gnu Privacy Guard <http://www.gnupg.org/>
-
-iD8DBQE9T+vP3imCezTjY0ERAum2AJ9SYlbQvQberNOUSH7sHeC3X+D23ACgjt+k
-IH2YRPzWcugLyFLAD0EG8W8=
-=qc1Z
------END PGP SIGNATURE-----
+-- 
+charl p. botha http://cpbotha.net/ http://visualisation.tudelft.nl/
 
 
 -------------------------------------------------------
