@@ -1,58 +1,63 @@
-From: Magnus Christensson <mch-8vJNMC6Ql2nxsAP9Fp7wbw@public.gmane.org>
-Subject: RSDP scan problem
-Date: Thu, 04 Mar 2004 16:47:16 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40474F84.4060102@virtutech.se>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [Bug 1373] uhci-hcd fails after software suspend
+Date: Thu, 4 Mar 2004 11:06:23 -0500 (EST)
+Sender: linux-usb-devel-admin@lists.sourceforge.net
+Message-ID: <Pine.LNX.4.44L0.0403041101080.969-100000@ida.rowland.org>
+References: <200403041146.i24Bk6SN031296@fire-2.osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-devel-admin@lists.sourceforge.net>
+In-Reply-To: <200403041146.i24Bk6SN031296@fire-2.osdl.org>
+Errors-To: linux-usb-devel-admin@lists.sourceforge.net
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
+	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Post: <mailto:linux-usb-devel@lists.sourceforge.net>
+List-Help: <mailto:linux-usb-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
+	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-usb-devel>
+To: fabrice@bellet.info
+Cc: USB development list <linux-usb-devel@lists.sourceforge.net>, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-There seem to be a problem with the RSDP scan in at least a few different kernel 
-versions.
+[Can't reply to you via bugzilla because you're not registered on the CC: 
+list for this bug.]
 
-In the 2.6 version I looked at we have:
+> ------- Additional Comments From fabrice@bellet.info  2004-03-04 03:46 -------
+> This patch resolved the part of the problem warning me about "host controller
+> halted, very bad!" in my logs. But the external USB mouse still doesn't work
+> after resume from ACPI suspend (echo 3 > /proc/acpi/sleep). The file
+> /proc/driver/uhci/0000:00:1d.1 contains these differences :
+> 
+> before suspend :
+> 
+>   usbstat   =     0000   
 
-----
-         /*
-          * Scan memory looking for the RSDP signature. First search EBDA (low
-          * memory) paragraphs and then search upper memory (E0000-FFFFF).
-          */
-         rsdp_phys = acpi_scan_rsdp (0, 0x400);
-         if (!rsdp_phys)
-                 rsdp_phys = acpi_scan_rsdp (0xE0000, 0xFFFFF);
-----
+That's a good value.
 
-In a 2.4 version we have:
+> and after suspend :
+>   usbstat   =     0001   USBINT 
 
-----
-	/*
-	 * Physical address is given
-	 */
-	/*
-	 * Region 1) Search EBDA (low memory) paragraphs
-	 */
-	rsdp = acpi_tb_scan_memory_for_rsdp(__va(LO_RSDP_WINDOW_BASE),
-					 LO_RSDP_WINDOW_SIZE);
-----
+USBINT means that the USB controller is trying to send an interrupt 
+request but the system isn't accepting it.
 
-Both versions claim to check the EBDA in the comments, but if I'm not mistaken 
-they really check the lowest part of physical memory.
+> Then I unplug the mouse :
+> 
+>   usbstat   =     0021   HCHalted USBINT 
+>   stat2     =     0080  
+> 
+> And I replug it :
+> 
+>   usbstat   =     0025   HCHalted ResumeDetect USBINT 
+>   stat2     =     0185   LowSpeed Enabled Connected
 
-The location of the EBDA varies between BIOSes (the real mode segment part can 
-be found at 40:0E).
+Same thing here.  This may be an interrupt routing problem, probably 
+something to do with ACPI support.
 
-M.
+> The machine is a thinkpad T40, running Fedora kernel-2.6.3-1.118 modified with
+> your patch.
+
+Alan Stern
 
 
 
@@ -61,3 +66,7 @@ This SF.Net email is sponsored by: IBM Linux Tutorials
 Free Linux tutorial presented by Daniel Robbins, President and CEO of
 GenToo technologies. Learn everything from fundamentals to system
 administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
+_______________________________________________
+linux-usb-devel@lists.sourceforge.net
+To unsubscribe, use the last form field at:
+https://lists.sourceforge.net/lists/listinfo/linux-usb-devel
