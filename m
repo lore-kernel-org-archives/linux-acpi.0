@@ -1,61 +1,87 @@
-From: Andre Hedrick <andre-QA/0nRrxPJrNLxjTenLetw@public.gmane.org>
-Subject: Re: Ask devices to powerdown before S3 sleep
-Date: Tue, 21 Jan 2003 03:38:35 -0800 (PST)
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <Pine.LNX.4.10.10301210326580.16070-100000@master.linux-ide.org>
-References: <20030121104737.GC24349@atrey.karlin.mff.cuni.cz>
+From: Robert Woerle Paceblade/Support <robert-fPtsKRK0pHxl57MIdRCFDg@public.gmane.org>
+Subject: could not map ACPI
+Date: Tue, 21 Jan 2003 12:52:17 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <3E2D3471.1070307@paceblade.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20030121104737.GC24349-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi
 
-Pavel,
+When i use mem=XXXM ACPI works fine , BUT i get cruel crashes when using 
+  Sound and Ethernet or/and usb togethere ( they all have IRQ 5 ) one 
+device alone is fine .
+When i dont use mem=XXXM i get an error at /drivers/acpi/tables/tb_get.c
+BUT all the devices work fine , even together !!!
+i tried also mem=XXXM + acpi=nopci  which gives the same result : ACPI 
+works and the devices crash together ....
+the machine is a Transmeta driving machine ...
 
-I failed to make the point clear.
-One thing I learned was never trust the BIOS, even if you wrote it.
+So when i look at tb_get.c at the specific functions...
+i see that it maps the pointers there according to a 
+switch(adress->pointer) call !
+Is possible that it normally uses the
+case ACPI_LOGMODE_PHYSPTR:
+stuff but when i use mem=XXX
+it might use the other case statement:
+case ACPI_LOGMODE_LOGPTR:
 
-Now if you are missing ACPI hooks to beat the BIOS silly for whatever
-reason you want, I will load two barrels towards Andy for not finishing
-the task or not explaining how to throttle them.
+can i make a cruel hack around that that it always uses the working one ???
 
-I do not care if the BIOS want to do monkey flips.
-If there is an event any piece of hardware can not handle, ie where you
-have inserted tests that default to panic, it had better allow you to
-throttle to full enable.
-
-If it does not, the solution is to make a blackball list of hardware
-which fails to conform to acpi rules.  Fair warning you had better have a
-means to prove it because, public lists make companies nervous.
-
-So, that I am clear ... would you consider changing the default method of
-operations for errors.
-
-How a BUG() and a really long long timer until the battery dies, a panic
-gives little or no information, but this is my opinion.
-
-Cheers,
+The aim is of course to get both variants together : ACPI working + 
+DEvices not crashing !!
+Please advice !!!
 
 
-Andre Hedrick
-LAD Storage Consulting Group
 
-On Tue, 21 Jan 2003, Pavel Machek wrote:
 
-> Hi!
-> 
-> > Could you do me just one tiny favor?
-> > Please consider attempting an error recovery level path, maybe ...
-> > 
-> > Every patch I have glanced at has 'panic("blah blah");'
-> > 
-> > If you do not have enough hardware to generate an accurate path for
-> > recovery, then please do not force the kernel into panic.  Would you
-> > consider failing the request making it jump back to S1 ?  This at least
-> > allows it crash like a power failure.
-> 
-> If I make it go S1, auto-reboot will not apply etc, and machine will
-> crash during ENABLE, anyway...
+---tb_get.c---- where it bails out--------
+
+		status = acpi_os_map_memory (address->pointer.physical, sizeof 
+(acpi_table_header),
+				  (void **) &header);
+		if (ACPI_FAILURE (status)) {
+			ACPI_REPORT_ERROR (("Could not map memory at %8.8X%8.8X for length %X\n",
+				ACPI_HIDWORD (address->pointer.physical),
+				ACPI_LODWORD (address->pointer.physical),
+				sizeof (acpi_table_header)));
+			return_ACPI_STATUS (status);
+		}
+
+
+
+-
+
+_____________________________________
+*Robert Woerle
+**Technical Support | Linux
+PaceBlade Technology Europe SA*
+phone: +49 89 552 99935
+fax: +49 89 552 99910
+mobile: +49 179 474 45 27
+email: robert-fPtsKRK0pHxl57MIdRCFDg@public.gmane.org <mailto:robert@paceblade.com>
+web: http://www.paceblade.com
+_____________________________________
+
+
+
+
+
+
+
+-------------------------------------------------------
+This SF.NET email is sponsored by:
+SourceForge Enterprise Edition + IBM + LinuxWorld = Something 2 See!
+http://www.vasoftware.com
