@@ -1,15 +1,17 @@
-From: "Adachi, Kenichi" <aileenja-dTzOdQ2U+/YAvxtiuMwx3w@public.gmane.org>
-Subject: RE: constant processor 0x80 events
-Date: Fri, 3 Jan 2003 02:29:42 +0900
+From: Thomas Geiger <geiger-Cb7RZHV19h45EzxeNYqZ9w@public.gmane.org>
+Subject: Re: Re: IBM Thinkpad A31 | ACPI problems
+Date: Thu, 2 Jan 2003 21:27:24 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <000201c2b284$89a033c0$232202d3@sayonara>
-References: <20030102135937.GA9257@clara.net>
+Message-ID: <200301022127.25055.geiger@solution2u.net>
+References: <000301c2b284$8a15d8f0$232202d3@sayonara>
+Reply-To: geiger-Cb7RZHV19h45EzxeNYqZ9w@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <20030102135937.GA9257-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org>
+In-Reply-To: <000301c2b284$8a15d8f0$232202d3-F8JvWDuGsZU@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,68 +20,68 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: faye-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> This has (almost) the desired (or at least helpful) effect.
-> 
-> Used in combination with the autospeedstep daemon, once this 
-> threshold has been met:
-> 
-> root@marmite faye # cat /proc/acpi/processor/CPU0/performance
-> state count:             2
-> active state:            P1
-> states:
->     P0:                  1200 MHz, 20000 mW, 250 uS
->    *P1:                  800 MHz, 10000 mW, 250 uS
->  
-> The processor is switched to low power mode and autospeedstep 
-> didn't do
-> it:
-> 
-> root@marmite faye # tail /var/log/speedstep
-> Thu Jan  2 13:23:44 2003: max. speed mode
-> Thu Jan  2 13:24:01 2003: power save mode
-> Thu Jan  2 13:24:12 2003: max. speed mode
-> Thu Jan  2 13:31:19 2003: power save mode
-> Thu Jan  2 13:37:03 2003: max. speed mode
-> 
-> It still thinks it's in max. speed mode.
-> 
-> root@marmite faye # cat /proc/acpi/thermal_zone/THRM/temperature
-> temperature:             51 C
-> 
-> The processor is now relatively chilled, it would be nice if 
-> it would try to trip up again, but that's for me to change in 
-> autospeedstep.
+Hi,
 
-Do you mean, because of your hack in DSDT, your processor is forced to
-be in P1 upon GPE0 and it saves you from turbulent storm of event
-handlings by cooling your box? And after your processor is relatively
-chilled, you (manually?) initiate P-State transition to P0 (by
-autospeedstep?), since your processor stays in P1? 
-Interesting...
+i'm also encountering the same problems with my (beloved ;) ) A31. So if there 
+is a possible workaround - is anyone already working on it/how difficult 
+would it be to implement such that hack?
 
->> This is what I'm currently running with.  The thing is I'm not sure 
->> whether that will cause any other side effects - any ideas?
-> 
-> Still not sure about the side effects.
+Tom
 
-Can you take a look at "BIOS-provided physical RAM map" in your dmesg
-and verify MNVS OpRegion (0x20 bytes starting from 0x1FF73E7D) is within
-ACPI NVS Memory? ACPI NVS is saved/restored across system sleep/wake
-cycle and if THRT is in this range, any possible side effects are less
-harmful, as it's not mapped to critical hardware resource. 
-
-5258      OperationRegion (MNVS, SystemMemory, 0x1FF73E7D, 0x20)
-5259      Field (MNVS, AnyAcc, Lock, Preserve)
-5260      {
-    :
-5268          THRT,   8
-5269      }
+On Thursday 02 January 2003 18:29, Adachi, Kenichi wrote:
+> > I browsed the mailing list archives (December 2002, November 2002) and
+> >
+> > encountered several postings from Sandro (PSI-Systems
+>
+> <psi-systems-8XqT/MH+8ao@public.gmane.org>)
+>
+> > who is having the same problem with his Thinkpad A31 laptop:
+> > ACPI: Found ECDT
+> > ACPI: Could not use ECDT
+> > evxfevnt-0119 [06] Acpi_disable          : ACPI mode disabled
+> >
+> > ACPI is completely disabled for IBM Thinkpad A31. Is there a
+> > solution for that
+> > problem available? How can I be of any help to the ACPI developers?
+>
+> Did you also read Andy Grover's reply to Sandro?
+>
+> Subject:  RE: [ACPI] ACPI does not work since
+> acpi-20021022-2.4.20-pre11.di
+> From:     "Grover, Andrew" <andrew.grover () intel ! com>
+> Date:     2002-11-04 18:19:30
+> http://marc.theaimsgroup.com/?l=acpi4linux&m=103643408113691&w=2
+>
+> In short, ECDT -> EC_ID is supposed to be the full path name of your EC
+> device in ACPI Namespace like "\_SB.PCI0.LPC.EC", but __NOT__ in your
+> BIOS.
+> You can work around your problem by adding hack code, but it makes OS
+> code dirty to save broken BIOSes and it allows BIOS vendor not to fix
+> their problem.
+>
+>
+>
+>
+> -------------------------------------------------------
+> This sf.net email is sponsored by:ThinkGeek
+> Welcome to geek heaven.
+> http://thinkgeek.com/sf
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
+-- 
+thomas geiger
+solution2u.net gmbh * am hof 4 * a-6861 alberschwende
+fon +43 5579 85777-0 * fax +43 5574 54445-20 * mobil +43 664 38 12 645
+http://solution2u.net/ * geiger-Cb7RZHV19h45EzxeNYqZ9w@public.gmane.org
+
+have a nice day
 
 
 -------------------------------------------------------
