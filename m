@@ -1,12 +1,14 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Integrating OS power management with the X server
-Date: Mon, 25 Oct 2004 10:26:04 -0700
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: Integrating OS power management with the X server
+Date: Mon, 25 Oct 2004 19:13:06 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <417D372C.3000107@root.org>
+Message-ID: <1098727986.3996.65.camel@tyrosine>
+References: <417D372C.3000107@root.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------050502030500080001080607"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <417D372C.3000107-Y6VGUYTwhu0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -15,84 +17,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: xorg-CC+yJ3UmIYqDUpFQwHEjaQ@public.gmane.org
-Cc: Linux ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------050502030500080001080607
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+On Mon, 2004-10-25 at 10:26 -0700, Nate Lawson wrote:
 
-Apologies for cross-posting this to two lists.  I am the FreeBSD ACPI 
-maintainer and recently someone brought to my attention that the X 
-server expects notification/control over the suspend/resume process. 
-This event is implemented in this file:
+> This interface works for apm (except that it only has NetBSD defines 
+> currently) but is not implemented for ACPI.  I'd like more information 
+> as to what the X server actually does with this event.  Is there any 
+> situation where it actually needs to veto a suspend?  Does it 
+> potentially take seconds to save state?  Does it need to access other 
+> running subsystems or is it self-contained?
 
-xc/programs/Xserver/hw/xfree86/os-support/bsd/bsd_apm.c
+At the moment, is it still the case that X will be unhappy if there are
+any DRI clients running when going through a suspend/resume cycle? If
+so, it sounds like the server ought to reject a suspend (or,
+alternatively, use the notification to kill clients).
 
-This interface works for apm (except that it only has NetBSD defines 
-currently) but is not implemented for ACPI.  I'd like more information 
-as to what the X server actually does with this event.  Is there any 
-situation where it actually needs to veto a suspend?  Does it 
-potentially take seconds to save state?  Does it need to access other 
-running subsystems or is it self-contained?
+In the future, I'd expect that some dbus-related system would be
+preferable - that way X doesn't get special cased, and any application
+with good cause could reject a suspend.
 
-I've started by adding some compat defines for FreeBSD, in the attached 
-patch.  Please let me know more about the expected semantics of this 
-event and any caveats.
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
-Thanks,
-Nate
-
---------------050502030500080001080607
-Content-Type: text/plain;
- name="bsd_apm.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="bsd_apm.diff"
-
---- bsd_apm.c.orig	Sat Oct  9 12:14:26 2004
-+++ bsd_apm.c	Sat Oct  9 12:24:32 2004
-@@ -8,12 +8,36 @@
- #include "xf86_OSproc.h"
- #include "xf86_OSlib.h"
- 
-+#ifdef __FreeBSD__
-+#include <machine/apm_bios.h>
-+#else
- #include <machine/apmvar.h>
-+#endif
- 
- #define APM_DEVICE "/dev/apm"
- 
- static pointer APMihPtr = NULL;
- static void bsdCloseAPM(void);
-+
-+/* Compat defines for FreeBSD APM. */
-+#ifdef __FreeBSD__
-+#define APM_STANDBY_REQ		PMEV_STANDBYREQ
-+#define APM_SUSPEND_REQ		PMEV_SUSPENDREQ
-+#define APM_NORMAL_RESUME	PMEV_NORMALRESUME
-+#define APM_CRIT_RESUME		PMEV_CRITRESUME
-+#define APM_BATTERY_LOW		PMEV_BATTERYLOW
-+#define APM_POWER_CHANGE	PMEV_POWERCHANGE
-+#define APM_UPDATE_TIME		PMEV_UPDATETIME
-+#define APM_CRIT_SUSPEND_REQ	PMEV_CRITSUSPENDREQ
-+#define APM_USER_STANDBY_REQ	PMEV_USERSTANDBYREQ
-+#define APM_USER_SUSPEND_REQ	PMEV_USERSUSPENDREQ
-+#define APM_SYS_STANDBY_RESUME	PMEV_STANDBYRESUME
-+#define APM_CAPABILITY_CHANGE	PMEV_CAPABILITIESCHANGE
-+
-+#define APM_IOC_NEXTEVENT	APMIO_NEXTEVENT
-+#define APM_IOC_STANDBY		APMIO_STANDBY
-+#define APM_IOC_SUSPEND		APMIO_SUSPEND
-+#endif /* __FreeBSD__ */
- 
- static struct {
-     u_int apmBsd;
-
---------------050502030500080001080607--
 
 
 -------------------------------------------------------
