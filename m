@@ -1,13 +1,17 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: [PATCH 2/2] acpi4asus update: fix param description
-Date: Wed, 6 Apr 2005 01:00:40 +0200
-Message-ID: <20050405230040.GF21320@hell.org.pl>
-References: <20050405225551.GE21320@hell.org.pl>
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Subject: Re: Re: It's getting worse: 2.6.12-rc2-mm1 and suspend2ram
+Date: Tue, 5 Apr 2005 18:31:44 -0700
+Message-ID: <20050405183144.50ed3a9c.akpm@osdl.org>
+References: <20050405181628.GB6879@gamma.logic.tuwien.ac.at>
+	<20050405204107.GD1380@elf.ucw.cz>
+	<20050405210041.GA16263@gamma.logic.tuwien.ac.at>
+	<20050405211340.GF1380@elf.ucw.cz>
+	<20050405221903.GA21196@gamma.logic.tuwien.ac.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20050405225551.GE21320-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+In-Reply-To: <20050405221903.GA21196-DqSSrKF0TaySnEC3TeqHn5dqbFPxfnh/@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,48 +21,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>
+Cc: pavel-+ZI9xUNit7I@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-This patch fixes inconsistent parameter descriptions and also deprecates the
-parameters themselves (I always wanted to kill this code but it has its
-users so it's safer to remove it later).
+Norbert Preining <preining-DX+603jRYB8@public.gmane.org> wrote:
+>
+> On Die, 05 Apr 2005, Pavel Machek wrote:
+> > Well, I do not have working suspend-to-RAM setup close to me... Could
+> > you try 2.6.12-rc1 to see if reboot problem is -mm specific or not?
+> 
+> 2.6.12-rc2 suspends and resumes with the very same config file (well,
+> after running make oldconfig) without any problem.
+> 
+> So there is a change in -mm1 which triggers this. Should I start with
+> backing out bk-acpi? or anything else?
 
-This is also a 2.6.12 candidate.
-Please apply, TIA
+bk-acpi would be a good choice.  It might be easier to start with
+2.6.12-rc2 and add stuff, see when it breaks.
 
-Signed-off-by: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+bk-acpi and bk-driver-core would be prime suspects.
 
---- a/drivers/acpi/asus_acpi.c	2005-03-01 22:15:44.000000000 +0100
-+++ b/drivers/acpi/asus_acpi.c	2005-04-06 00:36:20.000000000 +0200
-@@ -79,9 +79,9 @@ MODULE_LICENSE("GPL");
- static uid_t asus_uid;
- static gid_t asus_gid;
- module_param(asus_uid, uint, 0);
--MODULE_PARM_DESC(uid, "UID for entries in /proc/acpi/asus.\n");
-+MODULE_PARM_DESC(asus_uid, "UID for entries in /proc/acpi/asus.\n");
- module_param(asus_gid, uint, 0);
--MODULE_PARM_DESC(gid, "GID for entries in /proc/acpi/asus.\n");
-+MODULE_PARM_DESC(asus_gid, "GID for entries in /proc/acpi/asus.\n");
- 
- 
- /* For each model, all features implemented, 
-@@ -862,6 +862,8 @@ static int __init asus_hotk_add_fs(struc
- 		mode = S_IFREG | S_IRUGO | S_IWUGO;
- 	} else {
- 		mode = S_IFREG | S_IRUSR | S_IRGRP | S_IWUSR | S_IWGRP;
-+		printk(KERN_WARNING "  asus_uid and asus_gid parameters are "
-+		       "deprecated, use chown and chmod instead!\n");
- 	}
- 
- 	acpi_device_dir(device) = asus_proc_dir;
-
-
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+Thanks for the help on this.
 
 
 -------------------------------------------------------
