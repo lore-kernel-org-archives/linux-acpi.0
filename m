@@ -1,8 +1,8 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: acpid, ospmd, libpower
-Date: Mon, 9 Sep 2002 08:49:03 -0700
+Subject: RE: Runlevel for Sleep?
+Date: Mon, 9 Sep 2002 08:58:08 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DE24@orsmsx119.jf.intel.com>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DE25@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,31 +14,30 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: "'kneumann=4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org'" <kneumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: 'Patrick Mochel' <mochel-3NddpPZAyC0@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: kneumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org 
-> after I started implementing some S3/S4 functionality for 
-> ospmd I took a
-> minute to look at the different portions of the above 
-> mentioned projects
-> code base. After that I am not that sure any more wether ospmd is the
-> right place to do that. Is it intended to replace acpid? If 
-> not which is
-> the difference between the two?
+> From: Patrick Mochel [mailto:mochel-3NddpPZAyC0@public.gmane.org] 
+> > Having reboot(2) overloaded with suspend functionality is a little
+> > non-intuitive. Just a thought.
+> 
+> That's what I did initially, but I was encouraged instead to overload 
+> reboot. And, it does make quite a bit of sense considering 
+> the following:
 
-That's correct. It's also meant to replace apmd, but it has a long ways to
-go.
+> - reboot(2) is a power transition. suspend(2) is a power transition. 
+> Conceptuallly, they're similar. They are functionally, too. 
 
-> I would like to do some work on libpower and ospmd if that would make
-> sense. Since there are some consistency issues in naming in power.h I
-> would like to start with them. Since the code is copyright by 
-> intel: would
-> patches be accepted even if they affect naming?
+I'm not clear on how reboot is a power transition. Isn't the machine in S0
+the whole time?
 
-Yes, of course.
+Suspend seems closer to poweroff, to me at least.
+
+Although...why does this stuff need a syscall at all? Isn't driverfs enough?
 
 Regards -- Andy
+
 
 
 -------------------------------------------------------
