@@ -1,13 +1,13 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Masquerading operating systems (with ACPI_OS_NAME) does cause grief.
-Date: Mon, 10 Jan 2005 16:03:26 +0100
-Message-ID: <20050110150326.GO19199@poupinou.org>
-References: <1105278053.23887.35.camel@dangun.glencairn.bogus>
+From: Pedro Venda <pjvenda-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
+Subject: Re: Re: first shoot for smartbattery
+Date: Mon, 10 Jan 2005 15:43:46 +0000
+Message-ID: <41E2A2B2.4010204@arrakis.dhis.org>
+References: <41D56002.5060008@mega.ist.utl.pt>	<41DAB539.2020605@arrakis.dhis.org>	<m2oefyzplr.fsf@phoenix.squirrel.nl>	<200501101524.58077.sanskryt@op.pl> <m28y71fi1s.fsf@phoenix.squirrel.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1105278053.23887.35.camel-jrz8SJKx3bjmte52KpgHD8SwM44v/HSX@public.gmane.org>
+In-Reply-To: <m28y71fi1s.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,50 +17,59 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Barry Kitson <b.kitson-EkmVulN54Sk@public.gmane.org>
+To: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Jan 09, 2005 at 11:40:52PM +1000, Barry Kitson wrote:
-> The following messages ....
-> http://sourceforge.net/mailarchive/message.php?msg_id=9558174
-> http://sourceforge.net/mailarchive/message.php?msg_id=9559475
-> suggest that there are no known problems resulting from pretending your
-> favourite OS is something it's not.  Well, bad news.....
-> 
-> Please note that (modulo VGA, which has it's own special set of
-> problems) the only string (prefix) that causes suspend/resume of linux
-> 2.6.10 to fail on a VIA EPIA CL10000 Mini-ITX motherboard (with either
-> of the two available BIOS versions - 1.16 or 1.23) is the newish (but
-> not entirely accurate) default of ACPI_OS_NAME="Microsoft Windows NT".
-> When Linux declares itself to be NT, resumes just don't happen.  The fan
-> and power supply wake up, but that's about all.  
-> 
-> Are we really sure this value of ACPI_OS_NAME should be the default?
-> Could I suggest a return to "truth" as a default, with prominent
-> suggestions within the documentation of what lies to try when the truth
-> fails?
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Was done by testing by Bob IIRC and showed that this give less errors
-than having set it to "Linux".  "Linux" is not present for all DSDT Ive
-seen so far (well, actually Ive seen a IBM laptop, don't remember the
-model though).  It's then good to atleast set _OS to "something well knows".
+Johan Vromans wrote:
+| "Zdzis=B3aw A. Kaleta" <sanskryt-FWhLrETftxM@public.gmane.org> writes:
+|
+|
+|>Dnia niedziela 09 stycznia 2005 14:41, Johan Vromans napisa=B3:
+|>Second: I can't execute battstat program.
+|
+|
+|>70 - "my $res =3D `smartbattery2 $smbus 2>&1`;"
 
-It turns out that "Microsoft Windows NT" is for now "better", but this
-may be not true for everybody.
-Note also that ACPICA support the _OSI stuff, so its not Windows NT but
-another Windows IIRC (I don't remember which one).
+true. I had the same problem.
 
-You may therefore try to pass the kernel option "acpi_osi="
-to see if that's help (especially if a grep _OSI file.asl is positive)
-before overriding acpi_os_name.
+thanks for the program and fix. I'll have a different version of smartbat=
+tery
+~ done soon now. It'll have a more friendly output and more information o=
+n
+demand. Also I'll be implementing an ascii charge bar like:
+~   [=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D|       ]
+0%             65%        100%
 
+or something simillar. If you want, I can write some code to output infor=
+mation
+in a desired way for your frontend.
 
--- 
-Bruno Ducrot
+This is being developed for fun only (!!) and not for wide usage. It will=
+ not in
+any way replace any of the current used battery interfaces that use
+/proc/acpi/battery, because that'd be just a waste of time. I hope bruno =
+will
+finish the driver soon so we could use all that software and not mine.
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+regards,
+pedro venda.
+- --
+
+Pedro Jo=E3o Lopes Venda
+email: pjvenda-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org
+http://arrakis.dhis.org
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.6 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+
+iD8DBQFB4qKyeRy7HWZxjWERAuquAJ4sl6j7SJ+C7CY0KLAROFyHWYdYUQCgmFlz
+5tyN/IpsjuwYNkYsrnb/F4Q=3D
+=3DvNKR
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
