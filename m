@@ -1,15 +1,14 @@
-From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
-Subject: Re: Re: 2.6.3-rc3 (and possibly earlier 2.6): weird hang and oopses
-Date: Wed, 18 Feb 2004 10:00:28 +0100
+From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
+Subject: Re: ASUS M6800N: battery0 not present
+Date: Wed, 18 Feb 2004 11:55:24 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040218090027.GA9868@dominikbrodowski.de>
-References: <A6974D8E5F98D511BB910002A50A6647615F214C@hdsmsx402.hd.intel.com> <1076999173.2508.30.camel@dhcppc4> <4032752E.9070201@oracle.com>
+Message-ID: <4033449C.7030403@pca.it>
+References: <40324F44.60006@pca.it> <200402172143.27818.gielj@fsai.fh-trier.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="BOKacYhQ+x31HxR3"
+Content-Type: multipart/mixed;
+ boundary="------------010302060703070405070209"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4032752E.9070201-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <200402172143.27818.gielj-TFexGAE6Ty5xRhk+k0m/rQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,148 +17,255 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alessandro Suardi <alessandro.suardi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: Andre Messerschmidt <a.messerschmidt-hi6Y0CQ0nG0@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-
---BOKacYhQ+x31HxR3
+This is a multi-part message in MIME format.
+--------------010302060703070405070209
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 
-On Tue, Feb 17, 2004 at 09:10:22PM +0100, Alessandro Suardi wrote:
-> Will run from now for a couple of weeks with CONFIG_ACPI_PROCESSOR=3Dn;
->  I checked my logs and noticed my first hang happened with 2.6.2,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-IIRC 2.6.2 didn't yet contain the processor updates...
+Hello,
 
-> I just now noticed that in /var/log I have the full Oops traces
->  (until I Alt-SysRq'd out of it), so I'm attaching them; would you
->  please take a further look and confirm this is _only_ an ACPI-related
->  issue ?
+on 02/17/04 21:43, Jan Philipp Giel wrote:
+> I think Andre meant that the battery things are visible in acpi but
+they show
+> the battery as absent - so they do not really work.
+yes, I know this, but anyway it's better than normal situation ;-)
 
-The first Oops seems to be not related to ACPI:
+> There is a BIOS Update available for the M6800N. It was mailed to
+someone who
+> had problems with some ACPIEC Message while running Windows (ASUSProbe).
+> The DSDT (see attachment) has changed with the BIOS Update. Maybe this
+helps
+> someone to fix the DSDT.
+Yes, when I searched for info about GNU/Linux on ASUS M6800N I found
+your page and I already upgrade my BIOS to the latest available 0205A.
 
-Feb 16 15:57:48 incident kernel: Oops: 0000 [#1]
-Feb 16 15:57:48 incident kernel: CPU:    0
-Feb 16 15:57:48 incident kernel: EIP:    0060:[<c0242045>]    Not tainted
-Feb 16 15:57:48 incident kernel: EFLAGS: 00010246
-Feb 16 15:57:48 incident kernel: EIP is at init_dev+0x2b/0x567
-Feb 16 15:57:48 incident kernel: eax: a1192400   ebx: d2e6e000   ecx: c0418=
-f38   edx: 00008802
-Feb 16 15:57:48 incident kernel: esi: 02000000   edi: f3986480   ebp: a1192=
-400   esp: d2e6fe98
-Feb 16 15:57:48 incident kernel: ds: 007b   es: 007b   ss: 0068
-Feb 16 15:57:48 incident kernel: Process sh (pid: 7260, threadinfo=3Dd2e6e0=
-00 task=3Dcd98ecc0)
-Feb 16 15:57:48 incident kernel: Stack: a1192400 00000000 f7dabb80 c01655e6=
- f7dabb80 c03e52d0 00000000 f782f080=20
-Feb 16 15:57:48 incident kernel:        f30d2580 c015cc36 f7dabb80 d2e6ff04=
- d2e6ff00 f7dabb80 420d2290 f554c300=20
-Feb 16 15:57:48 incident kernel:        d2e6e000 02000000 f3986480 00500000=
- c0242eea 02000000 a1192400 d2e6ff00=20
-Feb 16 15:57:48 incident kernel: Call Trace:
-Feb 16 15:57:48 incident kernel:  [<c01655e6>] dput+0x22/0x21f
-Feb 16 15:57:48 incident kernel:  [<c015cc36>] link_path_walk+0x61b/0x957
-Feb 16 15:57:48 incident kernel:  [<c0242eea>] tty_open+0x90/0x36d
-Feb 16 15:57:48 incident kernel:  [<c0242e5a>] tty_open+0x0/0x36d
-Feb 16 15:57:48 incident kernel:  [<c0157c7d>] chrdev_open+0xf3/0x21c
-Feb 16 15:57:48 incident kernel:  [<c015d860>] open_namei+0xa6/0x400
-Feb 16 15:57:48 incident kernel:  [<c0157b8a>] chrdev_open+0x0/0x21c
-Feb 16 15:57:48 incident kernel:  [<c014e264>] dentry_open+0x14d/0x218
-Feb 16 15:57:48 incident kernel:  [<c014e115>] filp_open+0x67/0x69
-Feb 16 15:57:48 incident kernel:  [<c014e598>] sys_open+0x5b/0x8b
-Feb 16 15:57:48 incident kernel:  [<c0108f9d>] sysenter_past_esp+0x52/0x71
+Now, the strange things:
+- - I suppose the DSDT you attached comes from the new BIOS, am I right?
+Because in this case, the DSDT I got from my new BIOS (I attacched) is
+different from your when I disassemble them with 'iasl-20030918'. In
+which way have you caught your DSDT? I did:
+	cat /proc/acpi/dsdt > [file]
 
-=2E.. and neither the second, but then the "bad: scheduling while atomic"
-calls start. And this call trace looks quite strange... There is no reason
-ps should call "acpi_processor_set_performance".... But well, the kernel is
-in an inconsistent state already because of the two previous oopses...
+- - in the 2 cases, the new DSDT has just 5 errors and not >200 as the old
+one. ASAP I'll try to correct it to see what changes
 
-Is the kernel compiled with "frame pointers"? CONFIG_FRAME_POINTER ? If not=
-,=20
-please change this setting to "y".
+Thx, bye,
+Gismo / Luca
 
-What follows then are other oopses and bad: scheduling while atomic notices
-where I cannot see any relation to ACPI.
-
-Feb 16 16:07:16 incident kernel: SysRq : Show Regs
-Feb 16 16:07:16 incident kernel:=20
-Feb 16 16:07:16 incident kernel: Pid: 0, comm:              swapper
-Feb 16 16:07:16 incident kernel: EIP: 0060:[<c02380f8>] CPU: 0
-Feb 16 16:07:16 incident kernel: EIP is at acpi_processor_idle+0x13c/0x1cb
-Feb 16 16:07:16 incident kernel:  EFLAGS: 00000216    Not tainted
-Feb 16 16:07:16 incident kernel: EAX: 0050d212 EBX: 00000808 ECX: 0050d079 =
-EDX: 00000808
-Feb 16 16:07:16 incident kernel: ESI: c1b7d2b0 EDI: c0105000 EBP: c1b7d200 =
-DS: 007b ES: 007b
-Feb 16 16:07:16 incident kernel: CR0: 8005003b CR2: 421b7000 CR3: 35924000 =
-CR4: 000006d0
-Feb 16 16:07:16 incident kernel: Call Trace:
-Feb 16 16:07:16 incident kernel:  [<c0106cee>] default_idle+0x0/0x27
-Feb 16 16:07:16 incident kernel:  [<c0105000>] rest_init+0x0/0x5e
-Feb 16 16:07:16 incident kernel:  [<c023007b>] acpi_ut_copy_ipackage_to_ipa=
-ckage+0x69/0xdb
-Feb 16 16:07:16 incident kernel:  [<c0106cee>] default_idle+0x0/0x27
-Feb 16 16:07:16 incident kernel:  [<c0105000>] rest_init+0x0/0x5e
-Feb 16 16:07:16 incident kernel:  [<c0106d79>] cpu_idle+0x2e/0x37
-Feb 16 16:07:16 incident kernel:  [<c0462686>] start_kernel+0x182/0x1b0
-Feb 16 16:07:16 incident kernel:  [<c04623dd>] unknown_bootoption+0x0/0xff
-
-acpi_processor_idle seems to innocent, "ps" is causing an oops again:
-
-Feb 16 16:08:28 incident kernel: Unable to handle kernel paging request at =
-virtual address 02000064
-Feb 16 16:08:28 incident kernel:  printing eip:
-Feb 16 16:08:28 incident kernel: c017b7ce
-Feb 16 16:08:28 incident kernel: *pde =3D 00000000
-Feb 16 16:08:28 incident kernel: Oops: 0000 [#7]
-Feb 16 16:08:28 incident kernel: CPU:    0
-Feb 16 16:08:28 incident kernel: EIP:    0060:[<c017b7ce>]    Not tainted
-Feb 16 16:08:28 incident kernel: EFLAGS: 00010286
-Feb 16 16:08:28 incident kernel: EIP is at proc_pid_stat+0xa8/0x53c
-Feb 16 16:08:28 incident kernel: eax: 00000000   ebx: 02000000   ecx: f4971=
-000   edx: c03e6330
-Feb 16 16:08:28 incident kernel: esi: e9b0d900   edi: c4c7c580   ebp: c3a58=
-000   esp: c3a59e3c
-Feb 16 16:08:28 incident kernel: ds: 007b   es: 007b   ss: 0068
-Feb 16 16:08:28 incident kernel: Process ps (pid: 7430, threadinfo=3Dc3a580=
-00 task=3Dd56e52e0)
-Feb 16 16:08:28 incident kernel: Stack: c4c7c580 ffffffff 00000008 c4c7c780=
- 00000010 f1db65f0 f7f57858 c3a58000=20
-Feb 16 16:08:28 incident kernel:        c3a58000 f1db6580 e3935006 c0179382=
- f1db6ef0 f7f570f8 c3a58000 c3a58000=20
-Feb 16 16:08:28 incident kernel:        f1db6e80 f254f510 c017939b e9b0d900=
- f1db6e80 c3a59f70 f7ff4700 c3a59f00=20
-Feb 16 16:08:28 incident kernel: Call Trace:
-Feb 16 16:08:28 incident kernel:  [<c0179382>] pid_revalidate+0x28/0xd2
-Feb 16 16:08:28 incident kernel:  [<c017939b>] pid_revalidate+0x41/0xd2
-Feb 16 16:08:28 incident kernel:  [<c01655e6>] dput+0x22/0x21f
-Feb 16 16:08:28 incident kernel:  [<c015cc36>] link_path_walk+0x61b/0x957
-Feb 16 16:08:28 incident kernel:  [<c013741c>] buffered_rmqueue+0xc1/0x15a
-Feb 16 16:08:28 incident kernel:  [<c0137559>] __alloc_pages+0xa4/0x342
-Feb 16 16:08:28 incident kernel:  [<c01787e2>] proc_info_read+0x74/0x155
-Feb 16 16:08:28 incident kernel:  [<c014e115>] filp_open+0x67/0x69
-Feb 16 16:08:28 incident kernel:  [<c014ee92>] vfs_read+0xbc/0x127
-Feb 16 16:08:28 incident kernel:  [<c014f11d>] sys_read+0x42/0x63
-Feb 16 16:08:28 incident kernel:  [<c0108f9d>] sysenter_past_esp+0x52/0x71
-
-	Dominik
-
---BOKacYhQ+x31HxR3
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
+PS to Andre: I still don't know if you're subscribed to the list...
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
+Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
 
-iD8DBQFAMymrZ8MDCHJbN8YRAgP5AJ9UlsxQyC5qZKuOYOxL1hFNfd9AVwCeN3tw
-BVrK23+whOLI54asP+0O8BM=
-=13Ny
+iD8DBQFAM0SbVAp7Xm10JmkRAvZVAJ9UJ9anpV4cUHBrAOU/NGK5/uYU9ACfdUGA
+CKvbbc6sxnEru6t46sasXnQ=
+=4Qzl
 -----END PGP SIGNATURE-----
 
---BOKacYhQ+x31HxR3--
+--------------010302060703070405070209
+Content-Type: application/x-gzip;
+ name="ASUS-M6842NWH-M6N_DSDT-BIOS-0205A.001_original.dat.gz"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="ASUS-M6842NWH-M6N_DSDT-BIOS-0205A.001_original.dat.gz"
+
+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
+--------------010302060703070405070209--
 
 
 -------------------------------------------------------
