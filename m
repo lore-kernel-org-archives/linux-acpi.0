@@ -1,14 +1,14 @@
-From: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
-Subject: Re: enhanced speedstep / speedstep for mobile p4-M @ 2.6GHz
-Date: Tue, 1 Jul 2003 21:03:00 +0200
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: hda: dma_timer_expiry: dma status == 0xff ...
+Date: Tue, 1 Jul 2003 20:20:28 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030701190300.GA1682@brodo.de>
-References: <20030701131312.GE873@enigma.daemon.sh>
+Message-ID: <20030701182028.GN7796@poupinou.org>
+References: <200307011942.43703.hrvoje.habjanic@htnet.hr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20030701131312.GE873-adzhR0EPeY/7X6WiDY61Ug@public.gmane.org>
+In-Reply-To: <200307011942.43703.hrvoje.habjanic-ZeoyiJGIzEM@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,26 +17,41 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Sebastian Henschel <shensche-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
+To: Hrvoje Habjanic <hrvoje.habjanic-ZeoyiJGIzEM@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jul 01, 2003 at 03:13:13PM +0200, Sebastian Henschel wrote:
-> - why is it binary only and not included in the current implementation?
-> - will there be an updated version? currently it is for 2.4.21-rc1 and it
->   complains about some missing symbols (acpi_ut*) with 2.4.21 + acpi20030619.
+On Tue, Jul 01, 2003 at 07:42:43PM +0200, Hrvoje Habjanic wrote:
 > 
-> currently, i have a Xeron GrafX here with a mobile p4-M at 2.6GHz and
-> (regular) speedstep does not work. :(
+> Hi!
+> 
+> Waking up from S1 or S3 ... everything frozes and that message starts showing 
+> on console ... every 10 seconds ...
+> 
+> I don't have a clue!!! 
+> 
+> If these messages get out, i guess, that interrupts are working (tried with 
+> pci=noapic and pci=noacpi).
+> 
+> Funny thing, if i redirect console to serial port, serial port continue to be 
+> responsive (bash is working ok), BUT any disk access "frezzes" the hole 
+> machine up - those message start displaying on console and that's it, even 
+> serial port stops responding.
+> 
+> What to try/look for??
+> 
 
-that driver won't help for a mobile p4-M - it's for mobile pentium M only;
-and Jeremey Fitzhardinge wrote a driver [which IMHO is better than the ACPI
-variant] for mobile pentium m (centrino) which is in latest 2.4-ac and 2.5.
-kernels. For your "mobile pentium 4 with 533 MHz FSB" proper (cpufreq-based)
-speedstep support should be in 2.5.-bk-current, I'll update the backport for
-2.4. and the 2.4-ac version soon.
+The ide hwif is puzzled.  Try to see if you can have datasheet for, then
+do a lspci -xxx to it before and after suspension, you may
+then look if the config for dma stuff are different.
+Then add .suspend .resume codes for it, if that is not already done, or
+debug them.
 
-	Dominik
+-- 
+Ducrot Bruno
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
