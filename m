@@ -1,11 +1,9 @@
-From: "Carmine K. Oneill" <carmine.oneill-4diaj04RHn7ELlIkcMXtpx7zO6W0bs8q@public.gmane.org>
-Subject: Order Rolex or other Swiss watches online
-Date: Mon, 20 Dec 2004 16:02:50 +0800
-Message-ID: <76c701c4e66a$6665915b$d2bac0fb@seol.net.au>
+From: Nick Longo <nmichalo-KwFBUWUoSsM2LMHL4Co/2odd74u8MsAO@public.gmane.org>
+Subject: Mouse Problems with Dell Inspirion 600m.
+Date: Mon, 20 Dec 2004 11:09:36 -0600 (CST)
+Message-ID: <Pine.LNX.4.58.0412201109000.3562@mathlab30.uchicago.edu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,30 +17,22 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Heya,
+I hope I am not being to much of a novice with this message.  I am
+trying to get suspend to ram working on a dell Inspirion 600m.  The
+good news is I have managed to suspend and resume, and get my video
+back (It has a radeon mobility card so I have had luck with
+s3_late_bios patch and with a video_post tool I found on the bugzilla
+list.) 
 
-Do you want a rolex watch?
+Unfortunately when I return the mouse pad no longer responds to "taps"
+as anyone enountered this kind of problem before?  And if so is there
+a resolution?  
 
-In our online store you can buy replicas of Rolex watches. They look
-and feel exactly like the real thing.
+I should mention I am running a fedora core 3 installation (Kernel
+2.6.9-1.667).  Also any ideas on how to start to debug?
 
-- We have 20+ different brands in our selection
-- Free shipping if you order 5 or more
-- Save up to 40% compared to the cost of other replicas
-- Standard Features:
- - Screw-in crown
- - Unidirectional turning bezel where appropriate
- - All the appropriate rolex logos, on crown and dial
- - Heavy weight
-
-Visit us: http://vanai.com/rep/rolex/
-
-Best regards,
-Hilton Jones
-
-
-No thanks: http://www.vanai.com/z.php
-
+Yours,
+Nick P. M. Longo 
 
 
 -------------------------------------------------------
