@@ -1,12 +1,14 @@
-From: Jan Rychter <jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org>
-Subject: Reading battery consumes a lot of CPU
-Date: Sat, 28 Feb 2004 11:35:14 -0800
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Desktop and S3 suspend the Holy Grail of ACPI?
+Date: Sun, 29 Feb 2004 08:20:31 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <m27jy7f159.fsf@tnuctip.rychter.com>
+Message-ID: <20040229072031.GA209@elf.ucw.cz>
+References: <4038F499.2060302@verizon.net> <20040225182030.GG1214@elf.ucw.cz> <40410A69.3070800@verizon.net> <20040228220435.GD10530@elf.ucw.cz> <4041136B.9000904@verizon.net> <20040228230941.GA488@elf.ucw.cz> <1950.66.108.215.112.1078013994.squirrel@webmail.localnet.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1950.66.108.215.112.1078013994.squirrel-2RFepEojUI20LjuDPgauC1aTQe2KTcn/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,44 +17,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: count0-tC47gz4GrgtWk0Htik3J/w@public.gmane.org
+Cc: nlidakis-H+0wwilmMs3R7s880joybQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
---=-=-=
+Hi!
 
-I've reported this a number of times (using various hardware, in fact)
-over the last year or so. Thought I'd resend.
+> >> >>I tried playing with suspend to disk in kernel 2.6.3. It was a no
+> >> >>go. I  have highmem enabled on this machine which has 1 gig of RAM.
+> >> >>Going to try pmdisk.
+> >> >>
+> >> >>
+> >> >
+> >> >Forget pmdisk, that will not work anyway. Try running without highmem
+> >> >(at least for a test).
+> >
+> >> Should I also disable preemption?
+> >
+> > Yes.
+> 
+> WHY???
 
-Reading the battery status seems to consume a disproportionate amount of
-CPU time, such that running battery applets (wmacpi, etc) becomes
-impractical. If I use them in their normal mode, the CPU rarely slows
-down for me using cpudynd.
+Why shouting and 3x"?"?
 
-To give you an example, my wmacpi that updates the information every 30
-seconds (!) has consumed 8 minutes and 10 seconds of CPU time over the
-last 12 or so hours of laptop use.
+It should work with preemption, but preemptive kernel is slightly
+harder than usual. If he wants to get it to work, it is best to
+disable preemption.
 
-jwr       6826  2.6  0.1  2668  436 ?        S    05:58   8:10 wmacpi
-
-This makes it impractical to run battery monitors.
-
-I'm using Linux-2.4.25 on a Sharp Mebius PC-MT2-H1 (and previously over
-the last year all kinds of kernels and patches on this laptop and on a
-Sharp Mebius PC-MT1-H5).
-
---J.
-
---=-=-=
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-
-iD8DBQBAQO1zLth4/7/QhDoRArySAJ9CegRHl662jsagka3wC97KWxIPXQCg3Rjx
-RPBZ8SCsgJtBdfPp7NNP6bU=
-=i3u0
------END PGP SIGNATURE-----
---=-=-=--
+								Pavel
+-- 
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
 
 
 -------------------------------------------------------
