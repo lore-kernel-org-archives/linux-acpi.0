@@ -1,15 +1,14 @@
-From: Bob McElrath <mcelrath-/+vdk8Lzq6wBYXXUC76CrNADJCGDAxhI@public.gmane.org>
-Subject: Re: laptop turns itself off
-Date: Tue, 30 Jul 2002 11:27:46 -0500
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: suspend.c vs driver-model.txt
+Date: Tue, 30 Jul 2002 20:22:55 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020730112746.A19241@draal.physics.wisc.edu>
-References: <20020710132039.B17998@draal.physics.wisc.edu> <20020723183320.GA25180@lps.ens.fr> <20020723151737.A18822@draal.physics.wisc.edu> <20020730080803.GA10077@lps.ens.fr>
+Message-ID: <20020730182255.GC7567@atrey.karlin.mff.cuni.cz>
+References: <20020729190219.GD13729@elf.ucw.cz> <20020730080418.11907@192.168.4.1>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="tThc/1wpZn/ma/RB"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20020730080803.GA10077-l5PIGlIYzrxGWvitb5QawA@public.gmane.org>; from ebrunet-l5PIGlIYzrxGWvitb5QawA@public.gmane.org on Tue, Jul 30, 2002 at 10:08:03AM +0200
+In-Reply-To: <20020730080418.11907-Q0ErXNX1RuY/GWcAdfcqrQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,74 +17,51 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: =?iso-8859-1?Q?=C9ric_Brunet?= <ebrunet-l5PIGlIYzrxGWvitb5QawA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
+Cc: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi!
 
---tThc/1wpZn/ma/RB
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> >There's power cycle and whole kernel bootup. Device state is
+> >completely lost during suspend to disk.
+> 
+> As it is during suspend-to-ram in most cases (most devices except
+> a couple of them are actually powered down and the drivers have to
+> bring them back up, at least on pmac, though on x86, the APM BIOS
+> helps you a bit there).
 
-=C9ric Brunet [ebrunet-l5PIGlIYzrxGWvitb5QawA@public.gmane.org] wrote:
-> On Tue, Jul 23, 2002 at 03:17:37PM -0500, Bob McElrath wrote:
-> > I will let you know if I see the wild temperature variations you mentio=
-n.
->=20
-> Did you see them ?
+APM BIOS is irrelevant here (when using APM BIOS, everything is done
+by BIOS).
 
-No.  Many crashes later, I've never seen the odd temperatures you
-mention.
+> So basically, drivers are responsible to bring back the device
+> in whatever state it was at the save_state step of the suspend,
+> in the same way for but suspend to disk and to RAM. What I want to
+> make sure is that the driver-side semantics remain the same for
+> swsusp and suspend-to-RAM.
+> That includes the fact that save state will actually block IOs, and
+> that is necessary to have a coherent state among devices.
 
-> > Right now ACPI does not recognize the fan on this laptop.  Looking at m=
-y dsdt,
-> > it seems that there is stuff in there about reading/writing the fan sta=
-tus.
-> > Presumably if ACPI took control of the fan and temperature reading, the=
- BIOS
-> > would stop controlling it.  For instance, with the omnibook tools above=
-, as
->=20
-> Maybe. I will try Bruno' patched dsdt. Or maybe I will try the bios
-> update that toshiba europe proposes without any changelog.
+I actually made suspend-to-RAM working as a side effect of making
+suspend-to-disk working.
 
-I will probably try the patched dsdt next also.  There is no bios update
-for my computer.  (It's bios is newer than the newest one on their web
-site!)  Maybe I should put a toshiba BIOS on it.  I'm told my laptop is
-equivalent to a Toshiba 3005-S304.
+What I'm doing is "drivers don't have to care about stopping requests
+because everything is stopped". If you are willing to go through all
+drivers and add stopping in them, thats fine with me, but I believe
+its post-2.6.
 
-Also I was thinking to find the place in the acpi kernel code where it
-is capable of turning the laptop off, and putting in a few debug
-statements and a sync() so that it ends up in the logs.  Can anyone
-point me to that location in the code?  ;)
+> Note that you don't need to run the last step of driver notification
+> though (the actual "suspend" state), this will save you the disk
+> powercycle effect on suspend.
 
-Cheers,
--- Bob
-
-Bob McElrath (rsmcelrath-9geRo0GdX4mkVGS65fRQmodd74u8MsAO@public.gmane.org)=20
-Univ. of Wisconsin at Madison, Department of Physics
-
-"No nation could preserve its freedom in the midst of continual warfare."
-    --James Madison, April 20, 1795
-
---tThc/1wpZn/ma/RB
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iEYEARECAAYFAj1GvoIACgkQjwioWRGe9K1ZFgCbBDO+nELlOBpY93ye87b7BO86
-GpQAoLUjGvMZpeqysBfLfEPBCOSXgQO9
-=X4Ac
------END PGP SIGNATURE-----
-
---tThc/1wpZn/ma/RB--
+Yep, I can get rid of spindown/spinup..
+								Pavel
+-- 
+Casualities in World Trade Center: ~3k dead inside the building,
+cryptography in U.S.A. and free speech in Czech Republic.
 
 
 -------------------------------------------------------
 This sf.net email is sponsored by: Dice - The leading online job board
 for high-tech professionals. Search and apply for tech jobs today!
-http://seeker.dice.com/seeker.epl?rel_code=3D31
+http://seeker.dice.com/seeker.epl?rel_code=31
