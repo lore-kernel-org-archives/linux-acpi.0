@@ -1,13 +1,13 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: Re: Re: Smart Battery System driver
-Date: Fri, 21 Jan 2005 18:56:03 +0100
-Message-ID: <20050121175603.GB19485@message-id.gmane0305.slipkontur.de>
-References: <F760B14C9561B941B89469F59BA3A84708CBB988@orsmsx401.amr.corp.intel.com> <20050121141449.GA15288@message-id.gmane0305.slipkontur.de> <41F136AE.3010603@bartol.udel.edu>
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 5/5] processor: jiffies-based bm_check
+Date: Fri, 21 Jan 2005 13:03:29 -0800
+Message-ID: <88056F38E9E48644A0F562A38C64FB6003D1BDB1@scsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <41F136AE.3010603-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,18 +17,55 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jan 21, 2005 at 12:06:54PM -0500, Rich Townsend wrote:
- 
-> But aren't we really looking for a kernel-based libpower -- so that 
-> *nothing* in userspace needs be exposed to the specifics of the hardware?
+=20
 
-only if you like a bloated kernel. I don't :-)
--- 
-Stefan Seyfried
+>-----Original Message-----
+>From: Dominik Brodowski [mailto:linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org]=20
+>Sent: Friday, January 21, 2005 8:24 AM
+>To: Brown, Len
+>Cc: ACPI Developers; Pallipadi, Venkatesh; Moore, Robert
+>Subject: Re: [PATCH 5/5] processor: jiffies-based bm_check
+>
+>On Thu, Jan 20, 2005 at 11:08:06PM -0500, Len Brown wrote:
+>> On Thu, 2004-12-23 at 15:11, Len Brown wrote:
+>>=20
+>> > Didn't apply the jiffies part yet.
+>>=20
+>> I've applied it now. (attached as jiffy.patch)
+>>=20
+>> However, "threshold.bm =3D 0xF" was written when
+>> HZ =3D 100 yielding 40ms, but this
+>> becomes 4ms for HZ =3D 1000.
+>>=20
+>> While I don't know what the optimal value is for
+>> the bus master history threshold, it seemed like
+>> a good idea for it to default to about 40ms per
+>> the original code until we know better.
+>>=20
+>> So I've also applied the attached bm_history.patch
+>> to default this to 0xFFFFFFFF for HZ =3D 1000 (32ms)
+>> and it is tunable via /sys/module/processor/parameters/bm_history
+>>=20
+>> what do you think?
+>
+>This sounds sensible to do. Note that the "diff" measured in=20
+>idle() will
+>become problematic once "tickless" systems are implemented --=20
+>we'll sleep
+>for multiple jiffies then, and there was _no_ bm activiy in=20
+>between. We need
+>to sort that out somehow...
+>
+>	Dominik
 
+
+How about using gettimeofday here and using that in place of jiffies?
+
+-Venki
 
 
 -------------------------------------------------------
