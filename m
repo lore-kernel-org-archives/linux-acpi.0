@@ -1,12 +1,14 @@
-From: Leonardo Macchia <macchia-oqfuaKpTAUu4UacQti+wdA@public.gmane.org>
-Subject: Error overriding DSDT table
-Date: Thu, 12 Sep 2002 10:18:03 +0200
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Possible trouble when you upgrade your ram, and override DSDT (was: System_memory error)
+Date: Thu, 12 Sep 2002 13:23:04 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020912081803.GA1785@leo.anemos.org>
+Message-ID: <20020912112304.GA5608@poup.poupinou.org>
+References: <20020911165540.GB581@poup.poupinou.org> <20020911180621.43478.qmail@web14503.mail.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20020911180621.43478.qmail-ugbtuMWqwv6A/QwVtaZbd3CJp6faPEW9@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,50 +17,97 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Kent Hunt <kenthunt-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello.
+Hi!
 
-I'm trying to patch the DSDT table in 2.4.19's ACPI but I get some
-errors. I have a Compaq Evo N600c.
+I CC to the acpi-devel ML, since it can be interresting:
+If you upgrade the amount of your RAM, or get an ASL from
+others that didn't have the same amount of RAM, you can have
+some trouble.
 
-I applied acpi-20020821-2.4.19.diff patch (and if I stop here the kernel
-works... but I can't see any battery nor fan resources) and
-linux-2.4.18-acpi-20020709-dsdt.patch.
-With acpidump I got the original DSDT table where I changed the wrong
-entries
 
-Name(_HID, "*PNP....")
+On Wed, Sep 11, 2002 at 11:06:21AM -0700, Kent Hunt wrote:
+> Interesting, calling acpidump , which reads /dev/mem,
+> I got:
+> 
+> Scope(_SB_) {
+>     OperationRegion(SMI1, SystemIO, 0x0000fe00, 0x2)
+>     Field(SMI1, AnyAcc, NoLock, Preserve) {
+>         SMIC,   8
+>     }
+>     OperationRegion(SMI0, SystemMemory, 0x1fffff2c,
+> 0x90)
+>     Field(SMI0, AnyAcc, NoLock, Preserve) {
+>  
+> I'm not sure if I should do iasl -d dsdt as you
+> described since the above already gave me the
+> disasembled output. 
 
-into
+Well, I meant 'acpidmp' from pmtools, not acpidump :)
+But acpidump is just fine, of course.
 
-Name(_HID, "PNP....")
+> 
+> I think this already gave me the hint. I should then
+> modify my DSDT override to reflect this new address. 
+> However, if I go back to 256M then I'll have problems
+> again. Is this good assumption?
 
-so I used iasm to create the hex file from the patched table... I got
-some errors ("Object does not exist" and similar) but I've heard to
-ignore them... so I moved this hex file into
-drivers/acpi/tables/acpi_dsdt.c and compiled the kernel.
+Yes, certainly.  Reading your dmesg I really have no
+doubt no more about that.
 
-After starting the kernel, ACPI results disabled (no /proc/acpi) and the
-kernel - during boot - says:
+> 
+> My dmesg shows:
+> 
+> BIOS-provided physical RAM map:
+>  BIOS-e820: 0000000000000000 - 000000000009f800
+> (usable)
+>  BIOS-e820: 000000000009f800 - 00000000000a0000
+> (reserved)
+>  BIOS-e820: 00000000000eac00 - 0000000000100000
+> (reserved)
+>  BIOS-e820: 0000000000100000 - 000000001fff0000
+> (usable)
+>  BIOS-e820: 000000001fff0000 - 000000001ffffc00 (ACPI
+> data)
+>  BIOS-e820: 000000001ffffc00 - 0000000020000000 (ACPI
+> NVS)
+>  BIOS-e820: 00000000fff80000 - 0000000100000000
+> (reserved)
+> 511MB LOWMEM available.
+> 
+> If I go back to 256M (just the diff)
+> 
+> BIOS-e820: 0000000000100000 - 000000000fff0000
+> (usable)
+>  BIOS-e820: 000000000fff0000 - 000000000ffffc00 (ACPI
+> data)
+>  BIOS-e820: 000000000ffffc00 - 0000000010000000 (ACPI
+> NVS)
+> 255MB LOWMEM available.
+> 
+>   BIOS-e820: 000000000fff0000 - 000000000ffffc00 (ACPI
+> data)
+>  BIOS-e820: 000000000ffffc00 - 0000000010000000 (ACPI
+> NVS)
+>  BIOS-e820: 00000000fff80000 - 0000000100000000
+> (reserved)
+> 255MB LOWMEM available.
+> 
 
-[...]
-ACPI: Subsystem revision 20020815
-PCI: PCI BIOS revision 2.10 entry at 0xf04dd, last bus=4
-PCI: Using configuration type 1 Sep 11 13:24:45 eniac kernel:   
-    ACPI-0272: *** Info: Table [DSDT] replaced by host OS
-    ACPI-0107: *** Error: Acpi_load_tables: Could not load namespace: AE_AML_BAD_NAME
-    ACPI-0116: *** Error: Acpi_load_tables: Could not load tables: AE_AML_BAD_NAME
-ACPI: Unable to load the System Description Tables
-PCI: Probing PCI hardware
-PCI: ACPI tables contain no PCI IRQ routing entries
-[...]
+That what I supposed, then.
 
-Any suggestion? I think the trouble is dumping/compiling the DSDT
-tables. :(
+Did you use a phoenix bios?  I think that this bios actually
+create the DSDT table right after the POST BIOS...
 
-Thank you, Leonardo.
+Cheers,
+
+-- 
+Ducrot Bruno
+http://www.poupinou.org        Page profaissionelle
+http://toto.tu-me-saoules.com  Haume page
 
 
 -------------------------------------------------------
