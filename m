@@ -1,15 +1,14 @@
-From: Michael Dreher <dreher-zyMqRySHjtb72XyCfQbr4BvVK+yQ3ZXh@public.gmane.org>
-Subject: Re: 2.5.58 hangs at boot
-Date: Fri, 17 Jan 2003 22:17:47 +0100
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: IBM Thinkpad A31 | News
+Date: Sat, 18 Jan 2003 17:45:25 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200301172217.47624.dreher@math.tu-freiberg.de>
-References: <F760B14C9561B941B89469F59BA3A847137F7E@orsmsx401.jf.intel.com>
+Message-ID: <20030118164525.GD12516@poup.poupinou.org>
+References: <200301171947.54174.dom@wahuu.at> <200301172111.15037.dom@wahuu.at> <20030117210321.GC12516@poup.poupinou.org> <200301172204.52963.dom@wahuu.at>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="cpvLTH7QU4gwfq3S"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <F760B14C9561B941B89469F59BA3A847137F7E-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <200301172204.52963.dom-K271P2BsTd0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,52 +17,178 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Dominik Bartenstein <dom-K271P2BsTd0@public.gmane.org>
+Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Am Freitag, 17. Januar 2003 21:51 schrieb Grover, Andrew:
-> (CC-ing acpi-devel, hope that's OK.)
->
-> > From: Michael Dreher [mailto:dreher-zyMqRySHjtb72XyCfQbr4BvVK+yQ3ZXh@public.gmane.org]
+
+--cpvLTH7QU4gwfq3S
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi Dom,
+
+me wrote:
+
 > >
-> > > So...if you take the printks out, does it stop booting again? ;-)
+> > I will try to make a workaround for tomorrow, if you want to test
 > >
-> > I try now with 2.5.59. By the way, you are aware of a (small) thread
-> > in lkml with subject "usb broken in 2.5?" some days ago. Greg
-> > said that
-> > nonworking usb may be due to interrupt routing problems of acpi.
-> > I had such problems: sometimes my smartmedia reader came up
-> > during boot,
-> > sometimes not.
->
-> Does /proc/interrupts show anything different for the USB device ACPI
-> vs non-ACPI?
+> > Cheers,
+> 
 
-You mean switch off acpi from kernel command line ? Or compiling it out ?
+Here is then.
 
-This is with acpi:
+This patch is against acpi-20030109.  It override the
+ECDT table with a generate one that (hopefully) will work
+better.  There is one field only of the table that is buggy (the others
+are OK, at least as they are consitant with the definition of
+the embedded controller in the DSDT portion).
 
-karpfen:/tmp # cat /proc/interrupts
-           CPU0
-  0:     813890          XT-PIC  timer
-  1:       1885          XT-PIC  i8042
-  2:          0          XT-PIC  cascade
-  5:       3968          XT-PIC  uhci-hcd, VIA8233
-  7:       1895          XT-PIC  ehci-hcd, uhci-hcd, uhci-hcd
-  8:          2          XT-PIC  rtc
-  9:          0          XT-PIC  acpi
- 10:       5598          XT-PIC  uhci-hcd, eth0
- 12:      30059          XT-PIC  i8042
- 14:      14842          XT-PIC  ide0
- 15:         10          XT-PIC  ide1
-NMI:          0
-LOC:     813876
-ERR:        156
-MIS:          0
+It replace the original ECDT table when the 3 first letter of the OEM_ID part
+is 'IBM    ' and when the EC_ID begin as '\S...' only.  Other fields are not
+checked.
 
+You need though to define CONFIG_ACPI_IBM_ECDT_WORKAROUND for it to work.
+For that, you want to modifie drivers/acpi/osl.c and check for
+/* CONFIG_ACPI_IBM_ECDT_WORKAROUND */
 
+Making it as a part of drivers/acpi/Config.in (2.4) or drivers/acpi/Kconfig (2.5)
+is left as an exercise.. :) (there is no file dep, so no Makefile to modifie).
 
+Please note also that I have only tested it generate a table is OK (by
+feeding the functions with a hand made program that I can send you if
+you want), and also that the kernel compile.
+Eer, I don't have any thinkpad to test with, you know..
 
+A final note: I don't recommand this patch for mainstream.
+
+Cheers,
+
+-- 
+Ducrot Bruno
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
+
+--cpvLTH7QU4gwfq3S
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="00_thinkpad_workaround.diff"
+
+--- linux-2.4.20/drivers/acpi/osl.c	2003/01/14 16:22:32	1.1
++++ linux-2.4.20/drivers/acpi/osl.c	2003/01/18 15:46:57
+@@ -25,6 +25,9 @@
+  *
+  */
+ 
++/* Define this if you are a Thinkpad owner. */
++/* #define CONFIG_ACPI_IBM_ECDT_WORKAROUND */
++
+ #include <linux/config.h>
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
+@@ -201,6 +204,92 @@
+ 	return AE_OK;
+ }
+ 
++#ifdef CONFIG_ACPI_IBM_ECDT_WORKAROUND
++static          u8
++compute_checksum(struct acpi_table_header * h)
++{
++	int             i;
++	u8             *p;
++	u8              cs;
++
++	p = (u8 *) h;
++	cs = 0;
++	for (i = 0; i < h->length; i++)
++		cs += *p++;
++	return cs;
++}
++
++static          acpi_status
++try_to_replace_ibm_ecdt(struct acpi_table_ecdt * old,
++			struct acpi_table_ecdt ** new)
++{
++	u32             len;
++	u8             *p;
++	struct acpi_table_ecdt *ecdt;
++
++	*new = NULL;
++
++	len = old->header.length;
++	ecdt = kmalloc(len + 1, GFP_KERNEL);
++	if (!ecdt)
++		return AE_NO_MEMORY;
++
++	memcpy(ecdt, old, len);
++
++	ecdt->header.length = len + 1;
++
++	for (p = (u8 *) ecdt + ecdt->header.length - 1;
++	     p != (u8 *) & ecdt->ec_id;
++	     --p) {
++		*p = *(p - 1);
++	}
++	ecdt->ec_id[1] = '_';
++
++	ecdt->header.checksum = 0;
++	ecdt->header.checksum = -compute_checksum((struct acpi_table_header *) ecdt);
++
++	*new = ecdt;
++
++	printk(KERN_WARNING "acpi: IBM's ECDT TABLE sucessfully replaced by a corrected one.\n");
++
++	return AE_OK;
++}
++
++
++static          acpi_status
++verify_ibm_ecdt(struct acpi_table_ecdt * existing_table,
++		struct acpi_table_ecdt ** new_table)
++{
++	const char     *const ec_id =
++	((struct acpi_table_ecdt *) existing_table)->ec_id;
++
++	if (ec_id[0] == '\\' && ec_id[1] == 'S') {
++		printk(KERN_WARNING "acpi: Found bad ACPI ECDT table from IBM in the firmware\n");
++		return (try_to_replace_ibm_ecdt(existing_table, new_table));
++	}
++	return AE_OK;
++}
++
++
++
++acpi_status
++acpi_os_table_override(struct acpi_table_header * existing_table,
++		       struct acpi_table_header ** new_table)
++{
++	if (!existing_table || !new_table)
++		return AE_BAD_PARAMETER;
++
++	if (!memcmp(existing_table->signature, "ECDT", 4)) {
++		struct acpi_table_ecdt *old = (struct acpi_table_ecdt *) existing_table;
++		struct acpi_table_ecdt **new = (struct acpi_table_ecdt **) new_table;
++
++		if (!memcmp(old->header.oem_id, "IBM", 3))
++			return (verify_ibm_ecdt(old, new));
++	}
++	return AE_OK;
++}
++
++#else	/* CONFIG_ACPI_IBM_ECDT_WORKAROUND */
+ acpi_status
+ acpi_os_table_override (struct acpi_table_header *existing_table,
+ 			struct acpi_table_header **new_table)
+@@ -211,6 +300,7 @@
+ 	*new_table = NULL;
+ 	return AE_OK;
+ }
++#endif
+ 
+ static void
+ acpi_irq(int irq, void *dev_id, struct pt_regs *regs)
+
+--cpvLTH7QU4gwfq3S--
 
 
 -------------------------------------------------------
