@@ -1,8 +1,8 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: gettimeofday() moving backwards
-Date: Wed, 18 Dec 2002 13:23:57 -0800
+Subject: RE: Invalid PBLK length
+Date: Wed, 18 Dec 2002 13:28:54 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A5BB@orsmsx119.jf.intel.com>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A5BC@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,26 +14,20 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: 'Paul Richards' <p.a.richards-Y3tGgqFSo3OFxr2TtlUqVg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: 'Matthew Wilcox' <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, "Adachi, Kenichi" <aileenja-dTzOdQ2U+/YAvxtiuMwx3w@public.gmane.org>
+Cc: haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Paul Richards [mailto:p.a.richards-Y3tGgqFSo3OFxr2TtlUqVg@public.gmane.org] 
-> I am using linux kernel v2.4.20 with ACPI patch dated 2002-12-05.
-> 
-> I have noticed that if my processor changes state (800Mhz up 
-> to 1200Mhz say)
-> then gettimeofday() behaves weirdly.  It runs smoothly but 
-> every now and again
-> (on the order of 10 times a second) it makes a correction.  
-> If I have gone from
-> 800Mhz to 1200Mhz then the correction is backwards, otherwise 
-> it makes a forward
-> jump..
+> From: Matthew Wilcox [mailto:willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org] 
+> you're right.  Andy, could we add something like this?
+> +#define ACPI_ADR_SPACE_FIXED_HARDWARE  (ACPI_ADR_SPACE_TYPE) 127
 
-Hmm, can you mention this on the cpufreq mailing list?
-cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org .
+Yes, thanks.
 
-Thanks -- Regards -- Andy
+Regards -- Andy
+
+PS about the iasl glibc thing - you do know you can compile your own from
+the acpica-unix source release, right?
 
 
 -------------------------------------------------------
