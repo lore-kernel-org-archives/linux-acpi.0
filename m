@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: suspend/resume support for driver requires an external firmware
-Date: Thu, 23 Sep 2004 14:06:04 +0200
+From: Timo Hoenig <thoenig-dCxI//HcOdFeoWH0uzbU5w@public.gmane.org>
+Subject: Re: Re: [patch 1/1] thinkpad fn+fx key driver
+Date: Thu, 23 Sep 2004 14:31:07 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040923120604.GD7963@elf.ucw.cz>
-References: <Pine.LNX.4.44.0409231514270.8729-100000@mazda.sh.intel.com>
+Message-ID: <1095942667.5402.71.camel@sunshine>
+References: <F7DC2337C7631D4386A2DF6E8FB22B300179B935@hdsmsx401.amr.corp.intel.com>
+	 <20040923112457.GB1083@ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-xt+Dw7Mdo3C7gxbzOEOf"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0409231514270.8729-100000-7yGjFsf0sy5rdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <20040923112457.GB1083-+ZI9xUNit7I@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,57 +17,85 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Zhu, Yi" <yi.zhu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Patrick Mochel <mochel-og82NyAXoxR0I81aPRRTmR2eb7JE58TQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, ipw2100-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Vojtech Pavlik <vojtech-AlSwsSmVLrQ@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, akpm-3NddpPZAyC0@public.gmane.org, erik-aH8aFkyL5XJBDgjK7y7TUQ@public.gmane.org, ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
 
-> I make the ipw2100 driver (http://ipw2100.sf.net) support suspend/resume
-> with below patch.
-> http://cache.gmane.org//gmane/linux/drivers/ipw2100/devel/2129-001.bin
-> 
-> Current state is the patch makes ipw2100 suspend/resume work in the expense
-> of addtional ~200k kernel runtime memory. So I'd rather look on it as a
-> workaround instead of a finial solution.
-> 
-> The problem is ipw2100 requires an external on-disk firmware support. When
-> the device is put to D3 state, firmware needs to be unloaded. And the
-> firmware should be loaded again after the device is put to D0 state. But
-> currently there is no suspend/resume order(dependency) for the online
-> devices list in the kernel (dpm_active). So the ide disk might still be in
-> the suspend state when ipw2100->resume is called. This causes a deadlock.
-> 
-> 
-> I propose 2 choices to fix the problem.
-> 
-> Choice 1. In 2.5 kernel, there used to be a ->save_state method in the
-> device PM interface. From the "not yet updated" document
-> (Documentation/power/pci.txt), this function can be used as "a notification
-> that it(the device) may be entering a sleep state in the near future". If we
-> take back this interface, the problem can be solved. That is, the driver
-> loads firmware into memory in ->save_state and frees the memory in ->resume.
-> The deadlock is resolved without any runtime memory wasted.
-> 
-> 3 patches are attached for this idea.
-> device-save_state.patch adds back the interface ->save_state for the devices
-> 	and implements pci bus save_state method.
-> swsusp-save_state.patch makes swsusp walks all devices ->save_state method
-> 	before calling ->suspend method.
-> ipw2100-save_state.patch implements ipw2100 ->save_state method. 
-> They are proved working.
+--=-xt+Dw7Mdo3C7gxbzOEOf
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 
-Are you sure you'll be able to allocate 200KB of memory at runtime?
-Well, you probably can using vmalloc or such.
+Hi,
 
-Yes, this looks like reasonable way to go. I guess I'd survive
-notifier chain, too, because saving state can be done at any order for
-todays devices, but this looks better with the driver model.
+On Thu, 2004-09-23 at 13:24 +0200, Vojtech Pavlik wrote:
+> On Thu, Sep 23, 2004 at 01:16:57AM -0400, Brown, Len wrote:
 
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+[...]
+
+> There are several ways to make both the keyboard and ACPI keys work as
+> intended:
+>=20
+> 1) Extend acpid to listen on all /dev/input/event keyboard devices and
+>    call scripts when the keys are pressed. No change to the kernel.
+>=20
+> 2) Change ACPI to use the Input API, and add possibility to map ACPI
+>    events in the keymap. Then have acpid listen to those.
+>=20
+> 3) Change ACPI to use the Input API and use the power.ko module for
+>    mapping the keys to system state change actions.
+>=20
+> 4) Change ACPI to use the Input API and have a daemon that handles
+>    all extra keys, including sound volume and application keys, possibly
+>    using D-bus to send the events to the desktop environment.
+>=20
+> 5) Change power.ko to just generate ACPI events for the keys. Handle
+>    the events via acpid.
+>=20
+> I probably prefer 4), although all make sense. I think 3) is only useful
+> for embedded systems, because it's not configurable enough. 2) would
+> probably not work when in X, because it relies on the console subsystem.
+
+Since I am working on a project (Input Abstraction Layer) which is
+exactly what Pavlik mentioned with 4) I wanted to raise my voice. It is
+a daemon which can easily be enhanced by modules which are dynamically
+loaded. There are going to be three different module types: Input,
+output and in/output modules.
+
+Input modules simply gather events and send them via D-Bus to clients
+(for example: module for normal ACPI events).
+
+Output modules do not gather data but can receive messages from clients
+and react on these messages (for example: module for the new sony_acpi
+driver).
+
+In- & Output modules do both (for example: module for the toshiba_acpi
+driver).
+
+I'm blogging about the development on http://thesis.nouse.net. Expect a
+first version within the next four weeks.
+
+   Timo
+
+..............................................................
+Timo H=F6nig <thoenig at nouse dot net>
+..................................................:: gpg ::...
+Fingerprint: 0998 0ACA A1D2 2612 4D96 DD8B E03F 084B B305 4066
+
+--=-xt+Dw7Mdo3C7gxbzOEOf
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQBBUsIL4D8IS7MFQGYRAh2gAJ9Q9ifLVRZWB/P32YGkMRBZgDb7MACcC9NP
+2thLD3uYGrcUqcMxsKOl9E8=
+=pCfx
+-----END PGP SIGNATURE-----
+
+--=-xt+Dw7Mdo3C7gxbzOEOf--
+
 
 
 -------------------------------------------------------
