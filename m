@@ -1,13 +1,13 @@
-From: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
-Subject: Re: New SmartBattery DSDT-based controller
-Date: Sun, 30 Jan 2005 10:31:00 -0500
-Message-ID: <41FCFDB4.8070307@bartol.udel.edu>
-References: <41FBDDE2.1050403@bartol.udel.edu> <1107097154.25905.22.camel@tyrosine>
+From: Pedro Venda <pjvenda-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
+Subject: Re: "Unlink after no-IRQ?" problem: unable to use USB printer
+Date: Sun, 30 Jan 2005 15:14:48 +0000
+Message-ID: <41FCF9E8.7090000@arrakis.dhis.org>
+References: <41F932A5.7000306@arrakis.dhis.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1107097154.25905.22.camel@tyrosine>
+In-Reply-To: <41F932A5.7000306-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,41 +17,60 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pedro Venda <pjvenda-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Matthew Garrett wrote:
-> On Sat, 2005-01-29 at 14:02 -0500, Rich Townsend wrote:
-> 
-> 
->>Eventually, the modified DSDTs can be put back into the ACPI4Linux 
->>database; but I'm more interested at the moment in ironing out any 
->>glitches in the code.
-> 
-> 
-> While this is a neat hack, there's no real way that distributions are
-> ever going to adopt this approach - DSDTs are copyrighted by the
-> vendors, and without permission they're not going to be distributed by
-> the Linux vendors. The alternative approach of modifying the user's DSDT
-> on the fly is likely to be excessively fragile. The only reasonable
-> solution is to provide a mechanism to read the battery directly.
-> 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Yeah, this has occurred to me. I'm looking into cooking up some Perl, to 
-allow the users to modify their own DSDTs. Of course, this is never 
-going to be user friendly, and a long-term solution, as you say, is to 
-read the battery directly.
+Pedro Venda wrote:
+| hi everyone,
+|
+| I'm trying to share an USB printer for my home network. The main and
+| only server
+| is an old dual pIII with an ASUS CUR-DLS, which fortunately features US=
+B
+| ports
+| but which unfortunately don't seem to work.
+|
+| modprobing usblp hangs forever without crashing the machine. the error
+| message
+| suggests fiddling with ACPI but the same happens if I disable ACPI
+| completely,
+| so I supposed this could be an USB problem. Nevertheless, this goes als=
+o
+| to the
+| acpi-devel mailing list.
+|
+| kernel is 2.6.10-grsec.
+|
+| is my hardware broken? I know it's old, but it's supposed to support th=
+e
+| ohci
+| driver, so... it can't be THAT old as far as USB is concerned...
 
-That's what my acpi-sbs module already does, but I'm reluctuant to spend 
-much time developing the module further, until some form of uniform 
-battery interface for the kernel is designed and implemented. Having two 
-seperate /proc/acpi interfaces, one for CM batteries and one for smart 
-batteries, is not the way to go.
+fixed.
 
-cheers,
+While I don't know what kind of effect that had, I changed the MPS suppor=
+t
+version from 1.4 to 1.2 (remember this is an SMP system).
 
-Rich
+regards,
+pedro venda.
+- --
 
+Pedro Jo=E3o Lopes Venda
+email: pjvenda-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org
+http://arrakis.dhis.org
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.6 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+
+iD8DBQFB/PnoeRy7HWZxjWERAjgQAJ9kg3CPp2QFYWF/bV8N3esOu5/C/wCg147M
+ukBIrncQ8hcaniMcohkIA+U=3D
+=3DqB0n
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
