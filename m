@@ -1,13 +1,14 @@
-From: Richard Black <richard.black-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: Re: RE: ACPI source releases updated (20030509)
-Date: Tue, 13 May 2003 13:55:43 -0500
+From: Kevin Fenzi <kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ASL help with latest acpi and compaq presario 2800t
+Date: Tue, 13 May 2003 15:10:41 -0600
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3EC13FAF.1030509@hp.com>
-References: <F760B14C9561B941B89469F59BA3A84725A299@orsmsx401.jf.intel.com> <b9pf9o$jjs$1@main.gmane.org> <20030513085421.GB1338@enigma.daemon.sh> <b9re0e$u0h$1@main.gmane.org>
+Message-ID: <20030513211044.85A2BF7E32@voldemort.scrye.com>
+References: <3ACA40606221794F80A5670F0AF15F842722F9@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F842722F9-4yWAQGcml64gGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,34 +17,35 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nathan Gray <n8gray-7GExONQZ6ZKVc3sceRu5cw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->> I think the only criticism I have of this patch is that (IMVeryHO) it
->> doesn't strike me as suitable for long-term inclusion in the kernel.  I
->> imagine it would be better to allow the user to specify dsdt=/boot/dsdt.img
->> in the same way he specifies initrd=/boot/initrd.img so that these two
->> things can be kept cleanly separated.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
+>>>>> "Luming" == Luming Yu <Yu> writes:
 
-Better yet, I would like to see the mkinitrd modified so that it rolls 
-in the dsdt table
-into the initrd. It may make it (the modified dsdt table) easier to 
-access later if
-manual inspection of the initrd.img is required. This would be similar 
-to the
-recent changes to mkinitrd to include ext3 and jbd if any filesystems 
-are using ext3.
-Maybe a pointer to the current dsdt table could be kept in 
-/etc/modules.conf:
+Luming> Maybe you were missing something.  Try attached file please.
+Luming> Thanks, Lumng
 
-#/etc/modules.conf
-alias dsdt /boot/dsdt.img
+Yeah, I must have munged the patch or something. 
+Putting the External ones in the right place made it compile just
+fine. ;) 
 
-Sincerely,
-Richard Black
+It seems to load just as well as the previous one... 
 
+thanks for the help. 
+
+kevin
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
+Comment: Processed by Mailcrypt 3.5.8 <http://mailcrypt.sourceforge.net/>
+
+iD8DBQE+wV9U3imCezTjY0ERAvQ0AJ41yvpzBvZP597bzzu8NUlRk2CtJgCggS3O
+WLP0gc7H1XCKCkyk3aOAF0A=
+=PCoB
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
