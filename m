@@ -1,14 +1,11 @@
-From: Jan Frey <jfrey-Mmb7MZpHnFY@public.gmane.org>
-Subject: ACPI throttling to death?
-Date: Mon, 4 Apr 2005 22:14:15 +0200
-Message-ID: <200504042214.15648.jfrey@gmx.de>
-Reply-To: jfrey-Mmb7MZpHnFY@public.gmane.org
+From: Christopher Allen Wing <wingc-fnGUqWb9lFPPwG6xszlCvg@public.gmane.org>
+Subject: suggestions for debugging ACPI IRQ routing in 2.6.11.6? (timer
+ interrupt received twice)
+Date: Mon, 4 Apr 2005 17:51:27 -0400 (EDT)
+Message-ID: <Pine.LNX.4.58.0504041743340.32159@hammer.engin.umich.edu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,33 +18,45 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+With ACPI enabled and APIC enabled on my x86_64 system (Athlon64 with ATI
+RS200 chipset), the timer interrupt gets received twice for every tick.
+This causes the clock to run twice as fast as normal.
 
-I'm observing strange behaviour with a Gericom notebook running a 2.6.9 
-vanilla kernel with custom configuration. The processor used is a P III 
-(Tualatin) with 1.2GHz (which is quite rarely used). It is *not* a mobile 
-processor (no speedstep etc.), instead it supports 16 throttling levels.
+I entered a bugzilla report with the kernel bug tracker:
 
-Sometimes (I guess when the machine is getting overheated - the notebook 
-design is really bad and the fan is quite lousy) ACPI temperature monitor 
-shows >70 degrees (Celsius) and the system starts throttling.
+	http://bugme.osdl.org/show_bug.cgi?id=4442
 
-Until here everything is fine IMO.
-But what happens next is that the systems slows down continuously (you can 
-monitor the current throttling level going up and up) until it reaches the 
-last level (12%). Soon after that the whole machine is locked up hard, 
-display still showing the current graphics. I guess it throttled to a 
-"deathly" 0%...
 
-Is this more a linux acpi problem or a fault in this particular machine?
-What could be done about it? how can I debug further?
 
-Thanks for any hints,
-jan
+Anyway, the problem goes away if I disable APIC interrupts using the
+'noapic' kernel boot option. I am guessing the problem is that somehow the
+timer interrupt gets routed twice when in APIC mode. I would be interested
+in suggestions for how to debug this. I note the kernel boot options:
 
--- 
-Jan Frey
-jfrey-Mmb7MZpHnFY@public.gmane.org
+	acpi_dbg_layer=
+	acpi_dbg_level=
+
+Would these provide any useful information in this case?
+
+
+I tried to disassemble the ACPI tables via:
+
+	acpidmp >acpidmp.out
+	acpixtract DSDT acpidmp.out >dsdt.dat
+	iasl -d dsdt.dat
+
+
+but 'iasl' crashes with a segfault in AcpiTbChecksum(). I tried the same
+procedure on two different systems (one of them is my x86_64 system with
+the bad clock, another is an older pentium III system). iasl crashed on
+both. Does iasl work properly, are my ACPI tables corrupted, or am I doing
+something else wrong?
+
+
+Thanks,
+
+Chris Wing
+wingc-fnGUqWb9lFPPwG6xszlCvg@public.gmane.org
 
 
 -------------------------------------------------------
