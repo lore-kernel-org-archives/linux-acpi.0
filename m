@@ -1,51 +1,109 @@
-From: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>
-Subject: Re: [PM][ACPI] No ACPI interrupts after resume from S1
-Date: Sat, 25 Oct 2003 12:59:57 +1300
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <1067039997.2114.16.camel@laptop-linux>
-References: <20031020141512.GA30157@hell.org.pl>
- <yw1x8yngj7xg.fsf@users.sourceforge.net> <20031020184750.GA26154@hell.org.pl>
- <yw1xekx7afrz.fsf@kth.se> <20031023082534.GD643@openzaurus.ucw.cz>
- <yw1xr813f1a3.fsf@kth.se> <3F98FDDF.1040905@cyberone.com.au>
- <yw1xbrs6652m.fsf@kth.se> <20031024222347.GB728@elf.ucw.cz>
- <yw1xbrs6p85n.fsf@kth.se>
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: AE_AML_REGION_LIMIT trouble
+Date: Fri, 24 Oct 2003 09:14:09 -0700
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <CFF522B18982EA4481D3A3E23B83141C24B4E3@orsmsx407.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <yw1xbrs6p85n.fsf-UNjuZkX4dYU@public.gmane.org>
-To: =?ISO-8859-1?Q?M=E5ns_Rullg=E5rd?= <mru-UNjuZkX4dYU@public.gmane.org>
-Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+content-class: urn:content-classes:message
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Eric <plukje-hi6Y0CQ0nG0@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Some modules cause problems. If I suspend with the intel-agp driver
-loaded, for example, the computer reboots when copying the original
-kernel back, because the hardware state doesn't match. I can suspend an=
-d
-resume my i830 based laptop just fine without it. Once the right change=
-s
-are made to the driver, the module will work, but not yet.
 
-Pavel, excuse me for jumping in here.
+Looks like a problem, I was able to reproduce it with the code below.  I
+will look into it.
 
-Regards,
+Bob
 
-Nigel
 
-On Sat, 2003-10-25 at 11:45, M=E5ns Rullg=E5rd wrote:
-> Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> writes:
+-----Original Message-----
+From: Ducrot Bruno [mailto:ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org]=20
+Sent: Friday, October 24, 2003 8:52 AM
+To: Eric; Moore, Robert
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: Re: [ACPI] AE_AML_REGION_LIMIT trouble
+
+On Sun, Oct 19, 2003 at 03:24:18PM +0200, Eric wrote:
+> Greetings everyone on this mailinglist,
 >=20
-> > Try it completely without modules. I'm not sure how it should work
-> > with modules which means it probably does not work at all.
+> I seem to be having a small ACPI problem, of which I don't really know
+
+> what it exactly means,
+> or what I can do to fix it. I'm running linux kernel 2.6.0-test8 and=20
+> I've seen this error from as early as
+> 2.6.0-test1. The machine is a MSI-6728 motherboard with a P4 (with HT)
+
+> on it. Below I've put the output of dmesg (up to where acpi messages
+stop).
+> Please let me know if there is anything else you might be interested
+in=20
+> to clarify this situation because I'm really curious if this is BIOS
+problem
+> or a possible bug in the ACPI code.
 >=20
-> Are you saying it doesn't work with any modules?  What about all the
-> people who have reported success with suspend-to-disk?  I thought
-> everyone used at least some modules.
+
+
+You have that in your ASL:
+
+            OperationRegion (TMEM, PCI_Config, 0xC4, 0x02)
+            Field (TMEM, ByteAcc, NoLock, Preserve)
+            {
+                    ,   3,
+                TOUD,   13
+            }
+
+            Name (TOM, 0x00)
+            Method (MDET, 0, NotSerialized)
+            {
+                If (TOM) {}
+                Else
+                {
+                    If (FLAG)
+                    {
+                        ShiftLeft (TOUD, 0x13, TOM)
+                    }
+                    Else
+                    {
+                        Return (0x20000000)
+                    }
+                }
+
+                Return (TOM)
+            }
+
+
+I am pretty sure that the root of your trouble is
+the 'ShiftLeft (TOUD, 0x13, TOM)'.
+(For info, FLAG is declared as Name (FLAG, 0x01), so
+that is not the problem as well).
+
+I think it is valid, and suspect more or less there is
+a bug in ACPICA.  But I am not sure.  If a guru
+can help me to determine that I am right or wrong (Bob?).
+
+Cheers,
+
 --=20
-Nigel Cunningham
-495 St Georges Road South, Hastings 4201, New Zealand
+Ducrot Bruno
 
-Evolution (n): A hypothetical process whereby infinitely improbable eve=
-nts occur=20
-with alarming frequency, order arises from chaos, and no one is given c=
-redit.
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: The SF.net Donation Program.
+Do you like what SourceForge.net is doing for the Open
+Source Community?  Make a contribution, and help us add new
+features and functionality. Click here: http://sourceforge.net/donate/
