@@ -1,12 +1,13 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: ACPI patch flow
-Date: 02 Feb 2004 13:46:20 -0500
+From: Henry Umansky <hmust2+-fYq5UfK3d1k@public.gmane.org>
+Subject: ACPI state 4
+Date: Mon, 02 Feb 2004 14:43:21 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1075747579.2394.108.camel@dhcppc4>
+Message-ID: <80712959.1075733001@HELPDESK-PC13.fdl.pitt.edu>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,39 +16,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-In an effort to make sure the latest ACPI patch is widely available, I
-currently publish it both as bk trees and plain patches
-http://linux-acpi.bkbits.net/
-http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/
+Hello,
+I just compiled Linux kernel 2.6.1 with ACPI support and I wanted to test 
+out the different sleep states.  So I ran the command:
 
-against 7 releases:
+$echo 4 > /proc/acpi/sleep
 
-2.4.22
-2.4.23
-2.4.24
-2.4.25
+And it started freeing up memory and everything looked like it worked. 
+Then my computer shut off.  When I pressed the power button, it started up 
+and I started my linux kernel with the following GRUB commands:
 
-2.6.0
-2.6.1
-2.6.2
+root (hd0,0)
+kernel /vmlinuz resume=/dev/hda2
 
-I'd like to stop maintaining (and delete) 2.4.23 -- with the release of
-2.4.24, I doubt anybody is using 2.4.23.
+And it looks like ACPI attempts to read the state from the swap partition 
+(/dev/hda2) but then it reboots all of a sudden.  This happens everytime I 
+try to recover.  When I try to boot normally, most of my files are corrupt. 
+I'm guessing that when I entered the S4 sleep state, everything in the swap 
+partition didn't sync with my hard drive, because a lot of my text files 
+are corrupt and can't be read anymore.  I apologize if I didn't include 
+enough information, because I'm new to this mailing list and this is the 
+first "real" time I've messed with ACPI.  Let me know if you need anymore 
+information.
 
-I'd like to stop maintaining (and delete) 2.6.0 -- with the release of
-2.6.1, I doubt anybody is using 2.6.0.  Also, 2.6.1 has diverged
-somewhat from 2.6.0, so maintaining 2.6.0 has become problematic.
+Thank you,
+Henry
 
-let me know if you have any issues with this.
-
-thanks,
--Len
-
-
-
+PS-this might help, but when I did a cat /proc/acpi/sleep is showed S0, S1, 
+S2, S3, S4bios, and S5.  Maybe also S6 but I can't remember and since I 
+don't have a stable running system, I can't really check.
 
 
 -------------------------------------------------------
