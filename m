@@ -1,13 +1,12 @@
-From: Neil Brown <neilb-YbfuJp6tym7X/JP9YwkgDA@public.gmane.org>
-Subject: Re: How to disable wake-on-Lid Switch
-Date: Wed, 9 Mar 2005 11:37:58 +1100
-Message-ID: <16942.17766.876120.82187@cse.unsw.edu.au>
-References: <16942.11475.596633.415660@cse.unsw.edu.au>
-	<1110327508.3663.45.camel@desktop.cunningham.myip.net.au>
+From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Suggestion for improving the handling of GPE enabling.
+Date: Wed, 09 Mar 2005 09:31:37 +0800
+Message-ID: <1110331896.12642.16.camel@sli10-desk.sh.intel.com>
+References: <1110318037.3663.19.camel@desktop.cunningham.myip.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-In-Reply-To: message from Nigel Cunningham on Wednesday March 9
+In-Reply-To: <1110318037.3663.19.camel-r49W/1Cwd2ff0s6lnCXPX/uOuaPYTxhvJwvTLr3MMZM@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,54 +20,38 @@ To: ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org
 Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday March 9, ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org wrote:
-> Hi.
+On Wed, 2005-03-09 at 06:23, Nigel Cunningham wrote:
+> Hi all.
 > 
-> On Wed, 2005-03-09 at 09:53, Neil Brown wrote:
-> > hi,
-> >  I have a problem with my notebook. (Dell Latitude D800).
-> > 
-> >  It suspends and resumes quite nicely (video, audio, etc all work
-> >  well) so I'm quite happy.  But there is one little problem.
-> > 
-> >  The lid-switch seems to be a bit iffy.  Sometimes, while the laptop
-> >  is put away snug in it's bag in suspend mode, the lid-switch suddenly
-> >  thinks that the lid has been opened.  So it wakes up from suspend and
-> >  starts generating heat.  As it is in a nicely padded bag, the heat
-> >  doesn't go anywhere, so the temperature goes up up up.
-> > 
-> >  I would really like the lid button to *Not* resume from suspend.  I
-> >  much prefer using the power button to do that.
+> Thinking about this GPE enabling issue some more, I'm wondering if the
+> best solution would be to switch the enabling/disabling to be a
+> handler
+> registered with the driver model. In this way, the action taken could
+> be
+> better tied to what's actually happening (I'm assuming Pavel's
+> pm_message_t changes are applied). Something like:
 > 
-> I believe /proc/acpi/wakeup might be what you're after:
-> 
-> [root@desktop root]# cat /proc/acpi/wakeup
-> Device  Sleep state     Status
-> TANA       4            disabled
-> P0P3       4            disabled
-> AC97       4            disabled
-> USB0       3            disabled
-> USB1       3            disabled
-> USB2       3            disabled
-> USB3       3            disabled
-> USB7       3            disabled
-> UAR1       4            disabled
-> SLPB       4            *enabled
+> PMSG_FREEZE: Disable GPEs.
+> PMSG_SUSPEND: Enable wake GPEs.
+> PMSG_ON: Disable wake GPEs, enable normal GPEs.
+I have the same feeling. A real solution should be to merge ACPI device
+into the global device tree, so every ACPI driver will have a
+.suspend/.resume method. In the .suspend/.resume method, we can do
+anything we want. This has been in the wish list for a long time.
+Some issues are:
+1. what kind of device should ACPI device be? system device or platform
+device?
+2. What's purpose of the current ACPI namespace in sysfs? Could ACPI
+device be regarded as a normal device?
+3. Some ACPI devices have physical partners. Who will do the
+suspend/resume?
+4. ACPI devices are in many different physical buses. If we just define
+an ACPI bus, we possibly can't show the bus hierarchy.
 
-Wow, yes, you are right.
 
-I went hunting back in 2.6.9 and didn't find anything, and when I hit
-it again in 2.6.11 I assumed that as the piece of code that I had
-patched was still the same, it was still needed.... oops. :-(
+Thanks,
+Shaohua
 
-> [root@desktop root]# echo SLPB > /proc/acpi/wakeup
-
-So it just toggles.. bit of an unfortunate interface. I need
-  grep '^ LID.*\*enabled' /proc/acpi/wakeup > /dev/null  && echo LID > /proc/acpi/wakeup
-
-Thanks heaps.
-
-NeilBrown
 
 
 -------------------------------------------------------
