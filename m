@@ -1,13 +1,13 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
 Subject: Re: 2.6.0-test9 regression: panic on Fn+F7 hotkey
-Date: Mon, 3 Nov 2003 12:10:04 +0100
+Date: Mon, 03 Nov 2003 12:27:52 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031103111004.GC21970@poupinou.org>
+Message-ID: <3FA63BB8.60503@pca.it>
 References: <20031027170800.GC11206@hell.org.pl> <3FA621EC.5010000@pca.it> <20031103105802.GB909@wsc-gmbh.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 In-Reply-To: <20031103105802.GB909-u75qzGzWA6cb1SvskN2V4Q@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -17,38 +17,28 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nikolaus Filus <filus-u75qzGzWA6cb1SvskN2V4Q@public.gmane.org>
-Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Nov 03, 2003 at 11:58:03AM +0100, Nikolaus Filus wrote:
-> On Mon, Nov 03, 2003 at 10:37:48AM +0100, Luca Capello wrote:
-> >Hello, maybe it could be useful even if the thread is (quite) old.
-> >
-> >on 10/27/03 18:08, Karol Kozimor wrote:
-> >>Pressing Fn+F7 to turn the LCD on / off causes 2.6.0-test9 to panic.
-> >I've an ASUS Centrino M3N, bios 0203A (20030514), Debian 
-> >testing/unstable, kernel 2.6.0-test9 w/ ACPI 20031002. When I press 
-> >Fn+F7 the LCD correctly switchs on/off and I don't have any kernel panic.
-> >
-> >Just you to know :-)
-> 
-> 
+Hello,
+
+on 11/03/03 11:58, Nikolaus Filus wrote:
 > BTW: Is this a general ACPI feature or BIOS-related? I mean, I have a
 > Toshiba Satellite 3000-601 and was NEVER able to switch to/from external vga
 > using linux (no 2.4 and no 2.6 version!). The display freezes, the fan goes
 > on and that was it .... :(
-> 
+IIRC, on ASUS laptops you can use Fn+F7 hotkey even if you don't install 
+the 'acpi4asus' package: I just tried removing the 'asus_acpi' module 
+and Fn+F7 works. With the 'asus_acpi' module you've notification of 
+Fn+F7 hotkey pressing in /var/log/acpid, so you can configure an action 
+when you press this hotkey.
 
-That depend.  For the Satellite 3000-601, this is even the two:
-the toshiba will got an acpi event from the embeded controller
-and the portion of the AML related to will call a smi handler...
+I don't remember when I didn't have ACPI on my 2.4.21 what happened: I 
+think it's a BIOS-related feature, not an ACPI one, but I'm not sure.
 
--- 
-Ducrot Bruno
+Thx, bye,
+Gismo / Luca
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
 
 
 -------------------------------------------------------
