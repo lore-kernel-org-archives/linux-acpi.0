@@ -1,14 +1,14 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Desktop and S3 suspend the Holy Grail of ACPI?
-Date: 23 Feb 2004 01:31:47 -0500
+Subject: Re: mobo A7V600-F and problems with sound
+Date: 23 Feb 2004 01:38:10 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1077517907.12673.43.camel@dhcppc4>
-References: <4038F499.2060302@verizon.net>
+Message-ID: <1077518290.12669.49.camel@dhcppc4>
+References: <4038FDDB.8090807@web.de>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <4038F499.2060302-H+0wwilmMs3R7s880joybQ@public.gmane.org>
+In-Reply-To: <4038FDDB.8090807-S0/GAf8tV78@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,55 +17,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: nick <nlidakis-H+0wwilmMs3R7s880joybQ@public.gmane.org>
+To: Toni Erdmann <toni.erdmann-S0/GAf8tV78@public.gmane.org>
 Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 2004-02-22 at 13:27, nick wrote:
-> I am new to ACPI but I have searched the archives, looked at the MAN 
-> pages used Google to the best of
-> my abilities and I still have some questions about ACPI. My basic goal 
-> is to be able
-> to suspend my desktop machine to S3 when not in use. I need to use the
-> machine several times throughout the day, and feel it is a waste to leave
-> it on continuously. The system spec are: Intel D875PBZ, Intel P4 3GHZ,
-> Radeonm 9700 pro, Sounblaster Live, Debian unstable with 2.4.23 and
-> 2.6.2 kernels available, both with ACPI compiled as modules. Pressing
-> the power button once gracefully shuts down the machine running either 
-> kernel.
+On Sun, 2004-02-22 at 14:07, Toni Erdmann wrote:
+> Hello,
 > 
-> After reading the documentation, I am still not sure how to try to
-> suspend to S3. Is there anyone with this motherboard succesfully using
-> S3 suspend? Is it reliable and stable, suspend after suspend.
-> Is S3 suspend with Linux on the desktop the Holy Grail of ACPI? The
-> machines suspends to S3 in Windows 2000 Pro, also shuts all the fans
-> down too, totally silent.
+> Sound is not working with my SuSE Linux 9.0 with 2.4.21-166-athlon
+> on an ASUS A7V600-F (FSB333).
 > 
-> Any advice would be appreciated.
-> Can anyone recommend any Pentium 3/4 desktop motherboard that will S3 
-> reliably in Linux?
+> I found the following messages in 'dmesg'
 > 
-> If this is not possible yet, are there any other Linux hardware problems 
-> where S3 works reliably?
+> ACPI: Unable to set IRQ for PCI Interrupt Link [LNKH] (likely buggy
+>       ACPI BIOS, please report to acpi-devel!)
+> ...
 
-I've got a laptop running Fedora Core 2 out of the box, and all I do is
+haha, they should say to report to ASUS;-)
 
-# echo 3 >/proc/acpi/sleep
-and I use the power button to wake it up.
+> IRQ routing conflict for 00:10.0, have irq 5, want irq 3
+> ...
+> ALSA via82xx.c:520: codec_valid: codec 0 is not valid [0xfe0000]
+> 
+> Last one probably means that the kernel can't contact sound chip
+> 
+> I packed all Information into a tar ball as supposed for a
+> bugzilla entry, but want to avoind sending 22K to the list.
+> 
+> I didn't find an entry in bugzilla related to this here.
+> 
+> What shall I do? Shall I post a report?
 
-I've also got a D875PBZ, however
+go ahead and file the bug and make the tar-ball an attachment.
 
-[root-BJIgRQarj28@public.gmane.org /]# echo -n 3 >/proc/acpi/sleep
-Stopping tasks: ==============================
- stopping tasks failed (1 tasks remaining)
-Restarting tasks...<6> Strange, katad-1 not stopped
- done
-[root-BJIgRQarj28@public.gmane.org /]#
+would be good if you can try a 2.6.3 kernel, I don't really know what is
+in suse's 2.4.21-166-athlon kernel.
 
-which I guess is due to its SATA boot drive.
-Do you have a regular PATA drive?
-
-cheers,
+thanks,
 -Len
 
 
