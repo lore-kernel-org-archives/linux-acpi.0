@@ -1,14 +1,14 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: ACPI events generated on PCI usage.
-Date: 09 Feb 2004 23:03:58 -0500
+From: Dave Jones <davej-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [Fwd: Re: [PROBLEM] 2.6.3-rc1: still no suspend/resume on Centrino notebook (contains agp, lapic, swsusp)]
+Date: Tue, 10 Feb 2004 19:48:16 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1076385838.4105.495.camel@dhcppc4>
-References: <20040207224901.34064.qmail@web9607.mail.yahoo.com>
+Message-ID: <20040210194816.GD12634@redhat.com>
+References: <1076374686.3429.1.camel@darkstar> <m3oes76x8l.fsf@brain.gnuhh.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040207224901.34064.qmail-D/IqPAlx7LewAeGFf/znCBupM2+RrINj@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <m3oes76x8l.fsf-eMhNhoSsuh6q92djB/mqZw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,35 +17,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Chad LeClair <sesca256-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>
+Cc: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Chad,
-Please file a bug and attach the output of acpidmp with full dmesg.
+On Tue, Feb 10, 2004 at 11:32:26AM +0100, Georg C. F. Greve wrote:
 
-thanks,
--Len
+ > If I disable AGP, DRM/DRI and the intel framebuffer (which depends on
+ > intel AGP! vesa fb is activated and works, though), compile at least
+ > yenta_socket as a module, I can do suspend to disk (swsusp2) on kernel
+ > 2.6.2 and resume even while X11 is running.
+ > 
+ > The moment I enable AGP (no DRM/DRI, no intel fb), things break.
 
-On Sat, 2004-02-07 at 17:49, Chad LeClair wrote:
-> Since upgrading to the 2.6 series of kernel I have
-> noticed the events/0 process consuming processor time
-> any time I use a PCI device. For example, when I play
-> sound on my SB Live, the events/0 consumes ~15% of my
-> processor. It doesn't effect AGP, or onboard devices.
-> I turned ACPI debugging on and found that when these
-> devies are in use a constant stream of DEVICE WAKE
-> events are generated.  
-> 
-> Is there any way to prevent or ignore these events to
-> avoid wasting processor time on them? 
-> 
-> Debug log with debug_level=0xff:
-> 
-...
-> acpi_bus-0492 [15] acpi_bus_notify       : Received
-> DEVICE WAKE notification for device [PCI0]
+If you have DRI & FB disabled, AGP isn't going to get used.
+It's just dead code.  For this reason, I find it hard to believe its
+causing a problem.
 
+		Dave
 
 
 
