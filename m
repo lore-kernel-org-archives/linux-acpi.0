@@ -1,13 +1,13 @@
 From: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
-Subject: RE: Runlevel for Sleep?
-Date: Sat, 7 Sep 2002 12:56:58 -0700 (PDT)
+Subject: Re: Re: Can't Find PCI: primary perr bus 01 with ACPI on
+Date: Sat, 7 Sep 2002 13:30:16 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0209071251410.1021-100000@cherise.pdx.osdl.net>
-References: <EDC461A30AC4D511ADE10002A5072CAD0236DE22@orsmsx119.jf.intel.com>
+Message-ID: <Pine.LNX.4.44.0209071328300.1021-100000@cherise.pdx.osdl.net>
+References: <E17nTRe-0002pN-00@hall.mail.mindspring.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD0236DE22-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
+In-Reply-To: <E17nTRe-0002pN-00-d6NqQtMd5t6HWO7mcI6GbnHfL+gkQO6L@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,39 +16,20 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: jtrostel-mn4gwa5WIIQysxA8WJXlww@public.gmane.org
+Cc: John M Trostel <john.trostel-+vhbC7un7QRBDgjK7y7TUQ@public.gmane.org>, ACPI-list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 
-On Fri, 6 Sep 2002, Grover, Andrew wrote:
+On Fri, 6 Sep 2002 jtrostel-mn4gwa5WIIQysxA8WJXlww@public.gmane.org wrote:
 
-> > From: Patrick Mochel [mailto:mochel-3NddpPZAyC0@public.gmane.org] 
-> > [1] Once upon a time (last May), I implemented a patch that 
-> > overloaded the
-> > reboot(2) system call to initiate suspend transitions in a
-> > platform-specific manner (as per Linus's suggestion). This is in the
-> > resurrection queue and will probably resurface soon. 
-> 
-> Hmm.
-> 
-> Maybe it would be cleaner to give sleep its own system call.
-> 
-> Having reboot(2) overloaded with suspend functionality is a little
-> non-intuitive. Just a thought.
+> I'm using 2.4.19... with patches from Sergio Basto at http://codecs.home.sapo.pt/acpi/
 
-That's what I did initially, but I was encouraged instead to overload 
-reboot. And, it does make quite a bit of sense considering the following:
+For some reason, pci_fixup_peer_bridges() is not getting called. 
 
-- syscall numbers are few and very difficult to get. We'd be taking one
-that only makes sense on a subset of the x86 platforms out there and on a
-subset of the total architectures (though this subset accounts for
-probably 95% of the install base).
-
-- reboot(2) is a power transition. suspend(2) is a power transition. 
-Conceptuallly, they're similar. They are functionally, too. 
-
-- swsusp already has a hook in it.
+Since it's 2.4.x, I'm ignorant as to why and to what the code looks like,
+and I would like to remain in my state of bliss. So, I'm deferring it.  
+Sorry...
 
 
 	-pat
