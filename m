@@ -1,12 +1,12 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: 2.4.21-rc1+acpi_24042003: Failure on Compaq 1722EA
-Date: Wed, 14 May 2003 09:57:37 +0800
+Subject: RE: ASL help with latest acpi and compaq presario 2800t
+Date: Wed, 14 May 2003 15:32:28 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F84272300@pdsmsx403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F84272309@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -17,45 +17,49 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dimitris Stasinopoulos <dimitris-1R3Ry79yXbc@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Kevin Fenzi <kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
+Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-SXQncyBvayBmb3IgZmlsaW5nIGFueSBBQ1BJIGlzc3VlcyBvbiBidWd6aWxsYS5rZXJuZWwub3Jn
-LCBpbmNsdWRpbmcgYm90aCAyLjQgYW5kIDIuNS4NClRoYW5rcywNCkx1bWluZw0KDQotLS0tLU9y
-aWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogRGltaXRyaXMgU3Rhc2lub3BvdWxvcyBbbWFpbHRv
-OmRpbWl0cmlzQGxpbmVhLmdyXQ0KU2VudDogMjAwM+W5tDXmnIgxM+aXpSAxODowMg0KVG86IFl1
-LCBMdW1pbmcNClN1YmplY3Q6IFJlOiBbQUNQSV0gMi40LjIxLXJjMSthY3BpXzI0MDQyMDAzOiBG
-YWlsdXJlIG9uIENvbXBhcSAxNzIyRUENCg0KDQpIZWxsbywgYnVnemlsbGEua2VybmVsLm9yZyBp
-cyBmb3Iga2VybmVsIDIuNS54IG9ubHksIHNvIHRoZXJlJ3Mgbm8gcG9pbnQgDQppbiBkb2luZyB0
-aGF0IHNpbmNlIEknbSBydW5uaW5nIDIuNC54DQoNClJlZ2FyZHMsDQpEaW1pdHJpcw0KDQotLSAN
-ClBlcmhhcHMgaXQgSVMgYSBnb29kIGRheSB0byBkaWUhIEkgc2F5IHdlIHNoaXAgdGhlIHNvZnR3
-YXJlIQ0KDQpPbiBUdWVzZGF5IDEzIE1heSAyMDAzIDExOjI1LCB5b3Ugd3JvdGU6DQo+IFdvdWxk
-IHlvdSBwbGVhc2UgZmlsZSB0aGlzIGlzc3VlIG9uIGJ1Z3ppbGxhLmtlcm5lbC5vcmcuDQo+DQo+
-IFRoYW5rcywNCj4gTHVtaW5nDQo+DQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZy
-b206IERpbWl0cmlzIFN0YXNpbm9wb3Vsb3MgW21haWx0bzpkaW1pdHJpc0BsaW5lYS5ncl0NCj4g
-U2VudDogMjAwM+W5tDTmnIgzMOaXpSAxNjowMw0KPiBUbzogYWNwaS1kZXZlbEBsaXN0cy5zb3Vy
-Y2Vmb3JnZS5uZXQNCj4gU3ViamVjdDogW0FDUEldIDIuNC4yMS1yYzErYWNwaV8yNDA0MjAwMzog
-RmFpbHVyZSBvbiBDb21wYXEgMTcyMkVBDQo+DQo+DQo+IEhlbGxvLCBJIGhhdmUgYSBDb21wYXEg
-MTcyMkVBLCB3aGljaCB3b3JrcyB3aXRoIHRoZSBfc3RvY2tfIERTRFRzIHF1aXRlDQo+IHdlbGwg
-KGJhdHRlcnksIHRoZXJtYWwgem9uZSwgQUMsIGZhbiwgbGlkKSwgaW4gY29uanVjdGlvbiB3aXRo
-IGtlcm5lbA0KPiAyLjQuMTgrYWNwaTA0MTAyMDAyLiBJIGRvIGhvd2V2ZXIgd2FudCB0byB1cGdy
-YWRlIHRvIDIuNC4yMS1yYzEsIGJ1dA0KPiBwYXRjaGluZyB1cCB3aXRoIGFjcGkyNDA0MjAwMyBh
-bmQgdHJ5aW5nIHRvIGJvb3QgZ2V0IG5vd2hlcmUuIEFmdGVyDQo+IHByaW50aW5nIHRoZXNlIG1l
-c3NhZ2VzOg0KPg0KPiBBQ1BJOiBFbWJlZGRlZCBjb250cm9sZXIgW0g4XSAoZ3BlIDI5KQ0KPiBz
-Y2hlZHVsZV90YXNrKCk6IGtldmVudGQgaGFzIG5vdCBzdGFydGVkDQo+IHNjaGVkdWxlX3Rhc2so
-KToga2V2ZW50ZCBoYXMgbm90IHN0YXJ0ZWQNCj4gUENJOiBwcm9iaW5nIFBDSSBoYXJkd2FyZQ0K
-PiBBQ1BJOiBQQ0kgSW50ZXJydXB0IExpbmsgW0xOS0NdIGVuYWJsZWQgYXQgSVJRIDExDQo+IEFD
-UEk6IFBDSSBJbnRlcnJ1cHQgTGluayBbTE5LRl0gZW5hYmxlZCBhdCBJUlEgMTANCj4NCj4gaXQg
-aGFuZ3MgaW5kZWZpbmF0ZWx5LCB3aXRob3V0IGFueSBmdXJ0aGVyIG1lc3NhZ2VzLiBUaGUgUENJ
-IGJyaWRnZSBpcw0KPiBhbiBJbnRlbCA4MjgwMUJBTS9DQU0uIFNvOg0KPg0KPiAxKSBBbnkgaWRl
-YXMgb24gdGhlIHByb2JsZW0/IEFsbCBJIHdhbnQgaXMgYmF0dGVyeSBzdGF0cywgdGhlIHRoZXJt
-YWwNCj4gem9uZSwgQUMsIGZhbiBhbmQgdGhlIGxpZCBidXR0b24uIFNsZWVwIHN0YXRlcyBkbyBu
-b3QgY29uY2VybiBtZS4NCj4gMikgSXMgdGhlcmUgYW55IHdheSBJIGNhbiBwb3J0IHRoZSAyLjQu
-MTgrYWNwaSBwYXRjaCBjb2RlIHRoYXQgd29ya3MNCj4gZm9yIG1lIHRvIDIuNC4yMS1yYzE/IE9y
-IGFyZSB0aGVyZSBtYWpvciBjaGFuZ2VzIGluIHRoZSByZXN0IG9mIHRoZQ0KPiBrZXJuZWwgdGhh
-dCBlZmZlY3RpdmVseSBwcm9oaWJpdCB0aGlzPyAgVGhhbmtzIGluIGFkdmFuY2UNCj4NCj4gRGlt
-aXRyaXMNCg==
+Could you please inform me whether battery status works on your 2800t.
+
+Thanks,
+Luming
+
+-----Original Message-----
+From: Kevin Fenzi [mailto:kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org]
+Sent: 2003?5?14? 5:11
+To: Yu, Luming
+Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: RE: [ACPI] ASL help with latest acpi and compaq presario 2800t
+
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+>>>>> "Luming" =3D=3D Luming Yu <Yu> writes:
+
+Luming> Maybe you were missing something.  Try attached file please.
+Luming> Thanks, Lumng
+
+Yeah, I must have munged the patch or something.=20
+Putting the External ones in the right place made it compile just
+fine. ;)=20
+
+It seems to load just as well as the previous one...=20
+
+thanks for the help.=20
+
+kevin
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
+Comment: Processed by Mailcrypt 3.5.8 =
+<http://mailcrypt.sourceforge.net/>
+
+iD8DBQE+wV9U3imCezTjY0ERAvQ0AJ41yvpzBvZP597bzzu8NUlRk2CtJgCggS3O
+WLP0gc7H1XCKCkyk3aOAF0A=3D
+=3DPCoB
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
