@@ -1,19 +1,15 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] resend Andrew de Quincey patch, that resolve
-	hangs problems
-Date: 21 Nov 2003 22:06:18 -0500
+From: mark.acpi-Wx4BgtDyjI+1Z/+hSey0Gg@public.gmane.org
+Subject: Re: a bit confused
+Date: Fri, 21 Nov 2003 23:00:21 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1069470377.2880.27.camel@dhcppc4>
-References: <571ACEFD467F7749BC50E0A98C17CDD8E84DC4@pdsmsx403.ccr.corp.intel.com>
-	 <1068179499.3555.26.camel@darkstar.portugal>
-	 <1068506148.1703.52.camel@darkstar.portugal>
-	 <1068531948.2682.1076.camel@dhcppc4>
-	 <1068599493.2115.34.camel@darkstar.portugal>
+Message-ID: <20031121230021.A18194@winksmith.com>
+References: <BF1FE1855350A0479097B3A0D2A80EE00147D322@hdsmsx402.hd.intel.com>
+Reply-To: mark-Wx4BgtDyjI+1Z/+hSey0Gg@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1068599493.2115.34.camel-4/PLUo9XfK/yXfm4dIG/yWZHpeb/A1Y/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <BF1FE1855350A0479097B3A0D2A80EE00147D322-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>; from len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org on Thu, Nov 20, 2003 at 10:41:26PM -0500
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -22,62 +18,31 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Cc: Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Giorgenes Gelatti <giorgenes.canopus-y7mWNqJcIDpfJ/NunPodnw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2003-11-11 at 20:11, S=E9rgio Monteiro Basto wrote:
-> Windows run with APIC mode (at least is what windows says) and in linux
-> we must disable APIC in kernel.
+On Thu, Nov 20, 2003 at 10:41:26PM -0500, Brown, Len wrote:
+> If it does not and you'd like to try the latest ACPI patch, the oldest
+> kernel we support is 2.4.22:
+> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.4.22
 
-Does Windows have ACPI enabled?  (Device Manager will show ACPI devices,
-power button and sleep button will work gracefully).  Does winmsd show
-that windows is running in IOAPIC mode?  see this bug report for example
-screen shots of what you're looking for:
+i have a debian 2.4.22 (some small amount of magic foo patched in
+already).  would you happen to know if that patch apply to my kernel?
+i've read some conflicting stuff about it.
 
-http://bugzilla.kernel.org/show_bug.cgi?id=3D1164
+> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/README.ACPI
 
-> > If Windows can run a box in IO-APIC mode, then Linux should be able t=
-o
-> > do the same.
-> >=20
-> > I hesitate to integrate Andrew's automatic pic-fallback workaround in=
-to
-> > the baseline kernel because I'm concerned that it will function
-> > perfectly.  If we drop into PIC mode automatically, we may not realiz=
-e
-> > that we have a significant Linux-specific problem that we might be ab=
-le
-> > to solve.
->=20
-> But we have many reports, for VIA or athlon boards, that resolves the
-> problems and we have many problem that wasnt yet resolved.
-> In my case, the laptop has 2 years and it is history, so I am not worry
-> about what is the real problem.
-> Conclusion if you put debug information when drop into pic mode, for me
-> it better.=20
+debian isn't mentioned in it.
 
-The system in the bug report above has a totally screwed up _PRT, and a
-broken SCI OVER_RIDE entry in the MADT, yet XP still runs with ACPI
-enabled and working, with IOAPIC enabled, and the devices with the
-screwed up _PRT entries are working!
+thanks.
 
-PIC-fallback will not get us there.  When we detect a bad _PRT, I think
-we need to drop all the way down to pci=3Dnoacpi -- automatically.
-
-This would cover the older machines with IOAPIC that is configured
-properly with MPS -- and still allow them to run ACPI.  The newer
-machines with IOAPIC and no MPS will need ACPI to get into APIC mode,
-and if XP can do it, then Linux should be able to figure out how to do
-it too.
-
-So tell me, does booting with "pci=3Dnoacpi" allow your system to boot
-with correct interrupts in IOAPIC mode, and with ACPI enabled?
-
-thanks,
--Len
-
-
+-- 
+Mark Smith
+mark-Wx4BgtDyjI+1Z/+hSey0Gg@public.gmane.org
+mark at tux dot org
+nova-instructor at tux dot org
+F: 775-522-8479
 
 
 -------------------------------------------------------
