@@ -1,13 +1,15 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: DSDT > 128k support
-Date: 17 Nov 2004 12:51:38 -0500
-Message-ID: <1100713897.993.8.camel@d845pe>
-References: <20041117.230831.74752627.t-kochi@bq.jp.nec.com>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: Re: DSDT > 128k support
+Date: Wed, 17 Nov 2004 12:23:12 -0700
+Message-ID: <200411171223.12417.bjorn.helgaas@hp.com>
+References: <20041117.230831.74752627.t-kochi@bq.jp.nec.com> <1100713897.993.8.camel@d845pe>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041117.230831.74752627.t-kochi-UDFczIW9X1d8UrSeD/g0lQ@public.gmane.org>
+In-Reply-To: <1100713897.993.8.camel@d845pe>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,24 +19,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Takayoshi Kochi <t-kochi-UDFczIW9X1d8UrSeD/g0lQ@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Takayoshi Kochi <t-kochi-UDFczIW9X1d8UrSeD/g0lQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2004-11-17 at 09:08, Takayoshi Kochi wrote:
+On Wednesday 17 November 2004 10:51 am, Len Brown wrote:
+> I think the code in the kernel to supply /proc/acpi/dsdt
+> and /proc/acpi/fadt should be deleted.  This capability
+> and more can be had entirely from a user-space /dev/mem reader
+> such as acpidmp in the pmtools package:
+> 
+> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
 
-> Under the current implementation, reading /proc/acpi/dsdt does
-
-I think the code in the kernel to supply /proc/acpi/dsdt
-and /proc/acpi/fadt should be deleted.  This capability
-and more can be had entirely from a user-space /dev/mem reader
-such as acpidmp in the pmtools package:
-
-http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
-
--Len
-
-
+Except that acpidmp still gropes through 0x000e0000-0x00100000
+looking for something that looks like an RSDP.  I don't think
+that works on ia64.  (We do provide /sys/firmware/efi/systab,
+which contains the address you need, so acpidmp could probably
+use that when it's available.)
 
 
 -------------------------------------------------------
