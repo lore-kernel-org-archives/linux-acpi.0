@@ -1,10 +1,9 @@
 From: Valette Eric <eric.valette-GANU6spQydw@public.gmane.org>
-Subject: Re: Re: making progress with ACPI was: ACPI small patch up
- date
-Date: Wed, 30 Oct 2002 10:01:50 +0100
+Subject: Re: Re: making progress with ACPI was: ACPI small patch update
+Date: Wed, 30 Oct 2002 10:06:23 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3DBF9FFE.4080806@free.fr>
-References: <EDC461A30AC4D511ADE10002A5072CAD04C7A489@orsmsx119.jf.intel.com>
+Message-ID: <3DBFA10F.3000800@free.fr>
+References: <200210300712.g9U7CFD04441@ikffws2.ikff.uni-stuttgart.de>
 Reply-To: eric.valette-GANU6spQydw@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
@@ -18,76 +17,48 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Jan Rychter <jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org>, Huw Hawkins <hrhawk-JGs/UdohzUI@public.gmane.org>
+To: Jens Haug <haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Grover, Andrew wrote:
-
->>I also complained about acpi patches beeing done for 2.4 pre releases 
->>and not applying cleanly on 2.4.X official kernels.
+Jens Haug wrote:
+>>I do agree. The more people do not want other to look/critic their code, 
+>>the more they pretend what they do is a kind of black art, and do not 
+>>document it or make design document :-) Fixing bug is annoying, making a 
+>>new release and advising to report a problem on it is so more fun.
 > 
 > 
-> If we have a prayer of ever getting into official 2.4, we need to track the
-> pre kernels. People in the past have done backports to the non-pre kernels,
-> but that really depends on what other people are willing to do.
+> I don't think this is about fun. There are people getting paid by
+> Intel for this, aren't they? Would you like it if your boss could 
+> have a look at a list of mistakes you made in your job? Man, I sure 
+> am glad there's no list with *my* mistakes! Yes, I know that bugs 
+> are perfectly normal in such projects, no need to be ashamed. But 
+> maybe their boss doesn't know that?
+> Just speculating here...
 
-But, if you complicate the task of applying acpi patches, on the other 
-hand you get less tester. I already expressed that I apply other patches 
-to the kernel I run and I do not have the patches for pre releases.
+I have been working for famous companies and yes having a bug tracking 
+system was required and compled with the source management system. If 
+your company is responsible, they want to have no bug in the system they 
+distribute.
 
-When I'm home like now, with an old 56K modem, I do not download a pre 
-version for fun especially because, I have to apply the other patches I 
-need to get my computer working as I want.
+At a macroeconomic level, I bet if Intel sell more P4 for mobile devices 
+because linux runs on them, yes they want to have a good ACPI system and 
+a bug tracking system will help achieving this goal.
 
-> We can fix bugs, the problem is *diagnosing* the issue. There's only so much
-> diagnosis that can be done without the hardware. If you say "line 444 of
-> ec.c is acquiring a semaphore at interrupt level" that's probably enough. If
-> you post a patch, we'll apply it. If you just say "my system hangs" then
-> it's a lot harder. Sometimes the dmesg or DSDT are enough that other people
-> can suss out what might be the problem -- sometimes not.
 
-Look, I posted on the mailling list the exact line of a problem leading 
-to a system freeze (by the way it was deferrencing a null pointer) long 
-time agao. Proposed a trivial fix that was working but
-	1) you said it was a symptom not the problem. You were probably right 
-but another version of acpi code was released without having the patch. 
-As a result, ACPI lead to boot hang on any recent ASUS board.
-	2) in order to diagnose something, yopu need to have a kernel to test
+-- 
+    __
+   /  `                   	Eric Valette
+  /--   __  o _.          	6 rue Paul Le Flem
+(___, / (_(_(__         	35740 Pace
 
-When I was working at Canon, downloading megabytes and testing was not a 
-problem. I had a fast ethernet connection and plenty of PC. Now that is 
-not anymore possible. Think about the guys who need ACPI but do not have:
-	1) A fast internet connection,
-	2) The knowledge to look at the rejected patch and apply the missing 
-lines by hand,
-	3) A system that does not work from scratch
+Tel: +33 (0)2 99 85 26 76	Fax: +33 (0)2 99 85 26 76
+E-mail: valette-GANU6spQydw@public.gmane.org
 
-Those guy will probably never test or will test once and if it fails, as 
-they do not know if the bug is known and a fix exist, they will stop 
-trying ACPI. This will obviously lead to testing far less system.
 
-If you want to have ACPI in stable kernel before 2.6 :-), you need more 
-tester, and a serious development policy. To me the project is in need 
-of some kind of management.
 
-> Part of this whole open source "gift" economy is that it's polite to not
-> turn one's nose up a gift. Even if it wasn't all that you wanted. And
-> especially if you haven't reciprocated.
 
-Sorry but indeed I tried and reported several bug on DELL C600 and ASUS 
-board. Look at the history. Now, because the development model makes it 
-hard for me to:
-	1) Follow the development,
-	2) Know existing problem and possible solutions,
-	3) Download patches that applying cleanly to my kernel,
-	4) Post bug report that are effectively handled,
 
-I do not invest too much time helping you despite I'm quite used to work 
-with OSS, and have contributed to many OSS project including rtems 
-<www.oarcorp.com>, goahed web server, debian linux distrib, ...
-
--- eric
 
 
 
