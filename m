@@ -1,12 +1,15 @@
-From: Phil Messenger <phil.mes-J1btbF6uMEmsTnJN9+BGXg@public.gmane.org>
-Subject: S1 Suspend almost working with 2.4.19 and 2.5.44 on Travelmate 360
-Date: Thu, 31 Oct 2002 01:12:30 +0000
+From: John Summerfield <summer-bdq14YP6qtSeVB85EesmETSf8X3wrgjD@public.gmane.org>
+Subject: Re: Re: making progress with ACPI was: ACPI small patch update
+Date: Thu, 31 Oct 2002 09:36:44 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3DC0837E.4050305@virgin.net>
+Message-ID: <200210310934.51781.acpi@computerdatasafe.com.au>
+References: <200210300712.g9U7CFD04441@ikffws2.ikff.uni-stuttgart.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200210300712.g9U7CFD04441-sBhUd1W9t4xfrO0PeCDDO4ECbGbo6+O1OOFObY0sJ7w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,33 +21,37 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-After much fiddling, I've almost got S1 suspend working on the above 
-system, with one caveat:
+Sorry Jens
 
-2.4.19 and 2.4.20-(pre11 | rc1):
+Will someone please fix this list?
 
-System suspends, backlight isn't turned off. System resumes and is 
-active on the network, so I can SSH into it, but the keyboard and 
-touchpad apparently aren't reinitialised properly and won't respond. 
-Note that the system hasn't hung, but the keyboard and mouse are "frozen".
+On Wed, 30 Oct 2002 15:12, Jens Haug wrote:
+> > I do agree. The more people do not want other to look/critic their code,
+> > the more they pretend what they do is a kind of black art, and do not
+> > document it or make design document :-) Fixing bug is annoying, making a
+> > new release and advising to report a problem on it is so more fun.
+>
+> I don't think this is about fun. There are people getting paid by
+> Intel for this, aren't they? Would you like it if your boss could
+> have a look at a list of mistakes you made in your job? Man, I sure
+> am glad there's no list with *my* mistakes! Yes, I know that bugs
+> are perfectly normal in such projects, no need to be ashamed. But
+> maybe their boss doesn't know that?
+> Just speculating here...
 
-2.5.44:
+Unless my memory fails me, the name Andy Grover's been associated with Intel 
+for quite a while.
 
-System suspends, backlight isn't turned off, system resumes and is 
-active on the network. The keyboard is again hung, but if I cycle the 
-input drivers (rmmod then modprobe i8042, atkbd) it responds again. I've 
-actually written a small script which turns the backlight off using 
-DPMS, suspends the system, then cycles the input drivers on resume. I'd 
-much rather use 2.4 though - PCMCIA is utterly broken on this machine in 
-2.5, wheras it's only a bit broken in 2.4.
+Frankly, I reckon any boss fit to manage an IT project has BTDT and will 
+understand that bugs arise.
 
-Is this a known problem? If so, are there any work-arounds? Or if it 
-isn't, is there anything I can do to help debug it? I don't know much 
-about ACPI and the Linux implemntation and I don't have enough time to 
-sit down and understand it so I'm not sure where to start...
-Cheers,
 
-Phil.
+He would also understand that one of the best ways of locating them is peer 
+code review, and a free peer code review is a gift not to be sneezed at.
+
+
+Fun? I've been working with computers for over three decads because its fun.
+
 
 
 
