@@ -1,14 +1,14 @@
-From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Fwd: Acer Extensa 3001 battery problem (smart battery)
-Date: Tue, 14 Sep 2004 16:02:16 +0800
+From: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Subject: Re: [PATCH] ACPI based Memory Hotplug Driver Patch
+Date: Tue, 14 Sep 2004 17:06:51 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1095148936.14663.79.camel@sli10-desk.sh.intel.com>
-References: <200409131113.01586.johannes.schanda@schanda.de>
+Message-ID: <20040914170651.6eea6d84.tokunaga.keiich@jp.fujitsu.com>
+References: <FEB6C4E97F6CAF41978FB2059D5454180F3802@bgsmsx402.gar.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200409131113.01586.johannes.schanda-1R9WWMedIqeELgA04lAiVw@public.gmane.org>
+In-reply-to: <FEB6C4E97F6CAF41978FB2059D5454180F3802-OkeUvhg1trkFyVwBAnZdSLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,40 +17,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Johannes Schanda <johannes.schanda-1R9WWMedIqeELgA04lAiVw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "S, Naveen B" <naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2004-09-13 at 17:13, Johannes Schanda wrote:
-> On Monday 13 September 2004 03:15, Li, Shaohua wrote:
-> > *snip*
-> > Linux doesn't support smart battery yet. Smart battery is more
-> complicated
-> > than control method battery.
-> >
-> > Thanks,
-> > Shaohua
-> >
-> Ah, ok. Thanks for clearing that up. 
+On Mon, 13 Sep 2004 23:20:10 +0530 S, Naveen B wrote:
+> Thanks Keiichiro Tokunaga
 > 
-> I don't want to rush you or anything, you've all been doing a great
-> job on 
-> ACPI, but just for my information, when can we expect to see smart
-> battery 
-> support in linux? 
-Hi, 
-I did look at the spec. Basically we need two drivers for your issue.
-1. EC based SMBus host driver. Your system has an EC based SMBus host.
-ACPI spec defined a set of interfaces to control the SMBus host. Now we
-haven't such SMBus driver.
-2. Smart battery driver. It uses the interfaces exported from SMBus host
-driver. Smart battery is resided on SMBus, OS must control SMBus host to
-generate SMBus protocol to handle smart battery. 
-I haven't such system with smart battery. It's hard to say when.
+> > This is nice:)  I would like to suggest just one thing.
+> > 
+> > 'acpi_memory_enable/disable_device()' seem to call generic
+> > (not ACPI specific) hotplug functions 'add/remove_memory()' directly.
+> > I think the generic hotplug functions should not be called directly
+> > inside kernel, but from the userland for two reasons.
+> > 
+> In the hotadd case, add_memory is invoked to notify the VM that there is
+> change in physical memory and it's up to the VM, not the acpi driver to
+> determine where and when that the new memory region should be onlined.
+> Currently the VM leaves the onlining decision to userspace and when
+> add_memory is invoked the required initialization is done, but the pages
+> are not available for allocation. So the policy of onlining the memory
+> is still left to userland. 
+>
+> As mentioned in the code, user notification is still TBD in the
+> hot-remove code path, as hot-remove support isn't there fully in the
+> kernel yet.
+
+I see.  Thanks for the information:)
 
 Thanks,
-Shaohua
-
+Keiichiro Tokunaga
 
 
 -------------------------------------------------------
