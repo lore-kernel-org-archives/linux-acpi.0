@@ -1,11 +1,15 @@
-From: "John Wilkinson1" <WILKINJ-ygUJEDcBm8rQT0dZR+AlfA@public.gmane.org>
-Subject: ASF! tables unsupported
-Date: Tue, 24 Sep 2002 12:00:37 +0100
+From: Arnaud Fevrier <fevrier-mGjiqC8JayDH3mj/uWlBYqb9WTlM5w7aUBSOeVevoDU@public.gmane.org>
+Subject: Re: Testing: NVidia closed driver fails.
+Date: Tue, 24 Sep 2002 16:22:46 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <OF21E99D4B.66D14E4D-ON80256C3E.00365E1C@portsmouth.uk.ibm.com>
+Message-ID: <15760.30006.534759.107599@ohgma.iut-gtr.univ-mrs.fr>
+References: <200209221329.g8MDTL009929@pfn1.pefnos>
+Reply-To: fevrier-94MxA55sdNz4HDTGivPSywpplqO2vBoV@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200209221329.g8MDTL009929-a1J+ToZc0kR3t0M9ZKkFCQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,52 +18,34 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "P. Christeas" <p_christ-U04EIuiosng@public.gmane.org>
+Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Using a new IBM server that supports the Alert Standard Format
-(http://www.dmtf.org/standards/documents/ASF/DSP0114.pdf), ACPI gets
-disabled. Hopefully someone on this list can fix this, or redirect this to
-someone who can.
 
-It seems to be because ASF-compliant machines have an ACPI table with a
-title of "ASF!" (see section 4.1.2 in above document). When booting kernel
-version 2.4.18, the messages
+Hi,
 
-        ACPI-0202: Invalid table signature ASF! found
-        ACPI-0094: *** Error: Acpi_load_tables: Error getting required
-tables (DSDT/FADT/FACS): AE_BAD_SIGNATURE
-        ACPI-0115: *** Error: Acpi_load_tables: Could not load tables:
-AE_BAD_SIGNATURE
-ACPI: System description table load failed
-are logged.
+ I have a fujitsu-Siemens CelsiusH which comes with a nvidia card. The
+ nvidia driver (1.0-2960) shares it interupts with the allegro sound
+ card.
 
-In acpi_ut_valid_acpi_name (drivers/acpi/utilities/utmisc.c), the test for
-whether the characters in a table signature are valid is
+I compiled the kernel 20-pre7 acpi 2002 09 18, and it boots fine.=20
 
-if (!((name_ptr[i] == '_') ||
-  (name_ptr[i] >= 'A' && name_ptr[i] <= 'Z') ||
-  (name_ptr[i] >= '' && name_ptr[i] <= '9'))) {
+I cannot run the make xconfig, and I had to set the SMP. It did not
+compile for a uniprocessor.
 
-So the "ASF!" signature fails because of the '!'.
+A lot of acpi features work fine, but I cannot sleep or hibernate the
+laptop.
 
-Changing the above code to
+Sincerly,
 
-if (!((name_ptr[i] == '_') || (name_ptr[i] == '!') ||
-...
+--=20
 
-lets the kernel boot correctly with ACPI enabled. Obviously, changing this
-is fine for personal compiles, but it would be great if this could be
-brought into the official patches. This will become more of a hurdle as ASF
-becomes more common, as it is a recent standard.
-
-John Wilkinson
-
-Software Engineer
-SSG, IBM Hursley
-Internet Mail: wilkinj-ygUJEDcBm8rQT0dZR+AlfA@public.gmane.org
-
-
+			    Arnaud F=E9vrier
+			    fevrier-94MxA55sdNz4HDTGivPSy1aPQRlvutdw@public.gmane.org
+			    +33 () 491 177 926
+                 =20
+                =20
 
 
 -------------------------------------------------------
