@@ -1,50 +1,68 @@
-From: Zwane Mwaikambo <zwane@arm.linux.org.uk>
-Subject: Re: smp/swsusp done right
-Date: Wed, 30 Mar 2005 14:44:28 -0700 (MST)
-Message-ID: <Pine.LNX.4.61.0503301437550.12965@montezuma.fsmlabs.com>
-References: <20050323204019.GA11616@elf.ucw.cz>
- <Pine.LNX.4.61.0503301413050.12965@montezuma.fsmlabs.com>
- <20050330212253.GB1347@elf.ucw.cz>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [patch 2/4] acpi: Toshiba failure handling
+Date: 30 Mar 2005 22:17:30 -0500
+Message-ID: <1112239050.2175.63.camel@d845pe>
+References: <200503302116.j2ULGc4Y027730@shell0.pdx.osdl.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262282AbVC3Vm6@vger.kernel.org>
-In-Reply-To: <20050330212253.GB1347@elf.ucw.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-kernel@vger.kernel.org, seife@suse.de, ACPI mailing list <acpi-devel@lists.sourceforge.net>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200503302116.j2ULGc4Y027730-bipKiLWnuIsyyg0EjBt7GtHuzzzSOjJt@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, panagiotis.issaris-hfxpx0nnwYVX2QMWbMbClIble9XqW/aP@public.gmane.org, takis-8nu/KwtRnEU@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 30 Mar 2005, Pavel Machek wrote:
+Applied.
 
-> Hi!
+thanks,
+-Len
+
+On Wed, 2005-03-30 at 16:16, akpm-3NddpPZAyC0@public.gmane.org wrote:
+> From: "Panagiotis Issaris" <panagiotis.issaris-hfxpx0nnwYVX2QMWbMbClIble9XqW/aP@public.gmane.org>
 > 
-> > > This is against -mm kernel; it is smp swsusp done right, and it
-> > > actually works for me. Unlike previous hacks, it uses cpu hotplug
-> > > infrastructure. Disable CONFIG_MTRR before you try this...
-> > > 
-> > > Test this if you can, and report any problems. If not enough people
-> > > scream, this is going to -mm.
-> > 
-> > Yay! Thanks for getting that done Pavel =)
+> Adds the missing failure handling for a kmalloc in the Toshiba ACPI
+> driver.
 > 
-> Well, I guess it is thank you -- I got rid of ugly FIXME that would
-> involve arch-dependend assembly to be solved properly.
+> Signed-off-by: Panagiotis Issaris <takis-8nu/KwtRnEU@public.gmane.org>
+> Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+> ---
 > 
-> ... hmm, can play_dead handle all the memory being overwritten? Also
-> it should probably save and restore registers including MTRRs.
+>  25-akpm/drivers/acpi/toshiba_acpi.c |    3 +++
+>  1 files changed, 3 insertions(+)
+> 
+> diff -puN drivers/acpi/toshiba_acpi.c~acpi-toshiba-failure-handling
+> drivers/acpi/toshiba_acpi.c
+> ---
+> 25/drivers/acpi/toshiba_acpi.c~acpi-toshiba-failure-handling       
+> Wed Mar 30 13:16:02 2005
+> +++ 25-akpm/drivers/acpi/toshiba_acpi.c Wed Mar 30 13:16:02 2005
+> @@ -263,6 +263,9 @@ dispatch_write(struct file* file, const
+>          * destination so that sscanf can be used on it safely.
+>          */
+>         tmp_buffer = kmalloc(count + 1, GFP_KERNEL);
+> +       if(!tmp_buffer)
+> +               return -ENOMEM;
+> +
+>         if (copy_from_user(tmp_buffer, buffer, count)) {
+>                 result = -EFAULT;
+>         }
+> _
+> 
+> 
 
-play_dead currently can't handle memory being overwritten, i guess you'd 
-probably want to put the hook to kill the processor for real there. We 
-probably only have to make sure that MTRRs are restored on resume, which 
-should be taken care of by the current code since ACPI hotplug probably 
-requires it too.
 
-> ...so I more moved ugly FIXME to better place. Oh well, at least it
-> uses common infrastructure now. People at Intel doing suspend-to-RAM
-> on smp systems will need to solve it properly, anyway, because they
-> need to go to real mode and back.
 
-Sounds like a perfect candidate =)
-
-Thanks,
-	Zwane
+-------------------------------------------------------
+This SF.net email is sponsored by Demarc:
+A global provider of Threat Management Solutions.
+Download our HomeAdmin security software for free today!
+http://www.demarc.com/Info/Sentarus/hamr30
