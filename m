@@ -1,13 +1,16 @@
-From: James Joseph <jannix97-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Re: ACPI hangs X-Windows with nForce chipset
-Date: Sat, 4 Jan 2003 00:38:55 -0800 (PST)
+From: Dom <dom-K271P2BsTd0@public.gmane.org>
+Subject: Re: Re: IBM Thinkpad A31 | ACPI problems
+Date: Sat, 4 Jan 2003 11:53:42 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030104083855.58289.qmail@web13405.mail.yahoo.com>
-References: <20030103162335.GB26301@schiggy.intern.quelltext.com>
+Message-ID: <200301041153.42326.dom@wahuu.at>
+References: <000301c2b284$8a15d8f0$232202d3@sayonara> <004701c2b2a6$434732d0$0201a8c0@csn.tuchemnitz.de> <200301022254.55856.dom@wahuu.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030103162335.GB26301-dzH3swnhYuu5cqaZGqYS/O8dC6aEkcuFVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <200301022254.55856.dom-K271P2BsTd0@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,77 +19,98 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Arndt Schoenewald <abs-SA7OhAOe25xnNxvc45mVi0K323yFvGpRdefyYXQ/eNw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Arndt,
-First of all, thanx for such a prompt reply.  With
-2.4.20 and acpi-20021212 patch, the system works with
-APIC disabled from BIOS!  X-Windows and KDE is stable.
- My system was already stable in text-mode (run level
-3).The errors which i obtained before are still
-there:-
+Hi Thinkpad dudes out there,
 
-pci_bind-0191 [05] acpi_pci_bind         : Device
-00:00:04.00 not present in PCI namespace
-(Anyone know what the above means?!)
+1.) the following message was posted by an IBM employee on 
+http://www7.pc.ibm.com/~Thinkpad
 
-and a series of AE_AML_BUFFER_LIMIT conditions.
-(Is there anyway to increase the 8 * (HOST BUFFER
-size) from 48 to 56?, and will that solve the
-problem?)
+------------------
+Topic: ACPI Linux (2 of 2), Read 6 times  
+Conf: ThinkPad A20,A21,A22,A30,A31 
+From: Theresa@IBM2 
+Date: Friday, January 03, 2003 02:27 PM 
+Hello Dom,
+Unfortunately, we do not have any information on whether or not the BIOS will 
+be updated to resolve the issue you are having with the ACPI. This is up to 
+the IBM Software Developers.
+ 
+Thank you for choosing the IBM Forums.
+ 
+ 
+ Theresa L. IBM World-Wide Electronic Support and Services
+---------------------
 
-It seems that the problem is when IO-APIC is used for
-IRQ routing.  I greped /usr/src/linux*/drivers/acpi
-for AE_AML_BUFFER_LIMIT, and  it seems (from
-dispatcher/dsopcode.c, line 496, in function
-Acpi_ds_init_buffer_field(...):-
+2.) thats the reply to my email sent to IBM technical support:
 
-The Host buffer length, buffer_desc->buffer.length =
-6, and if it was 7, it should work.(in my case)
-Is it possible to increase that buffer, something
-tells me it isn't as simple as :-
+--------------------
+Dear Mr. Bar,
+you have contacted the technical support of IBM and we can't give you
+marketing informations about future equipment. Please call our service
+centre at 01803 - 31 32 33 and ask for someone who is able to inform you
+about that.
 
-buffer_desc->buffer.length = 7;         :)
-
-Please understand that i know nothing about what i am
-talking about here, so anyone reading this should have
-a high stupidity tolerance! Please help if there is an
-
-easy fix to the above.
-
-James Joseph
+Best regards
+Your IBM eSupport
 
 
---- Arndt Schoenewald
-<abs-SA7OhAOe25xnNxvc45mVi0K323yFvGpRdefyYXQ/eNw@public.gmane.org> wrote:
-> Hi James,
-> 
-> does your system work without APIC and IO-APIC
-> support enabled in the
-> kernel, or with APIC support being turned off in the
-> BIOS?
-> 
-> (I have a SiS650 based machine with a MS-6335E
-> mainboard which will
-> only boot with either one of the above workarounds.
-> It seems that the
-> support for APICs and/or IO-APICs is still not 100%
-> bugfree.)
-> 
-> The "Spurious 8259A interrupt : IRQ7" messages
-> appear on many machines,
-> but seem to be harmless. I don't know what causes
-> them.
-> 
-> Good luck,
-> Arndt
 
-__________________________________________________
-Do you Yahoo!?
-Yahoo! Mail Plus - Powerful. Affordable. Sign up now.
-http://mailplus.yahoo.com
+                         IBM Personal Computing Division
+                         http://www.ibm.com/pc/support
+--------------------
+
+I will try to contact a developer at IBM ...
+
+Greetings,
+Dom
+
+On Thursday 02 January 2003 22:54, Dom wrote:
+> Dear Sandro,
+>
+> I posted the following message to the "Thinkpad A20,A21,A22,A30,A31" forum
+> at IBM. Currently it looks like the posting has not been opened to public
+> yet? I hope that IBM will provide a patch or that we can assist in creating
+> a work around for the buggy bios. I know several friends who are running
+> Linux on their A31's. Currently we all stick to kernel 2.4.19 +
+> acpi-20020918 patch. This combination provides at least some support for
+> ACPI.
+>
+> Thanks to the hard-working acpi-development team!
+> Dom
+>
+> --------
+> Topic:      ACPI Linux (1 of 1), Read 10 times
+> Conf: ThinkPad A20,A21,A22,A30,A31
+> From: bartenst
+> Date: Thursday, January 02, 2003 03:07 PM
+>
+> Hi all!
+>
+> I am successfully running Gentoo Linux
+> (http://www.gentoo.org) on my new A31. Unfortunately
+> ACPI is not getting initialized properly with the new
+> acpi-patch from 20021212 ( + vanilla 2.4.20). I consulted
+> the acpi developers (http://acpi.sf.net) who told me that the
+> problem is the buggy BIOS! Is IBM aware of that problem
+> and are there any ongoing efforts to solve this problem?
+>
+> Thanks!
+> Dom
+>
+> p.s.
+> http://marc.theaimsgroup.com/?l=acpi4linux&m=103643408113691&w=2
+> summary:
+> "In short, ECDT -> EC_ID is supposed to be the full path
+> name of your EC device in ACPI Namespace like
+> "\_SB.PCI0.LPC.EC", but __NOT__ in your BIOS. You
+> can work around your problem by adding hack code, but it
+> makes OS
+> code dirty to save broken BIOSes and it allows BIOS
+> vendor not to fix their problem."
+> ----------
+
 
 
 -------------------------------------------------------
