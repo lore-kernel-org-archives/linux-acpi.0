@@ -1,15 +1,12 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: Re: Call for help: list of machines with working S3
-Date: Thu, 24 Feb 2005 13:37:23 +0000
-Message-ID: <1109252243.7614.21.camel@elrond.flymine.org>
-References: <20050214211105.GA12808@elf.ucw.cz>
-	 <29495f1d050223113044b96fcf@mail.gmail.com>
-	 <1109217054.10202.1.camel@neuromancer.home.net>
-	 <20050224112118.GV26667@project-bob.org>
+From: Lorenzo Colitti <lorenzo-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: ACPI thermal event causes brief freeze
+Date: Fri, 25 Feb 2005 14:48:58 +0100
+Message-ID: <421F2CCA.1080001@colitti.com>
+References: <421E6D6C.2090906@colitti.com> <421EFF31.9060002@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <20050224112118.GV26667-PWUXgD0Mw7gU45xQlXEPcg@public.gmane.org>
+In-Reply-To: <421EFF31.9060002-l3A5Bk7waGM@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,20 +16,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2005-02-24 at 11:21 +0000, Proinnsias Breathnach wrote:
+Thomas Renninger wrote:
+>> since I upgraded to kernel 2.6.11-rc4, every time there is a thermal 
+>> event my machine (HP/compaq NC6000) freezes for about 1 second.
+> 
+> Have you enabled ACPI_DEBUG?
+> If yes, try again without.
 
-> Kernel is the "vanilla" ubuntu 2.6.10-3 kernel from Hoary.
+Wow, that seems to work like a charm. Thanks!
 
-When it comes to ACPI, that's not very vanilla. The failure is probably
-due to the ACPI regressions in 2.6.10 - the Ubuntu kernel has 2.6.11
-ACPI code which fixes this.
 
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
-
+Cheers,
+Lorenzo
 
 
 -------------------------------------------------------
