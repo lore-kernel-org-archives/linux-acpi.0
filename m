@@ -1,13 +1,14 @@
-From: ludovic.laurent-ytnthM/UnKeG5XvV6lv2jw@public.gmane.org
-Subject: RE: Crash on boot with latest ACPI versions
-Date: Mon, 26 May 2003 08:09:05 +0200
+From: Markus Seemann <mseeman-l3A5Bk7waGM@public.gmane.org>
+Subject: OSPMD
+Date: Fri, 23 May 2003 09:42:26 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <67434F035452D411B4300008C75DF6550611046F@apl342>
+Message-ID: <200305230942.26295.mseeman@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,94 +17,16 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: jean-marc.valin-ZbDpfo6ompS0w+vkrfm4Cg@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-hello,
+Hi,
 
-I have the same problem with my Compaq Presario 1716EA, and I use =
-pci=3Dnoacpi
-to boot.=20
-I'm very interested by your modified dsdt, could send me the link where =
-I
-can found it ?
+the last update of ospmd was on November 22, 2002.
+(see: http://sourceforge.net/projects/acpi)
+Does actually somebody refine this daemon?
 
-
-regards,
-
------Original Message-----
-From: Jean-Marc Valin [mailto:jean-marc.valin-ZbDpfo6ompS0w+vkrfm4Cg@public.gmane.org]
-Sent: 25 May 2003 06:18
-To: S=E9rgio Monteiro Basto
-Cc: acpi-devel
-Subject: Re: [ACPI] Crash on boot with latest ACPI versions
-
-
-Actually, I think it's a dsdt bug. I tried an updated one and it works
-fine now (2.4.20 with APIC on). I guess the case is closed?
-
-	Jean-Marc
-
-Le dim 25/05/2003 =E0 00:13, S=E9rgio Monteiro Basto a =E9crit :
-> Have you try disable apic?=20
-> I many presarios 7xx=20
->=20
-> On Sat, 2003-05-24 at 07:35, Jean-Marc Valin wrote:=20
-> > Hi,
-> >=20
-> > I've been experiencing crashes while booting with the latest ACPI
-> > driver. Since I can't use a screendump program, I tried to take a
-> > picture instead (sorry, bad quality):
-> > http://www.xiph.org/~jm/acpi_crash.jpg
-> >=20
-> > I'm using a Compaq Presario 1720CA laptop (PIII 1 GHz) under =
-2.4.20. The
-> > stock kernel ACPI doesn't crash (though battery status doesn't =
-work),
-> > but the latest ACPI drivers (all versions less than 6-10 months =
-old)
-> > crash on boot every time.
-> >=20
-> > 	Jean-Marc
-> >=20
-> > --=20
-> > Jean-Marc Valin, M.Sc.A.
-> > LABORIUS (http://www.gel.usherb.ca/laborius)
-> > Universit=E9 de Sherbrooke, Qu=E9bec, Canada
-> >=20
-> --=20
-> S=E9rgio Basto
-> Technology Project Manager
-> onevision design studios
-> TECMAIA - Parque de Ci=EAncia e Tecnologia da Maia
-> Rua Frederico Ulrich, 2650
-> 4470-605 MOREIRA DA MAIA
-> tel. + 351 22 091 5410
-> fax. + 351 22 091 5419
-> email: sbasto-n97bsLhj/YhQPh2TJV30h1aTQe2KTcn/@public.gmane.org
-> web: http://www.onevision-design.com
---=20
-Jean-Marc Valin, M.Sc.A.
-LABORIUS (http://www.gel.usherb.ca/laborius)
-Universit=E9 de Sherbrooke, Qu=E9bec, Canada
-
-
-**** DISCLAIMER ****=20
-"This e-mail and any attachments thereto may contain information=20
-which is confidential and/or protected by intellectual property=20
-rights and are intended for the sole use of the recipient(s) named =
-above.=20
-Any use of the information contained herein (including, but not limited =
-to,=20
-total or partial reproduction, communication or distribution in any =
-form)=20
-by persons other than the designated recipient(s) is prohibited.=20
-If you have received this e-mail in error, please notify the sender =
-either=20
-by telephone or by e-mail and delete the material from any computer.=20
-Thank you for your cooperation."
-
+cu markus
 
 
 -------------------------------------------------------
