@@ -1,12 +1,15 @@
-From: Faye Pearson <faye-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org>
-Subject: ACPI Thermal zone passive cooling trigger problem
-Date: Fri, 23 Aug 2002 10:37:28 +0100
+From: SLIVER` <sliver-qqXEv8jiLWqhPH1hqNUYSQ@public.gmane.org>
+Subject: RE: Problem with Compaq Evo N110
+Date: Fri, 23 Aug 2002 18:35:10 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020823093728.GB13092@clara.net>
+Message-ID: <5.1.0.14.2.20020823171551.00a25c50@pop.casa.mia>
+References: <B9ECACBD6885D5119ADC00508B68C1EA0D19B707@orsmsx107.jf.inte
+ l.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"; format=flowed
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <B9ECACBD6885D5119ADC00508B68C1EA0D19B707@orsmsx107.jf.inte
+ l.com>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,56 +19,64 @@ List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-I think I've got a handle on what is happening now.
+First of all, thanks so much to everyone for your help... but unfortunately 
+I have to trouble you again... :/
 
-The processor is hot (about 65 degrees).  This is the temperature that
-is in the thermal zone for passive cooling (switch the processor state
-slow to reduce temperature).
-
-Now my problem is that I'm not exactly sure what's delivering what
-messages where.
-
-What I do know is that /proc/acpi/events is being flooded by
-processor 0x80 events which I think is a request to change state.
-The processor isn't changing state, and you can't make it change
-state when this is happening, I assume because of some mutex on
-the embedded controller which the event scheduler almost
-always has lock on.
-
-Should the kernel be handling the processor change-state event,
-switching the speedstep to slow/cooler mode and then solving the problem
-(yay) or should there be a user mode program receiving the event and
-changing the state - it won't work because it can't get a schedule in
-whilst the mutex is released.
-
-Is it a problem with the kernel acpi code that the event is being
-delivered so often?  Is it something the kernel is doing - execute code
-to check temperature, find it over passive limit, send notify. which
-is doing it every time the temperature is checked rather than just when
-the boundary changes.
-
-I looked through the dsdt and couldn't find anything wrong, the thermal
-zone configuration is pretty standard.
-
-So many questions and so few answers.  Would removing the thermal zone
-support from the kernel provide a workaround in the meantime?  I'd
-rather run at 65 degrees than the 85 that the spinning non-blocking
-events cause at full clock and full fan.
-
-If I remove power at boot time, the CPU is started at 800Mhz and if I
-leave the speedstep daemon unloaded the laptop remains at 50 degrees
-on passive cooling.
+now ACPI is correctly loaded on (credo ke caricare sia load, specie in 
+senso computeristico, non sono sicura se regga l'on) boot, but I can't say 
+it is perfectly working... because acpi (client) doesn't find the batteries
 
 
+dreams@norad:/proc/acpi/battery/BAT1$ acpi -V -s
+      Thermal 1: ok, 50.0 degrees C
+      AC Adapter 1: on-line
+      Battery 1: slot empty <---------------------- ?!
 
--- 
-Faye Pearson,
-Software Development Manager,
-ClaraNET Ltd.       Tel 020 7903 3000
+I checked the acpi sorgent (non sicura se si dice sorgent) (acpi.c) and I 
+noticed that:
 
-So this is it.  We're going to die.
+
+    if (remaining_capacity < 0 || present_rate < 0 || design_capacity < 0 
+|| !state) {
+       if (show_empty_slots) {
+              printf("%12s %d: slot empty\n", BATTERY_DESC, battery_num);
+        }
+
+What it happens is that a series of controls are made, basing on the file 
+/proc/acpi/battery/BAT1/state
+and it fails on one of these (precisely on present rate). so, if we look at 
+that file:
+
+dreams@norad:~$ cat /proc/acpi/battery/BAT1/state
+present:                 yes
+capacity state:          ok
+charging state:          charging
+present rate:            unknown    <-------------------- ?!
+remaining capacity:      52428 mWh
+present voltage:         11000 mV
+
+I noticed that that value (number, dipende dal senso di valore) is definied 
+by /usr/src/linux/drivers/acpibattery.c
+
+         if (bst->present_rate == ACPI_BATTERY_VALUE_UNKNOWN)
+                 p += sprintf(p, "present rate:            unknown\n");
+         else
+                 p += sprintf(p, "present rate:            %d %s\n", (u32) 
+bst->present_rate, units);
+
+I rekon it could be some addres problem, but because of my scarce 
+programmation knowledges, I could say bullshit...
+
+Grazie a tutti.
+Thanks a lot to everybody
+
+Luca Memini
+
+
+
 
 
 -------------------------------------------------------
