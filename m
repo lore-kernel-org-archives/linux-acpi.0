@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: RE: ACPI -- Workaround for broken DSDT
-Date: Wed, 11 Feb 2004 14:31:54 +0800
+Subject: RE: broken power button
+Date: Wed, 11 Feb 2004 16:02:06 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB695@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB697@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,42 +17,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, "Scott T. Smith" <scott-j3vAvQ9dNB9ByuSxxbvQtw@public.gmane.org>
-Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: greg <greg-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org>, "Scott T. Smith" <scott-j3vAvQ9dNB9ByuSxxbvQtw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-  To AML issue, I think we should sort out interpreter bug , not just
-hack DSDT.
+
+>=20
+> I can confirm this behavior on my machine as well.
+
+You need to check:
+1. Whether a fixed event can be detected  . (Please refer
+acpi_ev_fixed_event_detect in drivers/acpi/events/evevent.c)
+2. try to comment  out below codes in acpi_button_notify
+(drivers/acpi/button.c)
+	if (!button || !button->device)
+		return_VOID.
 
 --Luming
-
-> We're doing something slightly different with ACPI on FreeBSD.  We add
-> hacks^Wworkarounds for buggy DSDT whenever possible but they=20
-> are under a
-> kernel option, #ifndef ACPICA_PEDANTIC.  The default is for=20
-> this option to
-> give maximum compatibility with the stock DSDT, at the expense of spec
-> correctness.  However, by adding that option and compiling a=20
-> kernel, OEMs
-> could test against ACPI-CA as a reference implementation=20
-> while ordinary
-> users get maximum compatibility.
->=20
-> I think the ACPI-CA developers should take a similar tact. =20
-> Len, who is on
-> the Linux side, could suggest distribution maintainers use=20
-> the option that
-> gives maximum Windows compatibility when shipping a distro. =20
-> Bob, who is
-> on the ACPI-CA side, could encourage OEMs to test with the option
-> disabled.  It might even make sense for a Linux distro maintainer to
-> partner with ACPI-CA to provide a reference ISO that OEMs=20
-> could boot that
-> had a /sbin/init that tests the various APIs for correctness.=20
->  Both Andy
-> and I thought this was a good direction to go and perhaps people are
-> already making progress in that area.
->=20
 
 
 -------------------------------------------------------
