@@ -1,14 +1,16 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: ASL help with latest acpi and compaq presario 2800t
-Date: Mon, 10 Feb 2003 14:57:40 +0100
+From: "Breathnach, Proinnsias  (Dublin)" <breatpro-Lp/cVzEoVybn/p8AFm7ortBPR1lH4CV8@public.gmane.org>
+Subject: 2.4.21-pre4 + ACPI + Suspend .... Vaio FX401
+Date: 10 Feb 2003 14:23:25 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030210135740.GG25625@poup.poupinou.org>
+Message-ID: <1044887004.5575.20.camel@DUBIW89675.ie.ml.com>
 References: <20030210004452.1978.qmail@scrye.com>
+ <20030210135740.GG25625@poup.poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+ charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20030210004452.1978.qmail-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20030210135740.GG25625-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,104 +19,21 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Kevin Fenzi <kevin-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
-Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Feb 09, 2003 at 05:44:48PM -0700, Kevin Fenzi wrote:
-> 
-> Greetings. 
-> 
-> I have been running nicely on my presario 2800t for a while, but with
-> kernel 2.4.18 and a pretty old acpi version. 
-> 
-> So, what better to do on a lazy sunday than try and upgrade to
-> 2.4.21-pre4 and the newest acpi? :) 
-> 
-> I pulled down the 2.4.21-pre4 kernel. Applied the
-> acpi-20030125-2.4.21-pre3.diff.gz diff to it. 
-> Then applied the patch-acpi-acpi20030125-swsusp18.gz software
-> suspend+acpi patch to that. 
-> 
-> First I tried just compiling that and seeing how acpi would work. 
-> It came up, but of course with no battery/ac, etc due to the broken
-> compaq dsdt. 
-> 
-> So, I pulled down acpidump and iasl-linux-20030123.tar.gz
-> dumped out the dsdt and tried to compile it. 
-> 
-> 56 errors. 
-> 
-> I first fixed all the "String must be entirely alphanumeric" errors
-> (compaq seems to like putting * in all their names.)
-> I realize it's against the spec, but could something be added to
-> change * to nothing if it finds it in a Name? 
-> 
-> Fixing those got me down to 21 errors. 
-> (Worth noting that at this point with the old iasl I was using with
-> 2.4.18 there were no further errors here). 
-> 
-> Any ideas on any of these:
-> 
-> dsdt.asl-2003-02-09   168:                 If(\_OSI) {
-> Error    1028 -                 Too few arguments ^  (\_OSI requires 1)
-> dsdt.asl-2003-02-09   169:                     "Windows 2001"
-> Error    1037 -                                             ^ parse error, unexpected PARSEOP_STRING_LITERAL
+Firstly, a big thank-you to all who are developing / testing ACPI, it's
+made life bearable on my laptop :)
 
+A quick question though ... is S3 "snooze" available on the 2.4 series
+yet, or do I have to start playing with a 2.5 kernel for that?
 
-Try:
+Again thanks for all your work ...
 
---- dsdt.asl	2003/02/10 13:49:25	1.1
-+++ dsdt.asl	2003/02/10 13:54:53
-@@ -165,8 +165,7 @@
-         }
-         If(LOr(LEqual(C009, 0x0), LEqual(C009, 0x3))) {
-             If(CondRefOf(\_OSI, Local0)) {
--                If(\_OSI) {
--                    "Windows 2001"
-+                If(\_OSI("Windows 2001")) {
-                     Store(0x4, C009)
-                 }
-             }
-@@ -1916,7 +1915,7 @@
-                         }
-                         Method(_OFF) {
-                             If(LOr(\_SB_.C020, LEqual(0x0, 0x1))) {
--                                Return(0x0)
-+                                /* Return(0x0) */
-                             }
-                             C132(0x3, 0x0)
-                         }
-@@ -2202,7 +2201,7 @@
-                         }
-                         Method(_OFF) {
-                             If(LOr(\_SB_.C023, LEqual(0x0, 0x1))) {
--                                Return(0x0)
-+                                /* Return(0x0) */
-                             }
-                             C132(0x1, 0x0)
-                         }
-@@ -2285,7 +2284,7 @@
-                 }
-             }
-             Scope(C162) {
--                Name(_HID, "*SYN0100")
-+                Name(_HID, "SYN0100")
-                 Name(_CID, Package(0x2) {
-                     0x02002e4f,
-                     0x130fd041,
+Proinnsias
 
 
 
-Alas, your DSDT do not contains some of the objects not found.  This
-is likely because you have SDST tables which contains them.  You need
-to force the compilation.
-
--- 
-Ducrot Bruno
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
 
 
 -------------------------------------------------------
