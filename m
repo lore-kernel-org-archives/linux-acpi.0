@@ -1,14 +1,13 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
 Subject: RE: \_PR\CPU\_INI not called during initialization
-Date: Mon, 6 Oct 2003 15:58:32 -0700
+Date: Mon, 6 Oct 2003 15:55:21 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <D3A3AA459175A44CB5326F26DA7A189C1C3DE1@orsmsx405.jf.intel.com>
+Message-ID: <20031006155050.O3905@root.org>
+References: <D3A3AA459175A44CB5326F26DA7A189C1C3DE0@orsmsx405.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Class: urn:content-classes:message
+In-Reply-To: <D3A3AA459175A44CB5326F26DA7A189C1C3DE0-sBd4vmA9Se58QrAoInS571DQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,24 +16,9 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-
-Nope. A Processor object is just that.  A Processor.  Not a Device.
-Just because something can appear under _SB does not imply that it is a
-Device object.
-
-However, once again, we need to see what MS does.
-Bob
-
-
------Original Message-----
-From: Nate Lawson [mailto:nate-Y6VGUYTwhu0@public.gmane.org]=20
-Sent: Monday, October 06, 2003 3:55 PM
-To: Moore, Robert
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: RE: \_PR\CPU\_INI not called during initialization
 
 Here is the info I'm going on, section 5.3.1:
 
@@ -44,8 +28,7 @@ ACPI 1.0 Processor Namespace. ACPI 1.0 requires all Processor objects to
 be defined under this namespace. ACPI 2.0 allows Processor object
 definitions under the \_SB namespace. ACPI 2.0-compatible systems may
 maintain the \_PR namespace for compatibility with ACPI 1.0 operating
-systems. An ACPI 2.0-compatible namespace may define Processor objects
-in
+systems. An ACPI 2.0-compatible namespace may define Processor objects in
 either the \_SB or \_PR scope but not both.
 
 \_SB
@@ -94,14 +77,12 @@ On Mon, 6 Oct 2003, Moore, Robert wrote:
 > > Cc: Moore, Robert
 > > Subject: \_PR\CPU\_INI not called during initialization
 > >
-> > My laptop has two performance states I have been using, however, I
-get
+> > My laptop has two performance states I have been using, however, I get
 > a
 > > 0
 > > when I read the mhz and mW associated with each state.  When running
 > > with
-> > debug =3D ACPI_LV_INIT, I noticed that the processor's _INI method =
-is
+> > debug = ACPI_LV_INIT, I noticed that the processor's _INI method is
 > not
 > > called and this is what fills out the Px info.  Is this something
 > you'll
