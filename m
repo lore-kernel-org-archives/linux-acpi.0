@@ -1,11 +1,10 @@
-From: Alvaro Lopes <alvieboy-JkNoWtNHh5AAvxtiuMwx3w@public.gmane.org>
-Subject: ACPI PCI bus mismatch ?
-Date: Wed, 05 Feb 2003 16:36:24 +0000
+From: Valli B <valli_bsn-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: ACPI support on NIC driver
+Date: Wed, 5 Feb 2003 10:14:20 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3E413D88.2020001@alvie.com>
+Message-ID: <20030205181420.31816.qmail@web9205.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/alternative; boundary="0-610027987-1044468860=:29967"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -18,87 +17,44 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all
-
-I was debugging ACPI in my laptop and was comparing 2.4.18 against=20
-latest 2.4.19pre4-ac1+acpi, when I found this:
-
-There's a method in my DSTD that looks like this:
-
-        Method (_L08, 0, Serialized)
-        {
-            Store (\_SB.PCI0.PCIB.BRGB, Local0)
-            ShiftLeft (Local0, 0x18, Local0)
-            Or (Local0, 0x0020B10B, Local0)
-            Store (0xAF, \_SB.MEM.IEDI)
-=2E
-=2E
-=2E
-
-When it runs on 2.4.18, I can see it working almost properly. I debugged=20
-exregion and this was the result, with my comments:
+--0-610027987-1044468860=:29967
+Content-Type: text/plain; charset=us-ascii
 
 
-Feb  5 16:18:09 supernova kernel: exregion-0353 [25]=20
-Ex_pci_config_space_ha: Pci_config 0 (8) Seg(0000) Bus(0000) Dev(001e)=20
-Func(0000) Reg(0019)
-    This one is reading \_SB.PCI0.PCIB.BRGB,  device 0x1e @ bus #0,=20
-which according to lspci, is my PCI bridge (which is correct):
+Hi, 
 
-    00:1e.0 PCI bridge: Intel Corp. 82820 820 (Camino 2) Chipset PCI=20
-(-M) (rev 42)
+I'm a newbie to ACPI, hence this question. 
 
+I'm trying add ACPI support for a NIC driver on Linux.What I would like to know is which is the latest kernel version & relevant patches I should use to support ACPI. Moreover, do I need a different BIOS ? Or any other pointers in this regard would be a great help.
 
-But, when I boot 2.4.20pre4-ac1+acpi, the handler instead of using Bus=20
-#0, uses Bus #2:
+Please suggest me out on this.
 
-Feb  5 16:25:28 supernova kernel: exregion-0352 [25]=20
-ex_pci_config_space_ha: pci_config 0 (8) Seg(0000) Bus(0002) Dev(001e)=20
-Func(0000) Reg(0019)
+Thanks in advance,
 
-.... and always reads 0xFF.
+Valli.
 
-lspci with 2.4.20pre4-ac1+acpi is:
+ 
 
-alvieboy@supernova:~$ uname -a
-Linux supernova 2.4.21-pre4-ac1 #2 SMP Ter Fev 4 12:18:03 WET 2003 i686=20
-unknown unknown GNU/Linux
-alvieboy@supernova:~$ lspci
-00:00.0 Host bridge: Intel Corp. 82845 845 (Brookdale) Chipset Host=20
-Bridge (rev 05)
-00:01.0 PCI bridge: Intel Corp. 82845 845 (Brookdale) Chipset AGP Bridge=20
-(rev 05)
-00:1d.0 USB Controller: Intel Corp.: Unknown device 2482 (rev 02)
-00:1d.1 USB Controller: Intel Corp.: Unknown device 2484 (rev 02)
-00:1e.0 PCI bridge: Intel Corp. 82820 820 (Camino 2) Chipset PCI (-M)=20
-(rev 42)
-00:1f.0 ISA bridge: Intel Corp.: Unknown device 248c (rev 02)
-00:1f.1 IDE interface: Intel Corp.: Unknown device 248a (rev 02)
-00:1f.5 Multimedia audio controller: Intel Corp. AC'97 Audio Controller=20
-(rev 02)
-00:1f.6 Modem: Intel Corp.: Unknown device 2486 (rev 02)
-01:00.0 VGA compatible controller: nVidia Corporation: Unknown device=20
-0175 (rev a3)
-02:08.0 Ethernet controller: Intel Corp. 82801CAM (ICH3) Chipset=20
-Ethernet Controller (rev 42)
-02:0b.0 CardBus bridge: Toshiba America Info Systems ToPIC95 PCI to=20
-Cardbus Bridge with ZV Support (rev 32)
-02:0b.1 CardBus bridge: Toshiba America Info Systems ToPIC95 PCI to=20
-Cardbus Bridge with ZV Support (rev 32)
+ 
 
 
-Anyone sees which might me causing this ?
 
-TYA
+---------------------------------
+Do you Yahoo!?
+Yahoo! Mail Plus - Powerful. Affordable. Sign up now
+--0-610027987-1044468860=:29967
+Content-Type: text/html; charset=us-ascii
 
-
---=20
-
-=C1lvaro Lopes=20
----------------------
-A .sig is just a .sig
-
-
+<P>Hi, </P>
+<P>I'm a newbie to ACPI, hence this question. </P>
+<P>I'm trying add ACPI support for a NIC driver on Linux.What I would like to know is which is the latest kernel version &amp; relevant patches&nbsp;I should use to support ACPI. Moreover, do I need a different BIOS ? Or any other&nbsp;pointers in this regard would be a great help.</P>
+<P>Please&nbsp;suggest me out on this.</P>
+<P>Thanks in advance,</P>
+<P>Valli.</P>
+<P>&nbsp;</P>
+<P>&nbsp;</P><p><br><hr size=1>Do you Yahoo!?<br>
+<a href="http://rd.yahoo.com/mail/mailsig/*http://mailplus.yahoo.com">Yahoo! Mail Plus</a> - Powerful. Affordable. <a href="http://rd.yahoo.com/mail/mailsig/*http://mailplus.yahoo.com">Sign up now</a>
+--0-610027987-1044468860=:29967--
 
 
 -------------------------------------------------------
