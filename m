@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: S3 on a Compaq Evo N610c
-Date: Tue, 3 Feb 2004 17:14:41 +0800
+Subject: RE: system crashes after cat /proc/acpi/battery/BAT0/state
+Date: Tue, 3 Feb 2004 16:35:22 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB677@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB673@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,24 +17,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Thorsten Zachmann <t.zachmann-c61pB8mzqkY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Gabe Sibley <gsibley-DG7SOAwx7rg@public.gmane.org>
+To: Peter Muessig-Trapp <muessig-trapp-S0/GAf8tV78@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-
-> I also had this on my Toshiba tecra s1 after I applied a=20
-> fixed dsdt from the=20
-> net. The problem was that the fixed dsdt was for 256MB and my=20
-> pc has 512 MB=20
-> of RAM. After I changed the RAM size according to the one=20
-> found in the=20
-> original dsdt this problem did no longer occur.=20
->=20
-> Hope this helps.=20
+> the system print out battery informations but after 5 seconds=20
+> the system=20
+> crashs
+> completely.
+> I can't find any error messages in /var/log/messages which helps me
+> understanding whats going on.
 >=20
 
-Would you post it on list?
+Serial console ?
 
+> Anyone any idea, what's going on? Or what can I do, to get=20
+> any helpfull
+> hints?
+>=20
+> I am using kernel 2.6.0 Debian/sid.
+>=20
+> cat /proc/acpi/info
+> version:                 20031002
+>=20
+
+How about latest base kernel with latest ACPI ?
 
 
 -------------------------------------------------------
