@@ -1,300 +1,74 @@
-From: Alex Williamson <alex.williamson@hp.com>
-Subject: Re: [ACPI] Re: [PATCH] filling in ACPI method access via sysfs
-	namespace
-Date: Fri, 09 Apr 2004 23:32:26 -0600
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <1081575145.2562.18.camel@wilson.home.net>
-References: <1081453741.3398.77.camel@patsy.fc.hp.com>
-	 <1081549317.2694.25.camel@patsy.fc.hp.com>  <4077535D.6020403@neggie.net>
-	 <1081566768.2562.8.camel@wilson.home.net>
+From: Paul Ionescu <paul-f7LjuT9/YZU@public.gmane.org>
+Subject: Re: [RFC] filling in ACPI files in sysfs
+Date: Sat, 10 Apr 2004 13:03:34 +0300
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <1081591413.23299.13.camel@t40>
+References: <1081373781.23176.30.camel@t40>
+	 <1081376023.2748.15.camel@patsy.fc.hp.com>
+	 <20040408172548.GH18329@parcelfarce.linux.theplanet.co.uk>
+	 <1081445594.2747.8.camel@patsy.fc.hp.com>  <1081536801.26073.120.camel@t40>
+	 <1081537175.2694.11.camel@patsy.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-In-Reply-To: <1081566768.2562.8.camel@wilson.home.net>
-To: John Belmonte <john@neggie.net>
-Cc: acpi-devel@lists.sourceforge.net, linux-kernel <linux-kernel@vger.kernel.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1081537175.2694.11.camel-Wmjt7DDUnIVxnVILBQAtiA@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>, acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2004-04-09 at 21:12, Alex Williamson wrote:
+Hi Alex,
 
-> We could make the store function save off the method
-> parameters, then the show function would call the method with the saved
-> parameters and return the results.  Obviously there are some userspace
-> ordering issues that could make this complicated, but it's easy to code
-> on the kernel side.
+You are right, I have:
+/sys/bus/pci/slots/4294967295 # find .
+.
+./test
+./cur_bus_speed
+./max_bus_speed
+./address
+./adapter
+./latch
+./attention
+./power
 
-   Here's an implementation of this.  It's a little klunky, but
-certainly fills in the functionality.
+When I boot in dock, the value of power and adapter is 1, when I boot
+normaly, I have 0 in those files.
+Now, I booted in DOCK, and I did an echo 0 > power, and surprise, it did
+an electromechanicaly eject of dock !!!.
+Anyway, echo-ing 1 again, does nothing for me. I expected to power the
+pci slot again and find the coresponding device in there.
+So, thanks for the tips, now I get back to playing with apci.
 
-	Alex
+Paul
 
-===== drivers/acpi/scan.c 1.22 vs edited =====
---- 1.22/drivers/acpi/scan.c	Tue Feb  3 22:29:19 2004
-+++ edited/drivers/acpi/scan.c	Fri Apr  9 23:02:48 2004
-@@ -25,6 +25,208 @@
- static LIST_HEAD(acpi_device_list);
- static spinlock_t acpi_device_lock = SPIN_LOCK_UNLOCKED;
- 
-+struct acpi_handle_attribute {
-+	struct attribute attr;
-+	ssize_t (*show)(struct acpi_device *, struct acpi_handle_attribute *, char *);
-+	ssize_t (*store)(struct acpi_device *, struct acpi_handle_attribute *, const char *, size_t);
-+	union acpi_object *args;
-+	size_t length;
-+	spinlock_t lock;
-+};
-+
-+static ssize_t
-+acpi_device_write_raw(
-+	struct acpi_device		*device,
-+	struct acpi_handle_attribute	*attrib,
-+	const char			*buf,
-+	size_t				length)
-+{
-+	spin_lock(&attrib->lock);
-+	if (attrib->args) {
-+		kfree(attrib->args);
-+		attrib->args = NULL;
-+		attrib->length = 0;
-+	}
-+
-+	attrib->args = kmalloc(length, GFP_KERNEL);
-+	if (!attrib->args) {
-+		spin_unlock(&attrib->lock);
-+		return -ENODEV;
-+	}
-+
-+	memcpy(attrib->args, buf, length);
-+	attrib->length = length;
-+	spin_unlock(&attrib->lock);
-+
-+	return length;
-+}
-+
-+static ssize_t
-+acpi_device_read_raw(
-+	struct acpi_device		*device,
-+	struct acpi_handle_attribute	*attrib,
-+	char				*buf)
-+{
-+	struct acpi_object_list *arg_list = NULL;
-+	union acpi_object **cur_arg, *args = NULL;
-+	struct acpi_buffer buffer = {ACPI_ALLOCATE_BUFFER, NULL};
-+	acpi_status status;
-+	u32 count, i;
-+	size_t size;
-+
-+	spin_lock(&attrib->lock);
-+	count = attrib->length / sizeof(union acpi_object);
-+
-+	if (count) {
-+		size = sizeof(struct acpi_object_list) +
-+		       ((count - 1) * sizeof(union acpi_object *));
-+
-+		arg_list = kmalloc(size, GFP_KERNEL);
-+		if (!arg_list) {
-+			spin_unlock(&attrib->lock);
-+			return -ENODEV;
-+		}
-+
-+		memset(arg_list, 0, size);
-+		arg_list->count = count;
-+
-+		args = kmalloc(attrib->length, GFP_KERNEL);
-+		if (!args) {
-+			kfree(arg_list);
-+			spin_unlock(&attrib->lock);
-+			return -ENODEV;
-+		}
-+		memcpy(args, attrib->args, attrib->length);
-+
-+		cur_arg = &arg_list->pointer;
-+		for (i = 0 ; i < count ; i++)
-+			cur_arg[i] = &args[i];
-+
-+		kfree(attrib->args);
-+		attrib->args = NULL;
-+		attrib->length = 0;
-+	}
-+	spin_unlock(&attrib->lock);
-+
-+	status = acpi_evaluate_object(device->handle, attrib->attr.name,
-+	                              arg_list, &buffer);
-+	if (arg_list)
-+		kfree(arg_list);
-+	if (args)
-+		kfree(args);
-+
-+	if (ACPI_FAILURE(status))
-+		return -ENODEV;
-+
-+	memcpy(buf, buffer.pointer, buffer.length);
-+	acpi_os_free(buffer.pointer);
-+
-+	return buffer.length;
-+}
-+
-+#define to_acpi_device(n) container_of(n, struct acpi_device, kobj)
-+#define to_handle_attr(n) container_of(n, struct acpi_handle_attribute, attr);
-+
-+static void
-+create_sysfs_files(struct acpi_device *dev)
-+{
-+	acpi_handle                  chandle = 0;
-+	char                         pathname[ACPI_PATHNAME_MAX];
-+	acpi_status                  status;
-+	struct acpi_buffer           buffer;
-+	struct acpi_handle_attribute *attrib;
-+	int                          error;
-+
-+	buffer.length = sizeof(pathname);
-+	buffer.pointer = pathname;
-+
-+	while (ACPI_SUCCESS(acpi_get_next_object(ACPI_TYPE_METHOD, dev->handle,
-+	                                         chandle, &chandle))) {
-+
-+		memset(pathname, 0 , sizeof(pathname));
-+
-+		status = acpi_get_name(chandle, ACPI_SINGLE_NAME, &buffer);
-+		if (ACPI_FAILURE(status))
-+			continue;
-+
-+		attrib = kmalloc(sizeof(struct acpi_handle_attribute),
-+		                 GFP_KERNEL);
-+		if (!attrib)
-+			continue;
-+
-+		memset(attrib, 0, sizeof(struct acpi_handle_attribute));
-+
-+		attrib->attr.name = kmalloc(strlen(pathname), GFP_KERNEL);
-+		if (!attrib->attr.name) {
-+			kfree(attrib);
-+			continue;
-+		}
-+
-+		strcpy(attrib->attr.name, pathname);
-+
-+		attrib->attr.mode = S_IFREG | S_IRUSR |
-+		                    S_IWUSR | S_IRGRP | S_IWGRP;
-+		attrib->show = acpi_device_read_raw;
-+		attrib->store = acpi_device_write_raw;
-+		spin_lock_init(&attrib->lock);
-+
-+		error = sysfs_create_file(&dev->kobj, &attrib->attr);
-+		if (error) {
-+			kfree(attrib->attr.name);
-+			kfree(attrib);
-+			continue;
-+		}
-+	}
-+}
-+
-+extern struct dentry * sysfs_get_dentry(struct dentry *, const char *);
-+
-+static void
-+remove_sysfs_files(struct acpi_device *dev)
-+{
-+	acpi_handle                  chandle = 0;
-+	char                         pathname[ACPI_PATHNAME_MAX];
-+	acpi_status                  status;
-+	struct acpi_buffer           buffer;
-+	struct acpi_handle_attribute attrib, *old_attrib;
-+	struct attribute             *old_attr;
-+	struct dentry                *dentry;
-+
-+	buffer.length = sizeof(pathname);
-+	buffer.pointer = pathname;
-+	attrib.attr.name = pathname;
-+
-+	while (ACPI_SUCCESS(acpi_get_next_object(ACPI_TYPE_METHOD, dev->handle,
-+	                                         chandle, &chandle))) {
-+
-+		memset(pathname, 0 , sizeof(pathname));
-+
-+		status = acpi_get_name(chandle, ACPI_SINGLE_NAME, &buffer);
-+		if (ACPI_FAILURE(status))
-+			continue;
-+
-+		down(&(dev->kobj.dentry->d_inode->i_sem));
-+		dentry = sysfs_get_dentry(dev->kobj.dentry, pathname);
-+		if (!IS_ERR(dentry))
-+			old_attr = dentry->d_fsdata;
-+		else
-+			old_attr = NULL;
-+		up(&(dev->kobj.dentry->d_inode->i_sem));
-+		
-+		sysfs_remove_file(&dev->kobj, &attrib.attr);
-+
-+		if (old_attr) {
-+			if (strncmp(pathname, old_attr->name,
-+			    strlen(pathname)) != 0)
-+				continue;
-+
-+			old_attrib = to_handle_attr(old_attr);
-+			kfree(old_attr->name);
-+			kfree(old_attrib);
-+		}
-+	}
-+}
-+
- static void acpi_device_release(struct kobject * kobj)
- {
- 	struct acpi_device * dev = container_of(kobj,struct acpi_device,kobj);
-@@ -33,7 +235,31 @@
- 	kfree(dev);
- }
- 
-+static ssize_t acpi_device_attr_show(struct kobject *kobj,
-+                struct attribute *attr, char *buf)
-+{
-+	struct acpi_device *device = to_acpi_device(kobj);
-+	struct acpi_handle_attribute *attribute = to_handle_attr(attr);
-+	return attribute->show ?
-+	       attribute->show(device, attribute, buf) : 0;
-+}
-+
-+static ssize_t acpi_device_attr_store(struct kobject *kobj,
-+                struct attribute *attr, const char *buf, size_t len)
-+{
-+	struct acpi_device *device = to_acpi_device(kobj);
-+	struct acpi_handle_attribute *attribute = to_handle_attr(attr);
-+	return attribute->store ?
-+	       attribute->store(device, attribute, buf, len) : 0;
-+}
-+
-+static struct sysfs_ops acpi_device_sysfs_ops = {
-+	.show = acpi_device_attr_show,
-+	.store = acpi_device_attr_store,
-+};
-+
- static struct kobj_type ktype_acpi_ns = {
-+	.sysfs_ops	= &acpi_device_sysfs_ops,
- 	.release	= acpi_device_release,
- };
- 
-@@ -72,6 +298,7 @@
- 	device->kobj.ktype = &ktype_acpi_ns;
- 	device->kobj.kset = &acpi_namespace_kset;
- 	kobject_add(&device->kobj);
-+	create_sysfs_files(device);
- }
- 
- static int
-@@ -79,6 +306,7 @@
- 	struct acpi_device	*device, 
- 	int			type)
- {
-+	remove_sysfs_files(device);
- 	kobject_unregister(&device->kobj);
- 	return 0;
- }
-@@ -706,7 +934,7 @@
- 	switch (type) {
- 	case ACPI_BUS_TYPE_DEVICE:
- 		result = acpi_bus_get_status(device);
--		if (ACPI_FAILURE(result) || !device->status.present) {
-+		if (ACPI_FAILURE(result)) {
- 			result = -ENOENT;
- 			goto end;
- 		}
+
+On Fri, 2004-04-09 at 21:59, Alex Williamson wrote:
+> On Fri, 2004-04-09 at 12:53, Paul Ionescu wrote:
+> > I also have an ACPI hotplug PCI slot in the laptop, because when I
+> > insert acpiphp.ko module, it sais that it found and registered a slot.
+> > Now, where do I find some info about that slot, or how can I play with
+> > it ? I suppose it is the PCI slot from my dock.
+> > I could not find any info about it in /proc or /sys.
+> > Is there a standard name I should look for ?
+> 
+> 
+>    PCI hotplug slots registered via the ACPI hotplug driver show up
+> under /sys/bus/pci/slots.  There are a few things you can do w/ it via
+> that interface.
+> 
+> 	Alex
+
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: IBM Linux Tutorials
+Free Linux tutorial presented by Daniel Robbins, President and CEO of
+GenToo technologies. Learn everything from fundamentals to system
+administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
