@@ -1,7 +1,7 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Fix acpi video docs
-Date: Wed, 12 Jan 2005 14:24:54 +0100
-Message-ID: <20050112132454.GA1588@elf.ucw.cz>
+Subject: thermal: tell user when something goes very wrong
+Date: Wed, 12 Jan 2005 14:26:22 +0100
+Message-ID: <20050112132621.GA2104@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,49 +20,36 @@ List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-I think I posted this one before, but it did not make it into
-2.6.11-rc1... It cleans video_extension docs. Please apply,
+This informs user when turning fan on/off helps. It also does not
+retry playing with fan: on evo nx560c this lead to ugly loop in acpi
+trying to turn it on over and over and over and over... Please apply,
 
 Signed-off-by: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+
 								Pavel
 
---- clean/Documentation/power/video_extension.txt	2004-12-25 13:34:57.000000000 +0100
-+++ linux/Documentation/power/video_extension.txt	2004-12-25 22:02:11.000000000 +0100
-@@ -1,13 +1,16 @@
--This driver implement the ACPI Extensions For Display Adapters
--for integrated graphics devices on motherboard, as specified in
--ACPI 2.0 Specification, Appendix B, allowing to perform some basic
--control like defining the video POST device, retrieving EDID information
--or to setup a video output, etc.  Note that this is an ref. implementation only.
--It may or may not work for your integrated video device.
-+ACPI video extensions
-+~~~~~~~~~~~~~~~~~~~~~
-+
-+This driver implement the ACPI Extensions For Display Adapters for
-+integrated graphics devices on motherboard, as specified in ACPI 2.0
-+Specification, Appendix B, allowing to perform some basic control like
-+defining the video POST device, retrieving EDID information or to
-+setup a video output, etc.  Note that this is an ref. implementation
-+only.  It may or may not work for your integrated video device.
- 
- Interfaces exposed to userland through /proc/acpi/video:
- 
--VGA/info : display the supported video bus device capability like ,Video ROM, CRT/LCD/TV.
-+VGA/info : display the supported video bus device capability like Video ROM, CRT/LCD/TV.
- VGA/ROM :  Used to get a copy of the display devices' ROM data (up to 4k).
- VGA/POST_info : Used to determine what options are implemented.
- VGA/POST : Used to get/set POST device.
-@@ -15,7 +18,7 @@
- 	Please refer ACPI spec B.4.1 _DOS
- VGA/CRT : CRT output
- VGA/LCD : LCD output
--VGA/TV : TV output 
-+VGA/TVO : TV output 
- VGA/*/brightness : Used to get/set brightness of output device
- 
- Notify event through /proc/acpi/event:
-
-
+--- clean/drivers/acpi/thermal.c	2005-01-12 11:07:39.000000000 +0100
++++ linux/drivers/acpi/thermal.c	2005-01-12 11:12:02.000000000 +0100
+@@ -612,8 +625,7 @@
+ 				for (j = 0; j < active->devices.count; j++) {
+ 					result = acpi_bus_set_power(active->devices.handles[j], ACPI_STATE_D0);
+ 					if (result) {
+-						ACPI_DEBUG_PRINT((ACPI_DB_WARN, "Unable to turn cooling device [%p] 'on'\n", active->devices.handles[j]));
+-						continue;
++						printk(KERN_ERR "Unable to turn cooling device [%p] 'on'\n", active->devices.handles[j]);
+ 					}
+ 					active->flags.enabled = 1;
+ 					ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Cooling device [%p] now 'on'\n", active->devices.handles[j]));
+@@ -630,8 +642,7 @@
+ 			for (j = 0; j < active->devices.count; j++) {
+ 				result = acpi_bus_set_power(active->devices.handles[j], ACPI_STATE_D3);
+ 				if (result) {
+-					ACPI_DEBUG_PRINT((ACPI_DB_WARN, "Unable to turn cooling device [%p] 'off'\n", active->devices.handles[j]));
+-					continue;
++					printk(KERN_ERR "Unable to turn cooling device [%p] 'off'\n", active->devices.handles[j]);
+ 				}
+ 				active->flags.enabled = 0;
+ 				ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Cooling device [%p] now 'off'\n", active->devices.handles[j]));
 
 -- 
 People were complaining that M$ turns users into beta-testers...
