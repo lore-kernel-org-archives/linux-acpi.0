@@ -1,12 +1,14 @@
-From: Keshavamurthy Anil S <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] processor.ko: use kobject_hotplug() to notify user agent
-Date: Wed, 10 Nov 2004 18:22:13 -0800
-Message-ID: <20041110182213.B15383@unix-os.sc.intel.com>
-Reply-To: Keshavamurthy Anil S <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: valerio-3NZjWNnCfY8@public.gmane.org
+Subject: RE: Error in dsdt from asus a3527nuh
+Date: Wed, 10 Nov 2004 18:05:56 +0100 (CET)
+Message-ID: <1046.62.123.115.73.1100106356.squirrel@62.123.115.73>
+References: <37F890616C995246BE76B3E6B2DBE0550294974F@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <37F890616C995246BE76B3E6B2DBE0550294974F-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org
+     >
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,117 +18,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Developer <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Len,
-	This is again due to "hotplug_path" getting un-exported from mm3, this below code which was
-depending on hotlpug_path was breaking from compiling. Now using kobject_hotplut() to notify user agenet.
-This patch fixes the undefined "hotplug_path" warning.
+Moore, Robert disse:
+> It's not part of the ASL grammar, and iASL does not support it.
+>
+> More than that, this requires interpreter support to execute this type
+> of orphan code during table load.
+>
+> I'm sure this is something that will eventually be requested as a
+> workaround.
+>
+> In the meantime, all such code like this should be moved under the
+> _SB_._INI method.
+>
+Sorry, but I'm not able to find any method with that name (_SB_._INI).
+Could you be so gentle to help me on how resolve that problem.
+Any hint will be very appreciated.
 
-Please apply this fix.
+TIA
 
----
+--
+A presto
+-Valerio-
 
- linux-2.6.10-rc1-mm4-askeshav/drivers/acpi/processor.c |   58 +----------------
- 1 files changed, 4 insertions(+), 54 deletions(-)
 
-diff -puN drivers/acpi/processor.c~processor_u1_hotplug_path_fix drivers/acpi/processor.c
---- linux-2.6.10-rc1-mm4/drivers/acpi/processor.c~processor_u1_hotplug_path_fix	2004-11-10 13:33:38.143298918 -0800
-+++ linux-2.6.10-rc1-mm4-askeshav/drivers/acpi/processor.c	2004-11-10 13:33:38.220447354 -0800
-@@ -2628,56 +2628,6 @@ static struct dmi_system_id __initdata p
- static int is_processor_present(acpi_handle handle);
- 
- static int
--processor_run_sbin_hotplug(struct acpi_device *device,
--	       int cpu, char *action)
--{
--	char *argv[3], *envp[7], action_str[32], cpu_str[15];
--	int i, ret;
--	int len;
--	char pathname[ACPI_PATHNAME_MAX] = {0};
--	acpi_status status;
--	char *processor_str;
--	struct acpi_buffer buffer = {ACPI_PATHNAME_MAX, pathname};
--
--	ACPI_FUNCTION_TRACE("processor_run_sbin_hotplug");
--
--
--	status = acpi_get_name(device->handle, ACPI_FULL_PATHNAME, &buffer);
--	if (ACPI_FAILURE(status)) {
--		return(-ENODEV);
--	}
--
--	len = strlen("PROCESSOR=") + strlen(pathname) + 1;
--	processor_str = kmalloc(len, GFP_KERNEL);
--	if (!processor_str)
--		return(-ENOMEM);
--
--	sprintf(processor_str, "PROCESSOR=%s",pathname);
--	sprintf(action_str, "ACTION=%s", action);
--	sprintf(cpu_str, "CPU=%d", cpu);
--
--	i = 0;
--	argv[i++] = hotplug_path;
--	argv[i++] = "cpu";
--	argv[i] = NULL;
--
--	i = 0;
--	envp[i++] = "HOME=/";
--	envp[i++] = "PATH=/sbin;/bin;/usr/sbin;/usr/bin";
--	envp[i++] = action_str;
--	envp[i++] = processor_str;
--	envp[i++] = cpu_str;
--	envp[i++] = "PLATFORM=ACPI";
--	envp[i] = NULL;
--
--	ret = call_usermodehelper(argv[0], argv, envp, 0);
--
--	kfree(processor_str);
--	return_VALUE(ret);
--}
--
--
--static int
- is_processor_present(
- 	acpi_handle handle)
- {
-@@ -2726,7 +2676,7 @@ int acpi_processor_device_add(
- 		return_VALUE(-ENODEV);
- 
- 	if ((pr->id >=0) && (pr->id < NR_CPUS)) {
--		processor_run_sbin_hotplug(*device, pr->id, "add");
-+		kobject_hotplug(&(*device)->kobj, KOBJ_ONLINE);
- 	}
- 	return_VALUE(0);
- }
-@@ -2770,13 +2720,13 @@ acpi_processor_hotplug_notify (
- 		}
- 		
- 		if (pr->id >= 0 && (pr->id < NR_CPUS)) {
--			processor_run_sbin_hotplug(device, pr->id, "remove");
-+			kobject_hotplug(&device->kobj, KOBJ_OFFLINE);
- 			break;
- 		}
- 
- 		result = acpi_processor_start(device);
- 		if ((!result) && ((pr->id >=0) && (pr->id < NR_CPUS))) {
--			processor_run_sbin_hotplug(device, pr->id, "add");
-+			kobject_hotplug(&device->kobj, KOBJ_ONLINE);
- 		} else {
- 			ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
- 				"Device [%s] failed to start\n",
-@@ -2797,7 +2747,7 @@ acpi_processor_hotplug_notify (
- 		}
- 
- 		if ((pr->id < NR_CPUS) && (cpu_present(pr->id)))
--			processor_run_sbin_hotplug(device, pr->id, "remove");
-+			kobject_hotplug(&device->kobj, KOBJ_OFFLINE);
- 		break;
- 	default:
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-_
 
 
 -------------------------------------------------------
