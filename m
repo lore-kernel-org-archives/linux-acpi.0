@@ -1,16 +1,13 @@
-From: Marc Franquesa <mark-KaoEA2pfkXWsTnJN9+BGXg@public.gmane.org>
-Subject: Re: Suspend 2 disk: It Works!
-Date: Sat, 15 Nov 2003 18:18:04 +0100
+From: "Neil Rosario" <jzdmfb-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Bachelor's Diploma, Master's, or PhD - No Classes Necessary...daphne
+Date: Sat, 15 Nov 2003 21:38:58 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1068916684.945.5.camel@nexus.l3jane.net>
-References: <1068895745.944.9.camel@nexus.l3jane.net>
-	 <20031115130211.GA12062@server.by>
-	 <1068903849.940.45.camel@nexus.l3jane.net>
-	 <20031115154041.GB24320@hell.org.pl>
+Message-ID: <pz2$$w$u-b11t48-03w$lw1-n-r@4q2fx>
+Reply-To: "Neil Rosario" <jzdmfb-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-ESzW73jYLB9jOwEfJhGy"
+Content-Type: multipart/alternative;
+	boundary="E.B.._08.A"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20031115154041.GB24320-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,47 +17,152 @@ List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: jeditea6-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---=-ESzW73jYLB9jOwEfJhGy
-Content-Type: text/plain
+--E.B.._08.A
+Content-Type: text/plain;
 Content-Transfer-Encoding: quoted-printable
 
-On ds, 2003-11-15 at 16:40, Karol Kozimor wrote:
+Academic Qualifications available from prestigious NON=96ACCREDITTED unive=
+rsities.
 
-> See if cat /proc/acpi/sleep reports S4BIOS or something similar. If so, y=
-ou
-> probably can (echo 4b > /proc/acpi/sleep).=20
+Do you have the knowledge and the experience but lack the qualifications?
 
-It works!, I'm very happy thanks very much.
+Are you getting turned down time and time again for the job of your dreams=
+ because you just don't have the right letters after your name?
 
-Some notes only for documentation to reporting if someone is interested:
+Get the prestige that you deserve today!
 
-- The suspend and resume process is very slow (in apm was very fast)
-- I need to boot from the suspend partition (in the past with apm, the
-Laptop automagically boots from it without user-action).
-- ... the typical 'usb-controller halted' messages floods the screen on
-resume, I need to prepare some scripts to avoid it.. ;)
+Move ahead in your career today!
 
-Again thank very much for your answer.
+Bachelors, Masters and PhD's available in your field!
 
-Salut
+No examinations! No classes! No textbooks!
 
 
---=-ESzW73jYLB9jOwEfJhGy
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
+Call to register and receive your qualifications within days!
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
+24 hours a day 7 days a week!
 
-iD8DBQA/tl/M4CVRFTc6wP8RAg9mAJ0VfpwCu43ohSFQ2n8LW1tX4I99OwCg2HrA
-JUORt1UzG1cm02pmx1Bml9g=
-=zdHM
------END PGP SIGNATURE-----
 
---=-ESzW73jYLB9jOwEfJhGy--
+
+
+203-286-2187 - USA
+
+
+
+
+
+
+No more, thanks: http://44rr5f.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+yjpm ul v
+
+p a oqsry
+kvjx
+mqye 
+nodcdd
+
+--E.B.._08.A--
 
 
 
