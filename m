@@ -1,13 +1,12 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: powernow & ACPI & 2.6.9
-Date: Fri, 19 Nov 2004 09:59:00 +0100
-Message-ID: <20041119085900.GD31422@poupinou.org>
-References: <20041119083851.GB2908@mithrandir.dakordnet.org>
+From: "Nola Berger" <nolaberger_bf-wjibLoIiRficPQh6+hCIOrVCufUGDwFn@public.gmane.org>
+Subject: Italian Crafted Rolex from $75 to $275 - Free Shipping
+Date: Fri, 19 Nov 2004 09:09:45 +0000
+Message-ID: <0a5301c4ce17$e61f728c$fad9b7dd@eurecom.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20041119083851.GB2908-+E7KM1FDEuMaM1llmaQI7GCN55ObvEZU@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,39 +16,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Giuseppe Martino <denever-GaUfNO9RBHfsrOwW+9ziJQ@public.gmane.org>
-Cc: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Nov 19, 2004 at 09:38:51AM +0100, Giuseppe Martino wrote:
-> Hi to All,
-> Output on Kernel 2.6.9 patched with acpi-20041105-26-latest-release.diff.bz2:
-> 
-> powernow: PowerNOW! Technology present. Can scale: frequency and voltage.
-> powernow: No PST tables match this cpuid (0x7a0)
-> powernow: This is indicative of a broken BIOS.
-> powernow: Trying ACPI perflib
-> powernow: Minimum speed 298 MHz. Maximum speed 796 MHz.
-> 
-> The kernel 2.6.9 isn't able to catch my DSDT?
+Heya,
 
-Could you please test those patches:
-http://www.poupinou.org/cpufreq/powernow-k7/recalibrate_cpu_khz/powernow-k7.recalibrate-cpu_khz.diff
-and
-http://www.poupinou.org/cpufreq/powernow-k7/recalibrate_cpu_khz/timers-recalibrate_cpu_khz.diff
+Do you want a rolex watch?
 
-You need the two patches.
+In our online store you can buy replicas of Rolex watches. They look
+and feel exactly like the real thing.
 
-They have been already submitted to the cpufreq-dev mailing-list (which
-is the appropriate place for discussing this kind of issue btw).
+- We have 20+ different brands in our selection
+- Free shipping if you order 5 or more
+- Save up to 40% compared to the cost of other replicas
+- Standard Features:
+ - Screw-in crown
+ - Unidirectional turning bezel where appropriate
+ - All the appropriate rolex logos, on crown and dial
+ - Heavy weight
 
-Cheers,
+Visit us: http://www.icors.com/rep/rolex/
 
--- 
-Bruno Ducrot
+Best regards,
+Hilton Jones
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+
+No thanks: http://www.icors.com/z.php
+
 
 
 -------------------------------------------------------
