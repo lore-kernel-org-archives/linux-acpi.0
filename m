@@ -1,12 +1,12 @@
-From: Michael Madore <mmadore-JChM1cqIHx8AvxtiuMwx3w@public.gmane.org>
-Subject: Reboot on shutdown with USB 2.0
-Date: Fri, 28 Mar 2003 14:25:30 -0800
+From: Jun Sun <jsun-vWJf10E4RRusTnJN9+BGXg@public.gmane.org>
+Subject: does cpu_idle() halt CPU?
+Date: Fri, 28 Mar 2003 14:19:38 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3E84CBDA.20104@aslab.com>
+Message-ID: <20030328141938.B10202@gateway.junsun.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,24 +18,25 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
 
-I'm having a strange problem regarding ACPI and USB 2.0 devices 
-(External CD-Rom, Jaz drive, etc).  Using 2.4.21-pre5 with the latest 
-patch if I issue:
+I am new to acpi, but I figure this question is probably
+beyond acpi-support list.
 
-shutdown -h now
+I instrumented acpi_processor_idle() routine to see
+what states the CPU is in.  It turns out it spent most
+of the time in C2 state and some times in C1, but never
+in C3.
 
-The machine shuts off, but half a second later the power comes back on. 
- If I unload the echi driver module, the machine shuts off normally.
+However, acpi_processor_power_activate() routine  does not
+do anything if the new state is _not_ C3.  So is that true
+CPU still keep spinning all the time?
 
-Any thoughts on what would cause that kind of behavior?
+I did a rough comparison.  It appears my battery life
+under Linux is about 75%  of that under Windows, even after
+I installed acpi, did a bunch of other stuff (swapoff,
+EXT3 -> EXT2, etc).
 
-Thanks!
-
-Mike Madore
-
-
+Jun
 
 
 -------------------------------------------------------
