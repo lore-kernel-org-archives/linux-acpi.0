@@ -1,14 +1,15 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: NO_RETURN_VALUE w/ 20040715
-Date: Fri, 20 Aug 2004 13:31:58 -0700
+From: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
+Subject: Re: [PATCH][RFC] fix ACPI IRQ routing after S3 suspend
+Date: Fri, 20 Aug 2004 16:42:03 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <37F890616C995246BE76B3E6B2DBE05501C19B16@orsmsx403.amr.corp.intel.com>
+Message-ID: <4126621B.3090701@optonline.net>
+References: <88056F38E9E48644A0F562A38C64FB6002A934AC@scsmsx403.amr.corp.intel.com>
+ <41265443.9050800@optonline.net> <200408202201.54083.stefandoesinger@gmx.at>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; format=flowed; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-reply-to: <200408202201.54083.stefandoesinger-RbZlAiThDcE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,119 +18,56 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: stefandoesinger-RbZlAiThDcE@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux Kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-The error occurred *during* the execution of SSTA, therefore one of the
-methods called by SSTA is not returning a value.
+Stefan D=F6singer wrote:
 
-psparse-1133: *** Error: Method execution failed
-[\_SB_.N000.S000.IOC0.L000.SSTA] (Node e0000703fef6d730),
-AE_AML_NO_RETURN_VALUE
+>If I re-programm the IRQ to something else than IRQ10, the device do=
+esn't=20
+>resume too. So it's not only a problem of IRQ 11.
+> =20
+>
+Seems like an anything-at-all-other-than-IRQ-10 problem. If the curre=
+nt=20
+thinking is right, your BIOS is assigning IRQ10 during boot, so movin=
+g=20
+it anywhere else is what causes problems.
 
-Take a look at
-PRES ()
-PCHK ()
+But the current thinking doesn't quite seem right, because it seeems=
+=20
+like we're seeing these problems after the irqrouter is resumed. Can =
+you=20
+verify that with the attached patch? The patch should give us enough=
+=20
+information as long as you've got the proper kernel loglevel set.
 
-Please send the original (binary) DSDT
+Now, I wonder if the only reason it works when you set IRQ 10 is that=
+=20
+some other driver is unconditionally claiming the interrupt...
 
-Bob
+Nathan
 
+>The ipw2100 driver calls pci_disable_device in it's suspend handler.=
+ But I=20
+>think the ipw2100 maintainers need help with suspend/resume because =
+James=20
+>Ketrenos can't test it on his own system.
+> =20
+>
+pci_disable_device() only turns off bus-mastering, it doesn't unmap t=
+he=20
+I/O or disable the slot. Maybe we also need to set power state D3 and=
+ do=20
+a device-specific disable-interrupts, but I think D0 gets restored fo=
+r=20
+us pretty early during resume anyway...
 
-> -----Original Message-----
-> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
-> admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Alex Williamson
-> Sent: Friday, August 20, 2004 1:12 PM
-> To: acpi-devel
-> Subject: [ACPI] NO_RETURN_VALUE w/ 20040715
->=20
->=20
->    I've got one more new error going on with the new ACPI.  On bootup
-of
-> an hp rx8620 (sx1000 based ia64 system), I'm now getting a number of
-> these:
->=20
-> dswstate-0273 [18] ds_result_pop_from_bot: No result objects!
-> State=3De000072000095030
-> dsutils-0526 [18] ds_create_operand     : Missing or null operand,
-> AE_AML_NO_RETURN_VALUE
-> psparse-1133: *** Error: Method execution failed
-> [\_SB_.N000.S000.IOC0.L000.SSTA] (Node e0000703fef6d730),
-> AE_AML_NO_RETURN_VALUE
-> psparse-1133: *** Error: Method execution failed
-> [\_SB_.N000.S000.IOC0.L000.SBF0._STA] (Node e0000703fef6f130),
-> AE_AML_NO_RETURN_VALUE
->  uteval-0158: *** Error: Method execution failed
-> [\_SB_.N000.S000.IOC0.L000.SBF0._STA] (Node e0000703fef6f130),
-> AE_AML_NO_RETURN_VALUE
->=20
-> This did not happen w/ the previous ACPI code so I'd like to get a
-feel
-> for whether this looks like an interpreter bug or an AML bug.   The
-> disassembled DSDT for the _STA and SSTA methods is below.  Looks to me
-> like there's no way out of the SSTA method w/o a return, but then I
-> don't really know AML.  I can provide the entire DSDT if this isn't
-> sufficient.  Thanks,
->=20
-> 	Alex
->=20
-> Method (SSTA, 0, NotSerialized)
-> {
->     Acquire (MCTX, 0xFFFF)
->     Store (0x0F, CSTS)
->     If (LNot (LEqual (PRES (), Ones)))
->     {
->         Store (0x00, CSTS)
->         Release (MCTX)
->         Return (ToInteger (CSTS, Local0))
->     }
->     If (LNot (LEqual (PCHK (), Ones)))
->     {
->          Store (0x00, GOOD)
->          Store (0x00, LIVE)
->          Store (0x00, SEEN)
->          Release (MCTX)
->          Return (ToInteger (CSTS, Local0))
->     }
->     If (LEqual (RC, 0x00))
->     {
->         Store (BSTR, Local0)
->     }
->     Else
->     {
->         Store (0x00, Local0)
->     }
->     If (LEqual (Local0, 0x00))
->     {
->         Store (0x01, GOOD)
->     }
->     Release (MCTX)
->     Return (ToInteger (CSTS, Local0))
-> }
-> ...
-> Device (SBF0)
-> {
->     ...
->     Method (_STA, 0, NotSerialized)
->     {
->         Return (^^SSTA ())
->     }
-> }
->=20
-> --
-> Alex Williamson                             HP Linux & Open Source Lab
->=20
->=20
->=20
-> -------------------------------------------------------
-> SF.Net email is sponsored by Shop4tech.com-Lowest price on Blank Media
-> 100pk Sonic DVD-R 4x for only $29 -100pk Sonic DVD+R for only $33
-> Save 50% off Retail on Ink & Toner - Free Shipping and Free Gift.
-> http://www.shop4tech.com/z/Inkjet_Cartridges/9_108_r285
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+Anyway, something doesn't quite add up...
+
+Nathan
+
 
 
 -------------------------------------------------------
