@@ -1,13 +1,12 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: CALL FOR TESTING
-Date: Wed, 18 Sep 2002 05:59:48 +0000
+From: Alberto Ornaghi <alor-n62phY/1UFc3ahhDiVHSzw@public.gmane.org>
+Subject: 2.4.18 + acpi20020918 + swsusp beta12
+Date: Mon, 23 Sep 2002 14:23:55 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020918055948.I202@toy.ucw.cz>
-References: <EDC461A30AC4D511ADE10002A5072CAD0236DE80@orsmsx119.jf.intel.com> <20020919145745.246daed7.Cyril.Bitterich@informatik.uni-muenchen.de>
+Message-ID: <20020923142355.A4413@zefiro.alor.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20020919145745.246daed7.Cyril.Bitterich-jNDFPZUTrfTbB13WlS47kxGsIjC5xiiLhC4ANOJQIlc@public.gmane.org>; from Cyril.Bitterich-jNDFPZUTrfTbB13WlS47kxGsIjC5xiiLhC4ANOJQIlc@public.gmane.org on Thu, Sep 19, 2002 at 02:57:45PM +0200
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,27 +15,30 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: Cyril Bitterich <Cyril.Bitterich-jNDFPZUTrfTbB13WlS47kxGsIjC5xiiLhC4ANOJQIlc@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, swsusp-LcL5texQODR2DW0IdvIQ2g@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
 
-> > Issues like whether the battery reports stats properly are of secondary
-> > importance.
-> 
-> Battery/AC OK.
-> Power Lid works.
-> sonypi still works
-> S3 seems not to work, but not much testing yet.
 
-S3 will never ever work in 2.4.X. Andrew can you put a big printk somewhere?
+If someone is interested in...
 
-								Pavel
+at http://alor.antifork.org/acpi/ there is a patch for SWSUSP beta12 against
+2.4.18-acpi20020918.
+
+the patch for 2.4.18-acpi20020918 is available at:
+
+http://codecs.home.sapo.pt/acpi/index.html
+
+bye
+
+
 -- 
-Philips Velo 1: 1"x4"x8", 300gram, 60, 12MB, 40bogomips, linux, mutt,
-details at http://atrey.karlin.mff.cuni.cz/~pavel/velo/index.html.
 
+   --==> ALoR <==---------------------- -  -   - 
+
+ There are only 10 types of people in this world...
+ Those who understand binary, and those who don't.
+      
 
 
 -------------------------------------------------------
