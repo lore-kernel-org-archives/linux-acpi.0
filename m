@@ -1,58 +1,122 @@
-From: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>
-Subject: Re: various problems with Acer TM654, suspend, ACAD, radeon
-Date: Sun, 22 Aug 2004 22:16:36 +0200
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040822201636.GA10152@gamma.logic.tuwien.ac.at>
-References: <20040820161911.GA24510@gamma.logic.tuwien.ac.at> <200408202147.51250.stefandoesinger@gmx.at> <20040822103542.GA17227@gamma.logic.tuwien.ac.at> <200408222002.31563.stefandoesinger@gmx.at> <20040822194512.GA8158@gamma.logic.tuwien.ac.at>
+From: "Li, Shaohua" <shaohua.li@intel.com>
+Subject: RE: [ACPI] [PATCH][RFC] fix ACPI IRQ routing after S3 suspend
+Date: Mon, 23 Aug 2004 13:58:52 +0800
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <B44D37711ED29844BEA67908EAF36F039EA6C2@pdsmsx401.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: 8bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040822194512.GA8158-DqSSrKF0TaySnEC3TeqHn5dqbFPxfnh/@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan =?iso-8859-15?Q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S267416AbUHWGEv@vger.kernel.org>
+Content-class: urn:content-classes:message
+To: "Pallipadi, Venkatesh" <venkatesh.pallipadi@intel.com>, stefandoesinger@gmx.at, Nathan Bryant <nbryant@optonline.net>
+Cc: "Brown, Len" <len.brown@intel.com>, acpi-devel@lists.sourceforge.net, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Stefan!
+Right, this looks like the problem I encounter. My current test shows t=
+hat the problem only occurs if ACPI changed LINK devices' IRQ. If ACPI =
+use default LINK device IRQ, the problem went off.
+Currently there are two workarounds:
+1. comment one line in pci_link.c:acpi_pci_link_allocate, like below
+	/*
+	 * forget active IRQ that is not in possible list
+	 */
+	if (i =3D=3D link->irq.possible_count) {
+		if (acpi_strict)
+			printk(KERN_WARNING PREFIX "_CRS %d not found"
+				" in _PRS\n", link->irq.active);
++//		link->irq.active =3D 0;
+	}
+This disables rebalance IRQ, which fixes my problem.
 
-On Son, 22 Aug 2004, Norbert Preining wrote:
-> On Son, 22 Aug 2004, Stefan Dösinger wrote:
-> > >ACPI: Looking for DSDT in initrd ... found (at offset 20)!
-> > > found customized DSDT with 23575 bytes!
-> >
-> > Which kernel? The dsdt in initrd patch doesn't work with 2.6.8.1 for some 
-> > reason. Try the patch which compiles the dsdt into the kernel. Read the 
-> > "another extensive manual", 9a
+2. change 'device_initcall(i8259A_init_sysfs);' to 'late_initcall(i8259=
+A_init_sysfs);'
+It seems that if OS changed BIOS IRQ router setting (like ACPI change L=
+ink device setting), IRQ router should resume before PIC. This possibly=
+ proves what Venki said.
 
-Bingo. THanks for the hint. Now I am getting ac_adapter events. Great.
+PS. For the resume order, isn't it strange Local APIC resumes after PIT=
+? I guess it should be the first device to resume.
 
-Now I have only to get S2D and S2R to be fixed ...
-
-Best wishes
-
-Norbert
-
--------------------------------------------------------------------------------
-Norbert Preining <preining AT logic DOT at>         Technische Universität Wien
-gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
--------------------------------------------------------------------------------
-MAARUIG (n.)
-The inexpressible horror experienced on walking up in the morning and
-remembering that you are Andy Stewart.
-			--- Douglas Adams, The Meaning of Liff
-
-
--------------------------------------------------------
-SF.Net email is sponsored by Shop4tech.com-Lowest price on Blank Media
-100pk Sonic DVD-R 4x for only $29 -100pk Sonic DVD+R for only $33
-Save 50% off Retail on Ink & Toner - Free Shipping and Free Gift.
-http://www.shop4tech.com/z/Inkjet_Cartridges/9_108_r285
+Thanks,
+Shaohua
+>-----Original Message-----
+>From: Pallipadi, Venkatesh
+>Sent: Saturday, August 21, 2004 3:00 AM
+>To: stefandoesinger@gmx.at; Nathan Bryant
+>Cc: acpi-devel@lists.sourceforge.net; Brown, Len; Linux Kernel list; L=
+i,
+>Shaohua
+>Subject: RE: [ACPI] [PATCH][RFC] fix ACPI IRQ routing after S3 suspend
+>
+>
+>
+>
+>>-----Original Message-----
+>>From: acpi-devel-admin@lists.sourceforge.net
+>>[mailto:acpi-devel-admin@lists.sourceforge.net] On Behalf Of
+>>Stefan D=F6singer
+>>Sent: Friday, August 20, 2004 9:36 AM
+>>To: Nathan Bryant
+>>Cc: acpi-devel@lists.sourceforge.net; Brown, Len; Linux Kernel
+>>list; Li, Shaohua
+>>Subject: Re: [ACPI] [PATCH][RFC] fix ACPI IRQ routing after S3 suspen=
+d
+>>
+>>Am Freitag, 20. August 2004 14:18 schrieb Nathan Bryant:
+>>> Stefan -
+>>>
+>>> Also - did suspend/resume for the ipw2100 ever work under any kerne=
+l
+>>> version?
+>>Yes, it works with acpi=3Dnoirq at least up to 2.6.7(not tested
+>>with later
+>>versions, but I'm sure it does)
+>>It works with 2.6.8-rc2 and 2.6.8-rc4 and 2.6.8.1 with acpi IRQs and =
+a
+>>modified dsdt which forces LNKE to IRQ 10. I attached a dmesg
+>>output of a
+>>successful resume.
+>>
+>>Cheers,
+>>Stefan
+>
+>This seems to be the same resume order issue, that Shaohua is hitting.
+>
+>On my system the resume order looks like this:
+>Resuming System Devices
+>Resuming type 'cpu':
+> cpu0
+>aux driver resume 0xc010e410 (mtrr_restore)
+>aux driver resume 0xc03365f0 (cpufreq_resume)
+>Resuming type 'i8259':
+> i82590
+>Resuming type 'timer':
+> timer0
+>Resuming type 'pit':
+> pit0
+>Resuming type 'lapic':
+> lapic0
+>Resuming type 'irqrouter':
+> irqrouter0
+>Resuming type 'i8042':
+> i80420
+>
+>The current theory I have for this issue is we resume pci_link driver
+>A bit too late, which is causing this problem.
+>
+>Say a particular device doesn't do anything for suspend and resume.
+>So, as soon as we resume this particular device can start
+>generating interrupts. Once we have PIC enabled, it starts sending
+>interrupts and no one handles that original IRQ. As pci_link that
+>resumes later is reprogramming the device to different IRQ, where the
+>driver is handling the device.
+>
+>That's probably the reason why it works with acpi=3Dnoirq or
+>modified DSDT. Does it make sense?
+>
+>I think we have to resume pci_link device before PIC.
+>We should be able to achieve this my changing the makefile orders.
+>
+>Thanks,
+>Venki
+>
