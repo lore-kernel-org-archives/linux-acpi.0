@@ -1,56 +1,54 @@
-From: Nigel Cunningham <ncunningham@linuxmail.org>
-Subject: Re: status update for current development
-	on ASUS M2N
-Date: Wed, 06 Oct 2004 09:44:23 +1000
-Sender: softwaresuspend-devel-admin@berlios.de
-Message-ID: <1097019863.16541.47.camel@desktop.cunninghams>
-References: <20040930214808.B5D9C3AA515@ws5-8.us4.outblaze.com>
-	 <m3ekkiqdcy.fsf@brain.gnuhh.org>
-Reply-To: ncunningham@linuxmail.org
+From: Gyu Sang Choi <gchoi-yyJJWgVhSYiVc3sceRu5cw@public.gmane.org>
+Subject: Sun V20z and ACPI
+Date: Tue, 05 Oct 2004 20:25:05 -0400
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <41633B61.4020904@cse.psu.edu>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <softwaresuspend-devel-admin@lists.berlios.de>
-In-Reply-To: <m3ekkiqdcy.fsf@brain.gnuhh.org>
-Errors-To: softwaresuspend-devel-admin@berlios.de
-List-Help: <mailto:softwaresuspend-devel-request@lists.berlios.de?subject=help>
-List-Post: <mailto:softwaresuspend-devel@lists.berlios.de>
-List-Subscribe: <http://lists.berlios.de/mailman/listinfo/softwaresuspend-devel>,
-	<mailto:softwaresuspend-devel-request@lists.berlios.de?subject=subscribe>
-List-Unsubscribe: <http://lists.berlios.de/mailman/listinfo/softwaresuspend-devel>,
-	<mailto:softwaresuspend-devel-request@lists.berlios.de?subject=unsubscribe>
-List-Archive: <http://lists.berlios.de/pipermail/softwaresuspend-devel/>
-To: "Georg C. F. Greve" <greve@gnu.org>
-Cc: ACPI List <acpi-devel@lists.sourceforge.net>, SoftwareSuspend-Devel <softwaresuspend-devel@lists.berlios.de>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi.
+Hi,
 
-On Sat, 2004-10-02 at 08:31, Georg C. F. Greve wrote:
->  || On Fri, 01 Oct 2004 07:48:08 +1000
->  || "Nigel Cunningham" <ncunningham@linuxmail.org> wrote: 
-> 
->  >> Can you tell me how to do this, please?
-> 
->  nc> The simplest way is to do a digital photograph, I'm afraid. The
->  nc> 'nice' way is to hook up a serial console and capture the output.
-> 
-> That is rather inconvenient.
-> 
-> I'm curious. Any reason that nobody implemented something to do this?
-> 
-> I would assume that a kdb buffer that is reserved at startup,
-> initalized with 0s and into which only kdb can write during debugging.
-> 
-> When kdb is left and the buffer is different from 0, the contents are
-> dumped to dmesg/syslog.
 
-Something like printk :> It wouldn't work with suspending because we're
-overwriting such buffers when copying the original kernel back (with the
-contents from suspend-time). Furthermore, it won't help if you get such
-a crash because you're never going to start syslogd and get the data
-written.
+I have one question about Sun V20z and ACPI, and my department try to 
+buy a new cluster.
+One of candidates is Sun V20z, and I want to run some experiments on 
+this cluster about ACPI.
+So, I am wondering Sun Opteron-based V20z perfectly supports ACPI or not.
+I really appreciate if you send the reply to me.
+Especially, this cluster has dual-CPU in each node.
 
-Sorry.
+Best,
 
-Nigel
+
+-- 
+
+ ---------------------------------------------------------------
+| Name   : Gyu Sang Choi					|
+| Department : Computer Science & Engineering                   |
+| Office : 358 IST Building                                     |
+| Office Phone : (814)865-2729        	                        |	
+| email  : gchoi-yyJJWgVhSYiVc3sceRu5cw@public.gmane.org					|
+| Home Phone : (814)861-6986				       	|
+| Address : 425 Waupelani Drive #327, State College, PA 16801	|
+ ---------------------------------------------------------------
+
+
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: IT Product Guide on ITManagersJournal
+Use IT products in your business? Tell us what you think of them. Give us
+Your Opinions, Get Free ThinkGeek Gift Certificates! Click to find out more
+http://productguide.itmanagersjournal.com/guidepromo.tmpl
