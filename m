@@ -1,11 +1,14 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.kernel.2004-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Samsung P35 and S3 suspend
-Date: Wed, 15 Dec 2004 05:55:09 +0100
-Message-ID: <41BFC3AD.5030001@gmx.net>
+From: Nico Schottelius <nico-linux-acpi-xuaVFQXs+5hIG4jRRZ66WA@public.gmane.org>
+Subject: [BUG] pdc202xx_new and ACPI fails
+Date: Wed, 15 Dec 2004 09:27:32 +0100
+Message-ID: <20041215082732.GA2273@schottelius.org>
+References: <20041205211754.GB7695@schottelius.org> <1102286168.2308.13.camel@d845pe>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="vtzGhvizbBRQ85DL"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1102286168.2308.13.camel@d845pe>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,37 +18,66 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Oliver Dawid <od-VRmHG7Xu4f31qYPpFx2fzhvVK+yQ3ZXh@public.gmane.org>, Matthias Hentges <mailinglisten-H4PcyxPeSRnR7s880joybQ@public.gmane.org>, =?UTF-8?B?U3RlZmFuIETDtnNpbmdlcg==?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
 
-after having read what I believe to be all available information
-about getting my Samsung P35 to resume properly from S3, having
-tried dozens of patches, recompiled the kernel at least 20 times,
-I hope that someone can shed some light on my failure to resume.
+--vtzGhvizbBRQ85DL
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Every time I resume from S3 everything is dead. Keyboard, network,
-serial port, you name it. Unloading modules doesn't help. Booting
-with init=/bin/bash (to avoid loading any modules) doesn't help.
-Booting a kernel without framebuffer support doesn't help.
-Applying pci-resume-2.6.9.patch doesn't help. Loading a fixed
-DSDT doesn't help. Combinations of all of the above don't work
-either.
+Good morning people!
 
-Right now I would be happy if at least the keyboard or network
-would work, giving me a chance to shutdown the machine properly.
+First of all, I am sorry: The problem did not disappear 100%:
 
-I'm not demanding a howto or something like that, only a few
-hints where to look for improvement. For example, I could not
-find the "old style resume" patch Oliver mentioned.
+If I connect devices to channel 3 and 4, the same error=20
+occurs again. If I only connect devices to the 1. and 2. channel,
+it works.
 
-My current base is 2.6.10-rc3-bk8, but I'm willing to test any
-2.6.x kernel with any patches and any .config you throw at me.
+What is the "IDE Busmaster setting" in the BIOS and should I enable it?
 
-Thanks for your help!
-Carl-Daniel
+Should I change irq and mem i/o settings in the promise controller
+menu? I can adjust irq and i/o base for every ide channel.
+
+Nico
+
+P.S.: I am now subscribed with this adress, please do not reply to
+      nico-kernel-xuaVFQXs+5hIG4jRRZ66WA@public.gmane.org anymore.
+
+P.P.S.: I'll delay the describtion of the other problems with the Transmeta=
+ machine
+        so I can concentrate on the K7VM2 and Promise controller problem.
+
+--=20
+Keep it simple & stupid, use what's available.
+Please use pgp encryption: 8D0E 27A4 is my id.
+http://nico.schotteli.us | http://linux.schottelius.org
+
+--vtzGhvizbBRQ85DL
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iQIVAwUBQb/1crOTBMvCUbrlAQISiQ//Y8zklnv54FzBz5HDIIwGqksZulDdwq05
+NvDmTDTWKiGak0UAAJXo78zrQAxn8LR5NPR/GFJJbpVKoALCk9bR5+BjY244nFcK
+wii5lZIA7uroxrW8CNo9nzP2fh7AYcOob1wSAR21XFM9Q0XbDSm2/NqmTbK1pJcl
+vBFufR12AyuTCjFT6cfMg1iLpoOWnprMeIKBKC+SXT1M0W8Q4ZN1N4e+72j5SHdM
+CJln2vyuuig9pbNMgaeP3GXKBukalR3C8oHHhde/u9VrptNpFNSAjXUOlukNHS1X
+iAn/Ru4d9ji/S9xAeU1I/p2gu6LbKuc6CHqiJveePPSBb2UJA7qATbvDJI4ufyfa
+gKBcuS1cnaSoDo4ZQK4dQiWXiQhIJOF9XG8J2t7mVRxP3ijmA/8SSG3Y4j2LjKT6
+C6uJGh+4lZtTT6sgCa0Vm8u4ujBBDCZz5acJTbRdhdlqqTThgRupSA0DifaY/kIr
+I3sfr30h9c4vEmPpk/LilI04pT4FHeNfwu0mtpbd2HlPaLnfpmAGAnecfD3UmJpp
+XKyjN98mnRZkUh/Hof5oiXGNma7ABlE3UyZ976qErvSAGbeDY3dLZ/x5wVMwQ2j/
+XCKO18D1WQ/VRJKHlvIqctTmihBrhaY/zjuMOk+rB1LwXQQJa0ab0ELGeGDJ2EVO
+8IOMqAJLeNY=
+=pTWD
+-----END PGP SIGNATURE-----
+
+--vtzGhvizbBRQ85DL--
 
 
 -------------------------------------------------------
