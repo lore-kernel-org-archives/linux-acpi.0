@@ -1,14 +1,13 @@
-From: Malte Thoma <thoma-iYtK5bfT9M8b1SvskN2V4Q@public.gmane.org>
-Subject: Fan control with heatload
-Date: Mon, 06 Jan 2003 21:07:36 +0100
+From: Adrian Turcu <adriant_ie-YSGFQ8SKJZVDPfheJLI6IQ@public.gmane.org>
+Subject: Re: ACPI on the Compaq Presario 735CA
+Date: Tue, 07 Jan 2003 09:43:55 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3E19E208.5090106@muenster.de>
-References: <000c01c2add3$3c8ddcf0$0201a8c0@supervanes> <3E1075BF.3070806@uni-muenster.de> <20030106153729.GA4661@digda.intern.quelltext.com>
+Message-ID: <3E1AA15B.2010104@myrealbox.com>
+References: <200207120750.g6C7oMBc007838@webmail.dowco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030106153729.GA4661-XEk0yrNnxERrk9EDFsdIuomMxnTEL9wi0E9HWUfgJXw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,60 +16,62 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Arndt Schoenewald <abs-SA7OhAOe25xnNxvc45mVi0K323yFvGpRdefyYXQ/eNw@public.gmane.org>, heatload-general-0fE9KPoRgkgATYTw5x5z8w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: colinh-RZoC8ttgCzkAvxtiuMwx3w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, iw3grx-u0TjAE20a3NeoWH0uzbU5w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi guys,
 
-Thank you, Arndt,
+I have a Compaq 724EA (AMD Duron 1.2G, VIA chipset  VT8363/8365 
+[KT133/KM133]) and a while ago I managed to make it work in linux 
+finally with a bit of struggle. At the beginning I was using the kacpid 
+patch as someone suggested and 2.4.18 kernel. It was doing the job quite 
+well (the laptop was able to boot fine, the fan was somehow 
+'controlled', but the whole thing was freezing after I'd say 8-10 hours 
+of working). Then, I found starting with kernel 2.4.19 and the latest 
+iasl from Intel that I don't need anymore kacpid patch. I still get the 
+error during the boot ("SCI issues C2 disabled" and Compaq revisions and 
+.... bla bla bla, which I don't like them but I didn't find yet how to 
+get rid of them), but at least is working just fine. So, what I was 
+doing, because tales and stories everyone can say:
 
-from Version 0.6.1 heatload can turn the fan on/off via the menu.
-I uses an echo 0|3.
+- vanilla kernel 2.4.20 (www.kernel.org)
+- acpi patch version 20021212 (http://sourceforge.net/projects/acpi/)
+- iasl compiler - source code 
+(http://www.intel.com/technology/iapc/acpi/downloads.htm)
 
-Question to the Gurus:
+Now:
 
-Why '0' and '3' ?
+- unpack kernel source code and apply acpi patch
+- unpack iasl source tree, go to compiler subdirectory, and run make. 
+You'll get iasl binary.
+- cat /proct/acpi/dsdt > dsdt.dat
+- ./iasl -d dsdt.dat . You'll get dsdt.dsl
+- ./iasl -tc dsdt.dsl. You'll probably get some errors (at the end is a 
+broken dsdt table you have to correct it). It seems that warnings are 
+not too bad [gee... some one probably want to kill me for this :)]
+- read through http://progs.fleischer.hu/dsdt/acpi-howto.html and 
+correct the errors above (modify dsdt.dsl file)
+- ./iasl -tc dsdt.dsl and copy dsdt.hex to 
+<your_linux2420_source_tree>/drivers/acpi/tables/acpi_dsdt.c
+- compile your kernel with:
+        CONPIG_PM=Y
+        CONFIG_APM=N
+        CONFIG_ACPI=Y
+            CONFIG_ACPI_AC=Y
+            CONFIG_ACPI_BAT=Y
+            CONFIG_ACPI_BUTTON=Y
+            CONFIG_ACPI_FAN=Y
+            CONFIG_ACPI_PROCESSOR=Y
+            CONFIG_ACPI_THERMAL=Y
+            CONFIG_ACPI_DEBUG=Y
+- install your kernel and boot it up with 'pci=noacpi'
 
-Greetings,
+That's it. I hope you'll make your Compaqs work in linux. You'll have a 
+lot of fun.
 
-Malte
-
-
-Arndt Schoenewald wrote:
-
->Hallo Malte!
->
-> =20
->
->>P.S: I still need a 'cat' of the 'fan' interface. And perhaps can=20
->>someone tell me how to write to this interface.
->>   =20
->>
->
->Ok, ich sitze gerade mal wieder an meinem Laptop (das erste Mal seit
->ein paar Tagen) und kann dir daher jetzt diese Informationen geben.
->
->Zum Auschalten des L=FCfters: echo 3 >/proc/acpi/fan/FAN/state
->
-># cat /proc/acpi/fan/FAN/state
->status:                  off
->
->Und zum Wiedereinschalten: echo 0 >/proc/acpi/fan/FAN/state
->
-># cat /proc/acpi/fan/FAN/state
->status:                  on
->
->Bei manchen Maschinen (z.B. bei meinem Gericom 1st SuperSonic M6-T)
->l=E4sst sich der L=FCfter auf diese Weise jedoch nicht komplett ausschal=
-ten,
->sondern er l=E4uft lediglich langsamer (und leiser, weshalb ich das
->"echo 3 >/proc/acpi/fan/FAN/state" bei jedem Systemboot ausf=FChre).
->
->Bis dann,
->Arndt
->
-> =20
->
-
+Cheers,
+Adrian
 
 
 
