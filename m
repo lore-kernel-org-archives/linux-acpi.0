@@ -1,11 +1,11 @@
-From: "Shridhar GR" <Shridhar_GR-MyfdzN0ulLNWk0Htik3J/w@public.gmane.org>
-Subject: System Hangs with ACPI support enabled in Kernel 2.4.21
-Date: Mon, 29 Dec 2003 13:44:08 +0530
+From: "Ow Mun Heng" <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
+Subject: RE: problems with acpi (sleep states) on vaio notebook z1sp
+Date: Mon, 29 Dec 2003 16:20:04 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E125980C421DFD4DA0B80D55DB1EDA58018FB2A3@mtv01ex01.mindtree.com>
+Message-ID: <C386328088ED7F4E9F81AFBABDDF60DA03B368F4@wdmyexch02.my.asia.wdc.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
+	charset="US-ASCII"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 content-class: urn:content-classes:message
@@ -17,70 +17,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-hi
-
-	I have problem in Shutting down the system with ACPI support enabled.
-I am using kernel 2.4.21. System is configured for RAID1 . I have =
-installed
-ACPI daemon. When I press the hardware button, the system goes for =
-proper
-shutdown but hangs with a dispay "flushing ide device: hda hdb hdd Power
-down." I am using "shutdown -h now" command. Even "halt", "poweroff" and
-"shutdown" command does not work from command line too. Please guide me =
-solve
-this problem. I have not applied any extra ACPI patch to the kernel. I =
-have
-configured the existing ACPI parameters as below
-
-[*] Power Management support
-
-[*]   ACPI support
-
-[ ]     ACPI Debug Statements
-<*>     ACPI Bus Manager
-<M>       System             =20
-<M>       Processor
-
-<M>       Button
-
-< >       AC Adapter
-
-<*>       Embedded Controller
-
-< >       Control Method Battery
-
-< >       Thermal
-
-< >   Advanced Power Management BIOS support=20
-
-   								=09
-=09
-
-Please suggest a solution for this.
-
-Thank u
-Best Regards
-Shridhar
- =20
 
 
+> -----Original Message-----
+> From: Micha Feigin [mailto:michf-+lLcF8/aw9x6auLlOhE+pQ@public.gmane.org]
+> Sent: Wednesday, December 24, 2003 12:31 AM
+> Its probably because the system keeps its own time and on=20
+> syncs it with
+> the hardware clock on bootup and shutdown (maybe a cron job, don't
+> know).
+> Try suspend using
+>=20
+> acho 3 /proc/acpi/sleep && hwclock --hctosys
+
+oOPS... Snafu here.. My script is actually to state S1 not S3..
+
+echo 3 > /proc/acpi/sleep actually does _nothing_
+
+echo 1 > /proc/acpi/sleep is Ok..
 
 
-DISCLAIMER:
-This message (including attachment if any) is confidential and may be =
-privileged. Before opening attachments please check them for viruses and =
-defects. MindTree Consulting Private Limited (MindTree) will not be =
-responsible for any viruses or defects or any forwarded attachments =
-emanating either from within MindTree or outside. If you have received =
-this message by mistake please notify the sender by return  e-mail and =
-delete this message from your system. Any unauthorized use or =
-dissemination of this message in whole or in part is strictly =
-prohibited.  Please note that e-mails are susceptible to change and =
-MindTree shall not be liable for any improper, untimely or incomplete =
-transmission.
 
 
 -------------------------------------------------------
