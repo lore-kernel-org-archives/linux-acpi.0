@@ -1,8 +1,9 @@
 From: "Dino Klein" <dinoklein-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
-Subject: Entering C3 Processor State without a Bus Arbiter
-Date: Thu, 15 Jan 2004 17:29:23 -0500
+Subject: Re: Via 694X based SMB boards (Apollo Pro133A)
+Date: Thu, 15 Jan 2004 17:36:28 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Law11-OE36TK4GXSNMh0000bd93@hotmail.com>
+Message-ID: <Law11-OE71YaEv1Kq2E0000cace@hotmail.com>
+References: <LAW11-OE34hRDT6Z3Ls000131c1@hotmail.com> <20040115141018.F72769@root.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -16,26 +17,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
+> If you're looking to do throttling, some SMP boards support it.  The most
+> common way is with a shared P_BLK.  Either both Processor objects in the
+> ASL will have the same P_BLK or one will have it and the other will have a
+> NULL entry.  Either way, setting throttling through the P_BLK _ONCE_ (not
+> once per processor) sets the throttling level.
 
-I'm curios as to why the implementation does not enter C3 without the presence of a Bus Arbiter; also, how come a comment in the
-source claims that C3/WBINVD is too expensive?
 
-After removing the restrictions in the source files, and adding a WBINVD instruction right before the read from P_LVL3 - the
-processor was put in the C3 state. This is on my Via Apollo Pro133A based Abit VP6 board, which does not have a Bus Arbiter.
-Just for the record, I did pull out the second CPU, so I can do "safer" experimentation.
-
-Everything seemed to be working fine, the delay was quite noticeable (900 in the FACP) to the point that keystrokes were lost. In
-essence, the computer was quite unusable. Nevertheless, in order to see if the system was still stable after the modifications, I
-recompiled the kernel with "-j8" and everything worked fine; I even started X without problems.
-
-I've seen a thread talking about how the processor was not put into C3 as often enough, when the USB drivers were loaded - in my
-case I would say that it was put too often, this with the UHCI + EHCI + HID drivers loaded, and two mice and one hub attached.
-
-Just thought I'd bring this up.
+Actually, I did play with the throttling, but not through the ACPI driver. I wrote directly to the register, and the system was
+reduced to  ~5% (according to the datasheets) of it's former glory. I did that with both CPUs on the board, which makes me wonder -
+is there some way to figure out what is the clock speed of a particular CPU? maybe this way I can figure out whether my actions
+operate on both CPUs or only one one.
 
 
 -------------------------------------------------------
