@@ -1,10 +1,10 @@
-From: Stian Jordet <liste-NI9zH3lwcMKHXe+LvDLADg@public.gmane.org>
-Subject: Really weird usb problem with acpi.
-Date: 28 Mar 2003 19:59:48 +0100
+From: Michael Madore <mmadore-JChM1cqIHx8AvxtiuMwx3w@public.gmane.org>
+Subject: Reboot on shutdown with USB 2.0
+Date: Fri, 28 Mar 2003 14:25:30 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1048877988.32560.26.camel@chevrolet.hybel>
+Message-ID: <3E84CBDA.20104@aslab.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -20,37 +20,21 @@ List-Id: linux-acpi@vger.kernel.org
 
 Hi,
 
-I have tried several kernel version, and it is the same with all of
-them. This is with 2.5.65. The same applies for all recent 2.4.x
-kernels.
+I'm having a strange problem regarding ACPI and USB 2.0 devices 
+(External CD-Rom, Jaz drive, etc).  Using 2.4.21-pre5 with the latest 
+patch if I issue:
 
-I have the following usb hardware:
+shutdown -h now
 
-HP DeskJet 990Cxi - printer
-Epson Perfection 1260 - scanner
-3com 3CREB96 - Bluetooth adapter
-Sony Ericsson DCU-10 - serial adapter
-Logitech Cordless desktop - Keyboard/mouse
+The machine shuts off, but half a second later the power comes back on. 
+ If I unload the echi driver module, the machine shuts off normally.
 
-With acpi enabled, everything works perfect, EXCEPT the keyboard/mouse.
-I just get the infamous "device not accepting address" message.
+Any thoughts on what would cause that kind of behavior?
 
-But if I boot the computer with ps/2 keyboard and mouse. Pulls out the
-ps/2 keyboard and mouse, and plugs in the usb-cable, the
-usb-keyboard/mouse works. But if I then restart the computer with the
-usb keyboard/mouse still attached, I'm back to "device not accepting
-adress".
+Thanks!
 
-If I compile acpi with "CPU-enumeration only" there is no problem at
-all. Neither if ACPI is disabled.
+Mike Madore
 
-This is an ASUS CUV266-DLS Dual P3 motherboard.
-
-Hope someone cares and/or knows what to do. I would like to have full
-ACPI-support...
-
-Best regards,
-Stian
 
 
 
