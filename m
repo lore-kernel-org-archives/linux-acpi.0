@@ -1,14 +1,15 @@
-From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: [PATCH] clean up ACPI GSI/IRQ conversions (x86_64 part)
-Date: Sat, 13 Mar 2004 03:26:57 +0100
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: _OSI boot hang
+Date: 13 Mar 2004 03:22:31 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040313022656.GD4638@wotan.suse.de>
-References: <200403121551.11924.bjorn.helgaas@hp.com>
+Message-ID: <1079166150.2168.94.camel@dhcppc4>
+References: <3ACA40606221794F80A5670F0AF15F8401CBB748@PDSMSX403.ccr.corp.intel.com>
+	 <20040311200031.J67848@root.org>  <1079073556.3868.37.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200403121551.11924.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+In-Reply-To: <1079073556.3868.37.camel-D2Zvc0uNKG8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,18 +18,52 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Cc: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Cc: Luming Yu <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Mar 12, 2004 at 03:51:11PM -0700, Bjorn Helgaas wrote:
-> Here's the x86_64 part, again based on 2.6.4.  This should be safe to
-> apply by itself.  I cross-compiled it with just this patch, and also with
-> the ACPI patch that will follow (to make it use acpi_gsi_to_irq()).
+_OSI is in the ACPI patch on kernel.org and bkbits right now.
 
-Thanks. Applied.
+However, I find that on my Toshiba Satellite Pro, it causes boot to hang
+at Executing all Device _STA and_INI methods.
 
--Andi
+>From ACPICA, it comes this way:
+drivers/acpi/utilities/utglobal.c
+const char                         
+*acpi_gbl_valid_osi_strings[ACPI_NUM_OSI_STRINGS] = {
+                       "Linux",
+                       "Windows 2000",
+                       "Windows 2001",
+                       "Windows 2001.1"};
+
+
+I find that it is the match on "Windows 2001" that hangs my laptop...
+
+clues?
+
+-Len
+
+ACPI: Subsystem revision 20040311
+ tbxface-0117 [03] acpi_load_tables      : ACPI Tables successfully
+acquired
+Parsing all Control
+Methods:...................................................................................................
+Table [DSDT](id F005) - 682 Objects with 72 Devices 183 Methods 6
+Regions
+Parsing all Control Methods:.....................
+Table [SSDT](id F003) - 46 Objects with 6 Devices 21 Methods 0 Regions
+ACPI Namespace successfully loaded at root c04b717c
+ACPI: IRQ9 SCI: Level Trigger.
+evxfevnt-0093 [04] acpi_enable           : Transition to ACPI mode
+successful
+evgpeblk-0747 [06] ev_create_gpe_block   : GPE 00 to 31 [_GPE] 4 regs at
+000000000000D828 on int 9
+Completing Region/Field/Buffer/Package
+initialization:......................................................
+Initialized 6/6 Regions 0/0 Fields 18/18 Buffers 30/30 Packages (736
+nodes)
+Executing all Device _STA and_INI
+methods:..................................................
 
 
 
