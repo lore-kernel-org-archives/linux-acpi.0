@@ -1,8 +1,8 @@
-From: "Cody Lange" <codylange_xe-EYAvycaGItDvnOemgxGiVw@public.gmane.org>
-Subject: $12546
-Date: Fri, 09 Jul 2004 23:07:06 +0800
+From: "Esperanza Nixon" <enixonud-PWg9ZSxPCAlyDzI6CaY1VQ@public.gmane.org>
+Subject: Lose 19% weight. A new weightloss is now available.
+Date: Sat, 10 Jul 2004 00:33:35 +0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <d22501c465c6$055d9655$47330560@berkeleygroup.co.uk>
+Message-ID: <454a01c465fc$1bd1113a$566cd3ff@isa.com.co>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -16,29 +16,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acornicq-bugs-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-I sent you an email a few days ago, because you now qualify for a new mortgage.
-You could get $300,000 for as little as $700 a month!
-Bad credit is no problem, you can pull cash out or refinance.
+Hello, I have a special offer for you...
+WANT TO LOSE WEIGHT?
+The most powerful weightloss is now available
+without prescription. All natural Adipren720
+100% Money Back Guarantée!
+- Lose up to 19% Total Body Weight.
+- Loss of 20-35% abdominal Fat.
+- Up to 300% more Weight Loss while dieting.
+- Increase metabolic rate by 76.9% without Exercise.
+- Reduction of 40-70% overall Fat under skin.
+- Suppresses appetite for sugar.
+- Burns calorized fat.
+- Boost your Confidence level and Self Esteem.
+Get the facts about all-natural Adipren720 <http://adipren12.com/>
 
-Please click on this link:
-http://www.lending-now.com/h7/li.php?bks=71
 
-Best Regards,
-Steve Morris
-
-
-
-No more: http://www.lending-now.com/r1/index.html
 
 ---- system information ----
-specification selection Transition index expecting Alternate offer place
-
-only alone Here selection no expectations requires disparate 
-mechanisms or Task maintaining behavior assumption number support 
+form Cases Han manner name We knowledge deployed 
+might still a javautilLocale more-general language support produce 
+function uses fully services Task allows zh Document 
+invite United [Definition: correlate correlate varies graphics The 
+relationship serve expectations submitted implications contents within
+works 
 
 
 
