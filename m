@@ -1,15 +1,14 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: ACPI: S3 and PAE do not like each other for now, S3
-	disabled.
-Date: 26 Jul 2004 16:49:43 -0400
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Why nobody help me?
+Date: Mon, 26 Jul 2004 17:17:38 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1090874983.2325.13.camel@dhcppc4>
-References: <200407252330.05542.arekm@pld-linux.org>
+Message-ID: <29AC424F54821A4FB5D7CBE081922E400124E568@hdsmsx403.hd.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200407252330.05542.arekm-k0Z414SquRyhPH1hqNUYSQ@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,24 +17,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Arkadiusz Miskiewicz <arekm-k0Z414SquRyhPH1hqNUYSQ@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: marco ghidinelli <marcogh-k2GhghHVRtY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 2004-07-25 at 17:30, Arkadiusz Miskiewicz wrote:
-> Is this ,,ACPI: S3 and PAE do not like each other for now, S3 disabled.''
-> generic S3 and PAE issue or just Linux issue only?
-> 
-> The case is ,,NX (Execute Disable)'' needs PAE to work on x86 but having S3 
-> working at the same time would be nice.
+=20
+>> The only workaround I
+>> need is having OS to report bewing Windows NT instead of Linux to get
+>> the interrupts working.
+>
+>and how you do that?
 
-This may be bit-rot.
-The last time somebody tested this IIR  S3 worked
-exactly the same in PAE as it did in conventional MMU mode.
+acpi_os_name=3D"Microsoft Windows NT"
+
+note that this is the default in the latest ACPI patch.
 
 -Len
-
-
 
 
 -------------------------------------------------------
