@@ -1,14 +1,13 @@
-From: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
-Subject: Re: Re: does cpu_idle() halt CPU?
-Date: Wed, 2 Apr 2003 23:44:51 +0200
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Re: does cpu_idle() halt CPU?
+Date: Wed, 2 Apr 2003 14:20:41 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030402214451.GA6222@dutidad.twi.tudelft.nl>
-References: <F760B14C9561B941B89469F59BA3A847E96D88@orsmsx401.jf.intel.com> <20030328150218.D10287@gateway.junsun.net> <20030329134742.GD10287@poup.poupinou.org> <m24r5hwfa5.fsf@tnuctip.rychter.com>
+Message-ID: <F760B14C9561B941B89469F59BA3A84725A245@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <m24r5hwfa5.fsf-dTJq59+VGzkkCw8IV3R6h0EOCMrvLtNR@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,25 +16,36 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Jan Rychter <jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Apr 02, 2003 at 09:05:06AM +0200, Jan Rychter wrote:
-> >>>>> "DB" == Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>:
-> [...]
->  DB> You forgot at least disk activities especially if ext3, which
->  DB> prevent almost all IDE drivers to go to idle state.  But that will
->  DB> not explain why you can not go to C3 though.
-> 
-> By the way, let me ask here: does anybody know what would be the best
-> filesystem to use on a laptop, power saving being the #1 priority? Are
-> all journaling filesystems this bad?
+> From: Jan Rychter [mailto:jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org] 
+> USB preventing the machine from going into C3 is a serious 
+> problem. I still don't understand if that's a hardware thing 
+> or can we have a more reasonable HCI implementation that 
+> doesn't use DMA that much. How does Windows deal with it?
 
-I'm having great results with ext3 by making sure that all my filesystems
-are mounted with the noatime option.
+Busmaster PCI devices keep us from using C3, because the CPU needs to be
+in C2 or higher to handle bus snoops, needed for cache coherency.
 
--- 
-charl p. botha http://cpbotha.net/ http://visualisation.tudelft.nl/
+USB is a particular problem, because unlike other devices (like IDE)
+which only do busmaster when active, USB does them to its task list *all
+the time*. This is inherent in the hardware's design.
+
+Software can mitigate this in several ways. First, if there are no
+devices attached, then we can put the host controller into Global
+Suspend until a device is inserted. UHCI does not scan its task list
+when suspended. Windows does this (and so does the Linux "uhci" driver,
+but not "uhci-usb"). Another way is selective suspend. In this case, if
+*all* the attached devices suspend themselves, we can suspend the HC.
+Linux doesn't do this, but Win XP does. The worst scenario is any active
+device on the USB. This rules out any technique to minimize busmaster
+activity.
+
+This is one reason why laptops have not switched to using internal USB
+connections for mouse and keyboard.
+
+Regards -- Andy
 
 
 -------------------------------------------------------
