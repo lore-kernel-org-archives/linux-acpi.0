@@ -1,90 +1,91 @@
-From: Herman Sheremetyev <mlists-6MNMYbGzEYJWk0Htik3J/w@public.gmane.org>
-Subject: PBLK length again
-Date: Sun, 20 Jun 2004 18:20:43 -0400
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1087770015.23371.27.camel@djinn>
-References: <BAY16-F112kKIBXEHt30004aded@hotmail.com>
-	 <20040620154726.GT20511@parcelfarce.linux.theplanet.co.uk>
-Reply-To: mlists-6MNMYbGzEYJWk0Htik3J/w@public.gmane.org
+From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb@netcabo.pt>
+Subject: Re: [ACPI] [BKPATCH] ACPI for 2.4
+Date: Mon, 21 Jun 2004 01:31:35 +0100
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <1087777894.4916.13.camel@darkstar>
+References: <1087540935.4488.214.camel@dhcppc4>
+Reply-To: sergiomb@netcabo.pt
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-yoUHmFuORoPanLyHP21Z"
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040620154726.GT20511-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: multipart/mixed; boundary="=-zUKFYDXO79JfrGNg1TvU"
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S265543AbUFUAqX@vger.kernel.org>
+In-Reply-To: <1087540935.4488.214.camel@dhcppc4>
+To: Len Brown <len.brown@intel.com>, Mikael.Pettersson@csd.uu.se
+Cc: Marcelo Tosatti <marcelo.tosatti@cyclades.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Developers <acpi-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
 
 
---=-yoUHmFuORoPanLyHP21Z
-Content-Type: text/plain
+--=-zUKFYDXO79JfrGNg1TvU
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
+
+Hi Mikael, I think you are the "guy" whose propose this patch on lkml.
+I am forwarding to ACPI ml, where is the right place to send ACPI
+patches.=20
+
+Hi Len,
+Mikael said
+"2.4.27-rc1 reintroduced the double-speed timer ACPI bug.=20
+Both x86-64 and i386 are affected.
+
+The patch below fixes it on my box. It's a backport of a
+patch Hans-Frieder Vogt made for 2.6.7-bk2, extended to
+also handle i386.
+/Mikael Pettersson"
+
+On Fri, 2004-06-18 at 08:32, Len Brown wrote:=20
+> Hi Marcelo, please do a=20
+>=20
+> 	bk pull bk://linux-acpi.bkbits.net/linux-acpi-release-2.4.27
+>=20
+> thanks,
+> -Len
+>=20
+> ps. a plain patch is also available here:
+> ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.=
+4.27/acpi-20040326-2.4.27.diff.gz
+
+> <len.brown@intel.com> (04/06/18 1.1359.6.27)
+>    [ACPI] fix 2.4.27-pre3 IRQ override regression
+>    due to dynamically allocated mp_irqs[].
+>    http://bugzilla.kernel.org/show_bug.cgi?id=3D2834
+>=20
+
+Hope help something, sorry for my poor English.
+--=20
+S=E9rgio M. B.
+
+--=-zUKFYDXO79JfrGNg1TvU
+Content-Disposition: attachment; filename=1.diff
+Content-Type: text/x-patch; name=1.diff; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 
-Hi All,
-
-I have an Asus M6N and the Bios DSDT provides a PBLK length of 7 which
-causes ACPI to always use the C1 processor state.  This laptop
-definitely supports C2 and most people have just used custom DSDT's and
-changed the value to 6.  I don't like using a custom DSDT so I made a
-quick kernel patch (attached) to accept 7 as a good value.
-
-I've searched the archives and found that other people have had issues
-with PBLK being set to something other than 0 or 6 and at one point the
-ACPI code was relaxed to allow for other values but then changed back to
-the original strict mode due to issues with C2 being used when it
-shouldn't be.  There was also talk of making the relaxed code optional
-but it seems that never got off the ground.  
-
-My question is, if I make a nicer patch that allows for either strict
-interpretation versus a relaxed one, is there a chance that it will get
-included?  It seems there is enough interest out there to make it worth
-the effort.
-
-Thanks,
-
--Herman
-
+diff -ruN linux-2.4.27-rc1/arch/i386/kernel/mpparse.c linux-2.4.27-rc1.mpparse-fix/arch/i386/kernel/mpparse.c
+--- linux-2.4.27-rc1/arch/i386/kernel/mpparse.c	2004-06-21 00:39:30.000000000 +0200
++++ linux-2.4.27-rc1.mpparse-fix/arch/i386/kernel/mpparse.c	2004-06-21 00:50:01.000000000 +0200
+@@ -1211,7 +1211,7 @@
  
-
---=-yoUHmFuORoPanLyHP21Z
-Content-Disposition: attachment; filename=pblk_length-7-hack.patch
-Content-Type: text/x-patch; name=pblk_length-7-hack.patch; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
---- linux-2.6.7/drivers/acpi/processor.c	2004-06-20 14:49:10.066168648 -0400
-+++ linux-2.6.7.hack/drivers/acpi/processor.c	2004-06-19 21:26:33.000000000 -0400
-@@ -2214,7 +2230,8 @@
+ 		for (idx = 0; idx < mp_irq_entries; idx++)
+ 			if (mp_irqs[idx].mpc_srcbus == MP_ISA_BUS &&
+-				(mp_irqs[idx].mpc_dstapic == ioapic) &&
++				(mp_irqs[idx].mpc_dstapic == mp_ioapics[ioapic].mpc_apicid) &&
+ 				(mp_irqs[idx].mpc_srcbusirq == i ||
+ 				mp_irqs[idx].mpc_dstirq == i))
+ 					break;
+diff -ruN linux-2.4.27-rc1/arch/x86_64/kernel/mpparse.c linux-2.4.27-rc1.mpparse-fix/arch/x86_64/kernel/mpparse.c
+--- linux-2.4.27-rc1/arch/x86_64/kernel/mpparse.c	2004-06-21 00:39:30.000000000 +0200
++++ linux-2.4.27-rc1.mpparse-fix/arch/x86_64/kernel/mpparse.c	2004-06-21 00:50:01.000000000 +0200
+@@ -866,7 +866,7 @@
  
- 	if (!object.processor.pblk_address)
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No PBLK (NULL address)\n"));
--	else if (object.processor.pblk_length != 6)
-+	else if ((object.processor.pblk_length != 6 ) && 
-+		(object.processor.pblk_length != 7 ))
- 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid PBLK length [%d]\n",
- 			object.processor.pblk_length));
- 	else {
-@@ -2233,7 +2250,7 @@
- 		 *
- 		 * (In particular, allocating the IO range for Cardbus)
- 		 */
--		request_region(pr->throttling.address, 6, "ACPI CPU throttle");
-+		request_region(pr->throttling.address, object.processor.pblk_length, "ACPI CPU throttle");
- 		request_region(acpi_fadt.xpm_tmr_blk.address, 4, "ACPI timer");
- 	}
- 
-
---=-yoUHmFuORoPanLyHP21Z--
-
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by The 2004 JavaOne(SM) Conference
-Learn from the experts at JavaOne(SM), Sun's Worldwide Java Developer
-Conference, June 28 - July 1 at the Moscone Center in San Francisco, CA
-REGISTER AND SAVE! http://java.sun.com/javaone/sf Priority Code NWMGYKND
+ 		for (idx = 0; idx < mp_irq_entries; idx++)
+ 			if (mp_irqs[idx].mpc_srcbus == MP_ISA_BUS &&
+-				(mp_irqs[idx].mpc_dstapic == ioapic) &&
++				(mp_irqs[idx].mpc_dstapic == intsrc.mpc_dstapic) &&
+ 				(mp_irqs[idx].mpc_srcbusirq == i ||
+ 				mp_irqs[idx].mpc_dstirq == i))
+ 					break;
+-
+To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please read the FAQ at  http://www.tux.org/lkml/
+--=-zUKFYDXO79JfrGNg1TvU--
