@@ -1,15 +1,14 @@
-From: Martijn Pieters <mj-a5Jd59zECFiB+jHODAdFcQ@public.gmane.org>
-Subject: Re: ASL fixing questions
-Date: Thu, 12 Feb 2004 15:56:41 -0500
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: [BUG][2.6.3-rc2] Unable to turn display on with ASUS L3D
+Date: Thu, 12 Feb 2004 22:08:07 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <402BE889.5090502@zopatista.com>
-References: <402AF9FF.3020706@zopatista.com> <20040212093732.GP13262@poupinou.org> <402B9313.9000701@zopatista.com> <402BAABC.5040706@zopatista.com> <20040212204335.GU13262@poupinou.org>
+Message-ID: <20040212210807.GA23222@hell.org.pl>
+References: <20040212161008.GA8729@dreamland.darkstar.lan>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigBE2552779CA74F2C8174FA44"
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040212204335.GU13262-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20040212161008.GA8729-sTXFmx6KbOnUXq0IF5SVAZ4oGUkBHcCu@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,59 +17,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, julien.lerouge-GANU6spQydw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigBE2552779CA74F2C8174FA44
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Thus wrote Luca:
+> echo 1 > /proc/acpi/asus/disp hangs the system but turns the lcd on.
+> These are the last lines I see (with debug_level = 0x000000ff):
 
-Bruno Ducrot wrote:
->>                0x8A010000
-> 
->                   ^^^^^^^^^^
-> 		  I think that all of those
-> 		  values are broken, because
-> 		  they are stored in a little bit
-> 		  order.
-> 		  It should be in fact, at least for the that
-> 		  first package:
-> 
->                  0x0708,
-> 		 0x6AB3,
-> 		 0x007D,
-> 		 0x0090,
-> 		 0xE020298A,
-> 		 0x018A
-> 
-> Also, I think the 0xE020298A is false.  It should be
-> 0x0E20298A I guess.
+Please boot with noapic or nolapic.
+There was a patch floating around that might have helped, search the
+bugzilla...
+Best regards,
 
-Not enough experience with hand disassembly, that is. That is me not 
-realizing that the bytes are in the other order. And that 0E is my typo.
-
-iasl just refuses to disassemble the SSDT table, maybe because 
-\_SB._PR.CPU0 should be declared an external?
-
-Martijn
-
---------------enigBE2552779CA74F2C8174FA44
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
-
-iD8DBQFAK+iP3xaj2GOvgP0RAlo5AKCzSePkBl6MQOdX8vobCwiZZ+f9LACdHmks
-ZWS4PbTm9Hll94Dz/bCVGvA=
-=1Pra
------END PGP SIGNATURE-----
-
---------------enigBE2552779CA74F2C8174FA44--
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
