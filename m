@@ -1,8 +1,8 @@
 From: "Christer Backstrom" <cbackstrom-TTD55EFobGVBDgjK7y7TUQ@public.gmane.org>
 Subject: Re: Video toggle button hang, Fn+F4 on Compaq Evo N1005v.
-Date: Mon, 19 Jul 2004 22:26:01 +0100
+Date: Mon, 19 Jul 2004 22:26:26 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040719212601.6F79416402D@ws1-4.us4.outblaze.com>
+Message-ID: <20040719212626.9F5AB16402D@ws1-4.us4.outblaze.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
@@ -35,15 +35,18 @@ Subject: Re: [ACPI] Video toggle button hang, Fn+F4 on Compaq Evo N1005v.
 > You might try booting with 'nolapic'.
 > Best regards,
 > 
-
-Well I'll be d... It works! Thank you so very much. Should I be worried about not having the local APIC working?
-
-/Chris
-
 > -- 
 > Karol 'sziwan' Kozimor
 > sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
+
+
+Dr Christer Backstrom
+5 Neville Road
+Kingswood
+Bristol BS15 1XX
+
+Tel. +44(0)117 9 042 042
 
 -- 
 ___________________________________________________________
