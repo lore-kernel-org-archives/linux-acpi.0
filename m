@@ -1,14 +1,11 @@
-From: Fionn Behrens <fionn-ZPjJJ+sDHmfddJNmlsFzeA@public.gmane.org>
-Subject: Re: acer tm100 ACPI woes: "nobody cared" again & strange battery
- events
-Date: Tue, 09 Nov 2004 18:46:58 +0100
-Message-ID: <cmqvsl$k66$1@sea.gmane.org>
-References: <cmg0bt$7na$1@sea.gmane.org>
+From: dev_zero <dev_xor-eZNTXLQAfP4@public.gmane.org>
+Subject: Reply to emails
+Date: Tue, 9 Nov 2004 18:54:38 +0100 (CET)
+Message-ID: <20041109175438.53245.qmail@web25303.mail.ukl.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <cmg0bt$7na$1@sea.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,12 +18,15 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Fionn Behrens wrote:
-
-and nobody cared indeed :-/
-
-looks like another round of apm kernels then.
-
+How should I really reply to emails coming from this
+mailinglist?
+I wonder because when I get replays from you, I
+sometimes get two of the same email. Because you send
+the email to my email address and a Cc to this
+mailinglist which I subscribe to. When I send replays
+should I send the email to the mailinglist or should I
+send the replay to the person who sent the email with
+the mailinglist-address as Cc?
 
 
 -------------------------------------------------------
