@@ -1,12 +1,16 @@
-From: "speretta" <speretta-hyy6G3kTdgRcgydyL9YGyw@public.gmane.org>
-Subject: Recebido seu e-mail agrade=?ISO-8859-1?Q?=E7o_a_aten=E7=E3o=2E_Em_breve_ser=E1?= respondido. Sugiro sua visita ao si
-Date: Wed, 21 Jul 2004 15:42:47 -0200
+From: Christian Hesse <mail-8oMOrB1mGocUSW6y5lq3GQ@public.gmane.org>
+Subject: Re: Resume with Samsung X10
+Date: Wed, 21 Jul 2004 22:00:34 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <10407211542.AA96731339@speretta.adv.br>
-Reply-To: <speretta-hyy6G3kTdgRcgydyL9YGyw@public.gmane.org>
+Message-ID: <200407212200.34617.mail@earthworm.de>
+References: <B44D37711ED29844BEA67908EAF36F03568273@pdsmsx401.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <B44D37711ED29844BEA67908EAF36F03568273-4yWAQGcml65pB2pF5aRoyrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,9 +20,23 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Recebido seu e-mail agradeço a atenção. Em breve será respondido. Sugiro sua visita ao site htpp://www.speretta.adv.br e ao blog  - http://speretta.blog.uol.com.br. Tenha um ótimo dia e que esteja sempre com a PAZ de DEUS.
+On Friday 16 July 2004 03:24, Li, Shaohua wrote:
+> Hi,
+> Please try latest ACPI bk tree, we have bunch of update about
+> sleep/wakeup. And if it still can't work, please send the 'acpidmp'
+> output.
+
+Wakeup works with ACPI 20040715. :)
+
+However, screen stays black after wakeup, but keyboard works. I will try some 
+more things now.
+
+Thanks,
+Christian
+-- 
 
 
 -------------------------------------------------------
