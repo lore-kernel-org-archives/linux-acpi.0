@@ -1,98 +1,47 @@
-From: Matthias Hentges <mailinglisten-H4PcyxPeSRnR7s880joybQ@public.gmane.org>
-Subject: Re: S3 broken on a Samsung P30
-Date: Fri, 12 Nov 2004 13:51:59 +0100
-Message-ID: <1100263919.3523.3.camel@mhcln03>
-References: <1099605010.5191.20.camel@mhcln03>
-	 <20041110231802.GA1099@elf.ucw.cz>
+From: Matthew Wilcox <matthew@wil.cx>
+Subject: Re: [PATCH] GPE block driver [2/2]
+Date: Fri, 12 Nov 2004 13:11:02 +0000
+Message-ID: <20041112131102.GE1108@parcelfarce.linux.theplanet.co.uk>
+References: <16A54BF5D6E14E4D916CE26C9AD3057588EFB6@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-nEyOEAa+RDhp3+9uzF05"
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041110231802.GA1099-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD3057588EFB6@pdsmsx402.ccr.corp.intel.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: "Li, Shaohua" <shaohua.li@intel.com>
+Cc: Matthew Wilcox <matthew@wil.cx>, acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Fri, Nov 12, 2004 at 04:23:59PM +0800, Li, Shaohua wrote:
+> Hi Matthew,
+> Will you send a sequent patch? I haven't looked at an interrupt handler
+> is registered for the IRQ from GPE block device.
 
---=-nEyOEAa+RDhp3+9uzF05
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+$ cat /proc/interrupts |grep acpi
+ 48:          0          0          0          0          0  IO-SAPIC-level  acpi
+$ sudo modprobe gpe-block
+$ cat /proc/interrupts |grep acpi
+ 48:          0          0          0          0          0  IO-SAPIC-level  acpi
+ 63:          0          0          0          0          0  IO-SAPIC-level  acpi
 
-Am Donnerstag, den 11.11.2004, 00:18 +0100 schrieb Pavel Machek:
+The interrupt is registered by this call in evgpeblk.c:
 
-> See recent threads of adding beeping to begining of wakeup.S. Does it
-> beep for you?
+$ find drivers/acpi/ -type f |xargs grep acpi_os_install_interrupt_handler
+drivers/acpi/osl.c:acpi_os_install_interrupt_handler(u32 gsi, acpi_osd_handler handler, void *context)
+drivers/acpi/events/evgpeblk.c:         status = acpi_os_install_interrupt_handler (interrupt_level,
+drivers/acpi/events/evsci.c:    status = acpi_os_install_interrupt_handler ((u32) acpi_gbl_FADT->sci_int,
 
-No it doesn't.
-I've googled for the beep patch. The one I found is attached as I'm not
-sure if it is the right one.
+Note that up to two of the GPE blocks in the ACPI namespace may already be
+registered by virtue of being in the FADT; these will not be registered
+by the gpe-block driver as they don't have a _CRS method (see 9.11 of
+ACPI 3.0).  I suspect 99% of the machines out there do not have additional
+GPE blocks... or someone else would have written this driver by now ;-)
 
-Thanks
 -- 
-Matthias Hentges 
-Cologne / Germany
-
-[www.hentges.net] -> PGP welcome, HTML tolerated
-ICQ: 97 26 97 4   -> No files, no URL's
-
-My OS: Debian SID. Geek by Nature, Linux by Choice
-
---=-nEyOEAa+RDhp3+9uzF05
-Content-Description: 
-Content-Disposition: attachment; filename=wakeup.S-beep.patch
-Content-Type: text/x-patch; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-
---- clean-mm/arch/i386/kernel/acpi/wakeup.S	2004-08-24 09:02:23.000000000 +0200
-+++ linux-mm/arch/i386/kernel/acpi/wakeup.S	2004-09-07 21:15:17.000000000 +0200
-@@ -11,8 +11,23 @@
- #
- # If physical address of wakeup_code is 0x12345, BIOS should call us with
- # cs = 0x1234, eip = 0x05
--# 
-+#
- 
-+#define BEEP \
-+	inb	$97, %al; 	\
-+	outb	%al, $0x80; 	\
-+	movb	$3, %al; 	\
-+	outb	%al, $97; 	\
-+	outb	%al, $0x80; 	\
-+	movb	$-74, %al; 	\
-+	outb	%al, $67; 	\
-+	outb	%al, $0x80; 	\
-+	movb	$-119, %al; 	\
-+	outb	%al, $66; 	\
-+	outb	%al, $0x80; 	\
-+	movb	$15, %al; 	\
-+	outb	%al, $66; 
-+	
- ALIGN
- 	.align	4096
- ENTRY(wakeup_start)
-@@ -20,6 +35,7 @@
- 	wakeup_code_start = .
- 	.code16
- 
-+	BEEP
-  	movw	$0xb800, %ax
- 	movw	%ax,%fs
- 	movw	$0x0e00 + 'L', %fs:(0x10)
-
---=-nEyOEAa+RDhp3+9uzF05--
-
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by:
-Sybase ASE Linux Express Edition - download now for FREE
-LinuxWorld Reader's Choice Award Winner for best database on Linux.
-http://ads.osdn.com/?ad_id=5588&alloc_id=12065&op=click
+"Next the statesmen will invent cheap lies, putting the blame upon 
+the nation that is attacked, and every man will be glad of those
+conscience-soothing falsities, and will diligently study them, and refuse
+to examine any refutations of them; and thus he will by and by convince 
+himself that the war is just, and will thank God for the better sleep 
+he enjoys after this process of grotesque self-deception." -- Mark Twain
