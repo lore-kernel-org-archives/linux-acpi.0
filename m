@@ -1,14 +1,13 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: [RFC] Workaround for Intel _STA quirk
-Date: Fri, 2 Jan 2004 16:51:16 -0700
+From: Mark Russell <markarussell-ihVZJaRskl1bRRN4PJnoQQ@public.gmane.org>
+Subject: ACPI CPU Usage problems ( events process taking near 100% )
+Date: Fri, 2 Jan 2004 20:20:42 -0700 (GMT-07:00)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200401021651.16295.bjorn.helgaas@hp.com>
+Message-ID: <27441069.1073100042475.JavaMail.root@thecount.psp.pas.earthlink.net>
+Reply-To: Mark Russell <markarussell-ihVZJaRskl1bRRN4PJnoQQ@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,42 +16,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Intel firmware for the Big Sur and Tiger ia64 boxes (and probably
-others) uses an _STA value of 0x8 for the pseudo PCI root bridges
-where the chipset configuration space lives, i.e., CBN or CSFF.
-
-As far as I can tell, this is nonsensical - it says the bridge is
-functional, but not present.
-
-We can't just ignore these bridges because there are useful devices
-below them.  For example, the AGP bridge on Big Sur appears under CBN.
-
-Any thoughts on this workaround?  I know it's ugly, so if there's a
-Better Way, I'd be glad to be enlightened.  (This patch is against
-2.6.1-rc1).
-
-===== drivers/acpi/bus.c 1.35 vs edited =====
---- 1.35/drivers/acpi/bus.c	Mon Oct 20 12:10:28 2003
-+++ edited/drivers/acpi/bus.c	Fri Jan  2 16:43:26 2004
-@@ -110,6 +110,14 @@
- 	else
- 		STRUCT_TO_INT(device->status) = 0x0F;
+I have search google and scanned the mailing list archive and have not yet found the solution for this.
  
-+	if (device->status.functional && !device->status.present) {
-+		printk(KERN_WARNING PREFIX "Device [%s] status [%08x]: "
-+			"functional but not present; setting present\n",
-+			device->pnp.bus_id,
-+			(u32) STRUCT_TO_INT(device->status));
-+		device->status.present = 1;
-+	}
-+
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] status [%08x]\n", 
- 		device->pnp.bus_id, (u32) STRUCT_TO_INT(device->status)));
+Here is my case. I have a Toshiba Satellite Pro 6000 laptop. I just freshly loaded Gentoo linux on the machine. It has previously been loaded and run with Libranet without any problems. I am currently using the new 2.6 kernel. 
  
+Whenever ACPI support is enabled I end up with a process 'events/0' that takes near 100% of the cpu, as well as the cpu fan going crazy (ie comes on full speed and doesn't stop till I turn the notebook off). I have disabled all ACPI options except the basic support and that makes no difference. I have disabled APIC support (don't know that it makes a diff). I have also disabled cpu frequency scaling just to make sure. If I completely remove ACPI support from the kernel, or turn it off on boot, then that problem goes away, though turning it off causes other issues. So I know the problem revolves around ACPI but I can't figure out how to fix it. 
+ 
+I have also tried using the mm sources which includes the latest version (20031203) of the ACPI stuff, to no avail. I also ran across a thread that indicated I should try to comment out some code in the evrgnini.c file, but that also didn't do anything. 
 
+I have verified that I'm running the latest bios version as well.  I have also searched google to see if there was a dsdt available for my notebook and I haven't found anything.  
+ 
+Anyone know how to fix this? 
+ 
+Mark Russell
 
 
 -------------------------------------------------------
