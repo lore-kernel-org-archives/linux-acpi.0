@@ -1,10 +1,14 @@
-From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
-Subject: Centrino speedstep
-Date: Tue, 28 Dec 2004 21:32:00 +0100
-Message-ID: <m2zmzyw4e7.fsf@phoenix.squirrel.nl>
+From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
+Subject: Re: [REGRESSION] 'pciehp' stops working since 2.6.10-rc2
+Date: Tue, 28 Dec 2004 21:41:22 +0100
+Message-ID: <41D1C4F2.40204@pca.it>
+References: <16A54BF5D6E14E4D916CE26C9AD30575E0068B@pdsmsx402.ccr.corp.intel.com> <41D164F4.9080407@pca.it> <41D1BD66.9070704@root.org>
+Reply-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <41D1BD66.9070704-Y6VGUYTwhu0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,27 +18,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-On my Acer Travelmate 4000WLMi, with various 2.6.9 and 2.6.10 kernels
-and patch sets, I keep getting the following message:
+Hello,
 
-  speedstep-centrino: invalid ACPI data
-  speedstep-centrino: no table support for CPU model "Intel(R) Pentium(R) M processor 1.50GHz": 
+on 12/28/2004 09:09 PM, Nate Lawson wrote:
+> It is extremely unlikely that your laptop supports PCI Express.  I think
+> Intel has only released server chipsets (Grantsdale) that support this.
+I think the same, but in this case, why hotplug finds something and try
+to load the modules pci_hotplug, shpchp and pciehp?
 
-(Some kernels report "Invalid control/status registers" instead of
-"invalid ACPI data").
+Thx, bye,
+Gismo / Luca
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
 
-My latest attempt was the stock 2.6.10 kernel, with ACPI patch set
-acpi-20041210-2.6.10-rc3.diff, and a fixed DSDT. Still no success.
-
-Any help is appreciated.
-
-Thanks,
-        Johan 
+iD8DBQFB0cTyVAp7Xm10JmkRAuoGAJ48tjUSB+ouzmaJRKeRaRcWK5anpQCdGnWA
+9+XH2fUKUDxVIWjQuDdFHOI=
+=HoRa
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
