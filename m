@@ -1,14 +1,13 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Re: Re: DSDT in initrd
-Date: Wed, 28 May 2003 13:27:40 -0700
+From: <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
+Subject: PROBLEM: Executing /sbin/hwclock hangs 2.4.21-rc[12] with ACPI
+ snapshot patches
+Date: Wed, 28 May 2003 22:25:54 +0200 (CEST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A84725A2C3@orsmsx401.jf.intel.com>
+Message-ID: <Pine.LNX.4.33.0305282220030.737-100000@frog.athome>
+Reply-To: <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,35 +16,43 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Pavel Machek [mailto:pavel-+ZI9xUNit7I@public.gmane.org]=20
-> > > > What this enables is not only an elimination of the hassle=20
-> > > of initrd, it
-> > > > enables previously unmodularizable things like ACPI, or=20
-> > > PCI, or all the
-> > > > special code needed for x86 subarchs, or whatever other=20
-> > > code that one
-> > >=20
-> > > subarchs are different issue. They can't
-> > > be modularized without runtime overhead.
-> >=20
-> > How much runtime overhead?
->=20
-> Hard to tell... It might be 10% in heavy-interrupt-load situation...
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Can you help me understand more about why this might be? Why would
-modularized code be a performance hit over statically linked? I was
-assuming there would be another pointer dereference perhaps but that
-certainly is not going to be noticed. We already have drivers in
-modules, I'm trying to understand how for example a hi-perf nic driver
-performs the same when modularized but subarch stuff wouldn't, when I'm
-assuming it would just be like a "driver" for the particular
-peculiarities of the platform.
+Please add to the above mentioned thread - sorry I only got the thread
+from the archive...
 
-Thanks -- Regards -- Andy
+I like to add the following:
+ The probem started with the acpi-patch for kernel 2.4.21-rc1. It is not a
+kernel problem...
+I compiled several acpi-patched versions of the kernel 2.4.21-rc3 starting
+with the acpi-patch for -pre6, which does not show the problem. So it was
+introduced with acpi-20030424-2.4.21-rc1.diff.gz
+
+So we should search, what has changed for the -rc1-acpi release.
+
+BTW.: My system is a acer TM 634, with Ali-chipset for an p4-mobile.
+
+regards
+  hartwig felger
+
+Hartwig Felger informatics
+
+- -- 
+1024D/339FD693 Hartwig Felger <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
+Key fingerprint = FB2F 3EE9 345A D55B 6FF2  0EC1 F5B0 684F 339F D693
+For the pulic keys, please visit my page.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2 (GNU/Linux)
+
+iD8DBQE+1RtZ9bBoTzOf1pMRAnNIAJ4+8SqIAjeCvR3S2mZDxDebxg7QYwCfYPhG
+L1l3Nj8/K+uIYvAeTD7+UMc=
+=ZVc7
+-----END PGP SIGNATURE-----
+
 
 
 -------------------------------------------------------
