@@ -1,87 +1,49 @@
-From: Paul Ionescu <i_p_a_u_l@yahoo.com>
-Subject: Re: ibm-acpi-0.10
-Date: Mon, 17 Jan 2005 15:25:12 +0200
-Message-ID: <pan.2005.01.17.13.24.39.187602@yahoo.com>
-References: <20040916102610.GU20883@aero.ensim.com> <20050116234108.GK25275@aero.ensim.com>
-Reply-To: linux-thinkpad@linux-thinkpad.org
+From: =?ISO-8859-1?Q?Hendrik_J=FCrgens?= <hjuerg-ULHALamj7Vx/+Jgy1241yg@public.gmane.org>
+Subject: Re: Smart Battery System driver
+Date: Mon, 17 Jan 2005 15:21:47 +0100
+Message-ID: <41EBC9FB.4080502@technik-emden.de>
+References: <41E81C2C.8010809@bartol.udel.edu> <1105747983.7368.3.camel@tyrosine> <20050117132023.GT19199@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-thinkpad-admin@linux-thinkpad.org>
-Sender: linux-thinkpad-admin@linux-thinkpad.org
-Errors-To: linux-thinkpad-admin@linux-thinkpad.org
-List-Help: <mailto:linux-thinkpad-request@linux-thinkpad.org?subject=help>
-List-Post: <mailto:linux-thinkpad@linux-thinkpad.org>
-List-Subscribe: <http://mailman.linux-thinkpad.org/mailman/listinfo/linux-thinkpad>,
-	<mailto:linux-thinkpad-request@linux-thinkpad.org?subject=subscribe>
-List-Unsubscribe: <http://mailman.linux-thinkpad.org/mailman/listinfo/linux-thinkpad>,
-	<mailto:linux-thinkpad-request@linux-thinkpad.org?subject=unsubscribe>
-List-Archive: <http://mailman.linux-thinkpad.org/pipermail/linux-thinkpad/>
-To: linux-thinkpad@linux-thinkpad.org
-Cc: acpi-devel@lists.sourceforge.net
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20050117132023.GT19199-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Hi Boris,
+hi.
 
-Great work, thanks a lot.
-Temperature reading / fan speed reading / EC register dump works all on
-T41, T40, R50p. You can update the SF page for them.
-I did not tried fan speed control on these (afraid to).
+i don't know if this is a bug, but when the battery is charging and some
+program is polling the smartbattery through the /proc interface, the
+charging stopped for one oder two seconds. this happens only, if i get
+the information through the /proc interface.
+if i'm using the "standalone" smartbattery program, the charging process
+doesn't stop.
+my laptop is an acer travelmate 4002mli.
 
-Best regards,
-Paul
+Hendrik
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.6 (GNU/Linux)
 
-
-On Sun, 16 Jan 2005 15:41:08 -0800, Borislav Deianov wrote:
-
-> Hi,
-> 
-> It's been a couple of months and ibm-acpi was getting stale. Especially
-> with module parameters not working in 2.6.10, it was really starting to
-> stink up was the house... :-). So there you go, an update:
-> 
-> This is the 10th - oh let's call it beta - release of my ACPI driver for
-> IBM Thinkpad laptops. The features currently supported are:
-> 
-> 	- Fn key combinations
-> 	- Bluetooth enable and disable
-> 	- video output switching, expansion control - ThinkLight on and off
-> 	- limited docking and undocking
-> 	- UltraBay eject
-> 	- CMOS control
-> 	- LED control
-> 	- ACPI sounds
-> 	- Experimental: temperatures and fan speed - Experimental: embedded
-> 	controller register dump
-> 
-> Changes since 0.8 (the version included in 2.6.10):
-> 
->         - support for the 570, R30 and R31
->         - ultrabay support for the A22p and A3x - drop experimental status
->         from cmos, led and beep functions - fix module parameter passing
->         - modified blank.sh should work with X on Debian and Fedora -
->         default radio.sh script uses ipw2100 RF kill switch - default
->         blank and hibernate events use the swsusp2 hibernate.sh -
->         experimental temperatures and fan speed - experimental embedded
->         controller register dump
-> 
-> The major new experimental feature is the temperature and fan speed
-> display. Some models (T and X series, maybe others) can show several
-> temperature readings (in addition to CPU temperature) and the current fan
-> speed. Three models (X31, X40 and 570) can control the fan speed to a
-> certain degree. See the README for the full details.
-> 
-> I still have a few things in my backlog, namely support for the 240, 600e,
-> 770x and G41. Coming soon, I just needed to get something out the door
-> (I've been sitting on the 0.10 stuff for a while...).
-> 
-> http://ibm-acpi.sf.net/
-> 
-> Enjoy,
-> Boris
+iD8DBQFB68n7gL2kQgmW9pgRArf4AJ9DopXCEIZnRhiHnRHRwPsHfcSJPgCeLlhX
+LhTiH2UsCyxhi9na0tX83w8=
+=3DE2
+-----END PGP SIGNATURE-----
 
 
--- 
-The linux-thinkpad mailing list home page is at:
-http://mailman.linux-thinkpad.org/mailman/listinfo/linux-thinkpad
+-------------------------------------------------------
+The SF.Net email is sponsored by: Beat the post-holiday blues
+Get a FREE limited edition SourceForge.net t-shirt from ThinkGeek.
+It's fun and FREE -- well, almost....http://www.thinkgeek.com/sfshirt
