@@ -1,12 +1,14 @@
-From: Ian Pilcher <i.pilcher-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: Plea for help
-Date: Thu, 18 Dec 2003 23:41:13 -0600
+From: Steven Michalske <hardkrash-vsIoIIaCAUzCfDggNXIi3w@public.gmane.org>
+Subject: interesting bug i have been fighting
+Date: Fri, 19 Dec 2003 01:36:04 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3FE28F79.601@comcast.net>
+Message-ID: <200312190136.04726.hardkrash@lunar-linux.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,30 +20,23 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I posted a couple of weeks ago about a kernel panic that shows up when I
-boot my Abit VP6 (dual-PIII) with ACPI turned on.  It turns out that the
-kernel boots just fine with ACPI on when I build it with
-CONFIG_DEBUG_SLAB=y.
+this has existed in the 2.6 series for me test4 through release
 
-Alan Cox suggested that this is probably due to code that kmallocs
-memory and then relies on its content without clearing it, but I never
-received any response to my request for suggestions on how to identify
-the offending code.
+I am running an IBM thinkpad a21p
 
-I've just spent several hours adding printk statements to the ACPI code,
-and I've reached a point where the oops message is overwriting portions
-of my printk messages.  I have the sinking feeling that this indicates
-that the process executing the ACPI code is not the one that's oops'ing.
+when acpi events occur, power unpluged, extra keys for back light of screen 
+are pressed,  my keyboard will lock up if xfree86 has been ran.
 
-I'm stuck.  How can a relative newbie debug a problem like this, or at
-least gather enough information to enable someone with more expertise to
-do so?
+ocaisonly i will get a semafor locking error from osl
 
-TIA.
--- 
-========================================================================
-Ian Pilcher                                        i.pilcher-Wuw85uim5zDR7s880joybQ@public.gmane.org
-========================================================================
+osl-0892 [1952] os_wait_semaphore     : Failed to acquire semaphore[cffee620|
+1|0], AE_TIME
+
+is my latest capture of this event.
+
+turning on debuging of the acpi corrects the lockup issue.
+
+what information can i collect for debuging this system?
 
 
 
