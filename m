@@ -1,85 +1,174 @@
-From: "Darren Benham" <dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org>
-Subject: Re: Compaq Evo N600c DSDT / uploaded / working / with errors
-Date: Thu, 1 May 2003 15:06:10 -0700 (PDT)
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <14413.64.164.111.254.1051826770.squirrel@benham.net>
+From: Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
+Subject: [PATCH] 2.5 ACPI P-states driver crashes
+Date: Thu, 1 May 2003 23:50:58 -0500
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <200305012346.55073.dtor_core@ameritech.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-Am9021/vqXxTGLny65vKQgC/G2K4zDHf@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-You need to add some external statements to get rid of the "Object does
-not exist" error... they are defined in an SDST table....
+Hi,
 
-Richard Harman said:
-> I don't know AML/ASL, but I think I fixed most of the errors in my
-> Compaq Evo N600c laptop's DSDT.  I've uploaded it to the DSDT
-> database, http://acpi.sourceforge.net/dsdt/view.php?id=26.
->
-> Everything but the lcd backlight turning off works.  Fans are
-> controllable, I can read proper values out of battery info, the
-> thermal zones work, but I'm not sure about the cpu
-> throttling/performance settings.
->
-> Compiles with the following errors:
->
-> dsdt-fixed.dsl    53:             If (LEqual (\C001, 0x00))
-> Error    1022 -             Object does not exist ^  (\C001)
->
-> dsdt-fixed.dsl  3663:                             Method (_OFF, 0,
-> NotSerialized) Warning  2019 -         Not all control paths return a
-> value ^  (_OFF)
->
-> dsdt-fixed.dsl  6157:                 \_PR.C000
-> Error    1022 -         Object does not exist ^  (\_PR.C000)
->
-> dsdt-fixed.dsl  6213:                         Notify (\_PR.C000, 0x80)
-> Error    1022 -                         Object does not exist ^
-> (\_PR.C000)
->
-> dsdt-fixed.dsl  6286:                         Notify (\_PR.C000, 0x80)
-> Error    1022 -                         Object does not exist ^
-> (\_PR.C000)
->
-> The rest I don't know how to fix :)  If someone who knows AML/ASL
-> would be kind enough to fix the rest of it I'd be an extremely happy
-> camper.
->
-> Richard
-> -------------------------------------------------
-> Richard G Harman Jr <me+nospam-Am9021/vqXxTGLny65vKQgC/G2K4zDHf@public.gmane.org>
->
->
->
-> -------------------------------------------------------
-> This sf.net email is sponsored by:ThinkGeek
-> Welcome to geek heaven.
-> http://thinkgeek.com/sf
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+I have the following problems with ACPI P-States driver:
 
+- It crashes because it tries to switch CPU speed without registering cpufreq 
+driver first but acpi_processor_set_performance calls cpufreq_notify_transition.
 
--- 
-Darren
+- When testing for capable CPUs it skips all online ones so for my single CPU
+notebook it can't activate at all.
 
+- If a processor does not support throttling then it will say that "limit" 
+interface is not supported even after activating performance control.
 
+The patch below should fix these issues. It also adds some info messages since
+/proc/acpi/processor/*/performance interface is marked obsolete but i still
+would like to see if P-states were recognized during boot.
+ 
+Hopefully my mailer won't mess it...
 
+Dmitry
 
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
+diff -urN --exclude-from=/usr/src/exclude linux-2.5.68-orig/arch/i386/kernel/cpu/cpufreq/acpi.c linux-2.5.68/arch/i386/kernel/cpu/cpufreq/acpi.c
+--- linux-2.5.68-orig/arch/i386/kernel/cpu/cpufreq/acpi.c	2003-04-07 12:30:42.000000000 -0500
++++ linux-2.5.68/arch/i386/kernel/cpu/cpufreq/acpi.c	2003-04-20 01:39:48.000000000 -0500
+@@ -553,8 +553,9 @@
+ {
+ 	unsigned int		i;
+ 	unsigned int		cpu = policy->cpu;
+-	struct acpi_processor  *pr = NULL;
++	struct acpi_processor	*pr = NULL;
+ 	struct acpi_processor_performance *perf = &performance[policy->cpu];
++	struct acpi_device	*device;
+ 	unsigned int		result = 0;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_cpufreq_cpu_init");
+@@ -596,6 +597,17 @@
+ 
+ 	acpi_cpufreq_add_file(pr);
+ 
++	if (acpi_bus_get_device(pr->handle, &device))
++		device = NULL;
++		
++	printk(KERN_INFO "cpufreq: %s - ACPI performance management activated.\n",
++		device ? acpi_device_bid(device) : "CPU??");
++	for (i = 0; i < pr->performance->state_count; i++)
++		printk(KERN_INFO "cpufreq: %cP%d: %d MHz, %d mW, %d uS\n",
++			(i == pr->performance->state?'*':' '), i,
++			(u32) pr->performance->states[i].core_frequency,
++			(u32) pr->performance->states[i].power,
++			(u32) pr->performance->states[i].transition_latency);
+ 	return_VALUE(result);
+ }
+ 
+@@ -658,16 +670,21 @@
+ 
+ 	/* test it on one CPU */
+ 	for (i=0; i<NR_CPUS; i++) {
+-		if (cpu_online(i))
++		if (!cpu_online(i))
+ 			continue;
+ 		pr = performance[i].pr;
+ 		if (pr && pr->flags.performance)
+ 			goto found_capable_cpu;
+ 	}
+ 	result = -ENODEV;
+-	goto err;
++	goto err0;
+ 
+  found_capable_cpu:
++	
++ 	result = cpufreq_register_driver(&acpi_cpufreq_driver);
++	if (result) 
++		goto err0;
++	
+ 	perf = pr->performance;
+ 	current_state = perf->state;
+ 
+@@ -676,7 +693,7 @@
+ 		if (result) {
+ 			ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Disabled P-States due to failure while switching.\n"));
+ 			result = -ENODEV;
+-			goto err;
++			goto err1;
+ 		}
+ 	}
+ 
+@@ -684,7 +701,7 @@
+ 	if (result) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Disabled P-States due to failure while switching.\n"));
+ 		result = -ENODEV;
+-		goto err;
++		goto err1;
+ 	}
+ 	
+ 	if (current_state != 0) {
+@@ -692,18 +709,17 @@
+ 		if (result) {
+ 			ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Disabled P-States due to failure while switching.\n"));
+ 			result = -ENODEV;
+-			goto err;
++			goto err1;
+ 		}
+ 	}
+ 
+-	result = cpufreq_register_driver(&acpi_cpufreq_driver);
+-	if (result)
+-		goto err;
+-
+ 	return_VALUE(0);
+ 
+ 	/* error handling */
+- err:
++ err1:
++	cpufreq_unregister_driver(&acpi_cpufreq_driver);
++	
++ err0:
+ 	/* unregister struct acpi_processor_performance performance */
+ 	for (i=0; i<NR_CPUS; i++) {
+ 		if (performance[i].pr) {
+@@ -713,6 +729,8 @@
+ 		}
+ 	}
+ 	kfree(performance);
++	
++	printk(KERN_INFO "cpufreq: No CPUs supporting ACPI performance management found.\n");
+ 	return_VALUE(result);
+ }
+ 
+diff -urN --exclude-from=/usr/src/exclude linux-2.5.68-orig/drivers/acpi/processor.c linux-2.5.68/drivers/acpi/processor.c
+--- linux-2.5.68-orig/drivers/acpi/processor.c	2003-05-01 22:45:22.000000000 -0500
++++ linux-2.5.68/drivers/acpi/processor.c	2003-05-01 22:22:13.000000000 -0500
+@@ -85,7 +85,7 @@
+ static int acpi_processor_throttling_open_fs(struct inode *inode, struct file *file);
+ static int acpi_processor_power_open_fs(struct inode *inode, struct file *file);
+ static int acpi_processor_limit_open_fs(struct inode *inode, struct file *file);
+-
++static int acpi_processor_get_limit_info(struct acpi_processor *pr);
+ 
+ static struct acpi_driver acpi_processor_driver = {
+ 	.name =		ACPI_PROCESSOR_DRIVER_NAME,
+@@ -769,7 +769,9 @@
+ 	}
+ 
+ 	pr->performance_platform_limit = (int) ppc;
+-
++	
++	acpi_processor_get_limit_info(pr);
++	
+ 	return_VALUE(0);
+ }
+ EXPORT_SYMBOL(acpi_processor_get_platform_limit);
+@@ -790,6 +792,7 @@
+ 		return_VALUE(-EBUSY);
+ 
+ 	(*pr)->performance = performance;
++	performance->pr = *pr;
+ 	return 0;
+ }
+ EXPORT_SYMBOL(acpi_processor_register_performance);
