@@ -1,13 +1,11 @@
 From: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
-Subject: Re: Re: Smart Battery System driver
-Date: Thu, 20 Jan 2005 11:04:02 -0500
-Message-ID: <41EFD672.2040308@bartol.udel.edu>
-References: <41E81C2C.8010809@bartol.udel.edu>	<1105747983.7368.3.camel@tyrosine>	<47e0449d05011419037877f931@mail.gmail.com> <m2fz13x8mw.fsf@phoenix.squirrel.nl> <41EA2C1D.3030909@bartol.udel.edu> <41EC7C7D.1070003@bartol.udel.edu> <41EC9316.80109@bartol.udel.edu> <41EDE2EA.7090404@bartol.udel.edu> <41EF1F6A.5000807@bartol.udel.edu> <41EFCA59.6040100@arrakis.dhis.org>
+Subject: Interpretation of ACPI spec?
+Date: Thu, 20 Jan 2005 11:35:24 -0500
+Message-ID: <41EFDDCC.1060707@bartol.udel.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41EFCA59.6040100-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,70 +15,55 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pedro Venda <pjvenda-pQd4kjVL+RHfqL7NgpvPWWD2FQJk+8+b@public.gmane.org>
-Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Pedro Venda wrote:
-> Rich Townsend wrote:
-> | Tonight's build:
-> |
-> | http://shayol.bartol.udel.edu/~rhdt/download/acpi_sbs-20050120.tar.gz
-> |
-> | ...only has one modification (apart from fixing a typo in my name,
-> | thanks to Olaf Jansen-OIlliges!). The 'present rate' field in the
-> | legacy-interface /proc/acpi/battery/*/state file is supposed to show the
-> | present discharge/charge rate in either mA or mW, depending on the
-> | capacity_mode used. However, I've just been using the current (in mA)
-> | returned by the Smart Battery System, which is clearly incorrect when
-> | capacity_mode=2 (mW) is selected.
-> |
-> | I've fixed this in a rather cunning way. The SBS is more sophisticated
-> | than normal control-method batteries, in that individual batteries can
-> | report their time to empty or full (applications reporting on CM
-> | batteries have to calculate these times from the last full capacity and
-> | discharge/charge rates). What I've done in the latest release is to
-> | calculate what value of the 'present rate' field will produce the
-> | correct time to empty or full when combined with the last full capacity.
-> | The upshot is, not only does the 'present rate' field now give sensible
-> | values when capacity_mode=2, but also the times reported by applications
-> | using the legacy interface will be direct reflections of the proper SBS
-> | times.
-> |
-> | The SBS driver seems to be working reasonably well now -- there are no
-> | outstanding bugs. My next task is to work out how best to aim for kernel
-> | integration, and to figure out how to set up event handling. Don't
-> | expect the pace of development to be as fast as the past few days -- I
-> | need sleep like the rest of you!
-> 
-> yes, you definately deserve it. :-) very good work. again many thanks 
-> for your
-> time and dedication.
-> 
-> I think we should try to solve the issues with the current battery and 
-> ac ACPI
-> drivers. that is something that's giving some problems to most people 
-> trying the
-> driver.
+Hi all --
 
-Well, I could make it so that the driver would refuse to compile if 
-either of these were enabled in the kernel. That's something I 
-originally considered doing, before I moved to the current behaviour of 
-silently not compiling the legacy interfaces if ac or battery were 
-enabled. It seems that such behaviour is confusing.
+I've just sent the message below to the email address (info-4kSll71tZrRhl2p70BpVqQ@public.gmane.org) 
+given on the ACPI homepage for questions, comments, etc. And I've just 
+received back a Host Unknown error.
 
-The best solution would be to perform a run-time check. I'll see if I 
-can add code to dynamically detect if the ac_adapter and battery 
-directories are empy on module insertion, and only add the legacy 
-interfaces if they are.
+Does anyone know whom I should contact for an interpretation on the 
+specification?
 
 cheers,
 
 Rich
 
-PS Last night, I got a proof-of-concept for event notifications working. 
-I still haven't got battery alarms working, but we should now be able to 
-do event-driven AC and battery present/charging/discharging statuses.
+---CUT HERE---
+
+Dear Sirs,
+
+I am currently implementing a Linux driver for the Smart Battery 
+sections of the ACPI specification. I am writing to request 
+clarification of the specification regarding Alarm Notify events issued 
+by Smart Batteries.
+
+The Smart Battery Data specification indicates that such events, 
+typically triggered by low charge capacity or hardware failures, will be 
+sent over the SMBus to the host at address 0x08. However, the ACPI 
+specification is unclear what then happens to these events.
+
+Indeed, the specification discusses what happens to Alarm Notify events 
+from a Smart Battery Charger (section 10.1.1.2) or a Smart Battery 
+System Manager/Selector (sections 10.1.1.3 & 10.1.1.4). However, the 
+discussion of Smart Battery objects (section 10.1.2) makes no mention of 
+the handling of Alarm Notify objects.
+
+Please could you clarify
+
+a) how I should detect Alarm Notify events dispatched by Smart Batteries
+
+and
+
+b) how I should determine which particular batteries issued the events
+
+Many thanks for your assistance,
+
+Dr Richard Townsend
+Bartol Research Institute
+University of Delaware
 
 
 -------------------------------------------------------
