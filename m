@@ -1,13 +1,13 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 5/5] processor: jiffies-based bm_check
-Date: Fri, 21 Jan 2005 13:03:29 -0800
-Message-ID: <88056F38E9E48644A0F562A38C64FB6003D1BDB1@scsmsx403.amr.corp.intel.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: S3+S4 combination fails on M2000E
+Date: Sat, 22 Jan 2005 11:00:10 +0100
+Message-ID: <20050122100010.GA9357@elf.ucw.cz>
+References: <41EF7E4F.9060502@ics.muni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <41EF7E4F.9060502-8qz54MUs51PtwjQa/ONI9g@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,55 +17,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Miroslav Ruda <ruda-8qz54MUs51PtwjQa/ONI9g@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-=20
+Hi!
+> 
+>  I have Asus M2000E, running 2.6.10+acpi patches (but the same problem 
+>  appears with previous 2.6 kernels too, with Suse 2.6.5-7.111 and also with 
+> swsups2 patches). Both suspend to disk and suspend to memory works, but I'm 
+> still not happy :-)
+> 
+> After suspend to memory is used, first suspend to disk is able to suspend, 
+> but machine is frozen in wake-up. When acpi modules are unloaded before 
+> suspend and loaded in wake-up, machine is frozen in first acpi module load 
+> (thermal?). When
 
->-----Original Message-----
->From: Dominik Brodowski [mailto:linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org]=20
->Sent: Friday, January 21, 2005 8:24 AM
->To: Brown, Len
->Cc: ACPI Developers; Pallipadi, Venkatesh; Moore, Robert
->Subject: Re: [PATCH 5/5] processor: jiffies-based bm_check
->
->On Thu, Jan 20, 2005 at 11:08:06PM -0500, Len Brown wrote:
->> On Thu, 2004-12-23 at 15:11, Len Brown wrote:
->>=20
->> > Didn't apply the jiffies part yet.
->>=20
->> I've applied it now. (attached as jiffy.patch)
->>=20
->> However, "threshold.bm =3D 0xF" was written when
->> HZ =3D 100 yielding 40ms, but this
->> becomes 4ms for HZ =3D 1000.
->>=20
->> While I don't know what the optimal value is for
->> the bus master history threshold, it seemed like
->> a good idea for it to default to about 40ms per
->> the original code until we know better.
->>=20
->> So I've also applied the attached bm_history.patch
->> to default this to 0xFFFFFFFF for HZ =3D 1000 (32ms)
->> and it is tunable via /sys/module/processor/parameters/bm_history
->>=20
->> what do you think?
->
->This sounds sensible to do. Note that the "diff" measured in=20
->idle() will
->become problematic once "tickless" systems are implemented --=20
->we'll sleep
->for multiple jiffies then, and there was _no_ bm activiy in=20
->between. We need
->to sort that out somehow...
->
->	Dominik
+Try to find out which module causes the freeze, then add printks to
+find out where it freezes.
 
-
-How about using gettimeofday here and using that in place of jiffies?
-
--Venki
+Also go to 2.6.11-rc1.
+								Pavel
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
