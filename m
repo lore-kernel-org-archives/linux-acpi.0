@@ -1,14 +1,16 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [BK PATCH] ACPI updates
-Date: Mon, 14 Jul 2003 13:20:04 -0700
+From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
+Subject: Re: [Patch] ACPI IO-APIC IRQ parameter configuration#1
+Date: 14 Jul 2003 21:25:05 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A8470255EE8A@orsmsx401.jf.intel.com>
+Message-ID: <1058214306.1454.5.camel@darkstar.portugal>
+References: <200307132239.06760.adq_dvb@lidskialf.net>
+	<1058137496.4509.9.camel@darkstar.portugal>
+	<200307140128.14189.adq_dvb@lidskialf.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <200307140128.14189.adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,67 +19,32 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: torvalds-3NddpPZAyC0@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus, please do a
+On Mon, 2003-07-14 at 01:28, Andrew de Quincey wrote:
+> On Monday 14 July 2003 00:04, S=E9rgio Monteiro Basto wrote:
+> > Hi
+> > In attachment  this patch for kernel 2.4.21,
+> > I don't have acknowledgments to know if it is good code, but can be
+> > applied to kernel 2.4.x
+>=20
+> Cool! Out of interest, does the patch solve or create any problems for yo=
+u?
+>=20
+Hi
+Don't test it, I am just removing quirks and test my laptop, so far 4
+had gone.
 
-	bk pull http://linux-acpi.bkbits.net/linux-acpi
+Until now, to work with my laptop I had to disable APIC.
+so the patch doesn't have effect.
 
-Lots of good stuff fixed, in preparation for 2.6.
+--=20
+S=E9rgioMB
+email: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
 
-This will update the following files:
-
- arch/i386/kernel/setup.c          |    4 -
- drivers/acpi/executer/exutils.c   |    2=20
- drivers/acpi/hardware/hwregs.c    |   21 ++---
- drivers/acpi/osl.c                |   14 ++-
- drivers/acpi/processor.c          |    4 -
- drivers/acpi/tables.c             |   99 ++++++++++++++------------
- drivers/acpi/tables/tbconvrt.c    |    6 -
- drivers/acpi/tables/tbget.c       |    4 -
- drivers/acpi/tables/tbinstal.c    |   42 +++++++----
- drivers/acpi/tables/tbrsdt.c      |    2=20
- drivers/acpi/tables/tbxfroot.c    |    6 -
- drivers/acpi/thermal.c            |   12 +--
- drivers/acpi/utilities/utglobal.c |    6 -
- include/acpi/acconfig.h           |    2=20
- include/acpi/platform/acenv.h     |    6 +
- 15 files changed, 131 insertions(+), 99 deletions(-)
-
-through these ChangeSets:
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/07/14 1.1463)
-   ACPI: Update version, and other trivialities
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/07/14 1.1461)
-   ACPI: Dynamically allocate SDT list (suggested by Andi Kleen)
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/07/13 1.1460)
-   ACPI: Parse SSDTs in order discovered, as opposed to reverse order
-(Hrvoje Habjanic)
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/07/13 1.1459)
-   ACPI: Fixes from FreeBSD and NetBSD. (Frank van der Linden, Thomas
-Klausner,
-   Nate Lawson)
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/07/13 1.1458)
-   ACPI: proc function return value cleanups (Andi Kleen)
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/07/13 1.1457)
-   ACPI: Correctly handle NMI watchdog during long stalls (Andrew
-Morton)
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/06/22 1.1310.61.1)
-   ACPI: make it so acpismp=3Dforce works (reported by Andrew Morton)
-
-
------------------------------
-Andrew Grover
-Intel Labs / Mobile Architecture
-andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Who gives me one shell, give me everything.
 
 
 
