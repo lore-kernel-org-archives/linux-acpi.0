@@ -1,12 +1,14 @@
-From: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
+From: Emma Jane Hogbin <emmajane-MHIYrZpDPrNWk0Htik3J/w@public.gmane.org>
 Subject: Re: Ac adapter status
-Date: Fri, 4 Jul 2003 15:25:52 +0200 (CEST)
+Date: Fri, 4 Jul 2003 10:20:56 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.53.0307041524560.25421@tweety.gaugusch.at>
+Message-ID: <20030704142056.GA600@xtrinsic.com>
 References: <3F056FCB.6D9051EB@dit.ulpgc.es>
+Reply-To: Emma Jane Hogbin <emmajane-MHIYrZpDPrNWk0Htik3J/w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 In-Reply-To: <3F056FCB.6D9051EB-UMSJ7rsJew/ZfSdNxihkMA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -19,20 +21,18 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Jul 4, David Sanchez <david-UMSJ7rsJew/ZfSdNxihkMA@public.gmane.org> wrote:
-> i have recently installed acpid.
-> [...]
+On Fri, Jul 04, 2003 at 01:15:07PM +0100, David Sanchez wrote:
 > I have kernel 2.4.20 (Debian)
-I'm not sure, but I don't think that debian kernels include the ACPI
-patches yet. You need either 2.4.22pre2 or 2.4.21 with a patch from
-http://acpi.sf.net/
 
-Markus
+You'll need to start with a fresh kernel from www.kernel.org and apply the
+latest patch from acpi.sf.net. The Debian kernel has a very old patch that
+doesn't do much of anything.
+
+emma
+
 -- 
-__________________    /"\
-Markus Gaugusch       \ /    ASCII Ribbon Campaign
-markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org     X     Against HTML Mail
-                      / \
+Emma Jane Hogbin
+[[ 416 417 2868 ][ www.xtrinsic.com ]]
 
 
 -------------------------------------------------------
