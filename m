@@ -1,36 +1,52 @@
-From: Adam Sulmicki <adam@cfar.umd.edu>
-Subject: Re: [RFC] Reliable video POSTing on resume (was: Re: [ACPI] Samsung
- P35, S3, black screen (radeon))
-Date: Sun, 6 Feb 2005 21:11:18 -0500 (EST)
-Message-ID: <Pine.BSF.4.62.0502062107000.26868@www.missl.cs.umd.edu>
-References: <e796392205020221387d4d8562@mail.gmail.com>  <420217DB.709@gmx.net>
- <4202A972.1070003@gmx.net>  <20050203225410.GB1110@elf.ucw.cz>
- <1107474198.5727.9.camel@desktop.cunninghams> <4202DF7B.2000506@gmx.net>
- <1107485504.5727.35.camel@desktop.cunninghams>  <9e4733910502032318460f2c0c@mail.gmail.com>
-  <20050204074454.GB1086@elf.ucw.cz>  <9e473391050204093837bc50d3@mail.gmail.com>
-  <20050205093550.GC1158@elf.ucw.cz> <1107695583.14847.167.camel@localhost.localdomain>
+From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
+Subject: Re: Re: S3 suspend and serial console
+Date: Mon, 07 Feb 2005 03:16:03 +0100
+Message-ID: <4206CF63.2090600@gmx.net>
+References: <42023083.8030508@gmx.net> <4204CA50.8090906@gmx.net> <20050205155845.GA20131@hell.org.pl> <20050205220619.GA30739@message-id.gmane0305.slipkontur.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-In-Reply-To: <1107695583.14847.167.camel@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Pavel Machek <pavel@ucw.cz>, Jon Smirl <jonsmirl@gmail.com>, ncunningham@linuxmail.org, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>, ACPI List <acpi-devel@lists.sourceforge.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <20050205220619.GA30739-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Stefan Seyfried schrieb:
+> 
+> only "> /dev/ttyS0", no echo. This basically does...
+> 
+> open("/dev/tty", O_WRONLY|O_CREAT|O_TRUNC|O_LARGEFILE, 0666) = 3
+> fcntl64(1, F_GETFD)                     = 0
+> fcntl64(1, F_DUPFD, 10)                 = 10
+> fcntl64(1, F_GETFD)                     = 0
+> fcntl64(10, F_SETFD, FD_CLOEXEC)        = 0
+> dup2(3, 1)                              = 1
+> close(3)                                = 0
+> 
+> so it is pretty equivalent to "echo -n > /dev/ttyS0"
 
-hi all,
- 	I would like point to work done by Li-Ta Lo.
+Erm... is it intentional that serial powermanagement code is never
+called on entering/leaving S3? When I added debugging statements
+to the serial code, this seemed very strange.
 
- 	It allows you to completely initalize the VGA BIOS w/out using
- 	PC BIOS at all.
 
- 	http://www.clustermatic.org/pipermail/linuxbios/2005-January/010236.html
+Regards,
+Carl-Daniel
+-- 
+http://www.hailfinger.org/
 
- 	unforunatelly the information the web is somewhat sparse, but
- 	you can get more info by following the archive of the
- 	thread (which head I listed above) and perhaps by posting to
- 	linuxbios mailing list (Ollie, is somewhat buy those days with his
- 	new baby).
 
- 	Either way quite amazing feat that should bring LinuxBIOS closer
- 	to desktop.
+-------------------------------------------------------
+This SF.Net email is sponsored by: IntelliVIEW -- Interactive Reporting
+Tool for open source databases. Create drag-&-drop reports. Save time
+by over 75%! Publish reports on the web. Export to DOC, XLS, RTF, etc.
+Download a FREE copy at http://www.intelliview.com/go/osdn_nl
