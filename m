@@ -1,14 +1,13 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Freezing more and more (Gericom Supersonic M6T)
-Date: Fri, 7 Mar 2003 16:00:45 +0100
+From: Sebastian Henschel <shensche-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
+Subject: database for DSDTs - beta testers needed
+Date: Fri, 7 Mar 2003 15:57:42 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030307150045.GQ12499@poup.poupinou.org>
-References: <200303041529.11172.Pavel.Vondricka@ff.cuni.cz> <20030306220802.GD181@elf.ucw.cz> <20030307091618.GL12499@poup.poupinou.org> <20030307111853.GD18420@atrey.karlin.mff.cuni.cz>
+Message-ID: <20030307145742.GA14602@enigma.daemon.sh>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="YZ5djTAD1cGYuMQK"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20030307111853.GD18420-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,36 +16,46 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Pavel Vondricka <Pavel.Vondricka-1W7zqEVgo5LrBKCeMvbIDA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Mar 07, 2003 at 12:18:53PM +0100, Pavel Machek wrote:
-> Hi!
-> 
-> > > > Could you at least not tell me, if this is a hardware or a software problem of 
-> > > > ACPI, please? Should I ask for warranty repair of my notebook (I still have 
-> > > > one year, I believe) or just patiently wait for another ACPI patch releases? 
-> > > > Can I send you more debug info, how?
-> > > 
-> > > Try it without acpi, if it still locks randomly, blame hardware, else
-> > > blame acpi.
-> > > 									Pavel
-> > 
-> > He said he *need* acpi for irq routing.  I guess his bios is legacy free.
-> 
-> He said he needs it for things like sound and modem. That should still
-> enable him to run some stress test (make -j?) without it.
 
-Correct.  But then we can not determine if the problem come from ACPI, or
-from one of his devices (Hey, we don't know what is his modem.  If it is
-a win one with a propritary driver..).
+--YZ5djTAD1cGYuMQK
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
--- 
-Ducrot Bruno
+hi folks...
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+there is now a first version of this database online at:
+http://acpi.sf.net/dsdt/index.php
+
+i would like you to test it as much as possible and report any
+errors/wishes/comments to shensche-Rn4VEauK+AKRv+LV9MX5uti2KpX7p8Fi@public.gmane.org
+
+hopefully, it is already stable enuff that the existing DSDTs (yours and
+the ones taken from the wiki) can stay even after the test phase.
+
+have fun,
+ sebastian
+--=20
+::: sebastian henschel
+::: kodeaffe
+::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
+
+--YZ5djTAD1cGYuMQK
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.0 (GNU/Linux)
+
+iD8DBQE+aLNmreHfL3pi+bQRAmotAJ0SX52hzr8J8J9XqIvqlyLKREQl0ACeNn6P
+RPrAtr/M+3EUHtZo89fiAvM=
+=Y3zP
+-----END PGP SIGNATURE-----
+
+--YZ5djTAD1cGYuMQK--
 
 
 -------------------------------------------------------
