@@ -1,15 +1,11 @@
-From: Meelis Roos <mroos-Y27EyoLml9s@public.gmane.org>
-Subject: Re: [PATCH] smsc-ircc2: Add PnP support.
-Date: Sat, 20 Nov 2004 01:09:36 +0200 (EET)
-Message-ID: <Pine.SOC.4.61.0411200102580.12992@math.ut.ee>
-References: <E1CVAfT-0002n9-Rn@rhn.tartu-labor> <419E16E5.1000601@free.fr>
- <419E17FF.1000503@free.fr> <Pine.SOC.4.61.0411191822030.9059@math.ut.ee>
- <419E2D2B.4020804@free.fr> <Pine.SOC.4.61.0411191934070.29328@math.ut.ee>
- <419E3B7A.4000904@free.fr>
+From: Pavel Kysilka <goldenfish-kkCZSxYw6FY@public.gmane.org>
+Subject: S5 not working, and another problem
+Date: Sat, 20 Nov 2004 03:55:33 +0100
+Message-ID: <20041120025533.GA2384@prog3>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=utf-8
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <419E3B7A.4000904-GANU6spQydw@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,151 +15,138 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: matthieu castet <castet.matthieu-GANU6spQydw@public.gmane.org>
-Cc: Linux Kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jean Tourrilhes <jt-yAE0UhLNZJawPNPzzlOzwdBPR1lH4CV8@public.gmane.org>, Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+	Hi all,
 
-I tried it with pnpbios (acpi=off) and it started to work after auto and 
-activate (but not with auto alone):
+i was testing today acpi with 2.6.10-rc2 kernel on my computer.
 
-nartsiss:/# modprobe smsc-ircc2
-found SMC SuperIO Chip (devid=0x5a rev=00 base=0x002e): LPC47N227
-smsc_superio_flat(): IrDA not enabled
-smsc_superio_flat(): fir: 0x00, sir: 0x00, dma: 15, irq: 0, mode: 0x02
-FATAL: Error inserting smsc_ircc2 (/lib/modules/2.6.10-rc2/kernel/drivers/net/irda/smsc-ircc2.ko): No such device
-nartsiss:/# echo activate > resources
-pnp: Device 00:0f activated.
-nartsiss:/# modprobe smsc-ircc2
-found SMC SuperIO Chip (devid=0x5a rev=00 base=0x002e): LPC47N227
-smsc_superio_flat(): fir: 0x2e8, sir: 0x100, dma: 03, irq: 5, mode: 0x0e
-SMsC IrDA Controller found
-  IrCC version 2.0, firport 0x2e8, sirport 0x100 dma=3, irq=5
-No transceiver found. Defaulting to Fast pin select
-IrDA: Registered device irda0
+0) 
+there are difference with dmesg and /proc/acpi/sleep
 
->>> Could you send me the result of : "for i in /sys/bus/pnp/devices/*; do cat 
->>> $i/id $i/options; done" in order to see if other devices have missing 
->>> resources ?
+dmesg::
+ACPI: (supports S0 S1 S4bios S5)
 
-The output with pnpbios is below for comparision.
+cat /proc/acpi/sleep ::
+S0 S1 S4 S4bios S5 
 
->> PNP0c01
->> PNP0200
->> PNP0800
->> PNP0c04
->> PNP0303
->> PNP0f13
->> PNP0b00
->> PNP0c02
->> PNP0700
->> port 0x3f0-0x3f0, align 0x0, size 0x6, 16-bit address decoding
->> port 0x3f7-0x3f7, align 0x0, size 0x1, 16-bit address decoding
->> irq 6 High-Edge
->> dma 2 8-bit compatible
-> floppy : seem ok
->> PNP0501
->> Dependent: 01 - Priority acceptable
->>    port 0x3f8-0x3f8, align 0x0, size 0x8, 16-bit address decoding
->> Dependent: 02 - Priority acceptable
->>    port 0x2f8-0x2f8, align 0x0, size 0x8, 16-bit address decoding
->> Dependent: 03 - Priority acceptable
->>    port 0x2e8-0x2e8, align 0x0, size 0x8, 16-bit address decoding
->> Dependent: 04 - Priority acceptable
->>    port 0x3e8-0x3e8, align 0x0, size 0x8, 16-bit address decoding
-> serial miss irq
->> SMCf010
->> Dependent: 01 - Priority acceptable
->>    port 0x3f8-0x3f8, align 0x0, size 0x8, 16-bit address decoding
->> Dependent: 02 - Priority acceptable
->>    port 0x2e8-0x2e8, align 0x0, size 0x8, 16-bit address decoding
->> Dependent: 03 - Priority acceptable
->>    port 0x2f8-0x2f8, align 0x0, size 0x8, 16-bit address decoding
->> Dependent: 04 - Priority acceptable
->>    port 0x3e8-0x3e8, align 0x0, size 0x8, 16-bit address decoding
-> irda : miss io,irq,dma
->> PNP0401
->> Dependent: 01 - Priority acceptable
->>    port 0x378-0x378, align 0x0, size 0x3, 16-bit address decoding
->>    port 0x778-0x778, align 0x0, size 0x3, 16-bit address decoding
->>    irq 7 High-Edge
->> Dependent: 02 - Priority acceptable
->>    port 0x278-0x278, align 0x0, size 0x3, 16-bit address decoding
->>    port 0x678-0x678, align 0x0, size 0x3, 16-bit address decoding
->>    irq 5 High-Edge
->> Dependent: 03 - Priority acceptable
->>    port 0x3bc-0x3bc, align 0x0, size 0x3, 16-bit address decoding
->>    port 0x7bc-0x7bc, align 0x0, size 0x3, 16-bit address decoding
->>    irq 7 High-Edge
-> parallel port: miss dma
->> TOS6200
->>
+feature or error ?
 
-PNP0c01
-PNP0200
-PNP0000
-PNP0100
-PNP0800
-PNP0c04
-PNP0303
-PNP0f13
-irq 12 High-Edge
-PNP0b00
-PNP0c02
-PNP0700
-port 0x3f0-0x3f0, align 0x0, size 0x6, 16-bit address decoding
-port 0x3f7-0x3f7, align 0x0, size 0x1, 16-bit address decoding
-irq 6 High-Edge
-dma 2 8-bit byte-count compatible
-PNP0501
-irq 3,4,5,7,10,11 High-Edge
-Dependent: 01 - Priority acceptable
-    port 0x3f8-0x3f8, align 0x0, size 0x8, 16-bit address decoding
-Dependent: 02 - Priority acceptable
-    port 0x2f8-0x2f8, align 0x0, size 0x8, 16-bit address decoding
-Dependent: 03 - Priority acceptable
-    port 0x2e8-0x2e8, align 0x0, size 0x8, 16-bit address decoding
-Dependent: 04 - Priority acceptable
-    port 0x3e8-0x3e8, align 0x0, size 0x8, 16-bit address decoding
-SMCf010
-PNP0510
-port 0x100-0x130, align 0xf, size 0x8, 16-bit address decoding
-irq 3,4,5,7,10,11 High-Edge
-dma 1,2,3 16-bit byte-count compatible
-Dependent: 01 - Priority acceptable
-    port 0x3f8-0x3f8, align 0x0, size 0x8, 16-bit address decoding
-Dependent: 02 - Priority acceptable
-    port 0x2e8-0x2e8, align 0x0, size 0x8, 16-bit address decoding
-Dependent: 03 - Priority acceptable
-    port 0x2f8-0x2f8, align 0x0, size 0x8, 16-bit address decoding
-Dependent: 04 - Priority acceptable
-    port 0x3e8-0x3e8, align 0x0, size 0x8, 16-bit address decoding
-PNP0401
-dma 1,2,3 8-bit byte-count compatible
-Dependent: 01 - Priority acceptable
-    port 0x378-0x378, align 0x0, size 0x3, 16-bit address decoding
-    port 0x778-0x778, align 0x0, size 0x3, 16-bit address decoding
-    irq 7 High-Edge
-Dependent: 02 - Priority acceptable
-    port 0x278-0x278, align 0x0, size 0x3, 16-bit address decoding
-    port 0x678-0x678, align 0x0, size 0x3, 16-bit address decoding
-    irq 5 High-Edge
-Dependent: 03 - Priority acceptable
-    port 0x3bc-0x3bc, align 0x0, size 0x3, 16-bit address decoding
-    port 0x7bc-0x7bc, align 0x0, size 0x3, 16-bit address decoding
-    irq 7 High-Edge
-PNP0a03
-PNP0e03
-PNP0e00
-Dependent: 01 - Priority acceptable
-    port 0x3e0-0x3e0, align 0x0, size 0x2, 16-bit address decoding
-    irq <none> High-Edge
-Dependent: 02 - Priority acceptable
-    port 0x3e0-0x3e0, align 0x0, size 0x2, 16-bit address decoding
-    irq 3,4,5,7,10,11 High-Edge
+1)
 
--- 
-Meelis Roos (mroos-Y27EyoLml9s@public.gmane.org)
+echo 1 > /proc/acpi/sleep
+echo 4 > /proc/acpi/sleep
+echo 4b > /proc/acpi/sleep
+
+this states working fine. only problem with emu10k1 chip (no support,
+but no freeze). module snd-via82xxx freeze with S1,S4 computer (reported
+today to alsa-devel list).
+
+echo 5 >  /proc/acpi/sleep not working.
+i look in the log and no information. 
+button and command "poweroff" work good.
+
+2) i look in the difference of dmesg (2.6.10-rc1->2.6.10-rc2):
+ignore ext3-fs recovery.
+
+ 1c1
+ < Linux version 2.6.10-rc1 (root@prog3) (gcc version 3.3.4 (Debian 1:3.3.4-13)) #6 Fri Oct 29 20:59:56 CEST 2004
+ ---
+ > Linux version 2.6.10-rc2 (root@prog3) (gcc version 3.3.4 (Debian 1:3.3.4-13)) #1 Wed Nov 17 20:52:04 CET 2004
+ 21c21
+ < Kernel command line: BOOT_IMAGE=2.6.10-rc1 ro root=302
+ ---
+ > Kernel command line: BOOT_IMAGE=2.6.10-rc2 ro root=302
+ 29c29
+ < Memory: 385244k/393152k available (2592k kernel code, 7376k reserved, 883k data, 152k init, 0k highmem)
+ ---
+ > Memory: 385104k/393152k available (2667k kernel code, 7516k reserved, 939k data, 164k init, 0k highmem)
+ 42a43,46
+ >  tbxface-0117 [02] acpi_load_tables      : ACPI Tables successfully acquired
+ > Parsing all Control Methods:....................................................................
+ > Table [DSDT](id F004) - 281 Objects with 27 Devices 68 Methods 18 Regions
+ > ACPI Namespace successfully loaded at root c04c6ba0
+ 43a48
+ > evxfevnt-0093 [03] acpi_enable           : Transition to ACPI mode successful
+ 48c53,59
+ < ACPI: Subsystem revision 20040816
+ ---
+ > ACPI: Subsystem revision 20041105
+ > evgpeblk-0979 [06] ev_create_gpe_block   : GPE 00 to 0F [_GPE] 2 regs on int 0x9
+ > evgpeblk-0987 [06] ev_create_gpe_block   : Found 3 Wake, Enabled 0 Runtime GPEs in this block
+ > Completing Region/Field/Buffer/Package initialization:.......................................
+ > Initialized 18/18 Regions 1/1 Fields 16/16 Buffers 4/6 Packages (290 nodes)
+ > Executing all Device _STA and_INI methods:..............................
+ > 30 Devices found containing: 30 _STA, 1 _INI methods
+ 58a70,73
+ > pnp: PnP ACPI init
+ > acpi_bus-0077 [03] acpi_bus_get_device   : Error getting context for object [c13738fc]
+ > acpi_bus-0077 [03] acpi_bus_get_device   : Error getting context for object [c13736e8]
+ > pnp: PnP ACPI: found 12 devices
+ 62,72c77,83
+ < ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 10
+ < ACPI: PCI interrupt 0000:00:07.2[D] -> GSI 10 (level, low) -> IRQ 10
+ < ACPI: PCI interrupt 0000:00:07.3[D] -> GSI 10 (level, low) -> IRQ 10
+ < ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 11
+ < ACPI: PCI interrupt 0000:00:07.5[C] -> GSI 11 (level, low) -> IRQ 11
+ < ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 11
+ < ACPI: PCI interrupt 0000:00:09.0[A] -> GSI 11 (level, low) -> IRQ 11
+ < ACPI: PCI interrupt 0000:00:0b.0[A] -> GSI 10 (level, low) -> IRQ 10
+ < ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 11
+ < ACPI: PCI interrupt 0000:00:0c.0[A] -> GSI 11 (level, low) -> IRQ 11
+ < ACPI: PCI interrupt 0000:01:00.0[A] -> GSI 11 (level, low) -> IRQ 11
+ ---
+ > ** PCI interrupts are no longer routed automatically.  If this
+ > ** causes a device to stop working, it is probably because the
+ > ** driver failed to call pci_enable_device().  As a temporary
+ > ** workaround, the "pci=routeirq" argument restores the old
+ > ** behavior.  If this argument makes the device work again,
+ > ** please email the output of "lspci" to bjorn.helgaas-VXdhtT5mjnY@public.gmane.org
+ > ** so I can fix the driver.
+ 83a95,96
+ > ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 11
+ > PCI: setting IRQ 11 as level-triggered
+ 139,142d151
+ < EXT3-fs: INFO: recovery required on readonly filesystem.
+ < EXT3-fs: write access will be enabled during recovery.
+ < (fs/jbd/recovery.c, 255): journal_recover: JBD: recovery, exit status 0, recovered transactions 512905 to 512932
+ < (fs/jbd/recovery.c, 257): journal_recover: JBD: Replayed 1124 and revoked 0/8 blocks
+ 144d152
+ < EXT3-fs: recovery complete.
+ 147c155
+ < Freeing unused kernel memory: 152k freed
+ ---
+ > Freeing unused kernel memory: 164k freed
+ 154c162,165
+ < ACPI: PCI interrupt 0000:00:09.0[A] -> GSI 11 (level, low) -> IRQ 11
+ ---
+ > ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 10
+ > PCI: setting IRQ 10 as level-triggered
+ > ACPI: PCI interrupt 0000:00:09.0[A] -> GSI 10 (level, low) -> IRQ 10
+ > ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 11
+ 158a170
+ > ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 10
+ 171c183,184
+ < ACPI: Processor [CPU0] (supports C1 C2, 2 throttling states)
+ ---
+ > ACPI: Processor [CPU0] (supports C1 C2)
+ > ACPI: Processor [CPU0] (supports 2 throttling states)
+ 
+
+   for information and testing (disk non destructive) contact me.
+
+ sorry for my bad english. thank for your time.
+ 
+bye 
+  pavel kysilka
+  programmer http://www.bsys.cz/
+
+
+________ Information from NOD32 ________
+This message was checked by NOD32 Antivirus System for Linux Mail Server.
+
+http://www.nod32.com
 
 
 -------------------------------------------------------
