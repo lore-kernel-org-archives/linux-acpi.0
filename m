@@ -1,15 +1,11 @@
-From: =?ISO-8859-1?Q?S=E9rgio_Montei?=ro Basto <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>
-Subject: Re: ACPI Source patches updated (20021022)
-Date: Wed, 23 Oct 2002 15:47:42 +0100 (WEST)
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI Source patches updated (20021022)
+Date: Wed, 23 Oct 2002 07:54:43 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1035384462.3db6b68e3ca67@webmail.sapo.pt>
-References: <EDC461A30AC4D511ADE10002A5072CAD0236DF60@orsmsx119.jf.intel.com> <20021023110222.A14630@sci.fi>
-Reply-To: Sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org
+Message-ID: <B9ECACBD6885D5119ADC00508B68C1EA0D19B885@orsmsx107.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20021023110222.A14630-ORSVBvAovxo@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,29 +14,46 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?ISO-8859-1?Q?Ville_Syrj=E4l=E4?= <syrjala-ORSVBvAovxo@public.gmane.org>
-Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: "'KOCHI, Takayoshi'" <t-kouchi-dPjYVeZdYcz+G+EEi5ephHgSJqDPrsil@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Citando Ville Syrjälä <syrjala-ORSVBvAovxo@public.gmane.org>:
 
-} You didn't pick up my IRQ derive fix. Is it incorrect
-} or did you just
-} miss it?
+We are in the process of formatting the document, it should be posted soon.
 
-In this list it is normal.
-You have to justify what this fix do.
-I try it in my laptop and the IRQ derive warning disappears, 
-but doesn't warranty  that code is correct, so can you explain,
-what is the difference of this code?
+-----Original Message-----
+From: KOCHI, Takayoshi [mailto:t-kouchi-dPjYVeZdYcz+G+EEi5ephHgSJqDPrsil@public.gmane.org] 
+Sent: Tuesday, October 22, 2002 9:51 PM
+To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+Subject: Re: [ACPI] ACPI Source patches updated (20021022)
 
-bye
-Sérgio Monteiro Basto
-		
+Hi,
 
---------------------------------------------
-SAPO ADSL.PT Agora o kit apenas por 75 Eur. e tráfego ilimitado até ao final de 2002!
-Mais informações em http://www.sapo.pt/kitadsl
+> 3) iASL Compiler/Disassembler
+> 
+> Implemented ACPI 2.0B grammar change that disallows all Type 1
+> and 2 opcodes outside of a control method.  This means that
+> the "executable" operators (versus the "namespace" operators)
+> cannot be used at the table level; they can only be used
+> within a control method.
+
+Where can I find ACPI 2.0B?
+http://www.acpi.info/ seems to provide only 2.0a.
+
+Thanks,
+-- 
+KOCHI, Takayoshi <t-kouchi-f7IHDacdhdx8UrSeD/g0lQ@public.gmane.org/t-kouchi>
+
+
+
+-------------------------------------------------------
+This sf.net emial is sponsored by: Influence the future 
+of Java(TM) technology. Join the Java Community 
+Process(SM) (JCP(SM)) program now. 
+http://ads.sourceforge.net/cgi-bin/redirect.pl?sunm0002en
+_______________________________________________
+Acpi-devel mailing list
+Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
