@@ -1,12 +1,10 @@
-From: Ruud Koendering <ruud.koendering-EIBgga6/0yRmR6Xm/wNWPw@public.gmane.org>
-Subject: Mandrake 9.0 and acpi
-Date: Fri, 18 Oct 2002 20:35:34 +0200
+From: Karthik Arumugham <karthik-Wmo2znXiruVBDgjK7y7TUQ@public.gmane.org>
+Subject: Compaq Evo N600c success
+Date: Fri, 18 Oct 2002 15:21:20 -0400 (EDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200210182035.34654.ruud.koendering@planet.nl>
+Message-ID: <Pine.LNX.4.44.0210181515100.785-100000@neural.psychosis.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -16,27 +14,19 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-where is the full and latest acpi directory for download to put in my ker=
-nel=20
-source?
+Hello,
 
-Use mandrake 9.0 kernel 2.4.19-16mdk
---=20
-regards RUUD
+I've noticed many posts about dsdt issues with the N600c while researching
+my own acpi problems, so I thought I would post my results in case they're
+useful to anyone else.
 
-Ruud Koendering
-Sr. Program / Project Manager
-De Wickelaan 11
-2265 DG  Leidschendam
-Netherlands
-----------------------------------
-Phone:+31(0)703271506
-Mobile:+31(0)641372381
-E-mail:ruud.koendering-EIBgga6/0yRmR6Xm/wNWPw@public.gmane.org=09
-          r_koendering-ktR7oAotx3zQT0dZR+AlfA@public.gmane.org
+I've put up a page detailing running Linux on this laptop at
+http://www.psychosis.net/evo-linux/ including a modified dsdt which fixes
+most of the major acpi issues.
+
 
 
 -------------------------------------------------------
