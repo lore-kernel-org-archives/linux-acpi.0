@@ -1,13 +1,14 @@
-From: Florian Lohoff <flo-BCn6idZOOBwdnm+yROfE0A@public.gmane.org>
-Subject: S3 wakeup code
-Date: Wed, 23 Jul 2003 17:28:10 +0200
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: S3 wakeup code
+Date: Wed, 23 Jul 2003 18:24:23 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030723152809.GA591@paradigm.rfc822.org>
+Message-ID: <20030723162423.GD9013@atrey.karlin.mff.cuni.cz>
+References: <20030723152809.GA591@paradigm.rfc822.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="+QahgC5+KEYLbs62"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20030723152809.GA591-L3tpvOS5ZD2KugBFyThYrEB+6BGkLq7r@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,44 +17,30 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Florian Lohoff <flo-BCn6idZOOBwdnm+yROfE0A@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi!
 
---+QahgC5+KEYLbs62
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> i just tried 2.6.0-test1 and to my expectation the S3 resume stuff still
+> does not work on the Sony Vaio PCG-C1MHP aka Picturebook. It turns on -
+> Bios set the powerled correct but then - nothing - Nothing on the
+> screen, no backlight, no disk activity.
+> 
+> Is there any way to dump the Windows wakeup code ? 
+> Is that machine specific ?
 
+Wakeup code should *not* be machine-specific, but video card
+save/restore is obviously video-card specific (and you basically can't
+get docs). Write beeping code in 8086 assembly and start debuggin'
+;-))).
 
-Hi,
-i just tried 2.6.0-test1 and to my expectation the S3 resume stuff still
-does not work on the Sony Vaio PCG-C1MHP aka Picturebook. It turns on -
-Bios set the powerled correct but then - nothing - Nothing on the
-screen, no backlight, no disk activity.
+								Pavel
 
-Is there any way to dump the Windows wakeup code ?=20
-Is that machine specific ?
-Might it be useful ?
-
-Flo
---=20
-Florian Lohoff                  flo-BCn6idZOOBwdnm+yROfE0A@public.gmane.org             +49-171-2280134
-                        Heisenberg may have been here.
-
---+QahgC5+KEYLbs62
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQE/HqmJUaz2rXW+gJcRAqdhAJwLrzMl3+atORQ9F+8vqWcl2BGWtACgnC+i
-2hM0rUc8n4k1SiFXriULMxU=
-=rzkf
------END PGP SIGNATURE-----
-
---+QahgC5+KEYLbs62--
+-- 
+Horseback riding is like software...
+...vgf orggre jura vgf serr.
 
 
 -------------------------------------------------------
