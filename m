@@ -1,12 +1,14 @@
-From: siva <sivakumar.subramani-uxC5H9eHYlcAvxtiuMwx3w@public.gmane.org>
-Subject: ACPI support for add-on devices driver
-Date: Thu, 06 Feb 2003 10:46:19 +0530
+From: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
+Subject: Re: [BK PATCH] ACPI Update (resend 1)
+Date: Thu, 6 Feb 2003 10:27:18 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3E41EFA3.8060406@wipro.com>
+Message-ID: <20030206092718.GA14190@brodo.de>
+References: <F760B14C9561B941B89469F59BA3A84725A162@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPartTM-000-9a1732af-0aff-45ab-b6cf-43fc6ad5dbc2"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <F760B14C9561B941B89469F59BA3A84725A162-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,57 +17,56 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: Linus Torvalds <torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Sorry ...
 
-This is a multi-part message in MIME format.
+On Wed, Feb 05, 2003 at 06:42:20PM -0800, Grover, Andrew wrote:
+> Dominik, I can come up with a quick fix (put a CONFIG_CPU_FREQ around
+> the code block at line 1044 in processor.c) but is there a better way?
+No, there's no better way ... even though this code block can only be called
+when CONFIG_CPU_FREQ is enabled -- pr->flags.performance is zero otherwise.
 
-------=_NextPartTM-000-9a1732af-0aff-45ab-b6cf-43fc6ad5dbc2
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+> > -----Original Message-----
+> > From: Linus Torvalds [mailto:torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org] 
+> > 
+> > On Wed, 5 Feb 2003, Grover, Andrew wrote:
+> > > 
+> > > 	bk pull http://linux-acpi.bkbits.net/linux-acpi
+> > 
+> > Hmm..
+> > 
+> >   drivers/built-in.o(.text+0x32f93): In function 
+> > `acpi_processor_apply_limit':
+> >   : undefined reference to `cpufreq_get_policy'
+> > 
+> > This seems to happen if ACPI is on, but CPUFREQ isn't.. Which 
+> > is my normal 
+> > dual P4-HT desktop requirement.
+> > 
+> > 		Linus
+> > 
 
-Hi all,
-
-I like know what I need to do if I want to have ACPI power management 
-support in my driver for an add-on device. When I am browsing APM 
-implementation, I found that Linux kernel have general PM Interfaces 
-like pm_regsiter and pm_unregsiter. In APM driver, pm_send is being 
-called to send notification to all registered add-on devices.
-
-In the case of ACPI, we have Device power state D0,D1,D2,D3. I like to 
-know how the interface between the ACPI driver, PM interface and ADD-ON Driver happens.
-Can any one please send me some details about it?
-
-Thanks,
-Siva
-
-
-
-
-
-
-
-------=_NextPartTM-000-9a1732af-0aff-45ab-b6cf-43fc6ad5dbc2
-Content-Type: text/plain;
-	name="InterScan_Disclaimer.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="InterScan_Disclaimer.txt"
-
-**************************Disclaimer**************************************************    
+--- linux/drivers/acpi/processor.c.original	2003-02-06 10:13:50.000000000 +0100
++++ linux/drivers/acpi/processor.c	2003-02-06 10:16:55.000000000 +0100
+@@ -1041,6 +1041,7 @@
+ 		return_VALUE(-ENODEV);
  
- Information contained in this E-MAIL being proprietary to Wipro Limited is 'privileged' 
-and 'confidential' and intended for use only by the individual or entity to which it is 
-addressed. You are notified that any use, copying or dissemination of the information 
-contained in the E-MAIL in any manner whatsoever is strictly prohibited.
-
-****************************************************************************************
-
-
-
-
-------=_NextPartTM-000-9a1732af-0aff-45ab-b6cf-43fc6ad5dbc2--
+ 	if (pr->flags.performance) {
++#ifdef CONFIG_CPU_FREQ
+ 		px = pr->performance_platform_limit;
+ 		if (pr->limit.user.px > px)
+ 			px = pr->limit.user.px;
+@@ -1055,6 +1056,7 @@
+ 		}
+ 		if (result)
+ 			goto end;
++#endif
+ 	} else if (pr->performance_platform_limit) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Platform limit event detected. Consider using ACPI P-States CPUfreq driver\n"));
+ 	}
 
 
 -------------------------------------------------------
