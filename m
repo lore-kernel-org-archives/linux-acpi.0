@@ -1,15 +1,13 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: eisa_set_level_irq(acpi_fadt.sci_int)
-Date: Mon, 27 Oct 2003 14:30:45 +0100
+From: Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>
+Subject: Re: Re: Linux 2.4.23-pre8
+Date: Mon, 27 Oct 2003 10:29:22 -0200 (BRST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031027133045.GM28351@poupinou.org>
-References: <1066254483.2535.51.camel@dhcppc4> <20031017154107.GI8668@poupinou.org> <1066411716.2527.100.camel@dhcppc4> <1066796711.2593.30.camel@dhcppc4> <1066964092.1541.16.camel@darkstar.portugal> <1066965206.3864.55.camel@dhcppc4> <1066969171.1608.32.camel@darkstar.portugal> <1066975669.3861.84.camel@dhcppc4> <1067046644.2219.9.camel@darkstar.portugal>
+Message-ID: <Pine.LNX.4.44.0310271028050.17121-100000@logos.cnet>
+References: <3F995586.3020408@comcast.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1067046644.2219.9.camel-4/PLUo9XfK/yXfm4dIG/yWZHpeb/A1Y/@public.gmane.org>
+In-Reply-To: <3F995586.3020408-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,40 +16,47 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?iso-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-acpi <linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: David van Hoose <david.vanhoose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Cc: Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Oct 25, 2003 at 02:50:43AM +0100, Sérgio Monteiro Basto wrote:
-> Hi 
-> > > On Fri, 2003-10-24 at 04:13, Len Brown wrote:
-> > > > I expect the regression related to your lid switch is cased
-> > > > by something else.  But since you have a box with an Edge Triggered
-> > > > SCI, I'd be interested if you are able to receive ACPI interrupts
-> > > > if we leave the SCI in Edge Triggered mode:
-> 
-> In fact is the acpi_ec_gpe_query patch that cause the regression.
-> After some tests, I am sure, if I apply this patch, pressing lid button
-> hangs my laptop.
-> and only this patch.
-> 
-> http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/test/2.4.22/20031017152411-acpi_ec_gpe_query.patch
-> 
 
-Hem, at first read, this patch is wrong, and seems more adapted to
-a perticular case, and being a bad hack in fact.
 
-ec_device_init is always 0 if there is no ECDT table, which is wrong,
-or else we will have a really really long interrupt handler, not to
-mention that acpi_ec_gpe_query is not interrupt-context safe anyway, so
-calling directly this function from the interrupt handler is a mistake
-in all cases.
+On Fri, 24 Oct 2003, David van Hoose wrote:
 
--- 
-Ducrot Bruno
+> Attached config, boot messages, and interrupts for 2.6.0-test8-bk2.
+> The boot messages do not have any USB debug, but do have ACPI debug. 
+> Also, all of my USB ports work 100% of the time on 2.6 with ACPI enabled.
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+David, 
+
+Have you tried what Len suggested in the bugzilla?
+
+----------
+Created an attachment (id=1185)
+SIS I2C quirk foundin 2.6 but not in 2.4
+
+One difference between 2.4 and 2.6 is the attached SIS quirk added for 
+I2C.
+
+Please back that quirk out of your 2.6 tree like so:
+
+patch --dry-run -Rp1 </tmp/sis_quirk_26.diff
+
+remove the code that depends on it from your .config:
+CONFIG_I2C_SIS96X=n
+
+and see if that makes 2.6 mis-behave like 2.4, or if USB still runs.
+
+Also, please verify for me that you get ACPI events properly.
+If you connect your USB mouse to one of the ports that isn't shared
+with acpi, then you should be able to trigger ACPI interrupts by
+pressing your power button.  (if acpid is enabled, it may shut down your
+system,
+so you may want to disable that first), and observering the
+/proc/interrupts row for acpi incrementing for each button press.
+
+
 
 
 -------------------------------------------------------
