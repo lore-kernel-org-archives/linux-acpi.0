@@ -1,59 +1,51 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: _PDC method in DSDT
-Date: Mon, 23 Jun 2003 12:07:44 +0200
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030623100744.GU19556@poupinou.org>
-References: <1056329130.10322.36.camel@aldebaran.caltech.edu>
+From: Hugh Dickins <hugh-DTz5qymZ9yRBDgjK7y7TUQ@public.gmane.org>
+Subject: RE: [BK PATCH] acpismp=force fix
+Date: Mon, 23 Jun 2003 12:46:38 +0100 (BST)
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <Pine.LNX.4.44.0306231224590.1648-100000@localhost.localdomain>
+References: <1056355301.1699.6.camel@laptop.fenrus.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1056329130.10322.36.camel-cfibRQahR+cF6I9xFAAkN5QCsf4PZ8us@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: David Moore <dcm-HInyCGIudOg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1056355301.1699.6.camel-PDvaWZGbcxi0rsOeZxrteAC/G2K4zDHf@public.gmane.org>
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Arjan van de Ven <arjanv-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Andrew Morton <akpm-LL/9OlyS9hIAvxtiuMwx3w@public.gmane.org>, torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Jun 22, 2003 at 05:45:31PM -0700, David Moore wrote:
-> Hi,
+On Mon, 23 Jun 2003, Arjan van de Ven wrote:
+> On Mon, 2003-06-23 at 09:43, Grover, Andrew wrote:
+> > > From: Andrew Morton [mailto:akpm-LL/9OlyS9hIAvxtiuMwx3w@public.gmane.org] 
+> > > >    ACPI: make it so acpismp=force works (reported by Andrew Morton)
+> > 
+> > > But prior to 2.5.72, CPU enumeration worked fine without 
+> > > acpismp=force. 
+> > > Now it is required.  How come?
+> > 
+> > (I'm taking the liberty to update the subject, which I accidentally left
+> > blank)
+> > 
+> > Because 2.4 has that behavior. One objection that people raised to
+> > applying the 2.4 ACPI patch was that it changed that behavior. So I made
+> > an effort to keep it there.
 > 
-> Does anyone know the purpose or specification of the _PDC method of the
-> DSDT?  It's a reserved method that exists on my laptop (a Dell Latitude
-> D600) but does not seem to be documented in the ACPI specification on
-> the web.
-> 
-> The reason I ask is that I'm interested in porting the cpufreq driver
-> for Enhanced Speedstep to ACPI.  Right now, the cpufreq driver has the
-> tables of proper MSR register values encoded into the source, but a more
-> elegant solution would be to get this information from ACPI.  In my DSDT
-> source I notice that when the _PDC method is called properly, the _PCT
-> method will return FixedHardware addresses for the Enhanced Speedstep
-> MSRs instead of its normal SystemIO ports.  To get this to work on more
-> than just my system, I should probably use the proper specification for
-> calling _PDC rather than just making it work.
-> 
-> Anyone have any suggestions?
-> 
+> in 2.4 it is absolutely not mantadory; it's default actually if the cpu
+> advertises the "ht" flag.....
 
+Right, enabling HT hasn't relied on "acpismp=force" since 2.4.18.
+Requiring "acpismp=force" now in 2.4 or 2.5 is just a step backwards.
 
-Too late...  A CPUFreq driver is already writen and is in the CPUFreq cvs.
+But when we changed to HT by default, I added bootparam "noht" to
+disable it if it was found troublesome.  Last time I checked, "noht"
+was ineffectual on 2.5, and perhaps now it's ineffectual on 2.4.22-pre?
 
--- 
-Ducrot Bruno
+(If I remember right, in 2.5 it did have one effect, determining whether
+the "ht" flag is shown in /proc/cpuinfo: but it was intended to be more
+useful than that.)
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+Certainly reliance on "acpismp=force" should be removed if it's crept
+back in.  But what should we do about "noht"?  Wave a fond goodbye,
+and remove it's associated code and Documentation from 2.4 and 2.5
+trees, rely on changing the BIOS setting instead?  Or bring it back
+into action?
 
-
--------------------------------------------------------
-This SF.Net email is sponsored by: INetU
-Attention Web Developers & Consultants: Become An INetU Hosting Partner.
-Refer Dedicated Servers. We Manage Them. You Get 10% Monthly Commission!
-INetU Dedicated Managed Hosting http://www.inetu.net/partner/index.php
+Hugh
