@@ -1,11 +1,12 @@
-From: Binary Xerroz <xerroz-BC6XjCpM3eF0abU8S3f8Vti2O/JbrIOy@public.gmane.org>
-Subject: ACPI: Battery information?
-Date: Mon, 07 Jun 2004 16:41:27 -0700
+From: support-MYdkbc4KblJDPfheJLI6IQ@public.gmane.org
+Subject: Re: Re: Protected Mail System
+Date: Mon, 7 Jun 2004 21:15:09 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40C4FD27.7000805@users.xeroprj.org>
+Message-ID: <40C53D4D.000001.13324@websc-utils01.int.rightnowtech.com>
+Reply-To: support-MYdkbc4KblJDPfheJLI6IQ@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,31 +19,36 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Forgive me if this is off topic in anyway, that said; I am curious how 
-ACPI detects batteries, I assume its done while the kernel is 
-initializing, is this true? Also, how is a battery detected? via tables 
-such as the DSDT or equivalent? One last thing, could someone point me 
-to the file where the batteries are listed and detected, I have spent 
-some time looking through the code and have yet to find it.
-Thank you for your help.
+Response
+---------------------------------------------------------------
+Dear Customer,
 
--- 
-____  ___            _______   
-\   \/  /___________ \   _  \  
- \     // __ \_  __ \/  /_\  \ 
- /     \  ___/|  | \/\  \_/   \
-/___/\  \___  >__|    \_____  /
-      \_/   \/              \/
-01011000 01100101 01110010 01110010 01101111
-01111010 00001101 00001010 01111000 00111000
-00110110 00100000 01000001 01110011 01110011
-01100101 01101101 01100010 01101100 01100101
-01110010 00100000 01000011 01101111 01100100
-01100101 01110010 00001101 00001010 01000001
-00100000 01011100 00100111 01010000 01110010
-01101111 01100110 01100101 01110011 01110011
-01101001 01101111 01101110 01100001 01101100
-01011100 00100111 00000000 00000000 00000000
+Your question has NOT been submitted.
+
+To submit a question to Lantronix Support, please click one of the links =
+below:
+Post-Sales:
+http://ltxfaq.custhelp.com/cgi-bin/ltxfaq.cfg/php/enduser/ask.php=20
+
+Pre-Sales:
+http://www.lantronix.com/howtobuy/salesinfo/index.html=20
+
+You may also call our Technical Support Department during our normal busi=
+ness hours (between 6:00 am 5:30 pm Pacific Time, Monday through Friday) =
+at 800-422-7044 (U.S. & Canada) or 949-453-3990 (worldwide).
+
+You may also find the answer to your questions in our Technical FAQ secti=
+on of our WebSite at:
+http://www.lantronix.com/support=20
+
+To download a manual for your Lantronix product, click the link below:
+http://www.lantronix.com/support/docs/=20
+
+Regards,
+Lantronix Technical Services
+---------------------------------------------------------------
+***************************************************************
+
 
 
 
