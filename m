@@ -1,16 +1,15 @@
-From: Daniel Dewald <D.Dewald-js0L5lmcrAQb1SvskN2V4Q@public.gmane.org>
-Subject: Re: hibernation wake-up hang...
-Date: Mon, 17 May 2004 21:26:41 +0200
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Fixing broken DSDT - code suggestions for comment
+	please!
+Date: 17 May 2004 15:35:59 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200405172126.41946.D.Dewald@fh-trier.de>
-References: <1084820789.9027.3.camel@localhost>
+Message-ID: <1084822558.12353.365.camel@dhcppc4>
+References: <40A73460.2070407@mesias.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1084820789.9027.3.camel-bi+AKbBUZKZeoWH0uzbU5w@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <40A73460.2070407-Nk/s8sJ9yP7QXOPxS62xeg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -19,39 +18,105 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Cam <camilo-Nk/s8sJ9yP7QXOPxS62xeg@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Please verify that you still have this problem
+when running the latest iasl:
 
-normaly it should be enought to pass the "noresume" option to the kernel with 
-your bootloader. Linux should boot then normaly without resuming from 
-standby.
-
-Greetings 
+http://www.intel.com/technology/IAPC/acpi/downloads.htm
 
 
-TheCrasher
+On Sun, 2004-05-16 at 05:29, Cam wrote:
+> Hi ACPI list,
+> 
+> I have been trying to get ACPI running on my laptop but have found there 
+> are problems with the DSDT. I have followed some instructions on getting 
+> iasl and recompiling the DSDT but find some errors that go beyond the 
+> scope of the list at:
+> 
+> http://www.cpqlinux.com/acpi-howto.html#fix_broken_dsdt
+> 
+> The errors are:
+> 
+> 
+> dsdt.dsl  2149:                     Store (Local0, Local0)
+> Error    1013 -                                 ^ Method local variable 
+> is not initialized (Local0)
+> 
+> This occurs several times in the code, a typical case is:
+> 
+>                  Method (_PS0, 0, NotSerialized)
+>                  {
+>                      Store (And (0xF0, TIA4), TIA4)
+>                      Store (0x01, _PSC)
+>                      Store (Local0, Local0)
+>                  }
+> 
+> I'm guessing that is effectively a NOP so I can comment it out.
+> 
+> Later there are two other errors not mentioned in the FAQ:
+> 
+> dsdt.dsl  2390:                     Return (WQS (0x0E, Arg0))
+> Error    1029 -                               ^ Called method returns no 
+> value
+>  
+> 
+> dsdt.dsl  2395:                     Return (WQSB (0x0E, Arg0))
+> Error    1029 - Called method returns no value ^
+>  
+> 
+> 
+> The offending code is:
+> 
+>                  Method (WENR, 1, NotSerialized)
+>                  {
+>                      Return (WQS (0x0E, Arg0))
+>                  }
+> 
+>                  Method (WETR, 1, NotSerialized)
+>                  {
+>                      Return (WQSB (0x0E, Arg0))
+>                  }
+> 
+> All the calls to those methods seem to discard any return value, eg:
+> 
+>          If (\_SB.OKEC)
+>          {
+>              \_SB.PCI0.QSB.WENR (0x01F0)
+>          }
+> 
+> I couldn't find a reference to WETR
+> 
+> 
+> 
+> So I thought to not return anything:
+> 
+>                  Method (WENR, 1, NotSerialized)
+>                  {
+> /*                    Return (WQS (0x0E, Arg0))*/
+>                      WQS (0x0E, Arg0)
+>                  }
+> 
+>                  Method (WETR, 1, NotSerialized)
+>                  {
+> /*                    Return (WQSB (0x0E, Arg0))*/
+>                      WQSB (0x0E, Arg0)
+>                  }
+> 
 
-Am Montag, 17. Mai 2004 21:06 schrieb Wesley T Allen:
-> Hi all,
-> 	I've finally gotten acpi working on my laptop and I was eagerly testing
-> hibernation and suspend; I've encountered a problem...
->
-> 	When my laptop attempts to come out of hibernation, it locks up while
-> trying to find my usb devices.  I can still boot my system using another
-> kernel; but my main kernel is currently unusable.
-> 	Is there any way to erase the hibernation data for my main kernel so I
-> can boot it again?  Where is that information stored?
->
-> I'm using a 2.6.3 kernel...
->
-> Thanks for the Help,
->
-> Wes
->
->
->
+no. the problem is that WQS and WQSB need to have Return() statements.
+
+> I am more than a bit wary about trying this for real so would appreciate 
+>   any comments on the dsdt code above. If the fixes are good then maybe 
+> they could be incorporated into the FAQ?
+> 
+> Any comments gratefully received,
+> 
+> -Cam
+> 
+> 
 > -------------------------------------------------------
 > This SF.Net email is sponsored by: SourceForge.net Broadband
 > Sign-up now for SourceForge Broadband and get the fastest
@@ -61,6 +126,7 @@ Am Montag, 17. Mai 2004 21:06 schrieb Wesley T Allen:
 > Acpi-devel mailing list
 > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 > https://lists.sourceforge.net/lists/listinfo/acpi-devel
+
 
 
 -------------------------------------------------------
