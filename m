@@ -1,56 +1,57 @@
-From: Martin Loschwitz <madkiss@madkiss.org>
-Subject: ACPI and framebuffer related problems with Linux 2.6.1-rc1
-Date: Thu, 1 Jan 2004 23:06:15 +0100
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20040101220615.GA1804@minerva.local.lan>
+From: Martin Loschwitz <madkiss-R0iKqZn4BxJAfugRpC6u6w@public.gmane.org>
+Subject: ACPI related problems with Linux 2.6.1-rc1-mm1
+Date: Thu, 1 Jan 2004 23:09:33 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20040101220933.GB1804@minerva.local.lan>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jI8keyz6grp/JLjh"
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+	protocol="application/pgp-signature"; boundary="ZoaI/ZTpAVc4A5k6"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-To: linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---jI8keyz6grp/JLjh
+--ZoaI/ZTpAVc4A5k6
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi folks,
+Hello again,
 
-I'm writing this mail as I'm discovering ACPI and framebuffer related probl=
-ems
-on my Acer TravelMate 800LCi notebook with Linux 2.6.1-rc1. First, it's goo=
-d=20
-to see that the synaptics-patches from -mm made it into the mainstream kern=
-el,
-they are necessary to make the synaptics work together with XFree here.
-
-However, there is a problem with ACPI: /proc/acpi/processor/CPU0/performanc=
-e,=20
-which was there in previous versions of the kernel and allowed me to slow t=
-he=20
-CPU down in order to save power, disappeared in Linux 2.6.1-rc1. It's simpl=
-y=20
-not there anymore. Was it replaced? If so, what is the right way to do it b=
-y=20
-now?
-
-Secondly, there also is a framebuffer related problem. I have VesaFB in kern
-and pass 'vga=3D791' to it at boot time. However, at the time when it switc=
-hed
-to FB in previous versions of Linux, the screen by now simply stays black.=
+I'm writing this mail as I'm discovering ACPI related problems on my Acer=
 =20
+TravelMate 800LCi notebook with Linux 2.6.1-rc1-mm1.
+
+While the system boots up fine with Linux 2.6.1-rc1, with 2.6.1-rc1-mm1 it
+hangs while booting. The last message printed to screen is "ACPI: IRQ 9=20
+was Edge Triggered, setting to Level Triggerd". This is fully reproducable=
+=20
+with a Linux 2.6.0 kernel which has the ACPI20031203 patch applied.
+
+Just for the records, with 2.6.1-rc1, the message that comes right after
+the "ACPI: IRQ 9 ..." message is:
+
+evxfevnt-0093 [04] acpi_enable           : Transition to ACPI mode successf=
+ul
+
 Is this a known problem and if so is a fix available?
 
 --=20
   .''`.   Martin Loschwitz           Debian GNU/Linux developer
- : :'  :  madkiss@madkiss.org        madkiss@debian.org
+ : :'  :  madkiss-R0iKqZn4BxJAfugRpC6u6w@public.gmane.org        madkiss@debian.org
  `. `'`   http://www.madkiss.org/    people.debian.org/~madkiss/
    `-     Use Debian GNU/Linux 3.0!  See http://www.debian.org/
 
---jI8keyz6grp/JLjh
+--ZoaI/ZTpAVc4A5k6
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -58,9 +59,16 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.3 (GNU/Linux)
 
-iD8DBQE/9JnXHPo+jNcUXjARAqdLAJ9UU37eixkykHPNMw/VNdEPvWFQWwCgw4kK
-mLWvqFzZ6wdbw2OfPlE77qA=
-=umfd
+iD8DBQE/9JqdHPo+jNcUXjARAsbrAJ9y2a1ajnvgbyvK6lHpYnODeY95XACgoXkd
+A1Tz2rnfBVd2n1VW1Ps2vJc=
+=xvt9
 -----END PGP SIGNATURE-----
 
---jI8keyz6grp/JLjh--
+--ZoaI/ZTpAVc4A5k6--
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: IBM Linux Tutorials.
+Become an expert in LINUX or just sharpen your skills.  Sign up for IBM's
+Free Linux Tutorials.  Learn everything from the bash shell to sys admin.
+Click now! http://ads.osdn.com/?ad_id=1278&alloc_id=3371&op=click
