@@ -1,16 +1,15 @@
-From: Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
-Subject: Re: 2.5.39 Insomniac, any first dbg?
-Date: Mon, 30 Sep 2002 17:44:05 +0200
+From: =?iso-8859-1?Q?=C9ric?= Brunet <ebrunet-l5PIGlIYzrxGWvitb5QawA@public.gmane.org>
+Subject: Re: Several problems on a toshiba S3000-X11
+Date: Mon, 30 Sep 2002 17:50:44 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1033400645.7338.17.camel@bacchus.gpphy.uni-duesseldorf.de>
-References: <200209301541.47910.p_christ@hol.gr>
- <1033398342.7338.5.camel@bacchus.gpphy.uni-duesseldorf.de>
- <200209301612.28344.p_christ@hol.gr>
+Message-ID: <20020930155044.GA21015@lps.ens.fr>
+References: <20020927142320.GB2821@lps.ens.fr> <20020927154542.GH7904@poup.poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <200209301612.28344.p_christ-U04EIuiosng@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20020927154542.GH7904-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,53 +18,53 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: "P. Christeas" <p_christ-U04EIuiosng@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, mcelrath-/+vdk8Lzq6wBYXXUC76CrNADJCGDAxhI@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Am Mon, 2002-09-30 um 15.12 schrieb P. Christeas:
-> I guess that's the point to start from. Did you say there was some code 
-> splitting in sleep.c? Last kernel that runned fine for me was 2.5.36 (I 
-> couldn't cleanly compile .37 and .38).
+On Fri, Sep 27, 2002 at 05:45:42PM +0200, Ducrot Bruno wrote:
+> > When I read the battery state for the first couple of times, the
+> > /proc/acpi files claim that I have two batteries present, and that bo=
+th
+> > batteries have a charge of 2040 mAh (capacity is 4000 mAh). After a
+> > couple of readings, I have the truth (only one battery and whatever
+> > capacity I have left.) That's annoying, and it didn't happen with my
+> > previous kernel. I don't now if it comes from the patched DSDT or fro=
+m
+> > the new version of the acpi patch.
+>=20
+> This is a trouble with the original AML, and I have not corrected it.
+>=20
+Are you sure ? Bob McElrath and I never had this problem with the
+original DSDT; it appeared when I used your hand-tuned version. It looks
+that the problem lies into your correction...
+>=20
+> Only the restore should be made.  Actually, the
+It is noted, I will try that. But I hope that it will go mainstream in a
+future version.
+>=20
+> > So the computer shuts down, without warning, while it is not particul=
+ary
+> > hot, with nothing written in the logs, while the user was just using =
+vim
+> > in a xterm, at irregular times, and it can happen two or three times =
+in
+> > an afternoon.
+> >=20
+>=20
+> Yes, I have this trouble with some version of ACPI now.  I think that I=
+ need
+> to incorporate now more smoothly with ACPI (that is, I need to use
+> the function acpi_ec_read() etc. instead of providing them in the modul=
+e,
+> and so I avoid some possible races..)
 
-IIRC Patrick Mochel splitted the sleep stuff out from system.c into
-sleep.c in 2.5.37
+So you confirm that it is ACPI related ? Do you think I can get rid of
+that problem by disabling parts of ACPI ? (I guess I could boot with no
+acpi at all, but that means no battery readings, no software shutdown and
+no S1. That would be a sad world...)
 
-> It seems as if the code code in sleep.c doesn't call anything. It was 
-> interesting, though that S2 did something, where it really wasn't supposed 
-> to. The /proc entries should be fine. So, the bug must be after the 
-> 'switch(state){ \n case 1: '. You 'll need to add some trace messages in the 
-> early state of those fn's.
-
-Hmmm...just had a quick look at the code...can you _confirm_ that
-acpi_system_write_sleep gets called and that state has a correct value
-(aka the one you echoed to /proc/acpi/sleep) after the following line:
-
-state = simple_strtoul(state_string, NULL, 0);?
-
-Since software_suspend() gets called from there and IIRC thats not part
-of the acpi subsytem I wonder why S4 would not work in case state is 
-correctly set there...
-
-Anyway, thats only a quick shot assumption so do not flame in case 
-I am plain wrong ;)
-
--Knut
-
--- 
-Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
-Physikalische Grundpraktika - Heinrich-Heine Universitaet Duesseldorf
-Raum 25.33.01.63  -   Universitaetsstrasse 1   -  D-40225 Duesseldorf
-fon: +49-211-81-11314                           fax: +49-211-81-13105
-
-
-
-
-
-
-
-
-
+=C9ric Brunet
 
 
 -------------------------------------------------------
