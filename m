@@ -1,14 +1,12 @@
-From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
-Subject: Re: what is the worst laptop atm?
-Date: Tue, 28 Dec 2004 16:51:26 +0100
-Message-ID: <m2is6mzaip.fsf@phoenix.squirrel.nl>
-References: <20041227165207.GB9606@poupinou.org>
-	<41D06CA6.30607@mega.ist.utl.pt> <20041228103019.GD9606@poupinou.org>
+From: "Leonel E. Daley" <leoneldaley67-CYxr6EV/DYQ@public.gmane.org>
+Subject: Order Royal Replica Watches Online
+Date: Tue, 28 Dec 2004 22:07:52 +0600
+Message-ID: <587601c4ecf7$2fc8ad77$3011c8e1@dsr.kvl.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041228103019.GD9606-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> (Bruno Ducrot's message of
- "Tue, 28 Dec 2004 11:30:19 +0100")
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,16 +19,26 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> writes:
+Get the Finest Rolex Watch Replica!
 
-> Indeed.  The fact that Linux do not support smartbattery yet is not ACER
-> fault.
+We only sell premium watches. There's no battery in these replicas just
+like the real ones since they charge themselves as you move. The second hand
+moves JUST like the real ones, too. These original watches sell in stores
+for thousands of dollars. We sell them for much less. 
 
-Actually, I've been told that ACER is payed by Microsoft for not
-helping Linux support. Yes, it's hearsay but it sounded reliable to me
-at the time.
+- Replicated to the Smallest Detail
+- 98% Perfectly Accurate Markings 
+- Signature Green Sticker w/ Serial Number on Watch Back
+- Magnified Quickset Date
+- Includes all Proper Markings
 
--- Johan
+Visit us: http://www.ealz.com.com/rep/rolx/
+
+Christmas discount this week only! Make your order before the prices go up.
+
+
+No thanks: http://www.ealz.com.com/z.php
+
 
 
 -------------------------------------------------------
