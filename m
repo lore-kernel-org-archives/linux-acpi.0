@@ -1,14 +1,12 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: 2.6.1 - IRQ routing regression on Abit VP6
-Date: Wed, 14 Jan 2004 11:17:42 +0100
+From: "Lukas Schrangl" <schrangl-hi6Y0CQ0nG0@public.gmane.org>
+Subject: P- State- Support in SSDT
+Date: Wed, 14 Jan 2004 11:28:02 +0100 (MET)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040114101742.GQ14031@poupinou.org>
-References: <571ACEFD467F7749BC50E0A98C17CDD8D5FEB8@PDSMSX403.ccr.corp.intel.com> <4004D220.8010804@comcast.net>
+Message-ID: <25324.1074076082@www10.gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4004D220.8010804-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,31 +15,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ian Pilcher <i.pilcher-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Cc: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jan 13, 2004 at 11:22:40PM -0600, Ian Pilcher wrote:
-> Li, Shaohua wrote:
-> >Did you open CONFIG_PCI_USE_VECTOR? Please try close it or try the 
-> >attached patch.
-> 
-> It sounds like you may not have read all the way to the bottom.  I was
-> able to get 2.6.1 working by updating the ACPI to version 20031203.
-> 
-> So I wasn't asking for help, just reporting a bug.  (And generally
-> complaining about such an ugly regressing in a supposedly stable kernel
-> series.)
-> 
+Hi again!
+Maybe I didn't express myself properly, so just one simple question: Is
+P-States in SSDT (generally) supported or not? (kernel 2.6.1, 2.4.21)
 
-It's just a stupid though, and I'm certainly wrong.  Unless there is 
-a 2.7 tree, 2.6 can't be considered "stable".
+Lukas
 
 -- 
-Ducrot Bruno
++++ GMX - die erste Adresse für Mail, Message, More +++
+Neu: Preissenkung für MMS und FreeMMS! http://www.gmx.net
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+
 
 
 -------------------------------------------------------
