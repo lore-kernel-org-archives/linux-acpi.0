@@ -1,49 +1,74 @@
-From: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>
-Subject: Re: [ACPI] Re: 1.1-rc9 acpi_disabled==0x30 on resume
-Date: Sat, 27 Sep 2003 12:22:26 +1200
-Sender: swsusp-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1064622146.3322.2.camel@laptop-linux>
-References: <200309270135.43786.mhf@linuxmail.org>
- <1064606502.5722.2.camel@laptop-linux> <20030927000908.GB8008@hell.org.pl>
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: acpi with linux-2.4.22
+Date: Fri, 26 Sep 2003 17:57:33 -0700
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <F760B14C9561B941B89469F59BA3A8470255EF2D@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <swsusp-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <20030927000908.GB8008-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Errors-To: swsusp-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:swsusp-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:swsusp-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/swsusp-devel>,
-	<mailto:swsusp-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/swsusp-devel>,
-	<mailto:swsusp-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=swsusp-devel>
-To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Cc: Michael Frank <mhf-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>, swsusp-devel <swsusp-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+content-class: urn:content-classes:message
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Michael Glickman <michg-pHk1y4uTXVCai2JIS6bsrQ@public.gmane.org>
+Cc: acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Yes, it is in BK.
+Hi Michael,
 
-N.
+2.4.22 had some huge ACPI code changes. Everyone on acpi-devel is
+working hard to resolve these. You will want to make sure you are using
+the absolutely latest release, as your problem may have been fixed.
 
-On Sat, 2003-09-27 at 12:09, Karol Kozimor wrote:
-> Thus wrote Nigel Cunningham:
-> > Hi.
-> > 
-> > In arch/i386/kernel, acpi_disabled is declared __init_data. If you
-> > remove that attribute, is the issue fixed?
-> 
-> I believe the patch is already merged. I wonder how could this bug be 
-> present for that long without anyone noticing...
-> Best regards,
--- 
-Nigel Cunningham
-495 St Georges Road South, Hastings 4201, New Zealand
+Regards -- Andy
 
-You see, at just the right time, when we were still powerless,
-Christ died for the ungodly.
-	-- Romans 5:6, NIV.
-
+> -----Original Message-----
+> From: Michael Glickman [mailto:michg-pHk1y4uTXVCai2JIS6bsrQ@public.gmane.org]=20
+> Sent: Friday, September 26, 2003 5:35 PM
+> To: Grover, Andrew
+> Subject: acpi with linux-2.4.22
+>=20
+>=20
+> Hello Andrew and thank you for supporting Linux.
+>=20
+> Though ACPI drive is experimental, I've been using it with my=20
+> Gigabyte=20
+> GA-7IXE4 motherboard (AMD 750 chipset - sorry, but someone has to use=20
+> AMD as well :) ) since 2.4.2 in hope I will be able to use it in the=20
+> full extent one day. With upgrade from 2.4.18 to 2.4.22 it has become=20
+> even worse than it was !
+>=20
+> I compile acpi drivers as modules. Version 2.4.18 has them named=20
+> ospm_xxx.  ospm_button recognizes the buttons while loading,=20
+> but looks=20
+> like pressing Power/Sleep/Wake is not recorded.  =20
+> /sbin/poweroff  works=20
+> OK  - it turns off the computer (with ospm_system loaded).
+>=20
+> With 2.4.22 nothing appears to work at all. When I 'modprobe=20
+> button' or=20
+> any other acpi module, I get message "Device not found".=20
+> /sbin/poweroff=20
+>  doesn't turn the computer off either. I hear a "click" like=20
+> the system=20
+> is about to power off, but it doesn't !   It might be related=20
+> to another=20
+> activity goinmg on I am not sure.
+>=20
+>=20
+> Awaiting your reply with impatience
+> Michae;
+>=20
+>=20
+>=20
+>=20
 
 
 -------------------------------------------------------
