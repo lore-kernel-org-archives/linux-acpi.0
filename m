@@ -1,40 +1,51 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: [patch]flush tlb when suspend
-Date: Wed, 20 Oct 2004 17:47:45 +0200
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041020154745.GE26439@elf.ucw.cz>
-References: <1098251261.1756.5.camel@sli10-desk.sh.intel.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [ACPI] RE: PATCH/RFC: driver model/pmcore wakeup hooks (1/4)
+Date: Wed, 20 Oct 2004 10:02:57 -0700
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <200410201002.58172.david-b@pacbell.net>
+References: <16A54BF5D6E14E4D916CE26C9AD3057559A042@pdsmsx402.ccr.corp.intel.com> <200410192251.14740.dtor_core@ameritech.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S268750AbUJTRNa@vger.kernel.org>
+In-Reply-To: <200410192251.14740.dtor_core@ameritech.net>
 Content-Disposition: inline
-In-Reply-To: <1098251261.1756.5.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Dmitry Torokhov <dtor_core@ameritech.net>
+Cc: acpi-devel@lists.sourceforge.net, "Li, Shaohua" <shaohua.li@intel.com>, "Brown, Len" <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Tuesday 19 October 2004 20:51, Dmitry Torokhov wrote:
+> On Tuesday 19 October 2004 04:11 am, Li, Shaohua wrote:
+> > A final solution is device core adds an ACPI layer. That is we can link
+> > ACPI device and physical device. This way, the PCI device can know which
+> > ACPI is linked with it, so the PCI API can use specific ACPI method. 
 
-> Possibly this patch can't resolve any problem (we didn't use low mem
-> when suspend), but I think it's better if we flush the tlb.
-
-Looks good to me.
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+The driver model core has platform_notify hooks for device add/remove,
+and ACPI should kick in that way ... they might well need tweaks though.
 
 
--------------------------------------------------------
-This SF.net email is sponsored by: IT Product Guide on ITManagersJournal
-Use IT products in your business? Tell us what you think of them. Give us
-Your Opinions, Get Free ThinkGeek Gift Certificates! Click to find out more
-http://productguide.itmanagersjournal.com/guidepromo.tmpl
+> > You are right, we currently haven't a method to reach the goal. To match
+> > a physical device and ACPI device, we need to know the ACPI device's
+> > _ADR and bus.
+> > I have a toy to link the PCI device and ACPI device, and some PCI
+> > function can use _SxD method and _PSx method to get some information for
+> > suspend/resume.
+> > 
+> 
+> The only caveat is that PCI core should not depend on ACPI because it is not
+> available on all platforms, not all world is x86.
+
+RIght!  Maybe something like:
+
+	int pci_enable_wake(pci_dev, on_or_off) {
+		...
+		if (dev->platform_data)
+			platform_enable_wake(dev, on_or_off)
+		...
+	}
+
+That'd call an acpi_enable_wake().  I guess OpenBoot would
+do its thing, and embedded boards could do all kinds of stuff.
+
+- Dave
