@@ -1,16 +1,14 @@
-From: Elver Loho <kernelpenguin-S7FoVGKkKTI@public.gmane.org>
-Subject: Re: Critical temperature even when idle with 2.6.7+patch, works fine in 2.4.26
-Date: Fri, 2 Jul 2004 18:48:44 +0300
+From: Andre Eisenbach <andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org>
+Subject: Re: Re: DSDT Change (Compaq Presario 2100)
+Date: Fri, 02 Jul 2004 10:33:24 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200407021848.46872.kernelpenguin@hot.ee>
-References: <20040702094846.GB2141@torni> <20040702122725.GD16229@rap.rap.dk>
+Message-ID: <40E59C64.9050603@eisenbach.com>
+References: <200405280621.29874.andre@eisenbach.com> <c9am7j$nng$1@sea.gmane.org> <200405291345.51712.andre@eisenbach.com> <20040628213409.GA19468@elf.ucw.cz> <cbsi0v$t1r$1@sea.gmane.org> <20040702115454.GA12889@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040702122725.GD16229-EittdKFJ/bZ/SzgSGea1oA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20040702115454.GA12889-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -19,26 +17,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Erik Meitner <usenet-cuDg6iFcrsRAfugRpC6u6w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-=DChel kenal p=E4eval (reede, 2. juuli 2004 15:27) kirjutas Keld J=F8rn Sim=
-onsen:
-: I have the same problem on an Acer Travelmate 233 XC (same model).
-: The system gets really heated under kernel 2.6.7, while under 2.6.3 it
-: runs much cooler. Also I see from metering power consumption that
-: it seems like the CPU does not do idle looping. It does not reach 80
-: degrees, but something like 65 degrees is common, while on 2.6.3 the
-: system stays about 48 degrees. I run X on the system, but the system is
-: quite idle.
+Pavel Machek wrote:
 
-Similar problem here. 1.3ghz Celeron M. Anyone found the source of the prob=
-lem=20
-yet?
+>>>Try your machine on battery, with full load. Monitor battery
+>>>temperature. If it gets hot, your battery was not really designed for
+>>>this, and forget this...
+>>>								Pavel
+>>>      
+>>>
 
+Thanks for the heads up on this, Pavel!
 
-Elver Loho
+I did unplug my batter, started an updatedb and compiled firefox, 
+coreutils and a new kernel. The battery got warm, but not hot. 
+Definitely not more then when charging it.
 
+A curious (unrelated) observation:
+The ACPI thermal zone temperature indicated about 68 C at most  on 
+battery doing this. However, when the battery was drained and I plugged 
+the AC back in, the temperature rose and stayed at about 75 C and the 
+fans worked audibly harder. This continued even after I removed the 
+battery, so it's not the additional heat from the charging.
+I wonder if something else is throttled when on battery. It's not the 
+CPU though as benchmarks dont slow down on battery anymore after my DSDT 
+change.
+
+As far as the DSDT change goes. Pavel, do you think that the kind of 
+throtteling they do is an effective way to limit battery current draw?
+I am getting more battery life now - even with powernow at "performance".
+
+Cheers.
+   Andre
 
 
 -------------------------------------------------------
