@@ -1,14 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: ACPI sleep: check error values and disable it on SMP
-Date: Tue, 10 Jun 2003 21:14:38 +0200
+From: Mizu <michal-VaXaUECoPuY@public.gmane.org>
+Subject: Buttons
+Date: Wed, 11 Jun 2003 01:18:51 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030610191437.GD13545@elf.ucw.cz>
-References: <F760B14C9561B941B89469F59BA3A847E96F42@orsmsx401.jf.intel.com>
+Message-ID: <20030610231851.GA6109@mizu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <F760B14C9561B941B89469F59BA3A847E96F42-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,54 +16,41 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Rusty Russell <rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hi
 
-> > > > +#ifdef CONFIG_SMP
-> > > > +	/* Suspend is hard to get right on SMP. */
-> > > > +	return AE_ERROR;
-> > > > +#endif
-> 
-> This part shouldn't be an #ifdef it should be a runtime check of
-> num_online_cpus().
+  Mayby since 2.5.69(70) version, there is no functional acpi buttons
+  (in kernel)
+ =20
+  ACPI: Subsystem revision 20030522
 
-Okay, that makes sense.
+  ACPI: Power Button (FF) [PWRF]
+  ACPI: Sleep Button (CM) [SLPB]
+  ACPI: Lid Switch [LID]
+ =20
+  ....but after pressing PowerButton, still nothing.
 
-Here's updated patch, please apply.
-								Pavel
 
---- /usr/src/tmp/linux/drivers/acpi/sleep/main.c	2003-06-10 21:10:18.000000000 +0200
-+++ /usr/src/linux/drivers/acpi/sleep/main.c	2003-06-10 21:08:32.000000000 +0200
-@@ -220,6 +220,10 @@
- {
- 	acpi_status status;
- 
-+	/* Suspend is hard to get right on SMP. */
-+	if (num_online_cpus() != 1)
-+		return AE_ERROR;
-+
- 	/* get out if state is invalid */
- 	if (state < ACPI_STATE_S1 || state > ACPI_STATE_S5)
- 		return AE_ERROR;
-@@ -232,7 +236,10 @@
- 	 * TBD: S1 can be done without device_suspend.  Make a CONFIG_XX
- 	 * to handle however when S1 failed without device_suspend.
- 	 */
--	freeze_processes();		/* device_suspend needs processes to be stopped */
-+	if (freeze_processes()) {
-+		thaw_processes();
-+		return AE_ERROR;		/* device_suspend needs processes to be stopped */
-+	}
- 
- 	/* do we have a wakeup address for S2 and S3? */
- 	/* Here, we support only S4BIOS, those we set the wakeup address */
+  Until 2.5.68, it was OK.
 
--- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+
+  And one more question. How can I start fan(s) control ?
+  (i am afraid about my CPU   ;( )
+  I have empty /proc/acpi/fan directory !
+
+  Thx
+
+  			mizu
+ =20
+--=20
+        -[ Mizu ]-
+#-------------------------#
+[-> E-mail:michal-VaXaUECoPuY@public.gmane.org   =20
+[-> ICQ:97165392
+[-> WWW: http://www.mizu.sk
+
 
 
 -------------------------------------------------------
