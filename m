@@ -1,12 +1,12 @@
-From: "Debra Lancaster" <ll403h-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: US Stock Market: PFDE - Last Picks .45 to 1.18....74 to 1.20...fanchon
-Date: Tue, 04 Nov 2003 15:24:19 -0100
+From: "Orlando Dudley" <ijgdond-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: US Stock Market: PFDE - Last Picks .45 to 1.18....74 to 1.20...elia
+Date: Tue, 04 Nov 2003 13:55:55 -0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <ovs83hy4muc01-8@1atn2.2hug>
-Reply-To: "Debra Lancaster" <ll403h-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Message-ID: <r53-5o181$78b--n$902o-5f-d6@7rpv9.cxc49>
+Reply-To: "Orlando Dudley" <ijgdond-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: multipart/alternative;
-	boundary="FB09E53F0."
+	boundary="89.499A47E9421D_904__F.B"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -16,11 +16,11 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, systemspecifyer-usage-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---FB09E53F0.
+--89.499A47E9421D_904__F.B
 Content-Type: text/plain;
 Content-Transfer-Encoding: quoted-printable
 
@@ -116,9 +116,9 @@ rcial mort.gages and other types of client financing.''
 
 
 
-bvmxmktfrgwrjrgmbjr
+abt dkdnkghttiofwqmlj nj k
 
---FB09E53F0.--
+--89.499A47E9421D_904__F.B--
 
 
 
