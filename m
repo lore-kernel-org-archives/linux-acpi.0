@@ -1,19 +1,15 @@
-From: "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>
-Subject: Re: Re: PROBLEM: ACPI freezes 2.6.1 on boot
-Date: Thu, 22 Jan 2004 11:32:01 +0100
+From: Arjen Verweij <A.Verweij2-V356GuK0og6dIhEUFHOBvg@public.gmane.org>
+Subject: Re: Re: K7 & cpu disconnect
+Date: Thu, 22 Jan 2004 12:06:48 +0100 (MET)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <m3oesw9sv2.fsf@reason.gnu-hamburg>
-References: <Pine.LNX.4.58.0401211051530.2123@home.osdl.org>
-	<m3d69dhukz.fsf@reason.gnu-hamburg>
-	<1074721887.3672.12.camel@darkstar.portugal>
-	<m34qupdj94.fsf@reason.gnu-hamburg>
-	<1074727903.3667.49.camel@darkstar.portugal>
+Message-ID: <Pine.GHP.4.44.0401221200230.19210-100000@elektron.its.tudelft.nl>
+References: <30489.1074762683@www25.gmx.net>
+Reply-To: a.verweij-oe7qfRrRQfeEZXFvZSAUrfP6llvjuJOh@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=X-UNKNOWN
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1074727903.3667.49.camel-4/PLUo9XfK/yXfm4dIG/yWZHpeb/A1Y/@public.gmane.org>
- =?iso-8859-15?q?=28S=E9rgio?= Monteiro Basto's message of "21 Jan 2004 23:31:43 +0000")
+In-Reply-To: <30489.1074762683-F0zlgTPnfr9mcu3hnIyYJQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -22,55 +18,64 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?iso-8859-15?q?S=E9rgio_Monteiro_Basto?= <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
+To: Thomas Herrmann <ollo.diab-Mmb7MZpHnFY@public.gmane.org>
+Cc: len-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
- || On 21 Jan 2004 23:31:43 +0000
- || S=E9rgio Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org> wrote:=20
+Obviously I missed what led up to this message, but are you talking about
+your box hanging under heavy io (badblocks, fsck, du etc)? I think most
+nforce2 boards have this disconnect function in the bios. Anyway, my box
+hangs under heavy io (abit nf7-s barton 2500+) under 2.4.23 with APIC in
+the kernel, but not under 2.6.0-test11. In this kernel I have APIC
+disabled. If you haven't done so, you kan check lkml archives for messages
+by Ross Dickson, he brought this up there.
 
- smb> So you are another APIC victim :)
-
-Seems that way. :)
-
-
- smb> [...]
-
- smb> And thinking, can be true ? that, if SCI can't be
- smb> level-triggered (like my laptop and yours), kernel with APIC
- smb> (loapic or smp) options will hang on boot !
-
-But can it really not be level triggered?=20
-
-My dmesg output tells me explicitly that it switched to level
-triggered successfully when APIC is disabled.
-
-So is that message wrong or is there a problem between APIC/ACPI?
-
-Should we not be able to resolve that problem anytime soon, I would
-suggest to add some information about this to the Kernel help for both
-ACPI and APIC, like:
-
-"
- CAUTION:=20
- On some laptops, enabling both local APIC and ACPI can cause
- problems.  Should your system hang during boot with a message like
-  'ACPI: IRQ X was Edge Triggered, setting to Level Triggerd'
- you should disable either local APIC (recommended) or ACPI.=20
- See http://bugzilla.kernel.org/show_bug.cgi?id=3D1774 for details.
-"
-
-that could save people a lot of time in the future hunting down that
-bug again -- also it should limit the amount of mails sent around on
-the topic. :)
+I think the 2.6.0-test11-mm tree has a patch cycled in with regards to
+nforce2 (two actually) I can dig up the URL if you are interested.
 
 Regards,
-Georg
 
---=20
-Georg C. F. Greve                                       <greve-mXXj517/zsQ@public.gmane.org>
-Free Software Foundation Europe	                 (http://fsfeurope.org)
-Brave GNU World	                           (http://brave-gnu-world.org)
+Arjen
+
+On Thu, 22 Jan 2004, Thomas Herrmann wrote:
+
+> Hi Len,
+>
+> one more data point wrt this topic.
+>
+> I can enable STPGNT/CPU disconnect on my NForce2 system running WinXP whi=
+le
+> using the tool from http://www.hasw.net/8rdavcore. And guess what, the sy=
+stem
+> runs stable for hours, not locking-up at all. Since this is exactly the s=
+ame
+> hardware as well as BIOS configuration, it leads me to beleave the Linux
+> ACPI/IO_APIC implementation has an issue.
+>
+> BTW, it seems the acpi-devel list archive on sourceforge.net hangs, no ne=
+w
+> entries since 01/24/04.
+>
+> Regards,    Thomas
+>
+> --
+> +++ GMX - die erste Adresse f=FCr Mail, Message, More +++
+> Bis 31.1.: TopMail + Digicam f=FCr nur 29 EUR http://www.gmx.net/topmail
+>
+>
+>
+> -------------------------------------------------------
+> The SF.Net email is sponsored by EclipseCon 2004
+> Premiere Conference on Open Tools Development and Integration
+> See the breadth of Eclipse activity. February 3-5 in Anaheim, CA.
+> http://www.eclipsecon.org/osdn
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>
+>
+
 
 
 -------------------------------------------------------
