@@ -1,14 +1,14 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: (no subject)
-Date: Tue, 1 Jun 2004 09:21:12 -0000
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: ACPI issues - suspend-to-ram and processor speed
+Date: Tue, 1 Jun 2004 14:34:38 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040601092112.GC6219@message-id.gmane0305.slipkontur.de>
-References: <HYJ6LH$8F4FB33FB70F6F8E7D71D47BD17E0250@libero.it>
+Message-ID: <20040601123438.GB10233@elf.ucw.cz>
+References: <200405180213.34603.andre@eisenbach.com> <200405280117.51602.andre@eisenbach.com> <20040528082426.GD1808@elf.ucw.cz> <200405280221.52819.andre@eisenbach.com> <20040528093102.GG1808@elf.ucw.cz> <40B8815F.4000406@khmer.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <HYJ6LH$8F4FB33FB70F6F8E7D71D47BD17E0250-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org>
+In-Reply-To: <40B8815F.4000406-LA8/tbxb0N8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,20 +17,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Vibol Hou <vibol-LA8/tbxb0N8@public.gmane.org>
+Cc: Andre Eisenbach <andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, May 30, 2004 at 04:22:29PM +0200, fil.tri-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org wrote:
+Hi!
 
-> When I write : echo on > /proc/acpi/fan/FN00/state the fan don't start.
+> Where should one look if system doesn't do the slowly blinking power LED 
+> when echo 3 > /proc/acpi/sleep?  It says entering state and then appears 
+> to just power off, nothing flashing.
 
-echo 0 > state # fan on
-echo 3 > state # fan off
+hwsleep.c
+								Pavel
 
-Don't ask me who thought about those values... ;-)
 -- 
-Stefan Seyfried
-
+934a471f20d6580d5aad759bf0d97ddc
 
 
 -------------------------------------------------------
