@@ -1,14 +1,10 @@
-From: Vernon Mauery <vernux-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Subject: Re: bug in acpid scripts
-Date: Fri, 23 Jul 2004 13:39:57 -0700
+From: Unknown <unknown@unknown.invalid>
+Subject: Undeliverable message returned to sender
+Date: Fri, 23 Jul 2004 21:35:44 +0000 (UCT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1090615197.9015.7.camel@bluerat>
-References: <20040723193658.GA3331@omocha.vort.org>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Message-ID: <20040723213544.B660B43074@mail51-R-kan.bigfish.com>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040723193658.GA3331-5z3TbH0F9hyr8sbHwu5NIg@public.gmane.org>
+From: Virus Scanner <>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,30 +13,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Russell Neches <russell-1vnkWVZi4QaVc3sceRu5cw@public.gmane.org>
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2004-07-23 at 12:36, Russell Neches wrote:
-> Tossing an "exit" at the beginning of powerbtn.sh fixes the problem
-> (with an obvious trade-ff), and my laptop suspends and resumes
-> perfectly. Well, almost perfectly -- I have to unload ohci_hcd before
-> shutting down, and I have to figure out how to get wireless working
-> after resume, but those are separate issues.
-> 
-> Is there a sensible way to tell if the system is coming off of S3? I
-> imagine I could do something like this to get into S3;
+This message was created automatically by mail delivery software.
 
-Adding new wakeup devices helps in this area a lot.  Check out the
-latest acpi patch to the kernel -- I had this same issue and applied
-the  acpi-20040715 patch, which among other things adds support for
-other things waking up the machine (sleep button, lid, etc.)
+A message you sent was virus infected.
+The message could not be cleaned.
 
-This simply makes it so you don't have to press the power button to wake
-up from S3.  While that is not exactly a direct solution, it was the one
-I was looking for anyway.
+Virus Scan Report:
+------------------
+document.zip infected by: WORM_LOVGATE.W
 
---Vernon
+Delivery failed for the following recipient(s):
+ 	adam-EIB2kfCEclfQT0dZR+AlfA@public.gmane.org
+
+For more information about this virus, visit http://www.antivirus.com/vinfo/virusencyclo/
+
+----- Original Message Header -----
+Received: by mail51-kan (MessageSwitch) id 1090618544687382_21827; Fri, 23 Jul 2004 21:35:44 +0000 (UCT)
+Received: from lists.sourceforge.net (unknown [218.6.253.146])
+	by mail51-kan.bigfish.com (Postfix) with ESMTP id 2D5B7433A0
+	for <adam-EIB2kfCEclfQT0dZR+AlfA@public.gmane.org>; Fri, 23 Jul 2004 21:31:32 +0000 (UCT)
+From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: adam-EIB2kfCEclfQT0dZR+AlfA@public.gmane.org
+Subject: Hello
+Date: Sat, 24 Jul 2004 05:30:26 +0800
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0010_A88E2226.BE880F7D"
+X-Priority: 3
+X-MSMail-Priority: Normal
+Message-Id: <20040723213132.2D5B7433A0-u07ah3lDz4sNGm5sb07ZIPYhGscHeamf@public.gmane.org>
 
 
 
