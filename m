@@ -1,15 +1,14 @@
 From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: RE: _OSI (Re: Re: cvs commit: src/sys/contrib/dev/acpica
- acfreebsd.h)
-Date: Wed, 17 Mar 2004 14:45:27 -0800 (PST)
+Subject: Re: X86_PM_TIMER: /proc/cpuinfo doesn't get updated
+Date: Wed, 17 Mar 2004 14:56:27 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040317144333.G3595@root.org>
-References: <3ACA40606221794F80A5670F0AF15F8401CBB748@PDSMSX403.ccr.corp.intel.com>
-  <20040311200031.J67848@root.org> <1079073556.3868.37.camel@dhcppc4>
+Message-ID: <20040317145312.X3595@root.org>
+References: <16471.43776.178128.198317@wombat.chubb.wattle.id.au>
+ <200403162340.57546.dtor_core@ameritech.net> <20040317095314.GB14983@dominikbrodowski.de>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1079073556.3868.37.camel-D2Zvc0uNKG8@public.gmane.org>
+In-Reply-To: <20040317095314.GB14983-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,49 +17,51 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Cc: Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>, Peter Chubb <peter-LkDQP0DxSMGxwJ88Py/mJxCuuivNXqWP@public.gmane.org>, Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, john stultz <johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 12 Mar 2004, Len Brown wrote:
-> On Thu, 2004-03-11 at 23:00, Nate Lawson wrote:
-> > On Thu, 11 Mar 2004, Yu, Luming wrote:
-> > > > On Wed, 11 Mar 2004, Len Brown wrote:
-> > > > > On Wed, 2004-03-10 at 21:26, Nate Lawson wrote:
-> > > > > > Bob, any word on _OSI implementation?
-> > > > >
-> > > > > Bob sent me an initial implementation for review today;-)
-> > > > >
-> > > > > I'm uncomfortable, however, at claiming to be compatible
-> > > > with Windows,
-> > > > > since I don't really have a definition of exactly what that means...
-> > > > >
-> > > > > -Len
-> > > >
-> > > > Doesn't matter to me.  I plan on claiming to be everything from Win 2k
-> > > > onward and sort out the rest on the mailing list.  :)
-> > > >
-> > > > We already fixed some problems by claiming to be Win 2k for _OS.
-> > > >
+On Wed, 17 Mar 2004, Dominik Brodowski wrote:
+> On Tue, Mar 16, 2004 at 11:40:57PM -0500, Dmitry Torokhov wrote:
+> > On Tuesday 16 March 2004 08:33 pm, Peter Chubb wrote:
+> > > >>>>> "Dmitry" == Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org> writes:
 > > >
-> > > Cool! what kind of problems?  :)
+> > > Dmitry> On Tuesday 16 March 2004 07:13 pm, Karol Kozimor wrote:
+> > > >> Thus wrote john stultz: > Hmm. This is untested, but I think this
+> > > >> should do the trick.
+> > > >>
+> > > >> Hmm... without the patch, neither cpu MHz nor bogomips are updated,
+> > > >> with the patch cpu MHz value seems correct (both using acpi.ko and
+> > > >> speedstep-ich.ko, but the bogomips is still at its initial value.
+> > > >> Best regards,
+> > > >>
+> > >
+> > > Dmitry> Karol, do you have a P4? AFAIK P4's TSC is stable even if core
+> > > Dmitry> frequence changes so loop_per_juffy (== bogomips) need not be
+> > > Dmitry> updated.
+> > >
+> > > The TSC is variable rate for Pentium-IV if you're using clock
+> > > modulation.
+> > >
+> > > Peter C
+> > >
 > >
-> > PCI routing.
-> >
-> > -Nate
+> > I understand that by clock modulation you mean throttling as opposed to
+> > true SpeedStep... OK, that means that for P4+ we somehow need to figure
+> > out whether the CPU is throttled or not to correctly calculate delays.
+> > Is there a clean way to get this data?
 >
-> You don't need to tempt me any more than that!;-)
->
-> While I don't like blindly claiming compatibility with something that is
-> neither specified nor visible, I *do* like the idea of causing the AML
-> to follow the *tested* path that it follows under Windows.
+> Hm, will have one patch to test it ready later today -- and a basic patch to
+> do this distinction is in the hiding of my notebook's harddisk already...
+> who's willing to do some testing on his SpeedStep-capable Pentium 4 - Mobile.
 
-OSI is different than _OS.  _OS is a static string, OSI means you can
-support the behavior of the string passed in.  Since Win2k was the first
-OS that really supported ACPI and the tests for strings for Win98 and ME
-in the ASL are usually to disable functionality/workaround bugs, I think
-it's very reasonable to claim compliance with all Win2k and above
-versions.
+Instead of all this gymnastics, how about:
+
+1. If using Px states, state is unknown until first "set" event.
+
+2. Implement priorities for time source selection and a generic timer API.
+This gets around the need to get the clock rate correct to have system
+timers work.  On FreeBSD, this is /sys/kern/kern_tc.c
 
 -Nate
 
