@@ -1,11 +1,10 @@
-From: "Randy.Dunlap" <rddunlap-3NddpPZAyC0@public.gmane.org>
-Subject: [PATCH] correct ACPI URL
-Date: Sun, 25 Jan 2004 16:59:34 -0800
+From: laclasse <laclasse-8pJrjL1qK2UoQmVLVEsOMtypXZDpriyu@public.gmane.org>
+Subject: help on acpi irq routing
+Date: Mon, 26 Jan 2004 03:51:40 +0100 (CET)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040125165934.1d89f8e7.rddunlap@osdl.org>
+Message-ID: <20040126033708.B90099@zerv.internetcafe.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,34 +15,53 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-Please apply to 2.6.current.
+Currently running my custom 2.6.2-rc1-mm3 with the ACPI version 20040116
+on a p4 HT ( SMP and SMT scheduler in mm kernel enabled ) on a Clevo
+Laptop ( sager / eurocom / alienware ).
 
---
-~Randy
+http://zerv.internetcafe.nl/~laclasse/dmesg
+http://zerv.internetcafe.nl/~laclasse/interrupts
+http://zerv.internetcafe.nl/~laclasse/dmidecode.txt
 
+I boot with acpi=force and acpi_os_name="Microsoft Windows XP" as i
+grepped my dissambled dsdt table and got the following statements:
 
-description:      use correct ACPI URL;
+ If (CondRefOf (_OS, Local0))
+                    If (LEqual (SizeOf (_OS), 0x14))
+                        If (LEqual (SizeOf (_OS), 0x27))
+0x14 being 20, why is there a 0x27 statement ( 39 ) ?
 
-diffstat:=
- arch/i386/boot/setup.S |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+using acpi for irq routing, i get the following when allocating the gfx
+drm module:
 
-diff -Naurp ./arch/i386/boot/setup.S~acpi_url ./arch/i386/boot/setup.S
---- ./arch/i386/boot/setup.S~acpi_url	2004-01-08 22:59:44.000000000 -0800
-+++ ./arch/i386/boot/setup.S	2004-01-25 16:48:02.000000000 -0800
-@@ -307,7 +307,7 @@ loader_ok:
- # a whole bunch of different types, and allows memory holes and
- # everything.  We scan through this memory map and build a list
- # of the first 32 memory areas, which we return at [E820MAP].
--# This is documented at http://www.teleport.com/~acpi/acpihtml/topic245.htm
-+# This is documented at http://www.acpi.info/, in the ACPI 2.0 specification.
- 
- #define SMAP  0x534d4150
- 
+[drm] Loading R200 Microcode
+irq 17: nobody cared!
+Call Trace:
+ [<c010c582>] __report_bad_irq+0x2a/0x8b
+ [<c010c66c>] note_interrupt+0x6f/0x9f
+ [<c010c98a>] do_IRQ+0x161/0x192
+ [<c02d7170>] common_interrupt+0x18/0x20
+ [<c02d007b>] unix_create1+0x39/0x1a0
+
+handlers:
+[<e49447e0>] (snd_intel8x0_interrupt+0x0/0x263 [snd_intel8x0])
+Disabling IRQ #17
+
+The sound doesn't work in X ( loops and repeats ) and eventually dies.
+Only work around this is using the pci=noacpi boot flag, then everything
+works, and acpi reports temperature, throttling, ac only problem is a
+significant increase in temperature ( 47/53 C idle vs 61/65 C ) and off
+course the loud fan sound that goes with it. Any help appreciated.
+
+Note that i have fixed my dsdt table and ready to upload it as soon as i
+find out how to integrate it in the current acpi src i am running.
+
+Thanks again.
+
+laclasse.
 
 
 -------------------------------------------------------
