@@ -1,8 +1,8 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Lid switch not waking machine
-Date: Sun, 13 Jul 2003 17:44:08 -0700
+Subject: RE: Re: ACPI ignoring IRQ flags in PRT
+Date: Sun, 13 Jul 2003 17:56:28 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A847E97024@orsmsx401.jf.intel.com>
+Message-ID: <F760B14C9561B941B89469F59BA3A8470255EE87@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,32 +17,38 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>, Rob North <tzwvgwv2001-O/bDAPVd7B0N+BqQ9rBEUg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Nate Lawson [mailto:nate-Y6VGUYTwhu0@public.gmane.org]=20
-> > Under Windows, opening the lid results in the system=20
-> waking, so it seems
-> > that the hardware is capable of it. It'd be nice if the same were
-> > possible under Linux.
+> From: Andrew de Quincey [mailto:adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org]=20
+> > I think what was throwing Matthew is that the interupt=20
+> trigger types are
+> > specified in  _PRS objects
+> > The _PRT object is a mapping from PCI device to a particular "PCI
+> > Interrupt Link device" and in the defintion of the link=20
+> device, the IRQs
+> > are defined in _PRS objects.
 >=20
-> Under FreeBSD, my IBM T23 suspends/resumes (S3) based on the=20
-> lid switch
-> just fine.
+> Yeah, I suspected I wasn't using the right terminology.
+>=20
+> Where are the parameters for "global system interrupts"=20
+> defined? It looks like=20
+> we have to support this configuration method as well. The=20
+> MADT table sounded=20
+> likely, but that is only for overriding ISA IRQs. Where are=20
+> >15 IRQs defined?
 
-Yeah this should work.
+Hi Andrew,
 
-If we're not enabling the lid device for wakeup then that explains part
-of it. As for the other part of the problem, it sounds like we are not
-re-enabling GPEs or fixed events properly on wakeup. To be honest don't
-think any Linux development has happened to specifically make this work,
-so I'm not surprised it doesn't. :) If you have time to figure out what
-exactly the problem is on your system and how to fix it then that would
-be a big step in the right direction.
+Great to see someone's digging into this. BTW have you looked at the
+ACPI 2.0 spec section 6.2.8? It talks about the contents of _PRT.
+Basically, it can contain either the interrupt number itself OR point to
+a link device, which in turn lets ACPI read (via _CRS) write (via _SRS)
+and see the possiblities (_BRS) for controlling the interrupt routing
+for that device.
 
-Maybe looking at FreeBSD's code and seeing what they're doing would be a
-good start? ;-)
+The code *should* be handling both these cases, but obviously there are
+still some bugs lurking.
 
 Regards -- Andy
 
