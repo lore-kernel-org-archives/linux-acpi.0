@@ -1,8 +1,8 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 Subject: Re: 2.5.69 - S3
-Date: Mon, 19 May 2003 10:31:10 +0200
+Date: Mon, 19 May 2003 10:53:24 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030519083110.GB130@elf.ucw.cz>
+Message-ID: <20030519085323.GC130@elf.ucw.cz>
 References: <200305140140.02188.mflt1@micrologica.com.hk> <200305182005.30192.mflt1@micrologica.com.hk> <20030518211245.GA452@elf.ucw.cz> <200305191153.51196.mflt1@micrologica.com.hk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -23,23 +23,6 @@ List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> > > further, there is mode 5)
-> > >
-> > >   which is mode 4) _plus_ disk reset fails, and disk won't spin
-> > > up again, and kjournald gets mad....
-> >
-> > Disk reset should never ever fail. Can you try to debug that?\
-> 
-> It just acts like the drive got removed. 
-> 
-> IDE bridge HW state must be messed up.
-> 
-> I'll look into init of IDE after resume and debug that. Any hints
->and pointers are welcome.
-
-I'm not so sure that any IDE init is done upon resume -- which might
-be a problem of course. 
-
 > > > and mode 6)
 > > >
 > > >   System hangs after all tasks left fridge with disk led on.
@@ -51,24 +34,100 @@ be a problem of course.
 > > more or less worked ("IDE0: spurious interrupt", "Last message
 > > repeated 1539 times").
 > 
-> Cute, Your velo S3 OK (before it died) ? - Do you know of any
->machines that really work with S3?
+> Cute, Your velo S3 OK (before it died) ? - Do you know of any machines that really work with S3?
 
-Velo is mips handheld, there's no ACPI there.
+I just fixed mtrrs and suspended/resumed that desktop ~10 times... It
+seems okay. [Not yet applicable to mainline, I guess, as mtrr is not
+in].
 
-But I have two notebooks and one desktop where S3 works. (More or
-less, now I found that there's mtrr problem on second resume on
-desktop).
-
-> What do these msgs mean? - never seen anything like this before.
-> 
-> May 18 17:49:27 mhfl2 kernel:    evgpe-0396: *** Error: acpi_ev_gpe_dispatch: No handler or method for GPE[FE], disabling event
-> May 18 17:49:27 mhfl2 kernel:    evgpe-0396: *** Error: acpi_ev_gpe_dispatch: No handler or method for GPE[105], disabling event
-> May 18 17:49:27 mhfl2 kernel:    evgpe-0396: *** Error: acpi_ev_gpe_dispatch: No handler or method for GPE[D1], disabling event
-> 
-
-I do not know that part of ACPI.
 								Pavel
+
+--- /usr/src/tmp/linux/arch/i386/kernel/cpu/mtrr/main.c	2003-05-19 10:44:09.000000000 +0200
++++ /usr/src/linux/arch/i386/kernel/cpu/mtrr/main.c	2003-05-19 10:43:10.000000000 +0200
+@@ -648,33 +648,33 @@
+ };
+  
+ #ifdef CONFIG_PM
+-struct mtrr_suspend_state
+-{
++struct mtrr_suspend_one {
+ 	mtrr_type ltype;
+ 	unsigned long lbase;
+ 	unsigned int lsize;
+ };
+ 
+-/* We return a pointer ptr on an area of *ptr bytes
+-   beginning at ptr+sizeof(int)
+-   This buffer has to be saved in some way during suspension */
+-static int *mtrr_save_state(void)
++struct mtrr_suspend_state {
++	int len;
++	struct mtrr_suspend_one mtrr[0];
++};
++
++/* This buffer has to be saved in some way during suspension */
++struct mtrr_suspend_state *mtrr_save_state(void)
+ {
+ 	int i, len;
+-	int *ptr = NULL;
+-	static struct mtrr_suspend_state *mtrr_suspend_buffer=NULL;
++	static struct mtrr_suspend_state *ptr = NULL;
++	static struct mtrr_suspend_one *mtrr_suspend_buffer=NULL;
+      
+ 	if(!mtrr_suspend_buffer)
+ 	{
+-		len = num_var_ranges * sizeof (struct mtrr_suspend_state) + sizeof(int);
++		len = num_var_ranges * sizeof (struct mtrr_suspend_one) + sizeof(int);
+ 		ptr = kmalloc (len, GFP_KERNEL);
+ 		if (ptr == NULL)
+ 			return(NULL);
+-		*ptr = len;
+-		ptr++;
+-		mtrr_suspend_buffer = (struct mtrr_suspend_state *)ptr;
+-		ptr--;
++		ptr->len = len;
+ 	}
++	mtrr_suspend_buffer = &ptr->mtrr;
+ 	for (i = 0; i < num_var_ranges; ++i,mtrr_suspend_buffer++)
+ 		mtrr_if->get (i,
+ 			      &(mtrr_suspend_buffer->lbase),
+@@ -684,19 +684,17 @@
+ }
+ 
+ /* We restore mtrrs from buffer ptr */
+-static void mtrr_restore_state(int *ptr)
++static void mtrr_restore_state(struct mtrr_suspend_state *ptr)
+ {
+ 	int i, len;
+-	struct mtrr_suspend_state *mtrr_suspend_buffer;
++	struct mtrr_suspend_one *mtrr_suspend_buffer;
+      
+-	len = num_var_ranges * sizeof (struct mtrr_suspend_state) + sizeof(int);
+-	if(*ptr != len)
+-	{
+-		printk ("mtrr: Resuming failed due to different number of MTRRs\n");
++	len = num_var_ranges * sizeof (struct mtrr_suspend_one) + sizeof(int);
++	if(ptr->len != len) {
++		printk (KERN_CRIT "mtrr: Resuming failed due to different number of MTRRs\n");
+ 		return;
+ 	}
+-	ptr++;
+-	mtrr_suspend_buffer=(struct mtrr_suspend_state *)ptr;
++	mtrr_suspend_buffer = &ptr->mtrr;
+ 	for (i = 0; i < num_var_ranges; ++i,mtrr_suspend_buffer++)     
+ 		if (mtrr_suspend_buffer->lsize)	  
+ 			set_mtrr(i,
+@@ -705,7 +703,7 @@
+ 				 mtrr_suspend_buffer->ltype);
+ }
+ 
+-static void *mtrr_state;
++static struct mtrr_suspend_state *mtrr_state;
+ 
+ static int mtrr_suspend(struct device *dev, u32 state, u32 level)
+ {
+
+
 -- 
 When do you have a heart between your knees?
 [Johanka's followup: and *two* hearts?]
