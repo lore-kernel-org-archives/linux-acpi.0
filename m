@@ -1,70 +1,47 @@
-From: Huw Rogers <count0-tC47gz4GrgtWk0Htik3J/w@public.gmane.org>
-Subject: Re: [Fwd: Re: [PROBLEM] 2.6.3-rc1: still no suspend/resume on Centrino notebook (contains agp, lapic, swsusp)]
-Date: Tue, 10 Feb 2004 21:22:24 -0500
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040210211914.FCD9.COUNT0@localnet.com>
-References: <1076374686.3429.1.camel@darkstar> <m3oes76x8l.fsf@brain.gnuhh.org>
+From: Bruno Ducrot <ducrot@poupinou.org>
+Subject: Re: [ACPI] [PATCH] disable SMM access to SpeedStep using ACPI-FADT
+	pstate_cnt
+Date: Sun, 15 Feb 2004 15:54:07 +0100
+Sender: cpufreq-bounces@www.linux.org.uk
+Message-ID: <20040215145407.GK13262@poupinou.org>
+References: <20040215105712.GB6105@dominikbrodowski.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <m3oes76x8l.fsf-eMhNhoSsuh6q92djB/mqZw@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk>
+Content-Disposition: inline
+In-Reply-To: <20040215105712.GB6105@dominikbrodowski.de>
+List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@www.linux.org.uk?subject=unsubscribe>
+List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq>
+List-Post: <mailto:cpufreq@www.linux.org.uk>
+List-Help: <mailto:cpufreq-request@www.linux.org.uk?subject=help>
+List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request@www.linux.org.uk?subject=subscribe>
+Errors-To: cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk
+To: len.brown@intel.com, acpi-devel@lists.sourceforge.net, cpufreq@www.linux.org.uk
 List-Id: linux-acpi@vger.kernel.org
 
-Near identical symptoms with SiS 648FX / 963 chipsets, and desktop P4.
-I doubt this is 855 specific. More like any recent ACPI BIOS + AGP 3
-specific. -Huw
+On Sun, Feb 15, 2004 at 11:57:12AM +0100, Dominik Brodowski wrote:
+> Disable SMM access to SpeedStep
+> 
+> Often, the BIOS changes the CPU frequency if a notebook is (dis)connected
+> from its AC adapter. This interferes with a) an user setting the CPU frequency
+> and b) kernel timing code which needs to know loops_per_jiffy, cpu_khz etc.
+> 
+> So, ACPI 2.0 offers a method to disable such BIOS changes -- writing
+> a value contained in the FADT (pstate_cnt) to the smi_cmd port. This patch
+> utilizes this method by doing this write in processor.c.
+> 
+> However, most current notebooks only offer 1.0 ACPI tables, where the
+> pstate_cnt entry is marked as "reserved". Whenever there is a _PCT entry
+> in the DSDT, though [and this is only a 2.0 object!], we assume the
+> "reserved" entry to be the pstate_cnt entry [if it isn't zero].
 
->  >> If your laptop is one APIC victim, I think until this problem
->  >> isn't resolved, suspend/resume also doesn't work, is my guess.
-> 
-> My laptop definitely experiences the ACPI+APIC troubles, but I'm not
-> sure whether that is what you refer to as "victim." :)
-> 
-> However: suspend/resume _almost_ work under 2.6.x -- the problem is
-> the AGP code, it seems. 
-> 
-> If I disable AGP, DRM/DRI and the intel framebuffer (which depends on
-> intel AGP! vesa fb is activated and works, though), compile at least
-> yenta_socket as a module, I can do suspend to disk (swsusp2) on kernel
-> 2.6.2 and resume even while X11 is running.
-> 
-> The moment I enable AGP (no DRM/DRI, no intel fb), things break.
-> 
-> As for S1/S3, it seems that S1 is almost/more or less working, but I
-> can only wake up the machine with the power button and that creates an
-> event to shut down the machine. :-/ Oh yeah: and the keyboard is
-> broken after resume from S1.
-> 
-> On S3, the machine comes back up -- apparently with working keyboard,
-> although I can't be 100% sure -- and the screen is dead. After typing
-> "ifup eth0" on the console I can log into it over the network,
-> though. :)
-> 
-> On the swsusp2 list, someone made a survey and found out that noone
-> has AGP working on 2.6.x for their Centrino notebooks. So the problem
-> really seems to be with the graphics/AGP/ACPI support of the Intel
-> 855GM/PM chipsets.
-> 
-> Is there any way people can help to make sure someone finds the time
-> to look into this?
+I would prefer to name it 'take_ownership' or something like that.  I think
+this is the correct naming.
 
 -- 
-Huw Rogers <count0-tC47gz4GrgtWk0Htik3J/w@public.gmane.org>
+Bruno Ducrot
 
-
-
--------------------------------------------------------
-SF.Net is sponsored by: Speed Start Your Linux Apps Now.
-Build and deploy apps & Web services for Linux with
-a free DVD software kit from IBM. Click Now!
-http://ads.osdn.com/?ad_id=1356&alloc_id=3438&op=click
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
