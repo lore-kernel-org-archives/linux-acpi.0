@@ -1,14 +1,15 @@
-From: "Starikovskiy, Alexey Y" <alexey.y.starikovskiy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: _PTS call hangs system
-Date: Mon, 20 Sep 2004 12:05:29 +0400
+From: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>
+Subject: Re: Battery rate on Acer TM 292
+Date: Mon, 20 Sep 2004 10:59:51 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <6EDC9204B3704C4C8522539D5C1185E52449B7@mssmsx403.ccr.corp.intel.com>
+Message-ID: <20040920085951.GD5052@gamma.logic.tuwien.ac.at>
+References: <loom.20040912T144218-763@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <loom.20040912T144218-763-eS7Uydv5nfjZ+VzJOa5vwg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,65 +18,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andre Eisenbach <andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Could you post your whole DSDT and dmesg?
-BTW, if you enable debug in ACPI and do "Store ("BLA-BLA-BLA", Debug)"
-in any method of DSDT, ACPI will print it to console (even from _PTS and
-_GTS).
+On Son, 12 Sep 2004, Stefan Tomanek wrote:
+> 2) the ac adapter does not send any events, but's that's not much trouble since
+> it's status is reported properly, and battery events are sent instead
 
-Thanks,
-	Alex.
+See my description for this fix on www.logic.at/people/preining/acer/
+(or on www.linux-acpi.org).
+My ac adapter (TM654) is now sending ac events
 
->-----Original Message-----
->From: Andre Eisenbach [mailto:andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org]
->Sent: Saturday, September 18, 2004 1:59 AM
->To: Starikovskiy, Alexey Y
->Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: Re: [ACPI] _PTS call hangs system
->
->Am Freitag 17 September 2004 04:08 schrieb Starikovskiy, Alexey Y:
->> >I may try to go throught the _PTS procedure next to figure out which
->> > call specifically hangs - if that is of any use?
->>
->> I think Sleep(2000) is a main suspect here. That architecture are you
->> using? Is it 64 bit one?
->
->It's a AMD XP (32-bit).
->
->I've tried it many times today and it crashes every time EXCEPT when I
->comment
->out ALL lines in that S5 branch. As in, this works:
->
->        If (LEqual (Arg0, 0x05))
->        {
->/*
->            Store (0x00, \_SB.PCI0.ISA.EC0.WORE)
->            If (\_SB.PCI0.ISA.WOLE)
->            {
->                Store (0x01, \_SB.PCI0.ISA.EC0.WOLE)
->            }
->            Else
->            {
->                Store (0x00, \_SB.PCI0.ISA.EC0.WOLE)
->            }
->
->            \_SB.PCI0.ISA.HPSS (0x02, 0x00)
->            Sleep (0x07D0)
->*/
->        }
->
->Every other combination (only the Sleep() enabled, only one other line
->enabled, whatever) causes the system to hang on shutdown. So only not
->calling
->that procedure or not doing anything inside seem to help at this point.
->
->Seems very odd.
->
->Cheers,
->    Andre
+> 3) the rate of charging or discharging is always 0, makes it hard to guess when
+> we are running out of power :-)
+
+Same problem here.
+
+Best wishes
+
+Norbert
+
+-------------------------------------------------------------------------------
+Norbert Preining <preining AT logic DOT at>         Technische Universität Wien
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
+-------------------------------------------------------------------------------
+FORD 	Six pints of bitter. And quickly please, the
+	world's about to end.
+BARMAN	Oh yes, sir? Nice weather for it.
+                 --- Douglas Adams, The Hitchhikers Guide to the Galaxy
 
 
 -------------------------------------------------------
