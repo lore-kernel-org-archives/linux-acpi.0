@@ -1,8 +1,8 @@
 From: Marc-Christian Petersen <m.c.p-hi6Y0CQ0nG0@public.gmane.org>
-Subject: ACPI patch 2002-01-23
-Date: Fri, 24 Jan 2003 09:49:16 +0100
+Subject: Re: [PATCH] ACPI update (20030122)
+Date: Fri, 24 Jan 2003 10:09:15 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200301240949.16462.m.c.p@gmx.net>
+Message-ID: <200301241009.15451.m.c.p@gmx.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
@@ -19,24 +19,22 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all,
+Hi Dave,
 
-how should this ever compile? :)
+>> I've noticed that with .59 some of my boxes no longer have
+>> functioning NICs unless I boot with acpi=3Doff. Packets get
+>> transmitted, but nothing ever gets received.
+>> Seen this with a 3c509, an 8139, and an e100.
+>> Known bug? Fixed in this patch ?
 
-acpi_ksyms.c:86: `acpi_enter_sleep_state_s4bios' undeclared here (not in =
-a=20
-function)
-acpi_ksyms.c:86: initializer element is not constant
-acpi_ksyms.c:86: (near initialization for=20
-`__ksymtab_acpi_enter_sleep_state_s4bios.value')
-make[3]: *** [acpi_ksyms.o] Error 1
+>> Known bug. Not fixed in this patch. Are you sure this is new in recent
+>> kernels?
+> Only seems to started biting me this last week for some reason.
 
+hehe, I had exactly the same issues starting with 2.4.18 + acpi stuff.
 
-root@codeman:[/usr/src/ACPI] # grep "sleep_state_s4bios" *
-acpi-20030123-2.4.21-pre3.diff:+               =20
-acpi_enter_sleep_state_s4bios();
-acpi-20030123-2.4.21-pre3.diff:+EXPORT_SYMBOL(acpi_enter_sleep_state_s4bi=
-os);
+I've noticed that almost every 2nd release broke network cards.
+Already reported sometimes.
 
 ciao, Marc
 
