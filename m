@@ -1,45 +1,77 @@
-From: Li Shaohua <shaohua.li@intel.com>
-Subject: Re: [RFC 1/6]SEP initialization rework
-Date: Tue, 05 Apr 2005 09:00:25 +0800
-Message-ID: <1112662825.17861.4.camel@sli10-desk.sh.intel.com>
-References: <1112580349.4194.331.camel@sli10-desk.sh.intel.com>
-	 <Pine.LNX.4.61.0504041235001.30273@montezuma.fsmlabs.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261308AbVDECDM@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.61.0504041235001.30273@montezuma.fsmlabs.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Zwane Mwaikambo <zwane@arm.linux.org.uk>
-Cc: lkml <linux-kernel@vger.kernel.org>, ACPI-DEV <acpi-devel@lists.sourceforge.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@suse.cz>
+From: akpm-3NddpPZAyC0@public.gmane.org
+Subject: [patch 1/4] bk-acpi alpha build fix
+Date: Mon, 04 Apr 2005 23:57:11 -0700
+Message-ID: <200504050657.j356vBUi032675@shell0.pdx.osdl.net>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2005-04-05 at 03:10, Zwane Mwaikambo wrote:
-> On Mon, 4 Apr 2005, Li Shaohua wrote:
-> 
-> >  linux-2.6.11-root/arch/i386/kernel/smpboot.c           |    6 ++++++
-> >  linux-2.6.11-root/arch/i386/kernel/sysenter.c          |   10 ++++++----
-> >  linux-2.6.11-root/arch/i386/mach-voyager/voyager_smp.c |    6 ++++++
-> >  3 files changed, 18 insertions(+), 4 deletions(-)
-> > 
-> > diff -puN arch/i386/kernel/sysenter.c~sep_init_cleanup arch/i386/kernel/sysenter.c
-> > --- linux-2.6.11/arch/i386/kernel/sysenter.c~sep_init_cleanup	2005-03-28 09:32:30.936304248 +0800
-> > +++ linux-2.6.11-root/arch/i386/kernel/sysenter.c	2005-03-28 09:58:20.703703792 +0800
-> > @@ -26,6 +26,11 @@ void enable_sep_cpu(void *info)
-> >  	int cpu = get_cpu();
-> >  	struct tss_struct *tss = &per_cpu(init_tss, cpu);
-> >  
-> > +	if (!boot_cpu_has(X86_FEATURE_SEP)) {
-> > +		put_cpu();
-> > +		return;
-> > +	}
-> > +
-> 
-> Do you have systems like this? Is it really skipping SEP if the boot 
-> processor doesn't have SEP?
-No, I haven't such system. This is the logic of original SEP
-initialization. If the CPU hasn't SEP, original logic doesn't call
-'on_each_cpu(enable_sep_cpu,...)'.
 
-Thanks,
-Shaohua
+
+ACPI doesn't work on alphas.
+
+  CC      drivers/pci/quirks.o
+distcc[25816] ERROR: compile on localhost failed
+In file included from include/acpi/platform/acenv.h:123,
+                 from include/acpi/acpi.h:53,
+                 from include/linux/acpi.h:34,
+                 from drivers/pci/quirks.c:21:
+include/acpi/platform/aclinux.h:59:22: asm/acpi.h: No such file or directory
+In file included from include/acpi/acpi.h:54,
+                 from include/linux/acpi.h:34,
+                 from drivers/pci/quirks.c:21:
+include/acpi/actypes.h:110: error: parse error before "INT64"
+include/acpi/actypes.h:110: warning: type defaults to `int' in declaration of `INT64'
+include/acpi/actypes.h:110: warning: data definition has no type or storage class
+include/acpi/actypes.h:111: error: parse error before "UINT64"
+include/acpi/actypes.h:111: warning: type defaults to `int' in declaration of `UINT64'
+include/acpi/actypes.h:111: warning: data definition has no type or storage class
+In file included from drivers/pci/quirks.c:21:
+include/linux/acpi.h:37:22: asm/acpi.h: No such file or directory
+
+
+I chose to fix it in acpi.h.  Seems cleaner than adding an ifdef to quirks.c.
+
+Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+---
+
+ 25-akpm/include/linux/acpi.h |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletion(-)
+
+diff -puN include/linux/acpi.h~bk-acpi-alpha-build-fix include/linux/acpi.h
+--- 25/include/linux/acpi.h~bk-acpi-alpha-build-fix	2005-04-04 23:56:24.000000000 -0700
++++ 25-akpm/include/linux/acpi.h	2005-04-04 23:56:31.000000000 -0700
+@@ -25,6 +25,8 @@
+ #ifndef _LINUX_ACPI_H
+ #define _LINUX_ACPI_H
+ 
++#ifdef CONFIG_ACPI
++
+ #ifndef _LINUX
+ #define _LINUX
+ #endif
+@@ -536,4 +538,5 @@ static inline int acpi_get_pxm(acpi_hand
+ 
+ extern int pnpacpi_disabled;
+ 
+-#endif /*_LINUX_ACPI_H*/
++#endif	/* CONFIG_ACPI */
++#endif	/* _LINUX_ACPI_H */
+_
+
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
