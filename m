@@ -1,8 +1,8 @@
 From: Olaf Hering <olh-l3A5Bk7waGM@public.gmane.org>
 Subject: Re: [BKPATCH] ACPI for 2.6
-Date: Mon, 9 Feb 2004 10:09:00 +0100
+Date: Mon, 9 Feb 2004 10:11:28 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040209090900.GA30625@suse.de>
+Message-ID: <20040209091128.GA30643@suse.de>
 References: <1076145027.8682.34.camel@dhcppc4>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -24,27 +24,9 @@ List-Id: linux-acpi@vger.kernel.org
 
  On Sat, Feb 07, Len Brown wrote:
 
-> Hi Linus, please do a 
-> 
-> 	bk pull http://linux-acpi.bkbits.net/linux-acpi-release-2.6.3
-> 
-> 	ACPI cpufreq related updates from Dominik, Asus and Toshiba
-> 	model specific updates from Karol and John, misc IA64
-> 	ACPI tweaks from Jes Sorensen etc.  All but Toshiba
-> 	and Asus have been through -mm.
-> 
-> thanks,
-> -Len
-> 
-> ps. a plain patch is also available here:
-> ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.3/acpi-20040116-2.6.3.diff.gz
+>  drivers/acpi/numa.c                 |   28 
 
->  arch/ia64/kernel/acpi.c             |   22 
-
-Len,
-
-this file uses now NR_MEMBLKS, which is undefined. Do you have a patch
-to fix it?
+Hit send to fast, this file references NR_MEMBLKS...
 
 -- 
 USB is for mice, FireWire is for men!
