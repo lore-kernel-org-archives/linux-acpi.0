@@ -1,35 +1,71 @@
-From: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
-Subject: Re: [ACPI] Where do I send APIC victims?
-Date: Wed, 3 Sep 2003 17:10:49 +0100
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <200309031710.49411.adq_dvb@lidskialf.net>
-References: <20030903080852.GA27649@k3.hellgate.ch> <200309031504.03596.vlad@lazarenko.net> <3F55F739.4010600@stesmi.com>
+From: Postmaster <postmaster-P5ys19MLBK/QT0dZR+AlfA@public.gmane.org>
+Subject: Undeliverable mail
+Date: Wed, 3 Sep 2003 12:01:04 -0400
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <iss.4207.3f561040.5942e.20@pain.noceast.dws.disney.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <3F55F739.4010600-uPWUOVYScjfQT0dZR+AlfA@public.gmane.org>
-Content-Disposition: inline
-To: Stefan Smietanowski <stesmi-uPWUOVYScjfQT0dZR+AlfA@public.gmane.org>, Vladimir Lazarenko <vlad-Qw1rWqDNyQwB085IDyDbTA@public.gmane.org>
-Cc: Stephan von Krawczynski <skraw-DcQCyzbjH0jQT0dZR+AlfA@public.gmane.org>, Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>, rl-7uj+XXdSDtwfv37vnLkPlQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: multipart/report; report-type=delivery-status;
+              boundary="=_mh.ndn.4207.3f561040_="
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+--=_mh.ndn.4207.3f561040_=
+Content-Type: text/plain; charset=us-ascii
 
-> >>I can't back that. At least on all my Serverworks boxes there are no
-> >>problems with ACPI. I got reports from VIA-bases SMP boards that they are
-> >>doing well, too. (all for 2.4.22)
->
-> And I can say that my Soyo SY-KT600 Ultra (VIA KT600+8237) has ACPI
-> problems as well. pci=noacpi doesn't help but acpi=off does. It gives
-> lots of errors that the ACPI tables are buggy when booting claiming
-> my 8237 SATA controller has gotten IRQ -19 for instance.
-> Using acpi=off solves the problem. This is with or without the libata
-> VIA 8237 SATA driver. Without anything it recognizes the chip but
-> doesn't like using IRQ -19 and doesn't see any disks. With pci=noacpi
-> it sees the disks but bombs out when trying to get the partition table.
-> It gets IRQ -19 still there. acpi=off makes it all work.
+Your message was not delivered to the following recipients:
 
-The IRQ -19 thing is a bug in my nforce2 patch in 2.4.22. It didn't drop back 
-to using the PIC correctly. My latest acpi-picmode patch (posted to this list 
-a few days back) corrects this, among other things.
+                      ID-XFksZO6ZYbM@public.gmane.org: 550 5.1.1 <ID@ABC.com>... User Unknown
+
+The Walt Disney Company and its affiliates are in the process of an e-Mail system upgrade.  The person you intended to send this message to may have had their Internet e-Mail address changed, or it may be unavailable for a short time as part of this process.
+
+If you feel that you have received this non-delivery notice in error, please contact the intended recipient by phone to confirm their address.
+
+--=_mh.ndn.4207.3f561040_=
+Content-Type: message/delivery-status
+Content-Transfer-Encoding: 7bit
+
+Reporting-MTA: dns;pain.noceast.dws.disney.com
+
+Final-Recipient: rfc822;ID-XFksZO6ZYbM@public.gmane.org
+Action: failed
+Status: 5.1.1
+
+--=_mh.ndn.4207.3f561040_=
+Content-Type: text/rfc822-headers
+Content-Transfer-Encoding: 7bit
+
+Received: from mail11.disney.com by pain.noceast.dws.disney.com with ESMTP; Wed, 3 Sep 2003 12:01:03 -0400
+Received: from LSM ([163.180.127.185])
+	by mail11.disney.com (Switch-3.1.0/Switch-3.1.0) with ESMTP id h83Fttw9025556
+	for <ID-XFksZO6ZYbM@public.gmane.org>; Wed, 3 Sep 2003 08:55:58 -0700 (PDT)
+Message-Id: <200309031555.h83Fttw9025556-kaLrBnE4Ujhcxzff65EOYwC/G2K4zDHf@public.gmane.org>
+From: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: <ID-XFksZO6ZYbM@public.gmane.org>
+Subject: Re: Approved
+Date: Thu, 4 Sep 2003 0:55:57 +0900
+X-MailScanner: Found to be clean
+Importance: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2600.0000
+X-MSMail-Priority: Normal
+X-Priority: 3 (Normal)
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="_NextPart_000_08C609A8"
+
+
+--=_mh.ndn.4207.3f561040_=--
+
+
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
