@@ -1,14 +1,15 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: ACPI Suspend support
-Date: Thu, 6 Mar 2003 17:30:39 +0100
+From: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>
+Subject: Re: Re: S4bios support for 2.5.63
+Date: Fri, 07 Mar 2003 07:40:42 +1300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030306163039.GA12576@hell.org.pl>
-References: <20030306120556.17cd0ef1.g.zwartjes@student.tue.nl> <20030306113153.GA11760@enigma.daemon.sh> <3E676950.6050209@lindows.com>
+Message-ID: <1046976042.1699.13.camel@laptop-linux.cunninghams>
+References: <20030306072229.GA750@budgie.we1.client2.attbi.com>
+ <20030306074226.GC750@budgie.we1.client2.attbi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3E676950.6050209-77kvfFC2TplBDgjK7y7TUQ@public.gmane.org>
+In-reply-to: <20030306074226.GC750-peapQs0eLv2IgHrOsx/gaWNy84NFWbr7VpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,22 +18,27 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: David Fox <david.fox-77kvfFC2TplBDgjK7y7TUQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ken Hughes <khughes-kam3zbT8ll8@public.gmane.org>
+Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote David Fox:
-> I'm thinking of going to the 2.5 kernels to get the ACPI S3 support, but 
-> I'm having trouble with devfs, which seems to be not quite working in 
-> the 2.5 series from my reading of kernel-devel.  Has this been resolved? 
-> Anyone out there using devfs in a 2.5 kernel?
+On Thu, 2003-03-06 at 20:42, Ken Hughes wrote:
+> I also noticed that when the suspend works, the "freeing memory: ....."
+> messages prints out about 100 periods.  The first 20 or so come slowly,
+> then it zips through most of the others.  When it oops's, it prints out
+> about 15 or so periods before the panic.  This seems similar to what 
+> Bert was
+> saying in an earlier message:
 
-I do. No particular problems with devfs, but unfortunately, lots of other.
-Best regards,
+This is because of the algorithm being used. 2.5 swsusp currently tries
+to free as much memory as it can, and then writes the remainder to disk.
+Freeing the memory can take quite a while. A port of the 2.4 code is in
+progress (hopefully it will be accepted :>).
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+Regards,
+
+Nigel
+
 
 
 -------------------------------------------------------
