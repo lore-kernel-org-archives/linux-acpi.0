@@ -1,13 +1,17 @@
-From: Johnathan Hicks <thetech-Pn2JTpibVOrk1uMJSBkQmQ@public.gmane.org>
-Subject: Re: An embedded-Linux power-management framework
-Date: Sat, 03 Aug 2002 10:50:12 -0400
+From: "Sourav K. Mandal" <smandal-DPNOqEs/LNQ@public.gmane.org>
+Subject: Re: Re: Compaq Presario 2800T
+Date: 06 Aug 2002 02:13:32 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3D4BEDA4.4030908@folkwolf.net>
-References: <20020802172802.GA32612@avalon.paulsen.org>	<1028315477.18635.113.camel@irongate.swansea.linux.org.uk>	<1028312475.23390.63.camel@granite.austin.ibm.com>	<1028330951.31733.5.camel@irongate.swansea.linux.org.uk> 	<3D4B284F.20402@folkwolf.net> <1028382470.31718.43.camel@irongate.swansea.linux.org.uk>
+Message-ID: <1028614416.4553.3.camel@localhost.localdomain>
+References: <200208010551.BAA23125@biohazard-cafe.mit.edu>
+	<20020803220614.21895.qmail@scrye.com>
+	<1028528792.7332.14.camel@anodyne.mandal>
+	<20020805150428.10039.qmail@scrye.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20020805150428.10039.qmail-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,30 +20,29 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Kevin Fenzi <kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Alan Cox wrote:
-> It may make sense on a box with ACPI, but most boxes that are heavily
-> STPCLK managed are older. The Athlon one seems to be less interesting
-> than the others (btw - seems you can mix stpclk with the other features
-> you just have to turn stpclk back off before idling)
+On Mon, 2002-08-05 at 11:04, Kevin Fenzi wrote: 
 
-Ah yes, I had forgotten about the older hardware, but I thought all they had 
-was HLT. About the Athlon case, STPCLK is used for all the power management 
-that I can think of except HLT. Feel free to correct me here if I'm wrong.
+> it stores and restores them ok, but I cant change them once linux is
+> up and running. LIke the buttons stop doing anything. ;( 
 
-> On a K5/K6/486/.. STPCLK is basically your entire power management
-> barring what lurks on the PCI devices - which can save a suprising
-> amount of power too. I've been playing (not very successfully at the
-> moment) at dropping my video card into D3 when screenblanking
+Yeah, trying it out myself it seems like a DRI thing.  Try 
+turning off DRI in your XF86Config and see if it helps. You might have
+to reboot ... DRI doesn't work when coming back from suspend, and some
+things don't work once you run DRI.  For me, once I run DRI the
+backlight refuses to turn off on lid close -- reboot fixes this. 
 
-What kind of delay would that cause when restoring the state of the card? I 
-would hope not that great of a delay as this kind of action is one that should 
-be expected.
+If that doesn't work, try switching to a text console.
 
---John
+I have yet to apply Charl's patch, and so I alternate between DRI and
+no-DRI XF86Configs.  I don't know if the patch fixes the backlight thing
+... 
 
+
+Sourav
 
 
 
