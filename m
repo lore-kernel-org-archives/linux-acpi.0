@@ -1,13 +1,13 @@
-From: Alexander Hoogerhuis <alexh-rpjHciJLgqZBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: Compaq Evo 510SFF and ACPI
-Date: 04 Jul 2003 14:47:40 +0200
+From: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
+Subject: Re: Ac adapter status
+Date: Fri, 4 Jul 2003 15:25:52 +0200 (CEST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <877k6yo3v7.fsf@lapper.ihatent.com>
-References: <20030704115741.84107.qmail@web13005.mail.yahoo.com>
+Message-ID: <Pine.LNX.4.53.0307041524560.25421@tweety.gaugusch.at>
+References: <3F056FCB.6D9051EB@dit.ulpgc.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030704115741.84107.qmail-fSNY+zs/3deA/QwVtaZbd3CJp6faPEW9@public.gmane.org>
+In-Reply-To: <3F056FCB.6D9051EB-UMSJ7rsJew/ZfSdNxihkMA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,30 +16,23 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Scott Duplichan <sduplichan-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Scott Duplichan <sduplichan-/E1597aS9LQAvxtiuMwx3w@public.gmane.org> writes:
+On Jul 4, David Sanchez <david-UMSJ7rsJew/ZfSdNxihkMA@public.gmane.org> wrote:
+> i have recently installed acpid.
+> [...]
+> I have kernel 2.4.20 (Debian)
+I'm not sure, but I don't think that debian kernels include the ACPI
+patches yet. You need either 2.4.22pre2 or 2.4.21 with a patch from
+http://acpi.sf.net/
 
-> 
-> I believe the problem is that 'saved_rsdt' is smaller than the EVO rsdt.
-> If I am looking at the correct source code, the maximum number of
-> tables supported is ACPI_TABLE_COUNT, which is 17. That number is
-> based on the assumption that there is at most one table of each type.
-> But that assumption is not valid for the EVO 510, because it has many
-> SSDT tables, for a total of 21 tables.
-> 
-
-Do basically changing the constant and recompiling might solve things?
-
-> -- 
-> Scott
-
+Markus
 -- 
-Alexander Hoogerhuis                               | alexh-rpjHciJLgqZBDgjK7y7TUQ@public.gmane.org
-CCNP - CCDP - MCNE - CCSE                          | +47 908 21 485
-"You have zero privacy anyway. Get over it."  --Scott McNealy
+__________________    /"\
+Markus Gaugusch       \ /    ASCII Ribbon Campaign
+markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org     X     Against HTML Mail
+                      / \
 
 
 -------------------------------------------------------
