@@ -1,58 +1,53 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [ACPI] 2.6.12-rc1-mm[1-3]: ACPI battery monitor does not work
-Date: Thu, 31 Mar 2005 10:44:58 +0200
-Message-ID: <200503311044.58673.rjw@sisk.pl>
-References: <200503291156.19112.rjw@sisk.pl> <200503301353.25492.luming.yu@intel.com> <200503301205.40555.rjw@sisk.pl>
+From: "art stallone" <art_stallone-QOiod4cnrWAN+BqQ9rBEUg@public.gmane.org>
+Subject: PCI IRQ routing table
+Date: 31 Mar 2005 09:58:49 -0000
+Message-ID: <20050331095849.25312.qmail@webmail7.rediffmail.com>
+Reply-To: "art stallone" <art_stallone-QOiod4cnrWAN+BqQ9rBEUg@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261193AbVCaIot@vger.kernel.org>
-In-Reply-To: <200503301205.40555.rjw@sisk.pl>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: luming.yu@intel.com
-Cc: acpi-devel@lists.sourceforge.net, LKML <linux-kernel@vger.kernel.org>
+Content-Type: multipart/alternative;
+	boundary="Next_1112263129---0-202.54.124.152-25307"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-
-On Wednesday, 30 of March 2005 12:05, Rafael J. Wysocki wrote:
-> On Wednesday, 30 of March 2005 07:53, Yu, Luming wrote:
-> > On Tuesday 29 March 2005 17:56, Rafael J. Wysocki wrote:
-> > > Hi,
-> > >
-> > > There is a problem on my box (Asus L5D, x86-64 kernel) with the ACPI
-> > > battery driver in the 2.6.12-rc1-mm[1-3] kernels.  Namely, the battery
-> > > monitor that I use (the kpowersave applet from SUSE 9.2) is no longer able
-> > > to report the battery status (ie how much % it is loaded).  It can only
-> > > check if the AC power is connected (if it is connected, kpowersave behaves
-> > > as though there was no battery in the box, and if it is not connected,
-> > > kpowersave always shows that the battery is 1% loaded).
-> > >
-> > > Also, there are big latencies on loading and accessing the battery module,
-> > > but the module loads successfully and there's nothing suspicious in dmesg.
-> > >
-> > > Please let me know if you need any additional information.
-> > >
-> > > Greets,
-> > > Rafael
-> > 
-> > Could you just revert ec-mode patch, then retest?
-> 
-> Could you please point me to it?
-
-I assume you mean the "Enable EC Burst Mode" patch at:
-
-http://linux-acpi.bkbits.net:8080/to-akpm/cset%401.2181.17.12?nav=index.html|ChangeSet@-2w
-
-Anyway, reverting this patch helps. :-)
-
-Greets,
-Rafael
+ This is a multipart mime message
 
 
--- 
-- Would you tell me, please, which way I ought to go from here?
-- That depends a good deal on where you want to get to.
-		-- Lewis Carroll "Alice's Adventures in Wonderland"
+--Next_1112263129---0-202.54.124.152-25307
+Content-type: text/plain;
+	charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+  =0AHi all,=0A=0A Do ACPI caches PCI IRQ routing table (PIR).=0A Is there =
+any ioctl so user space can get that table?=0A=0Aregards,=0AART.
+--Next_1112263129---0-202.54.124.152-25307
+Content-type: text/html;
+	charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+<P>=0A&nbsp; <BR>=0AHi all,<BR>=0A<BR>=0A Do ACPI caches PCI IRQ routing ta=
+ble (PIR).<BR>=0A Is there any ioctl so user space can get that table?<BR>=
+=0A<BR>=0Aregards,<BR>=0AART.=0A</P>=0A<br><br>=0A<A target=3D"_blank" HREF=
+=3D"http://clients.rediff.com/signature/track_sig.asp"><IMG SRC=3D"http://a=
+ds.rediff.com/RealMedia/ads/adstream_nx.cgi/www.rediffmail.com/inbox.htm@Bo=
+ttom" BORDER=3D0 VSPACE=3D0 HSPACE=3D0></a>=0A
+--Next_1112263129---0-202.54.124.152-25307--
+
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by Demarc:
+A global provider of Threat Management Solutions.
+Download our HomeAdmin security software for free today!
+http://www.demarc.com/Info/Sentarus/hamr30
