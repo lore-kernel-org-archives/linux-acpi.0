@@ -1,14 +1,19 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: S1 could work
-Date: Thu, 22 Jan 2004 11:29:12 +0100
+From: "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>
+Subject: Re: Re: PROBLEM: ACPI freezes 2.6.1 on boot
+Date: Thu, 22 Jan 2004 11:32:01 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040122102912.GA355@elf.ucw.cz>
-References: <Pine.LNX.4.58.0401201816420.4869@localhost.localdomain>
+Message-ID: <m3oesw9sv2.fsf@reason.gnu-hamburg>
+References: <Pine.LNX.4.58.0401211051530.2123@home.osdl.org>
+	<m3d69dhukz.fsf@reason.gnu-hamburg>
+	<1074721887.3672.12.camel@darkstar.portugal>
+	<m34qupdj94.fsf@reason.gnu-hamburg>
+	<1074727903.3667.49.camel@darkstar.portugal>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0401201816420.4869-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+In-Reply-To: <1074727903.3667.49.camel-4/PLUo9XfK/yXfm4dIG/yWZHpeb/A1Y/@public.gmane.org>
+ =?iso-8859-15?q?=28S=E9rgio?= Monteiro Basto's message of "21 Jan 2004 23:31:43 +0000")
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,29 +22,55 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Tod Morrison <tmorriso-o2OswTf4RFv//ikEAC0814dd74u8MsAO@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: =?iso-8859-15?q?S=E9rgio_Monteiro_Basto?= <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
+Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-HI!
+ || On 21 Jan 2004 23:31:43 +0000
+ || S=E9rgio Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org> wrote:=20
 
-> Hopefully this is can be done. I have partially functional S1 and S3 
-> states, in the case of S3 the LCD remains off after resume which I gather 
-> may be a problem for awhile, but I'm patient. The problem with S1 is just 
-> frustrating though, I have no way of powering of (i.e. dpms) from the 
-> console (setterm doesn't work) and S1 doesn't turn off the LCD. This 
-> wasn't a problem under 2.4 since I would just execute 'xset dpms force 
-> off' from within X before suspending. Unfortunately, in 2.6 acpi switches 
-> to a text console to display some messages prior to going into standby 
-> which breaks my only work around. I'd like to know if there's anyway 
-> around this, as it essentially makes 2.6 kernels unusable to me.
+ smb> So you are another APIC victim :)
 
-Switching consoles doing S1 is not neccessary on working hardware. You
-might want to simply comment it out.
-								Pavel
--- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+Seems that way. :)
+
+
+ smb> [...]
+
+ smb> And thinking, can be true ? that, if SCI can't be
+ smb> level-triggered (like my laptop and yours), kernel with APIC
+ smb> (loapic or smp) options will hang on boot !
+
+But can it really not be level triggered?=20
+
+My dmesg output tells me explicitly that it switched to level
+triggered successfully when APIC is disabled.
+
+So is that message wrong or is there a problem between APIC/ACPI?
+
+Should we not be able to resolve that problem anytime soon, I would
+suggest to add some information about this to the Kernel help for both
+ACPI and APIC, like:
+
+"
+ CAUTION:=20
+ On some laptops, enabling both local APIC and ACPI can cause
+ problems.  Should your system hang during boot with a message like
+  'ACPI: IRQ X was Edge Triggered, setting to Level Triggerd'
+ you should disable either local APIC (recommended) or ACPI.=20
+ See http://bugzilla.kernel.org/show_bug.cgi?id=3D1774 for details.
+"
+
+that could save people a lot of time in the future hunting down that
+bug again -- also it should limit the amount of mails sent around on
+the topic. :)
+
+Regards,
+Georg
+
+--=20
+Georg C. F. Greve                                       <greve-mXXj517/zsQ@public.gmane.org>
+Free Software Foundation Europe	                 (http://fsfeurope.org)
+Brave GNU World	                           (http://brave-gnu-world.org)
 
 
 -------------------------------------------------------
