@@ -1,14 +1,14 @@
-From: William Morgan <wmorgan-acpi-devel-xW3KcqxHEMnk1uMJSBkQmQ@public.gmane.org>
-Subject: Re: Re: acpi on new gateway laptops
-Date: Thu, 20 Nov 2003 16:42:29 -0500
+From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Subject: Fix xconfig in 2.4-ACPI latest
+Date: Thu, 20 Nov 2003 21:51:08 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031120214228.GD21802@masanjin.net>
-References: <20031112232315.GD430@masanjin.net> <20031112233328.GE430@masanjin.net> <20031113001013.GE32464@poupinou.org> <20031113170333.GA2336@masanjin.net> <20031118151139.GA32464@poupinou.org>
+Message-ID: <20031120215108.GP30485@parcelfarce.linux.theplanet.co.uk>
+References: <Pine.LNX.4.44.0311200838380.17057-100000@v8.miniserver.de> <20031120163200.GK30485@parcelfarce.linux.theplanet.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20031118151139.GA32464-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20031120163200.GK30485-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,81 +17,37 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Cc: Marcel Meckel <acpi-X2Xph2rMQzhn68oJJulU0Q@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Marcelo Tosatti <marcelo-KCZ47A4bww4P48s/oLjRZg@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Excerpts (reformatted) from Ducrot Bruno's mail of 18 Nov 2003 (EST):
-> Well, I forgot that ECDT support is somewhat still buggy.  Here is anyway
-> a patch, but for 2.4.23-rc1.
+On Thu, Nov 20, 2003 at 04:32:00PM +0000, Matthew Wilcox wrote:
+> Maybe the tk program is having trouble parsing this:
+> 
+> +  else if [ "$CONFIG_SMP" = "y" ]; then
 
-Ducrot,
+I just figured out why I couldn't reproduce this problem.  Oops.
+Len, can you apply this patch for 2.4 ASAP?  Otherwise people
+using xconfig won't be able to configure their kernels.
 
-Thanks for the patch. I will try it presently.
-
-In the mean time I've hacked up an ECDT and tried inserting it at boot time
-by saying, in drivers/acpi/osl.c:
-
-        *new_table = NULL;
-        if (strncmp(existing_table->signature,"ECDT",4) != 0) {
-                printk(KERN_INFO PREFIX "overriding ECDT definition\n");
-                *new_table = (struct acpi_table_header *)ecdt_table;
-        }
-
-However, at boot time, I get the following in dmesg:
-
-ACPI: overriding ECDT definition
-   tbget-0292: *** Info: Table [ECDT] replaced by host OS
-  tbrsdt-0227: *** Error: Invalid signature where RSDP indicates RSDT/XSDT should be located
-RSDT/XSDT signature at 1F6E7D39 (1f6e7d39) is invalid
-
-So obviously I'm doing something wrong.
-
-The ECDT looks like this:
-
-/*
- * ECDT table for Gateway laptops circa 2003
- * 
- * header:
- *   signature "ECDT"
- *   length: 86
- *   revision: 0x1
- *   checksum: 0x74
- *   oem_id: "mkecdt"
- *   oem_table_id: "ecdt0001"
- *   oem_revision: 0x1
- *   asl_compiler_id: "none"
- *   asl_compiler_revision: 0
- * ec_control:
- *   address_space_id: 0x1
- *   address_space_bit_width: 0x8
- *   register_bit_offset: 0
- *   reserved (should be 0): 0
- *   address: 0x66
- * ec_data:
- *   address_space_id: 0x1
- *   address_space_bit_width: 0x8
- *   register_bit_offset: 0
- *   reserved (should be 0): 0
- *   address: 0x62
- * uid: 0
- * gpe: 0x1c
- * ec_id: "\_SB_.PCI0.LPCB.H_EC"
- * compute checksum: passed
-*/
-
-unsigned char ecdt_table[]= {
-	0x45, 0x43, 0x44, 0x54, 0x56, 0x00, 0x00, 0x00, 0x01, 0x74, 0x6d, 0x6b, 0x65, 0x63, 0x64, 0x74,
-	0x65, 0x63, 0x64, 0x74, 0x30, 0x30, 0x30, 0x31, 0x01, 0x00, 0x00, 0x00, 0x6e, 0x6f, 0x6e, 0x65,
-	0x00, 0x00, 0x00, 0x00, 0x01, 0x08, 0x00, 0x00, 0x66, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x01, 0x08, 0x00, 0x00, 0x62, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x1c, 0x5c, 0x5f, 0x53, 0x42, 0x5f, 0x2e, 0x50, 0x43, 0x49, 0x30, 0x2e, 0x4c, 0x50, 0x43, 0x42,
-	0x2e, 0x48, 0x5f, 0x45, 0x43, 0x00, 
-};
-
-So maybe I'll just try your patch.
+diff -u b/drivers/acpi/Config.in linux-2.4/drivers/acpi/Config.in
+--- b/drivers/acpi/Config.in    Wed Oct  1 01:10:29 2003
++++ linux-2.4/drivers/acpi/Config.in    20 Nov 2003 21:45:57 -0000
+@@ -32,7 +32,8 @@
+     tristate     '  Toshiba Laptop Extras'     CONFIG_ACPI_TOSHIBA
+     bool         '  Debug Statements'  CONFIG_ACPI_DEBUG
+     bool         '  Relaxed AML Checking'      CONFIG_ACPI_RELAXED_AML
+-  else if [ "$CONFIG_SMP" = "y" ]; then
++  else
++    if [ "$CONFIG_SMP" = "y" ]; then
+       define_bool CONFIG_ACPI_BOOT             y
+     fi
+   fi
 
 -- 
-William 
+"It's not Hollywood.  War is real, war is primarily not about defeat or
+victory, it is about death.  I've seen thousands and thousands of dead bodies.
+Do you think I want to have an academic debate on this subject?" -- Robert Fisk
 
 
 -------------------------------------------------------
