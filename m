@@ -1,17 +1,12 @@
-From: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: Re: D600 + S3 Sleep
-Date: Tue, 22 Mar 2005 13:33:15 +0800
-Message-ID: <1111469595.27022.37.camel@neuromancer.home.net>
-References: <1111137292.23665.5.camel@neuromancer.home.net>
-	 <20050318105425.GJ14600@project-bob.org>
-	 <1111144388.23668.46.camel@neuromancer.home.net>
-	 <20050318115313.GK14600@project-bob.org>
-	 <20050318140556.GB18696@message-id.gmane0305.slipkontur.de>
-	 <20050318160957.GL14600@project-bob.org>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: please test latest acpi patch
+Date: Tue, 22 Mar 2005 16:02:36 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F840780FCBD@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <20050318160957.GL14600-PWUXgD0Mw7gU45xQlXEPcg@public.gmane.org>
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: quoted-printable
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,54 +16,103 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Acpi-List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2005-03-18 at 16:09 +0000, Proinnsias Breathnach wrote:
-> On Fri, Mar 18, 2005 at 03:05:56PM +0100, Stefan Seyfried wrote:
-> > On Fri, Mar 18, 2005 at 11:53:13AM +0000, Proinnsias Breathnach wrote:
-> > > Unless someone comes up with a nice way of making it work with vga=795
-> > > (or whatever it was I used have before ...)
-> > 
-> > not much hope here, i have had one of our X developers pondering over this
-> > one (he knows the radeon chipsets pretty well) but to no avail. It seems
-> > the machine never wakes up if _any_ framebuffer is used (radeonfb also does
-> > not work).
-> Oh well :)
-> 
-> Life's like that !
-> 
-> I konw the FB stuff works if the acpi_late_bios patch is used per:
-> http://www.loria.fr/~thome/d600/
+  To narrow donw this issue, can you unload all acpi drivers that access =
+EC address apace.
+such as battery, fan..?  I want to make sure ec_query wasn't blocked by =
+other activity.
+Then report the speed of the hotkey.
 
-I've tested it and it worked.
+Thanks,
+Luming=20
+ =20
 
-But it was too much work to get S3 done so I dropped it.
-
-Now that I saw S3 is working for others, I thought I try again.
-
-And Yes, Proinnsais, sadly the config you mentioned, I tried but it
-doesn't work. It doesn't Come back up. POST for the video doesn't happen
-for some reason for my config.
-
-Not sure why and not sure how much of an incentive I have to go do it
-since S4 with suspend2 works like a charm. (Except for the stupid
-Xscreensaver thing causing intermittent hangs. I've sent an email to
-suspend2 list)
-
-> 
-> But I've not been bothered to test it personally !
-> 
-> P
-
--- 
-Ow Mun Heng
-Gentoo/Linux on DELL D600 1.4Ghz 
-98% Microsoft(tm) Free!! 
-Neuromancer 13:33:14 up 1 day, 3:16, 7 users, load average: 1.73, 0.79,
-0.48 
-
-
+>-----Original Message-----
+>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
+>[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Yu, Luming
+>Sent: 2005=C4=EA3=D4=C222=C8=D5 10:43
+>To: Carl-Daniel Hailfinger; Brown, Len
+>Cc: ACPI Developers
+>Subject: RE: [ACPI] please test latest acpi patch
+>
+>Send me DSDT. I want to know how the display brightness=20
+>control works on your box.
+>
+>
+>>-----Original Message-----
+>>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
+>>[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
+>>Carl-Daniel Hailfinger
+>>Sent: 2005=C4=EA3=D4=C222=C8=D5 7:04
+>>To: Brown, Len
+>>Cc: ACPI Developers
+>>Subject: Re: [ACPI] please test latest acpi patch
+>>
+>>Carl-Daniel Hailfinger schrieb:
+>>> Len Brown schrieb:
+>>>=20
+>>>>There are some very important -- and in some cases,
+>>>>potentially disruptive -- changes in the latest ACPI patch.
+>>>>
+>>>>EC Burst Mode -- battery status AE_TIME etc.
+>>>>Binding ACPI power states to PCI devices -- power loss in S3
+>>>>Generic Hot Key Driver -- needs configuration from user space
+>>>>S3 Resume PCI Interrupt Link fix, requiring drivers to behave better
+>>>>Poweroff fix -- compatible with kexec patch
+>>>>Improved "Implicit Return" AML workaround -- toshiba, compaq etc.
+>>>>Relaxed AE_AML_BUFFER_LIMIT code -- reflects proposed ACPI=20
+>>spec update
+>>>>
+>>>>Please try it out on a system near you!
+>>>=20
+>>>=20
+>>> Tested on my Samsung P35 notebook:
+>>>=20
+>>> Seems to work so far. I only tested S3 suspend/resume; my battery is
+>>> unplugged right now.
+>>
+>>I take that back. Adjusting display brightness is now at least=20
+>>10x slower
+>>than before. Normally, pressing the keys to change brightness resulted
+>>in immediate action. Now, the machine needs 1 second and more=20
+>to react.
+>>Before anybody asks: I have ACPI debugging switched off since=20
+>it became
+>>unbearably slow, so that is not my problem.
+>>
+>>Regards,
+>>Carl-Daniel
+>>--=20
+>>http://www.hailfinger.org/
+>>
+>>
+>>-------------------------------------------------------
+>>SF email is sponsored by - The IT Product Guide
+>>Read honest & candid reviews on hundreds of IT Products from=20
+>>real users.
+>>Discover which products truly live up to the hype. Start reading now.
+>>http://ads.osdn.com/?ad_id=3D6595&alloc_id=3D14396&op=3Dclick
+>>_______________________________________________
+>>Acpi-devel mailing list
+>>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>>https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>>
+>
+>
+>-------------------------------------------------------
+>SF email is sponsored by - The IT Product Guide
+>Read honest & candid reviews on hundreds of IT Products from=20
+>real users.
+>Discover which products truly live up to the hype. Start reading now.
+>http://ads.osdn.com/?ad_ide95&alloc_id=14396&op=3Dick
+>_______________________________________________
+>Acpi-devel mailing list
+>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>
 
 
 -------------------------------------------------------
