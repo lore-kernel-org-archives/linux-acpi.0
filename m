@@ -1,7 +1,7 @@
 From: jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org (Johan Vromans)
 Subject: Re: Centrino speedstep
-Date: Fri, 31 Dec 2004 11:43:17 +0100
-Message-ID: <16853.11589.510743.384997@phoenix.squirrel.nl>
+Date: Fri, 31 Dec 2004 13:40:36 +0100
+Message-ID: <16853.18628.255436.926578@phoenix.squirrel.nl>
 References: <m2zmzyw4e7.fsf@phoenix.squirrel.nl>
 	<20041228212653.GA8436@dominikbrodowski.de>
 	<20041229181834.GA19199@poupinou.org>
@@ -24,21 +24,18 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
-Cc: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 [Quoting Pedro Venda, on December 31 2004, 01:25, in "Re: Centrino speedst"]
-> > Yes. Upon boot, I always get the message:
-> > 
-> >   speedstep-centrino: no table support for CPU model "Intel(R) Pentium(R) M processor 1.50GHz": 
-> >   speedstep-centrino: try compiling with CONFIG_X86_SPEEDSTEP_CENTRINO_ACPI enable
+> This may be the responsible for mine to work with the speedstep driver:
+> (from kernel config)
 > 
-> I'm also using stock kernel 2.6.10 with stock acpi code but I have a different
-> message:
-> speedstep-centrino: invalid ACPI data
+>        Default CPUFreq governor (ondemand)  --->
 
-Hmm. You're using the standard 2.6.10 ACPI stuff, while I have applied
-the acpi patch kit. Could that be the difference?
+Interesting. Neither stock 2.6.10 nor the acpi-patched version allows
+me to choose this governor. 'userspace' and 'ondemand' are the only
+possible options.
 
 -- Johan
 
