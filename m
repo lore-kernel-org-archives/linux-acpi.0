@@ -1,14 +1,14 @@
-From: Ryan Hadley <rhadley-SquOHqY54CWNtvSE1QmJz5qQE7yCjDx5@public.gmane.org>
-Subject: Re: ACPI sleep issues on a Lattitude D500 (gentoo-dev-2.6.2)
-Date: Mon, 23 Feb 2004 09:40:51 -0500
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: kernel oops after resume from S4
+Date: Mon, 23 Feb 2004 17:12:06 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <403A10F3.8030808@interlinknetworks.com>
-References: <40352DDD.5050004@interlinknetworks.com>
+Message-ID: <20040223161206.GA1504@message-id.gmane0305.slipkontur.de>
+References: <20040223095403.GA27359@message-id.gmane0305.slipkontur.de> <20040223132834.GB2992@openzaurus.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <40352DDD.5050004-SquOHqY54CWNtvSE1QmJz5qQE7yCjDx5@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20040223132834.GB2992-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,84 +20,21 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I upgraded to 2.6.3 and got more strangeness.  I don't think the 
-"/bin/sh: line 30: `start-single-daemon': not a valid identifier" means 
-much anymore... but hey, I'm just guessing here.
+On Mon, Feb 23, 2004 at 02:28:35PM +0100, Pavel Machek wrote:
+> Hi!
+> 
+> Can you try without mouse driver?
 
-With the 2.6.3 kernel I moved my /var/log/acpid to /var/log/acpid.old, 
-put back in the sleep command for when I shut the lid, and then tried it 
-out again.
+i tried. It works.
+I built psmouse as a module, booted into X, removed psmouse (touchpad
+stopped working ;-), echo 4 > /proc/acpi/sleep, resume, modprobe
+psmouse, another switch to console 1 and back to X and voila - it is
+working. So this is a workaround, but i anyway created a bug at
+http://bugme.osdl.org/show_bug.cgi?id=2173
+since anyway this should be fixed.
+-- 
+Stefan Seyfried
 
-The laptop went down in to sleep mode again, and once again wouldn't 
-come back up.  So I hard powered it down and back on again.  Checked the 
-acpid log file and noticed the "start-single-daemon" error wasn't there 
-this time.
-
-I noticed in an "ls -al" that the acpid.old file was now 5 times the 
-size it was before.  I opened it up and it has, what appears to be, 
-random text from from scripts in my /etc/init.d directory... some binary 
-data, and who knows what else...
-
-I am positive this file was just the normal acpid log file before I put 
-the laptop to S1.  And now that I think about it, I ran in to weirdness 
-before like this when I was trying to get S1 to work.  My 
-/etc/modules.conf file got corrupted twice, my .viminfo file was 
-corrupted a couple times, some important files in my .gnome and 
-.metacity...  All after I tried to put the laptop in to S1.
-
-Symptom of the acpi problem?  Or files getting corrupted from my laptop 
-forcibly being shutdown?
-
-Thanks-
-Ryan
-
-Ryan Hadley wrote:
-> Hello,
-> 
-> If I stick:
-> 
->     echo -n "1" > /proc/acpi/sleep
-> 
-> To be called when my lid is closed bad things happen.
-> 
-> It seems to go to sleep just fine, but when I try to bring it out of 
-> sleep mode (by opening the lid and pressing power) things don't go fine. 
-> It outputs "Back to C!" followed by some things about the ide stuff 
-> coming back up and then does nothing. I have to hold the power button 
-> until it shuts off and then turn it back on to get it to respond again.
-> 
-> Then, when I check my /var/log/acpid.log file, I see this in it 
-> happening in between the start and stop markings of the lid button 
-> actions being called:
-> 
->     /bin/sh: line 30: `start-single-daemon': not a valid identifier
-> 
-> Is that some perl script trying to be ran with /bin/sh as the 
-> interpreter? Could this be a cause of my hung system on power restore?
-> 
-> If I don't put the machine to sleep when the lid button is closed, just 
-> do other things like spin down the hard drive (hdparm -y /dev/hda), then 
-> nothing bad happens and there is no strange /bin/sh error in the acpid 
-> log file.
-> 
-> Any help would be greatly appreciated... All I found on google was the 
-> /bin/sh error being caused by a perl script being ran with /bin/sh as 
-> the interpreter instead of perl... but it was for a completely unrelated 
-> problem (not even ACPI related).
-> 
-> Thanks-
-> Ryan
-> 
-> 
-> -------------------------------------------------------
-> SF.Net is sponsored by: Speed Start Your Linux Apps Now.
-> Build and deploy apps & Web services for Linux with
-> a free DVD software kit from IBM. Click Now!
-> http://ads.osdn.com/?ad_id=1356&alloc_id=3438&op=click
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
