@@ -1,48 +1,267 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] ACPI maintainer change
-Date: Wed, 17 Sep 2003 10:41:41 -0700
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A8470255EF12@orsmsx401.jf.intel.com>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: PATCH: remove unused PCI root bridge resource stuff
+Date: Wed, 17 Sep 2003 11:50:34 -0600
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <200309171150.34360.bjorn.helgaas@hp.com>
+References: <200308061644.53928.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-content-class: urn:content-classes:message
-To: torvalds-3NddpPZAyC0@public.gmane.org, Marcelo Tosatti <marcelo-KCZ47A4bww4P48s/oLjRZg@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200308061644.53928.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Content-Disposition: inline
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus and Marcelo,
+@public.gmane.org
+	> > #### AUTHOR bjorn.helgaas-VXdhtT5mjnY@public.gmane.org > #### COMMENT START > ###
+	Comments for ChangeSet > ACPI: Remove acpi_pci_get_translations() and
+	support. pcibios_scan_root() > should walk the _CRS if necessary. > ###
+	Comments for include/acpi/acpi_drivers.h > (acpi_pci_get_translations):
+	Removed. > ### Comments for drivers/acpi/pci_root.c >
+	(acpi_pci_get_translations) > (acpi_pci_root_bus_tra) >
+	(acpi_pci_evaluate_crs): Removed. > #### COMMENT END > > # This is a
+	BitKeeper generated patch for the following project: > # Project Name:
+	Linux kernel tree > # This patch format is intended for GNU patch
+	command version 2.5 or higher. > # This patch includes the following
+	deltas: > # ChangeSet 1.1066 -> 1.1067 > # drivers/acpi/pci_root.c 1.5
+	-> 1.6 > # include/acpi/acpi_drivers.h 1.5 -> 1.6 > # > # The following
+	is the BitKeeper ChangeSet Log > # > # 03/08/06 bjorn.helgaas-VXdhtT5mjnY@public.gmane.org
+	1.1067 > # ACPI: Remove acpi_pci_get_translations() and support.
+	pcibios_scan_root() > # should walk the _CRS if necessary. > # > # >
+	diff -Nru a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c > ---
+	a/drivers/acpi/pci_root.c Wed Aug 6 17:29:00 2003 > +++
+	b/drivers/acpi/pci_root.c Wed Aug 6 17:29:00 2003 > @@ -61,8 +61,6 @@ >
+	acpi_handle handle; > struct acpi_pci_id id; > struc [...] 
+	Content analysis details:   (-1.00 points, 5 required)
+	IN_REP_TO          (-0.5 points) Has a In-Reply-To header
+	USER_AGENT_KMAIL   (0.0 points)  User-Agent header indicates a non-spam MUA (KMail)
+	REFERENCES         (-0.5 points) Has a valid-looking References header
+	EMAIL_ATTRIBUTION  (-0.5 points) BODY: Contains what looks like an email attribution
+	QUOTED_EMAIL_TEXT  (-0.5 points) BODY: Contains what looks like a quoted email text
+	USERPASS           (1.5 points)  URI: URL contains username and (optional) password
+	REPLY_WITH_QUOTES  (-0.5 points) Reply with quoted text
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+X-BeenThere: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+X-Mailman-Version: 2.0.9-sf.net
+Precedence: bulk
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Id: ACPI Development Discussion List <acpi-devel.lists.sourceforge.net>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+X-Original-Date: Wed, 17 Sep 2003 11:50:34 -0600
+Xref: main.gmane.org gmane.linux.acpi.devel:4745
 
-The following patch updates the maintainer entry for ACPI. Len has
-already assumed most of this responsibility, as other projects demand my
-attention.
+Any news on this patch?  I'm just checking to make sure it doesn't
+get dropped (and to see whether any you want any additional legwork
+from me).
 
-My team will continue to maintain the OS-independent ACPI CA release,
-but Len will be responsible for pulling ACPI CA updates into the Linux
-release, and the rest of Linux-specific code in general.
+Bjorn
 
-This should apply cleanly against 2.6-bk-latest and against
-2.4-bk-latest with an offset.
+On Wednesday 06 August 2003 4:44 pm, Bjorn Helgaas wrote:
+> This patch against the current 2.4 tree removes a bunch of
+> ill-advised code I added to get _TRA information from PCI
+> root bridges.
+> 
+> This was the wrong approach because for one thing, it only
+> handled one MEM window and one IO window, and root bridges
+> may have several of each.
+> 
+> This patch can be applied for both 2.4 and 2.5.  ia64 was the
+> only user of this code, and we no longer need it.  The current
+> approach we use is to walk the _CRS in pcibios_scan_root(),
+> as shown here:
+> 
+> http://lia64.bkbits.net:8080/linux-ia64-2.4/anno/arch/ia64/kernel/pci.c-2AEWtv2qSSY@public.gmane.org?nav=index.html|src/.|src/arch|src/arch/ia64|src/arch/ia64/kernel
+> 
+> #### AUTHOR bjorn.helgaas-VXdhtT5mjnY@public.gmane.org
+> #### COMMENT START
+> ### Comments for ChangeSet
+> ACPI: Remove acpi_pci_get_translations() and support.  pcibios_scan_root()
+> 	should walk the _CRS if necessary.
+> ### Comments for include/acpi/acpi_drivers.h
+> (acpi_pci_get_translations): Removed.
+> ### Comments for drivers/acpi/pci_root.c
+> (acpi_pci_get_translations)
+> (acpi_pci_root_bus_tra)
+> (acpi_pci_evaluate_crs): Removed.
+> #### COMMENT END
+> 
+> # This is a BitKeeper generated patch for the following project:
+> # Project Name: Linux kernel tree
+> # This patch format is intended for GNU patch command version 2.5 or higher.
+> # This patch includes the following deltas:
+> #	           ChangeSet	1.1066  -> 1.1067 
+> #	drivers/acpi/pci_root.c	1.5     -> 1.6    
+> #	include/acpi/acpi_drivers.h	1.5     -> 1.6    
+> #
+> # The following is the BitKeeper ChangeSet Log
+> # --------------------------------------------
+> # 03/08/06	bjorn.helgaas-VXdhtT5mjnY@public.gmane.org	1.1067
+> # ACPI: Remove acpi_pci_get_translations() and support.  pcibios_scan_root()
+> # 	should walk the _CRS if necessary.
+> # --------------------------------------------
+> #
+> diff -Nru a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> --- a/drivers/acpi/pci_root.c	Wed Aug  6 17:29:00 2003
+> +++ b/drivers/acpi/pci_root.c	Wed Aug  6 17:29:00 2003
+> @@ -61,8 +61,6 @@
+>  	acpi_handle		handle;
+>  	struct acpi_pci_id	id;
+>  	struct pci_bus		*bus;
+> -	u64			mem_tra;
+> -	u64			io_tra;
+>  };
+>  
+>  struct list_head		acpi_pci_roots;
+> @@ -114,97 +112,6 @@
+>  	}
+>  }
+>  
+> -void
+> -acpi_pci_get_translations (
+> -	struct acpi_pci_id	*id,
+> -	u64			*mem_tra,
+> -	u64			*io_tra)
+> -{
+> -	struct list_head	*node = NULL;
+> -	struct acpi_pci_root	*entry;
+> -
+> -	/* TBD: Locking */
+> -	list_for_each(node, &acpi_pci_roots) {
+> -		entry = list_entry(node, struct acpi_pci_root, node);
+> -		if ((id->segment == entry->id.segment)
+> -			&& (id->bus == entry->id.bus)) {
+> -			*mem_tra = entry->mem_tra;
+> -			*io_tra = entry->io_tra;
+> -			return;
+> -		}
+> -	}
+> -
+> -	*mem_tra = 0;
+> -	*io_tra = 0;
+> -}
+> -
+> -
+> -static u64
+> -acpi_pci_root_bus_tra (
+> -       struct acpi_resource	*resource,
+> -       int			type)
+> -{
+> -	struct acpi_resource_address16 *address16;
+> -	struct acpi_resource_address32 *address32;
+> -	struct acpi_resource_address64 *address64;
+> -
+> -	while (1) {
+> -		switch (resource->id) {
+> -		case ACPI_RSTYPE_END_TAG:
+> -			return 0;
+> -
+> -		case ACPI_RSTYPE_ADDRESS16:
+> -			address16 = (struct acpi_resource_address16 *) &resource->data;
+> -			if (type == address16->resource_type) {
+> -				return address16->address_translation_offset;
+> -			}
+> -			break;
+> -
+> -		case ACPI_RSTYPE_ADDRESS32:
+> -			address32 = (struct acpi_resource_address32 *) &resource->data;
+> -			if (type == address32->resource_type) {
+> -				return address32->address_translation_offset;
+> -			}
+> -			break;
+> -
+> -		case ACPI_RSTYPE_ADDRESS64:
+> -			address64 = (struct acpi_resource_address64 *) &resource->data;
+> -			if (type == address64->resource_type) {
+> -				return address64->address_translation_offset;
+> -			}
+> -			break;
+> -		}
+> -		resource = ACPI_PTR_ADD (struct acpi_resource,
+> -				resource, resource->length);
+> -	}
+> -
+> -	return 0;
+> -}
+> -
+> -
+> -static int
+> -acpi_pci_evaluate_crs (
+> -	struct acpi_pci_root	*root)
+> -{
+> -	acpi_status		status;
+> -	struct acpi_buffer	buffer = {ACPI_ALLOCATE_BUFFER, NULL};
+> -
+> -	ACPI_FUNCTION_TRACE("acpi_pci_evaluate_crs");
+> -
+> -	status = acpi_get_current_resources (root->handle, &buffer);
+> -	if (ACPI_FAILURE(status))
+> -		return_VALUE(-ENODEV);
+> -
+> -	root->io_tra = acpi_pci_root_bus_tra ((struct acpi_resource *)
+> -			buffer.pointer, ACPI_IO_RANGE);
+> -	root->mem_tra = acpi_pci_root_bus_tra ((struct acpi_resource *)
+> -			buffer.pointer, ACPI_MEMORY_RANGE);
+> -
+> -	acpi_os_free(buffer.pointer);
+> -	return_VALUE(0);
+> -}
+> -
+> -
+>  static int
+>  acpi_pci_root_add (
+>  	struct acpi_device	*device)
+> @@ -287,10 +194,8 @@
+>  	root->id.function = device->pnp.bus_address & 0xFFFF;
+>  
+>  	/*
+> -	 * Evaluate _CRS to get root bridge resources
+>  	 * TBD: Need PCI interface for enumeration/configuration of roots.
+>  	 */
+> - 	acpi_pci_evaluate_crs(root);
+>  
+>   	/* TBD: Locking */
+>   	list_add_tail(&root->node, &acpi_pci_roots);
+> diff -Nru a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
+> --- a/include/acpi/acpi_drivers.h	Wed Aug  6 17:29:00 2003
+> +++ b/include/acpi/acpi_drivers.h	Wed Aug  6 17:29:00 2003
+> @@ -162,7 +162,6 @@
+>  
+>  int acpi_pci_root_init (void);
+>  void acpi_pci_root_exit (void);
+> -void acpi_pci_get_translations (struct acpi_pci_id* id, u64* mem_tra, u64* io_tra);
+>  
+>  /* ACPI PCI Interrupt Link (pci_link.c) */
+>  
+> 
+> 
+> 
+> -------------------------------------------------------
+> This SF.Net email sponsored by: Free pre-built ASP.NET sites including
+> Data Reports, E-commerce, Portals, and Forums are available now.
+> Download today and enter to win an XBOX or Visual Studio .NET.
+> http://aspnet.click-url.com/go/psa00100003ave/direct;at.aspnet_072303_01/01
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+> 
+> 
 
-Regards -- Andy
+-- 
+Bjorn Helgaas - bjorn.helgaas at hp.com
+Linux and Open Source Lab
+Hewlett-Packard Company
 
---- 1.164/MAINTAINERS	Fri Sep 12 08:44:53 2003
-+++ edited/MAINTAINERS	Wed Sep 17 10:20:28 2003
-@@ -169,8 +169,8 @@
- S:	Supported
- 
- ACPI
--P:	Andy Grover
--M:	andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-+P:	Len Brown
-+M:	len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
- L:	acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
- W:	http://sf.net/projects/acpi/
- S:	Maintained
 
------------------------------
-Andrew Grover
-Intel Labs / Mobile Architecture
-andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
