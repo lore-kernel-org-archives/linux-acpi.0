@@ -1,30 +1,52 @@
-From: michel.bouley-6ktuUTfB/bM@public.gmane.org
-Subject: PCI Hot Add on 2.6.0 down
-Date: Thu, 16 Oct 2003 15:45:15 +0200
-Sender: linux-net-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <OF6120686D.6D490FF5-ONC1256DC1.0046252A@frec.bull.fr>
+From: Enrico <enrico_tux-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org>
+Subject: Acer Travelmate 427LC & ACPI....
+Date: Thu, 16 Oct 2003 22:05:17 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <200310162205.17499.enrico_tux@libero.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-net-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, pcihpd-discuss-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-net-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I am testing "PCI HotPlug" on Tiger (Intel chipset 870)
-two categories of test with "ACPI PCI Hotplug driver" :
-   hot replace (an adapter in the system is replaced by another)
-   - kernel 2.4.20 or 2.6.0-test[4-5] with "ACPI PCI Hotplug driver", closing latch on slot PCI put on led in GREEN
+Hi everyone, i'm Enry from Italy...
 
-   hot add (an adapter is added to the system)
-   - kernel 2.4.20 , closing latch on slot PCI put on led in GREEN
-   - kernel 2.6.0-test[4-5] , closing latch on one slot PCI put on led in AMBER
+I've an Acer Travelmate 427LC, i run SuSE linux 8.2, and my acpi has some 
+problems...
 
-What differences can to explain this behavior ?
+In fact it can't detect thermal and fan sensors... and also if i unplug the ac 
+adapter it says that there are 0 seconds of power remaining...
 
-Any ideas are welcome...
-Thanks.
+Is there a way to make it work correctly?
+
+In my log i found:
+
+Oct 15 22:42:24 localhost kernel:     ACPI-0165: *** Warning: The ACPI AML in 
+your computer contains errors, please nag the manufacturer to correct it.
+Oct 15 22:42:24 localhost kernel:     ACPI-0168: *** Warning: Allowing relaxed 
+access to fields; turn on CONFIG_ACPI_DEBUG for details.
+
+when i do acpi -V:
+     Battery 1: unknown, 100%
+No support for device type: thermal
+  AC Adapter 1: on-line
+
+Thanks for your attention..
 
 
--
-To unsubscribe from this list: send the line "unsubscribe linux-net" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-------------------------------------------------------
+This SF.net email is sponsored by: SF.net Giveback Program.
+SourceForge.net hosts over 70,000 Open Source Projects.
+See the people who have HELPED US provide better services:
+Click here: http://sourceforge.net/supporters.php
