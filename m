@@ -1,8 +1,8 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [BK PATCH] ACPI fixes
-Date: Fri, 1 Nov 2002 13:01:08 -0800
+Subject: ACPI source patches updated (20021101)
+Date: Fri, 1 Nov 2002 14:31:05 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A49A@orsmsx119.jf.intel.com>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A49E@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,50 +14,51 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus, please do a
+Hi all,
 
-	bk pull http://linux-acpi.bkbits.net/linux-acpi
+20021101 is now released at http://sf.net/projects/acpi . It includes a fix
+for the proc/thermal missing bug, as well as a few others. Non-Linux
+releases will be posted most likely by tonight.
 
-Bug fixes, mostly for bugs introduced recently ;-)
+Regards -- Andy
 
--- Andy
+----------------------------------------
+01 November 2002.  Summary of changes for version 20021101.
 
-This will update the following files:
+1) Linux
 
- drivers/acpi/events/evxfregn.c   |    6 +-
- drivers/acpi/include/acconfig.h  |    4 -
- drivers/acpi/include/acparser.h  |    6 +-
- drivers/acpi/namespace/nsalloc.c |   23 +++++++
- drivers/acpi/osl.c               |    5 +
- drivers/acpi/parser/psargs.c     |   79 +++++++++++++++++++-------
- drivers/acpi/parser/psparse.c    |   80 +++++++++++++--------------
- drivers/acpi/processor.c         |    3 +
- drivers/acpi/scan.c              |   29 ++++-----
- drivers/acpi/tables/tbutils.c    |    6 +-
- 10 files changed, 150 insertions(+), 91 deletions(-)
+Fixed a problem introduced in the previous release where the
+Processor and Thermal objects were not recognized and
+installed in /proc.  This was related to the scope type change
+described below.
 
-through these ChangeSets:
+2) ACPI CA Core Subsystem:
 
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/11/01 1.864)
-   ACPI: Interpreter update to (20021101)
-   - Fix namespace ordering, which was causing breakage
-   - Enhance some error messages
+Fixed a problem where platforms that have a GPE1 block but no
+GPE0 block were not handled correctly.  This resulted in a
+"GPE overlap" error message.  GPE0 is no longer required.
 
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/10/31 1.844.13.2)
-   ACPI: Ensure we don't try to sleep when we shouldn't
+Removed code added in the previous release that inserted nodes
+into the namespace in alphabetical order.  This caused some
+side-effects on various machines.  The root cause of the
+problem is still under investigation since in theory, the
+internal ordering of the namespace nodes should not matter.
 
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/10/31 1.844.13.1)
-   ACPI:
-   - Clean up debug-only code
-   - Fix typo
-   - Correct walking of namespace, to prevent disappearance of processor and
-     thermal zone objects
-   - Fix button add calls to have the right handle (i.e. none)
-   - Prevent spurious cpufreq error
+Enhanced error reporting for the case where a named object is
+not found during control method execution.  The full ACPI
+namepath (name reference) of the object that was not found is
+displayed in this case.
+
+Note: as a result of the overhaul of the namespace object
+types in the previous release, the namespace nodes for the
+predefined scopes (_TZ, _PR, etc.) are now of the type
+ACPI_TYPE_LOCAL_SCOPE instead of ACPI_TYPE_ANY.  This
+simplifies the namespace management code but may affect code
+that walks the namespace tree looking for specific object
+types.
 
 
 -----------------------------
