@@ -1,120 +1,119 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+From: Nils Faerber <nils-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
 Subject: Re: [ACPI] RE: ACPI kernel crash with 2.4.22-pre7 on ASUS L3800C
-Date: Thu, 4 Sep 2003 10:53:15 +0200
+Date: Thu, 04 Sep 2003 11:25:56 +0200
 Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20030904085315.GA29773@hell.org.pl>
+Message-ID: <1062667556.13465.37.camel@idoru.kc.de>
 References: <BF1FE1855350A0479097B3A0D2A80EE009FCFB@hdsmsx402.hd.intel.com>
+	 <20030904085315.GA29773@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: multipart/mixed; boundary="=-Ga7ah+o3jiFhdSyXU3oS"
 Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <BF1FE1855350A0479097B3A0D2A80EE009FCFB-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Martin Mokrejs <mmokrejs-V2lp6ZUObelkZyP8+xg2CQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <20030904085315.GA29773-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Martin Mokrejs <mmokrejs-V2lp6ZUObelkZyP8+xg2CQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Brown, Len:
-> Martin,
-> Does this still happen with 2.4.22?
-> If yes, can I trouble you to drop the info into bugzilla so we can put
-> it in the queue?
 
-FYI, I just had it *after* boot, i.e. some 30 seconds after the swsusp 
-resume (trace below), and _again_ _after_ I warm-rebooted the machine using
-SysRq+B. The subsequent warm-reboot went OK.
+--=-Ga7ah+o3jiFhdSyXU3oS
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Linux 2.4.21 + ACPI 20030619
+Am Do, 2003-09-04 um 10.53 schrieb Karol Kozimor:
+> Thus wrote Brown, Len:
+> > Martin,
+> > Does this still happen with 2.4.22?
+> > If yes, can I trouble you to drop the info into bugzilla so we can put
+> > it in the queue?
+> FYI, I just had it *after* boot, i.e. some 30 seconds after the swsusp 
+> resume (trace below), and _again_ _after_ I warm-rebooted the machine using
+> SysRq+B. The subsequent warm-reboot went OK.
+> 
+> Linux 2.4.21 + ACPI 20030619
+[...]
 
-ksymoops 2.4.9 on i686 2.4.21-xacs.  Options used
-     -V (default)
-     -k /proc/ksyms (default)
-     -l /proc/modules (default)
-     -o /lib/modules/2.4.21-xacs/ (default)
-     -m /usr/src/linux/System.map (default)
+Just FYI...
+I have kernel 2.4.22 + swsusp 1.1-rc7 running without problems on the
+very same machine (Asus L3800C, BIOS 121a).
+I fiddled a little with a home grown suspend script until I got swsusp
+reliably working with older versions (0.9-pre and before) and it still
+works perfectly for me; the suspend script from the swsusp project was
+too generic and complicated for me ;) I have attached my version in case
+someone's interested in it.
 
-Warning: You did not tell me where to find symbol information.  I will
-assume that the log matches the kernel and modules that are running
-right now and I'll use the default options above for symbol resolution.
-If the current kernel and/or modules do not match the log, you can get
-more accurate output by telling me the kernel version and where to find
-map, modules, ksyms etc.  ksymoops -h explains the options.
+One point that proofs to be a good idea is to remove any unnecessary
+drivers before suspending, like USB, Firewire and ethernet and to
+re-insert them afterwards. The attached script does this.
 
-c01d7600
-Oops: 0000
-8139too mii snd-intel8x0 snd-pcm snd-timer snd-ac97-codec snd-page-alloc
-snd-mpu401-uart snd-rawmidi snd-seq-device snd soundcore ppp_deflate
-zlib_inflate zlib_deflate ppp_async ppp_generic slhc ptserial pctel sr_mod
-scsi_mod cdrom radeon agpgart asus_acpi mousedev hid input uhci usbcore ds
-yenta_socket pcmcia_core
-CPU:    0
-EIP:    0010:[<c01d7600>]    Tainted: P Z
-Using defaults from ksymoops -t elf32-i386 -a i386
-EFLAGS: 00210293
-eax: 00000627   ebx: 872d3184   ecx: cff0fe08   edx: 00000000
-esi: 872d3184   edi: cff0fe70   ebp: c01e6bcc   esp: cff0fe10
-ds: 0018   es: 0018   ss: 0018
-Process keventd (pid: 2, stackpage=cff0f000)
-Stack: 00000000 c01d837d 872d3184 cff0fe48 cff0fe70 872d3184 872d3184
-c01e6c6f
-       872d3184 c01e6bcc cff0fe70 872d3184 cff0fe74 cff0fea0 00010000
-c02912cb
-       c0291280 c01ee511 872d3184 cff0fe70 872d3184 cff0fea4 cff12e00
-00000000
-Call Trace: [<c01d837d>]  [<c01e6c6f>]  [<c01e6bcc>]  [<c01ee511>]
-[<c01ee964>]  [<c01eed14>]  [<c01e70bc>]  [<c01f2c73>]  [<c01f2f10>]
-[<c01bdc09>]  [<c0118d5c>]  [<c011fecd>]  [<c0105668>]
-Code: 80 3b aa 75 0b 89 d8 eb 09 8d b4 26 00 00 00 00 31 c0 5b c3
-
-
->>EIP; c01d7600 <acpi_ns_map_handle_to_node+1c/30>   <=====
-
->>ecx; cff0fe08 <_end+fbda4b0/124de708>
->>edi; cff0fe70 <_end+fbda518/124de708>
->>ebp; c01e6bcc <acpi_bus_data_handler+0/44>
->>esp; cff0fe10 <_end+fbda4b8/124de708>
-
-Trace; c01d837d <acpi_get_data+39/6a>
-Trace; c01e6c6f <acpi_bus_get_device+5f/b4>
-Trace; c01e6bcc <acpi_bus_data_handler+0/44>
-Trace; c01ee511 <acpi_power_get_context+61/cc>
-Trace; c01ee964 <acpi_power_off_device+4c/1e0>
-Trace; c01eed14 <acpi_power_transition+100/15c>
-Trace; c01e70bc <acpi_bus_set_power+1b0/29c>
-Trace; c01f2c73 <acpi_thermal_active+d3/1cc>
-Trace; c01f2f10 <acpi_thermal_check+18c/2ac>
-Trace; c01bdc09 <acpi_os_execute_deferred+5d/7c>
-Trace; c0118d5c <__run_task_queue+50/5c>
-Trace; c011fecd <context_thread+121/1a0>
-Trace; c0105668 <arch_kernel_thread+28/38>
-
-Code;  c01d7600 <acpi_ns_map_handle_to_node+1c/30>
-00000000 <_EIP>:
-Code;  c01d7600 <acpi_ns_map_handle_to_node+1c/30>   <=====
-   0:   80 3b aa                  cmpb   $0xaa,(%ebx)   <=====
-Code;  c01d7603 <acpi_ns_map_handle_to_node+1f/30>
-   3:   75 0b                     jne    10 <_EIP+0x10>
-Code;  c01d7605 <acpi_ns_map_handle_to_node+21/30>
-   5:   89 d8                     mov    %ebx,%eax
-Code;  c01d7607 <acpi_ns_map_handle_to_node+23/30>
-   7:   eb 09                     jmp    12 <_EIP+0x12>
-Code;  c01d7609 <acpi_ns_map_handle_to_node+25/30>
-   9:   8d b4 26 00 00 00 00      lea    0x0(%esi,1),%esi
-Code;  c01d7610 <acpi_ns_map_handle_to_node+2c/30>
-  10:   31 c0                     xor    %eax,%eax
-Code;  c01d7612 <acpi_ns_map_handle_to_node+2e/30>
-  12:   5b                        pop    %ebx
-Code;  c01d7613 <acpi_ns_map_handle_to_node+2f/30>
-  13:   c3                        ret
-
-
-1 warning issued.  Results may not be reliable.
-
-[the kernel is tainted by swsusp and pctel module, but it shouldn't really
- matter since this oops happens mainly at boot]
-
-I'll have yet to see if it still happens with 2.4.22.
-Best regards,
+> Best regards,
+CU
+  nils faerber
 
 -- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+kernel concepts          Tel: +49-271-771091-12
+Dreisbachstr. 24         Fax: +49-271-771091-19
+D-57250 Netphen          D1 : +49-170-2729106
+--
+
+--=-Ga7ah+o3jiFhdSyXU3oS
+Content-Disposition: attachment; filename=suspend
+Content-Type: text/x-sh; name=suspend; charset=iso-8859-1
+Content-Transfer-Encoding: 7bit
+
+#!/bin/sh
+
+#
+# swsusp suspend helper script
+# for Asus L3800C and maybe other notebooks
+# by Nils Faerber <nils-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
+#
+# Comments and suggestions welcome!
+#
+# It assumes that XFree is running on VT7 and that VT12 is more
+# or less unallocated for debugging output.
+# It will remove safe-to-remove drivers before suspend and re-insert them
+# afterwards (USB, Firewire, Ethernet, etc.) as well as ejecting a built-in
+# WLAN card (mini-PCI).
+#
+
+# Prepare for suspend
+chvt 12
+ifdown eth0 > /dev/tty12 2>&1
+ifdown eth1 > /dev/tty12 2>&1
+cardctl eject 2 > /dev/tty12 2>&1
+rmmod 8139too > /dev/tty12 2>&1
+
+#rmmod usb-uhci > /dev/tty12 2>&1
+#rmmod usbmouse > /dev/tty12 2>&1
+#rmmod usbnet > /dev/tty12 2>&1
+#rmmod usb-storage > /dev/tty12 2>&1
+/etc/hotplug/usb.rc stop
+rmmod ohci1394 > /dev/tty12 2>&1
+
+# Do it
+rmmod -a
+sync
+rmmod -a
+sync
+echo "waiting a second..." > /dev/tty12 2>&1
+sleep 1
+#echo "1 0 2" > /proc/sys/kernel/swsusp
+#echo "4" > /proc/acpi/sleep
+echo > /proc/swsusp/activate
+
+# Come back
+sync
+echo "waiting a second..." > /dev/tty12 2>&1
+sleep 1
+
+#modprobe usb-uhci > /dev/tty12 2>&1
+/etc/hotplug/usb.rc start
+modprobe 8139too > /dev/tty12 2>&1
+hwclock --hctosys
+ifup eth0 > /dev/tty12 2>&1
+
+cardctl insert 2 > /dev/tty12 2>&1
+
+chvt 7 > /dev/tty12 2>&1
+modprobe ohci1394 > /dev/tty12 2>&1
+
+--=-Ga7ah+o3jiFhdSyXU3oS--
