@@ -1,10 +1,10 @@
-From: Cristiano De Michele <demichel-rI6Jj+0/M9+onA0d6jMUrA@public.gmane.org>
-Subject: gcc-3.3: I can't compile latest acpi patches
-Date: 26 May 2003 11:18:39 +0200
+From: roychris <roychris-GANU6spQydw@public.gmane.org>
+Subject: Fan control for my Dell SmartPC
+Date: Mon, 26 May 2003 13:37:47 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1053940718.1761.5.camel@piro>
+Message-ID: <3ED1FC8B.2040009@free.fr>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,25 +18,33 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-I tried to compile linux-2.4.21-rc3+acpi-2.4.21rc3 using gcc-3.3
-but I get following error during compilation:
+There isn't any method to control the Fan in the dsdt ACPI table on my 
+computer (DELL SmartPC/SmartStep).
+Thanks to the ACPI Specs, I have implemented this code and there is no 
+problem with the compilation. ACPI Linux driver indicates me that it 
+finds a method for my two logical fans (one fan with 2 speeds). But I 
+think that the adress (the namespace maybe EC0) is not good so I can't 
+control it. How can I find the good region for my fan ?
 
-acpiphp_glue.c: In function `find_host_bridge':
-acpiphp_glue.c:815: warning: passing arg 2 of
-`acpi_get_object_info_R4d2dc830' from incompatible pointer type
-acpiphp_glue.c:821: error: subscripted value is neither array nor
-pointer
-acpiphp_glue.c:826: error: incompatible type for argument 1 of `strcmp'
+            OperationRegion (EC0, EmbeddedControl, 0, 0xFF)
+            Field (EC0, ByteAcc, Lock, Preserve)
+            {
+             MODE,     1,
+             FAN0,     1,
+             FAN1,     1,
+             ,         5,
+             TMP,      8,
+             AC0,      8,
+             AC1,      8,
+             PSV,      8,
+             HOT,      8,
+             CRT,      8
+             }
 
-no problem I had with -rc2 or with gcc-2.95...
+I think that it's this piece of code I have to change.
 
-best regards
-Cristiano
+Thanks
 
----
-Cristiano De Michele <demichel-rI6Jj+0/M9+onA0d6jMUrA@public.gmane.org>
-Department of Physics, University of Naples "Federico II"
 
 
 -------------------------------------------------------
