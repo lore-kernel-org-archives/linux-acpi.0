@@ -1,58 +1,49 @@
-From: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
-Subject: linux-2.6.9-rc2-mm4 kernel unaligned access
-Date: Mon, 27 Sep 2004 16:41:19 -0700
+From: Keiichiro Tokunaga <tokunaga.keiich@jp.fujitsu.com>
+Subject: [PATCH] Check enabled field of processor affinity
+Date: Tue, 28 Sep 2004 11:46:04 +0900
 Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <20040927164119.B32627@unix-os.sc.intel.com>
-Reply-To: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
+Message-ID: <20040928114604.5a2a89e4.tokunaga.keiich@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-ia64-owner@vger.kernel.org>
-Content-Disposition: inline
-To: ACPI Developer <acpi-devel@lists.sourceforge.net>
-Cc: Linux IA64 <linux-ia64@vger.kernel.org>
+To: linux-ia64@vger.kernel.org, acpi-devel@lists.sourceforge.net
+Cc: tokunaga.keiich@jp.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
 
-Hi All,
-	I am seeing the kernel unaligned access during linux-2.6.9-rc2-m4 boot on 
-IA64 tiger platform.  But the system boots fine except I don;t see console login prompt,
-but I can telnet. Is anyone on the mailing list seeing the same or has a fix?
+Hi there,
 
-thanks,
-Anil
---------------- console output------
+I think that acpi_numa_processor_affinity_init() should check the
+enabled field of processor affinity because ACPI spec says "If clear,
+the OSPM ignores the contents of the Processor Local APIC/SAPIC
+Affinity Structure".
+
+Thanks,
+Keiichiro Tokunaga
 
 
-ACPI: Subsystem revision 20040816
-kernel unaligned access to 0xe00000003d8a195f, ip=0xa00000010037ac41
+Name: Check enabled field of processor affinity
+Status: Compiled on 2.6.9-rc2
+Signed-off-by: Keiichiro Tokunaga <tokunaga.keiich@jp.fujitsu.com>
 
-Call Trace:
- [<a000000100016920>] show_stack+0x80/0xa0
-                                sp=e00000003c807500 bsp=e00000003c800f90
- [<a0000001000171f0>] dump_stack+0x30/0x60
-                                sp=e00000003c8076d0 bsp=e00000003c800f78
- [<a000000100026ce0>] ia64_handle_unaligned+0x460/0x23c0
-                                sp=e00000003c8076d0 bsp=e00000003c800ef0
- [<a00000010000dc30>] ia64_prepare_handle_unaligned+0x30/0x60
-                                sp=e00000003c807880 bsp=e00000003c800ef0
- [<a00000010000d660>] ia64_leave_kernel+0x0/0x260
-                                sp=e00000003c807a90 bsp=e00000003c800ef0
- [<a00000010037ac40>] acpi_hw_low_level_write+0x2a0/0x340
-                                sp=e00000003c807c60 bsp=e00000003c800e38
- [<a000000100363d50>] acpi_ev_create_gpe_block+0x530/0xea0
-                                sp=e00000003c807c90 bsp=e00000003c800d98
- [<a000000100364900>] acpi_ev_gpe_initialize+0x240/0x6a0
-                                sp=e00000003c807d40 bsp=e00000003c800d58
- [<a00000010035add0>] acpi_ev_initialize_events+0x190/0x260
-                              sp=e00000003c807d60 bsp=e00000003c800d30
- [<a0000001003aaea0>] acpi_enable_subsystem+0x260/0x320
-                                sp=e00000003c807d80 bsp=e00000003c800d08
- [<a0000001006edf20>] acpi_init+0x120/0x5a0
-                                sp=e00000003c807da0 bsp=e00000003c800cc0
- [<a000000100009600>] init+0x380/0x760
-                                sp=e00000003c807e30 bsp=e00000003c800c58
- [<a0000001000151c0>] kernel_thread_helper+0xe0/0x100
-                                sp=e00000003c807e30 bsp=e00000003c800c30
- [<a000000100009060>] start_kernel_thread+0x20/0x40
-                                sp=e00000003c807e30 bsp=e00000003c800c30
-kernel unaligned access to 0xe00000003d8a196e, ip=0xa00000010037ac41
+---
 
+ linux-2.6.9-rc2-enabled-bit-kei/arch/ia64/kernel/acpi.c |    4 ++++
+ 1 files changed, 4 insertions(+)
+
+diff -puN arch/ia64/kernel/acpi.c~enabled_fix arch/ia64/kernel/acpi.c
+--- linux-2.6.9-rc2-enabled-bit/arch/ia64/kernel/acpi.c~enabled_fix	2004-09-28 10:24:18.620152358 +0900
++++ linux-2.6.9-rc2-enabled-bit-kei/arch/ia64/kernel/acpi.c	2004-09-28 10:24:18.623082067 +0900
+@@ -385,6 +385,10 @@ acpi_numa_slit_init (struct acpi_table_s
+ void __init
+ acpi_numa_processor_affinity_init (struct acpi_table_processor_affinity *pa)
+ {
++	/* Ignore disabled entries */
++	if (!pa->flags.enabled)
++		return;
++
+ 	/* record this node in proximity bitmap */
+ 	pxm_bit_set(pa->proximity_domain);
+ 
+
+_
