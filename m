@@ -1,11 +1,8 @@
 From: Kevin Fenzi <kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: ACPI source release updated (20030328)
-Date: Sat, 29 Mar 2003 11:17:15 -0700
+Subject: my acpid lid scipt
+Date: Sat, 29 Mar 2003 11:20:45 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030329181722.D7F0BF7E5F@voldemort.scrye.com>
-References: <F760B14C9561B941B89469F59BA3A847E96D8E@orsmsx401.jf.intel.com>
-	<20030329151604.GA19676@hell.org.pl>
-	<200303291811.48633.p_christ@hol.gr>
+Message-ID: <20030329182046.2935AF7E5F@voldemort.scrye.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -24,49 +21,43 @@ List-Id: linux-acpi@vger.kernel.org
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
->>>>> "P" == P Christeas <p_christ-U04EIuiosng@public.gmane.org> writes:
 
->> Thus wrote Grover, Andrew: > Fixed a problem where the error
->> message "Failed to acquire semaphore" > would appear during
->> operations on the embedded controller (EC).
->> 
->> Thanks for that!  I have one question though. Did you consider
->> doing incremental ACPI patches? I'm using a heavily patched kernel
->> with XFS filesystem support, and getting all these patches to work
->> and applying all the rejects manually is a real pain. Incremental
->> patches would really make life (mine, at least) easier. What do you
->> think about it?
->> 
->> (the above refers to the 2.4 kernel, with 2.5 changing so fast it
->> isn't really a problem)
->> 
->> Best regards,
+Thought some people might be interested in this... 
 
-P> I had thought of asking that as well. But it may be a pain for
-P> Andrew to make those.  If you have all the source-patches you've
-P> used, you might be able to do that yourself. Just get the
-P> 'original' 2.4, patch it with 2 different ver's of ACPI and diff
-P> those.. Then you could apply that diff as a patch to your
-P> 'overloaded' ver of 2.4.
+My lid script for acpid. When you close the lid it turns off the lcd
+backlight, locks xscreensaver and throttles it (so it doesn't run a
+bunch of cpu intensive savers no one will see). 
+On opening the lid it turns the backlight back on and untrottles
+xscreensaver so you can get the cpu intensive ones. 
 
-Yeah, there is also a package out there called 'interdiff'. Lets you
-make a diff between two diff files. ;) 
+- --cut--
+#!/bin/sh -e
 
-interdiff acpi-20030321-2.4.21-pre5.diff acpi-20030328-2.4.21-pre6.diff > acpi.diff
+# /etc/acpi/lid-button
 
-It seems to get one reject on the acpi patches for some reason, but
-that one looks cosmetic. 
+# 
+# radeontool is avail at: http://fdd.com/software/radeon/
+#
 
-Will try it on my heavily patched 2.4.21-pre5. ;) 
-
-kevin
+if [ `cat /proc/acpi/button/lid/C11D/state  | awk '{print $2}'` == "open" ]; then
+#	turn backlight back on
+	/usr/local/sbin/radeontool light on 
+	/usr/X11R6/bin/xscreensaver-command -unthrottle
+elif [ `cat /proc/acpi/button/lid/C11D/state  | awk '{print $2}'` == "closed" ]; then
+#	turn off the backlight
+	/usr/local/sbin/radeontool light off
+#	lock the screen
+	/usr/X11R6/bin/xscreensaver-command -throttle
+	/usr/X11R6/bin/xscreensaver-command -lock
+fi
+- --cut--
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.1 (GNU/Linux)
 Comment: Processed by Mailcrypt 3.5.8 <http://mailcrypt.sourceforge.net/>
 
-iD8DBQE+heMx3imCezTjY0ERAp8+AJ0b/uqTf4Y0A3ZOUaE5/ZyuGDAn+wCdHExQ
-PWF/JMHYT1yrPlo6UUMWv9c=
-=bwxy
+iD8DBQE+heP93imCezTjY0ERAuXuAJ4tIPKNP7qt8tK5PNuZqSqCDdG3gACgnJTN
+z7mMvJhmmPet2C0lKJHOLOU=
+=vkn3
 -----END PGP SIGNATURE-----
 
 
