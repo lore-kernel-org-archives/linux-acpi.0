@@ -1,12 +1,10 @@
-From: Stefan Seyfried <seife-bro8zJjCcIc@public.gmane.org>
-Subject: Re: Help! I lost my C4 states :-)
-Date: Fri, 4 Mar 2005 18:05:53 +0100
-Message-ID: <20050304170553.GA28717@message-id.s3e.de>
-References: <20050221081225.GA10848@message-id.gmane0305.slipkontur.de> <1109885929.2103.813.camel@d845pe>
+From: Bernard Blackham <bernard-4vSAtV5O1nc0n/F98K4Iww@public.gmane.org>
+Subject: Cause of Suspend2 resume failures on Toshiba laptops
+Date: Sat, 5 Mar 2005 01:50:59 +0800
+Message-ID: <20050304175058.GA4042__20363.0424141467$1109958709$gmane$org@blackham.com.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="dDRMvlgZJXvWKvBx"
 Content-Disposition: inline
-In-Reply-To: <1109885929.2103.813.camel@d845pe>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,63 +14,72 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+To: suspend2-devel-g/J2nbn7YhmWn91e4EydUaxOck334EZe@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Mar 03, 2005 at 04:38:49PM -0500, Len Brown wrote:
-> On Mon, 2005-02-21 at 03:12, Stefan Seyfried wrote:
 
-> > Any hints on how to track down what is causing bus master activity all the
-> > time?
-> > Has the calculation algorithm changed? Any default settings i could tweak?
-> 
-> Did you notice a battery life decrease with this decrease in C4
-> residency?
+--dDRMvlgZJXvWKvBx
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Yes, although i lately run the battery down only on rare occasions, but the
-"projected" runtime with mostly C4 active was almost 4 hours while now it is
-a bit more than 3h30. I do no longer spin down the disk, since my dell locks
-up hard sometimes when the disk should spin up again, but the C4 was at least
-as big a gain than doing really aggressive disk spindown, (including 
-laptop_mode etc, my disk was _really_ spun down for 10 minutes between short
-spinups).
+Hi all,
 
-In fact, i noticed that C4 started working since i noticed that my battery
-started to last longer. When i still spun down the disk, this was hardly
-noticeable.
- 
-> On January 20th we pushed Dominik's jiffies based bm_activity patch
-> in drivers/acpi/processor_idle.c  You might find that backing out
-> that file a couple of revisions restores the previous behaviour.
-> 
-> Just after that, I added a tunable that you can tweak --
-> with 1000 HZ, its default is all bits enabled, but
-> you can reduce this bit mask to make the driver
-> ignore less recent history:
-> 
-> # echo 0 > /sys/module/processor/parameters/bm_history
-> 
-> Will cause the processor driver to ignore the bus master activity
-> completely.  Note that this could cause a performance hit if
-> there is BM activity since will just pop the system out of C4
-> and no instructions are executed during the transition out of C4.
+As some of you will know, some laptops (notably almost all recent
+Toshibas) have issues resuming with Software Suspend 2, resulting in
+a hang during "Reading caches", or a stream of "Unable to queue
+event ..." messages. If you try and resume enough times,
+occasionally it will make it to the end of resuming and the system
+will be perfectly usable.
 
-I tried fiddling with this parameter, but will try again. I think i never
-set it to zero, only 0xffff or something like that.
-> 
-> cheers,
-> -Len
-> 
-> ps.
-> If you're tracking battery life, I'd be interested to know if
-> you notice a difference between when you build with HZ=100 and HZ=1000.
+The attached patch more or less reverts the change in 2.6.9-rc1 that
+began this all. If you have a Toshiba or other laptop that's
+affected by this, I ask you to see if it helps your problems. (It
+hacks around the problem rather than fixing it, but I'm not entirely
+sure what functionality it disables).
 
-I'll do it as soon as Andrea Arcangely puts back the "select HZ Patch" back
-into the SUSE kernel. Unfortunately i mostly have to run stock compiled
-kernels just to be able to file "valid" bugreports :-)
+To the ACPI developers:
+
+I'm not entirely sure what this is breaking. What uses these GPEs?
+It seems the hangs are caused by one of these GPEs firing upon
+resume (though I'm not sure why it causes a hang - perhaps related
+to the low memory conditions during a suspend/resume cycle?)
+
+The comment above the line I changed mentions that the GPE enable
+mask is updated, but not the HW GPE itself. Whereabouts are these
+later enabled?
+
+Are the HW GPE enable masks stored in memory that might be replaced
+when resuming, with their values from suspend? If so, could/should
+GPEs be disabled before suspending so that they aren't enabled at an
+unfortunate moment on resume?
+
+Apologies if none of the above makes much sense - it doesn't make
+all that much sense to me yet :)
+
+Thanks,
+
+Bernard.
+
 -- 
-Stefan Seyfried
+ Bernard Blackham <bernard at blackham dot com dot au>
+
+--dDRMvlgZJXvWKvBx
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="toshiba-acpi-hack.diff"
+
+--- linux-2.6.9-rc1/drivers/acpi/events/evgpeblk.c.orig	2005-03-05 01:24:29.000000000 +0800
++++ linux-2.6.9-rc1/drivers/acpi/events/evgpeblk.c	2005-03-05 01:25:28.000000000 +0800
+@@ -314,7 +314,7 @@
+ 
+ 	/* Update enable mask, but don't enable the HW GPE as of yet */
+ 
+-	status = acpi_ev_enable_gpe (gpe_event_info, FALSE);
++	status = AE_OK;
+ 
+ 	ACPI_DEBUG_PRINT ((ACPI_DB_LOAD,
+ 		"Registered GPE method %s as GPE number 0x%.2X\n",
+
+--dDRMvlgZJXvWKvBx--
 
 
 -------------------------------------------------------
