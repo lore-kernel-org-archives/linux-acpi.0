@@ -1,8 +1,8 @@
 From: sg-report-Ci7MGLP9K5jPDbFq/vQRIQ@public.gmane.org
 Subject: Virus Alert
-Date: Thu, 6 May 2004 20:57:07 +0900 (JST)
+Date: Thu, 6 May 2004 20:57:05 +0900 (JST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200405061157.i46Bv7EP004854@is.spin.ad.jp>
+Message-ID: <200405061157.i46Bv5EP004706@is.spin.ad.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
@@ -18,7 +18,7 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-The mail message (file: message.pif) you sent to <appserver-uJD6bB5IadxL9jVzuh4AOg@public.gmane.org> contains a virus.
+The mail message (file: email-body) you sent to <appserver-uJD6bB5IadxL9jVzuh4AOg@public.gmane.org> contains a virus.
 
 
 -------------------------------------------------------
