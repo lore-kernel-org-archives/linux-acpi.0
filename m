@@ -1,13 +1,17 @@
-From: Proinnsias Breathnach <proinnsias-cv59FeDIM0c@public.gmane.org>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 Subject: Re: Re: D600 + S3 Sleep
-Date: Fri, 18 Mar 2005 16:09:57 +0000
-Message-ID: <20050318160957.GL14600@project-bob.org>
-References: <1111137292.23665.5.camel@neuromancer.home.net> <20050318105425.GJ14600@project-bob.org> <1111144388.23668.46.camel@neuromancer.home.net> <20050318115313.GK14600@project-bob.org> <20050318140556.GB18696@message-id.gmane0305.slipkontur.de>
+Date: Fri, 18 Mar 2005 17:00:18 +0000
+Message-ID: <1111165218.10131.5.camel@elrond.flymine.org>
+References: <1111137292.23665.5.camel@neuromancer.home.net>
+	 <20050318105425.GJ14600@project-bob.org>
+	 <1111144388.23668.46.camel@neuromancer.home.net>
+	 <20050318115313.GK14600@project-bob.org>
+	 <20050318140556.GB18696@message-id.gmane0305.slipkontur.de>
+	 <d120d50005031808081344c22e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="l0l+eSofNeLXHSnY"
-Content-Disposition: inline
-In-Reply-To: <20050318140556.GB18696-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <d120d50005031808081344c22e-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,46 +24,17 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Fri, 2005-03-18 at 11:08 -0500, Dmitry Torokhov wrote:
 
---l0l+eSofNeLXHSnY
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> I wonder if it is possible to restore original text mode when
+> suspending? Probably not with vesafb but with other specialize FB
+> drivers?
 
-On Fri, Mar 18, 2005 at 03:05:56PM +0100, Stefan Seyfried wrote:
-> On Fri, Mar 18, 2005 at 11:53:13AM +0000, Proinnsias Breathnach wrote:
-> > Unless someone comes up with a nice way of making it work with vga=3D795
-> > (or whatever it was I used have before ...)
->=20
-> not much hope here, i have had one of our X developers pondering over this
-> one (he knows the radeon chipsets pretty well) but to no avail. It seems
-> the machine never wakes up if _any_ framebuffer is used (radeonfb also do=
-es
-> not work).
-Oh well :)
+We don't know how to program text mode on most cards.
 
-Life's like that !
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
-I konw the FB stuff works if the acpi_late_bios patch is used per:
-http://www.loria.fr/~thome/d600/
-
-But I've not been bothered to test it personally !
-
-P
-
---l0l+eSofNeLXHSnY
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQFCOv1VPXJFksKe94cRAu1sAKD+mYQRV6ahuq3Dz5lS1OxXzI5sUwCeMWw4
-gFMxm7/27hFMgiZti8Ude7U=
-=FpNh
------END PGP SIGNATURE-----
-
---l0l+eSofNeLXHSnY--
 
 
 -------------------------------------------------------
