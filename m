@@ -1,12 +1,13 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [patch 10/12] acpi_power_off bug fix
-Date: 02 Mar 2005 14:10:16 -0500
-Message-ID: <1109790616.2101.584.camel@d845pe>
-References: <200502230953.j1N9rNKX020717@shell0.pdx.osdl.net>
+Subject: Re: [patch 12/12] acpi: fix a if-statement in
+ setup_sys_fs_device_files()
+Date: 02 Mar 2005 14:17:14 -0500
+Message-ID: <1109791030.2097.589.camel@d845pe>
+References: <200502230953.j1N9rRAo020726@shell0.pdx.osdl.net>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <200502230953.j1N9rNKX020717-bipKiLWnuIsyyg0EjBt7GtHuzzzSOjJt@public.gmane.org>
+In-Reply-To: <200502230953.j1N9rRAo020726-bipKiLWnuIsyyg0EjBt7GtHuzzzSOjJt@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,116 +18,57 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, marado-oe7qfRrRQfcmha6Ds7sm0l6hYfS7NtTn@public.gmane.org, barryn-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org, Alexey Y Starikovskiy <alexey.y.starikovskiy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org, Anil S Keshavamurthy <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-I've got a couple versions of this patch
-and will apply it when it is cleaned up a bit.
-
+Applied,
 thanks,
 -Len
 
-
 On Wed, 2005-02-23 at 04:53, akpm-3NddpPZAyC0@public.gmane.org wrote:
-> From: "Marcos D. Marado Torres" <marado-oe7qfRrRQfcmha6Ds7sm0l6hYfS7NtTn@public.gmane.org>
+> From: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 > 
-> From: "Barry K. Nathan" <barryn-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>
+> This fixes a if-statement in setup_sys_fs_device_files().  It seems to
+> assume that 'struct acpi_device_flags.ejectable' indicates whether a
+> device
+> has _EJ0 or not.  But this is not a right assumption.  It indicates
+> whether
+> a device has _EJ0|_EJD (See acpi_bus_get_flags() function).
 > 
-> On Tue, Feb 08, 2005 at 08:54:06PM -0800, Andrew Morton wrote:
-> > "Marcos D. Marado Torres" <marado-oe7qfRrRQfcmha6Ds7sm0l6hYfS7NtTn@public.gmane.org> wrote:
-> > >
-> > > Please add to -mm the patch in attachment, since it solves the old
-> > >  acpi_power_off bug...
-> >
-> > What acpi_power_off bug?  And how does it solve it?
+> setup_sys_fs_device_files() creates 'eject' file for devices that have
+> _EJ0
+> control method under a corresponding directory in
+> /sys/firmware/acpi/namespace/ACPI/.  'eject' file is used to trigger
+> hot-removal function from userland.
 > 
-> Here's the observed bug that the patch is trying to fix:
-> http://bugme.osdl.org/show_bug.cgi?id=4041
-> 
-> What Marcos posted is a typo-corrected version of Eric Biederman's
-> patch:
-> http://marc.theaimsgroup.com/?l=linux-kernel&m=110665542929525&w=2
-> 
-> In Eric's own words, the patch "needs some work before it goes into a
-> mainline kernel". AFAICT it's more of a proof-of-concept, just to see
-> if
-> Eric's on the right track...
-> 
-> This is the motivation behind the patch:
-> http://marc.theaimsgroup.com/?l=linux-kernel&m=110665405402747&w=2
-> 
-> 
+> Signed-off-by: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 > Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 > ---
 > 
->  25-akpm/drivers/acpi/sleep/poweroff.c |   23 +++++++++++++++++++++--
->  25-akpm/drivers/base/power/shutdown.c |    7 +++++++
->  2 files changed, 28 insertions(+), 2 deletions(-)
+>  25-akpm/drivers/acpi/scan.c |   10 +++++++++-
+>  1 files changed, 9 insertions(+), 1 deletion(-)
 > 
-> diff -puN drivers/acpi/sleep/poweroff.c~acpi_power_off-bug-fix
-> drivers/acpi/sleep/poweroff.c
-> --- 25/drivers/acpi/sleep/poweroff.c~acpi_power_off-bug-fix    
-> 2005-02-23 01:48:08.000000000 -0800
-> +++ 25-akpm/drivers/acpi/sleep/poweroff.c       2005-02-23
-> 01:48:08.000000000 -0800
-> @@ -7,18 +7,37 @@
-> 
->  #include <linux/pm.h>
->  #include <linux/init.h>
-> +#include <linux/kernel.h>
->  #include <acpi/acpi_bus.h>
->  #include <linux/sched.h>
->  #include "sleep.h"
-> 
->  static void
-> +acpi_power_off_prepare(void)
-> +{
-> +       if (system_state == SYSTEM_POWER_OFF) {
-> +               acpi_wakeup_gpe_poweroff_prepare();
-> +               acpi_enter_sleep_state_prep(ACPI_STATE_S5);
-> +       }
-> +}
-> +
-> +void
-> +do_acpi_power_off_prepare(void)
-> +{
-> +       if (!acpi_disabled) {
-> +               acpi_power_off_prepare();
-> +       }
-> +}
-> +
-> +
-> +static void
->  acpi_power_off (void)
+> diff -puN
+> drivers/acpi/scan.c~acpi-fix-a-if-statement-in-setup_sys_fs_device_files drivers/acpi/scan.c
+> ---
+> 25/drivers/acpi/scan.c~acpi-fix-a-if-statement-in-setup_sys_fs_device_files 2005-02-23 01:48:12.000000000 -0800
+> +++ 25-akpm/drivers/acpi/scan.c 2005-02-23 01:48:12.000000000 -0800
+> @@ -383,7 +383,15 @@ setup_sys_fs_device_files (
+>         struct acpi_device *dev,
+>         acpi_device_sysfs_files *func)
 >  {
->         printk("%s called\n",__FUNCTION__);
-> +#if 0  /* This should be made redundant by other patches.. */
->         /* Some SMP machines only can poweroff in boot CPU */
->         set_cpus_allowed(current, cpumask_of_cpu(0));
-> -       acpi_wakeup_gpe_poweroff_prepare();
-> -       acpi_enter_sleep_state_prep(ACPI_STATE_S5);
-> +#endif
->         ACPI_DISABLE_IRQS();
->         acpi_enter_sleep_state(ACPI_STATE_S5);
->  }
-> diff -puN drivers/base/power/shutdown.c~acpi_power_off-bug-fix
-> drivers/base/power/shutdown.c
-> --- 25/drivers/base/power/shutdown.c~acpi_power_off-bug-fix    
-> 2005-02-23 01:48:08.000000000 -0800
-> +++ 25-akpm/drivers/base/power/shutdown.c       2005-02-23
-> 01:48:08.000000000 -0800
-> @@ -62,6 +62,13 @@ void device_shutdown(void)
->         }
->         up_write(&devices_subsys.rwsem);
-> 
-> +#ifdef CONFIG_ACPI
-> +       {
-> +               extern void do_acpi_power_off_prepare(void);
-> +               do_acpi_power_off_prepare();
-> +       }
-> +#endif
+> -       if (dev->flags.ejectable == 1)
+> +       acpi_status             status;
+> +       acpi_handle             temp = NULL;
 > +
->         sysdev_shutdown();
+> +       /*
+> +        * If device has _EJ0, 'eject' file is created that is used to
+> trigger
+> +        * hot-removal function from userland.
+> +        */
+> +       status = acpi_get_handle(dev->handle, "_EJ0", &temp);
+> +       if (ACPI_SUCCESS(status))
+>                 (*(func))(&dev->kobj,&acpi_device_attr_eject.attr);
 >  }
 > 
 > _
