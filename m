@@ -1,17 +1,12 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Subject: Re: High pitched sound + OOPS with acpi/processor on DELL
-	inspiron 8600
-Date: Mon, 05 Jul 2004 22:03:30 +0100
+From: stelian.pop-A5NNTvo2L0pl57MIdRCFDg@public.gmane.org
+Subject: ERROR
+Date: Tue, 6 Jul 2004 07:52:52 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1089061410.21051.6.camel@darkstar>
-References: <20040705114836.GB20824@infinite.fsw.leidenuniv.nl>
-	 <A20E2C1A-CE7F-11D8-A294-000D93ADD12E@it-loops.com>
-Reply-To: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
+Message-ID: <E1Bhk5K-0002sR-QT@externalmx-1.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0014_C0F2C5CD.ECDF8B5D"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <A20E2C1A-CE7F-11D8-A294-000D93ADD12E-Z92qn3yYq0hWk0Htik3J/w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,22 +15,61 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Michael Guntsche <mike-Z92qn3yYq0hWk0Htik3J/w@public.gmane.org>
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2004-07-05 at 13:34, Michael Guntsche wrote:
+This is a multi-part message in MIME format.
 
-> Try changing the HZ in linux/include/asm-i386/param.h from 1000 to 100.
-> This fixed the problem for me and I didn't experience any side effects.
+------=_NextPart_000_0014_C0F2C5CD.ECDF8B5D
+Content-Type: text/plain;
+	charset="Windows-1252"
+Content-Transfer-Encoding: 7bit
 
-I am sure that 100 is the value that comes on kernel 2.4.x, on xine faqs
-(http://xinehq.de/index.php/faq#SMOOTHNESS) suggest Set HZ to 1000 in
-/usr/src/linux/include/asm-i386/param.h
+œW¤?÷í`Ò¡nì
+åŸàD§É|ü:J/¸6"³D•{_.ñR~&:Gè™×šo¡¬Ê±êM”Y¤i¦M{rO&]£yÃĞ¡ÛùuºA¶Tyş¿J°ªµ~IÏKs¾²Ü<dÃÉë¶là‰OØ…‡Í0:
+D>şïWIúƒÁOÓq2òR59¹NƒşŒ×ªy©¦ù<ã¨h™Îãlç62À1Æ|‹‚ÚØõÚ7inğ‹—!Û!nÔQ~”‡¤‰¹êÜ¦¸ıê[ŠˆúØ†”æÕå—8Z­/ïİQUÚX‘g¸1¥VYy¶Ø‰·#o¢‡]b{³Mõ÷Ê\åÃTÆ]ĞÄ˜øï|É™‹B”G¾ö¯jÚá?vPŠSóLşÖ7µÍ~¦ÙìÔ}ß¾®`ÁkÇ.s‡æY8mÉ¾ra-¿‘”Ó(6¬³4Å5êWøŒWáëù4AËİşy¦ø
+Âğ%û^:è*“«2M†Şk2A2(1Jù„¨ŠRVŸŸÓâö{ô"“ÛóZÙÁÆÂøÀ)Z"X8EiTtdG“´©êaÅó)`Ëİ.ŞŠ,Œı›SL—#uúùìÌÅjXóÃ2R¢n¢$ß¤}ô4ˆ²
+ŠÌ2B_
+õÙ>Æ‘jS#ø¤aqu›ş¾Æ8ñ«¶¹ï#$Zw»:3V*P˜{ïÆíõŠİZ¹Î&MŠ±ih÷°{ÀçJµ"°ä7)ô¨œs#Åä‰”ÅMS¢F·ÏeSÌj†±}hYü•üOÏ®¡åÅÖşùŠ8
+YX"7%œBqs»JüŒü0|J1„1)J‹:YF.ú±b2—ylëgxEê-EçÈ^‰\R‚»‡ˆ²D™?NBt#êÉ¶íµJ(•ïß¡ºH8ÆĞ/íoéÁ¢nZËÔm­°øg“ô,P£àÑ|Sz‘­IGkÏ9fŸ;ĞK#^->:
 
-regards,
---=20
-S=E9rgio M. B.
+
+------=_NextPart_000_0014_C0F2C5CD.ECDF8B5D
+Content-Type: text/plain; charset="us-ascii"; format=flowed
+
+
+**********************************************************
+**********************************************************
+
+WARNING: Panda Antivirus GateDefender has detected a virus in file
+attached to this e-mail message!
+
+The attachment has been automatically removed to
+protect your network.
+
+Panda Antivirus GateDefender Administrator: unknown
+
+07/06/04 07:54:27 
+Panda Antivirus GateDefender (Version 5.1 R1c (5.0.60.2)) - http://www.pandasoftware.com/
+Antivirus Vendor: Panda Software
+Scan Engine Version: 4.1.4.307
+Pattern File Version: 3.79049 (Timestamp: 14/06/2004 123615)
+
+Machine name: Aeroinfo-PAGD1
+Machine IP address: 219.238.158.4
+Server: 12.152.184.25
+Client: 219.238.158.29
+Protocol: SMTP
+
+Virus: "W32/Lovgate.AC.worm" found!
+Attachment: data.scr
+
+**********************************************************
+**********************************************************
+
+
+------=_NextPart_000_0014_C0F2C5CD.ECDF8B5D--
+
 
 
 
