@@ -1,63 +1,43 @@
-From: Nate Lawson <nate@root.org>
-Subject: Bug in "implicit return" code
-Date: Sun, 02 Jan 2005 20:08:22 -0800
-Message-ID: <41D8C536.8020301@root.org>
+From: chirag <nisha_rajyaguru-xFOqZoH7zVZ4Eiagz67IpQ@public.gmane.org>
+Subject: strace acpid shows weired line
+Date: Mon, 03 Jan 2005 21:47:36 +0900
+Message-ID: <1104756456.4700.3.camel@YahooBB219031151066.bbtec.net>
+Reply-To: chirag-9dAiHs7qY9HTsWAM89vZ1+0/RLrZM5er@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-freebsd-acpi@freebsd.org>
-List-Unsubscribe: <http://lists.freebsd.org/mailman/listinfo/freebsd-acpi>,
-	<mailto:freebsd-acpi-request@freebsd.org?subject=unsubscribe>
-List-Archive: <http://lists.freebsd.org/pipermail/freebsd-acpi>
-List-Post: <mailto:freebsd-acpi@freebsd.org>
-List-Help: <mailto:freebsd-acpi-request@freebsd.org?subject=help>
-List-Subscribe: <http://lists.freebsd.org/mailman/listinfo/freebsd-acpi>,
-	<mailto:freebsd-acpi-request@freebsd.org?subject=subscribe>
-Sender: owner-freebsd-acpi@freebsd.org
-Errors-To: owner-freebsd-acpi@freebsd.org
-To: acpi@freebsd.org
-Cc: acpi-devel@lists.sourceforge.net
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I have identified a problem in the implicit return code in dsutils.c. 
-Various Toshiba laptops have a _STA method that is similar to this:
+Hi!
 
-DefinitionBlock ("DSDT.aml", "DSDT", 1, "TOSHIB", "8100    ", 536872468)
-{
-     Device (LNKA)
-     {
-         Name (_HID, EisaId ("PNP0C0F"))
-         Method (_STA, 0, NotSerialized)
-         {
-             STAL (0x60)
-         }
-     }
+When I do strace acpid, one of the lines shows as follows.
 
-     Method (STAL, 1, NotSerialized)
-     {
-         /* Various link accesses removed for clarity. */
-         Return (0x0B)
-     }
-}
+open("/proc/acpi/event", O_RDONLY)      = -1 EBUSY (Device or resource
+busy)
+write(2, "acpid: can\'t open /proc/acpi/event"..., 60acpid: can't
+open /proc/acpi/event: Device or resource busy) = 60
 
-If you compile and run this snippet in the debugger, you'll see that 
-_STA doesn't return anything even with EnableInterpreterSlack set to 
-TRUE.  This means the implicit return code doesn't work properly.
+Does it have anything to do that none of my button events are logged??
+  
+Could someone help me out why this is happening? I am using mandrake
+10.1 with uname -r showing 2.6.8.1-20mdk.
 
-I examined the AcpiDsIsResultUsed() function and found that the check 
-that was failing was this one:
 
-     /*
-      * If there is no parent, we are executing at the method level.
-      * An executing method typically has no parent, since each method
-      * is parsed separately.
-      */
-     if (!Op->Common.Parent)
 
-So it appears that there _is_ a parent and the implicit return code 
-below is never executed for this method.  I'm not sure the proper way to 
-change this check for the above AML case but hopefully the Intel people 
-will know.
 
--- 
-Nate
+
+-------------------------------------------------------
+The SF.Net email is sponsored by: Beat the post-holiday blues
+Get a FREE limited edition SourceForge.net t-shirt from ThinkGeek.
+It's fun and FREE -- well, almost....http://www.thinkgeek.com/sfshirt
