@@ -1,14 +1,12 @@
-From: Johannes Kuhlmann <jkuhlmann-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Smart batteries and Acer: list of affected models needed
-Date: Thu, 25 Nov 2004 14:25:27 +0100
-Message-ID: <47e0449d041125052513d8a19b@mail.gmail.com>
-References: <20041123194307.GB14444@hell.org.pl> <41A4BB42.20103@paranoici.org>
-Reply-To: Johannes Kuhlmann <jkuhlmann-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Subject: [PATCH] fix an issue around kobject_hotplug() in processor.c and
+ container.c
+Date: Thu, 25 Nov 2004 23:02:57 +0900
+Message-ID: <20041125230257.56917529.tokunaga.keiich@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41A4BB42.20103-XtQPfPCVGG7srOwW+9ziJQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,66 +16,96 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org, dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hi Len, Anil
 
-as already said in another thread, I have a Travelmate 4001LCi which
-apparently also has a smart battery. I would also be interested in
-helping out with testing and maybe some coding though I haven't done
-any kernel coding either.
+  I'm attaching a patch fixing an issue around kobject_hotplug()
+in drivers/acpi/processor.c and container.c.
 
-Regards,
-Johannes
+  A while ago, drivers/acpi/processor.c and container.c were
+changed to use kobject_hotplug() instead of their own functions
+'processor_run_sbin_hotplug()/container_run_sbin_hotplug()'.
+
+  The container driver was supposed to invoke a container.agent
+(user mode agent script) using /sbin/hotplug mechanism, but
+after the changes, it doesn't call the agent any more because
+kobject_hotplug() in the container.c invokes a namespace.agent
+if exists.  So, I would like to use the namespace.agent to
+handle container hotplug event (or something else) and let the
+agent to call proper agent (e.g. container.agent).  But, there
+is an issue we need to solve.  When the namespace.agent is called,
+a path name of associated kobject is passed as a DEVPATH (e.g.
+/sys/firmware/acpi/namespace/ACPI/_SB/DEV0).  However, the
+agent does not know what device is associated with the DEVPATH
+nor which agents to call.  The attached patch is to add 
+.hotplug_ops member to acpi_namespace_kset structure and let
+it to set a driver name attached to the target kobject into
+the envp[] variable as a DRV_NAME element.  So, the
+namespace.agent can call proper agents (e.g. container.agent)
+by refering the DRV_NAME.
+
+  Please apply.
+
+You can download the namespace.agent from LHNS project
+website (http://lhns.sf.net).
+
+Thanks,
+Keiichiro Tokunaga
 
 
-On Wed, 24 Nov 2004 17:48:02 +0100, Ultrakorne <ultrakorne-XtQPfPCVGG7srOwW+9ziJQ@public.gmane.org> wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
-> 
-> Karol Kozimor wrote:
-> | Hi,
-> | It's likely that I'll get my employer's backing for writing the smart
-> | battery driver.
-> 
-> in my dsdt disassembled i get 3 warning... and it contain those lines
-> "Name(_HID,"ACPI0001")", "Name(_HID,"ACPI0002")"
-> meaning i have a smart battery
-> my model as i say is a travelmate 4501 lci
-> 
-> can someone tell me where and what documents are a good read (kernel
-> module, acpi, smart battery...), if someone already have collect some
-> material this should be fine. my hope is helping the development...
-> 
-> Sam
-> - --
-> +--------------------+-------------------------------------+
-> |    Metal OWNZ U    |        GnuPG ID: E2844BB9           |
-> |   icq#: 61252311   | My Public key at: wwwkeys.pgp.net   |
-> +--------------------+-------------------------------------+
-> -----BEGIN PGP SIGNATURE-----
-> Version: GnuPG v1.2.5 (GNU/Linux)
-> Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
-> 
-> iD8DBQFBpLtCzMLB4uKES7kRAh9kAJ9OXwlgq/zDhrxDT6+Ox7If32NxsgCfV+Tr
-> slekYBZJown3Gm4TQTYSuWc=
-> =T+dl
-> -----END PGP SIGNATURE-----
-> 
-> 
-> 
-> 
-> -------------------------------------------------------
-> SF email is sponsored by - The IT Product Guide
-> Read honest & candid reviews on hundreds of IT Products from real users.
-> Discover which products truly live up to the hype. Start reading now.
-> http://productguide.itmanagersjournal.com/
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
->
+Signed-off-by: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Status: Tested on 2.6.10-rc2-mm3
+---
+
+ linux-2.6.10-rc2-mm3-kei/drivers/acpi/scan.c |   25 +++++++++++++++++++++++++
+ 1 files changed, 25 insertions(+)
+
+diff -puN drivers/acpi/scan.c~namespace_agent_support drivers/acpi/scan.c
+--- linux-2.6.10-rc2-mm3/drivers/acpi/scan.c~namespace_agent_support	2004-11-25 22:20:14.886571312 +0900
++++ linux-2.6.10-rc2-mm3-kei/drivers/acpi/scan.c	2004-11-25 22:20:14.889570856 +0900
+@@ -81,12 +81,37 @@ static struct kobj_type ktype_acpi_ns = 
+ 	.release	= acpi_device_release,
+ };
+ 
++static int namespace_hotplug_env(struct kset *kset, struct kobject *kobj,
++				  char **envp, int num_envp, char *buffer,
++				  int buffer_size)
++{
++	struct acpi_device *dev = to_acpi_device(kobj);
++	int i = 0;
++	int len = 0;
++
++	if (!dev->driver)
++		return 0;
++
++	if (add_hotplug_env_var(envp, num_envp, &i, buffer, buffer_size, &len,
++				"DRV_NAME=%s", dev->driver->name))
++		return -ENOMEM;
++	
++	envp[i] = NULL;
++
++	return 0;
++}
++
++static struct kset_hotplug_ops namespace_hotplug_ops = {
++	.hotplug = &namespace_hotplug_env,
++};
++
+ static struct kset acpi_namespace_kset = {
+ 	.kobj		= { 
+ 		.name = "namespace",
+ 	},
+ 	.subsys = &acpi_subsys,
+ 	.ktype	= &ktype_acpi_ns,
++	.hotplug_ops = &namespace_hotplug_ops,
+ };
+ 
+ 
+
+_
 
 
 -------------------------------------------------------
