@@ -1,14 +1,14 @@
-From: Jurgen Kramer <gtm.kramer-c1aixF9oqgPk1uMJSBkQmQ@public.gmane.org>
-Subject: Re: CALL FOR TESTING
-Date: 19 Sep 2002 21:00:02 +0200
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: 2.5.34?
+Date: Tue, 17 Sep 2002 23:36:44 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1032462003.1134.2.camel@paragon.slim>
-References: <EDC461A30AC4D511ADE10002A5072CAD0236DE80@orsmsx119.jf.intel.com>
+Message-ID: <20020917233643.A202@toy.ucw.cz>
+References: <20020916001425.82756.qmail@web20906.mail.yahoo.com> <20020916012506.G10583@parcelfarce.linux.theplanet.co.uk> <20020916081909.A25876@vdpas.hobby.nl> <20020917154653.C39@toy.ucw.cz> <20020918183819.A10275@vdpas.hobby.nl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD0236DE80-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
+In-Reply-To: <20020918183819.A10275-FeupCOz82S5hxPbjSeLqYA@public.gmane.org>; from toon-/ye6tfJczTwcEEi49/iq3g@public.gmane.org on Wed, Sep 18, 2002 at 06:38:19PM +0200
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,63 +17,31 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: Toon van der Pas <toon-/ye6tfJczTwcEEi49/iq3g@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hi!
 
-Is there a patch against 2.4.19 available? I currently running some
-version of this kernel with lots of patches (0(I) scheduler, preempt,
-cpufreq etc.). The last ACPI diff against 2.4.19 worked flawlessly and I
-do not want to lose those features.
+> > Look at l-k, I already submitted IDE swsusp support to Andre.
+> 
+> I know.
+> I got my information from your postings on the linux-kernel mailing list. 
+> My only intention was to warn people that their data is NOT safe when
+> using swsusp with recent 2.5 kernels.
+> 
+> I should have added that you already submitted a patch on the
+> linux-kernel mailing list. Sorry about that.
+> 
+> BTW: From your discussion with André Hedrick I understood that there
+> still is some disagreement about the layer where the I/O to the IDE
+> block devices should be blocked by swsusp. Is this resolved now?
 
-Thanks,
-
-Jurgen 
-
-On Thu, 2002-09-19 at 08:27, Grover, Andrew wrote:
-    I wanted to make a special request for testing of the 2.4 patch (or should I
-    say, MEGA-patch).
-    
-    Marcelo has asked for widespread testing of it, in anticipation of likely
-    2.4 mainline inclusion. I will be posting a call for testing to linux-kernel
-    soon, but am posting this here first to hopefully weed out any really bad
-    bugs that may have crept in.
-    
-    The main issues of importance are:
-    
-    - DOES IT BOOT?
-    - DOES IT ASSIGN INTERRUPTS PROPERLY?
-    
-    Failure to do so either indicates a bug that we need to fix (fast) or a
-    system that should go on the blacklist. dmesg now includes the DSDT
-    signature to aid blacklisting.
-    
-    Issues like whether the battery reports stats properly are of secondary
-    importance.
-    
-    Thanks in advance.
-    
-    Regards -- Andy
-    
-    -----------------------------
-    Andrew Grover
-    Intel Labs / Mobile Architecture
-    andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-    
-    
-    
-    -------------------------------------------------------
-    This sf.net email is sponsored by:ThinkGeek
-    Welcome to geek heaven.
-    http://thinkgeek.com/sf
-    _______________________________________________
-    Acpi-devel mailing list
-    Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
-    
-    
+No but we are working on it.
+								Pavel
+-- 
+Philips Velo 1: 1"x4"x8", 300gram, 60, 12MB, 40bogomips, linux, mutt,
+details at http://atrey.karlin.mff.cuni.cz/~pavel/velo/index.html.
 
 
 
