@@ -1,14 +1,14 @@
-From: "Michael A. Smith" <mas3f-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org>
-Subject: Re: Problems with 600m PM states
-Date: Fri, 2 Jan 2004 16:42:42 -0500 (EST)
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: [PATCH] Fix _STA checking in acpi_bus_add
+Date: Fri, 2 Jan 2004 16:35:25 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.BSF.4.55.0401021635300.503@dea.intranet>
-References: <3ACA40606221794F80A5670F0AF15F8401720C6D@PDSMSX403.ccr.corp.intel.com>
- <Pine.BSF.4.55.0401021139340.70212@dea.intranet> <20040102185613.GA30051@hell.org.pl>
+Message-ID: <200401021635.25419.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040102185613.GA30051-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,36 +17,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Cc: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2 Jan 2004, Karol Kozimor wrote:
+In 2.6.1-rc1, acpi_bus_add() calls acpi_bus_get_status() to evaluate
+_STA, but botches checking the return value.  The result is that _STA
+is ignored (if it was evaluated correctly), or we check garbage (if
+the evaluation failed).  Here's a patch to fix it:
 
-> Thus wrote Michael A. Smith:
+===== drivers/acpi/scan.c 1.19 vs edited =====
+--- 1.19/drivers/acpi/scan.c	Sun May 25 18:00:00 2003
++++ edited/drivers/acpi/scan.c	Fri Jan  2 16:14:25 2004
+@@ -703,11 +703,11 @@
+ 	switch (type) {
+ 	case ACPI_BUS_TYPE_DEVICE:
+ 		result = acpi_bus_get_status(device);
+-		if (!result)
+-			break;
+-		if (!device->status.present) 
++		if (ACPI_FAILURE(result) || !device->status.present) {
+ 			result = -ENOENT;
+-		goto end;
++			goto end;
++		}
++		break;
+ 	default:
+ 		STRUCT_TO_INT(device->status) = 0x0F;
+ 		break;
 
-> > The system seems to suspend correctly, but will not resume.  After the
-> > suspend, the power led has a slow blink, which is what I expect.  If I
-> > hit the power button to bring it back, I can hear the disk spin up, and
-> > the power led is on full, but that's it.  The screen never returns and
-> > my only recourse is a hard reboot.
-
-> Please try 2.6.1-rc1 or -rc1-mm1 for the keyboard problem.
-
-Tried 2.6.1-rc1 (with the S1 patch referenced earlier in the thread)
-and see the same behavior for S3.  Not sure which keyboard problem you were
-referring to though.
-
-> Have you already tried passing acpi_sleep={s3_mode,s3_bios} as a
-> kernel parameter?
-
-I have now.  If I use either, instead of resuming, the machine reboots.
-Without any parameter, after resume the screen remains off, but it
-appears the system is running ... if i blindly type "shutdown -h now",
-the system will power off.
-
-Michael Smith
-mas3f-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org
 
 
 -------------------------------------------------------
