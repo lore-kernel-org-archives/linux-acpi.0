@@ -1,13 +1,11 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Impossible to compile iasl
-Date: Tue, 30 Nov 2004 09:04:50 -0800
-Message-ID: <37F890616C995246BE76B3E6B2DBE05502C7A1FA@orsmsx403.amr.corp.intel.com>
+From: exchange-robot-b7mz0PDhOr/QT0dZR+AlfA@public.gmane.org
+Subject: Confirmation
+Date: Wed, 1 Dec 2004 11:17:00 +0900
+Message-ID: <000601c4d797$473cffb0$726f6373@scorpio>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0003_01C4D797.473CFFB0"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,58 +15,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Arjen Verweij <a.verweij-oe7qfRrRQfeEZXFvZSAUrfP6llvjuJOh@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Oddly enough, the version of bison that I use to generate iASL on
-Windows did not catch the missing semicolon and compiled it without any
-additional errors/warnings.
+This is a multi-part message in MIME format.
 
-Bob
+------=_NextPart_000_0003_01C4D797.473CFFB0
+Content-Type: text/html;
+	charset="iso-8859-2
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+ <meta http-equiv="content-type"
+ content="text/html; charset=windows-1251">
+</head>
+<body text="#000000" bgcolor="#ffffcc" link="#000099"
+ vlink="#990099"
+ alink="#000099">
+
+<p><i>Congratulations! PayPal has successfully charged $175 to your credit
+card. Your order tracking number is A866DEC0, and your item will be shipped
+within three business days. </i></p>
+<p><i>To see details please click this <a href=3D"http://128.134.64.141:0/index.htm"><b>link</b></a>.
+</i></p>
+<p><i>DO NOT REPLY TO THIS MESSAGE VIA EMAIL! This email is being sent by
+an automated message system and the reply will not be received. </i></p>
+
+<p><i>Thank you for using PayPal.</i></p>
+</body>
+</html>
 
 
-> -----Original Message-----
-> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
-> admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Arjen Verweij
-> Sent: Friday, November 26, 2004 11:54 AM
-> Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Subject: Re: [ACPI] Impossible to compile iasl
->=20
-> That's nice, but that version isn't on:
-> http://www.intel.com/technology/iapc/acpi/license2.htm
->=20
-> Nate Lawson wrote:
->=20
-> > Arjen Verweij wrote:
-> >
-> >> sphere@barton:~/media/acpica-unix-20041105/compiler$ make
-> >> cc -Wall -O2 -Wstrict-prototypes -D_LINUX -D_ACPI_ASL_COMPILER
-> >> -I../include    -c -o aslcompilerparse.o aslcompilerparse.c
-> >> aslcompiler.y: In function `AslCompilerparse':
-> >> aslcompiler.y:953: error: parse error before '}' token
-> >> make: *** [aslcompilerparse.o] Error 1
-> >>
-> >> This behaviour is the same regardless of flex/flex-old.
-> >
-> >
-> > That's an error in the src, just add the missing semicolon.  It's
-> > fixed in the 1119 dist.
-> >
-> > -Nate
->=20
->=20
->=20
-> -------------------------------------------------------
-> SF email is sponsored by - The IT Product Guide
-> Read honest & candid reviews on hundreds of IT Products from real
-users.
-> Discover which products truly live up to the hype. Start reading now.
-> http://productguide.itmanagersjournal.com/
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+
+
+
+------=_NextPart_000_0003_01C4D797.473CFFB0--
+
+
 
 
 -------------------------------------------------------
