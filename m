@@ -1,333 +1,195 @@
-From: Dominik Brodowski <linux@dominikbrodowski.de>
-Subject: [RFC][PATCH] notify SMM of cpufreq/pstate support
-Date: Sat, 4 Sep 2004 11:17:24 +0200
-Sender: cpufreq-bounces@www.linux.org.uk
-Message-ID: <20040904091724.GA17926@dominikbrodowski.de>
+From: Rocco Baxter <dzfpxph-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: re [2]
+Date: Sat, 04 Sep 2004 18:05:09 -0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <E1C3ezL-0006CP-Qa@externalmx-1.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk>
-Content-Disposition: inline
-List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@www.linux.org.uk?subject=unsubscribe>
-List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq>
-List-Post: <mailto:cpufreq@www.linux.org.uk>
-List-Help: <mailto:cpufreq-request@www.linux.org.uk?subject=help>
-List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@www.linux.org.uk?subject=subscribe>
-Errors-To: cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk
-To: acpi-devel@lists.sourceforge.net, cpufreq@www.linux.org.uk, len.brown@intel.com, shaohua.li@intel.com
+Content-Type: multipart/related;
+ boundary="------------080800020406090702000008"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-[Follow-up to 
-http://marc.theaimsgroup.com/?l=acpi4linux&m=108725302512746&w=2 and
-http://marc.theaimsgroup.com/?l=acpi4linux&m=107684287525298&w=2
-which were the last tries of getting this right last February and June]
+This is a multi-part message in MIME format.
+--------------080800020406090702000008
+Content-Type: text/html; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-Notify SMM of cpufreq
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"></head><body bgcolor="#FFFFF9" text="#C57BC6"><p><a href="http://rlm.mblcmla.info/?1h39z42vB58oJ11sfzqbbsffyn"><IMG SRC="cid:part1.05020100.08010609@fhmvpyf-/E1597aS9LQAvxtiuMwx3w@public.gmane.org" border="0" ALT=""></a></p><p><font color="#FFFFFF">Free Newspapers Baseball my say?</font></p><p><font color="#FFFFF4">Well done! Scooters</font></p></body></html>
 
-Often, the BIOS changes the CPU frequency if a notebook is (dis)connected
-from its AC adapter. This interferes with a) an user setting the CPU frequency
-and b) kernel timing code which needs to know loops_per_jiffy, cpu_khz etc.
+--------------080800020406090702000008
+Content-Type: image/gif;
+ name="hessian.GIF"
+Content-Transfer-Encoding: base64
+Content-ID: <part1.05020100.08010609@fhmvpyf-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Content-Disposition: inline;
+ filename="hessian.GIF"
 
-So, ACPI 2.0 offers a method to disable such BIOS changes -- writing
-a value contained in the FADT (pstate_cnt) to the smi_cmd port. This patch
-utilizes this method by doing this write in processor.c.
+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
+PexiHzvZy252B00g7WkXwQQooPa3n+Dtao873N3udrm3/e5zNwHe2Y73v+8d8GsfgeAHT3fBH97wLyh8
+3vdOeLgznvF6/7sMJM/3usNA8n2ffOTzvvi5N17ufsf86BXPedI7/jqpd3zqD+/6x3u+9XbPvOJXX3vP
+6x32r/f74nXPdt/nPga2Bz7hiz964w//+Mrv/fJjb3jZ/775xLc97k3/+OtP3/Ss1/7gt4/758j++dbP
+/vfvnv3K37762r+8+tsfd+YHf/ath/7yoz/599uf9fWfffz7z3fgh//e90Gf88Ue+bEf/u0e//Uf9SWg
+9+2fc4wf/9HfApZf/j0fDTCg71VgBipfBX5e+Y1fBAYfCKLeB7pA4J1g+mGg9YWgBxKfAWog+lXfAZ5f
+CtLgCIrgb0zgC97gDnZgDXDgCJogDLpgAvrfA/7g+2HeBrJg96Wg+83A/LVgEQ6gCsag8NEfB1YhAWpg
+Du6GDx4hAHrh6QEh4sHeFr7g5q2gAE4h7ZFe9NUdE5LgG8YfGPofGmKhHFLeGXqh6CWeGuIhDs4gdoDh
+BDpgFK5dIVphEv5hGyqgDBohEgohAkLeENLgHNJhHkZiGPIgBUJhEfLhDdahI56eAHKHIrrgIUL/IifC
+ICMeIB6CYhqS4uuBIPvNoisenx3uXyBaoihmIBXaYisGoiGe4hjOnxjGYuD14SIeIRc2Iwuu4uV9nibi
+HxveYjN24Bg+YAsiohz6IjQiYPMxIzd2YnkMYBq24v+JIxWOIziOojWeYDTKYiqC4xz24jauYxnaoyje
+Y/0Fof1hXz6moye6YXccYw3e4foN5DdCYUAGoRTKIzJGpBPa4BNapDQSZDdaIir24j82ofMx5O5JoQfq
+om7sYSlCnhqWIh8mokpuXueJ3knCZASepC2y40zGo01230x6H0mqZCh24xL6IU/WY0/u5Bv6IUvu49kx
+ZVOGHVFCZVRK5VRSMWVVWuVVYmVWauVWcqVWSkdXgmVYiuVYkmVZmuVZoqU2OuVasmVbuuVbwmVcyuUO
+hAAAIf50dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0
+aWVldXppZ3N1a2lxenpvcm52cmhsYXJ4bGNueGZ6dXR1enlsYW9qZnpmaAA7
 
-However, most current notebooks only offer 1.0 ACPI tables, where the
-pstate_cnt entry is marked as "reserved". Unless ACPI is in strict mode,
-the value in this "reserved" field is used as well, but a warning is
-printed.
+--------------080800020406090702000008--
 
-So, when is the BIOS notified? When should it be notified? The ACPI 
-specification doesn't say much about it. This patch does it if either
-of the following cpufreq drivers is pretty much done with a successful
-registration:
 
-- acpi
-- powernow-k7 [if either the system is blacklisted or acpi_force is used]
-- powernow-k8 [if the preferred DSDT method is used -- normally, it is...]
-- speedstep-centrino [if the preferred DSDT method is used -- normally, it is...]
 
-There's a small problem with the whole pstate_cnt approach: if there is a 
-physical[*] platform limit, it might be necessary to adjust the CPU frequency
-to avoid serious problems. Unless the BIOS is notified that the kernel is aware of _PPC, 
-the BIOS will likely do such adjustments on its own. As it will be notified now that the 
-OS can properly handle P-States, it might happen that the BIOS won't handle such serious 
-limits -- but if the cpufreq driver is "rmmod'ed" in between, it won't be handled by the OS,
-either. 
-This is a serious error, but it will _also_ happen on _any_ OS if:
-a) the pstate_cnt had been written to BIOS
-b) the system locks up hard so that even IRQs are not handled any more
-c) the physical platform limit event occurs
-
-So, both the cpufreq driver and the acpi processor module are "locked" (i.e. rmmod
-won't work any more) if the BIOS contains a _PPC entry, and acpi_processor_notify_smm()
-is called.
-
-[*] not the "we-want-to-have-X-hours-of-battery-time-in-that-test" type of platform limits...
-
-Signed-off-by: Dominik Brodowski <linux@brodo.de>
-
- arch/i386/kernel/cpu/cpufreq/acpi.c               |    4 -
- arch/i386/kernel/cpu/cpufreq/powernow-k7.c        |    3
- arch/i386/kernel/cpu/cpufreq/powernow-k8.c        |    4 +
- arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c |    3
- drivers/acpi/processor.c                          |   87 +++++++++++++++++++---
- drivers/acpi/tables/tbconvrt.c                    |   10 ++
- include/acpi/actbl.h                              |    2
- include/acpi/processor.h                          |    4 +
- 8 files changed, 106 insertions(+), 11 deletions(-)
-
-diff -ruN linux-original/arch/i386/kernel/cpu/cpufreq/acpi.c linux/arch/i386/kernel/cpu/cpufreq/acpi.c
---- linux-original/arch/i386/kernel/cpu/cpufreq/acpi.c	2004-08-30 22:50:56.000000000 +0200
-+++ linux/arch/i386/kernel/cpu/cpufreq/acpi.c	2004-09-04 11:07:42.855809600 +0200
-@@ -428,7 +428,9 @@
- 	if (result) {
- 		goto err_freqfree;
- 	}
--		
-+
-+	/* notify BIOS that we exist */
-+	acpi_processor_notify_smm(THIS_MODULE);
- 
- 	printk(KERN_INFO "cpufreq: CPU%u - ACPI performance management activated.\n",
- 	       cpu);
-diff -ruN linux-original/arch/i386/kernel/cpu/cpufreq/powernow-k7.c linux/arch/i386/kernel/cpu/cpufreq/powernow-k7.c
---- linux-original/arch/i386/kernel/cpu/cpufreq/powernow-k7.c	2004-08-30 22:50:56.000000000 +0200
-+++ linux/arch/i386/kernel/cpu/cpufreq/powernow-k7.c	2004-09-04 11:07:42.907801696 +0200
-@@ -400,6 +400,9 @@
- 	powernow_table[i].frequency = CPUFREQ_TABLE_END;
- 	powernow_table[i].index = 0;
- 
-+	/* notify BIOS that we exist */
-+	acpi_processor_notify_smm(THIS_MODULE);
-+
- 	return 0;
- 
- err2:
-diff -ruN linux-original/arch/i386/kernel/cpu/cpufreq/powernow-k8.c linux/arch/i386/kernel/cpu/cpufreq/powernow-k8.c
---- linux-original/arch/i386/kernel/cpu/cpufreq/powernow-k8.c	2004-08-30 22:50:56.000000000 +0200
-+++ linux/arch/i386/kernel/cpu/cpufreq/powernow-k8.c	2004-09-04 11:07:42.909801392 +0200
-@@ -768,6 +768,10 @@
- 	data->numps = data->acpi_data.state_count;
- 	print_basics(data);
- 	powernow_k8_acpi_pst_values(data, 0);
-+
-+	/* notify BIOS that we exist */
-+	acpi_processor_notify_smm(THIS_MODULE);
-+
- 	return 0;
- 
- err_out_mem:
-diff -ruN linux-original/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c linux/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c
---- linux-original/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c	2004-09-04 11:09:25.446213488 +0200
-+++ linux/arch/i386/kernel/cpu/cpufreq/speedstep-centrino.c	2004-09-04 11:07:42.934797592 +0200
-@@ -428,6 +428,9 @@
- 			centrino_model->op_points[i].frequency = CPUFREQ_ENTRY_INVALID;
- 	}
- 
-+	/* notify BIOS that we exist */
-+	acpi_processor_notify_smm(THIS_MODULE);
-+
- 	return 0;
- 
-  err_kfree_all:
-diff -ruN linux-original/drivers/acpi/processor.c linux/drivers/acpi/processor.c
---- linux-original/drivers/acpi/processor.c	2004-08-30 22:44:59.000000000 +0200
-+++ linux/drivers/acpi/processor.c	2004-09-04 11:07:43.058778744 +0200
-@@ -762,7 +762,10 @@
-  * policy is adjusted accordingly.
-  */
- 
--static int acpi_processor_ppc_is_init = 0;
-+#define PPC_REGISTERED   1
-+#define PPC_IN_USE       2
-+
-+static int acpi_processor_ppc_status = 0;
- 
- static int acpi_processor_ppc_notifier(struct notifier_block *nb, 
- 	unsigned long event,
-@@ -820,6 +823,10 @@
- 	 * (e.g. 0 = states 0..n; 1 = states 1..n; etc.
- 	 */
- 	status = acpi_evaluate_integer(pr->handle, "_PPC", NULL, &ppc);
-+
-+	if (status != AE_NOT_FOUND)
-+		acpi_processor_ppc_status |= PPC_IN_USE;
-+
- 	if(ACPI_FAILURE(status) && status != AE_NOT_FOUND) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Error evaluating _PPC\n"));
- 		return_VALUE(-ENODEV);
-@@ -844,17 +851,17 @@
- 
- static void acpi_processor_ppc_init(void) {
- 	if (!cpufreq_register_notifier(&acpi_ppc_notifier_block, CPUFREQ_POLICY_NOTIFIER))
--		acpi_processor_ppc_is_init = 1;
-+		acpi_processor_ppc_status |= PPC_REGISTERED;
- 	else
- 		printk(KERN_DEBUG "Warning: Processor Platform Limit not supported.\n");
- }
- 
- 
- static void acpi_processor_ppc_exit(void) {
--	if (acpi_processor_ppc_is_init)
-+	if (acpi_processor_ppc_status & PPC_REGISTERED)
- 		cpufreq_unregister_notifier(&acpi_ppc_notifier_block, CPUFREQ_POLICY_NOTIFIER);
- 
--	acpi_processor_ppc_is_init = 0;
-+	acpi_processor_ppc_status &= ~PPC_REGISTERED;
- }
- 
- /*
-@@ -1074,6 +1081,73 @@
- }
- 
- 
-+int acpi_processor_notify_smm(struct module *calling_module) {
-+	acpi_status		status;
-+	static int		is_done = 0;
-+
-+	ACPI_FUNCTION_TRACE("acpi_processor_notify_smm");
-+
-+	if (!(acpi_processor_ppc_status & PPC_REGISTERED))
-+		return_VALUE(-EBUSY);
-+
-+	if (!try_module_get(calling_module))
-+		return_VALUE(-EINVAL);
-+
-+	/* is_done is set to negative if an error occured,
-+	 * and to postitive if _no_ error occured, but SMM
-+	 * was already notified. This avoids double notification
-+	 * which might lead to unexpected results...
-+	 */
-+	if (is_done > 0) {
-+		module_put(calling_module);
-+		return_VALUE(0);
-+	}
-+	else if (is_done < 0) {
-+		module_put(calling_module);
-+		return_VALUE(is_done);
-+	}
-+
-+	is_done = -EIO;
-+
-+	/* Can't write pstate_cnt to smi_cmd if either value is zero */
-+	if ((!acpi_fadt.smi_cmd) ||
-+	    (!acpi_fadt.pstate_cnt)) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+			"No SMI port or pstate_cnt\n"));
-+		module_put(calling_module);
-+		return_VALUE(0);
-+	}
-+
-+	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Writing pstate_cnt [0x%x] to smi_cmd [0x%x]\n", acpi_fadt.pstate_cnt, acpi_fadt.smi_cmd));
-+
-+	/* FADT v1 doesn't support pstate_cnt, many BIOS vendors use
-+	 * it anyway, so we need to support it... */
-+	if (acpi_fadt_is_v1) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Using v1.0 FADT reserved value for pstate_cnt\n"));
-+	}
-+
-+	status = acpi_os_write_port (acpi_fadt.smi_cmd,
-+				     (u32) acpi_fadt.pstate_cnt, 8);
-+	if (ACPI_FAILURE (status)) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-+				  "Failed to write pstate_cnt [0x%x] to "
-+				  "smi_cmd [0x%x]\n", acpi_fadt.pstate_cnt, acpi_fadt.smi_cmd));
-+		module_put(calling_module);
-+		return_VALUE(status);
-+	}
-+
-+	/* Success. If there's no _PPC, we need to fear nothing, so
-+	 * we can allow the cpufreq driver to be rmmod'ed. */
-+	is_done = 1;
-+
-+	if (!(acpi_processor_ppc_status & PPC_IN_USE))
-+		module_put(calling_module);
-+
-+	return_VALUE(0);
-+}
-+EXPORT_SYMBOL(acpi_processor_notify_smm);
-+
-+
- #ifdef CONFIG_X86_ACPI_CPUFREQ_PROC_INTF
- /* /proc/acpi/processor/../performance interface (DEPRECATED) */
- 
-@@ -1230,7 +1304,7 @@
- 
- 	ACPI_FUNCTION_TRACE("acpi_processor_register_performance");
- 
--	if (!acpi_processor_ppc_is_init)
-+	if (!(acpi_processor_ppc_status & PPC_REGISTERED))
- 		return_VALUE(-EINVAL);
- 
- 	down(&performance_sem);
-@@ -1271,9 +1345,6 @@
- 
- 	ACPI_FUNCTION_TRACE("acpi_processor_unregister_performance");
- 
--	if (!acpi_processor_ppc_is_init)
--		return_VOID;
--
- 	down(&performance_sem);
- 
- 	pr = processors[cpu];
-diff -ruN linux-original/drivers/acpi/tables/tbconvrt.c linux/drivers/acpi/tables/tbconvrt.c
---- linux-original/drivers/acpi/tables/tbconvrt.c	2004-08-30 22:48:40.000000000 +0200
-+++ linux/drivers/acpi/tables/tbconvrt.c	2004-09-04 11:07:43.086774488 +0200
-@@ -50,6 +50,8 @@
- 	 ACPI_MODULE_NAME    ("tbconvrt")
- 
- 
-+u8 acpi_fadt_is_v1;
-+
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_tb_get_table_count
-@@ -212,6 +214,7 @@
- 
- 	/* ACPI 1.0 FACS */
- 	/* The BIOS stored FADT should agree with Revision 1.0 */
-+	acpi_fadt_is_v1 = 1;
- 
- 	/*
- 	 * Copy the table header and the common part of the tables.
-@@ -240,9 +243,12 @@
- 	/*
- 	 * Processor Performance State Control. This is the value OSPM writes to
- 	 * the SMI_CMD register to assume processor performance state control
--	 * responsibility. There isn't any equivalence in 1.0, leave it zeroed.
-+	 * responsibility. There isn't any equivalence in 1.0, but as many 1.x
-+	 * ACPI tables contain _PCT and _PSS we also keep this value, unless
-+	 * acpi_strict is set.
- 	 */
--	local_fadt->pstate_cnt = 0;
-+	if (acpi_strict)
-+		local_fadt->pstate_cnt = 0;
- 
- 	/*
- 	 * Support for the _CST object and C States change notification.
-diff -ruN linux-original/include/acpi/actbl.h linux/include/acpi/actbl.h
---- linux-original/include/acpi/actbl.h	2004-08-30 22:45:39.000000000 +0200
-+++ linux/include/acpi/actbl.h	2004-09-04 11:07:43.088774184 +0200
-@@ -330,6 +330,8 @@
- #include "actbl1.h"   /* Acpi 1.0 table definitions */
- #include "actbl2.h"   /* Acpi 2.0 table definitions */
- 
-+extern u8 acpi_fadt_is_v1; /* is set to 1 if FADT is revision 1,
-+			    * needed for certain workarounds */
- 
- #pragma pack(1)
- /*
-diff -ruN linux-original/include/acpi/processor.h linux/include/acpi/processor.h
---- linux-original/include/acpi/processor.h	2004-08-30 22:45:39.000000000 +0200
-+++ linux/include/acpi/processor.h	2004-09-04 11:07:43.113770384 +0200
-@@ -140,4 +140,8 @@
- 	struct acpi_processor_performance * performance,
- 	unsigned int cpu);
- 
-+/* note: this locks both the calling module and the processor module
-+         if a _PPC object exists, rmmod is disallowed then */
-+int acpi_processor_notify_smm(struct module *calling_module);
-+
- #endif
+-------------------------------------------------------
+This SF.Net email is sponsored by BEA Weblogic Workshop
+FREE Java Enterprise J2EE developer tools!
+Get your free copy of BEA WebLogic Workshop 8.1 today.
+http://ads.osdn.com/?ad_id=5047&alloc_id=10808&op=click
