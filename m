@@ -1,12 +1,13 @@
-From: =?iso-8859-1?Q?BERNARD_S=E9bastien?= <sebastien.bernard-vHHsQtDGzY9GWvitb5QawA@public.gmane.org>
-Subject: NV800a Problem from test9
-Date: Thu, 30 Oct 2003 10:42:50 +0100
+From: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
+Subject: RE: standby resumes immediately in 2.6.0-test8
+Date: Thu, 30 Oct 2003 08:15:32 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3220CFEF35C7D61180EC0002A5438BB005B760D4@achille>
+Message-ID: <Pine.LNX.4.44.0310300812160.1023-100000@cherise>
+References: <3ACA40606221794F80A5670F0AF15F8401720B70@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_001_01C39ECA.2EF49870"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401720B70-4yWAQGcml64gGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,149 +16,27 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Bas Mevissen <ml-Y9IUUvl1dgU0Iwp8Nzs06g@public.gmane.org>, Aviram Jenik <aviram-koYqR8i3DjZZkMgn48OZqdBPR1lH4CV8@public.gmane.org>, =?iso-8859-1?Q?=E9ric_Brunet?= <Eric.Brunet-l5PIGlIYzrxGWvitb5QawA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This message is in MIME format. Since your mail reader does not understand
-this format, some or all of this message may not be legible.
 
-------_=_NextPart_001_01C39ECA.2EF49870
-Content-Type: text/plain;
-	charset="iso-8859-1"
+> I don't know whether  patch at http://bugme.osdl.org/show_bug.cgi?id=1433 address this issue.
 
-Hi.
+Wow, could you please post patches to the list? You get very little
+exposure for fixes posted solely through bugzilla, which means your effort
+goes wasted.
 
- 
+Ditto for dialog about bugs. I don't track bugs there; I consider the 
+mailing lists to be the proper forum for doing so. If you or someone else 
+would like to add play-by-play commentary there (or vice versa) that might 
+be helpful.. But they might otherwise go unnoticed.
 
-When moving from test8 to test9 on my Compaq Nv800a I noticed that 
-
-the LCD screen that was doing fine in test8 failed to switch back on in 
-
-test9.
-
- 
-
-Let me explain.
-
- 
-
-The Screen is normally initialized and show up nicely at the boot.
-
-When the lid switch is hit the screen turns off and so does the 
-
-backlight.
-
-When the lid is reopened, the backlight turns on but not the screen.
-
-This behavior happens since test9.
-
- 
-
-Can anyone explain me why ?
+Thanks,
 
 
-------_=_NextPart_001_01C39ECA.2EF49870
-Content-Type: text/html;
-	charset="iso-8859-1"
+	Pat
 
-<html>
-
-<head>
-<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
-
-
-<meta name=Generator content="Microsoft Word 10 (filtered)">
-
-<style>
-<!--
- /* Style Definitions */
- p.MsoNormal, li.MsoNormal, div.MsoNormal
-	{margin:0cm;
-	margin-bottom:.0001pt;
-	font-size:12.0pt;
-	font-family:"Times New Roman";}
-a:link, span.MsoHyperlink
-	{color:blue;
-	text-decoration:underline;}
-a:visited, span.MsoHyperlinkFollowed
-	{color:purple;
-	text-decoration:underline;}
-span.stylecourrierlectronique17
-	{font-family:Arial;
-	color:windowtext;}
-span.StyleCourrierlectronique18
-	{font-family:Arial;}
-@page Section1
-	{size:595.3pt 841.9pt;
-	margin:70.85pt 70.85pt 70.85pt 70.85pt;}
-div.Section1
-	{page:Section1;}
--->
-</style>
-
-</head>
-
-<body lang=FR link=blue vlink=purple>
-
-<div class=Section1>
-
-<p class=MsoNormal><font size=2 face=Arial><span lang=EN-GB style='font-size:
-10.0pt;font-family:Arial'>Hi.</span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span lang=EN-GB style='font-size:
-10.0pt;font-family:Arial'>&nbsp;</span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span lang=EN-GB style='font-size:
-10.0pt;font-family:Arial'>When moving from test8 to test9 on my Compaq Nv800a I
-noticed that </span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span lang=EN-GB style='font-size:
-10.0pt;font-family:Arial'>the LCD screen that was doing fine in test8 failed to
-switch back on in </span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span lang=EN-GB style='font-size:
-10.0pt;font-family:Arial'>test9.</span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span lang=EN-GB style='font-size:
-10.0pt;font-family:Arial'>&nbsp;</span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span lang=EN-GB style='font-size:
-10.0pt;font-family:Arial'>Let me explain.</span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span lang=EN-GB style='font-size:
-10.0pt;font-family:Arial'>&nbsp;</span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span lang=EN-GB style='font-size:
-10.0pt;font-family:Arial'>The Screen is normally initialized and show up nicely
-at the boot.</span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span lang=EN-GB style='font-size:
-10.0pt;font-family:Arial'>When the lid switch is hit the screen turns off and
-so does the </span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span lang=EN-GB style='font-size:
-10.0pt;font-family:Arial'>backlight.</span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span lang=EN-GB style='font-size:
-10.0pt;font-family:Arial'>When the lid is reopened, the backlight turns on but
-not the screen.</span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span lang=EN-GB style='font-size:
-10.0pt;font-family:Arial'>This behavior happens since test9.</span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span lang=EN-GB style='font-size:
-10.0pt;font-family:Arial'>&nbsp;</span></font></p>
-
-<p class=MsoNormal><font size=2 face=Arial><span lang=EN-GB style='font-size:
-10.0pt;font-family:Arial'>Can anyone explain me why ?</span></font></p>
-
-</div>
-
-</body>
-
-</html>
-
-------_=_NextPart_001_01C39ECA.2EF49870--
 
 
 -------------------------------------------------------
