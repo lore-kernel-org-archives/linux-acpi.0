@@ -1,16 +1,15 @@
-From: Carlos Morgado <chbm-tNiY1ywYjSU@public.gmane.org>
+From: Jamin W. Collins <jcollins-u0TlgVUp4POoiH3BShWgcg@public.gmane.org>
 Subject: Re: C1VN, ACPI and ESD/ASD = const CPU
-Date: Tue, 27 Aug 2002 16:53:20 +0100
+Date: Tue, 27 Aug 2002 11:09:13 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020827155320.GA2998@whisky.cprm.net>
+Message-ID: <20020827110913.46404fb7.jcollins@asgardsrealm.net>
 References: <20020827091844.7af7a982.jcollins@asgardsrealm.net>
-Reply-To: chbm-tNiY1ywYjSU@public.gmane.org
+	<20020827155320.GA2998@whisky.cprm.net>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20020827091844.7af7a982.jcollins-u0TlgVUp4POoiH3BShWgcg@public.gmane.org>; from jcollins-u0TlgVUp4POoiH3BShWgcg@public.gmane.org on Tue, Aug 27, 2002 at 15:18:44 +0100
+In-Reply-To: <20020827155320.GA2998-kEryGdCNCzRQeIZkGdo+ZQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -22,20 +21,39 @@ List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Tue, 27 Aug 2002 16:53:20 +0100
+Carlos Morgado <chbm-tNiY1ywYjSU@public.gmane.org> wrote:
 
-On 2002.08.27 15:18:44 +0100 Jamin W. Collins wrote:
+> check the irq distribution on an apm and an acpi kernel
 
-> I'm able to run either ESD or ASD with a non-ACPI kernel without these
-> symptoms and likewise, running the ACPI kernel without ESD or ASD results
-> in normal CPU utilization.
-> 
+ACPI Kernel - 2.4.18 - with ACPI and SWSUP patches
+  0:    1204728          XT-PIC  timer
+  1:       1219          XT-PIC  keyboard
+  2:          0          XT-PIC  cascade
+  3:       5453          XT-PIC  orinoco_cs
+  8:          3          XT-PIC  rtc
+  9:    1950699          XT-PIC  acpi, usb-uhci, Ricoh Co Ltd RL5c475,
+YMFPCI
+ 11:         55          XT-PIC  sonypi
+ 12:       9081          XT-PIC  PS/2 Mouse
+ 14:      89814          XT-PIC  ide0
 
-check the irq distribution on an apm and an acpi kernel
+APM Kernel - 2.4.18 - stock Debian 586tsc 
+  0:      34547          XT-PIC  timer
+  1:          5          XT-PIC  keyboard
+  2:          0          XT-PIC  cascade
+  3:        190          XT-PIC  orinoco_cs
+  8:          3          XT-PIC  rtc
+  9:         31          XT-PIC  usb-uhci, Ricoh Co Ltd RL5c475, YMFPCI
+ 11:          3          XT-PIC  sonypi
+ 12:         15          XT-PIC  PS/2 Mouse
+ 14:      68288          XT-PIC  ide0
+
+With the exception of acpi not existing in the APM kernel, they look
+exactly the same.
 
 -- 
-Carlos Morgado - chbm(at)chbm(dot)nu - http://chbm.nu/ -- gpgkey: 0x1FC57F0A
-http://wwwkeys.pgp.net/ FP:0A27 35D3 C448 3641 0573 6876 2A37 4BB2 1FC5 7F0A
-Software is like sex; it's better when it's free. - Linus Torvalds
+Jamin W. Collins
 
 
 -------------------------------------------------------
