@@ -1,14 +1,14 @@
-From: "KOCHI, Takayoshi" <t-kouchi-dPjYVeZdYcz+G+EEi5ephHgSJqDPrsil@public.gmane.org>
-Subject: Re: ACPI Debugger
-Date: Thu, 05 Sep 2002 13:42:08 -0700
+From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>
+Subject: Re: Overriding DSDT Tables with external files - 2 Methods
+Date: 06 Sep 2002 01:46:20 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020906054159.FEDDC0A82650.6C9EC293@mvf.biglobe.ne.jp>
-References: <EDC461A30AC4D511ADE10002A5072CAD0236DE18@orsmsx119.jf.intel.com>
+Message-ID: <1031291181.3918.12.camel@darkstar.portugal>
+References: <1031252226.3011.76.camel@jtsdell>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD0236DE18-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
+In-Reply-To: <1031252226.3011.76.camel-gH4hS+xkl8U@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,38 +17,94 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: John M Trostel <john.trostel-+vhbC7un7QRBDgjK7y7TUQ@public.gmane.org>
+Cc: ACPI-list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+I prefer the method 1 because with gcc of RedHat doesn't include .hex
+files 
 
-On Thu, 5 Sep 2002 12:20:12 -0700 
-"Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-
-> > But if it's there, it's very helpful especially for developing
-> > and testing ACPI-related drivers (PCI hotplug, thermal etc.)
-> > as well as debugging ACPI driver core itself.  So at least
-> > I personally want it.
-> > 
-> > So for enabling the debugger, at least you need the disassembler
-> > subdirectory.  If you can integrate the directory to the Linux driver
-> > set, I could test / work on the debugger stuff...
+On Thu, 2002-09-05 at 14:57, John M Trostel wrote:
+> There seem to be 2 closely related methods of overriding the DSDT in a
+> BIOS with your own files.
 > 
-> Hmm, I just removed it from the tree.
+> My question is... Do they both work? If they do both work, is one
+> prefered over the other?
 > 
-> And, I think it should stay as an external patch. kdb is an external patch
-> too, after all.
+> ***********************************
+> Method 1 (from http://www.cpqlinux.com/acpi-howto.html and others)
+> 
+> 1. get the dsdt.hex file
+> 
+> 2. cp -a dsdt.hex to drivers/acpi/tables/acpi_dsdt.c
+> 
+> 3. apply  the following patch
+> 
+> --- linux/drivers/acpi/osl.c    Sat Jul 13 16:16:25 2002
+> +++ linux-2.4.18-xfs-acpi/drivers/acpi/osl.c    Sat Jul 13 14:33:09 2002
+> @@ -70,6 +70,7 @@
+>  static OSD_HANDLER acpi_irq_handler = NULL;
+>  static void *acpi_irq_context = NULL;
+> 
+> +extern unsigned char AmlCode[];
+> 
+>  acpi_status
+>  acpi_os_initialize(void)
+> @@ -221,7 +222,10 @@
+>         if (!existing_table || !new_table)
+>                 return AE_BAD_PARAMETER;
+> 
+> -       *new_table = NULL;
+> +       if (strncmp(existing_table->signature, "DSDT", 4) == 0)
+> +               *new_table = (acpi_table_header*)AmlCode;
+> +       else
+> +               *new_table = NULL;
+>         return AE_OK;
+>  }
+> 
+> 
+> ***********************************
+> Method 2 (from Christophe Boyanique) :
+> 
+> 1. get the dsdt.hex file
+> 
+> 2. copy that file into drivers/acpi
+> 
+> 3. patch drivers/acpi/osl.c as follows:
+> 
+> diff -urP drivers/acpi/osl.c /usr/src/linux/drivers/acpi/osl.c
+>  --- drivers/acpi/osl.c  Mon Jul 29 23:30:42 2002
+>  +++ /usr/src/linux/drivers/acpi/osl.c   Sat Jul 27 18:32:34 2002
+>  @@ -71,6 +71,9 @@
+>   static void *acpi_irq_context = NULL;
+>  
+>  
+>  +#include "dsdt.hex"
+>  +acpi_table_header *myDST = (acpi_table_header *) AmlCode;
+>  +
+>   acpi_status
+>   acpi_os_initialize(void)
+>   {
+>  @@ -221,7 +224,10 @@
+>          if (!existing_table || !new_table)
+>                  return AE_BAD_PARAMETER;
+>  
+>  -       *new_table = NULL;
+>  +       if (!strncmp(existing_table->signature, DSDT_SIG, 4))
+>  +               *new_table = myDST;
+>  +       else
+>  +               *new_table = NULL;
+>          return AE_OK;
+>   }
+> 
+> 
+> -- 
+> John M. Trostel
+> Senior Software Engineer
+> Quantum Corp.
+> john.trostel-+vhbC7un7QRBDgjK7y7TUQ@public.gmane.org
+> 
 
-That makes sense.
-
-> If you want I will email you the Linuxized debugger and
-> disassembler directories. You should be able to make a working patch from
-> that, if you're still up for it.
-
-I'd appreciate it.
-
-Thanks,
--- 
-KOCHI, Takayoshi <t-kouchi-f7IHDacdhdx8UrSeD/g0lQ@public.gmane.org/t-kouchi>
 
 
 
