@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Processor C states and USB problem
-Date: Sun, 18 Jan 2004 11:17:38 +0800
+Subject: RE: Problem - 2.6.0 Kernel and irq 18: nobody cared!
+Date: Sun, 18 Jan 2004 11:34:29 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CE2@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CE4@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,45 +17,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Diego SANTA CRUZ <dsanta-W/9V78bTXrinCNX9eg9BBA@public.gmane.org>
+To: jan-christian-Uv4yylcIJW+ELgA04lAiVw@public.gmane.org
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
+> The "Asus P4P800 Deluxe" mainboard has on Option "Enhanced=20
+> Mode Support
+> On" which can be set for P-ATA devices S-ATA devices or both. This
+> option is for legacy OSes like MS-DOS/Win98/Me/NT4.0 on which=20
+> the ICH5R
+> supports only 4 devices and not 6 (4 P-ATA devices + 2 S-ATA devices).
 >=20
-> Yes, but compared to the usage count of C2 that is extremely low, and
-> the CPU is idling all the time (CPU usage is below 1%). I don't know
-> much about C states but I guess it should go into C3 much more often,
-> and the bus mastering activity should show something else=20
-> than ffffffff
-> when booting with a bare bones kernel and with no extra hw initialized
-> (USB, FireWire, etc.)
+> When the option is set to both, I get those error messages on booting
+> Linux 2.4/2.6 but no error messages when booting WinXP.
+>=20
 
-I agree that it's unreasonable that C3 usage count is never above 5.=20
-This is the result of the C state power policy.=20
+I'm really interested in this option that caused irq 18 : nobody cared!=20
 
-Threshold is:
-pr->power.states[ACPI_STATE_C2].promotion.threshold.bm =3D 0x0F;
-pr->power.states[ACPI_STATE_C3].demotion.threshold.bm =3D 0x0F;
+> When I set it to S-ATA (I don't have S-ATA devices) than everything
+> works great with 2.6.
+>=20
+> If it'll be interesting for you to get 2.6 still working with=20
+> the other
+> option, I could send you more log's.
+>=20
 
-The condition of promotion or demotion is:
-if (pr->power.bm_activity & cx->demotion.threshold.bm) {
-if (!(pr->power.bm_activity & cx->promotion.threshold.bm)) {
-
-Using the following statement to adjust bm_activity of the last Nth
-schedule quanta.
-
-pr->power.bm_activity <<=3D 1;
-if(bm_status)
-	pr->power.bm_activity++;
-
-So it's is not strange that C3 usage count is 4  !
-
-Maybe we need a more sophisticated policy .
-
-
-
-
+Thanks for you help, please send me with boot log as well as disassembly
+file of
+/proc/acpi/dsdt. I need to check AML methods involved in this issue.
 
 
 
