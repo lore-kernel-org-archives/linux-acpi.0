@@ -1,21 +1,12 @@
-From: Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC] Reliable video POSTing on resume
-Date: Sat, 5 Feb 2005 10:55:29 -0500
-Message-ID: <9e47339105020507552d93bd79@mail.gmail.com>
-References: <20050122134205.GA9354@wsc-gmbh.de>
-	 <9e47339105020321031ccaabb@mail.gmail.com> <420367CF.7060206@gmx.net>
-	 <20050204163019.GC1290@elf.ucw.cz>
-	 <9e4733910502040931955f5a6@mail.gmail.com>
-	 <1107569089.8575.35.camel@tyrosine>
-	 <9e4733910502041809738017a7@mail.gmail.com>
-	 <1107569842.8575.44.camel@tyrosine>
-	 <9e47339105020418306a4c2c93@mail.gmail.com>
-	 <1107591336.8575.51.camel@tyrosine>
-Reply-To: Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: S3 suspend and serial console
+Date: Sat, 5 Feb 2005 16:58:45 +0100
+Message-ID: <20050205155845.GA20131@hell.org.pl>
+References: <42023083.8030508@gmx.net> <4204CA50.8090906@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <1107591336.8575.51.camel@tyrosine>
+Content-Type: text/plain; charset=iso-8859-2
+Content-Disposition: inline
+In-Reply-To: <4204CA50.8090906-hi6Y0CQ0nG0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -25,38 +16,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
+Cc: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, 05 Feb 2005 08:15:35 +0000, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org> wrote:
-> On Fri, 2005-02-04 at 21:30 -0500, Jon Smirl wrote:
+Thus wrote Carl-Daniel Hailfinger:
+> > goes back to normal after issuing the command
+> > echo foo >/dev/ttyS0
 > 
-> > I suspect the problem in that case is a compressed VBIOS. Some laptops
-> > compress the VBIOS and the system BIOS into a single ROM and then
-> > expand them at power on. Sounds like this is not happening on resume.
-> > To get around the problem copy the image from C000:0 before suspend to
-> > a place in preserved RAM where wakeup.S can find it and then copy it
-> > back to C000:0 on resume. To test for this checksum C000:0 before
-> > suspend and after and see if it has changed.
-> 
-> No, that's not what's happening. If you disassemble the code at
-> c000:blah in a laptop, you'll often find that it jumps off to a
-> completely different section of address space. During POST, that
-> contains video BIOS. After POST, it may be something like USB boot
-> support. Without reading it directly out of flash, it's not possible to
-> recover that code.
+> >/dev/ttyS0
+> fixes it, too. So you're right, Pavel.
 
-If the copy left at C000:0 is jumping off to F000:xx (system BIOS)
-that is a valid thing to do and the reset program may need more
-emulation hooks. If it is jumping off somewhere else then I would
-consider that a broken VBIOS since jumping to C000:3 for reset is part
-of how VGA is supposed to work. If this is happening on an ATI or
-Nvidia chip you're probably never going to get video resume working.
+echo > /dev/ttyS0 will echo a single '\n'. I guess echo -n would be more
+appropriate.
+Best regards,
 
 -- 
-Jon Smirl
-jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
