@@ -1,16 +1,15 @@
-From: Ernst Herzberg <earny-euM3SP4ZHrg@public.gmane.org>
-Subject: Re: CALL FOR TESTING
-Date: Fri, 4 Oct 2002 00:11:34 +0200
+From: Luis Miguel Pires Neves <lneves-3+EeCmRbAIo+BYJ/izffpQ@public.gmane.org>
+Subject: Re: CALL FOR TESTING (just for the record)
+Date: Fri, 4 Oct 2002 14:36:51 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200210040011.34762.earny@net4u.de>
-References: <EDC461A30AC4D511ADE10002A5072CAD0236DE80@orsmsx119.jf.intel.com> <200209260406.48808.earny@net4u.de> <20020930020016.A90@toy.ucw.cz>
-Reply-To: earny-euM3SP4ZHrg@public.gmane.org
+Message-ID: <E17xSk5-0000au-00@incognito>
+References: <E17wsFd-0000WF-00@usw-sf-list2.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20020930020016.A90-muQmgwBScQHrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <E17wsFd-0000WF-00-HKCwXBn57GynvZpeIfgr/KQD96bmaF075NbjCUgZEJk@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,45 +18,47 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Montag, 30. September 2002 04:00, Pavel Machek wrote:
-> Hi!
->
->   > Yupp, i can reproduce this. Heated up with burnP6 an a little 'part=
-ial
->   > cooling
-> >
-> > preventer' to aprox. 65 to 75=B0C (the temperature display jumps betw=
-een
-> > this values in the thermalzone, fan is forced 'off', means running ha=
-lf
-> > speed). The laptop is doing his job without problems...  i type reboo=
-t:
-> >
-> > [.... the kernel loads ....]
-> > md: ... autorun DONE.
-> > NET4: Linux TCP/IP 1.0 for NET4.0
-> > IP Protocols ICMP, UDP, TCP, IGMP
-> > Unable to handle kernel NULL pinter dereference at virtual address
-> > 00000004 printing eip
-> > c011fe45
-> > *pde =3D 00000000
-> > Oops: 0002
-> > CPU:    0
-> > EIP:    0010:[<c011fe45>]  Not tainted
->
-> Can you ksymoops it?
+Hi,
 
-------
+I know this is already out of date, but just for the record, I would like=
+ to=20
+say that my COMPAQ 12XL515 (1200 series) boots and works better than ever=
+ (as=20
+far as I could see) with the 20020918 ACPI version and kernel 2.4.18
 
-Fixed with acpi-20021002 (doublechecked)
+Battery info and status are OK
 
-Thx, great work :)
+Thermal management seems better
 
-<Earny>
+Events work (never worked before without the kacpid patch, and even with =
+it=20
+in the latter versions). Now I can test ospmd or acpid (by the way which =
+is=20
+the better?)
+
+A strange issue also seems to have disapeared. I didn't think it was acpi=
+=20
+related, but as it disapeared with this last version, I have to assume it=
+=20
+was. Sometimes, I didn't found a rational to know exactly why or when, my=
+=20
+mouse became out of syncronism with the pointer in the screen. I had to p=
+oint=20
+a little bit to the right to hit a button. This used to happen with Mozil=
+la,=20
+Scilab and other programs, and the only way to regain syncronism was to=20
+reboot or suspend and resume with swsusp. Killing the Xserver, or gpm did=
+n't=20
+work. My system runs Debian 3.0 and I use gpm to take advantage of the=20
+Synaptics touchpad driver features. Does anyone have a clue on this? My=20
+suspicion goes to temperature as I believe the system runs cooler now.
+
+Best regards, and keep up the good work
+
+Lu=EDs
 
 
 
