@@ -1,15 +1,13 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: "new" kernel acpi irq routing breaks tulip driver for admtek
- network card
-Date: Wed, 30 Mar 2005 16:06:33 -0700
-Message-ID: <1112223993.20358.87.camel@eeyore>
-References: <42419BE6.7000702@gmx.net> <1111685885.24547.2.camel@eeyore>
-	 <4248070F.7080802@gmx.net> <1112031435.11720.23.camel@eeyore>
-	 <424B1AFB.8040508@gmx.net>
+From: Romano Giannetti <romanol-qvIf60buks8@public.gmane.org>
+Subject: Re: Re: [BKPATCH] ACPI for 2.6.12-rc1
+Date: Thu, 31 Mar 2005 16:59:33 +0200
+Message-ID: <20050331145933.GB21883@pern.dea.icai.upco.es>
+References: <1111127024.9332.157.camel@d845pe> <20050319215239.GA5105@rukbat.dea.icai.upco.es> <20050329081321.GA4133@pern.dea.icai.upco.es> <200503301409.00785.luming.yu@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-/F9e2IpFQ229P6voqlID"
+Content-Type: text/plain; charset=iso-8859-15
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <424B1AFB.8040508-hi6Y0CQ0nG0@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <200503301409.00785.luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,132 +17,81 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Sapier <sapier-hi6Y0CQ0nG0@public.gmane.org>
-Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Wed, Mar 30, 2005 at 02:09:00PM +0800, Yu, Luming wrote:
+> On Tuesday 29 March 2005 16:13, Romano Giannetti wrote:
+> >  This is to report an issue with 2.6.11 and ACPI battery/ac. The resume is:
+> >  acpi battery with preemptive kernel do not work, while the same kernel
+> > with no preempt works ok. I have tried to collect all the possible info;
+> > tell me if you need something more.
+> >
+> >  The details:
+> >
+> >  The working kernel is 2.6.11 with the patch from the acpi-devel list to
+> > fix acpi keys (not working otherwise). See for a description
+> >  http://bugme.osdl.org/show_bug.cgi?id=4124
+> 
+> If you can find AE_AML_BUFFER_LIMIT in your long, then, it should be 
+> interpreter bug.  please see http://bugzilla.kernel.org/show_bug.cgi?id=4150
+> Otherwise, maybe it is related to EC driver.
 
---=-/F9e2IpFQ229P6voqlID
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+I am not sure if I understood. If I do 
 
-On Wed, 2005-03-30 at 23:32 +0200, Sapier wrote:
-> when you look at the attached dmesg log you see that first try to use 
-> eth0 device fails but when pcmcia modules are loaded notice the line
-> "ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 10"
-> after that the network card gets an ip address and seems to work
+(0)% grep AE_AML_BUFFER_LIMIT dmesg.txt 
+(1)%
 
-This is very interesting.  And your theory sounds good to me.
-Just to confirm -- if you load tulip first (without loading
-yenta), the NIC doesn't work.  And if you load yenta first,
-*then* load tulip, the NIC does work.  Alternatively, if you
-boot with "pci=routeirq", the NIC works regardless of the
-tulip/yenta load order.
+I have nothing like that in syslog, either, so it should be another thing. 
+Hmmm... I have "scheduling in atomic" errors, when resuming with preemptive
+kernel, so maybe it's related with
+http://sourceforge.net/mailarchive/message.php?msg_id=11129317
 
-That suggests that the ACPI PRT says tulip is directly connected
-to IRQ 10, but in fact, it is connected to LNKB.  We disable the
-IRQ links at boot-time (in acpi_pci_link_add()), so that would
-explain why it doesn't work until yenta gets loaded.  "pci=routeirq"
-enables all the links before drivers start up, so that explains
-why it works then.
+The errors are: 
 
-You could disassemble your DSDT to verify what it says about
-the NIC.  In short, "cp /proc/acpi/dsdt dsdt; iasl -d dsdt;
-cat dsdt.dsl".  Look for the entry under \_SB_.PCI0._PRT
-for 0x0009FFFF, since the NIC is 0000:00:09.0.
+scheduling while atomic: really_suspend/0x00000001/4624
+ [<c0396007>] schedule+0x467/0x520
+ [<c0121035>] __mod_timer+0x1c5/0x1f0
+ [<c0396acd>] schedule_timeout+0x5d/0xb0
+ [<c0121ac0>] process_timeout+0x0/0x10
+ [<c0121eaf>] msleep+0x2f/0x40
+ [<c024b080>] pci_set_power_state+0x190/0x1d0
+ [<c024b1c8>] pci_enable_device_bars+0x18/0x40
+ [<c024b20f>] pci_enable_device+0x1f/0x40
+ [<d0ccf64c>] snd_via82xx_resume+0x1c/0x170 [snd_via82xx]
+ [<c024b199>] pci_restore_state+0x39/0x50
+ [<d0cacc79>] snd_card_pci_resume+0x49/0x76 [snd]
+ [<c024d36c>] pci_device_resume+0x2c/0x40
+ [<c02c79a8>] dpm_resume+0xa8/0xb0
+ [<c02c79c1>] device_resume+0x11/0x20
+ [<c0135268>] finish+0x8/0x40
+ [<c01353c5>] pm_suspend_disk+0x75/0xc0
+ [<c0133786>] enter_state+0x86/0x90
+ [<c013379f>] software_suspend+0xf/0x20
+ [<c0289d9a>] acpi_system_write_sleep+0x6a/0x84
+ [<c015835c>] vfs_write+0x14c/0x160
+ [<c0158441>] sys_write+0x51/0x80
+ [<c01032b9>] sysenter_past_esp+0x52/0x75
 
-You can get iasl here:
-    http://www.intel.com/technology/IAPC/acpi/downloads.htm
-I had to use the attached patch to build it cleanly.
+...and more, you can find them all in
+http://www.dea.icai.upco.es/romano/linux/br/acpi-preempt.txt
 
-This mentions what looks like a similar problem:
-    http://www.kybs.de/boris/notebook.shtml
+Could this be related to the fact that in 2.6.12-rc1 software suspend
+stopped to work? Maybe some bad interaction between acpi code and swsusp? 
 
-A BIOS upgrade would be the best way to fix this, but
-you already said no BIOS updates are available.
+Moreover, if you can, can you point me to some documentation on how to use
+"debug_level" and "debug_layer" to help debugging? 
 
-I don't know whether ACPI has a "quirk" model to deal with
-things like this.
+Thanks! 
 
-> Linux version 2.6.11 (root@mobility) (gcc-Version 3.4.1) #5 Wed Mar 30 22:36:22 CEST 2005
-> ...
-> ACPI: Using PIC for interrupt routing
-> ACPI: PCI Root Bridge [PCI0] (00:00)
-> PCI: Probing PCI hardware (bus 00)
-> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
-> ACPI: PCI Interrupt Link [LNKA] (IRQs *10)
-> ACPI: PCI Interrupt Link [LNKB] (IRQs *10)
-> ACPI: PCI Interrupt Link [LNKC] (IRQs *5)
-> ACPI: PCI Interrupt Link [LNKD] (IRQs 5) *0, disabled.
-> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PPB_._PRT]
-> ...
-> Linux Tulip driver version 1.1.13 (May 11, 2002)
-> ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 10
-> PCI: setting IRQ 10 as level-triggered
-> ACPI: PCI interrupt 0000:00:09.0[A] -> GSI 10 (level, low) -> IRQ 10
-> tulip0:  MII transceiver #1 config 1000 status 786d advertising 01e1.
-> eth0: ADMtek Comet rev 17 at 00011c00, 00:90:96:1A:32:D1, IRQ 10.
-> ...
-> 0000:00:09.0: tulip_stop_rxtx() failed
-> eth0: Setting full-duplex based on MII#1 link partner capability of 41e1.
-> 0000:00:09.0: tulip_stop_rxtx() failed
-> Linux Kernel Card Services
->   options:  [pci] [cardbus] [pm]
-> ACPI: PCI interrupt 0000:00:0c.0[A] -> GSI 10 (level, low) -> IRQ 10
-> Yenta: CardBus bridge found at 0000:00:0c.0 [1509:1860]
-> Yenta O2: res at 0x94/0xD4: e8/00
-> Yenta O2: enabling read prefetch/write burst
-> Yenta: ISA IRQ mask 0x0800, PCI irq 10
-> Socket status: 30000006
-> ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 10
-> ACPI: PCI interrupt 0000:00:0c.1[B] -> GSI 10 (level, low) -> IRQ 10
-> Yenta: CardBus bridge found at 0000:00:0c.1 [1509:1860]
-> Yenta: ISA IRQ mask 0x0800, PCI irq 10
-> Socket status: 30000006
-> cs: IO port probe 0xc00-0xcff: clean.
-> cs: IO port probe 0xc00-0xcff: clean.
-> cs: IO port probe 0x800-0x8ff: clean.
-> cs: IO port probe 0x800-0x8ff: clean.
-> cs: IO port probe 0x100-0x4ff: excluding 0x2f8-0x2ff 0x378-0x37f 0x3f8-0x3ff
-> cs: IO port probe 0x100-0x4ff: excluding 0x2f8-0x2ff 0x378-0x37f 0x3f8-0x3ff
-> cs: IO port probe 0xa00-0xaff: clean.
-> cs: IO port probe 0xa00-0xaff: clean.
-> 0000:00:09.0: tulip_stop_rxtx() failed
-> eth0: Setting full-duplex based on MII#1 link partner capability of 41e1.
-> eth0: no IPv6 routers present
+        Romano 
 
---=-/F9e2IpFQ229P6voqlID
-Content-Disposition: attachment; filename=diffs
-Content-Type: text/x-patch; name=diffs; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 
-diff -u -r acpica-unix-20050309/compiler/Makefile fixed/compiler/Makefile
---- acpica-unix-20050309/compiler/Makefile	2005-03-09 12:34:09.000000000 -0700
-+++ fixed/compiler/Makefile	2005-03-30 14:29:04.000000000 -0700
-@@ -82,7 +82,7 @@
- YACC=	bison
- YFLAGS+= -v -d
- LEX=	flex
--LFLAGS+= -i
-+LFLAGS+= -i --array
- 
- #.if $(YACC) == "bison"
- YFLAGS+= -y -pAslCompiler
-diff -u -r acpica-unix-20050309/compiler/aslglobal.h fixed/compiler/aslglobal.h
---- acpica-unix-20050309/compiler/aslglobal.h	2005-03-09 12:34:08.000000000 -0700
-+++ fixed/compiler/aslglobal.h	2005-03-30 14:26:26.000000000 -0700
-@@ -141,7 +141,7 @@
- extern FILE                         *AslCompilerin;
- extern int                          AslCompilerdebug;
- extern const ASL_MAPPING_ENTRY      AslKeywordMapping[];
--extern char                         *AslCompilertext;
-+extern char                         AslCompilertext[];
- extern char                         hex[];
- 
- #define ASL_LINE_BUFFER_SIZE        512
 
---=-/F9e2IpFQ229P6voqlID--
-
+-- 
+Romano Giannetti             -  Univ. Pontificia Comillas (Madrid, Spain)
+Electronic Engineer - phone +34 915 422 800 ext 2416  fax +34 915 596 569
 
 
 -------------------------------------------------------
