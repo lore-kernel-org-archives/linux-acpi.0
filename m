@@ -1,15 +1,15 @@
-From: "siva" <sivakumar.subramani-uxC5H9eHYlcAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Query regarding the linux ACPI
-Date: Tue, 17 Jun 2003 16:03:09 +0530
+From: "Adachi, Kenichi" <adachi-fvZ7ij+YLgEZc9YY0SgeQc8NsWr+9BEh@public.gmane.org>
+Subject: RE: Query regarding the linux ACPI
+Date: Tue, 17 Jun 2003 20:25:11 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <09c601c334bb$d91226c0$2a0806c0@wiproxcoio3398>
-References: <082401c333fc$89a08740$2a0806c0@wiproxcoio3398> <012f01c333fe$c23a8270$3746028e@bio.dfo.ca>
-Reply-To: "siva" <sivakumar.subramani-uxC5H9eHYlcAvxtiuMwx3w@public.gmane.org>
+Message-ID: <004401c334c3$1dce6b00$b8d21b2b@ADACHIPC>
+References: <09c601c334bb$d91226c0$2a0806c0@wiproxcoio3398>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="Windows-1252"
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <09c601c334bb$d91226c0$2a0806c0-mtNSFjsC3/e12yEdTghClg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,62 +18,37 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Derek Broughton <dbroughton-F3m4/jXepmf3fQ9qLvQP4Q@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: 'siva' <sivakumar.subramani-uxC5H9eHYlcAvxtiuMwx3w@public.gmane.org>, 'Derek Broughton' <dbroughton-F3m4/jXepmf3fQ9qLvQP4Q@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-That means this option can be programmed in the BIOS and we can have it as
-option in the BIOS.
-Am I right ?
+Hi,
 
--Siva
+> That means this option can be programmed in the BIOS and we
+> can have it as
+> option in the BIOS.
+> Am I right ?
+>
 
----- Original Message -----
-From: "Derek Broughton" <dbroughton-F3m4/jXepmf3fQ9qLvQP4Q@public.gmane.org>
-To: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sent: Monday, June 16, 2003 5:29 PM
-Subject: Re: [ACPI] Query regarding the linux ACPI
+Power button override is done at hardware level as Derek pointed out and
+what you have to look into is the Datasheet of your chipset. 
 
+For example, ICH4 Datasheet says:
 
-> From: "siva" <sivakumar.subramani-uxC5H9eHYlcAvxtiuMwx3w@public.gmane.org>
->
-> > When I was reading the ACPI specification, I found the following
-information,
-> > The ACPI specification also allows that if the user presses the power
-button
-> for more than four seconds
-> > while the system is in the working state, a hardware event is generated
-and
-> the system will transition to the
-> > soft-off state. This hardware event is called a power button override.
-In
-> reaction to the power button
-> > override event, the hardware clears the power button status bit
-(PWRBTN_STS).
-> >
-> > I would like to know, whether this Power button override feature is
-available
-> in the Linux ACPI
-> > implementation. If it is implemented, where can I find them  and how to
-use
-> it?
->
-> It's a "hardware" event.  Surely ACPI isn't strictly involved.  I read
-this as
-> meaning that ACPI mustn't interfere with such function.  Certainly my Dell
-> Inspiron will shut off when I hold the power button down for 4 seconds
-without
-> generating an ACPI event.
->
->
->
-> -------------------------------------------------------
-> This SF.NET email is sponsored by: eBay
-> Great deals on office technology -- on eBay now! Click here:
-> http://adfarm.mediaplex.com/ad/ck/711-11697-6916-5
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+  2.10 Power Management Interface
+  Table 2-10. Power Management Interface Signals
+
+  <Quote>
+  PWRBTN#
+      :
+  If PWRBTN# is pressed for more than 4 seconds, this causes an
+unconditional transition (power button override) to the S5 state with
+only the PWRBTN# available as a wake event. Override occurs even if the
+system is in the S1-S4 states. This signal has an internal pull-up
+resistor.
+  </Quote>
+
+Thanks,
+- Adachi, Kenichi 
 
 
 
