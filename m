@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Thermal managment broken
-Date: Wed, 18 Sep 2002 12:25:55 +0200
+From: Faye Pearson <faye-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org>
+Subject: Re: swsusp needs clock corrected | 8193too needs reload
+Date: Wed, 18 Sep 2002 11:47:46 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020918102555.GB18221@atrey.karlin.mff.cuni.cz>
-References: <20020916163600.GA11617@elf.ucw.cz> <20020916225518.B2247@brodo.de>
+Message-ID: <20020918104746.GB26253@clara.net>
+References: <3D85998F.7090101@symplon.com> <Pine.LNX.4.44.0209161123420.12600-100000@dynast.gaugusch.at> <20020917160855.H39@toy.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20020916225518.B2247-JhLEnvuH02M@public.gmane.org>
+In-Reply-To: <20020917160855.H39-muQmgwBScQHrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,47 +17,34 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: Dominik Brodowski <devel-JhLEnvuH02M@public.gmane.org>
-Cc: Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>, ACPI-Devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-
-> > First is strict bugfix, please take. Second is needed, please take it,
-> > too.
-> While I'd "vote" for the second patch "in general", there are two aspects
-> which should be mentioned first:
+Pavel Machek [pavel-AlSwsSmVLrQ@public.gmane.org] wrote:
+> Hi!
 > 
+> > > Only 2 things are not fully working with swsusp
+> > > after i resume from S4 , my clock is still at the time when it was
+> > > suspended.
+> > Run hwclock --hctosys after resume (and preferable hwclock --systohc
+> > before)
 > 
-> > +	tz->trips.critical.temperature = CELSIUS_TO_KELVIN(critical);
-> > +	tz->trips.hot.temperature = CELSIUS_TO_KELVIN(hot);
-> > +	tz->trips.passive.temperature = CELSIUS_TO_KELVIN(passive);
-> > +	tz->trips.active[0].temperature = CELSIUS_TO_KELVIN(active0);
-> > +	tz->trips.active[1].temperature = CELSIUS_TO_KELVIN(active1);
-> 
-> You explicitely want to support _two_ active trip points here. While this
-> seems to be the amount of active trip points seen on most systems, I'd
-> prefer you'd do a more flexible interface [zero to ACPI_THERMAL_MAX_ACTIVE
-> would be best]. 
+> Actually this should be fixed in kernel (as we already do for apm). Patches
+> welcome.
 
-Okay.
+And I think that a similar clock fix is required for speedstep changes.
 
-[Andrew, do you want to take this one and then followup which adds
-many active points, or do you want whole new patch?]
 
-> Additionally, it might be better to specify a "starting" and
-> "stopping" trip point - so that you don't have a fan going
-> on-off-on-off-on-off repeatedly. (IIRC someone complained about this a few
-> months ago on this list). But even without this "feature", I'd like to see
-> the user-specified trip points in the acpi patch.
+Faye`
 
-I believe this is orthogonal. You need to do two thresholds even
-without user help, so it needs to be solved some other way.
-
-								Pavel
 -- 
-Casualities in World Trade Center: ~3k dead inside the building,
-cryptography in U.S.A. and free speech in Czech Republic.
+Faye Pearson,
+Software Development Manager,
+ClaraNET Ltd.       Tel 020 7903 3000
+
+untold wealth, n.:
+	What you left out on April 15th.
 
 
 -------------------------------------------------------
