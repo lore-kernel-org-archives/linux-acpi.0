@@ -1,15 +1,16 @@
-From: =?iso-8859-1?q?Jouni=20Laakso?= <jounijl-/E1597aS9LT10XsdtD+oqA@public.gmane.org>
-Subject: RE: RTC alarm wake from mechanical power off
-Date: Tue, 18 Nov 2003 09:20:03 +0000 (GMT)
+From: Christian Hoenig <me-IGuAFssZLu2QuR96i0ejA4QuADTiUCJX@public.gmane.org>
+Subject: broken DSDT on Samsung X05 Notebook
+Date: Tue, 18 Nov 2003 10:51:35 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031118092003.44040.qmail@web25006.mail.ukl.yahoo.com>
-References: <F760B14C9561B941B89469F59BA3A84702C93127@orsmsx401.jf.intel.com>
-Reply-To: jounijl-/E1597aS9LT10XsdtD+oqA@public.gmane.org
+Message-ID: <200311181051.38825.me@christianhoenig.de>
+Reply-To: me-IGuAFssZLu2QuR96i0ejA4QuADTiUCJX@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <F760B14C9561B941B89469F59BA3A84702C93127-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
+Content-Description: clearsigned data
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,96 +19,96 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+=2D----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Ok. I read from section 4.7.2.4 that wake from s4 is
-optional and if implemented in motherboard it should
-work in sleep states 1-3. RTC alarm seems to be
-optional as a whole as a hardware feature.
+Hi List,
 
-Bits RTC_EN and RTC_STS in spec are similar as those
-in chips registers. Centenary value CENT is not
-supported (if there is not extra space in CMOS RAM to
-implement it with a driver?).
+I'm pretty new to this list and all the ACPI/DSDT and notebook stuff, so=20
+please be kind if I miss something :-).
 
-Acpi spec includes these lines:
- "The OS will disable the RTC_EN bit prior to entering
-the G2/S5 or G3 states." [acpi,4.7.2.4]
+I recently bought a "Samsung X05 XTC 1400" which works fine with linux so f=
+ar,=20
+only the ACPI (DSDT) stuff gives me a headache.
+It would be very nice if there's someone who has more knowlege of the DSDT=
+=20
+hacking than me and who is willing to help me to fix my DSDT :-).
 
-If hardware rtc alarm is supported, rtc alarm is
-disabled by acpi when entering to G3, shutdown? In my
-case it's not even possible to write to these
-registers, maby the writes are possible if ACPI is
-disabled? I mean that writing is possible, but when
-reading, the values are not changed. Are rtc-registers
-somehow updated by ACPI-driver so that if rtc-alarm
-feature is not found, it tries to disable it by
-setting standard bit values trough acpi? Is it
-possible that bios disables RTC alarm if it finds that
-acpi is used? Should I blame bios or acpi?
-
-What is the purpose to try to disable RTC alarm when
-shutting down the computer? At startup it could save
-previous values from registers and when entering G2/S5
-or G3 again, it maby could return saved previous
-values when shutting sown? My opinion is that it
-should wake optionally from G3 also.. maby in next
-specification revision?
-
-It seems in my case that hardware RTC alarm is not in
-use (Abit ZM6, Intel 82371eb)?
-
-regards,
-
-Jouni
-
- --- "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> > From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org 
-> > [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On
-> Behalf Of 
-> > Karol Kozimor
-> > Thus wrote Jouni Laakso:
-> > > Acpi specification says at page 75 that Real
-> time
-> > > clock alarm is required, but it's optional as
-> fixed
-> > > hardware event. I think this means that computer
-> can
-> > > optionally be woken up from "Mechanical Off" G3?
-> Am I
-> > > right? (I haven't read it all.)
-> > 
-> > AFAIR, you're supposed to be able to wake up from
-> ACPI S5 state (soft
-> > power-off), which is what shutdown -h should do.
-> Anyway, see 
-> > if any of the
-> > patches found at
-> http://bugme.osdl.org/show_bug.cgi?id=1320 help.
-> > Best regards,
-> 
-> Have you read section 4.7.2.4 of the ACPI spec? RTC
-> appears to wake only
-> from S1-S3 and possibly S4.
-> 
-> Regards -- Andy 
+All my logs and errors can be found in [3] or [4].
+The original DSDT can be found in [5], the decompiled one in [6].
+[7] is my try to fix that problems.
 
 
-=====
-_____________________
-Jouni J. Laakso
-jounijl-/E1597aS9LT10XsdtD+oqA@public.gmane.org
-phone: +358-41-5165554
-Helsinki, Finland
+So, here is my problem description (partially):
 
-,
+When I run the gentoo-2.4.20-r8 kernel, the internal power display [1] and =
+the
+Brightness-control (via Fn-UP, Fn-DOWN) work. Unfortunately I don't know=20
+exactly, which ACPI version is included in that (heavily patched) kernel.
 
-________________________________________________________________________
-Want to chat instantly with your online friends?  Get the FREE Yahoo!
-Messenger http://mail.messenger.yahoo.co.uk
+When I run vanilla-2.4.22 or 2.6.-test9 patched with the latest ACPI those=
+=20
+stuff doesn't work. The Battery, AC and Thermal stuff don't work here, too=
+=20
+(see the boot.logs.* and the /proc/acpi 'dumps' in [3]).
+
+The Cause seems to be a broken DSDT.
+I did the steps to dump the DSDT, decompile it and tried to recompile it,=20
+which leads to the errors in [2]. I then tried to fix the (only) ERROR whic=
+h=20
+lead stuff to the point, that now the thermal stuff works and the notebook=
+=20
+powers off at shutdown (which didn't work before, either). But the errors i=
+n=20
+boot.log about BAT and AC still remain. Unfortunately in this setup changin=
+g=20
+the displaybrightness works, but the Icon in the upper right always shows a=
+=20
+static symbol (not a little progressbar) and [1] only shows the exact same=
+=20
+(and wrong) icon, too, and not the % left in the Bat.
+
+
+Since I never had contact to that stuff, I really don't know, what can be o=
+f=20
+help for you, so please ask, if you need further information or stuff!
+
+
+So, again, it would be very nice, if someone could take his/her hand on tha=
+t=20
+and help me a little bit ;-)
+
+and... thanks in advance!
+take care, have fun
+/christian
+EDDK
+
+
+=3D=3D=3D=3D=3D
+[1] internal power display: The notebook shows a little Icon in the top left
+	corner showing the powerstatus (Bat/AC) and the % left in the Bat
+	when hitting Fn-F2
+[2] ftp://ftp.christianhoenig.de/ACPI-DSDT/iasl.error.log
+[3] ftp://ftp.christianhoenig.de/ACPI-DSDT/
+[4] ftp://ftp.christianhoeing.de/ACPI-DSDT.tar.gz       <-- which only is a=
+=20
+tarball
+	of all
+[5] ftp://ftp.christianhoeing.de/ACPI-DSDT/dsdt.samsung-original.dat
+[6] ftp://ftp.christianhoeing.de/ACPI-DSDT/dsdt.samsung-original.dsl
+[7] ftp://ftp.christianhoeing.de/ACPI-DSDT/dsdt.own.dsl
+
+=2D----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQE/ueuqmauZIX3ydQURAqhGAJ9SV33jlsHsslxWiuxJItzkcQyMpwCfSqBh
+QwkZkAT24j1UDGXyZtTNRok=3D
+=3DCoil
+=2D----END PGP SIGNATURE-----
+
 
 
 -------------------------------------------------------
