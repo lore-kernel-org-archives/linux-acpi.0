@@ -1,14 +1,11 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: RE: acpi-20031203-2.6.0.diff brokes the battery status readings with 2.6.0 in DELL Inspiron 8500
-Date: Wed, 31 Dec 2003 18:31:34 +0800
+From: "Michael A. Smith" <mas3f-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org>
+Subject: Problems with 600m PM states
+Date: Wed, 31 Dec 2003 10:48:36 -0500 (EST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C69@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <Pine.BSF.4.55.0312311037060.49916@dea.intranet>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,32 +14,49 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, "Mark M." <maalox-XzQKRVe1yT0V+D8aMU/kSg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->>      -0091: *** Error: ut_allocate: Attempt to allocate zero bytes
->>      -0091: *** Error: ut_allocate: Attempt to allocate zero bytes
->>      -0091: *** Error: ut_allocate: Attempt to allocate zero bytes
->>      -0091: *** Error: ut_allocate: Attempt to allocate zero bytes
->
->Here is the bug info.  Note that Luming's patch does NOT fix the
-problem
->but just silences the warnings.  If you use the ASL patch I have
-attached
->that adds RefOf/DerefOf (credit Mark Santcroos), the problems are
-fixed.
->You can also revert dsmthdat.c back to what it was pre-0619 and that
-also
->fixes the problem.
->
->http://bugme.osdl.org/show_bug.cgi?id=3D1728
->
->The issue is, ACPI-CA is still not getting its argument-passing right
->after moving away from "always copy" semantics.
+I have been unable to get any type of sleep to work with this laptop and
+the 2.6.0 vanilla kernel.
 
-Please try patch filed at  http://bugme.osdl.org/show_bug.cgi?id=3D1766
+Let's start with S1 and work up from there.
 
+ echo 1 > /proc/acpi/sleep
+
+Generates...
+
+ Stopping tasks: ========|
+ hdc: start_power_step(step: 0)
+ hdc: completing PM request, suspend
+ hda: start_power_step(step: 0)
+ hda: start_power_step(step: 1)
+ hda: complete_power_step(step: 1, stat: 50, err: 0)
+ hda: completing PM request, suspend
+ PM: Entering state.
+  hwsleep-0257 [23] acpi_enter_sleep_state: Entering sleep state [S1]
+
+...and it appears to be in standby.  The power led goes from solid on to
+a blink.  Now, if I hit the power button to attempt resume, I get ...
+
+ Back to C!
+ PM: Finishing up.
+
+... and that's it.  The power led is back on solid, but the system is
+non-responsive.
+
+
+For reference, I've tried to minimize the variables as much as possible.
+I'm booting into single user mode and testing from there.  There are no
+modules loaded.
+
+
+Any help is appreciated, I'm happy to post more info or try any
+suggestions.
+
+Thanks,
+Michael Smith
+mas3f-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org
 
 
 -------------------------------------------------------
