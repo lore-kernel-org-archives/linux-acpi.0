@@ -1,18 +1,17 @@
-From: Paul Ionescu <paul-f7LjuT9/YZU@public.gmane.org>
-Subject: Re: [RFC] filling in ACPI files in sysfs
-Date: Sat, 10 Apr 2004 14:36:01 +0300
+From: Cristian Cimpianu <cristian.cimpianu-oe7qfRrRQffoK229JIzMLneTipRkpopC@public.gmane.org>
+Subject: Re: armada 1750
+Date: Sat, 10 Apr 2004 15:35:41 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1081596961.23299.24.camel@t40>
-References: <1081373781.23176.30.camel@t40>
-	 <1081376023.2748.15.camel@patsy.fc.hp.com>
-	 <20040408172548.GH18329@parcelfarce.linux.theplanet.co.uk>
-	 <1081445594.2747.8.camel@patsy.fc.hp.com>  <1081536489.23178.113.camel@t40>
-	 <1081537087.2694.8.camel@patsy.fc.hp.com>
+Message-ID: <200404101535.41246.cristian.cimpianu@student.kuleuven.ac.be>
+References: <37F890616C995246BE76B3E6B2DBE0554F2353@orsmsx403.amr.corp.intel.com>
+Reply-To: cristian.cimpianu-oe7qfRrRQffoK229JIzMLneTipRkpopC@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1081537087.2694.8.camel-Wmjt7DDUnIVxnVILBQAtiA@public.gmane.org>
+In-Reply-To: <37F890616C995246BE76B3E6B2DBE0554F2353-sBd4vmA9Se5Qxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -21,62 +20,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>, acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Alex,
+> Well, _DIS isn't supposed to return a value anyway -- so don't worry
+> about the warnings.
 
-I found this in scan.c:
-/*
- * If the device is present, enabled, and functioning then
- * parse its scope (depth-first).  Note that we need to
- * represent absent devices to facilitate PnP notifications
- * -- but only the subtree head (not all of its children,
- * which will be enumerated when the parent is inserted).
- *
- * TBD: Need notifications and other detection mechanisms
- *      in place before we can fully implement this.
- */
+I'm not. I'm worried about not having control on the fan and the temperature 
+sky-rocketing when it's off.
 
-This can be the reason I don't see the subdevices in DOCK but only the
-DOCK, when the dock is not active. So till someone does the TBD, this is
-the normal behaviour, ie subdevices don't show up unless the parent is
-active at scan time.
+> You have to admit, this code is a bit funky:
 
-What do you think ?
+if I knew exactly what it does, I would. right now I'm only beginning to 
+understand bits and pieces. The 7 _DIS methods I find in the code I found out 
+are disabling the respective devices which they belong to. So my main 
+question is how do I remove C2 from processor.c as B.Schmidt says here:
+http://acpi.sourceforge.net/dsdt/view.php?id=168
+I found the bug on bugzilla: http://bugzilla.kernel.org/show_bug.cgi?id=2134 
+so someone else has it too and didn't find a solution. H e didn't try without 
+C2 I guess.
 
+Cristian. 
 
-
-On Fri, 2004-04-09 at 21:58, Alex Williamson wrote:
-> On Fri, 2004-04-09 at 12:48, Paul Ionescu wrote:
-> > Hi Alex,
-> > 
-> > Do you have any ideea why I don't have IDE1, CBS2 and CBS3 in the tree
-> > even if they are present in the DSDT ?
-> > They appear only when I boot in the dock.
-> 
->    No, I don't.  You can try adding chunks of code like this in the scan
-> file:
-> 
-> {
->         char pathname[ACPI_PATHNAME_MAX] = {0};
->         struct acpi_buffer buffer = {0, NULL};
->         buffer.length = sizeof(pathname);
->         buffer.pointer = pathname;
->         acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
->         printk("%s() - [%s]\n", __FUNCTION__, pathname);
-> }
-> 
-> *Fix the handle pointer to be appropriate, everything else should be
-> self contained
-> 
-> I'd start with adding it inside the while loop at the top of 
-> drivers/acpi/scan.c:acpi_bus_scan().  It's possible it's in the DSDT,
-> but not activated for some reason.  I'll be interested to hear why it's
-> not showing up.  Thanks,
-> 
-> 	Alex
-
+-- 
+http://sonty.go.ro
 
 
 -------------------------------------------------------
