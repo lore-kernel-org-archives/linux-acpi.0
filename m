@@ -1,12 +1,16 @@
-From: Henny Wilbrink <wsdwhw-ek1Qb6IBo2Pz+pZb47iToQ@public.gmane.org>
-Subject: Re: ACPI, Acer Aspire 1700 series and Kernel 2.6
-Date: Fri, 6 Feb 2004 23:35:46 +0100
+From: "Nick Bartos" <spam99-1EIjRwF9Gc5s5w19saIqfg@public.gmane.org>
+Subject: Re: acpi=force safe?
+Date: Fri, 6 Feb 2004 16:46:49 -0600 (CST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <16420.5826.162449.28729@gargle.gargle.HOWL>
+Message-ID: <24294.65.164.3.3.1076107609.squirrel@mail.diamondcpu.com>
+References: <3ACA40606221794F80A5670F0AF15F8401CBB685@PDSMSX403.ccr.corp.intel.com>
+    <16644.65.164.3.3.1076087775.squirrel@mail.diamondcpu.com>
+    <20040206211334.GH13262@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20040206211334.GH13262-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,27 +22,16 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
 
->> * thermal module can't be loaded
->>   if thermal module is started automatically get a system shutdown cause a
->> 255c CPU themp was retreived.
+>
+> That part of the firmware may be broken, and you may have hang on boot
+> (even though I think it is safe now without lapic support even on old
+> laptops).
+>
 
-I have an Acer Aspire 1703 and also experience your 255C CPU
-temperature shutdown at boot
-
-but only if a enable:
-
-Device Drivers > Plug and Play support > Plug and Play BIOS support
-
-in xconfig.
-
-Your dmesg shows that you have enabled Plug and Play BIOS support so
-give it a try without Plug and Play BIOS support.
-
-
-Regards,
-Henny Wilbrink
+I am compiling it with smp support, so I think it automatically puts in
+lapic support.  Is it a bad idea to do that?  I don't have any smp boxes
+yet but I wanted to support it if possible.
 
 
 -------------------------------------------------------
