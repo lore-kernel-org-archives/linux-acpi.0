@@ -1,14 +1,12 @@
-From: "Nakajima, Jun" <jun.nakajima-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] add acpi_interrupt_to_irq
-Date: Wed, 21 Jan 2004 19:36:43 -0800
+From: "Thomas Herrmann" <ollo.diab-Mmb7MZpHnFY@public.gmane.org>
+Subject: Re: K7 & cpu disconnect
+Date: Thu, 22 Jan 2004 10:11:23 +0100 (MET)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <7F740D512C7C1046AB53446D37200173618864@scsmsx402.sc.intel.com>
+Message-ID: <30489.1074762683@www25.gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,52 +15,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: len-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-To be clear, the vector-based PCI interrupt support for MSI is in 2.6.1,
-but the particular ACPI code in -mm was a bug fix that we added
-recently.
+Hi Len,
 
-> -----Original Message-----
-> From: Bjorn Helgaas [mailto:bjorn.helgaas-VXdhtT5mjnY@public.gmane.org]
-> Sent: Wednesday, January 21, 2004 2:54 PM
-> To: Nakajima, Jun; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; linux-
->=20
-> Any feedback on these questions from my previous mail:
->=20
-> 	(a) do you want the #ifdefs in ACPI (as in 2.6.1-mm5),
-> 	    or in the platform-specific code (as in my patch)?
+one more data point wrt this topic.
 
-I would like to avoid #ifdefs even in -mm5.
+I can enable STPGNT/CPU disconnect on my NForce2 system running WinXP while
+using the tool from http://www.hasw.net/8rdavcore. And guess what, the system
+runs stable for hours, not locking-up at all. Since this is exactly the same
+hardware as well as BIOS configuration, it leads me to beleave the Linux
+ACPI/IO_APIC implementation has an issue.
 
->=20
-> 	(b) is "acpi_interrupt_to_irq" a better name than
-> 	    "acpi_irq_to_vector"?
+BTW, it seems the acpi-devel list archive on sourceforge.net hangs, no new
+entries since 01/24/04.
 
-I don't know what people imagine by "interrupt", but to me it implies an
-"event".=20
+Regards,    Thomas
 
-If we have definitions of acpi_irq_to_vector(irq) for other
-architectures (as you basically did), we can remove #ifdef CONFIG_IA64.
-For x86, we can switch the definition using CONFIG_PCI_USE_VECTOR.=20
-
->=20
-> 	(c) is acpi_os_install_interrupt_handler() saving the
-> 	    wrong value in acpi_irq_irq?
->=20
-
-I think the original IA-64 code was wrong (so CONFIG_PCI_USE_VECTOR will
-be wrong there, too).  The value of irq is covered to vector by
-acpi_irq_to_vector(irq) in acpi_os_install_interrupt_handler(), then
-this value is set to acpi_irq_irq. But
-acpi_os_remove_interrupt_handler() is given acpi_irq_irq (i.e. vector),
-then it again calls acpi_irq_to_vector() prior to calling
-free_irq(irq,,).
-
-Thanks,
-Jun
+-- 
++++ GMX - die erste Adresse für Mail, Message, More +++
+Bis 31.1.: TopMail + Digicam für nur 29 EUR http://www.gmx.net/topmail
 
 
 
