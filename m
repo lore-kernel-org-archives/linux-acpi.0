@@ -1,14 +1,15 @@
-From: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
-Subject: Re: Acer Travermate 8005 and battery info
-Date: Tue, 05 Oct 2004 16:42:09 +0100
+From: Tim Dijkstra <newsuser-TpnWJeB+oO0hKRfeEwdQzg@public.gmane.org>
+Subject: Re: Should battery generate events?
+Date: Tue, 5 Oct 2004 20:28:44 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4162C0D1.20906@mega.ist.utl.pt>
-References: <415C270F.5050306@lanil.mine.nu> <20041001102926.GD18786@elf.ucw.cz> <415D8CCF.8050602@lanil.mine.nu> <20041001194739.GE1100@openzaurus.ucw.cz> <41603BA0.9090900@lanil.mine.nu> <20041003203457.GD3379@elf.ucw.cz> <41617104.2040302@mega.ist.utl.pt> <20041005143951.GB4723@openzaurus.ucw.cz>
+Message-ID: <20041005202844.50abc833@commensaal.drs.p>
+References: <20041004232557.6c342288@commensaal.drs.p>
+	<4161CB55.9040800@linuxboxen.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041005143951.GB4723-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org>
+In-Reply-To: <4161CB55.9040800-Jp3n8lUXroSX6QiC4yPwbg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -20,45 +21,48 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Pavel Machek wrote:
-> Hi!
-> 
-> 
->>|>>Search maillist archives, look up "smart battery specification" in
->>google.
->>|>>If you are willing to spend few days writing driver, let me know.
->>|>
->>|>Ive checked out some specs now and Im willing to give it a shot but 
->>Ive
->>|>no idea on where to start.. Ive checked out my DSL and I find 
->>nothing
->>|>containing SBS in it. Suggestions?
->>|
->>|
->>| Right start probably is drivers/i2c. I collected these links:
->>
->>i'm willing to participate also. but first, let me see if i
->>understood... the first step should be building a driver to 
->>communicate
->>with the smbus via i2c. am i right?
-> 
-> 
-> I believe that smbus is subset of i2c... So first step would be
-> "make it talk with smart battery over i2c".
-> 
-> Anyway I may be wrong. You'll know for sure when the patch starts
-> working :-).
+On Mon, 04 Oct 2004 15:14:45 -0700
+David Bronaugh <dbronaugh-Jp3n8lUXroSX6QiC4yPwbg@public.gmane.org> wrote:
 
-sometime in the not-so-near future :-)
+> Tim Dijkstra wrote:
+>   
+> >From some googl'ing I get the impression that ACPI should generate
+> >battery events on a change of capacity or at least when it's low. My
+> >idea was to have acpid call some script on battery events. 
+> >The problem is that there doesn't seem to be such events on my
+> >machine. 
+> >  
+> >
+> Whenever polling is required, this is expected to be done in
+> userspace, not in kernelspace. There's a long history of people asking
+> "why doesn't battery status changes generate events" and a long
+> history of people saying "because it would require polling in either
+> acpid or the kernel, which is a Bad Thing(tm)".
 
-i'll start studying i2c to find out the smbus "address" (sorry if this 
-is a dumb mistake) and try to scan it for the smart battery.
+Hmm, sounds reasonable ... But what do these entries in
+/proc/acpi/battery/BAT0/info mean:
 
-can it be done in userspace? or do i need to start coding in the kernel 
-right away?
+design capacity warning: 30 mAh
+design capacity low:     20 mAh
 
-p.s.: do you mind if i reply to you and CC to the list or the reply in 
-the list es enough?
+it seems to imply to me that there should be a warning of some kind when
+the capacity hits 30 mAh. But if I read your post correctly there is no
+such thing?
+
+> If you'd like something to watch the battery capacity, perhaps you 
+> should use something like KLaptop -- you can configure it to run a 
+> command (like 'echo -n "disk" > /sys/power/state') on low and/or on 
+> critical battery level warnings. 
+
+Yeah, but several people log in on this laptop (wife, kid (well not
+yet), brothers, sister ...) and that means I have to set up their
+desktops and hope they don't accidentally disable it. It seemed a much
+cleaner solution to have a gui/user independent process handle it.
+
+It seems I have to hack a little script that polls the battery status
+ones in a while and takes appropriate action...
+
+grts Tim 
 
 
 -------------------------------------------------------
