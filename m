@@ -1,13 +1,11 @@
-From: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
-Subject: Re: Re: what is the worst laptop atm?
-Date: Tue, 28 Dec 2004 16:54:23 +0000
-Message-ID: <41D18FBF.1020606@mega.ist.utl.pt>
-References: <20041227165207.GB9606@poupinou.org>	<41D06CA6.30607@mega.ist.utl.pt> <20041228103019.GD9606@poupinou.org> <m2is6mzaip.fsf@phoenix.squirrel.nl>
+From: mmadore <mmadore-LGgQ8o1HsRFeoWH0uzbU5w@public.gmane.org>
+Subject: Supermicro P8SC8 won't power off
+Date: Tue, 28 Dec 2004 10:11:45 -0800
+Message-ID: <5d1f89c06e91128def06736b4b788017@www.blargmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <m2is6mzaip.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,32 +15,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Johan Vromans wrote:
-> Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> writes:
->=20
->=20
->>Indeed.  The fact that Linux do not support smartbattery yet is not ACE=
-R
->>fault.
->=20
->=20
-> Actually, I've been told that ACER is payed by Microsoft for not
-> helping Linux support. Yes, it's hearsay but it sounded reliable to me
-> at the time.
+Hi,
 
-sounds like conspiracy theory to me. nevertheless, I don't find it=20
-impossible, just very unlikely.
+I have a Supermicro P8SC8 motherboard that won't poweroff with ACPI using the 2.4 kernel series.  I have testing it with 2.4.25, 2.4.27, 2.4.28 and 2.4.29-pre2.  In all cases, the system enters acpi_enter_sleep_state after which, the keyboard leds flash once and the screen goes blank.  The system remains in this state with the power still on.  If I try to reboot the system via the reset switch, the machine never POSTS.  I have to remove and re-insert the power cord to boot the system again.
 
-regards,
-pedro venda.
---=20
-Pedro Jo=E3o Lopes Venda
-email: pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org
-http://arrakis.dhis.org
+With 2.6.9, the machine powers off as expected.  Can anyone offer any advice on how to debug this problem?
+
+Thanks
+
+Mike
+
+
 
 
 -------------------------------------------------------
