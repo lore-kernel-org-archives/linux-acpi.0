@@ -1,14 +1,13 @@
-From: "Herbert Nachtnebel" <Herbert.Nachtnebel-8zxNtbQCHXIjuwv8T7myQQ@public.gmane.org>
-Subject: RE: Thermal managment broken
-Date: Tue, 17 Sep 2002 18:12:02 +0200
+From: Bernd Pfrommer <berndp-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
+Subject: Acpi_load_tables: Could not load namespace: AE_NOT_FOUND
+Date: Tue, 17 Sep 2002 15:18:52 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <B900970C7DD9474C972986EB3EC7C58F0D3FFF@andromeda.agcad.local>
+Message-ID: <3D87801C.3010007@optonline.net>
+Reply-To: berndp-p32f3XyCuykqcZcGjlUOXw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,26 +16,75 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: Dominik Brodowski <devel-JhLEnvuH02M@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi,
 
-> You explicitely want to support _two_ active trip points here. While =
-this
-> seems to be the amount of active trip points seen on most systems, I'd
-> prefer you'd do a more flexible interface [zero to =
-ACPI_THERMAL_MAX_ACTIVE
-> would be best].
-=20
-At least the compaq e500 has three trip points, one should be able to =
-change each trip which is specified by the DSDT.
-=20
-Greatings,
-Herbert.
+after many fruitless attempts to get ACPI working with the 2.4.18 or 
+2.4.19 kernel, I'm posting this in case somebody can help.
+The hardware is an Intel manufactured SRMK2 server with a ServerWorks 
+ServerSet IIILE chipset (CNB30LE North Bridge and OSB4 South Bridge), 
+dual PIII 1GHz 256K cache, with 1GB memory. The bios is an AMIBIOS by 
+American Megatrends Inc.
+
+I configured the 2.4.19 kernel with the following parameters:
+
+CONFIG_ACPI=y
+CONFIG_ACPI_DEBUG=y
+CONFIG_ACPI_BUSMGR=y
+CONFIG_ACPI_SYS=y
+CONFIG_ACPI_CPU=y
+# CONFIG_ACPI_BUTTON is not set
+# CONFIG_ACPI_AC is not set
+# CONFIG_ACPI_EC is not set
+# CONFIG_APM is not set
+
+And I get the following errors during boot:
+
+Sep 16 14:07:16 foo kernel:  tbxface-0099 [01] Acpi_load_tables      : 
+ACPI Tables successfully loaded
+Sep 16 14:07:16 foo kernel:  tbxface-0106: *** Error: Acpi_load_tables: 
+Could not load namespace: AE_NOT_FOUND
+Sep 16 14:07:16 foo kernel:  tbxface-0115: *** Error: Acpi_load_tables: 
+Could not load tables: AE_NOT_FOUND
+Sep 16 14:07:16 foo kernel: ACPI: System description table load failed
+Sep 16 14:07:16 foo kernel:  utalloc-0504 [03] Ut_dump_allocations   : 
+Outstanding allocations:
+Sep 16 14:07:16 foo kernel: f7e72d88 Len 0038   utalloc-150 Parse_obj 
+Opcode 0010
+Sep 16 14:07:16 foo kernel: f7e72e08 Len 0038   utalloc-150 Parse_obj 
+Opcode 5B82
+Sep 16 14:07:16 foo kernel: f7eaa308 Len 0038   utalloc-150 Parse_obj 
+Opcode 5B82
+Sep 16 14:07:16 foo kernel: f7eab268 Len 0038   utalloc-150 Parse_obj 
+Opcode 5B82
+Sep 16 14:07:16 foo kernel: f7eb8e48 Len 0009  tbconvrt-520
+Sep 16 14:07:16 foo kernel:  utalloc-0598 [03] Ut_dump_allocations   : 
+Total number of unfreed allocations = 5(5)
+
+This may be similar to what Jean-Rene  Peulve posted earlier this year, 
+but I could not find any replies to his posting
+http://www.geocrawler.com/archives/3/17428/2002/2/0/7953806/ .
+
+Although I configured for debug messages, the output of 
+ACPI_DEBUG_PRINT() does not show up in dmesg. Does anybody know why that 
+is?
+
+Any suggestions what could cause the namespace loading to fail, and how 
+to fix it?
+
+Your help is greatly appreciated!
+
+Thanks,
+
+Bernd
+
+
 
 
 -------------------------------------------------------
-Sponsored by: AMD - Your access to the experts on Hammer Technology! 
-Open Source & Linux Developers, register now for the AMD Developer 
-Symposium. Code: EX8664 http://www.developwithamd.com/developerlab
+This SF.NET email is sponsored by: AMD - Your access to the experts
+on Hammer Technology! Open Source & Linux Developers, register now
+for the AMD Developer Symposium. Code: EX8664
+http://www.developwithamd.com/developerlab
