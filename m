@@ -1,12 +1,13 @@
-From: Paul Ionescu <i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Re: enable sound card with PNPACPI
-Date: Thu, 20 Jan 2005 12:59:31 +0200
-Message-ID: <pan.2005.01.20.10.59.29.271939@yahoo.com>
-References: <200501200936.43376.dchallet@netcourrier.com>
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: Machine no longer enters C3 on 2.6.11-rc1-bk
+Date: Thu, 20 Jan 2005 11:59:11 +0100
+Message-ID: <20050120105911.GF1452@elf.ucw.cz>
+References: <20050120104033.GA25889@elf.ucw.cz> <16879.36609.94551.926755@aber.ac.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <16879.36609.94551.926755-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,50 +17,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
+Cc: kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hi!
 
-You can also try=20
+>  > bus master activity: is changing all the time, mostly 555555555 and
+>  > aaaaaaa, and cpu refuses to enter C3 for obvious reasons. I compiled
+>  > out USB and sound... Does anybody else see the same problem?
+>  > 
+> 
+> I did notice too that it was never in C3 apart from a bit right at the
+> beginning, since 2.6.10.  It has always been like that up to 2.6.6, became
+> better from 2.6.7 (but had other problems with that).
 
-echo auto > /sys/devices/pnp0/00:03/resources
-echo activate > /sys/devices/pnp0/00:03/resources
+Good, so I'm not alone.
 
-and check again.
+> P.S.  I didn't check bus master activity.  How do you do that?
 
-On Thu, 20 Jan 2005 09:36:43 +0000, Damien Challet wrote:
+cat /proc/acpi/processor/*/power
 
->> I think you should try
->> echo activate > /sys/devices/pnp0/00:03/resources
->  > and check dmesg for feedback
->=20
-> That worked to the point that the module can be loaded. However, when I
-> try to play a sound,
->=20
-> e.g. aplay sound.wav,
->=20
-> aplay seems to wait for something (does not start playing).
->=20
-> I tried to echo -n 1 to the power/state of everything.
->=20
-> Thanks for the help.
->=20
-> Damien
->=20
->=20
->=20
->=20
-> ------------------------------------------------------- This SF.Net ema=
-il
-> is sponsored by: IntelliVIEW -- Interactive Reporting Tool for open sou=
-rce
-> databases. Create drag-&-drop reports. Save time by over 75%! Publish
-> reports on the web. Export to DOC, XLS, RTF, etc. Download a FREE copy =
-at
-> http://www.intelliview.com/go/osdn_nl
+								Pavel
 
-
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
