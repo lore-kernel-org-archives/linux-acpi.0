@@ -1,26 +1,41 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ACPI sleep: stupid bug reintroduced
-Date: Tue, 1 Oct 2002 15:41:03 -0700
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DEE9@orsmsx119.jf.intel.com>
+From: Flavio Gargiulo <flaviogargiulo-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org>
+Subject: pmtools and battery info - help
+Date: Wed, 2 Oct 2002 00:35:38 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <200210020035.38237.flaviogargiulo@libero.it>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-To: 'Pavel Machek' <pavel-+ZI9xUNit7I@public.gmane.org>, Rusty trivial patch monkey Russell <trivial-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 8bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Pavel Machek [mailto:pavel-+ZI9xUNit7I@public.gmane.org] 
-> There's extremely stupid bug in sleep.c -- it will only alow user to
-> enter *unsupported* states. What's even worse that I remember fixing
-> that once before, and *it was merged to mainline*.
+The file /proc/acpi/battery/BAT0/info report me
+"ERROR: Unable to read battery information"
+on my laptop (Dell Inspiron 2500).
+I'm just wondering about the use of the pmtools...
+Is there a way to get the battery info working?
+I'm able to write some C++ code but I'm not a real
+developer... anyhow if I would like so much if 
+I could help in some ways, and get this working.
+Any answer will be so much appreciated. Thank you.
+-- 
+Flavio Gargiulo
+_____________
+www.fLaGar.com
 
-Cough cough Pat... ;-)
 
-It's (re-)fixed in my bk tree already. Didn't have this bit at the end so
-I'll apply that.
 
-Regards -- Andy
-
-> +#else
-> +	return_VALUE(-ENODEV);
->  #endif
+-------------------------------------------------------
+This sf.net email is sponsored by: DEDICATED SERVERS only $89!
+Linux or FreeBSD, FREE setup, FAST network. Get your own server 
+today at http://www.ServePath.com/indexfm.htm
