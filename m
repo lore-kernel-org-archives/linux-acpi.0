@@ -1,163 +1,125 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH] remove unconditional PCI ACPI IRQ routing
-Date: Thu, 5 Aug 2004 14:06:24 -0600
+From: Alex Williamson <alex.williamson@hp.com>
+Subject: [PATCH] cleanup ACPI numa warnings
+Date: Thu, 05 Aug 2004 14:46:38 -0600
 Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <200408051406.24785.bjorn.helgaas@hp.com>
+Message-ID: <1091738798.22406.9.camel@tdi>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S267936AbUHEUIk@vger.kernel.org>
-Content-Disposition: inline
-To: Andrew Morton <akpm@osdl.org>
-Cc: linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S267969AbUHEUuT@vger.kernel.org>
+To: acpi-devel <acpi-devel@lists.sourceforge.net>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Now that PCI interrupts are routed in pci_enable_device(), remove
-the unconditional routing previously done in pci_acpi_init().
 
-This has the potential to break drivers that don't use
-pci_enable_device() correctly, so I also added a "pci=routeirq"
-kernel option that restores the previous behavior.  I intend to
-remove that option, along with all the code below, in a month
-or so.
+   The patch below removes these warnings:
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+  CC      drivers/acpi/numa.o
+drivers/acpi/numa.c: In function `acpi_table_print_srat_entry':
+drivers/acpi/numa.c:55: warning: unused variable `p'
+drivers/acpi/numa.c:65: warning: unused variable `p'
+drivers/acpi/numa.c: In function `acpi_numa_init':
+drivers/acpi/numa.c:179: warning: passing arg 2 of `acpi_table_parse_srat' from incompatible pointer type
+drivers/acpi/numa.c:182: warning: passing arg 2 of `acpi_table_parse_srat' from incompatible pointer type
 
-===== Documentation/kernel-parameters.txt 1.43 vs edited =====
---- 1.43/Documentation/kernel-parameters.txt	2004-07-11 03:23:28 -06:00
-+++ edited/Documentation/kernel-parameters.txt	2004-08-05 12:46:55 -06:00
-@@ -851,6 +851,10 @@
- 					enabled.
- 		noacpi			[IA-32] Do not use ACPI for IRQ routing
- 					or for PCI scanning.
-+		routeirq		Do IRQ routing for all PCI devices.
-+					This is normally done in pci_enable_device(),
-+					so this option is a temporary workaround
-+					for broken drivers that don't call it.
+And propagates the MADT error checking code into the SRAT code.
+
+Signed-off-by: Alex Williamson <alex.williamson@hp.com>
+
+===== drivers/acpi/numa.c 1.10 vs edited =====
+--- 1.10/drivers/acpi/numa.c	2004-02-18 02:19:31 -07:00
++++ edited/drivers/acpi/numa.c	2004-08-05 14:37:19 -06:00
+@@ -38,6 +38,33 @@
  
- 	pcmv=		[HW,PCMCIA] BadgePAD 4
+ extern int __init acpi_table_parse_madt_family (enum acpi_table_id id, unsigned long madt_size, int entry_id, acpi_madt_entry_handler handler, unsigned int max_entries);
  
-===== arch/i386/pci/acpi.c 1.14 vs edited =====
---- 1.14/arch/i386/pci/acpi.c	2004-05-24 23:32:34 -06:00
-+++ edited/arch/i386/pci/acpi.c	2004-08-05 13:46:56 -06:00
-@@ -15,6 +15,7 @@
- 	return pcibios_scan_root(busnum);
- }
- 
-+extern int pci_routeirq;
- static int __init pci_acpi_init(void)
- {
- 	struct pci_dev *dev = NULL;
-@@ -30,13 +31,27 @@
- 	pcibios_scanned++;
- 	pcibios_enable_irq = acpi_pci_irq_enable;
- 
--	/*
--	 * PCI IRQ routing is set up by pci_enable_device(), but we
--	 * also do it here in case there are still broken drivers that
--	 * don't use pci_enable_device().
--	 */
--	while ((dev = pci_find_device(PCI_ANY_ID, PCI_ANY_ID, dev)) != NULL)
--		acpi_pci_irq_enable(dev);
-+	if (pci_routeirq) {
-+		/*
-+		 * PCI IRQ routing is set up by pci_enable_device(), but we
-+		 * also do it here in case there are still broken drivers that
-+		 * don't use pci_enable_device().
-+		 */
-+		printk(KERN_INFO "** Routing PCI interrupts for all devices because \"pci=routeirq\"\n");
-+		printk(KERN_INFO "** was specified.  If this was required to make a driver work,\n");
-+		printk(KERN_INFO "** please email the output of \"lspci\" to bjorn.helgaas@hp.com\n");
-+		printk(KERN_INFO "** so I can fix the driver.\n");
-+		while ((dev = pci_find_device(PCI_ANY_ID, PCI_ANY_ID, dev)) != NULL)
-+			acpi_pci_irq_enable(dev);
-+	} else {
-+		printk(KERN_INFO "** PCI interrupts are no longer routed automatically.  If this\n");
-+		printk(KERN_INFO "** causes a device to stop working, it is probably because the\n");
-+		printk(KERN_INFO "** driver failed to call pci_enable_device().  As a temporary\n");
-+		printk(KERN_INFO "** workaround, the \"pci=routeirq\" argument restores the old\n");
-+		printk(KERN_INFO "** behavior.  If this argument makes the device work again,\n");
-+		printk(KERN_INFO "** please email the output of \"lspci\" to bjorn.helgaas@hp.com\n");
-+		printk(KERN_INFO "** so I can fix the driver.\n");
-+	}
- 
- #ifdef CONFIG_X86_IO_APIC
- 	if (acpi_ioapic)
-===== arch/i386/pci/common.c 1.43 vs edited =====
---- 1.43/arch/i386/pci/common.c	2004-02-29 23:20:00 -07:00
-+++ edited/arch/i386/pci/common.c	2004-08-05 12:46:55 -06:00
-@@ -23,6 +23,7 @@
- unsigned int pci_probe = PCI_PROBE_BIOS | PCI_PROBE_CONF1 | PCI_PROBE_CONF2 |
- 				PCI_PROBE_MMCONF;
- 
-+int pci_routeirq;
- int pcibios_last_bus = -1;
- struct pci_bus *pci_root_bus = NULL;
- struct pci_raw_ops *raw_pci_ops;
-@@ -226,6 +227,9 @@
- 		return NULL;
- 	} else if (!strcmp(str, "assign-busses")) {
- 		pci_probe |= PCI_ASSIGN_ALL_BUSSES;
-+		return NULL;
-+	} else if (!strcmp(str, "routeirq")) {
-+		pci_routeirq = 1;
- 		return NULL;
- 	}
- 	return str;
-===== arch/ia64/pci/pci.c 1.50 vs edited =====
---- 1.50/arch/ia64/pci/pci.c	2004-06-16 23:42:37 -06:00
-+++ edited/arch/ia64/pci/pci.c	2004-08-05 13:48:39 -06:00
-@@ -46,6 +46,8 @@
- #define DBG(x...)
- #endif
- 
-+static int pci_routeirq;
++#ifdef ACPI_DEBUG_OUTPUT
++#define acpi_print_srat_processor_affinity(header) { \
++	struct acpi_table_processor_affinity *p = \
++	                      (struct acpi_table_processor_affinity*) header; \
++	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "SRAT Processor (id[0x%02x] " \
++	                 "eid[0x%02x]) in proximity domain %d %s\n", \
++	                 p->apic_id, p->lsapic_eid, p->proximity_domain, \
++	                 p->flags.enabled?"enabled":"disabled")); }
 +
- struct pci_fixup pcibios_fixups[1];
++#define acpi_print_srat_memory_affinity(header) { \
++	struct acpi_table_memory_affinity *p = \
++	                         (struct acpi_table_memory_affinity*) header; \
++	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "SRAT Memory (0x%08x%08x length " \
++	                 "0x%08x%08x type 0x%x) in proximity domain %d %s%s\n",\
++	                 p->base_addr_hi, p->base_addr_lo, p->length_hi, \
++	                 p->length_lo, p->memory_type, p->proximity_domain, \
++	                 p->flags.enabled ? "enabled" : "disabled", \
++	                 p->flags.hot_pluggable ? " hot-pluggable" : "")); }
++#else
++#define acpi_print_srat_processor_affinity(header)
++#define acpi_print_srat_memory_affinity(header)
++#endif
++
++#define BAD_SRAT_ENTRY(entry, end) ( \
++	(!entry) || (unsigned long)entry + sizeof(*entry) > end ||  \
++	((acpi_table_entry_header *)entry)->length != sizeof(*entry))
++
+ void __init
+ acpi_table_print_srat_entry (
+ 	acpi_table_entry_header	*header)
+@@ -51,27 +78,11 @@
+ 	switch (header->type) {
  
- /*
-@@ -138,13 +140,27 @@
+ 	case ACPI_SRAT_PROCESSOR_AFFINITY:
+-	{
+-		struct acpi_table_processor_affinity *p =
+-			(struct acpi_table_processor_affinity*) header;
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "SRAT Processor (id[0x%02x] eid[0x%02x]) in proximity domain %d %s\n",
+-		       p->apic_id, p->lsapic_eid, p->proximity_domain,
+-		       p->flags.enabled?"enabled":"disabled"));
+-	}
++		acpi_print_srat_processor_affinity(header);
+ 		break;
+-
+ 	case ACPI_SRAT_MEMORY_AFFINITY:
+-	{
+-		struct acpi_table_memory_affinity *p =
+-			(struct acpi_table_memory_affinity*) header;
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "SRAT Memory (0x%08x%08x length 0x%08x%08x type 0x%x) in proximity domain %d %s%s\n",
+-		       p->base_addr_hi, p->base_addr_lo, p->length_hi, p->length_lo,
+-		       p->memory_type, p->proximity_domain,
+-		       p->flags.enabled ? "enabled" : "disabled",
+-		       p->flags.hot_pluggable ? " hot-pluggable" : ""));
+-	}
++		acpi_print_srat_memory_affinity(header);
+ 		break;
+-
+ 	default:
+ 		printk(KERN_WARNING PREFIX "Found unsupported SRAT entry (type = 0x%x)\n",
+ 			header->type);
+@@ -103,12 +114,12 @@
  
- 	printk(KERN_INFO "PCI: Using ACPI for IRQ routing\n");
  
--	/*
--	 * PCI IRQ routing is set up by pci_enable_device(), but we
--	 * also do it here in case there are still broken drivers that
--	 * don't use pci_enable_device().
--	 */
--	while ((dev = pci_find_device(PCI_ANY_ID, PCI_ANY_ID, dev)) != NULL)
--		acpi_pci_irq_enable(dev);
-+	if (pci_routeirq) {
-+		/*
-+		 * PCI IRQ routing is set up by pci_enable_device(), but we
-+		 * also do it here in case there are still broken drivers that
-+		 * don't use pci_enable_device().
-+		 */
-+		printk(KERN_INFO "** Routing PCI interrupts for all devices because \"pci=routeirq\"\n");
-+		printk(KERN_INFO "** was specified.  If this was required to make a driver work,\n");
-+		printk(KERN_INFO "** please email the output of \"lspci\" to bjorn.helgaas@hp.com\n");
-+		printk(KERN_INFO "** so I can fix the driver.\n");
-+		while ((dev = pci_find_device(PCI_ANY_ID, PCI_ANY_ID, dev)) != NULL)
-+			acpi_pci_irq_enable(dev);
-+	} else {
-+		printk(KERN_INFO "** PCI interrupts are no longer routed automatically.  If this\n");
-+		printk(KERN_INFO "** causes a device to stop working, it is probably because the\n");
-+		printk(KERN_INFO "** driver failed to call pci_enable_device().  As a temporary\n");
-+		printk(KERN_INFO "** workaround, the \"pci=routeirq\" argument restores the old\n");
-+		printk(KERN_INFO "** behavior.  If this argument makes the device work again,\n");
-+		printk(KERN_INFO "** please email the output of \"lspci\" to bjorn.helgaas@hp.com\n");
-+		printk(KERN_INFO "** so I can fix the driver.\n");
-+	}
- 
- 	return 0;
- }
-@@ -440,6 +456,8 @@
- char * __init
- pcibios_setup (char *str)
+ static int __init
+-acpi_parse_processor_affinity (acpi_table_entry_header *header)
++acpi_parse_processor_affinity (acpi_table_entry_header *header, unsigned long size)
  {
-+	if (!strcmp(str, "routeirq"))
-+		pci_routeirq = 1;
- 	return NULL;
- }
+ 	struct acpi_table_processor_affinity *processor_affinity;
  
+ 	processor_affinity = (struct acpi_table_processor_affinity*) header;
+-	if (!processor_affinity)
++	if (BAD_SRAT_ENTRY(processor_affinity, size))
+ 		return -EINVAL;
+ 
+ 	acpi_table_print_srat_entry(header);
+@@ -121,12 +132,12 @@
+ 
+ 
+ static int __init
+-acpi_parse_memory_affinity (acpi_table_entry_header *header)
++acpi_parse_memory_affinity (acpi_table_entry_header *header, unsigned long size)
+ {
+ 	struct acpi_table_memory_affinity *memory_affinity;
+ 
+ 	memory_affinity = (struct acpi_table_memory_affinity*) header;
+-	if (!memory_affinity)
++	if (BAD_SRAT_ENTRY(memory_affinity, size))
+ 		return -EINVAL;
+ 
+ 	acpi_table_print_srat_entry(header);
