@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: [BK PATCH] ACPI fixes
-Date: Sat, 2 Nov 2002 17:52:02 +0100
+Subject: Re: Changing temperature trip points
+Date: Sat, 2 Nov 2002 18:17:56 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021102165202.GB1983@elf.ucw.cz>
-References: <EDC461A30AC4D511ADE10002A5072CAD04C7A49A@orsmsx119.jf.intel.com>
+Message-ID: <20021102171756.GD1983@elf.ucw.cz>
+References: <E187ipj-0001ss-00@usw-sf-list2.sourceforge.net> <000001c28231$b7cae110$c200a8c0@pikachu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD04C7A49A-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
+In-Reply-To: <000001c28231$b7cae110$c200a8c0-3ycpsohRb2Y@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,31 +17,25 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: Edmund Rhudy <nrhudy-plZrL8KR64B+CIkdHa1UOg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> 	bk pull http://linux-acpi.bkbits.net/linux-acpi
-> 
-> Bug fixes, mostly for bugs introduced recently ;-)
+> On my laptop, a Gateway Solo 1400 with one of those super-integrated VIA
+> Apollo Pro133A chipsets that has basically every system function
+> integrated into it (video, sound, modem, networking, and so forth), I
+> note that the temperature trip points are excruciatingly high; so high,
+> in fact, that the processor (a Celeron 900) would be close to thermal
+> death by the time the fan would purportedly turn itself on.
 
-Could you generate diff -u, and mail it to the list? 
-								Pavel
+I have similar problem here. HP Omnibook turns itself off long before
+passive trip point is reached.
 
-> <agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/10/31 1.844.13.1)
->    ACPI:
->    - Clean up debug-only code
->    - Fix typo
->    - Correct walking of namespace, to prevent disappearance of processor and
->      thermal zone objects
-       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-I *need* thermal managment. (Broken fan on cpu... Without ACPI thermal
-managment it is hard to keep it running. With ACPI thermal managment I
-still can't watch films, but otherwise its usable).
-								Pavel
+Try echo "1:2:3:4:5" > /proc/acpi/thermal_zone/THRM/trip_points. Should work in 2.5.44; dunno
+if 2.4. backport supports it.
+								Pavel 
 -- 
 When do you have heart between your knees?
 
