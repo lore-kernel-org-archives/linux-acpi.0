@@ -1,12 +1,12 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Strange thermal behaviour
-Date: Sun, 15 Sep 2002 21:38:38 +0200
+From: =?iso-8859-1?q?Gustavo=20Sverzut=20Barbieri?= <gsbarbieri-/E1597aS9LRfJ/NunPodnw@public.gmane.org>
+Subject: 2.5.34?
+Date: Sun, 15 Sep 2002 21:14:25 -0300 (ART)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020915193838.GA14863@atrey.karlin.mff.cuni.cz>
+Message-ID: <20020916001425.82756.qmail@web20906.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,31 +15,20 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hello,
 
-2.5.31 on hp omnibook xe3. Fan is dying.
+Is 2.5.34 patch comming out soon?
 
-thermal/trip_points reports passive trippoint of 82C, and both active
-and critical of 100C (ouch?).
 
-Machine will not even boot when CPU is at 84C; dies at null pointer
-dereference.
+Gustavo
 
-Fan starts ~65C (but trip reports 100?!). Unfortunately, it is broken,
-so temperature rises. At 84C, limits does not report any thermal
-throttling, and machine powerdowns shortly after that. Temperature
-reported 5 seconds before powerdown was 84C.
-
-Something is very wrong here.
-
-								Pavel
-
--- 
-Casualities in World Trade Center: ~3k dead inside the building,
-cryptography in U.S.A. and free speech in Czech Republic.
+_______________________________________________________________________
+Yahoo! PageBuilder
+O super editor para criação de sites: é grátis, fácil e rápido.
+http://br.geocities.yahoo.com/v/pb.html
 
 
 -------------------------------------------------------
