@@ -1,14 +1,12 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: Re: ac status broken with kernel 2.6.8-rc2
-Date: Thu, 12 Aug 2004 00:52:05 +0200
+From: Paul Ionescu <i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: IBM T41 + ACPI + APIC
+Date: Thu, 12 Aug 2004 15:02:19 +0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040811225205.GA15948@message-id.gmane0305.slipkontur.de>
-References: <20040808115101.GA3498@luna.mooo.com> <20040808195210.GC7765@elf.ucw.cz> <20040811060953.GC9232@message-id.gmane0305.slipkontur.de> <20040811081940.GC965@hell.org.pl>
+Message-ID: <pan.2004.08.12.12.02.19.385237@yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040811081940.GC965-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -20,19 +18,45 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Aug 11, 2004 at 10:19:40AM +0200, Karol Kozimor wrote:
-> Thus wrote Stefan Seyfried:
-> > I believe this is a different issue. Also, swsusp _does_ or at least can
-                                               ^^^^^^typo,should be swsusp2
-> > use S4 AFAIK.
-> 
-> swsusp1: nope
-> pmdisk : from the beginning
-> swsusp2: only recently
+Hi,
 
-i meant swsusp2. I would not correct Pavel on swsusp issues ;-))
--- 
-Stefan Seyfried
+I have an IBM T41 with FC2.
+I compiled a 2.6.8-rc3 kernel with ACPI and LAPIC support.
+In dmesg I find:
+
+......
+Local APIC disabled by BIOS -- reenabling.
+Found and enabled local APIC!
+......
+ACPI: Using PIC for interrupt routing
+ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 9 *10 11)
+ACPI: PCI Interrupt Link [LNKB] (IRQs *3 4 5 6 7 9 10 11)
+......
+
+Is something wrong with my local APIC ? 
+Why ACPI is still using PIC instead of LAPIC ?
+No sign of LAPIC in /proc/interupts :
+
+cat /proc/interrupts 
+           CPU0       
+  0:   13340193          XT-PIC  timer
+  1:      12558          XT-PIC  i8042
+  2:          0          XT-PIC  cascade
+  3:          0          XT-PIC  Intel 82801DB-ICH4
+  4:          0          XT-PIC  uhci_hcd
+  5:        246          XT-PIC  uhci_hcd
+  8:          1          XT-PIC  rtc
+  9:      13952          XT-PIC  acpi
+ 10:      74704          XT-PIC  uhci_hcd, eth0
+ 12:     225583          XT-PIC  i8042
+ 14:     102543          XT-PIC  ide0
+ 15:       7076          XT-PIC  ide1
+NMI:          0 
+ERR:          0
+
+Thanks,
+Paul
+
 
 
 
