@@ -1,12 +1,15 @@
-From: Sean Middleditch <elanthis-LAuFFeG505qL5ISr76wZmQ@public.gmane.org>
-Subject: lockup on boot
-Date: 21 Sep 2002 14:06:07 -0400
+From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>
+Subject: Patch against kernels 2.4.x release
+Date: 21 Sep 2002 21:45:28 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1032631567.23480.23.camel@stargrazer>
+Message-ID: <1032659130.1509.9.camel@darkstar.portugal>
+References: <1032636606.2215.49.camel@darkstar.portugal>
+	<200209211635.51419.m.c.p@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200209211635.51419.m.c.p-hi6Y0CQ0nG0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,35 +18,41 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Marc-Christian Petersen <m.c.p-hi6Y0CQ0nG0@public.gmane.org>
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
 
- Using kernel 2.4.20-pre7 with the 20020918 ACPI patch, I'm unable to
-boot the machine.
+http://codecs.home.sapo.pt/acpi/index.html
 
- With debugin off, it gets as far as
-PCI: Using configuration type 1
 
- Turning debugging on, the messages following the above are
-(approximately - no cut and paste ~,^):
+http://codecs.home.sapo.pt/acpi/acpi-20020918-2.4.18.diff.gz
+http://codecs.home.sapo.pt/acpi/acpi-20020918-2.4.19.diff.gz
 
- tbxface-0099 [03] Acpi_load_tables    : ACPI Tables successfully loaded
-Parsing Methods: ... (many dots)
-Table [DSDT] - 441 Objects with 45 Devices 109 Methods 15 Regions
-Parsing Methods: (complete lack of dots)
-Table [SSDT] - 0 Objects with 0 Devices 0 Methods 0 Regions
-ACPI Namespace successfully loaded at root c02f705c
+=20
 
- And that's it.  It's sat there for around 10 minutes and nothing else
-has happened.  Passing pci=noacpi results in no changes.
 
- Passing acpi=off, the machine boots up much further, but some devices
-don't seem to work properly (it may just be I didn't add support to the
-correct devices in the kernel config - my working kernel is the default
-Redhat 7.3 pcmcia-cs kernel image, which is great except the laptop gets
-rather hotter than it did in WinXP...)
+
+On Sat, 2002-09-21 at 10:35, Marc-Christian Petersen wrote:
+> On Saturday 21 September 2002 21:30, S=E9rgio Monteiro Basto wrote:
+>=20
+> Hi S=E9rgio,
+>=20
+> > I already done the patches for kernels 2.4.19 and 2.4.18,
+> > and I have 3 questions :
+> where can I find those patches against 2.4.18 for current ACPI code? :)
+>=20
+> --=20
+> Kind regards
+>         Marc-Christian Petersen
+>=20
+> http://sourceforge.net/projects/wolk
+>=20
+> PGP/GnuPG Key: 1024D/569DE2E3DB441A16
+> Fingerprint: 3469 0CF8 CA7E 0042 7824 080A 569D E2E3 DB44 1A16
+> Key available at www.keyserver.net. Encrypted e-mail preferred.
+>=20
+
 
 
 
