@@ -1,14 +1,11 @@
-From: "Michael A. Smith" <mas3f-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org>
-Subject: Re: Problems with 600m PM states
-Date: Fri, 2 Jan 2004 15:58:56 -0500 (EST)
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: Re: Intel SE7500WV2 not working with ACPI (fwd)
+Date: Fri, 2 Jan 2004 13:09:04 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.BSF.4.55.0401021557040.503@dea.intranet>
-References: <3ACA40606221794F80A5670F0AF15F8401720C6D@PDSMSX403.ccr.corp.intel.com>
- <Pine.BSF.4.55.0401021139340.70212@dea.intranet> <20040102185613.GA30051@hell.org.pl>
+Message-ID: <20040102130742.G9534@root.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040102185613.GA30051-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,20 +14,53 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Cc: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2 Jan 2004, Karol Kozimor wrote:
+I can't figure this one out.  I think the issue is that various methods
+are defined under device "EC0" (note 3 chars) but when ACPI-CA attempts to
+call _REG, some internal function expands the name to "EC0_" (note 4
+chars), which doesn't exist.
 
-> Have you already tried passing acpi_sleep={s3_mode,s3_bios} as a
-> kernel parameter?
+Ideas?
 
-No, I will try them now.  Are these parameters documented somewhere?  What
-do they control?
+Thanks,
+Nate
 
-Michael Smith
-mas3f-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org
+---------- Forwarded message ----------
+Date: Tue, 25 Nov 2003 15:04:26 -0800
+From: Brooks Davis <brooks-JGfshJpz5UybPZpvUQj5UqxOck334EZe@public.gmane.org>
+To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Cc: Brooks Davis <brooks-JGfshJpz5UybPZpvUQj5UqxOck334EZe@public.gmane.org>, current@freebsd.org
+Subject: Re: Intel SE7500WV2 not working with ACPI
+
+On Tue, Nov 25, 2003 at 12:12:16PM -0800, Nate Lawson wrote:
+> > acpi0: <INTEL  SWV20   > on motherboard
+> >     ACPI-1287: *** Error: Method execution failed [\\_SB_.PCI0.SBRG.EC0_._REG] (Node 0xc29b4660), AE_NOT_EXIST
+> > acpi0: Could not initialise SystemIO handler: AE_NOT_EXIST
+> > device_probe_and_attach: acpi0 attach returned 6
+>
+> This is the source of the problems.  When acpi0 fails to attach,
+> everything else is done through the legacy PCI code.  The question is, why
+> is it failing?  The above-mentioned EC method could indicate the problem
+> is in walking the namespace but we'll have to look at the ASL to be sure.
+>
+> Please send a url to the output of:
+>      acpidump -t -d > brooks-Intel.asl
+
+http://people.freebsd.org/~brooks/debug/brooks-Intel.asl
+
+> Also, build with options ACPI_DEBUG and set these in your loader.conf:
+>
+> debug.acpi.layer="ACPI_ALL_COMPONENTS"
+> debug.acpi.level="ACPI_LV_OPREGION"
+
+There's a new dmesg with this done at:
+
+http://people.freebsd.org/~brooks/debug/dmesg-brooks-Intel
+
+Thanks,
+Brooks
 
 
 -------------------------------------------------------
