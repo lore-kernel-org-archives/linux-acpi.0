@@ -1,13 +1,13 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: kacpid problems
-Date: Wed, 10 Nov 2004 17:37:49 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC045@pdsmsx403>
+From: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
+Subject: Re: Reply to emails
+Date: Wed, 10 Nov 2004 11:26:24 +0000
+Message-ID: <4191FAE0.40102@mega.ist.utl.pt>
+References: <20041109190645.31896.qmail@web25308.mail.ukl.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <20041109190645.31896.qmail-uXbIVMJt4WjGRxTy+Q50vsz6deESKz/lQQ4Iyu8u01E@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,46 +17,99 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: dev_zero <dev_xor-eZNTXLQAfP4@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-SXQgbWVhbnMgdGhlcmUgd2FzIE5PIGV2ZW50IGdlbmVyYXRlZCBhdCB0aGF0IHRpbWUuDQpEbyB5
-b3UgdGhpbmsgdGhlIHN5bXB0b20gaXMgZ29uZSB3aXRoIG15IGRlYnVnIHBhdGNoPw0KSWYgc28s
-IEkgdGhpbmsgeW91ciBib3ggbmVlZCBhIG1vcmUgc2FuZSBzY2hlZHVsZSBmb3IgYWNwaV90aGVy
-bWFsX2NoZWNrIA0KQW5kLCBJIGNhbiBjb21lIHVwIHdpdGggYSBwYXRjaC4NCg0KVGhhbmtzDQpM
-dW1pbmcgDQoNCj4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPkZyb206IGRldl96ZXJvIFtt
-YWlsdG86ZGV2X3hvckB5YWhvby5ub10gDQo+U2VudDogMjAwNOW5tDEx5pyIMTDml6UgMTowNg0K
-PlRvOiBZdSwgTHVtaW5nDQo+Q2M6IGFjcGktZGV2ZWxAbGlzdHMuc291cmNlZm9yZ2UubmV0DQo+
-U3ViamVjdDogUkU6IFtBQ1BJXSBrYWNwaWQgcHJvYmxlbXMNCj4NCj5XaGVuIEkgdHJ5IHRvIG91
-dHB1dCB0aGUgZXZlbnQgZmlsZSBJIGRvIHRoaXM6DQo+W3Jvb3RAYmFsZGVyOiAvcHJvYy9hY3Bp
-XSMgY2F0IGV2ZW50ID4gL2hvbWUvZXZlbnQubG9nDQo+DQo+QnV0IHRoZW4gSXQganVzdCBzdGFu
-ZHMgdGhlcmUgd2l0aG91dCBkb2luZyBhbnl0aGluZy4NCj5TbyBpIHRyaWVkIHRvIGNoZWNrIHdo
-YXQgd2FzIHdyb25nIChwcyBheCkgY29tbWFuZDoNCj4yOTIyIHB0cy8wICAgIFMrICAgICAwOjAw
-IGNhdCBldmVudA0KPg0KPkkgZG9uJ3Qga25vdyBpZiBpdCBpcyBzdXBwb3NlZCB0byBiZSBzdXNw
-ZW5kZWQ/DQo+PiBJIHdhbnQgdG8ga25vdyB3aGF0IGtpbmQgb2YgZXZlbnRzIGNvdWxkIGJlDQo+
-PiBnZW5lcmF0ZWQgaGVhdmlseSwgd2hpY2ggY291bGQgaGF2ZSBjb3JyZXNwb25kaW5nDQo+PiBw
-ZW5kaW5nIGV4ZWN1dGlvbiBvZiBBTUwgbWV0aG9kIGlzc3VlZCB0byB3b3JrIHF1ZXVlDQo+PiBo
-YW5kbGVkIGJ5IGthY3BpZC4gIFNvIGp1c3QgY2F0IC9wcm9jL2FjcGkvZXZlbnQgPg0KPj4gZXZl
-bnQubG9nDQo+PiB0byBtZSB3aGVuIHlvdSB3ZXJlIG9ic2VydmluZyBhYm5vcm1hbCAgY3B1DQo+
-PiBjb25zdW1wdGlvbiBieSBrYWNwaWQuICANCj4+IA0KPj4gVGhhbmtzDQo+PiBMdW1pbmcgDQo+
-PiANCj4+ID4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPj4gPkZyb206IGRldl96ZXJvIFtt
-YWlsdG86ZGV2X3hvckB5YWhvby5ub10gDQo+PiA+U2VudDogMjAwNMOEw6oxMcOUw4IxMMOIw5Ug
-MDowMA0KPj4gPlRvOiBZdSwgTHVtaW5nDQo+PiA+U3ViamVjdDogUkU6IFtBQ1BJXSBrYWNwaWQg
-cHJvYmxlbXMNCj4+ID4NCj4+ID5PZiBjb3Vyc2UuLiBCdXQgd2hpY2ggbG9nIGZpbGVzIGRvIHlv
-dSB3YW50IHRvIHRha2UNCj4+IGENCj4+ID5sb29rIGF0Pw0KPj4gPj4gPkhvdyBhbSBpIHN1cHBw
-b3NlIHRvIGdldCBhbiBvdXRwdXQgZnJvbQ0KPj4gPj4gPi9wcm9jL2FjcGkvZXZlbnQgPz8/IEkg
-Y2FuJ3QgYWNjZXNzIHRoZSBmaWxlLA0KPj4gPj4gYmVjYXVzZQ0KPj4gPj4gPml0J3MgaW4gdXNl
-Lg0KPj4gPj4gDQo+PiA+PiBKdXN0IGtpbGwgYWNwaWQgb3IgdGhlIHNpbWlsYXIuDQo+PiA+PiAN
-Cj4+ID4+IA0KPj4gPj4NCj4+DQo+Pi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0NCj4+ID4+IFRoaXMgU0YuTmV0IGVtYWlsIGlzIHNwb25zb3Jl
-ZCBieToNCj4+ID4+IFN5YmFzZSBBU0UgTGludXggRXhwcmVzcyBFZGl0aW9uIC0gZG93bmxvYWQg
-bm93DQo+PiBmb3INCj4+ID4+IEZSRUUNCj4+ID4+IExpbnV4V29ybGQgUmVhZGVyJ3MgQ2hvaWNl
-IEF3YXJkIFdpbm5lciBmb3IgYmVzdA0KPj4gPj4gZGF0YWJhc2Ugb24gTGludXguDQo+PiA+Pg0K
-Pj4gaHR0cDovL2Fkcy5vc2RuLmNvbS8/YWRfaWRVODgmYWxsb2NfaWQSMDY1Jm9wPWNsaWNrDQo+
-PiA+PiBfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXw0KPj4g
-Pj4gQWNwaS1kZXZlbCBtYWlsaW5nIGxpc3QNCj4+ID4+IEFjcGktZGV2ZWxAbGlzdHMuc291cmNl
-Zm9yZ2UubmV0DQo+PiA+Pg0KPj4NCj4+aHR0cHM6Ly9saXN0cy5zb3VyY2Vmb3JnZS5uZXQvbGlz
-dHMvbGlzdGluZm8vYWNwaS1kZXZlbA0KPj4gPj4gIA0KPj4gPg0KPj4gIA0KPg0K
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+dev_zero wrote:
+|  --- Laszlo 'GCS' Boszormenyi <gcs-gKC9iF2I70U@public.gmane.org> wrote:
+|
+|>* dev_zero <dev_xor-eZNTXLQAfP4@public.gmane.org> [2004-11-09 18:54:38
+|>+0100]:
+|>
+|>
+|>>How should I really reply to emails coming from
+|>
+|>this
+|>
+|>>mailinglist?
+|>>I wonder because when I get replays from you, I
+|>>sometimes get two of the same email. Because you
+|>
+|>send
+|>
+|>>the email to my email address and a Cc to this
+|>>mailinglist which I subscribe to. When I send
+|>
+|>replays
+|>
+|>>should I send the email to the mailinglist or
+|>
+|>should I
+|>
+|>>send the replay to the person who sent the email
+|>
+|>with
+|>
+|>>the mailinglist-address as Cc?
+|>
+|> Do whatever you prefer, and ask people about your
+|>reply preferency.
+|>Usually it is a policy and a good thing(?) to send
+|>private replies _and_
+|>a Cc to the mailing list. For example if you send a
+|>private mail, then
+|>other users/developers won't see that your problem
+|>is taken care of, or
+|>simple mail list send would result a lost wood in
+|>the forest effect, so
+|>your mail might be 'lost' in other mailing list
+|>mails.
+|> Sometimes this annoys me, but I like it more often
+|>the way it happens.
+|>What's your taste?
+|>
+|>Regards,
+|>Laszlo
+|>
+|>
+|
+| Yes I can see your point, It's a little annoying when
+| you get two of the same email, but I have also
+| experienced 'lost' emails. And I prefere two of the
+| same email more than one lost email, that I thought
+| I'd never got.
+
+the duplicate e-mail problem can be solved if your e-mail account is
+stored in an unix shell to which you have some sort of access (ssh). if
+it is, you can use formail and procmail to eliminate duplicates. it
+works, I do it.
+
+[]
+
+|
+|
+| -------------------------------------------------------
+| This SF.Net email is sponsored by:
+| Sybase ASE Linux Express Edition - download now for FREE
+| LinuxWorld Reader's Choice Award Winner for best database on Linux.
+| http://ads.osdn.com/?ad_id=5588&alloc_id=12065&op=click
+| _______________________________________________
+| Acpi-devel mailing list
+| Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+| https://lists.sourceforge.net/lists/listinfo/acpi-devel
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.6 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+
+iD8DBQFBkfrgeRy7HWZxjWERAn01AJwP9vGv3BTcKS3Nh2HEIenI72e64wCghFOa
+BPiIZ5Fl6X+ihDx3j2htrKQ=
+=tcdX
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
