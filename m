@@ -1,58 +1,70 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [BK PATCH] ACPI 2.4
-Date: 29 Oct 2003 03:09:14 -0500
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <1067414953.15257.17.camel@dhcppc4>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: standby resumes immediately in 2.6.0-test8
+Date: Thu, 30 Oct 2003 11:34:45 +0800
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720B70@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-To: Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZQ39yzSjRtAkw@public.gmane.org>
-Cc: Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+content-class: urn:content-classes:message
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>, Bas Mevissen <ml-Y9IUUvl1dgU0Iwp8Nzs06g@public.gmane.org>
+Cc: Aviram Jenik <aviram-koYqR8i3DjZZkMgn48OZqdBPR1lH4CV8@public.gmane.org>, =?iso-8859-1?Q?=E9ric_Brunet?= <Eric.Brunet-l5PIGlIYzrxGWvitb5QawA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Marcelo, please do a 
+I don't know whether  patch at =
+http://bugme.osdl.org/show_bug.cgi?id=3D1433 address this issue.
+--Luming
 
-	bk pull http://linux-acpi.bkbits.net/linux-acpi-release-2.4.23
+-----Original Message-----
+From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org =
+[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org]On Behalf Of Patrick =
+Mochel
+Sent: 2003?10?29? 0:54
+To: Bas Mevissen
+Cc: Aviram Jenik; =A8=A6ric Brunet; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: Re: [ACPI] standby resumes immediately in 2.6.0-test8
 
-	This request includes the earlier x86_64 ACPI build fix,
-	plus fixes two crash regressions due to recent deltas,
-	plus picks up Andrew Morton's tweak to printk from 2.6.
 
-thanks,
--Len
 
-ps. a plain patch is also available here:
-ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.4.23-pre8/acpi-20031002-2.4.23-pre8.diff.gz
+> > # echo -n standby > /sys/power/state
+>
+> Is there a certain reason why
+>
+> # echo standby > /sys/power/state
+>
+> (also without -n) is not accepted by the code?
 
-This will update the following files:
- arch/x86_64/kernel/acpi.c          |   29 ++++++++++++++++++++++++-
- drivers/acpi/dispatcher/dsopcode.c |    8 ++----
- drivers/acpi/ec.c                  |   16 +------------
- lib/vsprintf.c                     |    3 +-
- 4 files changed, 35 insertions(+), 21 deletions(-)
+It's just pedantic about the parsing, which saves a couple of lines of
+code. If it's too inconvenient, please use a script to mask it. :)
 
-through these ChangeSets:
 
-<akpm-3NddpPZAyC0@public.gmane.org> (03/10/28 1.1063.44.35)
-   [PATCH] make printk more robust with "null" pointers
-   
-   Expand printk's traditional handling of null pointers so that
-anything in the
-   first page is considered a null pointer.
-   
-   This gives us better behaviour when someone (acpi..) accidentally
-prints a
-   string which is embedded in a struct, the pointer to which is null.
+	Pat
 
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/10/28 1.1063.44.34)
-   [ACPI] REVERT ACPICA-20030918 CONFIG_ACPI_DEBUG printk that caused
-crash
-   http://bugzilla.kernel.org/show_bug.cgi?id=1341
 
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/10/28 1.1063.44.33)
-   [ACPI] REVERT acpi_ec_gpe_query(ec) T40 fix that crashed other boxes
-   http://bugme.osdl.org/show_bug.cgi?id=1171
 
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/10/28 1.1063.44.32)
-   [ACPI] fix x86_64 build (Jeff Garzik)
+-------------------------------------------------------
+This SF.net email is sponsored by: SF.net Giveback Program.
+Does SourceForge.net help you be more productive?  Does it
+help you create better code?   SHARE THE LOVE, and help us help
+YOU!  Click Here: http://sourceforge.net/donate/
+_______________________________________________
+Acpi-devel mailing list
+Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+https://lists.sourceforge.net/lists/listinfo/acpi-devel
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: SF.net Giveback Program.
+Does SourceForge.net help you be more productive?  Does it
+help you create better code?   SHARE THE LOVE, and help us help
+YOU!  Click Here: http://sourceforge.net/donate/
