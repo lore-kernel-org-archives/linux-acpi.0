@@ -1,13 +1,13 @@
-From: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: S3 broken Samsung P35 - howto debug?
-Date: Wed, 24 Nov 2004 07:01:48 -0800
-Message-ID: <88056F38E9E48644A0F562A38C64FB60036C2567@scsmsx403.amr.corp.intel.com>
+From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+Subject: Re: S3 broken Samsung P35 - howto debug?
+Date: Wed, 24 Nov 2004 13:54:53 +0100
+Message-ID: <200411241354.53598.stefandoesinger@gmx.at>
+References: <200411211600.01820.od@fet.uni-hannover.de> <1101064133.7220.15.camel@mhcln03> <41A4613F.2020905@helios.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_dSIpBo7Rjp7E0Mf"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <41A4613F.2020905-csNNzRR391izQB+pC5nmwQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,37 +17,85 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Oliver Dawid <oliver-csNNzRR391izQB+pC5nmwQ@public.gmane.org>, Matthias Hentges <mailinglisten-H4PcyxPeSRnR7s880joybQ@public.gmane.org>
-Cc: Oliver Dawid <od-VRmHG7Xu4f31qYPpFx2fzhvVK+yQ3ZXh@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Matthias Hentges <mailinglisten-H4PcyxPeSRnR7s880joybQ@public.gmane.org>, Oliver Dawid <oliver-csNNzRR391izQB+pC5nmwQ@public.gmane.org>, Oliver Dawid <od-VRmHG7Xu4f31qYPpFx2fzhvVK+yQ3ZXh@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
->-----Original Message-----
->From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
->[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
->Oliver Dawid
->Sent: Wednesday, November 24, 2004 2:24 AM
->To: Matthias Hentges
->Cc: Oliver Dawid; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: Re: [ACPI] S3 broken Samsung P35 - howto debug?
->
->> Our best bet is the on-board ethernet. It works perfectly after
->> resuming. SSH is your friend.
->> I've put together a page with my experiences so
->> far :http://www.hentges.net/misc/howtos/samsung_p30_s3.shtml
->>=20
->> There's a little script to restore lost PCI configuration=20
->DATA after a
->> resume.=20
->> I've managed to get the backlight on, but that's it heh.
->
->Now its time to switch on my backlight ;-)
+--Boundary-00=_dSIpBo7Rjp7E0Mf
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 
-What video card do you have. Radeon? Does the workarouns in
-http://bugme.osdl.org/show_bug.cgi?id=3D3670 help to ge the video back?
+> Now its time to switch on my backlight ;-)
+The attached program may help you. It uses lrmi and vm86 to call the reset 
+routine of the VGA bios. I use it to wake up my radeon card.
 
-Thanks,
-Venki
+You need the lrmi libaries.
+Compile with gcc boot-vga-bios.c -o boot-vga-bios -llrmi
+It's a user space program, you can call it eighter manually or better from a 
+script.
+
+Cheers,
+Stefan
+
+--Boundary-00=_dSIpBo7Rjp7E0Mf
+Content-Type: text/x-csrc;
+  charset="iso-8859-1";
+  name="boot-vga-bios.c"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="boot-vga-bios.c"
+
+#define LRMI_DEBUG 1
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <lrmi.h>
+
+void err(char *function, int exitval) {
+	fprintf(stderr, "%s():\n");
+	exit(exitval);
+}
+
+int main () {
+	struct LRMI_regs regs;
+	
+	ioperm(0, 1024, 1);
+	iopl(3);
+
+	if (!LRMI_init()) {
+		err("LRMI_init", 1);
+	}
+
+	memset(&regs, 0, sizeof(regs));
+	
+	/*
+	   if ((pvp = xf86GetPciInfoForEntity(pInt->entityIndex)))
+	   	X86_AX = (pvp->bus << 8) | (pvp->device << 3) | (pvp->func & 0x7);
+	   pushw(pInt, X86_CS);
+	   pushw(pInt, X86_IP);
+	   X86_CS = pInt->BIOSseg;
+	   X86_EIP = 0x0003;
+	   X86_ES = 0;                  // standard pc es 
+	*/
+
+	regs.eax = ((1 << 8) | (0 << 3) | (0 & 0x7)) & 0x0000FFFF;
+	regs.cs = 0x0000c000;
+	regs.ip = 0x00000003;
+	//regs.ip = 0;
+	//regs.es = 0;
+
+	if (!LRMI_call(&regs)) {
+		err("LRMI_int", -1);
+	}
+
+
+	exit(0);
+}
+
+--Boundary-00=_dSIpBo7Rjp7E0Mf--
 
 
 -------------------------------------------------------
