@@ -1,14 +1,15 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: [PATCH] S4bios for 2.5.52.
-Date: Wed, 18 Dec 2002 00:18:57 +0100
+From: Vittorio Ballestra <vittorio.ballestra-w/p7aty22Lb1OrHgBX/NsA@public.gmane.org>
+Subject: Re: Am I burning my Compaq 700EA ?
+Date: Wed, 18 Dec 2002 09:41:06 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021217231856.GA15977@atrey.karlin.mff.cuni.cz>
-References: <EDC461A30AC4D511ADE10002A5072CAD04C7A5B6@orsmsx119.jf.intel.com>
+Message-ID: <200212180941.06499.vittorio.ballestra@infogestnet.it>
+References: <1040197383.2035.6.camel@lgge-pc176.obs.ujf-grenoble.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1040197383.2035.6.camel-EOLtR9nHC0w7VkuvlHBOUdBf7emC4R2pl6ge6I993lI@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD04C7A5B6-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,42 +18,73 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Frederic.Parrenin-uJC2I/HWIrG1lNqXp+/2b1AUjnlXr6A1@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Alle 08:43, mercoled=EC 18 dicembre 2002, hai scritto:
+> Hi Vittorio,
+>
+>
+> I am not an acpi expert, but I had a similar problem with my laptop.
+>
+> > Second:
+> > 	/proc/acpi/thermal_zone is there but empty. Is it Ok ?  If not someone
+> > knows how to fix it ? (I'm a bit worried 'bout this).
+>
+> For me, it was the battery and ac_adaptatot that were empty. It came
+> from a buggy implementation of acpi in the Bios : my dsdt table was
+> wrong. A nice gye has of the acpi-devel list looked at my
+> /proc/acpi/dsdt file, and he gave me a patch to have acpi fully working.
+>
 
-> > > I still am not clear on why we would want s4bios in 2.5.x, 
-> > since we have S4.
-> > > Like you said, S4bios is easier to implement, but since 
-> > Pavel has done much
-> > > of the heavy lifting required for S4 proper, I don't see the need.
-> > 
-> > Let me counter this, I have to admit that I didn't try the 
-> > patch yet, but
-> > my laptop does S4 BIOS, and I'd definitely prefer that to 
-> > swsusp, since
-> > it's much faster and also I somewhat have more faith into S4 BIOS than
-> > swsusp (as in: after resuming, it'll most likely either work 
-> > or crash, but
-> > not cause any weird kinds of corruption). Since it does not 
-> > need not much
-> > more to support it than S3, I don't see why you wouldn't want to give
-> > users the option?
-> 
-> Ok that's reasonable.
-> 
-> My belief is that S4bios is a stopgap measure until S4 gets better. That
-> said, I think you are right - it should go in for now, and then at some
-> point in the future someone will say, "S4bios?? who needs *that* anymore??"
-> and it will get pulled out. ;-)
+Thank you for your hint. I'll try to disassemble the DSDT table and underst=
+and=20
+it, but it will take a long time as I don't have much spare time for it...=
+=20
+hope in the meanwhile I'm not going to cook my compaq... or some other good=
+=20
+guy will give me a hand...
 
-Thanx. I'm looking forward to see it merged.
-								Pavel
--- 
-Casualities in World Trade Center: ~3k dead inside the building,
-cryptography in U.S.A. and free speech in Czech Republic.
+> For your thermal zone, try to charge your CPU and look if the fan work
+> correctly. (What is your processor ? Pentium 4 ?)
+>
+
+=46an is working (running mplayer or recompiling the kernel will make it wo=
+rk).=20
+Don't know how well though ...
+Throttling works (manual changing the throttling state will do, don't know =
+if=20
+it will change automatically).
+My processor is an AMD Athlon 4 1500+
+
+> > Third:
+> > 	acpid is not working (I've not applied the apcpid.patch, thought it was
+> > integrated ...). Is this a real problem or the only side-effect is that
+> > power button will not work ?
+>
+> If you try to start acpid, do you have an error message ?
+
+no, but buttons are not working. I didn't want to recompile only because I'=
+ve=20
+forgotten to apply the acpid.patch that's why I asked if it was important .=
+=2E.
+
+>
+> Regards.
+>
+> 	Frederic
+>
+> > -------------------------------------------------------
+> > This sf.net email is sponsored by:
+> > With Great Power, Comes Great Responsibility
+> > Learn to use your power at OSDN's High Performance Computing Channel
+> > http://hpc.devchannel.org/
+> > _______________________________________________
+> > Acpi-devel mailing list
+> > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> > https://lists.sourceforge.net/lists/listinfo/acpi-devel
+
 
 
 -------------------------------------------------------
