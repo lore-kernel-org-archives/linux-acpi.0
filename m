@@ -1,14 +1,14 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: RE: [Bug 1656] Merge FreeBSD local changes into vendor dist
- (fwd)
-Date: Tue, 9 Dec 2003 14:32:34 -0800 (PST)
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Shuttle HOT-591P fails ACPI on 2.4.23
+Date: Wed, 10 Dec 2003 10:40:20 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031209142631.F43549@root.org>
-References: <F760B14C9561B941B89469F59BA3A8470255EFB2@orsmsx401.jf.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C14@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <F760B14C9561B941B89469F59BA3A8470255EFB2-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,38 +17,109 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ryan Underwood <nemesis-lists-RBwgCYbvQ+vk1uMJSBkQmQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 9 Dec 2003, Grover, Andrew wrote:
-> > From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> > [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of
-> > Nate Lawson
-> > !#@$@!#$#@!$ This is the second time this has happened.  Can
-> > we either 1.
-> > get an acpi-ca bug tracking system or 2. tell the admins to leave me
-> > alone?
->
-> This should go to Bob directly. If the non-Linux ACPI CA bug volume gets
-> high them maybe we can discuss other options, but until then I think
-> that's the right thing to do.
->
-> Regards -- Andy
->
-> PS Bob is on acpi-jp IIRC...
+It's too bad that your box faile to transition to ACPI mode. Did you =
+boot MS windows successfully on your box?
+BTW, I need full ouptput of acpidmp. --Luming
 
-My main worry is losing track of patches sent to Bob and the mailing
-lists.  No offense, but I've gotten much better response out of bugs
-submitted to bugme than to the mailing list.  And I'm less likely to lose
-them as well.
 
-I believe my solution will be to obfuscate any non-Linux identifying
-features from future bug submissions to keep them out of sight of the
-pedants^H^H^H^H^H^H^H admins who have nothing better to do than cancel
-legitimate bug reports.
+-----Original Message-----
+From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org =
+[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org]On Behalf Of Ryan =
+Underwood
+Sent: 2003?12?9? 12:51
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: Re: [ACPI] Shuttle HOT-591P fails ACPI on 2.4.23
 
--Nate
+
+
+Hi,
+
+This is the first time I have booted an ACPI-enabled kernel on this
+machine.  So I wasn't expecting too much. ;)
+
+Shuttle's spec page for the board: http://de.shuttle.com/591p.htm
+does claim to support ACPI.
+
+I attached the files you asked for.  acpi_pic_sci=3Dedge didn't seem to
+make a difference (paused in same place, and same error)
+
+
+On Mon, Dec 08, 2003 at 10:14:20AM -0500, Len Brown wrote:
+> Has ACPI worked better on this box using any other releases?
+>=20
+> Does it work any better if you boot with "acpi_pic_sci=3Dedge"?
+>=20
+> I'd be interested in seing the complete dmesg -s40000 output
+> and the resulting /proc/interrupts.
+>=20
+> thanks,
+> -Len
+>=20
+> On Mon, 2003-12-08 at 07:24, Ryan Underwood wrote:
+> > Hello,
+> >=20
+> > Shuttle HOT-591P with latest BIOS (591P025) and Cyrix CPU, kernel
+> > 2.4.23.  It is a Baby AT board with AT and ATX power.
+> >=20
+> > Vendor: Award Software International, Inc.
+> > Version: 4.51 PG
+> > Release Date: 03/27/01
+> >=20
+> > Manufacturer: Shuttle Inc.
+> > Product Name: VIA APOLLO MVP3 (HOT-597)
+> > Version: 2A5LEH2B
+> > (It is actually a 591P, regardless of the DMI string)
+> >=20
+> > It seems the ACPI tables are found, but the system does not properly
+> > handle the SCI interrupt:
+> >=20
+> > ACPI: Subsystem revision 20031002
+> > PCI: PCI BIOS revision 2.10 entry at 0xfb410, last bus=3D3D1
+> > PCI: Using configuration type 1
+> >  tbxface-0117 [03] acpi_load_tables      : ACPI Tables successfully =
+acquired
+> > Parsing all Control =
+Methods:.......................................................
+> > Table [DSDT](id F004) - 227 Objects with 26 Devices 55 Methods 17 =
+Regions
+> > ACPI Namespace successfully loaded at root c02dba3c
+> > ACPI: IRQ9 SCI: Level Trigger.  <---- PAUSES HERE
+> > evxfevnt-0089: *** Error: Could not transition to ACPI mode.
+> >  utxface-0170 [03] acpi_enable_subsystem : acpi_enable failed.
+> > ACPI: Unable to start the ACPI Interpreter
+> > evxfevnt-0127 [06] acpi_disable          : System is already in =
+legacy (non-ACPI) mode
+> >  utalloc-0986 [05] ut_dump_allocations   : No outstanding =
+allocations.
+> > PCI: Probing PCI hardware
+> > PCI: ACPI tables contain no PCI IRQ routing entries
+> > ...
+> >=20
+> > At the "ACPI: IRQ9 SCI:" part, it pauses for a few seconds before
+> > continuing.
+> >=20
+> > A similar system with a Tyan ATX board and K6/III 400 works great.
+> >=20
+> > any ideas?
+>=20
+>=20
+>=20
+> -------------------------------------------------------
+> This SF.net email is sponsored by: SF.net Giveback Program.
+> Does SourceForge.net help you be more productive?  Does it
+> help you create better code?  SHARE THE LOVE, and help us help
+> YOU!  Click Here: http://sourceforge.net/donate/
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>=20
+
+--=20
+Ryan Underwood, <nemesis-RBwgCYbvQ+vk1uMJSBkQmQ@public.gmane.org>
 
 
 -------------------------------------------------------
