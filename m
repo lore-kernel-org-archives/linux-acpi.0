@@ -1,14 +1,14 @@
-From: Mattia Dongili <dongili-vcC760zL2fQ1GQ1Ptb7lUw@public.gmane.org>
-Subject: Re: Strange ACPI way of work in Sony VAIO GRX600
-Date: Tue, 4 Feb 2003 09:52:16 +0100
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Debug messages XE3 HP
+Date: Tue, 4 Feb 2003 10:39:53 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030204095216.7ce83ada.dongili@supereva.it>
-References: <1044313902.21776.13.camel@galileo.homenet.lan>
+Message-ID: <20030204093953.GD1205@poup.poupinou.org>
+References: <001601c2cbd4$36d48d80$03c4a8c0@vrey>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1044313902.21776.13.camel-YsvTK5mC77CNMNO9ztqOseFciLI1ps7f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <001601c2cbd4$36d48d80$03c4a8c0-a3AIZ4dZ1BE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,59 +17,49 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: alx <alexs81-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org>
+To: Robert <robert-2BgBnwcziRhmR6Xm/wNWPw@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+On Mon, Feb 03, 2003 at 11:33:02PM +0100, Robert wrote:
+> Can anyone use these debug lines ?
+> 
+> regards
+> 
+> Robert de Vrey
+> 
+> 
+> 
+> > Jan 27 23:47:22 Laptop kernel:  exfldio-0121 [310] ex_setup_region       :
+> > Field [ACPW] Base+Offset+Width 38+0+4 is beyond end of region [GPIO]
+> (length
+> > 3B)
+> > Jan 27 23:47:22 Laptop kernel:  psparse-1102: *** Error: Method execution
+> > failed [\_SB_.PCI0.LPCB.BAT1._BST] (Node cf75de08), AE_AML_REGION_LIMIT
+> > Jan 27 23:47:22 Laptop kernel: acpi_battery-0195 [294]
+> acpi_battery_get_statu:
+> > Error evaluating _BST
+> > Jan 27 23:47:22 Laptop kernel:  exfldio-0121 [310] ex_setup_region       :
+> > Field [ACPW] Base+Offset+Width 38+0+4 is beyond end of region [GPIO]
+> (length
+> > 3B)
+> > Jan 27 23:47:22 Laptop kernel:  psparse-1102: *** Error: Method execution
+> > failed [\_SB_.PCI0.LPCB.BAT1._BST] (Node cf75de08), AE_AML_REGION_LIMIT
+> > Jan 27 23:47:22 Laptop kernel: acpi_battery-0195 [294]
+> acpi_battery_get_statu:
+> > Error evaluating _BST
+> >
 
-> but sometimes acpi patch  20021205 (on 2.4.20)hat a little utility 
-> tells me that themperature goes to 0 and battery has strange state info
+It say that your laptop have the (in)famous bug where a buffer with a
+bad size region is declared in the DSDT.
+FYI, this one is manufactured by Compal Inc. which make this error all the time
+(grumble grumble).
 
-this happened to me too using spictrl or setbrightness while on battery.
-it doesn't seem to happen anymore (I'm using acpi-20021212). I think they just write some more memory than they should but I've never debbuged it.
+-- 
+Ducrot Bruno
 
-> I was interested in patching ACPI for sony vaio series, but I just need
-> some suggestion on what can be done.
-> Another thing is that a little utility which doesn't require acpi to
-> work (vaiobat) hangs when acpi doesn't works, but work great when acpi
-> works.
-> 
-> When it happen I've to change some state in acpi subsystem: i mean one
-> of these action bring acpi to work properly again
-> 1) close lid switch
-> 2) press power button
-> 3) plug ac-ADAPTER
-> 4) remove and insert again battery
-
-never tried this *solution* :)
-
---
-mattia
-
-> 
-> I think there is a overflow somewehere
-> 
-> TIA for suggestion
-> Bye
-> Alx
-> 
-> -- 
-> int a=10000,b,c=2800,d,e,f[2801],g;main(){for(;b-c;) f[b++]=a/5;
-> for(;d=0,g=c*2;c-=14,printf("%.4d"e+d/a),e=d%a)for(b=c;d+=f[b]*a,
-> f[b]=d%--g,d/=g--,--b;d*=b);}
-> 
-> 
-> 
-> -------------------------------------------------------
-> This SF.NET email is sponsored by:
-> SourceForge Enterprise Edition + IBM + LinuxWorld = Something 2 See!
-> http://www.vasoftware.com
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> 
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
