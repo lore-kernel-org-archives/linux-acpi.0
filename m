@@ -1,15 +1,13 @@
-From: Dieter Rohlfing <u490248-uKKRHEr75Vc@public.gmane.org>
-Subject: Re: Laptop does not reboot
-Date: Fri, 05 Mar 2004 19:56:51 +0100
+From: "Dino Klein" <dinoklein-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: turning off individual devices
+Date: Fri, 5 Mar 2004 23:21:37 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4048CD73.ADA4941F@imail.de>
-References: <403E59FF.990E2CD0@imail.de>
- <200402270209.04355.bernd-schubert@web.de> <40420AEA.63D1586C@imail.de>
- <20040301010414.GA16766@hell.org.pl>
-Reply-To: u490248-uKKRHEr75Vc@public.gmane.org
+Message-ID: <Law11-OE414phnpK9h70002b8bd@hotmail.com>
+References: <20040305222117.GA20865@rap.rap.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,24 +17,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: =?iso-8859-1?Q?Keld_J=F8rn_Simonsen?= <keld-6PR53cSIHaE@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Karol Kozimor wrote:
+check kernel/Documentation/power/devices.txt
+the value there indicates in which state to put the device after the driver detaches from it.
 
-> See if booting with noapic nolapic changes anything.
+----- Original Message ----- 
+From: "Keld Jørn Simonsen" <keld-6PR53cSIHaE@public.gmane.org>
+To: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sent: Friday, March 05, 2004 5:21 PM
+Subject: [ACPI] turning off individual devices
 
-Sorry, didn't change anything. :-(
 
-I switched back to 2.4.22, because 2.6.3 isn't an option for me. Perhaps
-the ACPI of 2.6.x is backported to 2.4.x, then - maybe - I'll get a
-properly rebooting 2.4.26? kernel.
-
-Dieter
-
--- 
-Every mail not from this mailing list will be deleted.
-
+> I try to turn off individual devices by saying
+>
+>    echo -n 4 >  /sys/devices/pci0000:00/0000:00:1f.6/detach_state
+>
+> But it seems that nothing happens. Am I missing something?
+> Kernel 2.6.3
+>
+> Keld
+>
+>
+> -------------------------------------------------------
+> This SF.Net email is sponsored by: IBM Linux Tutorials
+> Free Linux tutorial presented by Daniel Robbins, President and CEO of
+> GenToo technologies. Learn everything from fundamentals to system
+> administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>
 
 
 -------------------------------------------------------
