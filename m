@@ -1,14 +1,14 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: 2.6.3-rc3 + D600 + battery status missing sometimes..
-Date: Tue, 17 Feb 2004 15:45:59 +0800
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: Some results from Alexander's acpi_leave_sleep_state patch
+Date: Tue, 17 Feb 2004 09:06:15 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB6CC@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <20040217080615.GA16328@hell.org.pl>
+References: <200402152200.08010.a.malysh@centrium.de> <200402152312.53837.a.malysh@centrium.de> <20040216182451.1BC5.COUNT0@localnet.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <20040216182451.1BC5.COUNT0-tC47gz4GrgtWk0Htik3J/w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,41 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ow Mun Heng <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>, "Acpi-List (E-mail)" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Huw Rogers <count0-tC47gz4GrgtWk0Htik3J/w@public.gmane.org>
+Cc: Alexander Malysh <a.malysh-1WJ9BOJEYl0b1SvskN2V4Q@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Would you please have patch filed at
-http://bugzilla.kernel.org/show_bug.cgi?id=3D1791
-a try?
+Thus wrote Huw Rogers:
+> Alexander's patch had some interesting effects on my S3 resume problems
+> with my SiS 648FX/963 / P4 / Radeon 9600 laptop
+> (http://bugme.osdl.org/show_bug.cgi?id=2048). Although the system was
+> still locked up, the display was no longer inoperable to the point that
+> the battery and AC had to be removed to get it back, and I could use a
+> regular power cycle to recover. A mild improvement.
 
---Luming
+You might want to try 2.6.3-rc4 with new radeonfb for better suspend /
+resume handling.
+Best regards,
 
-> >=20
-> > > Hmmm.. no reply yet.. more info..
-> > > There's also these message currently..
-> > >=20
-> > > osl-0886[80] os_wait_semaphore:Failed to acquire=20
-> > > semaphore[dffac580|1|0],
-> > > AE_TIME
-> > >=20
-> > > Appreciate the help..
-> >=20
-> > I have some impression, but still not clearly remember
-> > whether this is a known issue.
-> >=20
-> > Please post full boot log that will help me to recall=20
-> > something useful.
->=20
-> Full boot log as requested..
-> This is 2.6.3-rc3, patched with acpi-20040211 only.
->=20
-> Battery status is flaky.. (missing sometimes)
-> then there's the os_wait_semaphore thingy as well..
->=20
-> Appreciate the help..
->=20
->=20
->=20
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
