@@ -1,13 +1,12 @@
-From: Nigel Cunningham <ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>
-Subject: Re: CONFIG_PM, CONFIG_ACPI, CONFIG_ACPI_SLEEP
-Date: Thu, 10 Mar 2005 09:15:03 +1100
-Message-ID: <1110406503.8870.36.camel@desktop.cunningham.myip.net.au>
-References: <1110394955.9337.48.camel@d845pe>
-Reply-To: ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Suggestion for improving the handling of GPE enabling.
+Date: Wed, 9 Mar 2005 23:21:24 +0100
+Message-ID: <20050309222122.GA32516@elf.ucw.cz>
+References: <1110318037.3663.19.camel@desktop.cunningham.myip.net.au> <1110331896.12642.16.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <1110394955.9337.48.camel@d845pe>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1110331896.12642.16.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,42 +16,49 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi.
+Hi!
 
-On Thu, 2005-03-10 at 06:02, Len Brown wrote:
-> Today it is possible to build with
-> CONFIG_PM=n
-> CONFIG_ACPI=y
-> (however, CONFIG_ACPI_SLEEP does depend on CONFIG_PM)
-> 
-> Seems that the solution to the kexec poweroff issue
-> is simpler if ACPI can depend on CONFIG_PM being present:
-> http://bugzilla.kernel.org/show_bug.cgi?id=4041
-> 
-> Why shouldn't CONFIG_ACPI depend on CONFIG_PM
-> Why shouldn't CONFIG_ACPI_SLEEP simply be CONFIG_ACPI
-> 
-> I can't think of any good reasons not to simplify here, can you?
+> > better tied to what's actually happening (I'm assuming Pavel's
+> > pm_message_t changes are applied). Something like:
+> > 
+> > PMSG_FREEZE: Disable GPEs.
+> > PMSG_SUSPEND: Enable wake GPEs.
+> > PMSG_ON: Disable wake GPEs, enable normal GPEs.
+> I have the same feeling. A real solution should be to merge ACPI device
+> into the global device tree, so every ACPI driver will have a
+> .suspend/.resume method. In the .suspend/.resume method, we can do
+> anything we want. This has been in the wish list for a long time.
+> Some issues are:
+> 1. what kind of device should ACPI device be? system device or platform
+> device?
 
-That sounds confusing to me. I thought that ACPI was much more than just
-power management. Doesn't it include IRQ routing, device enumeration and
-so on too?
+I'd say platform device, but pick one ;-).
 
-Regards,
+> 2. What's purpose of the current ACPI namespace in sysfs? Could ACPI
+> device be regarded as a normal device?
 
-Nigel
+I did not notice we have ACPI namespace in sysfs... ... aha, I see. I
+guess it is okay for debugging and low-level tricks aka sonypi?
+
+> 3. Some ACPI devices have physical partners. Who will do the
+> suspend/resume?
+
+I'd let the physical partners do it; it should work without ACPI, too.
+
+> 4. ACPI devices are in many different physical buses. If we just define
+> an ACPI bus, we possibly can't show the bus hierarchy.
+
+Maybe ACPI device should be "under" real hardware one?
+
+								Pavel
+
 -- 
-Nigel Cunningham
-Software Engineer, Canberra, Australia
-http://www.cyclades.com
-Bus: +61 (2) 6291 9554; Hme: +61 (2) 6292 8028;  Mob: +61 (417) 100 574
-
-Maintainer of Suspend2 Kernel Patches http://suspend2.net
-
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
