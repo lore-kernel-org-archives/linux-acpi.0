@@ -1,15 +1,15 @@
-From: Eric Valette <eric.valette-GANU6spQydw=@public.gmane.org>
-Subject: Re: [PATCH] fix IRQ / GPEs restore on wake
-Date: Sun, 18 Apr 2004 14:29:41 +0200
+From: "Michal Semler (volny.cz)" <cijoml-VIXq6x/3rUk=@public.gmane.org>
+Subject: ACPI bug - oops when power down
+Date: Sun, 18 Apr 2004 18:03:10 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <408274B5.9080806@free.fr>
-References: <20040417215139.GA17862@hell.org.pl>
-Reply-To: eric.valette-GANU6spQydw=@public.gmane.org
+Message-ID: <200404181803.11212.cijoml@volny.cz>
+Reply-To: cijoml-VIXq6x/3rUk=@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040417215139.GA17862-DETuoxkZsSqrDJvtcaxF/A==@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,78 +18,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg==@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Robert.Moore-ral2JQCrhuEAvxtiuMwx3w==@public.gmane.org
+To: robert.moore-ral2JQCrhuEAvxtiuMwx3w==@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Robert,
 
---- a/drivers/acpi/hardware/hwsleep.c	2004-04-17 22:57:11.000000000 +0200
-+++ b/drivers/acpi/hardware/hwsleep.c	2004-04-17 23:12:08.000000000 +0200
-@@ -512,6 +512,16 @@ acpi_leave_sleep_state (
+I have Dell Latitude CPX J650GT laptop. Everything works well except shutdo=
+wn.
 
-  	acpi_gbl_sleep_type_a = ACPI_SLEEP_TYPE_INVALID;
+=46rom ACPI in 2.4.23 I can't switch off my laptop.
 
-+	/*
-+	 * Restore the GPEs:
-+	 * 1) Disable all wakeup GPEs
-+	 * 2) Enable all runtime GPEs
-+	 */
-+	status = acpi_hw_restore_gpes_on_wake ();
-+	if (ACPI_FAILURE (status)) {
-+		ACPI_REPORT_ERROR(("Could not enable non wakeup GPEs, %s\n", 
-acpi_format_exception (status)));
-+	}
-+
-  	/* Setup parameter object */
+when I call halt, laptop goes well until Power down. It writes Powerdown an=
+d=20
+then oopses and not switch them off.
 
-  	arg_list.count = 1;
-@@ -538,16 +548,6 @@ acpi_leave_sleep_state (
-  	}
-  	/* TBD: _WAK "sometimes" returns stuff - do we want to look at it? */
+my configuration:
+kernel 2.4.26-vanilla, debian woody, pentium 3 650/500 MHz, piix bridge
 
--	/*
--	 * Restore the GPEs:
--	 * 1) Disable all wakeup GPEs
--	 * 2) Enable all runtime GPEs
--	 */
--	status = acpi_hw_restore_gpes_on_wake ();
--	if (ACPI_FAILURE (status)) {
--		return_ACPI_STATUS (status);
--	}
--
-  	/* Enable power button */
+Thanks a lot
 
- 
-acpi_set_register(acpi_gbl_fixed_event_info[ACPI_EVENT_POWER_BUTTON].enable_register_id,
---- a/drivers/acpi/sleep/main.c	2004-04-17 22:55:12.000000000 +0200
-+++ b/drivers/acpi/sleep/main.c	2004-04-17 23:09:45.000000000 +0200
-@@ -107,7 +107,6 @@ static int acpi_pm_enter(u32 state)
-  	default:
-  		return -EINVAL;
-  	}
--	local_irq_restore(flags);
-  	printk(KERN_DEBUG "Back to C!\n");
-
-  	/* restore processor state
-@@ -118,6 +117,8 @@ static int acpi_pm_enter(u32 state)
-  	if (state > PM_SUSPEND_STANDBY)
-  		acpi_restore_state_mem();
-
-+	acpi_leave_sleep_state(state);
-+	local_irq_restore(flags);
-
-  	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
-  }
-@@ -133,8 +134,6 @@ static int acpi_pm_enter(u32 state)
-
-  static int acpi_pm_finish(u32 state)
-  {
--	acpi_leave_sleep_state(state);
--
-  	/* reset firmware waking vector */
-  	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
-
-
+Michal
 
 
 -------------------------------------------------------
