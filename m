@@ -1,14 +1,14 @@
-From: George Barnett <george-OvXvXIFG8FfYkQIYctQFYw@public.gmane.org>
-Subject: Re: DSDT on suse 9.1
-Date: Wed, 06 Oct 2004 12:05:15 +0100
+From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: what is throttling?
+Date: Wed, 6 Oct 2004 13:49:35 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4163D16B.1090903@alink.co.za>
-References: <4162A11A.106@alink.co.za>
+Message-ID: <20041006114935.GF17247@wotan.suse.de>
+References: <20041006090408.GA17104@rap.rap.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <4162A11A.106-OvXvXIFG8FfYkQIYctQFYw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20041006090408.GA17104-EittdKFJ/bZ/SzgSGea1oA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,36 +17,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Keld J?rn Simonsen <keld-6PR53cSIHaE@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-George Barnett wrote:
+On Wed, Oct 06, 2004 at 11:04:08AM +0200, Keld J?rn Simonsen wrote:
+> Hi!
+> 
+> I have googled around for a couple of hours to find out precisely what
+> throttling means. I did it before and found some useful information, but
+> this time I did not find the relevant data.
+> 
+> I would like to find out, which state precisely that the CPU enters when
+> throttling. Maybe it is different from CPU to CPU. Specifically I would
+> like to know if the CPU is completely powered off, my recollection of
+> some information I have seen earlier is that this may be the case.
 
-> I have the modified .asl file - what switches should I feed to iasl to 
-> get the correct output?  -tc seems to give hex, which I dont believe is 
-> what I want?
+On Intel CPUs Throttling means that the CPU skips each other
+(or more) clock. This is quite slow, but only done to get 
+the temperature down.
 
-Hi,
+AMD CPUs don't have it afaik.
 
-Ignore me.  I managed to get this asl file compiled to hex and it spewed 
-the same errors as the dsdt already installed with my distro of linux.
-
-The powersaving mostly works and I dont think I'm going to get much 
-better.  I'm not too worried about suspend.
-
-Cheers,
-
-George
-
--- 
-George Barnett
-Reality Engineer & Explorer
-
-e: george-OvXvXIFG8FfYkQIYctQFYw@public.gmane.org
-m: +44 778 884 7205
-
-Things must be as they may
-       - William Shakespeare, Henry V
+-Andi
 
 
 -------------------------------------------------------
