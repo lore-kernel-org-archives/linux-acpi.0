@@ -1,15 +1,15 @@
-From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
-Subject: Re: sysdev suspend/resume order?
-Date: Fri, 13 Aug 2004 13:13:03 +0200
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: _STA workaround regression
+Date: Fri, 13 Aug 2004 09:22:10 -0600
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200408131313.03561.stefandoesinger@gmx.at>
-References: <B44D37711ED29844BEA67908EAF36F038F7E8A@pdsmsx401.ccr.corp.intel.com>
-Reply-To: stefandoesinger-RbZlAiThDcE@public.gmane.org
+Message-ID: <200408130922.10323.bjorn.helgaas@hp.com>
+References: <B44D37711ED29844BEA67908EAF36F038ADB70@pdsmsx401.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_/IKHB5E2En3gVVl"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <B44D37711ED29844BEA67908EAF36F038F7E8A-4yWAQGcml65pB2pF5aRoyrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <B44D37711ED29844BEA67908EAF36F038ADB70-4yWAQGcml65pB2pF5aRoyrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,106 +19,48 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Patrick Mochel <mochel-og82NyAXoxR0I81aPRRTmR2eb7JE58TQ@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Thursday 12 August 2004 7:02 pm, Li, Shaohua wrote:
+> I got below boot message
+> >ACPI: Device [CSFF] status [00000008]: functional but not present;
+> setting
+> >present
+> >ACPI: PCI Root Bridge [CSFF] (00:ff)
+> in tiger4, and then lspci -vv display many garbage info (many PCI
+> devices' bus number is 0xFF).
+> Looks like the _STA workaround for big sur and Bull system breaks
+> tiger4. Any idea?
 
---Boundary-00=_/IKHB5E2En3gVVl
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Here's a pointer to the start of this whole thing:
+	https://sourceforge.net/mailarchive/message.php?msg_id=6923358
 
-Hi,
-> My sound card dies after S3 sometimes. Basically, if it dies depends on
-> the order of sysdev's resume. If IRQ router resume before PIC (I use a
-> tricky method to change order. It's changing the initcall level of the
-> sysfs initialization for the device), the sound card die. Otherwise, it
-> works. Is it possible that we add some levels for sysdev? I'd like some
-> sysdevs resume before other sysdevs. Does this make sense?
-Does the attached patch help? I have a similar problem, and calling 
-acpi_leave_sleep_state and acpi_disable_wakeup_device before resuming the 
-devices solves my problems
+On my tiger4, lspci shows this, which I assume is what you are referring
+to:
 
-Cheers,
-Stefan
+	ff:18.0 Host bridge: Intel Corp.: Unknown device 0500 (rev 20)
+	ff:18.1 Host bridge: Intel Corp.: Unknown device 0501 (rev 20)
+	ff:18.2 Host bridge: Intel Corp.: Unknown device 0502 (rev 20)
+	ff:18.3 Host bridge: Intel Corp.: Unknown device 0503 (rev 20)
+	ff:1c.0 Host bridge: Intel Corp.: Unknown device 0510 (rev 22)
+	ff:1c.1 Host bridge: Intel Corp.: Unknown device 0511 (rev 22)
+	ff:1c.2 Host bridge: Intel Corp.: Unknown device 0512 (rev 22)
+	ff:1c.3 Host bridge: Intel Corp.: Unknown device 0513 (rev 22)
+	ff:1c.4 Host bridge: Intel Corp.: Unknown device 0514 (rev 22)
+	ff:1c.5 Host bridge: Intel Corp.: Unknown device 0515 (rev 22)
+	ff:1c.6 Host bridge: Intel Corp.: Unknown device 0516 (rev 22)
 
---Boundary-00=_/IKHB5E2En3gVVl
-Content-Type: text/x-diff;
-  charset="iso-8859-1";
-  name="resume-finish-split.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="resume-finish-split.patch"
+I'm not sure what makes you think this is a regression, though.  Does
+this actually break something on your system?  My system works just
+fine.  It's true that it would be nice to teach lspci what the devices
+are, so it could say something more intelligent than "Unknown device",
+but as far as I know, they are real things that somebody could write
+drivers for someday.
 
---- linux-2.6.8-rc2/include/linux/pm.h	2004-08-04 20:36:48.044455680 +0200
-+++ include/linux/pm.h	2004-08-04 19:50:07.000000000 +0200
-@@ -214,6 +214,7 @@
- 	u32	pm_disk_mode;
- 	int (*prepare)(u32 state);
- 	int (*enter)(u32 state);
-+	int (*leave)(u32 state);
- 	int (*finish)(u32 state);
- };
- 
---- linux-2.6.8-rc2/kernel/power/main.c	2004-08-04 20:36:17.755060368 +0200
-+++ kernel/power/main.c	2004-08-04 19:52:26.000000000 +0200
-@@ -108,6 +108,8 @@
- 
- static void suspend_finish(u32 state)
- {
-+	if (pm_ops && pm_ops->leave)
-+		pm_ops->leave(state);
- 	device_resume();
- 	if (pm_ops && pm_ops->finish)
- 		pm_ops->finish(state);
---- linux-2.6.8-rc2/drivers/acpi/sleep/main.c	2004-08-04 20:29:23.863981376 +0200
-+++ drivers/acpi/sleep/main.c	2004-08-04 20:33:41.348837728 +0200
-@@ -127,7 +127,23 @@
- 	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
- }
- 
-+/**
-+ *	acpi_pm_leave - Make system ready to resume devices.
-+ *	@pm_state:		State we're coming out of.
-+ *
-+ *	This is called after we wake back up and before device
-+ *	resume methods are called.
-+ */
-+
-+static int acpi_pm_leave(u32 pm_state)
-+{
-+	u32 acpi_state = acpi_suspend_states[pm_state];
- 
-+	acpi_leave_sleep_state(acpi_state);
-+	acpi_disable_wakeup_device(acpi_state);
-+	
-+	return 0;
-+}
- /**
-  *	acpi_pm_finish - Finish up suspend sequence.
-  *	@pm_state:		State we're coming out of.
-@@ -140,9 +156,6 @@
- {
- 	u32 acpi_state = acpi_suspend_states[pm_state];
- 
--	acpi_leave_sleep_state(acpi_state);
--	acpi_disable_wakeup_device(acpi_state);
--
- 	/* reset firmware waking vector */
- 	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
- 
-@@ -170,6 +183,7 @@
- static struct pm_ops acpi_pm_ops = {
- 	.prepare	= acpi_pm_prepare,
- 	.enter		= acpi_pm_enter,
-+	.leave		= acpi_pm_leave,
- 	.finish		= acpi_pm_finish,
- };
- 
-
---Boundary-00=_/IKHB5E2En3gVVl--
+But I don't work for Intel, and I don't know anything about the tiger4
+internals.
 
 
 -------------------------------------------------------
