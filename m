@@ -1,13 +1,13 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.kernel.2004-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Re: Re: Samsung P35 and S3 suspend
-Date: Tue, 21 Dec 2004 01:39:43 +0100
-Message-ID: <41C770CF.1020408@gmx.net>
-References: <41BFC3AD.5030001@gmx.net> <1103117333.5924.3.camel@mhcln03>	 <41C07B6F.70900@gmx.net> <1103159022.5924.17.camel@mhcln03>	 <41C0FFF3.4010902@gmx.net> <41C19BD8.7050201@gmx.net>	 <41C1CFA2.20304@gmx.net>  <1103222517.5924.24.camel@mhcln03> <1103224145.5984.72.camel@tyrosine> <41C7374D.6090407@gmx.net>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: ACPI race querying battery status in 2.6.9+swsusp2 IBM TP R50P
+Date: 20 Dec 2004 22:15:26 -0500
+Message-ID: <1103598924.11833.3761.camel@d845pe>
+References: <16828.26177.871076.493877@chiark.greenend.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------080407020502040400040608"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41C7374D.6090407-hi6Y0CQ0nG0@public.gmane.org>
+In-Reply-To: <16828.26177.871076.493877-QGMSyCZBOSwv4zxTlrOuLwNdhmdF6hFW@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,128 +17,80 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Matthias Hentges <mailinglisten-H4PcyxPeSRnR7s880joybQ@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+To: Ian Jackson <ijackson-QGMSyCZBOSwv4zxTlrOuLwNdhmdF6hFW@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------080407020502040400040608
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-
-PROBLEM SOLVED COMPLETELY! Read on for details (and excuse the yelling)
-;-)
-
-Search engine hint: Samsung P30 P35 S3 suspend resume
-
-Carl-Daniel Hailfinger schrieb:
-> Matthew Garrett schrieb:
+On Sun, 2004-12-12 at 10:39, Ian Jackson wrote:
+> If I read /proc/acpi/battery/BAT0/info simultaneously in several
+> different processes, it (usually) fails.  One of the processes sees
+> .../info containing
+>   present:                 yes
+>   ERROR: Unable to read battery information
 > 
->>On Thu, 2004-12-16 at 19:41 +0100, Matthias Hentges wrote:
->>
->>
->>
->>>1: VGA POST
->>>2. VESA reset
->>
->>
->>Can you try the vm86_video_post and vbestate programs from
->>http://www.srcf.ucam.org/~mjg59/laptops/ ? You want to do something like
->>this:
->>
->>1) chvt away from X on suspend
->>2) vbestate save >/tmp/state
->>3) suspend
->>4) resume
->>5) vm86_video_post
->>6) vbestate restore </tmp/state
->>7) chvt back to X
->>
->>This sequence (possibly with a dpms on in there somewhere) seems to work
->>on a fairly large number of machines.
+> and I get messages like this in my kernel logs:
 > 
+> Dec 12 02:58:03 liberator kernel:  dswload-0292: *** Error: Looking up
+> [SERN] in namespace, AE_ALREADY_EXISTS
+> Dec 12 02:58:03 liberator kernel:  psparse-1133: *** Error: Method
+> execution failed [\_SB_.PCI0.LPC_.EC__.GBIF] (Node dff01ca8),
+> AE_ALREADY_EXISTS
 > 
-> It sort of works. Before step 7, the (text mode) display contains garbage.
+> Dec 12 02:58:03 liberator kernel:  dswload-0641: *** Error: Looking up
+> [SERN] in namespace, AE_NOT_FOUND
+> Dec 12 02:58:03 liberator kernel:  psparse-1133: *** Error: Method
+> execution failed [\_SB_.PCI0.LPC_.EC__.GBIF] (Node dff01ca8),
+> AE_NOT_FOUND
+> 
+> Dec 12 02:58:03 liberator kernel:  psparse-1133: *** Error: Method
+> execution failed [\_SB_.PCI0.LPC_.EC__.BAT0._BIF] (Node dff01628),
+> AE_NOT_FOUND
+> 
+> I can trigger this easily and reliably with
+>   cd /proc/acpi/battery/
+>   cat info & cat info & cat info & cat info &
+> I haven't checked whether the other virtual files in the same
+> directory have the same problem.
+> 
+> The problem seems superficially similar to bugzilla.kernel.org 1791
+>  http://bugzilla.kernel.org/show_bug.cgi?id=1791
+> although looking at my copy of exstore.c the `proposal' patch there
+> seems already to have had something similar but more complex done.
+> (Bizarrely, the `revised simpler patch' there seems from its RCS
+> filename to be a diff against a BSD source tree!)
+> 
+> The machine is an IBM Thinkpad R50P (type 1832 aka TJ22AUK).  I'm
+> running:
+>   * Linux 2.6.9
+>   * Software Suspend 2, software-suspend-2.1.5-for-2.6.9.tar.bz2
+>   * Intel 2100 wifi driver, ipw2100-1.0.1.tgz & ipw2100-fw-1.3.tgz
+>   * IBM ACPI driver module, ibm-acpi-0.8.tar.gz
+>   * Debian sarge (testing) including acpid 1.0.4-1, acpi 0.07-3,
+>     with some of the automatic boot-time module loading disabled.
+>   * In case it matters, X server is X11R6.8.1 from x.org sources
+>     with radeon.c patched to call INT 10 at every VC switch to help
+>     with resuming from suspend:
+>  http://www.doesi.gmxhome.de/linux/tm800s3/resources/radeon_driver.c.patch
+> 
+> All of the other ACPI functionality seems fine: ACPI suspend to RAM,
+> and swsusp2 to disk, both work properly (aside from the need to switch
+> out of X before suspending).  The battery information is usually
+> reported properly in /proc/acpi.  etc.
+> 
 
-OK, I have a patch for vbestate which allows resume back to a text console
-(no X server involved at all) and you should have clean fonts and usable
-text console afterwards. The screen needs to be redrawn and Unicode fonts
-have to be reloaded, but that can be handled, too.
+Still a problem when you boot with "acpi_serialize"?
 
-The following script makes S3 from text console and/or X a breeze:
+Possible to test with a 2.6.10 -mm kernel?
 
-#!/bin/bash
-statedir=/root/s3/state
-curcons=`fgconsole`
-fuser /dev/tty$curcons 2>/dev/null|xargs ps -o comm= -p|grep -q X && chvt 2
-cat /dev/vcsa >$statedir/vcsa
-sync
-echo 3 >/proc/acpi/sleep
-sync
-vm86_video_post
-vbestate restore <$statedir/vbe.5
-cat $statedir/vcsa >/dev/vcsa
-rckbd restart
-chvt $[curcons%6+1]
-chvt $curcons
+Please be encouraged to file a bug here
+http://bugzilla.kernel.org/enter_bug.cgi?product=ACPI
+component: Power-battery
 
-IMPORTANT NOTES:
-$statedir/vbe should be saved directly after bootup before entering X. It
-only has to be saved once, you can use it for every situation afterwards.
-That includes new boots, having switched from X to console, etc.
-vbestate has to be patched with my patch to work correctly.
-The script assumes that no harmful modules are loaded.
-The kernel was 2.6.10-rc3 or later and had to be patched with
-pci-resume-2.6.10.patch and resume-finish-split.patch.
-.config available on request (see earlier in this thread for details).
-You don't need a patched X for this to work.
+thanks,
+-Len
 
-With the above script my machine survived 32 iterations of S3 suspend
-without any visible problems (no screen corruption, no freezes, even
-umlauts are preserved). Sometimes I was in X, sometimes working on the
-text console and it came back every time to the console I had used,
-screen contents exactly the same as before.
 
-Regards,
-Carl-Daniel
--- 
-http://www.hailfinger.org/
 
---------------080407020502040400040608
-Content-Type: text/plain;
- name="vbestate-s3.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="vbestate-s3.diff"
-
-diff -urN vbestate-0.1/vbestate.c vbestate-0.1-s3/vbestate.c
---- vbestate-0.1/vbestate.c	2004-12-09 00:42:51.000000000 +0100
-+++ vbestate-0.1-s3/vbestate.c	2004-12-21 01:37:06.132044112 +0100
-@@ -119,6 +119,9 @@
- 		short tmpbuffer[524288];
- 		size_t i,length=0;
- 		
-+		/* The loop below doesn't make any sense unless we think our
-+		input data contains length/sizeof(tmpbuffer)*sizeof(tmpbuffer)
-+		bytes of leading garbage */
- 		while (i=read(0, tmpbuffer, sizeof(tmpbuffer))) {
- 			length+=i;
- 		}
-@@ -127,6 +130,12 @@
- 		memcpy(data,tmpbuffer,length);
- 
- 		restore_state(data);
-+		text_mode();
-+
-+		data = LRMI_alloc_real(length);
-+		memcpy(data,tmpbuffer,length);
-+
-+		restore_state(data);
- 	} else {
- 		fprintf(stderr,"%s: Usage %s [save|restore]\n",
- 			argv[0],argv[0]);
-
---------------080407020502040400040608--
 
 
 -------------------------------------------------------
