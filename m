@@ -1,14 +1,12 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: swsusp needs clock corrected | 8193too needs reload
-Date: Wed, 18 Sep 2002 13:28:00 +0200
+From: Brad Parker <brad-2nKKSigPee+ibv+y4V69FXNtEUiqdi9I@public.gmane.org>
+Subject: Re: 2.5.34?
+Date: Wed, 18 Sep 2002 08:24:23 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020918112800.GF18221@atrey.karlin.mff.cuni.cz>
-References: <3D85998F.7090101@symplon.com> <Pine.LNX.4.44.0209161123420.12600-100000@dynast.gaugusch.at> <20020917160855.H39@toy.ucw.cz> <20020918104746.GB26253@clara.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Message-ID: <200209181224.g8ICONr31147@p2.parker.boston.ma.us>
+References: <pavel@suse.cz>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20020918104746.GB26253-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org>
+In-Reply-To: Message from Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+   of "Tue, 17 Sep 2002 15:51:47 -0000." <20020917155146.F39-muQmgwBScQHrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,28 +15,35 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: Faye Pearson <faye-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org>
-Cc: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>, ACPI-Devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Ahoj!
 
-> > > > Only 2 things are not fully working with swsusp
-> > > > after i resume from S4 , my clock is still at the time when it was
-> > > > suspended.
-> > > Run hwclock --hctosys after resume (and preferable hwclock --systohc
-> > > before)
-> > 
-> > Actually this should be fixed in kernel (as we already do for apm). Patches
-> > welcome.
-> 
-> And I think that a similar clock fix is required for speedstep changes.
+Pavel Machek wrote:
+>
+>No. S3 wakeup is completely different from S4 wakeup.
 
-No, that is completely orthogonal issue.
+Really?  I thought they both used the same "wakeup vector" and hence
+used the pre-_WAK code path.  Perhaps I am mistaken.
 
--- 
-Casualities in World Trade Center: ~3k dead inside the building,
-cryptography in U.S.A. and free speech in Czech Republic.
+>And bothworked for me in 2.5.32 IIRC.
+
+ok, thanks.  That's actually the first time anyone has said that clearly.
+
+(your previous email was somewhat vague about S3 working - it didn't
+actually state that it was working and when)
+
+>Look at acpi_wakeup.S. If your mode is in  text VGA you can just write
+>to videoram. Maybe code to do that is still there?
+
+The problem is that the backlight is not on, and it's not clear the
+vga controller is turned on.  This code runs before _WAK (which I think
+is what turns on the backlight)
+
+I'll try it, however, as it's a reasonable suggestion.  thanks!
+
+-brad
 
 
 -------------------------------------------------------
