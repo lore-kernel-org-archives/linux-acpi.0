@@ -1,11 +1,15 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [BK PATCH] ACPI followup patches
-Date: Fri, 20 Sep 2002 13:16:51 -0700
+From: Alberto Ornaghi <alor-G/4Acn03FKk@public.gmane.org>
+Subject: Re: CALL FOR TESTING
+Date: Fri, 20 Sep 2002 23:44:46 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DE9B@orsmsx119.jf.intel.com>
+Message-ID: <5.1.0.14.2.20020920234153.02a90088@wheresmymailserver.com>
+References: <EDC461A30AC4D511ADE10002A5072CAD0236DE80@orsmsx119.jf.inte
+ l.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"; format=flowed
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD0236DE80@orsmsx119.jf.inte
+ l.com>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,44 +18,35 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: 'Linus Torvalds' <torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org>
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org, "'bzeeb=1p+UDdvUwrrk1uMJSBkQmQ@public.gmane.org'" <bzeeb-1p+UDdvUwrrk1uMJSBkQmQ@public.gmane.org>, "'bunk=cg1h10c7RbKzQB+pC5nmwQ@public.gmane.org'" <bunk-cg1h10c7RbKzQB+pC5nmwQ@public.gmane.org>
+To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus, please do a
+At 23.27 18-09-2002, Grover, Andrew wrote:
 
-	bk pull http://linux-acpi.bkbits.net/linux-acpi
+>The main issues of importance are:
 
-This will update the following files:
+compaq presario 705
 
- drivers/acpi/ac.c        |   14 +++++++-------
- drivers/acpi/battery.c   |   16 ++++++++--------
- drivers/acpi/button.c    |   14 +++++++-------
- drivers/acpi/fan.c       |   14 +++++++-------
- drivers/acpi/numa.c      |    1 +
- drivers/acpi/pci_bind.c  |    2 +-
- drivers/acpi/processor.c |   16 ++++++++--------
- drivers/acpi/thermal.c   |   24 ++++++++++++------------
- 8 files changed, 51 insertions(+), 50 deletions(-)
 
-through these ChangeSets:
+>- DOES IT BOOT?
 
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/09/20 1.584)
-   ACPI: Re-enable compilation of ACPI subordinate drivers as modules
-   (Bjoern A. Zeeb)
+yes
 
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/09/20 1.583)
-   ACPI: Add include to provide PREFIX (Adrian Bunk)
+>- DOES IT ASSIGN INTERRUPTS PROPERLY?
 
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/09/19 1.550.1.1)
-   ACPI: change a non-critical debug message to a lower output level
+yes
 
-Regards -- Andy
+and it works without the kacpid patch  !!  wow  now I get events and C2 
+with the clean mainline...
 
------------------------------
-Andrew Grover
-Intel Labs / Mobile Architecture
-andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+I hope to see this in the 2.4.20
+
+bye
+
+    --==> ALoR <==---------------------- -  -   -
+
+There are only 10 types of people in this world...
+those who understand binary, and those who don't.
 
 
 
