@@ -1,11 +1,12 @@
-From: Robert Woerle <robert-fPtsKRK0pHxl57MIdRCFDg@public.gmane.org>
-Subject: kapcipc && C states
-Date: Fri, 27 Sep 2002 10:29:59 +0200
+From: Jochen Reinwand <jbr.1-hi6Y0CQ0nG0@public.gmane.org>
+Subject: SuSE and ACPI
+Date: Fri, 27 Sep 2002 11:03:49 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3D941707.8050600@paceblade.com>
+Message-ID: <200209271103.49120.jbr.1@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -18,38 +19,28 @@ List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
 To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi
+Hi, guys!
 
-I noticed that the C states are not changing anymore .
-the CPU is always running at C1 and never switched to C2 or C3
+I found some news that might be of some interest for the list. The new SuSE 
+8.1 (shipped next week in German and a few days later in English) includes a 
+backport patch for ACPI from 2.5 to 2.4. I have no idea if it is really a 
+backport (with some more enhancements from 2.5) or the 2.4 patch.
 
-i remmeber at one point ( think in july ) this switching to C2 was 
-happening ...
+On the German SuSE web site there is a page with a lot of but not really 
+detailed information about ACPI in general and about the SuSE patch. It's 
+only available in the German description of the new release 
+(http://www.suse.de/de/private/products/suse_linux/i386/acpi.html). There is 
+a nearly equivalent web site for the U.S./international version 
+(http://www.suse.com/us/private/products/suse_linux/i386/index.html) but no 
+info about ACPI at all.
 
----
-sometimes it happens to me that a process called   kacpipc  pretty fills 
-up my CPU time to 95 % or more ...
-I dont know what this function does or where it is started .
-I either cannot kill -9 it !
+What is interesting on the SuSE web site is that they want the users of the 
+new release to send them their experiences with ACPI for blacklisting. I 
+really hope they commit this information to the developers...
 
-What can i do ?
-i use the latest patch from september
--- 
-_____________________________________
-*Robert Woerle
-**Technical Support | Linux
-PaceBlade Technology Europe SA*
-phone: +49 89 552 99935
-fax: +49 89 552 99910
-mobile: +49 179 474 45 27
-email: robert-fPtsKRK0pHxl57MIdRCFDg@public.gmane.org <mailto:robert@paceblade.com>
-web: http://www.paceblade.com
-_____________________________________
+Does anyone know more about the facts?
 
-
-
-
-
+Jochen
 
 
 -------------------------------------------------------
