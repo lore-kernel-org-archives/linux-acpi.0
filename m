@@ -1,65 +1,58 @@
-From: Ivor Hewitt <ivor-rtBon1mkn18@public.gmane.org>
-Subject: Re: Z600 screen restore
-Date: Mon, 27 Sep 2004 21:56:45 +0000
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200409272156.45992.ivor@ivor.org>
-References: <88056F38E9E48644A0F562A38C64FB6002F917C4@scsmsx403.amr.corp.intel.com>
+From: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
+Subject: linux-2.6.9-rc2-mm4 kernel unaligned access
+Date: Mon, 27 Sep 2004 16:41:19 -0700
+Sender: linux-ia64-owner@vger.kernel.org
+Message-ID: <20040927164119.B32627@unix-os.sc.intel.com>
+Reply-To: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <88056F38E9E48644A0F562A38C64FB6002F917C4-exJ48ZlmiLpQxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-ia64-owner@vger.kernel.org>
 Content-Disposition: inline
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ACPI Developer <acpi-devel@lists.sourceforge.net>
+Cc: Linux IA64 <linux-ia64@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday 27 Sep 2004 20:35, Pallipadi, Venkatesh wrote:
-> >On Monday 27 Sep 2004 18:25, Pallipadi, Venkatesh wrote:
-> >>
-> >> Comment it if it is there and try again.
-> >
-> >No no acpid running.
-> >
-> >Also.. the machine isn't shutting down... it's running just
-> >fine. I can type
-> >commands... it's just that the screen isn't powered up... and
-> >commenting
-> >those lines out 'fixes' the problem.
+Hi All,
+	I am seeing the kernel unaligned access during linux-2.6.9-rc2-m4 boot on 
+IA64 tiger platform.  But the system boots fine except I don;t see console login prompt,
+but I can telnet. Is anyone on the mailing list seeing the same or has a fix?
 
-> OK. Sorry, I didn't read your original mail carefully enough,
-> before responding.
->
-no probs. :-)
-
-> Actually, commenting those lines is equivalent to passing
-> "acpi_sleep=s3_bios acpi_sleep=s3_mode". So, even that
-> should work for you.
->
-Oh I didn't realise you could pass both in at the same time.
-I'll try on next reboot and report back. :-)
-
-> Thanks,
-> Venki
-
-Cheers,
-
--- 
-Ivor Hewitt.
-http://www.ivor.it - tech | http://www.ivor.org - hedge
+thanks,
+Anil
+--------------- console output------
 
 
--------------------------------------------------------
-This SF.Net email is sponsored by: YOU BE THE JUDGE. Be one of 170
-Project Admins to receive an Apple iPod Mini FREE for your judgement on
-who ports your project to Linux PPC the best. Sponsored by IBM.
-Deadline: Sept. 24. Go here: http://sf.net/ppc_contest.php
+ACPI: Subsystem revision 20040816
+kernel unaligned access to 0xe00000003d8a195f, ip=0xa00000010037ac41
+
+Call Trace:
+ [<a000000100016920>] show_stack+0x80/0xa0
+                                sp=e00000003c807500 bsp=e00000003c800f90
+ [<a0000001000171f0>] dump_stack+0x30/0x60
+                                sp=e00000003c8076d0 bsp=e00000003c800f78
+ [<a000000100026ce0>] ia64_handle_unaligned+0x460/0x23c0
+                                sp=e00000003c8076d0 bsp=e00000003c800ef0
+ [<a00000010000dc30>] ia64_prepare_handle_unaligned+0x30/0x60
+                                sp=e00000003c807880 bsp=e00000003c800ef0
+ [<a00000010000d660>] ia64_leave_kernel+0x0/0x260
+                                sp=e00000003c807a90 bsp=e00000003c800ef0
+ [<a00000010037ac40>] acpi_hw_low_level_write+0x2a0/0x340
+                                sp=e00000003c807c60 bsp=e00000003c800e38
+ [<a000000100363d50>] acpi_ev_create_gpe_block+0x530/0xea0
+                                sp=e00000003c807c90 bsp=e00000003c800d98
+ [<a000000100364900>] acpi_ev_gpe_initialize+0x240/0x6a0
+                                sp=e00000003c807d40 bsp=e00000003c800d58
+ [<a00000010035add0>] acpi_ev_initialize_events+0x190/0x260
+                              sp=e00000003c807d60 bsp=e00000003c800d30
+ [<a0000001003aaea0>] acpi_enable_subsystem+0x260/0x320
+                                sp=e00000003c807d80 bsp=e00000003c800d08
+ [<a0000001006edf20>] acpi_init+0x120/0x5a0
+                                sp=e00000003c807da0 bsp=e00000003c800cc0
+ [<a000000100009600>] init+0x380/0x760
+                                sp=e00000003c807e30 bsp=e00000003c800c58
+ [<a0000001000151c0>] kernel_thread_helper+0xe0/0x100
+                                sp=e00000003c807e30 bsp=e00000003c800c30
+ [<a000000100009060>] start_kernel_thread+0x20/0x40
+                                sp=e00000003c807e30 bsp=e00000003c800c30
+kernel unaligned access to 0xe00000003d8a196e, ip=0xa00000010037ac41
+
