@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Where to send dsdt to at HP
-Date: Wed, 16 Apr 2003 15:00:48 +0800
+Subject: RE: update: sony fx209k 2.4.21-pre5 acpi 20030321 WORKS!
+Date: Wed, 16 Apr 2003 15:23:45 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F84272290@pdsmsx403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F84272291@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -17,41 +17,51 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Harrell <mharrell-dated-1050324543.a78b14-bmWjYudjZeGERhycZ4x6Ig@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Peter Koellner <peter-j7nYi6VcvCfR7s880joybQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Would you please describe the problem.
-I guess someone on this list could run into same problem.
-And your experience will help them.
+Have you ever done full test on functionality which are supported in =
+current ACPI implementation, before you say everything is ok.
+Actually, ACPI needs more sufficient validation on various platform =
+before It become more attractive.
 
 Thanks,
 Luming
 
-
 -----Original Message-----
-From: Matthew Harrell [mailto:lists-sender-12e533-bmWjYudjZeGERhycZ4x6Ig@public.gmane.org]
-Sent: 2003?4?9? 20:49
-To: ACPI List
-Subject: [ACPI] Where to send dsdt to at HP
+From: Peter Koellner [mailto:peter-j7nYi6VcvCfR7s880joybQ@public.gmane.org]
+Sent: 2003?3?24? 7:20
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: [ACPI] update: sony fx209k 2.4.21-pre5 acpi 20030321 WORKS!
 
 
+hi!
 
-Anyone have any recommendations?  I figure if I send the updated dsdt =
-into
-the general technical support email address then I'll just get a form =
-letter
-back and nobody will ever pay attention to it
+just a short update...
+
+after a year of troubles acpi for linux on sony fx 209k finally works!
+
+well, it took me some time to discover the BIOS update on
+
+ftp://ftp.vaio-link.com/Pub/Vaio/Bios/R0243U0.exe
+
+but now all the problems are gone! no more workaround for
+the display malfunction needed, no kernel freezes anymore, and it
+works with kernels more recent than linux-2.4.18-rc4-acpi-20020214!
+
+finally!!! :-)
 
 --=20
-  Matthew Harrell                          Nature abhors a vacuum.
-  Bit Twiddlers, Inc.                       Then again, so does my cat.
-  mharrell-bmWjYudjZeGERhycZ4x6Ig@public.gmane.org    =20
+peter koellner <peter-j7nYi6VcvCfR7s880joybQ@public.gmane.org>
+
+
 
 
 -------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
+This SF.net email is sponsored by:Crypto Challenge is now open!=20
+Get cracking and register here for some mind boggling fun and=20
+the chance of winning an Apple iPod:
+http://ads.sourceforge.net/cgi-bin/redirect.pl?thaw0031en
 _______________________________________________
 Acpi-devel mailing list
 Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
