@@ -1,13 +1,11 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Harddisk problems after S3
-Date: Tue, 29 Mar 2005 20:57:20 +0200
-Message-ID: <20050329185720.GC7929@elf.ucw.cz>
-References: <20050323210009.15c78e66.albeclemit@yahoo.it>
+From: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Subject: [PATCH] fix possible null pointer reference in acpi_pci_irq_enable
+Date: Wed, 30 Mar 2005 13:49:50 +0900
+Message-ID: <424A2FEE.6060009@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-2022-JP
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20050323210009.15c78e66.albeclemit-whZMOeQn8C0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,36 +15,58 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alberto Piai <albeclemit-whZMOeQn8C0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On St 23-03-05 21:00:09, Alberto Piai wrote:
-> 
-> Hi everybody,
-> 
-> the first part of the story is at
-> http://bugme.osdl.org/show_bug.cgi?id=3586
-> 
-> After removing the pushl $0 line in wakeup.S i got a successful resume, and with vbetool the screen was back to life. Had to boot whit vga=normal and unload all modules to get this, will try later to find the showstopping module.
-> 
-> After the resume, when trying to do anything with the disk (like unmount a partition) i got this:
-> 
-> hda dma_timer_expiry: dma status==0x21
-> hda: DMA timeout error
-> hda: dma timeout error: status=0x58 {DriveReady SeekComplete DataRequest}
-> ide: failed opcode was: unknown
-> 
-> each line came 15 or 20 seconds after the other, and the whole repeated 4 times. then i got the bash back and everything looked fine.... then when i rebooted it crashed...!!
-> 
-> Maybe this should be discussed togheter with people from other mailing-lists? can somebody point me to the appropriate address?
-> 
+Hi,
 
-Ask ide maintainers...
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+The following patch fixes possible null pointer reference in
+acpi_pci_irq_enable().
+
+Thanks,
+Kenji Kaneshige
+
+
+acpi_pci_irq_enable() should check if dev->bus is NULL before calling
+pci_read_config_byte that refers it.
+
+Signed-off-by: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+
+
+---
+
+ linux-2.6.11-kanesige/drivers/acpi/pci_irq.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
+
+diff -puN drivers/acpi/pci_irq.c~fix_acpi_pci_irq_enable drivers/acpi/pci_irq.c
+--- linux-2.6.11/drivers/acpi/pci_irq.c~fix_acpi_pci_irq_enable	2005-03-30 10:11:55.000000000 +0900
++++ linux-2.6.11-kanesige/drivers/acpi/pci_irq.c	2005-03-30 10:12:37.000000000 +0900
+@@ -395,6 +395,11 @@ acpi_pci_irq_enable (
+ 	if (!dev)
+ 		return_VALUE(-EINVAL);
+ 	
++	if (!dev->bus) {
++		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid (NULL) 'bus' field\n"));
++		return_VALUE(-ENODEV);
++	}
++
+ 	pci_read_config_byte(dev, PCI_INTERRUPT_PIN, &pin);
+ 	if (!pin) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No interrupt pin configured for device %s\n", pci_name(dev)));
+@@ -402,11 +407,6 @@ acpi_pci_irq_enable (
+ 	}
+ 	pin--;
+ 
+-	if (!dev->bus) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_ERROR, "Invalid (NULL) 'bus' field\n"));
+-		return_VALUE(-ENODEV);
+-	}
+-
+ 	/* 
+ 	 * First we check the PCI IRQ routing table (PRT) for an IRQ.  PRT
+ 	 * values override any BIOS-assigned IRQs set during boot.
+
+_
 
 
 -------------------------------------------------------
