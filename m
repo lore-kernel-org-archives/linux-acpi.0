@@ -1,13 +1,12 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHES] add _CST support
-Date: 22 Dec 2004 02:22:45 -0500
-Message-ID: <1103700165.17331.176.camel@d845pe>
-References: <20041127215118.GA30309@dominikbrodowski.de>
+From: evelynn Yakibchuk <obtmj-J/YgJ1AKnhPPKWblFCUSJw@public.gmane.org>
+Subject: evelynn Samurai CXTI St0ck Info  spillway
+Date: Wed, 22 Dec 2004 03:10:09 -0600
+Message-ID: <E1Ch3P0-0004SP-1K@sc8-sf-mx1.sourceforge.net>
+Reply-To: <obtmj-J/YgJ1AKnhPPKWblFCUSJw@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041127215118.GA30309-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,16 +16,60 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dominik,
-why this one?
+Wed, 22 Dec 2004 03:11:50 -0600
 
--module_param_named(max_cstate, max_cstate, uint, 0);
-+module_param_named(max_cstate, max_cstate, uint, 0644);
+Hello members we would like to make an immediate advisement
+on CXTI it closed at 1.15 today and will climb very high
+very fast. This is a great company the only foreign public
+company in China in this industry. It is also being promoted
+and can easily obtain over 2.50 very quick this is our
+biggest alert all year, consider it an early christmas
+present and get it immediately for great gains. Don't
+miss this one, it is a real winner! 8J75}C1I1fxf5939w96_2J1B62a1wm13
 
+Ticker:                  CXTI
+current-price :          1.15
+10-days-target-price -   3.25
+3-Months-target-price-   5.50
+
+Breaking-News:
+China Expert Technology (CXTI:OTCBB) $0.98-1.04. This
+is one of the most undervalued, profitable stocks in
+the small cap area. When the investment public learns
+of the company's story, there should be a substantial
+rise in the company's share price. China Expert Technology,
+Inc. (OTCBB: CXTI) is a leading China and Hong Kong based
+IT network and infrastructure company that provides
+large-scale network infrastructure construction (mainly
+e-government network infrastructure), business appraisal
+services for information technology companies in China
+(apart from government authorities, China Expert is the
+ONLY foreign own corporation to obtain such authority in
+China) and business consultancy services for communities
+and municipal governments in China.
+
+This one can return 250 to 500% easily, do not miss out
+on it, get it immediately. Be sure to tell your friends
+and associates about it as well. This baby has no place
+to go but up and can generate record earnings, Get CXTI!
+
+
+
+despoliation Please be advised that nothing within this email
+shall constitute a solicitation or an offer to buy or
+sell any security mentioned herein. This newsletter is
+neither a registered investment advisor nor affiliated
+with any broker or dealer. All statements made are our
+express opinion only and should be treated as such. We
+may own, buy and sell any securities mentioned at any
+time. This report includes forward-looking statements
+within the meaning of The Private Securities Litigation
+Reform Act of 1995. This newsletter was paid 15 500 from
+third party to send this report. You may lose money from
+investing in Penny Stocks. unpleasant pancreas fragrance
 
 
 
