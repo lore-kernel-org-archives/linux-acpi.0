@@ -1,89 +1,70 @@
-From: Franklin Marmon <marmon-a4VQZhDi8cxBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: Starting AML
-Date: Thu, 29 Apr 2004 15:59:32 -0600
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1083275971.4976.67.camel@laptop.hydeco.com>
-References: <20040429192133.GI28420@gaspode.nextlink.co.za>
-Reply-To: marmon-a4VQZhDi8cxBDgjK7y7TUQ@public.gmane.org
+From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb@netcabo.pt>
+Subject: [PATCH] can we compile ACPI without define CONFIG_PM ?
+Date: Thu, 29 Apr 2004 23:54:17 +0100
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <1083279256.3410.30.camel@darkstar>
+Reply-To: sergiomb@netcabo.pt
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040429192133.GI28420-beYWCVBHuyQmjp9Ioln+9+7fARiR49SZ@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: multipart/mixed; boundary="=-dLzTM9Lm4cHmA24HrIeB"
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S265023AbUD2W52@vger.kernel.org>
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, acpi-devel <acpi-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
 
-I'm pretty new to ACPI in general, but I might recommend reading chapter
-11 of the spec.  It lays out in detail what parts of the code you should
-be looking in.  If your not familiar with the layout of the asm itself,
-I'm not sure where to point you, but someone else probably is.  I just
-read the first few chapters of the spec and 'logiced' out the rest,
-which will likely result in a broken system in my case, but that remains
-to be seen.
 
-You will likely be looking at the _BIF method of your battery device. 
-This is the method that returns (by the spec anyway) static information
-about your battery, including the design voltage. The battery device
-name is different depending on your hardware, but is fairly easy to find
-if you search for "_BIF" in the aml.
+--=-dLzTM9Lm4cHmA24HrIeB
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 
-As far as debugging the DSDT, not a clue.  I'm pretty sure you can't use
-kernel calls within the DSDT asm code.  So, my best guess if your sure
-your DSDT is wrong is to correct the changes, compile it into the
-kernel, and re-check your /proc/acpi/... data.
+Hi Kernel mailing list!
 
-frm
+IIRC: if I recall correctly=20
+we couldn't compile ACPI without Power management option (CONFIG_PM),
+but now, this is possible.
 
+If the answer to the subject is no, then consider apply this patch on
+kernel 2.4.26.
 
+Accidentally, I compile ACPI without CONFIG_PM on one Dell something
+dual Pentium III and power off didn't work.
 
-On Thu, 2004-04-29 at 13:21, Thomas Andrews wrote:
-> Hi Everyone,
-> 
-> I want to try to understand how to debug my DSDT properly, so I'd
-> appreciate some hints for debugging. I've started reading through the
-> ACPI specification available at http://www.acpi.info/spec.htm
-> 
-> Firstly, how do I find out in the AML where the relevant pieces of code
-> are ? For example, the battery voltage reported is wrong; how do I figure
-> out which bits to edit ?
-> 
-> Secondly, how can I output debugging messages ? Is there some way I can
-> use something like printf/printk ?
-> 
-> I have already fixed the "syntax errors" produced by compiling the
-> original BIOS DSDT. That didn't fix anything BTW.
-> 
-> I have also read the (very helpful) docs and howtos on SF. Thanks.
-> The laptop is a Compaq Evo N150, for which there seem to be no fixes
-> made public.
-> 
-> Many thanks,
-> Thomas
-> 
-> 
-> -------------------------------------------------------
-> This SF.Net email is sponsored by: Oracle 10g
-> Get certified on the hottest thing ever to hit the market... Oracle 10g. 
-> Take an Oracle 10g class now, and we'll give you the exam FREE.
-> http://ads.osdn.com/?ad_id=3149&alloc_id=8166&op=click
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> 
+So I need some confirmation from acpi-devel, but this is one meter of
+xconfig of the kernel so ...
 
+For APM Xconfiguration, it's better that, we can choose APM options only
+if we select APM ( because if we don't select CONFIG_PM, CONFIG_APM will
+be disable and the APM options don't!).
+This patch correct also this situation.
 
+Thanks,
+--=20
+S=E9rgio M. B.
 
--------------------------------------------------------
-This SF.Net email is sponsored by: Oracle 10g
-Get certified on the hottest thing ever to hit the market... Oracle 10g. 
-Take an Oracle 10g class now, and we'll give you the exam FREE.
-http://ads.osdn.com/?ad_id=3149&alloc_id=8166&op=click
+--=-dLzTM9Lm4cHmA24HrIeB
+Content-Disposition: attachment; filename=configopti.diff
+Content-Type: text/x-patch; name=configopti.diff; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+
+--- linux-2.4.26s/arch/i386/config.in.orig	2004-04-29 23:38:38.000000000 +0100
++++ linux-2.4.26s/arch/i386/config.in	2004-04-29 23:40:58.000000000 +0100
+@@ -360,7 +360,7 @@
+ bool 'Power Management support' CONFIG_PM
+ 
+ dep_tristate '  Advanced Power Management BIOS support' CONFIG_APM $CONFIG_PM
+-if [ "$CONFIG_APM" != "n" ]; then
++if [ "$CONFIG_APM" != "n" -a "$CONFIG_PM" = "y" ]; then
+    bool '    Ignore USER SUSPEND' CONFIG_APM_IGNORE_USER_SUSPEND
+    bool '    Enable PM at boot time' CONFIG_APM_DO_ENABLE
+    bool '    Make CPU Idle calls when idle' CONFIG_APM_CPU_IDLE
+@@ -370,7 +370,9 @@
+    bool '    Use real mode APM BIOS call to power off' CONFIG_APM_REAL_MODE_POWER_OFF
+ fi
+ 
+-source drivers/acpi/Config.in
++if [ "$CONFIG_PM" = "y" ]; then
++	source drivers/acpi/Config.in
++fi
+ 
+ endmenu
+ 
+
+--=-dLzTM9Lm4cHmA24HrIeB--
