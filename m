@@ -1,11 +1,11 @@
-From: "Leonel E. Daley" <leoneldaley67-CYxr6EV/DYQ@public.gmane.org>
-Subject: Order Royal Replica Watches Online
-Date: Tue, 28 Dec 2004 22:07:52 +0600
-Message-ID: <587601c4ecf7$2fc8ad77$3011c8e1@dsr.kvl.dk>
+From: chirag <nisha_rajyaguru-xFOqZoH7zVZ4Eiagz67IpQ@public.gmane.org>
+Subject: inspiron 5150 DSDT
+Date: Wed, 29 Dec 2004 01:45:05 +0900
+Message-ID: <1104252306.6382.12.camel@YahooBB219031151066.bbtec.net>
+Reply-To: chirag-9dAiHs7qY9HTsWAM89vZ1+0/RLrZM5er@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,25 +19,36 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Get the Finest Rolex Watch Replica!
+Hi guys!
 
-We only sell premium watches. There's no battery in these replicas just
-like the real ones since they charge themselves as you move. The second hand
-moves JUST like the real ones, too. These original watches sell in stores
-for thousands of dollars. We sell them for much less. 
+I posted earlier also but it seems that I was not able to draw enough
+attention. The problem is about the ACPID events. The simptoms are
+almost same as described in bug 1752
+http://bugme.osdl.org/show_bug.cgi?id=1752. There are no button or lid
+events. Lid closer always logs event as if the AC adepter was plugged
+in. Power button event is not executed but as soon as a USB device is
+plugged in the power button script in /etc/acpi/event is executed as if
+it was queued. When I compiled the DSDT, it gives me a warning   
+dsdt.dsl  1373:                 Method (_S0D, 0, NotSerialized)
+Warning  2033 -      Unknown reserved name ^  (_S0D)
 
-- Replicated to the Smallest Detail
-- 98% Perfectly Accurate Markings 
-- Signature Green Sticker w/ Serial Number on Watch Back
-- Magnified Quickset Date
-- Includes all Proper Markings
+The warning occur at 4 places which correspond to USB device related
+stuff namely USB0, USB1, USB2,USB3 
 
-Visit us: http://www.ealz.com.com/rep/rolx/
+Device (USB0)
+            {
+                Name (_ADR, 0x001D0000)
+.                Method (_S0D, 0, NotSerialized)
+			|
+			|
+			|
+and so on...............................
 
-Christmas discount this week only! Make your order before the prices go up.
+Could execution of events with plugging of usb device and irratic
+reporting of button, lid and AC adepter events be related to these
+warnings in DSDT?
 
-
-No thanks: http://www.ealz.com.com/z.php
+Please help.
 
 
 
