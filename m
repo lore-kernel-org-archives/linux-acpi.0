@@ -1,12 +1,12 @@
 From: roychris <roychris-GANU6spQydw@public.gmane.org>
 Subject: Re: Re: psmouse.c, throwing 3 bytes away
-Date: Mon, 09 Feb 2004 13:43:35 +0100
+Date: Mon, 09 Feb 2004 16:12:09 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40278077.5070409@free.fr>
+Message-ID: <4027A349.8090908@free.fr>
 References: <20040208215935.GA13280@ucw.cz> <20040208221933.92D0B3F1B@latitude.mynet.no-ip.org> <20040208230314.GA21937@fubini.pci.uni-heidelberg.de> <20040208233052.GA17570@ucw.cz>
 Mime-Version: 1.0
 Content-Type: multipart/alternative;
- boundary="------------020504090203080602070609"
+ boundary="------------080704050205090909050805"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 In-Reply-To: <20040208233052.GA17570-+ZI9xUNit7I@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,14 +18,14 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Vojtech Pavlik <vojtech-AlSwsSmVLrQ@public.gmane.org>
-Cc: Bernd Schubert <Bernd.Schubert-ZRyP5vvp4SQZDP5dtiX3a0ZMdOyQQXjt@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Bernd Schubert <Bernd.Schubert-ZRyP5vvp4SQZDP5dtiX3a0ZMdOyQQXjt@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------020504090203080602070609
+--------------080704050205090909050805
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: quoted-printable
-X-MIME-Autoconverted: from 8bit to quoted-printable by esstin.uhp-nancy.fr id i19CjuJa019494
+X-MIME-Autoconverted: from 8bit to quoted-printable by esstin.uhp-nancy.fr id i19FEVJa031471
 
 I resolved this problem. It's the fault of the multiplexing on i8042.=20
 You must pass i8042_nomux=3D1 to the kernel for 2.4.X or 2.6.0 or you mus=
@@ -115,7 +115,7 @@ w to
 >
 
 
---------------020504090203080602070609
+--------------080704050205090909050805
 Content-Type: text/html; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
@@ -125,7 +125,9 @@ Content-Transfer-Encoding: 7bit
   <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
   <title></title>
 </head>
-<body bgcolor="#ffffff" text="#000000">
+<body text="#000000" bgcolor="#ffffff">
+<meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+<title></title>
 I resolved this problem. It's the fault of the multiplexing on i8042.
 You must pass i8042_nomux=1 to the kernel for 2.4.X or 2.6.0 or you
 must modify <br>
@@ -161,7 +163,8 @@ Vojtech Pavlik a &eacute;crit&nbsp;:
 
   </pre>
   <blockquote type="cite">
-    <pre wrap="">On Sun, Feb 08, 2004 at 11:19:32PM +0100, <a class="moz-txt-link-abbreviated" href="mailto:aeriksson-97jfqw80gc6171pxa8y+qA@public.gmane.org">aeriksson@fastmail.fm</a> wrote:
+    <pre wrap="">On Sun, Feb 08, 2004 at 11:19:32PM +0100, <a
+ class="moz-txt-link-abbreviated" href="mailto:aeriksson-97jfqw80gc6171pxa8y+qA@public.gmane.org">aeriksson@fastmail.fm</a> wrote:
     </pre>
     <blockquote type="cite">
       <blockquote type="cite">
@@ -219,7 +222,7 @@ problem happens. There will be a missing byte in the stream ...
 </body>
 </html>
 
---------------020504090203080602070609--
+--------------080704050205090909050805--
 
 
 -------------------------------------------------------
