@@ -1,22 +1,14 @@
-From: Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
-Subject: Re: acpi-20040715+D600+Suspend
-Date: Fri, 10 Sep 2004 20:21:34 +1000
+From: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Subject: Re: [PATCH] ACPI based Memory Hotplug Driver Patch
+Date: Fri, 10 Sep 2004 22:45:10 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1094811694.10978.9.camel@laptop.cunninghams>
-References: <1093972503.9372.38.camel@neuromancer.home.net>
-	 <20040902143034.GA676@elf.ucw.cz>
-	 <1094442085.21466.29.camel@neuromancer.home.net>
-	 <20040906171349.GC26195@atrey.karlin.mff.cuni.cz>
-	 <1094527351.25454.14.camel@neuromancer.home.net>
-	 <20040907093424.GA30810@atrey.karlin.mff.cuni.cz>
-	 <1094768209.2843.6.camel@laptop.cunninghams>
-	 <1094811463.27216.117.camel@neuromancer.home.net>
-Reply-To: ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org
+Message-ID: <20040910224510.7f78b1b5.tokunaga.keiich@jp.fujitsu.com>
+References: <FEB6C4E97F6CAF41978FB2059D5454180F37E8@bgsmsx402.gar.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1094811463.27216.117.camel-/ZsuMndpQpsb5wn6fCfWY+TW4wlIGRCZ@public.gmane.org>
+In-reply-to: <FEB6C4E97F6CAF41978FB2059D5454180F37E8-OkeUvhg1trkFyVwBAnZdSLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -25,31 +17,57 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "S, Naveen B" <naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Tolentino, Matthew E" <matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi.
+On Thu, 09 Sep 2004 16:24:46 +0530 S, Naveen B wrote:
+> Attached is an ACPI based hot plug driver patch to support physical
+> memory hotplug. This driver supports physical hotplug operation on
+> memory, fields notifications from firmware and notifies the VM of the
+> affected memory ranges.  The following patch is against kernel
+> 2.6.8.1-mm3, and works with the current memory hotplug VM patches
+> posted at: http://sprucegoose.sr71.net/patches.  This patch has been
+> tested on real prototype hardware in the hot-add memory case. Hot
+> remove feature is tested in an emulated environment (by overriding
+> ACPI DSDT). 
+> 
+> Please review and consider for inclusion. 
 
-On Fri, 2004-09-10 at 20:17, Ow Mun Heng wrote:
-> > Ditto here. On the occasions when I have damaged my filesystem, I've had
-> > much better success recovering while using ext3. I tried xfs, but gave
-> > up on it quickly because of the zeroing-out-files issue.
-> Okay.. But here's another question. Is it recommended that _all_
-> partitions be ext3 or only the root partition??
+This is nice:)  I would like to suggest just one thing.
 
-I'd use ext3 only.
+'acpi_memory_enable/disable_device()' seem to call generic
+(not ACPI specific) hotplug functions 'add/remove_memory()' directly.
+I think the generic hotplug functions should not be called directly
+inside kernel, but from the userland for two reasons.
 
-Nigel
--- 
-Nigel Cunningham
-Pastoral Worker
-Christian Reformed Church of Tuggeranong
-PO Box 1004, Tuggeranong, ACT 2901
+One reason is:  ACPI based CPU hotplug takes a different approach.
+ACPI based CPU hotplug is assuming to have its user mode agent
+script (maybe, 'cpu.agent'?).  This agent is to inovke the generic
+hotplug functions via sysfs. (e.g. echo 0 > /sys/devices/system/cpu/cpu0/online)
+ACPI based CPU hotplug issues /sbin/hotplug to invoke the agent
+and does not call the generic hotplug functions directly inside kernel.
+If ACPI based memory hotplug does not take the same approach,
+ACPI based CPU and memory drivers have different approaches
+to this.
 
-Many today claim to be tolerant. True tolerance, however, can cope with others
-being intolerant.
+Another reason is:  ACPI container driver is not assuming that
+the generic memory hotplug function is called by ACPI based memory
+driver directly.  ACPI container hotplug needs to invoke the generic CPU
+and memory hotplug functions.  For this, it uses its agent 'container.agent'
+to call the functions as well as CPU hotplug.  This is because that it would
+be more flexible than doing everything inside kernel.  With this approach,
+'container.agent' can have a policy for container hotplug (e.g. invocation
+order of the generic hotplug functions, error policy, etc)  Actually, this
+approach was recommended by community people when I posted the
+first patches of the container driver.  if ACPI memory hotplug calls the
+generic memory hotplug function directly inside kernel, this story would
+be broken.
 
+Can you consider this?
+
+Thanks,
+Keiichiro Tokunaga
 
 
 -------------------------------------------------------
