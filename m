@@ -1,13 +1,19 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Re: first shoot for smartbattery
-Date: Tue, 4 Jan 2005 11:24:24 +0100
-Message-ID: <20050104102424.GC19199@poupinou.org>
-References: <20041231181628.GL19199@poupinou.org> <20050101082605.GA24896@phys.ethz.ch> <m2acrth375.fsf@phoenix.squirrel.nl> <20050103143902.GQ19199@poupinou.org> <41D95CDC.8050802@phys.ethz.ch> <41D95F53.5000008@tiscali.be> <41D967B5.7040002@tiscali.be> <Pine.LNX.4.60.0501031751590.5329@frog.athome> <20050103175449.GW19199@poupinou.org> <41D9F7CA.7030408@arrakis.dhis.org>
+From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
+Subject: Re: what is the worst laptop atm?
+Date: Tue, 04 Jan 2005 11:28:25 +0100
+Message-ID: <m2y8f9qyie.fsf@phoenix.squirrel.nl>
+References: <20041227165207.GB9606@poupinou.org>
+	<41D06CA6.30607@mega.ist.utl.pt> <20041228103019.GD9606@poupinou.org>
+	<m2is6mzaip.fsf@phoenix.squirrel.nl>
+	<20050101173611.GB2630@elf.ucw.cz>
+	<20050103133138.GO19199@poupinou.org>
+	<20050103134445.GH4468@blackham.com.au>
+	<20050103145517.GR19199@poupinou.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <41D9F7CA.7030408-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
+In-Reply-To: <20050103145517.GR19199-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> (Bruno Ducrot's message
+ of "Mon, 3 Jan 2005 15:55:17 +0100")
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,35 +23,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pedro Venda <pjvenda-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jan 04, 2005 at 01:56:26AM +0000, Pedro Venda wrote:
-> Would the result be the creation of /proc/acpi/battery and 
-> /proc/acpi/ac_adapter
-> like other batteries?
+Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> writes:
 
-Something like this.  But only to provide compatibility with existing
-programs.  A long term goal would be to design a generic API for battery
-stuff (APM, ACPI Control Method Battery, smartbatteries subsystem and
-PMU come to mind).
+> This is a well known workaround for Microsoft Windows NT 4.0.
 
-> The way I see it, the i2c-acpi-ec driver allows the creation of the /proc 
-> files
-> so that userland programs can use them normally. Am I totally wrong and 
-> should
-> quickly look for the brown bag?
+My DSDT (TravelMate4001WLMi) has:
 
-I would like to not touch i2c-acpi-ec for this.  It should
-only provide the smbus access.  All other components should be done
-elsewhere IMHO.
+    Device(PCI0) {
+        Name(MYOS, 0x2)
+        Method(_INI) {
+            Store(0x1, \_SB_.D1SJ)
+            Store(0x2, MYOS)
+            If(LEqual(SizeOf(\_OS_), 0x14)) {
+                Store(0x1, MYOS)
+                Store(0x07d0, OSYS)
+                Store(0x1, \_SB_.W2KF)
+                If(CondRefOf(_OSI, Local0)) {
+==>                    If(\_OSI("Windows 2001")) {
+                        Store(0x3, MYOS)
+                        Store(0x07d1, OSYS)
+                        Store(0x3, \_SB_.W2KF)
+                    }
+                }
+            }
 
--- 
-Bruno Ducrot
+Also a known workaround?
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+-- Johan
 
 
 -------------------------------------------------------
