@@ -1,14 +1,15 @@
 From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: RE: Network failures with ACPI enabled (kernel 2.4, 2.6)
- PROBLEM FOUND!!!!!!
-Date: Wed, 31 Dec 2003 15:46:41 -0800 (PST)
+Subject: Re: RE: acpi-20031203-2.6.0.diff brokes the battery status
+ readings with 2.6.0 in DELL Inspiron 8500
+Date: Wed, 31 Dec 2003 17:43:40 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031231152704.A3006@root.org>
-References: <BF1FE1855350A0479097B3A0D2A80EE0CC8953@hdsmsx402.hd.intel.com>
+Message-ID: <20031231174230.R3326@root.org>
+References: <3ACA40606221794F80A5670F0AF15F8401720C69@PDSMSX403.ccr.corp.intel.com>
+ <3FF31FB6.7040306@videotron.ca>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <BF1FE1855350A0479097B3A0D2A80EE0CC8953-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>
+In-Reply-To: <3FF31FB6.7040306-XzQKRVe1yT0V+D8aMU/kSg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,35 +18,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Michael Guntsche <mike-Z92qn3yYq0hWk0Htik3J/w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Mark M." <maalox-XzQKRVe1yT0V+D8aMU/kSg@public.gmane.org>
+Cc: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 30 Dec 2003, Brown, Len wrote:
-> > You won't believe me but I found out what was causing the problem.
-> > Since I never use the parallel port on this notebook I turned
-> > it OFF in the BIOS.
-> > Setting it to AUTOMATIC mode solved my issues.
+I can confirm success for one FreeBSD user with a broken Inspiron also.
+Thanks for your work and I hope you can come up with a proper fix and
+import it soon!
+
+On Wed, 31 Dec 2003, Mark M. wrote:
+> Success! I used the patch below and things seem to be working again.
+> Actually, I manually edited my (2.6.0-mm)
+> /usr/src/linux/drivers/acpi/dispatcher/dsmthdat.c
+> because i don't think the paths in the patch would have worked. I just
+> recompiled the kernel and rebooted.
 >
-> > The Linux-ACPI still has a problem somewhere since I don't see the
-> > network timeouts in WinXP, if I turn off the parport.
-> > For me it looks like that the parport and the internal card share
-> > something, either ACPI or hardware wise and by turning off the parport
-> > the network card somehow changes too.
->
-> It may be I/O port ranges rather than IRQs at the bottom of this one.
+> As a side note, I didn't include the before last line of the patch
+> "new_obj_desc;", because it wasn't in my version of the file.
 
-You can use the -r flag for acpidump to decode Buffers as
-ResourceTemplate()s:
-
-     -r   Additionally outputs commented ResourceTemplate() macros for
-	  Buffer objects that contain valid resource streams.  These macros
-	  are defined in the ACPI 2.0 specification section 16.2.4.
-
-Since moving to iasl as the acpidump backend in FreeBSD, we've lost this
-capability.  I'd love it if iasl would grow a flag to have this behavior.
-You could restrict it to only outputing the macros if the Buffer starts
-with a valid resource.
+We removed that line from FreeBSD since it appears to be a typo.  Patch
+was submitted back to Intel.
 
 -Nate
 
