@@ -1,12 +1,14 @@
-From: Yokota Hiroshi <yokota-clLcdqhGaiqhL56FKahb/Dp3QUdN9ktZ@public.gmane.org>
-Subject: proc fs interface template for "seq_file.h"
-Date: Sat, 02 Oct 2004 17:32:32 +0900 (JST)
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: Acer Travermate 8005 and battery info
+Date: Fri, 1 Oct 2004 21:47:40 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041002.173232.74723807.yokota@netlab.is.tsukuba.ac.jp>
+Message-ID: <20041001194739.GE1100@openzaurus.ucw.cz>
+References: <415C270F.5050306@lanil.mine.nu> <20041001102926.GD18786@elf.ucw.cz> <415D8CCF.8050602@lanil.mine.nu>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <415D8CCF.8050602-pw/8oln/LLv0Dx+PQ6IoOQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -15,33 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Christian Axelsson <smiler-pw/8oln/LLv0Dx+PQ6IoOQ@public.gmane.org>
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
- Hi. I'm working on "pcc_acpi", and I use "linux/seq_file.h" for
-proc fs interface that uses "pcc_acpi".
+Hi!
 
- Seq file interface is simple and nice. But there is one
-inconvenience about "struct file_operations". Seq file must have one
-"struct file_operations" and its similar open fs function for each
-file. This is the one deplorable point of the seq interface.
+> >Acer problem, and known one too. Maybe if you fix their DSDT for
+> >them.... Go bug Acer.
+> 
+> Okay.. Can you explain abit further for one who doesnt know jack 
+> about the internals of ACPI? Is it something that is out of mine/our 
+> control? Missing specs?
 
- So, I make and propose seq file interface template. This template
-creates "struct file_operations", open fs function, and some
-function prototypes from one preprocessor macro.
+Search maillist archives, look up "smart battery specification" in google.
+If you are willing to spend few days writing driver, let me know.
+				Pavel
+-- 
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
 
- And I make "seq template" version of ACPI "ac", "button", "power",
-"processor", "thermal" and also "toshiba_acpi" driver.
-
- I wish my proposal makes your help.
-And my files can available from:
-
-http://www.netlab.is.tsukuba.ac.jp/~yokota/izumi/panasonic_acpi/
-http://www.netlab.is.tsukuba.ac.jp/~yokota/archive/pcc_acpi-0.8-hy20040929.tar.gz
-
----
-E-mail: yokota (at) netlab (dot) is (dot) tsukuba (dot) ac (dot) jp
-WWW:    http://www.netlab.is.tsukuba.ac.jp/~yokota/
 
 
 -------------------------------------------------------
