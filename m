@@ -1,14 +1,14 @@
 From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Subject: Re: /sys/firmware/acpi/namespace/
-Date: Sat, 5 Jul 2003 16:25:20 +0200
+Date: Sat, 5 Jul 2003 17:24:27 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030705142520.GK7796@poupinou.org>
-References: <20030704213746.GM23597@parcelfarce.linux.theplanet.co.uk>
+Message-ID: <20030705152427.GP7796@poupinou.org>
+References: <20030704213746.GM23597@parcelfarce.linux.theplanet.co.uk> <20030705142520.GK7796@poupinou.org> <20030705152100.GO23597@parcelfarce.linux.theplanet.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20030704213746.GM23597-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>
+In-Reply-To: <20030705152100.GO23597-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -21,17 +21,13 @@ To: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jul 04, 2003 at 10:37:46PM +0100, Matthew Wilcox wrote:
-> 
-> So, um, what's the point?
-> 
-> find /sys/firmware/acpi/namespace/ ! -type d
-> 
-> nothing.  I was kind of hoping to have methods to invoke or at least
-> get the names of methods.  Is this planned?
+On Sat, Jul 05, 2003 at 04:21:00PM +0100, Matthew Wilcox wrote:
+> On Sat, Jul 05, 2003 at 04:25:20PM +0200, Ducrot Bruno wrote:
+> > I guess it is a sysfs bug because it worked.
 > 
 
-I guess it is a sysfs bug because it worked.
+The /sys/.../acpi/namespace worked.  I don't think that nobody touched
+the code for acpi.  Then I think it is a sysfs bug.
 
 -- 
 Ducrot Bruno
