@@ -1,14 +1,14 @@
 From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: [PATCH] Minor fixes (was Re: [PATCH] S4Bios support for 2.4.20 + acpi-20021205)
-Date: Fri, 13 Dec 2002 21:52:18 +0100
+Subject: Re: ACPI trouble (AC module, etc.) with Toshiba 1115-S103
+Date: Fri, 13 Dec 2002 23:22:01 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021213205218.GT4327@poup.poupinou.org>
-References: <20021213155309.GG4327@poup.poupinou.org> <20021213171431.045233f0.nils@kernelconcepts.de> <20021213163615.GI4327@poup.poupinou.org> <20021213181316.0b460077.nils@kernelconcepts.de> <20021213183622.GN4327@poup.poupinou.org> <20021213194907.5d99fc57.nils@kernelconcepts.de> <20021213191758.GP4327@poup.poupinou.org> <20021213210359.266e4417.nils@kernelconcepts.de>
+Message-ID: <20021213222201.GU4327@poup.poupinou.org>
+References: <20021210092357.GA29390@poup.poupinou.org> <20021211065826.5869.qmail@web14503.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="iVCmgExH7+hIHJ1A"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20021213210359.266e4417.nils-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
+In-Reply-To: <20021211065826.5869.qmail-ugbtuMWqwv6A/QwVtaZbd3CJp6faPEW9@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,130 +17,62 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nils Faerber <nils-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
-Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: NoZizzing OrDripping <nozizzingordripping-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Tue, Dec 10, 2002 at 10:58:26PM -0800, NoZizzing OrDripping wrote:
+> --- Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> wrote:
 
---iVCmgExH7+hIHJ1A
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-On Fri, Dec 13, 2002 at 09:03:59PM +0100, Nils Faerber wrote:
-> On Fri, 13 Dec 2002 20:17:58 +0100
-> Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> wrote:
-> > On Fri, Dec 13, 2002 at 07:49:07PM +0100, Nils Faerber wrote:
-> > [...]
-> > > My result:
-> > > 	S4BIOS_REQ:       0x00
-> > > 
-> > > > For ./acpidmp FACS | ./acpitbl:
-> > > > Flags have bit 0 set.
-> > > 
-> > > Signature:              FACS
-> > > Length:                 64
-> > > Hardware Signature:     0x00000000
-> > > Firmware Waking Vector: 0x00000000
-> > > Global Lock:            0x00000000
-> > > Flags:                  0x00000000
-> > > 
-> > > Hmm ... and now?
-> > > What does that mean?
-> > Your BIOS cry loudly that it do not support S4Bios (certainly due
-> > to a lack of a suspend partition).  I supposed that my patch does it
-> > right, so that if someone insist, it give up, but that is not the
-> > case. I have to look what stupid brain-damaged bogosity I have written
-> > then.
+...
+
 > 
-> Oh well, many thanks again!
-> I already thought something like this.
-> Now, this just leaves the question what f*ckin' type of partition this
-> BIOS wants. I already tried almost everything: lphdisk, zvhdd (DOS
-> utility), simple VFAT32 partition, nothing. Oh well ... mybe I'll
-> disassemble the BIOS - just joking :) I think best bet would be to ask
-> Asus for a hint.
+> OK, I went thru the process of creating a modified
+> ASL (diffs from the original attached) for this
+> laptop.
+> Basically, I cleaned up the original so that the
+> errors
+> from "iasl" went away.
 > 
+> I now have a working AC module.
+> 
+> This is a stopgap measure though, correct?  The goal
+> should be for the Linux kernel to support the existing
+> AML in flash (the AML apparently comes from Microsoft)
 
-This incremental patch should give you the oportunity to not go to s4bios
-if bios do not support.  It fix also a printk introduced by me (sorry).
+No, it come from your BIOS.  Microsoft make only a
+interpreter for it, as for ACPI-CA.
+
+> on these laptops.  The BIOS on these machines is about
+> as fresh as it gets (Nov, 2002).  It seems to me that
+> the Intel ASL compiler and interpreter needs to be
+> changed/relaxed to accomodate what has become a
+> defacto
+> (de-gates-o) standard here.
+> 
+> As a practical matter, I can't imagine non-programmer
+> types having to modify their ASL code to make Linux
+> work on their laptops, and I can't imagine that Ducrot
+> wants to be the single, worldwide point, for modified
+
+No, I don't want to.  FreeBSD acpi team is good also for
+this stuff as well.
+
+> Would the ACPI developers be receptive if I made the
+> changes necessary to allow the kernel ACPI code to
+> accept the existing AML in my laptop as-is?
+
+It's up to Intel ACPI guy to decide, but if I were them,
+I will _not_ allow to do the same kind of bug as MS.
+
+Imagine if they have to program as a MS developper...
 
 -- 
 Ducrot Bruno
 
 --  Which is worse:  ignorance or apathy?
 --  Don't know.  Don't care.
-
---iVCmgExH7+hIHJ1A
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="00_system_fix_s4bios-2.4.20-acpi-20021205.diff"
-
---- linux-2.4.20/drivers/acpi/system.c	2002/12/13 20:15:23	1.2
-+++ linux-2.4.20/drivers/acpi/system.c	2002/12/13 20:43:18
-@@ -300,11 +300,16 @@
- 		return AE_ERROR;
- 
- 
--	/* For s4bios, we need a wakeup address. */
--	if (state == ACPI_STATE_S4) {
--		if (!acpi_wakeup_address)
-+	if (ACPI_STATE_S4 == state) {
-+		/* For s4bios, we need a wakeup address. */
-+		if (1 == acpi_gbl_FACS->S4bios_f &&
-+		    0 != acpi_gbl_FADT->smi_cmd) {
-+			if (!acpi_wakeup_address)
-+				return AE_ERROR;
-+			acpi_set_firmware_waking_vector((ACPI_PHYSICAL_ADDRESS) acpi_wakeup_address);
-+		} else
-+			/* We don't support S4 under 2.4.  Give up */
- 			return AE_ERROR;
--		acpi_set_firmware_waking_vector((ACPI_PHYSICAL_ADDRESS) acpi_wakeup_address);
- 	}
- 
- 	acpi_enter_sleep_state_prep(state);
-@@ -366,8 +371,12 @@
- 
- 	p += sprintf(p, "states:                  ");
- 	for (i=0; i<ACPI_S_STATE_COUNT; i++) {
--		if (system->states[i])
-+		if (system->states[i]) 
- 			p += sprintf(p, "S%d ", i);
-+			if (i == ACPI_STATE_S4 &&
-+			    acpi_gbl_FACS->S4bios_f &&
-+			    0 != acpi_gbl_FADT->smi_cmd)
-+				p += sprintf(p, "S4Bios ");
- 	}
- 	p += sprintf(p, "\n");
- 
-@@ -671,7 +680,7 @@
- 			p += sprintf(p,"S%d ", i);
- 			if (i == ACPI_STATE_S4 && acpi_gbl_FACS->S4bios_f &&
- 			    acpi_gbl_FADT->smi_cmd != 0)
--				p += sprintf(p, "S4bios ");
-+				p += sprintf(p, "S4Bios ");
- 		}
- 	}
- 
-@@ -716,7 +725,7 @@
- 	printk(KERN_DEBUG "acpi: sleep %d\n", state);
- 	if (!system->states[state])
- 		return_VALUE(-ENODEV);
--	printk(KERN_DEBUG "acpi: GO!\n", state);
-+	printk(KERN_DEBUG "acpi: GO!\n");
- 	
- 	/*
- 	 * If S4 is supported by the OS, then we should assume that
-@@ -1223,7 +1232,8 @@
- 		status = acpi_get_sleep_type_data(i, &type_a, &type_b);
- 		switch (i) {
- 		case ACPI_STATE_S4:
--			if (acpi_gbl_FACS->S4bios_f && 0 != acpi_gbl_FADT->smi_cmd) {
-+			if (acpi_gbl_FACS->S4bios_f &&
-+			    0 != acpi_gbl_FADT->smi_cmd) {
- 				printk(" S4bios");
- 				system->states[i] = 1;
- 			}
-
---iVCmgExH7+hIHJ1A--
 
 
 -------------------------------------------------------
