@@ -1,11 +1,16 @@
-From: "Tina B" <vieep22454b`n-w0yGfOVD2CLk1uMJSBkQmQ@public.gmane.org>
-Subject: Hallo:)
-Date: Wed, 21 May 2003 12:12:57 -0700
+From: Derek Broughton <dbroughton-F3m4/jXepmf3fQ9qLvQP4Q@public.gmane.org>
+Subject: Re: best acpi solution
+Date: Wed, 21 May 2003 16:38:06 -0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E19IZ1E-0005xT-00@sc8-sf-list1.sourceforge.net>
+Message-ID: <02ee01c31fd0$808cde00$3746028e@bio.dfo.ca>
+References: <3ECB3CE2.5000400@ottaky.com>
+ <01db01c31f90$84ae6840$3746028e@bio.dfo.ca> <3ECB8ADF.5020108@ottaky.com>
+ <20030521142117.GX346@poupinou.org> <3ECB9BB8.9070700@ottaky.com>
+ <20030521150233.GY346@poupinou.org> <3ECBA777.9090100@ottaky.com>
+ <20030521154428.GZ346@poupinou.org> <3ECBB096.3070207@ottaky.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_007B_08A87A51.B6AB2824"
+Content-Type: text/plain;	charset="Windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -15,19 +20,34 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+From: "sjb" <ottaky-XuTx12Z7TonQT0dZR+AlfA@public.gmane.org>
+> Ducrot Bruno wrote:
+>
+> > Then, for example in your home directory:
+> >
+> > tar xjvfp linux-2.4.20.tar.bz2
+>
+> Ok .. lovely. Thanks for the help.
+>
+> Is there anything I need to make sure to select when I run xconfig? I
+> presume I choose ACPI to be compiled statically?
 
-------=_NextPart_000_007B_08A87A51.B6AB2824
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Difficult to tell, which is why I suggested starting with the config file from
+your working kernel.
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">=0D=0A<HTML><HEAD>=0D=0A<META=20http-equiv=3DContent-Type content=3D"text/html; charset=3Diso-8859-1">=0D=0A<META=20content=3D"MSHTML 6.00.2600.0" name=3DGENERATOR>=0D=0A<STYLE></STYLE>=0D=0A</HEAD>=0D=0A<BODY bgColor=3D#ffffff>=0D=0A<DIV><FONT face=3DArial size=3D2>=0D=0A<DIV><FONT face=3DArial size=3D3>Guten Tag,<BR></FONT></DIV>=0D=0A<DIV><FONT face=3DArial size=3D3>Jemand hat Ihnen eine Video-Botschaft aufgenommen, =0D=0A<BR>um die Nachricht zu erhalten, klicken Sie bitte den unten genannten Link an =0D=0A! <BR>Dort laden Sie bitte den " Chat " und wenden sich dann bitte an Tina=20! =0D=0A<BR>Wir w=FCnschen Ihnen viel Spa=DF mit Ihrer pers=F6nlichen Botschaft !</FONT></DIV>=0D=0A<DIV><FONT face=3DArial size=3D3>Abruf unter:</FONT></DIV><FONT face=3DArial>=0D=0A<DIV><BR><B><a=20href=3D"http://baby19.tripod.com.ve/camd.htm">http://privates/video/6671.avi</a></B><BR><BR><FONT =0D=0Asize=3D3>Automatische Nachricht 
- von =0D=0AGerson-Message-Online</FONT></FONT></DIV></FONT></DIV></BODY></HTML>=0D=0A=0D=0A
-------=_NextPart_000_007B_08A87A51.B6AB2824--
+> Another dumb question: can I simply use the previous kernel where acpi
+> was working? That is .. I have the actual kernel. Can I drop that into
+> /boot, make a change to grub's conf file and use the old kernel?
 
+Well, that _is_ what I suggested in the first place ;-)
+
+(btw, please don't reply to me _and_ the list.  I'm obviously reading the list
+already...)
+
+derek
 
 
 
