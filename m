@@ -1,11 +1,11 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ASL help with latest acpi and compaq presario 2800t
-Date: Wed, 14 May 2003 15:32:28 +0800
+Subject: RE: acpi=off & /proc entries
+Date: Wed, 14 May 2003 16:07:45 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F84272309@pdsmsx403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8427230B@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
+	charset="iso-8859-2"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 content-class: urn:content-classes:message
@@ -17,49 +17,97 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Kevin Fenzi <kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
-Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: =?iso-8859-2?Q?Zden=ECk_OGAR_Skal=E1k?= <skalak-Bh/+Xfn7orxQjibfaplwYw@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Could you please inform me whether battery status works on your 2800t.
+Try latest patch please. If you still have problem, would you please =
+file it on bugzilla.kernel.org  (Both 2.4 and 2.5)=20
 
 Thanks,
 Luming
 
 -----Original Message-----
-From: Kevin Fenzi [mailto:kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org]
-Sent: 2003?5?14? 5:11
-To: Yu, Luming
-Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: RE: [ACPI] ASL help with latest acpi and compaq presario 2800t
+From: Zden=A8=A7k OGAR Skal=A8=A2k [mailto:skalak-Bh/+Xfn7orxQjibfaplwYw@public.gmane.org]
+Sent: 2003?5?12? 23:19
+To: Grover, Andrew
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: [ACPI] acpi=3Doff & /proc entries
 
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi,
 
->>>>> "Luming" =3D=3D Luming Yu <Yu> writes:
+	I'm using kernel 2.4.20 with ACPI version 20021205 (with additional =
+patch as:
+custom corrected DSDT, DSDT in initrd, \_OS override, .....). I find out =
+a small
+bug:
+	if you boot with acpi=3Doff argument, acpi isn't activated (as you =
+would expect),
+but proc-entries in /proc/acpi (as battery & so on), appears just below =
+/proc
+:-{
 
-Luming> Maybe you were missing something.  Try attached file please.
-Luming> Thanks, Lumng
+cat /var/log/dmesg:
+...
+ACPI: Subsystem revision 20021205
+ACPI: Disabled via command line (acpi=3Doff)
+...
+acpi_button-0466 [0001] [02] acpi_button_init      : ----Entry
+acpi_bus-1247 [0001] [03] acpi_bus_register_driv: ----Entry
+acpi_bus-1259 [0001] [03] acpi_bus_register_driv: ----Exit- =
+0000000000000000
+acpi_button-0478 [0001] [02] acpi_button_init      : ----Exit- =
+0000000000000000
+...
 
-Yeah, I must have munged the patch or something.=20
-Putting the External ones in the right place made it compile just
-fine. ;)=20
+Reason:
+	there's global struct proc_dir_entry *acpi_root_dir in bus.c=20
+	if you boot with acpi=3Doff, it has it's implicit value of NULL
+	all drivers (ex. button) has their init functions with this sequence:
+		acpi_xxx_dir =3D proc_mkdir(ACPI_xxx_CLASS, acpi_root_dir);=20
+		// this success, (but acpi_root_dir=3D=3DNULL :-{
+		result =3D acpi_bus_register_driver(&acpi_xxx_driver);=09
+		// this returns 0, should it ?
+		if (result<0){
+			// we don't get here
+			remove_proc_entry(ACPI_xxx_CLASS, acpi_root_dir);
+			return_VALUE(-ENODEV);
+		}
+		return_VALUE(0);
 
-It seems to load just as well as the previous one...=20
+	I think, we should (in each such driver) test the acpi_disabled =
+variable & if
+it's on, don't even bother with mkdir, register_bus_driver  .... Or =
+don't allow
+acpi_bus_register_driver to return success if acpi=3D=3Doff (test of =
+acpi_disabled
+there :-)
 
-thanks for the help.=20
+	Sorry, but don't have time (and even not the correct kernel tree & =
+correct acpi
+version) to make patch ...
 
-kevin
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-Comment: Processed by Mailcrypt 3.5.8 =
-<http://mailcrypt.sourceforge.net/>
+	Bye
+		Zdenek OGAR Skalak
 
-iD8DBQE+wV9U3imCezTjY0ERAvQ0AJ41yvpzBvZP597bzzu8NUlRk2CtJgCggS3O
-WLP0gc7H1XCKCkyk3aOAF0A=3D
-=3DPCoB
------END PGP SIGNATURE-----
+--=20
+Ing. Zden=ECk OGAR Skal=E1k
+Monet+ a.s.
+Z=E1meck=E1 365
+763 14 Zl=EDn - =A9t=EDpa, CZ
+Tel: +420 / 577 110 411,  Fax: +420 / 577 914 557
+
+
+-------------------------------------------------------
+Enterprise Linux Forum Conference & Expo, June 4-6, 2003, Santa Clara
+The only event dedicated to issues related to Linux enterprise solutions
+www.enterpriselinuxforum.com
+
+_______________________________________________
+Acpi-devel mailing list
+Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
