@@ -1,16 +1,13 @@
-From: Mads Paulin <paulin-/w0Os/Ss2Sh/SzgSGea1oA@public.gmane.org>
-Subject: Re: [Acpi4asus-user] ASUS M2400N / M3700N / S1300N temperature
-Date: 19 Aug 2003 17:27:53 +0200
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Re: [Acpi4asus-user] ASUS M2400N / M3700N / S1300N temperature
+Date: Tue, 19 Aug 2003 16:13:49 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1061306874.2276.3.camel@Home>
-References: <20030814025858.GA16098@hell.org.pl>
-	<1060944604.1760.1.camel@M2400N> <20030815142258.GA2643@hell.org.pl>
-	<1060959167.2144.19.camel@Home> <20030815205541.GB25102@hell.org.pl>
-	<1061221384.1996.6.camel@M2400N>  <20030819140334.GB4265@hell.org.pl>
+Message-ID: <20030819141349.GM18032@poupinou.org>
+References: <20030814025858.GA16098@hell.org.pl> <1060944604.1760.1.camel@M2400N> <20030815142258.GA2643@hell.org.pl> <1060959167.2144.19.camel@Home> <20030815205541.GB25102@hell.org.pl> <1061221384.1996.6.camel@M2400N> <20030819140334.GB4265@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 In-Reply-To: <20030819140334.GB4265-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -20,19 +17,10 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Mads Paulin <paulin-/w0Os/Ss2Sh/SzgSGea1oA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Ok - probably I was too optimistic there - sorry :-)
-
-Just a mad idea: What happens if I try to use the ASUS L3800C DSDT on my
-M2400N ? Does it blow up ??
-
-Mads
-
-
-On Tue, 2003-08-19 at 16:03, Karol Kozimor wrote:
+On Tue, Aug 19, 2003 at 04:03:34PM +0200, Karol Kozimor wrote:
 > Thus wrote Mads Paulin:
 > > I have an ASUS M2400N and is trying to get the fan control right. Karol
 > > solved the temperature reading problem, but due to wron thermal trip
@@ -76,37 +64,18 @@ On Tue, 2003-08-19 at 16:03, Karol Kozimor wrote:
 > always fails. Since LTMP is initialized with 0x3c (60d), the _TMP method
 > always returns (KELV (60)), and also, since RTMP is also used internally,
 > the fan keeps spinning at the same speed. 
-> 
-> Now, if the aforementioned condition is changed to If (Local0), which looks
-> fairly more reasonable, strange things begin to happen (like those trip
-> points and temperature being reported as 255 degrees). There is nothing in
-> the trip point code that would support such a behaviour, unless the change
-> causes some random memory scribbling, or something similarly nasty.
-> 
-> > By the way, the fan is capable of rotationg at several different rpm's.
-> > Have any of you gotten this rigt ? On my laptop, the fan starts at max
-> > rpms and then turns completely off. The only way I can get it to rotate
-> > at low RPMS is by rebooting the machine when the processor temperature
-> > is in the interval giving low rpm's. The bios will then put the fan in
-> > low rpm state.
-> > 
-> > This leads me to think, that the fan is not controlled by acpi at all
-> > (possibly due to a buggy DSDT)
-> 
-> The fan is, and should be, controled by ACPI, though not in the way the
-> specification says. The \_TZ.TCHG method compares the actual temperature
-> adn stores appropriate values in the fan registers, causing it to change
-> its speed. A very similar thermal system exists in ASUS L3800C, where it
-> works quite well.
-> 
-> Could someone take a look in the M2400N DSDT and suggest a way to debug it?
-> Best regards,
-> 
-> -- 
-> Karol 'sziwan' Kozimor
-> sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
+Problem is: I still don't have time to debug that.  A good approach
+imho for debugging all that stuff is to simulate the RTMP by
+translating this method in C.  It's straightforward, but sorry, I don't
+have time for.  Then you will see if it is a bug in the aml interpreter,
+or a bug in the AML.
 
+-- 
+Ducrot Bruno
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
