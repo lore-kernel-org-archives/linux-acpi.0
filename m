@@ -1,11 +1,14 @@
-From: Anders Rune Jensen <anders-VYFdHW3tBKJknbxzx/v8hQ@public.gmane.org>
-Subject: Trouble booting with latest acpi
-Date: Sat, 15 Feb 2003 23:25:37 +0100
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Sneaking patches in (was Re: System hang when trying to enter sleep/standby state)
+Date: Mon, 17 Feb 2003 16:00:05 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <87vfzli3ku.fsf@gnulinux.dk>
+Message-ID: <20030217150005.GA6429@zaurus.ucw.cz>
+References: <200302140753.h1E7rOD00889@ikffws2.ikff.uni-stuttgart.de> <Pine.LNX.4.33.0302140836140.1067-100000@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.33.0302140836140.1067-100000-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,44 +17,26 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel <acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org>
+To: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>, torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org
+Cc: Jens Haug <haug-X6ztD3ggwzuBAmxm6OvjtTjhTm2NLCe8@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi
+Hi!
 
-Just some info. My laptop is a Toshiba Tecra 8200.
+> > > This particular item is dangerous and will be removed from the kernel.
+> > 
+> > Is it up to you to decide that? ;-)
+> 
+> As a matter of fact, yes it is. And it has been removed from Linus's 2.5 
+> tree as of last night. 
 
-Hadn't updated my 2.4 kernel in a long time (3 month or so) I thought
-I would try 2.5.61. After booting is kernel stopped around where it
-should do a init (right after it has loaded the kernel). But something
-hangs after freeing memory. So I thought is was because it was 2.5 and
-still unstable so I tried 2.4.21pre with the latest acpi patch. Same
-problem. Then I tried booting 2.5.61 without acpi and it worked!
+Are we playing patch wars or what?
 
-Booting without acpi I can see that a lot of the hardware is sharing
-the same irq (11) [1]. Also when I booted with acpi I could see that
-acpi had trouble with irq, assigning a lot of them irq 0 or 255.
-Another thing I noticed was that the dsdt generated some errors.
-Booting with debug on didn't help much to discover what the problem
-was. When booting my fan normally starts and then stops after a few
-seconds but with the hang it keeps running until I kill it. So
-something is hogging the cpu.
+I have not seen any patch on the lists, *and*
+you also moved big blocks of code to hide your
+changes. That's pretty nasty behaviour.
 
-Let me know if there is anything else I can do.
-
-[1]: cat /proc/interrupts
-
-  0:    1121769          XT-PIC  timer
-  1:       6721          XT-PIC  i8042
-  2:          0          XT-PIC  cascade
-  8:          2          XT-PIC  rtc
- 11:       1610          XT-PIC  uhci-hcd, uhci-hcd, YMFPCI, eth0
- 12:       8700          XT-PIC  i8042
- 14:       6524          XT-PIC  ide0
- 15:         14          XT-PIC  ide1
-
--- 
-Anders Rune Jensen
+				Pavel
 
 
 
