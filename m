@@ -1,13 +1,13 @@
-From: Arjen Verweij <a.verweij-oe7qfRrRQfeEZXFvZSAUrfP6llvjuJOh@public.gmane.org>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 Subject: Re: Shutting down PCI devices on suspend
-Date: Sat, 11 Dec 2004 22:31:32 +0100
-Message-ID: <41BB6734.5060607@student.tudelft.nl>
-References: <1102779460.5984.17.camel@tyrosine>
+Date: Sat, 11 Dec 2004 22:41:33 +0000
+Message-ID: <1102804893.5984.23.camel@tyrosine>
+References: <1102779460.5984.17.camel@tyrosine>  <41BB4F70.9060606@root.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <1102779460.5984.17.camel@tyrosine>
+In-Reply-To: <41BB4F70.9060606-Y6VGUYTwhu0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,50 +17,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Matthew,
+On Sat, 2004-12-11 at 11:50 -0800, Nate Lawson wrote:
+> In FreeBSD, we do this at the bus layer.  So the ACPI and PCI bus code 
+> is responsible for powering down/up children.  We currently do it:
+> 
+> 1. When no driver is attached and on reprobe
+> 2. When suspending/resuming, based on evaluating _SxD
+> 
+> See this commit for details:
+> http://docs.freebsd.org/cgi/getmsg.cgi?fetch=1604853+0+archive/2004/cvs-all/20041205.cvs-all
 
-I asked a similar question some time ago, to figure out what is needed 
-to add Wake-on-Lan support. The NIC needs to be put into D3 state, but 
-this doesn't happen automagically. Currently I use pci-config from the 
-scyld website to accomplish this right before powerdown.
+Does _SxD represent the "desired" mode for the hardware, or merely the
+highest state it can be left in? A mail from Len earlier this year
+suggested that if S3D returned 0x2, that meant that either D3 or D2 were
+acceptable.
 
-Hopefully someone can comment on how it should work (tm), my guess is 
-that device drivers need to be signalled, and hence it will only work if 
-the driver supports it. I know from the ATi forum that the linux driver 
-does not support this (yet).
+Is there any reason why adding something like
 
-Maybe you can use pci-config as a work around.
-http://www.scyld.com/diag/index.html
-ftp://ftp.scyld.com/pub/diag/pci-config.c
-http://atlas.et.tudelft.nl/verwei90/nforce2/scyld/pci-config.c (mirror)
-Compile with: gcc-2.95 -O pci-config.c -o pci-config
+if (state==3) {
+	pci_set_power_state(dev,ACPI_STATE_D3COLD)
+}
 
-Regards,
+to pci_device_suspend in the non-driver path and reenabling it in
+pci_default_resume would result in things breaking?
 
-Arjen
+(Possibly with sanity checks as to whether it's a bridge or not)
 
-Matthew Garrett wrote:
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
->The default PCI suspend/resume calls (used if the driver doesn't
->implement them itself) don't alter the device power state. This seems to
->cause problems on some Thinkpads - going into S3 doesn't seem to result
->in the on-board Radeon being put into D3, and as a result the battery is
->drained at a higher rate than it should be. Who should be responsible
->for making sure that devices are properly put to sleep:
->
->1) The drivers (not immensely helpful in the case where we don't
->necessarily have drivers registered for every device)
->2) The kernel
->3) The hardware itself?
->
->I seem to remember someone mentioning something about Linux not checking
->for hints from the hardware as to what state devices should be put in,
->but I know little about this.
->  
->
 
 
 -------------------------------------------------------
