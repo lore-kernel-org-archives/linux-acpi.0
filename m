@@ -1,47 +1,68 @@
-From: Bruno Ducrot <ducrot@poupinou.org>
-Subject: Re: [ACPI] [PATCH] disable SMM access to SpeedStep using ACPI-FADT
-	pstate_cnt
-Date: Sun, 15 Feb 2004 15:54:07 +0100
-Sender: cpufreq-bounces@www.linux.org.uk
-Message-ID: <20040215145407.GK13262@poupinou.org>
-References: <20040215105712.GB6105@dominikbrodowski.de>
+From: william maddler <news-Ik12NmhdCOnR7s880joybQ@public.gmane.org>
+Subject: acpi suspend on Asus A2570
+Date: Sun, 15 Feb 2004 16:04:30 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <200402151604.31103.news@maddler.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040215105712.GB6105@dominikbrodowski.de>
-List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@www.linux.org.uk?subject=unsubscribe>
-List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq>
-List-Post: <mailto:cpufreq@www.linux.org.uk>
-List-Help: <mailto:cpufreq-request@www.linux.org.uk?subject=help>
-List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@www.linux.org.uk?subject=subscribe>
-Errors-To: cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk
-To: len.brown@intel.com, acpi-devel@lists.sourceforge.net, cpufreq@www.linux.org.uk
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Feb 15, 2004 at 11:57:12AM +0100, Dominik Brodowski wrote:
-> Disable SMM access to SpeedStep
-> 
-> Often, the BIOS changes the CPU frequency if a notebook is (dis)connected
-> from its AC adapter. This interferes with a) an user setting the CPU frequency
-> and b) kernel timing code which needs to know loops_per_jiffy, cpu_khz etc.
-> 
-> So, ACPI 2.0 offers a method to disable such BIOS changes -- writing
-> a value contained in the FADT (pstate_cnt) to the smi_cmd port. This patch
-> utilizes this method by doing this write in processor.c.
-> 
-> However, most current notebooks only offer 1.0 ACPI tables, where the
-> pstate_cnt entry is marked as "reserved". Whenever there is a _PCT entry
-> in the DSDT, though [and this is only a 2.0 object!], we assume the
-> "reserved" entry to be the pstate_cnt entry [if it isn't zero].
+=2D----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-I would prefer to name it 'take_ownership' or something like that.  I think
-this is the correct naming.
+1st of all hi to all! :)
 
--- 
-Bruno Ducrot
+I've just bought the A2570 and installed ACPI stuff (on 2.4.24). I was able
+to configure buttons but I had no luck with the sleep stuff.
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+I tried
+
+        echo 1 > /proc/acpi/sleep
+
+but nothig happened...
+only the
+
+echo 5 > /proc/acpi/sleep
+
+worked.
+
+any clue?
+
+thx!
+
+
+=2D --=20
+There are only 10 types of people in the world:=20
+Those who understand binary, and those who don't
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+|| William Maddler http://www.cryptorebels.net ||
+||            http://blog.maddler.net          ||
+ gpg --keyserver gpg.mit.edu --recv-key 639C63EF
+=2D----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQFAL4p+1ALxG2OcY+8RAiWIAJ951t20EjIjI7l6u0scS1JWNR8JxwCgi5Er
+vPA3SVdPW7I6RV1FaQiSW7c=3D
+=3DwvkR
+=2D----END PGP SIGNATURE-----
+
+
+-------------------------------------------------------
+SF.Net is sponsored by: Speed Start Your Linux Apps Now.
+Build and deploy apps & Web services for Linux with
+a free DVD software kit from IBM. Click Now!
+http://ads.osdn.com/?ad_id=1356&alloc_id=3438&op=click
