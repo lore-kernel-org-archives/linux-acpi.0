@@ -1,16 +1,14 @@
-From: marcogi-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org
-Subject: Re: S4bios on Sony Vaio FX601
-Date: Thu, 16 Jan 2003 18:50:42 +0100 (CET)
+From: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
+Subject: Re: SSDT on Sony VAIO
+Date: Thu, 16 Jan 2003 19:46:05 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.50.0301161847310.8805-100000@flyby>
-References: <Pine.LNX.4.50.0301130925480.3926-100000@flyby>
- <20030113101531.GF12516@poup.poupinou.org> <20030113114850.1b1adc03.nils@kernelconcepts.de>
- <20030113120204.GA13358@marcogigante.it> <20030113135418.GI12516@poup.poupinou.org>
- <Pine.LNX.4.50.0301152010340.924-100000@flyby> <20030116151714.GT12516@poup.poupinou.org>
+Message-ID: <20030116184605.GB1389@brodo.de>
+References: <F760B14C9561B941B89469F59BA3A84725A11E@orsmsx401.jf.intel.com> <20030116074624.GA1239@brodo.de> <20030116165128.GA13608@bungled.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030116151714.GT12516-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20030116165128.GA13608-aYgNHrD+FxfR7s880joybQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,28 +17,52 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+To: Nathan Conrad <conrad-aYgNHrD+FxfR7s880joybQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 16 Jan 2003, Ducrot Bruno wrote:
+On Thu, Jan 16, 2003 at 11:51:28AM -0500, Nathan Conrad wrote:
+> I did not have CONFIG_CPU_FREQ and CONFIG_ACPI_PROCESSOR_PERF
+> enabled. Once I enabled them, a performance file appeared in my
+> /proc/acpi/processor/CPU0 directory. This file contained '<not
+> supported>'. I also noticed the following message when I boot:
+> 
+> acpi_processor-0959 [17] acpi_processor_get_per: Unsupported address
+> space [127] (control_register)
+> 
+> Is there a way for me to examine the ACPI namespace in order to
+> determine what the parser has put in my CPU0 structure?
+> 
+> In what way are cpufreq and ACPI related? My laptop has an Athlon4 in
+> it, which is not supported by the kernel's cpufreq (yet).
 
-> > While using linux 2.4.20 + acpi-20021205 and 2 patches posted to this
-> > ML some time ago (s4bios-2.4.20-acpi-20021205 and
-> > 00_system_fix_s4bios-2.4.20-acpi-20021205) suspend doesn't works.
-> > echo -n 4b >/proc/acpi/sleep make bios to start hibernation process, but
-> > on resuming system hangs after datas from suspend partition are loaded.
-> > The bios resume screen remains on the screen and I must power cycle the
-> > notebook.
->
-> Did you use framebuffer console?  If yes, try without it.  Try also on
-> console.
+cpufreq is a generic, cross-architecture kernel infrastructure for CPU
+frequency and voltage scaling support. This has several advantages:
 
-I'm using console. I did not compile framebuffer into my kernel.
-How can I produce info for debug?
+- the user shouldn't have to care what technique is used to scale the CPU
+frequency and voltage, whether that is a legacy interface like speedstep, 
+powernow-k6, longrun etc. or whether the interface is "ACPI P-States
+support". All these techniques can be managed through one unified userspace 
+interface ( http://www.brodo.de/cpufreq/interface.html )
 
---
-Regards,  Marco Gigante
+- on almost all architectures, timing codes need to be updated (so that
+"sleep 1" still takes one second, and not two when switching to low 
+frequency). The cpufreq core takes care of that, independent of what
+scaling technique is used.
+
+- dynamic voltage scaling only has to be implemented at one place, and not
+for each "cpufreq driver" on its own. ( DVS isn't yet ready for prime time, 
+but that will change soon. If you're interested, you can follow the 
+development at http://www.brodo.de/cpufreq/advanced.html )
+
+- because of these reasons, ACPI P-States use the cpufreq infrastructure in
+2.5. So you need to enable the cpufreq core if you want to use ACPI
+P-States. No need for the legacy drivers, though, in case ACPI P-States
+work.
+
+Concerning the powernow-k7 / Athlon driver: Dave Jones is working on it. 
+
+	Dominik
 
 
 -------------------------------------------------------
