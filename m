@@ -1,13 +1,15 @@
-From: Andrea Borgia <borgia-iEixELS/QsY1GQ1Ptb7lUw@public.gmane.org>
-Subject: Re: powernow & ACPI & 2.6.9
-Date: Wed, 24 Nov 2004 17:05:26 +0100
-Message-ID: <41A4B146.1070109@cs.unibo.it>
-References: <20041119083851.GB2908@mithrandir.dakordnet.org> <20041119085900.GD31422@poupinou.org>
+From: Matthias Hentges <mailinglisten-H4PcyxPeSRnR7s880joybQ@public.gmane.org>
+Subject: Re: S3 broken Samsung P35 - howto debug?
+Date: Wed, 24 Nov 2004 17:28:36 +0100
+Message-ID: <1101313716.7299.2.camel@mhcln03>
+References: <200411211600.01820.od@fet.uni-hannover.de>
+	 <1101064133.7220.15.camel@mhcln03> <41A4613F.2020905@helios.de>
+	 <200411241354.53598.stefandoesinger@gmx.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041119085900.GD31422-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <200411241354.53598.stefandoesinger-RbZlAiThDcE@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,28 +19,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
+To: Stefan =?ISO-8859-1?Q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Oliver Dawid <oliver-csNNzRR391izQB+pC5nmwQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Bruno Ducrot wrote:
+Am Mittwoch, den 24.11.2004, 13:54 +0100 schrieb Stefan Dösinger:
+> > Now its time to switch on my backlight ;-)
+> The attached program may help you. It uses lrmi and vm86 to call the reset 
+> routine of the VGA bios. I use it to wake up my radeon card.
+> 
+> You need the lrmi libaries.
+> Compile with gcc boot-vga-bios.c -o boot-vga-bios -llrmi
+> It's a user space program, you can call it eighter manually or better from a 
+> script.
 
-> Could you please test those patches:
-> http://www.poupinou.org/cpufreq/powernow-k7/recalibrate_cpu_khz/powernow-k7.recalibrate-cpu_khz.diff
-> and
-> http://www.poupinou.org/cpufreq/powernow-k7/recalibrate_cpu_khz/timers-recalibrate_cpu_khz.diff
+Yeah, I tried that already. Thanks for mentioning it though :)
 
-On a 2.6.10-rc2 plus acpi 20041105, these two patches fix the problem 
-here on my Acer 1357 (Mobile Athlon XP 3000+)
-
-KUTGW,
-Andrea.
-
+If I call it before suspending my monitor goes black and can not be
+revived w/o rebooting. If I call it after S3 (when the monitor is dead
+anyways) it doesn't do anything. Would have been to easy :)
 -- 
-Homepage: http://andrea.borgia.bo.it     /    Amateur radio: IZ4FHT
-A: Because it messes up the order in which people normally read text.
-Q: Why is top-posting such a bad thing?
-A: Top-posting.
-Q: What is the most annoying thing on usenet and in e-mail?
+Matthias Hentges 
+Cologne / Germany
+
+[www.hentges.net] -> PGP welcome, HTML tolerated
+ICQ: 97 26 97 4   -> No files, no URL's
+
+My OS: Debian SID. Geek by Nature, Linux by Choice
+
 
 
 -------------------------------------------------------
