@@ -1,26 +1,64 @@
-From: Karol Kozimor <sziwan@hell.org.pl>
-Subject: Re: [ACPI] Re: Call for help: list of machines with working S3
-Date: Tue, 22 Feb 2005 15:33:22 +0100
-Message-ID: <20050222143322.GA538@hell.org.pl>
-References: <20050214211105.GA12808@elf.ucw.cz> <200502151742.55362.s0348365@sms.ed.ac.uk> <1108563926.4986.3.camel@localhost.localdomain> <200502182049.11088.s0348365@sms.ed.ac.uk>
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: back from suspend
+Date: Tue, 22 Feb 2005 09:34:48 -0800
+Message-ID: <88056F38E9E48644A0F562A38C64FB60040DC04C@scsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Disposition: inline
-In-Reply-To: <200502182049.11088.s0348365@sms.ed.ac.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alistair John Strachan <s0348365@sms.ed.ac.uk>
-Cc: Kjartan Maraas <kmaraas@broadpark.no>, Lorenzo Colitti <lorenzo@colitti.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Pavel Machek <pavel@suse.cz>, ACPI mailing list <acpi-devel@lists.sourceforge.net>, kernel list <linux-kernel@vger.kernel.org>, seife@suse.de, rjw@sisk.pl
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-class: urn:content-classes:message
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Cezar Halmagean <cezar-WE3S9J525UShKNWrAYCRhA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Alistair John Strachan:
-> I discovered that either the i2c_core.ko or i2c_i801.ko modules cause the hang 
-> on resume! If you stop the entire i2c subsystem from being loaded by hotplug 
-> (note this is the BUS driver, not the sensors driver!), then resume works 
-> perfectly! Presumably there's a bug in the resuming of this module.
 
-Might it be another instance of the LPC chip config space messed up on resume?
-Best regards,
+Can you check whether the patch in here helps?
+http://bugme.osdl.org/show_bug.cgi?id=3D3599
+=20
 
--- 
-Karol 'sziwan' Kozimor
-sziwan@hell.org.pl
+>-----Original Message-----
+>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
+>[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
+>Cezar Halmagean
+>Sent: Tuesday, February 22, 2005 12:53 AM
+>To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: [ACPI] back from suspend
+>
+>Hi guys, I got a notebook HP/Compaq nc6000 with gentoo on it, kernel
+>2.6.10-gentoo-r6. I am having problems with suspend, I can put=20
+>it in suspend
+>mode (i think) but all the control lights remain on, and I=20
+>can't get back from
+>it; I must reboot it.
+>
+>Anyone can help ?
+>
+>Thanks!
+>
+>
+>-------------------------------------------------------
+>SF email is sponsored by - The IT Product Guide
+>Read honest & candid reviews on hundreds of IT Products from=20
+>real users.
+>Discover which products truly live up to the hype. Start reading now.
+>http://ads.osdn.com/?ad_id=3D6595&alloc_id=3D14396&op=3Dclick
+>_______________________________________________
+>Acpi-devel mailing list
+>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>
+
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
