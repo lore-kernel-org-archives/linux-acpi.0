@@ -1,15 +1,13 @@
-From: Eric Valette <eric.valette-GANU6spQydw@public.gmane.org>
-Subject: 2.6.8 + ACPI patch,  2.6.9-rc1, if Thermal Zone pb  => Try this fixe
-Date: Mon, 30 Aug 2004 10:46:26 +0200
+From: Bradley Chapman <kakadu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Intel 855PM Thermal Zone support
+Date: Mon, 30 Aug 2004 18:10:52 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4132E962.8040609@free.fr>
-References: <001e01c48e65$4db62400$020ba8c0@SHERKA>
-Reply-To: eric.valette-GANU6spQydw@public.gmane.org
+Message-ID: <e294b46e04083010102fb6d4a0@mail.gmail.com>
+Reply-To: Bradley Chapman <kakadu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <001e01c48e65$4db62400$020ba8c0@SHERKA>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,26 +16,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?ISO-8859-15?Q?Ois=EDn_Mac_Fheara=ED?= <destynova-iUB+o6dfpG8i1yMB4YHZDQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I've seen many post with Thermal Zone related problems and 2.6.8 + ACPI 
-patche (or 2.6.9-rc1)
+Andrew,
 
-<http://linux.bkbits.net:8080/linux-2.5/diffs/arch/i386/pci/i386.c@1.17?nav=index.html|src/|src/arch|src/arch/i386|src/arch/i386/pci|hist/arch/i386/pci/i386.c>
+(I forgot to say that I'm not a member of acpi-devel; please Cc all
+replies to me, thanks)
 
--- 
-    __
-   /  `                   	Eric Valette
-  /--   __  o _.          	6 rue Paul Le Flem
-(___, / (_(_(__         	35740 Pace
+> On Mon, 2004-08-30 at 07:24, Bradley Chapman wrote:
+> > I"m having trouble with the thermal zone drivers in the 20040715
+> > 2.6.8.1 ACPI driverset on my Sager NP3760 laptop, which has an Intel
+> > 855PM chipset. The thermal zone drivers are unable to lcate any
+> > thermalzones, and subsequently I can"t monitor the CPU termperature.
+> > The CPU itself is an Intel Pentium M Dothan, 1.5GHz. dmesg and cpuinfo
+> > outputs appear below.
+> > 
+> > Does anyone know where I can learn about the current state of support
+> > for the 855PM chipset?
+>
+> Using vanilla kernels 2.6.7, 2.6.8 and 2.6.8.1, thermal zone and CPU
+> temperature reporting works on my custom built Astone Z7 (rebranded Asus
+> M6N) which has an Intel Pentium M Dothan 735 (1.7Ghz) and the 855PM
+> chipset. 
+> 
+> Perhaps you have DSDT problems? Have you read
+> http://acpi.sourceforge.net/dsdt/index.php ?
 
-Tel: +33 (0)2 99 85 26 76	Fax: +33 (0)2 99 85 26 76
-E-mail: eric.valette-GANU6spQydw@public.gmane.org
+Thanks for the link - unfortunately, Sager is not listed in the
+manufacturer's table. Who builds the NP3760 laptops anyway? And where
+would I find that information out?
 
+>
+> Cheers
+>
+> Andrew
 
-
+Brad
 
 
 -------------------------------------------------------
