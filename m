@@ -1,14 +1,13 @@
-From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC 1/6]SEP initialization rework
-Date: Mon, 04 Apr 2005 16:52:26 +0800
-Message-ID: <1112604746.4194.374.camel@sli10-desk.sh.intel.com>
-References: <1112580349.4194.331.camel@sli10-desk.sh.intel.com>
-	 <20050404084638.GB14642@elf.ucw.cz>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: [RFC 4/6]Add kconfig for S3 SMP
+Date: Mon, 4 Apr 2005 10:59:32 +0200
+Message-ID: <20050404085932.GE14642@elf.ucw.cz>
+References: <1112580364.4194.342.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050404084638.GB14642-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1112580364.4194.342.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,69 +17,46 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Zwane Mwaikambo <zwane-T6AQWPvKiI1fDP7aoN8Z5Q@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hi!
 
-On Mon, 2005-04-04 at 16:46, Pavel Machek wrote:
-> > ---
-> > 
-> >  linux-2.6.11-root/arch/i386/kernel/smpboot.c           |    6 ++++++
-> >  linux-2.6.11-root/arch/i386/kernel/sysenter.c          |   10 ++++++----
-> >  linux-2.6.11-root/arch/i386/mach-voyager/voyager_smp.c |    6 ++++++
-> >  3 files changed, 18 insertions(+), 4 deletions(-)
-> > 
-> > diff -puN arch/i386/kernel/sysenter.c~sep_init_cleanup arch/i386/kernel/sysenter.c
-> > --- linux-2.6.11/arch/i386/kernel/sysenter.c~sep_init_cleanup	2005-03-28 09:32:30.936304248 +0800
-> > +++ linux-2.6.11-root/arch/i386/kernel/sysenter.c	2005-03-28 09:58:20.703703792 +0800
-> > @@ -26,6 +26,11 @@ void enable_sep_cpu(void *info)
-> >  	int cpu = get_cpu();
-> >  	struct tss_struct *tss = &per_cpu(init_tss, cpu);
-> >  
-> > +	if (!boot_cpu_has(X86_FEATURE_SEP)) {
-> > +		put_cpu();
-> > +		return;
-> > +	}
-> > +
-> >  	tss->ss1 = __KERNEL_CS;
-> >  	tss->esp1 = sizeof(struct tss_struct) + (unsigned long) tss;
-> >  	wrmsr(MSR_IA32_SYSENTER_CS, __KERNEL_CS, 0);
-> > @@ -41,7 +46,7 @@ void enable_sep_cpu(void *info)
-> >  extern const char vsyscall_int80_start, vsyscall_int80_end;
-> >  extern const char vsyscall_sysenter_start, vsyscall_sysenter_end;
-> >  
-> > -static int __init sysenter_setup(void)
-> > +int __init sysenter_setup(void)
-> >  {
-> >  	void *page = (void *)get_zeroed_page(GFP_ATOMIC);
-> >  
+> Add kconfig for IA32 S3 SMP.
 > 
-> Can this still be __init? I think you are calling it from hotplug code
-> now, right?
-Only BP executes it. AP calls enable_sep_cpu.
-
+> Thanks,
+> Shaohua
 > 
-> > diff -puN arch/i386/kernel/smpboot.c~sep_init_cleanup arch/i386/kernel/smpboot.c
-> > --- linux-2.6.11/arch/i386/kernel/smpboot.c~sep_init_cleanup	2005-03-28 09:33:49.972288952 +0800
-> > +++ linux-2.6.11-root/arch/i386/kernel/smpboot.c	2005-03-28 09:46:01.814032096 +0800
-> > @@ -415,6 +415,8 @@ static void __init smp_callin(void)
-> >  
-> >  static int cpucount;
-> >  
-> > +extern int sysenter_setup(void);
-> > +extern void enable_sep_cpu(void *);
-> >  /*
-> >   * Activate a secondary processor.
-> >   */
+> ---
 > 
-> Perhaps these should go to header file somewhere?
-in asm-i386/smp.h?
+>  linux-2.6.11-root/kernel/power/Kconfig |    7 +++++++
+>  1 files changed, 7 insertions(+)
+> 
+> diff -puN kernel/power/Kconfig~smp_s3_kconfig kernel/power/Kconfig
+> --- linux-2.6.11/kernel/power/Kconfig~smp_s3_kconfig	2005-03-31 10:49:57.156487160 +0800
+> +++ linux-2.6.11-root/kernel/power/Kconfig	2005-03-31 10:49:57.158486856 +0800
+> @@ -72,3 +72,10 @@ config PM_STD_PARTITION
+>  	  suspended image to. It will simply pick the first available swap 
+>  	  device.
+>  
+> +config STR_SMP
+> +	bool "Suspend to RAM SMP support (EXPERIMENTAL)"
+> +	depends on EXPERIMENTAL && ACPI_SLEEP && !X86_64
+> +	depends on HOTPLUG_CPU
+> +	default y
+> +	---help---
+> +	 enable Suspend to RAM SMP support. Some HT systems require this.
 
-Thanks,
-Shaohua
+Should this be config option? If we have ACPI_SLEEP and SMP set, we
+should probably require this one (so that user does not have to
+care).... Also name is "interesting", perhaps CONFIG_SMP_SLEEP or
+something?
 
+							Pavel
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
