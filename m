@@ -1,11 +1,11 @@
 From: Mail Delivery Subsystem <MAILER-DAEMON-YDxpq3io04c@public.gmane.org>
 Subject: Returned mail: User unknown
-Date: Sat, 6 Sep 2003 19:36:38 -0400 (EDT)
+Date: Sat, 6 Sep 2003 19:49:09 -0400 (EDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200309062336.TAC12441@rly-xd05.mx.aol.com>
+Message-ID: <200309062349.TAA15600@rly-yb06.mx.aol.com>
 Mime-Version: 1.0
 Content-Type: multipart/report; report-type=delivery-status;
-	boundary="TAC12441.1062891398/rly-xd05.mx.aol.com"
+	boundary="TAA15600.1062892149/rly-yb06.mx.aol.com"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -20,10 +20,10 @@ List-Id: linux-acpi@vger.kernel.org
 
 This is a MIME-encapsulated message
 
---TAC12441.1062891398/rly-xd05.mx.aol.com
+--TAA15600.1062892149/rly-yb06.mx.aol.com
 
-The original message was received at Sat, 6 Sep 2003 19:36:30 -0400 (EDT)
-from  [163.180.127.185]
+The original message was received at Sat, 6 Sep 2003 19:48:57 -0400 (EDT)
+from siaag2aa.compuserve.com [149.174.40.131]
 
 
 *** ATTENTION ***
@@ -47,49 +47,49 @@ administrator.
 
 
    ----- The following addresses had permanent fatal errors -----
-<heinerf-YDxpq3io04c@public.gmane.org>
+<smnoffice-7rnwWIFpvOw@public.gmane.org>
 
    ----- Transcript of session follows -----
-... while talking to air-xd04.mail.aol.com.:
->>> RCPT To:<heinerf-YDxpq3io04c@public.gmane.org>
+... while talking to air-yb03.mail.aol.com.:
+>>> RCPT To:<smnoffice-7rnwWIFpvOw@public.gmane.org>
 <<< 550 MAILBOX NOT FOUND
-550 <heinerf-YDxpq3io04c@public.gmane.org>... User unknown
+550 <smnoffice-7rnwWIFpvOw@public.gmane.org>... User unknown
 
---TAC12441.1062891398/rly-xd05.mx.aol.com
+--TAA15600.1062892149/rly-yb06.mx.aol.com
 Content-Type: message/delivery-status
 
-Reporting-MTA: dns; rly-xd05.mx.aol.com
-Arrival-Date: Sat, 6 Sep 2003 19:36:30 -0400 (EDT)
+Reporting-MTA: dns; rly-yb06.mx.aol.com
+Arrival-Date: Sat, 6 Sep 2003 19:48:57 -0400 (EDT)
 
-Final-Recipient: RFC822; heinerf-YDxpq3io04c@public.gmane.org
+Final-Recipient: RFC822; smnoffice-7rnwWIFpvOw@public.gmane.org
 Action: failed
 Status: 5.1.1
-Remote-MTA: DNS; air-xd04.mail.aol.com
+Remote-MTA: DNS; air-yb03.mail.aol.com
 Diagnostic-Code: SMTP; 550 MAILBOX NOT FOUND
-Last-Attempt-Date: Sat, 6 Sep 2003 19:36:38 -0400 (EDT)
+Last-Attempt-Date: Sat, 6 Sep 2003 19:49:09 -0400 (EDT)
 
---TAC12441.1062891398/rly-xd05.mx.aol.com
+--TAA15600.1062892149/rly-yb06.mx.aol.com
 Content-Type: text/rfc822-headers
 
-Received: from  LSM ([163.180.127.185]) by rly-xd05.mx.aol.com (v95.1) with ESMTP id MAILRELAYINXD51-1233f5a6f79f8; Sat, 06 Sep 2003 19:36:27 -0400
-From: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-To: <HeinerF-YDxpq3io04c@public.gmane.org>
-Subject: Re: Approved
-Date: Sun, 7 Sep 2003 8:36:36 +0900
-X-MailScanner: Found to be clean
-Importance: Normal
-X-Mailer: Microsoft Outlook Express 6.00.2600.0000
-X-MSMail-Priority: Normal
-X-Priority: 3 (Normal)
+Received: from  siaag2aa.compuserve.com (siaag2aa.compuserve.com [149.174.40.131]) by rly-yb06.mx.aol.com (v95.1) with ESMTP id MAILRELAYINYB67-6993f5a7269216; Sat, 06 Sep 2003 19:48:57 -0400
+Received: (from mailgate@localhost)
+	by siaag2aa.compuserve.com (8.12.9/8.12.7/SUN-2.7) id h86Nmvb1029608
+	for smnoffice-7rnwWIFpvOw@public.gmane.org; Sat, 6 Sep 2003 19:48:57 -0400 (EDT)
+Date: Sat, 6 Sep 2003 19:40:57 -0400
+From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: Re: That movie
+Sender: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: smnoffice-7rnwWIFpvOw@public.gmane.org
+Reply-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <200309061941_MC3-1-4D05-B873-Crc3fnV8OO0XQ3Lr6voeyA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: multipart/mixed;
-	boundary="_NextPart_000_09961F3F"
-X-AOL-IP: 163.180.127.185
+	 boundary="5b25e1ec-fc57-489f-8e09-bc5c1a17d8f4"
+X-AOL-IP: 149.174.40.131
 X-AOL-SCOLL-SCORE: 0:XXX:XX
 X-AOL-SCOLL-URL_COUNT: 0
-Message-ID: <200309061936.1233f5a6f79f8-2HXK/SucAfc7N1j9GEufq0EOCMrvLtNR@public.gmane.org>
 
---TAC12441.1062891398/rly-xd05.mx.aol.com--
+--TAA15600.1062892149/rly-yb06.mx.aol.com--
 
 
 
