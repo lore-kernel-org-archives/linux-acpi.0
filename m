@@ -1,9 +1,9 @@
-From: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
-Subject: Sleep() method in AML
-Date: Wed, 26 Jan 2005 15:13:38 -0500
-Message-ID: <41F7F9F2.4000501@bartol.udel.edu>
+From: Anders Persson <anders.persson-sT6loi8rTDSci/EUP2OQSw@public.gmane.org>
+Subject: Fn-keys on Compaq Evo n800v
+Date: 28 Jan 2005 10:30:13 +0100
+Message-ID: <1106904613.6133.24.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -15,27 +15,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-How does the current Linux implementation of the AML interpreter treat 
-the Sleep() method? According to the ACPI spec, this method should 
-relinquish the processor, so I would anticipate some form of mapping to 
-the kernel msleep() function. However, to what extent is this true?
+I run Fedora Core 3 on a Compaq Evo n800v. After compiling a new kernel
+(2.6.10) with a custom DSDT, ACPI seems to work (almost) fine.
+Processor, thermal-zones, lid-button, etc, all seem ok. 
 
-Does Sleep() actually permit other tasks to be scheduled, or does the 
-AML interpreter just go into some form of delay loop for the required 
-time? I ask because I'm hacking together some Smart Battery stuff in the 
-DSDT, and the code uses a lot of Sleep() calls (to implement polling of 
-the embedded controller). I was hoping that these calls would mean that 
-the polling doesn't have much of an impact on the rest of the system; 
-but I find I'm losing keypresses etc. during the execution of the code 
-containing the Sleep() references. Any suggestions regarding how to fix 
-this problem?
+However, the Fn+F7 & Fn+F8 key combinations for controlling screen
+brightness stop working when X is started.
 
-cheers,
+I have previously used exactly this custom DSDT without the above
+problem on the same machine running RedHat 9 and a 2.4.21 kernel.
 
-Rich
+Any input on how to solve this is much appreciated!
+
+/Anders
+
 
 
 -------------------------------------------------------
