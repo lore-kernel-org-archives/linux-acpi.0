@@ -1,15 +1,14 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: Why nobody help me?
-Date: Wed, 14 Jul 2004 22:05:36 -0000
+From: Christian Hesse <mail-8oMOrB1mGocUSW6y5lq3GQ@public.gmane.org>
+Subject: Resume with Samsung X10
+Date: Thu, 15 Jul 2004 13:58:43 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040714220535.GB23861@message-id.gmane0305.slipkontur.de>
-References: <000901c468ec$a4425e40$0800a8c0@SQUADRA> <20040714090418.GA26992@ozelot.stud.ntnu.no> <20040714143514.GJ8906@localhost>
+Message-ID: <200407151358.47430.mail@earthworm.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040714143514.GJ8906-bi+AKbBUZKZeoWH0uzbU5w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -21,21 +20,37 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jul 14, 2004 at 04:35:14PM +0200, marco ghidinelli wrote:
-> On Wed, Jul 14, 2004 at 11:04:18AM +0200, Øystein Gisnås wrote:
-> 
-> > The only workaround I
-> > need is having OS to report bewing Windows NT instead of Linux to get
-> > the interrupts working.
-> 
-> and how you do that?
+=2D----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-give
-acpi_os_name="Windows NT"
-at the boot prompt.
--- 
-Stefan Seyfried
+Hello!
 
+=46or some time I'm trying to get Suspend to RAM to work on my Samsung X10 =
+now.=20
+It suspends without problems, the power led is blinking in suspend mode. Bu=
+t=20
+there is no way to wake the device. I have to unplug the AC and take out th=
+e=20
+battery, after that I can boot normally.
+
+I searched for similar problems in the existing bugreports on the acpi=20
+website. Some people reported the same problem, but nobody found a solution=
+=20
+till now I think. The patch from bug 1415 didn't help me.
+
+Is there anythink I can do to help? Any experimental code on that issue to=
+=20
+test?
+
+Christian
+=2D --=20
+=2D----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFA9nF3lZfG2c8gdSURAhX7AKC4e3yNATo9YOJFQA94KWl0xa6EbACfQeIC
+VM7HFI4exzQhzjLa1Nlav78=3D
+=3DWtkk
+=2D----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
