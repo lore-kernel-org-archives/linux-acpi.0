@@ -1,8 +1,8 @@
 From: laste-WVlzvzqoTvw@public.gmane.org
 Subject: universal joint and sewing machine
-Date: Fri, 12 Mar 04 17:11:39 +0800
+Date: Fri, 12 Mar 04 17:12:10 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E1B1iiQ-0005fJ-Sk@externalmx.vasoftware.com>
+Message-ID: <E1B1itO-0005va-2s@sc8-sf-list2.sourceforge.net>
 Reply-To: sales-bJ874uQodkYAvxtiuMwx3w@public.gmane.org
 Content-Type: text/plain; charset=gb2312
 Content-Transfer-Encoding: base64
@@ -15,7 +15,7 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 RGVhciBhY3BpLWRldmVsOg0KDQpTaGFuZ0hhaSBPd253YXkgRWxlY3RyaWMgQ08uIExURC4gWXVlcWlu
