@@ -1,14 +1,15 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+From: Jes Sorensen <jes-dtAfj9ClZIwnoBwkMbRkTB2eb7JE58TQ@public.gmane.org>
 Subject: Re: [patch] remove null-ifiers
-Date: Tue, 27 Jan 2004 16:09:55 +0100
+Date: Tue, 27 Jan 2004 10:15:05 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040127150954.GA12740@hell.org.pl>
+Message-ID: <16406.32889.922823.45313@gargle.gargle.HOWL>
 References: <E1AgkrW-00080w-00@jaguar.mkp.net>
+	<20040127150954.GA12740@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <E1AgkrW-00080w-00-uLT3q8aHQDsX9StFTm9pZA@public.gmane.org>
+In-Reply-To: <20040127150954.GA12740-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,39 +18,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jes Sorensen <jes-dtAfj9ClZIwnoBwkMbRkTB2eb7JE58TQ@public.gmane.org>
+To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Jes Sorensen:
-> diff -urN -X /usr/people/jes/exclude-linux orig/linux-2.6.1-mm3-boot/drivers/acpi/asus_acpi.c linux-2.6.1-mm3/drivers/acpi/asus_acpi.c
-> --- orig/linux-2.6.1-mm3-boot/drivers/acpi/asus_acpi.c	Wed Dec 17 18:58:39 2003
-> +++ linux-2.6.1-mm3/drivers/acpi/asus_acpi.c	Wed Jan 14 05:00:01 2004
-> @@ -73,8 +73,8 @@
->  MODULE_LICENSE("GPL");
->  
->  
-> -static uid_t asus_uid = 0;
-> -static gid_t asus_gid = 0;
-> +static uid_t asus_uid;
-> +static gid_t asus_gid;
->  MODULE_PARM(asus_uid, "i");
->  MODULE_PARM_DESC(uid, "UID for entries in /proc/acpi/asus.\n");
->  MODULE_PARM(asus_gid, "i");
+>>>>> "Karol" == Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org> writes:
 
-We certainly *don't* want to do that, last time I checked C did not
-actually guarantee to zero out uninitialized variables -- unless it's
-different in the kernelspace. Are you sure pointers are initialized as
-NULLs?
+Karol> We certainly *don't* want to do that, last time I checked C did
+Karol> not actually guarantee to zero out uninitialized variables --
+Karol> unless it's different in the kernelspace. Are you sure pointers
+Karol> are initialized as NULLs?
 
-Len, I'll prepare a 0.27 patch against bk, so you might want to wait for
-that instead of reverting the change.
+Yes,
 
-Best regards,
+We definately want to do this, this *is* how it works within the
+kernel.
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+Karol> Len, I'll prepare a 0.27 patch against bk, so you might want to
+Karol> wait for that instead of reverting the change.
+
+Don't reverse this change.
+
+Thank you,
+Jes
 
 
 -------------------------------------------------------
