@@ -1,8 +1,8 @@
 From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
 Subject: Re: ACPI C4 support
-Date: Mon, 1 Mar 2004 20:16:15 +0100
+Date: Mon, 1 Mar 2004 20:27:38 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040301191615.GE562@elf.ucw.cz>
+Message-ID: <20040301192738.GA9459@elf.ucw.cz>
 References: <F760B14C9561B941B89469F59BA3A84702C932FD@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -54,7 +54,12 @@ Hi!
 > version that agrees with them but I just asked the experts internally
 > and they said no.
 
-Is updated verision of BIOS developers guide available somewhere?
+If there is old BIOS guide telling them to use length of 7, could we
+make Linux accept that? Its likely a lot of developers have read
+that...
+
+Allowing length of 7 is one line change; if we do it, such notebooks
+will be able to use C1..C3, but not C4. That does not seem too bad...
 
 								Pavel
 -- 
