@@ -1,14 +1,14 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: [PATCH 1/2] 2.6: use scaling_available_freqs in acpi-cpufreq-ioport driver
-Date: Wed, 3 Mar 2004 17:22:55 +0100
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: fix ACPI poweroff in 2.4.25-rc2
+Date: Wed, 3 Mar 2004 11:17:25 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040303162255.GK2869@poupinou.org>
-References: <20040220083149.GA10215@dominikbrodowski.de> <20040224125628.GA438@elf.ucw.cz> <20040224210040.GA8166@dreamcraft.com.au> <20040224221642.GB9145@elf.ucw.cz> <20040226172823.GJ2869@poupinou.org> <20040226215006.GB397@elf.ucw.cz> <20040301175430.GY2869@poupinou.org> <20040301180325.GA562@elf.ucw.cz>
+Message-ID: <200403031117.25937.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040301180325.GA562-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,43 +17,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Tomasz Ciolek <tmc-+XVqjN4+fIJfbCVcMT5z6Ydd74u8MsAO@public.gmane.org>, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
+To: Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>
+Cc: willy-tRhHnHjXm5DYtjvyW6yDsg@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Mar 01, 2004 at 07:03:25PM +0100, Pavel Machek wrote:
-> 
-> As long as people don't want to change rvo, irt, etc, we should be
-> fine.
+The recent 2.4 patch breaks the build for ia64 because we don't
+set CONFIG_ACPI_SLEEP, and acpi_system_save_state() is only
+defined under #ifdef CONFIG_ACPI_SLEEP.  Can you add the following
+patch to deal with this?
 
-Yes, probably, but in case of powernow-k7 I need to pass specifically
-fsb and latency.  And I much prefer to do it atomic.  Also I want to
-check that the user do not enter stupid things.  For example, I
-requested that frequency being passed even though it's actually only
-here in order to check that frequency and FID being OK with something
-like
-if (frequency != table[vid] * fsb * ...) then fail.
-for each entry passed.
+(Here's the original patch:
+    http://linux.bkbits.net:8080/linux-2.4/cset-+MK1MFfKU9qYzr5aE/SGFA@public.gmane.org)
 
-> First step in that direction would be to have voltage in milivolts in
-> those frequency tables, so that core can print them etc... like this:
-> 
-> --- clean/include/linux/cpufreq.h	2004-01-09 20:24:26.000000000 +0100
-> +++ linux/include/linux/cpufreq.h	2004-03-01 19:02:48.000000000 +0100
-> @@ -316,6 +316,7 @@
->  	unsigned int	index;     /* any */
->  	unsigned int	frequency; /* kHz - doesn't need to be in ascending
->  				    * order */
-> +	unsigned int	voltage;   /* mV */
->  };
+Thanks,
+  Bjorn
 
-Well, why not?
+===== drivers/acpi/system.c 1.18 vs edited =====
+--- 1.18/drivers/acpi/system.c	Tue Mar  2 14:50:40 2004
++++ edited/drivers/acpi/system.c	Wed Mar  3 10:43:11 2004
+@@ -95,7 +95,9 @@
+ {
+ 	if (unlikely(in_interrupt())) 
+ 		BUG();
++#ifdef CONFIG_ACPI_SLEEP
+ 	acpi_system_save_state(ACPI_STATE_S5);
++#endif
+ 	acpi_enter_sleep_state_prep(ACPI_STATE_S5);
+ 	ACPI_DISABLE_IRQS();
+ 	acpi_enter_sleep_state(ACPI_STATE_S5);
 
--- 
-Bruno Ducrot
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
 
 
 -------------------------------------------------------
