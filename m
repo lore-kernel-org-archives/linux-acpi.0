@@ -1,46 +1,41 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: [ACPI] [PATCHES] ACPI Processor update [idle, throttling,
-	thermal, cpufreq]
-Date: Mon, 8 Sep 2003 15:29:40 +0200
-Sender: cpufreq-bounces-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
-Message-ID: <20030908132939.GD3944@openzaurus.ucw.cz>
-References: <20030904222434.GC6350@brodo.de>
+From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [PATCH] 2.6.0-test4 Fix mpparse properly mark 2
+Date: Tue, 9 Sep 2003 15:42:20 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20030909134220.GJ24749@wotan.suse.de>
+References: <200309072130.40200.adq_dvb@lidskialf.net> <200309081607.59047.adq_dvb@lidskialf.net> <20030908152926.GH5826@wotan.suse.de> <200309091408.00619.adq_dvb@lidskialf.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <cpufreq-bounces-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20030904222434.GC6350-JhLEnvuH02M@public.gmane.org>
-List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMm38Ik5SeuEX72+df2TVCvIA@public.gmane.org>
-List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq>
-List-Post: <mailto:cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
-List-Help: <mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMm4xOcYYyLxz0@public.gmane.org>
-List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMmEuNEP1Y2mCuZIoH1IeqzKA@public.gmane.org>
-Errors-To: cpufreq-bounces-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
-To: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
+In-Reply-To: <200309091408.00619.adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
+Cc: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-
->http://www.brodo.de/cpufreq_tmp/acpi-2.6.0-test4-processor_thermal_cpufreq
-> 	Use _any_ CPUfreq driver for passive cooling. Implemented by an
-> 	cpufreq policy notifier and cpufreq_update_policy.
->  
-
-Good - it is going to help a lot on k8 notebooks.
-
-http://www.brodo.de/cpufreq_tmp/acpi-2.6.0-test4-processor_thermal_throttling
-> 	Move throttling into its own submodule, and register it with the new
-> 	passive cooling module. Also, the now-useless "limit" interface is
-> 	removed.
+On Tue, Sep 09, 2003 at 02:08:00PM +0100, Andrew de Quincey wrote:
+> How about this patch? I've opted to put the es7000_fix variable in dmi_scan.c for 
+> the moment 'cos there are already another couple of architecture-switching variables 
+> defined in there. 
 > 
+> Whoever hooks up the es7000 code can move it to a more appropriate place if they 
+> don't use DMI for the detection.
 
-Actually I liked to be able to echo 0:7 > limit and conserve battery/
-make sure machine does not overheat  with it...
+Looks good.
+
+-Andi
 
 
--- 
-				Pavel
-Written on sharp zaurus, because my Velo1 broke. If you have Velo you don't need...
+
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
