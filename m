@@ -1,14 +1,11 @@
-From: Kevin Fenzi <kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ASL help with latest acpi and compaq presario 2800t
-Date: Wed, 14 May 2003 09:36:18 -0600
+From: Manish Prasad <mprasad-EX0cT3Az47bauI2f2gSDlQ@public.gmane.org>
+Subject: Battery Status Query
+Date: Thu, 15 May 2003 07:30:48 -0400 (EDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030514153621.D79D2F7868@voldemort.scrye.com>
-References: <3ACA40606221794F80A5670F0AF15F84272309@pdsmsx403.ccr.corp.intel.com>
+Message-ID: <Pine.GSO.4.53.0305150633560.16641@compserv2>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F84272309-4yWAQGcml64gGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,81 +14,46 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hi
 
->>>>> "Luming" == Luming Yu <Yu> writes:
+I'm working with a DELL Inspiron 2600, 2.4.20 kernel, acpi patch 20021212.
+I need to poll the battery constantly to catch any changes in the remaining
+capacity. After a certain number of queries (typically of the order of
+32000), the _BST method execution fails.
 
-Luming> Could you please inform me whether battery status works on
-Luming> your 2800t.  Thanks, Luming
+I don't go through /proc, since earlier I found that the namespace lookup
+fails after a while. So I do the lookup once and cache the method_node
+within the kernel, which I use to repeat the query. The code breaks after
+a certain number of queries spewing out the foll error message:
 
-Yes. It works fine. 
+ psargs-0334: *** Error: Looking up [STAT] in namespace, AE_NOT_FOUND
+psparse-1103: *** Error: Method execution failed
+[\_SB_.PCI0.LPCB.BAT1._BST] (Node c12eed88), AE_NOT_FOUND
 
-cat /proc/acpi/battery/BAT1/info                                                                         9:31:05
-present:                 yes
-design capacity:         2592 mAh
-last full capacity:      2592 mAh
-battery technology:      rechargeable
-design voltage:          14800 mV
-design capacity warning: 259 mAh
-design capacity low:     0 mAh
-capacity granularity 1:  100 mAh
-capacity granularity 2:  100 mAh
-model number:            Primary
-serial number:           482F
-battery type:            4E4F494C
-OEM info:                 COMPAQ
+Call stack (after entering the interpreter), AFAIK from the acpi source
+code:
+acpi_ps_get_next_namepath() - parser/psargs.c
+acpi_ps_parse_loop() - parser/psparse.c
+acpi_ps_parse_aml() - parser/psparse.c
+acpi_psx_execute() - parser/psxface.c
 
-cat /proc/acpi/battery/BAT1/state                                                                        9:35:37
-present:                 yes
-capacity state:          ok
-charging state:          unknown
-present rate:            0 mA
-remaining capacity:      2592 mAh
-present voltage:         16514 mV
+My DSDT : www.cs.sunysb.edu/~mprasad/DSDT
 
-kevin
-- --
-Luming> -----Original Message----- From: Kevin Fenzi
-Luming> [mailto:kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org] Sent: 2003?5?14? 5:11 To: Yu,
-Luming> Luming Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org Subject: RE:
-Luming> [ACPI] ASL help with latest acpi and compaq presario 2800t
+Any pointers on how this could possibly be fixed would be greatly
+appreciated. I'm not familiar with the interpreter .... would it be
+possible at all to interpret just once and cache the interpreted code for
+later execution directly. Also, since my goal is basically to catch
+battery state changes as and when they occur, is there a better way to do
+that ? The battery state notify interrupt occurs very infrequently,
+probably only for changes in charging/discharging state and not for
+reserve capacity changes.
 
+Thanks,
+--Manish
 
-Luming> -----BEGIN PGP SIGNED MESSAGE----- Hash: SHA1
-
->>>>> "Luming" == Luming Yu <Yu> writes:
-
-Luming> Maybe you were missing something.  Try attached file please.
-Luming> Thanks, Lumng
-
-Luming> Yeah, I must have munged the patch or something. Putting the
-Luming> External ones in the right place made it compile just fine. ;)
-
-Luming> It seems to load just as well as the previous one...
-
-Luming> thanks for the help.
-
-Luming> kevin -----BEGIN PGP SIGNATURE----- Version: GnuPG v1.2.1
-Luming> (GNU/Linux) Comment: Processed by Mailcrypt 3.5.8
-Luming> <http://mailcrypt.sourceforge.net/>
-
-Luming> iD8DBQE+wV9U3imCezTjY0ERAvQ0AJ41yvpzBvZP597bzzu8NUlRk2CtJgCggS3O
-Luming> WLP0gc7H1XCKCkyk3aOAF0A= =PCoB -----END PGP SIGNATURE-----
-
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-Comment: Processed by Mailcrypt 3.5.8 <http://mailcrypt.sourceforge.net/>
-
-iD8DBQE+wmJ13imCezTjY0ERAnC8AKCOAOyeHipOfqLd1/d2jyQJXlSljgCaAhgs
-GifT6OGG1LqXfow5CSNMcHU=
-=YPRr
------END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
