@@ -1,15 +1,15 @@
 From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
-Subject: Re: Entering C3 Processor State without a Bus Arbiter
-Date: Fri, 16 Jan 2004 10:30:55 +0100
+Subject: Re: Problems with AMD Athlon XP mobile, ALi 1533 Chipset, ATI IGP 320M Northbridge?
+Date: Fri, 16 Jan 2004 10:21:37 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040116093055.GE9814@dominikbrodowski.de>
-References: <Law11-OE36TK4GXSNMh0000bd93@hotmail.com> <20040115154555.V73140@root.org>
+Message-ID: <20040116092137.GB9814@dominikbrodowski.de>
+References: <14820.1074236418@www4.gmx.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Ycz6tD7Th1CMF4v7"
+	protocol="application/pgp-signature"; boundary="A6N2fC+uXW/VQSAv"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040115154555.V73140-Y6VGUYTwhu0@public.gmane.org>
+In-Reply-To: <14820.1074236418-SmM8uE6Itj7k1uMJSBkQmQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,49 +18,46 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Cc: Dino Klein <dinoklein-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Lukas Schrangl <schrangl-hi6Y0CQ0nG0@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---Ycz6tD7Th1CMF4v7
+--A6N2fC+uXW/VQSAv
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jan 15, 2004 at 03:52:12PM -0800, Nate Lawson wrote:
-> > After removing the restrictions in the source files, and adding a WBINVD
-> > instruction right before the read from P_LVL3 - the processor was put in
-> > the C3 state. This is on my Via Apollo Pro133A based Abit VP6 board,
-> > which does not have a Bus Arbiter. Just for the record, I did pull out
-> > the second CPU, so I can do "safer" experimentation.
->=20
-> WBINVD is too expensive when you're entering C3 hundreds of times per
-> second.  Try playing back an mp3 while dd'ing a CDROM in PIO mode to your
-> hard drive.  Goodbye data, hello backups!  The CPU can't snoop the bus in
-> C3.
+On Fri, Jan 16, 2004 at 08:00:18AM +0100, Lukas Schrangl wrote:
+> Hi!=20
+> =20
+> A second question: Has anyone had problems concerning P- States /=20
+> Powermanagement with one of these (or a combination of these) components:=
+=20
+> =20
+> AMD Athlon XP 2500+ mobile CPU=20
+> ALi 1533 Chipset=20
+> ATI IGP 320M Northbridge=20
+> =20
+> Or does anybody have them and it (performance- control) works fine?=20
 
-You shouldn't enter C3 at all when the CPU is woken up hundreds of times per
-second. Maximum allowed latency is 1ms, IIRC -- you really shouldn't get
-into this state while dd'ing a CDROM or something else...
-
-Problem is, WBINVD might take even longer than 1ms, even though the maximum
-I got on my PIII notebook was about 900us...
+You might want to try the powernow-k7 module of the cpufreq project=20
+[it's is in 2.6.x kernels]
 
 	Dominik
---Ycz6tD7Th1CMF4v7
+--A6N2fC+uXW/VQSAv
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 
-iD8DBQFAB69PZ8MDCHJbN8YRAsZdAKCIlss/t+sgGDlLSC2JlFzq1lX6PwCfXyMG
-u28XLLzEGSOlypMPNXxiXR4=
-=wFLG
+iD8DBQFAB60hZ8MDCHJbN8YRAm47AJ9mpE/bSotvSiP5pmZUb4mOROuLMACcDctO
+ZyZMZtU0hK/TmipYyAV9NDY=
+=kPUn
 -----END PGP SIGNATURE-----
 
---Ycz6tD7Th1CMF4v7--
+--A6N2fC+uXW/VQSAv--
 
 
 -------------------------------------------------------
