@@ -1,14 +1,14 @@
-From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Subject: Re: RE: Toshiba ACPI battery status - ACPI errors
-Date: Tue, 2 Dec 2003 22:26:02 +0000
+From: "Ow Mun Heng" <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
+Subject: RE: fan status not working with kernel 2.6.0-test11 for Acer Travelmate 803 LCI
+Date: Wed, 3 Dec 2003 10:05:06 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031202222602.GE10737@parcelfarce.linux.theplanet.co.uk>
-References: <3ACA40606221794F80A5670F0AF15F8401720BE7@pdsmsx403.ccr.corp.intel.com> <20031202214522.GA8720@fqdn.org>
+Message-ID: <C386328088ED7F4E9F81AFBABDDF60DA033867F2@wdmyexch02.my.asia.wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20031202214522.GA8720-+hGXy1KyAyQ@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,25 +17,53 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Michael Holzt <kju-+hGXy1KyAyQ@public.gmane.org>
-Cc: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: =?iso-8859-1?Q?Herv=E9_Eychenne?= <rv-tT0dJoOmRgdg9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Dec 02, 2003 at 10:45:22PM +0100, Michael Holzt wrote:
-> I would do so, but it is against the 2.6.x series, and i had some issues
-> with this kernel series on my notebook, so for now i stay with 2.4.x. If
-> you have a patch against 2.4.x, i can give it a try.
 
-If you're having problems with 2.6, this would be a great time to let
-everybody know what they are ...
 
--- 
-"Next the statesmen will invent cheap lies, putting the blame upon 
-the nation that is attacked, and every man will be glad of those
-conscience-soothing falsities, and will diligently study them, and refuse
-to examine any refutations of them; and thus he will by and by convince 
-himself that the war is just, and will thank God for the better sleep 
-he enjoys after this process of grotesque self-deception." -- Mark Twain
+> -----Original Message-----
+> From: Herv=E9 Eychenne [mailto:rv-tT0dJoOmRgdg9hUCZPvPmw@public.gmane.org]
+> Sent: Wednesday, December 03, 2003 2:11 AM
+> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: [ACPI] fan status not working with kernel=20
+> 2.6.0-test11 for Acer
+> Travelmate 803 LCI
+>=20
+>=20
+>  Hi,
+>=20
+> I have acpi activated (as well as every acpi features) on my Acer
+> Travelmate 803 LCI (it's a laptop), with linux kernel 2.6.0-test11.
+
+I have a D600 on linux 2.4.23 and 2.4.22-ac4
+
+>=20
+> Everything works quite well, except that:
+> - old ACPI interface for performance management
+>   (/proc/acpi/processor/CPU0/performance) doesn't work: echoing a
+>   state number in it causes a small kernel oops, often=20
+> killing the "su"
+>   session itself.
+
+Any echoing to this interface does _nothing_ at all. Should it? I've =
+been
+using=20
+cpufreq to lower the cpu frequency to 600mhz
+
+> - the fan is reported to be off, even when it is functionning. I'm
+>   currently developping a little program which ensures a "silent mode"
+>   (no fan activation), so it would be very useful.
+
+I have _no_ fan status at all. ls -lR /proc/acpi/fan yields only
+> total 0
+
+I currently have the fan on the whole time!! I think it's causing a batt
+drain. I get only 2:30 hours using the laptop.
+
+HELp?
+
+OW
 
 
 -------------------------------------------------------
