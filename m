@@ -1,11 +1,11 @@
-From: Justin Georgeson <justin.georgeson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: initrd dsdt
-Date: Sun, 21 Nov 2004 22:06:07 -0600
-Message-ID: <62c1cd270411212006706a77ef@mail.gmail.com>
-Reply-To: Justin Georgeson <justin.georgeson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: "Shawna Fields" <shawna_fieldsbu-bMA6A6cHXLGCuPEqFHbRBg@public.gmane.org>
+Subject: Italian Crafted Rolex from $75 to $275 - Free Shipping
+Date: Sun, 21 Nov 2004 21:57:54 -0700
+Message-ID: <92db01c4d04f$19ab63fc$f1e07aff@anhembi.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,14 +19,30 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Has anyone looked into trying to get the initrd dsdt patch submitted
-into the mainstream kernel?
+Heya,
 
--- 
-; Justin Georgeson
-; "Free the mallocs, delete the news"
-; http://www.openoffice.org
-; http://www.boycott-riaa.com
+Do you want a rolex watch?
+
+In our online store you can buy replicas of Rolex watches. They look
+and feel exactly like the real thing.
+
+- We have 20+ different brands in our selection
+- Free shipping if you order 5 or more
+- Save up to 40% compared to the cost of other replicas
+- Standard Features:
+ - Screw-in crown
+ - Unidirectional turning bezel where appropriate
+ - All the appropriate rolex logos, on crown and dial
+ - Heavy weight
+
+Visit us: http://www.icors.com/rep/rolex/
+
+Best regards,
+Hilton Jones
+
+
+No thanks: http://www.icors.com/z.php
+
 
 
 -------------------------------------------------------
