@@ -1,31 +1,46 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [RFC: 2.6 patch] drivers/acpi/: possible cleanups
-Date: Sun, 30 Jan 2005 17:39:29 +0000
-Message-ID: <20050130173929.GA32014@infradead.org>
-References: <20050127110125.GE28047@stusta.de> <1106867060.2400.2297.camel@d845pe>
+From: ross-iWlVPHNiaoT2fBVCVOL8/A@public.gmane.org
+Subject: 2.4.29 patches look incorrect
+Date: Sun, 30 Jan 2005 13:35:22 -0500
+Message-ID: <20050130183522.GA30641@jose.lug.udel.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261746AbVA3Rjf@vger.kernel.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1106867060.2400.2297.camel@d845pe>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <len.brown@intel.com>
-Cc: Adrian Bunk <bunk@stusta.de>, Alexey Y Starikovskiy <alexey.y.starikovskiy@intel.com>, Robert Moore <robert.moore@intel.com>, linux-kernel@vger.kernel.org, ACPI Developers <acpi-devel@lists.sourceforge.net>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jan 27, 2005 at 06:04:20PM -0500, Len Brown wrote:
-> I've already asked Bob Moore to migrate to the use of static in the
-> interpreter.  There are some somewhat urgent functional issues he needs
-> to focus on first, but static is on the list.  If we allow him to do it
-> upstream (w/o looking at your patch), then we can avoid a fork in the
-> core interpreter code.
-> 
-> At the same time, the non "R. Byron Moore" files, such as those in
-> drivers/acpi, but not in the lower sub-directories, are straight GPL and
-> I'll be happy to accept patches to those files immediately.  Note that
-> there are 4 straight GPL files in include/acpi as well -- so like the
-> drivers/acpi/* files, we can modify them any time when cleanups are
-> appropriate in the Linux release cycle.
+Hello everyone,
 
-The files are licensed under a BSD license so all patches against it
-are aswell unless explicitly marked.
+	I went to upgrade to 2.4.29 today and grab the ACPI patches.
+When I tried to apply release/2.4.29/acpi-20040326-2.4.29.diff.bz2,
+patch told me all the input was garbage.  Looking at the patch, it
+appears to be only comments from emails and changesets.
+
+	Is that what's intended?  Please CC me since I don't subscribe
+to acpi-devel.  Thanks!
+
+-- 
+Ross Vandegrift
+ross-iWlVPHNiaoT2fBVCVOL8/A@public.gmane.org
+
+"The good Christian should beware of mathematicians, and all those who
+make empty prophecies. The danger already exists that the mathematicians
+have made a covenant with the devil to darken the spirit and to confine
+man in the bonds of Hell."
+	--St. Augustine, De Genesi ad Litteram, Book II, xviii, 37
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: IntelliVIEW -- Interactive Reporting
+Tool for open source databases. Create drag-&-drop reports. Save time
+by over 75%! Publish reports on the web. Export to DOC, XLS, RTF, etc.
+Download a FREE copy at http://www.intelliview.com/go/osdn_nl
