@@ -1,50 +1,54 @@
-From: Majordomo-owner-etTNj8cnB6w@public.gmane.org
-Subject: Majordomo results: Thank you!
-Date: Fri, 22 Aug 2003 01:40:30 -0400
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200308220540.h7M5eUg2003274@iosephus.indigo.cert.org>
-Reply-To: Majordomo-etTNj8cnB6w@public.gmane.org
+From: Alex Riesen <fork0-iA+eEnwkJgzk1uMJSBkQmQ@public.gmane.org>
+Subject: 2.6.0-test3+bk: ACPI does not switch off the computer
+Date: Fri, 22 Aug 2003 08:29:45 +0200
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <20030822062945.GA1128@steel.home>
+Reply-To: Alex Riesen <fork0-iA+eEnwkJgzk1uMJSBkQmQ@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="----------=_1061530830-26169-924"
-Content-Transfer-Encoding: 8bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+To: andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format...
+Actually it started happening from -test3.
+The last I see on screen is "Power down." and the system is halted.
+CAD reboots it.
 
-------------=_1061530830-26169-924
-Content-Type: text/plain
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-Content-Description: Results from part 0 of toplevel
+-alex
 
->>>> See the attached file for details
-**** Illegal command!
+#
+# Power management options (ACPI, APM)
+#
+CONFIG_PM=y
+# CONFIG_SOFTWARE_SUSPEND is not set
 
-No valid commands processed.
+#
+# ACPI (Advanced Configuration and Power Interface) Support
+#
+CONFIG_ACPI_HT=y
+CONFIG_ACPI=y
+CONFIG_ACPI_BOOT=y
+CONFIG_ACPI_SLEEP=y
+CONFIG_ACPI_SLEEP_PROC_FS=y
+CONFIG_ACPI_AC=m
+CONFIG_ACPI_BATTERY=m
+CONFIG_ACPI_BUTTON=m
+CONFIG_ACPI_FAN=m
+CONFIG_ACPI_PROCESSOR=m
+CONFIG_ACPI_THERMAL=m
+# CONFIG_ACPI_ASUS is not set
+# CONFIG_ACPI_TOSHIBA is not set
+# CONFIG_ACPI_DEBUG is not set
+CONFIG_ACPI_BUS=y
+CONFIG_ACPI_INTERPRETER=y
+CONFIG_ACPI_EC=y
+CONFIG_ACPI_POWER=y
+CONFIG_ACPI_PCI=y
+CONFIG_ACPI_SYSTEM=y
 
-------------=_1061530830-26169-924
-Content-Type: text/plain
-Content-Disposition: inline
-Content-Transfer-Encoding: binary
-Content-Description: Ignored part.
-
-Ignoring part of type application/octet-stream.
-
-------------=_1061530830-26169-924--
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: VM Ware
-With VMware you can run multiple operating systems on a single machine.
-WITHOUT REBOOTING! Mix Linux / Windows / Novell virtual machines
-at the same time. Free trial click here:http://www.vmware.com/wl/offer/358/0
+#
+# APM (Advanced Power Management) BIOS Support
+#
+# CONFIG_APM is not set
