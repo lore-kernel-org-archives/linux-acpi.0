@@ -1,10 +1,13 @@
-From: Justin Georgeson <justin_georgeson-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Inspiron 2600 with Ubuntu warty
-Date: Sun, 31 Oct 2004 14:39:40 -0800 (PST)
-Message-ID: <20041031223940.38540.qmail@web20027.mail.yahoo.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: ACER 632 notebook reboots instead of poweroff
+Date: Mon, 1 Nov 2004 00:19:45 +0100
+Message-ID: <20041031231945.GA6909@elf.ucw.cz>
+References: <20041026194029.GA10954@pooh> <20041027141833.GC8443@zimen.sk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20041027141833.GC8443-VaXaUECoPuY@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,44 +17,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: mizu <michal-VaXaUECoPuY@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I'm running a fully updated install of Ubuntu Warty on a Dell Inspiron
-2600. The kernel version is 2.6.8.1. ACPI drivers are loading and seem
-to be receiving and handling events. The default configurations from
-Ubuntu have the lid event configured to turn off the display when it is
-closed and back on when the lid is opened, that works fine. I can enter
-S3 by running the command 'echo -n mem > /sys/power/state' and it
-appears to suspend successfully. I don't seem to have any way to resume
-though. If I hit the power button, the configured action is to power
-down, so the laptop resumes and shuts down. I'd like to configure the
-lid events to suspend on close and resume on open. I suppose if I could
-figure that out, I could configure the powerbtn even to resume if
-currently suspended, or shutdown if currently powered up and running.
+Hi!
 
-I was under the impression that the 2.6 kernels had a software suspend
-patch included by default. I think Ubuntu's binary kernel packages
-disable it though. I'd like to enable it and get it working. In
-Windows, I can hit Fn+Esc and it will hibernate, so being able to
-enable that in Linux too would be nice.
+>   the same problem is with my ACER 632 too.
+> 
+>   I've tried disable wakeup devices /proc/acpi/wakeup, but with no
+> success.
 
-Last, I'm trying to clean up the DSDT. I got rid of all the errors but
-have one warning left
+What happens with acpi=off?
 
-dsdt.dsl  2757:                         Name (PBUF, Buffer (0x14)
-Warning  2079 -         Statement is unreachable 
+I have evo n620c here which has similar symptoms, and has another
+funny set of symptoms with acpi=off...
 
-Since it's just a warning, it does compile, but it'd be nice to get a
-clean compile of the DSDT.
-
-
-	
-		
-__________________________________
-Do you Yahoo!?
-Yahoo! Mail - You care about security. So do we.
-http://promotions.yahoo.com/new_mail
+								Pavel
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
