@@ -1,12 +1,15 @@
-From: Pierre Ossman <drzeus-list-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org>
-Subject: Cannot enter S5 with AC power
-Date: Mon, 26 Jul 2004 17:59:15 +0200
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: ACPI: S3 and PAE do not like each other for now, S3
+	disabled.
+Date: 26 Jul 2004 16:49:43 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <41052A53.7060405@drzeus.cx>
+Message-ID: <1090874983.2325.13.camel@dhcppc4>
+References: <200407252330.05542.arekm@pld-linux.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200407252330.05542.arekm-k0Z414SquRyhPH1hqNUYSQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,23 +18,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Arkadiusz Miskiewicz <arekm-k0Z414SquRyhPH1hqNUYSQ@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Sun, 2004-07-25 at 17:30, Arkadiusz Miskiewicz wrote:
+> Is this ,,ACPI: S3 and PAE do not like each other for now, S3 disabled.''
+> generic S3 and PAE issue or just Linux issue only?
+> 
+> The case is ,,NX (Execute Disable)'' needs PAE to work on x86 but having S3 
+> working at the same time would be nice.
 
-Since I applied the latest ACPI patch (20040715) my laptop can no longer 
-enter S5 properly when on AC power. Instead of shutting down the machine 
-reboots. If I remove the AC power it shuts down as it should. This 
-problem does not exist with the previous patch (20040326). Since there 
-were no patches released between these two, and the difference between 
-them is rather big, it's a bit difficult determining what change caused 
-this bug. Could someone who has more insight into what has changed give 
-me some pointers on where to look for the problem. Also, any 
-intermediate patches that could be provided would help.
+This may be bit-rot.
+The last time somebody tested this IIR  S3 worked
+exactly the same in PAE as it did in conventional MMU mode.
 
-Rgds
-Pierre Ossman
+-Len
+
+
 
 
 -------------------------------------------------------
