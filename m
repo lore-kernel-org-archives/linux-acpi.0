@@ -1,15 +1,23 @@
-From: David Goodenough <david.goodenough-6b45v/Ft3lbby3iVrkZq2A@public.gmane.org>
-Subject: Re: [PATCH] Sanitize ACPI Kconfig
-Date: Mon, 17 Jan 2005 11:58:51 +0000
-Message-ID: <200501171158.51388.david.goodenough@btconnect.com>
-References: <20050107212259.GA13026@wotan.suse.de> <20050117111602.GI29270@wotan.suse.de> <20050117113007.GB1354@elf.ucw.cz>
+From: Johannes Kuhlmann <jkuhlmann-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Re: first shoot for smartbattery
+Date: Mon, 17 Jan 2005 12:49:15 +0100
+Message-ID: <47e0449d050117034912fb9ae3@mail.gmail.com>
+References: <20041231092156.GA612@phys.ethz.ch>
+	 <41D97AF3.7000409@arrakis.dhis.org>
+	 <41D98251.9020002@arrakis.dhis.org>
+	 <20050103180219.GX19199@poupinou.org>
+	 <41D9A1F5.1060508@arrakis.dhis.org>
+	 <m2mzvq5k7u.fsf@phoenix.squirrel.nl>
+	 <47e0449d05011304446094c8b@mail.gmail.com>
+	 <m2fz11gl3c.fsf@phoenix.squirrel.nl>
+	 <1105954283.12359.25.camel@laptop>
+	 <m2pt04qt1j.fsf@phoenix.squirrel.nl>
+Reply-To: Johannes Kuhlmann <jkuhlmann-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050117113007.GB1354-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <m2pt04qt1j.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -22,46 +30,36 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday 17 January 2005 11:30, Pavel Machek wrote:
-> Hi!
->
-> > > > Sanitize ACPI Kconfig. No other subsystem uses default m for all its
-> > > > options and surely there is no need to do this for the more obscure
-> > > > modules. When you do make oldconfig with an old option and just press
-> > > > return you tend to get a lot of modules you don't want with this.
-> > > > Normally new stuff is off by default.
-> > >
-> > > I'd say that AC adapter, battery, button and fan should be on by
-> > > default. You set thermal zone to on by default, but thermal zone
-> > > without fan seems like bad idea (not totally useless, but you usually
-> > > want fans for thermal managment). Everybody uses battery (actually it
-> > > seems to be single most important feature). And AC adapter is
-> >
-> > For a rather small value of "everybody".
->
-> Ok, every notebook.
->
-> > > neccessary if you want to go 2GHz with your athlon64 laptop (or it is
-> > > 800MHz), so I'd say enable it.
-> >
-> > My desktop boxes and servers all don't care about battery or AC.
-> >
-> > But I'm not opposed to turning it on, just the "m" default is quite
-> > useless.
->
-> I'd say that 'y' there makes sense, but anything is better than 'm'.
-I really do not understand this.  Having is as a module wastes a bit of disk
-space (usually not a problem) but means that they can be loaded if wanted
-either by loading them manually or by using acpid.  Having them as y forces
-them to be there and some systems with dodgy ACPI implementations will
-have problems, and having them not there means that Joe User has to 
-recompile his stock kernel (he probably does not even know that the kernel
-exists, let along that he can rebuild it, let alone how to) in order to use
-ACPI.  Don't you want Joe User to use ACPI?
+Ah, very nice, thank you. :) I will try it this evening and tell you
+how it works.
 
-David
+As you said, the acerhk module doesn't work with the 4000 series.
+
+Regards,
+Johannes
+
+
+On Mon, 17 Jan 2005 10:55:04 +0100, Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org> wrote:
+> Fionn Behrens <fionn-ZPjJJ+sDHmfddJNmlsFzeA@public.gmane.org> writes:
+> 
+> > I believe this functionality can already be found in the acerhk kernel
+> > module (http://www.informatik.hu-berlin.de/~tauber/acerhk/)
+> 
+> Yes, I've looked at this one as well.
+> But it's discontinued, and doesn't seem to work on the TM4000.
+> 
+> -- Johan
+> 
+> 
+> -------------------------------------------------------
+> The SF.Net email is sponsored by: Beat the post-holiday blues
+> Get a FREE limited edition SourceForge.net t-shirt from ThinkGeek.
+> It's fun and FREE -- well, almost....http://www.thinkgeek.com/sfshirt
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 >
->          Pavel
 
 
 -------------------------------------------------------
