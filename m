@@ -1,125 +1,48 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>
-Subject: Re: acpi integration in kernel 2.4.20
-Date: 08 Dec 2002 18:48:10 +0000
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1039373211.4011.7.camel@darkstar.portugal>
-References: <1039317144.4690.22.camel@darkstar.portugal>
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: [ACPI] Re: [2.5.50, ACPI] link error
+Date: Sun, 8 Dec 2002 20:49:45 +0100
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <20021208194944.GB19604@atrey.karlin.mff.cuni.cz>
+References: <20021205224019.GH7396@atrey.karlin.mff.cuni.cz> <Pine.LNX.4.33.0212051632120.974-100000@localhost.localdomain> <20021206000618.GB15784@atrey.karlin.mff.cuni.cz> <20021206185702.GE17595@poup.poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1039317144.4690.22.camel-4/PLUo9XfK/yXfm4dIG/yWZHpeb/A1Y/@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20021206185702.GE17595-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 2002-12-08 at 03:12, S=E9rgio Monteiro Basto wrote:
->=20
-> Hi=20
-> I search in lkml (it stands for Linux Kernel Mailing List) about apic (
-> not acpi)  problem with compaq pressario and I discover this my notebook
-> have mode then 8 workarounds for PCI and irq stuff.
-more then 8, not mode
-> So in file drivers/pci you can find then in quirks.c for via south
-> bridge workaround and in=20
-> arch/i386/kernel/pci-pc.c function pci_fixup_via_northbridge_bug for
-> north bridge workaround. This one is a little danger remove him because
-> some strange thing happens in monitor.
->=20
-> Now the interesting is that we have in quirks.c=20
-> /*
->  * VIA VT82C686 ACPI: Three IO region pointed to by (long)words at
->  *  0x48 (256 bytes of ACPI registers)
->  *  0x70 (128 bytes of hardware monitoring register)
->  *  0x90 (16 bytes of SMB registers)
->  */
-> static void __init quirk_vt82c686_acpi(struct pci_dev *dev)
->=20
-> and=20
->=20
-> #ifdef CONFIG_X86_IO_APIC
-> /*
->  * VIA 686A/B: If an IO-APIC is active, we need to route all on-chip
->  * devices to the external APIC.
->  *
->  * TODO: When we have device-specific interrupt routers,
->  * this code will go away from quirks.
->  */
-> static void __init quirk_via_ioapic(struct pci_dev *dev)
-> ...
->=20
-> and=20
->=20
-> /*
->  * Via 686A/B:  The PCI_INTERRUPT_LINE register for the on-chip
->  * devices, USB0/1, AC97, MC97, and ACPI, has an unusual feature:
->  * when written, it makes an internal connection to the PIC.
->  * For these devices, this register is defined to be 4 bits wide.
->  * Normally this is fine.  However for IO-APIC motherboards, or
->  * non-x86 architectures (yes Via exists on PPC among other places),
->  * we must mask the PCI_INTERRUPT_LINE value versus 0xf to get
->  * interrupts delivered properly.
->  *
->  * TODO: When we have device-specific interrupt routers,
->  * quirk_via_irqpic will go away from quirks.
->  */
->=20
-> /*
->  * FIXME: it is questionable that quirk_via_acpi
->  * is needed.  It shows up as an ISA bridge, and does not
->  * support the PCI_INTERRUPT_LINE register at all.  Therefore
->  * it seems like setting the pci_dev's 'irq' to the
->  * value of the ACPI SCI interrupt is only done for convenience.
->  *  -jgarzik
->  */
-> static void __init quirk_via_acpi(struct pci_dev *d)
-> {
->     /*
->      * VIA ACPI device: SCI IRQ line in PCI config byte 0x42
->      */
-> ...
-> static void __init quirk_via_irqpic(struct pci_dev *dev)
-> {
-> ...
->=20
->=20
-can I remove this workarounds since try workaround the same thing !?=20
+Hi!
 
-> and what do=20
-> the functions from new acpi in file arch/i386/kernel/pci-pc.c
->        pcibios_irq_init();
->        pcibios_fixup_peer_bridges();
->        pcibios_fixup_irqs();
->  more fixups irqs.
-like I write in previous email I comment this 3 functions, because they
-don't seem change anything, and sometimes with xine works better.
-=20
->=20
-> S=E9rgioMB
->=20
->=20
->=20
-> -------------------------------------------------------
-> This sf.net email is sponsored by:ThinkGeek
-> Welcome to geek heaven.
-> http://thinkgeek.com/sf
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
->=20
+> > > > > Doesn't that imply your fix is broken to begin with?
+> > > > 
+> > > > ACPI/S4 support needs swsusp. ACPI/S3 needs big part of
+> > > > swsusp. Splitting CONFIG_ACPI_SLEEP to S3 and S4 part seems like
+> > > > overdesign to me, OTOH if you do the work it is okay with me.
+> > > 
+> > > You broke the design. S3 support was developed long before swsusp was in 
+> > > the kernel, and completely indpendent of it. It should have remained that 
+> > > way. 
+> > > 
+> > > S3 support is a subset of what is need for S4 support. 
+> > 
+> > That's not true. acpi_wakeup.S is nasty piece of code, needed for S3
+> > but not for S4. Big part of driver support is only needed for S3.
+> > 
+> > > swsusp is an implementation of S4 support. In theory, there could be 
+> > > multiple implementations that all use the same core (saving/restoring 
+> > > state). 
+> > 
+> > There were patches for S4bios floating around, but it never really
+> > worked, IIRC.
+> 
+> No.  It work.  I do not resubmmited patches because I think that
+> swsusp is better.
 
-
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
+I think that s4bios is nice to have. Its similar to S3 and easier to
+set up than swsusp... It would be nice to have it.
+								Pavel
+-- 
+Casualities in World Trade Center: ~3k dead inside the building,
+cryptography in U.S.A. and free speech in Czech Republic.
