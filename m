@@ -1,13 +1,13 @@
 From: Pedro Venda <pjvenda-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
 Subject: Re: Re: first shoot for smartbattery
-Date: Tue, 04 Jan 2005 15:24:41 +0000
-Message-ID: <41DAB539.2020605@arrakis.dhis.org>
-References: <41D56002.5060008@mega.ist.utl.pt> <20041231150724.GK19199@poupinou.org> <20041231181628.GL19199@poupinou.org> <20050101082605.GA24896@phys.ethz.ch> <m2acrth375.fsf@phoenix.squirrel.nl> <20050103143902.GQ19199@poupinou.org> <41D97AF3.7000409@arrakis.dhis.org> <41D98251.9020002@arrakis.dhis.org> <20050103180219.GX19199@poupinou.org> <41D9A1F5.1060508@arrakis.dhis.org> <20050104100844.GA19199@poupinou.org>
+Date: Tue, 04 Jan 2005 15:27:03 +0000
+Message-ID: <41DAB5C7.9040605@arrakis.dhis.org>
+References: <20041231181628.GL19199@poupinou.org> <20050101082605.GA24896@phys.ethz.ch> <m2acrth375.fsf@phoenix.squirrel.nl> <20050103143902.GQ19199@poupinou.org> <41D95CDC.8050802@phys.ethz.ch> <41D95F53.5000008@tiscali.be> <41D967B5.7040002@tiscali.be> <Pine.LNX.4.60.0501031751590.5329@frog.athome> <20050103175449.GW19199@poupinou.org> <41D9F7CA.7030408@arrakis.dhis.org> <20050104102424.GC19199@poupinou.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050104100844.GA19199-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20050104102424.GC19199-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,98 +18,46 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
 Bruno Ducrot wrote:
-| On Mon, Jan 03, 2005 at 07:50:13PM +0000, Pedro Venda wrote:
+| On Tue, Jan 04, 2005 at 01:56:26AM +0000, Pedro Venda wrote:
 |
-|>-----BEGIN PGP SIGNED MESSAGE-----
-|>Hash: SHA1
-|>
-|>Bruno Ducrot wrote:
-|>| On Mon, Jan 03, 2005 at 05:35:13PM +0000, Pedro Venda wrote:
-|>|
-|>|>-----BEGIN PGP SIGNED MESSAGE-----
-|>|>Hash: SHA1
-|>|>
-|>|>Pedro Venda wrote:
-|>|>| Bruno Ducrot wrote:
-|>|>|
-|>|>| | I think I found was wrong.  Please refetch, or (at your option)
-|>replace
-|>|>| | i2c-acpi-ec.ec with
-|>|>| |
-|>|>|
-|>http://www.poupinou.org/acpi/smartbatt/smartbatt/i2c-acpi-ec/i2c-acpi-e=
-c.c
-|>|>| | then redo the sh compile.sh
-|>|>| | Sorry, it was a stupid bug(tm) requiring that I buy a brown bag..=
-.
-|>|>|
-|>|>| happens to everyone.
-|>|>|
-|>|>| | Something wrong also with rmmod i2c-acpi-ec :( so you have to reb=
-oot
-|>in
-|>|>| | order to be able to 'insmod i2c-acpi-ec.ko' again (I'm sure the b=
-rown
-|>|>| | bag will still be helpfull also...).
-|>|>
-|>|>ok I made a small patch against your most recent code base:
-|>|
-|>|
-|>| Thanks.
-|>|
-|>|
-|>|>included:
-|>|>- - a Makefile for the i2c-acpi-ec module
-|>|>- - a Makefile for the smartbattery program which also calls the
-|>|>i2c-acpi-ec make
-|>|>process.
-|>|>
-|>|>in the smartbattery directory, one just "make"s and everything gets b=
-uilt.
-|>|
-|>|
-|>| Ok.
-|>
-|>another thing: I changed the current drain from "mA or mWh" to "mAh or =
-mW"
-|>in
-|>smartbattery.c but I'm having some doubts:
+|>Would the result be the creation of /proc/acpi/battery and
+|>/proc/acpi/ac_adapter
+|>like other batteries?
 |
 |
-| It's mAh or mWh, depending of the value of CAPACITY_MODE.  This is a r/=
-w
-| bit in BatteryMode() word (the 15th).  If this bit is clear (default),
-| then it is mAh and this is current in mAh.  If this bit is set, this
-| power, exprimed as 10mWh
-|
-| I've fixed this issue.  Hopefully it should be ok now.
+| Something like this.  But only to provide compatibility with existing
+| programs.  A long term goal would be to design a generic API for batter=
+y
+| stuff (APM, ACPI Control Method Battery, smartbatteries subsystem and
+| PMU come to mind).
 |
 |
+|>The way I see it, the i2c-acpi-ec driver allows the creation of the /pr=
+oc
+|>files
+|>so that userland programs can use them normally. Am I totally wrong and
+|>should
+|>quickly look for the brown bag?
+|
+|
+| I would like to not touch i2c-acpi-ec for this.  It should
+| only provide the smbus access.  All other components should be done
+| elsewhere IMHO.
 
-thanks. I actually read some of the pdf you pointed me to and implemented=
- a
-couple of functions on the smartbattery.c. It now gets much more informat=
-ion
-from the battery. If you find it relevant, I'll clean it up a bit and pos=
-t a
-patch for you. I know it will soon be dumped, but it may show useful when
-debugging other driver informations.
+Sorry, I didn't understand. Don't we _have_ to use the i2c-acpi-ec to que=
+ry and
+write information from/to the smart battery system? If so, there is no ot=
+her way
+than to use it in the ACPI driver that writes the /proc information.
 
-Is it safe to change registers? I'd like to get the CAPACITY_MODE changed=
- to 1
-but I'm afraid to ruin something. If I write a word into that register wi=
-th the
-same values previously read but OR'd with the CAPACITY_MODE bit at 1, wil=
-l that
-be ok?
-
+What am I getting wrong?
 
 regards,
 pedro venda.
@@ -122,9 +70,9 @@ http://arrakis.dhis.org
 Version: GnuPG v1.2.6 (GNU/Linux)
 Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
 
-iD8DBQFB2rU5eRy7HWZxjWERAr+8AJ9xfxTRsJ9JRaDmc8qdThNf5MgSGACglygv
-ugUwXI+hQ7pKjrc3TEoM89o=3D
-=3DWmZa
+iD8DBQFB2rXHeRy7HWZxjWERAsa9AJ41qxJrFKTcbBiJ2ryY8d7Ufu4rywCg8DFN
+RSCK+FyoMhFghqhMRiX2sog=3D
+=3DjZF9
 -----END PGP SIGNATURE-----
 
 
