@@ -1,13 +1,13 @@
-From: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
-Subject: Re: [Linux-fbdev-devel] Re: inappropriate use of in_atomic()
-Date: Fri, 11 Mar 2005 23:26:13 +1100
-Message-ID: <1110543974.5809.98.camel@gaston>
-References: <20050310204006.48286d17.akpm@osdl.org>
-	 <20050311091142.GB22415@fi.muni.cz> <20050311014601.166ae43d.akpm@osdl.org>
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: Re: Fw: Anybody? 2.6.11 (stable and -rc) ACPI breaks USB
+Date: Fri, 11 Mar 2005 09:48:05 -0700
+Message-ID: <1110559685.4822.15.camel@eeyore>
+References: <20050304234622.63e8a335.akpm@osdl.org>
+	 <Pine.LNX.4.62.0503110006260.30687@alpha.polcom.net>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <20050311014601.166ae43d.akpm-3NddpPZAyC0@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.62.0503110006260.30687-xO7mqm7LmoOZ0THcR2OzsA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,25 +17,59 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Linux Fbdev development list <linux-fbdev-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: Jan Kasprzak <kas-0hYGf3jDe+XrBKCeMvbIDA@public.gmane.org>, Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, jt-yAE0UhLNZJawPNPzzlOzwdBPR1lH4CV8@public.gmane.org, javier-UOFnMJzu7Pp1eVVWpSVkNqxOck334EZe@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux1394-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, roland-nF87da4h5whBDgjK7y7TUQ@public.gmane.org, Linux Kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Grzegorz Kulewski <kangur-ghbW0t/Qn0CsTnJN9+BGXg@public.gmane.org>
+Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2005-03-11 at 01:46 -0800, Andrew Morton wrote:
-> Jan Kasprzak <kas-0hYGf3jDe+XrBKCeMvbIDA@public.gmane.org> wrote:
-> >
-> > This may be the cause of 
-> > 
-> >  http://bugme.osdl.org/show_bug.cgi?id=4150
+On Fri, 2005-03-11 at 00:08 +0100, Grzegorz Kulewski wrote:
+> Anything new about it?
 > 
-> Looks that way, yes.
+> Can I provide more usefull info?
 
-Note that it would be interesting to fix that (I mean the reliability of
-is_atomic() or an alternative). I agree it's quite bad to rely on that
-in practice, but there are a few corner cases where it's useful (like
-oops handling in fbdev's etc...)
+Can you check to see whether there are any BIOS updates available
+for your box?  It looks to me like your USB controllers are wired
+to IRQ9, and that's how the BIOS is leaving them configured.
 
-Ben.
+But ACPI is telling us they're on IRQ10, which seems like a BIOS
+bug.
+
+Can you also post the complete dmesg log without "acpi=off"?  There
+might be an ACPI interrupt link device for the USB controller, and
+maybe there's something wrong there.
+
+> My log (2.6.11 without acpi=off):
+> Mar  2 23:36:56 kangur USB Universal Host Controller Interface driver v2.2
+> Mar  2 23:36:56 kangur ACPI: PCI interrupt 0000:00:07.2[D] -> GSI 10 (level, low) -> IRQ 10
+> Mar  2 23:36:56 kangur uhci_hcd 0000:00:07.2: UHCI Host Controller
+> Mar  2 23:36:56 kangur uhci_hcd 0000:00:07.2: irq 10, io base 0xc800
+> Mar  2 23:36:56 kangur uhci_hcd 0000:00:07.2: new USB bus registered, assigned bus number 1
+> Mar  2 23:36:56 kangur hub 1-0:1.0: USB hub found
+> Mar  2 23:36:56 kangur hub 1-0:1.0: 2 ports detected
+> Mar  2 23:36:56 kangur ACPI: PCI interrupt 0000:00:07.3[D] -> GSI 10 (level, low) -> IRQ 10
+> Mar  2 23:36:56 kangur uhci_hcd 0000:00:07.3: UHCI Host Controller
+> Mar  2 23:36:56 kangur uhci_hcd 0000:00:07.3: irq 10, io base 0xcc00
+> Mar  2 23:36:56 kangur uhci_hcd 0000:00:07.3: new USB bus registered, assigned bus number 2
+> Mar  2 23:36:56 kangur hub 2-0:1.0: USB hub found
+> Mar  2 23:36:56 kangur hub 2-0:1.0: 2 ports detected
+
+> My log (2.6.11 with acpi=off):
+> Mar  3 01:45:48 kangur USB Universal Host Controller Interface driver v2.2
+> Mar  3 01:45:48 kangur PCI: Found IRQ 9 for device 0000:00:07.2
+> Mar  3 01:45:48 kangur PCI: Sharing IRQ 9 with 0000:00:07.3
+> Mar  3 01:45:48 kangur PCI: Sharing IRQ 9 with 0000:00:0b.0
+> Mar  3 01:45:48 kangur uhci_hcd 0000:00:07.2: UHCI Host Controller
+> Mar  3 01:45:48 kangur uhci_hcd 0000:00:07.2: irq 9, io base 0xc800
+> Mar  3 01:45:48 kangur uhci_hcd 0000:00:07.2: new USB bus registered, assigned bus number 1
+> Mar  3 01:45:48 kangur hub 1-0:1.0: USB hub found
+> Mar  3 01:45:48 kangur hub 1-0:1.0: 2 ports detected
+> Mar  3 01:45:48 kangur PCI: Found IRQ 9 for device 0000:00:07.3
+> Mar  3 01:45:48 kangur PCI: Sharing IRQ 9 with 0000:00:07.2
+> Mar  3 01:45:48 kangur PCI: Sharing IRQ 9 with 0000:00:0b.0
+> Mar  3 01:45:48 kangur uhci_hcd 0000:00:07.3: UHCI Host Controller
+> Mar  3 01:45:48 kangur uhci_hcd 0000:00:07.3: irq 9, io base 0xcc00
+> Mar  3 01:45:48 kangur uhci_hcd 0000:00:07.3: new USB bus registered, assigned bus number 2
+> Mar  3 01:45:48 kangur hub 2-0:1.0: USB hub found
+> Mar  3 01:45:48 kangur hub 2-0:1.0: 2 ports detected
 
 
 
