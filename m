@@ -1,48 +1,64 @@
-From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Subject: Re: [ACPI] [PATCH] Updated patches for PCI IRQ resource deallocation
- support [2/3]
-Date: Thu, 30 Sep 2004 13:22:46 +0900
-Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <415B8A16.9070101@jp.fujitsu.com>
-References: <Pine.LNX.4.53.0409251356110.2914@musoma.fsmlabs.com>
- <Pine.LNX.4.53.0409251401560.2914@musoma.fsmlabs.com>
- <Pine.LNX.4.53.0409251416570.2908@musoma.fsmlabs.com>
- <4157A9D7.4090605@jp.fujitsu.com>
- <Pine.LNX.4.61.0409281702580.3052@musoma.fsmlabs.com>
- <415A28B9.6080504@jp.fujitsu.com>
- <Pine.LNX.4.61.0409291809270.3056@musoma.fsmlabs.com>
+From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
+Subject: Re: 2.6.9-rc2-mm4 freezes at boot: ACPI IRQ9 SCI
+Date: Thu, 30 Sep 2004 12:39:29 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <415BE261.3000100@pca.it>
+References: <415A721B.5060005@pca.it> <Pine.LNX.4.61.0409291157020.12406@gsf.ironcreek.net>
+Reply-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-reply-to: <Pine.LNX.4.61.0409291809270.3056@musoma.fsmlabs.com>
-To: Zwane Mwaikambo <zwane@linuxpower.ca>
-Cc: Linux Kernel <linux-kernel@vger.kernel.org>, long <tlnguyen@snoqualmie.dp.intel.com>, Andrew Morton <akpm@osdl.org>, Greg Kroah-Hartmann <greg@kroah.com>, Len Brown <len.brown@intel.com>, tony.luck@intel.com, acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.61.0409291157020.12406-XiQj8ckOZSeysH1UfigpQV6hYfS7NtTn@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Zwane Mwaikambo wrote:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Hello,
+
+on 09/29/04 18:59, Andre Eisenbach wrote:
+> On Wed, 29 Sep 2004, Luca Capello wrote:
+>> So, I suppose this isn't an ACPI error, but I'm not sure. Solutions?
+> No, this is not an ACPI error. It's a problem with the "Preempt big
+> kernel lock" feature. Check a Linux Kernel Mailing List archive for the
+> 2.6.9-rc2-mm4 announcement thread.
 > 
-> Ok i think i may have not conveyed my meaning properly, my mistake. What i 
-> think would be better is if the architectures which have no-op 
-> acpi_unregister_gsi to declare them as static inline in header files. For 
-> architectures (such as ia64) which have a functional acpi_unregister_gsi, 
-> we can declare them in a .c file with the proper exports etc.
-> 
+> Ingo Molnar has replied to the announcement thread with a tiny patch
+> which fixes this problem.
+thank you for the explanation, Andre, I found the LKML 2.6.9-rc2-mm4
+announcement [1] and Ingo Molnar's patch [2].
 
-Now I (maybe) properly understand what you mean :-). But I still have one
-concern about your idea.
+But actually I don't need 2.6.9-rc2-mm4 anymore, as 2.6.9-rc3 is out and
+it contains the 'swsusp/pmdisk' merging (which is the reason I was
+trying to use 2.6.9-rc2-mm4).
 
-For architectures which have a functional acpi_unregister_gsi, we need to
-declare "extern void acpi_unregister_gsi(int gsi);" in include/linux/acpi.h
-that is common to all architectures. I think include/linux/acpi.h is the
-best place to declare it because acpi_register_gsi(), opposite portion of
-acpi_unregister_gsi(), is declared in it. On the other hand, for archtectures
-that have no-op acpi_unregister_gsi(), acpi_unregister_gsi() is defined as
-static inline function in arch specific header files. This looks not natural
-to me.
+Thx, bye,
+Gismo / Luca
 
-How do you think?
+[1] http://lkml.org/lkml/2004/9/26/98
+[2] http://lkml.org/lkml/2004/9/27/237
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
 
-Thanks,
-Kenji Kaneshige
+iD8DBQFBW+JgVAp7Xm10JmkRAs6EAJ0eusvXn0BxYIaiWqg1uJ8a2/PneACdEIg4
+RfruQlYwHtT4gN1YpXK9gu8=
+=ZbKB
+-----END PGP SIGNATURE-----
 
+
+-------------------------------------------------------
+This SF.net email is sponsored by: IT Product Guide on ITManagersJournal
+Use IT products in your business? Tell us what you think of them. Give us
+Your Opinions, Get Free ThinkGeek Gift Certificates! Click to find out more
+http://productguide.itmanagersjournal.com/guidepromo.tmpl
