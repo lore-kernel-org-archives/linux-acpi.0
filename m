@@ -1,14 +1,12 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Does Linux make use of the S3D methods?
-Date: Mon, 19 Jan 2004 16:18:00 +0100
+From: Greg Sarjeant <greg-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org>
+Subject: Gateway 200X (again) - No power button events
+Date: Mon, 19 Jan 2004 12:34:18 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040119151800.GJ25416@poupinou.org>
-References: <200401191354.36354.jak97@doc.ic.ac.uk>
+Message-ID: <1074533658.11008.18.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200401191354.36354.jak97-CezfXpuMXD6Fxr2TtlUqVg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,89 +15,86 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: John Knottenbelt <jak97-CezfXpuMXD6Fxr2TtlUqVg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jan 19, 2004 at 01:54:36PM +0000, John Knottenbelt wrote:
-> Hi
-> 
-> I have been inspecting my DSDT and I noticed this:
-> 
-> Scope(\_SB_) {
->     Device(PWRB) {
->         Name(_HID, 0x0c0cd041)
->         Method(_STA) {
->             Return(0xb)
->         }
->     }
->     Device(PCI0) {
->         Name(_HID, 0x030ad041)
->         Name(_ADR, 0x0)
->         Name(_BBN, 0x0)
->         Method(_S3D) {
->             If(OSFL) {
->                 Return(0x2)
->             }
->             Else {
->                 Return(0x3)
->             }
->         }
-> 
-> The ACPI spec says that the _S3D method returns the highest power saving level 
-> that the device can be put into. As you can see from the above (and other 
-> similar S3D methods) the result depends on the OSFL variable, which is 
-> defined with:
-> 
->          Method(_INI) {
->             \_SB_.PCI0.SBRG.IODT()
->             If(MCTH(\_OS_, "Microsoft Windows NT")) {
->                 Store(0x0, OSFL)
->             }
->             Else {
->                 If(MCTH(\_OS_, "Microsoft Windows")) {
->                     Store(0x1, OSFL)
->                 }
->                 Else {
->                     If(MCTH(\_OS_, "Microsoft WindowsME: Millennium Edition"))
->                    {
->                         Store(0x2, OSFL)
->                     }
->                     Else {
->                         Store(0x3, OSFL)
->                     }
->                 }
->             }
->         }
-> 
-> So for under Linux, the OSFL will be 3, and _S3D methods will return 2. My 
-> question is, does the kernel make use of this information at all? Is it worth 
-> editing the DSDT so that OSFL=0 (i.e. Windows NT) ?
-> 
+Hi,
 
-An alternative is to use the acpi_os_name kernel boot option.
-It was written to address this kind of issue without having to hack
-the dsdt.
+    I have another question about my Gateway 200X. ACPI is working much
+better now, but I just started playing with the power button, and it
+turns out that I am not getting any events from it. I looked through the
+DSDT, and could not find any Notify (\SW.PWRB, 0x80) statements for it,
+so I imagine that that is the problem. Here (I think) are the relevant
+DSDT sections:
 
-Boot with acpi_os_name='Microsoft Windows NT' and see if that work or
-not.
 
-Another way also is to add something like:
+    Scope (_GPE)
+    {
+        Method (_L05, 0, NotSerialized)
+        {
+            Notify (\_SB.PCI0.MODM, 0x02)
+            Notify (\_SB.PWRB, 0x02)
+        }
 
-	If(MTCH(\_OS, "Linux")) {
-		Store(3, OSFL)
-	}
+        Method (_L0B, 0, NotSerialized)
+        {
+            Notify (\_SB.PCI0.PCIB, 0x02)
+            Notify (\_SB.PWRB, 0x02)
+        }
 
-and try to get it in the BIOS by writting to the manufacturer (but, for
-an unknown reason, I never had success to get that...)
+        Method (_L1D, 0, NotSerialized)
+        {
+            Store (\_SB.PHS1 (0x8E, Zero), Local0)
+            If (LEqual (Local0, One))
+            {
+                Notify (\_SB.PWRB, 0x02)
+            }
 
-Do the same with FreeBSD, NetBSD if the manufacturer is OK, who knows ;)
+            If (LEqual (Local0, 0x02))
+            {
+                Notify (\_SB.PWRB, 0x02)
+            }
+        }
+    }
 
--- 
-Ducrot Bruno
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+    Device (PWRB)
+    {
+        Name (_HID, EisaId ("PNP0C0C"))
+        Name (_PRW, Package (0x02)
+        {
+            0x1D, 
+            0x04
+        })
+    }
+
+
+Do I have to add this Notify statement in the _GPE block? I'm also a bit
+confused by the "Notify (\_SB.PWRB, 0x02)" lines. From the spec, I
+thought that 0x80 and 0x200 were the expected values from Notify for the
+power button. Am I missing something here?
+
+Also, the BIOS does not supply an ECDT. I am using the patch at bug 1690
+to get around this, could that be related? 
+
+The power button does shut the macine down in Windows XP. I have tried
+passing acpi_os_name="Microsoft Windows XP" to the kernel without
+success. I did that because I noticed lines like this:
+
+       If (LEqual (SizeOf (_OS), 0x14))
+
+In the PCI0 device block after seeing the S3D method emails. I haven't
+really had the chance to dig into what's going on there yet, so it was a
+bit of a blind stab.
+
+For reference, the complete DSDT is posted at
+http://www.morningdave.org/acpi/dsdt.dsl
+
+
+Thanks again for any help,
+Greg
+
+
 
 
 -------------------------------------------------------
