@@ -1,8 +1,8 @@
 From: Hrvoje Habjanic <hrvoje.habjanic-+VD6v/bdhRf0NTdHYsHBKg@public.gmane.org>
-Subject: Bug?
-Date: Mon, 30 Jun 2003 12:15:18 +0200
+Subject: Acpica problem?
+Date: Mon, 30 Jun 2003 12:37:07 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200306301215.18683.hrvoje.habjanic@zg.htnet.hr>
+Message-ID: <200306301237.07932.hrvoje.habjanic@zg.htnet.hr>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-2"
@@ -21,19 +21,16 @@ To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-        /* do we have a wakeup address for S2 and S3? */
-        /* Here, we support only S4BIOS, those we set the wakeup address */
-        /* S4OS is only supported for now via swsusp.. */
-        if (state == ACPI_STATE_S2 || state == ACPI_STATE_S3 || ACPI_STATE_S4) {
-                if (!acpi_wakeup_address)
+[root@xxx acpi]# ./acpica-unix-20030619/compiler/iasl -g
 
-Hmmmm ... ACPI_STATE_S4 will always get to true .... maybe:
+Intel ACPI Component Architecture
+ASL Optimizing Compiler / AML Disassembler version 20030619 [Jun 30 2003]
+Copyright (C) 2000 - 2003 Intel Corporation
+Supports ACPI Specification Revision 2.0b
 
-        /* do we have a wakeup address for S2 and S3? */
-        /* Here, we support only S4BIOS, those we set the wakeup address */
-        /* S4OS is only supported for now via swsusp.. */
-        if (state == ACPI_STATE_S2 || state == ACPI_STATE_S3 || state == ACPI_STATE_S4) {
-                if (!acpi_wakeup_address)
+Core dump
+
+I'm dooing something wrong?
 
 
 Hrvoje
