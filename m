@@ -1,14 +1,14 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Re: Oops during startup
-Date: Wed, 9 Jun 2004 17:34:07 +0800
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: ACPI: Battery information?
+Date: Wed, 9 Jun 2004 11:44:57 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F840499138A@pdsmsx403>
+Message-ID: <20040609094457.GV13782@poupinou.org>
+References: <40C4FD27.7000805@users.xeroprj.org> <20040608092045.72e15c4c@tethys.solarsys.org> <20040608094707.GM13782@poupinou.org> <40C58F45.2040108@users.xeroprj.org> <20040608113456.GN13782@poupinou.org> <40C6319A.7080707@users.xeroprj.org> <20040609075401.GT13782@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <20040609075401.GT13782-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,34 +17,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Andrew D. Keyser" <andrewdk-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi <linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Binary Xerroz <xerroz-BC6XjCpM3eF0abU8S3f8Vti2O/JbrIOy@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Andrew,
+On Wed, Jun 09, 2004 at 09:54:01AM +0200, Bruno Ducrot wrote:
+> On Tue, Jun 08, 2004 at 02:37:30PM -0700, Binary Xerroz wrote:
+> 
+> btw, your acpidump.bz2 seems to be corrupted somehow.  Could you please
+> resend it?
 
-Hmmm.., it  sound like a regression.  If you suspect ACPI did it,
-Please take a look at
- http://www.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/
+Ok, got it.
 
-And I think you can tracker down which the patch broke your laptop.
+The problem (if I understand correctly) is that there is a device (SWAP)
+with _HID being EisaId ("IBM0069") which (I guess) hold the second
+battery.  There is also some "Notify" called to this device with value
+0x83 which can't be understood by Linux without a specific driver for.
+I think the second battery is handled with this device somehow, so that
+some of the functions (under the EC) which should call the Notify (with
+0x80 or 0x81) is not called by the embedded controller somehow, because
+the state machine associated to the battery handling is screwed.
 
-Good Luck!
+There may be a need to create an ACPI driver specific to this device,
+perhaps, if that's not done already?
 
-Thanks,
-Luming
+Cheers,
 
->>>Your problem seems similar to mine; I can't boot any kernel=20
->newer than=20
->>>2.6.6-mm4 without using acpi=3Doff. When the kernel boots, it gets to =
+-- 
+Bruno Ducrot
 
->>>"ACPI: IRQ9 SCI: Level Trigger." and stops. I have an HP=20
->ze4560us. The=20
->>>stranger thing though is that I can't even load the Gentoo LiveCD=20
->>>without acpi=3Doff, so something must be broken either in my laptop=20
->>>(however that happened) or in both of the kernel versions...
->>>Might not be related but the symptoms are similar so I=20
->figured I might=20
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
