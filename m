@@ -1,53 +1,124 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: kernel 2.6.10 , uhci-hcd problem after ACPI
- S3 suspend.
-Date: Sat, 1 Jan 2005 11:20:24 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.0501011115460.26294-100000@netrider.rowland.org>
-References: <20041229205319.17704.qmail@web50208.mail.yahoo.com>
+From: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
+Subject: Re: first shoot for smartbattery (was Re: Re: i2c-acpi-ec.c)
+Date: Sat, 01 Jan 2005 17:05:23 +0000
+Message-ID: <41D6D853.30209@mega.ist.utl.pt>
+References: <20041231092156.GA612@phys.ethz.ch> <41D56002.5060008@mega.ist.utl.pt> <20041231150724.GK19199@poupinou.org> <20041231181628.GL19199@poupinou.org> <20050101082605.GA24896@phys.ethz.ch>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-usb-devel-admin@lists.sourceforge.net>
-In-Reply-To: <20041229205319.17704.qmail@web50208.mail.yahoo.com>
-Sender: linux-usb-devel-admin@lists.sourceforge.net
-Errors-To: linux-usb-devel-admin@lists.sourceforge.net
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
-	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Post: <mailto:linux-usb-devel@lists.sourceforge.net>
-List-Help: <mailto:linux-usb-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
-	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-usb-devel>
-To: Paul Ionescu <i_p_a_u_l@yahoo.com>
-Cc: linux-usb-devel@lists.sourceforge.net, acpi-devel@lists.sourceforge.net
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20050101082605.GA24896-vpGm2Noi6jeZvKxeG3EEhw@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Mathias Weyland <mweyland-vpGm2Noi6jeZvKxeG3EEhw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 29 Dec 2004, Paul Ionescu wrote:
+Mathias Weyland wrote:
 
-> Hello Alan,
-> 
-> If I boot with "acpi=off" then I cannot use ACPI S3 to
-> suspend and resume, and my problem appears after an
-> ACPI S3 suspend/resume cycle.
+>>You can find this at http://www.poupinou.org/acpi/smartbatt/
+>>Take one of the smartbatt.tar.{gz,bz2} and follow the README after
+>>unpacking it, and hopefully a ./smartbatt will give you correct battery
+>>informations (who knows).
+>=20
+>=20
+> Ok, here's what's happening:
+>=20
+> corcovado:/usr/src/smartbatt# ./smartbattery
+> Error: No i2c-bus specified!
+> Syntax: smartbatt I2CBUS
+>   Installed I2C busses:
+>     i2c-1       unknown         ACPI EC SMBus adapter at 0018
+> Algorithm unavailable
+>     i2c-0       unknown         SMBus I801 adapter at 1880
+> Algorithm unavailable
+> corcovado:/usr/src/smartbatt# ./smartbattery  1
+> current:       65535 mA
+> remain:        65535 mA or mWh
+> time to empty: 65535 minutes
+> time to full:  65535 minutes
+> temperature:   6280.5 C
+> voltage:       65535 mV
 
-This just occurred to me: After a suspend/resume, when the uhci_hcd driver
-doesn't recognize new devices being plugged in, can you tell if the
-interrupt count for the driver is changing?  If the host controller
-doesn't share an IRQ, the numbers in /proc/interrupts will tell the story.
+same here.
 
-As another test, what shows up in the debugging file for the controller?  
-Under 2.6.9 that file would be in the /proc/driver/uhci/ directory, but it
-was recently moved to the debugfs filesystem, and I'm not sure whether
-that move was done before or after 2.6.10 was released.
+>=20
+> The values are wrong, but I guess you helped me a lot. I'll dive into t=
+he
+> code this afternoon and I'll try to nail down the problem. As for now, =
+what
+> I can tell you is that the base address has been detected correctly. Fr=
+om my
+> dsdt.asl:
+>=20
+>                     Device (SMBC)
+>                     {
+>                         Name (_HID, "ACPI0001")
+>                         Name (_EC, 0x1820)
+>                         Device (SBS0)
+>                         {
+>                             Name (_HID, "ACPI0002")
+>                             Name (_SBS, 0x01)
+>                         }
+>                     }
+>=20
+>=20
+> Loading the module shows:
+>=20
+> i2c_acpi_ec: disagrees about version of symbol struct_module
+> base: 0x18    alert: 0x20
+> i2c-acpi-ec.c: ACPI EC SMBus adapter at 0x18
 
-Alan Stern
+same here.
 
+>=20
+> So at least that is working.
+>=20
+> But something puzzeled me a bit:
+>=20
+> corcovado:/home/lea# i2cdetect 1
+> WARNING! This program can confuse your I2C bus, cause data loss and wor=
+se!
+> I will probe file /dev/i2c-1.
+> I will probe address range 0x03-0x77.
+> Continue? [Y/n]
+>      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+> 00:          XX XX XX XX XX XX XX XX XX XX XX XX XX
+> 10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+> 20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+> 30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+> 40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+> 50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+> 60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+> 70: XX XX XX XX XX XX XX XX
+>=20
+> At least the output differs from what Pedro (IIRC) got in October.
+
+same here. now I get the same as you.
+
+>=20
+> Regards & thank you very much for the effort!
+
+indeed! thanks for the very helpful work with the driver.
+
+
+regards,
+pedro venda.
+--=20
+
+Pedro Jo=E3o Lopes Venda
+email: pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org
+http://arrakis.dhis.org
 
 
 -------------------------------------------------------
 The SF.Net email is sponsored by: Beat the post-holiday blues
 Get a FREE limited edition SourceForge.net t-shirt from ThinkGeek.
 It's fun and FREE -- well, almost....http://www.thinkgeek.com/sfshirt
-_______________________________________________
-linux-usb-devel@lists.sourceforge.net
-To unsubscribe, use the last form field at:
-https://lists.sourceforge.net/lists/listinfo/linux-usb-devel
