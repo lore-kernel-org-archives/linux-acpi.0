@@ -1,14 +1,13 @@
-From: Jun Sun <jsun-vWJf10E4RRusTnJN9+BGXg@public.gmane.org>
-Subject: Re: does cpu_idle() halt CPU?
-Date: Fri, 28 Mar 2003 14:37:29 -0800
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: does cpu_idle() halt CPU?
+Date: Fri, 28 Mar 2003 14:43:32 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030328143729.C10287@gateway.junsun.net>
-References: <F760B14C9561B941B89469F59BA3A84725A23A@orsmsx401.jf.intel.com>
+Message-ID: <F760B14C9561B941B89469F59BA3A847E96D88@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <F760B14C9561B941B89469F59BA3A84725A23A-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>; from andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org on Fri, Mar 28, 2003 at 02:28:41PM -0800
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,48 +16,42 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Jun Sun <jsun-vWJf10E4RRusTnJN9+BGXg@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Mar 28, 2003 at 02:28:41PM -0800, Grover, Andrew wrote:
+> From: Jun Sun [mailto:jsun-vWJf10E4RRusTnJN9+BGXg@public.gmane.org] 
+
+> [root@localhost root]# cat /proc/acpi/processor/CPU0/power
+> active state:            C2
+> default state:           C1
+> bus master activity:     ffffffff
+> states:
+>     C1:                  promotion[C2] demotion[--] 
+> latency[000] usage[00000690]   *C2:                  
+> promotion[C3] demotion[C1] latency[010] usage[00196669]    
+> C3:                  promotion[--] demotion[C2] latency[130] 
+> usage[00000000]
+
+Your system either doesn't support C3, or the constant bus master
+activity is keeping it out of C3. USB can cause this, but also AC97.
+
+> > - What does the ACPI: Processor line say in your dmesg say?
+
+There should be a line that says, "ACPI: Processor found (x perf states
+y throttle)" Is that there? It may be occurring later on in the boot
+process.
+
+> > What kind of laptop do you have? Does it support SpeedStep, 
+> PowerNow, or
+> > the like?
 > 
-> What power states does your CPU support?
-> - What does a cat of /proc/acpi/processor/*/power say?
+> My laptop is Fujitsu S6110.  CPU supports speedstep.
 
-[root@localhost root]# cat /proc/acpi/processor/CPU0/power
-active state:            C2
-default state:           C1
-bus master activity:     ffffffff
-states:
-    C1:                  promotion[C2] demotion[--] latency[000] usage[00000690]   *C2:                  promotion[C3] demotion[C1] latency[010] usage[00196669]    C3:                  promotion[--] demotion[C2] latency[130] usage[00000000]
+Getting into the lowest SpeedStep state will help battery life. You may
+want to investigate the cpufreq project.
 
-> - What does the ACPI: Processor line say in your dmesg say?
->
-ACPI: RSDP (v000 FUJ                        ) @ 0x000f6200
-ACPI: RSDT (v001 FUJ    CLOVE    00263.00000) @ 0x1f6ea3fd
-ACPI: FADT (v001 FUJ    CLOVE    00263.00000) @ 0x1f6efb8c
-ACPI: DSDT (v001 FUJ    CLOVE    00263.00000) @ 0x00000000
-ACPI: BIOS passes blacklist
-...
-Intel machine check reporting enabled on CPU#0.
-CPU:     After generic, caps: 0383f9ff 00000000 00000000 00000000
-CPU:             Common caps: 0383f9ff 00000000 00000000 00000000
-CPU: Intel Mobile Intel(R) Pentium(R) III CPU - M  1200MHz stepping 04
-Enabling fast FPU save and restore... done.
-...
- 
-> What kind of laptop do you have? Does it support SpeedStep, PowerNow, or
-> the like?
-
-My laptop is Fujitsu S6110.  CPU supports speedstep.
-
-> Do you have any USB devices attached?
->
-
-Not in this particular run.
-
-Jun 
+Regards -- Andy
 
 
 -------------------------------------------------------
