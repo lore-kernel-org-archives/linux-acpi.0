@@ -1,75 +1,56 @@
-From: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
+From: Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>
 Subject: Re: [ACPI] Re: [PATCH] Next round of ACPI IRQ fixes (VIA ACPI fixed)
-Date: Sat, 6 Sep 2003 00:16:15 +0100
+Date: Fri, 05 Sep 2003 18:28:56 -0400
 Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <200309060016.16545.adq_dvb@lidskialf.net>
-References: <200309051958.02818.adq_dvb@lidskialf.net> <3F59018E.5060604@pobox.com>
+Message-ID: <3F590E28.6090101@pobox.com>
+References: <200309051958.02818.adq_dvb@lidskialf.net> <3F59018E.5060604@pobox.com> <200309060016.16545.adq_dvb@lidskialf.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <3F59018E.5060604-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>
-Content-Disposition: inline
-To: Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <200309060016.16545.adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
+To: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
 Cc: torvalds-3NddpPZAyC0@public.gmane.org, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday 05 Sep 2003 10:35 pm, Jeff Garzik wrote:
-> Andrew de Quincey wrote:
-> > Hi, this is my next round of ACPI IRQ fixes. Attached are patches for
-> > linux-2.4.23-pre3 and linux-2.6.0-test4.
-> >
-> > Please CC me on any replies. I seem to be having issues with
-> > vger.kernel.org right now.
-> >
-> >
-> > This patch addresses the following issues:
-> >
-> > 1) ACPI now drops back to PIC mode if configuration in APIC mode fails.
-> >
-> > 2) Removed 2 lines of erroneous code in mpparse.c which causes IO-APICs
-> > to be misconfigured.
-> >
-> > 3) ACPI now supports PIC controllers properly.
-> >
-> > 4) This patch includes a patch by "Jun Nakajima" <jun.nakajima-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > which fixes ACPI IRQ routing for all VIA motherboards I have had tested
-> > so far. I've included it in this patch as it changes one of the same
-> > files.
-> >
-> > 5) Now retries with an extended IRQ descriptor if programming a link
-> > device with a "standard" IRQ descriptor fails.
-> >
-> > This has already been tested successfully by multiple people.
->
-> Patch looks pretty good.  It is _very_ difficult to pick through, and
-> pick apart, though.
->
-> Consider that one or more people reading your email (a) would want some
-> of these fixes but (b) already have some of these fixes.
->
-> This is why we _really_ need you to split up your patches.  Multiple
-> split-up patches, one per email, is preferred.  Don't worry about
-> sending us too much email:  we like it like that.
+Andrew de Quincey wrote:
+> On Friday 05 Sep 2003 10:35 pm, Jeff Garzik wrote:
+>>This is why we _really_ need you to split up your patches.  Multiple
+>>split-up patches, one per email, is preferred.  Don't worry about
+>>sending us too much email:  we like it like that.
+> 
+> 
+> If/when I split it up, is it acceptable to number the patches to give the 
+> order they have to be applied in?
 
-If/when I split it up, is it acceptable to number the patches to give the 
-order they have to be applied in? The major problem with these particular 
-fixes is that they all run over the same set of files, even the same 
-functions, so they all conflict with each other. 
+Absolutely.  It's quite common for me to receive a series of emails, all 
+patches, where each successive patch has a dependency on the preceding 
+one.  Linus just applies a patch series from Al Viro today which was 
+presented as
+	[PATCH] large dev_t - second series (1/15)
+	[PATCH] large dev_t - second series (2/15)
+			...
+	[PATCH] large dev_t - second series (15/15)
 
-> As an aside, I know at least part of the VIA irq routing stuff still 
-> needs fixing.  For some on-board VIA southbridge devices, irq routing is 
-> accomplished by writing the PCI_INTERRUPT_xxx values to PCI config 
-> registers of the target device; for others, the normal pirq PCI config 
-> registers on the southbridge are used.  Alan's new irq stuff in 2.4.x 
-> IMO should be merged into 2.6.x soonish, as Alan's work makes a big step 
-> towards making it possible to fix some of the harder-to-fix irq routing 
-> problems.
+Many of us have patch-applying scripts, which can apply an entire mbox 
+full of patches.  The email subject lines, the patch, and any text you 
+wrote in the email are all commited to the BitKeeper repository as a 
+single changeset.
 
-Is this still an issue when using ACPI? Surely it should insulate the OS from 
-this chipset-specific stuff? 
 
-I can see what you mean from the VT8235 docs if you were programming it 
-directly, but the ACPI code in all the VIA BIOSes I have analysed takes care 
-of this fine.
+>>As an aside, I know at least part of the VIA irq routing stuff still 
+>>needs fixing.  For some on-board VIA southbridge devices, irq routing is 
+>>accomplished by writing the PCI_INTERRUPT_xxx values to PCI config 
+>>registers of the target device; for others, the normal pirq PCI config 
+>>registers on the southbridge are used.  Alan's new irq stuff in 2.4.x 
+>>IMO should be merged into 2.6.x soonish, as Alan's work makes a big step 
+>>towards making it possible to fix some of the harder-to-fix irq routing 
+>>problems.
+> 
+> 
+> Is this still an issue when using ACPI? Surely it should insulate the OS from 
+> this chipset-specific stuff? 
+
+Correct, proper ACPI tables on VIA will avoid this problem.
+
+	Jeff
