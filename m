@@ -1,10 +1,10 @@
-From: "Andreas Leppert" <wudmx-S0/GAf8tV78@public.gmane.org>
-Subject: /proc/acpi/battery/BAT0/state present rate bug with patch
-Date: Tue, 14 Sep 2004 14:12:37 +0200
+From: Jan Bernatik <bernatik-nd92eFGgBBntwjQa/ONI9g@public.gmane.org>
+Subject: APM, ACPI and DPMS question
+Date: Tue, 14 Sep 2004 14:52:16 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1561098668@web.de>
+Message-ID: <4146E980.8040501@kn.vutbr.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -15,25 +15,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 Hi,
 
-i don't know if it's a real bug, but i had some trouble with /proc/acpi/battery/BAT0/state. present rate was sometimes ok and sometimes it had the value "unknown". 
+I'm studying ACPI, and I found that:
 
-i figured out that the patch from acpi.sf.net is the problem: if i build the kernel without this patch installed, everything is okay. but if i patch my kernel (and with the same config-file), present rate is "unknown" after a reboot.
+----------------------------------------------------------------------
+You should also be aware of another little glitch I discovered. The 
+XFree86 server has an option for DPMS (Energy Star) features. The DPMS 
+can states can be one of standby, suspend, off or on. Since the 2.4.x 
+kernels cannot suspend to disk, this can cause problems.
+----------------------------------------------------------------------
+source: http://www.tldp.org/HOWTO/ACPI-HOWTO/daemons.html
 
-tested on gentoo with development-sources 2.6.9-rc1 (with "latest" patch) and gentoo-dev-sources 2.6.8-r4.
+I really doesn't understand this. I thought it's just about monitor 
+energy, so please could somebody just roughly explain this ?
 
-perhaps someone else can reproduce it - or is it just my fault?
+thanks, have a nice day
 
-HTH
-Andreas Leppert
-_________________________________________________________
-Mit WEB.DE FreePhone? mit hochster Qualitat ab 0 Ct./Min.
-weltweit telefonieren! http://freephone.web.de/?mc=021201
+Jan Bernatik
+-- 
+student VUT BRNO - FEEC / Czech Republic
+http://www.feec.vutbr.cz
 
+registered user no. 207163 using Debian
+icq: 78209478
+home: linuxdesktop.kn.vutbr.cz
 
 
 -------------------------------------------------------
