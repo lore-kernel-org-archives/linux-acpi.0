@@ -1,55 +1,82 @@
-From: bert hubert <ahu-yMKkj5jtC+M@public.gmane.org>
-Subject: Re: S4bios support for 2.5.63
-Date: Sun, 2 Mar 2003 21:21:18 +0100
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20030302202118.GA2201@outpost.ds9a.nl>
-References: <20030226211347.GA14903@elf.ucw.cz> <20030302133138.GA27031@outpost.ds9a.nl> <1046630641.3610.13.camel@laptop-linux.cunninghams>
+From: AnonimoVeneziano <voloterreno-nc/lrvXPQ4s@public.gmane.org>
+Subject: Re: ACPI + IO-APIC power off by button problems
+Date: Sun, 02 Mar 2003 21:07:33 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <3E626485.1030301@tin.it>
+References: <3E62533A.7050505@tin.it> <20030302201158.GA22010@benham.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1046630641.3610.13.camel-udXHSmD1qAz9bBlWBkG5g4WQyAnV0byH@public.gmane.org>
-To: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20030302201158.GA22010-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Mar 03, 2003 at 07:44:03AM +1300, Nigel Cunningham wrote:
-> Hi.
-> 
-> This bug is fixed in Linus tree. If you want swsusp to work in the mean
-> time, look for a couple of patches Pavel sent recently.
+dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org wrote:
 
-Ok,
+>Have you configured acpid?  You mention kernel and ACPI patch but
+>nothing about the daemon...
+>
+>On Sun, Mar 02, 2003 at 07:53:46PM +0100, AnonimoVeneziano wrote:
+>  
+>
+>>Hi, I have this configuration:
+>>
+>>MSI KT4 Ultra MoBo
+>>Athlon XP 2400+
+>>Matrox G450
+>>
+>>and this problem: with kernel 2.4.20 and without ACPI patch installed 
+>>and IO-APIC support activated the system does not shutdown properly, and 
+>>it reboots instead of turn off and if I try to turn off the PC by 
+>>pressing the power off button it does nothing, as if I've never pressed it
+>>
+>>Using instead the kernel 2.4.21-pre4 + lastest ACPI patch I've solved 
+>>the power down issue , and now the system shutdown properly , but the 
+>>button does not work again . Without IO-APIC the button works correctly. 
+>>There are some incompatibilities between the PowerButton and the IO-APIC?
+>>
+>>I've noticed this problem in my old mobo too, an ASUS CUV4X-EA
+>>
+>>Thanks
+>>
+>>Bye
+>>
+>>
+>>
+>>-------------------------------------------------------
+>>This sf.net email is sponsored by:ThinkGeek
+>>Welcome to geek heaven.
+>>http://thinkgeek.com/sf
+>>_______________________________________________
+>>Acpi-devel mailing list
+>>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>>https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>>    
+>>
+>
+>  
+>
+acpid is installed and works correctly (of course , if IO-APIC is 
+disabled ;-) )  .
 
-In 2.5.63bk5 I get a BUG on drivers/ide/ide-disk.c:1557:
+Any ideas? This problem is known by anyone or is only a my problem?
+
+Thanks for Help
 
 
-        BUG_ON (HWGROUP(drive)->handler);
 
 
-It now says (copied by hand):
-
-	freeing memory: .....................|
-(this 'freeing' takes ages, around 30 seconds, while in progress, the disk
- light blinks every once in a while, perhaps each time while a dot is being
-printed)
-	syncing disks
-	suspending devices
-	suspending c0418bcc
-	suspending devices
-	suspending c0418bcc
-	suspending: hda ------------------[ cut here
-trace back:
-
-device_susp()
-drivers_susp()
-do_sofware_susp()
-
-Regards,
-
-bert
-
--- 
-http://www.PowerDNS.com      Open source, database driven DNS Software 
-http://lartc.org           Linux Advanced Routing & Traffic Control HOWTO
-http://netherlabs.nl                         Consulting
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
