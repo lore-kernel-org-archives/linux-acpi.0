@@ -1,12 +1,10 @@
 From: Jan Kasprzak <kas-0hYGf3jDe+XrBKCeMvbIDA@public.gmane.org>
-Subject: Re: please test latest acpi patch
-Date: Mon, 21 Mar 2005 14:36:19 +0100
-Message-ID: <20050321133619.GB30293@fi.muni.cz>
-References: <1111214045.5932.41.camel@d845pe>
+Subject: S3 on Asus M6R
+Date: Mon, 21 Mar 2005 14:54:01 +0100
+Message-ID: <20050321135401.GC30293@fi.muni.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1111214045.5932.41.camel@d845pe>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,21 +14,54 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Len Brown wrote:
-: There are some very important -- and in some cases,
-: potentially disruptive -- changes in the latest ACPI patch.
-: 
-: EC Burst Mode -- battery status AE_TIME etc.
+	Hi all,
 
-	The bug #4150 (http://bugme.osdl.org/show_bug.cgi?id=4150)
-is not fixed wit this patch (i.e. AE_TIME errors are still there
-if CONFIG_PREEMPT is disabled).
+	I have an Asus M6R laptop (http://www.fi.muni.cz/~kas/m6r/).
+I have tried to use ACPI S3 suspend-to-ram, but it does not work for me:
 
--Yenya
+- usually the system either immediately resumes and locks up
+	after "echo 3 > /proc/acpi/sleep", or it or powers itself down
+	and does a cold boot when I push the power button. I have found
+	that the lm_sensors package is what causes the problem (altough	
+	I have no idea why).
+
+- without lm_sensors enabled (chkconfig lm_sensors off), I can suspend
+	my system (the power LED starts blinking, which means the system
+	is suspended to RAM). But I cannot resume it back - after hitting
+	the power button the LEDs are on as when the laptop is normally
+	running, but I get no output on the display, no response to ping, no
+	response to CapsLock key, etc.
+
+	I have read Documentation/power/video.txt, but neither using
+vbetool or boot-radeon utility make any difference for me.
+
+	I have tried to use bash -x s3.sh >s3.log 2>s3.err, where s3.sh
+is as follows:
+
+#!/bin/bash
+chvt 1
+rmmod ohci-hcd
+rmmod ehci-hcd
+sync
+echo 3 > /proc/acpi/sleep
+sync
+/tmp/boot-radeon
+chvt 7
+
+but after the (unsuccessful) resume there was only the debugging output
+up to the "rmmod ehci-hcd" command in the s3.err file.
+
+I have tried acpi_sleep=s3_bios and s3_mode, but it does not help.
+
+	I use generic 2.6.11.3 kernel, Fedora Core 3 system.
+What else should I try to make S3 state working for me?
+
+	Thanks,
+
+-Y.
 
 -- 
 | Jan "Yenya" Kasprzak  <kas at {fi.muni.cz - work | yenya.net - private}> |
