@@ -1,10 +1,18 @@
-From: matthieu castet <castet.matthieu-GANU6spQydw@public.gmane.org>
-Subject: [PATCH] PNPACPI : don't use device not present
-Date: Fri, 04 Feb 2005 18:28:21 +0100
-Message-ID: <4203B0B5.4080204@free.fr>
+From: Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC] Reliable video POSTing on resume
+Date: Fri, 4 Feb 2005 12:31:55 -0500
+Message-ID: <9e4733910502040931955f5a6@mail.gmail.com>
+References: <20050122134205.GA9354@wsc-gmbh.de>
+	 <e796392205020221387d4d8562@mail.gmail.com> <420217DB.709@gmx.net>
+	 <4202A972.1070003@gmx.net> <20050203225410.GB1110@elf.ucw.cz>
+	 <1107474198.5727.9.camel@desktop.cunninghams>
+	 <4202DF7B.2000506@gmx.net> <9e47339105020321031ccaabb@mail.gmail.com>
+	 <420367CF.7060206@gmx.net> <20050204163019.GC1290@elf.ucw.cz>
+Reply-To: Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------010306090601000000030008"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <20050204163019.GC1290-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,48 +22,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Linux Kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------010306090601000000030008
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+On Fri, 4 Feb 2005 17:30:19 +0100, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> wrote:
+> I do not understand how initramfs fits into picture... Plus lot of
+> people (me :-) do not use initramfs...
 
-Hi,
-this patch avoid the pnpacpi layer reconized not present device.
+The final fix for this will include the video reset app on initramfs.
+I already have code in the kernel for telling the primary video card
+from secondary ones. When the kernel is initially booting and finds
+the secondary cards it will do a call_usermodehelper() and execute the
+video reset app. This happens very early in the boot sequence so it
+needs to be on initramfs. There are also a few embedded type systems
+that don't even post their primary video hardware they need this
+support too.
 
-There is still issue [1] with the ACPI code that need to fix in order 
-everything work correctly...
+For non-x86 systems put an emu version on initramfs. My statically
+linked against klibc x86 reset app is about 15K. The emu version is
+significantly bigger but there is no way to avoid it if you are using
+x86 hardware in a non-x86 box.
 
-Matthieu CASTET
+Fixing this at kernel boot (resume) time will let user space apps
+assume that all video cards are reset. That removes a lot of
+complexity from the user space apps (like X).
 
-
-[1] http://bugzilla.kernel.org/show_bug.cgi?id=3358
-
---------------010306090601000000030008
-Content-Type: text/x-patch;
- name="pnpacpi_spec.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="pnpacpi_spec.patch"
-
---- linux-2.6.9/drivers/pnp/pnpacpi/core.c	2004-11-22 20:35:58.000000000 +0100
-+++ linux-2.6.9/drivers/pnp/pnpacpi/core.c	2004-11-26 14:46:54.000000000 +0100
-@@ -124,6 +124,10 @@
- 	struct pnp_dev *dev;
- 
- 	pnp_dbg("ACPI device : hid %s", acpi_device_hid(device));
-+
-+	if(!device->status.present)
-+		return -ENODEV;
-+
- 	dev =  pnpacpi_kmalloc(sizeof(struct pnp_dev), GFP_KERNEL);
- 	if (!dev) {
- 		pnp_err("Out of memory");
-
---------------010306090601000000030008--
+-- 
+Jon Smirl
+jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 
 
 -------------------------------------------------------
