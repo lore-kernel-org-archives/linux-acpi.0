@@ -1,12 +1,14 @@
-From: marvin niessner <marvin-2DDjtnKuWtNAfugRpC6u6w@public.gmane.org>
-Subject: Embedded Controller initialized too late
-Date: 23 Aug 2002 07:37:28 +0200
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Sony Vaio fx601 doesn't suspend
+Date: Mon, 26 Aug 2002 11:02:43 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1030081050.19551.38.camel@leeloo>
+Message-ID: <20020826090243.GD27762@poup.poupinou.org>
+References: <Pine.LNX.4.44.0208232207120.1112-100000@flyby>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44.0208232207120.1112-100000-iFUwJ2qmV1I@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,35 +17,30 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: marcogi-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+On Fri, Aug 23, 2002 at 10:26:53PM +0200, marcogi-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org wrote:
+> Hi,
+> 
+> I'm using vanilla 2.4.18 kernel + acpi-20020726 on a Sony Vaio
+> PCG-FX601.
+> My problem is that Fn+F12 (suspend to disk) keys do not work.
+> Fn combinations key for LCD/VGA/TV switch work fine, only the
+> suspend to disk doesn't work.
+> 
 
-i tryed to get a laptop working with the latest acpi-20020815-patch. 
+At this time, 'suspend to disk' via ACPI didn't work.  Note also that
+some experimental work is done for 2.4 series, if you go with swsusp.
 
-but there seems to be a problem with the embedded controller stuff:
-My bios doesn't have an ECDT area, so the EC isn't available from
-beginning. Later, while scanning the bus, the PNP0C09-EC device is
-found, and everyting seems fine. (handlers get attached, and so on).
+All 'official' developpement on the suspend to disk go for now in the 2.5
+series, though.
 
-But till this point, all devices that need an working EC got lost with
-following message: 'no handler for region(c14ed128) [Embedded_control]'.
-
-Okay. I figured out the problem, but who's problem is it? Is this a bios
-problem (has the EC-device to be listet before any device that needs
-EC)? Or has the acpi-implementation to scan for ECs before it starts the
-device-walk?
-
-after scanning the net for information i only found out that this seems
-to be a wide-spreaded problem... 
-
-On request i'll provide all needed information like acpi-table-dump's,
-log's, .... 
-
-have a nice day,
-	marvin
-
+-- 
+Ducrot Bruno
+http://www.poupinou.org        Page profaissionelle
+http://toto.tu-me-saoules.com  Haume page
 
 
 -------------------------------------------------------
