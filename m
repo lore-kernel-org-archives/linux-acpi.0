@@ -1,59 +1,46 @@
-From: Adrian Bunk <bunk@stusta.de>
-Subject: Re: [2.6 patch] drivers/acpi: remove unused exported functions
-Date: Sat, 6 Nov 2004 22:29:17 +0100
-Message-ID: <20041106212917.GP1295@stusta.de>
-References: <20041105215021.GF1295@stusta.de> <1099707007.13834.1969.camel@d845pe> <20041106114844.GK1295@stusta.de> <418CEE3A.40503@conectiva.com.br>
+From: "Kevin L. Sweet" <l.sweetff-4pVsZ7TnM4a6c6uEtOJ/EA@public.gmane.org>
+Subject: Aloha Casino Online!
+Date: Sat, 06 Nov 2004 16:40:08 -0500
+Message-ID: <37e601c4c449$c026a1b9$d10da1e8@hearne.com.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261477AbUKFV3y@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <418CEE3A.40503@conectiva.com.br>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnaldo Carvalho de Melo <acme@conectiva.com.br>
-Cc: Len Brown <len.brown@intel.com>, ACPI Developers <acpi-devel@lists.sourceforge.net>, linux-kernel@vger.kernel.org
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Nov 06, 2004 at 01:31:06PM -0200, Arnaldo Carvalho de Melo wrote:
-> 
-> Suggestion that satisfies both of you, I think:
-> 
-> #undef ACPI_FUTURE_USAGE
-> #ifdef ACPI_FUTURE_USAGE
-> tons of unused exported functions
-> #endif /* ACPU_FUTURE_USAGE */
-> 
-> This is what is being done in at least one case in the kernel network
-> subsystem, incremental patches adds new functions, to be used by
-> future patches, but sometimes Real Life (tm) gets in the way and the
-> programmer stalls development for some time, no problem, just ifdef it.
-> 
-> When, in the future, some functions start being used, hey, very easy
-> to remove the #ifdef.
-> 
-> Even for people trying to debug such subsystems eventually to get
-> something working its _nice_ to know at first glance what is really
-> being used, speeding up the process for the benefit or everybody.
+Aloha!
+ 
+Enjoy island style entertainment with these hot new promotional offers:
 
-That's a good idea.
+$300 match deposit bonus - bonus code X3DAW at casino's cashier.
+$10 free, no deposit necessary - bonus code FR1EE at casino's cashier.
 
-To make it easier, I could send a patc to move all the ACPI 
-EXPORT_SYMBOL's away from acpi_ksyms.c or you have to touch two files 
-for every function.
+Vacation at Aloha Casino!
+50 amazing games - 24/7 customer support - SafeBet certification
 
-@Len:
-What's your opinion on this proposal?
+Visit: http://www.alohacasino.biz
 
-> Best Regards,
-> 
-> - Arnaldo
->...
+Mahalo,
+Billy Bob
 
-cu
-Adrian
 
--- 
+No thanks: http://www.alohacasino.biz/u/
 
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by:
+Sybase ASE Linux Express Edition - download now for FREE
+LinuxWorld Reader's Choice Award Winner for best database on Linux.
+http://ads.osdn.com/?ad_id=5588&alloc_id=12065&op=click
