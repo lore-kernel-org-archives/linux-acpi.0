@@ -1,59 +1,48 @@
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Subject: [PATCH] better encapsulate eisa_set_level_irq()
-Date: Wed, 29 Sep 2004 11:51:01 -0600
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <1096480261.26691.12.camel@eeyore>
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Subject: Re: [ACPI] [PATCH] Updated patches for PCI IRQ resource deallocation
+ support [2/3]
+Date: Thu, 30 Sep 2004 13:22:46 +0900
+Sender: linux-ia64-owner@vger.kernel.org
+Message-ID: <415B8A16.9070101@jp.fujitsu.com>
+References: <Pine.LNX.4.53.0409251356110.2914@musoma.fsmlabs.com>
+ <Pine.LNX.4.53.0409251401560.2914@musoma.fsmlabs.com>
+ <Pine.LNX.4.53.0409251416570.2908@musoma.fsmlabs.com>
+ <4157A9D7.4090605@jp.fujitsu.com>
+ <Pine.LNX.4.61.0409281702580.3052@musoma.fsmlabs.com>
+ <415A28B9.6080504@jp.fujitsu.com>
+ <Pine.LNX.4.61.0409291809270.3056@musoma.fsmlabs.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S268756AbUI2RvY@vger.kernel.org>
-To: Len Brown <len.brown@intel.com>
-Cc: Andrew Morton <akpm@osdl.org>, acpi-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-reply-to: <Pine.LNX.4.61.0409291809270.3056@musoma.fsmlabs.com>
+To: Zwane Mwaikambo <zwane@linuxpower.ca>
+Cc: Linux Kernel <linux-kernel@vger.kernel.org>, long <tlnguyen@snoqualmie.dp.intel.com>, Andrew Morton <akpm@osdl.org>, Greg Kroah-Hartmann <greg@kroah.com>, Len Brown <len.brown@intel.com>, tony.luck@intel.com, acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Move the "only do this once" stuff from acpi_register_gsi() into
-eisa_set_level().
+Zwane Mwaikambo wrote:
+> 
+> Ok i think i may have not conveyed my meaning properly, my mistake. What i 
+> think would be better is if the architectures which have no-op 
+> acpi_unregister_gsi to declare them as static inline in header files. For 
+> architectures (such as ia64) which have a functional acpi_unregister_gsi, 
+> we can declare them in a .c file with the proper exports etc.
+> 
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Now I (maybe) properly understand what you mean :-). But I still have one
+concern about your idea.
 
-diff -u -ur 2.6.9-rc2-mm4/arch/i386/kernel/acpi/boot.c pic/arch/i386/kernel/acpi/boot.c
---- 2.6.9-rc2-mm4/arch/i386/kernel/acpi/boot.c	2004-09-27 10:12:15.000000000 -0600
-+++ pic/arch/i386/kernel/acpi/boot.c	2004-09-28 16:06:37.000000000 -0600
-@@ -457,16 +457,10 @@
- 	 * Make sure all (legacy) PCI IRQs are set as level-triggered.
- 	 */
- 	if (acpi_irq_model == ACPI_IRQ_MODEL_PIC) {
--		static u16 irq_mask;
- 		extern void eisa_set_level_irq(unsigned int irq);
- 
--		if (edge_level == ACPI_LEVEL_SENSITIVE) {
--			if ((gsi < 16) && !((1 << gsi) & irq_mask)) {
--				Dprintk(KERN_DEBUG PREFIX "Setting GSI %u as level-triggered\n", gsi);
--				irq_mask |= (1 << gsi);
-+		if (edge_level == ACPI_LEVEL_SENSITIVE)
- 				eisa_set_level_irq(gsi);
--			}
--		}
- 	}
- #endif
- 
-diff -u -ur 2.6.9-rc2-mm4/arch/i386/pci/irq.c pic/arch/i386/pci/irq.c
---- 2.6.9-rc2-mm4/arch/i386/pci/irq.c	2004-09-27 10:12:15.000000000 -0600
-+++ pic/arch/i386/pci/irq.c	2004-09-29 08:39:37.000000000 -0600
-@@ -127,8 +127,15 @@
- {
- 	unsigned char mask = 1 << (irq & 7);
- 	unsigned int port = 0x4d0 + (irq >> 3);
--	unsigned char val = inb(port);
-+	unsigned char val;
-+	static u16 eisa_irq_mask;
- 
-+	if (irq >= 16 || (1 << irq) & eisa_irq_mask)
-+		return;
-+
-+	eisa_irq_mask |= (1 << irq);
-+	printk("PCI: setting IRQ %u as level-triggered\n", irq);
-+	val = inb(port);
- 	if (!(val & mask)) {
- 		DBG(" -> edge");
- 		outb(val | mask, port);
+For architectures which have a functional acpi_unregister_gsi, we need to
+declare "extern void acpi_unregister_gsi(int gsi);" in include/linux/acpi.h
+that is common to all architectures. I think include/linux/acpi.h is the
+best place to declare it because acpi_register_gsi(), opposite portion of
+acpi_unregister_gsi(), is declared in it. On the other hand, for archtectures
+that have no-op acpi_unregister_gsi(), acpi_unregister_gsi() is defined as
+static inline function in arch specific header files. This looks not natural
+to me.
+
+How do you think?
+
+Thanks,
+Kenji Kaneshige
+
