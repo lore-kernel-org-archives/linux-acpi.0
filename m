@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [Fwd: Re: Plea for help]
-Date: Mon, 12 Jan 2004 14:11:30 +0800
+Subject: RE: Error Message at boot time
+Date: Mon, 12 Jan 2004 14:24:01 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CAF@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CB0@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,18 +17,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ian Pilcher <i.pilcher-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Sebastian Kemper <Sebastian.Kemper-S0/GAf8tV78@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->=20
-> Can you point me to an example of using wait_event to "sleep"=20
-> for a set
-> period of time?
->=20
 
-You need to init a timer for timing. Wait_event just let you sleep.
-When timeout, function wake_up could be used to complete sleeping.
+
+> Sure
+>=20
+> Yu, Luming wrote:
+> >>    ACPI-0098: *** Error: Method execution failed [\_SB_.C005._CRS]=20
+> >>(Node c7fee980), AE_AML_BUFFER_LIMIT
+> >=20
+> >=20
+> > Hmm, annother case of  buffer limit failure.
+> > Can you send out  /proc/acpi/dsdt=20
+> >=20
+
+I'm sorry, this seems to be old issue, which has been fixed in latest
+acpi.
+Would you please try latest kernel.
+
+BTW. if you have other problem regarding ACPICA, please firstly try
+patch filed at=20
+http://bugme.osdl.org/show_bug.cgi?id=3D1766
+http://bugme.osdl.org/show_bug.cgi?id=3D1791
+=20
 
 
 -------------------------------------------------------
