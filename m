@@ -1,14 +1,13 @@
-From: Huw Rogers <count0-tC47gz4GrgtWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] Alexander Malysh's forgotten acpi_leave_sleep_state() IRQ patch
-Date: Sat, 01 May 2004 23:08:07 -0400
+From: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
+Subject: More information on 2.6.6-rc3 DSDT problem
+Date: Sun, 2 May 2004 16:11:46 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040501230315.33BD.COUNT0@localnet.com>
-References: <1083462390.5866.10.camel@nala>
+Message-ID: <1944003256.20040502161146@osu.edu>
+Reply-To: Ohio State University <barr.156-ZbGKxL/pcrQ@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------_409464F133BA01B3C540_MULTIPART_MIXED_"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="----------A3B3272888A549"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1083462390.5866.10.camel-7YzDMyNdTwE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,44 +19,133 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
---------_409464F133BA01B3C540_MULTIPART_MIXED_
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+------------A3B3272888A549
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 
-Feb 14, Alexander Malysh wrote:
-> We disable non wakeup gpes (and store those values) with interrupts disabled, 
-> but enable those with interrupts enabled which were already overwritten while 
-> handling of wakeup interrupt. So we must restore non wakeup gpes as long 
-> interrupts are disabled.
+Hello all--
 
-The second half of his patch never made it into 2.6.5, and remains
-necessary. Without this patch my N258SA0 is dead on resume, requiring
-removal of battery and mains power cable to get it back. With this patch,
-I get some improvement. Attached.
--- 
-Huw Rogers <count0-tC47gz4GrgtWk0Htik3J/w@public.gmane.org>
+Still working on my DSDT problem with 2.6.6-rc3. I did some more looking around, and I upgraded the DSDT patch I was using. This didn't help. I did realize, however, that the usual message "DSDT replaced by Host OS" is not showing up. Also, the message "Looking for DSDT in initrd" shows up later in the boot messages than it has before, although it does say "found a customized DSDT of length n bytes" (n being whatever it really is). Output of dmesg is attached. Does this patch need reworking for 2.6.6, or do I have another problem? Feedback is appreciated.
 
---------_409464F133BA01B3C540_MULTIPART_MIXED_
-Content-Type: application/octet-stream; name="acpi_leave_sleep_state_irq_fix.diff"
-Content-Disposition: attachment;
- filename="acpi_leave_sleep_state_irq_fix.diff"
-Content-Transfer-Encoding: base64
+Regards,
+Andrew Barr
+barr.156-ZbGKxL/pcrQ@public.gmane.org
 
-LS0tIGxpbnV4LTIuNi41L2RyaXZlcnMvYWNwaS9zbGVlcC9tYWluLmMub3JpZwkyMDA0LTA1LTAx
-IDIyOjM0OjExLjAwMDAwMDAwMCAtMDQwMAorKysgbGludXgtMi42LjUvZHJpdmVycy9hY3BpL3Ns
-ZWVwL21haW4uYwkyMDA0LTA1LTAxIDIyOjM0OjUyLjAwMDAwMDAwMCAtMDQwMApAQCAtMTA3LDcg
-KzEwNyw2IEBACiAJZGVmYXVsdDoKIAkJcmV0dXJuIC1FSU5WQUw7CiAJfQotCWxvY2FsX2lycV9y
-ZXN0b3JlKGZsYWdzKTsKIAlwcmludGsoS0VSTl9ERUJVRyAiQmFjayB0byBDIVxuIik7CiAKIAkv
-KiByZXN0b3JlIHByb2Nlc3NvciBzdGF0ZQpAQCAtMTE4LDYgKzExNyw4IEBACiAJaWYgKHN0YXRl
-ID4gUE1fU1VTUEVORF9TVEFOREJZKQogCQlhY3BpX3Jlc3RvcmVfc3RhdGVfbWVtKCk7CiAKKwlh
-Y3BpX2xlYXZlX3NsZWVwX3N0YXRlKHN0YXRlKTsKKwlsb2NhbF9pcnFfcmVzdG9yZShmbGFncyk7
-CiAKIAlyZXR1cm4gQUNQSV9TVUNDRVNTKHN0YXR1cykgPyAwIDogLUVGQVVMVDsKIH0KQEAgLTEz
-Myw4ICsxMzQsNiBAQAogCiBzdGF0aWMgaW50IGFjcGlfcG1fZmluaXNoKHUzMiBzdGF0ZSkKIHsK
-LQlhY3BpX2xlYXZlX3NsZWVwX3N0YXRlKHN0YXRlKTsKLQogCS8qIHJlc2V0IGZpcm13YXJlIHdh
-a2luZyB2ZWN0b3IgKi8KIAlhY3BpX3NldF9maXJtd2FyZV93YWtpbmdfdmVjdG9yKChhY3BpX3Bo
-eXNpY2FsX2FkZHJlc3MpIDApOwogCg==
+=====================
+When a place gets crowded enough to require ID's, social collapse is not far away.  It is time to go elsewhere.  The best thing about space travel is that it made it possible to go elsewhere.
+		-- Robert Heinlein
+=====================
+------------A3B3272888A549
+Content-Type: application/x-gzip; name="dmesg-20040502.gz"
+Content-transfer-encoding: base64
+Content-Disposition: attachment; filename="dmesg-20040502.gz"
 
---------_409464F133BA01B3C540_MULTIPART_MIXED_--
+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
+OQAA
+
+------------A3B3272888A549--
 
 
 
