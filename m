@@ -1,40 +1,65 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: 2.6.11-rc4-mm1: something is wrong with swsusp powerdown
-Date: Tue, 1 Mar 2005 11:54:48 +0100
-Message-ID: <20050301105448.GG1345@elf.ucw.cz>
-References: <20050228231721.GA1326@elf.ucw.cz> <20050301015231.091b5329.akpm@osdl.org>
+From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
+Subject: Re: Re: swsusp fails with
+ "FATAL: cannot find swap device, try swapon -a!"
+Date: Tue, 01 Mar 2005 12:05:18 +0100
+Message-ID: <873bvfk4nl.fsf@gismo.pca.it>
+References: <42225F85.1000302@gmx.net> <20050228000401.GK1441@elf.ucw.cz>
+Reply-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20050301015231.091b5329.akpm@osdl.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@osdl.org>
-Cc: linux-kernel@vger.kernel.org, barryn@pobox.com, marado@student.dei.uc.pt, "Eric W. Biederman" <ebiederm@xmission.com>, acpi-devel@lists.sourceforge.net, Len Brown <len.brown@intel.com>
+Content-Type: multipart/signed; boundary="=-=-="; micalg=pgp-sha1;
+ protocol="application/pgp-signature"
+In-reply-to: <20050228000401.GK1441-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
 
-> > In `subj` kernel, machine no longer powers down at the end of
-> >  swsusp. 2.6.11-rc5-pavel works ok, as does 2.6.11-bk.
-> 
-> Binary searching indicates that this is due to
-> ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.11-rc5/2.6.11-rc5-mm1/broken-out/acpi_power_off-bug-fix.patch.
-> 
-> I'll drop it.  That patch is pretty ugly-looking anyway (ACPI code in
-> drivers/base/power/?).
-> 
-> Perhaps someone who is hitting the problem which that patch addresses could
-> raise a bugzilla entry.
-> 
-> Oh.  It has one.  http://bugme.osdl.org/show_bug.cgi?id=4041
-> 
-> Anyway.  It needs more work.
+--=-=-=
 
-Yes, the patch is very ugly. If something like this needs to be done,
-then perhaps acpi should properly register into driver model and do
-the work there. This will also mean code will be called consistently.
+Hello!
 
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+On Mon 28 Feb 2005 01:04 +0100, Pavel Machek wrote:
+> And you have resume= on command line, right? CONFIG_..._STD_PARTITION
+> should not be required, but I have it set like this:
+
+I don't have 'resume' on my command line, but I've
+CONFIG_..._STD_PARTITION, it works great with 2.6.10 and 2.6.11-rc4:
+=====
+luca@gismo:~$ cat /proc/cmdline
+root=/dev/hda2 ro acpi_sleep=s3_bios
+luca@gismo:~$ grep STD_PARTITION /boot/config-2.6.10-mh4
+CONFIG_PM_STD_PARTITION="/dev/hda5"
+luca@gismo:~$
+=====
+
+Just my 0.02c...
+
+Thx, bye,
+Gismo / Luca
+
+--=-=-=
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.0 (GNU/Linux)
+
+iD8DBQBCJExvVAp7Xm10JmkRAjD6AJsFnjB9eNfTZy3/NPp1HdnPlbhzOQCeMajS
+jssl+JoLklazdhOE4s/GEv0=
+=BA3J
+-----END PGP SIGNATURE-----
+--=-=-=--
+
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
