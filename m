@@ -1,11 +1,12 @@
-From: System Administrator <postmaster-lkUOi89bZVhZroRs9YW3xA@public.gmane.org>
-Subject: Undeliverable: Uzndyhugsblzzk
-Date: Tue, 27 Jan 2004 17:55:30 -0800
+From: "SAS Postmaster 62" <replies-discarded-LVvIjLR0h5w@public.gmane.org>
+Subject: Notification of Removed Attachment - please read for details
+Date: Tue, 27 Jan 2004 22:48:43 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <03FF63CE0CD60240BBC6FB4959191749032DAE07@wwgateway.wonderware.com>
+Message-ID: <E1Algno-00023c-00@deer.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----_=_NextPart_000_01C3E541.CEEB5674"
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,76 +16,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, NotificationRecipient, postmaster62-LVvIjLR0h5w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This message is in MIME format. Since your mail reader does not understand
-this format, some or all of this message may not be legible.
+Please read this notification carefully.  Almost certainly, you need *not* contact your Help Desk at this time.
 
-------_=_NextPart_000_01C3E541.CEEB5674
-Content-Type: text/plain;
-	charset="windows-1252"
+An attachment was removed because it was of a type prohibited by our email policies. If a business need exists to transfer this file type by email, the sender/recipient within SAS should refer to http://sww.sas.com/helpdesk/pc/EmailAttachmentPolicy.htm.
 
-Your message
+This notification does not necessarily mean that a virus-infected attachment was removed. However, the type of file that was being emailed is one that is, unfortunately, commonly used to transfer viruses. It is our policy to restrict the free flow of this type of attachment via email in order to protect ourselves and our external customers from the damage that can be caused by viruses that are sometimes transported in these files.
 
-  To:      adam-lkUOi89bZVhZroRs9YW3xA@public.gmane.org
-  Subject: Uzndyhugsblzzk
-  Sent:    Tue, 27 Jan 2004 17:55:22 -0800
+++++++++++++++++++++++++++++++++++++++
+Sender: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Recipient(s):  larry.isaacs-LVvIjLR0h5w@public.gmane.org
+Received:  Tue Jan 27 22:48:43 2004
+Subject of Message:  
 
-did not reach the following recipient(s):
+Attachment file name: document.scr:HEADER 
+Action on Attachment: STRIP
 
-ADAM-QhW/2Vom2tPCiEU5iHfedg@public.gmane.org on Tue, 27 Jan 2004 17:55:29 -0800
-    The recipient name is not recognized
-	The MTS-ID of the original message is: c=us;a=
-;p=wonderware;l=WWGATEWAY0401280155DXS21XBC
-    MSEXCH:IMS:wonderware:irvine:WWGATEWAY 0 (000C05A6) Unknown Recipient
+++++++++++++++++++++++++++++++++++++++
 
-
-
-------_=_NextPart_000_01C3E541.CEEB5674
-Content-Type: message/rfc822
-
-Message-ID: <MAIL3WYXI4Ht9x7QlmW0000afac-Shj5d01Zp4xqhMH2TQVMkFaTQe2KTcn/@public.gmane.org>
-From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: adam-lkUOi89bZVhZroRs9YW3xA@public.gmane.org
-Subject: Uzndyhugsblzzk
-Date: Tue, 27 Jan 2004 17:55:22 -0800
-MIME-Version: 1.0
-X-Mailer: Internet Mail Service (5.5.2657.72)
-X-MS-Embedded-Report: 
-Content-Type: multipart/mixed;
-	boundary="----_=_NextPart_002_01C3E541.CEEB5674"
-
-
-------_=_NextPart_002_01C3E541.CEEB5674
-Content-Type: text/plain;
-	charset="windows-1252"
-
-The message contains Unicode characters and has been sent as a binary
-attachment.
-
-
-
-------_=_NextPart_002_01C3E541.CEEB5674
-Content-Type: text/plain;
-	name="WARNING0.txt"
-Content-Disposition: attachment;
-	filename="WARNING0.txt"
-
-McAfee WebShield SMTP 4.5 MR1a P0803.345 on mail2 at wonderware.com detected
-W32/Mydoom-TkFRTFPJOQk@public.gmane.org (ED) in attachment file.zip from <acpi-devel@lists.sourceforge.net> intended
-for <adam-lkUOi89bZVhZroRs9YW3xA@public.gmane.org>  and it was Deleted and Quarantined.
-
-------_=_NextPart_002_01C3E541.CEEB5674
-Content-Type: text/plain;
-	name="ATT43490.ATT"
-Content-Disposition: attachment;
-	filename="ATT43490.ATT"
-
-
-------_=_NextPart_002_01C3E541.CEEB5674--
-
-------_=_NextPart_000_01C3E541.CEEB5674--
 
 
 -------------------------------------------------------
