@@ -1,12 +1,14 @@
-From: "Defiant" <mail-4AGA6j5e2AhmdDG0eupGX0B+6BGkLq7r@public.gmane.org>
-Subject: can't switch CPU frequency while running on battery power
-Date: Thu, 1 Jan 2004 12:45:01 +0100 (CET)
+From: Andrew Neillans <debian-Pq8xHZU9Yky9FHfhHBbuYA@public.gmane.org>
+Subject: Debian Testing, 2.6.0 Release Kernel, Dropping Keyboard + Mouse with ACPI
+Date: Thu, 1 Jan 2004 12:05:28 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <32886.192.168.36.2.1072957501.squirrel@defiant.homedns.org>
+Message-ID: <200401011205.28789.debian@neillans.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,96 +20,24 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
 
-I can easily switch my CPU frequency between 1,2 and 1,6 Ghz while running
-with the ac adapter with
-echo "1200000:1600000:powersave" > /proc/cpufreq
-and
-echo "1200000:1600000:performance" > /proc/cpufreq
+Problem:
+ When ACPI is enabled and compiled, the keyboard and mouse does not work, 
+unless I boot with the acpi=off extra.
 
-Maybe using the cpufreq will do the same - I don't know (see below)
+Platform:
+ Hardware: NEC Versa M300 laptop
+ OS: Debian R3.0 upgraded to testing. Kernel 2.6.0 compiled from source from 
+www.kernel.org
 
-Now a cat /proc/cpuinfo shows me, that my command was successful.
-Now If I disconnect the ac adapter and the laptop is running only from
-battery it doesn't work anymore. I can do a echo everything want I want to
-/proc/cpufreq - it is doing nothing - looking at /proc/cpuinfo the Laptop
-is always running with 1.6Ghz - that is full power for me.
+I have been trying to trace this over the last week, and managed to isolate it 
+to the ACPI module -- I am currently booting the 2.6.0 kernel on this machine 
+with acpi=off, but would like to get it to work in order to support the acpi 
+events on my laptop.
 
-I dunno if it is important, but at bootime I get this message:
-cpufreq: No CPUs supporting ACPI performance management found.
-and /proc/acpi/processor/CPU0/performance is not available - even I
-enabled it (CONFIG_X86_ACPI_CPUFREQ_PROC_INTF=y).
+Any advice would be gratefully received!
 
-Well - I hope someone is able to help me - AND a happy new year :)
-
-Erik Andresen
-
-/info:
-------
-I'm running linux kernel 2.6.0-mm2 on a Sony Vaio PCG-NV105.
-My cpu is a
-model name      : Intel(R) Pentium(R) 4 Mobile CPU 1.60GHz
-and my kernel .config:
-
-#
-# ACPI (Advanced Configuration and Power Interface) Support
-#
-CONFIG_ACPI=y
-CONFIG_ACPI_BOOT=y
-CONFIG_ACPI_INTERPRETER=y
-CONFIG_ACPI_SLEEP=y
-CONFIG_ACPI_SLEEP_PROC_FS=y
-CONFIG_ACPI_AC=y
-CONFIG_ACPI_BATTERY=y
-CONFIG_ACPI_BUTTON=y
-CONFIG_ACPI_FAN=y
-CONFIG_ACPI_PROCESSOR=y
-CONFIG_ACPI_THERMAL=y
-# CONFIG_ACPI_ASUS is not set
-# CONFIG_ACPI_TOSHIBA is not set
-# CONFIG_ACPI_DEBUG is not set
-CONFIG_ACPI_BUS=y
-CONFIG_ACPI_EC=y
-CONFIG_ACPI_POWER=y
-CONFIG_ACPI_PCI=y
-CONFIG_ACPI_SYSTEM=y
-# CONFIG_ACPI_RELAXED_AML is not set
-# CONFIG_X86_PM_TIMER is not set
-#
-# CPU Frequency scaling
-#
-CONFIG_CPU_FREQ=y
-CONFIG_CPU_FREQ_PROC_INTF=y
-CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE=y
-# CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE is not set
-CONFIG_CPU_FREQ_GOV_PERFORMANCE=y
-CONFIG_CPU_FREQ_GOV_POWERSAVE=y
-# CONFIG_CPU_FREQ_GOV_USERSPACE is not set
-CONFIG_CPU_FREQ_TABLE=y
-
-#
-# CPUFreq processor drivers
-#
-CONFIG_X86_ACPI_CPUFREQ=y
-CONFIG_X86_ACPI_CPUFREQ_PROC_INTF=y
-# CONFIG_X86_POWERNOW_K6 is not set
-# CONFIG_X86_POWERNOW_K7 is not set
-# CONFIG_X86_POWERNOW_K8 is not set
-# CONFIG_X86_GX_SUSPMOD is not set
-# CONFIG_X86_SPEEDSTEP_CENTRINO is not set
-CONFIG_X86_SPEEDSTEP_ICH=y
-# CONFIG_X86_SPEEDSTEP_SMI is not set
-CONFIG_X86_SPEEDSTEP_LIB=y
-# CONFIG_X86_P4_CLOCKMOD is not set
-# CONFIG_X86_LONGRUN is not set
-# CONFIG_X86_LONGHAUL is not set
-
---
-
-All I ask is a tall ship, and a star to steer her by
-> defiant.homedns.org <
- -cause Experience is Knowledge
+Andy
 
 
 
