@@ -1,12 +1,12 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [patch 1/1] Fix help for ACPI_CONTAINER
-Date: 02 Mar 2005 13:42:44 -0500
-Message-ID: <1109788959.2102.558.camel@d845pe>
-References: <200502231002.j1NA2kpS021098@shell0.pdx.osdl.net>
+Subject: Re: [patch 03/12] Panasonic ACPI driver
+Date: 02 Mar 2005 13:44:45 -0500
+Message-ID: <1109789085.2102.564.camel@d845pe>
+References: <200502230953.j1N9rDYM020696@shell0.pdx.osdl.net>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <200502231002.j1NA2kpS021098-bipKiLWnuIsyyg0EjBt7GtHuzzzSOjJt@public.gmane.org>
+In-Reply-To: <200502230953.j1N9rDYM020696-bipKiLWnuIsyyg0EjBt7GtHuzzzSOjJt@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,58 +17,37 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, thoenig-l3A5Bk7waGM@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Applied.
-thanks,
+I have no plans to add this driver to the kernel tree,
+as I expect a generic solution in 2.6.12 which would just
+require us to turn around and delete this.
+
 -Len
 
-On Wed, 2005-02-23 at 05:02, akpm-3NddpPZAyC0@public.gmane.org wrote:
-> From: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+On Wed, 2005-02-23 at 04:52, akpm-3NddpPZAyC0@public.gmane.org wrote:
+> From: Timo Hoenig <thoenig-l3A5Bk7waGM@public.gmane.org>
 > 
-> This is to fix Kconfig help of ACPI_CONTAINER that did not really
-> help.  I
-> posted the patch before, but it seems that it has not applied yet. 
-> Sorry
-> for the previous terrible help.
+> This is another ACPI driver for several Panasonic notebooks.  The
+> driver
+> provides support for hotkeys and enables access to other hardware like
+> reading/setting the LCD brightness.
 > 
-> Signed-off-by: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 > Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
 > ---
 > 
->  25-akpm/drivers/acpi/Kconfig |    9 +++++++--
->  1 files changed, 7 insertions(+), 2 deletions(-)
+>  25-akpm/drivers/acpi/Kconfig    |   16
+>  25-akpm/drivers/acpi/Makefile   |    1
+>  25-akpm/drivers/acpi/pcc_acpi.c |  937
+> ++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 954 insertions(+)
 > 
-> diff -puN drivers/acpi/Kconfig~fix-help-for-acpi_container
+> diff -puN drivers/acpi/Kconfig~panasonic-acpi-driver
 > drivers/acpi/Kconfig
-> --- 25/drivers/acpi/Kconfig~fix-help-for-acpi_container Thu Feb 17
-> 17:13:31 2005
-> +++ 25-akpm/drivers/acpi/Kconfig        Thu Feb 17 17:13:31 2005
-> @@ -359,8 +359,13 @@ config ACPI_CONTAINER
->         depends on EXPERIMENTAL
->         default (ACPI_HOTPLUG_MEMORY || ACPI_HOTPLUG_CPU ||
-> ACPI_HOTPLUG_IO)
->          ---help---
-> -               This is the ACPI generic container driver which
-> supports
-> -               ACPI0004, PNP0A05 and PNP0A06 devices
-> +         This allows _physical_ insertion and removal of CPUs and
-> memory.
-> +         This can be useful, for example, on NUMA machines that
-> support
-> +         ACPI based physical hotplug of nodes, or non-NUMA machines
-> that
-> +         support physical cpu/memory hot-plug.
-> +
-> +         If one selects "m", this driver can be loaded with
-> +         "modprobe acpi_container".
-> 
->  endif  # ACPI
-> 
-> _
-> 
-> 
+> --- 25/drivers/acpi/Kconfig~panasonic-acpi-driver       2005-02-23
+> 01:47:59.000000000 -0800
+
 
 
 
