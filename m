@@ -1,12 +1,15 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Huw Hawkins <hrhawk-JGs/UdohzUI@public.gmane.org>
 Subject: RE: Re: making progress with ACPI was: ACPI small patch up
 	date
-Date: Tue, 29 Oct 2002 15:50:03 -0800
+Date: 30 Oct 2002 03:17:54 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A489@orsmsx119.jf.intel.com>
+Message-ID: <1035944274.1275.32.camel@U414>
+References: <EDC461A30AC4D511ADE10002A5072CAD04C7A489@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD04C7A489-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,50 +18,39 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "'eric.valette=GANU6spQydw@public.gmane.org'" <eric.valette-GANU6spQydw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Jan Rychter <jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org>, Huw Hawkins <hrhawk-JGs/UdohzUI@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Valette Eric [mailto:eric.valette-GANU6spQydw@public.gmane.org] 
-> I complained about that in the list in the past and got an 
-> answer saying 
-> politely to shut up, to *not* use sourceforge tool, and post 
-> problem to 
-> the mailling list. Fortunately dominik spend some time 
-> helping me until 
-> it worked.
-> 
-> I also complained about acpi patches beeing done for 2.4 pre releases 
-> and not applying cleanly on 2.4.X official kernels.
+> We can fix bugs, the problem is *diagnosing* the issue. There's only so much
+> diagnosis that can be done without the hardware. If you say "line 444 of
+> ec.c is acquiring a semaphore at interrupt level" that's probably enough. If
+> you post a patch, we'll apply it. If you just say "my system hangs" then
+> it's a lot harder. Sometimes the dmesg or DSDT are enough that other people
+> can suss out what might be the problem -- sometimes not.
 
-If we have a prayer of ever getting into official 2.4, we need to track the
-pre kernels. People in the past have done backports to the non-pre kernels,
-but that really depends on what other people are willing to do.
+I've given this some though. What you're trying to say, basically, is
+the sf bugtracker isn't suitable because you need at least a DSDT/dmesg
+with the bug report and preferably access to ask further questions, so
+unless someone has that implimented in a bug-track system (with hosting
+to match) it's a nightmarish task.  
 
-> > I strongly believe that the ACPI project would make much 
-> more progress
-> > if Andy and Robert put a little effort into tracking bugs and making
-> > releases.
-> 
-> I do agree. The more people do not want other to look/critic 
-> their code, 
-> the more they pretend what they do is a kind of black art, and do not 
-> document it or make design document :-) Fixing bug is 
-> annoying, making a 
-> new release and advising to report a problem on it is so more fun.
+> Part of this whole open source "gift" economy is that it's polite to not
+> turn one's nose up a gift. Even if it wasn't all that you wanted. And
+> especially if you haven't reciprocated.
 
-We can fix bugs, the problem is *diagnosing* the issue. There's only so much
-diagnosis that can be done without the hardware. If you say "line 444 of
-ec.c is acquiring a semaphore at interrupt level" that's probably enough. If
-you post a patch, we'll apply it. If you just say "my system hangs" then
-it's a lot harder. Sometimes the dmesg or DSDT are enough that other people
-can suss out what might be the problem -- sometimes not.
+Owch. Personally I've tried to submit what
+patches/bugreports/information I could. Usually, I'm not sure if its
+helpful, whether its important or got missed in the rush. To me
+ACPI-development is a "black-box" system. You post something to the list
+and either get a flaming, a pat on the head, a useful bit of help or
+dead silence. Other projects have roadmaps, FAQ's, etc to at least give
+people the option to inform themselves as to whats a priority, why
+bugtracking is a mailling list or what's currently being neglected. A
+few lines of html might save constant "are you insane, it'd be easier
+if.." and "why isn't...." threads when you've thought it through and
+have good reasons others might not immediately otherwise see.
 
-Part of this whole open source "gift" economy is that it's polite to not
-turn one's nose up a gift. Even if it wasn't all that you wanted. And
-especially if you haven't reciprocated.
 
-Regards -- Andy
 
 
 -------------------------------------------------------
