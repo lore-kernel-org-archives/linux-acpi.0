@@ -1,13 +1,13 @@
-From: Kent Hunt <kenthunt-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Re: System_memory error
-Date: Mon, 9 Sep 2002 13:38:44 -0700 (PDT)
+From: Diego Zuccato <diego-gmoNqwowlqBr8A+qpt3pXFzrSV/HdtiB@public.gmane.org>
+Subject: Re: Runlevel for Sleep?
+Date: Mon, 09 Sep 2002 23:52:22 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020909203844.77818.qmail@web14510.mail.yahoo.com>
-References: <20020909110214.GE27583@clara.net>
+Message-ID: <3D7D3436.8C579CCD@otello.alma.unibo.it>
+References: <Pine.LNX.4.44.0209071232170.1021-100000@cherise.pdx.osdl.net> <200209081126.g88BQjn05186@pfn1.pefnos> <3D7C5FDF.4FB4E759@otello.alma.unibo.it> <200209090855.g898rbA19798@pfn1.pefnos>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20020909110214.GE27583-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,71 +16,24 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: Faye Pearson <faye-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org>, "'acpi-devel=5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org'" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Faye,
+"P. Christeas" wrote:
 
-     Thanks, but it did not solve the problem. My
-laptop doesn't hang or give oops but I've lost the 
-ability to do video output switching.
-     Interestingly I traced it down to the amount of
-memory that I have. I recently upgraded it to 512MB
-and ACPI has some problems with that.
-      I just recompiled with 2.4.19 kernel and
-ACPI 20020815.
-      The new error messages in dmesg are:
-Executing all Device _STA and_INI
-methods:.......exregion-0146 [23]
-Ex_system_memory_space: Could not map memory at
-000000000FFFFF2C, size 
-90
-evregion-0323: *** Error: Handler for [System_memory]
-returned AE_NO_MEMORY
- psparse-1155: *** Error: Method execution failed,
-AE_NO_MEMORY
-Method pathname:  \_SB_.PCI0._INI (Node c15b6ac8)
-  nsinit-0376 [06] Ns_init_one_device    :
-\_SB_.PCI0._INI failed: AE_NO_MEMORY
+> The whole point of the initscripts is that this is your call. The kernel
+[...]
+> I just try to imagine situations thay may need design consideration.
+Uhm... Then just call your scripts from acpid. Or manage yourself ACPI
+events. It's all in userspace. If a service needs special handling,
+simply do it before (suspend) or after (resume) echoing to
+/proc/acpi/sleep. IMO there's no need to provide extra hooks.
+The timer setting, IIRC, is one of the "services" that need that kind of
+special handlin (at resume, you have to set current time from hw clock).
+Think echoing to /proc/scpi/sleep as a REALLY slow ATOMIC operation :-)
 
-      Hopefully someone would know what to do. 
-
-      Kent
---- Faye Pearson <faye-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org> wrote:
-> Kent Hunt [kenthunt-/E1597aS9LQAvxtiuMwx3w@public.gmane.org] wrote:
-> > Hardware: Presario 1700T
-> > ACPI: 20020702
-> > 
-> > My dmesg shows:
-> > 
-> > exregion-0146 [67661] Ex_system_memory_space:
-> Could
-> > not map memory at 000000000FFFFF2C, size 90
-> > evregion-0323: *** Error: Handler for
-> [System_memory]
-> > returned AE_NO_MEMORY
-> 
-> That version had some corruption problems.  I
-> suggest you get the latest
-> and greatest ACPI/Kernel.  Alternatively pick up the
-> patches from my
-> website
-> (http://dude.noc.clara.net/~faye/compaq2701ea/)
-> 
-> -- 
-> Faye Pearson,
-> Software Development Manager,
-> ClaraNET Ltd.       Tel 020 7903 3000
-> 
-> Fools rush in -- and get the best seats in the
-house.
-
-
-__________________________________________________
-Do You Yahoo!?
-Yahoo! Finance - Get real-time stock quotes
-http://finance.yahoo.com
+BYtE,
+ Diego.
 
 
 -------------------------------------------------------
