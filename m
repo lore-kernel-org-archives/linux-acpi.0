@@ -1,13 +1,13 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: smartbatteries
-Date: Sun, 5 Dec 2004 23:57:55 +0100
-Message-ID: <20041205225755.GC1415@elf.ucw.cz>
-References: <36acd65c04120513164dbc3189@mail.gmail.com>
+From: Joshua Wise <joshua-NtISFavHD68j5TC/SZClsA@public.gmane.org>
+Subject: Re: ACPI on hp tc1100
+Date: Sun, 05 Dec 2004 18:32:57 -0500
+Message-ID: <41B39AA9.8040604@joshuawise.com>
+References: <41B2912D.8020105@joshuawise.com> <Pine.LNX.4.60.0412051210070.990@frog.athome> <41B377AE.7080108@joshuawise.com> <200412052214.25733.stefandoesinger@gmx.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <36acd65c04120513164dbc3189-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <200412052214.25733.stefandoesinger-RbZlAiThDcE@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,23 +17,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Johan Swensson <airdisaster-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: =?ISO-8859-1?Q?Stefan_D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org, jamey.hicks-VXdhtT5mjnY@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+>>I will see if removing the driver before bringing the system down helps.
+I tried rmmod'ing ipw2100 before putting the system into S3. The driver 
+would not reload after awakening the system. (As an aside, the driver 
+does not trash the card's state. If I rmmod the driver and immediately 
+reload it and the system has not been suspended, the driver will 
+successfully load.)
 
-> New to the list.
+> Try the attached patch(against the ipw2100 driver.
+There was no behavioral change. I'm running 2.6.9+acpi-latest, anyway.
 
-If you are new to the list, you should wait a while before asking FAQ.
-
-> battery status. And i've heard it's beacause the smartbattery thing?
-
-That's correct. See archives.
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+joshua
 
 
 -------------------------------------------------------
