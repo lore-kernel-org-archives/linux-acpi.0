@@ -1,14 +1,14 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: bug in acpid scripts
-Date: Sat, 24 Jul 2004 13:50:20 +0100
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Radeon S3/resume: VGA ROM POST from kernel
+Date: Sat, 24 Jul 2004 14:51:40 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1090673420.4412.14.camel@tyrosine>
-References: <20040723193658.GA3331@omocha.vort.org>
+Message-ID: <20040724125140.GA3004@elf.ucw.cz>
+References: <yzoy8lggx6v.fsf_-_@localhost.localdomain> <200407191938.17104.stefandoesinger@gmx.at> <1090272101.2163.228.camel@camel>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040723193658.GA3331-5z3TbH0F9hyr8sbHwu5NIg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1090272101.2163.228.camel-O4LVqDAXoJg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,25 +17,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Herman Sheremetyev <herman-6MNMYbGzEYJWk0Htik3J/w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2004-07-23 at 20:36, Russell Neches wrote:
+Hi!
 
-> My system always enters S3 without complaining, and resumes without
-> complaining. Then it immediately begins a clean shutdown. I had assumed
-> this was caused by general S3 breakage, but the problem is actually
-> caused by acpid catching the power button event that triggered the
-> system to resume. It then dutifully calls powerbtn.sh, and the system
-> shuts down. 
+> Just curious but is this any different from the Int 10 hack performed
+> when you boot with acpi_sleep=s3_bios?  
 
-My current workaround is to make button support modular, and then remove
-the button module during suspend. The power button event then gets
-ignored on wakeup.
+This is after PCI is reinitialized, so has better chance to work.
 
+								Pavel
 -- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
-
+When do you have heart between your knees?
 
 
 -------------------------------------------------------
