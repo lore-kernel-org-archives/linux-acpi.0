@@ -1,14 +1,14 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: /proc/battery empty on Gateway 400VTX
-Date: Wed, 8 Oct 2003 12:01:37 +0200
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: Re: broken bm_sts on 82801CA?
+Date: Wed, 8 Oct 2003 09:55:35 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031008100137.GE11391@poupinou.org>
-References: <Pine.LNX.4.44.0310071538370.24003-301000@data.upl.cs.wisc.edu>
+Message-ID: <20031008095321.B10515@root.org>
+References: <20031006233406.N4792@root.org> <20031007085536.GB11391@poupinou.org>
+ <20031007110948.V6708@root.org> <20031008123103.GG11391@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0310071538370.24003-301000-j0XSImJ06nG869pVMd/zofZ8FUJU4vz8@public.gmane.org>
+In-Reply-To: <20031008123103.GG11391-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,44 +17,44 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Casey Harkins <charkins-TFaeeA7fOO6Gwcnyzrk3/w@public.gmane.org>
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Oct 07, 2003 at 04:04:11PM -0500, Casey Harkins wrote:
-> 
-> Looking for help with getting ACPI battery monitoring to work on this
-> laptop. I'm running SourceMage GNU/Linux with:
-> 
-> 	vanilla linux 2.4.22
-> 	acpi 20030916 patch for 2.4.22
-> 	dsdt-initrd patch v0.3 for 2.4.22
-> 
-> All other acpi functions seem to work (haven't tried suspending). Nothing
-> is reported when the battery module loads (it is being loaded between the
-> ac_adapter and button modules) and the /proc/battery directory exists but
-> is empty.
-> 
-> I tried dumping and fixing the dsdt. There was only 1 warning:
-> 
->    dsdt.asl   281: Method(_WAK, 1) {
->    Warning  2026 -           ^ Reserved method must return a value (_WAK)
-> 
-> I fixed this according to Richard Black's HOWTO and loaded it via the
-> initrd method using the dsdt-initrd patch listed above, though it seemed
-> to have no effect on the system.
-> 
+On Wed, 8 Oct 2003, Ducrot Bruno wrote:
+> On Tue, Oct 07, 2003 at 11:10:37AM -0700, Nate Lawson wrote:
+> > On Tue, 7 Oct 2003, Ducrot Bruno wrote:
+> > > On Mon, Oct 06, 2003 at 11:38:07PM -0700, Nate Lawson wrote:
+> > > > My chipset claims to be: Intel 82801CA/CAM (ICH3) and it's on an IBM T23
+> > > > thinkpad.  While testing my Cx driver, I noticed that bm_sts is always
+> > > > set, even when I clear it by writing a 1 to the register.  I _know_ the
+> > > > box is idle so I believe this bit to be broken.  Can anyone confirm this?
+> > > > I noticed the errata probe for the PIIX4 but I don't think it covers my
+> > > > part.
+> > >
+> > > Have you any kind of usb bus support compiled in your kernel?
+> > > If yes, try without.
+> >
+> > Ah, I'll try that.  I do have USB support compiled in.  This is on
+> > FreeBSD, btw.
+>
+> That more an hardware design issue due to how hotplug work in usb busses
+> in general, and it may need to be workaround, so if anybody haven't yet worked on
+> C-states on FreeBSD..  Please note also that Linux do not workaround that
+> btw.
 
-Are you sure you have compiled embedded controller *not* as a module?
+I have implemented C-states in freebsd, that's how I ran into this
+problem.  I'll be committing the code once it's cleaned up a little.
 
--- 
-Ducrot Bruno
+Since Linux always demotes to "don't enter a Cx state" if bm_sts indicates
+activity, are you saying that if you have a USB bus configured in Linux,
+you don't even use C1 (HLT)?
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+-Nate
 
 
 -------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
+This SF.net email is sponsored by: SF.net Giveback Program.
+SourceForge.net hosts over 70,000 Open Source Projects.
+See the people who have HELPED US provide better services:
+Click here: http://sourceforge.net/supporters.php
