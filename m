@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: ACPI issues - suspend-to-ram and processor speed
-Date: Sun, 23 May 2004 14:29:42 +0200
+Subject: Re: APM sleep vs. ACPI S3 sleep
+Date: Mon, 24 May 2004 19:13:33 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040523122942.GH5215@openzaurus.ucw.cz>
-References: <200405180213.34603.andre@eisenbach.com>
+Message-ID: <20040524171332.GJ5215@openzaurus.ucw.cz>
+References: <40ACE6B4.4060408@mesias.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200405180213.34603.andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org>
+In-Reply-To: <40ACE6B4.4060408-Nk/s8sJ9yP7QXOPxS62xeg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,18 +17,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andre Eisenbach <andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org>
+To: Cam <camilo-Nk/s8sJ9yP7QXOPxS62xeg@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> I also tried to suspend to disk using swsusp. That corrupted my swap partition 
-> and didn't resume.
+> APM sleep eg. when running linux 2.4 with the APM behaviour in the 
+> BIOS used to suspend the machine, the battery would last for a long 
+> time and the machine would be cold to the touch (ie it's at the 
+> ambient temperature).
+> 
+> ACPI S3 sleep looks the same but the battery does not last long and 
+> the machine is warm to the touch.
+> 
+> Has anyone else seen this behaviour? Is it possible that the machine 
+> is waking itself periodically or at a certain level of discharge? Is 
+> it possible to make the ACPI sleep deeper?
 
-Read swsusp.txt, power/tricks.txt.
-
-
+Probably some driver forgot to place its hardware to proper sleep.
+Try to find out exactly what produces heat.
 -- 
 64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
 
