@@ -1,14 +1,14 @@
 From: Bas Mevissen <ml-Y9IUUvl1dgU0Iwp8Nzs06g@public.gmane.org>
 Subject: Re: RE: ACPI -- Workaround for broken DSDT
-Date: Thu, 05 Feb 2004 16:55:26 +0100
+Date: Thu, 05 Feb 2004 17:13:28 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4022676E.70803@basmevissen.nl>
-References: <C50AB9511EE59B49B2A503CB7AE1ABD1066111ED@cceexc19.americas.cpqcorp.net>
+Message-ID: <40226BA8.8040703@basmevissen.nl>
+References: <BF1FE1855350A0479097B3A0D2A80EE0CC8AB9@hdsmsx402.hd.intel.com> <1075995857.5758.43.camel@tinny.home.foo>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <C50AB9511EE59B49B2A503CB7AE1ABD1066111ED-Iar2LzuD2f6P0FQRY6S+e9kSKC0Mw0DFJ8am2ALHCgk@public.gmane.org>
+In-Reply-To: <1075995857.5758.43.camel-3lu5YwujmwObGSPjaX/RoA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,38 +17,46 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Cagle, John (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>
-Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Scott T. Smith" <scott-j3vAvQ9dNB9ByuSxxbvQtw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Scott T. Smith" <scott-j3vAvQ9dNB9ByuSxxbvQtw@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Cagle, John (ISS-Houston) wrote:
+Scott T. Smith wrote:
+> 
+>>Linux users should buy machines from OEMs that support Linux,
+>>and not buy machines from OEMs that ignore Linux.  There are
+>>OEMS that validate their platforms with Linux today -- this isn't
+>>3-5 years away.
+> 
+> 
+> That argument simply doesn't work for laptops (which seems to me to be
+> the main driving force behind ACPI, but I recognize ACPI is useful for
+> desktops too).  There are too many reasons to pick one machine over
+> another, including weight, size, price/performance, screen quality
+> (size/resolution), keyboard quality/layout/size, touchpad vs nipple,
 
-> Also, if there were a Linux-ACPI standard validation suite, it would
-> make HP's Linux QA Engineers very happy, and much more likely to
-> find and fix ACPI AML errors *before* we ship new hardware.  Anyone
-> interested in working on something like that?
+I prefer the latter being called "Janet" from now on :-))
+
+> etc.  In the end, it's a compromise of course, so it'd be nice if there
+> was one less constraint on my purchasing decision (i.e. ACPI).
 > 
 
-I agree that it would help a lot of hardware and software manufacturers 
-to validate their hardware. The funding part is more a problem then 
-people interested to work on it. For example, I would love to work for 
-it. :-)
+The availibility of a fixed DSDT might help. At least you get a working 
+notebook to write e-mails to the supplier that they should fix their DSDT.
 
-Such suite would be a major undertaking. One needs a huge piece of 
-hardware and software to test and validate software and hardware on/with.
+I'm wondering if it is possible to overload the DSDT for Windows. Think 
+of a hack in grub to pre-load another DSDT in RAM.
 
-To be successful, one also needs an independant, widely accepted (but 
-industry-funded!) validation and certification organisation that can 
-provide validation and certification for both hardware and software 
-products.
+BIOS are compressed, so they need to be extracted to RAM. So changing it 
+(eventualy only changing the pointer to a different location) should be 
+possible.
 
-BTW. I'm wondering if there are no such initiatives already because this 
-problem is not really new.
+Why would we need it? Simply to check a DSDT on Windows before 
+submitting it to the manufacturer. That can ease acceptance of a DSDT-patch.
 
 Regards,
 
 Bas.
-
 
 
 
