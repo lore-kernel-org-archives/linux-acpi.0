@@ -1,13 +1,14 @@
-From: "Carson Dodson" <carson.dodson_jv-Uvy0O5FATZUQZ7m9OUuf1w@public.gmane.org>
-Subject: We give you $200 bonus at Casino Zeal!
-Date: Tue, 27 Jul 2004 18:58:46 -0500
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI: S3 and PAE do not like each other for now, S3 disabled.
+Date: Wed, 28 Jul 2004 09:18:25 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <56e801c47435$d0b0af7b$645880fa@iwi.uni-sb.de>
+Message-ID: <B44D37711ED29844BEA67908EAF36F036BCFD1@pdsmsx401.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,31 +17,51 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi, 
-I have a special offer available for you at our casino.
+Hi,
+I did test it in my desktop (disabling HT and removing the check), and
+it worked. Is there any special reason that you disabled it before?
 
-$20 to try our internet casino, no deposit is necessary!
-At the casino software's cashier enter bonus code: FR93P
+Thanks,
+Shaohua
 
-$200 bonus on your first deposit!
-At the casino software's cashier enter bonus code: FMJKU
-
-Allow us to show you our quality operation, fast payouts,
-generous bonuses, and super friendly around-the-clock
-customer support.
-
-Click here: http://bigbonus-casino.com 
-
-Best regards,
-Jamie Zawinsky
-
-
-
-No thanks: http://bigbonus-casino.com/u/
-
+>-----Original Message-----
+>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
+>admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Pavel Machek
+>Sent: Tuesday, July 27, 2004 5:00 AM
+>To: Arkadiusz Miskiewicz
+>Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: Re: [ACPI] ACPI: S3 and PAE do not like each other for now, S3
+>disabled.
+>
+>Hi!
+>
+>> Is this ,,ACPI: S3 and PAE do not like each other for now, S3
+disabled.''
+>> generic S3 and PAE issue or just Linux issue only?
+>
+>Linux only. Hmm with recent enough kernel we needed to fix this for
+>different reason, so it might just work.
+>
+>Remove check, test it, if it works submit a patch.
+>				Pavel
+>--
+>64 bytes from 195.113.31.123: icmp_seq=3D28 ttl=3D51 time=3D448769.1 ms
+>
+>
+>
+>-------------------------------------------------------
+>This SF.Net email is sponsored by BEA Weblogic Workshop
+>FREE Java Enterprise J2EE developer tools!
+>Get your free copy of BEA WebLogic Workshop 8.1 today.
+>http://ads.osdn.com/?ad_id=3D4721&alloc_id=3D10040&op=3Dclick
+>_______________________________________________
+>Acpi-devel mailing list
+>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
