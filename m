@@ -1,8 +1,8 @@
-From: gstein-+n/1+GibU3Q@public.gmane.org
-Subject: received your email
-Date: Thu, 28 Aug 2003 09:28:44 -0700
+From: "MailFilter" <postmaster-14EvJvxs1z8eWKDwbUMfVQ@public.gmane.org>
+Subject: Warning: E-mail viruses detected
+Date: Fri, 29 Aug 2003 01:30:15 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200308281628.h7SGSiTq027928@nebula.lyra.org>
+Message-ID: <200308281730.BAA09238@netra.nju.edu.cn>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -15,34 +15,19 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Our virus detector has just been triggered by a message you sent:-
+  To: <thephy-14EvJvxs1z8eWKDwbUMfVQ@public.gmane.org>
+  Subject: Your details
+  Date: Fri Aug 29 01:30:14 2003
 
-  [ Re: Re: Wicked screensaver ]
+One or more of the attachments are on the list of unacceptable attachments
+for this site and will not have been delivered.
 
-I have received your email, but it may take a while to respond. I'm really
-sorry to have to hook up this auto-responder, as it is so impersonal.
-However, I get a lot of email every day and find it very difficult to keep
-up with it. Please be patient while I try to get to your message.
-
-Please feel free to resend your message if you think I've missed it.
-
-I'll always respond to personal email first. If your email is regarding some
-of the software that I work on (if you have questions, comments,
-suggestions, etc), then please resend it to the appropriate mailing list:
-
-    mod_dav      <mailto:dav-dev-+n/1+GibU3Q@public.gmane.org>
-    WebDAV       <mailto:w3c-dist-auth-Pl0VvzL1eo4@public.gmane.org>
-    ViewCVS      <mailto:viewcvs-+n/1+GibU3Q@public.gmane.org>
-    Subversion   <mailto:dev-lmwclWVctOZK/UuDQWWi7iCwEArCW2h5@public.gmane.org>
-    edna         <mailto:edna-+n/1+GibU3Q@public.gmane.org>
-
-Thank you!
-
-Cheers,
--g
+Consider renaming the files or putting them into a "zip" file to avoid
+this constraint.
 
 -- 
-Greg Stein, http://www.lyra.org/
+NJU MailFilter
 
 
 -------------------------------------------------------
