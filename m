@@ -1,8 +1,8 @@
 From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Subject: [PATCH] lots of ACPI tables
-Date: Tue, 13 Aug 2002 19:26:19 +0100
+Subject: [PATCH] export acpi_get_firmware_table to modules
+Date: Tue, 13 Aug 2002 19:28:39 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020813192619.A5283@parcelfarce.linux.theplanet.co.uk>
+Message-ID: <20020813192839.B5283@parcelfarce.linux.theplanet.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,41 +19,21 @@ To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-This patch written by Bjorn Helgaas supports more ACPI tables.
-Limiting the maximum number of tables to the number of different tables
-we recognise is clearly bogus -- some tables can appear more than once.
-And if we ignore some tables, the subtraction was backwards.
+This patch just exports acpi_get_firmware_table to modules.  It's a
+more convenient interface to use than acpi_get_table, IMO.
 
-diff -urpNX ../dontdiff acpi/linux-acpi0726/drivers/acpi/tables.c linux-acpi/drivers/acpi/tables.c
---- acpi/linux-acpi0726/drivers/acpi/tables.c	Mon Aug 12 19:43:52 2002
-+++ linux-acpi/drivers/acpi/tables.c	Mon Aug 12 19:49:54 2002
-@@ -36,7 +36,7 @@
- 
- #define PREFIX			"ACPI: "
- 
--#define ACPI_MAX_TABLES		ACPI_TABLE_COUNT
-+#define ACPI_MAX_TABLES		256
- 
- static char *acpi_table_signatures[ACPI_TABLE_COUNT] = {
- 	[ACPI_TABLE_UNKNOWN]	= "????",
-@@ -338,7 +338,7 @@ acpi_table_get_sdt (
- 		sdt.count = (header->length - sizeof(struct acpi_table_header)) >> 3;
- 		if (sdt.count > ACPI_MAX_TABLES) {
- 			printk(KERN_WARNING PREFIX "Truncated %lu XSDT entries\n",
--				(ACPI_MAX_TABLES - sdt.count));
-+				(sdt.count - ACPI_MAX_TABLES));
- 			sdt.count = ACPI_MAX_TABLES;
- 		}
- 
-@@ -383,7 +383,7 @@ acpi_table_get_sdt (
- 		sdt.count = (header->length - sizeof(struct acpi_table_header)) >> 2;
- 		if (sdt.count > ACPI_MAX_TABLES) {
- 			printk(KERN_WARNING PREFIX "Truncated %lu RSDT entries\n",
--				(ACPI_TABLE_COUNT - sdt.count));
-+				(sdt.count - ACPI_TABLE_COUNT));
- 			sdt.count = ACPI_MAX_TABLES;
- 		}
- 
+diff -urpNX ../dontdiff acpi/linux-acpi0726/drivers/acpi/acpi_ksyms.c linux-acpi/drivers/acpi/acpi_ksyms.c
+--- acpi/linux-acpi0726/drivers/acpi/acpi_ksyms.c	Mon Aug 12 19:43:52 2002
++++ linux-acpi/drivers/acpi/acpi_ksyms.c	Mon Aug 12 19:49:54 2002
+@@ -62,6 +62,7 @@ EXPORT_SYMBOL(acpi_get_object_info);
+ EXPORT_SYMBOL(acpi_get_next_object);
+ EXPORT_SYMBOL(acpi_evaluate_object);
+ EXPORT_SYMBOL(acpi_get_table);
++EXPORT_SYMBOL(acpi_get_firmware_table);
+ EXPORT_SYMBOL(acpi_install_notify_handler);
+ EXPORT_SYMBOL(acpi_remove_notify_handler);
+ EXPORT_SYMBOL(acpi_install_gpe_handler);
+
 -- 
 Revolutions do not require corporate support.
 
