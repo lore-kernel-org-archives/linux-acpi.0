@@ -1,8 +1,8 @@
 From: "Bishop Brock" <bcbrock-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 Subject: An embedded-Linux power-management framework
-Date: Fri, 2 Aug 2002 20:28:07 -0500
+Date: Fri, 2 Aug 2002 21:29:04 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <OF94EF243F.A49E95B4-ON86256C09.00716EF4@pok.ibm.com>
+Message-ID: <OF4415334C.6C7486B8-ON86256C0A.00081BB4@pok.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,69 +18,68 @@ To: alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org
 Cc: Linux Power Management Development <linux-pm-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux ACPI Development <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux APMD <apmd-list-+wEybqfU8vgCzWx7n4ubxQ@public.gmane.org>, CPU Frequency <cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
->From: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
->Subject: Re: [ACPI] An embedded-Linux power-management framework
->Date: 02 Aug 2002 20:11:17 +0100
+From: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
+Subject: Re: [ACPI] An embedded-Linux power-management framework
+Date: 03 Aug 2002 00:31:10 +0100
 
-> Take a look at cpufreq. The processor speed/voltage side is a solved
-> problem with working code for x86 and ARM processors including the
-> framework to adjust other devices. For example on ARM you have to frob
-> with the RAM clocks. Cpufreq deals with it nicely both from user and
-> kernel sides
+On Fri, 2002-08-02 at 19:20, Hollis Blanchard wrote:
+>> frequency transitions. The idle task is a great place to lower frequency
+>> only, since you're not doing anything anyways (you're not extending the
+>> running time of a meaningful task), but you may not want to incur the
+>> overhead of a voltage transition every time you come in and out of it.
+>>
 
-Processor speed and voltage setting are only two dimensions of the problem
-for current and future generations of embedded processors.  The PowerPC
-405LP supports 6 somewhat independent parameters that affect the power
-consumption of the system: Core voltage, CPU frequency, Memory Bus
-Frequency,
-On-board peripheral bus frequency, External peripheral bus frequency, and
-LCD
-pixel clock frequency. The next generation of processors will take this
-even
-further: They will support multiple internal voltage planes, asymmetric
-multiprocessing (cf. TI OMAP architecture) with independent voltage control
-and clocking, and advanced clocking schemes to maximize the potential for
-dynamic power management.  We will be able to do amazing things with
-minuscule amounts of energy, but only if the OS supports the flexibility
-inherent in the underlying hardware architectures.
+> The idle task should almost never run on a properly power managed system
+> because if we are getting voltage reductions we want to reduce the
+> frequency so that we are not quite idle as that saves us more power than
+> idling. This is also effectively true for clock only scaling because
+> very few of them have a "stopped" mode so their is a ceiling of minimal
+> power consumption we want to rest at as much as possible
 
-We are proposing a scalable solution that naturally extends the
-capabilities of cpufreq. We encapsulate all of the mutually constrained
-physical and abstract parameters of a power management policy into
-a system-dependent object called an "operating point", and propose
-standard ways to manipulate operating points and sets of operating points.
-This mechanism will be integrated with the device model in such a way
-that as devices come on and off line, the optimum operating point is always
-available.
+I assume you're talking about systems with more-or-less continuous
+workloads;
+the examples most often used in academic research are media players.
+You've asserted  the conventional wisdom about dynamic power management
+which I challenge
+as being 1) system and application dependent, and 2) unachievable.
 
-We also add another dimension not present in the current solution, i.e.,
-kernel control of dynamic power management at critical points in the
-OS, particularly the entry and exit of the idle (halt) state, consistent
-with policies defined in advance.  As we noted in the original posting,
-significant system-wide energy savings are possible by rapidly scaling
-frequencies during even short idle periods, and only the OS has the
-visibility required to actively manage these events.
+On the first point, we're concerned with system-wide power management,
+which includes the
+memory subsystem.  Our processors are so power-efficient today that we burn
+more power
+in the memory than in the CPU core.  An idle system can greatly reduce
+memory power by
+reducing the memory clock frequency, and/or self-refreshing all or part of
+the memory.  Depending
+on the application and system design, it may be more power-efficient to
+finish the application
+quickly and power down the memory, rather than trying to extend the run
+time of the application
+to just meet a deadline, which requires continuously running the memory at
+high frequencies.
 
-> In terms of per process settings please read US patent 6,298,448.
-
-> Suggstions on how t work around it are welcomed
-
-The following comments must not be construed as a legal position of
-the IBM Corporation, or the legal opinion of any IBM attorney.
-
-We have discussed this patent with our IP attorneys.  Those of
-us developing this proposal are operating under the working
-assumption that this patent does not preclude us from publishing
-our code, and will not preclude anyone from executing our code
-on any IBM processors.  However, prior to any release of
-code to Open Source, we will go through a legal review process where
-these issues will be closed to the satisfaction of IBM and our
-Linux Distribution partners.
-
-As an aside, my colleagues and I have doubts about the enforceability
-of the patent in any case, due to extensive prior art before the
-filing date.
-
+On the second point, we all dream of finding just the right operating point
+that allows our
+media applications to finish just in time with minimum energy, but are
+always disappointed.
+Power states are quantized, first by the data sheet of the processor which
+will list at most a few
+fully characterized voltage operating points, and second by the clocking
+subsystems which will
+limit the range of allowable frequency scaling.  Due to normal variations
+in media workloads,
+a power management policy that tries to guarantee high fidelity in the
+playback will naturally
+need to include a provision for headroom in the selection of the operating
+point.  These
+three factors: workload variability, a fixed list of operating points and a
+conservative
+power management policy lead to slack, i.e., idle time.  Our proposal
+allows the system to
+capture the slack by aggressively idling the processor for short periods,
+e.g., between video
+frames, without any effect on the application, and with significant energy
+reduction.
 
 Bishop Brock
 
