@@ -1,11 +1,12 @@
-From: <joerg.beyer-htSm2yLGOjU@public.gmane.org>
-Subject: Re: RE: problem dumping/fixing dsdt
-Date: Thu, 26 Sep 2002 09:34:50 +0200
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: RE: problem dumping/fixing dsdt
+Date: Thu, 26 Sep 2002 09:44:48 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200209260734.g8Q7YoX09133@mailgate5.cinetic.de>
+Message-ID: <B9ECACBD6885D5119ADC00508B68C1EA0D19B7C2@orsmsx107.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -15,14 +16,25 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: "'joerg.beyer=htSm2yLGOjU@public.gmane.org'" <joerg.beyer-htSm2yLGOjU@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "'joerg.beyer=htSm2yLGOjU@public.gmane.org'" <joerg.beyer-htSm2yLGOjU@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?iso-8859-1?Q?S=E9rgioMonteiroBasto?= <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>
 Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Yes.
+
+
+-----Original Message-----
+From: joerg.beyer-htSm2yLGOjU@public.gmane.org [mailto:joerg.beyer@email.de]=20
+Sent: Thursday, September 26, 2002 12:35 AM
+To: 'joerg.beyer-htSm2yLGOjU@public.gmane.org'; Moore, Robert; S=E9rgioMonteiroBasto
+Cc: acpi-devel
+Subject: Re: RE: [ACPI] problem dumping/fixing dsdt
+
 "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> schrieb am 25.09.02 23:19:34:
-> You need to add a return statement (with a value) at the end of the method.
+> You need to add a return statement (with a value) at the end of the
+method.
 > Bob
-> 
+>=20
 ...
 >     25              Method (_PSS, 0, NotSerialized)
 >     26              {
@@ -56,7 +68,6 @@ will this be correct?
 
     TIA
     Joerg
-
 
 
 -------------------------------------------------------
