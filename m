@@ -1,14 +1,14 @@
-From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: ACPI patch status (2.6)
-Date: Tue, 30 Sep 2003 09:07:06 +0200
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: DSDT table help
+Date: Tue, 30 Sep 2003 11:02:53 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030930070706.GB8827@wotan.suse.de>
-References: <1064902694.2535.159.camel@dhcppc4>
+Message-ID: <20030930090253.GZ11391@poupinou.org>
+References: <1064869815.28949.45.camel@loke>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1064902694.2535.159.camel-D2Zvc0uNKG8@public.gmane.org>
+In-Reply-To: <1064869815.28949.45.camel-jtDuu3CdNeQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,28 +17,37 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Martin List-Petersen <martin-4su4RWpjsplNbBYsakfBHQ@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Sep 30, 2003 at 02:18:14AM -0400, Brown, Len wrote:
-> FYI,
-> The following changes are currently in the ACPI test tree
-> http://linux-acpi.bkbits.net/linux-acpi-test-2.6.0
-> available for testing before push to 2.6.0
+On Mon, Sep 29, 2003 at 11:10:15PM +0200, Martin List-Petersen wrote:
+> Hi,
+> i would like to have some help with some DSDT table errors, if anybody
+> cares:
 > 
-> The associated plain patches are also available here:
-> ftp.kernel.org:/pub/linux/kernel/people/lenb/acpi/patches/test/
+> --------------------------------
+> This is the first machine:
+> ASL Optimizing Compiler / AML Disassembler version 20030522 [May 23
+> 2003]
+> Copyright (C) 2000 - 2003 Intel Corporation
+> Supports ACPI Specification Revision 2.0b
 > 
-> Yes, it has been too long since the last push into 2.6.
-> The good news is that we'll have finally got 2.6 back in sync with 2.4.
-> 
-> If you seen any regressions, please let me know.
+> dsdt.asl   379:             If(\_OSI) {
+> Error    1028 -  Too few arguments ^  (\_OSI requires 1)
+>  
+> dsdt.asl   380:                 "Windows 2001"
+> Error    1037 -                              ^ parse error, unexpected
+> PARSEOP_STRING_LITERAL
 
-My ACPI tolerant patch is not included. Without this it will not boot
-on many HP servers and some other multiprocessor boxes.
+known issue with acpidump from FreeBSD (and all backport to others OS).
+I don't think the maintainer of this tool will update it.  Use iasl -d instead.
 
--Andi
+-- 
+Ducrot Bruno
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
