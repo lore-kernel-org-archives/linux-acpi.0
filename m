@@ -1,13 +1,13 @@
 From: Pedro Venda <pjvenda-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
-Subject: Re: "Unlink after no-IRQ?" problem: unable to use USB printer
-Date: Sun, 30 Jan 2005 15:14:48 +0000
-Message-ID: <41FCF9E8.7090000@arrakis.dhis.org>
-References: <41F932A5.7000306@arrakis.dhis.org>
+Subject: Re: New SmartBattery DSDT-based controller
+Date: Sun, 30 Jan 2005 15:15:12 +0000
+Message-ID: <41FCFA00.7000508@arrakis.dhis.org>
+References: <41FBDDE2.1050403@bartol.udel.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41F932A5.7000306-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
+In-Reply-To: <41FBDDE2.1050403-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,44 +17,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pedro Venda <pjvenda-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-Pedro Venda wrote:
-| hi everyone,
-|
-| I'm trying to share an USB printer for my home network. The main and
-| only server
-| is an old dual pIII with an ASUS CUR-DLS, which fortunately features US=
-B
-| ports
-| but which unfortunately don't seem to work.
-|
-| modprobing usblp hangs forever without crashing the machine. the error
-| message
-| suggests fiddling with ACPI but the same happens if I disable ACPI
-| completely,
-| so I supposed this could be an USB problem. Nevertheless, this goes als=
-o
-| to the
-| acpi-devel mailing list.
-|
-| kernel is 2.6.10-grsec.
-|
-| is my hardware broken? I know it's old, but it's supposed to support th=
-e
-| ohci
-| driver, so... it can't be THAT old as far as USB is concerned...
+hello,
 
-fixed.
+I don't have time to try it out until about the end of next month, but I =
+will
+indeed test it.
 
-While I don't know what kind of effect that had, I changed the MPS suppor=
-t
-version from 1.4 to 1.2 (remember this is an SMP system).
+Again thanks for your work and dedication on this annoying issue.
+
+As I've said before...
+
+| So it looks like the best way to move forward at the moment is:
+|
+| 1) Get a copy of your DSDT
+| 2) Send it to me, with the *full* make/model of your machine
+| 3) I'll add in the CM definitions to your DSDT
+| 4) I'll post the modified DSDT on my website.
+| 5) Download the modified DSDT, and install it following the instruction=
+s
+| at http://forums.gentoo.org/viewtopic.php?t=3D122145 (see section 9;
+| although in Gentoo forums, these instructions should work on most syste=
+ms).
+
+Do you really think this is as simple as running a perl script? Ok, these=
+ are
+debug builds, but will you produce DSDTs for every laptop model with a
+smartbattery someone owns and asks you to patch their DSDT like in an ass=
+embly line?
+
+While it's definately the most elegant, I'm sorry, but I still don't see =
+future
+for this method.
 
 regards,
 pedro venda.
@@ -67,9 +67,9 @@ http://arrakis.dhis.org
 Version: GnuPG v1.2.6 (GNU/Linux)
 Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
 
-iD8DBQFB/PnoeRy7HWZxjWERAjgQAJ9kg3CPp2QFYWF/bV8N3esOu5/C/wCg147M
-ukBIrncQ8hcaniMcohkIA+U=3D
-=3DqB0n
+iD8DBQFB/Pn/eRy7HWZxjWERAh5hAKDJMeIgxIVpxu/fJ8ukHRodVBVSaQCgzr8a
+XWYV49SFdSVqtVE+SF+V4cQ=3D
+=3DoOcm
 -----END PGP SIGNATURE-----
 
 
