@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: interesting bug i have been fighting
-Date: Wed, 31 Dec 2003 18:28:10 +0800
+Subject: RE: RE: acpi-20031203-2.6.0.diff brokes the battery status readings with 2.6.0 in DELL Inspiron 8500
+Date: Wed, 31 Dec 2003 18:31:34 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C68@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C69@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,12 +17,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Steven Michalske <hardkrash-vsIoIIaCAUzCfDggNXIi3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, "Mark M." <maalox-XzQKRVe1yT0V+D8aMU/kSg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->attached is the log.
-I cannot find the interesting "osl-0892 [1952] os_wait_semaphore     :
-Failed to acquire" in this log.
+>>      -0091: *** Error: ut_allocate: Attempt to allocate zero bytes
+>>      -0091: *** Error: ut_allocate: Attempt to allocate zero bytes
+>>      -0091: *** Error: ut_allocate: Attempt to allocate zero bytes
+>>      -0091: *** Error: ut_allocate: Attempt to allocate zero bytes
+>
+>Here is the bug info.  Note that Luming's patch does NOT fix the
+problem
+>but just silences the warnings.  If you use the ASL patch I have
+attached
+>that adds RefOf/DerefOf (credit Mark Santcroos), the problems are
+fixed.
+>You can also revert dsmthdat.c back to what it was pre-0619 and that
+also
+>fixes the problem.
+>
+>http://bugme.osdl.org/show_bug.cgi?id=3D1728
+>
+>The issue is, ACPI-CA is still not getting its argument-passing right
+>after moving away from "always copy" semantics.
+
+Please try patch filed at  http://bugme.osdl.org/show_bug.cgi?id=3D1766
 
 
 
