@@ -1,13 +1,11 @@
-From: =?ISO-8859-2?Q?Krzysztof_Ol=EAdzki?= <ole-gcSpNFQc7Gg@public.gmane.org>
-Subject: Re: Problem with ACPI-patch
-Date: Wed, 25 Jun 2003 00:48:42 +0200 (CEST)
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: EC SCI model?
+Date: Tue, 24 Jun 2003 16:40:23 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.33.0306250042270.12727-100000@dark.pcgames.pl>
-References: <Pine.LNX.4.33.0306232244001.2066-100000@frog.athome>
+Message-ID: <20030624163306.N70961@root.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.33.0306232244001.2066-100000-KnfdeQs3A3X/9pzu0YdTqQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,33 +14,25 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+I am a FreeBSD developer but this is a more general question with ACPI.  I
+looked through the spec (especially 13 Embedded Controller) and I have a
+question regarding the IBF/OBF stuff.  Testing has shown that I get
+multiple callbacks of my EcGpeHandler() routine even when IBF and OBF have
+not changed.  Isn't the GPE only supposed to trigger when they change (and
+only once)?  I've gotten more reliability by waiting for the GPE, checking
+the status and if it isn't what I'm waiting for, go back to sleep.
 
+Also, what is the procedure for sleeping while holding the ACPI Global
+Lock?  I need to sleep while waiting for the GPE to trigger between each
+phase of read and write (i.e. command, address, data).  I'm not using
+burst mode but may consider implementing it to make this easier and avoid
+the sleep altogether.
 
-On Mon, 23 Jun 2003 liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org wrote:
-
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
->
-> Salut list,
-> there is one thing in the /proc/interrupts that is not right, and it is
-> not a MP problem. I also got this with a single-processor board with
-> ioapic.
-> The point I mean is, that some PCI devices got an edge-driven IRQ, what is
-> wrong (only the ones that are not connected through the XT-PIC). And
-> surprise, this devices will not work this way :-((( Am I right Krzysztof?
-Yes, network does not work but there is no problem with SCSI. Anyway,
-since new ACPI is in standard linux kernel (2.4.22-pre1) soon it will be
-no longer possible to use older version (20030228) of acpi subsystem.
-Any chances for fix?
-
-Best regards,
-
-				Krzysztof Oledzki
-
+Thanks,
+-Nate
 
 
 -------------------------------------------------------
