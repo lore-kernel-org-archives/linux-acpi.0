@@ -1,13 +1,13 @@
-From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+From: Thomas Eschenbacher <Thomas.Eschenbacher-Mmb7MZpHnFY@public.gmane.org>
 Subject: Re: freqency scaling on compaq nx9010
-Date: Sun, 9 Jan 2005 23:56:55 +0100
-Message-ID: <20050109225655.GA27910@dominikbrodowski.de>
-References: <41E1B46D.1070107@gmx.de>
+Date: Sun, 09 Jan 2005 21:33:08 -0300
+Message-ID: <41E1CD44.1090107@gmx.de>
+References: <41E1B46D.1070107@gmx.de> <20050109225655.GA27910@dominikbrodowski.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <41E1B46D.1070107-Mmb7MZpHnFY@public.gmane.org>
+In-Reply-To: <20050109225655.GA27910-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,40 +17,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Thomas Eschenbacher <Thomas.Eschenbacher-Mmb7MZpHnFY@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-
-Please post the contents of all files in
-/sys/devices/system/cpu/cpu0/cpufreq/ 
-
-On Sun, Jan 09, 2005 at 07:47:09PM -0300, Thomas Eschenbacher wrote:
-> Hi,
+Dominik Brodowski wrote:
+> [...]
+>>I have a compaq nx9010 laptop, running on kernel 2.6.9-gentoo-r13, with 
+>>ACPI enabled and speedstep for frequency scaling.
 > 
-> I have a compaq nx9010 laptop, running on kernel 2.4.9-gentoo-r13, with 
-> ACPI enabled and speedstep for frequency scaling.
-Which variant of speedstep?
+> Which variant of speedstep?
 
-> ...and this is also what speedstep does - it switches between these two 
-> frequencies, 96% and 100% speed. Isn't this absolutely nonsense? Only 4% 
-> speed difference !?
+The file "scaling_driver" told me it was "speedstep-smi".
+(which makes no sense to me, I have an ALI and no Intel chipset...)
+No idea what it really was, I saw no kernel message about
+speedstep or so.
+(ACPI version is 20040816)
 
-It most likely is nonsense...
+> [...]
+>>On the other hand my dsdt contains two entries in the _PSS section, one 
+>>for 3059MHz (100%) and one for 1596MHz (~50%) - but those two 
+>>frequencies appear nowhere in /proc or /sys/devices/... !?
+> 
+> What does using the acpi-cpufreq driver lead to?
 
-> On the other hand my dsdt contains two entries in the _PSS section, one 
-> for 3059MHz (100%) and one for 1596MHz (~50%) - but those two 
-> frequencies appear nowhere in /proc or /sys/devices/... !?
+...to success :-)   Great, this was the right hint!
 
-What does using the acpi-cpufreq driver lead to?
+I kicked out all speedstep stuff from my kernel config and now I see 
+30590000 and 15960000 in 
+/sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies -
+the same values as in my DSDT, using acpi-cpufreq as driver.
 
-> Is speedstep independend from ACPI ?
+So what would be the advantage of speedstep over acpi-cpufreq ?
+Does it also switch core voltage or do other things?
 
-It depends on the driver and sometimes on driver settings whether it is
-independend from ACPI or not.
-
-	Dominik
+thanks for the quick reply and the help,
+    Thomas
 
 
 -------------------------------------------------------
