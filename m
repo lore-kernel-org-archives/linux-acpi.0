@@ -1,23 +1,12 @@
-From: Michael Notforyou <sqfreak-goaWJWIt5zpWk0Htik3J/w@public.gmane.org>
-Subject: Re: Lockup at boottime on Compaq Presario 730US --
-  Please help!!
-Date: Tue, 27 Aug 2002 22:24:32 -0400
+From: "KOCHI, Takayoshi" <t-kouchi-dPjYVeZdYcz+G+EEi5ephHgSJqDPrsil@public.gmane.org>
+Subject: OSLayer cleanup
+Date: Wed, 28 Aug 2002 10:01:14 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <5.1.0.14.0.20020827222213.032dfdc0@pop-server.triad.rr.com>
-References: <5.1.0.14.0.20020823173454.03293e68@pop-server.triad.rr.com>
- <5.1.0.14.0.20020823075547.032699f8@pop-server.triad.rr.com>
- <5.1.0.14.0.20020822143358.0321eb10@pop-server.triad.rr.com>
- <5.1.0.14.0.20020822073524.03215dd8@pop-server.triad.rr.com>
- <5.1.0.14.0.20020821193844.030509b0@pop-server.triad.rr.com>
- <5.1.0.14.0.20020821193844.030509b0@pop-server.triad.rr.com>
- <5.1.0.14.0.20020822073524.03215dd8@pop-server.triad.rr.com>
- <5.1.0.14.0.20020822143358.0321eb10@pop-server.triad.rr.com>
- <5.1.0.14.0.20020823075547.032699f8@pop-server.triad.rr.com>
- <5.1.0.14.0.20020823173454.03293e68@pop-server.triad.rr.com>
+Message-ID: <20020829020107.CBIQC0A82654.59A07363@mvf.biglobe.ne.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20020827120154.GF30943-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -29,58 +18,165 @@ List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-It's really OK now. The problem was that I was compiling an SMP kernel 
-which automatically enables Local APIC which crashes the system. Compiling 
-all ACPI elements into the kernel worked - as long as there was no SMP 
-support. Everything (except sleep and swsusp - which won't compile, long 
-story) works. I have easy battery ratings.
+Hi,
 
-Thanks for your help!
+While auditing the OSL code in the current ACPI driver,
+I found some obsolete functions.  If this looks reasonable,
+please apply.
+
+In include/acpiosxf.h:
+  acpi_os_get_timer()
+  acpi_os_redirect_output()
+  acpi_os_dbg_assert()
+
+  These 3 functions are declared but not defined.
+
+In osl.c
+  acpi_os_callocate()
+  acpi_os_breakpoint()
+
+  These 2 functions are obsolete.
+
+  acpi_os_load_module()
+  acpi_os_unload_module()
+
+  These 2 functions are not declared in acpiosxf.h and no one
+  is using these APIs.  What are they for?
+
+Index: acpi-2.5/drivers/acpi/osl.c
+diff -u acpi-2.5/drivers/acpi/osl.c:1.1.1.1 acpi-2.5/drivers/acpi/osl.c:1.1.1.1.2.1
+--- acpi-2.5/drivers/acpi/osl.c:1.1.1.1	Wed Aug 28 00:13:27 2002
++++ acpi-2.5/drivers/acpi/osl.c	Wed Aug 28 00:43:16 2002
+@@ -133,16 +133,6 @@
+ 	return kmalloc(size, GFP_KERNEL);
+ }
+ 
+-void *
+-acpi_os_callocate(ACPI_SIZE size)
+-{
+-	void *ptr = acpi_os_allocate(size);
+-	if (ptr)
+-		memset(ptr, 0, size);
+-
+-	return ptr;
+-}
+-
+ void
+ acpi_os_free(void *ptr)
+ {
+@@ -516,37 +506,6 @@
+ 
+ #endif /*CONFIG_ACPI_PCI*/
+ 
+-acpi_status
+-acpi_os_load_module (
+-	char *module_name)
+-{
+-	ACPI_FUNCTION_TRACE ("os_load_module");
+-
+-	if (!module_name)
+-		return_ACPI_STATUS (AE_BAD_PARAMETER);
+-
+-	if (request_module(module_name) < 0) {
+-		ACPI_DEBUG_PRINT ((ACPI_DB_WARN, "Unable to load module [%s].\n", module_name));
+-		return_ACPI_STATUS (AE_ERROR);
+-	}
+-
+-	return_ACPI_STATUS (AE_OK);
+-}
+-
+-acpi_status
+-acpi_os_unload_module (
+-	char *module_name)
+-{
+-	if (!module_name)
+-		return AE_BAD_PARAMETER;
+-
+-	/* TODO: How on Linux? */
+-	/* this is done automatically for all modules with
+-	use_count = 0, I think. see: MOD_INC_USE_COUNT -ASG */
+-
+-	return AE_OK;
+-}
+-
+ 
+ /*
+  * See acpi_os_queue_for_execution()
+@@ -688,9 +647,10 @@
+ 
+ 	ACPI_FUNCTION_TRACE ("os_create_semaphore");
+ 
+-	sem = acpi_os_callocate(sizeof(struct semaphore));
++	sem = acpi_os_allocate(sizeof(struct semaphore));
+ 	if (!sem)
+ 		return_ACPI_STATUS (AE_NO_MEMORY);
++	memset(sem, 0, sizeof(struct semaphore));
+ 
+ 	sema_init(sem, initial_units);
+ 
+@@ -906,12 +866,3 @@
+ 
+ 	return AE_OK;
+ }
+-
+-acpi_status
+-acpi_os_breakpoint(NATIVE_CHAR *msg)
+-{
+-	acpi_os_printf("breakpoint: %s", msg);
+-	
+-	return AE_OK;
+-}
+-
+Index: acpi-2.5/drivers/acpi/include/acpiosxf.h
+diff -u acpi-2.5/drivers/acpi/include/acpiosxf.h:1.1.1.1 acpi-2.5/drivers/acpi/include/acpiosxf.h:1.1.1.1.2.1
+--- acpi-2.5/drivers/acpi/include/acpiosxf.h:1.1.1.1	Wed Aug 28 00:13:27 2002
++++ acpi-2.5/drivers/acpi/include/acpiosxf.h	Wed Aug 28 00:43:23 2002
+@@ -261,10 +261,6 @@
+ 	void                    *pointer,
+ 	u32                     length);
+ 
+-u32
+-acpi_os_get_timer (
+-	void);
+-
+ acpi_status
+ acpi_os_signal (
+ 	u32                     function,
+@@ -284,10 +280,6 @@
+ 	const NATIVE_CHAR       *format,
+ 	va_list                 args);
+ 
+-void
+-acpi_os_redirect_output (
+-	void                    *destination);
+-
+ 
+ /*
+  * Debug input
+@@ -296,18 +288,6 @@
+ u32
+ acpi_os_get_line (
+ 	NATIVE_CHAR             *buffer);
+-
+-
+-/*
+- * Debug
+- */
+-
+-void
+-acpi_os_dbg_assert(
+-	void                    *failed_assertion,
+-	void                    *file_name,
+-	u32                     line_number,
+-	NATIVE_CHAR             *message);
+ 
+ 
+ #endif /* __ACPIOSXF_H__ */
 
 
-At 01:01 PM 8/27/2002 +0100, you wrote:
->Michael Notforyou [sqfreak-goaWJWIt5zpWk0Htik3J/w@public.gmane.org] wrote:
-> > I think I need to patch my DSDT as well. I have no battery rating with the
-> > unpatched kernel (meaning the SourceForge ACPI not applied). Nor do I have
-> > performance.
-> >
-> > The command you gave me to export my DSDT did nothing but spit out garbage
-> > and corrupt my terminal display.
->
->Sounds like you forgot to put the redirect which would cause it to get
->saved to a file the "> dsdt.txt" was part of the command.  It's not junk
->it's just 'compiled' - computer readable, rather than source - human
->readable.
->
->You need to use pacpidump on that file and then use iasl to find errors
->and fix them.
->
-> > depmod: *** Unresolved symbols in
-> > /lib/modules/2.4.19/kernel/drivers/acpi/MODULENAME.o
-> > depmod: acpi_ut_debug_print
-> > depmod: acpi_ut_value_exit
-> > depmod: acpi_ut_exit
-> > depmod: acpi_ut_trace
->
->It's possible there is a problem with the build for making these things
->as modules, I have only ever made them as built-in because I can't think
->of a time when I would ever want them not to be loaded.
->
->
->Faye
->
->--
->Faye Pearson,
->Software Development Manager,
->ClaraNET Ltd.       Tel 020 7903 3000
->
->The faster we go, the rounder we get.
->                 -- The Grateful Dead
-
-*Michael Notforyou*
-
-"My God, I'm full of stars!"
-Darmok and Jalad at Tanagra!
+Thanks,
+-- 
+KOCHI, Takayoshi <t-kouchi-f7IHDacdhdx8UrSeD/g0lQ@public.gmane.org/t-kouchi>
 
 
 
