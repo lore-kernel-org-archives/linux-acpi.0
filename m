@@ -1,14 +1,13 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Toshiba Satellite 1905S303 DSDT table
-Date: Wed, 5 Nov 2003 13:12:34 +0100
+From: "William Bragg" <j13kpupt-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: US Stock Market: AZAA - Military Aircraft Related Stock...goldie
+Date: Wed, 05 Nov 2003 16:32:55 +0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031105121234.GV21970@poupinou.org>
-References: <3FA58FE8.4000409@techisa.srv.br> <20031104103943.GJ21970@poupinou.org> <3FA7A224.1080907@techisa.srv.br> <20031104150926.GO21970@poupinou.org> <1067994460.6048.23.camel@dhcppc4>
+Message-ID: <9$5cd-$--5b-$s$za-z8ti$0ph@92v.d.b.110>
+Reply-To: "William Bragg" <j13kpupt-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/alternative;
+	boundary="_C._62E72DEAD6F3AA792_"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1067994460.6048.23.camel-D2Zvc0uNKG8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,36 +16,117 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Erico M Mendonca <erico-cz9lu//xMc+vYRxJAoKWRg@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 04, 2003 at 08:07:41PM -0500, Len Brown wrote:
-> On Tue, 2003-11-04 at 10:09, Ducrot Bruno wrote:
-> > On Tue, Nov 04, 2003 at 10:57:08AM -0200, Erico M Mendonca wrote:
-> > > Ducrot Bruno wrote:
-> 
-> > As I already tryed to say, unless you are on a BSD system,
-> > or unless someone port the FreeBSD acpidump, do not use acpidump.
-> > Or else, you are missing informations for debugging irq for example.
-> 
-> huh?
-> Are you referring to acpidmp from Intel's pmtools package?
-> What exactly is it missing?
 
-acpidump, with a 'u'.  It has nothing to do with pmtools.
+--_C._62E72DEAD6F3AA792_
+Content-Type: text/plain;
+Content-Transfer-Encoding: quoted-printable
 
-It was the only free, decent AML decompiler available, before iasl
-implemented the '-d' option, and is part of FreeBSD system.
+US Stock Market - UP On the NEWS...AZAA
 
-A backport for other OS, like linux, were made, but is
-less complete than the FreeBSD version.
+BREAKING NEWS - TUCSON, Ariz.--(BUSINESS WIRE)--Arizona Aircraft Spares, I=
+nc. (OTCBB: AZAA) - one of the leading military aircraft spare parts manuf=
+acturers - announces it has signed a letter of commitment with Wolfe and T=
+urner Investments to obtain a 6 million dollar non-equity asset-backed loa=
+n. The loan would have a ten-year term with a 25-year amortization schedul=
+e. AZAA is currently completing the due diligence phase and anticipates th=
+at funding will occur prior to December 1, 2003.
 
--- 
-Ducrot Bruno
+Despite the current boost in government military spending, aircraft used b=
+y the US Air Force and other armed forces are now older than ever=9723 yea=
+rs on average.  B-52's are older than their pilots, with no plans to build=
+ new bombers for the next 10 years.  Result: Aging aircraft require ever-i=
+ncreasing amounts of expensive maintenance, repairs and replacement parts.=
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+
+Arizona Aircraft Spares' market potential is measured in billions of dolla=
+rs. The company works directly with the U.S. Government and other internat=
+ional world governments. The proposed U.S. military budget alone is 399.1 =
+billion-dollars, of which twenty-five percent is allocated for spare parts=
+ and ground support systems.
+
+Arizona Aircraft Spares focuses exclusively on manufacturing military airc=
+raft spare parts. The majority of the company's business comes from the U.=
+S. Government =96 the Army, Navy and Air Force branches of the U.S. Milita=
+ry. Working with the U.S. Military represents the least cash intensive gro=
+wth strategy for the company, as the government systematically pays within=
+ 30 days after the company has shipped the product. Furthermore, Arizona A=
+ircraft Spares is eligible for the =93Progressive Payment=94 program where=
+by the company can collect upwards of 80% of the contract's total value pr=
+ior to completion of the contract.
+
+AZAA has worked with over 20 international governments and continues to ma=
+intain international clients apart from the U.S. Government. All other ord=
+ers are required to put an upfront deposit on all contracts awarded. Arizo=
+na Aircraft Spares as a public company can take full advantage of the oppo=
+rtunities in the international markets with enhanced liquidity to execute =
+larger international projects.
+
+Arizona Aircraft Spares, Inc. works primarily with the U.S. Government, fo=
+cusing exclusively on the Army, Navy and Air Force branches of the U.S. Mi=
+litary as well as foreign ally countries.  The company receives its contra=
+cts from the Department of Defense Logistics Services located in either Ri=
+chmond, Virginia or Columbus, Ohio. These two sites represent the central =
+purchasing group for U.S. Government military contracts, and the point of =
+origin for all U.S. military bids and contracts.
+
+On average, Arizona Aircraft Spares receives over 600 requests to bid on U=
+S. military spare parts every week. Occasionally, Arizona Aircraft Spares=
+ receives orders from other U.S. Government Prime Contractors, such as Boe=
+ing and Northrop Grumman. This typically happens in situations when these =
+companies surmise that Arizona Aircraft Spares can provide the spare parts=
+ at a better cost efficiency than them.
+
+To find out more, go to: www.arizonaaircraftspares.com
+
+
+AZAA IS IN NO WAY associated with this newsletter.
+
+
+
+
+This is for information puposes only. Penny stocks are considered to be hi=
+ghly speculative and may be unsuitable for all but very aggressive investo=
+rs.  We do not hold or plan to hold a position in this stock.  This Profil=
+e was a paid advertisement by a third party not affiliated with the profil=
+ed company.  We were compensated 3000 dollars to distribute this report on=
+ly. Please always consult a registered financial advisor before making any=
+ decisions.  This report is for entertainment and advertising purposes onl=
+y and should not be used as investment advice.
+
+
+
+
+No more advertising: www.relar33.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+zyrfl k jzs
+
+udvje
+ky ppustlalq 
+r
+hp
+
+--_C._62E72DEAD6F3AA792_--
+
 
 
 -------------------------------------------------------
