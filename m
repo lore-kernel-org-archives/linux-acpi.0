@@ -1,12 +1,13 @@
-From: chirag <nisha_rajyaguru-xFOqZoH7zVZ4Eiagz67IpQ@public.gmane.org>
-Subject: inspiron 5150 DSDT
-Date: Wed, 29 Dec 2004 01:45:05 +0900
-Message-ID: <1104252306.6382.12.camel@YahooBB219031151066.bbtec.net>
-Reply-To: chirag-9dAiHs7qY9HTsWAM89vZ1+0/RLrZM5er@public.gmane.org
+From: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
+Subject: Re: Re: what is the worst laptop atm?
+Date: Tue, 28 Dec 2004 16:54:23 +0000
+Message-ID: <41D18FBF.1020606@mega.ist.utl.pt>
+References: <20041227165207.GB9606@poupinou.org>	<41D06CA6.30607@mega.ist.utl.pt> <20041228103019.GD9606@poupinou.org> <m2is6mzaip.fsf@phoenix.squirrel.nl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <m2is6mzaip.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,40 +17,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi guys!
+Johan Vromans wrote:
+> Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> writes:
+>=20
+>=20
+>>Indeed.  The fact that Linux do not support smartbattery yet is not ACE=
+R
+>>fault.
+>=20
+>=20
+> Actually, I've been told that ACER is payed by Microsoft for not
+> helping Linux support. Yes, it's hearsay but it sounded reliable to me
+> at the time.
 
-I posted earlier also but it seems that I was not able to draw enough
-attention. The problem is about the ACPID events. The simptoms are
-almost same as described in bug 1752
-http://bugme.osdl.org/show_bug.cgi?id=1752. There are no button or lid
-events. Lid closer always logs event as if the AC adepter was plugged
-in. Power button event is not executed but as soon as a USB device is
-plugged in the power button script in /etc/acpi/event is executed as if
-it was queued. When I compiled the DSDT, it gives me a warning   
-dsdt.dsl  1373:                 Method (_S0D, 0, NotSerialized)
-Warning  2033 -      Unknown reserved name ^  (_S0D)
+sounds like conspiracy theory to me. nevertheless, I don't find it=20
+impossible, just very unlikely.
 
-The warning occur at 4 places which correspond to USB device related
-stuff namely USB0, USB1, USB2,USB3 
-
-Device (USB0)
-            {
-                Name (_ADR, 0x001D0000)
-.                Method (_S0D, 0, NotSerialized)
-			|
-			|
-			|
-and so on...............................
-
-Could execution of events with plugging of usb device and irratic
-reporting of button, lid and AC adepter events be related to these
-warnings in DSDT?
-
-Please help.
-
+regards,
+pedro venda.
+--=20
+Pedro Jo=E3o Lopes Venda
+email: pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org
+http://arrakis.dhis.org
 
 
 -------------------------------------------------------
