@@ -1,30 +1,51 @@
-From: Proinnsias Breathnach <proinnsias@linux.ie>
-Subject: Re: [ACPI] Call for help: list of machines with working S3
-Date: Fri, 25 Feb 2005 17:50:11 +0000
-Message-ID: <20050225175011.GX26667@project-bob.org>
-References: <20050214211105.GA12808@elf.ucw.cz> <20050215125555.GD16394@gamma.logic.tuwien.ac.at> <42121EC5.8000004@gmx.net> <20050215170837.GA6336@gamma.logic.tuwien.ac.at> <20050222220828.GB538@hell.org.pl> <20050224123716.GD28961@gamma.logic.tuwien.ac.at>
+From: "Cezar Halmagean" <cezar-WE3S9J525UShKNWrAYCRhA@public.gmane.org>
+Subject: Re: back from suspend
+Date: Fri, 25 Feb 2005 22:13:36 +0200
+Message-ID: <20050225201033.M94503@mixandgo.ro>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20050224123716.GD28961@gamma.logic.tuwien.ac.at>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Norbert Preining <preining@logic.at>
-Cc: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>, Pavel Machek <pavel@suse.cz>, ACPI mailing list <acpi-devel@lists.sourceforge.net>, kernel list <linux-kernel@vger.kernel.org>, seife@suse.de, rjw@sisk.pl
+Content-Type: text/plain;
+	charset=utf-8
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Feb 24, 2005 at 01:37:16PM +0100, Norbert Preining wrote:
-> - X.Org 6.8.1.99 (debian -dri-trunk stuff plus kernel modules9
-> 	no work
-> 	with 2.6.11-rc4 and 2.6.11-rc3-mm2
-> 	this server crashes when switching to the console or shutting
-> 	down (crashing is sometimes, not always), very nice screen which
-> 	slowly turns white
-> 
-I get a very similar experience on a Sony Vaio PCG-FX401 (Duron 800 /
-Mach64 based RageM1)
+I've compiled vanila-sources kernel-2.6.11-rc4 and still does not work. Can
+you please send me your .config ? cause I can't find it on the list
 
-All suggestions welcome - no DRI or Framebuffers in use - X is Xorg
-6.8.2 and the kernel is a 2.6.10mdk from cooker (yeah - I know not
-vanilla)
+Thanks !
 
-P
+--
+Cezar Halmagean
+Mix & Go
+
+Cezar Halmagean wrote:
+ > Hi guys, I got a notebook HP/Compaq nc6000 with gentoo on it, kernel
+ > 2.6.10-gentoo-r6. I am having problems with suspend, I can put it in suspend
+ > mode (i think) but all the control lights remain on, and I can"t get back from
+ > it; I must reboot it.
+ 
+ Try kernel 2.6.11-rc3 or -rc4. I couldn"t get S3 to work on my NC6000 
+ before, but now it works.
+ 
+ I posted a kernel .config earlier to this list if you need help 
+ compiling the kernel.
+ 
+ 
+ Cheers,
+ Lorenzo
+
+
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
