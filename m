@@ -1,14 +1,18 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: Laptop backlight/S1 in 2.6.6 vanilla
-Date: Fri, 28 May 2004 10:08:21 +0200
+From: Andre Eisenbach <andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org>
+Subject: Re: ACPI issues - suspend-to-ram and processor speed
+Date: Fri, 28 May 2004 01:17:37 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040528080821.GB1808@elf.ucw.cz>
-References: <40B1D0BA.8080303@khmer.cc> <20040525192551.GM5215@openzaurus.ucw.cz> <40B6EB6F.4090508@khmer.cc>
+Message-ID: <200405280117.51602.andre@eisenbach.com>
+References: <200405180213.34603.andre@eisenbach.com> <20040523122942.GH5215@openzaurus.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed;
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1;
+  boundary="Boundary-02=_uWvtAQl8+25nsFc";
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <40B6EB6F.4090508-LA8/tbxb0N8@public.gmane.org>
+In-Reply-To: <20040523122942.GH5215-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,30 +21,61 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Vibol Hou <vibol-LA8/tbxb0N8@public.gmane.org>
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
 
-> I commented out pm_prepare_console() and pm_restore_console() in 
-> kernel/power/main.c and the screen no longer turns back on.  However, 
-> I'm still uncertain if this is safe.  What I do notice is that some 
-> keyboard input still makes it into the terminal where I have initiated 
-> sleep from while the machine is in S1 so it appears after I wake up the 
-> machine.
+--Boundary-02=_uWvtAQl8+25nsFc
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-It should be safe for S1. Not sure about S3, and it is bad idea for
-S4.
+Am Sonntag Mai 23 2004 05:29 schrieb Pavel Machek:
+> > I also tried to suspend to disk using swsusp. That corrupted my swap
+> > partition and didn't resume.
+>
+> Read swsusp.txt, power/tricks.txt.
 
-> Somehow, this has also resolved another problem I had with the machine 
-> cycling in and out of S1 mode a few times before finally staying awake.
+Thank you, thank you, thank you.
+RTFM seems to have done the trick.
 
-Good.
-									Pavel
+After reading the two files suggested, I recompiled my kernel (2.6.7-rc1-mm=
+1)=20
+with CONFIG_PM_DISK and _without_ CONFIG_PREEMPT and for the first time eve=
+r=20
+got software suspend to work!
 
--- 
-934a471f20d6580d5aad759bf0d97ddc
+It takes about 50secs to resume, which is still a relatively long time, but=
+=20
+its definitely less than the about 1:20min it takes for me to fully boot an=
+d=20
+log on AND my state is preserved.
+
+My notebook just got a whole lot more usable!
+Thanks ACPI devs!
+
+Now, if only suspend-to-ram would work.
+
+How could I debug this problem?
+
+Thanks,
+   Andr=E9
+
+--Boundary-02=_uWvtAQl8+25nsFc
+Content-Type: application/pgp-signature
+Content-Description: signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQBAtvWu5DBE808V5icRAtVHAKDg6SLam4Uk0SwaGB77biqxNj+4SwCeKzmY
+XuJIJusNi9a8dnzUwb6uxSU=
+=gXI1
+-----END PGP SIGNATURE-----
+
+--Boundary-02=_uWvtAQl8+25nsFc--
 
 
 -------------------------------------------------------
