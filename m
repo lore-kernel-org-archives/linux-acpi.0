@@ -1,16 +1,13 @@
-From: Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
-Subject: Re: S4 sleep woes
-Date: Mon, 02 Aug 2004 09:32:13 +1000
+From: "Damian G. Rodriquez" <damian.grodriqueztc-3dk1V+gAwLIXaJKuTxrehQ@public.gmane.org>
+Subject: Get $200 bonus at Casino Zeal!
+Date: Sun, 01 Aug 2004 20:05:44 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1091403133.11580.63.camel@laptop.cunninghams>
-References: <20040730050615.GA24597@blackham.com.au>
-	 <20040731150112.GA480@hell.org.pl>  <20040731184636.GG3443@blackham.com.au>
-Reply-To: ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org
+Message-ID: <0dab01c4783d$4b92dfca$313a08e7@tv3.com.gh>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040731184636.GG3443-4vSAtV5O1nc0n/F98K4Iww@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -19,26 +16,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bernard Blackham <bernard-4vSAtV5O1nc0n/F98K4Iww@public.gmane.org>
-Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Patrick Mochel <mochel-og82NyAXoxR0I81aPRRTmR2eb7JE58TQ@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Howdy.
+Hello!
 
-On Sun, 2004-08-01 at 04:46, Bernard Blackham wrote:
-> Ah, there appears to be one, yes (disk_show and disk_store in
-> kernel/power/disk.c). Looking again, pmdisk appears to handle it
-> correctly (just a little jump of logic). Guess that means it's a bug
-> in software suspend 2. :)
+Are you interested in trying out this special offer at
+our internet casino?
 
-I wasn't setting pm_disk_mode from suspend 2, but leaving it at it's
-default. It looks to me (without testing it yet) like the fix is to
-explicitly set pm_disk_mode to PM_DISK_PLATFORM when suspending and
-restore the original value afterwards. Sound right, Patrick?
+$20 to try our casino, no deposit is necessary!
+At the casino software's cashier enter bonus code: FR93P
 
-Regards,
+$200 bonus on your first deposit!
+At the casino software's cashier enter bonus code: FMJKU
 
-Nigel
+Let us show you our quality operation, fast payouts,
+generous bonuses, and super friendly around-the-clock
+customer support. We guarantee that you will be
+satisfied.
+
+Click here: http://bigbonus-casino.com 
+
+Best regards,
+George Lincoln at Casino Zeal.
+
+
+
+No thanks: http://bigbonus-casino.com/u/
 
 
 
