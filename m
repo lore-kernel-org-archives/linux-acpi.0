@@ -1,14 +1,12 @@
-From: David Bronaugh <dbronaugh-Jp3n8lUXroSX6QiC4yPwbg@public.gmane.org>
-Subject: Re: Should battery generate events?
-Date: Mon, 04 Oct 2004 15:14:45 -0700
+From: Anil Mamede <amak-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
+Subject: ACPI Problems
+Date: Tue, 05 Oct 2004 11:31:53 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4161CB55.9040800@linuxboxen.org>
-References: <20041004232557.6c342288@commensaal.drs.p>
+Message-ID: <41627819.6070104@mega.ist.utl.pt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041004232557.6c342288-7SZEXzPdWeU90gtriz95AQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,44 +15,86 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Tim Dijkstra <newsuser-TpnWJeB+oO0hKRfeEwdQzg@public.gmane.org>
-Cc: ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Tim Dijkstra wrote:
+Hi. My computer is:
+- Athlon Barton 2600+
+- Asus NFORCE2 chipset
+- 512 Mb
+- Kernel 2.4.27
 
->Hi,
->
->Last week my laptop (Acer Travelmate 636Lci) run out of power resulting
->in a unclean shutdown, disk corruption and me spending a few evenings to
->get it to sanely work again.
->
->I would want to avoid this happening again. Ideally I would want my
->laptop to "shutdown -h now" if battery power is to low (well rather have
->it go to S3 or softwaresuspend, but it seems hopeless to get that to
->work :(  
->
->>From some googl'ing I get the impression that ACPI should generate
->battery events on a change of capacity or at least when it's low. My
->idea was to have acpid call some script on battery events. 
->The problem is that there doesn't seem to be such events on my machine. 
->  
->
-Whenever polling is required, this is expected to be done in userspace, 
-not in kernelspace. There's a long history of people asking "why doesn't 
-battery status changes generate events" and a long history of people 
-saying "because it would require polling in either acpid or the kernel, 
-which is a Bad Thing(tm)".
+Im trying to have ACPI. First i compiled battery, thermal, processor, 
+etc.. in modules but when i do modprobe processor for example it show this:
 
-If you'd like something to watch the battery capacity, perhaps you 
-should use something like KLaptop -- you can configure it to run a 
-command (like 'echo -n "disk" > /sys/power/state') on low and/or on 
-critical battery level warnings. Since it tracks this kind of state, you 
-don't have to.
 
-Of course, KLaptop's not the only option -- it's just what I have here.
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: 
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: unresolved symbol 
+acpi_bus_generate_event
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: 
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: unresolved symbol 
+acpi_os_free
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: 
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: unresolved symbol 
+acpi_bus_get_device
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: 
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: unresolved symbol 
+acpi_set_register
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: 
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: unresolved symbol 
+acpi_root_dir
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: 
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: unresolved symbol 
+acpi_install_notify_handler
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: 
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: unresolved symbol 
+acpi_extract_package
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: 
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: unresolved symbol 
+acpi_evaluate_object
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: 
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: unresolved symbol 
+acpi_bus_register_driver
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: 
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: unresolved symbol 
+acpi_fadt
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: 
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: unresolved symbol 
+acpi_get_register
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: 
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: unresolved symbol 
+acpi_evaluate_integer
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: 
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: unresolved symbol 
+acpi_bus_unregister_driver
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: 
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: unresolved symbol 
+acpi_get_handle
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: 
+/lib/modules/2.4.27/kernel/drivers/acpi/processor.o: unresolved symbol 
+acpi_remove_notify_handler
+modprobe: insmod /lib/modules/2.4.27/kernel/drivers/acpi/processor.o failed
+modprobe: insmod processor failed
 
-David Bronaugh
+
+If i compile the modules inside the kernel if i do cat 
+/proc/acpi/processor/limit for example i have:
+
+not supported
+
+What is wrong?
+
+More Info:
+
+$ cat /proc/acpi/info
+version:                 20040326
+states:                  S0 S1 S4 S4Bios S5
+
+
+$ cat /proc/acpi/sleep
+S0 S1 S4 S4Bios S5
+
+Anil Mamede
 
 
 -------------------------------------------------------
