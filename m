@@ -1,11 +1,10 @@
-From: "Kevin Medina" <kmedina_cm-LqWlOQlmgCFW7IvYoCtsgA@public.gmane.org>
-Subject: Italian Crafted Rolex from $75 to $275 - Free Shipping
-Date: Tue, 23 Nov 2004 19:21:37 +0500
-Message-ID: <24cf01c4d167$fe9eb368$34c09b7f@rb.cz>
+From: ultrakorne <ultrakorne-XtQPfPCVGG7srOwW+9ziJQ@public.gmane.org>
+Subject: can't read battery, dsdt bugged?
+Date: Tue, 23 Nov 2004 16:53:10 +0100
+Message-ID: <41A35CE6.90803@paranoici.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,29 +18,44 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Heya,
+Hi, i have a acer laptop (travelmate 4501LCi) and i have installed 
+ubuntu warty 4.10 (kernel 2.6.8.1)
+the battery applet didnt works... this because /proc/acpi/battery/ is empty!
+ps -e | grep acpi
+     5 ?        00:00:00 kacpid
+  3977 ?        00:00:00 acpid
 
-Do you want a rolex watch?
+so i disassembled my dsdt to see if i get compiling errors.. i only get 
+3 warnings. here comes the first question, i got only warning no 
+errors.. so my dsdt is ok or the cause i cant read my battery is those 3 
+warnings?
 
-In our online store you can buy replicas of Rolex watches. They look
-and feel exactly like the real thing.
+i tryed to fix this out, i fix the first, but not the last 2.
 
-- We have 20+ different brands in our selection
-- Free shipping if you order 5 or more
-- Save up to 40% compared to the cost of other replicas
-- Standard Features:
- - Screw-in crown
- - Unidirectional turning bezel where appropriate
- - All the appropriate rolex logos, on crown and dial
- - Heavy weight
+first warning:
+dsdt.dsl   245:     Method (_WAK, 1, NotSerialized)
+Warning  2026 -                ^ Reserved method must return a value (_WAK)
 
-Visit us: http://www.icors.com/rep/rolex/
+i fix this adding this line at the end of the involved method
+Return(Package(0x02){0x00, 0x00})
+just before the last }
 
-Best regards,
-Hilton Jones
+the others to warning are on the same line:
+dsdt.dsl  4508:                         Method (_STA, 0, NotSerialized)
+Warning  2019 -                                    ^ Not all control 
+paths return a value (_STA)
 
+dsdt.dsl  4508:                         Method (_STA, 0, NotSerialized)
+Warning  2026 -                                    ^ Reserved method 
+must return a value (_STA)
 
-No thanks: http://www.icors.com/z.php
+this is a big if statment with an else Return (0x08)
+
+i just remove the last else return and i left only the return...
+
+now compiling error are 0. are those fixes correct?
+and the most important thing, could those warnings be my problem... if 
+not what should i check?
 
 
 
