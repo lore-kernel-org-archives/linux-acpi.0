@@ -1,12 +1,12 @@
-From: Matthew Keller <mgkeller-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: Battery "design capacity" incorrect
-Date: 01 Mar 2003 13:15:26 -0500
+From: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
+Subject: ANNOUNCE: new Radeon dri_resume binary drivers available
+Date: Sun, 2 Mar 2003 01:47:33 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1046542526.20921.22.camel@comp6161.potsdam.edu>
+Message-ID: <20030302004733.GA7605@dutidad.twi.tudelft.nl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,47 +15,23 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: swsusp-LcL5texQODR2DW0IdvIQ2g@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: xfree86-72qDnkntNoRAfugRpC6u6w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I've got a *very minor* problem. In fact, it's almost so trivial it's
-cosmetic, but if there is an easy fix it would be one less nuisance!
+Dear lists,
 
-ACPI is working SPLENDIDLY (2.4.21-pre<something> + acpi patches) and
-I'm very happy with it. It does, however, think my battery has a "design
-capacity" much higher than it actually is. This results in various
-scripts I've written, as well as the Gnome battery applet thinking it's
-always only 71% full even when it's fully charged and a-ok. It does the
-same with my spares of the same make/model. Below is the output
-(/proc/acpi/batter/BAT1/info) for the battery in my Gateway Solo 1450X.
-The design capacity should be right around what the "last full capacity"
-says. I've confirmed this on Sanyo's site. I would like to note that
-everything is **perfect** with a different Sanyo model battery that is a
-"extra capacity" battery. Is there any source I can diddle? Proc entries
-I can echo some magic number into? etc? Thanks!
+I've made new binary versions of my Radeon suspend/resume-capable DRI
+drivers available at http://cpbotha.net/dri_resume.html
 
-present:                 yes
-design capacity:         5400 mWh
-last full capacity:      3864 mWh
-battery technology:      rechargeable
-design voltage:          11100 mV
-design capacity warning: 250 mWh
-design capacity low:     100 mWh
-capacity granularity 1:  10 mWh
-capacity granularity 2:  25 mWh
-model number:            UAL3$
-serial number:
-battery type:            LION
-OEM info:                SANYO
+There are XFree86 4.3.0 and XFree86 DRI CVS versions of these drivers
+available.
+
+Thanks,
+Charl
 
 -- 
-Matthew Keller
-Enterprise Systems Analyst
-Computing & Technology Services
-State University of New York @ Potsdam
-Potsdam, NY USA
-http://mattwork.potsdam.edu/
-
+charl p. botha http://cpbotha.net/ http://visualisation.tudelft.nl/
 
 
 -------------------------------------------------------
