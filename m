@@ -1,13 +1,12 @@
-From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <syrjala-ORSVBvAovxo@public.gmane.org>
-Subject: Re: [RFC] Reliable video POSTing on resume (was: Re: Samsung P35, S3, black screen (radeon))
-Date: Thu, 10 Feb 2005 21:25:54 +0200
-Message-ID: <20050210192554.GA15726@sci.fi>
-References: <1107695583.14847.167.camel@localhost.localdomain> <420BB267.8060108@tmr.com>
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Speedstep-centrino problems
+Date: Thu, 10 Feb 2005 20:28:14 +0100
+Message-ID: <20050210192814.GG1145@poupinou.org>
+References: <0FEA36BB2ABDF44FAAFEB7A75367C07A0117D810@alaska.condis.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <420BB267.8060108-sQDSfeB7uhw@public.gmane.org>
+In-Reply-To: <0FEA36BB2ABDF44FAAFEB7A75367C07A0117D810-0IKPNnIBiwz73juT6mD8XA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,18 +16,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bill Davidsen <davidsen-sQDSfeB7uhw@public.gmane.org>
-Cc: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Simon Moore <Simon_Moore-HnN13UdsTkzz1n+OaKNE4w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-BTW it seems that old ATI cards use the BIOS to initialize secondary=20
-adapters even under Windows.
-See http://www.ati.com/support/infobase/3663.html.
+On Thu, Feb 10, 2005 at 10:38:31AM +0100, Simon Moore wrote:
+> Hi,
+> 
+> I'm trying to get acpi cpu throttling working for my Dell Inspiron 510m
+> with a Pentium M Centrino 1.6 Ghz cpu.
+> 
 
---=20
-Ville Syrj=E4l=E4
-syrjala-ORSVBvAovxo@public.gmane.org
-http://www.sci.fi/~syrjala/
+I need the full acpi dump (not just dsdt) to debug this.
+
+wget ftp://ftp.kernel.org//pub/linux/kernel/people/lenb/acpi/utils/pmtools-20031210.tar.bz2
+tar xjvfp pmtools-20031210.tar.bz2
+cd pmtools-20031210/acpidmp
+make
+sudo ./acpidmp > acpidmp.out
+bzip2 acpidmp.out 
+
+Then mail me (privately) the acpidmp.out.bz2
+
+Cheers,
+
+-- 
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
