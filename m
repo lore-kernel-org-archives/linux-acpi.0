@@ -1,56 +1,139 @@
-From: Hiroshi 2 Itoh <HIROIT@jp.ibm.com>
-Subject: Re: [ACPI] [Proposal]Another way to save/restore PCI config space	for
- suspend/resume
-Date: Wed, 27 Oct 2004 11:26:40 +0900
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <OF96A27AFE.EC89615C-ON49256F3A.000B5394-49256F3A.000CB5DB@jp.ibm.com>
-References: <1098842129.12477.2.camel@sli10-desk.sh.intel.com>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFC] dev_acpi: support for userspace access to acpi
+Date: Wed, 27 Oct 2004 10:30:29 +0800
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <3ACA40606221794F80A5670F0AF15F84041ABFEF@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261560AbUJ0C0z@vger.kernel.org>
-In-Reply-To: <1098842129.12477.2.camel@sli10-desk.sh.intel.com>
-To: Li Shaohua <shaohua.li@intel.com>
-Cc: ACPI-DEV <acpi-devel@lists.sourceforge.net>, greg@kroah.com, Len Brown <len.brown@intel.com>, lkml <linux-kernel@vger.kernel.org>, Pavel Machek <pavel@suse.cz>
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+If you want to have a full access to acpi subsystem from userspace, why =
+not firstly move ACPI interpreter out of kernel?
+Then, you can play with the whole ACPI subsystem with minimal cost of =
+troubling kernel  in userspace.  Say, you can forget "=20
+ioctl, read issues on files, complex data for sysfs, file per operation, =
+etc...".  Is it a more clean way ?
+=20
+Thanks
+Luming=20
 
-
-
-
-> >
-> > I think a basic problem of current Linux device model is that there is
-no
-> > effective message path from sibling devices to their root device.
-> > Although the message direction from a root device to sibling devices is
-> > natural from the viewpoint of device enumeration, the direction from
-> > sibling devices to a root device is required for effective arbitration
-for
-> > device configuration and power management.
-> >
-> > The Windows driver model uses the direction from sibling drivers to a
-root
-> > bus driver mainly, i.e. sibling drivers are layered on a root bus
-driver.
-> > While we need a kind of callback mechanism from PCI (sibling) devices
-to
-> > PCI bus (root) device instead because their normal call interface is
-from a
-> > root device to sibling devices.
-> Hiro-san,
-> I don't really understand why this is related with suspend/resume. Could
-> you please explain it more clearly?
+>-----Original Message-----
+>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
+>[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
+>Alex Williamson
+>Sent: 2004=C4=EA10=D4=C227=C8=D5 4:55
+>To: linux-kernel
+>Cc: acpi-devel
+>Subject: [ACPI] [RFC] dev_acpi: support for userspace access to acpi
 >
-Hi,
+>
+>   Announcing the next revision of dev_acpi.  The dev_acpi module
+>provides userspace access to ACPI namespace using a simple character
+>device file.  For further discussion of the interface, see the README
+>file in the tarball.  The current release is available here:
+>
+>http://free.linux.hp.com/~awilliam/acpi/dev_acpi/dev_acpi-20041
+>026.tar.bz2
+>
+>(it's a little big to post here raw, but if requested I'd be happy to
+>post the driver by itself)
+>
+>   I've been tossing around sysfs and device file interfaces=20
+>to the ACPI
+>namespace for a while now.  The idea is that there's way too much
+>information in namespace to not provide a userspace interface to it.
+>Examples include projects springing up to support ACPI features on
+>various laptops, increasing dependence on developing code using ACPI,
+>extracting system/platform information from ACPI namespace.  In short,
+>there are a lot of really simple things that userspace could use ACPI
+>namespace for, but there's currently no way to get to it.
+>
+>   Previous iterations using sysfs looked pretty, but never really
+>achieved the full potential of the interface (no ioctl, read issues on
+>files, complex data for sysfs, file per operation, etc...).  The device
+>file interface provides a more comprehensive yet compact interface,
+>along with a 32bit compatibility layer, and sane read semantics on the
+>file.
+>
+>   This revision cleans up quite a bit of code, adds some documentation
+>in the README file, adds a number of interfaces, and adds several more
+>example program, with the intent of sparking more interest.  I've
+>updated the acpitree program to list a bit more data, but it's=20
+>basically
+>the same.  For anyone trying to wrap their head around ACPI namespace,
+>it's a great tool for getting a simple visual representation=20
+>of the data
+>available.  I added a tool called acpivideo that will hopefully be
+>interesting to laptop users.  It's able to set the active video output
+>device, much like the hotkey on most laptops (but from command line).
+>It also has a daemon mode that sets up a notify handler (yes, from
+>userspace) and listens for events on the VGA device.  When an event is
+>received, it evaluates the requested state change and pokes ACPI to do
+>it.  See the README for more info.  If anyone knows how to=20
+>poke X to not
+>block the switch it'd be interesting to add the hooks (currently only
+>seems to work from a vt).
+>
+>   I added another simple program called acpiundock.  If you have a
+>laptop docking station with an electo-mechanical eject (like the
+>omnibook 500), this one should be fun.  There are no option,=20
+>just run it
+>and see what happens (please be prepared for it to work... it just
+>might).
+>
+>   Another fun developer tool/hack is eventwatch.  This program is
+>simply a version of acpitree that tries to install notify handlers on
+>every device in namespace.  It then sits and waits for something to
+>happen.  If you've wondered if that hotkey on your box does something,
+>try this, it just might.
+>
+>   I skimmed though the ibm-acpi module and tried to provide enough
+>interfaces in this version of dev_acpi that the entire ibm-acpi could
+>potentially be done in userspace.  I don't have an IBM laptop to
+>experiment with, but I'd be interested to hear if someone tries.
+>
+>   Anyway, please give this interface a shot.  It builds as a=20
+>standalone
+>module and should work on any 2.6 kernel with headers available.  I've
+>tested this version quite a bit more than the version I posted a couple
+>weeks ago, especially the 32bit app on 64bit kernel code (ia64 and
+>x86_64).  Bug reports, feedback, opinions gladly welcomed.  Thanks,
+>
+>	Alex
+>
+>--=20
+>Alex Williamson                             HP Linux & Open Source Lab
+>
+>
+>
+>-------------------------------------------------------
+>This SF.Net email is sponsored by:
+>Sybase ASE Linux Express Edition - download now for FREE
+>LinuxWorld Reader's Choice Award Winner for best database on Linux.
+>http://ads.osdn.com/?ad_id=3D5588&alloc_id=3D12065&op=3Dclick
+>_______________________________________________
+>Acpi-devel mailing list
+>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>
 
-What I mean is that:
 
-There are some bridge devices to be supported by a driver for various
-device types and vendors. In the long run PCI drivers will have power
-dependency one another in the long run. It is natual that PCI bridge driver
-reports its child devices and their dependency to PCI core because PCI core
-driver needs to know power up/down sequence at suspend/resume time. So I
-think callbacks from bridge-to-core is useful. Especially it is more useful
-for the core to get exact timing to power up the next driver if some
-devices have certain latency to power up.
-
-- Hiro.
+-------------------------------------------------------
+This SF.Net email is sponsored by:
+Sybase ASE Linux Express Edition - download now for FREE
+LinuxWorld Reader's Choice Award Winner for best database on Linux.
+http://ads.osdn.com/?ad_id=5588&alloc_id=12065&op=click
