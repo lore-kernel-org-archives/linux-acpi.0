@@ -1,11 +1,13 @@
-From: Allan Mcintosh <amcintosh-sAvY64jVBerkQYj/0HfcvtBPR1lH4CV8@public.gmane.org>
-Subject: "Found HC with no IRQ" empty /proc/bus/usb
-Date: Fri, 01 Apr 2005 13:00:40 -0500
-Message-ID: <424D8C48.1090804@atreus-systems.com>
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: suspend-to-disk: fan always on and misc kernel errors
+Date: Sat, 2 Apr 2005 00:19:40 +0200
+Message-ID: <20050401221940.GC1868@message-id.gmane0305.slipkontur.de>
+References: <4246F06D.40005@cs.unibo.it> <20050328205027.GB28568@message-id.gmane0305.slipkontur.de> <4249A359.9060301@cs.unibo.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4249A359.9060301-iEixELS/QsY1GQ1Ptb7lUw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,79 +20,35 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hey,
+On Tue, Mar 29, 2005 at 08:50:01PM +0200, Andrea Borgia wrote:
+> Stefan Seyfried wrote:
+> 
+> Thanks, I have no idea how they got in the script, that partially fixed
+> it: no more "command not found" errors, but the kernel messages about
+> "scheduling while atomic" are still there and the script still aborts
+> with SIG11 after resuming from suspend.
 
-On my debian Dual 550MHz Pentium III machine, I am unable to get usb
-working. I didn't notice anything obvious in the bios that would disable
-USB. Any suggestions would be greatly appreciated.
+| Mar 27 18:49:57 localhost kernel: note: swsusp-script[3902] exited with preempt_count 1
 
-I have tried several kernels, most recently 2.6.10 and 2.6.11.5.
-I have also tried booting with variations of
+disable preempt.
+ 
+> Anyhow, I found out that the fan issue is related to powernowd not being
+> restarted because of the script failure.
+> 
+> Any clues about that? I tried both platform and shutdown for disk, but
+> the only difference is that platform reboots immediately instead of
 
-append="noapic acpi=off pci=biosirq"
+interesting, but another bug...
 
+> powering down. Also, writing "4b" to acpi/sleep is the same as "disk" to
+> power/state.
 
-Upon loading uhci_hcd module I see the following
-
-$ dmesg
-<snip>
-usbcore: registered new driver usbfs
-usbcore: registered new driver hub
-usbcore: registered new driver hiddev
-usbcore: registered new driver usbhid
-drivers/usb/input/hid-core.c: v2.0:USB HID core driver
-USB Universal Host Controller Interface driver v2.2
-PCI: Enabling device 0000:00:07.2 (0000 -> 0001)
-PCI: No IRQ known for interrupt pin C of device 0000:00:07.2. Probably
-buggy MP table.
-uhci_hcd 0000:00:07.2: Found HC with no IRQ.  Check BIOS/PCI
-0000:00:07.2 setup!
-
-
-
-$ lspci -vv
-<snip>
-0000:00:07.2 USB Controller: Intel Corp. 82371AB/EB/MB PIIX4 USB (rev
-01) (prog-if 00 [UHCI])
-        Control: I/O+ Mem- BusMaster- SpecCycle- MemWINV- VGASnoop-
-ParErr- Stepping- SERR- FastB2B-
-        Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
-<TAbort- <MAbort- >SERR- <PERR-
-        Interrupt: pin D routed to IRQ 0
-        Region 4: I/O ports at ef80 [size=32]
-
-
-$ lsmod
-Module                  Size  Used by
-uhci_hcd               34640  0
-ehci_hcd               34180  0
-usbhid                 33184  0
-usbcore               123096  3 uhci_hcd,ehci_hcd,usbhid
-<snip>
-
-
-
-
-
-
-
-
+known, s4bios is not working for a long time now, we should remove it.
+"echo 4 > /proc/acpi/sleep" is supposed to do the same thing as "echo disk >
+/sys/power/state" on an acpi system.
 
 -- 
-Allan McIntosh
-
-Software Designer
-
-
-Atreus Systems, Inc.
-
-613-233-1741 ext: 217 (Office)
-
-613-233-8204 (Fax)
-
-amcintosh-sAvY64jVBerkQYj/0HfcvtBPR1lH4CV8@public.gmane.org <mailto:amcintosh-sAvY64jVBerkQYj/0HfcvtBPR1lH4CV8@public.gmane.org>
-
-www.atreus-systems.com <http://www.atreus-systems.com/>
+Stefan Seyfried
 
 
 
