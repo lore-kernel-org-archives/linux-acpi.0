@@ -1,12 +1,13 @@
-From: Bernard Blackham <bernard-4vSAtV5O1nc0n/F98K4Iww@public.gmane.org>
-Subject: Re: [Suspend2-devel] Cause of Suspend2 resume failures on Toshiba laptops
-Date: Sat, 5 Mar 2005 18:02:54 +0800
-Message-ID: <20050305100254.GH4042__48830.7517407977$1110017074$gmane$org@blackham.com.au>
-References: <20050304175058.GA4042@blackham.com.au> <1110012298.6028.10.camel@DustPuppy.LNX.RO>
+From: Sergey Vlasov <vsu-u2l5PoMzF/Uox3rIn2DAYQ@public.gmane.org>
+Subject: Re: ACPI vs Asus A8v
+Date: Sat, 5 Mar 2005 14:22:45 +0300
+Message-ID: <20050305142245.40c8914a.vsu@altlinux.ru>
+References: <42289943.6030303@travellingkiwi.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Km1U/tdNT/EmXiR1"
-Content-Disposition: inline
-In-Reply-To: <1110012298.6028.10.camel-NCEiQXzLmfTIN9oMcCV+pg@public.gmane.org>
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="pgp-sha1";
+ boundary="Signature=_Sat__5_Mar_2005_14_22_45_+0300_ukh8o+qBB321Ylyr"
+In-Reply-To: <42289943.6030303-CM5YN7r2dWBr4tq51QLIbdBPR1lH4CV8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,68 +17,49 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dumitru Ciobarcianu <swsusp-devel-P4rH+HwZiSk@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, suspend2-devel-g/J2nbn7YhmWn91e4EydUaxOck334EZe@public.gmane.org
+To: Hamie <hamish-CM5YN7r2dWBr4tq51QLIbdBPR1lH4CV8@public.gmane.org>
+Cc: gentoo-amd64-cnFmAm88PdgLnqt3yJz4RQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-
---Km1U/tdNT/EmXiR1
-Content-Type: text/plain; charset=us-ascii
+--Signature=_Sat__5_Mar_2005_14_22_45_+0300_ukh8o+qBB321Ylyr
+Content-Type: text/plain; charset=US-ASCII
 Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
 
-On Sat, Mar 05, 2005 at 10:44:58AM +0200, Dumitru Ciobarcianu wrote:
-> ??n data de S??, 05-03-2005 la 01:50 +0800, Bernard Blackham a scris:
-> > The attached patch more or less reverts the change in 2.6.9-rc1 that
-> > began this all. If you have a Toshiba or other laptop that's
-> > affected by this, I ask you to see if it helps your problems. (It
-> > hacks around the problem rather than fixing it, but I'm not entirely
-> > sure what functionality it disables).
-> 
-> You are on the right track , it does the trick, I did serveral
-> suspend/resume cycles whitout problems. 
-> 
-> But (yes, it's a but :) it is functionally equivalent with using the
-> other workaround (booting at resume with acpi=off) meaning that I lose
-> all the acpi events (AC events, LID events, etc). The system records the
-> event (if I do an "watch cat /proc/acpi/ac_adapter/ADP1/state" it shows
-> the current state correctly) but acpid does not receive the event, and
-> thus can not act accordingly :(  (Toshiba Satellite Pro 6100) 
+On Fri, 04 Mar 2005 17:22:11 +0000 Hamie wrote:
 
-Ahh, d'oh. Try this patch instead.
+> I have an athlon64 in an Asus A8V motherboard, running gentoo with 
+> kernel 2.6.11 (Also tried with 2.6.9 and 2.6.10). Although it works, and 
+> cool&quiet kicks in before boot, I can get no thermal or fan information 
+> from acpi...
+[skip]
+> What sort of info & control SHOULD I be able to see out of this 
+> motherboard? How can I get the level of control that Asus offer with 
+> their windoze applications?
 
-After more investigation, it seems that the issue is the GPE is
-fired but not serviced because kacpid is frozen. This in itself
-would be okay, however, the GPE isn't being disabled before the
-method executes (despite there being code there to do so), and hence
-fires continuously.
+You should try to use lm_sensors - there are some success reports
+about this board:
 
-The attached patch makes kacpid NOFREEZE so the GPE does get
-serviced (eventually), but probably still isn't the correct
-solution. (A better solution being making sure the GPE gets disabled
-in the first place ... still looking into this).
+http://archives.andrew.net.au/lm-sensors/msg29514.html
 
-Bernard.
+In fact, most desktop machines do not support access to thermal or fan
+information via ACPI (because the code for this is not present in
+DSDT); and even if it is supported, the capabilities compared to
+lm_sensors are reduced (e.g., most hardware monitoring chips support
+voltage monitoring, which is not available through ACPI interfaces).
 
--- 
- Bernard Blackham <bernard at blackham dot com dot au>
+--Signature=_Sat__5_Mar_2005_14_22_45_+0300_ukh8o+qBB321Ylyr
+Content-Type: application/pgp-signature
 
---Km1U/tdNT/EmXiR1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="toshiba-acpi-hack-2.diff"
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
 
---- linux-2.6.9-rc1/drivers/acpi/osl.c.orig	2005-03-05 17:44:13.000000000 +0800
-+++ linux-2.6.9-rc1/drivers/acpi/osl.c	2005-03-05 17:44:16.000000000 +0800
-@@ -87,7 +87,7 @@
- 		return AE_NULL_ENTRY;
- 	}
- #endif
--	kacpid_wq = create_singlethread_workqueue("kacpid", 0);
-+	kacpid_wq = create_singlethread_workqueue("kacpid", PF_NOFREEZE);
- 	BUG_ON(!kacpid_wq);
- 
- 	return AE_OK;
+iD8DBQFCKZaIW82GfkQfsqIRAtncAJ9fX3mprCWQuJNBXL39BIdaZBiZ0ACfbpQ3
+RkCltxZRu+mFGEOM0v8GJyQ=
+=El0P
+-----END PGP SIGNATURE-----
 
---Km1U/tdNT/EmXiR1--
+--Signature=_Sat__5_Mar_2005_14_22_45_+0300_ukh8o+qBB321Ylyr--
 
 
 -------------------------------------------------------
