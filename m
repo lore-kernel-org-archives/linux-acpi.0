@@ -1,12 +1,12 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Latest dmidecode at savannah, but not at kernel.org
-Date: Wed, 2 Mar 2005 11:28:57 -0500
-Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3002E2D9D1@hdsmsx401.amr.corp.intel.com>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [patch 02/12] ia64 acpi build fix
+Date: 02 Mar 2005 13:42:54 -0500
+Message-ID: <1109788974.2101.561.camel@d845pe>
+References: <200502230953.j1N9rCep020693@shell0.pdx.osdl.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
-Content-class: urn:content-classes:message
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <200502230953.j1N9rCep020693-bipKiLWnuIsyyg0EjBt7GtHuzzzSOjJt@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,26 +16,53 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Richard Dawe <rich-fbHbV8X007REJxKfswctSdBc4/FLrbF6@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
->It appears that dmidecode 2.5 can be downloaded from savannah, but not=20
->kernel.org. Perhaps you could upload dmidecode to kernel.org too?
-
-Thanks for pointing this out.
-
-I've updated the kernel.org mirror to dmidecode 2.6 -- just out.
-
-Note that this is just a backup copy to have handy when
-http://www.nongnu.org/dmidecode/ or
-http://savannah.nongnu.org/download/dmidecode/ do not answer.
-
-Seems also that we're using dmidecode less frequently these days;
-as adding sytems to the DMI blacklists is a workaround of last resort.
+Applied.
 
 thanks,
 -Len
+
+On Wed, 2005-02-23 at 04:52, akpm-3NddpPZAyC0@public.gmane.org wrote:
+> 
+> arch/ia64/kernel/acpi.c: In function `acpi_map_iosapic':
+> arch/ia64/kernel/acpi.c:822: error: `MAX_PXM_DOMAINS' undeclared
+> (first use in this function)
+> arch/ia64/kernel/acpi.c:822: error: (Each undeclared identifier is
+> reported only once
+> arch/ia64/kernel/acpi.c:822: error: for each function it appears in.)
+> arch/ia64/kernel/acpi.c:827: error: `pxm_to_nid_map' undeclared (first
+> use in this function)
+> 
+> 
+> Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+> ---
+> 
+>  25-akpm/arch/ia64/kernel/acpi.c |    2 +-
+>  1 files changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff -puN arch/ia64/kernel/acpi.c~ia64-acpi-build-fix
+> arch/ia64/kernel/acpi.c
+> --- 25/arch/ia64/kernel/acpi.c~ia64-acpi-build-fix      2005-02-23
+> 01:47:50.000000000 -0800
+> +++ 25-akpm/arch/ia64/kernel/acpi.c     2005-02-23 01:47:50.000000000
+> -0800
+> @@ -771,7 +771,7 @@ EXPORT_SYMBOL(acpi_unmap_lsapic);
+>  #endif /* CONFIG_ACPI_HOTPLUG_CPU */
+>  
+> 
+> -#ifdef CONFIG_NUMA
+> +#ifdef CONFIG_ACPI_NUMA
+>  acpi_status __init
+>  acpi_map_iosapic (acpi_handle handle, u32 depth, void *context, void
+> **ret)
+>  {
+> _
+> 
+> 
+
 
 
 -------------------------------------------------------
