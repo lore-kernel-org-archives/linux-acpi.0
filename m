@@ -1,12 +1,14 @@
-From: Joachim Herb <herb-VLtlJOsZqxw@public.gmane.org>
-Subject: ACPI with Elitegroup L7VMM3 motherboard
-Date: Tue, 09 Mar 2004 00:35:40 +0100
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: _blank_ after resume
+Date: Tue, 9 Mar 2004 00:37:25 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <404D034C.8040100@leo.org>
+Message-ID: <20040308233725.GJ484@elf.ucw.cz>
+References: <Pine.LNX.4.58.0403071321080.873@boston.corp.fedex.com> <20040308204608.GA494@elf.ucw.cz> <Pine.LNX.4.58.0403090655550.25069@boston.corp.fedex.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.58.0403090655550.25069-2K9XAwmnW1wYQUuIRqa960M9+F4ksjoh@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,71 +17,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Jeff Chua <jeff89-xU4+foPaXuB6NlgSsqhgrkEOCMrvLtNR@public.gmane.org>
+Cc: ACPI Development <Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello!
+Hi!
 
-I have a few questions about using ACPI on the L7VMM3 motherboard (VIA
-KM 266 chip set) (with 1600MHz AMD mobile AMD Athlon(tm) XP-M 1900+
-Processor, 223M RAM)
+> > > I got a blank screen with keyboard frozen after resume.
+> >
+> > Teach X to pretend to shutdown :-).
+> 
+> Ok, that's good. Can you kindly elaborate just a little?
+> 
+> I've no clue. Currently, I _really_ shutdown X first. Would to nice to not
+> shutdown, but I don't know how to _pretend_.
 
-The bios is:
-# biosinfo
-Following DMI entries found:
- - Mainboard vendor:   "ECS"
- - Mainboard type:     "L7VMM3"
- - Mainboard revision: "3.1"
- - BIOS vendor:        "American Megatrends Inc."
- - BIOS version:       "07.00T"
- - BIOS release:       "04/02/01"
+I did not say it is easy :-).
 
-The kernel is 2.4.25 plus acpi-20040220-2.4.25.diff.bz2 plus software
-suspend.
+Teach X (I mean write code!) to return video card to same state it
+puts it after X shutdown.
+								Pavel
 
-When I load the thermal, processor and fan modules, I get the following
-directory struction in /proc/acpi:
-# tree
-.
-|-- alarm
-|-- dsdt
-|-- embedded_controller
-|-- event
-|-- fadt
-|-- fan
-|-- info
-|-- power_resource
-|   |-- FDDP
-|   |   `-- state
-|   |-- LPTP
-|   |   `-- state
-|   |-- URP1
-|   |   `-- state
-|   `-- URP2
-|       `-- state
-|-- processor
-|   `-- CPU1
-|       |-- info
-|       |-- limit
-|       |-- performance
-|       |-- power
-|       `-- throttling
-|-- sleep
-`-- thermal_zone
-
-10 directories, 15 files
-
-The are no files in the fan and the thermal_zone directory.
-
-Is this correct?
-
-I would be interested in controlling the fan by measuring the cpu
-temperature. Is this possible with this board?
-
-Thank you for your help.
-
-Best regards,
-Joachim
+-- 
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
 
 
 -------------------------------------------------------
