@@ -1,14 +1,14 @@
-From: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
-Subject: Re: ACPI on the Compaq Presario 2800T
-Date: Sat, 27 Jul 2002 12:21:05 +0200
+From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>
+Subject: Re: AGAIN problems with newest ACPI patch :-((((((
+Date: 27 Jul 2002 14:32:19 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020727102105.GA15370@dutidad.twi.tudelft.nl>
-References: <200207260632.g6Q6WsH14921@ikffws2.ikff.uni-stuttgart.de> <200207270043.UAA17797@cathedral-seven.mit.edu>
+Message-ID: <1027794755.1233.3.camel@darkstar.portugal>
+References: <200207270418.54513.m.c.p@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200207270043.UAA17797-YqEmrenMroz22lVXsKccr97O1rVE3XUg@public.gmane.org>
+In-Reply-To: <200207270418.54513.m.c.p-hi6Y0CQ0nG0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,37 +17,23 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: Sourav K Mandal <smandal-DPNOqEs/LNQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Marc-Christian Petersen <m.c.p-hi6Y0CQ0nG0@public.gmane.org>
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jul 26, 2002 at 08:43:37PM -0400, Sourav K Mandal wrote:
-> > I did that, did make mrproper; make dep; make bzImage (kept my
-> > modules as they were), now have a file /proc/acpi/sleep, but
-> > nothing happens when I echo 1 into this file.
+
+On Fri, 2002-07-26 at 22:19, Marc-Christian Petersen wrote:
+> Hi there,
 > 
-> Same with me.  However, the swsusp patch works now!  And, it's
-> much faster than with Windows.
+> again many troubles with your newest ACPI patch (20020726).
 > 
-> X is being a little flaky,  but that problem likely has a different
-> cause since I also updated my Radeon DRI stuff.  I'll investigate 
-> more ...
+> 
+> P.S.: Isn't it possible to make always a ~95% working code?! ;-))
+> 
 
-You can physically NOT suspend from a DRI using X because there is no
-functionality at the moment that will re-initialise the Radeon after a
-resume.  At the moment, your choices are:
-1. run X without DRI (i.e. NO hardware accelerated 3D) and be able to use 
-   software suspend.
-2. run X with DRI (i.e. with hardware accelerated 3D) but remember not to
-   suspend.
+ACPI patch (20020725) works very well if you disable ACPI DEBUG
+Statement 
 
-The switching to a VT trick does not help with 2.  We are working on a patch
-that releases all DRI resources during a VT switch so that it is possible to
-suspend from X if no 3D apps are running at that moment.  This means that
-one will be able to suspend from DRI X if you stop all 3D apps first.
-
--- 
-charl p. botha http://cpbotha.net/ http://visualisation.tudelft.nl/
 
 
 -------------------------------------------------------
