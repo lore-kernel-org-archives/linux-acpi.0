@@ -1,14 +1,13 @@
-From: Nicolas Bougues <nbougues-listes-FVCVUKh5FDXR7s880joybQ@public.gmane.org>
+From: =?windows-1252?Q?Robert_W=F6rle?= <robert.woerle-y2s3ugBAdl9BDgjK7y7TUQ@public.gmane.org>
 Subject: Re: ACPI Patch How to ???
-Date: Tue, 8 Oct 2002 13:17:06 +0200
+Date: Tue, 08 Oct 2002 13:21:22 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021008111706.GC5773@kiwi>
+Message-ID: <3DA2BFB2.8080104@symplon.com>
 References: <000001c26eba$136b5990$0700a8c0@Lapi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <000001c26eba$136b5990$0700a8c0-JXSKRSNciZc@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,21 +16,45 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: T.Hubbert-Mmb7MZpHnFY@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Oct 08, 2002 at 01:01:38PM +0200, T.Hubbert-Mmb7MZpHnFY@public.gmane.org wrote:
+untar it ... copy it to your kernel source directory
+then
+patch -p1 <THIS_IS_THE_PATCH_FILE 2>out
+
+reconfigure kernel
+and make it
+
+T.Hubbert-Mmb7MZpHnFY@public.gmane.org schrieb:
+
 > Hi!
-> I like to patch my Kernel 2.4.19 but i am a newbie and I don't know what
-> to do with a .diff file. Can someone help me please?
+>
+> I like to patch my Kernel 2.4.19 but i am a newbie and I don’t know 
+> what to do with a .diff file. Can someone help me please?
+>
 > With a step for step answere?
->  
+>
+> Thx
+>
 
-http://www.google.com/search?q=linux+kernel+howto
+-- 
+_____________________________________
+*Robert Wörle
+Linux | Embedded Device*
+*
+Symplon AG*
 
---
-Nicolas Bougues
-Axialys Interactive
+*...touch the internet*
+
+phone: +49 89 552 999 35
+fax: +49 89 552 999 10
+email: robert.woerle-y2s3ugBAdl9BDgjK7y7TUQ@public.gmane.org <mailto:robert.woerle@symplon.com>
+web: www.symplon.com <http://www.symplon.com/>
+
+_____________________________________
+
 
 
 -------------------------------------------------------
