@@ -1,59 +1,35 @@
-From: James D Strandboge <jstrand1-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org>
-Subject: Re: Re: [2.5.50, ACPI] link error
-Date: 11 Dec 2002 12:35:30 -0500
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1039628130.20715.51.camel@sirius.strandboge.cxm>
-References: <EDC461A30AC4D511ADE10002A5072CAD04C7A581@orsmsx119.jf.intel.com>
-	 <1039481341.12046.21.camel@irongate.swansea.linux.org.uk>
-	 <20021210204031.GF20049@atrey.karlin.mff.cuni.cz>
-	 <23440000.1039553448@localhost.localdomain>
-	 <20021211101438.GC29390@poup.poupinou.org>
-	 <1039622414.17702.29.camel@irongate.swansea.linux.org.uk>
+From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Subject: Re: kernel update (relative to 2.4.20)
+Date: Thu, 12 Dec 2002 02:00:42 +0000
+Sender: linux-ia64-admin-WygotPe7DYIabbyE177sbg@public.gmane.org
+Message-ID: <20021212020042.C32514@parcelfarce.linux.theplanet.co.uk>
+References: <200212102144.13053.bjorn_helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1039622414.17702.29.camel-MMxVpc8zpTQVh3rx8e9g/fyykp6/JSeS3vcXtXqGYxw@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-ia64-admin-WygotPe7DYIabbyE177sbg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <200212102144.13053.bjorn_helgaas-VXdhtT5mjnY@public.gmane.org>; from bjorn_helgaas-VXdhtT5mjnY@public.gmane.org on Tue, Dec 10, 2002 at 09:44:12PM -0700
+Errors-To: linux-ia64-admin-WygotPe7DYIabbyE177sbg@public.gmane.org
+List-Help: <mailto:linux-ia64-request-WygotPe7DYL3TpFAQG+J+JSyx/Wj9/Chdaaq/uiDbmg@public.gmane.org>
+List-Post: <mailto:linux-ia64-WygotPe7DYIabbyE177sbg@public.gmane.org>
+List-Subscribe: <http://lists.linuxia64.org/lists/listinfo/linux-ia64>,
+	<mailto:linux-ia64-request-WygotPe7DYL3TpFAQG+J+EfZv34bSr6CyrRgqdI+6y4@public.gmane.org>
+List-Unsubscribe: <http://lists.linuxia64.org/lists/listinfo/linux-ia64>,
+	<mailto:linux-ia64-request-WygotPe7DYL3TpFAQG+J+I4vVymAtk2CuCKOA6ERizqzQB+pC5nmwQ@public.gmane.org>
+List-Archive: <http://lists.linuxia64.org/archives//linux-ia64/>
+To: Bjorn Helgaas <bjorn_helgaas-VXdhtT5mjnY@public.gmane.org>
+Cc: linux-ia64-WygotPe7DYIabbyE177sbg@public.gmane.org, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2002-12-11 at 11:00, Alan Cox wrote:
-> On Wed, 2002-12-11 at 10:14, Ducrot Bruno wrote:
-> > No.  You are wrong.  I need to suspend allmost all the drivers, and the
-> > video chipset is not an execption (or go to a console before suspending,
-> > in fact).
-> > You still need to bug NVIDIA in order to have proper pm support
-> > in their driver.
+On Tue, Dec 10, 2002 at 09:44:12PM -0700, Bjorn Helgaas wrote:
+> The latest ia64 kernel patch for Linux 2.4.20 is available here:
 > 
-> To an extent. However you can also switch back to text mode on suspend
-> to disk, then resume back into text mode and effectively switch back
-> into X11
-> 
-I have done exactly this when closing my lid (cause the screen blanks
-and when it comes back, it is messed up).  It can be completely
-automated with scripts for acpid, so this effectively becomes a
-non-issue.
+>     ftp://ftp.kernel.org/pub/linux/kernel/ports/ia64/v2.4/linux-2.4.20-ia64-021210.diff.gz
 
-Jamie Strandboge
+I've uploaded a version of the latest ACPI code as a patch against this
+release to http://sourceforge.net/project/showfiles.php?group_id=36832
 
 -- 
-Email:        jstrand1-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org
-GPG/PGP ID:   26384A3A
-Fingerprint:  D9FF DF4A 2D46 A353 A289  E8F5 AA75 DCBE 2638 4A3A
-
-
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:
-With Great Power, Comes Great Responsibility 
-Learn to use your power at OSDN's High Performance Computing Channel
-http://hpc.devchannel.org/
+"It's not Hollywood.  War is real, war is primarily not about defeat or
+victory, it is about death.  I've seen thousands and thousands of dead bodies.
+Do you think I want to have an academic debate on this subject?" -- Robert Fisk
