@@ -1,10 +1,10 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ACPI DSDT language
-Date: Wed, 29 Jan 2003 08:24:35 -0800
+From: Mailhebuau Christophe <CMailhebuau-GyotsYYSwH0@public.gmane.org>
+Subject: download
+Date: 29 Jan 2003 18:21:09 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <B9ECACBD6885D5119ADC00508B68C1EA0D19BA5F@orsmsx107.jf.intel.com>
+Message-ID: <1043860869.9305.18.camel@justlinux>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-1vP0zQA07+wtS8+9tjZs"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -14,82 +14,39 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: 'Jan Slezak' <jan.slezak-aRb0bU7PRFPrBKCeMvbIDA@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-This is the purpose of the "RefOf()" operator in ASL.
-
->From the ACPI spec:
-
-"The primary purpose of RefOf() is to allow an object to be passed to a
-method as an argument without the object being evaluated at the time the
-method was loaded."
-
-Bob
-
-
------Original Message-----
-From: Jan Slezak [mailto:jan.slezak-aRb0bU7PRFPrBKCeMvbIDA@public.gmane.org] 
-Sent: Tuesday, January 28, 2003 2:47 AM
-To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
-Subject: [ACPI] ACPI DSDT language
+--=-1vP0zQA07+wtS8+9tjZs
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-I would like to know what way should be buffers handled when are passed as
-arguments to 
-ACPI methods. I don't have a time to read the ACPI specs so I hope someone
-knows. 
-
-I find out by tracing my /_TZ/TMP method that they are passed by value so
-following 
-construction (part of my original DSDT slightly modified) doesn't work (PNPG
-called) 
-because PGET is not modified:
-
-    Method (SX33, 2, NotSerialized)
-    {
-        If (LLess (Arg1, SizeOf (Arg0)))
-        {
-            CreateByteField (Arg0, Arg1, SX20)
-            Store (Something, SX20)
-        }
-    }
-
-    Method (PNPG, 1, NotSerialized)
-    {
-	.
-	.
-        Name (PGET, Buffer (8) {})
-        SX33 (PGET, 2)
-        Return (PGET)
-    }
-
-I need to know it to decide wheter it is my BIOS or the linux ACPI
-implementation what is 
-buggy and to decide whether to send my DSDT patch to my notebook
-manufacturer (DELL).
+Where i can download the patches for acpi, sourceforge send me error
+404, and not project found ?????
 
 
-Thanks,
-  Jan
+--=20
+Cordialement,
+Christophe Mailhebuau    http://www.justlinux.org
+                           http://www.abul.org
+GPG: 1024D/75B07F8D: BD18 2D01 D954 A339 E35B 9EA1 4240 0410 75B0 7F8D
 
-P.S.: If it is right behaviour and the BIOS is buggy I don't understand why
-the ACPI 
-(actually ACPI battery info) is working under WinXP, where there is no DSDT
-override and 
-no buggy feature workaround in the biosinfo.inf for my DELL.
+--=-1vP0zQA07+wtS8+9tjZs
+Content-Type: application/pgp-signature; name=signature.asc
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.7 (GNU/Linux)
 
--------------------------------------------------------
-This SF.NET email is sponsored by:
-SourceForge Enterprise Edition + IBM + LinuxWorld = Something 2 See!
-http://www.vasoftware.com
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
+iD8DBQA+OA2FQkAEEHWwf40RAmT3AJoCCFZuzbX4Y36kM3x9MMCzZzklGACff6nV
+GwXA79JQbXYlfVoJwomuCHw=
+=pqM0
+-----END PGP SIGNATURE-----
+
+--=-1vP0zQA07+wtS8+9tjZs--
+
 
 
 -------------------------------------------------------
