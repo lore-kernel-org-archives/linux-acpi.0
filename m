@@ -1,14 +1,14 @@
-From: Paul Menage <menage-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+From: Arjan van de Ven <arjanv-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: ACPI global lock macros
-Date: Tue, 09 Dec 2003 01:42:34 -0800
+Date: Tue, 9 Dec 2003 10:43:56 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3FD5990A.9020908@google.com>
-References: <3FD59441.2000202@google.com> <1070962573.5223.2.camel@laptop.fenrus.com>
+Message-ID: <20031209094356.GA19702@devserv.devel.redhat.com>
+References: <3FD59441.2000202@google.com> <1070962573.5223.2.camel@laptop.fenrus.com> <3FD5990A.9020908@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1070962573.5223.2.camel-PDvaWZGbcxi0rsOeZxrteAC/G2K4zDHf@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <3FD5990A.9020908-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,20 +17,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: arjanv-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Paul Menage <menage-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Cc: arjanv-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Arjan van de Ven wrote:
+On Tue, Dec 09, 2003 at 01:42:34AM -0800, Paul Menage wrote:
+> Arjan van de Ven wrote:
+> >
+> >maybe the odd thing is that it exists at all?
+> >(eg why does ACPI need to have it's own locking primitives...)
 > 
-> maybe the odd thing is that it exists at all?
-> (eg why does ACPI need to have it's own locking primitives...)
+> Because the ACPI spec defines its own locking protocol for 
+> synchronization between the OS and the BIOS.
 
-Because the ACPI spec defines its own locking protocol for 
-synchronization between the OS and the BIOS.
-
-Paul
-
+... which can't be written based on linux locks ?
 
 
 -------------------------------------------------------
