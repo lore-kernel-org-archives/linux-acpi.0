@@ -1,15 +1,11 @@
-From: "=?iso-8859-1?B?SvZyZyBI5G5zZWw=?=" <joerg.haensel-S0/GAf8tV78@public.gmane.org>
-Subject: AW: Re: IBM Thinkpad A31 | ACPI problems
-Date: Sat, 2 Feb 2002 23:20:46 +0100
+From: Mailhebuau Christophe <CMailhebuau-GyotsYYSwH0@public.gmane.org>
+Subject: help
+Date: 25 Dec 2002 08:31:40 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <KPENLHNHFELICEMNHPFKAEOACAAA.joerg.haensel@web.de>
-References: <200301022254.55856.dom@wahuu.at>
+Message-ID: <1040801500.18568.2.camel@justlinux>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-u0y9/wLU7teVRqYRMd9F"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200301022254.55856.dom-K271P2BsTd0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -21,106 +17,41 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dear Dom,
-I have a Thinkpad R32 and the same problem (could not use EDCT). I hope that
-IBM will release a new BIOS since ACPI does not work perfectly in Windows
-2000 and XP as well.
-(Meanwhile I am using APM instead.)
-When I load the ospm modules (battery, etc.) there is no subdirectory acpi
-under /proc but "battery" occurs directly under /proc and is empty.
 
-Bye,
-Jörg
+--=-u0y9/wLU7teVRqYRMd9F
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
+Hi,
 
------Ursprüngliche Nachricht-----
-Von: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org]Im Auftrag von Dom
-Gesendet: Donnerstag, 2. Januar 2003 22:55
-An: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Betreff: Re: [ACPI] Re: IBM Thinkpad A31 | ACPI problems
+I need help to patch my kernel 2.4.19 on my mandrake 9.0.
 
+I've compiled my kernel with acpi support it's ok, but i don't have
+directory :
 
-Dear Sandro,
+/proc/acpi
 
-I posted the following message to the "Thinkpad A20,A21,A22,A30,A31" forum
-at
-IBM. Currently it looks like the posting has not been opened to public yet?
-I
-hope that IBM will provide a patch or that we can assist in creating a work
-around for the buggy bios. I know several friends who are running Linux on
-their A31's. Currently we all stick to kernel 2.4.19 + acpi-20020918 patch.
-This combination provides at least some support for ACPI.
+my laptops is an inspiron 2650
 
-Thanks to the hard-working acpi-development team!
-Dom
+can you help me to apply patch iasl ?
+--=20
+Cordialement,
+Christophe Mailhebuau    http://www.justlinux.org
+                           http://www.abul.org
+GPG: 1024D/75B07F8D: BD18 2D01 D954 A339 E35B 9EA1 4240 0410 75B0 7F8D
 
---------
-Topic:      ACPI Linux (1 of 1), Read 10 times
-Conf: ThinkPad A20,A21,A22,A30,A31
-From: bartenst
-Date: Thursday, January 02, 2003 03:07 PM
+--=-u0y9/wLU7teVRqYRMd9F
+Content-Type: application/pgp-signature; name=signature.asc
 
-Hi all!
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.7 (GNU/Linux)
 
-I am successfully running Gentoo Linux
-(http://www.gentoo.org) on my new A31. Unfortunately
-ACPI is not getting initialized properly with the new
-acpi-patch from 20021212 ( + vanilla 2.4.20). I consulted
-the acpi developers (http://acpi.sf.net) who told me that the
-problem is the buggy BIOS! Is IBM aware of that problem
-and are there any ongoing efforts to solve this problem?
+iD8DBQA+CV7cQkAEEHWwf40RAgg5AJwL3UJ49H8NrWY+QAtlPzeKH6FrWQCghJXq
+ndiySlVEERRKJDP7uOdDIdk=
+=z0h8
+-----END PGP SIGNATURE-----
 
-Thanks!
-Dom
-
-p.s.
-http://marc.theaimsgroup.com/?l=acpi4linux&m=103643408113691&w=2
-summary:
-"In short, ECDT -> EC_ID is supposed to be the full path
-name of your EC device in ACPI Namespace like
-"\_SB.PCI0.LPC.EC", but __NOT__ in your BIOS. You
-can work around your problem by adding hack code, but it
-makes OS
-code dirty to save broken BIOSes and it allows BIOS
-vendor not to fix their problem."
-----------
-
-On Thursday 02 January 2003 22:31, you wrote:
-> > sorry - i did not see Andy Grover's reply to Sandro earlier on. So the
->
-> problem
->
-> > is a bug in the BIOS implementation. I have already contacted IBM via
-> > "Ask
->
-> an
->
-> > expert" and posted a message to http://www7.pc.ibm.com/~Thinkpad and I
->
-> really
->
-> > hope that they will reply. I will keep you up to date.
->
-> Uh!
-> I didn't know that IBM has a forum. Where is your question located (I
-can't
-> find it)? Can you please email me if you find a solution for the whole
-> prob? I also questioned IBM about that prob a few days ago, but via
-support
-> - no answer so far.
->
-> Sandro
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
+--=-u0y9/wLU7teVRqYRMd9F--
 
 
 
