@@ -1,8 +1,8 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: mpparse.c APIC/ACPI support
-Date: Tue, 4 Mar 2003 10:21:28 -0800
+Subject: RE: ACPI patches updated (20030228)
+Date: Tue, 4 Mar 2003 10:24:27 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A84725A1C9@orsmsx401.jf.intel.com>
+Message-ID: <F760B14C9561B941B89469F59BA3A84725A1C8@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -16,29 +16,26 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Cagle, John (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>, info-IGm5bqYn3xwb1SvskN2V4Q@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: alan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: Nils Faerber <nils-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Cagle, John (ISS-Houston) [mailto:john.cagle-VXdhtT5mjnY@public.gmane.org] 
-> > In theory, ACPI comes through later and changes the irqs < 15 
-> > with possible PCI devices by calling io_apic_set_pci_routing.
-> >
-> > So *in theory* it should work ok. Obviously something is not right.
+> From: Nils Faerber [mailto:nils-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org] 
+> > This includes a LOT of fixes for longstanding bugs. If you have had
+> > issues in the past with long delays or oopses on reads from the
+> > battery interface, hangs on boot, or excessive ACPI 
+> interrupts causing
+> > system slowness, please try this patch.
 > 
-> How does ACPI, when it comes through later, know which irq's < 15 are
-> for PCI devices?
+> And so I did and am sorry to report that I still see high CPU 
+> usage and
+> delays when trying to read my battery status; machine is Asus L3800C.
 
-The device's driver calls pci_enable_device, which calls:
-pci_enable_device_bars, which calls:
-pcibios_enable_device, which calls:
-pcibios_enable_irq, which is a function pointer we set to
-acpi_pci_irq_enable, which does an eisa_set_level_irq(), thus setting
-the interrupt (if less than 16) to level-triggered.
+What does the ASL for your system's BAT._BST method look like? Something
+in there must be causing the problem (obviously) so let's figure out
+what.
 
-So why isn't it working? Hmm.
-
-Regards -- Andy
+Thanks -- Regards -- Andy
 
 
 -------------------------------------------------------
