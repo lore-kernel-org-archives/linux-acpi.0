@@ -1,69 +1,58 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [patch 4/4] acpi: create_polling_proc() fix
-Date: 30 Mar 2005 22:56:47 -0500
-Message-ID: <1112241407.2173.72.camel@d845pe>
-References: <200503302116.j2ULGeuq027736@shell0.pdx.osdl.net>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [ACPI] 2.6.12-rc1-mm[1-3]: ACPI battery monitor does not work
+Date: Thu, 31 Mar 2005 10:44:58 +0200
+Message-ID: <200503311044.58673.rjw@sisk.pl>
+References: <200503291156.19112.rjw@sisk.pl> <200503301353.25492.luming.yu@intel.com> <200503301205.40555.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200503302116.j2ULGeuq027736-bipKiLWnuIsyyg0EjBt7GtHuzzzSOjJt@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, Luming Yu <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261193AbVCaIot@vger.kernel.org>
+In-Reply-To: <200503301205.40555.rjw@sisk.pl>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: luming.yu@intel.com
+Cc: acpi-devel@lists.sourceforge.net, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Applied.
+Hi,
 
-thanks,
--Len
+On Wednesday, 30 of March 2005 12:05, Rafael J. Wysocki wrote:
+> On Wednesday, 30 of March 2005 07:53, Yu, Luming wrote:
+> > On Tuesday 29 March 2005 17:56, Rafael J. Wysocki wrote:
+> > > Hi,
+> > >
+> > > There is a problem on my box (Asus L5D, x86-64 kernel) with the ACPI
+> > > battery driver in the 2.6.12-rc1-mm[1-3] kernels.  Namely, the battery
+> > > monitor that I use (the kpowersave applet from SUSE 9.2) is no longer able
+> > > to report the battery status (ie how much % it is loaded).  It can only
+> > > check if the AC power is connected (if it is connected, kpowersave behaves
+> > > as though there was no battery in the box, and if it is not connected,
+> > > kpowersave always shows that the battery is 1% loaded).
+> > >
+> > > Also, there are big latencies on loading and accessing the battery module,
+> > > but the module loads successfully and there's nothing suspicious in dmesg.
+> > >
+> > > Please let me know if you need any additional information.
+> > >
+> > > Greets,
+> > > Rafael
+> > 
+> > Could you just revert ec-mode patch, then retest?
+> 
+> Could you please point me to it?
 
-On Wed, 2005-03-30 at 16:16, akpm-3NddpPZAyC0@public.gmane.org wrote:
-> 
-> drivers/acpi/hotkey.c: In function `create_polling_proc':
-> drivers/acpi/hotkey.c:334: warning: ISO C90 forbids mixed declarations
-> and code
-> 
-> 
-> Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-> ---
-> 
->  25-akpm/drivers/acpi/hotkey.c |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff -puN drivers/acpi/hotkey.c~acpi-create_polling_proc-fix
-> drivers/acpi/hotkey.c
-> --- 25/drivers/acpi/hotkey.c~acpi-create_polling_proc-fix       Wed
-> Mar 30 13:16:09 2005
-> +++ 25-akpm/drivers/acpi/hotkey.c       Wed Mar 30 13:16:09 2005
-> @@ -329,9 +329,10 @@ static int auto_hotkey_remove(struct acp
->  static int create_polling_proc(union acpi_hotkey *device)
->  {
->         struct proc_dir_entry *proc;
-> +       mode_t mode;
-> 
->         ACPI_FUNCTION_TRACE("create_polling_proc");
-> -       mode_t mode = S_IFREG | S_IRUGO | S_IWUGO;
-> +       mode = S_IFREG | S_IRUGO | S_IWUGO;
-> 
->         proc = create_proc_entry(device->poll_hotkey.action_method,
->                                  mode, hotkey_proc_dir);
-> _
-> 
-> 
+I assume you mean the "Enable EC Burst Mode" patch at:
+
+http://linux-acpi.bkbits.net:8080/to-akpm/cset%401.2181.17.12?nav=index.html|ChangeSet@-2w
+
+Anyway, reverting this patch helps. :-)
+
+Greets,
+Rafael
 
 
-
--------------------------------------------------------
-This SF.net email is sponsored by Demarc:
-A global provider of Threat Management Solutions.
-Download our HomeAdmin security software for free today!
-http://www.demarc.com/Info/Sentarus/hamr30
+-- 
+- Would you tell me, please, which way I ought to go from here?
+- That depends a good deal on where you want to get to.
+		-- Lewis Carroll "Alice's Adventures in Wonderland"
