@@ -1,12 +1,14 @@
-From: "Darren Benham" <dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org>
-Subject: Thermal module errors
-Date: Thu, 6 Feb 2003 23:29:05 -0800 (PST)
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: [PATCH] s4bios for 2.5.59 + apci-20030123
+Date: Fri, 7 Feb 2003 11:54:41 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <32774.192.168.10.204.1044602945.squirrel@benham.net>
+Message-ID: <20030207105440.GA750@elf.ucw.cz>
+References: <20030131173904.GA3240@poup.poupinou.org> <20030205014041.GA27937@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20030205014041.GA27937-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,51 +17,39 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Cc: ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I don't know if anyone's seen this but I haven't seen anything mentioned
-(easily) in the list archives.  Here's the output from a kernel log when
-trying to load the thermal module.  I've seen this with kernels 2.4.18,
-2.4.20 , and 2.4.21pre4 (with the latest patch, which applied cleanly,
-BTW).
-Feb  6 23:04:37 ltdbenham kernel: dswstate-0251 [29]
-ds_result_pop_from_bot: No result objects! State=c15d8828Feb  6 23:04:37 ltdbenham kernel:  dsutils-0494 [29] ds_create_operand    
-: Missing or null operand, AE_AML_NO_RETURN_VALUEFeb  6 23:04:37 ltdbenham kernel:  dsutils-0587 [28] ds_create_operands   
-: While creating Arg 1 - AE_AML_NO_RETURN_VALUEFeb  6 23:04:37 ltdbenham kernel:  psparse-1102: *** Error: Method
-execution failed [\_TZ_.C1F1] (Node c15ede08), AE_AML_NO_RETURN_VALUEFeb  6 23:04:37 ltdbenham kernel:  psparse-1102: *** Error: Method
-execution failed [\_TZ_.TZ1_._TMP] (Node c15ebce8), AE_AML_NO_RETURN_VALUE
-Here's the .config ACPI section...
+Hi!
 
-#
-# ACPI Support
-#
-CONFIG_ACPI=y
-# CONFIG_ACPI_HT_ONLY is not set
-CONFIG_ACPI_BOOT=y
-CONFIG_ACPI_BUS=y
-CONFIG_ACPI_INTERPRETER=y
-CONFIG_ACPI_EC=y
-CONFIG_ACPI_POWER=y
-CONFIG_ACPI_PCI=y
-CONFIG_ACPI_SLEEP=y
-CONFIG_ACPI_SYSTEM=y
-CONFIG_ACPI_AC=m
-CONFIG_ACPI_BATTERY=m
-CONFIG_ACPI_BUTTON=m
-CONFIG_ACPI_FAN=m
-CONFIG_ACPI_PROCESSOR=m
-CONFIG_ACPI_THERMAL=m
-CONFIG_ACPI_TOSHIBA=m
-CONFIG_ACPI_DEBUG=y
+> Hi Ducrot,
+> 
+> > This is the 'minimal' requirement.  Some devices (especially the
+> > IDE part) are not well resumed.  Handle with care..
 
-compiled with gcc 2.95.4
-and glibc 2.2.5
+Good news: works for me. Either I have to disable vesafb *or* pass
+acpi_sleep=s3_mode, but it works (2.5.59 on hp omnibook xe3).
 
+There are some glitches, through. Sometimes it takes > 10 seconds
+before the BIOS's progress bars shown (and I have powered down at
+this point thinking machine is dead). And once it did save to disk but
+did not power down after that.
+
+> Using this patch (on top of 2.5.59 and acpi 20030123), echo 4b 
+> >/proc/acpi/sleep results in the system freezing all of the processes 
+> and then resetting itself without any state change. This is an IBM 
+> Thinkpad 240x which claims to support S4Bios, and I have the appropriate 
+> partition. Would it be worth me enabling debugging and hooking up a 
+> serial console?
+
+Yes, plus you might want to add some printks to see where exactly it
+dies.
+
+								Pavel
 -- 
-Darren
-
-
+Worst form of spam? Adding advertisment signatures ala sourceforge.net.
+What goes next? Inserting advertisment *into* email?
 
 
 -------------------------------------------------------
