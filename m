@@ -1,14 +1,14 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: Re: [Swsusp-devel] swsusp and ac status
-Date: Mon, 28 Jun 2004 07:27:04 +0200
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: No APIC interrupts after ACPI suspend
+Date: Mon, 28 Jun 2004 14:20:01 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040628052704.GA24842@hell.org.pl>
-References: <200406250701.i5P71GKC006204@fermat.unipv.it> <opr95d71ln4evsfm@smtp.pacific.net.th> <20040627222842.GB1816@hell.org.pl> <opr992vyyr4evsfm@smtp.pacific.net.th> <opr994muhg4evsfm@smtp.pacific.net.th>
+Message-ID: <B44D37711ED29844BEA67908EAF36F032D566A@pdsmsx401.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <opr994muhg4evsfm-TBR8pM7LtsqkE96DxU8f+dAkNl5+tjhE@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,26 +17,100 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Michael Frank <mhf-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
-Cc: Daniele Boffi <boffi-piYtxHxN1XRAly3Pu9w1wA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Software Suspend - Mailing Lists <swsusp-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Hamie <hamish-CM5YN7r2dWBr4tq51QLIbdBPR1lH4CV8@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Michael Frank:
-> >----> Thus the BIOS is now in a post boot state, like before
-> >	vmlinux starts on boot!
-> 
-> To clarify
-> 
->  ----> Thus the BIOS is now in a post boot state, like _after_
->  	vmlinux started on boot! and BIOS AC adapter interface
-> 	is unchanged from pre-boot.
+Hi,
+I attached a new patch to handler all level triggered IRQs after resume
+for 8259 in http://bugme.osdl.org/show_bug.cgi?id=3D2643. Please try and
+attach your test result on it.
 
-Please supply your DSDT to verify what's exactly going on there.
-Best regards,
+Thanks,
+Shaohua
+>-----Original Message-----
+>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
+>admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Hamie
+>Sent: Monday, June 28, 2004 4:27 AM
+>Cc: Alexander Gran; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; acpi-
+>devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: Re: [ACPI] No APIC interrupts after ACPI suspend
+>
+>Hamie wrote:
+>
+>> Alexander Gran wrote:
+>>
+>>> -----BEGIN PGP SIGNED MESSAGE-----
+>>> Hash: SHA1
+>>>
+>>> Am Sonntag, 27. Juni 2004 19:57 schrieb Hamie:
+>>>
+>>>
+>>>> FWIW the sound & networking appear to run fine for a while after
+>>>> resuming. But I just started a DVD. It ran fine for about 30
+seconds
+>>>> and
+>>>> then the sound went. About 30 seconds later the video froze and the
+app
+>>>> (xine) has frozen also. (kill -9 time...).
+>>>>
+>>>
+>>> <>
+>>> I can confirm that here:
+>>> after resuming, network completely works (yeah!).
+>>> Sound doesn't.
+>>> unloading/reloading the sound driver does not help.
+>>> USB works jumpy (perhaps 5-10hz)
+>>> Reloading does the trick for usb.
+>>>
+>>
+>> Since it sounds like a different bug to 2643, (Similiar but the patch
+>> that fixes the ethernet doesn't appear to doa  lot for the sound).
+>> I've opened a new one... #2965.
+>>
+>
+>Seeing as sound was on IRQ5 and the patch for 2643 fixed the ethernet,
+I
+>added a
+>(big hack here :) call to
+>
+>                acpi_pic_sci_set_trigger(5, acpi_sci_flags.trigger);
+>
+>in  acpi_pm_finish(u32 state); just after the call to set the IRQ
+trigger
+>for
+>the acpi irq...
+>
+>Results in (kern.log)
+>
+>Jun 27 21:15:28 ballbreaker kernel: ACPI: IRQ9 SCI: Edge set to Level
+>Trigger.
+>Jun 27 21:15:28 ballbreaker kernel: ACPI: IRQ5 SCI: Edge set to Level
+>Trigger.
+>
+>
+>and then sound works after resume... Obviously not a very good fix as
+it
+>won't
+>fix anything that uses somethign other than IRQ5.
+>
+>So... What should the correct fix be? Obviously some IRQ's triggers
+aren't
+>surviving the resume... But why... The timer (IRQ 0) obviously does...
+>
+>
+>
+>
+>-------------------------------------------------------
+>This SF.Net email sponsored by Black Hat Briefings & Training.
+>Attend Black Hat Briefings & Training, Las Vegas July 24-29 -
+>digital self defense, top technical experts, no vendor pitches,
+>unmatched networking opportunities. Visit www.blackhat.com
+>_______________________________________________
+>Acpi-devel mailing list
+>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
