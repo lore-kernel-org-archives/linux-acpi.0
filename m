@@ -1,14 +1,14 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: 2001-(Ali chipset)mainboard with no ACPI because "from '97 and too old"!
-Date: Fri, 10 Oct 2003 10:30:42 +0200
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: ACPICA 20031002 released
+Date: Tue, 7 Oct 2003 12:56:45 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031010083042.GL11391@poupinou.org>
-References: <200310092108.15747.blaisorblade_work@yahoo.it>
+Message-ID: <20031007105645.GB1659@openzaurus.ucw.cz>
+References: <1065475231.2511.33.camel@dhcppc4>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200310092108.15747.blaisorblade_work-whZMOeQn8C0@public.gmane.org>
+In-Reply-To: <1065475231.2511.33.camel-D2Zvc0uNKG8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,34 +17,39 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: BlaisorBlade <blaisorblade_work-whZMOeQn8C0@public.gmane.org>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Oct 09, 2003 at 09:08:15PM +0200, BlaisorBlade wrote:
-> The subject explains almost all. On my desktop, my mainboard (from 1st 
-> mainboards, with an AMI bios, if I don't remember badly) appears, on boot, as 
-> "from '97 and too old" so ACPI is disabled; see top of dmesg output (on 
-> kernel 2.4.22). On some older version of the patch(I've used the -ck patchset 
-> since kernel 2.4.20, and it included ACPI, and I've had it in the Mandrake 
-> 9.0/9.1 kernel) my mainboard was correctly handled and ACPI didn't create any 
-> problems. All required data is attached. Please address any question on Cc: 
-> to me, since I'm not subscribed. Thanks.
+Hi!
 
-Dmesg said:
+> Code and Data Size: Current and previous core subsystem library sizes
+> are shown below.  These are the code and data sizes for the acpica.lib
 
-<quote>
-ACPI disabled because your bios is from 97                         and too old
-You can enable it with acpi=force
-</quote>
+They are not :-(.
 
-so reboot with kernel parameter acpi=force.
+> produced by the Microsoft Visual C++ 6.0 compiler, and these values do
+> not include any ACPI driver or OSPM code.  The debug version of the code
+> includes the debug output trace mechanism and has a much larger code and
+> data size.  Note that these values will vary depending on the efficiency
+> of the compiler and the compiler options used during generation.
+> 
+> 
+> 
+> 
+> -------------------------------------------------------
+> This sf.net email is sponsored by:ThinkGeek
+> Welcome to geek heaven.
+> http://thinkgeek.com/sf
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 -- 
-Ducrot Bruno
+				Pavel
+Written on sharp zaurus, because my Velo1 broke. If you have Velo you don't need...
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
 
 
 -------------------------------------------------------
