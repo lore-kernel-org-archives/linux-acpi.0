@@ -1,11 +1,11 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Kernel 2.6-test10 and /sys/power/state on Thinkpad R32
-Date: Wed, 3 Dec 2003 11:24:43 +0800
+Subject: RE: Kernel 2.4.23 passive cooling
+Date: Wed, 3 Dec 2003 11:29:32 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720BED@pdsmsx403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720BEE@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
+	charset="ISO-8859-2"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 content-class: urn:content-classes:message
@@ -17,46 +17,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Stephan Herhut <sah-jNDFPZUTrfRKC+uPiMyuuyYxWCU7E+c1@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Or try base kernel.  --Luming
+Try
+#echo -n 0x04000000 > /proc/acpi/debug_layer
+#echo -n 0xffffffff > /proc/acpi/debug_level
+
+Thanks,
+Luming
 
 -----Original Message-----
 From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org =
-[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org]On Behalf Of Pavel Machek
-Sent: 2003?12?2? 4:13
-To: Stephan Herhut
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: Re: [ACPI] Kernel 2.6-test10 and /sys/power/state on Thinkpad =
-R32
+[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org]On Behalf Of Karol =
+Kozimor
+Sent: 2003?12?2? 20:43
+To: Nils Faerber; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: Re: [ACPI] Kernel 2.4.23 passive cooling
 
 
-Hi!
+Thus wrote Karol Kozimor:
+> What I suspect is that there are some semi-obscure things going on in =
+the
+> AML and it would take me at least two or three cups of coffee to trace =
+it.
+> I'll see what I can do.
 
-> I gave kernel 2.6-test10 a try to test the long-awaited suspend to
-> ram/disk. I am using fedora core 1 on a ThinkPad R32 with the newest
-> BIOS available. Everythings works fine, except suspending my thinkpad.
->=20
-> echo {ram|disk} > /sys/power/state
->=20
-> just yields a Preparing for suspend kernel message and afterwards
-> nothing happens. I can even retry as often as I want to, always only
-> producing this message.
->=20
-> I use the current kernel rpm from people.radhat.com/arjanv.
->=20
-> Anyone something to try or is this already known?
+Oh, and it would *very much* help me if I knew how to make _all_ thermal =
 
-Try echo 4 > /proc/acpi/sleep on vanilla kernel.
-								Pavel
-
-
+events visible and reported (be it through /proc/acpi/event or at least
+through a debug switch), and not only the 0x81 ones (hint hint!).
+Best regards,
 
 --=20
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
