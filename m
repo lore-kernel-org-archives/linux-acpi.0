@@ -1,23 +1,13 @@
-From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
-Subject: Re: first shoot for smartbattery
-Date: Mon, 03 Jan 2005 21:30:29 +0100
-Message-ID: <m2mzvq5k7u.fsf@phoenix.squirrel.nl>
-References: <20041231092156.GA612@phys.ethz.ch>
-	<41D56002.5060008@mega.ist.utl.pt>
-	<20041231150724.GK19199@poupinou.org>
-	<20041231181628.GL19199@poupinou.org>
-	<20050101082605.GA24896@phys.ethz.ch>
-	<m2acrth375.fsf@phoenix.squirrel.nl>
-	<20050103143902.GQ19199@poupinou.org>
-	<41D97AF3.7000409@arrakis.dhis.org>
-	<41D98251.9020002@arrakis.dhis.org>
-	<20050103180219.GX19199@poupinou.org>
-	<41D9A1F5.1060508@arrakis.dhis.org>
+From: Bernard Blackham <bernard-4vSAtV5O1nc0n/F98K4Iww@public.gmane.org>
+Subject: Re: Re: what is the worst laptop atm?
+Date: Tue, 4 Jan 2005 10:37:45 +0800
+Message-ID: <20050104023745.GJ4468@blackham.com.au>
+References: <20041227165207.GB9606@poupinou.org> <41D06CA6.30607@mega.ist.utl.pt> <20041228103019.GD9606@poupinou.org> <m2is6mzaip.fsf@phoenix.squirrel.nl> <20050101173611.GB2630@elf.ucw.cz> <20050103133138.GO19199@poupinou.org> <20050103134445.GH4468@blackham.com.au> <20050103145517.GR19199@poupinou.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41D9A1F5.1060508-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org> (Pedro Venda's message of
- "Mon, 03 Jan 2005 19:50:13 +0000")
+Content-Disposition: inline
+In-Reply-To: <20050103145517.GR19199-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -30,17 +20,30 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Pedro Venda <pjvenda-pQd4kjVL+RHfqL7NgpvPWWD2FQJk+8+b@public.gmane.org> writes:
+On Mon, Jan 03, 2005 at 03:55:17PM +0100, Bruno Ducrot wrote:
+> > > > I do not think above is true. Acer wants to have their batteries
+> > > > working in linux, they just do not want to hack their BIOSen.
+> > 
+> > Not wanting to add FUD, but mere fact here - I have an Acer
+> > TravelMate 4052. Here is an excerpt from my original DSDT. Pay
+> > careful attention to ECDY.
+> 
+> This is a well known workaround for Microsoft Windows NT 4.0.
+> 
+> So you are complaining that Acer try to make this laptop working with
+> an old OS ?
 
-According to the smartbattery figures, my TravelMate4001WLMI happily
-sitting in C3 @ 600Mhz will last for just over 4 hours. Nice.
+More that I was idly curious if there was a good reason for doing
+so. Googling about for this well-known workaround doesn't seem to
+have dug much up. If you've got a reference handy, it'd fulfill my
+curiosity to see it. :)
 
-Thanks, guys!
+TIA,
 
--- Johan
+Bernard.
 
-PS: I hacked a kernel module to control the email led on this (and
-maybe other) TravelMate. Will post soon.
+-- 
+ Bernard Blackham <bernard at blackham dot com dot au>
 
 
 -------------------------------------------------------
