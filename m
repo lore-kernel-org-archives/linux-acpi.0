@@ -1,13 +1,12 @@
-From: Derek Broughton <dbroughton-F3m4/jXepmf3fQ9qLvQP4Q@public.gmane.org>
-Subject: Re: ACPI Battery Problems
-Date: Fri, 04 Jul 2003 17:10:28 -0300
+From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Subject: /sys/firmware/acpi/namespace/
+Date: Fri, 4 Jul 2003 22:37:46 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <03f101c34268$501e4960$3746028e@bio.dfo.ca>
-References: <20030704195241.GC7074@roadrunner.ichilton.net>
+Message-ID: <20030704213746.GM23597@parcelfarce.linux.theplanet.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;	charset="Windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,32 +15,21 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI Development - Sourceforge <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: "Ian Chilton" <mailinglist-j6IF9zbmE2e9FHfhHBbuYA@public.gmane.org>
->
-> I have a new Dell Inspiron 5100 notebook and I am using 2.4.21 with the
-> ACPI patch from http://acpi.sourceforge.net.
->
-> I can't get it to show the battery status - all I get is this:
->
-> [root@delta:~]# acpi -V
->      Thermal 1: ok, 40.0 degrees C
->   AC Adapter 1: off-line
-...
-> ACPI: AC Adapter [ACAD] (off-line)
->     ACPI-0352: *** Error: Looking up [Z000] in namespace, AE_NOT_FOUND
->     ACPI-1121: *** Error: Method execution failed
-> [\_SB_.PCI0.LPC0.BAT1._BIF] (Node c1594a80), AE_NOT_FOUND
->
-> Any ideas?
 
-yeah, your DSDT is just as broken as every other Dell DSDT I've heard of.  I
-never have managed to properly fix mine (Inspiron 2500).  And as long as your
-battery method is broken it's always going to shut down precipitously when the
-battery runs out...
+So, um, what's the point?
 
+find /sys/firmware/acpi/namespace/ ! -type d
+
+nothing.  I was kind of hoping to have methods to invoke or at least
+get the names of methods.  Is this planned?
+
+-- 
+"It's not Hollywood.  War is real, war is primarily not about defeat or
+victory, it is about death.  I've seen thousands and thousands of dead bodies.
+Do you think I want to have an academic debate on this subject?" -- Robert Fisk
 
 
 -------------------------------------------------------
