@@ -1,56 +1,70 @@
-From: Chris Wright <chrisw-3NddpPZAyC0@public.gmane.org>
-Subject: Re: Fixing USB interrupt problems with ACPI enabled
-Date: Wed, 3 Sep 2003 15:37:46 -0700
+From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
+Subject: Re: [ACPI] Where do I send APIC victims?
+Date: 03 Sep 2003 23:44:43 +0100
 Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20030903153746.A19323@osdlab.pdx.osdl.net>
-References: <7F740D512C7C1046AB53446D3720017304AEEC@scsmsx402.sc.intel.com>
+Message-ID: <1062629083.1608.24.camel@darkstar.portugal>
+References: <Pine.LNX.4.44.0309031511420.6102-100000@logos.cnet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <7F740D512C7C1046AB53446D3720017304AEEC-exJ48ZlmiLrcnAH0NVKmOFDQ4js95KgL@public.gmane.org>; from jun.nakajima-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org on Sat, Aug 30, 2003 at 08:47:41AM -0700
-To: "Nakajima, Jun" <jun.nakajima-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi <linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.44.0309031511420.6102-100000-IP5UegVbiV6sTnJN9+BGXg@public.gmane.org>
+To: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
+Cc: Roger Luethi <rl-7uj+XXdSDtwfv37vnLkPlQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-* Nakajima, Jun (jun.nakajima-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org) wrote:
-> Doing this for Len, who is on vacation. We would like to thank the
-> people who provided debugging info such as acpidmp, dmidecode, and
-> demsg. This is one of our findings, and we believe this would fix some
-> interrupt problems (with USB, for example) with ACPI enabled, especially
-> when the dmesg reads like:
-> 
-> ACPI: PCI Interrupt Link [ALKA] enabled at IRQ 0
-> ACPI: PCI Interrupt Link [ALKB] enabled at IRQ 0
-> ACPI: PCI Interrupt Link [ALKC] enabled at IRQ 0
-> ACPI: PCI Interrupt Link [ALKD] enabled at IRQ 0
-> 
-> Basically we assumed that _CRS returned the one we set with _SRS, when
-> setting up a PCI interrupt link device, but that's not the case with
-> some AML codes. Some of them always return 0.
-> Attached is a patch against 2.4.23-pre1. It should be easy to apply this
-> to 2.6. 
+Well I am one APIC victim since Jan 2002. almost 2 years.
+I suggested build one database of "APIC victims"=20
+"Hi I would like make a database of the computers that have to Turning
+off APIC.  Model, mother board and chip set, processor type ,  and DSDT
+signature.
+And put in blacklist.c to give this exactly warning."
 
-This patch wouldn't compile with CONFIG_ACPI_DEBUG=y (I'm using
-2.6.0-test4-mm5).  Simple fix below.  With this patch my machine is worse
-off than without it.  In either case the machine hangs during boot (not
-in the same place, of course).  And booting with pci=noapci works w/out
-the patch, but leaves the machine nearly disfunctional w/ the patch.
-Any particular information helpful?
+But what I would like to say here is: I try to understand where kernel
+hangs when I enable APIC and doesn't hangs when IRQ routing is setting,
+but hangs before, exactly when try to:
+"evxfevnt-0093 [04] acpi_enable           : Transition to ACPI mode
+successful." this message never appears.
 
-thanks,
--chris
--- 
-Linux Security Modules     http://lsm.immunix.org     http://lsm.bkbits.net
+PS: I just don't had begging  the database because, now,  I don't have
+any time for that. But I had some ideas, like using  php to upload dsdt
+bin and try automatically Disassemble AML to ASL using iasl as cgi etc.=
+=20
 
---- 2.6.0-test4-mm5/drivers/acpi/pci_link.c.try	Wed Sep  3 15:06:33 2003
-+++ 2.6.0-test4-mm5/drivers/acpi/pci_link.c	Wed Sep  3 15:07:22 2003
-@@ -285,6 +285,8 @@ acpi_pci_link_try_get_current (
- {
- 	int result;
- 
-+	ACPI_FUNCTION_TRACE("acpi_pci_link_try_get_current");
-+
- 	result = acpi_pci_link_get_current(link);
- 	if (result && link->irq.active) {
-  		return_VALUE(result);
+thanks
+
+On Wed, 2003-09-03 at 19:13, Marcelo Tosatti wrote:
+>=20
+>=20
+> On Wed, 3 Sep 2003, Alan Cox wrote:
+>=20
+> > On Mer, 2003-09-03 at 11:48, Andrew de Quincey wrote:
+> > > 2.4.22 has the ACPI from 2.6 backported into it, (which includes =
+my patch for=20
+> > > nforce2 boards) so it will start having the same issue with the B=
+IOS bug in=20
+> > > KT333/KT400  boards.
+> >=20
+> > It does - 2.4.22pre7 is great on my boxes, 2.4.22 final ACPI is
+> > basically unusable on anything I own thats not intel.=20
+>=20
+> I've collected a few 2.4.22 ACPI problems and sent them to the ACPI g=
+uys.
+>=20
+> Randy, Len? Any update on any bug?=20
+>=20
+>=20
+>=20
+> -------------------------------------------------------
+> This sf.net email is sponsored by:ThinkGeek
+> Welcome to geek heaven.
+> http://thinkgeek.com/sf
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+--=20
+S=E9rgioMB
+email: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
+
+Who gives me one shell, give me everything.
