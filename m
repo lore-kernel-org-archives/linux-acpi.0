@@ -1,15 +1,14 @@
-From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
-Subject: Re: [PATCH 2.6] remove unnecessary check in acpi-cpufreq driver
-Date: Mon, 19 Jan 2004 13:51:33 +0100
+From: John Knottenbelt <jak97-CezfXpuMXD6Fxr2TtlUqVg@public.gmane.org>
+Subject: Does Linux make use of the S3D methods?
+Date: Mon, 19 Jan 2004 13:54:36 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040119125133.GB7163@dominikbrodowski.de>
-References: <C386328088ED7F4E9F81AFBABDDF60DA03F9DB3C@wdmyexch02.my.asia.wdc.com>
+Message-ID: <200401191354.36354.jak97@doc.ic.ac.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Bn2rw/3z4jIqBvZU"
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <C386328088ED7F4E9F81AFBABDDF60DA03F9DB3C-Yw6hFe9C1vnHQcBQSaPqJq0fmWJ9l57d0E9HWUfgJXw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,56 +17,67 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ow Mun Heng <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi
 
---Bn2rw/3z4jIqBvZU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I have been inspecting my DSDT and I noticed this:
 
-On Mon, Jan 19, 2004 at 06:03:01PM +0800, Ow Mun Heng wrote:
-> > -----Original Message-----
-> > From: Dominik Brodowski [mailto:linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org]
-> > Sent: Tuesday, January 13, 2004 5:20 PM
-> > To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> > Subject: [ACPI] [PATCH 2.6] remove unnecessary check in acpi-cpufreq
-> > driver
-> >=20
-> >=20
-> > [re-sent as first try didn't reach the list]
-> >=20
-> > The acpi cpufreq driver includes a test at startup which=20
-> > detects whether
-> > ACPI P-States are supported on any CPU, and whether transitions work.
-> > However, this test is faulty: it is only run _after_ the acpi=20
-> > driver is
-> > registered, causing race situations. Also, it doesn't save=20
-> > anything _as_ the
-> > driver is already registered. So, it can safely be removed.
->=20
-> Which means that, for current users, there's no pending need to really=20
-> change anything Right??
+Scope(\_SB_) {
+    Device(PWRB) {
+        Name(_HID, 0x0c0cd041)
+        Method(_STA) {
+            Return(0xb)
+        }
+    }
+    Device(PCI0) {
+        Name(_HID, 0x030ad041)
+        Name(_ADR, 0x0)
+        Name(_BBN, 0x0)
+        Method(_S3D) {
+            If(OSFL) {
+                Return(0x2)
+            }
+            Else {
+                Return(0x3)
+            }
+        }
 
-The test complicates matters in a way that doesn't justify its existence.
+The ACPI spec says that the _S3D method returns the highest power saving level 
+that the device can be put into. As you can see from the above (and other 
+similar S3D methods) the result depends on the OSFL variable, which is 
+defined with:
 
-	Dominik
+         Method(_INI) {
+            \_SB_.PCI0.SBRG.IODT()
+            If(MCTH(\_OS_, "Microsoft Windows NT")) {
+                Store(0x0, OSFL)
+            }
+            Else {
+                If(MCTH(\_OS_, "Microsoft Windows")) {
+                    Store(0x1, OSFL)
+                }
+                Else {
+                    If(MCTH(\_OS_, "Microsoft WindowsME: Millennium Edition"))
+                   {
+                        Store(0x2, OSFL)
+                    }
+                    Else {
+                        Store(0x3, OSFL)
+                    }
+                }
+            }
+        }
 
---Bn2rw/3z4jIqBvZU
-Content-Type: application/pgp-signature
-Content-Disposition: inline
+So for under Linux, the OSFL will be 3, and _S3D methods will return 2. My 
+question is, does the kernel make use of this information at all? Is it worth 
+editing the DSDT so that OSFL=0 (i.e. Windows NT) ?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
+Thanks
 
-iD8DBQFAC9LUZ8MDCHJbN8YRAlZvAJ9hleJKD89eCcfnYS2vIYCyUBe7JwCgjCJz
-lsKz+bs4B9gBExZGO4BlXLk=
-=nmnA
------END PGP SIGNATURE-----
+John
 
---Bn2rw/3z4jIqBvZU--
 
 
 -------------------------------------------------------
