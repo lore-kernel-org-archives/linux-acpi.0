@@ -1,15 +1,14 @@
-From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
-Subject: Re: writing your own DSDT
-Date: Wed, 28 Jul 2004 21:36:58 +0200
+From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: pci device resume too early?
+Date: Thu, 29 Jul 2004 08:48:26 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040728193658.GA2369@fuchi>
-References: <20040727085236.GA27831@rap.rap.dk>
+Message-ID: <B44D37711ED29844BEA67908EAF36F036BD822@pdsmsx401.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="mP3DRpeJDSE+ciuQ"
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040727085236.GA27831-EittdKFJ/bZ/SzgSGea1oA@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,59 +17,57 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: stefandoesinger-RbZlAiThDcE@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+How about add one line in pci_default_resume just like this:
 
---mP3DRpeJDSE+ciuQ
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+static void pci_default_resume(struct pci_dev *pci_dev)
+{
++	pci_set_power_state(pci_dev, 0);
+	/* restore the PCI config space */
+	pci_restore_state(pci_dev, pci_dev->saved_config_space);
+	/* if the device was enabled before suspend, reenable */
 
-hej keld...
 
-* Keld J=F8rn Simonsen <keld-6PR53cSIHaE@public.gmane.org> [2004-07-28 09:22 +0200]:
->=20
-> Does one get something out of adding code to the DSDT for ones machine,
-> or would the machine simply ignore it?
-
-it depends on how and what kind of code you add. see the url below for
-more pointers.
-
-> I was thinking of adding some
-> methods for my sound system, and my modem. Could adding unauthorized
-> code damage the hardware?
-
-dunno, expect the worst.
-
-> Are there a better place to get advice for writing DSDT etc?
-> (email list/news group or a url for tutorial/manual)
-
-http://acpi.sf.net/dsdt/index.php
-please tell me if you find more interesting sites not linked there. :)
-
-cheers,
- sebastian
---=20
-::: .O.
-::: ..O
-::: OOO
-::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
-
---mP3DRpeJDSE+ciuQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFBCABareHfL3pi+bQRAvp2AJ9qV14mUX6lKrNMxzrmijvnS8yqCQCfYDBc
-cSdgBF2Tf0+1RpSCy4XZMTU=
-=aQkW
------END PGP SIGNATURE-----
-
---mP3DRpeJDSE+ciuQ--
+Thanks,
+Shaohua
+>-----Original Message-----
+>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
+>admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of stefandoesinger-RbZlAiThDcE@public.gmane.org
+>Sent: Thursday, July 29, 2004 1:54 AM
+>To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: [ACPI] pci device resume too early?
+>
+>Hello,
+>I have problems with a few pci devices after resume. Hardware
+environment
+>is a
+>acer Travelmate 803(lspci attached), I use an unpatched linux-2.6.8-rc2
+>kernel.
+>
+>The problem is that directly after S3 resume, any attempt to write to
+pci
+>configuration registers of three of my devices(00:1d.7, 00:1f.5,
+00:1f.6)
+>locks up my system. After some testing, I found out that
+pci_restore_state
+>works nice if I place it into a function which is scheduled with
+>schedule_delayed_work. I use my dummydriver module for testing.
+>
+>Using mdelay(something) instead of scheduling a work doesn't help, so
+it's
+>not
+>the hardware which needs some time.
+>Is it possible that the driver's resume functions are called too early?
+Can
+>you point me to the place in the acpi code which calls the resume
+methods
+>that I can do further testing? I couldn't find it.
+>
+>Thanks in advance,
+>Stefan
 
 
 -------------------------------------------------------
