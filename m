@@ -1,16 +1,15 @@
-From: Thomas Kosch <t.kosch-7+EO1k1ndLmazgQtNeiOUg@public.gmane.org>
-Subject: Problem with pcmcia and ide-scsi with kernel 2.4.20-pre5 and
- acpi-20020829
-Date: Wed, 18 Sep 2002 15:36:31 +0200
+From: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
+Subject: Re: Thermal managment broken
+Date: Wed, 18 Sep 2002 19:00:47 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <microsoft-free.m3sn07ifmo.fsf@grisu.cyvermail.de>
-References: <E174ny3-0008Hy-00@usw-sf-list2.sourceforge.net>
+Message-ID: <20020918190047.C921@brodo.de>
+References: <20020916163600.GA11617@elf.ucw.cz> <20020916225518.B2247@brodo.de> <20020918102555.GB18221@atrey.karlin.mff.cuni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <E174ny3-0008Hy-00-HKCwXBn57GynvZpeIfgr/KQD96bmaF075NbjCUgZEJk@public.gmane.org> (acpi-devel-request@lists.sourceforge.net's
- message of "Mon, 06 May 2002 12:15:32 -0700")
+Content-Disposition: inline
+In-Reply-To: <20020918102555.GB18221-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>; from pavel-+ZI9xUNit7I@public.gmane.org on Wed, Sep 18, 2002 at 12:25:55PM +0200
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,73 +18,34 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Dominik Brodowski <devel-JhLEnvuH02M@public.gmane.org>, Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hi Pavel,
 
-I use the acpi-20020829-2.4.20-pre5.diff with Ducrot Bruno's DSTD on a
-Toshiba Satellite 3000-214.
-When I start the cardmanager i get=20
+On Wed, Sep 18, 2002 at 12:25:55PM +0200, Pavel Machek wrote:
+> > Additionally, it might be better to specify a "starting" and
+> > "stopping" trip point - so that you don't have a fan going
+> > on-off-on-off-on-off repeatedly. (IIRC someone complained about this =
+a few
+> > months ago on this list). But even without this "feature", I'd like t=
+o see
+> > the user-specified trip points in the acpi patch.
+>=20
+> I believe this is orthogonal. You need to do two thresholds even
+> without user help, so it needs to be solved some other way.
 
-,----
-| Sep 18 15:18:46 grisu kernel: unloading Kernel Card Services
-| Sep 18 15:18:53 grisu rcpcmcia: /sbin/insmod /lib/modules/2.4.20-pre5/ker=
-nel/drivers/pcmcia/pcmcia_core.o
-| Sep 18 15:18:53 grisu kernel: Linux Kernel Card Services 3.1.22
-| Sep 18 15:18:53 grisu kernel:   options:  [pci] [cardbus] [pm]
-| Sep 18 15:18:53 grisu rcpcmcia: /sbin/insmod /lib/modules/2.4.20-pre5/ker=
-nel/drivers/pcmcia/pcmcia_core.o
-| Sep 18 15:18:53 grisu rcpcmcia: /sbin/insmod /lib/modules/2.4.20-pre5/ker=
-nel/drivers/pcmcia/yenta_socket.o
-| Sep 18 15:18:54 grisu kernel: Yenta IRQ list 0818, PCI irq10
-| Sep 18 15:18:54 grisu kernel: Socket status: 30000006
-| Sep 18 15:18:54 grisu kernel: Yenta IRQ list 0818, PCI irq10
-| Sep 18 15:18:54 grisu kernel: Socket status: 30000006
-| Sep 18 15:18:54 grisu rcpcmcia: /sbin/insmod /lib/modules/2.4.20-pre5/ker=
-nel/drivers/pcmcia/pcmcia_core.o
-| Sep 18 15:18:54 grisu rcpcmcia: /sbin/insmod /lib/modules/2.4.20-pre5/ker=
-nel/drivers/pcmcia/ds.o
-| Sep 18 15:18:54 grisu cardmgr[2481]: starting, version is 3.1.28
-| Sep 18 15:18:54 grisu cardmgr[2481]: modpath =3D /lib/modules/2.4.20-pre5/
-| Sep 18 15:18:54 grisu cardmgr[2481]: modsubdir =3D pcmcia
-| Sep 18 15:18:54 grisu cardmgr[2481]: watching 2 sockets
-| Sep 18 15:18:54 grisu cardmgr[2481]: could not adjust resource: IO ports =
-0xc00-0xcff: Device or resource busy
-| Sep 18 15:18:54 grisu cardmgr[2481]: could not adjust resource: IO ports =
-0x800-0x8ff: Device or resource busy
-| Sep 18 15:18:54 grisu cardmgr[2481]: could not adjust resource: IO ports =
-0x100-0x4ff: Device or resource busy
-| Sep 18 15:18:54 grisu cardmgr[2481]: could not adjust resource: memory 0x=
-c0000-0xfffff: Input/output error
-| Sep 18 15:18:54 grisu cardmgr[2481]: could not adjust resource: memory 0x=
-60000000-0x60ffffff: Input/output error
-| Sep 18 15:18:54 grisu cardmgr[2481]: could not adjust resource: memory 0x=
-a0000000-0xa0ffffff: Input/output error
-| Sep 18 15:18:54 grisu cardmgr[2481]: could not adjust resource: IO ports =
-0xa00-0xaff: Device or resource busy
-`----
+IIRC, that's something the DSDT has to provide - the trip points should
+change (right in the DSDT) when the fan is turned on or off, respectively.
+Many DSDTs don't do this, and this is an annoyance, but except some basic
+"sanity checking" (for example, having a minimum fan-on period of x
+seconds), such a policy interface should either provide such a two-thresh=
+old
+policy itself (turn-off=3D=3Duser-value - 5=B0), or get direct user-input=
+ for it.
 
-When i start the cardmanager on startup i can load the cardmanager but
-when i insert a card i get these messages for example
-
-,----
-| Sep 17 09:34:42 grisu kernel: orinoco_cs.c 0.11b (David Gibson <hermes@gi=
-bson.dropbear.id.au> and others)
-| Sep 17 09:34:42 grisu kernel: orinoco_cs: RequestIRQ: Resource in use
-`----
-
-The second is, when i try to access the CD-Rom after a wake up from an S1 s=
-leep
-the computer freezes without any messages in the syslog. When i reload
-the ide-scsi module it works
-
-
-
-ttyl8er, t.k.
-
-=2D-=20
-Slowly and surely the unix crept up on the Nintendo user ...
+	Dominik
 
 
 -------------------------------------------------------
