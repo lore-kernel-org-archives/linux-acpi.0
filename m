@@ -1,13 +1,13 @@
 From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
 Subject: Re: Re: [PATCHES] add _CST support
-Date: Thu, 23 Dec 2004 01:10:24 +0100
-Message-ID: <20041223001024.GB8289@dominikbrodowski.de>
-References: <20041127215118.GA30309@dominikbrodowski.de> <1103698332.17318.170.camel@d845pe>
+Date: Thu, 23 Dec 2004 01:08:42 +0100
+Message-ID: <20041223000842.GA8289@dominikbrodowski.de>
+References: <20041127215118.GA30309@dominikbrodowski.de> <1103694244.17325.58.camel@d845pe>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1103698332.17318.170.camel@d845pe>
+In-Reply-To: <1103694244.17325.58.camel@d845pe>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,30 +21,32 @@ To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> I found I had to disable the bm_check to get out of C1
-> on my D600.  This doesn't sound right, as bm_check
-> should only have an effect on entering C3.
-
-Huh, yes, this sounds like a bug. Can't reproduce it here, though :-(
-
->  cat /proc/acpi/processor/CPU0/power
-> active state:            3
-> max_cstate:              C42
-> bus master activity:     00000000
-> states:
->     1:                  type[C1] promotion[2] demotion[-] latency[001]
-> usage[00000010]
->     2:                  type[C2] promotion[3] demotion[1] latency[001]
-> usage[00003280]
->    *3:                  type[C3] promotion[4] demotion[2] latency[085]
-> usage[00000819]
->     4:                  type[C3] promotion[-] demotion[2] latency[185]
-> usage[00000000]
+On Wed, Dec 22, 2004 at 12:44:05AM -0500, Len Brown wrote:
+> On Sat, 2004-11-27 at 16:51, Dominik Brodowski wrote:
 > 
-> It appears the demotion from C4 is to C2, when one would expect C3.
+> > - make acpi_cstate_limit aware of c-state types instead of numbers, as the
+> > 	latter mean (almost) nothing
+> 
+> While both C3 and C4 will be of type-C3, I'd like to still be able to
+> disable C4 without disabling C3.
 
-Actually, this was on purpose: I think we want to leave C3-type sleep
-quickly to advance bus master activity...
+If we can agree not to call it "C3" and "C4", yes... The problem is the 
+C-nomination is sort of a _type_ which is overloaded with the actual states.
+I.e. you could have C0 state, C1 state, 2 different C2 states, and 2
+different C3 states. Then you'd have
+
+number	type	overloaded C-notation
+
+0	C0	C0
+1	C1	C1
+2	C2	C2
+3	C2	C3	<--- confusion/breakage
+4	C3	C4
+5	C3	C5
+
+Also, drivers like the ipw driver will want to disable all of _type_ C3
+sleep, AFAICS. Therefore, if you want to limit it by number instead of type
+as well, I'd suggest to add another differently named parameter.
 
 	Dominik
 
