@@ -1,11 +1,20 @@
-From: jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org (Johan Vromans)
-Subject: DockApps (Was: Smart Battery System driver)
-Date: Thu, 20 Jan 2005 22:27:31 +0100
-Message-ID: <16880.8771.253591.739342@phoenix.squirrel.nl>
+From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
+Subject: Re: Smart Battery System driver
+Date: Thu, 20 Jan 2005 22:31:20 +0100
+Message-ID: <m2sm4v4wk7.fsf@phoenix.squirrel.nl>
+References: <41E81C2C.8010809@bartol.udel.edu>
+	<1105747983.7368.3.camel@tyrosine>
+	<47e0449d05011419037877f931@mail.gmail.com>
+	<m2fz13x8mw.fsf@phoenix.squirrel.nl>
+	<41EA2C1D.3030909@bartol.udel.edu> <41EC7C7D.1070003@bartol.udel.edu>
+	<41EC9316.80109@bartol.udel.edu> <41EDE2EA.7090404@bartol.udel.edu>
+	<m2wtu74yzq.fsf@phoenix.squirrel.nl>
+	<41F01923.1000503@bartol.udel.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <41F01923.1000503-OBnUx95tOyn10jlvfTC4gA@public.gmane.org> (Rich Townsend's message of
+ "Thu, 20 Jan 2005 15:48:35 -0500")
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,22 +27,20 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-[Quoting Rich Townsend, on January 19 2005, 08:31, in "Re: Smart Battery Sy"]
-> However, I'm surprised that the GB applet doesn't get the AC state from 
-> polling /proc/acpi/adapter/AC0/state. I use wmacpi, and that shows up 
-> the AC state fine...
+Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org> writes:
 
-Speaking of wmacpi: what is your favorite (acpi-related) docapp for
-your laptop? 
+> I do this because everything in /lib/modules/XXX/kernel/* gets
+> clobbered when you do a make modules_install from the kernel source
+> tree; 
 
-wmacpi is quite nice (needs a couple of patches, though).
-wmlaptop is also quite nice, but its ACPI support doesn't seem up to
-	 date.
-wmpower is also nice, etc.
-wmacpimon doesn't get the values right.
+I see.
 
-Most of them have some form of libacpi that does a varying job. It is
-clear that using the SBS info would be much easier, and better.
+> I have recently realized that the whole SBS functionality can be
+> implemented in terms of control methods in the DSDT, without the
+> need for any kernel drivers.
+
+Nice. This would require a kernel recompile/reboot  for each DSDT
+modification...
 
 -- Johan
 
