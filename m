@@ -1,8 +1,8 @@
-From: dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org
-Subject: Version Number
-Date: Wed, 19 Feb 2003 20:42:51 -0800
+From: Ethan Glasser-Camp <glasse-IL7dBOYR4Vg@public.gmane.org>
+Subject: T30 BIOS upgrade?
+Date: Thu, 20 Feb 2003 00:32:32 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030220044251.GA18293@benham.net>
+Message-ID: <20030220053232.GD8004@rpi.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,15 +18,10 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+I've heard that IBM is releasing a BIOS upgrade to their Thinkpad product line sometime this quarter, which will significantly improve the machines' ACPI support. Does anyone know when this release will be?
 
-
-Maybe there's a reason for this that's not as obvious.. but it appears
-as if ..._CA_VERSION wasn't updated... /proc/acpi/info still reports
-20030122 (giving me a heart attacking thinking I applied the wrong patch
-or something).
-
-Darren
-
+Kind of impatient,
+Ethan Glasser-Camp
 
 
 -------------------------------------------------------
