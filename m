@@ -1,14 +1,12 @@
-From: "Ow Mun Heng" <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
-Subject: RE: 2.6.3 + D600 + battery state + BUG?? [Was] Battery status sometimes missing
-Date: Fri, 27 Feb 2004 12:05:54 +0800
+From: "Carmen Simon" <dcxycqur-Vnt6Uz0WLTM@public.gmane.org>
+Subject: This is different
+Date: Fri, 27 Feb 2004 09:24:30 +0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <C386328088ED7F4E9F81AFBABDDF60DA045C6CA2@wdmyexch02.my.asia.wdc.com>
+Message-ID: <GYENQMFUNHMZFMTHTNNCS@neda.net.ir>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/alternative;
+	boundary="--90640021303592421989"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,39 +15,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Acpi-List (E-mail)" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, multignometerm-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+----90640021303592421989
+Content-Type: text/html;
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+<head>
+<title>110.135.14.196</title>
+<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Diso-8859=
+-1">
+</head>
+
+<body>
+<p>&nbsp;</p>
+<p>With <a href=3D"http://www.globalmarketing2000.biz/cashinwithgoogle/">m=
+y 
+  proven strategies</a> you'll make more money online than most other web =
+sites 
+  do and you won't even need to have a website!</p>
+<p></p>
+<p><font size=3D"2">I don't want more <a href=3D"http://www.globalmarketin=
+g2000.biz/remove.html">emails</a></font></p>
+</body>
+</html>
 
 
-> -----Original Message-----
-> From: Yu, Luming [mailto:luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
-> Sent: Friday, February 27, 2004 11:20 AM
-> To: Ow Mun Heng; Acpi-List (E-mail)
-> Subject: RE: [ACPI] 2.6.3 + D600 + battery state + BUG?? [Was] Battery
-> status sometimes missing
->=20
->=20
-> > Note : I still see this soometimes
-> > osl-0886[80] os_wait_semaphore:Failed to acquire=20
-> > semaphore[dffac580|1|0],
-> > AE_TIME
->=20
-> Hmm, this is unusual inforation. I'm curious about the semaphore which
-> is timeout to
-> be acquired by whom?  Would you help with add dump_stack just before
-> that debug
-> message? This is a interesting bug. :)
->=20
-> I'm not sure, but maybe the following two patch can help, only because
-> they aim  to
->  global lock/mutex issue.
-> 1.) http://bugme.osdl.org/show_bug.cgi?id=3D1781#c18
-> 2.) http://bugme.osdl.org/show_bug.cgi?id=3D1669#c6
-
-Can you tell me how to add the dump_stack??
-
-in /proc/acpi/debug_layer ??? how to do it?? Echo what??
+----90640021303592421989--
 
 
 -------------------------------------------------------
