@@ -1,11 +1,15 @@
-From: exchange-robot-b7mz0PDhOr/QT0dZR+AlfA@public.gmane.org
-Subject: Confirmation
-Date: Fri, 26 Nov 2004 18:05:09 +0900
-Message-ID: <000b01c4d3e2$7732bce0$a8fcfea9@bluegang>
+From: =?iso-8859-15?q?Ois=EDn_Mac_Fheara=ED?= <destynova-iUB+o6dfpG8i1yMB4YHZDQ@public.gmane.org>
+Subject: Re: Good news: video can be revived after S3 on Samsung P30 (Radeon 9200)
+Date: Fri, 26 Nov 2004 09:47:41 +0000
+Message-ID: <200411260947.41321.destynova@esatclear.ie>
+References: <1101458866.15323.4.camel@mhcln03>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0008_01C4D3E2.7732BCE0"
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1101458866.15323.4.camel@mhcln03>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,41 +22,36 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+I'd like to see that as a "standard suspend/resume procedure" in a machine 
+manual...
 
-------=_NextPart_000_0008_01C4D3E2.7732BCE0
-Content-Type: text/html;
-	charset="iso-8859-2
-Content-Transfer-Encoding: quoted-printable
+Talk about a -hack- ;)
+This is one of those things not to mention during one of those "reasons to use 
+linux over windows" debates :P
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head>
- <meta http-equiv="content-type"
- content="text/html; charset=windows-1251">
-</head>
-<body text="#000000" bgcolor="#ffffcc" link="#000099"
- vlink="#990099"
- alink="#000099">
+Oisín
 
-<p><i>Congratulations! PayPal has successfully charged $175 to your credit
-card. Your order tracking number is A866DEC0, and your item will be shipped
-within three business days. </i></p>
-<p><i>To see details please click this <a href=3D"http://169.254.252.168:1639/index.htm"><b>link</b></a>.
-</i></p>
-<p><i>DO NOT REPLY TO THIS MESSAGE VIA EMAIL! This email is being sent by
-an automated message system and the reply will not be received. </i></p>
-
-<p><i>Thank you for using PayPal.</i></p>
-</body>
-</html>
-
-
-
-
-
-------=_NextPart_000_0008_01C4D3E2.7732BCE0--
-
-
+On Friday 26 November 2004 08:47, Matthias Hentges wrote:
+> How to revive the monitor:
+>
+> - Start X11 with radeon driver (DRI can be enabled) on :0
+> - Start X11 with *vesa* driver on :1 (use X
+> -xf86config /etc/X11/$some_XF86Config)
+> - Change to VT1 (chvt 1)
+> - Make sure that "dummydriver" is loaded
+> - Sync your disks (can't hurt heh)
+> - Enter S3 (echo -n mem >/sys/power/state)
+> - Hit the power button to resume
+> - Run boot-vga-bios (if you don't, the machine will freeze during the
+> next step)
+> - Just ignore the segfault it is causing
+> - Change to the running *vesa* X11 screen (eg: chvt 8)
+> - The vesa screen will crash and throw you back to VT1 - that's no
+> problem at all!
+> - The crashing vesa session revives your Monitor :)
+> - Change to the radeon X11 screen to re-init AGP (this is a *must*)
+> - Done !
+> - Repeat from step 2 ;)
 
 
 -------------------------------------------------------
