@@ -1,12 +1,10 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: back from suspend
-Date: Wed, 2 Mar 2005 14:21:43 +0100
-Message-ID: <20050302132143.GA1309@elf.ucw.cz>
-References: <20050222215216.M55296@mixandgo.ro>
+From: Kylene Hall <kjhall-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Subject: Looking for the correct way to retrieve ACPI table info
+Date: Wed, 02 Mar 2005 09:08:46 -0600
+Message-ID: <1109776126.3201.9.camel@jo.austin.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20050222215216.M55296-WE3S9J525UShKNWrAYCRhA@public.gmane.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,30 +14,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Cezar Halmagean <cezar-WE3S9J525UShKNWrAYCRhA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: Seiji Munetoh <MUNETOH-JE5g2YyFxFHQT0dZR+AlfA@public.gmane.org>, Tom Lendacky <toml-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, Emily Ratliff <emilyr-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, Kent E Yoder <yoder1-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hello-
 
-> the patch on hwsleep.c solved half the problem, now It goes nice and clean
-> into sleep mode, but when I come back, both keyboard is dead and screen
-> remains blank.
+We are working on a device driver for the Trusted Computing Group TPM.
+BIOS has been augmented to created a log of TCG boot events and
+userspace needs to read these events.  We plan for the driver to export
+them via sysfs, therefore we need to call acpi_os_map_memory and the
+corresponding acpi_os_unmap memory.  Would it be ok to export these
+functions?  Would you recommend some other interface which is already
+exported or would be better to export.  Currently we call
+acpi_get_firmware_table with a signature of "TCPA"  and a pointer to a
+structure like:
+                struct acpi_tcpa {
+                  struct acpi_table_header hdr;
+                  u16 reserved;
+                  u32 log_max_len PACK;
+                  u32 log_start_addr PACK;
+                };
+The log_man_len and log_start_addr fields are then passed to the
+acpi_os_map_memory function and we retrieve the data.
 
-video.txt says:
 
-(2) systems where it is possible to call the video BIOS during S3
-  resume. Unfortunately, it is not correct to call the video BIOS at
-  that point, but it happens to work on some machines. Use
-  acpi_sleep=s3_bios.
+Please let me know your feelings on this approach and the wording of
+this note.  Sorry for note circulating this conversation wider earlier
+and saving you the work you have already done on these patches.
 
+Thanks,
+Kylie Hall
 
-HP NC6000                       s3_bios, may not use radeonfb (2)
-
-									Pavel
 -- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Kylene Hall
+IBM Linux Technology Center
+
+
 
 
 -------------------------------------------------------
