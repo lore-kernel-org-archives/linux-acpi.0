@@ -1,77 +1,58 @@
-From: David Ford <david+challenge-response-qokYbnrgTHEgsBAKwltoeQ@public.gmane.org>
-Subject: Re: PROBLEM: LCD display dead after ACPI suspend to RAM (S3)
-Date: Thu, 22 Jan 2004 12:33:22 -0500
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40100962.4040306@blue-labs.org>
-References: <m3hdyo2kce.fsf@reason.gnu-hamburg>	<20040122140155.GC5194@hell.org.pl>	<m3d69cj8hb.fsf@reason.gnu-hamburg>	<20040122154638.GA11867@hell.org.pl> <m365f3dhtv.fsf@reason.gnu-hamburg>
+From: "Brown, Len" <len.brown@intel.com>
+Subject: RE: [ACPI] [PATCH] add acpi_interrupt_to_irq
+Date: Thu, 22 Jan 2004 12:41:10 -0500
+Sender: linux-ia64-owner@vger.kernel.org
+Message-ID: <BF1FE1855350A0479097B3A0D2A80EE0CC8A2D@hdsmsx402.hd.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <m365f3dhtv.fsf-glUV91rXKAHWIjgkaejU9x2eb7JE58TQ@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>
-Cc: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-ia64-owner@vger.kernel.org>
+content-class: urn:content-classes:message
+To: Bjorn Helgaas <bjorn.helgaas@hp.com>, "Nakajima, Jun" <jun.nakajima@intel.com>, acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Try hitting the hardware function key that swaps the CRT/LCD and/or the 
-function key that changes the font.
+Bjorn,
 
-Works on my laptop.  Really annoying two-fold issue.  First, the screen 
-is blank, second, I have to blindly run setfont to change the garbage 
-font to a readable font.
+> irq = acpi_irq_to_vector(irq);
 
-I'm not running an fb, just an nvidia card in text mode on a Dell 
-Inspiron 8200.
+Yeah, this name is totally bogus; and your comments are absolutely
+right.  I thank you for taking the time to address it.
 
-David
+When I first saw this I said to myself, "hmm, shouldn't it be
+acpi_irq_to_irq()?", nah, that seems even more stupid!";-)
 
-Georg C. F. Greve wrote:
+Looks like this is only used for the SCI listed in the FADT.  So maybe
+we should just call it something like acpi_fadt_sci_to_irq()?
 
-> || On Thu, 22 Jan 2004 16:46:38 +0100
-> || Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org> wrote: 
->
-> kk> Does it work before the suspend (i.e. does the backlight switch
-> kk> on and off)? 
->
->Yes.
->
->
-> kk> If so, your problem is probably a video driver issue and I'm
-> kk> afraid I can't be of further help.
->
->Where would the people maintaining the video driver have to look?
->
->
-> kk> Also, are you using a framebuffer? 
->
->Yes.
->
->
-> kk> If so, try not, i.e. use a simple VGA console -> s3_bios works
-> kk> fine for me on a VGA console, but produces a blank (though
-> kk> backlit) screen with radeonfb.  Best regards,
->
->Interesting. I'll try that.
->
->May this be a problem of the fb driver then?
->
->Thanks for your input,
->Georg
->
->  
->
+Thanks,
+-Len
 
-
--------------------------------------------------------
-The SF.Net email is sponsored by EclipseCon 2004
-Premiere Conference on Open Tools Development and Integration
-See the breadth of Eclipse activity. February 3-5 in Anaheim, CA.
-http://www.eclipsecon.org/osdn
+> -----Original Message-----
+> From: Bjorn Helgaas [mailto:bjorn.helgaas@hp.com] 
+> Sent: Thursday, January 22, 2004 11:38 AM
+> To: Nakajima, Jun; acpi-devel@lists.sourceforge.net; 
+> linux-ia64@vger.kernel.org
+> Cc: Brown, Len
+> Subject: Re: [ACPI] [PATCH] add acpi_interrupt_to_irq
+> 
+> 
+> On Wednesday 21 January 2004 8:36 pm, Nakajima, Jun wrote:
+> 
+> > > 	(b) is "acpi_interrupt_to_irq" a better name than
+> > > 	    "acpi_irq_to_vector"?
+> > 
+> > I don't know what people imagine by "interrupt", but to me 
+> it implies an
+> > "event". 
+> 
+> Are you saying that you think "acpi_irq_to_vector" is the right name?
+> What does "vector" mean?  The return value of that function is in
+> fact a Linux IRQ, and is passed to request_irq() and free_irq().  So
+> I think the correct name is "acpi_SOMETHING_to_irq".  If you don't
+> like "interrupt", you can propose something else.  I just think it's
+> misleading for the name to contain "to_vector", when it's really
+> doing "to_irq".
+> 
+> 
+> 
