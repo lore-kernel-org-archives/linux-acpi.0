@@ -1,14 +1,12 @@
-From: jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org (Johan Vromans)
-Subject: Re: sbs-linux: smart batteries on SourceForge
-Date: Sun, 6 Feb 2005 20:34:01 +0100
-Message-ID: <16902.28969.267527.625129@phoenix.squirrel.nl>
-References: <41FBDDE2.1050403@bartol.udel.edu>
-	<42057EBE.5090102@bartol.udel.edu>
-	<m28y61a98u.fsf@phoenix.squirrel.nl>
-	<42066328.1080601@bartol.udel.edu>
+From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [2.6 patch] i386/x86_64: acpi/sleep.c: kill unused acpi_save_state_disk
+Date: Sun, 6 Feb 2005 20:46:39 +0100
+Message-ID: <20050206194639.GH18245@wotan.suse.de>
+References: <20050206184447.GW3129@stusta.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+In-Reply-To: <20050206184447.GW3129-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,22 +16,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Adrian Bunk <bunk-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org>
+Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, pavel-AlSwsSmVLrQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ak-l3A5Bk7waGM@public.gmane.org, discuss-Wa75r+71Mmgdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-[Quoting Rich Townsend, on February 6 2005, 13:34, in "Re: sbs-linux: smart"]
-> > Do your chages for TravelMate4001 still disable I2C access?
+On Sun, Feb 06, 2005 at 07:44:47PM +0100, Adrian Bunk wrote:
+> acpi_save_state_disk does nothing and is completely unused.
 > 
-> Yes, they do. I found weird behaviour arises if I2C access remains 
-> enabled. I'm looking further into this, because I would prefer to keep 
-> the I2C stuff going.
+> This patch was already ACK'ed by Pavel Machek.
 
-That would be very nice.
-Just for the record, I'm running 'your' SBS-DSDT right now, with no
-apparent problems (I used the compiled-in DSDT technique).
+Since it affects both i386 and x86-64 it should be pushed by the ACPI
+people. However it's no bugfix and so definitely nothing for 2.6.11,
+so it'll take quite some time anyways.
 
--- Johan
+-Andi
 
 
 -------------------------------------------------------
