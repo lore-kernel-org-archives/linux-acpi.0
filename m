@@ -1,15 +1,14 @@
 From: wwp <subscript-GANU6spQydw@public.gmane.org>
-Subject: Re: ACPI status in 2.4 tree
-Date: Wed, 19 Nov 2003 15:43:24 +0100
+Subject: Re: S1 sleep mode on Dell Inspiron 8100
+Date: Wed, 19 Nov 2003 15:50:23 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031119154324.6bbc067f.subscript@free.fr>
-References: <20031119135203.373043b0.subscript@free.fr>
-	<20031119142918.GF32464@poupinou.org>
+Message-ID: <20031119155023.62fd4add.subscript@free.fr>
+References: <3FBB975E.30801@free.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20031119142918.GF32464-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <3FBB975E.30801-GANU6spQydw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -21,26 +20,34 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Ducrot Bruno,
+Hi Guillaume Pothier,
 
 
-On Wed, 19 Nov 2003 15:29:18 +0100 Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> wrote:
+On Wed, 19 Nov 2003 11:16:30 -0500 Guillaume Pothier <gpothier-GANU6spQydw@public.gmane.org> wrote:
 
-> On Wed, Nov 19, 2003 at 01:52:03PM +0100, wwp wrote:
-> > Hi ACPI guyz,
-> > 
-> > 
-> > are 2.4's release candidates sync'ed w/ ACPI?
-> > IOW, if I get 2.4.23-rc2, will it include the latest ACPI code from acpi.sf.net
-> > (except the test patches) or will I have to get'n'apply a patch?
-> > 
-> 
-> Why not just looking in the log? at ?
-> From ftp.kernel.org:/pub/linux/kernel/v2.4/testing/patch-2.4.23.log
+> I am trying configure ACPI on my Inspiron 8100. I am using the custom 
+> dsdt table, with acpi-patched kernel 2.4.22 . This is much better than 
+> what I had with my original Mandrake 9.2 install (my system wouldn't 
+> power off, hanged whenever I unplugged the AC adapter or tried to go 
+> into sleep mode). Now it powers off properly when I press the power 
+> button and handles AC unplug. However, I cannot have it go into S1 sleep 
+> mode. When I do echo 1 >/proc/acpi/sleep, the computer freezes, but the 
+> screen remains on, hdd too. Then if I press the power button it goes 
+> back normal. Is there something more to do to enter sleep mode?
+> Guillaume
 
-That's exactly what I did (and I use to), but I did't know if the [ACPI]
-prefix implies that it's a sync' between acpi.sf.net project and Linux kernel
-or a simple ACPI stuff merged to Linux. That's why I was asking :-\.
+IIRC, I've found many times this issue in forums at DELL's. Some people were
+answered to manage the LID off using a script in /etc/acpid. In fact acpid
+detects an event that is equivalent to the sleep button, so you can bind other
+actions upon it (like turning off the LID, and so on), if your ACPI support
+(hardware/software) cannot do better. For radeon users there were solutions
+that I won't explain here because it's a lil' bit OT.
+
+Using my DELL i8200 and SuSE 8.1 (2.4.19 with acpi 20020829) it's the same
+for me, that's why I use acpid's events to turn off the LID (cannot turn off the hdd
+because running daemons and ext3).
+
+But mayde some ACPI people would provide a better answer or solutions?
 
 
 Regards,
