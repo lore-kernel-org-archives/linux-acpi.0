@@ -1,12 +1,16 @@
-From: "Gaetano Sferra" <gaesferr-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org>
-Subject: About ASL and DSDT fixing
-Date: Wed, 15 Sep 2004 11:03:07 +0200
+From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
+Subject: Re: Re: [Ipw2100-devel] [susp-resume] ipw2100 suspend patch
+ for 0.54 (version 3)
+Date: Wed, 15 Sep 2004 12:23:01 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <I42RT7$043051603B3815A736335BEE0AD7FB44@libero.it>
+Message-ID: <41481805.8020106@pca.it>
+References: <3ACA40606221794F80A5670F0AF15F8403BD570F@pdsmsx403> <413EE1EA.2070307@pca.it> <413F02E7.3060005@pca.it> <20040914222905.GA17380@elf.ucw.cz> <4147870C.9090003@pca.it> <20040915083734.GA17317@hell.org.pl>
+Reply-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20040915083734.GA17317-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -15,29 +19,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello to all,
-I'm trying to correct the DSDT for my AMILO D 7830, I see =
-already other messages about it but my question is another: Where I can f=
-ound resources on the ASL language? I've searched on Intel's site and dow=
-nloaded a lot of manuals but none tells to me the syntax and the semantic=
- of this language, can you help me so I can try to understand what's wron=
-g in my DSDT, what should be the correct behavior of this or that functio=
-nality and how try to fix or re-code it?
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Another simple question: How =
-I can pass the kernel argument acpi_os_name using LILO? I've tried using =
-the attach=3D<...> option but I can't because the it's content must be do=
-uble quoted so attach=3D"hdc=3Dide-cd acpi_os_name=3D"Microsoft Windows X=
-P"" doesn't work cause the nested quote, the same is with attach=3D"hdc=3D=
-ide-cd acpi_os_name=3D'Microsoft Windows XP'", the kernel got only half s=
-tring ("Microsoft"). How I shoud pass it?
+Hello Karol,
 
-Thanks
-Gaetano Sferra
+on 09/15/04 10:37, Karol Kozimor wrote:
+> Append noresume. swsusp1 kicks in earlier than pmdisk.
+this works indeed.
 
+Now, my situation:
+- - ASUS M6N with BIOS 0209A
+- - kernel 2.6.9-rc2 with no other patches
+- - quite all the possible modules for my machine loaded
+- - Debian GNU/Linux experimental
+- - Debian XFree86-4.3.0.dfsg.1-7 (using the native radeon driver)
+- - Debian GNOME 2.7.92-1
+
+I can *successfully* suspend/resume with the 2 calls (/proc or /sys),
+directly from XFree86 and with all the modules loaded. As already
+reported, the only difference is that with the /sys call, in suspending
+I've always the machine which powers off, while with the /proc call I
+should power off the machine by pressing 4-sec the power button.
+
+Simple question: which should be the best method to use? /sys or /proc?
+
+Another thing: why for the /sys call I should use 'append=noresume',
+while I want to *resume*? I mean, it's not so clear...
+
+Thx, bye,
+Gismo / Luca
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
+
+iD8DBQFBSBgFVAp7Xm10JmkRAi8CAJ9mL0FRj3oGsvJRQ2hxaZ4ZFXSyiQCaA3Vo
+ljpK7b0WuGf9VMa5Z2SjiD0=
+=ONtH
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
