@@ -1,13 +1,14 @@
-From: "Elsie Daugherty" <elsiedaughertyrt-31QVuvbfg3A@public.gmane.org>
-Subject: Lose your weight. New weightloss loses up to 19%.
-Date: Tue, 20 Jul 2004 06:11:38 -0200
+From: "Sharma, Arun" <arun.sharma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Out of Office AutoReply: Secure SMTP Message
+Date: Tue, 20 Jul 2004 08:40:38 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <098c01c46e31$9d08d49b$18b37482@tebenet.nl>
+Message-ID: <5EA8BF6B8079FD46BF22998F56C9597104282A51@scsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,45 +17,15 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello, I have a special offer for you...
 
-WANT TO LOSE WEIGHT?
+I'll be out of office 7/21-7/24. Please contact rohit.seth-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, if =
+you have any urgent issues.
 
-The most powerful weightloss is now available
-without prescription. All natural Adipren720
-100% Money Back Guarantée!
+   -Arun
 
-- Lose up to 19% Total Body Weight.
-- Up to 300% more Weight Loss while dieting.
-- Loss of 20-35% abdominal Fat.
-- Reduction of 40-70% overall Fat under skin.
-- Increase metabolic rate by 76.9% without Exercise.
-- Burns calorized fat.
-- Suppresses appetite for sugar.
-- Boost your Confidence level and Self Esteem.
-
-Get the facts about all-natural Adipren720: http://adipren12.com/
-
-
-
-
-
-
-
-
-
----- system information ----
-radical-stroke Internet Natural aspects exposed marks reasonable differing
-
-Distinguishing interpretation: single Procedure consensus those we negotiation
-
-resource writes interpretation: selection server even contents Group's
-
-years so Please Australia always than call setting 
-place maintaining collections description send guidance users Java 
 
 
 
