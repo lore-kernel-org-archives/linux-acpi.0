@@ -1,14 +1,14 @@
-From: "Randy.Dunlap" <rddunlap-3NddpPZAyC0@public.gmane.org>
-Subject: Re: Power on at specific time
-Date: Tue, 29 Apr 2003 07:44:10 -0700
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: acpi_pci_link_check's attempt to find the _best_ irq p
+	revents system from using ACPI irq routing
+Date: Tue, 29 Apr 2003 10:14:17 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030429074410.6d50b75b.rddunlap@osdl.org>
-References: <1051613486.3508.48.camel@laptop-linux>
+Message-ID: <D3A3AA459175A44CB5326F26DA7A189C1C3C33@orsmsx405.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset="ISO-8859-1"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1051613486.3508.48.camel-udXHSmD1qAy4CTf7w+cZoA@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,53 +17,179 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Malte Doersam <malte.d-hi6Y0CQ0nG0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 29 Apr 2003 22:51:26 +1200 Nigel Cunningham <ncunningham-oKK1aGe2n85ECS10DBIrLA@public.gmane.org=
-nz> wrote:
+if (walk_state->ascending_callback != NULL ) {
+  walk_state->op    = op;
+  walk_state->opcode = op->common.aml_opcode;
+  printk("Malte DEBUG: last seen line\n");
 
-| Hi Andy.
-|=20
-| A while ago we had a conversation that finished like this...
-|=20
-|=20
-|  > From: Nigel Cunningham [mailto:ncunningham-1uLG4q7jwdI@public.gmane.org]=20
-|  > On Wed, 2003-02-19 at 13:09, Grover, Andrew wrote:
-|  > > Well, go fix it and send me a patch! :)
-|  > >=20
-|  > > Seriously, Pat roughed-in the alarm support a long long=20
-|  > time ago, but it
-|  > > needs someone to take another look at it and get it fully=20
-|  > functional.
-|  >=20
-|  > Gladly, but I wanted to make sure I wasn't barking up the wrong tree
-|  > first, and then I need a push in right direction (toward some
-|  > documentation!).
-| =20
-|  Go check out include/linux/mc146818rtc.h. Using this plus the existing
-|  code plus a recent ICH datasheet available on developer.intel.com (I
-|  recommend ICH3m's - section 9.6 is "Real Time Clock Registers") you
-|  should be able to get started.
-| =20
-|  Hope this helps -- Regards -- Andy
-|=20
-|=20
-| I'm having trouble finding the ICH datasheet you spoke of. Could you
-| give me a url?
+>>> set acpi_dbg_level = 0x00FFFFFF here to enable tracing.
+Bob
 
-Right, I'm not Andy.
 
-At developer.intel.com, I followed Hardware Design, Chipsets, Mobile,
-and found a section on Intel=AE 830 Chipset Family, which contains the
-letters "ICH3-M" several times.   Then click on Documentation, Datasheets,
-scroll down to Mobile Intel=AE 830 Chipset Family, and click on the
-ICH3-M datasheet URL.
+  status = walk_state->ascending_callback (walk_state);
+  printk("Malte DEBUG: never got to this point with IRQ9\n");
+  status = acpi_ps_next_parse_state (walk_state, op, status);
+  if (status == AE_CTRL_PENDING) {
+    status = AE_OK;
+    goto close_this_op;
+  }
+}
 
-HTH.
---
-~Randy
+
+> -----Original Message-----
+> From: Malte Doersam [mailto:malte.d-hi6Y0CQ0nG0@public.gmane.org]
+> Sent: Saturday, April 26, 2003 10:48 AM
+> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: Re: [ACPI] acpi_pci_link_check's attempt to find the _best_
+irq
+> prevents system from using ACPI irq routing
+> 
+> Hi Andy, Hi everbody
+> 
+> It took me severel hours to track down this to this point. As you
+stated,
+> the
+> acpi_pci_link_check doesn't block the booting.  I observed the loop
+with
+> some
+> printks in acpi_pci_link_check:
+> 
+> FYI my links:
+> ACPI: PCI Interrupt Link [PILA] (IRQs 3 4 5 6 7 9 *11 12 14 15)
+> ACPI: PCI Interrupt Link [PILB] (IRQs 3 4 5 6 7 9 *11 12 14 15)
+> ACPI: PCI Interrupt Link [PILC] (IRQs 3 4 5 6 7 9 *11 12 14 15)
+> ACPI: PCI Interrupt Link [PILD] (IRQs 3 4 5 6 7 9 *11 12 14 15)
+> ACPI: PCI Interrupt Link [PILE] (IRQs 3 4 5 6 7 9 *11 12 14 15)
+> ACPI: PCI Interrupt Link [PILF] (IRQs 3 4 5 6 7 9 *11 12 14 15)
+> ACPI: PCI Interrupt Link [PILG] (IRQs 3 4 5 6 7 9 11 12 14 15,
+disabled)
+> ACPI: PCI Interrupt Link [PILh] (IRQs 3 4 5 6 7 9 11 12 14 15,
+disabled)
+> 
+> and here are my printks, the numbers in {{x}} represent the content of
+the
+> variable before...
+> 
+> acpi_pci_link_check entered
+> link->irq.active --> IRQ: 11 Penalty: 100
+> link->irq.active --> IRQ: 11 Penalty: 200
+> link->irq.active --> IRQ: 11 Penalty: 300
+> link->irq.active --> IRQ: 11 Penalty: 400
+> link->irq.active --> IRQ: 11 Penalty: 500
+> link->irq.active --> IRQ: 11 Penalty: 600
+> !link->irq.active
+> !link->irq.active
+> first list_for_each completed
+> 
+> !link->irq.active
+> irq=link->irq.possible[0] {{3}}
+> for (i=( link->irq.possible_count {{10}} -1; i>0;i--) {
+> if (acpi_irq_penalty[irq] {{10020}} > acpi_irq_penalty[link-
+> >irq.possible[i]]
+> {{10020} ) { 	// 15
+> if (acpi_irq_penalty[irq] {{10020}} > acpi_irq_penalty[link-
+> >irq.possible[i]]
+> {{10020} ) {	// 14
+> if (acpi_irq_penalty[irq] {{10020}} > acpi_irq_penalty[link-
+> >irq.possible[i]]
+> {{10020} ) {	// 12
+> if (acpi_irq_penalty[irq] {{10020}} > acpi_irq_penalty[link-
+> >irq.possible[i]]
+> {{620} ) {	// 11
+> irq = link->irq.possible[i] {{11}} ;
+> if (acpi_irq_penalty[irq] {{620}} > acpi_irq_penalty[link-
+> >irq.possible[i]]
+> {{20} ) {		//  9
+> irq = link->irq.possible[i] {{9}} ;
+> if (acpi_irq_penalty[irq] {{20}} >
+acpi_irq_penalty[link->irq.possible[i]]
+> {{10020} ) {		//  7
+> if (acpi_irq_penalty[irq] {{20}} >
+acpi_irq_penalty[link->irq.possible[i]]
+> {{10020} ) {		//  6
+> if (acpi_irq_penalty[irq] {{20}} >
+acpi_irq_penalty[link->irq.possible[i]]
+> {{20} ) {		//  5
+> if (acpi_irq_penalty[irq] {{20}} >
+acpi_irq_penalty[link->irq.possible[i]]
+> {{10020} ) {		//  4
+> second list_for_each complete
+> 
+> acpi_pci_link_set(link,irq);
+> 
+> Ok, as you can see, it is trying to do the acpi_pci_link_set with IRQ
+9,
+> which
+> doesn't work. Commenting out this check-loop made the disabled links
+to
+> use
+> the first IRQ (3) which worked.
+> 
+> Now to the interesting part, why IRQ doesn't work:
+> 
+> I followed the acpi_pci_link_set through zillions of lines of code ;)
+to
+> this
+> function ( drivers/acpi/parser/psparse.c)
+> 
+> acpi_status acpi_ps_parse_loop ( struct acpi_walk_state * walk_state)
+> 
+> The "offending part" is this:
+> 
+> /* This op complete, notify the dispatcher */
+> 
+> if (walk_state->ascending_callback != NULL ) {
+>   walk_state->op    = op;
+>   walk_state->opcode = op->common.aml_opcode;
+>   printk("Malte DEBUG: last seen line\n");
+>   status = walk_state->ascending_callback (walk_state);
+>   printk("Malte DEBUG: never got to this point with IRQ9\n");
+>   status = acpi_ps_next_parse_state (walk_state, op, status);
+>   if (status == AE_CTRL_PENDING) {
+>     status = AE_OK;
+>     goto close_this_op;
+>   }
+> }
+> 
+> Maybe you can send me some appropriate printk-instruction which print
+some
+> usefull information for you about this 'blocker'? :-)
+> I'm not sure whether this might be an AML-Bug, but my dsdt.asl does
+> compile
+> fine with iasl. In the mean time I'm just using IRQ 3 for these links
+:-)
+> 
+> http://home.fhtw-berlin.de/~s0502837/linux.kernel/2.5.66.dsdt
+> http://home.fhtw-berlin.de/~s0502837/linux.kernel/dsdt.asl
+> 
+> cheers Malte
+> 
+> 
+> 
+> 
+> Am Mittwoch, 23. April 2003 20:19 schrieben Sie:
+> > Looks OK to me. You guys need to tell me *why* commenting it out
+fixes
+> > things - with it left in, what irq is it picking, and why isn't that
+irq
+> > working OK?
+> >
+> > Thanks -- Regards -- Andy
+> 
+> 
+> 
+> -------------------------------------------------------
+> This sf.net email is sponsored by:ThinkGeek
+> Welcome to geek heaven.
+> http://thinkgeek.com/sf
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
