@@ -1,36 +1,120 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [2.6.6] Oops when unloading processor module
-Date: Sat, 05 Jun 2004 11:34:50 +1000
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <E1BWQ5C-0006cc-00@gondolin.me.apana.org.au>
-References: <20040604232817.GA11305@wiggy.net>
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S265969AbUFEBgU@vger.kernel.org>
-In-Reply-To: <20040604232817.GA11305@wiggy.net>
-To: Wichert Akkerman <wichert@wiggy.net>
-Cc: linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
+From: Nicholas Smith <hsiuwen-9Vj9tDbzfuSlVyrhU4qvOw@public.gmane.org>
+Subject: Cialis - very low price
+Date: Sat, 05 Jun 2004 02:22:16 +0000
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <E1BWQw0-00067i-6C@sc8-sf-mx1.sourceforge.net>
+Mime-Version: 1.0
+Content-Type: multipart/related;
+    type="multipart/alternative";
+    boundary="----=_NextPart_000_0000_4D55E256.8494414D"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Wichert Akkerman <wichert@wiggy.net> wrote:
-> Since the IWP2100 driver has some issues with the acpi processor
-> module entering C3 I tried to unload the processor module which
-> resulted in the oops below.
-> 
-> 
-> Badness in remove_proc_entry at fs/proc/generic.c:685
-> Call Trace:
-> [<c017d66a>] remove_proc_entry+0x10a/0x150
-> [<e08e5f0e>] acpi_thermal_remove_fs+0x1d/0x2d [thermal]
-> [<e08e61a7>] acpi_thermal_remove+0x77/0x80 [thermal]
-> [<c01eab6d>] acpi_driver_detach+0x39/0x7c
-> [<c01eac21>] acpi_bus_unregister_driver+0x12/0x51
-> [<e08e61ba>] acpi_thermal_exit+0xa/0x1e [thermal]
-> [<c012bf10>] sys_delete_module+0x150/0x1a0
-> [<c0142faa>] do_munmap+0x14a/0x190
-> [<c010411b>] syscall_call+0x7/0xb
+This is a multi-part message in MIME format.
 
-This has been fixed in 2.6.7-rc2 already.
--- 
-Visit Openswan at http://www.openswan.org/
-Email:  Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+------=_NextPart_000_0000_4D55E256.8494414D
+Content-Type: multipart/alternative;
+    boundary="----=_NextPart_001_0001_94E9AAFE.19354EAB"
+
+
+------=_NextPart_001_0001_94E9AAFE.19354EAB
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 7bit
+
+Fuller & harder erections
+Works in less than 15 minutes 
+Longer effects 
+Less side effects
+ 
+CIALIS:
+http://dr-umer.com/sv/index.php?pid=eph2408
+
+Select the manufacturer you trust!
+We ship to over 150 countries
+
+
+------=_NextPart_001_0001_94E9AAFE.19354EAB
+Content-Type: text/html; charset=iso-8859-1
+Content-Transfer-Encoding: 7bit
+
+<HTML><HEAD>
+<META content="MSHTML 6.00.2800.1400" name=GENERATOR></HEAD>
+<BODY text=#000000 vLink=#ffffff aLink=#ffffff link=#ffffff bgProperties=fixed 
+bgColor=#93d706 leftMargin=0 topMargin=0 rightMargin=0 marginwidth="0" 
+marginheight="0">
+<TABLE height=16 cellSpacing=0 cellPadding=0 width="100%" bgColor=#e8e8e8 
+border=0>
+  <TBODY>
+  <TR>
+    <TD width="100%" height=1>
+      <P align=left></P></TD></TR></TBODY></TABLE>
+<TABLE height=108 cellSpacing=0 cellPadding=0 width="100%" bgColor=#87c505 
+border=0>
+  <TBODY>
+  <TR>
+    <TD width="100%" height=108>
+      <P align=center><FONT face=Arial color=#ffffff size=3><STRONG><A 
+      style="TEXT-DECORATION: none" 
+      href="http://dr-umer.com/sv/index.php?pid=eph2408">Fuller &amp; harder 
+      erections<BR>Works in less than 15 minutes <BR>Longer effects <BR>Less 
+      side effects</STRONG></FONT></P></A></TD></TR></TBODY></TABLE>
+<TABLE cellSpacing=0 cellPadding=0 width="100%" border=0>
+  <TBODY>
+  <TR>
+    <TD width="100%">
+      <P align=center><A 
+      href="http://dr-umer.com/sv/index.php?pid=eph2408"><FONT 
+      face="Arial Black" color=#ffffff size=7><U><STRONG 
+      style="TEXT-DECORATION: none">ClALlS</STRONG></U></FONT></A></P></TD></TR></TBODY></TABLE>
+<TABLE height=46 cellSpacing=0 cellPadding=0 width="100%" border=0>
+  <TBODY>
+  <TR>
+    <TD width="100%" height=29><A 
+      href="http://dr-umer.com/sv/index.php?pid=eph2408">
+      <P align=center><FONT face=Arial color=#ffffff size=6><U><STRONG>Select the manufacturer you trust
+</STRONG></U></FONT></P></A></TD></TR>
+  <TR>
+    <TD width="100%" height=17>
+      <P align=left></P></TD></TR></TBODY></TABLE>
+<TABLE height=46 cellSpacing=0 cellPadding=0 width="100%" bgColor=#dfdfdf 
+border=0>
+  <TBODY>
+  <TR>
+    <TD width="100%" height=17><A style="TEXT-DECORATION: none" 
+      href="http://dr-umer.com/sv/index.php?pid=eph2408">
+      <P align=center><FONT face="Arial Black" color=#c0c0c0 size=7><SPAN 
+      style="FONT-SIZE: 50px">EASY TO BUY! CLICK 
+  HERE</SPAN></FONT></P></A></TD></TR></TBODY></TABLE>
+<TABLE height=35 cellSpacing=0 cellPadding=0 width="100%" bgColor=#93d706 
+border=0>
+  <TBODY>
+  <TR>
+    <TD width="100%" height=35>
+      <P align=center><FONT face="Arial Black" color=#ffffff size=4><A 
+      style="TEXT-DECORATION: none" 
+      href="http://dr-umer.com/sv/index.php?pid=eph2408">We ship to over 150 
+      countries!</A></FONT></P></TD></TR></TBODY></TABLE></BODY></HTML>
+
+
+------=_NextPart_001_0001_94E9AAFE.19354EAB--
+
+
+
+------=_NextPart_000_0000_4D55E256.8494414D--
+
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by the new InstallShield X.
+>From Windows to Linux, servers to mobile, InstallShield X is the one
+installation-authoring solution that does it all. Learn more and
+evaluate today! http://www.installshield.com/Dev2Dev/0504
