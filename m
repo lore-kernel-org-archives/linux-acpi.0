@@ -1,14 +1,14 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: pci device resume too early?
-Date: Thu, 29 Jul 2004 08:48:26 +0800
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: PCI power state mapping
+Date: Thu, 29 Jul 2004 10:41:54 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <B44D37711ED29844BEA67908EAF36F036BD822@pdsmsx401.ccr.corp.intel.com>
+Message-ID: <20040729084154.GH21889@openzaurus.ucw.cz>
+References: <B44D37711ED29844BEA67908EAF36F036BCB8C@pdsmsx401.ccr.corp.intel.com> <41069C59.5020603@drzeus.cx>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <41069C59.5020603-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,57 +17,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: stefandoesinger-RbZlAiThDcE@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pierre Ossman <drzeus-list-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org>
+Cc: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-How about add one line in pci_default_resume just like this:
+Hi!
 
-static void pci_default_resume(struct pci_dev *pci_dev)
-{
-+	pci_set_power_state(pci_dev, 0);
-	/* restore the PCI config space */
-	pci_restore_state(pci_dev, pci_dev->saved_config_space);
-	/* if the device was enabled before suspend, reenable */
+> Anyhow, I did some hacks into pci_device_suspend() getting it to 
+> suspend devices without a driver. Combined with my escalation patch 
+> in pci_set_power_state() all devices on the machine now enters D2 or 
+> D3 depending on device capabilities. My laptop still cannot enter the 
+> suspend state so there is still something missing... Are there any 
+> more areas of power management in linux that aren't quite up to spec.?
 
+You forgot to say if you are trying to suspend to ram or to disk.
+				Pavel
+-- 
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
 
-Thanks,
-Shaohua
->-----Original Message-----
->From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org [mailto:acpi-devel-
->admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of stefandoesinger-RbZlAiThDcE@public.gmane.org
->Sent: Thursday, July 29, 2004 1:54 AM
->To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->Subject: [ACPI] pci device resume too early?
->
->Hello,
->I have problems with a few pci devices after resume. Hardware
-environment
->is a
->acer Travelmate 803(lspci attached), I use an unpatched linux-2.6.8-rc2
->kernel.
->
->The problem is that directly after S3 resume, any attempt to write to
-pci
->configuration registers of three of my devices(00:1d.7, 00:1f.5,
-00:1f.6)
->locks up my system. After some testing, I found out that
-pci_restore_state
->works nice if I place it into a function which is scheduled with
->schedule_delayed_work. I use my dummydriver module for testing.
->
->Using mdelay(something) instead of scheduling a work doesn't help, so
-it's
->not
->the hardware which needs some time.
->Is it possible that the driver's resume functions are called too early?
-Can
->you point me to the place in the acpi code which calls the resume
-methods
->that I can do further testing? I couldn't find it.
->
->Thanks in advance,
->Stefan
 
 
 -------------------------------------------------------
