@@ -1,13 +1,14 @@
-From: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
-Subject: RE: Runlevel for Sleep?
-Date: Mon, 9 Sep 2002 09:36:51 -0700 (PDT)
+From: John M Trostel <jtrostel-mn4gwa5WIIQysxA8WJXlww@public.gmane.org>
+Subject: Re: Re: Can't Find PCI: primary perr bus 01 with ACPI on
+Date: Mon, 09 Sep 2002 12:58:37 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0209090926360.1021-100000@cherise.pdx.osdl.net>
-References: <EDC461A30AC4D511ADE10002A5072CAD0236DE25@orsmsx119.jf.intel.com>
+Message-ID: <1031590718.1942.1.camel@jtsdell>
+References: <Pine.LNX.4.44.0209071328300.1021-100000@cherise.pdx.osdl.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD0236DE25-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
+In-reply-to: <Pine.LNX.4.44.0209071328300.1021-100000-yZQdDDOm3n9ZQn2sFP3R7eTW4wlIGRCZ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,46 +17,37 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
+Cc: ACPI-list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+The phrase I am not seeing is:
 
-On Mon, 9 Sep 2002, Grover, Andrew wrote:
+"PCI: Discovered primary peer bus 01 [IRQ]"
 
-> > From: Patrick Mochel [mailto:mochel-3NddpPZAyC0@public.gmane.org] 
-> > > Having reboot(2) overloaded with suspend functionality is a little
-> > > non-intuitive. Just a thought.
-> > 
-> > That's what I did initially, but I was encouraged instead to overload 
-> > reboot. And, it does make quite a bit of sense considering 
-> > the following:
+That appears to be coming from pirq_peer_trick in pci_irq.c
+
+None of which is ACPI, but it sure doesn't show up when ACPI is
+enabled.  Any other clues?
+
+On Sat, 2002-09-07 at 16:30, Patrick Mochel wrote:
 > 
-> > - reboot(2) is a power transition. suspend(2) is a power transition. 
-> > Conceptuallly, they're similar. They are functionally, too. 
+> On Fri, 6 Sep 2002 jtrostel-mn4gwa5WIIQysxA8WJXlww@public.gmane.org wrote:
 > 
-> I'm not clear on how reboot is a power transition. Isn't the machine in S0
-> the whole time?
-
-Rebooting and powering off seem like power transitions to me. Recall that 
-'halt' is implemented using reboot(2). Regardless they are global state 
-transitions. They may not be recognized by ACPI, but the system is in a 
-new state after it's been rebooted. 
-
-> Suspend seems closer to poweroff, to me at least.
-
-Oh well. We don't get a new syscall; we get to overload reboot(2). 
-
-> Although...why does this stuff need a syscall at all? Isn't driverfs enough?
-
-Yes, driverfs would definitely suffice for this solution. But, using a
-syscall divorces the mechanism from the volatility of the implementation.  
-Syscalls are much more stable and be much more easily ported to other
-kernel versions. The userspace application has to rely on only a hardcoded
-number (that, using reboot(2) will likely _never_ change).
-
-
-	-pat
+> > I'm using 2.4.19... with patches from Sergio Basto at http://codecs.home.sapo.pt/acpi/
+> 
+> For some reason, pci_fixup_peer_bridges() is not getting called. 
+> 
+> Since it's 2.4.x, I'm ignorant as to why and to what the code looks like,
+> and I would like to remain in my state of bliss. So, I'm deferring it.  
+> Sorry...
+> 
+> 
+> 	-pat
+-- 
+John M. Trostel
+Atlanta GA USA
+jtrostel-mn4gwa5WIIQysxA8WJXlww@public.gmane.org
 
 
 
