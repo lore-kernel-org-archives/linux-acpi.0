@@ -1,14 +1,14 @@
-From: jb <ashashiwa-39ZsbGIQGT5GWvitb5QawA@public.gmane.org>
-Subject: HP pavillion 4310, ALI, 2.6.0-10
-Date: Tue, 25 Nov 2003 22:51:14 +0100
+From: Michael Holzt <kju-+hGXy1KyAyQ@public.gmane.org>
+Subject: Re: RE: Toshiba ACPI battery status - ACPI errors
+Date: Wed, 26 Nov 2003 01:25:17 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200311252251.14568.ashashiwa@wanadoo.fr>
+Message-ID: <20031126002517.GB16101@fqdn.org>
+References: <F760B14C9561B941B89469F59BA3A8470255EF9E@orsmsx401.jf.intel.com> <20031126002309.GA16101@fqdn.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-15
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20031126002309.GA16101-+hGXy1KyAyQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,46 +17,33 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all,=20
+> Whoohoo! I was curious and tried thix fix instead of the ecdt fake, and...
+> ...it works. So it seems that i was a bug in the DSDT and i won't neet the
+> ecdt fake.
 
-2 months ago, I manage putting ACPI on a 2.4.21, by traditionnal kernel=20
-recompiling. (button, temperature, battery.)
+Hmm, said that a little bit too early. The DSDT-Fix removes the loading
+error, but many values are not set correctly, for example:
 
-Here i'm trying to compil a "fresh" 2.6.0-10 with acpi.
+omocha:/proc/acpi/battery/BAT0# more state
+present:                 yes
+capacity state:          ok
+charging state:          unknown
+present rate:            unknown
+remaining capacity:      unknown
+present voltage:         11100 mV
 
-=2D> hangs on boot.
-
-with pci=3Dnoacpi option, all is allright.
-
-i'm to a litlle "fresh" on linux, and my web research ghave given me clues=
-=20
-that I try... with no results.
-
-must I choose a kernel older ? with patches ?
-
-My laptop :=20
-
-hp 4310ea
-1800+
-ali/ATI chipstets
-
-Clear skies,=20
+The unknown-values were known when using the ecdt fake.
 
 
-						Jean-Baptiste
+Regards
+Michael
 
-
-
-
-=2D-=20
-Pour d=E9buter la webcam
-http://www.astrosurf.com/djibb
-Linux pour l'astronomie
-http://www.lin4astro.org
-
+-- 
+Michael Holzt, DL3KJU, kju-+hGXy1KyAyQ@public.gmane.org, kju@debian.org, kju@IRCNet
 
 
 -------------------------------------------------------
