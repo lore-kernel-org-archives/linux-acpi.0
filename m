@@ -1,13 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
 Subject: Re: Re: Samsung P35 and S3 suspend
-Date: Sun, 26 Dec 2004 13:13:16 +0100
-Message-ID: <20041226121316.GA1590@elf.ucw.cz>
-References: <41BFC3AD.5030001@gmx.net> <1103117333.5924.3.camel@mhcln03> <41C07B6F.70900@gmx.net> <1103159022.5924.17.camel@mhcln03> <41C0FFF3.4010902@gmx.net> <41C19BD8.7050201@gmx.net> <41C1CFA2.20304@gmx.net> <41C8D689.3020502@gmx.net> <m2zn067edh.fsf@phoenix.squirrel.nl> <41C9945E.9080101@gmx.net>
+Date: Sun, 26 Dec 2004 15:43:58 +0100
+Message-ID: <200412261543.58340.stefandoesinger@gmx.at>
+References: <41BFC3AD.5030001@gmx.net> <41C9945E.9080101@gmx.net> <20041226121316.GA1590@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_u4szB7itou58W/m"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <41C9945E.9080101-hi6Y0CQ0nG0@public.gmane.org>
+In-Reply-To: <20041226121316.GA1590-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,27 +17,131 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Carl-Daniel Hailfinger <c-d.hailfinger.kernel.2004-hi6Y0CQ0nG0@public.gmane.org>
-Cc: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Carl-Daniel Hailfinger <c-d.hailfinger.kernel.2004-hi6Y0CQ0nG0@public.gmane.org>, Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+--Boundary-00=_u4szB7itou58W/m
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-> >>- pci-resume-2.6.10.patch and resume-finish-split-2.6.10.patch
-> >>  are applied
-> > 
-> > 
-> > Excuse my ignorance, but where can I get these patches?
-> 
-> >From my local harddisk ;-)
-> Actually, you only need resume-finish-split-2.6.10.patch, the other
-> patch did not have any effect in my testing. Patch attached.
 
-The patch actually looks good, are you going to submit it?
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+> > >>- pci-resume-2.6.10.patch and resume-finish-split-2.6.10.patch
+> > >>  are applied
+> > >
+> > > Excuse my ignorance, but where can I get these patches?
+> > >
+> > >From my local harddisk ;-)
+> >
+> > Actually, you only need resume-finish-split-2.6.10.patch, the other
+> > patch did not have any effect in my testing. Patch attached.
+>
+> The patch actually looks good, are you going to submit it?
+>         Pavel
+
+I think this is the patch I sent to this list a few months ago. Here the=20
+archive linksfor reference:=20
+
+http://sourceforge.net/mailarchive/message.php?msg_id=3D9091506
+
+The background is that any write access to the pci config registers of some=
+=20
+devices(sound card, usb 2.0 controler, and modem) cause a system lockup if=
+=20
+they are called before acpi_leave_sleep_state and acpi_disable_wakeup_devic=
+e=20
+were called. This is on an Acer Travelmate 803 Notebook, and it seems to be=
+=20
+the same on other systems.
+
+I sent the patch to the list, but it seems that nobody noticed it and I for=
+got=20
+to send it again. Here is an updated patch against 2.6.10. I can't promise=
+=20
+that it doesn't break other systems. Someone should make sure that=20
+pm_ops->leave is set to NULL for apm. I haven't found this in the apm code=
+=20
+yet.
+
+Stefan D=F6singer
+
+--Boundary-00=_u4szB7itou58W/m
+Content-Type: text/x-diff;
+  charset="iso-8859-1";
+  name="resume-finish-split.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="resume-finish-split.patch"
+
+--- linux-2.6.10/include/linux/pm.h	2004-12-26 15:25:39.639998872 +0100
++++ include/linux/pm.h	2004-12-26 15:27:10.885127504 +0100
+@@ -208,6 +208,7 @@
+ 	suspend_disk_method_t pm_disk_mode;
+ 	int (*prepare)(suspend_state_t state);
+ 	int (*enter)(suspend_state_t state);
++	int (*leave)(suspend_state_t state);
+ 	int (*finish)(suspend_state_t state);
+ };
+ 
+--- linux-2.6.10/kernel/power/main.c	2004-12-26 15:25:54.377758392 +0100
++++ kernel/power/main.c	2004-12-26 15:26:31.472119192 +0100
+@@ -104,6 +104,8 @@
+ 
+ static void suspend_finish(suspend_state_t state)
+ {
++	if (pm_ops && pm_ops->leave)
++		pm_ops->leave(state);
+ 	device_resume();
+ 	if (pm_ops && pm_ops->finish)
+ 		pm_ops->finish(state);
+--- linux-2.6.10/drivers/acpi/sleep/main.c	2004-12-26 15:25:20.314936728 +0100
++++ drivers/acpi/sleep/main.c	2004-12-26 15:28:49.253173288 +0100
+@@ -130,7 +130,23 @@
+ 	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
+ }
+ 
++/**
++ *	acpi_pm_leave - Make system ready to resume devices.
++ *	@pm_state:		State we're coming out of.
++ *
++ *	This is called after we wake back up and before device
++ *	resume methods are called.
++ */
++
++static int acpi_pm_leave(suspend_state_t pm_state)
++{
++	u32 acpi_state = acpi_suspend_states[pm_state];
+ 
++	acpi_leave_sleep_state(acpi_state);
++	acpi_disable_wakeup_device(acpi_state);
++	
++	return 0;
++}
+ /**
+  *	acpi_pm_finish - Finish up suspend sequence.
+  *	@pm_state:		State we're coming out of.
+@@ -143,9 +159,6 @@
+ {
+ 	u32 acpi_state = acpi_suspend_states[pm_state];
+ 
+-	acpi_leave_sleep_state(acpi_state);
+-	acpi_disable_wakeup_device(acpi_state);
+-
+ 	/* reset firmware waking vector */
+ 	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
+ 
+@@ -173,6 +186,7 @@
+ static struct pm_ops acpi_pm_ops = {
+ 	.prepare	= acpi_pm_prepare,
+ 	.enter		= acpi_pm_enter,
++	.leave		= acpi_pm_leave,
+ 	.finish		= acpi_pm_finish,
+ };
+ 
+
+--Boundary-00=_u4szB7itou58W/m--
 
 
 -------------------------------------------------------
