@@ -1,11 +1,11 @@
-From: Ethernet <ethernet-cwAjtnUKHr2MZzV0eMwobdBPR1lH4CV8@public.gmane.org>
-Subject: Out of Office AutoReply: Your application
-Date: Sat, 6 Sep 2003 06:28:24 -0500
+From: administrator-PjAqaU27lzQ@public.gmane.org
+Subject: Virus Warning
+Date: Sat, 6 Sep 2003 07:52:40 -0400 (EDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <973C11FE0E3ED41183B200508BC7774C0F6BF438@csexchange.crystal.cirrus.com>
+Message-ID: <200309061152.BSY84032@steiner.cc.vt.edu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -18,10 +18,11 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thank you for your interest in Cirrus Logic. We value our
-customers and would like to support you. Please visit the Support
-area of www.cirrus.com and submit a Design Support Request form
-telling us how we can help you.
+
+Your email address was listed as the sender of a message emailed to rwgrubbs-PjAqaU27lzQ@public.gmane.org, dated 09/06/03 07:52:40, containing the W32/Sobig-F virus in the document_9446.pif attachment. The action taken was: deleted the attachment.
+
+You may not have sent this virus; some viruses, such as SOBIG, KLEZ, SIRCAM, and others, regularly spoof, or falsify, the sender address to hide their origin.  This message is sent to warn you to virus check your system if you do not do so regularly, and if you do, that others may accuse you of having sent them a virus, even if you did not do so.  It does *not* necessarily mean your system is infected.
+
 
 
 -------------------------------------------------------
