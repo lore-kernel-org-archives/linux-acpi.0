@@ -1,33 +1,45 @@
-From: Romano Giannetti <romanol@upco.es>
-Subject: Re: [BKPATCH] ACPI for 2.6.12-rc1
-Date: Fri, 18 Mar 2005 16:01:29 +0100
-Message-ID: <20050318150129.GB22887@pern.dea.icai.upco.es>
-References: <1111127024.9332.157.camel@d845pe>
-Reply-To: romano@dea.icai.upco.es
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: D600 + S3 Sleep
+Date: Fri, 18 Mar 2005 15:05:56 +0100
+Message-ID: <20050318140556.GB18696@message-id.gmane0305.slipkontur.de>
+References: <1111137292.23665.5.camel@neuromancer.home.net> <20050318105425.GJ14600@project-bob.org> <1111144388.23668.46.camel@neuromancer.home.net> <20050318115313.GK14600@project-bob.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1111127024.9332.157.camel@d845pe>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Len Brown <len.brown@intel.com>
-Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Developers <acpi-devel@lists.sourceforge.net>
+In-Reply-To: <20050318115313.GK14600-PWUXgD0Mw7gU45xQlXEPcg@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Mar 18, 2005 at 01:23:44AM -0500, Len Brown wrote:
+On Fri, Mar 18, 2005 at 11:53:13AM +0000, Proinnsias Breathnach wrote:
+> On Fri, Mar 18, 2005 at 07:13:08PM +0800, Ow Mun Heng wrote:
+> > vga=normal??
+> > 
+> > So that means no High-Res Console??
+> 'fraid so :(
+> 
+> Unless someone comes up with a nice way of making it work with vga=795
+> (or whatever it was I used have before ...)
 
-> 	This includes the ACPI part of memory hotplug,
-> 	plus various fixes, BIOS workarounds and a fix for
-> 	an interpreter regressions we had in 2.6.11 vs 2.6.10.
-
-Thank you for the grat work. Could I humble advocating pushing the patch 
-http://bugme.osdl.org/attachment.cgi?id=4516&action=view ,please? It fixed a
-very bad regression in hotkey event from 2.6.9...
-
-Thanks!
-
-
-
-
+not much hope here, i have had one of our X developers pondering over this
+one (he knows the radeon chipsets pretty well) but to no avail. It seems
+the machine never wakes up if _any_ framebuffer is used (radeonfb also does
+not work).
 -- 
-Romano Giannetti             -  Univ. Pontificia Comillas (Madrid, Spain)
-Electronic Engineer - phone +34 915 422 800 ext 2416  fax +34 915 596 569
+Stefan Seyfried
+
+
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
