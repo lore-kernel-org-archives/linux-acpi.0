@@ -1,14 +1,14 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: S4 reboots on resume
-Date: Thu, 15 Jan 2004 17:09:55 +0100
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [patch] 2.6.1-mm3 acpi frees free irq0
+Date: Thu, 15 Jan 2004 12:19:24 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040115160955.GA16245@message-id.gmane0305.slipkontur.de>
-References: <1073935225.2106.15.camel@localhost> <20040115122142.GC12963@elf.ucw.cz> <20040115130810.GA9348@message-id.gmane0305.slipkontur.de> <4006A217.5040801@basmevissen.nl>
+Message-ID: <BF1FE1855350A0479097B3A0D2A80EE0CC89CC@hdsmsx402.hd.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4006A217.5040801-Y9IUUvl1dgU0Iwp8Nzs06g@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,26 +17,75 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Jes Sorensen <jes-dtAfj9ClZIwnoBwkMbRkTB2eb7JE58TQ@public.gmane.org>, akpm-3NddpPZAyC0@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Jesse Barnes <jbarnes-sJ/iWh9BUns@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jan 15, 2004 at 03:22:15PM +0100, Bas Mevissen wrote:
-> Stefan Seyfried wrote:
-> 
-> >for the beginners in here: which one is swsusp, which one is pmdisk?
-> >I'm using a suse 2.6 kernel.
-> >echo 4 > /proc/acpi/sleep works for me.
-> >
-> 
-> See <http://swsusp.sourceforge.net/features.html>
+The primary failure is that the SCI was not found, and the secondary
+symptom is that we failed to handle that error properly -- which you've
+patched.
 
-*blush* well, i could have figured this one out by myself. Anyway, so now
-i know i use swsusp :-)
+Can you tell me more about the primary failure?
+Was the SCI found in other releases?
 
-Thanks.
--- 
-Stefan Seyfried
+Thanks,
+-Len
 
+> -----Original Message-----
+> From: Jes Sorensen [mailto:jes-dtAfj9ClZIwnoBwkMbRkTB2eb7JE58TQ@public.gmane.org]=20
+> Sent: Thursday, January 15, 2004 9:57 AM
+> To: akpm-3NddpPZAyC0@public.gmane.org
+> Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;=20
+> acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; Brown, Len; Jesse Barnes
+> Subject: [patch] 2.6.1-mm3 acpi frees free irq0
+>=20
+>=20
+> Hi,
+>=20
+> There is a bug in the ACPI code found in 2.6.1-mm3 where if it can't
+> find the interrupt source for the ACPI System Control=20
+> Interrupt Handler,
+> it end up trying to free irq 0.
+>=20
+> Included patch fixes the problem.
+>=20
+> Cheers,
+> Jes
+>=20
+> --- linux-2.6.1-mm3/drivers/acpi/osl.c~	Wed Jan 14 05:00:25 2004
+> +++ linux-2.6.1-mm3/drivers/acpi/osl.c	Thu Jan 15 06:43:28 2004
+> @@ -257,13 +257,13 @@
+>  		return AE_OK;
+>  	}
+>  #endif
+> -	acpi_irq_irq =3D irq;
+>  	acpi_irq_handler =3D handler;
+>  	acpi_irq_context =3D context;
+>  	if (request_irq(irq, acpi_irq, SA_SHIRQ, "acpi", acpi_irq)) {
+>  		printk(KERN_ERR PREFIX "SCI (IRQ%d) allocation=20
+> failed\n", irq);
+>  		return AE_NOT_ACQUIRED;
+>  	}
+> +	acpi_irq_irq =3D irq;
+> =20
+>  	return AE_OK;
+>  }
+> @@ -271,12 +271,13 @@
+>  acpi_status
+>  acpi_os_remove_interrupt_handler(u32 irq, OSD_HANDLER handler)
+>  {
+> -	if (acpi_irq_handler) {
+> +	if (irq) {
+>  #if defined(CONFIG_IA64) || defined(CONFIG_PCI_USE_VECTOR)
+>  		irq =3D acpi_irq_to_vector(irq);
+>  #endif
+>  		free_irq(irq, acpi_irq);
+>  		acpi_irq_handler =3D NULL;
+> +		acpi_irq_irq =3D 0;
+>  	}
+> =20
+>  	return AE_OK;
+>=20
 
 
 -------------------------------------------------------
