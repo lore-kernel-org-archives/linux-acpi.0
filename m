@@ -1,14 +1,14 @@
-From: marcogi-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org
-Subject: Re: S4bios on Sony Vaio FX601
-Date: Mon, 13 Jan 2003 17:30:30 +0100
+From: Stefan Rotsch <linux-v4SjQRX8ANxt1T2YNku8Nw@public.gmane.org>
+Subject: Re: Thinkpad users
+Date: 13 Jan 2003 16:28:59 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030113163030.GA14297@marcogigante.it>
-References: <Pine.LNX.4.50.0301130925480.3926-100000@flyby> <20030113101531.GF12516@poup.poupinou.org> <20030113114850.1b1adc03.nils@kernelconcepts.de> <20030113120204.GA13358@marcogigante.it> <20030113135418.GI12516@poup.poupinou.org>
+Message-ID: <1042471739.842.4.camel@protagoras.stefanrotsch.de>
+References: <200301110231.56806.dom@wahuu.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20030113135418.GI12516-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
+In-Reply-To: <200301110231.56806.dom-K271P2BsTd0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,22 +20,19 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jan 13, 2003 at 02:54:18PM +0100, Ducrot Bruno wrote:
-> > > Do you have framebuffer console?
-> > 
-> > No, plain text mode.
-> > I think proplem is related to pcmcia network card (a 3Com 589).
-> > 
-> > But if S4bios works I prefer it due to linux/freebsd dual boot.
-> 
-> BTW, freebsd s4bios work for you?  For me, it work like a charm, but
-> I have no pcmcia card to play with.
+On Sat, 2003-01-11 at 02:31, Dominik Bartenstein wrote:
+Hi Dominik,
 
-I must repartitoin my HD before test S4bios.
-I'll make you know.
+> o How many Thinkpad users are out there (or on this mailing list ;-)) craving 
+> for ACPI support under Linux?
+Me and my R32, too!
 
---
-Regards, Marco Gigante
+> o Do you think that a petition "Thinkpad ACPI support 4 Linux" might help?
+Great Idea! If I could assist, feel free to contact me.
+
+Regards,
+Stefan
+
 
 
 -------------------------------------------------------
