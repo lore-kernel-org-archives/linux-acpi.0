@@ -1,11 +1,11 @@
 From: "Mj" <mj-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Yahoo!
-Date: Mon, 10 May 2004 20:23:14 +0900
+Subject: Re: Msg reply
+Date: Mon, 10 May 2004 21:21:17 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <xdusztnlrqktdakqcso@lists.sourceforge.net>
+Message-ID: <jqllvusttpymvwibhqk@lists.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
-        boundary="--------iazcnyxriwsuowpyveaz"
+        boundary="--------dgmhisojptyivdfahiov"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,7 +18,7 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-----------iazcnyxriwsuowpyveaz
+----------dgmhisojptyivdfahiov
 Content-Type: text/html; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
@@ -28,23 +28,23 @@ Content-Transfer-Encoding: 7bit
 <br>
 </body></html>
 
-----------iazcnyxriwsuowpyveaz
+----------dgmhisojptyivdfahiov
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 
 
 ------------------  Virus Warning Message (on the network)
 
-You_will_answer_to_me.vbs is removed from here because it contains a virus.
+Your_money.scr is removed from here because it contains a virus.
 
 ---------------------------------------------------------
-----------iazcnyxriwsuowpyveaz
+----------dgmhisojptyivdfahiov
 Content-Type: text/plain; charset=iso-2022-jp
 Content-Transfer-Encoding: 7bit
 
 ------------------  Virus Warning Message (on the network)
 
-Found virus VBS_BAGLE.Z in file You_will_answer_to_me.vbs
+Found virus WORM_BAGLE.AB in file Your_money.scr
 The file is deleted.
 
 Therefore we removed the attachment-file
@@ -57,7 +57,7 @@ by Mail Server and sent the message to you.
 
 ---------------------------------------------------------
 
-----------iazcnyxriwsuowpyveaz--
+----------dgmhisojptyivdfahiov--
 
 
 
