@@ -1,14 +1,15 @@
-From: "Herbert Nachtnebel" <Herbert.Nachtnebel-8zxNtbQCHXIjuwv8T7myQQ@public.gmane.org>
-Subject: AW: redhat comment about intel not taking patches?
-Date: Thu, 13 Feb 2003 10:50:49 +0100
+From: "Adachi, Kenichi" <aileenja-dTzOdQ2U+/YAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Compaq 1700T dsdt
+Date: Thu, 13 Feb 2003 18:59:40 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <B900970C7DD9474C972986EB3EC7C58F0D4070@andromeda.agcad.local>
+Message-ID: <000201c2d346$a36398a0$ab4425db@sayonara>
+References: <20030213081155.GU25625@poup.poupinou.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <20030213081155.GU25625-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,120 +18,74 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Cagle, John (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>, Darren Benham <dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: 'Ducrot Bruno' <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: 'Constantinos Antoniou' <costas-DPNOqEs/LNQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Greatings,
+Hi Bruno,
 
-well I have a compaq hardware and I am in overall satisfied with the =
-quality of it. But the DSDT would be far better if Compaq had tried to =
-compile it at least one times with the Intel iasl compiler. There are =
-real bugs in it and it doesn't confirm to the ACPI Specs. Designed for =
-Windows Anything doesn't make it better. Of course, at the time this =
-hardware was designed (Armada E) the Intel compiler wasn't in the shape =
-it is now. But now it is all there, it would be nice to get a new BIOS =
-with an updated DSDT (even if it would be called Beta to avoid the =
-certification cycle).
+JP PC vendors (AFA I can tell you, SONY/Fujitsu/Panasonic/NEC's certain
+laptops) prefer BATx style, even though they expose battery as Control
+Method Battery. Probably this is because of one particular BIOS vendor's
+taste. Even Toshiba recently starts using P's BIOS,,, 
 
-Sincerely,
-Herbert.
-
------Urspr=FCngliche Nachricht-----
-Von: Cagle, John (ISS-Houston) [mailto:john.cagle-VXdhtT5mjnY@public.gmane.org]
-Gesendet: Donnerstag, 13. Februar 2003 05:11
-An: Darren Benham
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Betreff: RE: [ACPI] redhat comment about intel not taking patches?
-
-
-Can you be more specific in your comments regarding Compaq hardware?  We
-test our ProLiant servers with Linux and ACPI, and our BIOS is designed
-for many different operating systems, including Linux, Unix and NetWare.
-On the other hand, it is unreasonable to expect that our laptop and
-desktop divisions test with Linux ACPI for two big reasons: first, the
-Linux OS has a very small share of those markets, and second, Red Hat's
-releases don't even have ACPI support.
+Incidentally have you ever seen the laptop whose battery is fully
+implemented as Smart Battery and BIOS does describe battery device as
+such? The 1st 2 Questions of FAQ at ACPI official site (
+http://www.acpi.info/acpi_faq.htm --- looks out of date, though )
+address SBS, but I've never seen the real world implementation. I
+remember some web site (URL forgotten --- probably at
+developer.intel.com or www.sbs-forum.org ) indicates Intel actually has
+the one. I believe several battery devices already have full capability
+to satisfy all the SBS requirements and are ready to hit the road... 
 
 Thanks,
-John
---------------------------------
-John Cagle     john.cagle-VXdhtT5mjnY@public.gmane.org
-Principal Member Technical Staff
-   Industry Standard Servers
-    Hewlett-Packard Company
-    http://www.hp.com/linux
-       jcagle-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+- Adachi, Kenichi
 
 > -----Original Message-----
-> From: Darren Benham [mailto:dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org]=20
-> Sent: Wednesday, February 12, 2003 8:55 PM
-> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Subject: RE: [ACPI] redhat comment about intel not taking patches?
->=20
->=20
-> Is ACPI going to be able to go mainstream in any of the major=20
-> releases w/o making some effort to work in non-standard BIOS=20
-> (read, the BIOSes written directly for Windows)?  Is it ever=20
-> likely that pressure would work against those Bios=20
-> manufacturers that dont' follow spec?  I mean, Compaq is on=20
-> the list of partners for ACPI and their DSDT's are crap, with=20
-> asterisks in names and functions returning values that=20
-> shouldn't, etc. Grover, Andrew said:
-> >> From: Kevin Fenzi [mailto:kevin-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org]
-> >> RedHat is playing with enabling ACPI in their next=20
-> release. (At least=20
-> >> in the beta for the next release: phoebe).
-> >>
-> >> Noticed this changelog comment in the phoebe kernel:
-> >>
-> >> * Thu Nov 07 2002 Arjan van de Ven <arjanv-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> >> - - remove ACPI again because Intel is unwilling to take patches
-> >>
-> >> What patches are they talking about?
-> >>
-> >> Is there any way we could fix up the communication=20
-> breakdown between=20
-> >> RedHat/Intel?
-> >>
-> >> It would be great if ACPI would work out of the box on my=20
-> laptop with=20
-> >> a RedHat kernel. At a minimum I guess it would require acpi to be=20
-> >> able to detect the compaq *PNP stuff and remove the * so the table=20
-> >> works.
-> >
-> > I have been in contact with a number of distributions concerning=20
-> > inclusion of ACPI support. I think the new licensing and=20
-> some recent=20
-> > source improvements helped a lot to make people feel better about=20
-> > ACPI, but there still are a number of critical bugs that=20
-> are affecting=20
-> > a significant percentage of systems. These need to be fixed. These=20
-> > have to do with *any* ACPI-related oopses, failure to boot=20
-> using ACPI,=20
-> > and failure to shutdown cleanly.
-> >
-> > ACPI is not going to be in the next RH release but we are really=20
-> > pushing to get it in subsequent releases, but we need to fix those=20
-> > critical bugs.
-> >
-> > Regards -- Andy
-> >
-> >
->=20
->=20
-> --=20
-> Darren
+> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org 
+> [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of 
+> Ducrot Bruno
+> Sent: Thursday, February 13, 2003 5:12 PM
+> To: Adachi, Kenichi
+> Cc: 'Constantinos Antoniou'; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: Re: [ACPI] Compaq 1700T dsdt
+> 
+> 
+> On Wed, Feb 05, 2003 at 11:17:15AM +0900, Adachi, Kenichi wrote:
+> > A quick answer for part of your questions:
+> > 
+> > > Also, under /proc/acpi/battery, I have a directory CMB0. 
+> > > Shouldn't this be BAT0 or sth? 
+> > 
+> > (Even though there was a couple of argument), current code 
+> simply picks
+> > up the characters your ACPI BIOS names the battery device in DSDT. 
+> > And it's "Device (CMB0)" in your DSDT. 
+> >   
+> 
+> CMB0 in fact is more appropriate than BAT0.
+> 
+> It stand for 'Control Method Battery'
+> 
+> -- 
+> Ducrot Bruno
+> 
+> --  Which is worse:  ignorance or apathy?
+> --  Don't know.  Don't care.
+> 
+> 
+> -------------------------------------------------------
+> This sf.net email is sponsored by:ThinkGeek
+> Welcome to geek heaven.
+> http://thinkgeek.com/sf
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+> 
 
 
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
