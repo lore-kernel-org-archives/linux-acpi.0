@@ -1,18 +1,12 @@
-From: john stultz <johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Subject: Re: X86_PM_TIMER: /proc/cpuinfo doesn't get updated
-Date: Thu, 18 Mar 2004 13:05:30 -0800
+From: Kamil Iskra <kamil+28603-8uvuVfjfhVRBDLzU/O5InQ@public.gmane.org>
+Subject: No thermal_zone and fan info: should I worry?
+Date: Thu, 18 Mar 2004 23:35:08 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1079643929.5408.71.camel@cog.beaverton.ibm.com>
-References: <16471.43776.178128.198317@wombat.chubb.wattle.id.au>
-	 <200403162340.57546.dtor_core@ameritech.net>
-	 <20040317095314.GB14983@dominikbrodowski.de>
-	 <20040317145312.X3595@root.org>
-	 <20040318085133.GA15526@dominikbrodowski.de>
+Message-ID: <20040318233508.A28890@iskra.name>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040318085133.GA15526-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -21,42 +15,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
-Cc: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>, Peter Chubb <peter-LkDQP0DxSMGxwJ88Py/mJxCuuivNXqWP@public.gmane.org>, Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2004-03-18 at 00:51, Dominik Brodowski wrote:
-> On Wed, Mar 17, 2004 at 02:56:27PM -0800, Nate Lawson wrote:
-> > Instead of all this gymnastics, how about:
-> 
-> It's not so much gymnastics -- implementing different handling for cpufreq
-> drivers which do not affect the TSC is easy. It's just difficult to get to
-> know what drivers/CPUs are affected... and the test run you did yesterday
-> helped in evaluating this. Thanks for doing so.
->  
-> > 1. If using Px states, state is unknown until first "set" event.
-> 
-> Normally, when using cpufreq drivers the original state is known -- only the
-> ACPI spec has this severe flaw, but there are tries for a workaround [patch
-> is submitted]
-> 
-> > 2. Implement priorities for time source selection and a generic timer API.
-> > This gets around the need to get the clock rate correct to have system
-> > timers work.  On FreeBSD, this is /sys/kern/kern_tc.c
-> 
-> IIRC, John Stultz intends to do a major upgrade of the timing code in 2.7.
+I have an Acer Travelmate 291 LCi laptop.  I'm running kernel 2.6.4 with
+the ACPI subsystem version that came with it (20040220).
 
-Well, we already have time source selection in 2.6 for i386. Most other
-arches have a single stable time source, so its not as critical for
-them. As for 2.7, a couple of holes have been poked in my initial
-design, so any major rewrite is somewhat on hold. Moving more arches to
-the more generic time_interpolator interface that ia64 uses may be the
-best solution, although its not as clean as I'd really like.
+I don't get any info from thermal_zone and fan.  They are built into the
+kernel, but their directories under /proc/acpi are simply empty...  I've
+had this behaviour with all the kernels I've tried, both 2.4.x and 2.6.x.
 
-thanks
--john
+Is that an indication of a problem, or could it be that this laptop simply
+does not allow the operating system to access those components?  I've
+empirically verified that the fan does seem to function correctly, only
+turning on during heavier CPU activity.
 
-
+Kamil
 
 
 -------------------------------------------------------
