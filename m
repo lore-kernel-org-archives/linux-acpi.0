@@ -1,14 +1,12 @@
-From: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
-Subject: Re: redhat comment about intel not taking patches?
-Date: 10 Feb 2003 21:43:38 +0000
+From: Nikolaus Filus <NFilus-hi6Y0CQ0nG0@public.gmane.org>
+Subject: battery errors
+Date: Tue, 11 Feb 2003 22:23:06 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1044913418.2077.0.camel@irongate.swansea.linux.org.uk>
-References: <20030210181607.2876.qmail@scrye.com>
+Message-ID: <20030211222306.C398@wsc-gmbh.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030210181607.2876.qmail-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,24 +15,45 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Kevin Fenzi <kevin-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2003-02-10 at 18:16, Kevin Fenzi wrote:
-> * Thu Nov 07 2002 Arjan van de Ven <arjanv-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> - - remove ACPI again because Intel is unwilling to take patches
-> 
-> What patches are they talking about? 
-> 
-> Is there any way we could fix up the communication breakdown between
-> RedHat/Intel?
-> 
+Hi,
 
-ACPI hit lots of problems. The business about how to feed patches is
-one thats I think resolved. Andrew posted about the dual licensing
-arrangement a week or so ago
+I just saw the following error on my console - for the first time. What does
+it mean?
 
+mobile kernel: evregion-0322: *** Error: Handler for [embedded_control] returned AE_TIME
+mobile kernel:  psparse-1102: *** Error: Method execution failed [\_SB_.PCI0.LPCB.BAT1._BST] (Node c15a21e8), AE_TIME
+
+/proc/acpi/battery/BAT1/*
+alarm:                   unsupported
+present:                 yes
+design capacity:         3900 mAh
+last full capacity:      3427 mAh
+battery technology:      rechargeable
+design voltage:          14800 mV
+design capacity warning: 420 mAh
+design capacity low:     156 mAh
+capacity granularity 1:  264 mAh
+capacity granularity 2:  3780 mAh
+model number:            PA3098U
+serial number:           3658Q
+battery type:            Li-Ion
+OEM info:                TOSHIBA
+present:                 yes
+capacity state:          ok
+charging state:          discharging
+present rate:            0 mA
+remaining capacity:      1404 mAh
+present voltage:         14644 mV
+
+BTW: How to keep the capacity as high as possible? The notebook is 8 months
+old and I lost around 500 mAh.
+
+Thanks,
+
+Nikolaus
 
 
 -------------------------------------------------------
