@@ -1,11 +1,13 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: ACPI patches updated (20021111)
-Date: Tue, 12 Nov 2002 12:48:45 -0800
+From: andy-gRfBfDTKyCbR7s880joybQ@public.gmane.org
+Subject: Re: ACPI patches updated (20021111)
+Date: Tue, 12 Nov 2002 17:10:34 -0500 (EST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A4F9@orsmsx119.jf.intel.com>
+Message-ID: <Pine.LNX.4.44.0211121706300.5656-100000@tweek.neosouth.net>
+References: <EDC461A30AC4D511ADE10002A5072CAD04C7A4F9@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD04C7A4F9-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,57 +16,16 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: "acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org" <acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all,
+On my Compaq Presario 2700T (currently running 2.5.47), it makes the ACPI
+actually work correctly with the stock (bogus) DSDT. I can actually see
+the battery and thermal zone now. Previously the battery would not show up
+and often the thermal zone initialization croaked on an uninitialized
+variable.
 
-New patches are up on sf.net/projects/acpi. Non-Linux-specific releases will
-be available by tomorrow evening at
-http://developer.intel.com/technology/iapc/acpi/downloads.htm .
-
-If you've been having problems with reading battery or other information
-being very slow, please try this release and report if problems persist.
-
-Regards -- Andy
-
-----------------------------------------
-11 November 2002.  Summary of changes for version 20021111.
-
-
-0) ACPI Specification 2.0B is released and is now available
-at:  http://www.acpi.info/index.html
-
-1) Linux
-
-Module loading/unloading fixes (John Cagle)
-
-Other minor fixes
-
-2) ACPI CA Core Subsystem:
-
-Implemented support for the ACPI 2.0 SMBus Operation Regions.
-This includes the early detection and handoff of the request
-to the SMBus region handler (avoiding all of the complex field
-support code), and support for the bidirectional return packet
-from an SMBus write operation.  This paves the way for the
-development of SMBus drivers in each host operating system.
-
-Fixed a problem where the semaphore WAIT_FOREVER constant was
-defined as 32 bits, but must be 16 bits according to the ACPI
-specification.  This had the side effect of causing ASL
-Mutex/Event timeouts even though the ASL code requested a wait
-forever.  Changed all internal references to the ACPI timeout
-parameter to 16 bits to prevent future problems.  Changed the
-name of WAIT_FOREVER to ACPI_WAIT_FOREVER.
-
-
-
------------------------------
-Andrew Grover
-Intel Labs / Mobile Architecture
-andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Congratulations.
 
 
 
