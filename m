@@ -1,12 +1,14 @@
 From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Subject: ASUS M6800N: problem when removing 'ac' module
-Date: Sat, 20 Mar 2004 12:10:58 +0100
+Subject: Re: ASUS M6800N: problem when removing 'ac' module
+Date: Sat, 20 Mar 2004 13:26:09 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <405C26C2.70603@pca.it>
+Message-ID: <405C3861.8090803@pca.it>
+References: <405C26C2.70603@pca.it>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <405C26C2.70603-wlebWZzHoyE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -23,8 +25,10 @@ Hash: SHA1
 
 Hello,
 
-I'm on '2.6.5-rc1 + ACPI DSDT in initrd + eciadsl USB patch' and I get this
-message when I 'rmmod ac' or 'modprobe -r ac':
+on 03/20/04 12:10, Luca Capello wrote:
+> I'm on '2.6.5-rc1 + ACPI DSDT in initrd + eciadsl USB patch' and I get this
+> message when I 'rmmod ac' or 'modprobe -r ac':
+actually, this happens with all ACPI modules:
 =====
 Badness in remove_proc_entry at fs/proc/generic.c:664
 Call Trace:
@@ -38,12 +42,76 @@ Call Trace:
  [<c014905a>] do_munmap+0x13a/0x180
  [<c01490e3>] sys_munmap+0x43/0x70
  [<c010935b>] syscall_call+0x7/0xb
+
+Badness in remove_proc_entry at fs/proc/generic.c:664
+Call Trace:
+ [<c0182b4c>] remove_proc_entry+0x11c/0x160
+ [<e2177eb5>] acpi_battery_remove_fs+0x49/0x6d [battery]
+ [<e2178185>] acpi_battery_remove+0x86/0xa5 [battery]
+ [<c02e920a>] acpi_driver_detach+0x64/0xbd
+ [<c02e9352>] acpi_bus_unregister_driver+0x3d/0x93
+ [<e21781d9>] acpi_battery_exit+0x35/0x55 [battery]
+ [<c01326fb>] sys_delete_module+0x12b/0x170
+ [<c01490e3>] sys_munmap+0x43/0x70
+ [<c010935b>] syscall_call+0x7/0xb
+
+Badness in remove_proc_entry at fs/proc/generic.c:664
+Call Trace:
+ [<c0182b4c>] remove_proc_entry+0x11c/0x160
+ [<e2177eb5>] acpi_battery_remove_fs+0x49/0x6d [battery]
+ [<e2178185>] acpi_battery_remove+0x86/0xa5 [battery]
+ [<c02e920a>] acpi_driver_detach+0x64/0xbd
+ [<c02e9352>] acpi_bus_unregister_driver+0x3d/0x93
+ [<e21781d9>] acpi_battery_exit+0x35/0x55 [battery]
+ [<c01326fb>] sys_delete_module+0x12b/0x170
+ [<c01490e3>] sys_munmap+0x43/0x70
+ [<c010935b>] syscall_call+0x7/0xb
+
+Badness in remove_proc_entry at fs/proc/generic.c:664
+Call Trace:
+ [<c0182b4c>] remove_proc_entry+0x11c/0x160
+ [<e2212c1a>] acpi_thermal_remove_fs+0x49/0x6d [thermal]
+ [<e22130a4>] acpi_thermal_remove+0xce/0xea [thermal]
+ [<c02e920a>] acpi_driver_detach+0x64/0xbd
+ [<c02e9352>] acpi_bus_unregister_driver+0x3d/0x93
+ [<e22130f5>] acpi_thermal_exit+0x35/0x55 [thermal]
+ [<c01326fb>] sys_delete_module+0x12b/0x170
+ [<c01490e3>] sys_munmap+0x43/0x70
+ [<c010935b>] syscall_call+0x7/0xb
+
+Badness in remove_proc_entry at fs/proc/generic.c:664
+Call Trace:
+ [<c0182b4c>] remove_proc_entry+0x11c/0x160
+ [<e2204561>] acpi_processor_remove_fs+0x49/0x6d [processor]
+ [<e2204abc>] acpi_processor_remove+0x96/0xc3 [processor]
+ [<c02e920a>] acpi_driver_detach+0x64/0xbd
+ [<c02e9352>] acpi_bus_unregister_driver+0x3d/0x93
+ [<e2204b8f>] acpi_processor_exit+0x3f/0x5f [processor]
+ [<c01326fb>] sys_delete_module+0x12b/0x170
+ [<c01490e3>] sys_munmap+0x43/0x70
+ [<c010935b>] syscall_call+0x7/0xb
+
+Badness in remove_proc_entry at fs/proc/generic.c:664
+Call Trace:
+ [<c0182b4c>] remove_proc_entry+0x11c/0x160
+ [<e218d865>] acpi_button_exit+0x45/0x55 [button]
+ [<c01326fb>] sys_delete_module+0x12b/0x170
+ [<c01490e3>] sys_munmap+0x43/0x70
+ [<c010935b>] syscall_call+0x7/0xb
+
+Badness in remove_proc_entry at fs/proc/generic.c:664
+Call Trace:
+ [<c0182b4c>] remove_proc_entry+0x11c/0x160
+ [<e216e861>] asus_acpi_exit+0x1d/0x2a [asus_acpi]
+ [<c01326fb>] sys_delete_module+0x12b/0x170
+ [<c01490e3>] sys_munmap+0x43/0x70
+ [<c010935b>] syscall_call+0x7/0xb
 =====
 
-and the AC state in the 'GNOME Battery Applet' isn't updated (it still shows I'm
-on AC mode).
+Please take care that it doesn't happen with other modules (like 'ehci_hcd' or
+'joydev').
 
-Please let me know if I should post in the kernel bug database.
+Solutions?
 
 Thx, bye,
 Gismo / Luca
@@ -51,9 +119,9 @@ Gismo / Luca
 Version: GnuPG v1.2.4 (GNU/Linux)
 Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
 
-iD8DBQFAXCbCVAp7Xm10JmkRApXMAJ9DhI7FO2medMeeLMW2hCS2EW15pgCeLm38
-0PdFm/YqotMnbnzj7oKh69E=
-=zx7S
+iD8DBQFAXDhhVAp7Xm10JmkRAhABAJ44Z2VbSQgZN9zxS/Bzl16s67CmEACfa+PA
+GCw83WzhvIBLpfJoIuh7qjI=
+=FMOT
 -----END PGP SIGNATURE-----
 
 
