@@ -1,8 +1,8 @@
 From: Bradley Chapman <kakadu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Sager NP3760 DSDT - how to enable thermal zoning?
-Date: Fri, 22 Oct 2004 14:37:59 +0100
+Subject: No Thermal Zone with a Sager NP3760 (Clevo M375E/M375W) and kernel 2.6.9 (DSDT available)
+Date: Fri, 22 Oct 2004 14:45:31 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <e294b46e041022063770358b66@mail.gmail.com>
+Message-ID: <e294b46e04102206456b164d80@mail.gmail.com>
 Reply-To: Bradley Chapman <kakadu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -19,20 +19,19 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-(Please CC my e-mail address, I am not a member of this list)
+(Please CC me, I am not a member of the list)
 
-Has anyone managed to successfully modify the DSDT of the Sager NP3760
-(a rebranded Clevo M375E/M375W, IIRC) to support thermal zoning and
-temperature monitoring?
-
-Compiling the DSDT using iasl 20030918 returns the following errors:
+Thermal zoning is not detected by the stock ACPI code in 2.6.9 on my
+Sager NP3760 laptop (a rebranded Clevo M375E or M375W, IIRC). iasl
+20040918 spits out these errors when attempting to compile the
+decompiled DSDT:
 
 # iasl -tc dsdt.dsl
 
 Intel ACPI Component Architecture
-ASL Optimizing Compiler / AML Disassembler version 20021002 [Oct  2 2002]
-Copyright (C) 2000 - 2002 Intel Corporation
-Supports ACPI Specification Revision 2.0a
+ASL Optimizing Compiler / AML Disassembler version 20030918 [Sep 18 2003]
+Copyright (C) 2000 - 2003 Intel Corporation
+Supports ACPI Specification Revision 2.0b
 
 dsdt.dsl    22:             Method (_PPC, 0, NotSerialized)
 Warning  2019 -                        ^ Not all control paths return
@@ -41,9 +40,6 @@ a value (_PPC)
 dsdt.dsl    22:             Method (_PPC, 0, NotSerialized)
 Warning  2026 -                        ^ Reserved method must return a
 value (_PPC)
-
-dsdt.dsl   148:             Method (_PDC, 1, NotSerialized)
-Warning  2033 -  Unknown reserved name ^  (_PDC)
 
 dsdt.dsl   201:             Method (_PSS, 0, NotSerialized)
 Warning  2019 -                        ^ Not all control paths return
@@ -58,7 +54,6 @@ Warning  2019 -                ^ Not all control paths return a value (SBWB)
 
 dsdt.dsl  1762:             Field (SMRM, DWordAcc, NoLock, Preserve)
 Error    1047 -                       ^ Access width is greater than region size
-
 dsdt.dsl  1765:                 GSRM,   1,
 Error    1051 -                    ^ Access width of Field Unit
 extends beyond region limit
@@ -84,42 +79,48 @@ Warning  2019 -                                ^ Not all control paths
 return a value (WSWD)
 
 dsdt.dsl  3520:                         /*** Missing
-EndDependentFunctions descriptor */         })
+EndDependentFunctions descriptor */                    })
 Error    1071 -                                   Missing
 EndDependentFn() macro in dependent resource list ^
 
 dsdt.dsl  3661:                         /*** Missing
-EndDependentFunctions descriptor */         })
+EndDependentFunctions descriptor */                    })
 Error    1071 -                                   Missing
 EndDependentFn() macro in dependent resource list ^
 
 dsdt.dsl  3732:                         /*** Missing
-EndDependentFunctions descriptor */         })
+EndDependentFunctions descriptor */                    })
 Error    1071 -                                   Missing
 EndDependentFn() macro in dependent resource list ^
 
 dsdt.dsl  3745:                         /*** Missing
-EndDependentFunctions descriptor */         })
+EndDependentFunctions descriptor */                    })
 Error    1071 -                                   Missing
 EndDependentFn() macro in dependent resource list ^
 
 dsdt.dsl  4160:                         /*** Missing
-EndDependentFunctions descriptor */         })
+EndDependentFunctions descriptor */                    })
 Error    1071 -                                   Missing
 EndDependentFn() macro in dependent resource list ^
 
 dsdt.dsl  4229:                     /*** Missing EndDependentFunctions
-descriptor */ })
+descriptor */                })
 Error    1071 -                           Missing EndDependentFn()
 macro in dependent resource list ^
 
-ASL Input:  dsdt.dsl - 4817 lines, 154622 bytes, 2139 keywords
-Compilation complete. 11 Errors, 8 Warnings, 0 Remarks, 461 Optimizations
+ASL Input:  dsdt.dsl - 4818 lines, 154622 bytes, 2139 keywords
+Compilation complete. 11 Errors, 7 Warnings, 0 Remarks, 461 Optimizations
 
-Do these errors have any bearing on the lack of thermal zoning?
+Do any of these errors have anything to do with it?
 
-The decompiled DSDT is available here (154K AML source): 
-http://www.pryan.org/mozilla/site/TheOneKEA/misc/sager-np3760-dsdt.dsl
+2.6.7, 2.6.8.1 and 2.6.9 have all failed to detect the thermal zone on
+this machine; should I investigate a BIOS update?
+
+The DSDT is available here:
+
+http://www.pryan.org/mozilla/site/TheOneKEA/misc/dsdt.dsl
+
+Thanks in advance,
 
 Brad
 
