@@ -1,12 +1,14 @@
-From: Pierre Ossman <drzeus-list-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org>
-Subject: suspend-to-ram hangs on HP NX7010
-Date: Wed, 09 Jun 2004 14:06:28 +0200
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: suspend-to-ram hangs on HP NX7010
+Date: Wed, 9 Jun 2004 20:33:22 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40C6FD44.7090606@drzeus.cx>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8404991407@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,43 +17,50 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pierre Ossman <drzeus-list-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+>I've been spending a few days trying to get suspend-to-ram to=20
+>work on my=20
+>new HP NX7010 laptop. Haven't had much success though so I thought I=20
+>might get some help from the more experienced.
+>
 
-I've been spending a few days trying to get suspend-to-ram to work on my 
-new HP NX7010 laptop. Haven't had much success though so I thought I 
-might get some help from the more experienced.
+Can you post the detailed HW info, as well as BIOS vendor/version?
 
-I'm running FC2 with linux 2.6.6. S3 has been tested using vanilla 
-kernel and with the patch from acpi.sf.net. I've also included a patch 
-from the ACPI bugzilla to be able to control which devices can wake the 
-unit. The behaviour has been the same for all tests.
+>I'm running FC2 with linux 2.6.6. S3 has been tested using vanilla=20
+>kernel and with the patch from acpi.sf.net. I've also included a patch=20
+>from the ACPI bugzilla to be able to control which devices can=20
+>wake the=20
+>unit. The behaviour has been the same for all tests.
+>
 
-I don't think the unit actually gets all the way into S3 though. If I 
-turn on ACPI debug in the kernel I can see a debug message that says 
-'Entering S3' but the laptop doesn't power down anything. After this 
-point the only way to get control of the machine again is to hold down 
-the power button for a couple of seconds, bypassing the OS. Also, for 
-some strange reason I have to do this twice because the machine hangs 
-during POST after the first reset (after a failed suspend-to-ram that 
-is, works fine otherwise).
+What about S4?
 
-I've started looking in the ACPI spec. since I suspect the bug might be 
-in the DSDT. I doesn't even compile cleanly with Intel's compiler as it 
-is. ACPI is new to me however so I could use some pointers on where I 
-should start looking. I'm also fluent in C so I intend to have a look at 
-the kernel code and insert some debug statements. Might help me pinpoint 
-where it hangs.
+>I don't think the unit actually gets all the way into S3 though. If I=20
+>turn on ACPI debug in the kernel I can see a debug message that says=20
+>'Entering S3' but the laptop doesn't power down anything. After this=20
+>point the only way to get control of the machine again is to hold down=20
+>the power button for a couple of seconds, bypassing the OS. Also, for=20
+>some strange reason I have to do this twice because the machine hangs=20
+>during POST after the first reset (after a failed suspend-to-ram that=20
+>is, works fine otherwise).
+>
 
-I'd appreciate any help I can get. Just tell me what information you 
-need and what I should test and I'll gladly do it. Suspend-to-ram is a 
-badly needed function so I'm ready to devote whatever time is required 
-to get this fixed.
+This is unusual. Now, the most S3 failure focus on resuming from ram.
+Can you track down which driver might causes the problem?
 
-Regards
-Pierre Ossman
+>I've started looking in the ACPI spec. since I suspect the bug=20
+>might be=20
+>in the DSDT. I doesn't even compile cleanly with Intel's=20
+
+Did you find error message from ACPI? =20
+
+You know, AML interpreter is capable of catching AML bug. Although,
+sometimes, we have to fix interpreter , rather than AML code. :)
+
+Thanks
+Luming
 
 
 -------------------------------------------------------
