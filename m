@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Radeon PM Support
-Date: Thu, 19 Aug 2004 13:17:37 +0200
+Subject: Re: Re: Radeon PM Support
+Date: Thu, 19 Aug 2004 13:17:04 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040819111737.GB952@elf.ucw.cz>
-References: <88056F38E9E48644A0F562A38C64FB600289AE7C@scsmsx403.amr.corp.intel.com> <1092245536.4336.0.camel@tyrosine>
+Message-ID: <20040819111704.GA952@elf.ucw.cz>
+References: <88056F38E9E48644A0F562A38C64FB60028F9AC3@scsmsx403.amr.corp.intel.com> <20040811190824.GF1120@openzaurus.ucw.cz> <20040812160513.GA18665@message-id.gmane0305.slipkontur.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1092245536.4336.0.camel@tyrosine>
+In-Reply-To: <20040812160513.GA18665-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,18 +17,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, anib-La3J9u0raUk@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, stefandoesinger-RbZlAiThDcE@public.gmane.org
+To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> > Does this addon patch (over the Ole's original patch) help?
+> > > Yes. If this patch works for tohers, then we can move it into
+> > > pci_default_resume during the cleanup.
+> > 
+> > 
+> > I'd rather not do that. Some cards are already posted after
+> > S3, some even preserve state over S3. It is okay to do VGAPOST
+> > for radeon and any card that needs it, but I'd rather not do it generically.
 > 
-> With a Thinkpad X40 (Intel 855GM graphics chipset), this stops resume
-> from working. acpi_sleep=s3_bios works.
+> what about "acpi_sleep=vgapost"?
 
-Same behaviour on amd64 desktop :-(.
+Could work, too.
+
+BTW I tried vgapost here, and it did not work on 2 radeon machines I
+have here. Could you possibly do some testing on bigger number of
+machines to find one where it actually works?
 								Pavel
 -- 
 People were complaining that M$ turns users into beta-testers...
