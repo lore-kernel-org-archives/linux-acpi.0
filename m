@@ -1,14 +1,12 @@
-From: Stian Jordet <liste-NI9zH3lwcMKHXe+LvDLADg@public.gmane.org>
-Subject: RE: ACPI and USB
-Date: 08 Nov 2002 18:53:59 +0100
+From: Duncan Gibb <duncangibb-zbhw9Kw21rH/AQmYMRTMl1aTQe2KTcn/@public.gmane.org>
+Subject: Compaq Evo N800c - strange DSDT
+Date: 08 Nov 2002 19:22:09 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1036778040.746.5.camel@chevrolet>
-References: <EDC461A30AC4D511ADE10002A5072CAD04C7A4D6@orsmsx119.jf.intel.com>
+Message-ID: <1036783329.10258.36.camel@carwash.duncangibb.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD04C7A4D6-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,77 +15,55 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-fre, 2002-11-08 kl. 18:38 skrev Grover, Andrew:
-> > From: Stian Jordet [mailto:liste-NI9zH3lwcMKHXe+LvDLADg@public.gmane.org] 
-> > I sent a mail a couple of days ago without any response. I guess that
-> > could be because it was so long, so here's an easy one:
-> > 
-> > USB don't work with my computer with acpi enabled. I have an ASUS
-> > CUV266-DLS motherboard.
-> > 
-> > Any hope this can be resolved?
-> 
-> An easy one, is it? Ah, that's nice to know. ;)
-Hehe, I meant that the mail/question was easy, not the answer :) I think
-that is a tough one :(
+Hi
 
-Without ACPI: 
+I've come to this list for entirely selfish reasons - that I want the
+power management to work on my shiney new HPaq Evo N800c laptop - but I
+promise to try to be helpful while I'm here.
 
-stianj@chevrolet:~$ cat /proc/interrupts 
-           CPU0       CPU1       
-  0:      25053      27013    IO-APIC-edge  timer 
-  1:          1          3    IO-APIC-edge  keyboard 
-  2:          0          0          XT-PIC  cascade 
-  3:          1          1    IO-APIC-edge  serial 
-  5:       2040       2055   IO-APIC-level  Ricoh Co Ltd RL5c476 II
-(#2), usb-uhci, usb-uhci, usb-uhci, eth0 
-  8:          2          1    IO-APIC-edge  rtc 
-10:       5702       5630   IO-APIC-level  aic7xxx, EMU10K1 
-12:         70         69   IO-APIC-level  aic7xxx, Ricoh Co Ltd RL5c476
-II, ide2 
-14:        524        157    IO-APIC-edge  ide0 
-15:        140        665    IO-APIC-edge  ide1 
-NMI:          0          0      
-LOC:      51990      51989 
-ERR:          0 
-MIS:          0 
+I have compiled a 2.4.20-rc1 kernel with the 20021101 ACPI patches. 
+Out-of-the box, CPU throttling and thermal work, but AC claims always to
+be on-line and /proc/acpi/battery is not created :-(
 
-With ACPI:
-stianj@chevrolet:~$ cat /proc/interrupts
-           CPU0       CPU1       
-  0:       3163       4154    IO-APIC-edge  timer
-  1:         57         68    IO-APIC-edge  keyboard
-  2:          0          0          XT-PIC  cascade
-  3:          1          1    IO-APIC-edge  serial
-  8:          1          2    IO-APIC-edge  rtc
-  9:         97        102   IO-APIC-level  acpi, usb-uhci, usb-uhci,
-usb-uhci
- 12:        155        146    IO-APIC-edge  PS/2 Mouse
- 14:         17         11    IO-APIC-edge  ide0
- 15:          9          8    IO-APIC-edge  ide1
- 17:       3049       3108   IO-APIC-level  aic7xxx, EMU10K1
- 18:         64         75   IO-APIC-level  aic7xxx, Ricoh Co Ltd
-RL5c476 II, ide2
- 19:        102         97   IO-APIC-level  Ricoh Co Ltd RL5c476 II
-(#2), eth0
-NMI:          0          0 
-LOC:       7233       7231 
-ERR:          0
+I ran /proc/acpi/dsdt ("Creator ID:  MSFT") through iasl -d and found
+that all the HIDs except ACPI0003 have leading asterisks.  Maybe MSFT
+didn't read section 6.1.4 of the spec ;-)
 
-So they do share interrupts, but I don't see any settings in my bios to
-be able to change neither irq.. Both these boots are with MPS1.1, btw.
-With MPS1.4 USB doesn't work with or without acpi.
+Anyway, as a quick-and-dirty, I bunged a few strategic "*"s into
+acpi_devices.h and recompiled. I now have working AC status, battery
+status, mostly-working battery info, fan state reporting and some
+control, plus CPU throttling and thermal which worked before.  Sleep
+state 5 works too, but I don't think I'll be testing that too often ;-)
 
-Thanks for the fast reply :)
+The names of the devices are a bit off the planet, mind: the CPU is
+"C000", the internal battery is "C11C".  And no sign of the lid switch
+working.  Can't do much debugging because the machine won't boot with
+debugging on (same semaphore problems as someone else posted a little
+while ago, but my machine has no serial port).
 
-/me happy
 
-Best regards,
-Stian Jordet
+So, some advice, please:
+
+Am I right in thinking it would be smarter to try to put together a more
+Linux-friendly substitute DSDT than mess up the acpi code trying to deal
+with the one in this BIOS?
+
+Is there much point trying to get low-level info out of HP/Compaq or
+should I just guess what to do based on the disassembly of the MSFT one?
+
+Do Compaq have some higher reason for messing with the HIDs or is the
+MSFT BIOS designed only to work with the Microsoft OSes it seems to be
+written to detect?
+
+
+Cheers
+
+
+Duncan
+
 
 
 
