@@ -1,12 +1,13 @@
-From: Faye Pearson <faye-jCzc14SaIAzJdhwusi3v/KxOck334EZe@public.gmane.org>
-Subject: Re: DSDT hacking issues ...
-Date: Tue, 30 Jul 2002 13:50:44 +0100
+From: Simon Richter <richtesi-xrfDFxQfymSzQB+pC5nmwQ@public.gmane.org>
+Subject: Re: questions
+Date: Tue, 30 Jul 2002 14:56:23 +0200 (CEST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020730125044.GB8925@clara.net>
+Message-ID: <Pine.LNX.4.44.0207301445570.6567-100000@phobos>
+References: <20020730014417.69105.qmail@web9806.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20020730014417.69105.qmail-3A75BWZatn2wAeGFf/znCBupM2+RrINj@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,38 +16,42 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Sourav K Mandal <smandal-DPNOqEs/LNQ@public.gmane.org>
+To: Bita Gorji-Ara <bita_gorjiara-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Sourav K Mandal [smandal-DPNOqEs/LNQ@public.gmane.org] wrote:
-> So I'm trying to patch my DSDT (for my Compaq Presario 2800).  
-> Unfortunately, when I do an "acpidmp  /proc/acpi/dsdt" I end up with 
-> some gibberish that looks like the output from hexdump, rather than 
-> code.   I am using the latest pmtools (rev. 200-10730) distro from the 
-> Intel ACPI site.
+On Mon, 29 Jul 2002, Bita Gorji-Ara wrote:
 
-You need to use pacpidump and that won't work direct from the proc file
-so you need to cp to a real file on disc before you can process it (or
-you get a segfault)
+> I'm investigating the capabilities of ACPI and see if
+> it is appropriate for us or not. Our system is a
+> real-time complex embedded system, running Linux on
+> Power PC. We are seeking for a suitable power
+> management policy . the OS and hardware should be
+> revised based on that policy.
 
-> BTW, the device ids in /proc/acpi are weird -- my CPU is called "C000", 
-> and my ac adapter "C11A" -- is this also due to a buggy native DSDT,
-> or laziness by the OEM?
+> I want to consider all alternatives to ACPI and make
+> the final decision and I prefer to find something
+> commercial. does anybody have any good set of links to
+> ACPI alternative approaches?
 
-Could be both :)
+The only viable alternative on the PowerPC would be the method Apple uses
+with their Macs. Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org> knows
+more about this one, I believe. APM is a clearly i386 specific interface
+and cannot be ported, and there are a few proprietary protocols.
 
-http://people.freebsd.org/~takawata/pacpidump.tar.gz
+I would go for ACPI, simply because the necessary toolchains and drivers
+under Linux already exist.
 
-Just copy config.h.linux to config.h and make.
+   Simon
 
 -- 
-Faye Pearson,
-Software Development Manager,
-ClaraNET Ltd.       Tel 020 7903 3000
+GPG public key available from http://phobos.fs.tum.de/pgp/Simon.Richter.asc
+ Fingerprint: 040E B5F7 84F1 4FBC CEAD  ADC6 18A0 CC8D 5706 A4B4
+Spread the word! Metal/Industrial party on May 22nd at Pulverturm, Munich.
+NP: <add NP here>
+UP: <add UPTIME here>
 
-The new Congressmen say they're going to turn the government around.  I
-hope I don't get run over again.
+
 
 
 -------------------------------------------------------
