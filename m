@@ -1,99 +1,49 @@
-From: "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>
-Subject: Re: [SoftwareSuspend-devel] status update for current development on ASUS M2N
-Date: Thu, 30 Sep 2004 11:59:54 +0200
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <m3oejo84bp.fsf@brain.gnuhh.org>
-References: <m3lleww12c.fsf@brain.gnuhh.org>
-	<1096279213.4222.5.camel@laptop.cunninghams>
+From: Zwane Mwaikambo <zwane@linuxpower.ca>
+Subject: Re: [ACPI] [PATCH] Updated patches for PCI IRQ resource deallocation
+ support [2/3]
+Date: Thu, 30 Sep 2004 16:03:56 +0300 (EAT)
+Sender: linux-ia64-owner@vger.kernel.org
+Message-ID: <Pine.LNX.4.61.0409301601240.3069@musoma.fsmlabs.com>
+References: <Pine.LNX.4.53.0409251356110.2914@musoma.fsmlabs.com>
+ <Pine.LNX.4.53.0409251401560.2914@musoma.fsmlabs.com>
+ <Pine.LNX.4.53.0409251416570.2908@musoma.fsmlabs.com> <4157A9D7.4090605@jp.fujitsu.com>
+ <Pine.LNX.4.61.0409281702580.3052@musoma.fsmlabs.com> <415A28B9.6080504@jp.fujitsu.com>
+ <Pine.LNX.4.61.0409291809270.3056@musoma.fsmlabs.com> <415B8A16.9070101@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="20040930115954+0200-460673367056891766230955"
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1096279213.4222.5.camel-AdgCB+f5QAxwBzq2CxEN2SkBHpOjBR89@public.gmane.org> (Nigel Cunningham's
-	message of "Mon, 27 Sep 2004 20:11:41 +1000")
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org
-Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, SoftwareSuspend-Devel <softwaresuspend-devel-0fE9KPoRgkgATYTw5x5z8w@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <415B8A16.9070101@jp.fujitsu.com>
+To: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Cc: Linux Kernel <linux-kernel@vger.kernel.org>, long <tlnguyen@snoqualmie.dp.intel.com>, Andrew Morton <akpm@osdl.org>, Greg Kroah-Hartmann <greg@kroah.com>, Len Brown <len.brown@intel.com>, tony.luck@intel.com, acpi-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
---20040930115954+0200-460673367056891766230955
+On Thu, 30 Sep 2004, Kenji Kaneshige wrote:
 
- || On Mon, 27 Sep 2004 20:11:41 +1000
- || Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org> wrote: 
+> Zwane Mwaikambo wrote:
+> > 
+> > Ok i think i may have not conveyed my meaning properly, my mistake. What i
+> > think would be better is if the architectures which have no-op
+> > acpi_unregister_gsi to declare them as static inline in header files. For
+> > architectures (such as ia64) which have a functional acpi_unregister_gsi, we
+> > can declare them in a .c file with the proper exports etc.
+> > 
+> 
+> Now I (maybe) properly understand what you mean :-). But I still have one
+> concern about your idea.
+> 
+> For architectures which have a functional acpi_unregister_gsi, we need to
+> declare "extern void acpi_unregister_gsi(int gsi);" in include/linux/acpi.h
+> that is common to all architectures. I think include/linux/acpi.h is the
+> best place to declare it because acpi_register_gsi(), opposite portion of
+> acpi_unregister_gsi(), is declared in it. On the other hand, for archtectures
+> that have no-op acpi_unregister_gsi(), acpi_unregister_gsi() is defined as
+> static inline function in arch specific header files. This looks not natural
+> to me.
 
- nc> Could I get you to compile kdb in as well. If you then press the
- nc> Sys Rq key when the CPU is being chewed, you should be able to
- nc> use ps and btp <process number> to get an idea of what is going
- nc> on.
+Can't you declare "extern void acpi_unregister_gsi(int gsi)" in 
+include/asm/acpi.h? That way it stays arch specific and you don't have the 
+conflicting declarations. You can also move acpi_unregister_gsi into arch 
+specific headers too.
 
-I am now running kernel
-
---20040930115954+0200-460673367056891766230955
-Content-Disposition: attachment; filename=patch-2.6.9-rc2-plus_5.txt
-
-Patches contained:
-
-linux-2.6.8
-patch-2.6.9-rc2
-
-software-suspend-109-for-2.6.9-rc2 (without kdb)
-build fix for swsusp 109 - see https://lists.berlios.de/pipermail/softwaresuspend-devel/2004-September/000555.html
-
-2.6.9-rc2-mm4/bk-acpi.patch
-	acpi-compile-fix.patch
-	acpi-x86_64-build-fix.patch
-	bk-agpgart.patch
-	bk-alsa.patch
-	bk-cpufreq.patch
-
-ipw2100-0.55
-
-arch/i386/kernel/i8259.c:
-
-  * changed device_initcall(i8259A_init_sysfs);
-         to late_initcall(i8259A_init_sysfs);
-    (needed for suspend to RAM)
-
-Makefile:
-
-  * added -plus version
-
-
---20040930115954+0200-460673367056891766230955
-
-
-and also created a version with kdb and heavy debugging.
-
-This kernel shows the same behaviour and can suspend/resume so I can
-get into kdb and do btp. Unfortunately I seem to be too stupid to find
-the way to get the output somehow saved or written anywhere.
-
-Not having the time (and motivation, to be honest) to write down all
-the names and numbers -- and also not feeling that sending digital
-photographs is the best way of communicating that output -- I don't
-know how to give you that information.
-
-Can you tell me how to do this, please?
-
-Regards,
-Georg
-
--- 
-Georg C. F. Greve                                       <greve-mXXj517/zsQ@public.gmane.org>
-Free Software Foundation Europe	                 (http://fsfeurope.org)
-Brave GNU World	                           (http://brave-gnu-world.org)
-
---20040930115954+0200-460673367056891766230955--
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: IT Product Guide on ITManagersJournal
-Use IT products in your business? Tell us what you think of them. Give us
-Your Opinions, Get Free ThinkGeek Gift Certificates! Click to find out more
-http://productguide.itmanagersjournal.com/guidepromo.tmpl
+Thanks,
+	Zwane
