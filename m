@@ -1,74 +1,137 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Re: S3 on Asus M6R
-Date: Mon, 21 Mar 2005 17:29:20 +0100
-Message-ID: <423EF660.7010906@gmx.net>
-References: <20050321135401.GC30293@fi.muni.cz>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [ACPI] Re: Fw: Anybody? 2.6.11 (stable and -rc) ACPI breaks USB
+Date: Mon, 21 Mar 2005 09:33:58 -0700
+Message-ID: <1111422838.17576.22.camel@eeyore>
+References: <1110989436.8378.19.camel@eeyore>
+	 <1111023217.15278.7.camel@sli10-desk.sh.intel.com>
+	 <1111082914.11380.30.camel@eeyore>
+	 <1111108150.22239.6.camel@sli10-desk.sh.intel.com>
+	 <1111169239.13286.39.camel@eeyore>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <20050321135401.GC30293-0hYGf3jDe+XrBKCeMvbIDA@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jan Kasprzak <kas-0hYGf3jDe+XrBKCeMvbIDA@public.gmane.org>
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1111169239.13286.39.camel@eeyore>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Li Shaohua <shaohua.li@intel.com>
+Cc: Zwane Mwaikambo <zwane@arm.linux.org.uk>, Grzegorz Kulewski <kangur@polcom.net>, Andrew Morton <akpm@osdl.org>, ACPI List <acpi-devel@lists.sourceforge.net>, lkml <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-[forgot the CC:]
-Jan Kasprzak schrieb:
-> 	Hi all,
+On Fri, 2005-03-18 at 11:07 -0700, Bjorn Helgaas wrote:
+> OK.  Try this one for size.  It differs from what's currently in
+> the tree in these ways:
 > 
-> 	I have an Asus M6R laptop (http://www.fi.muni.cz/~kas/m6r/).
-> I have tried to use ACPI S3 suspend-to-ram, but it does not work for me:
+>     - It's a quirk, so we don't have to clutter acpi_pci_irq_enable()
+>       and pirq_enable_irq() with Via-specific code.
 > 
-> - usually the system either immediately resumes and locks up
-> 	after "echo 3 > /proc/acpi/sleep", or it or powers itself down
-> 	and does a cold boot when I push the power button. I have found
-> 	that the lm_sensors package is what causes the problem (altough	
-> 	I have no idea why).
+>     - It doesn't do anything unless we're in PIC mode.  The comment
+>       suggests this issue only affects PIC routing.
 > 
-> - without lm_sensors enabled (chkconfig lm_sensors off), I can suspend
-> 	my system (the power LED starts blinking, which means the system
-> 	is suspended to RAM). But I cannot resume it back - after hitting
-> 	the power button the LEDs are on as when the laptop is normally
-> 	running, but I get no output on the display, no response to ping, no
-> 	response to CapsLock key, etc.
+>     - We do this for ALL Via devices.  The current code in the tree
+>       does it for all devices in the system IF there is a Via device
+>       with devfn==0, which misses Grzegorz's case.
 > 
-> 	I have read Documentation/power/video.txt, but neither using
-> vbetool or boot-radeon utility make any difference for me.
+> Does anybody have a pointer to a spec that talks about this?  It'd
+> be awfully nice to have a reference.
 > 
-> 	I have tried to use bash -x s3.sh >s3.log 2>s3.err, where s3.sh
-> is as follows:
-> 
-> #!/bin/bash
-> chvt 1
-> rmmod ohci-hcd
-> rmmod ehci-hcd
-> sync
-> echo 3 > /proc/acpi/sleep
-> sync
-> /tmp/boot-radeon
-> chvt 7
+> Grzegorz, can you check to make sure this still works after all the
+> tweaking?
 
-Can we see your kernel command line? Do you use any framebuffer? Does
-it work if you boot with init=/bin/bash?
+Oops, I had the sense of the skip_ioapic_setup test reversed.  Corrected
+patch follows.
 
-
-Regards,
-Carl-Daniel
--- 
-http://www.hailfinger.org/
-
-
-
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+===== arch/i386/pci/irq.c 1.55 vs edited =====
+--- 1.55/arch/i386/pci/irq.c	2005-02-07 22:39:15 -07:00
++++ edited/arch/i386/pci/irq.c	2005-03-15 10:11:44 -07:00
+@@ -1026,7 +1026,6 @@
+ static int pirq_enable_irq(struct pci_dev *dev)
+ {
+ 	u8 pin;
+-	extern int via_interrupt_line_quirk;
+ 	struct pci_dev *temp_dev;
+ 
+ 	pci_read_config_byte(dev, PCI_INTERRUPT_PIN, &pin);
+@@ -1081,10 +1080,6 @@
+ 		printk(KERN_WARNING "PCI: No IRQ known for interrupt pin %c of device %s.%s\n",
+ 		       'A' + pin, pci_name(dev), msg);
+ 	}
+-	/* VIA bridges use interrupt line for apic/pci steering across
+-	   the V-Link */
+-	else if (via_interrupt_line_quirk)
+-		pci_write_config_byte(dev, PCI_INTERRUPT_LINE, dev->irq & 15);
+ 	return 0;
+ }
+ 
+===== drivers/acpi/pci_irq.c 1.37 vs edited =====
+--- 1.37/drivers/acpi/pci_irq.c	2005-03-01 09:57:29 -07:00
++++ edited/drivers/acpi/pci_irq.c	2005-03-15 10:10:57 -07:00
+@@ -388,7 +388,6 @@
+ 	u8			pin = 0;
+ 	int			edge_level = ACPI_LEVEL_SENSITIVE;
+ 	int			active_high_low = ACPI_ACTIVE_LOW;
+-	extern int		via_interrupt_line_quirk;
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_pci_irq_enable");
+ 
+@@ -437,9 +436,6 @@
+ 			return_VALUE(0);
+ 		}
+  	}
+-
+-	if (via_interrupt_line_quirk)
+-		pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq & 15);
+ 
+ 	dev->irq = acpi_register_gsi(irq, edge_level, active_high_low);
+ 
+===== drivers/pci/quirks.c 1.72 vs edited =====
+--- 1.72/drivers/pci/quirks.c	2005-03-10 01:38:25 -07:00
++++ edited/drivers/pci/quirks.c	2005-03-21 09:22:23 -07:00
+@@ -683,19 +683,40 @@
+ }
+ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_INTEL,	PCI_DEVICE_ID_INTEL_82454NX,	quirk_disable_pxb );
+ 
+-/*
+- *	VIA northbridges care about PCI_INTERRUPT_LINE
+- */
+-int via_interrupt_line_quirk;
++#ifdef CONFIG_ACPI
++#include <linux/acpi.h>
++#endif
+ 
+-static void __devinit quirk_via_bridge(struct pci_dev *pdev)
++static void __devinit quirk_via_irqpic(struct pci_dev *dev)
+ {
+-	if(pdev->devfn == 0) {
+-		printk(KERN_INFO "PCI: Via IRQ fixup\n");
+-		via_interrupt_line_quirk = 1;
++	u8 irq, new_irq;
++
++#ifdef CONFIG_X86_IO_APIC
++	if (!skip_ioapic_setup)
++		return;
++#endif
++#ifdef CONFIG_ACPI
++	if (acpi_irq_model != ACPI_IRQ_MODEL_PIC)
++		return;
++#endif
++	/*
++	 * Some Via devices make an internal connection to the PIC when the
++	 * PCI_INTERRUPT_LINE register is written.  If we've changed the
++	 * device's IRQ, we need to update this routing.
++	 *
++	 * I suspect this only happens for devices on the same chip as the
++	 * PIC, but I don't know how to identify those without listing them
++	 * all individually, which is a maintenance problem.
++	 */
++	new_irq = dev->irq & 0xf;
++	pci_read_config_byte(dev, PCI_INTERRUPT_LINE, &irq);
++	if (new_irq != irq) {
++		printk(KERN_INFO "PCI: Via PIC IRQ fixup for %s, from %d to %d\n",
++			pci_name(dev), irq, new_irq);
++		pci_write_config_byte(dev, PCI_INTERRUPT_LINE, new_irq);
+ 	}
+ }
+-DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_VIA,	PCI_ANY_ID,                     quirk_via_bridge );
++DECLARE_PCI_FIXUP_ENABLE(PCI_VENDOR_ID_VIA, PCI_ANY_ID, quirk_via_irqpic);
+ 
+ /*
+  *	Serverworks CSB5 IDE does not fully support native mode
