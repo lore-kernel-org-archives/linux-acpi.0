@@ -1,55 +1,45 @@
-From: =?ISO-8859-1?Q?Fran=E7ois_Valenduc?= <fvalenduc-IWqWACnzNjyZIoH1IeqzKA@public.gmane.org>
-Subject: Re: Re: New DSDT patches for Smart Batteries (and new mailing
- list...)
-Date: Sat, 12 Feb 2005 11:14:02 +0100
-Message-ID: <420DD6EA.9000802@tiscali.be>
-References: <420C4622.7000809@bartol.udel.edu> <420D1F1A.3000504@tiscali.be> <m2k6peru5x.fsf@phoenix.squirrel.nl>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [PATCH, new ACPI driver] new sony_acpi driver
+Date: Sat, 12 Feb 2005 14:21:03 +0100
+Message-ID: <20050212142103.5e1a79f9.khali@linux-fr.org>
+References: <20050210161809.GK3493@crusoe.alcove-fr>
+	<20050211113636.GI3263@crusoe.alcove-fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
-In-Reply-To: <m2k6peru5x.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <20050211113636.GI3263@crusoe.alcove-fr>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stelian Pop <stelian@popies.net>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, acpi-devel@lists.sourceforge.net, Pekka Enberg <penberg@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Johan Vromans a =E9crit :
+> Based on feedback from Jean Delvare and Pekka Enberg, here is an
+> updated version.
 
->Fran=E7ois Valenduc <fvalenduc-IWqWACnzNjyZIoH1IeqzKA@public.gmane.org> writes:
->
-> =20
->
->>Unfortunately, it's not yet working correctly on my laptop (An ACER
->>travelmate 4001 Lmi). It's always the case than when the battery is
->>fully loaded, it only indicates 9% of charging level.
->>   =20
->>
->
->Did you get any success with Rich' acpi-sbs driver? This is
->independent of the DSDT (but requires a patched kernel).
->
->-- Johan
->
->
-> =20
->
-Yes, it works quite reliably with the acpi-sbs driver. But Rich said me=20
-that he will upload soon new DSDT patches which should solve the=20
-problem. So I am waiting impatiently for it.
+Works for me (Vaio PCG-GR214EP). Tested with 2.6.11-rc3-bk8.
 
-Fran=E7ois
+I then enabled the debug mode. I couldn't find anything relevant WRT
+what each additional file is supposed to do, but I still have noticed a
+number of things you might be interested in.
 
+ctr doesn't seem to affect the contrast for me. I also noticed that the
+value seems to be stored on 8 bits. Higher bits are ignored (e.g. write
+300, read 44). Default value is 64.
 
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+cmi behaves strangely. Its default value is 0. Whatever I write to it
+(including 0), next read returns 131.
+
+pbr seems to be stored on 4 bits. Higher bits are ignored (e.g. write
+20, read 4). Default value is 0.
+
+csxb is the dangerous one. Default 0. Writing 41 to it deadlocked my
+system. Writing 42 changed pbr from 0 to 8 as a side effect. Each write
+generates an error in the logs:
+  sony_acpi: acpi_evaluate_object failed
+
+cmi and csxb are reset to 0 on sony_acpi module cycling. brightness, ctr
+and pbr are preserved.
+
+Hope that helps. Let me know if you want me to test specific things.
+-- 
+Jean Delvare
