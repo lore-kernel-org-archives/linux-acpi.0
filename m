@@ -1,17 +1,14 @@
 From: Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
-Subject: Re: 2.6 won't poweroff
-Date: Thu, 27 May 2004 09:12:10 +0100
+Subject: 2.6.6 + AcerTravelMate634 suspend
+Date: Thu, 27 May 2004 09:17:18 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <16565.41690.262681.183380@aber.ac.uk>
-References: <20040525044514.GC2217@smeagol>
-	<16563.119.414292.134855@aber.ac.uk>
-	<20040526043252.GF2576@smeagol>
-	<1085622000.3503.10.camel@darkstar>
+Message-ID: <16565.41998.329541.40440@aber.ac.uk>
+References: <20040527013436.GA2559@smeagol>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1085622000.3503.10.camel-4/PLUo9XfK8@public.gmane.org>
+In-Reply-To: <20040527013436.GA2559-Kz9ENIl45+A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,33 +17,48 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
-Cc: Emma Jane Hogbin <emmajane-MHIYrZpDPrNWk0Htik3J/w@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Emma Jane Hogbin <emmajane-MHIYrZpDPrNWk0Htik3J/w@public.gmane.org>
+Cc: acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-S=E9rgio Monteiro writes:
+Emma Jane Hogbin writes:
+ > Hi everyone,
+ > 
+ > I just thought I'd let everyone know how my system behaves with the
+ > various suspend options:
+ > 	echo -n "standby" > /sys/power/state  
+ > 		back light stays on in X
+ > 		does nothing from the console
+ > 		
+ > 	echo -n "mem" > /sys/power/state  
+ > 		system "goes away", no back light, "Zz" light goes on
+ > 		Fn-F4 should work to put the computer into this state but it just
+ > 		beeps and does nothing
+ > 		can't restore (tried the power button, Fn-F4, moving the mouse, etc)
+ > 		have to force power off with the power button and then force restart
+ > 
 
- > 1- Have you configure Power Management support on yes (CONFIG_PM=3D3=
-Dy) ?
+Similar experience here.
 
-Yes, otherwise you can't even get to acpi, can you (in menuconfig I mea=
-n)
+ > 
+ > 	echo -n "disk" > /sys/power/state 
+ > 	system shuts off. No "Zz" light. When I use the power button to turn
+ > 	the system back on it says that it was not shut down properly.
+ > 
 
- > 2- you use poweroff command or shutdown -h now ? poweroff can have
- > better results (I think).
+You have to have to reboot with a restore option on the command line (don't
+have my laptop running at the moment so can't tell you exactly what, but
+it's in the pm.txt (IIRC) in the kernel documentation.
 
-Have tried both.
+I've had mixed results with that and a big disk crash which was possibly
+due to that so I stopped trying ;-)
 
- > 3- no longer have to worry about compile w/ or w/o APIC because you
- > should have same results if you use "nolapic" on boot options, or no=
-t
- > use.
+ > 
+ > REMINDER: when I try to use poweroff and halt the computer does not power
+ > off when acpi_power_off is called at the very end.
+ > 
 
-Have tried all the possible combinations for having and not having apic=
- (at
-least the ones mentioned in the kernel options file.
-
-Thanks anyway.
+Same here.
 
 Fred
 
