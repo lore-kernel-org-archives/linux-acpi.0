@@ -1,10 +1,12 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [BK PATCH] ACPI updates
-Date: Tue, 26 Nov 2002 17:51:01 -0800
+From: Cajus Pollmeier <C.Pollmeier-hi6Y0CQ0nG0@public.gmane.org>
+Subject: kernel-2.4.20-rc3 + acpi-20021126-2.4.20-rc3
+Date: Wed, 27 Nov 2002 11:41:58 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A554@orsmsx119.jf.intel.com>
+Message-ID: <200211271142.03379.C.Pollmeier@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -14,80 +16,37 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: 'Linus Torvalds' <torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org>
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus, please do a
+Hi!
 
-	bk pull http://linux-acpi.bkbits.net/linux-acpi
+Here's a little status report for a Dell Latitude C800, Bios A21:
 
-(this doesn't include a fix for the interrupt = 0xFF thing, but there are a
-bunch of other things that should get merged.)
+- does not boot with battery inserted -> see oops on server below
+- battery is never detected
+- "cat /proc/acpi/ac_adapter/AC/state" produces same oops if battery is
+  plugged in:
+    dsobject-0370: *** Warning: Buffer created with zero length in AML
+    Unable to handle kernel NULL pointer dereference at virtual address 00000010
+- power off does not work if battery is plugged in
+- none suspend modes do work
 
-Regards -- Andy
+The last acpi-patch release (20-rc1) worked fine, except for this one: I get a system freeze for
+a second if I access the battery info files.
 
-This will update the following files:
+Sleep modes never worked on my laptop. S1 is the only one that produces some feedback:
+A blinking power led and the system seems to sleep (display is on). Pressing the power
+button wakes up the machine, but the display switches off and there's no way to get
+back. I've to type something like "reboot" blindly.
 
- drivers/acpi/ac.c                  |   57 +---
- drivers/acpi/button.c              |   45 +--
- drivers/acpi/dispatcher/dsmthdat.c |   49 ++-
- drivers/acpi/events/evevent.c      |   78 +++--
- drivers/acpi/events/evrgnini.c     |    7 
- drivers/acpi/include/acconfig.h    |    4 
- drivers/acpi/include/aclocal.h     |    5 
- drivers/acpi/include/acpiosxf.h    |    8 
- drivers/acpi/osl.c                 |   39 ++
- drivers/acpi/parser/psopcode.c     |    4 
- drivers/acpi/power.c               |   63 ++--
- drivers/acpi/processor.c           |  338 +++++++++++--------------
- drivers/acpi/sleep.c               |  100 +++----
- drivers/acpi/thermal.c             |  247 ++++++++----------
- drivers/acpi/toshiba_acpi.c        |  234 ++++++++++-------
- drivers/acpi/utilities/utcopy.c    |   64 +++-
- drivers/acpi/utilities/utmisc.c    |   17 -
- 17 files changed, 706 insertions(+), 653 deletions(-)
+You can get dsdt, kernel, oops, bootmessage, etc. here:
+http://area51.mfh-iserlohn.de/polle/acpi
 
-through these ChangeSets:
+If I can provide any other useful informations, just drop me a note ;-)
 
-<aris-YqEmrenMroyQb786VAuzj9i2O/JbrIOy@public.gmane.org> (02/11/23 1.842.45.7)
-   o acpi: convert drivers/acpi/toshiba_acpi.c to seq_file
-
-<aris-YqEmrenMroyQb786VAuzj9i2O/JbrIOy@public.gmane.org> (02/11/23 1.842.45.6)
-   o acpi: convert drivers/acpi/thermal.c
-
-<acme-KCZ47A4bww4P48s/oLjRZg@public.gmane.org> (02/11/23 1.842.45.5)
-   o acpi/processor.o: fix up seq_file conversion, add missing comma
-
-<aris-YqEmrenMroyQb786VAuzj9i2O/JbrIOy@public.gmane.org> (02/11/23 1.842.45.4)
-   o acpi: convert drivers/acpi/sleep.c to seq_file
-
-<aris-YqEmrenMroyQb786VAuzj9i2O/JbrIOy@public.gmane.org> (02/11/23 1.842.45.3)
-   o acpi: convert drivers/acpi/processor.c to seq_file
-
-<aris-YqEmrenMroyQb786VAuzj9i2O/JbrIOy@public.gmane.org> (02/11/23 1.842.45.2)
-   o acpi: convert drivers/acpi/power.c to seq_file
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/11/22 1.842.44.2)
-   ACPI: Fix IRQ assignment on Tiger (JI Lee)
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/11/22 1.842.44.1)
-   ACPI: Interpreter update to 20021122
-     Fixed a problem with RefOf and named fields
-     Fixed a protection fault involving Packages with Null/nested packages
-     Fixed GPE initialization to handle a pathological case
-
-<aris-YqEmrenMroyQb786VAuzj9i2O/JbrIOy@public.gmane.org> (02/11/15 1.805.15.3)
-   o acpi: convert drivers/acpi/button.c to seq_file
-
-<aris-YqEmrenMroyQb786VAuzj9i2O/JbrIOy@public.gmane.org> (02/11/13 1.805.15.1)
-   drivers/acpi/ac.c: convert to seq_file
-
-
------------------------------
-Andrew Grover
-Intel Labs / Mobile Architecture
-andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Keep up the good work,
+-Cajus
 
 
 
