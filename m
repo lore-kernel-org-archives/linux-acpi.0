@@ -1,15 +1,14 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: Re: Fw: Anybody? 2.6.11 (stable and -rc) ACPI breaks USB
-Date: Fri, 11 Mar 2005 13:56:39 -0700
-Message-ID: <1110574599.4822.54.camel@eeyore>
-References: <20050304234622.63e8a335.akpm@osdl.org>
-	 <Pine.LNX.4.62.0503110006260.30687@alpha.polcom.net>
-	 <1110559685.4822.15.camel@eeyore>
-	 <Pine.LNX.4.62.0503112009070.22293@alpha.polcom.net>
+From: =?gb18030?q?Ois=A8=AAn_Mac_Fheara=A8=AA?= <destynova-iUB+o6dfpG8i1yMB4YHZDQ@public.gmane.org>
+Subject: Re: Re: generic ACPI video and hotkey drivers vs. platform-specific drivers
+Date: Fri, 11 Mar 2005 21:23:25 +0000
+Message-ID: <200503112123.25490.destynova@esatclear.ie>
+References: <200502230953.j1N9rPLp020723@shell0.pdx.osdl.net> <200503110407.50728.destynova@esatclear.ie> <20050311174346.GA21611@message-id.gmane0305.slipkontur.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="gb18030"
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <Pine.LNX.4.62.0503112009070.22293-xO7mqm7LmoOZ0THcR2OzsA@public.gmane.org>
+In-Reply-To: <20050311174346.GA21611-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,74 +18,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Grzegorz Kulewski <kangur-ghbW0t/Qn0CsTnJN9+BGXg@public.gmane.org>
-Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2005-03-11 at 20:36 +0100, Grzegorz Kulewski wrote:
-> On Fri, 11 Mar 2005, Bjorn Helgaas wrote:
-> > Can you check to see whether there are any BIOS updates available
-> > for your box?  It looks to me like your USB controllers are wired
-> > to IRQ9, and that's how the BIOS is leaving them configured.
-> 
-> And if this is a BIOS issue then why it worked for 3 years with all 
-> kernels up to at least 2.6.9
+On Friday 11 March 2005 17:43, Stefan Seyfried wrote:
+> What pavel wanted to say (IIUC) was, that there are already enough tools
+> for grabbing "generic" keys (AKA your keyboard) from the input system
+> and reacting on them, so routing ACPI hotkeys through the input layer
+> seems a good thing to do. I tend to agree.
 
-Good point.
+Yes, if they all use the same method and all can be made to work consistently 
+without a bizarre amount of effort, sure.
+>
+> maybe because your acer does not generate "normal" keystrokes for those
+> buttons but ACPI events? So you would benefit from these solution, too.
 
-Thanks for posting the 2.6.9 output as well.  It contains this:
+It seems to send two-byte scancodes for (some, but not all) keys actually, but 
+I could only make one of them work properly. It's a bit confusing.
 
-    ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 10
-    ACPI: PCI interrupt 0000:00:07.2[D] -> GSI 10 (level, low) -> IRQ 10
-    ACPI: PCI interrupt 0000:00:07.3[D] -> GSI 10 (level, low) -> IRQ 10
-    PCI: Via IRQ fixup for 0000:00:07.2, from 9 to 10
-    PCI: Via IRQ fixup for 0000:00:07.3, from 9 to 10
+Checking just now, I noticed that two of the 'user' hotkeys produce a 2 byte 
+scancode for keydown and the same value +128 for keyup.
 
-In 2.6.9, we did all the ACPI IRQ routing early, then did the
-Via IRQ fixups.  In 2.6.11, ACPI IRQ routing is done only when
-a driver claims a device, and the Via IRQ fixup is done a little
-differently.  In fact, the Via fixup happens before we twiddle
-the IOAPIC, where in 2.6.9, it happened after.
-
-Can you try the attached patch to see whether it makes any
-difference?
-
-===== drivers/acpi/pci_irq.c 1.37 vs edited =====
---- 1.37/drivers/acpi/pci_irq.c	2005-03-01 09:57:29 -07:00
-+++ edited/drivers/acpi/pci_irq.c	2005-03-11 13:45:56 -07:00
-@@ -30,6 +30,7 @@
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/types.h>
-+#include <linux/delay.h>
- #include <linux/proc_fs.h>
- #include <linux/spinlock.h>
- #include <linux/pm.h>
-@@ -438,10 +439,19 @@
- 		}
-  	}
- 
--	if (via_interrupt_line_quirk)
--		pci_write_config_byte(dev, PCI_INTERRUPT_LINE, irq & 15);
--
- 	dev->irq = acpi_register_gsi(irq, edge_level, active_high_low);
-+
-+	if (via_interrupt_line_quirk) {
-+		u8 old_irq, new_irq = dev->irq & 0xf;
-+
-+		pci_read_config_byte(dev, PCI_INTERRUPT_LINE, &old_irq);
-+		if (new_irq != old_irq) {
-+			printk(KERN_INFO PREFIX "Via IRQ fixup for %s, from %d "
-+				"to %d\n", pci_name(dev), old_irq, new_irq);
-+			udelay(15);
-+			pci_write_config_byte(dev, PCI_INTERRUPT_LINE, new_irq);
-+		}
-+	}
- 
- 	printk(KERN_INFO PREFIX "PCI interrupt %s[%c] -> GSI %u "
- 		"(%s, %s) -> IRQ %d\n",
-
-
+In fact, tailing /proc/acpi/event never produces any output for me, at least 
+when I watch it while opening and closing the lid and whacking all the 
+hotkeys.
 
 
 -------------------------------------------------------
