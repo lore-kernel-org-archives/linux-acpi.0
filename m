@@ -1,14 +1,11 @@
-From: Mirko Werneke <mirko.werneke-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Re: Acer TM 661 does not wake up from STR
-Date: Thu, 26 Aug 2004 14:41:06 +0200
+From: Andrea Borgia <borgia-iEixELS/QsY1GQ1Ptb7lUw@public.gmane.org>
+Subject: reboot instead of poweroff in 20040715
+Date: Thu, 26 Aug 2004 16:27:51 +0200 (CEST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <412DDA62.5030505@gmx.net>
-References: <412CA779.8000602@gmx.net> <412CC887.9080706@root.org>
+Message-ID: <Pine.LNX.4.44.0408261627420.22242-100000@emilia.cs.unibo.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <412CC887.9080706-Y6VGUYTwhu0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,43 +14,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Nate Lawson wrote:
-> Mirko Werneke wrote:
-> 
->> I compiled a minimal kernel (without usb/wlan drivers, etc.) with a 
->> little patch in wakeup.S.
->> I inserted after .code16 the line "lcall $0xffff,$0". This should - 
->> according to Stefan - immediatly call the BIOS reset code after the 
->> kernel gets control back from BIOS. But the situation did not change 
->> (no "automatic" reboot after resume). So we came to the conclusion, 
->> that the kernel does not get the control back when the system wakes up.
->> So i think that there is a problem with the BIOS or the kernel does 
->> something wrong while suspending.
-> 
-> 
-> So the BIOS is not calling the wake vector.
+Hello.
 
-But why? Because i don't know very much about acpi and there is no error 
-message i simply don't know where to start to solve the problem.
+I gave kernel 2.6.9-rc1 a spin and discovered that my Acer 1357LMi
+laptop does not poweroff anymore but simply reboots at the end of the
+shutdown sequence. From 2.6.5 (first kernel I used on this laptop) up to
+2.6.8.1 included it worked as expected. The acpi version in 20040715 in
+2.6.9-rc1 and in 2.6.8.1 is 20040326, system is Debian/testing.
 
-> I've been wondering about 
-> several deviations from the spec in the sleep path (hwsleep.c).
-> 
-> I think _GTS should be run immediately before writing the sleep value in 
-> EnterSleepState (not Prep). [...]
-> I'm suspicious of writing the SLP_TYP and SLP_EN on separate passes. The 
-> sample code in the spec (7.3.4) writes this in one pass.
+I searched the archives and found nothing relevant (at least, not
+obviously so to me). I am now subscribed to the list and I'll be happy
+to provide more information and do some testing, just let me know.
 
-Do you think that this deviations are responsible for the problems i 
-encounter? My laptop does not have a _GTS method and writing SLP_TYP and 
-SLP_EN in one pass does not make any difference.
+BR,
+Andrea.
 
-best wishes
-Mirko
+-- 
+Homepage: http://andrea.borgia.bo.it     /    Amateur radio: IZ4FHT
+A: Because it messes up the order in which people normally read text.
+Q: Why is top-posting such a bad thing?
+A: Top-posting.
+Q: What is the most annoying thing on usenet and in e-mail?
+
+
 
 
 -------------------------------------------------------
