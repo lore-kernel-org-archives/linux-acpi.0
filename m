@@ -1,31 +1,26 @@
-From: administrator-PjAqaU27lzQ@public.gmane.org
-Subject: Virus Warning
-Date: Fri, 5 Sep 2003 18:29:02 -0400 (EDT)
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200309052229.BSW74163@steiner.cc.vt.edu>
+From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Subject: Re: [ACPI] Re: [PATCH] Next round of ACPI IRQ fixes (VIA ACPI
+ fixed)
+Date: Fri, 5 Sep 2003 15:28:05 -0700
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <20030905152805.521281b6.akpm@osdl.org>
+References: <200309051958.02818.adq_dvb@lidskialf.net>
+	<3F59018E.5060604@pobox.com>
+	<200309060016.16545.adq_dvb@lidskialf.net>
+	<3F590E28.6090101@pobox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <3F590E28.6090101-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>
+To: Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>
+Cc: adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org, torvalds-3NddpPZAyC0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org> wrote:
+>
+> Many of us have patch-applying scripts,
 
-Your email address was listed as the sender of a message emailed to fenris-KLuS98vDudU+MCppTbuXNA@public.gmane.org, dated 09/05/03 18:29:02, containing the W32/Sobig-F virus in the details.pif attachment. The action taken was: deleted the attachment.
+But only one of us documented them ;)
 
-You may not have sent this virus; some viruses, such as SOBIG, KLEZ, SIRCAM, and others, regularly spoof, or falsify, the sender address to hide their origin.  This message is sent to warn you to virus check your system if you do not do so regularly, and if you do, that others may accuse you of having sent them a virus, even if you did not do so.  It does *not* necessarily mean your system is infected.
-
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
+	http://www.zip.com.au/~akpm/linux/patches/patch-scripts-0.12/
