@@ -1,10 +1,10 @@
-From: =?ISO-8859-1?Q?Andr=E9?= Ventura Lemos <tux-iajdibc0hrlg9hUCZPvPmw@public.gmane.org>
-Subject: special buttons
-Date: Mon, 24 Nov 2003 23:33:25 +0000
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: PATCH - hang on power down for IBM R40
+Date: Mon, 24 Nov 2003 16:24:00 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1069716805.3780.4.camel@lapy.tuxslare.org>
+Message-ID: <20031124162152.B88001@root.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-TsxaMsVMCBuZZ6yhmtkM"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -17,41 +17,16 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Please see the patch below.  It was found by Don Lewis
+<truckman-h+KGxgPPiopAfugRpC6u6w@public.gmane.org>.  It solves the hang on powerdown for thinkpad
+users.  Of course, linux users will have to run the patch through the
+sourcecode modifier before applying.
 
---=-TsxaMsVMCBuZZ6yhmtkM
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+http://bugme.osdl.org/show_bug.cgi?id=1587
 
-Hi!
+Let me know when we can expect this in an ACPI-CA dist.
 
-I have a laptop without a known brand (it's assembled by a portuguese
-company), and I need one of the special buttons to work, as it activates
-my wireless interface, and without it I can't get it to work.
-
-What data can I provide, so that you can make my buttons work?
-
-Ps.: I'm using the kernel 2.6.0-test10 atm
-
-Thanks
-
-
---=20
-Lego my ego, and I'll lego your knowledge
-
---=-TsxaMsVMCBuZZ6yhmtkM
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQA/wpVEduWuN7ka4fkRAnMsAKDFnepvvZCXbJGbUFcHJu7tzRz3+gCdEk2u
-9ODcAqxNhr+z3Vv/blNVX4Q=
-=lj0m
------END PGP SIGNATURE-----
-
---=-TsxaMsVMCBuZZ6yhmtkM--
-
+-Nate
 
 
 -------------------------------------------------------
