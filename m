@@ -1,14 +1,14 @@
-From: "Sharma, Arun" <arun.sharma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Out of Office AutoReply: Secure SMTP Message
-Date: Tue, 20 Jul 2004 08:40:38 -0700
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: acpi-20040715: functional regression on ASUS M2N
+Date: Tue, 20 Jul 2004 20:03:17 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <5EA8BF6B8079FD46BF22998F56C9597104282A51@scsmsx401.amr.corp.intel.com>
+Message-ID: <1090350197.4828.5.camel@tyrosine>
+References: <m3d62rzi9a.fsf@brain.gnuhh.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <m3d62rzi9a.fsf-eMhNhoSsuh6q92djB/mqZw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,15 +17,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Georg C. F. Greve" <greve-BSDwwRMYa8fNLxjTenLetw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Tue, 2004-07-20 at 00:31, Georg C. F. Greve wrote:
 
-I'll be out of office 7/21-7/24. Please contact rohit.seth-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, if =
-you have any urgent issues.
+> I just tried a kernel 2.6.8-rc2 with swsusp2-2.0.0.100 and some other
+> minor patches -- overall with great success. But when I updated from
+> the ACPI included in the kernel to the acpi-20040715 patch for 2.6.8,
+> suspend to ram does not work anymore: the machine hangs on resume.
 
-   -Arun
+Do you get any output on the screen at all during resume?
 
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
 
 
