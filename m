@@ -1,14 +1,15 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Masking issue somewhere?
-Date: Sat, 21 Jun 2003 13:47:19 +0200
+From: "Adachi, Kenichi" <aileenja_jpn-xFOqZoH7zVZ4Eiagz67IpQ@public.gmane.org>
+Subject: RE: iasl for GLIBC 2.2 available?
+Date: Sat, 21 Jun 2003 23:00:46 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030621114719.GN19556@poupinou.org>
-References: <1056102228.2279.13.camel@laptop-linux> <20030620103631.GE19556@poupinou.org> <1056137860.2096.18.camel@laptop-linux>
+Message-ID: <00db01c337fd$86670d60$e94425db@sayonara>
+References: <1056158434.2181.2.camel@laptop-linux>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1056137860.2096.18.camel-udXHSmD1qAy4CTf7w+cZoA@public.gmane.org>
+In-Reply-To: <1056158434.2181.2.camel-udXHSmD1qAy4CTf7w+cZoA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,33 +18,32 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>
-Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: 'Nigel Cunningham' <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>
+Cc: 'ACPI List' <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Jun 21, 2003 at 07:37:40AM +1200, Nigel Cunningham wrote:
-> Hi.
-> 
-> Thanks for the reply.
-> 
-> My laptop has gained 512MB since you made the override (it's from your
-> site). I'll try recompiling it. Sorry - that hadn't occurred to me as a
-> factor.
-> 
+Hi,
 
-It's my fault.  I should warn more people that override their DSDT
-that upgrading/downgrading the amount of RAM may have issues.
-More specifically, some methods need to access to the NVRAM which
-is located differently if you change the amount of ram since it
-is located relatively to the top of mem.
+> Can anyone (a) point me to the iasl source 
 
-Cheers,
+Doesn't "acpica-unix-20030619.tar.gz" from
+http://developer.intel.com/technology/iapc/acpi/license2.htm work for
+you?
 
--- 
-Ducrot Bruno
+% pwd
+/usr/src/acpica-unix-20030619
+% ls -F
+README          debugger/       generate/       interpreter/
+resources/      utilities/
+common/         disassembler/   hardware/       namespace/      tables/
+compiler/       events/         include/        osunixxf.c      tools/
+^^^^^^^^^^
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+Thanks,
+- Adachi, Kenichi
+
+
+
 
 
 -------------------------------------------------------
