@@ -1,17 +1,12 @@
-From: "Sourav K. Mandal" <smandal-DPNOqEs/LNQ@public.gmane.org>
-Subject: Re: Re: Compaq Presario 2800T
-Date: 06 Aug 2002 02:13:32 -0400
+From: =?ISO-8859-1?Q?Robert_W=F6rle?= <robert.woerle-y2s3ugBAdl9BDgjK7y7TUQ@public.gmane.org>
+Subject: Tablet PC + 2.4.18 + acpi 20020726 + swsup11 working !
+Date: Tue, 06 Aug 2002 09:30:50 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1028614416.4553.3.camel@localhost.localdomain>
-References: <200208010551.BAA23125@biohazard-cafe.mit.edu>
-	<20020803220614.21895.qmail@scrye.com>
-	<1028528792.7332.14.camel@anodyne.mandal>
-	<20020805150428.10039.qmail@scrye.com>
+Message-ID: <3D4F7B2A.2090602@symplon.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20020805150428.10039.qmail-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,29 +15,48 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: Kevin Fenzi <kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2002-08-05 at 11:04, Kevin Fenzi wrote: 
 
-> it stores and restores them ok, but I cant change them once linux is
-> up and running. LIke the buttons stop doing anything. ;( 
+Hi Folks
 
-Yeah, trying it out myself it seems like a DRI thing.  Try 
-turning off DRI in your XF86Config and see if it helps. You might have
-to reboot ... DRI doesn't work when coming back from suspend, and some
-things don't work once you run DRI.  For me, once I run DRI the
-backlight refuses to turn off on lid close -- reboot fixes this. 
+Im a smurf reader of this list and i ve been trying ACPI now for more 
+than 5 months .
+The device i want to have ACPI running is the worlds first Tablet PC 
+called  "Pacebook" .
+As i am pretty much the only linux enthusiastic at our company , im 
+"porting " linux to that Tablet .
 
-If that doesn't work, try switching to a text console.
+Until now ACPI was quite good working : I can read the battery state , 
+see if im plugged or not , get the temperatur of the TRANSMETA (!) and 
+all that minor stuff , BUT i had no chance to use S3 S4 ---until 
+yesterday when i tried the mentioned patches and now can S4 very good !!
+--YES it is working ! __ icantbelievethat _
 
-I have yet to apply Charl's patch, and so I alternate between DRI and
-no-DRI XF86Configs.  I don't know if the patch fixes the backlight thing
-... 
+So guys : I congratulate you ! Very very very good work !
+
+Things TODO now :
+try to get S3 also working ( to have this , ive to implement a function 
+to turn off the backlight )
+i ve the spec`s and I/O Port to do that  ,but im still expierencing 
+problems at starting to write this driver , since
+a device called pic2 is loaded at the needed I/O Port  ( 0xB1-0xB2) ...
+
+When i ve finished that driver ive to find a way , where the ACPI 
+Subsystem can call that backlight_off function.
+
+What is the supposed procedure to implement such "thirdparty" functions 
+into ACPI ?
+will there be a script to be called ( like at APM , where we had 
+apmd_proxy to shutdown critical things before suspend ) ?
 
 
-Sourav
+Anyhow folks ... im very proud of that community and keep up doing that 
+great work !
+
+Regards Rob
+ 
 
 
 
