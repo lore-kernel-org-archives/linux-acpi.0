@@ -1,9 +1,9 @@
 From: "Bernard Normier" <bernard-jCTGDdqZGLzlLTHTg0CpQwC/G2K4zDHf@public.gmane.org>
 Subject: Re: ACPI on Intel SE7501WV2
-Date: Sat, 9 Oct 2004 22:55:18 -0400
+Date: Sat, 9 Oct 2004 22:58:35 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <001301c4ae74$94034c60$6400a8c0@centrino>
-References: <028c01c4ae3e$938440e0$6400a8c0@centrino> <1097367827.6128.0.camel@localhost.localdomain>
+Message-ID: <001601c4ae75$0995dec0$6400a8c0@centrino>
+References: <16A54BF5D6E14E4D916CE26C9AD305754574D8@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	format=flowed;
@@ -19,26 +19,70 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> On Sad, 2004-10-09 at 21:28, Bernard Normier wrote:
->> - with USB enabled in the BIOS, dmesg shows:
+>>- with USB enabled in the BIOS, dmesg shows:
+>>
+>>hub 2-0:1.0: USB hub found
+>>hub 2-0:1.0: 2 ports detected
+>>irq 169: nobody cared! (screaming interrupt?)
+>>irq 169: Please try booting with acpi=off and report a bug
+>> [<021074d6>] __report_bad_irq+0x3a/0x77
+>> [<02107572>] note_interrupt+0x43/0x66
+>> [<021078c4>] do_IRQ+0x19d/0x225
+>>handlers:
+>>[<0225a679>] (usb_hcd_irq+0x0/0x4b)
+>>Disabling IRQ #169
+> What's the result if you disable 'CONFIG_PCI_MSI'?
+
+I did not try; I can live without USB.
+
 >
-> SE7xxx boxes are in general hopeless cases. Turn off USB legacy in the
-> BIOS and you might get a working box. You may also need acpi=off and/or
-> bios updates or some random combination thereof.
+>>PCI: PCI BIOS revision 2.10 entry at 0xfdb75, last bus=4
+>>PCI: Using configuration type 1
+>>mtrr: v2.0 (20020519)
+>>ACPI: Subsystem revision 20040326
+>>    ACPI-0562: *** Warning: Type override - [DEB_] had invalid type
+>>(Integer) for Scope operator, changed to (Scope)
+>>    ACPI-0562: *** Warning: Type override - [MLIB] had invalid type
+>>(Integer) for Scope operator, changed to (Scope)
+>>    ACPI-0562: *** Warning: Type override - [DATA] had invalid type
+> (String)
+>>for Scope operator, changed to (Scope)
+>>    ACPI-0562: *** Warning: Type override - [SIO_] had invalid type
+> (String)
+>>for Scope operator, changed to (Scope)
+>>    ACPI-0562: *** Warning: Type override - [LEDP] had invalid type
+> (String)
+>>for Scope operator, changed to (Scope)
+>>    ACPI-0562: *** Warning: Type override - [GPEN] had invalid type
+> (String)
+>>for Scope operator, changed to (Scope)
+>>    ACPI-0562: *** Warning: Type override - [GPST] had invalid type
+> (String)
+>>for Scope operator, changed to (Scope)
+>>    ACPI-0562: *** Warning: Type override - [WUES] had invalid type
+> (String)
+>>for Scope operator, changed to (Scope)
+>>    ACPI-0562: *** Warning: Type override - [WUSE] had invalid type
+> (String)
+>>for Scope operator, changed to (Scope)
+>>    ACPI-0562: *** Warning: Type override - [SBID] had invalid type
+> (String)
+>>for Scope operator, changed to (Scope)
+>>    ACPI-0562: *** Warning: Type override - [SWCE] had invalid type
+> (String)
+>>for Scope operator, changed to (Scope)
+>>ACPI: Interpreter enabled
+> The error message possibly isn't harmful. Please latest kernel.
 
-I tried to disable USB legacy support in the BIOS, but it did not make any 
-difference.
-USB support is not important for me, so I'd rather switch off USB and keep 
-ACPI for hyper-threading.
-
-Any suggestion for the other warnings?
+I hope these warnings are indeed harmless! I also get them with 2.6.9-rc3; 
+which kernel do you suggest?
 
 Thanks,
 Bernard
+
 
 
 
