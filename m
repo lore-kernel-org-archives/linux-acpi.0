@@ -1,13 +1,14 @@
-From: "Jan Greenwood" <jan.greenwoodfd-wfCWB0Ln847VItvQsEIGlw@public.gmane.org>
-Subject: Powerful weightloss now available for you.
-Date: Tue, 01 Jun 2004 21:49:00 +0300
+From: Vibol Hou <vibol-LA8/tbxb0N8@public.gmane.org>
+Subject: Re: Resume Problems
+Date: Tue, 01 Jun 2004 11:59:56 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <ac4001c44809$f4da256f$45e8f2d6@consolidatedmortgage.cc>
+Message-ID: <40BCD22C.5060403@khmer.cc>
+References: <1086094137.4682.2.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <1086094137.4682.2.camel-bi+AKbBUZKZeoWH0uzbU5w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,36 +17,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Wesley T Allen <wezlo-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Cc: acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello, I have a special_offer for you...
-WANT TO LOSE WEIGHT?
-The most powerful weightloss is now available
-without prescription. All natural Adipren720
-100% Money Back Guarantée!
-- Lose up to 19% Total Body Weight.
-- Up to 300% more Weight Loss while dieting.
-- Loss of 20-35% abdominal Fat.
-- Reduction of 40-70% overall Fat under skin.
-- Increase metabolic rate by 76.9% without Exercise.
-- Boost your Confidence level and Self Esteem.
-- Burns calorized fat.
-- Suppresses appetite for sugar.
-Get the facts about all-natural Adipren720 <http://www.3443diet.biz/>
-If you wish not to be contacted again please
-enter your email address here. <http://www.3443diet.biz/r.html>
+Try unloading your usb modules before suspend and reloading them after resume.  -Vibol
 
-
-
-
----- system information ----
-indicate complex setting server though end W3C disparate 
-mistake knowledge or behavior inherent presented used tags 
-exposed Different produce number culturally setting of section 
-clients limited reports tag format requests Existing mechanism 
-we report correlate could doesn't Since calendars parts 
-
+Wesley T Allen wrote:
+> I've got Kernel 2.6.5 installed and FINALLY suspend to ram works!  I've
+> got one problem when it wakes up, though, and I'm wondering if anyone
+> has encountered these as well...
+> 
+> When my system starts up again my usb devices aren't started up. 
+> Unplugging them and then plugging them in doesn't work either, it's like
+> the usb ports aren't being seen.  Anyone have a clue why this might be?
+> 
+> Wes
+> 
+> 
+> 
+> -------------------------------------------------------
+> This SF.Net email is sponsored by: Oracle 10g
+> Get certified on the hottest thing ever to hit the market... Oracle 10g. 
+> Take an Oracle 10g class now, and we'll give you the exam FREE.
+> http://ads.osdn.com/?ad_id=3149&alloc_id=8166&op=click
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
