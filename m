@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: S3/S4 doesn't work, no-one cares, it's a mess Re: ACPI S3 wake howto was: RE: [BKPATCH] ACPI for 2.6
-Date: Fri, 2 Apr 2004 22:34:05 +0200
+Subject: Re: ACPI S3 wake howto was: RE: [BKPATCH] ACPI for 2.6
+Date: Fri, 2 Apr 2004 22:27:29 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040402203404.GC195@elf.ucw.cz>
-References: <7105F2BD9451D7479B4B3A99A2B72FAC062C08C7@exchange1.ssd.fsi.com> <20040330233155.463A.COUNT0@localnet.com> <20040331105851.GA11223@pc-math-vis1>
+Message-ID: <20040402202729.GB195@elf.ucw.cz>
+References: <7105F2BD9451D7479B4B3A99A2B72FAC062C08C7@exchange1.ssd.fsi.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040331105851.GA11223-i54C7/sJn21wdIlnA33utQ@public.gmane.org>
+In-Reply-To: <7105F2BD9451D7479B4B3A99A2B72FAC062C08C7-Lp/cVzEoVyYIbgCsDWxlK60bRtRcJeJQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,26 +17,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Rockefeller, Harry" <harryr-qMhjF6E6u3VBDgjK7y7TUQ@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
+>    As a user, I'm stuck at first base.  With kernel 2.6.4
+>    S3 is supposedly supported.  Entering S3 appears to work.
+>    Exiting S3 (waking up?) the LCD screen comes back when a key is
+>    depressed, but *nothing* brings my machine back to life.
+>    The full few-seconds power-button reboot is all that works.
+> 
+>    I admit that there may be a simple one-line web-link answer
+>    pointing to some ACPI FAQ or How-to.  If that is the case
+>    just point me there and I'll read that.
 
-> What is usually referred to as S4 usually means software suspend unless
-> you have bios support which is very rare these days. Doing an echo 4 >
-> proc/acpi/sleep just calls one of three implementations in 2.6, don't
-> remember which one but IIRC its the very dead one (pmdisk).
+No html for lists, thanks.
 
-It calls swsusp, which is alive.
-
-I'd like pmdisk to be removed from kernel, but if I try to do it
-again, Patrick will kill me.
-
-Feel free to submit patch removing pmdisk from kernel. Patrick said
-he'll have something by the end of march....
+Try Documentation/power/tricks.txt.
 
 							Pavel
+
 -- 
 When do you have a heart between your knees?
 [Johanka's followup: and *two* hearts?]
