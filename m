@@ -1,11 +1,15 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: ACPI directories still exist with acpi off
-Date: Tue, 13 Jan 2004 23:22:56 +0100
+From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: Re: RFC: ACPI table overflow handling
+Date: Tue, 13 Jan 2004 16:01:40 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040113222254.GA553@elf.ucw.cz>
+Message-ID: <200401131601.40839.bjorn.helgaas@hp.com>
+References: <16381.27904.580087.442358@gargle.gargle.HOWL> <200401120924.06881.bjorn.helgaas@hp.com> <yq0r7y4dvqf.fsf@wildopensource.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <yq0r7y4dvqf.fsf-UC6nUKlm/0l5V+5IkYBVeNBPR1lH4CV8@public.gmane.org>
 Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,20 +19,15 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jes Sorensen <jes-UC6nUKlm/0l5V+5IkYBVeNBPR1lH4CV8@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, jbarnes-sJ/iWh9BUns@public.gmane.org, steiner-sJ/iWh9BUns@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Tuesday 13 January 2004 2:49 am, Jes Sorensen wrote:
+> How about this one then?
 
-This seems to be generic bug:
+I like it, for whatever that's worth ;-)
 
-Include acpi support into the kernel, but pass acpi=off on the command
-line. Somehow, acpi still manages to create its directories, but not
-in /proc/acpi but in /proc directly. Ouch.
-								Pavel
--- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
 
 
 -------------------------------------------------------
