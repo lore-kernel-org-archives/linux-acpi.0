@@ -1,14 +1,14 @@
-From: roychris <roychris-GANU6spQydw@public.gmane.org>
-Subject: Re: Fan control for my Dell SmartPC
-Date: Mon, 26 May 2003 17:49:25 +0200
+From: Nils Faerber <nils-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
+Subject: Re: compile problem
+Date: Mon, 26 May 2003 18:13:27 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ED23785.6020103@free.fr>
-References: <001201c32391$ecc1cda0$354425db@sayonara>
+Message-ID: <20030526181327.21984b10.nils@kernelconcepts.de>
+References: <3ED1E212.30108@ottaky.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
- boundary="------------000304040706040408020903"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <001201c32391$ecc1cda0$354425db-F8JvWDuGsZU@public.gmane.org>
+In-Reply-To: <3ED1E212.30108-XuTx12Z7TonQT0dZR+AlfA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,151 +17,68 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Adachi, Kenichi" <aileenja_jpn-xFOqZoH7zVZ4Eiagz67IpQ@public.gmane.org>
+To: sjb <ottaky-XuTx12Z7TonQT0dZR+AlfA@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000304040706040408020903
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+On Mon, 26 May 2003 09:44:50 +0000
+sjb <ottaky-XuTx12Z7TonQT0dZR+AlfA@public.gmane.org> wrote:
+> Apologies for this not being a strictly ACPI problem.
 
-I have a complement :
+It looks so, yes.
 
-"it seems like the fan stuff is on the SMBus which is at address 7A. The 
-speed can be read from register 11 and written to register 10."
-I don't know how to use this information.
+> I'm trying to compile an ACPI enabled kernel for my Vaio. I've tried 
+> numerous combinations of kernel sources and patches as per the
+> pointers from members of this list.
+> 
+> However, I always get this error during "make modules_install"
+> 
+> Not being a seasoned kernel builder, I really don't know what's wrong 
+> and I was wondering if anybody here can tell me what's up.
 
-Adachi, Kenichi wrote:
+The problem you are seein is that symbols of the built modules do not
+resolve to kernel symbols. This can have several reasons. One simple one
+is that those modules indeed reference something that isn't there
+(anymore).
+The second one is that your build symbol tables have become confused.
+This may happen when patching kernel and/or modifying the kernel
+configuration. This can be resolved by doing (inside the toplevel kernel
+directory):
+	mv .config ..
+	make mrproper
+	mv ../.config .
+	make oldconfig
+	make dep
+	make bzImage modules modules_install
 
->Hi, 
->
->  
->
->>There isn't any method to control the Fan in the dsdt ACPI 
->>table on my 
->>computer (DELL SmartPC/SmartStep).
->>Thanks to the ACPI Specs, I have implemented this code and 
->>there is no 
->>problem with the compilation. ACPI Linux driver indicates me that it 
->>finds a method for my two logical fans (one fan with 2 speeds). But I 
->>think that the adress (the namespace maybe EC0) is not good 
->>so I can't 
->>control it. How can I find the good region for my fan ?
->>    
->>
->
->Can you be more specific here:
->
->- What was the original status/problem? (There was nothing w.r.t. Fan
->control at all in your original DSDT, but your machine has been kept
->chilled by Fan, correct?)
->- What steps did you go through? (Trying to control Fan via ACPI by
->adding your own methods without knowledge as to how your Embedded
->Controller interacts with Fan controller etc.?)
->
->The entire DSDT, both original and modified, will be required for
->further investigation, but honestly speaking, there's little, if any,
->hope of success...
->
->Thanks,
->- Adachi, Kenichi 
->
->
->
->
->
->-------------------------------------------------------
->This SF.net email is sponsored by: ObjectStore.
->If flattening out C++ or Java code to make your application fit in a
->relational database is painful, don't do it! Check out ObjectStore.
->Now part of Progress Software. http://www.objectstore.net/sourceforge
->_______________________________________________
->Acpi-devel mailing list
->Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->https://lists.sourceforge.net/lists/listinfo/acpi-devel
->
->
->  
->
+This helped me several times ;)
 
+And last but not least the brute force method... unless you need those
+modules, simply remove them from /lib/modules/* :)
 
---------------000304040706040408020903
-Content-Type: text/html; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+> TIA
+> sjb
+CU
+  nils
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1">
-  <title></title>
-</head>
-<body>
-I have a complement :<br>
-<br>
-"it seems like the fan stuff is on the SMBus which is at address 7A.
-The speed can be read from register 11 and written to register 10."<br>
-I don't know how to use this information.<br>
-<br>
-Adachi, Kenichi wrote:<br>
-<blockquote type="cite"
- cite="mid001201c32391$ecc1cda0$354425db@sayonara">
-  <pre wrap="">Hi, 
+> cd /lib/modules/2.4.20; \
+> mkdir -p pcmcia; \
+> find kernel -path '*/pcmcia/*' -name '*.o' | xargs -i -r ln -sf ../{}
+> pcmcia if [ -r System.map ]; then /sbin/depmod -ae -F System.map 
+> 2.4.20; fi depmod: *** Unresolved symbols in 
+> /lib/modules/2.4.20/kernel/drivers/mtd/maps/sc520cdp.o
+> depmod:         mtd_concat_create_R606fc87b
+> depmod:         mtd_concat_destroy_R9c645004
+> depmod: *** Unresolved symbols in 
+> /lib/modules/2.4.20/kernel/drivers/net/wan/comx.o
+> depmod:         proc_get_inode
+> 
 
-  </pre>
-  <blockquote type="cite">
-    <pre wrap="">There isn't any method to control the Fan in the dsdt ACPI 
-table on my 
-computer (DELL SmartPC/SmartStep).
-Thanks to the ACPI Specs, I have implemented this code and 
-there is no 
-problem with the compilation. ACPI Linux driver indicates me that it 
-finds a method for my two logical fans (one fan with 2 speeds). But I 
-think that the adress (the namespace maybe EC0) is not good 
-so I can't 
-control it. How can I find the good region for my fan ?
-    </pre>
-  </blockquote>
-  <pre wrap=""><!---->
-Can you be more specific here:
-
-- What was the original status/problem? (There was nothing w.r.t. Fan
-control at all in your original DSDT, but your machine has been kept
-chilled by Fan, correct?)
-- What steps did you go through? (Trying to control Fan via ACPI by
-adding your own methods without knowledge as to how your Embedded
-Controller interacts with Fan controller etc.?)
-
-The entire DSDT, both original and modified, will be required for
-further investigation, but honestly speaking, there's little, if any,
-hope of success...
-
-Thanks,
-- Adachi, Kenichi 
-
-
-
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: ObjectStore.
-If flattening out C++ or Java code to make your application fit in a
-relational database is painful, don't do it! Check out ObjectStore.
-Now part of Progress Software. <a class="moz-txt-link-freetext" href="http://www.objectstore.net/sourceforge">http://www.objectstore.net/sourceforge</a>
-_______________________________________________
-Acpi-devel mailing list
-<a class="moz-txt-link-abbreviated" href="mailto:Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org">Acpi-devel@lists.sourceforge.net</a>
-<a class="moz-txt-link-freetext" href="https://lists.sourceforge.net/lists/listinfo/acpi-devel">https://lists.sourceforge.net/lists/listinfo/acpi-devel</a>
-
-
-  </pre>
-</blockquote>
-<br>
-</body>
-</html>
-
---------------000304040706040408020903--
-
+-- 
+kernel concepts          Tel: +49-271-771091-12
+Dreisbachstr. 24         Fax: +49-271-771091-19
+D-57250 Netphen          D1 : +49-170-2729106
+--
 
 
 -------------------------------------------------------
