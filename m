@@ -1,8 +1,8 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: RE: [BK PATCH] ACPI update
-Date: Thu, 24 Apr 2003 09:20:05 -0700
+Date: Thu, 24 Apr 2003 12:43:52 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A847E96E10@orsmsx401.jf.intel.com>
+Message-ID: <D3A3AA459175A44CB5326F26DA7A189C1C3C16@orsmsx405.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -16,55 +16,64 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Takayoshi Kochi <kochi-PTg2hmCz6mgYz5ZhgtY7qeqrae++aQT8@public.gmane.org>
+To: Takayoshi Kochi <kochi-PTg2hmCz6mgYz5ZhgtY7qeqrae++aQT8@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-OK thanks.
+This will be released in version 20030424 - today.
 
-Regards -- Andy
+Given that you reported this to me on 4/21/2003, I don't see how you
+thought it would appear in the 04/18/2003 release :-)
+
+Bob
+
 
 > -----Original Message-----
-> From: Takayoshi Kochi [mailto:kochi-PTg2hmCz6mgYz5ZhgtY7qeqrae++aQT8@public.gmane.org] 
+> From: Takayoshi Kochi [mailto:kochi-PTg2hmCz6mgYz5ZhgtY7qeqrae++aQT8@public.gmane.org]
 > Sent: Wednesday, April 23, 2003 7:00 PM
 > To: Grover, Andrew
 > Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 > Subject: Re: [ACPI] [BK PATCH] ACPI update
 > 
-> 
 > Hi Andy,
 > 
-> Though I already reported to Bob, it seems that the latest 
-> update doesn't contain the changes below. It fixes a problem 
-> on power down/entering sleep states for some platforms. The 
-> problem was caused by writing to wrong I/O ports.
+> Though I already reported to Bob, it seems that the latest
+> update doesn't contain the changes below.
+> It fixes a problem on power down/entering sleep states
+> for some platforms.
+> The problem was caused by writing to wrong I/O ports.
 > 
-> This patch is generated from 2.4.21pre6 + 030328, but should 
+> This patch is generated from 2.4.21pre6 + 030328, but should
 > apply to both 2.4 & 2.5.
 > 
-> --- linux-2.4.20/drivers/acpi/hardware/hwgpe.c.orig	Thu Apr 
-> 24 09:40:57 2003
-> +++ linux-2.4.20/drivers/acpi/hardware/hwgpe.c	Thu Apr 
-> 24 09:42:22 2003
+> --- linux-2.4.20/drivers/acpi/hardware/hwgpe.c.orig	Thu Apr 24
+09:40:57
+> 2003
+> +++ linux-2.4.20/drivers/acpi/hardware/hwgpe.c	Thu Apr 24
+09:42:22 2003
 > @@ -360,7 +360,7 @@
->  
+> 
 >  	for (i = 0; i < gpe_block->register_count; i++) {
 >  		status = acpi_hw_low_level_write (8, 0x00,
-> -				 
-> &gpe_block->register_info[i].enable_address, (u32) i);
-> +				 
-> &gpe_block->register_info[i].enable_address, (u32) 0);
+> -
+&gpe_block->register_info[i].enable_address,
+> (u32) i);
+> +
+&gpe_block->register_info[i].enable_address,
+> (u32) 0);
 >  		if (ACPI_FAILURE (status)) {
 >  			return (status);
 >  		}
 > @@ -401,7 +401,7 @@
->  
+> 
 >  	for (i = 0; i < gpe_block->register_count; i++) {
 >  		status = acpi_hw_low_level_write (8, 0xFF,
-> -				 
-> &gpe_block->register_info[i].status_address, (u32) i);
-> +				 
-> &gpe_block->register_info[i].status_address, (u32) 0);
+> -
+&gpe_block->register_info[i].status_address,
+> (u32) i);
+> +
+&gpe_block->register_info[i].status_address,
+> (u32) 0);
 >  		if (ACPI_FAILURE (status)) {
 >  			return (status);
 >  		}
@@ -74,6 +83,15 @@ Regards -- Andy
 > ---
 > Takayoshi Kochi <kochi-PTg2hmCz6mgYz5ZhgtY7qeqrae++aQT8@public.gmane.org>
 > 
+> 
+> -------------------------------------------------------
+> This sf.net email is sponsored by:ThinkGeek
+> Welcome to geek heaven.
+> http://thinkgeek.com/sf
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
