@@ -1,13 +1,12 @@
-From: John Belmonte <john-wanGne27zNesTnJN9+BGXg@public.gmane.org>
-Subject: Re: [PATCH] toshiba_acpi 0.18
-Date: Sun, 14 Mar 2004 01:02:58 -0500
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [BKPATCH] ACPI for 2.6
+Date: 14 Mar 2004 01:08:23 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4053F592.80001@neggie.net>
-References: <4053C4D5.8000703@neggie.net> <1079242701.2168.121.camel@dhcppc4>
+Message-ID: <1079244089.2174.137.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=_jvb.vm.bytemark.co.uk-17584-1079244181-0001-2"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1079242701.2168.121.camel-D2Zvc0uNKG8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,154 +15,141 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Julien Lerouge <julien.lerouge-GANU6spQydw@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This is a MIME-formatted message.  If you see this text it means that your
-E-mail software does not support MIME-formatted messages.
+Hi Linus, please do a 
 
---=_jvb.vm.bytemark.co.uk-17584-1079244181-0001-2
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+	bk pull bk://linux-acpi.bkbits.net/linux-acpi-release-2.6.5
 
-Len Brown wrote:
-> I think that the "__user" attribute is needed on the user pointer param
-> to copy_from_user() -- at least in 2.6.
+thanks,
+-Len
 
-Thanks Len, updated patch attached.
+ps. a plain patch is also available here:
+ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.5/acpi-20040311-2.6.5.diff.gz
 
--John
+This will update the following files:
+
+ Documentation/kernel-parameters.txt |    4 +
+ arch/i386/kernel/acpi/boot.c        |   24 ++----
+ arch/i386/kernel/bootflag.c         |    2 
+ drivers/acpi/dispatcher/dsmethod.c  |   85 ++++++++++++++++--------
+ drivers/acpi/events/evgpe.c         |    5 +
+ drivers/acpi/executer/excreate.c    |   20 +++--
+ drivers/acpi/executer/exmutex.c     |   28 ++++---
+ drivers/acpi/hardware/hwsleep.c     |    2 
+ drivers/acpi/namespace/nsaccess.c   |   30 ++++++--
+ drivers/acpi/namespace/nsalloc.c    |    7 +
+ drivers/acpi/namespace/nseval.c     |   15 +++-
+ drivers/acpi/osl.c                  |   36 ++++++++++
+ drivers/acpi/parser/psparse.c       |   44 +++++++++++-
+ drivers/acpi/parser/psscope.c       |    9 --
+ drivers/acpi/power.c                |   12 +++
+ drivers/acpi/sleep/poweroff.c       |    3 
+ drivers/acpi/tables.c               |    7 +
+ drivers/acpi/utilities/uteval.c     |   56 +++++++++++++++
+ drivers/acpi/utilities/utglobal.c   |   28 ++++---
+ include/acpi/acconfig.h             |    6 +
+ include/acpi/acglobal.h             |   11 ++-
+ include/acpi/acmacros.h             |    3 
+ include/acpi/acobject.h             |    7 +
+ include/acpi/acpixf.h               |    2 
+ include/acpi/actypes.h              |    5 -
+ include/acpi/acutils.h              |    6 +
+ include/acpi/amlcode.h              |   14 ++-
+ include/asm-i386/acpi.h             |   53 ++++++++------
+ include/asm-x86_64/acpi.h           |    4 -
+ include/asm-x86_64/system.h         |    7 -
+ 30 files changed, 385 insertions(+), 150 deletions(-)
+
+through these ChangeSets:
+
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/03/13 1.1608.1.43)
+   [ACPI] add boot parameters "acpi_osi=" and "acpi_serialize"
+     acpi_osi= will disable the _OSI method -- which by default
+   	tells the BIOS to behave as if Windows is the OS.
+     acpi_serialize is for debugging AE_ALREADY_EXISTS failures
+
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/03/13 1.1608.1.42)
+   [ACPI] ACPICA 20040311 from Bob Moore
+   
+   Fixed a problem where errors occurring during the parse phase of
+control
+   method execution did not abort cleanly.  For example, objects created
+   and installed in the namespace were not deleted.  This caused all
+   subsequent invocations of the method to return the AE_ALREADY_EXISTS
+   exception.
+   
+   Implemented a mechanism to force a control method to "Serialized"
+   execution if the method attempts to create namespace objects.
+   (The root of the AE_ALREADY_EXISTS problem.)
+   
+   Implemented support for the predefined _OSI "internal" control
+method.
+   Initial supported strings are "Linux", "Windows 2000", "Windows
+2001",
+   and "Windows 2001.1", and can be easily upgraded for new strings as
+   necessary.  This feature allows Linux to execute
+   the fully tested, "Windows" code path through the ASL code
+   
+   Global Lock Support:  Now allows multiple acquires and releases with
+any
+   internal thread.  Removed concept of "owning thread" for this special
+   mutex.
+   
+   Fixed two functions that were inappropriately declaring large objects
+on
+   the CPU stack: ps_parse_loop() and ns_evaluate_relative().
+   Reduces the stack usage during method execution considerably.
+   
+   Fixed a problem in the ACPI 2.0 FACS descriptor (actbl2.h) where the
+   S4Bios_f field was incorrectly defined as UINT32 instead of
+UINT32_BIT.
+   
+   Fixed a problem where acpi_ev_gpe_detect() would fault
+   if there were no GPEs defined on the machine.
+   
+   Implemented two runtime options:  One to force all control method
+   execution to "Serialized" to mimic Windows behavior, another to
+disable
+   _OSI support if it causes problems on a given machine.
+
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/03/13 1.1608.1.41)
+   [ACPI] SMP poweroff (David Shaohua Li)
+   http://bugzilla.kernel.org/show_bug.cgi?id=1141
+
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/03/10 1.1557.76.9)
+   [ACPI] fix printk and build warning from previous csets
+
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/03/10 1.1557.76.8)
+   Delete (void)func() casts considered cruft in Linux style.
+   
+   GCC's inability to warn when return values are ignored has
+conditioned
+   Linux programmers into thinking that this is actually normal.
+   
+   delete some #define's -- suggested by Matt Wilcox
+
+<akpm-3NddpPZAyC0@public.gmane.org> (04/03/06 1.1608.1.36)
+   [PATCH] gcc-3.5: acpi build fix
+   
+   Current gcc requires that both the declaration and the definition of
+   functions describe the same register conventions.
+
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/03/05 1.1557.76.7)
+   [ACPI] global lock macro fixes (Paul Menage, Luming Yu)
+     http://bugzilla.kernel.org/show_bug.cgi?id=1669
+
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/03/05 1.1557.76.6)
+   [ACPI] comments
+
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/03/03 1.1608.1.33)
+   asmlinkage acpi_enter_sleep_state_s4bios() - from Pavel Machek
 
 
--- 
-http:// if  ile.org/
 
---=_jvb.vm.bytemark.co.uk-17584-1079244181-0001-2
-Content-Type: text/x-patch; name="toshiba_acpi_0.18-linux_2.6.4.patch"; charset=iso-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="toshiba_acpi_0.18-linux_2.6.4.patch"
 
-diff -urN linux-2.6.4/drivers/acpi/toshiba_acpi.c new/drivers/acpi/toshiba_acpi.c
---- linux-2.6.4/drivers/acpi/toshiba_acpi.c	2004-03-13 21:09:26.000000000 -0500
-+++ new/drivers/acpi/toshiba_acpi.c	2004-03-14 00:59:45.000000000 -0500
-@@ -33,7 +33,7 @@
-  *
-  */
- 
--#define TOSHIBA_ACPI_VERSION	"0.17"
-+#define TOSHIBA_ACPI_VERSION	"0.18"
- #define PROC_INTERFACE_VERSION	1
- 
- #include <linux/kernel.h>
-@@ -41,6 +41,7 @@
- #include <linux/init.h>
- #include <linux/types.h>
- #include <linux/proc_fs.h>
-+#include <asm/uaccess.h>
- 
- #include <acpi/acpi_drivers.h>
- 
-@@ -105,24 +106,6 @@
- 	*word = (*word & ~mask) | (mask * value);
- }
- 
--/* an sscanf that takes explicit string length */
--static int
--snscanf(const char* str, int n, const char* format, ...)
--{
--	va_list args;
--	int result;
--	char* str2 = kmalloc(n + 1, GFP_KERNEL);
--	if (str2 == 0) return 0;
--	/* NOTE: don't even _think_ about replacing this with strlcpy */
--	strncpy(str2, str, n);
--	str2[n] = 0;
--	va_start(args, format);
--	result = vsscanf(str2, format, args);
--	va_end(args);
--	kfree(str2);
--	return result;
--}
--
- /* acpi interface wrappers
-  */
- 
-@@ -269,10 +252,26 @@
- }
- 
- static int
--dispatch_write(struct file* file, const char* buffer, unsigned long count,
--	ProcItem* item)
-+dispatch_write(struct file* file, __user const char* buffer,
-+	unsigned long count, ProcItem* item)
- {
--	return item->write_func(buffer, count);
-+	int result;
-+	char* tmp_buffer;
-+
-+	/* Arg buffer points to userspace memory, which can't be accessed
-+	 * directly.  Since we're making a copy, zero-terminate the
-+	 * destination so that sscanf can be used on it safely.
-+	 */
-+	tmp_buffer = kmalloc(count + 1, GFP_KERNEL);
-+	if (copy_from_user(tmp_buffer, buffer, count)) {
-+		result = -EFAULT;
-+	}
-+	else {
-+		tmp_buffer[count] = 0;
-+		result = item->write_func(tmp_buffer, count);
-+	}
-+	kfree(tmp_buffer);
-+	return result;
- }
- 
- static char*
-@@ -300,7 +299,7 @@
- 	int value;
- 	u32 hci_result;
- 
--	if (snscanf(buffer, count, " brightness : %i", &value) == 1 &&
-+	if (sscanf(buffer, " brightness : %i", &value) == 1 &&
- 			value >= 0 && value < HCI_LCD_BRIGHTNESS_LEVELS) {
- 		value = value << HCI_LCD_BRIGHTNESS_SHIFT;
- 		hci_write1(HCI_LCD_BRIGHTNESS, value, &hci_result);
-@@ -350,11 +349,11 @@
- 	 *  NOTE: to keep scanning simple, invalid fields are ignored
- 	 */
- 	while (remain) {
--		if (snscanf(buffer, remain, " lcd_out : %i", &value) == 1)
-+		if (sscanf(buffer, " lcd_out : %i", &value) == 1)
- 			lcd_out = value & 1;
--		else if (snscanf(buffer, remain, " crt_out : %i", &value) == 1)
-+		else if (sscanf(buffer, " crt_out : %i", &value) == 1)
- 			crt_out = value & 1;
--		else if (snscanf(buffer, remain, " tv_out : %i", &value) == 1)
-+		else if (sscanf(buffer, " tv_out : %i", &value) == 1)
- 			tv_out = value & 1;
- 		/* advance to one character past the next ; */
- 		do {
-@@ -407,7 +406,7 @@
- 	int value;
- 	u32 hci_result;
- 
--	if (snscanf(buffer, count, " force_on : %i", &value) == 1 &&
-+	if (sscanf(buffer, " force_on : %i", &value) == 1 &&
- 			value >= 0 && value <= 1) {
- 		hci_write1(HCI_FAN, value, &hci_result);
- 		if (hci_result != HCI_SUCCESS)
-@@ -458,7 +457,7 @@
- {
- 	int value;
- 
--	if (snscanf(buffer, count, " hotkey_ready : %i", &value) == 1 &&
-+	if (sscanf(buffer, " hotkey_ready : %i", &value) == 1 &&
- 			value == 0) {
- 		key_event_valid = 0;
- 	} else {
-
---=_jvb.vm.bytemark.co.uk-17584-1079244181-0001-2--
 
 
 -------------------------------------------------------
