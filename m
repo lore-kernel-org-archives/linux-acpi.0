@@ -1,14 +1,16 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: fix ACPI poweroff in 2.4.25-rc2
-Date: Wed, 3 Mar 2004 11:17:25 -0700
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Re: ACPI breakage (was: 2.6.x: local APIC results in
+	hang at boot)
+Date: 03 Mar 2004 14:05:28 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200403031117.25937.bjorn.helgaas@hp.com>
+Message-ID: <1078340727.12999.4.camel@dhcppc4>
+References: <200402031047.i13Algrs019289@harpo.it.uu.se>
+	 <200403012202.16728.mcornils@usta.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <200403012202.16728.mcornils-mcycREo4Un4@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,34 +19,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>
-Cc: willy-tRhHnHjXm5DYtjvyW6yDsg@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Malte Cornils <mcornils-mcycREo4Un4@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-The recent 2.4 patch breaks the build for ia64 because we don't
-set CONFIG_ACPI_SLEEP, and acpi_system_save_state() is only
-defined under #ifdef CONFIG_ACPI_SLEEP.  Can you add the following
-patch to deal with this?
+> Linux version 2.6.2-rc3
 
-(Here's the original patch:
-    http://linux.bkbits.net:8080/linux-2.4/cset-+MK1MFfKU9qYzr5aE/SGFA@public.gmane.org)
+Malte,
+perhaps you can upgrade your kernel and let us know how it goes -- there
+have been some apic related fixes since then.
 
-Thanks,
-  Bjorn
+thanks,
+-Len
 
-===== drivers/acpi/system.c 1.18 vs edited =====
---- 1.18/drivers/acpi/system.c	Tue Mar  2 14:50:40 2004
-+++ edited/drivers/acpi/system.c	Wed Mar  3 10:43:11 2004
-@@ -95,7 +95,9 @@
- {
- 	if (unlikely(in_interrupt())) 
- 		BUG();
-+#ifdef CONFIG_ACPI_SLEEP
- 	acpi_system_save_state(ACPI_STATE_S5);
-+#endif
- 	acpi_enter_sleep_state_prep(ACPI_STATE_S5);
- 	ACPI_DISABLE_IRQS();
- 	acpi_enter_sleep_state(ACPI_STATE_S5);
+On Mon, 2004-03-01 at 16:02, Malte Cornils wrote:
+
+> > >ACPI: Subsystem revision 20040116
+> > >ACPI: IRQ9 SCI: Edge set to Level Trigger.
+> > >
+> > >and then nothing happens.
+
 
 
 
