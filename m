@@ -1,13 +1,14 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Reboot on shutdown with USB 2.0
-Date: Fri, 28 Mar 2003 14:45:08 -0800
+From: Stian Jordet <liste-NI9zH3lwcMKHXe+LvDLADg@public.gmane.org>
+Subject: Re: Really weird usb problem with acpi.
+Date: 29 Mar 2003 00:08:19 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A84725A23B@orsmsx401.jf.intel.com>
+Message-ID: <1048892899.2286.0.camel@chevrolet.hybel>
+References: <1048877988.32560.26.camel@chevrolet.hybel>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="ISO-8859-1"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <1048877988.32560.26.camel-rd0e0RNjLLRX8BKYUJ5quQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,37 +17,50 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Michael Madore <mmadore-JChM1cqIHx8AvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Michael Madore [mailto:mmadore-JChM1cqIHx8AvxtiuMwx3w@public.gmane.org] 
-
-> I'm having a strange problem regarding ACPI and USB 2.0 devices 
-> (External CD-Rom, Jaz drive, etc).  Using 2.4.21-pre5 with the latest 
-> patch if I issue:
+fre, 2003-03-28 kl. 19:59 skrev Stian Jordet:
+> Hi,
 > 
-> shutdown -h now
+> I have tried several kernel version, and it is the same with all of
+> them. This is with 2.5.65. The same applies for all recent 2.4.x
+> kernels.
 > 
-> The machine shuts off, but half a second later the power 
-> comes back on. 
->  If I unload the echi driver module, the machine shuts off normally.
+> I have the following usb hardware:
 > 
-> Any thoughts on what would cause that kind of behavior?
+> HP DeskJet 990Cxi - printer
+> Epson Perfection 1260 - scanner
+> 3com 3CREB96 - Bluetooth adapter
+> Sony Ericsson DCU-10 - serial adapter
+> Logitech Cordless desktop - Keyboard/mouse
+> 
+> With acpi enabled, everything works perfect, EXCEPT the keyboard/mouse.
+> I just get the infamous "device not accepting address" message.
+> 
+> But if I boot the computer with ps/2 keyboard and mouse. Pulls out the
+> ps/2 keyboard and mouse, and plugs in the usb-cable, the
+> usb-keyboard/mouse works. But if I then restart the computer with the
+> usb keyboard/mouse still attached, I'm back to "device not accepting
+> adress".
+> 
+> If I compile acpi with "CPU-enumeration only" there is no problem at
+> all. Neither if ACPI is disabled.
+> 
+> This is an ASUS CUV266-DLS Dual P3 motherboard.
+> 
+> Hope someone cares and/or knows what to do. I would like to have full
+> ACPI-support...
 
-Is this an SMP system? Just curious.
+Bah, the worst thing is to get no answer. It's better if someone tells
+you they don't know, than only silence.
 
-What we should be doing (but aren't) is telling each device's driver on
-the system to deactivate its device before we turn off the system power.
-This gives the driver the chance to disable that device's interrupt
-generation. We haven't gotten that far in the driver model work, so what
-we are doing is disabling interrupts and then powering down. This mostly
-works, but isn't really how we want things to work, and is pretty much
-doomed to fail on SMP systems.
+But do you know if it's better to ask on the usb mailling-list? Or
+kernel?
 
-I don't know why the ehci device would specifically be the one to cause
-problems...
+Best regards,
+Stian
 
-Regards -- Andy
 
 
 -------------------------------------------------------
