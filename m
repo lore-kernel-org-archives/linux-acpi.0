@@ -1,14 +1,12 @@
-From: "Randy.Dunlap" <rddunlap-3NddpPZAyC0@public.gmane.org>
-Subject: Re: a question and pmtest
-Date: Mon, 9 Jun 2003 11:15:29 -0700
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: ACPI sleep: check error values and disable it on SMP
+Date: Sun, 8 Jun 2003 22:38:23 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030609111529.0a26dc32.rddunlap@osdl.org>
-References: <3EE4C8F5.7070302@kuiki.net>
+Message-ID: <20030608203823.GA9415@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3EE4C8F5.7070302-rIxVFxJalAJeoWH0uzbU5w@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,56 +15,49 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jonathan Steinert <hachi-rIxVFxJalAJeoWH0uzbU5w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Rusty trivial patch monkey Russell <trivial-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 09 Jun 2003 12:50:45 -0500 Jonathan Steinert <hachi-rIxVFxJalAJeoWH0uzbU5w@public.gmane.org> wrote:
+Hi!
 
-| My main problem is that my dell inspiron 8200 w/ Nvidia GF4 go will not 
-| turn the LCD back on after it is turned off (either by LID event, or by 
-| a sleep state). I asked about this on the support list and they tried to 
-| blame it on XFree86, but I'm not running X (yet). So the first question 
-| is, how can would one debug this without pmtest or how can I fix pmtest?
-| 
-| I saw a post earlier on the list saying that pmtest in the pmtools 
-| package is orphaned right now, and that it won't compile. However it 
-| seems to compile just fine with gcc-3.0 and 3.2, does this indicate a 
-| compiler bug? I've recompiled my entire kernel with both 3.0 and 3.2 
-| with no sideffects, but I need pmtest to try to fix the aformentioned 
-| problem.
-| 
-| Sadly, even though it compiles... when I try to insmod it I get the 
-| following message:
-| 
-| Error inserting 'pmtest.o': -1 Invalid module format
+Wakeup is hard to do on SMP, and freezer_processes is just not ready
+to work on SMP machine. As I have no SMP (hint hint ;-), it is better
+to disable it.
 
-You are using the 2.5 module tools (utils), right?
-How about trying 'insmod pmtest.ko' ?
-or is it not even building a (correct) 2.5 module?
+ACPI should really really check if freezing processes worked, and
+handle failure. Please apply,
+								Pavel
 
-I don't know the status of pmtest.  Anyone else?
+--- linux-cvs.clean/drivers/acpi/sleep/main.c	2003-02-28 10:23:47.000000000 -0800
++++ linux-cvs/drivers/acpi/sleep/main.c	2003-06-08 14:39:03.000000000 -0700
+@@ -214,6 +214,11 @@
+ {
+ 	acpi_status status;
+ 
++#ifdef CONFIG_SMP
++	/* Suspend is hard to get right on SMP. */
++	return AE_ERROR;
++#endif
++
+ 	/* get out if state is invalid */
+ 	if (state < ACPI_STATE_S1 || state > ACPI_STATE_S5)
+ 		return AE_ERROR;
+@@ -226,7 +231,10 @@
+ 	 * TBD: S1 can be done without device_suspend.  Make a CONFIG_XX
+ 	 * to handle however when S1 failed without device_suspend.
+ 	 */
+-	freeze_processes();		/* device_suspend needs processes to be stopped */
++	if (freeze_processes()) {
++		thaw_processes();
++		return AE_ERROR;		/* device_suspend needs processes to be stopped */
++	}
+ 
+ 	/* do we have a wakeup address for S2 and S3? */
+ 	/* Here, we support only S4BIOS, those we set the wakeup address */
 
-| and this message shows up in my syslog:
-| 
-| No module found in object
-| 
-| I've added the MODULE_AUTHOR/DESCRIPTION/LICENSE functions to the file 
-| before compilation, but am unknowing as to what else is missing. Does 
-| anyone have any time to shed any light on this problem? I've never done 
-| any kernel programming before, but am willing to learn if necessary.
-| 
-| Thanks much for your time.
-| 
-| --hachi
-| 
-| Kernel 2.5.69 and 2.5.70, both with patched DSDT. All ACPI components 
-| built-in to the kernel. Currently running 2.5.70 compiled under gcc-3.2, 
-| no framebuffer, no x, acpid 1.0.2, email me for more if needed.
-
-
---
-~Randy
+-- 
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
 
 
 -------------------------------------------------------
