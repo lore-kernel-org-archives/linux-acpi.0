@@ -1,15 +1,15 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sbasto-n97bsLhj/YhQPh2TJV30h1aTQe2KTcn/@public.gmane.org>
-Subject: Re: ACPI + IO-APIC power off by button problems
-Date: 06 Mar 2003 11:12:05 +0000
+From: Sebastian Henschel <shensche-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
+Subject: Re: ACPI Suspend support
+Date: Thu, 6 Mar 2003 12:31:53 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1046949157.1869.6.camel@darkstar.portugal>
-References: <C50AB9511EE59B49B2A503CB7AE1ABD10440E41B@cceexc19.americas.cpqcorp.net>
-	<3E6286C3.1050504@tin.it>  <20030303105554.GA12170@clara.net>
-	<1046904893.1505.23.camel@darkstar.portugal>
+Message-ID: <20030306113153.GA11760@enigma.daemon.sh>
+References: <20030306120556.17cd0ef1.g.zwartjes@student.tue.nl>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-I5KGcjFa+2El6CXpsl91"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="qMm9M+Fa2AknHoGS"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1046904893.1505.23.camel-4/PLUo9XfK/yXfm4dIG/yWZHpeb/A1Y/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20030306120556.17cd0ef1.g.zwartjes-oe7qfRrRQfdlL9U78CI+FQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,46 +18,62 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: Faye Pearson <faye-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org>, AnonimoVeneziano <voloterreno-nc/lrvXPQ4s@public.gmane.org>, "Cagle, John          (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>
+To: Gertjan <g.zwartjes-oe7qfRrRQfdlL9U78CI+FQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---=-I5KGcjFa+2El6CXpsl91
-Content-Type: text/plain; charset=ISO-8859-1
+--qMm9M+Fa2AknHoGS
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-and the patch that I made.
+heyho...
+
+Received at 2003-03-06 / 12:19 by Gertjan:
+>=20
+> I was wondering if suspend support for ACPI is already implemented. Which
+> kernel must I use if I want my laptop to support suspending. My laptop is
+> an ASUS L3400D with a SiS chip set in it. It has no support for APM so I
+> really would like to have support for suspend-to-RAM. Can somebody tell me
+> what versions to use, or if it is still unsupported.
+
+take one of the recent 2.5.x kernels if you really need it. but i cannot
+say if it will work for your laptop. :)
+
+with kernel 2.4.x you maybe can have standby (S1) with the acpi-patch
+and suspend-to-disk (S4) with the swsusp-patch
+(http://fchabaud.free.fr/English/default.php3?COUNT=3D3&FILE0=3DTricks&FILE=
+1=3DLaptop&FILE2=3DSwsusp). but no suspend-to-ram (S3) as far as i know.
+
+> Please correct me if I am asking this question in the wrong mailing-list.
+> The reason I am posting it here is that I am inquiring the stage of
+> development...
+
+that is okay, acpi4linux is still under heavy development, so the border
+between devel and user is very thin (though i would have posted it in
+acpi-support).
+
+cheers,
+ sebastian
 --=20
-S=E9rgioMB
-email: sbasto-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
+::: sebastian henschel
+::: kodeaffe
+::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
 
-Who gives me one shell, give me all.
+--qMm9M+Fa2AknHoGS
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.0 (GNU/Linux)
 
---=-I5KGcjFa+2El6CXpsl91
-Content-Disposition: attachment; filename=acpi_pressario7xx.diff
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; name=acpi_pressario7xx.diff; charset=ISO-8859-1
+iD8DBQE+ZzGpreHfL3pi+bQRAoBeAJsHJQl8JYlKS4V7yPiWdFEgWkJqsgCdG8TB
+Ip/OEsAs4nmJ2nRcb0BaUMU=
+=/tbx
+-----END PGP SIGNATURE-----
 
---- arch/i386/kernel/pci-pc.c.orig	Sun Nov 17 23:40:17 2002
-+++ arch/i386/kernel/pci-pc.c	Sun Nov 17 23:40:50 2002
-@@ -1437,9 +1437,9 @@
- #endif
- 	if (!pci_using_acpi_prt) {
- 		pci_root_bus =3D pcibios_scan_root(0);
--		pcibios_irq_init();
--		pcibios_fixup_peer_bridges();
--		pcibios_fixup_irqs();
-+/* 		pcibios_irq_init(); */
-+/* 		pcibios_fixup_peer_bridges(); */
-+/* 		pcibios_fixup_irqs(); */
- 	}
- 	if (clustered_apic_mode && (numnodes > 1)) {
- 		for (quad =3D 1; quad < numnodes; ++quad) {
-
---=-I5KGcjFa+2El6CXpsl91--
-
+--qMm9M+Fa2AknHoGS--
 
 
 -------------------------------------------------------
