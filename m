@@ -1,12 +1,12 @@
-From: Eric Valette <eric.valette-GANU6spQydw@public.gmane.org>
-Subject: No ACPI button after sucessfull S3 resume on L3800C
-Date: Wed, 17 Mar 2004 14:45:45 +0100
+From: "Guillermo Bright" <doloreshomer-5yyXoIbLzqqsTnJN9+BGXg@public.gmane.org>
+Subject: Tech-Ticker - 50 Day Parabolic Time/Price STRONGEST, Wed, 17 Mar 2004 11:47:42 -0500
+Date: Wed, 17 Mar 2004 11:47:42 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40585689.80902@free.fr>
-Reply-To: eric.valette-GANU6spQydw@public.gmane.org
+Message-ID: <EPAWDUKEFZLQLPISDIFN@yahoo.com>
+Reply-To: "Guillermo Bright" <doloreshomer-5yyXoIbLzqqsTnJN9+BGXg@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/alternative;
+	boundary="--71494208177126425948"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,39 +16,40 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI Support <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: dynapi-chat-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, flinux-usb-users-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I would like to clarify the status of this problem as :
+----71494208177126425948
+Content-Type: text/plain;
+Content-Transfer-Encoding: 7Bit
 
-	1) There are some patches that have still not been integrated (e.g 
-http://bugme.osdl.org/attachment.cgi?id=1208&action=view, 
-http://bugme.osdl.org/attachment.cgi?id=2325&action=view) that fixe 
-things for some people not for others,
-	- It does not work on my hardware with my config but work for other on 
-the same hardware (with probably a different config which should be an 
-indication for the reason or conflicting patches). I suspect the 
-comination of acpi-sleep=s3_bios and APIC could be the culprit...
+Wed, 17 Mar 2004 11:47:42 -0500
 
-Anyway, to anyone interested in clearing the situsation the info is at 
-<http://bugme.osdl.org/show_bug.cgi?id=2321>
+Price adjustment, Tech-Ticker Alert for OSSI, OSF Healthcare Services Inc.
 
-Feel free to ask for applying other patches, suggestion to trace the 
-problem, ...
+INDICATORS
 
-And remember I said *sucessfull* resume from X :-)
+7-day Average Directional Indicator - STRONGEST
 
--- 
-    __
-   /  `                   	Eric Valette
-  /--   __  o _.          	6 rue Paul Le Flem
-(___, / (_(_(__         	35740 Pace
-
-Tel: +33 (0)2 99 85 26 76	Fax: +33 (0)2 99 85 26 76
-E-mail: eric.valette-GANU6spQydw@public.gmane.org
+50 Day Parabolic Time/Price - STRONGEST
 
 
+Get Quote: http://quote.money.cnn.com/quote/quote?symbols=ossi
 
+
+Tech-Ticker (TT) is not a registered financial advisory.  The information presented by TT is not for purchasing or selling securities.  TT compiles then distributes opinions, comments and information based on other public sources.  Penny stocks are considered to be highly speculative and may be unsuitable for all but very aggressive investors.  TT does not hold nor does it plan to hold a position in this stock.  This Profile was a paid advertisement by a third party not affiliated with the profiled company.  TT was compensated three thousand dollars to publish and distribute this report.  Paid advertisements for a third party do not necessarily reflect the views of TT.  Target prices may fluctuate depending on market environments. Please always consult a registered financial advisor before making any decisions.  This report is for entertainment and advertising purposes only and should no
+ t be used as investment advice.  TT, Apartado 0832-0588, Calle 53 Marbella Panama City, Panama
+
+ridden
+
+depute emperor contrive muon tombstone curriculum clothesman encore subsume caucasus birthright gourmet hexachloride inactivate crt terminable sunburn vow 
+
+ceil crate housework diagonal boyfriend certitude alive catnip anodic petrifaction foote fairy clash bridal quota spencer yeomanry cayuga ado 
+
+No thanks, queightcer-cl+VPiYnx/3PKWblFCUSJw@public.gmane.org
+
+----71494208177126425948--
 
 
 -------------------------------------------------------
