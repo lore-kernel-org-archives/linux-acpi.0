@@ -1,16 +1,16 @@
-From: Marc Giger <gigerstyle-OI3hZJvNYWs@public.gmane.org>
-Subject: Re: [PATCH] S4Bios support for 2.4.20 + acpi-20021205
-Date: Fri, 13 Dec 2002 17:54:48 +0100
+From: Carlos Morgado <chbm-tNiY1ywYjSU@public.gmane.org>
+Subject: Re: [PATCH] Add CONFIG_ACPI_RELAXED_AML option
+Date: Fri, 13 Dec 2002 17:18:15 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021213175448.2adc60c3.gigerstyle@gmx.ch>
-References: <20021213155309.GG4327@poup.poupinou.org>
-	<20021213171431.045233f0.nils@kernelconcepts.de>
-	<20021213163615.GI4327@poup.poupinou.org>
+Message-ID: <20021213171815.GS5382@whisky.intra.cprm.net>
+References: <B9ECACBD6885D5119ADC00508B68C1EA0D19B9AB@orsmsx107.jf.intel.com>
+Reply-To: chbm-tNiY1ywYjSU@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; format=flowed; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20021213163615.GI4327-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <B9ECACBD6885D5119ADC00508B68C1EA0D19B9AB-LkGsggTGxVmSsB6bSF6DdVDQ4js95KgL@public.gmane.org>; from robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org on Fri, Dec 13, 2002 at 16:22:43 +0000
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,55 +19,26 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: nils-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
 
-On Fri, 13 Dec 2002 17:36:15 +0100
-Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> wrote:
+On 2002.12.13 16:22:43 +0000 "Moore, Robert" wrote:
 
-> On Fri, Dec 13, 2002 at 05:14:31PM +0100, Nils Faerber wrote:
-> > On Fri, 13 Dec 2002 16:53:09 +0100
-> > Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> wrote:
-> > > Patch for 2.4.20 and acpi-20021205 for adding s4bios feature.
-> > 
-> > Hey, that sounds great!
-> > Just a little question: How do I use it :)
-> > 
-> > Don't think I am stupid...
-> > I know that a echo 1 > /proc/acpi/sleep should do the trick, i.e.
-> > suspend to disk. But how do I configure that suspend partition? Or where
 > 
-> Well, I don't know.  Perhaps lphdisk (I don't remember the URI) could
-> help.  Some googling permit to get it.  Or (who knows?) even a /dev/hda1
-> as a vfat partition can help?
+> What is really being proposed here is for Linux ACPI to be bug-for-bug
+> compatible with Microsoft.  This is impossible to do deterministically
+> because the MS interpreter is closed source.  The only standard that we have
+> that we can code to is the ACPI specification, and this has to be the last
+> word on the matter.
 > 
-> > does it suspend? I know for Phoenix BIOSes there is a tool on the net to
-> > create that partition. I have a Asus L3800C notebook which has AFAIK an
-> > AWARD BIOS. And AFAIK there is no tool available from ASUS or AWARD to
-> > create such a partition.
-> 
-> In a really perfect world:
-> echo 1 > /proc/acpi/sleep	# for standby
-> echo 2 > /proc/acpi/sleep	# for suspend to ram
-> echo 3 > /proc/acpi/sleep	# for suspend to ram, but with more power conservative
-> echo 4 > /proc/acpi/sleep	# for suspend to disk
-> echo 5 > /proc/acpi/sleep	# for shutdown unfriendly the system
-> 
-> and perhaps
-> echo 4b > /proc/acpi/sleep	# for suspend to disk via s4bios
-> 
-> Actually, since there is no S4 support in 2.4, 4 and 4b is the same here.
 
-Just a question:
-I thought S2 and S3 are not supported in 2.4 ? S4 over swsuspend in 2.4 ? or not?
-I was never able to suspend a machine with S2 or S3...
-
-greets
-
-Marc
+not to mention windows tends to ignore builtin dsdts afaik and use the ones
+distributed in windows drivers. 
+-- 
+Carlos Morgado - chbm(at)chbm(dot)nu - http://chbm.nu/ -- gpgkey: 0x1FC57F0A
+http://wwwkeys.pgp.net/ FP:0A27 35D3 C448 3641 0573 6876 2A37 4BB2 1FC5 7F0A
+Software is like sex; it's better when it's free. - Linus Torvalds
 
 
 -------------------------------------------------------
