@@ -1,10 +1,11 @@
-From: "Scott T. Smith" <scott-j3vAvQ9dNB9ByuSxxbvQtw@public.gmane.org>
-Subject: s3 crashes Dell X200 on 2.6.0-test9/ACPI 20031002
-Date: Sun, 02 Nov 2003 14:34:37 -0800
+From: Erico M Mendonca <erico-cz9lu//xMc+vYRxJAoKWRg@public.gmane.org>
+Subject: Toshiba Satellite 1905S303 DSDT table
+Date: Sun, 02 Nov 2003 21:14:48 -0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1067812477.4087.10.camel@localhost>
+Message-ID: <3FA58FE8.4000409@techisa.srv.br>
+Reply-To: erico-cz9lu//xMc+vYRxJAoKWRg@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,69 +19,32 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I'm trying to use S3 on my Dell X200.  I have tried both
+I'm currently trying to debug the DSDT table of this aforementioned 
+machine, and managed to clear all the errors, except for this one:
+=================
+Intel ACPI Component Architecture
+ASL Optimizing Compiler / AML Disassembler version 20030918 [Sep 18 2003]
+Copyright (C) 2000 - 2003 Intel Corporation
+Supports ACPI Specification Revision 2.0b
 
-echo 3 > /proc/acpi/sleep
-and
-echo -n mem > /sys/power/state
+s303.asl   468:                 If(\_OSI) {
+Error    1028 -      Too few arguments ^  (\_OSI requires 1)
 
-It shuts down appropriately (I think), but refuses to come back. 
-Pressing the power button does nothing.  Holding the power button down
-does nothing.  In fact, the only way I can use my computer again is to
-unplug the power and battery, wait 5+ minutes, and then plug it back in.
+s303.asl   469:                     "Windows 2001"
+Error    1037 -                                  ^ parse error, 
+unexpected PARSEOP_STRING_LITERAL
 
-If I do this with the battery plugged in, usually the battery charging
-light comes on and stays on.
+ASL Input:  s303.asl - 2871 lines, 112889 bytes, 2084 keywords
+Compilation complete. 2 Errors, 0 Warnings, 0 Remarks, 538 Optimizations
+==============
 
-If I do this in text mode, I can see it print 3 lines and then vanish. 
-The first line looks like it has a bunch of '+' and/or '-'; I have no
-idea what the other two lines look like.
+I searched around the web and found only one message stating that 
+acpidump didn't support the _OSI method yet (late 2002). Did this ever 
+got solved?
 
-Something tells me this is a bug in the DSDT, but I honestly have no
-idea.  And debugging is obviously quite difficult.  Any idea what I'm
-doing wrong, or what I should look for?
+-- Erico Mendonca
+Techisa do Brasil
 
-My configuration is:
-
-Dell X200 (Pentium M3), with the A09 bios (latest on Dell's website; had
-the same effect with the older BIOS I was running before)
-
-2.6.0-test9 kernel with Andrew Morton patches (as delivered by Gentoo;
-includes ACPI 20031002)
-
-ACPI patch for custom DSDT (tried with and without the custom DSDT, same
-effect)
-
-/proc/acpi/sleep: S0 S3 S4 S5 
-
-egrep "ACPI|APIC|MCE" /etc/kernels/config-2.6.0-test9-mm1 
-CONFIG_X86_GOOD_APIC=y
-# CONFIG_X86_UP_APIC is not set
-# CONFIG_X86_MCE is not set
-# Power management options (ACPI, APM)
-# ACPI (Advanced Configuration and Power Interface) Support
-CONFIG_ACPI=y
-CONFIG_ACPI_BOOT=y
-CONFIG_ACPI_INTERPRETER=y
-CONFIG_ACPI_SLEEP=y
-CONFIG_ACPI_SLEEP_PROC_FS=y
-CONFIG_ACPI_AC=y
-CONFIG_ACPI_BATTERY=y
-CONFIG_ACPI_BUTTON=y
-CONFIG_ACPI_FAN=y
-CONFIG_ACPI_PROCESSOR=y
-CONFIG_ACPI_THERMAL=y
-# CONFIG_ACPI_ASUS is not set
-# CONFIG_ACPI_TOSHIBA is not set
-# CONFIG_ACPI_DEBUG is not set
-CONFIG_ACPI_BUS=y
-CONFIG_ACPI_EC=y
-CONFIG_ACPI_POWER=y
-CONFIG_ACPI_PCI=y
-CONFIG_ACPI_SYSTEM=y
-# CONFIG_ACPI_RELAXED_AML is not set
-
-ACPI is not compiled as a module (duh)
 
 
 -------------------------------------------------------
