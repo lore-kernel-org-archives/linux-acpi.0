@@ -1,9 +1,14 @@
-From: Antivirus-u2m9FSltV8tfJ/NunPodnw@public.gmane.org
-Subject: [blockmail] E-mail Recusado
-Date: Mon, 26 Apr 2004 19:46:22 -0300 (BRT)
+From: Thorsten Zachmann <t.zachmann-c61pB8mzqkY@public.gmane.org>
+Subject: Fwd: Toshiba 5005-S504 test wanted
+Date: Tue, 27 Apr 2004 08:23:29 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040426224622.8E1155D4088@webmail.unime.com.br>
+Message-ID: <200404270823.29178.t.zachmann@zagge.de>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -12,32 +17,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: tlinux-users-EuMawwSHMiuE1GOc2YXgQkv2NXO6HgA6@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-O e-mail abaixo indicado foi bloqueado por este servidor, pois contém 
-um anexo executável. Arquivos executáveis são potencialmente perigosos
-por constituir meio de propagação de vírus e worms de e-mail.
+Hello all,
 
+the following mail was posted on the ACPI developmen list 
+acpi-devel-5NWGOfrQmneRv+LV9MX5uti2KpX7p8Fi@public.gmane.org So if someone has a Toshiba 5005-S504 maybe 
+he can help out.
 
+Thorsten
 
-Mail headers:
-  Date       : Mon, 26 Apr 2004 20:32:49 -0300
-  Subject    : Mail Delivery (failure carlospinheiro-u2m9FSltV8tfJ/NunPodnw@public.gmane.org)
-  From       : acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-  Return-Path: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-  Received   : from unime.com.br (unknown [200.223.24.194])
-  To (system): carlospinheiro
-  To (header): carlospinheiro-u2m9FSltV8tfJ/NunPodnw@public.gmane.org
-  Cc         : 
-  Bcc        : 
+----------  Forwarded Message  ----------
 
-  Executables: message.scr
+Subject: [ACPI] Toshiba 5005-S504 test wanted
+Date: Monday 26 April 2004 21:13
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 
-Mensagem automática - automatic message
+Does anybody have a Toshiba 5005-S504 running Linux?
 
-Obs: Por que meu e-mail foi recusado? http://webmail.unime.com.br/seguranca/recusado.htm
+To fix some newer machines, I had to delete some code
+which had a comment that said it was necessary for
+the Toshiba 5005-S504.
 
+So I'd like to know if anybody with this machine can
+test for me the patch here:
+http://bugzilla.kernel.org/show_bug.cgi?id=1581
+
+Thanks,
+-Len
+
+-------------------------------------------------------
 
 
 -------------------------------------------------------
