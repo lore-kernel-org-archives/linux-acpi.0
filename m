@@ -1,14 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: HP nw8000 never wakes up from acpi suspend
-Date: Mon, 11 Oct 2004 18:24:02 +0200
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Missing Sleep State object on thinkpad
+Date: Tue, 12 Oct 2004 00:42:25 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041011162402.GA1097@elf.ucw.cz>
-References: <3ACA40606221794F80A5670F0AF15F8405BD1223@pdsmsx403> <E1CGJ5Z-0000X8-00@smtp.tt-solutions.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8405C29D04@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <E1CGJ5Z-0000X8-00-TxxZIs+w8t4JvtFkdXX2HpqQE7yCjDx5@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,33 +17,84 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Vadim Zeitlin <vadim-oE/GLL+f5xMgsBAKwltoeQ@public.gmane.org>
-Cc: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Jesse Stockall <stockall-J4oS66wZXds@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hmmm,  your 600x should have S3 support.
+The root cause of failure is that  linux is using element in
+const char      *acpi_gbl_sleep_state_names[ACPI_S_STATE_COUNT] =3D
+{
+        "\_S0_",
+        "\_S1_",
+        "\_S2_",
+        "\_S3_",
+        "\_S4_",
+        "\_S5_"
+};
 
-> YL> S1 is less important than S3 and S4.
-> YL> So, please verify S4 is ok, then S3. 
-> YL> S1 is nice-to-have.
-> 
->  Thank you for your reply! I realize that S1 is less important, I'd mostly
-> like to have S3 work.
-> 
-> YL> try command " echo -n 4 > /proc/acpi/sleep" for s4
-> YL> echo -n 3 > /proc/acpi/sleep" for  s3
-> YL> echo -n 1 > /proc/acpi/sleep"  for s1.
-> 
->  Hmm, all of these commands do nothing here. I.e. the command succeeds
-> without any observable effect.
+to call acpi_get_sleep_type_data, but your box define _S3 under the
+device PNP0A03. So, the evaluating \_S3 will fail.
+We can come up with a workaround for this case soon.
 
-s4 really should work. Unload usb and read
-Documentation/power/swsusp.txt. You need to pass commandline parameter
-etc.
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Thanks,
+Luming
+
+=20
+
+
+>> To verify it, just simply do "cp /proc/acpi/dsdt  ./dsdt.dat; iasl -d
+>> /proc/acpi/dsdt",=20
+>> and go searching for _S3 or _S1. And post the searching result.
+>>=20
+>
+>There are 2 references to both _S1 and _S3 the first are at line 941=20
+>(see attached file) inside the declaration of the device named=20
+>"PNP0A03"
+>
+>Name (_S1D, 0x01)
+>Name (_S3D, 0x01)
+>
+>The other references are:
+>
+>    Name (\_S1, Package (0x04)
+>    {
+>        0x04,=20
+>        0x04,=20
+>        0x00,=20
+>        0x00
+>    })
+>    Method (_S3, 0, NotSerialized)
+>    {
+>        If (BXPT)
+>        {
+>            Return (Package (0x04)
+>            {
+>                0x06,=20
+>                0x06,=20
+>                0x00,=20
+>                0x00
+>            })
+>        }
+>        Else
+>        {
+>            Return (Package (0x04)
+>            {
+>                0x01,=20
+>                0x01,=20
+>                0x00,=20
+>                0x00
+>            })
+>        }
+>    }
+>
+>Thanks for looking in to this
+>
+>Jesse
+>
+>--=20
+>Jesse Stockall <stockall-J4oS66wZXds@public.gmane.org>
+>
 
 
 -------------------------------------------------------
