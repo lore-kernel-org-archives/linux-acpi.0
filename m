@@ -1,17 +1,12 @@
-From: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: acpi-20040715+D600+Suspend
-Date: Tue, 07 Sep 2004 11:22:31 +0800
+From: Shawn Starr <shawn.starr-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>
+Subject: [2.6.9-rc1-bk7] IBM ThinkPad T42 ACPI issue (continued)
+Date: Tue, 7 Sep 2004 00:22:17 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1094527351.25454.14.camel@neuromancer.home.net>
-References: <1093972503.9372.38.camel@neuromancer.home.net>
-	 <20040902143034.GA676@elf.ucw.cz>
-	 <1094442085.21466.29.camel@neuromancer.home.net>
-	 <20040906171349.GC26195@atrey.karlin.mff.cuni.cz>
+Message-ID: <200409070022.17756.shawn.starr@rogers.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_5dTPBaCGy//dT/p"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040906171349.GC26195-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -20,59 +15,239 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Acpi-List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2004-09-07 at 01:13, Pavel Machek wrote:
-> Hi!
-> 
-> > > Turn off CONFIG_PREEMPT. Or better test latest -rcX-mmX.
-> > 
-> > Hey.. pavel.. thanks to your suggestion, my weekend was wrecked (good
-> > natured sarcasm). I found out the hard way that there rc1-mm1 kernel,
-> > (the only one which worked fairly well) has quite a biting bug that
-> > caused data loss. 
-> 
-> Sorry for that.
+--Boundary-00=_5dTPBaCGy//dT/p
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-As I mentioned. it was good natured sarcasm.
-I'm back on 2.6.7 with the interactive patch and an old acpi code.
+Hi Len, I have noticed something interesting. I didn't take notice but when 
+you shut the laptop down forcefully after ACPI is supposed to turn off all 
+devices. I noticed that one of the wireless devices on the laptop is still 
+on. You can hear buzzing coming from one of the FCC devices. When the battery 
+is shorted (removed) the system is completely 'off'.
 
-Just an update, I've tried 2.6.9 yesterday, still had the irq_disabled
-problem. (though did not need a keyboard press to activate writing to
-swap)
+If ACPI isn't fully shutting down devices wouldn't holding the power off 
+button for the normal 5 seconds shut the whole thing off completely?
 
-2.6.9-rc1-mm3 compiled OK once i8042 is patched (or reversed patched)
-but it won't perform modules_install. Problem with "ln" and multiple
-directories.
+Also, is there any patches I can test?
 
+Thanks
 
-> 
-> > I had my root partition (reiserfs crash), I lost a few trivial files (i
-> > hope) and had to do a rebuild-tree.
-> 
-> Hmm, do not use reiserfs ;-).
-Hmm.. isn't reiserfs better?
-I dunno.
-Suse uses it as their root fs.
-I've only switched to reiserfs for my FC2 install. (and frankly, like
-since I went to FC2 3+ months ago, I've had like 3 reiserfs
---rebuild-checks) compared to like NONE  when I was on RH9/ext3 for ~8
-months.
+Shawn.
 
-What's the majority of ppl using? I know this is Off-topic. sorry..
+--Boundary-00=_5dTPBaCGy//dT/p
+Content-Type: application/pgp-keys;
+  name="OpenPGP key 0x766282A7"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename=0x766282A7.asc
 
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: GnuPG v1.2.5 (GNU/Linux)
 
-XFS for my /home 20GB dir. It handles fairly well. (as long as there's
-no sudden power loss, as I read XFS caches the data aggressively and not
-to sync with the disk)
+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
++Y4EAJ9Rq3vZVdwxedZGBkns+f8aBZjqsQ==
+=pYg3
+-----END PGP PUBLIC KEY BLOCK-----
 
--- 
-Ow Mun Heng
-Fedora GNU/Linux Core 2 on D600 1.4Ghz CPU kernel
-2.6.7-2.jul1-interactive 
-Neuromancer 11:15:19 up 3:04, 7 users, load average: 1.38, 0.84, 0.64 
+--Boundary-00=_5dTPBaCGy//dT/p--
 
 
 -------------------------------------------------------
