@@ -1,14 +1,14 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: [20030321] Failed to acquire semaphore
-Date: Tue, 25 Mar 2003 15:27:41 +0100
+From: Mark Stocker <mark-pX1FbxK42pU@public.gmane.org>
+Subject: acpi on toshiba satellite 1625CDT
+Date: Tue, 25 Mar 2003 14:47:12 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030325142741.GB15143@hell.org.pl>
-References: <20030323203025.GA13039@hell.org.pl>
+Message-ID: <200303251447.12168.mark@ale8.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20030323203025.GA13039-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,16 +20,18 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Karol Kozimor:
->    osl-0888 [24] os_wait_semaphore     : Failed to acquire semaphore[cfff74c0|1|0], AE_TIME
-> utmisc-0743 [23] ut_acquire_mutex      : Thread 0 could not acquire Mutex [ACPI_MTX_Events] AE_TIME
+I'm still having trouble with the latest acpi patch and 2.4.21-pre5.  The 
+problem is once the cpu fan comes on it will never go off again.  Disabling 
+acpi will correct this problem but then closing the lid will cause the 
+machine to hard lock requiring a cold restart.  Acpi is correctly reading the 
+state of the lid and power button, thermal zone seems to work, sleep doesnt 
+seem to work as it should but this doesnt bother me.  Battery info appears 
+incorrect as it will show a battery even when the battery is removed.  Ac 
+power is correctly read.
+I would greatly appreciate any help!!  Compiling acpi without fan support 
+doesnt help, the fan still gets stuck on.  Is there anyway around this other 
+than disabling acpi completly causing the lid switch problem?
 
-It is present in the 2.5.65-acpi-20030321 also, the same symptoms.
-Best regards,
-
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
