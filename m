@@ -1,14 +1,14 @@
 From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: DSDT table help
-Date: Tue, 30 Sep 2003 19:08:14 +0200
+Subject: Re: System indicators APM/ACPI
+Date: Tue, 30 Sep 2003 19:03:08 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030930170814.GE11391@poupinou.org>
-References: <1064869815.28949.45.camel@loke> <20030930090253.GZ11391@poupinou.org> <20030930095810.H81128@root.org>
+Message-ID: <20030930170308.GD11391@poupinou.org>
+References: <20030929125921.A78167@root.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20030930095810.H81128-Y6VGUYTwhu0@public.gmane.org>
+In-Reply-To: <20030929125921.A78167-Y6VGUYTwhu0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,43 +18,44 @@ List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Cc: Martin List-Petersen <martin-4su4RWpjsplNbBYsakfBHQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Sep 30, 2003 at 10:02:12AM -0700, Nate Lawson wrote:
-> On Tue, 30 Sep 2003, Ducrot Bruno wrote:
-> > On Mon, Sep 29, 2003 at 11:10:15PM +0200, Martin List-Petersen wrote:
-> > > Hi,
-> > > i would like to have some help with some DSDT table errors, if anybody
-> > > cares:
-> > >
-> > > --------------------------------
-> > > This is the first machine:
-> > > ASL Optimizing Compiler / AML Disassembler version 20030522 [May 23
-> > > 2003]
-> > > Copyright (C) 2000 - 2003 Intel Corporation
-> > > Supports ACPI Specification Revision 2.0b
-> > >
-> > > dsdt.asl   379:             If(\_OSI) {
-> > > Error    1028 -  Too few arguments ^  (\_OSI requires 1)
-> > >
-> > > dsdt.asl   380:                 "Windows 2001"
-> > > Error    1037 -                              ^ parse error, unexpected
-> > > PARSEOP_STRING_LITERAL
-> >
-> > known issue with acpidump from FreeBSD (and all backport to others OS).
-> > I don't think the maintainer of this tool will update it.  Use iasl -d instead.
+On Mon, Sep 29, 2003 at 01:00:40PM -0700, Nate Lawson wrote:
+> In suspending my T23, I found an interesting issue.  When suspending with
+> APM on FreeBSD, the "suspended" light comes on.  When suspending on
+> Windows 2k, it also comes on.  When suspending with ACPI on FreeBSD, it
+> does not come on even though it suspends/resumes fine.  Is Win2k
+> suspending via APM even though it is using ACPI for other features?  I am
+> certain it is using ACPI by checking in the driver info window.
 > 
-> This is wrong.  acpidump(8) on FreeBSD uses iasl(8) as the backend.
-> acpidump does the physmem table accesses and iasl does the parsing of the
-> DSDT.  I maintain it and commit updates to it regularly.
+> I figured this might have something to do with \_SI\_SST since my laptop
+> has that.  But running \_SI\_SST with various args never changes any
+> lights.  ASL:  http://root.org/~nate/acpi/ibm-acpidump.asl.gz
 > 
-> For an example of our output, see:
->   http://root.org/~nate/acpi/ibm-acpidump.asl.gz
+> Ideas?
+> 
+> BTW, would it be a good idea to add code to call \_SI\_SST to the ACPICA
+> AcpiSetSleepState() function?
 
-Acked.  (but backport known as 'pacpidump' at
-http://people.freebsd.org/~takawata/pacpidump.tar.gz
-to others OS do not work, I guess).
+Current spec (2.0c) state that arguments for _SST are (10.1.1, page 254):
+
+0- no system state.  Indicator off.
+1- Working.
+2- Waking.
+3- Sleeping, Used to indicate system state S1, S2 or S3.
+4- Sleeping with context saved to non-volatile storage.
+
+So, for system state 4, you should pass argument 4 (but just
+before calling AcpiSetSleepState() imo), then when waking, call
+_SST with argument 2 in wakeup path, and asap, then pass at the
+end of the wakeup path argument 1.
+
+Your ASL seems also to contains some stuff related to LED, or BEEP,
+via the embedded controller.  Have you tryed to write some codes to control
+directly them (so that you know it really work)?
+At least, the LED stuff seems to be easy to look, debug, etc.
+Just write bytes to EC space addr 0x0C, and see what happens.
 
 -- 
 Ducrot Bruno
