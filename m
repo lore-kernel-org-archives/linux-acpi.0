@@ -1,15 +1,15 @@
-From: Michael Guntsche <mike-Z92qn3yYq0hWk0Htik3J/w@public.gmane.org>
-Subject: Re: Processor C states and USB problem
-Date: Wed, 14 Jan 2004 16:34:37 +0100
+From: Erico M Mendonca <erico-cz9lu//xMc+vYRxJAoKWRg@public.gmane.org>
+Subject: Re: Tarting up my ACER 1703 ACPI spec
+Date: Wed, 14 Jan 2004 21:09:22 -0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040114163437.4bcbc62f.mike@it-loops.com>
-References: <3ACA40606221794F80A5670F0AF15F8401720CC9@PDSMSX403.ccr.corp.intel.com>
-	<1074066934.9124.6.camel@ltspc67.epfl.ch>
+Message-ID: <4005CC22.9030902@techisa.srv.br>
+References: <1073487455.3051.17.camel@dirkl.int.tobit.co.uk> <20040109154007.7c6e4abc.greg@morningdave.org>
+Reply-To: erico-cz9lu//xMc+vYRxJAoKWRg@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1074066934.9124.6.camel-TVkb0Wta32GnwOLKaxbZ/w@public.gmane.org>
+In-Reply-To: <20040109154007.7c6e4abc.greg-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -21,56 +21,39 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 14 Jan 2004 08:55:35 +0100
-Diego SANTA CRUZ <dsanta-W/9V78bTXrinCNX9eg9BBA@public.gmane.org> wrote:
+Greg Sarjeant wrote:
 
-> On Wed, 2004-01-14 at 03:10, Yu, Luming wrote:
-> > > > > I picked up this thread and I'm interested in knowing a 
-> > > bit more about
-> > > > > bus mastering and C3, as my laptop never goes into C3. I 
-> > > own a Dell
-> > > > > Inspiron 8500 (details at
-> > > > > http://ltswww.epfl.ch/~dsanta/resources/dell-i8500-linux).
-> > > > > 
-> > 
-> > How did you know your processor never transition to C3 mode?
-> > 
-> 
-> The usage count is never above 5, even after a long period (an hour or
-> more of idle CPU). But yes, strictly speaking it's almost never ;-)
-> 
-> > > > > This is what I get for the power states:
-> > > > > # cat /proc/acpi/processor/CPU0/power
-> > > > > active state:            C2
-> > > > > default state:           C1
-> > > > > bus master activity:     ffffffff
-> > > > > states:
-> > > > >     C1:                  promotion[C2] demotion[--] 
-> > > > > latency[000] usage[00039800]
-> > > > >    *C2:                  promotion[C3] demotion[C1] 
-> > > > > latency[050] usage[00573330]
-> > > > >     C3:                  promotion[--] demotion[C2] 
-> > > > > latency[050] usage[00000004]
-> > > > > 
-> > 
-> > Usage of C3 is 4. 
-> 
-> Yes, but compared to the usage count of C2 that is extremely low, and
-> the CPU is idling all the time (CPU usage is below 1%). I don't know
-> much about C states but I guess it should go into C3 much more often,
-> and the bus mastering activity should show something else than
-> ffffffff when booting with a bare bones kernel and with no extra hw
-> initialized(USB, FireWire, etc.)
-> 
+>Hi Dirk,
+>
+>   I found a couple of HOWTOs about this. They are:
+>
+>http://www.cpqlinux.com/acpi-howto.html#fix_broken_dsdt
+>http://home.fhtw-berlin.de/~s0502837/r31/
+>
+>   They suggest that the solution to both of your warnings is to add the following line at the end of the offending methods:
+>
+>   Return(Package(0x02){0x00, 0x00})
+>
+>   I can confirm that adding that line to my _WAK method did indeed get rid of the Warning on recompile. I don't know why that is the proper statement, which makes me a little uneasy, so if anyone could explain that (or point me to something that does), I'd appreciate it.
+>
+>   Hope that helps.
+>   Greg
+>  
+>
+I was wondering... has anyone on this list ever thought about making a joint effort and writing some tutorials/articles on ACPI, hosted on a central place? 
 
-Have you tried running a 2.6 kernel?
-Under 2.4 bus master always shows "ffffffff" on my notebook. Sometimes
-shutting down USB helps, sometimes it doesn't.
-Running under 2.6 I only get full bus master activity if an USB
-mouse is plugged in.
+Things like a generic explanation on how each ACPI object relates to others, the basic functions needed in a DSDT, how to fix the most common errors (the pages mentioned above already have some good information)... perhaps even some generic code skeletons for thermal zones, fan, etc. Perhaps even a "dissection" of a real DSDT.
+
+I think this could be really useful for the people that are interested in learning more about ACPI and contribute to the project, but are intimidated by the lack of documentation, or excessively technical documentation...
 
 
-/michael
+-- 
+
+-- Erico Mendonca
+Techisa do Brasil
+
+
+
 
 
 -------------------------------------------------------
