@@ -1,14 +1,14 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: False thermall shutdown (seems like 2.6 ACPI bug)
-Date: Thu, 29 Apr 2004 23:14:12 +0800
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: DSDT Table for Samsung X30 1700
+Date: Thu, 29 Apr 2004 19:26:31 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8404321BDA@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <20040429172631.GB578@poupinou.org>
+References: <3ACA40606221794F80A5670F0AF15F8404321BC7@PDSMSX403.ccr.corp.intel.com> <20040429144733.GA16684@dominikbrodowski.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <20040429144733.GA16684-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,40 +17,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Rus V. Brushkoff" <rus-YPKzlcOx6JWP+XVi2HspGA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Cc: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Daniel Dewald <D.Dewald-js0L5lmcrAQb1SvskN2V4Q@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-=20
+On Thu, Apr 29, 2004 at 04:47:33PM +0200, Dominik Brodowski wrote:
+> As I assume the X30 is similar to the X05 I own:
+> 
+> > >The battery control does not work,
+> 
+> - this can be fixed by patching the DSDT. Info for the (also similar X10) is
+> available on the web.
+> 
 
->On Thu, 29 Apr 2004, Yu, Luming wrote:
->
->:>:>exoparg2-0432 [50] ex_opcode_2A_1T_1R    : Index value
->:>:>(FFFFFFFF) beyond
->:>:>package end (7)
->:>:> psparse-1133: *** Error: Method execution failed=20
->[\_TZ_.RSCM] (Node
->:>:>c17ad1a8),
->:>:>AE_AML_PACKAGE_LIMIT
->:>:Hmmm, I need to verify your ASL code to verify it is not AML
->:>interpreter
->:>:fault.
->:In the following statement, I suspect TP__ is 0, so the Index value
->:could be   -1 , which is FFFFFFFF.
->:
->:Store(DerefOf(Index(Local1, Subtract(TP__, 0x1, ), )), Local4)
->
-> Ok. So what to do ? The ASUS need to fix dsdt or the bug may be fixed
->by relaxed rule as done in 2.4 kernel ?
->
+Just for my personnal info: what is wrong with the original CM?
 
-Can you override DSDT with the following change to see if it work?
+-- 
+Bruno Ducrot
 
-Store(DerefOf(Index(Local1, Subtract(TP__, 0x0, ), )), Local4)
-
-Thanks,
-Luming
-
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
