@@ -1,14 +1,15 @@
-From: "Ow Mun Heng" <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
-Subject: RE: 2.6.3-rc3 + D600 + battery status missing sometimes..
-Date: Thu, 19 Feb 2004 09:59:45 +0800
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: Re: high pitch noise with kernel 2.6 and ACPI (Dell Inspiron
+ 8200)
+Date: Wed, 18 Feb 2004 14:11:32 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <C386328088ED7F4E9F81AFBABDDF60DA045C692D@wdmyexch02.my.asia.wdc.com>
+Message-ID: <20040218140940.K36847@root.org>
+References: <200402181320.29381.mailinglists@glomann.de>
+ <1077111155.2028.3.camel@personal-118.mip.sdu.dk> <200402182017.47960.mailinglists@glomann.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <200402182017.47960.mailinglists-WoYc4IhrKEiELgA04lAiVw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,95 +18,42 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Acpi-List (E-mail)" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Thomas Glomann <mailinglists-WoYc4IhrKEiELgA04lAiVw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Wed, 18 Feb 2004, Thomas Glomann wrote:
+> On Wednesday 18 February 2004 14:32, Mads Paulin wrote:
+> > Hi Thomas,
+> >
+> > funny you mention it, I thought I was going crazy.
+> >
+> > I experienced the same thing, and discovered it to be the hard drive.
+> >
+> > Try to spind the drive down using hdparm and see if that helps.
+> >
+> nope, putting the drive to sleep doesn't do the trick. the sound remains.
+> Moreover I don't see how this "solution" was meant to work? Does the sound
+> reappear when you wake up your disk or does it keep silent after a nice
+> "onetime" sleep?
+> > Obviously this is not a solution, but if it helps, kernel 2.6 could have
+> > some other way of controlling the disk than 2.4.
+> >
+> Still it doesn't explain why that sound is gone when disabling the whole
+> acpi-system.
+> > The noise disappears when my hdd is under heavy load.
+> > - Maybe you just cant here it then, or it actually disappears because it
+> > is no longer idle
+> >
+> well thats true. as long as the disk is Not idle, the noise is gone. But
+> returns right after.
 
+Disable cpu idling support or try various combinations of C1-C3.  The
+noise is most likely capacitors (dis)charging as part of chipset-supported
+clock stopping.  You can detect this case by changing the scheduling
+quantum (HZ) to be something other than 1000.
 
-> -----Original Message-----
-> From: Yu, Luming [mailto:luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
-> Sent: Tuesday, February 17, 2004 3:46 PM
-> To: Ow Mun Heng; Acpi-List (E-mail)
-> Subject: RE: [ACPI] 2.6.3-rc3 + D600 + battery status missing
-> sometimes..
-<snip>
-> > > > osl-0886[80] os_wait_semaphore:Failed to acquire=20
-> > > > semaphore[dffac580|1|0],
-> > > > AE_TIME
-<snip>
->=20
->=20
-> Would you please have patch filed at
-> http://bugzilla.kernel.org/show_bug.cgi?id=3D1791
-> a try?
-
-Tried it.. Does not work. (using the patch filed by you)
-Tried it on a 2.6.3 kernel (final release) with acpi20040211-patch=20
-and the patch of yours.
-
-(note that either your patch is for another kernel release or..
-since had to do it manually cos there was additional in original=20
-kernel sources.)
-
-exestore.c=20
-<---snip--->
-if (new_desc !=3D obj_desc) {
-	acpi_ut_remove_reference (obj_desc);
-	*(index_desc->reference.where) =3D new_desc;
-
-	if (new_desc =3D=3D source_desc) {
-		acpi_ut_add_reference (new_desc);
-	}
-
-	for (i =3D 1; i < ((union acpi_operand_object *)
-index_desc->reference.object)->common.reference_count; i++) {
-		acpi_ut_add_reference (new_desc);
-	}
-=09
-	if (!obj_desc) {
-		acpi_ut_add_reference (new_desc)l
-	}
-}
-break;
-
-<---end of manual typing in sources--->
-
-ps : tried to compile 2.6.3-mm1=20
-     (failed at smp_found_config & clustered_acpi_check)
-	Just thought I let you know. (even though it should be on the kernel
-	mailing list - which I am not subscribed to)
-
-
-=09
-
-
->=20
-> --Luming
->=20
-> > >=20
-> > > > Hmmm.. no reply yet.. more info..
-> > > > There's also these message currently..
-> > > >=20
-> > > >=20
-> > > > Appreciate the help..
-> > >=20
-> > > I have some impression, but still not clearly remember
-> > > whether this is a known issue.
-> > >=20
-> > > Please post full boot log that will help me to recall=20
-> > > something useful.
-> >=20
-> > Full boot log as requested..
-> > This is 2.6.3-rc3, patched with acpi-20040211 only.
-> >=20
-> > Battery status is flaky.. (missing sometimes)
-> > then there's the os_wait_semaphore thingy as well..
-> >=20
-> > Appreciate the help..
-> >=20
-> >=20
-> >=20
->=20
+-Nate
 
 
 -------------------------------------------------------
