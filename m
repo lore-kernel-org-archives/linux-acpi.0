@@ -1,14 +1,13 @@
-From: =?iso-8859-1?Q?Fr=E9d=E9ric?= Bothamy <fbothamy-bGbTDnlUqz99Bbbejix+0A@public.gmane.org>
-Subject: Re: CALL FOR TESTING
-Date: Fri, 20 Sep 2002 01:29:38 +0200
+From: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
+Subject: Re: Testing: NVidia closed driver fails.
+Date: Thu, 19 Sep 2002 16:48:18 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020919232938.GA9832@athena.olympe.fr>
-References: <EDC461A30AC4D511ADE10002A5072CAD0236DE80@orsmsx119.jf.intel.com>
+Message-ID: <Pine.LNX.4.44.0209191645050.961-100000@cherise.pdx.osdl.net>
+References: <200209192215.g8JMEv306270@pfn1.pefnos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD0236DE80-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
+In-Reply-To: <200209192215.g8JMEv306270-a1J+ToZc0kR3t0M9ZKkFCQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,42 +16,27 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: "P. Christeas" <p_christ-U04EIuiosng@public.gmane.org>
+Cc: Jochen Reinwand <jbr.1-hi6Y0CQ0nG0@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Sep 18, 2002 at 11:27:01PM -0700, Grover, Andrew wrote:
-> I wanted to make a special request for testing of the 2.4 patch (or should I
-> say, MEGA-patch).
-> 
-> Marcelo has asked for widespread testing of it, in anticipation of likely
-> 2.4 mainline inclusion. I will be posting a call for testing to linux-kernel
-> soon, but am posting this here first to hopefully weed out any really bad
-> bugs that may have crept in.
 
-Hardware : Compaq Presario 711EA laptop
- 
-> The main issues of importance are:
-> 
-> - DOES IT BOOT?
+> To A. Grover: if the trouble lies in the bttv driver, the kernel will be 
+> considered broken until both drivers co-exist..
 
-Yes
+Actually, if it's a problem with an nVidia video card, or something that 
+is using the proprietary nVidia driver, the driver is considered broken 
+and it is nVidia's problem. 
 
-> - DOES IT ASSIGN INTERRUPTS PROPERLY?
+Because their driver is closed-source, kernel developers should not spend 
+the time to reverse engineer the driver or attempt to figure out what 
+they're trying to do. There are better things to worry about. 
 
-Yes, although the kernel complains about a :
+Now, if you see this happening with an open-source driver, then we can 
+help..
 
-PCI: No IRQ known for interrupt pin A of device 01:00.0 - using IRQ 5
+	-pat
 
-the device 01:00.0 being the video card and this IRQ 5 seems to be
-used by the onboard audio as well. But everything is working well
-(audio and video).
-
-I can provide the dmesg log and/or the raw dsdt if you ever need it.
-
-
-Thanks for your work.
-
-Fred
 
 
 -------------------------------------------------------
