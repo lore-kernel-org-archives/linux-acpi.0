@@ -1,45 +1,43 @@
-From: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] pcibios_scan_acpi()
-Date: Mon, 23 Jun 2003 14:39:05 -0700
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030623213905.GA10992@kroah.com>
-References: <20030623185901.GN2620@parcelfarce.linux.theplanet.co.uk> <16119.20872.104128.965777@napali.hpl.hp.com>
+From: Marek Michalkiewicz <marekm-HuSaFJn/uQtscumT1wHf3A@public.gmane.org>
+Subject: MS-6368L ACPI IRQ problem still in 2.4.21
+Date: Tue, 24 Jun 2003 00:15:41 +0200
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <20030623221541.GA8096@alf.amelek.gda.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <16119.20872.104128.965777-o/PNRNCSakrWxDs0y9d3MAC/G2K4zDHf@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: davidm-sDzT885Ts8HQT0dZR+AlfA@public.gmane.org
-Cc: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jun 23, 2003 at 12:14:16PM -0700, David Mosberger wrote:
-> >>>>> On Mon, 23 Jun 2003 19:59:01 +0100, Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org> said:
-> 
->   Matthew> This patch removes an ifdef from the ia64 acpi patch by
->   Matthew> defining a new function which takes an acpi_device and a
->   Matthew> segment/domain as well as the bus number.
-> 
->   Matthew> I think pcibios_scan_acpi() is an atrocious name.  Can
->   Matthew> someone come up with a better one?
-> 
-> How about acpi_scan_pci_bus_root()?
+Hi,
 
-I agree, that sounds better.
+long time ago I noticed a problem with the ACPI IRQ not working
+if it is _not_ shared with some other PCI IRQ.  The problem still
+exists in the 2.4.21 kernel, confirmed on two machines with the
+MSI MS-6368L motherboard (VIA PLE133 chipset).
 
-greg k-h
+I need ACPI for just one thing: to run "shutdown -h now" after the
+power button is pressed.  (The box is a server which usually has
+no keyboard connected.)
 
+As I can see in /proc/interrupts, the BIOS usually allocates IRQ9
+for ACPI (not shared with anything else), and the IRQ9 counter is
+always zero.  Pressing the power button has no effect at all.
 
--------------------------------------------------------
-This SF.Net email is sponsored by: INetU
-Attention Web Developers & Consultants: Become An INetU Hosting Partner.
-Refer Dedicated Servers. We Manage Them. You Get 10% Monthly Commission!
-INetU Dedicated Managed Hosting http://www.inetu.net/partner/index.php
+There is an easy workaround: in BIOS setup, set IRQ9 to "Legacy ISA"
+instead of "PCI/ISA PnP" so that ACPI gets some other IRQ, shared
+with some other PCI devices (in my case, IRQ11 is shared by: acpi,
+usb-uhci, usb-uhci, eth0).  Then the power button works fine.
+
+Is this a known problem?  Should I complain to MSI (BIOS fix),
+or is this a Linux bug?  Any patches I should try?  This looks
+a bit unusual to me - one would expect problems if an IRQ _is_
+shared, and some broken hardware/driver doesn't like sharing...
+
+If there is no known fix, perhaps the "Legacy ISA" workaround
+(which I discovered by accident) should be documented somewhere?
+
+Thanks,
+Marek
