@@ -1,51 +1,24 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: ACPICA 20030918 available
-Date: 30 Sep 2003 01:30:55 -0400
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1064899855.2534.113.camel@dhcppc4>
+From: Chris Wright <chrisw-3NddpPZAyC0@public.gmane.org>
+Subject: Re: [PATCH] ACPI pci irq routing fix
+Date: Mon, 29 Sep 2003 23:08:16 -0700
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <20030929230816.A10999@build.pdx.osdl.net>
+References: <20030926182128.C24360@osdlab.pdx.osdl.net> <3F752619.5000406@cyberone.com.au> <1064899042.2532.101.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1064899042.2532.101.camel-D2Zvc0uNKG8@public.gmane.org>; from len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org on Tue, Sep 30, 2003 at 01:17:22AM -0400
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Nick Piggin <piggin-/x7JMgtu12E0n/F98K4Iww@public.gmane.org>, Chris Wright <chrisw-3NddpPZAyC0@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-FYI,
+* Len Brown (len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org) wrote:
+> 
+> This fix has been integrated with others in the ACPI patch,
+> and is available now in these bitkeeper trees:
 
-# [ACPI] ACPI Component Architecture 20030918 (Bob Moore)
-#
-# Found and fixed a longstanding problem with the late execution of
-# the various deferred AML opcodes (such as Operation Regions,
-# Buffer Fields, Buffers, and Packages)...
-# This fixes the "region size computed incorrectly" problem.
-#
-# Fixed several 64-bit issues with prototypes, casting and data types.
-#
-# Removed duplicate prototype from acdisasm.h
-
-This fix has been integrated with others in the ACPI patch,
-and is available now in these bitkeeper trees:
-
-http://linux-acpi.bkbits.net/linux-acpi-test-2.4.22
-http://linux-acpi.bkbits.net/linux-acpi-test-2.4.23
-http://linux-acpi.bkbits.net/linux-acpi-test-2.6.0
-
-It is also available as a plain patch "ACPICA_20030918" here:
-
-ftp.kernel.org:/pub/linux/kernel/people/lenb/acpi/patches/test/*
-
-
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
+Great, thanks Len.
+-chris
+-- 
+Linux Security Modules     http://lsm.immunix.org     http://lsm.bkbits.net
