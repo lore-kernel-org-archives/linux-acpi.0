@@ -1,47 +1,61 @@
-From: Borislav Deianov <borislav-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: Re: hotkey/video framework [was: ibm-acpi-0.2]
-Date: Tue, 17 Aug 2004 00:23:24 -0700
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040817072324.GF20883@aero.ensim.com>
-References: <20040810080826.GD28939@aero.ensim.com> <20040814211247.GS20883@aero.ensim.com> <873c2obh0l.wl%miura@da-cha.org>
+From: Borislav Deianov <borislav@users.sourceforge.net>
+Subject: ibm-acpi-0.3
+Date: Tue, 17 Aug 2004 02:19:21 -0700
+Sender: linux-thinkpad-admin@linux-thinkpad.org
+Message-ID: <20040817091921.GI20883@aero.ensim.com>
+References: <20040810080826.GD28939@aero.ensim.com> <20040814211247.GS20883@aero.ensim.com>
+Reply-To: linux-thinkpad@linux-thinkpad.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <linux-thinkpad-admin@linux-thinkpad.org>
 Content-Disposition: inline
-In-Reply-To: <873c2obh0l.wl%miura-yiisDzvROlQdnm+yROfE0A@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Hiroshi Miura <miura-yiisDzvROlQdnm+yROfE0A@public.gmane.org>
-Cc: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, julien.lerouge-GANU6spQydw@public.gmane.org, John Belmonte <jvb-ZFKsivP1bGvOQU1ULcgDhA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, letsnote-tech-eXqGM+LsbTTAqL8d+zIrHngSJqDPrsil@public.gmane.org
+In-Reply-To: <20040814211247.GS20883@aero.ensim.com>
+Errors-To: linux-thinkpad-admin@linux-thinkpad.org
+List-Help: <mailto:linux-thinkpad-request@linux-thinkpad.org?subject=help>
+List-Post: <mailto:linux-thinkpad@linux-thinkpad.org>
+List-Subscribe: <http://mailman.linux-thinkpad.org/mailman/listinfo/linux-thinkpad>,
+	<mailto:linux-thinkpad-request@linux-thinkpad.org?subject=subscribe>
+List-Unsubscribe: <http://mailman.linux-thinkpad.org/mailman/listinfo/linux-thinkpad>,
+	<mailto:linux-thinkpad-request@linux-thinkpad.org?subject=unsubscribe>
+List-Archive: <http://mailman.linux-thinkpad.org/pipermail/linux-thinkpad/>
+To: acpi-devel@lists.sourceforge.net, linux-thinkpad@linux-thinkpad.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Aug 15, 2004 at 11:41:30PM +0900, Hiroshi Miura wrote:
-> Hi,
-> 
-> 'Fn key combination' is common on machines,
-> so I think we need some abstraction layer or framework on acpi core.
+Hi,
 
-One possibility is to just agree on the proc file format and ACPI
-events for the common features, then have each driver implement them
-separately. This would probably be simpler than trying to come up with
-some sort of a wrapper framework as the code involved is fairly simple
-and there probably isn't much we can share. Then again, there might
-be, I haven't looked.
+This is the third alpha release of my ACPI driver for IBM ThinkPad
+laptops. The features currently supported are:
 
-I'd be up for something like this, although I'll be busy for a while
-getting all the ThinkPad features to work.
+	- Fn key combinations
+	- Bluetooth enable and disable
+	- turning the LCD off, brightness control
+	- ThinkLight on/off
+	- limited docking and undocking
+
+So far, it has been tested on several T, X and R series ThinkPads. I
+appreciate any user reports, either successful or unsuccessful. Please
+see the included README for more information.
+
+Changes since 0.2:
+
+	- fixed problems preventing insmod on the R40
+	- implemented LCD brightness control and turning off
+	- implemented ThinkLight on/off
+
+I just noticed that turning the LCD off only works in X, not on the
+console, at least for me. I'll need to look into this further.
+
+Finally, a download URL:
+
+http://bkernel.sf.net/tmp/ibm-acpi-0.3.tar.gz
+
+Still no web page.
+
+I'll be on vacation for the next three weeks, so I'll be a little slow
+with replies to email. If you are replying to the lists, I'd
+appreciate a CC, I'd see it sooner that way.
 
 Boris
-
-
--------------------------------------------------------
-SF.Net email is sponsored by Shop4tech.com-Lowest price on Blank Media
-100pk Sonic DVD-R 4x for only $29 -100pk Sonic DVD+R for only $33
-Save 50% off Retail on Ink & Toner - Free Shipping and Free Gift.
-http://www.shop4tech.com/z/Inkjet_Cartridges/9_108_r285
+-- 
+The linux-thinkpad mailing list home page is at:
+http://mailman.linux-thinkpad.org/mailman/listinfo/linux-thinkpad
