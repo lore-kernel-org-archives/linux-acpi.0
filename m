@@ -1,12 +1,12 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Hibernate on Presario 2100
-Date: Sat, 5 Feb 2005 20:39:44 +0100
-Message-ID: <20050205193944.GA1547@elf.ucw.cz>
-References: <4203BD43.1040302@triumf.ca>
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: S3 suspend and serial console
+Date: Sat, 5 Feb 2005 23:06:19 +0100
+Message-ID: <20050205220619.GA30739@message-id.gmane0305.slipkontur.de>
+References: <42023083.8030508@gmx.net> <4204CA50.8090906@gmx.net> <20050205155845.GA20131@hell.org.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <4203BD43.1040302-K9O0zq5Arhf3fQ9qLvQP4Q@public.gmane.org>
+In-Reply-To: <20050205155845.GA20131-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,31 +16,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Zaher Salman <zaher-K9O0zq5Arhf3fQ9qLvQP4Q@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+On Sat, Feb 05, 2005 at 04:58:45PM +0100, Karol Kozimor wrote:
+ 
+> echo > /dev/ttyS0 will echo a single '\n'. I guess echo -n would be more
 
-> I have a Presario 2197CA with mandrake 10.0 and kernel 2.6.10. I have 
-> been trying to get hibernate to work on it. The way I do it is by going 
-> from X to text mode (ctrl+alt+F1), and then typing
-> 
-> echo -n disk > /sys/power/state
-> 
-> There is no problem to get the laptop to wake up and get back to text 
-> mode, but whenever I try to switch to X (ctrl+alt+F7), or if I go to 
-> hibernate from X, the laptop hangs and I have to reboot it. When it 
-> hangs a few things still work like the thouchpad so I can mover the 
-> mouse and the function keys work. However, is seems that the keyboard 
-> does not respond (like CapsLock, ctrl+alt+Backspace), and there is no 
-> network. Any idea why this is happening?
+only "> /dev/ttyS0", no echo. This basically does...
 
-Try running with vesafb and un-accelerated X server.
-								Pavel
+open("/dev/tty", O_WRONLY|O_CREAT|O_TRUNC|O_LARGEFILE, 0666) = 3
+fcntl64(1, F_GETFD)                     = 0
+fcntl64(1, F_DUPFD, 10)                 = 10
+fcntl64(1, F_GETFD)                     = 0
+fcntl64(10, F_SETFD, FD_CLOEXEC)        = 0
+dup2(3, 1)                              = 1
+close(3)                                = 0
+
+so it is pretty equivalent to "echo -n > /dev/ttyS0"
 -- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Stefan Seyfried
+
 
 
 -------------------------------------------------------
