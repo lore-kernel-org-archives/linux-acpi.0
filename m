@@ -1,15 +1,15 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Patch: enable runtime GPEs before calling _WAK method
-Date: Wed, 30 Mar 2005 14:58:32 +0800
-Message-ID: <200503301458.32410.luming.yu@intel.com>
-References: <1111883655.11677.59.camel@tyrosine>
+Subject: Re: Fwd: [2.6.12-rc1][ACPI][suspend] /proc/acpi/sleep vs /sys/power/state issue - 'standby' on a laptop
+Date: Wed, 30 Mar 2005 15:08:08 +0800
+Message-ID: <200503301508.08721.luming.yu@intel.com>
+References: <200503280302.57640.shawn.starr@rogers.com> <200503301437.09234.luming.yu@intel.com> <200503300142.54497.shawn.starr@rogers.com>
 Reply-To: luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="gb18030"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1111883655.11677.59.camel@tyrosine>
+In-Reply-To: <200503300142.54497.shawn.starr-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>
 Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -20,57 +20,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+To: Shawn Starr <shawn.starr-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-It's very likely. But we still need to dig more  from DSDT.
-Ususally, we are confused by interpreter glitch, so we need to make sure 
-interpreter works well.
+Good question. could you write a patch for what you said.
 
-On Sunday 27 March 2005 08:34, Matthew Garrett wrote:
-> The following patch enables runtime GPEs before calling _WAK. This
-> appears to be needed for resume from disk to work properly on an HP 6220
-> - without it, if the fan state has changed between suspend and resume,
-> kacpid consumes 100% of the CPU time and the fan speed remains constant.
+On Wednesday 30 March 2005 14:42, Shawn Starr wrote:
+> Right, but then why is it trying to do 'something' even if there is no S1
+> support? :)
 >
-> >From playing with this, I assume that it's because the _WAK method
+> it should do the same thing if i echo 1 to /sys/power/state. which is
+> nothing at all.
 >
-> triggers an event that isn't handled because the GPEs haven't been
-> enabled.
+> Shawn.
 >
-> diff -ur build-386/drivers/acpi/hardware/hwsleep.c
-> build-686/drivers/acpi/hardware/hwsleep.c ---
-> build-386/drivers/acpi/hardware/hwsleep.c	2005-03-17 20:40:58.000000000
-> +0000 +++ build-686/drivers/acpi/hardware/hwsleep.c	2005-03-26
-> 23:48:29.000000000 +0000 @@ -543,12 +543,6 @@
->  		ACPI_REPORT_ERROR (("Method _BFS failed, %s\n", acpi_format_exception
-> (status))); }
->
-> -	status = acpi_evaluate_object (NULL, METHOD_NAME__WAK, &arg_list, NULL);
-> -	if (ACPI_FAILURE (status) && status != AE_NOT_FOUND) {
-> -		ACPI_REPORT_ERROR (("Method _WAK failed, %s\n", acpi_format_exception
-> (status))); -	}
-> -	/* TBD: _WAK "sometimes" returns stuff - do we want to look at it? */
-> -
->  	/*
->  	 * Restore the GPEs:
->  	 * 1) Disable/Clear all GPEs
-> @@ -565,6 +559,12 @@
->  		return_ACPI_STATUS (status);
->  	}
->
-> +	status = acpi_evaluate_object (NULL, METHOD_NAME__WAK, &arg_list, NULL);
-> +	if (ACPI_FAILURE (status) && status != AE_NOT_FOUND) {
-> +		ACPI_REPORT_ERROR (("Method _WAK failed, %s\n", acpi_format_exception
-> (status))); +	}
-> +	/* TBD: _WAK "sometimes" returns stuff - do we want to look at it? */
-> +
->  	/* Enable power button */
->
->  	(void)
-> acpi_set_register(acpi_gbl_fixed_event_info[ACPI_EVENT_POWER_BUTTON].enable
->_register_id,
+> On March 30, 2005 01:37, Yu, Luming wrote:
+> > On Monday 28 March 2005 16:02, Shawn Starr wrote:
+> > > However, trying echo "1" to /proc/acpi/sleep the system attempts to
+> > > (standby) and aborts:
+> > >
+> > > [4295945.236000] PM: Preparing system for suspend
+> > > [4295946.270000] Stopping tasks:
+> > > =======================================================================
+> > >== == == [4295946.370000] Restarting tasks... done
+> > >
+> > > We get no reason as to why it quickly aborts.
+> >
+> > echo 1 to acpi/sleep means S1 called standby.
+> > echo 3 to acpi/sleep means S3 called STR: sleep to ram
+> > echo 4 to acpi/sleep means S4 called STD: sleep to disk
+> >
+> > If you system just support S0, S3, S4, S5,
+> > NO S1 support.
 
 -- 
 Thanks,
