@@ -1,14 +1,14 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: 2.6.2 ACPI problem
-Date: 17 Feb 2004 01:05:15 -0500
+Subject: Re: 2.6.3-rc3 (and possibly earlier 2.6): weird hang and oopses
+Date: 17 Feb 2004 01:26:13 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1076997915.2510.15.camel@dhcppc4>
-References: <BF1FE1855350A0479097B3A0D2A80EE0023E8C53@hdsmsx402.hd.intel.com>
+Message-ID: <1076999173.2508.30.camel@dhcppc4>
+References: <A6974D8E5F98D511BB910002A50A6647615F214C@hdsmsx402.hd.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <BF1FE1855350A0479097B3A0D2A80EE0023E8C53-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>
+In-Reply-To: <A6974D8E5F98D511BB910002A50A6647615F214C-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,78 +17,109 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Lenar =?ISO-8859-1?Q?L=F5hmus?= <lenar-w3PkqIkA8A2zQB+pC5nmwQ@public.gmane.org>
-Cc: Linux Kernel Mailinglist <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Alessandro Suardi <alessandro.suardi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Lenar,
-Did this start in 2.6.2, or did it happen with previous kernels too?=20
-Does it also happen in 2.6.3?
+Alessandro,
+Sure looks like a failure in the ACPI processor driver.
 
-On Tue, 2004-02-10 at 09:33, Lenar L=F5hmus wrote:
-> Hi,
->=20
-> Having problems here with ACPI on Compaq Evo N610c laptop.
-> Everything boots up fine except when loading battery module
-> one gets this:
->=20
->     ACPI-1120: *** Error: Method execution failed
-> [\_SB_.C045.C059.C0E2.C13F] (Node c157bd40),
-> AE_AML_UNINITIALIZED_LOCAL
->     ACPI-1120: *** Error: Method execution failed
-> [\_SB_.C045.C059.C0E2.C14E] (Node c157bc40),
-> AE_AML_UNINITIALIZED_LOCAL
->     ACPI-1120: *** Error: Method execution failed [\_SB_.C198._BTP]
-> (Node c1577d20), AE_AML_UNINITIALIZED_LOCAL
-> ACPI: Battery Slot [C198] (battery present)
-> ACPI: Battery Slot [C199] (battery absent)
->=20
-> Tried with and without RELAXED_AML.
->=20
-> Now despite this machine seems to work fine until kde's laptop daemon
-> does something I'm not aware of which results in
-> these lines in dmesg:
->=20
-> Feb 10 17:52:35 debian kernel:     ACPI-0245: *** Error: Cannot
-> release
-> Mutex [_GL_], not acquired
-> Feb 10 17:52:35 debian kernel:     ACPI-1120: *** Error: Method
-> execution failed [\_SB_.C045.C059.C0E2.C12C] (Node c157bf80),
-> AE_AML_MUTEX_NOT_ACQUIRED
-> Feb 10 17:52:35 debian kernel:     ACPI-1120: *** Error: Method
-> execution failed [\_SB_.C045.C059.C0E2.C13F] (Node c157bd40),
-> AE_AML_MUTEX_NOT_ACQUIRED
-> Feb 10 17:52:35 debian kernel:     ACPI-1120: *** Error: Method
-> execution failed [\_SB_.C045.C059.C0E2.C145] (Node c157bcc0),
-> AE_AML_MUTEX_NOT_ACQUIRED
-> Feb 10 17:52:35 debian kernel:     ACPI-1120: *** Error: Method
-> execution failed [\_SB_.C045.C059.C0E2.C14C] (Node c157bc60),
-> AE_AML_MUTEX_NOT_ACQUIRED
-> Feb 10 17:52:35 debian kernel:     ACPI-1120: *** Error: Method
-> execution failed [\_SB_.C14C] (Node c1577ee0),
-> AE_AML_MUTEX_NOT_ACQUIRED
-> Feb 10 17:52:35 debian kernel:     ACPI-1120: *** Error: Method
-> execution failed [\_SB_.C198._BST] (Node c1577da0),
-> AE_AML_MUTEX_NOT_ACQUIRED
->=20
-> Aftwerwards whole KDE hangs (but that's probably KDE's problem) also
-> trying to run 'acpi' on command line stalls and is not interruptible.
-> Shutdown stalls do.
->=20
-> Any solutions or something to try?
+Please confirm your system is otherwise happy when you disable the
+processor driver.  eg. CONFIG_ACPI_PROCESSOR=n
 
-Well, to treat the symptom (and isolate the problem) see if things work
-better when you disable the battery driver:
+Also, it would be helpful to know if this failure started recently or
+you saw it in previous releases, b/c we've made some changes to the
+processor driver recently.
 
-CONFIG_ACPI_BATTERY=3Dn
-
-(or simply remove the battery driver under /lib/modules...)
-
-cheers,
+thanks,
 -Len
 
+ps. acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org is the preferred alias to send
+Linux ACPI issues -- it includes linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org which is a small
+sub-set.
 
-
+On Mon, 2004-02-16 at 17:47, Alessandro Suardi wrote:
+> [CC:ing linux-acpi since some acpi stuff appears in backtraces]
+> 
+> While apparently doing nothing special (possibly a 'rm' on a
+>   regular ext3 filesystem) my laptop hung. Not completely, as
+>   I could
+> 
+>   * switch virtual desktops within Ximian Desktop 2
+>   * click on the kill window top right button, see the "app is
+>      not responding, kill it anyway ?" dialog, say ok, see the
+>      gnome-terminal vanish
+>   * Alt-Fn to virtual consoles, type a login name (but getting
+>      no prompt for the password - this hung)
+>   * Alt-SysRq
+> 
+> 
+> Trying to get more info, I Alt-SysRq-P seeing this (handcopied
+>   but should be fairly reliable :) :
+> 
+> 
+> Pid: 0, comm:     swapper
+> EIP: 0060: acpi_processor_idle+0x13c/0x1cb
+> 
+>   default_idle+0x0/0x27
+>   rest_init+0x0/0x5e
+>   acpi_nt_copy_ipackage_to_ipackage+0x69/0xdb
+>   default_idle+0x0/0x27
+>   rest_init+0x0/0x5e
+>   cpu_idle+0x2e/0x37
+>   start_kernel+0x182/0x1b0
+>   unknown_bootoption+0x0,0xff
+> 
+> 
+> While copying this down, there were 'ps' oopses at regular
+>   intervals (say 2/3 minutes apart from each other), with this
+>   further oops trace:
+> 
+>   pid_revalidate+0x28/0xd2
+>   pid_revalidate+0x41/0xd2
+>   dput+0x22/0x21f
+>   link_path_walk+0x61b/0x957
+>   buffered_rmqueue+0xc1/0x15a
+>   __alloc_pages+0xa4/0x342
+>   proc_info_read+0x74/0x155
+>   filp_open+0x67/0x69
+>   vfs_read+0xbc/0x127
+>   sys_read+0x42/0x63
+>   sysenter_past_esp+0x52/0x71
+> 
+> And right after each oops a further trace, with the warning
+>   that 'ps' exited with a preempt_count of 1:
+> 
+> Bad: scheduling while atomic
+> 
+>   schedule
+>   unmap_page_range
+>   unmap_vmas
+>   exit_mmap
+>   mmput
+>   do_exit
+>   do_divide
+>   do_page_fault
+>   acpi_processor_set_performance
+>   error_code
+>   file_read_actor
+> 
+> There was more, but I couldn't copy further info due to pressing
+>   time constraints. This isn't the first time a 2.6.x kernel hangs
+>   on me, and IIRC 2.6.1 never did.
+> 
+> 
+> Oh, and of course I still can't Alt-SysRq-B :(
+> 
+> 
+> Thanks for looking into this, ciao,
+> 
+> --alessandro
+> 
+>   "Two rivers run too deep
+>    The seasons change and so do I"
+>        (U2, "Indian Summer Sky")
+> 
 
 
 
