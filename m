@@ -1,10 +1,12 @@
-From: 관리자<kyongse-8eaMts54rL0AvxtiuMwx3w@public.gmane.org>
-Subject: [광고]대명콘도부문 브랜드파워1위 기념이벤트
-Date: Mon, 24 Mar 2003 03:06:45 -0600
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: [20030321] Failed to acquire semaphore
+Date: Sun, 23 Mar 2003 21:30:25 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E18x9ri-0004Ul-00@sc8-sf-list1.sourceforge.net>
-Content-Type: text/html; charset="ks_c_5601-1987"
+Message-ID: <20030323203025.GA13039@hell.org.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,145 +18,92 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi,
+I recently managed to compile a (hopefully) stable 2.4.21-pre5 with latest
+ACPI. Since this kernel required heavy loads of manual patching (the XFS
+patch comes only for 2.4.20, swsusp-beta19 was for earlier ACPI, CPUfreq
+doesn't get on well with the latter), and furthermore, I wasn't always sure
+of what I was doing, I'm curious whether the error below is something
+specific. I'm particularly interested in the following changes I made to
+drivers/acpi/system.c. It was originally
+#v+ (around line 340)
+        /* disable interrupts and flush caches */
+        ACPI_DISABLE_IRQS();
+        ACPI_FLUSH_CPU_CACHE();
 
-<html>
+        /* perform OS-specific sleep actions */
+        if(swsusp) { /* we just ignore acpi architecture for the moment */
+                software_suspend_pending(); /* when we return, this is
+resume */
+                status = AE_OK;
+        } else {
+        status = acpi_system_suspend(state);
 
-<head>
-<title>골프,스키외 부대시설 10가지 무료이용</title>
-</head>
+        /* Even if we failed to go to sleep, all of the devices are in an
+ * suspended
+         * mode. So, we run these unconditionaly to make sure we have a
+         * usable system
+         * no matter what.
+         */
+        acpi_leave_sleep_state(state);
+        acpi_system_restore_state(state);
 
-<body bgcolor="white" text="black" link="blue" vlink="purple" alink="red">
-<p>&nbsp;</p>
-<table border="0" cellpadding="0" cellspacing="1" width="580" bgcolor="#cccccc" align="center">
-    <tr>
-        <td bgcolor="#669933" valign="top">
-            <table border="0" cellpadding="0" cellspacing="0" width="578">
-                <tr>
-                    <td colspan="2" bgcolor="#f9f9f9" align="left" >
-                        <p><a href="http://www.condolo.com" target="_blank"><img src="http://www.condolo.com/mail/images/mail2_01.jpg" width="260" height="37" border="0"></a></p>
-                    </td>
-                </tr>
-                <tr>
-                    <td width="306">
-                        <p><img src="http://www.condolo.com/mail/images/mail2_02.jpg" width="306" height="186" border="0"></p>
-                    </td>
-                    <td width="272">
-                        <p><img src="http://www.condolo.com/mail/images/mail2_03.jpg" width="272" height="186" border="0"></p>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <p><img src="http://www.condolo.com/mail/images/mail2_04.jpg" width="306" height="56" border="0"></p>
-                    </td>
-                    <td>
-                        <p><img src="http://www.condolo.com/mail/images/mail2_05.jpg" width="272" height="56" border="0"></p>
-                    </td>
-                </tr>
-            </table>
-            <table border="0" cellpadding="0" cellspacing="0" width="578">
-                <tr>
-                    <td rowspan="2">
-                        <p><img src="http://www.condolo.com/mail/images/mail2_06.jpg" width="377" height="215" border="0" usemap="#ImageMap1"></p>
-                    </td>
-                    <td>
-                        <p><a href="http://www.condolo.com/html/sub0701.php" target="_blank"><img src="http://www.condolo.com/mail/images/mail2_07.jpg" width="201" height="36" border="0"></a></p>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <p><img src="http://www.condolo.com/mail/images/mail2_08.jpg" width="201" height="179" border="0"></p>
-                    </td>
-                </tr>
-            </table>
-            <table align="center" border="0" cellpadding="0" cellspacing="0" width="512" bgcolor="#85ad5c">
-                <tr>
-                    <td width="237">
-                        <p><img src="http://www.condolo.com/mail/images/mail2_13.gif" width="237" height="34" border="0"></p>
-                    </td>
-                    <td width="38">
-                        <p>&nbsp;</p>
-                    </td>
-                    <td width="237">
-                        <p><img src="http://www.condolo.com/mail/images/mail2_14.gif" width="237" height="34" border="0"></p>
-                    </td>
-                </tr>
-                <tr>
-                    <td align="right">
-                        <p><img src="http://www.condolo.com/mail/images/mail2_09.jpg" width="199" height="131" border="0"></p>
-                    </td>
-                    <td>
-                        <p>&nbsp;</p>
-                    </td>
-                    <td align="left">
-                        <p><img src="http://www.condolo.com/mail/images/mail2_10.jpg" width="199" height="131" border="0"></p>
-                    </td>
-                </tr>
-                <tr>
-                    <td align="right">
-                        <p><img src="http://www.condolo.com/mail/images/mail2_17.gif" width="199" height="75" border="0"></p>
-                    </td>
-                    <td>
-                        <p>&nbsp;</p>
-                    </td>
-                    <td>
-                        <p><img src="http://www.condolo.com/mail/images/mail2_18.gif" width="199" height="75" border="0"></p>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <table border="0" cellpadding="0" cellspacing="0" width="100%">
-                            <tr>
-                                <td width="30%">                        <p><img src="http://www.condolo.com/mail/images/mail2_15.gif" width="34" height="34" border="0"></p>
-                                </td>
-                                <td width="70%" align="right">
-                                    <p><a href="http://www.condolo.com/html/sub0502.php" target="_blank"><img src="http://www.condolo.com/mail/images/go.gif" width="68" height="26" border="0"></a></p>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                    <td>
-                        <p>&nbsp;</p>
-                    </td>
-                    <td align="right">
-                        <table border="0" cellpadding="0" cellspacing="0" width="100%">
-                            <tr>
-                                <td width="80%" align="right">
-                                    <p><a href="http://www.condolo.com/html/sub0501.php" target="_blank"><img src="http://www.condolo.com/mail/images/go.gif" width="68" height="26" border="0"></a></p>
-                                </td>
-                                <td width="20%" align="right">                        <p><img src="http://www.condolo.com/mail/images/mail2_16.gif" width="34" height="34" border="0"></p>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-            </table>
-            <br>
-            <table align="center" border="0" cellpadding="8" cellspacing="1" width="540" bgcolor="white">
-                <tr>
-                    <td bgcolor="#669933">
-                        <p><font size="2" color="black">[본메일 발송주소는 발신 전용이므로 
-                        문의는 </font><A href="mailto:feel_blue_2000-A7HHaXTFBl7R7s880joybQ@public.gmane.org"><font size="2" color="black">메일(feel_blue_2000@hanmail.net)</font></A><font size="2" color="black">을 이용해 주십시오.]<br><br>귀하의 승락없이 홍보성 
-                        전자 우편을 보내게 된 점 정중히 사과 드립니다. 정보통신망이용촉진법 
-                        규정을 준수하여 광고메일임을 표시하였으며, 저희는 귀하의 
-                        전자우편 주소 외 어떠한 개인정보도 가지고 있지 않으므로 
-                        안심하시기 바랍니다. 수신을 원치 않으시면 수신거부를 
-                        클릭해 주십시요. &nbsp;&nbsp;&nbsp;<A href="
-mailto:관리자_<kyongse-8eaMts54rL0AvxtiuMwx3w@public.gmane.org>?subject=수신거부&Body=메일수신(acpi-devel@lists.sourceforge.net)을 원치않습니다"><img src="http://www.condolo.com/mail/images/nobutton.gif" align="textTop" width="60" height="19" border="0" alt="수신거부"></A></font></p>
-                    </td>
-                </tr>
-            </table>
-<IMG height=0 src="http://www.condolo.com/s_cou/count.cgi?mail2" width=0 border=0>
-        </td>
-    </tr>
-</table>
+        /* make sure interrupts are enabled */
+        ACPI_ENABLE_IRQS();
+#v-
 
-<map name="ImageMap1">
-<area shape="RECT" coords="139,148,353,170" href   ="mailto:feel_blue_2000-A7HHaXTFBl7R7s880joybQ@public.gmane.org">
-<area shape="RECT" coords="140,172,326,192" href   ="http://www.condolo.com" target="_blank">
-</map></body></HTML>
+And what I changed was:
+#v+
+        if(swsusp) { /* we just ignore acpi architecture for the moment */
+                software_suspend_pending(); /* when we return, this is
+resume */
++                acpi_leave_sleep_state(state);
+                status = AE_OK;
+        } else {
+        status = acpi_system_suspend(state);
 
+        /* Even if we failed to go to sleep, all of the devices are in an
+ * suspended
+         * mode. So, we run these unconditionaly to make sure we have a
+         * usable system
+         * no matter what.
+         */
+        acpi_leave_sleep_state(state);
+        acpi_system_restore_state(state);
++        }
 
+        /* make sure interrupts are enabled */
+#v-
 
+Ad.1 swsusp-beta19 expects this, but since the patch is against a previous
+version, and the code has changed, I had to do it that way. I don't know if
+it's the right way...
+Ad.2 The code won't compile without the bracket.
+
+Well, the particular error I'm seeing at boot time is:
+#v+
+Mar 23 20:12:30 nadir kernel: Transparent bridge - Intel Corp. 82801BAM/CAM PCI Bridge
+Mar 23 20:12:30 nadir kernel: schedule_task(): keventd has not started
+Mar 23 20:12:30 nadir kernel: ACPI: PCI Interrupt Link [LNKE] enabled at IRQ 10
+Mar 23 20:12:30 nadir kernel: ACPI: PCI Interrupt Link [LNKF] enabled at IRQ 11
+Mar 23 20:12:30 nadir kernel: ACPI: PCI Interrupt Link [LNKG] enabled at IRQ 10
+Mar 23 20:12:30 nadir kernel: ACPI: PCI Interrupt Link [LNKH] enabled at IRQ 5
+Mar 23 20:12:30 nadir kernel: Initializing RT netlink socket
+Mar 23 20:12:30 nadir kernel:      osl-0888 [24] os_wait_semaphore     : Failed to acquire semaphore[cfff74c0|1|0], AE_TIME
+Mar 23 20:12:30 nadir kernel:   utmisc-0743 [23] ut_acquire_mutex      : Thread 0 could not acquire Mutex [ACPI_MTX_Events] AE_TIME
+#v-
+
+Occasionally (e.g. upon a notify or event), the two last lines reappear,
+and ACPI events are not handled otherwise (i.e. acpid fails to notice
+them). Furthermore, resuming from S1 floods the screen with the above
+messages, but the system is working nonetheless. All the ACPI subsystem I
+rely on (i.e. performance / cooling method switching, readings, etc.) seems
+to be working fine besides that.
+I'll be grateful for any help, TIA, best regards,
+
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
