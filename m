@@ -1,14 +1,11 @@
-From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Subject: Re: ACPI vs PCI: configuration space
-Date: Thu, 19 Jun 2003 00:00:21 +0100
+From: Bjorn Wesen <bjorn.wesen-VrBV9hrLPhE@public.gmane.org>
+Subject: usb ohci driver's PM
+Date: Thu, 19 Jun 2003 01:55:16 +0200 (CEST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030618230021.GZ24357@parcelfarce.linux.theplanet.co.uk>
-References: <20030618221752.GY24357@parcelfarce.linux.theplanet.co.uk> <20030618223003.GA2134@kroah.com>
+Message-ID: <Pine.LNX.4.33.0306190153110.28182-100000@godzilla.se.axis.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20030618223003.GA2134-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,23 +14,18 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Cc: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jun 18, 2003 at 03:30:03PM -0700, Greg KH wrote:
-> So for i386, what would domain be?
+Before I start to dig. Does anyone know if the OHCI USB driver (in 2.5.71) 
+is supposed to not lock-up during S3 resume (with no devices connected, it 
+freezes during Resuming devices after some printouts that I missed...)
 
-The `seg' argument currently in place to all these macros ;-)
+I.e. might it be a work in progress, like ? :)
 
-> Anyway, yeah, I agree with try 5, that seems the most sane.
+/Bjorn
 
-Yay.  you'll have a patch tomorrow.
 
--- 
-"It's not Hollywood.  War is real, war is primarily not about defeat or
-victory, it is about death.  I've seen thousands and thousands of dead bodies.
-Do you think I want to have an academic debate on this subject?" -- Robert Fisk
 
 
 -------------------------------------------------------
