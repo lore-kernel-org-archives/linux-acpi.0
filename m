@@ -1,14 +1,14 @@
-From: Mark Stocker <pezed-K4nppHclNNFeoWH0uzbU5w@public.gmane.org>
-Subject: acpi on toshiba satellite 1625CDT
-Date: Mon, 10 Mar 2003 04:04:14 -0500
+From: Stephan Krings <stephan-MC3rjLPHZ0jJ0Y7HFzmx4Q@public.gmane.org>
+Subject: Re: Compaq evo n800v
+Date: Mon, 10 Mar 2003 10:19:35 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200303100404.14947.pezed@pezed.net>
+Message-ID: <15980.22695.764082.140067@hotzenplotz.chateau-neukoelln.de>
+References: <1047125223.5077.28.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1047125223.5077.28.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,52 +17,98 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Anders Persson <anders.persson-sT6loi8rTDSci/EUP2OQSw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I've been trying for about a week now to get acpi working properly on this 
-machine (using 2.4.21-pre5 and the latest acpi patch) but im just not having 
-much luck.  The annoying problem is the fan.  The fan comes on as it should, 
-but then it will never go off again. The fan is "detected" and shows up under 
-/proc/acpi/fan/FAN/ and under /proc/acpi/power_resource/PFAN/.  Both of these 
-directories have a "state" file which show:
 
-mark@lappy /proc/acpi/fan/FAN]$ cat state
-status:                  off
+Hello,
 
-[mark@lappy /proc/acpi/power_resource/PFAN]$ cat state
-state:                   off
-system level:            S0
-order:                   0
-reference count:         0
+> 2.4.20 kernel +
+> patch-2.4.21-pre4.gz +
+> acpi-20030218-2.4.21-pre4.diff.gz +
+> linux-2.4.18-acpi-20020709-dsdt.patch +
+> custom dsdt
 
-"echo 0 > /proc/acpi/fan/FAN/state" shows the following:
-acpi_power-0363 [50] acpi_power_transition : Error transitioning device [FAN] 
-to D0
-acpi_bus-0496 [49] acpi_bus_set_power    : Error transitioning device [FAN] to 
-D0
+I'm also using 2.4.20 but with a slightly older ACPI-patch.
 
-"echo 1 > /proc/acpi/fan/FAN/state" shows:
+> AC- and battery-status works just fine, as well as the Fn-combinations
+> for screen-brightness.
 
-acpi_bus-0447 [49] acpi_bus_set_power    : Device does not support D1
+Same for me, although the Fn-keys for changing the display brightness
+no longer work, when DRI is enabled in XFree86. But I guess this has
+nothing to do with ACPI but is a problem with the XFree86 driver for
+Radeon cards.
 
-/proc/acpi/power_resouce/PFAN isnt writable.
+> But no matter how low the CPU-load, the clock frequency is always at
+> max.
 
-cat /proc/acpi/event will properly show when the lid switch or power button is 
-pressed.
-battery info doesnt appear to be read correctly as it shows a battery even 
-when i remove the battery. (doesnt bother me)
+I have the same problem. I already wrote about this problem some weeks
+ago but got no answer up to now. The funny thing is that toggling the
+frequency does indeed work (You can recognize that if you're running a
+very CPU intensive task. It'll run slightly slower), but ACPI does not
+detect the change.
 
-thermal info appears to be read correctly (temp goes up and down with system 
-load).
+I didn't really care much about this problem because the notebook just
+seems to do the right thing: It'll automatically switch to a lower CPU
+frequency when offline and reenable it again once power is online
+again. Seems the BIOS is managing this.
 
-the fan problem is the only thing that is really bothering me (the fan is 
-loud!!).  i've tried to create my own dsdt file with no luck.  in the stock 
-dsdt file Device(FAN) appears to be an alias to PowerResource PFAN.
-i've searched the net over and cant seem to find any info on this laptop and 
-acpi.  :(
-any help or tips would be greatly appreciated!
-thanks!
+> Also, the fan(s?) are always on making noise (at relatively low
+> speed but still too high compared to under Win-XPP).
+
+I also see this behaviour. Although the fan is reported to be off (all
+fan states in /proc/acpi/fan/*/state say so), it runs at low speed.
+
+I'm using a little hack in one of my startup-scripts to circumvent
+this problem. The following shell function will check if the fan is
+reported to be off. If it is, it will enforce this for all 4 states
+switching the fan on and turning it off immediatly. Works fine for me.
+
+# Make sure the fan is really off, if the ACPI system reports so.
+function check_fan () {
+    local fan_on="no"
+    local i
+
+    for i in /proc/acpi/fan/*/state; do
+	grep -q 'status: *on$' $i
+	if [ $? = 0 ]; then
+	    fan_on="yes"
+	    break
+	fi
+    done
+
+    if [ $fan_on == "no" ]; then
+	for i in /proc/acpi/fan/*/state; do
+	    echo 0 > $i
+	    echo 3 > $i
+	done
+    fi
+}
+
+> I am not really familiar with how this is supposed to work. Can I force
+> the CPU to run on the low clock-frequency when, e.g., running on
+> batteries?
+
+It does so already, as I noted above. Try it out: Use a CPU intensive
+tool which reports its progress and speed (I used transcode for that)
+and you'll notice, that it'll run slower once you pull the plug.
+
+You can also notice this by looking at the CPU temperature. It'll
+decrease heavily when going offline from power.
+
+It would still be nice to to able to control this manually, I think.
+
+> Can I set load-thresholds when the speed-step functionality
+> should take action? Grateful for any help on this!
+
+Should be possible by writing a small monitoring daemon. But since
+manually toggling the CPU frequency does not work right now, that
+won't help you much right now.
+
+Regards,
+
+Stephan
 
 
 -------------------------------------------------------
