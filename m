@@ -1,13 +1,14 @@
-From: "Gwendolyn F. Orozco" <g.orozconz-B1ihxCFgnM5BWQWeTLFoew@public.gmane.org>
-Subject: Powerful weightloss now available where you are.
-Date: Fri, 18 Jun 2004 22:49:13 +0400
+From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Subject: Re: Moving from /proc/acpi  to /sys
+Date: Fri, 18 Jun 2004 20:43:36 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <98b901c45564$7cd3e10b$6cf39ebf@empresas.retecal.es>
+Message-ID: <20040618194336.GL20511@parcelfarce.linux.theplanet.co.uk>
+References: <44BDAFB888F59F408FAE3CC35AB470415FC28E@orsmsx409>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <44BDAFB888F59F408FAE3CC35AB470415FC28E-sBd4vmA9Se5uxbqukCiDuA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,34 +17,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Keshavamurthy, Anil S" <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello, I have a special offer for you...
-WANT TO LOSE WEIGHT?
-The most powerful weightloss is now available
-without prescription. All natural Adipren720
-100% Money Back Guarantée!
-- Lose up to 19% Total Body Weight.
-- Loss of 20-35% abdominal Fat.
-- Up to 300% more Weight Loss while dieting.
-- Increase metabolic rate by 76.9% without Exercise.
-- Reduction of 40-70% overall Fat under skin.
-- Suppresses appetite for sugar.
-- Burns calorized fat.
-- Boost your Confidence level and Self Esteem.
-Get the facts about all-natural Adipren720 <http://diet40.com/>
+On Fri, Jun 18, 2004 at 10:41:17AM -0700, Keshavamurthy, Anil S wrote:
+> Hi,
+> 	I am curious to know whether anybody is working or even planning
+> to port 
+> all the acpi related entries from /proc/acpi to the corresponding
+> /sysfs entries. 
 
+Alex Williamson had a patch to fill in the methods under /sys ...
 
-
----- system information ----
-resources Users generic often operationally rules show locale 
-a text platform tags term Collation Internationalization]The list 
-progress world geographic specification document preferences session-like
-collation 
-case Localized set limited shorthand index mistake archive 
-disclose interchange read know match some fallback logic 
-
+-- 
+"Next the statesmen will invent cheap lies, putting the blame upon 
+the nation that is attacked, and every man will be glad of those
+conscience-soothing falsities, and will diligently study them, and refuse
+to examine any refutations of them; and thus he will by and by convince 
+himself that the war is just, and will thank God for the better sleep 
+he enjoys after this process of grotesque self-deception." -- Mark Twain
 
 
 -------------------------------------------------------
