@@ -1,14 +1,14 @@
 From: "Michael Frank" <mhf-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
-Subject: Re: problem with cpu eating too much power, prize given if solved
-Date: Fri, 25 Jun 2004 23:52:37 +0800
+Subject: Re: reading files in /proc/acpi hangs machine for a short time
+Date: Fri, 25 Jun 2004 23:57:33 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <opr95qdzjj4evsfm@smtp.pacific.net.th>
-References: <20040624153513.GB19545@rap.rap.dk> <opr930o2uv4evsfm@smtp.pacific.net.th> <20040625124637.GA14795@rap.rap.dk>
+Message-ID: <opr95ql7ja4evsfm@smtp.pacific.net.th>
+References: <20040625082929.45335181@tethys.solarsys.org> <opr95d74mf4evsfm@smtp.pacific.net.th> <20040625135036.23f487a0@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; format=flowed; delsp=yes; charset=iso-8859-1
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040625124637.GA14795-EittdKFJ/bZ/SzgSGea1oA@public.gmane.org>
+In-Reply-To: <20040625135036.23f487a0-bi+AKbBUZKZeoWH0uzbU5w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,102 +17,95 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-Cc: =?iso-8859-1?Q?Keld_J=F8rn_Simonsen?= <keld-6PR53cSIHaE@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: wwp <subscript-GANU6spQydw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 25 Jun 2004 14:46:38 +0200, Keld J=F8rn Simonsen <keld-6PR53cSIHaE@public.gmane.org> =
-wrote:
+On Fri, 25 Jun 2004 13:50:36 +0200, wwp <subscript-GANU6spQydw@public.gmane.org> wrote:
 
-> On Fri, Jun 25, 2004 at 01:40:04AM +0800, Michael Frank wrote:
->> On Thu, 24 Jun 2004 17:35:13 +0200, Keld J=F8rn Simonsen <keld-yTTtVnc/hhA@public.gmane.org=
-k>
->> wrote:
+> Hello Michael,
+>
+>
+> On Fri, 25 Jun 2004 19:29:54 +0800 "Michael Frank" <mhf-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org> =
+wrote:
+>
+>> On Fri, 25 Jun 2004 08:29:29 +0200, wwp <subscript-GANU6spQydw@public.gmane.org> wrote:
 >>
->> >Dear ACPI developers,
->> >I have a problem with my Acer Travelmate 233.
->> >Many times I just want to read the screen, eg emails or documents,
->> >and then still the cpu will be in idle mode, where
->> >it uses 7.5 W out of the about 15 W that the whole machine uses.
->> >I have found out from Intel data sheets that my
->> >Mobile Intel Celeron 2.0 GHz CPU consumes 7.5 W in idle loop/
->> >stop grant/sleep states, (and 5.0 W i deep sleep state).
->> >So I would like to have the CPU stopped completely (consuming 0 W)
->> >while I still could read the screen. In that way I should
->> >be able to have about double the lifetime on the battery,
->> >going to about 7 hours from the 3.5 hours I have now.
->> >I would like the machine to wake up again by any keystroke
->> >on the keyboard or mouse input. I would like the input to be
->> >reacted upon (not just used to wake up the system, and
->> >then forgotten).
->> >I do not have the skills to program this myself, so
->> >instead I offer a prize of USD 1000 to the person(s) that
->> >can give me a patch for kernel 2.6 and appropiate documentation
->> >that can solve the above problem. The patch needs to be GPL,
->> >and demonstrably run on my laptop. I need the patch before
->> >2004-10-01, after what date the prize offer expires.
->> >I would like that the patch was written in a general way to cover for
->> >CPUs that burn considerable power in idle loop and other states, so t=
-hat
->> >other users can benefit from it. Also I would prefer that the patch b=
-e
->> >rolled into the normal ACPI kernel source tree, but the latter reques=
-t
->> >is not a condition for the prize.
+>> > Hi there,
+>> >
+>> > many acpi programs that show the battery/etc. usage that I tested ar=
+e making
+>> > my system not to respond for a very short while, but periodically. F=
+or
+>> > instance, the mouse is being locked for 1/n of a second, which is no=
+t a big
+>> > loss of performance, but it really damn itchy for a normal (intensiv=
+e) usage
+>> > of my Dell Inspiron 8200 laptop (kernel 2.4.26). I do remember of so=
+me
+>> > programs that were not producing such itchyness a long time ago (may=
+be
+>> > because the kernel things were different?).
+>> >
+>> > I've found that if I some files from /proc/acpi (let's say battery s=
+tate), I
+>> > get the same behaviour.
+>> >
+>> > So my questions are:
+>> > - is this a known issue?
+>> > - program/kernel/dsdt/what-else issued?
+>> > - are there known workarounds?
+>> > - is it possible to get the acpi states from another place that /pro=
+c (if only it
+>> > doesn't show the same problem)?
 >> >
 >>
->> Nice idea but it wont be possible to program it as your hardware power=
+>> First figure out whether it is the PM app or ACPI.
+>>
+>> 1) Disable all PM apps touching /proc/acpi.
+>>
+>> 2) In a seperate terminal or VT run a script like
+>>
+>> while :; do cat /proc/acpi/xxx/xxx/what_you_want_to_test > /dev/null; =
+usleep 300000; done
+>>
+>> Example sleeps 300ms (300000us) after every read, try various settings
+>>  from as low as 100ms to 10s and see how you system behaves.
+>>
+>> If you don't have usleep sleep will do in 1s increments...
+>>
+>> Note also can try cat /proc/acpi/battery/*/*
+>>
+>> Run it continuously in the background and hopefully the test will show=
+ problems
+>> due to ACPI proc accesses. If not, the PM  apps are the problem - are =
+these running
+>> big scripts or impose high system load somehow?
+>
+> Thanks for your reply :-).
+>
+> Excepted acpid 1.0.3, no (known) tool is playing with ACPI. When I run
+> wmpower/wmacpi or some other ACPI-aware PM tools, or if I do cat
+> /proc/acpi/battery/*/* by myself, then I can see the slowlyness (the pe=
+riod
+> depends on the wmpower refresh rate, or how often I do cat /proc/acpi/.=
+..).
+>
+> Without any of these attempts (wmpower or cat /proc/acpi/...), my syste=
+m
+> behaves normally. So it seems to me that accessing to files ini
+> /proc/acpi/bla/bla from C code or script behaves the same, it slows dow=
+n the
+> machine for a very short while, because of CPU eating.
+>
+
+Should not be like that. I have not encountered it on 2.4
+
+Suggest you file a bug report in kernel bugzilla with details of you HW
+so it gets looked into. Get some details of which files cause the problem=
 s
->> the CPU which takes 5w while it is powered. There is no partitioning
->> which allows you to remove power from the CPU while running the rest
->> and I am not aware of any system or standards which provide this kind
->> of partitioning...
->
-> Well, I don't know so much about ACPI, but I thought that you in S2
-> could shut down devices individually, and then at the end for my
-> purpose shut down the CPU completely, like a suspend to memory.
-> But maybe this is not doable.
->
+using the script and enclose the script as well.
 
-Again it's a nice idea.
-
-Again, It is a HW issue not ACPI issue because ACPI can only do
-what the HW supports.
-
-Also looked at datasheets and the rule of the game is that high
-performance CPU's draw 20% to 70%f of their maximum power
-statically. This is due to leakage of those 10s - soon 100s of
-millions of transistors.
-
-What you are asking is to put the CPU into S2 while the system
-does not notice.  You want CPU to respond to IO like keystrokes and
-mouse, the cursor should blink (I assume you don't need play videos),
-the kernels clock gets updated, all without using electricity when
-it's truly idle.
-
-The keystrokes and mouse could be handled by 8042 equivalent,
-starting the CPU, but what about the cursor driven by X and other
-interrupts and DMA by peripherials which are active?
-
-Your CPU Powersupply would have to go from 0V to normal conditions
-for every action required and CPU state would have to be restored the
-little job done and state saved and CPU powered down again.
-
-Todays  HW _can_not_ do this at all. Theoretical best case latency of
-core  power supplies will be several milliseconds from 0V, which is
-too slow to handle individual interrupts.
-
-Perhaps one day they fix the leakage problems (they do better all the
-time) or come up with a multi core CPU which has an slow core doing
-100s of MHz to keep things idling along and a facility to decouple the
-multi GHz core(s) for power down unless really needed.
-
-Then the OEM's (mainboard designers) have to support that kind of
-partitioned CPU power supply and ACPI  could do S2 for the high
-power CPU cores....
-
-	Best Regards
-	Michael
-
+	Regards
 
 
 -------------------------------------------------------
