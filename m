@@ -1,14 +1,14 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: ACPI Extensions for Display Adapters
-Date: Sat, 24 Jan 2004 01:16:43 +0100
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] Fix _STA checking in acpi_bus_add
+Date: 23 Jan 2004 23:43:27 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040124001643.GL25416@poupinou.org>
-References: <BF1FE1855350A0479097B3A0D2A80EE0CC8A41@hdsmsx402.hd.intel.com> <20040123231334.GJ25416@poupinou.org> <20040123234459.GB18100@hell.org.pl>
+Message-ID: <1074919407.14755.6.camel@dhcppc4>
+References: <200401021635.25419.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040123234459.GB18100-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+In-Reply-To: <200401021635.25419.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,28 +17,45 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Jan 24, 2004 at 12:44:59AM +0100, Karol Kozimor wrote:
-> Thus wrote Ducrot Bruno:
-> > On Fri, Jan 23, 2004 at 05:35:00PM -0500, Brown, Len wrote:
-> > > Volunteers?
-> > 
-> > This is perhaps time to add some attribute to sysfs?
+Applied.
+
+thanks Bjorn,
+-Len
+
+ps. did you find this because you've got a system where the actual
+get_status failed, or the _STA returned !present and that was ignored?
+
+On Fri, 2004-01-02 at 18:35, Bjorn Helgaas wrote:
+> In 2.6.1-rc1, acpi_bus_add() calls acpi_bus_get_status() to evaluate
+> _STA, but botches checking the return value.  The result is that _STA
+> is ignored (if it was evaluated correctly), or we check garbage (if
+> the evaluation failed).  Here's a patch to fix it:
 > 
-> BTW: did anybody actually think of moving the Linux-specific bits to sysfs?
-> I guess killing /proc/acpi would be a 2.7-thing though.
-> Best regards,
+> ===== drivers/acpi/scan.c 1.19 vs edited =====
+> --- 1.19/drivers/acpi/scan.c	Sun May 25 18:00:00 2003
+> +++ edited/drivers/acpi/scan.c	Fri Jan  2 16:14:25 2004
+> @@ -703,11 +703,11 @@
+>  	switch (type) {
+>  	case ACPI_BUS_TYPE_DEVICE:
+>  		result = acpi_bus_get_status(device);
+> -		if (!result)
+> -			break;
+> -		if (!device->status.present) 
+> +		if (ACPI_FAILURE(result) || !device->status.present) {
+>  			result = -ENOENT;
+> -		goto end;
+> +			goto end;
+> +		}
+> +		break;
+>  	default:
+>  		STRUCT_TO_INT(device->status) = 0x0F;
+>  		break;
+> 
 
-Sometimes, I'm thinking about, but well, never got time to do it (it's
-not in my priority list)...
-
--- 
-Ducrot Bruno
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
 
 
 -------------------------------------------------------
