@@ -1,14 +1,14 @@
-From: Markus Gutschke <markus-nyufa/AnP+9Wk0Htik3J/w@public.gmane.org>
-Subject: Re: lid switch on dell latitude d800 freezes system
-Date: Thu, 15 May 2003 22:02:20 -0700
+From: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
+Subject: Re: About dsdt of clevo 5600N
+Date: Fri, 16 May 2003 07:53:37 +0200 (CEST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3EC470DC.7080609@gutschke.com>
-References: <1053019947.4310.20.camel@localhost.localdomain> <1053049258.4929.4.camel@localhost.localdomain> <3EC46882.50102@mikehardy.net>
+Message-ID: <Pine.LNX.4.53.0305160752340.5724@dynast.gaugusch.at>
+References: <20030516021732.69eca85d.XaRz69@terra.es> <20030516035605.18dc60b8.XaRz69@terra.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3EC46882.50102-YPUHpfzIkGtIf6P1QZMOBw@public.gmane.org>
+In-Reply-To: <20030516035605.18dc60b8.XaRz69-pCzzcW6XgXY@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,97 +17,25 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Michael Hardy <mike-YPUHpfzIkGtIf6P1QZMOBw@public.gmane.org>
-Cc: Malcolm Caldwell <malcolm.caldwell-HU4z9rI8l8AQrrorzV6ljw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-As mentioned before, I do not see any of these problems. Screen blanking 
-works just fine when I close the lid. I get the ACPI event and then call 
-xset to (un)blank the screen from a script.
-
-I'd be happy to make my kernel (somewhat patched version of Linux 
-2.4.21-rc1-ac3 with ACPI patches) and X binaries (Debian unstable, XFree 
-  4.2.1.1) available to anybody who wants to investigate this problem 
-further.
-
+On May 16, Pere Casta=F1er <XaRz69-pCzzcW6XgXY@public.gmane.org> wrote:
+> How can I know if my laptop is capable of doing suspend on Ram (I supos=
+e
+> the tipical windows supend mode)? throght the dmesg?  Or I need more
+> patches?
+You have to do 'cat /proc/acpi/sleep' and see if S3 is available.
+Unfortunately, even if it is shown to be supported, it can't work with 2.=
+4
+kernels. Maybe try the latest 2.5 kernel, or use swsusp (swsusp.sf.net).
 
 Markus
-
-Michael Hardy wrote:
-> 
-> Seems to me like there are two separate paths to follow, one of which 
-> may only
-> be here because I haven't tested everything correctly -
-> 
-> 1) work with nvidia and/or Dell - if loading the nvidia driver causes an 
-> ACPI
->   interaction that locks the machine, it seems that it must be a vendor 
-> thing.
->   I'd go with nvidia first just because they at least *try*, and might know
->   something, then maybe followup with Dell
-> 
-> 2) work with the open source nv authors to see if they can work out DPMS 
-> for
->   the D800. This is where I might be ignorant, but I'm under the impression
->   screen blanking doesn't work with the nv driver and getting it to work 
-> would
->   get a very effective power-save state on lid close combined with ACPI S1.
->   Obviously doesn't get you 3D, but I'd be quite happy if this worked
-> 
-> Mainly, I'm just glad I'm not crazy and someone else sees what I do :-). 
-> I've
-> posted this on my D800 site, and I'll be happy to test and chronicle 
-> anything
-> anyone finds out.
-> 
-> Thanks for putting in the effort to try and isolate this-
-> -Mike
-> 
-> Malcolm Caldwell wrote:
-> 
->> Ok,
->>
->> I have more or less confirmed that the problem is, as Michael suggested,
->> the nvidia driver.  If I never start X the lid button does nothing
->> except log stuff into the log file.  With X started once, even if it is
->> no longer running running the system freezes.
->>
->> So - what now?  Report this to nvidia?  Try to work this out in some
->> other way?  Any hints where to look?
->>
->> On Fri, 2003-05-16 at 03:02, Malcolm Caldwell wrote:
->>  
->>
->>> Hello,
->>>
->>> I am running 2.4.21-rc1 with acpi patches.  I have also patched to run a
->>> custom dstc which I got from someone on the net.  (The interface at
->>> acpi.sourceforge.net fails to find the dstc that it says are there -
->>> however the author's email address is there and he sent it to me
->>> directly)
->>>
->>> The only problem is that the lid switch freezes the machine.  As far as
->>> I know the freeze only happens if something is reading from
->>> /proc/acpi/events (although I would have to do some more testing to
->>> verify this).
->>>
->>> Can anyone give any hints on how to go about fixing this?
->>>
->>>
->>>
->>> -------------------------------------------------------
->>> Enterprise Linux Forum Conference & Expo, June 4-6, 2003, Santa Clara
->>> The only event dedicated to issues related to Linux enterprise solutions
->>> www.enterpriselinuxforum.com
->>>
->>> _______________________________________________
->>> Acpi-devel mailing list
->>> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
->>> https://lists.sourceforge.net/lists/listinfo/acpi-devel
->>>
->>>   
-
-
+--=20
+__________________    /"\
+Markus Gaugusch       \ /    ASCII Ribbon Campaign
+markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org     X     Against HTML Mail
+                      / \
 
 
 -------------------------------------------------------
