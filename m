@@ -1,14 +1,14 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: [Fwd: Re: ASL help with latest acpi and compaq presario 2800t]
-Date: Tue, 11 Feb 2003 21:00:53 +0100
+From: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
+Subject: Re: redhat comment about intel not taking patches?
+Date: 10 Feb 2003 21:43:38 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030211200053.GQ25625@poup.poupinou.org>
-References: <64854.64.164.111.5.1044907496.squirrel@benham.net> <20030211133711.GL25625@poup.poupinou.org> <20030211171005.GA31041@benham.net>
+Message-ID: <1044913418.2077.0.camel@irongate.swansea.linux.org.uk>
+References: <20030210181607.2876.qmail@scrye.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20030211171005.GA31041-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org>
+In-Reply-To: <20030210181607.2876.qmail-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,54 +17,24 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org
-Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Kevin Fenzi <kevin-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Feb 11, 2003 at 09:10:05AM -0800, dbenham-FG1iuTdj8bisTnJN9+BGXg@public.gmane.org wrote:
-> On Tue, Feb 11, 2003 at 02:37:11PM +0100, Ducrot Bruno wrote:
-> > Exact.  I am completly wrong here.
-> > 
-> > You should consider to do something like that instead:
-> > 
-> > 
-> >                          Method(_OFF) {
-> >                              If(LOr(\_SB_.C020, LEqual(0x0, 0x1))) {
-> >                                 Store ("_OFF: already off ?", Debug)
-> >                             } Else {
-> >                                 C132(0x3, 0x0)
-> >                             }
-> >                         }
-> > 
-> > 
+On Mon, 2003-02-10 at 18:16, Kevin Fenzi wrote:
+> * Thu Nov 07 2002 Arjan van de Ven <arjanv-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> - - remove ACPI again because Intel is unwilling to take patches
 > 
-> What about using NOOP instead of the Store?  Would that work also?
-
-Store is here only to debug things.  You can kill it after testing.
-You can also reverse the logic in the If().
-
+> What patches are they talking about? 
 > 
-> > point 2) can not work here.
-> > An _OFF method must return nothing (see acpi specs 2.0b, 7.1.2)
-> > OSPM will call _OFF, then call _STA in order to check if
-> > the power ressource is really off.
-> > 
-> > Note also that the debug statement is only here to check if
-> > "LOr(\_SB_.C020, LEqual(0x0, 0x1)" is really for that.  I am
-> > really not sure here.  Hard to follow this ASL since
-> > the names are not, well, the best that can be choosen..
+> Is there any way we could fix up the communication breakdown between
+> RedHat/Intel?
 > 
-> I'm just starting to read the *gack* specs.  What did 1.0b say about
-> _OFF returning a value?  I'd lay odds the ASM is coded to v1 and not
-> v2...
 
-1.0b say the same thing (1.0b 7.4.3).
+ACPI hit lots of problems. The business about how to feed patches is
+one thats I think resolved. Andrew posted about the dual licensing
+arrangement a week or so ago
 
--- 
-Ducrot Bruno
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
 
 
 -------------------------------------------------------
