@@ -1,11 +1,14 @@
-From: alexh-rpjHciJLgqZBDgjK7y7TUQ@public.gmane.org
-Subject: ACPI error on 2.5.47-ac5
-Date: 16 Nov 2002 06:46:39 +0100
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Sreen blanking [was Re: acpi-20021101, Dell inspiron 8100 report.]
+Date: Sat, 16 Nov 2002 17:46:03 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <87lm3ukqww.fsf@lapper.ihatent.com>
+Message-ID: <20021116164603.GE691@poup.poupinou.org>
+References: <3DCDD9B7.8010508@student.umass.edu> <20021113191415.GE861@zaurus> <3DD524E5.8090709@student.umass.edu> <20021115190016.GA31990@atrey.karlin.mff.cuni.cz> <20021116133006.GA691@poup.poupinou.org> <20021116152354.GB293@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20021116152354.GB293-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,36 +17,62 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Mike <jabbera-oe7qfRrRQfesx2OscRBu2odd74u8MsAO@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I just hacked up 2.5.47-ac5 on my Comapq Evo n800c, and caught these
-in my bootlog:
+On Sat, Nov 16, 2002 at 04:23:54PM +0100, Pavel Machek wrote:
+> Hi!
+> 
+> > > > >>I am using acpi-20021101 on a dell inspiron 8100. When I try to go 
+> > > > >>into S1 sleep computer does not sleep. Te power button blinks on and 
+> > > > >>off, which is unusal, and the screen never blanks, even when I close 
+> > > > >>the lid. I do have acpid setup to send echo 1 > /proc/acpi/sleep
+> > > > >>
+> > > > >>Is there anything I can send to the list to help with diagnostics?
+> > > > >>   
+> > > > >>
+> > > > >
+> > > > >Screen staying on is normal. Does it wake up
+> > > > >when you press power?
+> > > > >
+> > > > > 
+> > > > >
+> > > > When I press power to restore the console is always locked up tight. I 
+> > > > cannot use keyboard or mouse, but if I am in X my X console usually 
+> > > > works after restore, but not all the time.
+> > > 
+> > > Hmm, strange.
+> > > 
+> > > > How can I make the screen blank when I go into sleep?
+> > > 
+> > > No idea, there is not much about screenblanking in acpi specs.
+> > > 
+> > 
+> > If you are lucky, try first DPMS.  If it doesn't work, you have to
+> 
+> DPMS does not work at least on toshiba 4030cdt. (tried long and hard).
 
-ACPI: AC Adapter [C11A] (on-line)
-ACPI: Power Button (FF) [PWRF]
-acpi_processor-1131 [19] acpi_processor_set_per: Transition failed
-acpi_processor-1779 [18] acpi_cpufreq_init     : Disabled P-States due to failure while switching.
-ACPI: Processor [C000] (supports C1 C2 C3, 8 throttling states)
-[ACPI Debug] Integer: 0000000000000E3A
-[ACPI Debug] Integer: 0000000000000DB8
-[ACPI Debug] Integer: 0000000000000D7C
-[ACPI Debug] Integer: 0000000000000D4A
-[ACPI Debug] Integer: 0000000000000CD2
-ACPI: Thermal Zone [TZ1] (53 C)
-ACPI: Thermal Zone [TZ2] (43 C)
-[ACPI Debug] Integer: 0000000000000CBE
-ACPI: Thermal Zone [TZ3] (16 C)
+That why I say 'If you are lucky'...   I was not so lucky too, unless
+I got the omke.pl for this purpose..
 
+> 
+> > know what kind of video chipset you have, then you should be able
+> > to control the Flat Panel controller (should be attached to the I2C
+> > interface of the video chipset), or control it via some register (again,
+> > of the video chip).
+> 
+> This looks like awfull lot of work, special for each notebook
+> :-(. Intel should define control method for blanking screen.
 
-Not that ACPI works to great witht he built-in DSDT, anyway. :)
+There is already DPMS for this purpose.  The only issue is OEM.
+AFAIK, this should also be per video chipset, not per notebook (in theory,
+of course...)
 
-mvh,
-A
 -- 
-Alexander Hoogerhuis                               | alexh-rpjHciJLgqZBDgjK7y7TUQ@public.gmane.org
-CCNP - CCDP - MCNE - CCSE                          | +47 908 21 485
-"You have zero privacy anyway. Get over it."  --Scott McNealy
+Ducrot Bruno
+http://www.poupinou.org        Page profaissionelle
+http://toto.tu-me-saoules.com  Haume page
 
 
 -------------------------------------------------------
