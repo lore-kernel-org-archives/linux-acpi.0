@@ -1,14 +1,11 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: Hardware state saving & X
-Date: Wed, 15 Oct 2003 21:13:12 +0200
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: acpi code size
+Date: 15 Oct 2003 15:36:09 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031015191312.GA982@elf.ucw.cz>
-References: <20031014235240.GD20789@elf.ucw.cz> <Pine.LNX.4.44.0310150924400.953-100000@localhost.localdomain>
+Message-ID: <1066246567.2534.43.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="=-kj50DVF4cRqzKl2qUddF"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0310150924400.953-100000-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,46 +14,144 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
-Cc: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Alan Hourihane <alanh-ASBjxr/nLg+TY6FTCsQk+9Bc4/FLrbF6@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>, linux-acpi <linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
 
-> > > Well, it depends on what X (and in general userspace) needs to know on a 
-> > > power-state transition. Alan, how does/will X behave differently for each 
-> > > power state that we can enter? 
-> > 
-> > Different scripts should run on apm -s (BIOS saves most of hw state)
-> > and S3 (we have to save most of hw state).
-> 
-> The fact that different behavior exists is completely obvious (refer to 
-> the question and documentation). The question was *how* it was different 
-> from a userpsace perspective. I.e. what exactly is saved, and what isn't. 
-> 
-> Under APM, the BIOS handles the state transition, but it does not know 
-> each device initimately, so the OS still has to handle some of the device 
-> state. 
+--=-kj50DVF4cRqzKl2qUddF
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-I guess you answered yourself ;-). X is hardware driver. On some
-machines, video is handled by bios during apm -s. That's not the case
-during S3. Therefore X wants to know if it should do hardware saving
-or not.
+FYI,
+Building 2.4.23 with gcc -Os (as the source tree currently does) shrinks
+acpi text compared to gcc -O2.  How much -0s it saves depends on the
+version of gcc:
 
-[Of course, X might want to save allways (simulated console switch).]
 
-> Video devices have an int10 call to save/restore state, which is what the 
-> APM BIOS uses.
+19.5% gcc version 3.2.2 20030222 (RHL 9.0)
+20.6% gcc version 3.3.1 20030930 (Fedora Test3)
 
-Could you elaborate? I'm not aware of int10 call doing that... That
-would solve S3 video problems, right? I was told that we can't call
-int10 at all from real mode because pci might not yet be intialized
-during acpi_wakeup.S; but it works on machines I have here.
+as measured by text size for drivers/acpi.o with all modules excluded.
 
-								Pavel
--- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+cheers,
+-Len
+
+attached the script I use to measure acpi size, and the results for -O2
+and -Os on gcc 3.3.1.
+
+
+--=-kj50DVF4cRqzKl2qUddF
+Content-Disposition: attachment; filename=report.acpi.size
+Content-Type: text/plain; name=report.acpi.size; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+#!/bin/bash
+# summarize the size of ACPI in Linux
+
+# ACPI kernel modules
+MODULE_FILES=
+#for MODULE in drivers/acpi/*.ko ; do
+#	if [ -f $MODULE ] ; then
+#		MODULE_FILES="$MODULE_FILES $MODULE"
+#	fi
+#done
+
+MODULE_LIST="ac asus_acpi battery button fan processor thermal toshiba_acpi"
+if [ "$MODULE_FILES" = "" ] ; then
+	DIR=drivers/acpi
+	for MODULE in $MODULE_LIST; do
+		if [ -f $DIR/$MODULE.o ] ; then
+			MODULE_FILES="$MODULE_FILES $DIR/$MODULE.o"
+		fi
+	done
+fi
+
+
+if [ "$MODULE_FILES" != "" ] ; then
+	echo Loadable Module Sizes:
+	size $MODULE_FILES
+	echo
+	echo Static Kernel Size:
+fi
+
+# ACPI obj files outside drivers/acpi
+STATIC_FILES=
+# acpi objects in base kernel
+for FILE in arch/i386/kernel/acpi/built-in.o arch/i386/kernel/acpi*.o ; do
+	if [ -f $FILE ] ; then
+		STATIC_FILES="$STATIC_FILES $FILE"
+	fi
+done
+
+
+# ACPI core driver
+DRIVER_DIR=drivers/acpi
+for DRIVER_OBJECT in acpi.o built-in.o ; do
+	if [ -f $DRIVER_DIR/$DRIVER_OBJECT ] ; then
+		STATIC_FILES="$STATIC_FILES $DRIVER_DIR/$DRIVER_OBJECT"
+	fi
+done
+
+
+NUM_FILES=`echo $STATIC_FILES | wc -w`
+if [ $NUM_FILES == 0 ] ; then
+	echo $0: no acpi code present
+elif [ $NUM_FILES == 1 ] ; then
+	size $STATIC_FILES
+else
+	size -t $STATIC_FILES
+fi
+
+
+--=-kj50DVF4cRqzKl2qUddF
+Content-Disposition: attachment; filename=size.23.O2
+Content-Type: text/plain; name=size.23.O2; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+Loadable Module Sizes:
+   text	   data	    bss	    dec	    hex	filename
+   1712	    212	     12	   1936	    790	drivers/acpi/ac.o
+   8628	    884	     24	   9536	   2540	drivers/acpi/asus_acpi.o
+   6220	    212	     12	   6444	   192c	drivers/acpi/battery.o
+   2532	    212	     24	   2768	    ad0	drivers/acpi/button.o
+   1423	    212	     12	   1647	    66f	drivers/acpi/fan.o
+   9643	    212	    172	  10027	   272b	drivers/acpi/processor.o
+   7543	    212	     16	   7771	   1e5b	drivers/acpi/thermal.o
+   3451	     72	     24	   3547	    ddb	drivers/acpi/toshiba_acpi.o
+
+Static Kernel Size:
+   text	   data	    bss	    dec	    hex	filename
+   3214	      8	    136	   3358	    d1e	arch/i386/kernel/acpi.o
+    917	     52	      0	    969	    3c9	arch/i386/kernel/acpi_wakeup.o
+ 178384	   4194	   4888	 187466	  2dc4a	drivers/acpi/acpi.o
+ 182515	   4254	   5024	 191793	  2ed31	(TOTALS)
+
+--=-kj50DVF4cRqzKl2qUddF
+Content-Disposition: attachment; filename=size.23.Os
+Content-Type: text/plain; name=size.23.Os; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+Loadable Module Sizes:
+   text	   data	    bss	    dec	    hex	filename
+   1294	    212	     12	   1518	    5ee	drivers/acpi/ac.o
+   7249	    884	     24	   8157	   1fdd	drivers/acpi/asus_acpi.o
+   5297	    212	     12	   5521	   1591	drivers/acpi/battery.o
+   2031	    212	     24	   2267	    8db	drivers/acpi/button.o
+   1098	    212	     12	   1322	    52a	drivers/acpi/fan.o
+   7905	    212	    172	   8289	   2061	drivers/acpi/processor.o
+   5894	    212	     16	   6122	   17ea	drivers/acpi/thermal.o
+   2669	     72	     24	   2765	    acd	drivers/acpi/toshiba_acpi.o
+
+Static Kernel Size:
+   text	   data	    bss	    dec	    hex	filename
+   3214	      8	    136	   3358	    d1e	arch/i386/kernel/acpi.o
+    917	     52	      0	    969	    3c9	arch/i386/kernel/acpi_wakeup.o
+ 141584	   4194	   4888	 150666	  24c8a	drivers/acpi/acpi.o
+ 145715	   4254	   5024	 154993	  25d71	(TOTALS)
+
+--=-kj50DVF4cRqzKl2qUddF--
+
 
 
 -------------------------------------------------------
