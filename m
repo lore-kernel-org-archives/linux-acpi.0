@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: /proc/acpi/sleep behaviour?
-Date: Fri, 18 Apr 2003 13:45:12 +0800
+Subject: RE: Trying to generate ACPI events from software
+Date: Fri, 18 Apr 2003 16:50:52 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F842722A5@pdsmsx403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F842722A6@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -17,67 +17,101 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nils Faerber <nils-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>, Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Angela Dalton <angela-VPOBD8XdS/WVc3sceRu5cw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-We could narrow down the issue, if you could kindly post debug =
-information at
-1) boot time
-2) time after issuing "echo -n 4 > /proc/acpi/sleep
+
+Do you want ACPI export a interface to user to shut off the LCD through =
+command like:
+#echo -n 3  > /proc/acpi/display/LCD0
+I don't think there is such functionality in current ACPI =
+implementation.
+Maybe you can try to write such a driver display.=20
+But we should enhance the stability of ACPI core on various platform =
+first.
+Anyway, the various attractive PM features are based on a stable ACPI =
+core.
 
 Thanks,
 Luming
+
+
+
 -----Original Message-----
-From: Nils Faerber [mailto:nils-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org]
-Sent: 2003?3?5? 1:41
-To: Ducrot Bruno
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: Re: [ACPI] /proc/acpi/sleep behaviour?
+From: Angela Dalton [mailto:angela-VPOBD8XdS/WVc3sceRu5cw@public.gmane.org]
+Sent: 2003?4?17? 21:36
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: [ACPI] Trying to generate ACPI events from software
 
 
-On Tue, 4 Mar 2003 18:22:26 +0100
-Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> wrote:
-> On Tue, Mar 04, 2003 at 05:54:46PM +0100, Nils Faerber wrote:
-> > Just a short question:
-> > 	How is sleep supposed to work?
-> > When I do a=20
-> > 	echo -n 4 > /proc/acpi/sleep
-> > on recent ACPI kernels (2.4.21-pre4 with ACPI 20030228 + swsusp beta
-> > 19) everything works quite fine but the "echo" never returns. After
-> > resume I have to kill "echo".
-> Last time I checked, the swsusp support is not well integrated.
-> I can not tell though for recent swsusp patches.
+Hello,
 
-I can't judge this either but the same in my eyes misbehaviour is IMHO
-also true for 2.5.6x kernels without directly involved swsusp so I would
-suspect this to be more of an ACPI problem...
+I apologize in advance for the lengthy message!
 
-> please use /proc/sys/kernel/suspend instead.
-Err... /proc/sys/kernel/swsusp you ment, right?
+I am working on a program in which I would like to control the video=20
+device power state based on something other than a timeout (specifically =
 
-> Forgot to say also that you should bug report to swsusp mailing list.
-That's true, sorry!
+based on information from external sensors).  Unfortunately, I can't=20
+seem to figure out how to turn off the LCD and backlight from the=20
+program.  I can blank the screen using "xset dpms force off" but the=20
+backlight remains on, and a subsequent "xset dpms force on" from my=20
+program has no effect, I actually have to physically move the mouse or=20
+press a key.  I also tried writing to the /dev/nvram locations that=20
+change when the lid is closed or the special keys are pressed to switch=20
+from LCD to CRT.  Apparently, the changes in the nvram values do not=20
+directly cause the display state change.
 
-> Ducrot Bruno
-CU
-  nils faerber
+I have been looking through the ACPI driver source code and the ACPID=20
+code as well as the APCI Specification.  I have not been able to figure=20
+out how to generate an event from within my program to tell ACPI to shut =
 
---=20
-kernel concepts          Tel: +49-271-771091-12
-Dreisbachstr. 24         Fax: +49-271-771091-19
-D-57250 Netphen          D1 : +49-170-2729106
---
+the LCD off on my ThinkPad.  Here is what I think I understand:
+
+1. Based on the ACPI Specification, there is a Notify(VGA, 0x80) call to =
+
+tell the OSPM when the user presses the hotkey (in my case, FnF7) for=20
+switching monitor output.  The OSPM should call the _DSS method to set=20
+the device state of the LCD and CRT devices.
+
+2. From looking through the driver code, I found a file evevent.c that=20
+seems to handle General Purpose events such as the one I want to cause.=20
+ This code detects events like a power button event and dispatches it to =
+
+an installed handler.  There appear to be both fixed event handlers and=20
+generic general purpose event handlers.  There are also notify handlers. =
+
+ This is a confusing part of the code for me as far as what I need to=20
+do.  Do I need to write a notify handler and a fixed event handler?  Is=20
+there a general notify handler that will invoke a general purpose event=20
+handler that I would write?
+
+3.  Finally, based on what I see in the ospm directory, there is code to =
+
+handle a variety of events.  I assume this would be where my handler=20
+would go.  It seems like this is a rather large undertaking, based on=20
+the code for the other devices. =20
+
+My questions are:
+
+Am I on the right track or completely lost??  And is there is much=20
+easier way to do this using the ACPID or OSPMD?  If so, can someone=20
+please explain it to me?  One thought I had was if my program could=20
+generate a lid event then it might shut off the display (but how would I =
+
+get it back on and how can I prevent other stuff from also occuring,=20
+like a suspend or hibernate?)
+
+I appreciate any help I can get!
+
+Best Regards,
+Angela Dalton
+
 
 
 -------------------------------------------------------
-This SF.net email is sponsored by: Etnus, makers of TotalView, The =
-debugger=20
-for complex code. Debugging C/C++ programs can leave you feeling lost =
-and=20
-disoriented. TotalView can help you find your way. Available on major =
-UNIX=20
-and Linux platforms. Try it free. www.etnus.com
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
 _______________________________________________
 Acpi-devel mailing list
 Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
