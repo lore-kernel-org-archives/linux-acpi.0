@@ -1,14 +1,12 @@
-From: Sebastian Kemper <Sebastian.Kemper-S0/GAf8tV78@public.gmane.org>
-Subject: Re: Error Message at boot time
-Date: Mon, 05 Jan 2004 05:59:52 +0100
+From: mike-Z92qn3yYq0hWk0Htik3J/w@public.gmane.org
+Subject: Processor C states and USB problem
+Date: Mon, 05 Jan 2004 09:41:34 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3FF8EF48.7090503@web.de>
-References: <3ACA40606221794F80A5670F0AF15F8401720C74@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <E1AdQIo-0005nI-00@localhost>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------020207090905080200020503"
+Content-Type: text/plain; format=flowed; charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401720C74-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,205 +18,55 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------020207090905080200020503
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Recently I had problems with my network card and ACPI (see earlier posts for 
+the problem and solution) so I thought I'd take a closer look at ACPI on 
+this notebook (Acer Travelmate 800). 
 
-Sure
+Looking at the proc entries for the processor I saw the following. 
 
-Yu, Luming wrote:
->>    ACPI-0098: *** Error: Method execution failed [\_SB_.C005._CRS] 
->>(Node c7fee980), AE_AML_BUFFER_LIMIT
-> 
-> 
-> Hmm, annother case of  buffer limit failure.
-> Can you send out  /proc/acpi/dsdt 
-> 
+active state:            C3
+default state:           C1
+bus master activity:     80070020
+states:
+   C1:                  promotion[C2] demotion[--] latency[000] 
+usage[00000010]
+   C2:                  promotion[C3] demotion[C1] 
+latency[001]usage[01077887]
+  *C3:                  promotion[--] demotion[C2] latency[085] 
+usage[00083507] 
 
---------------020207090905080200020503
-Content-Type: application/octet-stream;
- name="dsdt.tar.bz2"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="dsdt.tar.bz2"
+This looked pretty normal to me, apart from the fact that the processor was 
+spending a lot of time in C3 although the notebook was idle. 
 
-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
-lSgodxEHGGj4yWzBOAP/F3JFOFCQ3n3R7A==
---------------020207090905080200020503--
+Now I plugged in my USB mouse. 
+
+cat /proc/acpi/processor/CPU0/power
+active state:            C2
+default state:           C1
+bus master activity:     ffffffff <---- USB is active
+states:
+   C1:                  promotion[C2] demotion[--] latency[000] 
+usage[00000010]
+  *C2:                  promotion[C3] demotion[C1] 
+latency[001]usage[00871647]
+   C3:                  promotion[--] demotion[C2] latency[085] 
+usage[00077386] 
+
+The processor never left the C2 state.
+After unplugging the mouse "bus master activity" showed normal values again. 
+
+Now for my two questions: 
+
+1.) Is it normal for the notebook to spend so much time in C3, even if it is 
+idle? 
+
+2.) Why is an USB device screwing up the bus master activity, resulting in 
+the processor never leaving C2? 
+
+
+/Michael 
+
+
 
 
 -------------------------------------------------------
