@@ -1,15 +1,14 @@
-From: "Scott T. Smith" <scott-j3vAvQ9dNB9ByuSxxbvQtw@public.gmane.org>
-Subject: Re: broken power button
-Date: Thu, 05 Feb 2004 21:07:26 -0800
+From: "Nick Bartos" <spam99-1EIjRwF9Gc5s5w19saIqfg@public.gmane.org>
+Subject: acpi=force safe?
+Date: Thu, 5 Feb 2004 23:14:15 -0600 (CST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1076044045.4744.10.camel@tinny.home.foo>
-References: <1076036158.4792.12.camel@tinny.home.foo>
-	 <1076038435.5849.8.camel@localhost>
+Message-ID: <40678.65.28.18.238.1076044455.squirrel@mail.diamondcpu.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1076038435.5849.8.camel-bi+AKbBUZKZeoWH0uzbU5w@public.gmane.org>
+References: 
+In-Reply-To: 
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,34 +17,51 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Greg Sarjeant <greg-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org>
-Cc: "acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2004-02-05 at 19:33, Greg Sarjeant wrote:
->     I have the same issue with my power button on my Gateway 200X (which
-> I think is roughly the same machine as the Dell X200). It appears to be
+I manage a little router distro that uses acpi to do a clean shutdown whe=
+n
+the power button is tapped.  So really I am only using the powerdown &
+button event features.
 
-the older ones are identical AFAIK; the newer 200X's have 14" screens
-though and seem totally different.
+The problem I am having is that a lot of the boards I use are older, and
+acpi does not get enabled by default.  In the distro I want to keep
+everything consistent, so if I fix this problem by forcing acpi on, I wil=
+l
+want to do it globally (for all systems).
 
-> an issue with fixed-feature power buttons. I opened bug 1920 to address
-> the problem. You can check it out here:
+I can do acpi=3Dforce, but I worry about causing stability issues.
 
-I applied the patch; I think ACPI should report a warning in this case. 
-According to p63, there are 2 bits of information (4 choices) but only 2
-legal possibilities.  Windows must be ignoring the PWR_BUTTON field and
-just checking for the existance of PWRB.  ACPI should complain if
-PWR_BUTTON is not set and PWRB exists, or if PWR_BUTTON is set and PWRB
-doesn't exist.
+I posted this question on the kernel devel list, and it was suggested to
+me that I compile in basic acpi support button support, and nothing else.=
+=20
+Then I could do a acpi=3Dforce and just force on those features.
 
-Similarly, if SLP_BUTTON is not set and SLPB exists, ACPI should throw a
-warning too.
+I am wondering if this will be safe, or if I could run into problems.  I
+don't want to sacrifice stability to have these features, but I would lik=
+e
+all my boxes to be consistent.
 
-Unfortunately, while this lets me receive PWRB notifications, it doesn't
-solve the lockup on suspend.  Ugh.
+At least one of the systems is an asus p4b266 (most boards are asus),
+which is on the blacklist for acpi=3Dht.  I tried to force acpi on for th=
+is
+board which did work, but it gave me a warning about overriding acpi=3Dht
+(which I really don't know what that is supposed to do).
 
-	Scott
+If this is OK, then what other features can I enable and safely force acp=
+i
+on?  I would like to eventually implement fan speed and processor temp
+monitoring (possibly other health monitoring).  For some router only boxe=
+s
+it may be good to reduce power consumption, but I don't want to push my
+luck if it may not be safe.
+
+I am using the latest 2.4.x pre at the moment.
+
+Comments?
+
+
 
 
 
