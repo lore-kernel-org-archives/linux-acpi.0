@@ -1,13 +1,12 @@
-From: "Wang, Zhenyu Z" <zhenyu.z.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 1/2] acpi_bus_register_driver conflict fix patchesannounce
-Date: Fri, 12 Nov 2004 14:58:37 +0800
-Message-ID: <9DE394C12A921946AEECE1F71944ECD58E416E@pdsmsx404>
+From: Alice A.Walker <hong-sup-zxDNqIEFDJU@public.gmane.org>
+Subject: =?iso-8859-1?B?UG9wdWxhciBzb2Z0IC0gdmVyeSBsb3cgcHJpY2U=?=
+Date: Fri, 12 Nov 2004 07:39:12 +0000
+Message-ID: <f46601c4c88a$b82af282$cc8a67c8@aba.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/related;
+    type="multipart/alternative";
+    boundary="----=_NextPart_000_0000_51D581CA.07CBAB34"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,157 +16,92 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, bjorn.helgaas-VXdhtT5mjnY@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi <linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-TtF/mJH4Jtrk1uMJSBkQmQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Len Brown wrote:
-> this patch is in direct conflict with bjorn's proposal to make
-> acpi_bus_register_driver() consistent (again) with
-> pci_register_driver().
->=20
-> We can't have it both ways...
-Oh, yes...I've just found bjorn's patch, very neat.
-but some user will still be confused with question like "why my fan is
-not work well", etc.
-this is maybe my personal annoyance, forget it...
+This is a multi-part message in MIME format.
 
-thanks
->=20
-> -Len
->=20
-> On Fri, 2004-11-12 at 01:22, Wang, Zhenyu Z wrote:
->> a00-acpi_bus_register_driver_fix.patch
->>=20
->> This patch is for correct the return value flaw of
->> acpi_bus_register_driver.
->> It should return the number of devices claimed by the driver, or
->> negative error code. I've also seperate out
->> acpi_bus_driver_add/acpi_bus_driver_del, which will be used by acpi
->> drivers on error condition handling.=20
->>=20
->> Signed-off-by: Wang, Zhenyu <zhenyu.z.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->>=20
->> ---
->>=20
->> drivers/acpi/acpi_ksyms.c |    2 ++
->>  drivers/acpi/scan.c       |   42
->> ++++++++++++++++++++++++++++++------------
->>  include/acpi/acpi_bus.h   |    2 ++
->>  3 files changed, 34 insertions(+), 12 deletions(-)
->>=20
->> --- a/drivers/acpi/scan.c~driver_attach	2004-11-12
->> 11:34:14.000000000 +0800 +++ a/drivers/acpi/scan.c	2004-11-12
->> 12:39:34.000000000 +0800 @@ -372,7 +372,7 @@ acpi_bus_driver_init (
->>  static int acpi_driver_attach(struct acpi_driver * drv)  {
->>  	struct list_head * node, * next;
->> -	int count =3D 0;
->> +	int count =3D 0, result =3D 0;
->>=20
->>  	ACPI_FUNCTION_TRACE("acpi_driver_attach");
->>=20
->> @@ -384,18 +384,23 @@ static int acpi_driver_attach(struct acp=20
->>  		continue; spin_unlock(&acpi_device_lock);
->>=20
->> -		if (!acpi_bus_match(dev, drv)) {
->> -			if (!acpi_bus_driver_init(dev, drv)) {
->> +		if (!(result =3D acpi_bus_match(dev, drv))) {
->> +			if (!(result =3D acpi_bus_driver_init(dev, drv)))
-{
->>  				atomic_inc(&drv->references);
->>  				count++;
->>  				ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found
->> driver [%s] for device [%s]\n",
->>  						  drv->name,
->> dev->pnp.bus_id));
->> +			} else {
->> +				ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Attach
->> driver [%s] for device [%s] fail!\n", drv->name, dev->pnp.bus_id));=20
->>  		} }
->>  		spin_lock(&acpi_device_lock);
->>  	}
->>  	spin_unlock(&acpi_device_lock);
->> -	return_VALUE(count);
->> +	if (result !=3D -ENOENT && !count)
->> +		return_VALUE(result);
->> +	else
->> +		return_VALUE(count);
->>  }
->>=20
->>  static int acpi_driver_detach(struct acpi_driver * drv)
->> @@ -422,6 +427,24 @@ static int acpi_driver_detach(struct acp=20
->>  return_VALUE(0); }
->>=20
->> +void
->> +acpi_bus_driver_add(
->> +	struct acpi_driver *driver)
->> +{
->> +	spin_lock(&acpi_device_lock);
->> +	list_add_tail(&driver->node, &acpi_bus_drivers);
->> +	spin_unlock(&acpi_device_lock);
->> +}
->> +
->> +void
->> +acpi_bus_driver_del(
->> +	struct acpi_driver *driver)
->> +{
->> +	spin_lock(&acpi_device_lock);
->> +	list_del_init(&driver->node);
->> +	spin_unlock(&acpi_device_lock);
->> +}
->> +
->>  /**
->>   * acpi_bus_register_driver
->>   * ------------------------
->> @@ -444,9 +467,7 @@ acpi_bus_register_driver (
->>  	if (!driver)
->>  		return_VALUE(-EINVAL);
->>=20
->> -	spin_lock(&acpi_device_lock);
->> -	list_add_tail(&driver->node, &acpi_bus_drivers);
->> -	spin_unlock(&acpi_device_lock);
->> +	acpi_bus_driver_add(driver);
->>  	count =3D acpi_driver_attach(driver);
->>=20
->>  	return_VALUE(count);
->> @@ -470,11 +491,8 @@ acpi_bus_unregister_driver (
->>  	if (driver) {
->>  		acpi_driver_detach(driver);
->>=20
->> -		if (!atomic_read(&driver->references)) {
->> -			spin_lock(&acpi_device_lock);
->> -			list_del_init(&driver->node);
->> -			spin_unlock(&acpi_device_lock);
->> -		}
->> +		if (!atomic_read(&driver->references))
->> +			acpi_bus_driver_del(driver);
->>  	} else
->>  		error =3D -EINVAL;
->>  	return_VALUE(error);
->> --- a/drivers/acpi/acpi_ksyms.c~fix	2004-11-12 12:40:12.000000000
->> +0800 +++ a/drivers/acpi/acpi_ksyms.c	2004-11-12
-12:40:50.000000000
->> +0800 @@ -135,6 +135,8 @@ EXPORT_SYMBOL(acpi_bus_generate_event);
->>  EXPORT_SYMBOL(acpi_bus_receive_event);
->>  EXPORT_SYMBOL(acpi_bus_register_driver);
->>  EXPORT_SYMBOL(acpi_bus_unregister_driver);
->> +EXPORT_SYMBOL(acpi_bus_driver_add);
->> +EXPORT_SYMBOL(acpi_bus_driver_del);
->>=20
->>  #endif /*CONFIG_ACPI_BUS*/
->>=20
->> --- a/include/acpi/acpi_bus.h~fix	2004-11-12 12:38:53.000000000
-+0800
->> +++ a/include/acpi/acpi_bus.h	2004-11-12 12:37:50.000000000
-+0800
->> @@ -319,6 +319,8 @@ int acpi_bus_get_power (acpi_handle hand
->>  int acpi_bus_set_power (acpi_handle handle, int state);
->>  int acpi_bus_generate_event (struct acpi_device *device, u8 type,
->>  int data); int acpi_bus_receive_event (struct acpi_bus_event
->> *event); +void acpi_bus_driver_add (struct acpi_driver *driver);
->> +void acpi_bus_driver_del (struct acpi_driver *driver);
->>  int acpi_bus_register_driver (struct acpi_driver *driver);
->>  int acpi_bus_unregister_driver (struct acpi_driver *driver);
+------=_NextPart_000_0000_51D581CA.07CBAB34
+Content-Type: multipart/alternative;
+    boundary="----=_NextPart_001_0001_7D8DF2BC.F44C7754"
+
+
+------=_NextPart_001_0001_7D8DF2BC.F44C7754
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 7bit
+
+Get all the software you ever imagined for wholesale prices!
+Our software is 2-10 times cheaper than sold by our competitors.
+
+A few examples:
+
+$80 Windows XP Professional 
+$120 Microsoft Office 2003 Professional
+$100 Adobe Photoshop 8.0/CS
+$50 Norton Internet Security Pro 2004 Professional (Including: AntiVirus + AntiSpam + Firewall)
+$180 Macromedia Studio MX 2004 (Including: Dreamweaver MX + Flash MX + Fireworks MX)
+$150 Adobe Acrobat 6.0 Professional
+$20 Red Hat Linux 7.3
+
+Categories: Business, Internet, Antivirus, Security, etc.<br>
+And many other... For full list of products go:
+
+http://www.avvasoft.com
+
+Best regards,
+Alice A. Walker
+
+
+_____________________________________________________ 
+To change your mail preferences, go: http://www.avvasoft.com/uns.htm
+_____________________________________________________ 
+
+
+------=_NextPart_001_0001_7D8DF2BC.F44C7754
+Content-Type: text/html; charset=iso-8859-1
+Content-Transfer-Encoding: 7bit
+
+<HTML>
+<BODY>
+<CENTER>
+<TABLE cellSpacing=0 cellPadding=0 width=800 align=center border=0>
+  <TBODY>
+  <TR>
+    <TD>
+Get access to all the software possible for less!<br>
+We sell software 2-6 times cheaper than retail price.<br><br>
+
+Examples:<br><br>
+
+$80 Windows XP Professional<br>
+$120 Microsoft Office 2003 Professional<br>
+$100 Adobe Photoshop 8.0/CS<br>
+$50 Norton Internet Security Pro 2004 Professional (Including: AntiVirus + AntiSpam + Firewall)<br>
+$180 Macromedia Studio MX 2004 (Including: Dreamweaver MX + Flash MX + Fireworks MX)<br>
+$150 Adobe Acrobat 6.0 Professional<br>
+$20 Red Hat Linux 7.3<br><br>
+
+Categories: Business, Internet, Antivirus, Security, etc.<br>
+And many other... Go visit us at:<br><br>
+
+<A href="http://www.avvasoft.com">http://www.avvasoft.com</A><br><br>
+
+Sincerely,<br>
+Alice A. Walker<br><br><br>
+
+
+_____________________________________________________ <br>
+To be taken off future campaigns, go here: <A href="http://www.quadrasoft.org/uns.htm">http://www.avvasoft.com/uns.htm</A><br>
+_____________________________________________________ 
+
+<P></P></TD></TR></TBODY></TABLE></CENTER></BODY></HTML>
+
+
+------=_NextPart_001_0001_7D8DF2BC.F44C7754--
+
+
+
+------=_NextPart_000_0000_51D581CA.07CBAB34--
 
 
 
