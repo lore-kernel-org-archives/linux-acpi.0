@@ -1,34 +1,43 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: Re: [ACPI] inappropriate use of in_atomic()
-Date: Fri, 11 Mar 2005 01:46:01 -0800
-Message-ID: <20050311014601.166ae43d.akpm@osdl.org>
+From: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
+Subject: Re: [Linux-fbdev-devel] Re: inappropriate use of in_atomic()
+Date: Fri, 11 Mar 2005 23:26:13 +1100
+Message-ID: <1110543974.5809.98.camel@gaston>
 References: <20050310204006.48286d17.akpm@osdl.org>
-	<20050311091142.GB22415@fi.muni.cz>
-Reply-To: linux-fbdev-devel@lists.sourceforge.net
+	 <20050311091142.GB22415@fi.muni.cz> <20050311014601.166ae43d.akpm@osdl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <20050311091142.GB22415@fi.muni.cz>
-Sender: linux-fbdev-devel-admin@lists.sourceforge.net
-Errors-To: linux-fbdev-devel-admin@lists.sourceforge.net
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-fbdev-devel>,
-	<mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Post: <mailto:linux-fbdev-devel@lists.sourceforge.net>
-List-Help: <mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-fbdev-devel>,
-	<mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-fbdev-devel>
-To: Jan Kasprzak <kas@fi.muni.cz>
-Cc: paulus@samba.org, jt@bougret.hpl.hp.com, javier@tudela.mad.ttd.net, linux-fbdev-devel@lists.sourceforge.net, acpi-devel@lists.sourceforge.net, linux1394-devel@lists.sourceforge.net, roland@topspin.com, linux-kernel@vger.kernel.org
+In-Reply-To: <20050311014601.166ae43d.akpm-3NddpPZAyC0@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Linux Fbdev development list <linux-fbdev-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: Jan Kasprzak <kas-0hYGf3jDe+XrBKCeMvbIDA@public.gmane.org>, Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, jt-yAE0UhLNZJawPNPzzlOzwdBPR1lH4CV8@public.gmane.org, javier-UOFnMJzu7Pp1eVVWpSVkNqxOck334EZe@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux1394-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, roland-nF87da4h5whBDgjK7y7TUQ@public.gmane.org, Linux Kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Jan Kasprzak <kas@fi.muni.cz> wrote:
->
-> This may be the cause of 
+On Fri, 2005-03-11 at 01:46 -0800, Andrew Morton wrote:
+> Jan Kasprzak <kas-0hYGf3jDe+XrBKCeMvbIDA@public.gmane.org> wrote:
+> >
+> > This may be the cause of 
+> > 
+> >  http://bugme.osdl.org/show_bug.cgi?id=4150
 > 
->  http://bugme.osdl.org/show_bug.cgi?id=4150
+> Looks that way, yes.
 
-Looks that way, yes.
+Note that it would be interesting to fix that (I mean the reliability of
+is_atomic() or an alternative). I agree it's quite bad to rely on that
+in practice, but there are a few corner cases where it's useful (like
+oops handling in fbdev's etc...)
+
+Ben.
+
+
 
 
 -------------------------------------------------------
