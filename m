@@ -1,14 +1,14 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Kernel 2.5 configuration, was: compaq evo 800v dsdt
-Date: Fri, 14 Feb 2003 22:12:08 +0100
+From: John Belmonte <jvb-ZFKsivP1bGvOQU1ULcgDhA@public.gmane.org>
+Subject: Re: More seq-file fixes for /proc/acpi
+Date: Fri, 14 Feb 2003 16:18:46 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030214211208.GY25625@poup.poupinou.org>
-References: <F760B14C9561B941B89469F59BA3A847138050@orsmsx401.jf.intel.com> <1045159298.2048.22.camel@calvin.hjblocal.nl> <20030214073129.GX25625@poup.poupinou.org> <20030214103602.GC8318@clara.net>
+Message-ID: <3E4D5D36.4080100@prairienet.org>
+References: <20030213223900.GA141@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20030214103602.GC8318-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org>
+In-Reply-To: <20030213223900.GA141-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,75 +17,42 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Faye Pearson <faye-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org>
-Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel <acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org>
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Feb 14, 2003 at 10:36:02AM +0000, Faye Pearson wrote:
-> Hi,
+Pavel Machek wrote:
+> More seq-file fixes. [This is not a dup ;-)] Toshiba maintainer,
+> please fix your stuff yourself. This should fix all /proc write
+> problems in acpi I know... Please apply,
+
+> --- clean/drivers/acpi/toshiba_acpi.c	2003-02-11 17:40:46.000000000 +0100
+> +++ linux/drivers/acpi/toshiba_acpi.c	2003-02-13 23:17:16.000000000 +0100
+> @@ -519,6 +519,7 @@
+>  	if (proc) {
+>  		proc->proc_fops = &toshiba_lcd_fops;
+>  		proc->proc_fops->write = proc_write_lcd;
+> +#warning You need to fix up after converting to seq_file; see thermal.c for examples.
+>  	}
+>  
+>  	proc = create_proc_entry(PROC_VIDEO, S_IFREG | S_IRUGO | S_IWUSR,
 > 
-> Ducrot Bruno [ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org] wrote:
-> > The P4-M is supported by the speedstep "legacy" driver in cpufreq.
-> 
-> I think this is a big problem at the moment in the kernel 2.5 power
-> management configuration.
 
-In 2.5, power state of the CPU (aka SpeedStep, Longhaul, ARM, etc)
-is done via cpufreq which present a more general interface than
-ACPI power state management of CPUs.
-Speedstep 'legacy' support is also here as a cpu driver
-as well, usefull when ACPI do not provide support for it (as
-my toshiba).
+I take exception to this.  The person who converted my driver to 
+seq_file should be responsible for finishing the job.
+
+I disagreed with the conversion to seq_file because it doesn't support 
+an object oriented programming style, as I explained in a posting at the 
+time the conversion took place.
+
+-John
 
 
-> There are too many ways of doing the same
-> thing, and things which look as though they are new in 2.5 (cpufreq) say
-> that they are 2.4 and 'legacy'.  And SWSUSP, should it be on or off if you
-> want to try S3/4 BIOS?
 
-Same.  Swsusp is 'generic'.  It is expected that it will work
-with other archs as well (that is why I don't see any perticular
-reason to trigger swsusp via /proc/acpi/sleep).
-
-> What are the options which should be turned on to have the best
-> supported configuration for all ACPI features including S3/S4 sleep.
-
-All acpi but not toshiba (unless you dont have a real toshiba) and HT only.
-You have also to get at least PM and SWSUSP (PM for devices suspensions,
-and swsusp for a kind of S4 and a really really basic checkpoint of
-processes).
-
-> Which kernel and patches should I apply to have the best starting point
-> for helping debug?
-
-I will be happy to get one myself :))
-
-> I've compiled up a 2.5.60 kernel but I'm not sure I have the correct set
-> of options enabled.
-> Also, the kernel PCMCIA (yenta) drivers don't work for me on a Sony Vaio
-> GRX516MD.  I've been using pcmcia-cs drivers under 2.4 but I believe I
-> have to use the kernel drivers for 2.5 and they fail to allocate an IRQ
-> because of lack of resources for my wireless card when it is plugged.
-> 
-> How can I tell whether the failure to allocate an IRQ is a PCMCIA issue
-> or an ACPI issue?  Under 2.4 everything seems to want to use IRQ 9 but
-
-I don't know (sorry).
-
-> it only seems to be a problem for USB which complains that it's seeing
-> IRQs for non USB events and doesn't actually function properly.
-> 
-> I've put as much information as I can think of on my home page at
-> http://dude.noc.clara.net/~faye/ if any other information is necessary,
-> I'll happily provide it.
-
-I'll take a look, but alas I will be off-line for one week at monday..
 
 -- 
-Ducrot Bruno
+http:// if   l .   /
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
 
 
 -------------------------------------------------------
