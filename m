@@ -1,20 +1,14 @@
-From: Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: Re: [PATCH] cleanup ACPI numa warnings
-Date: Fri, 20 Aug 2004 12:55:51 -0600
+From: "Pallipadi, Venkatesh" <venkatesh.pallipadi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH][RFC] fix ACPI IRQ routing after S3 suspend
+Date: Fri, 20 Aug 2004 12:00:18 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1093028151.4993.42.camel@tdi>
-References: <1091738798.22406.9.camel@tdi>
-	 <1091739702.31490.245.camel@nighthawk><1091741142.22406.28.camel@tdi>
-	 <249150000.1091763309@[10.10.2.4]>
-	 <20040805205059.3fb67b71.rddunlap@osdl.org>
-	 <20040807105729.6adea633.pj@sgi.com>
-	 <20040808143631.7c18cae9.rddunlap@osdl.org>
-	 <2550950000.1092019997@[10.10.2.4]>
+Message-ID: <88056F38E9E48644A0F562A38C64FB6002A934AC@scsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <2550950000.1092019997@[10.10.2.4]>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -23,111 +17,79 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Martin J. Bligh" <mbligh-/CzTsIfkJEdBDgjK7y7TUQ@public.gmane.org>
-Cc: "Randy.Dunlap" <rddunlap-3NddpPZAyC0@public.gmane.org>, Paul Jackson <pj-sJ/iWh9BUns@public.gmane.org>, haveblue-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: stefandoesinger-RbZlAiThDcE@public.gmane.org, Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux Kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 
-   I'm not sure where we stand on this, sorry for the delay.  To recap,
-the first patch I submitted cleaned up the original functions, but moved
-the ugliness up into multi-line macros.  People didn't like the macros
-and suggested static inlines.  However, static inlines don't work for
-this application because the debug print needs state setup by the
-ACPI_FUNCTION_NAME call.  IMHO, it's not worth setting up that state in
-the static inline function for this little bit of cleanup.
-
-   So, I think we left it at nobody liked the macros and static inlines
-don't work.  General unhappiness.  Below is a patch that doesn't attempt
-to cleanup the original code, it just adds the #ifdefs and range
-checking w/ no macros.  Does this look better?  Below is the original
-submit comment outlining the goal.  Thanks,
-
-	Alex
-
-   The patch below removes these warnings:
-
-  CC      drivers/acpi/numa.o
-drivers/acpi/numa.c: In function `acpi_table_print_srat_entry':
-drivers/acpi/numa.c:55: warning: unused variable `p'
-drivers/acpi/numa.c:65: warning: unused variable `p'
-drivers/acpi/numa.c: In function `acpi_numa_init':
-drivers/acpi/numa.c:179: warning: passing arg 2 of
-`acpi_table_parse_srat' from incompatible pointer type
-drivers/acpi/numa.c:182: warning: passing arg 2 of
-`acpi_table_parse_srat' from incompatible pointer type
-
-And propagates the MADT error checking code into the SRAT code.
-
-Signed-off-by: Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>
-
-===== drivers/acpi/numa.c 1.10 vs edited =====
---- 1.10/drivers/acpi/numa.c	2004-02-18 02:19:31 -07:00
-+++ edited/drivers/acpi/numa.c	2004-08-10 16:58:37 -06:00
-@@ -51,6 +51,7 @@
- 	switch (header->type) {
- 
- 	case ACPI_SRAT_PROCESSOR_AFFINITY:
-+#ifdef ACPI_DEBUG_OUTPUT
- 	{
- 		struct acpi_table_processor_affinity *p =
- 			(struct acpi_table_processor_affinity*) header;
-@@ -58,9 +59,11 @@
- 		       p->apic_id, p->lsapic_eid, p->proximity_domain,
- 		       p->flags.enabled?"enabled":"disabled"));
- 	}
-+#endif
- 		break;
- 
- 	case ACPI_SRAT_MEMORY_AFFINITY:
-+#ifdef ACPI_DEBUG_OUTPUT
- 	{
- 		struct acpi_table_memory_affinity *p =
- 			(struct acpi_table_memory_affinity*) header;
-@@ -70,6 +73,7 @@
- 		       p->flags.enabled ? "enabled" : "disabled",
- 		       p->flags.hot_pluggable ? " hot-pluggable" : ""));
- 	}
-+#endif
- 		break;
- 
- 	default:
-@@ -103,12 +107,14 @@
- 
- 
- static int __init
--acpi_parse_processor_affinity (acpi_table_entry_header *header)
-+acpi_parse_processor_affinity (acpi_table_entry_header *header, unsigned long size)
- {
- 	struct acpi_table_processor_affinity *processor_affinity;
- 
- 	processor_affinity = (struct acpi_table_processor_affinity*) header;
--	if (!processor_affinity)
-+	if (!processor_affinity || (unsigned long)processor_affinity +
-+	    sizeof(*processor_affinity) > size ||
-+	    header->length != sizeof(*processor_affinity))
- 		return -EINVAL;
- 
- 	acpi_table_print_srat_entry(header);
-@@ -121,12 +127,14 @@
- 
- 
- static int __init
--acpi_parse_memory_affinity (acpi_table_entry_header *header)
-+acpi_parse_memory_affinity (acpi_table_entry_header *header, unsigned long size)
- {
- 	struct acpi_table_memory_affinity *memory_affinity;
- 
- 	memory_affinity = (struct acpi_table_memory_affinity*) header;
--	if (!memory_affinity)
-+	if (!memory_affinity || (unsigned long)memory_affinity +
-+	    sizeof(*memory_affinity) > size ||
-+	    header->length != sizeof(*memory_affinity))
- 		return -EINVAL;
- 
- 	acpi_table_print_srat_entry(header);
 
 
+>-----Original Message-----
+>From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
+>[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
+>Stefan D=F6singer
+>Sent: Friday, August 20, 2004 9:36 AM
+>To: Nathan Bryant
+>Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; Brown, Len; Linux Kernel=20
+>list; Li, Shaohua
+>Subject: Re: [ACPI] [PATCH][RFC] fix ACPI IRQ routing after S3 suspend
+>
+>Am Freitag, 20. August 2004 14:18 schrieb Nathan Bryant:
+>> Stefan -
+>>
+>> Also - did suspend/resume for the ipw2100 ever work under any kernel
+>> version?
+>Yes, it works with acpi=3Dnoirq at least up to 2.6.7(not tested=20
+>with later=20
+>versions, but I'm sure it does)
+>It works with 2.6.8-rc2 and 2.6.8-rc4 and 2.6.8.1 with acpi IRQs and a=20
+>modified dsdt which forces LNKE to IRQ 10. I attached a dmesg=20
+>output of a=20
+>successful resume.
+>
+>Cheers,
+>Stefan
 
+This seems to be the same resume order issue, that Shaohua is hitting.
+
+On my system the resume order looks like this:
+Resuming System Devices
+Resuming type 'cpu':
+ cpu0
+aux driver resume 0xc010e410 (mtrr_restore)
+aux driver resume 0xc03365f0 (cpufreq_resume)
+Resuming type 'i8259':
+ i82590
+Resuming type 'timer':
+ timer0
+Resuming type 'pit':
+ pit0
+Resuming type 'lapic':
+ lapic0
+Resuming type 'irqrouter':
+ irqrouter0
+Resuming type 'i8042':
+ i80420
+
+The current theory I have for this issue is we resume pci_link driver
+A bit too late, which is causing this problem.
+
+Say a particular device doesn't do anything for suspend and resume.
+So, as soon as we resume this particular device can start =20
+generating interrupts. Once we have PIC enabled, it starts sending=20
+interrupts and no one handles that original IRQ. As pci_link that=20
+resumes later is reprogramming the device to different IRQ, where the=20
+driver is handling the device.
+
+That's probably the reason why it works with acpi=3Dnoirq or=20
+modified DSDT. Does it make sense?
+
+I think we have to resume pci_link device before PIC.=20
+We should be able to achieve this my changing the makefile orders.
+
+Thanks,
+Venki
+=20
 
 
 -------------------------------------------------------
