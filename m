@@ -1,14 +1,12 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Kernel 2.4.22?
-Date: Fri, 4 Apr 2003 11:31:24 +0200
+From: "Florian Schilhabel" <florian.schilhabel-S0/GAf8tV78@public.gmane.org>
+Subject: Compaq Armada 1500c
+Date: Fri, 4 Apr 2003 18:15:35 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030404093123.GA311@elf.ucw.cz>
-References: <20030403140709.75be5865.hanno@gmx.de> <1049378019.1769.24.camel@darkstar.portugal>
+Message-ID: <200304041615.h34GFZq12406@mailgate5.cinetic.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1049378019.1769.24.camel-4/PLUo9XfK/yXfm4dIG/yWZHpeb/A1Y/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,25 +15,40 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: S <nil-DDRJgj0kmXRGcL5Ds9yaJ6VXKuFTiq87@public.gmane.org>
-Cc: Hanno =?iso-8859-1?Q?B=F6ck?= <hanno-Mmb7MZpHnFY@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+hi there,
 
-> This has already been discussed, and for "Marcelo team " is a to big
-> patch to be included in kernel tree. I had thought about an solution, I
-> think that Andrew Grover has reason.
-> What we need to do, is prove that the code that not is under
-> drivers/acpi, does not have any effect to others functionality in
-> kernel, and put acpi has experimental.  
+last week i got an old ( new for me ;-) ) laptop - Compaq Armada 1500c with an preinstalled Win98... *spew*
+first of all, i replaced this piece of software with a real OS...( successfully, of course )
+except one thing ;-(( - everybody can imagine now, what happened:
+when i first started the laptop, the fan started ( with win98 )
+now it's over - guess its the famous ACPI description table...
+my question is:
 
-IDE changes got priority, but I guess we should have good chance
-getting into 2.4.22.
-							Pavel
+has anybody a working table for this laptop???
+next question:
+in thermal_zone there are some weird entries:
+cat trip_points gives my the following:
 
--- 
-When do you have heart between your knees?
+critical       95 C
+passive      94 C
+active[0]     84 C
+active[1]     72 C
+
+i belive, there must be something wrong here...
+even if the temperature ( cat temperature ) goes over 72 C, the fan is still inactive...., too bad
+is this a bug ???
+
+if anyone could help me, - would be nice...
+
+greetz
+flo
+______________________________________________________________________________
+UNICEF bittet um Spenden fur die Kinder im Irak! Hier online an
+UNICEF spenden: https://spenden.web.de/unicef/special/?mc=021101
+
 
 
 -------------------------------------------------------
