@@ -1,33 +1,41 @@
-From: Alex Williamson <alex.williamson@hp.com>
-Subject: Re: [PATCH/RFC] exposing ACPI objects in sysfs
-Date: Tue, 21 Sep 2004 08:18:05 -0600
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <1095776285.6307.0.camel@tdi>
-References: <1095716476.5360.61.camel@tdi>
-	 <20040921122428.GB2383@elf.ucw.cz>
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Re: [ACPI] [PATCH] PCI IRQ resource deallocation support [2/3]
+Date: Tue, 21 Sep 2004 08:57:59 -0600
+Sender: linux-ia64-owner@vger.kernel.org
+Message-ID: <200409210857.59457.bjorn.helgaas@hp.com>
+References: <414FEBDB.2050201@soft.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S267344AbUIUORl@vger.kernel.org>
-In-Reply-To: <20040921122428.GB2383@elf.ucw.cz>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: acpi-devel <acpi-devel@lists.sourceforge.net>, linux-kernel <linux-kernel@vger.kernel.org>
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <414FEBDB.2050201@soft.fujitsu.com>
+Content-Disposition: inline
+To: acpi-devel@lists.sourceforge.net
+Cc: Kenji Kaneshige <kaneshige.kenji@soft.fujitsu.com>, akpm@osdl.org, greg@kroah.com, len.brown@intel.com, tony.luck@intel.com, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2004-09-21 at 14:24 +0200, Pavel Machek wrote:
-> Hi!
-> 
-> >    I've lost track of how many of these patches I've done, but here's
-> > the much anticipated next revision ;^)  The purpose of this patch is to
-> > expose ACPI objects in the already existing namespace in sysfs
-> > (/sys/firmware/acpi/namespace/ACPI).  There's a lot of information
-> 
-> Perhaps this needs some description in Documentation/ ?
-> 
+On Tuesday 21 September 2004 2:52 am, Kenji Kaneshige wrote:
+> + * This function undoes the effect of one call to acpi_register_gsi().
+> + * If this matches the last regstration, any IRQ resources for gsi
 
-   Yes, definitely.  I'll work on some.  Thanks,
+s/regstration/registration/ (also other occurrences below).
 
-	Alex
+> +void
+> +acpi_pci_irq_disable (
+> + struct pci_dev  *dev)
+> +{
+> + unsigned char irq_disabled, irq;
 
--- 
-Alex Williamson                             HP Linux & Open Source Lab
+pci_dev.irq is unsigned int, not unsigned char, so irq_disabled
+should be unsigned int as well.
+
+> +  * dev->irq is cleared by BIOS-assigned IRQ set during boot.
+> +  */
+> + pci_read_config_byte(dev, PCI_INTERRUPT_PIN, &irq);
+> + if (irq)
+> +  pci_read_config_byte(dev, PCI_INTERRUPT_LINE, &irq);
+> + dev->irq = irq;
+
+Why do we need to fiddle with dev->irq?  I think it should
+just be undefined after acpi_pci_irq_disable().
