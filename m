@@ -1,14 +1,14 @@
 From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: controlling of fan(s)
-Date: Mon, 23 Aug 2004 09:13:18 +0200
+Subject: Re: usb after suspend...
+Date: Mon, 23 Aug 2004 09:09:09 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040823071317.GF24853@message-id.gmane0305.slipkontur.de>
-References: <4127EE08.3030706@web-hh.de>
+Message-ID: <20040823070909.GE24853@message-id.gmane0305.slipkontur.de>
+References: <1093023842.8692.7.camel@webguy> <41263FDB.2030203@optonline.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4127EE08.3030706-2JDZN3zA0MWzQB+pC5nmwQ@public.gmane.org>
+In-Reply-To: <41263FDB.2030203-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -20,17 +20,18 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Aug 22, 2004 at 02:51:20AM +0200, Gerhard Wendebourg wrote:
-> How do I control noise fan(s) on my machine ?
-> Which switch is there to use to shut him down or lower ?
+On Fri, Aug 20, 2004 at 02:15:55PM -0400, Nathan Bryant wrote:
+> Wesley T Allen wrote:
+> >suspend or hibernate?  I'm running 2.6.7 and mepis linux; it suspends
+> >GREAT, and comes back FAST, but I can't get usb to be recognized at all,
+> >even though lsmod shows the modules still loaded?
 > 
-> I'd like to write a tiny deamon-script that periodically looks for the 
-> CPU-temperature and thus controls the fan(s).
+> Are you using ehci or uhci? ehci has known issues. uhci works for me. 
+> For ehci you can try unloading the module before suspend, reloading 
+> after resume.
 
-switch on:  echo -n 0 > /proc/acpi/fan/*/state
-switch off: echo -n 3 > /proc/acpi/fan/*/state
-
-or the other way round.
+also for ohci. The only hostcontrolle driver that has working suspend /
+resume support was uhci, the last time i checked. 
 -- 
 Stefan Seyfried
 
