@@ -1,8 +1,8 @@
-From: Faye Pearson <faye-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org>
+From: Stephen White <stephen-acpi-devel-4QvXXjU8Dv4@public.gmane.org>
 Subject: Re: C1VN, ACPI and ESD/ASD = const CPU
-Date: Tue, 27 Aug 2002 15:48:26 +0100
+Date: Tue, 27 Aug 2002 15:58:43 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020827144826.GC32423@clara.net>
+Message-ID: <20020827145843.GA12836@the.earth.li>
 References: <20020827091844.7af7a982.jcollins@asgardsrealm.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -17,50 +17,33 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: "Jamin W. Collins" <jcollins-u0TlgVUp4POoiH3BShWgcg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Jamin W. Collins [jcollins-u0TlgVUp4POoiH3BShWgcg@public.gmane.org] wrote:
-> Has anyone else tried using ACPI with the C1VN or similiar laptops?  I've
-> recently recompiled my kernel, removing APM and enabling ACPI.  Most
-> things seem to work fine (battery status and events).  However, when I
-> start esd or asd to mix audio streams my processor utilization immediately
-> jumps to ~50% and stays there.  The utilization drops to 15-30% if I set
-> longrun to maximum rather than variable.  I've verified the utilization
-> with both "top" and "gkrellm".  However, while top shows that my CPU is
-> not completely idle, it does not list what is using the CPU.  I've tried
-> sorting by CPU utilization, but there are still large gaps. As shown by
-> the following:
+---- Original Message ----
+> From Jamin W. Collins <jcollins-u0TlgVUp4POoiH3BShWgcg@public.gmane.org>
+> Date: Tuesday, 27 Aug 2002, 15:18
+> 
+> CPU states:   0.8% user,  25.7% system,   0.0% nice,  73.5% idle
+                            ^^^^^^^^^^^^
+The marked bit means that 25.7% of the CPU time is being spent inside 
+the kernel, this means that it doesn't show up on the process list as 
+it is not a normal process causing the load ..  hence you weren't able 
+to spot where it was being used even when sorting by CPU usage.
 
-If you stop acpid (if you run it) and cat /proc/acpi/events, do you get
-a constant stream of events during this high system load?
+A traditional way to create a high system CPU load would be lots of
+network traffic over an encrypted interface (e.g. cipe) .. so the kernel
+itself is spending a lot of time doing cryptography.
 
-I get a constant stream of Processor 0x80 events if I pass the Passive
-cooling point on my laptop (Compaq 2701EA) running 2.4.19-020815.
-This causes the processor to run hotter and therefore continue to stream
-these events.
+The fact that ACPI is causing this is a problem.  One thing to try is 
+check that you are not getting lots of ACPI events or that you are not 
+getting lots of interrupts occuring.  The later can be found with 'cat 
+/proc/interrupts' .. run it a few times and compare the results.
 
-I need to find what it is which is causing the problem.  I had a look at
-processor and thermal, and when the passive point is reached it does
-send an acpi event, but if I comment that out, all it does is stop it
-going to acpi/events, it doesn't stop whatever is spinning and causing
-the high system load and noone on the list has been able to give me
-any tips on where to look.
-
-I don't remember the problem occurring when I was using 2.4.18-020709
-kernel.  Perhaps Passive cooling "handling" is new since then?
-
-
-Faye
+I'm not an ACPI expert so I can't suggest much else to look for.
 
 -- 
-Faye Pearson,
-Software Development Manager,
-ClaraNET Ltd.       Tel 020 7903 3000
-
-Friends may come and go, but enemies accumulate.
-		-- Thomas Jones
+Stephen White <stephen-acpi-devel-4QvXXjU8Dv4@public.gmane.org>
 
 
 -------------------------------------------------------
