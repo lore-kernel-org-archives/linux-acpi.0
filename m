@@ -1,15 +1,13 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: Re: s3_late_bios
-Date: Tue, 09 Nov 2004 20:43:56 +0000
-Message-ID: <1100033036.17276.31.camel@elrond.flymine.org>
-References: <20041108144947.GA31267@tate.loria.fr>
-	 <20041108213558.GB4607@elf.ucw.cz> <418FEAD5.1000007@root.org>
-	 <20041109125522.GA8015@tate.loria.fr>  <419127E6.3000603@root.org>
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: Re: Error in dsdt from asus a3527nuh
+Date: Tue, 09 Nov 2004 12:49:44 -0800
+Message-ID: <41912D68.8040609@root.org>
+References: <200411092131.27258.valerio@bgweb.it>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <419127E6.3000603-Y6VGUYTwhu0@public.gmane.org>
+In-Reply-To: <200411092131.27258.valerio-3NZjWNnCfY8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,22 +17,45 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Valerio Felici <valerio-3NZjWNnCfY8@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2004-11-09 at 12:26 -0800, Nate Lawson wrote:
+Valerio Felici wrote:
+> Sorry in advance if this is the wrong ml for my question, or if this one is 
+> bad formed.
+> 
+> I've a new asus a3527nuh. I've decompiled my dsdt and trying to compile it 
+> with iasl I can observe there is an error, it seems a stupid error, but I'm 
+> not able to solve it.
+> 
+> So I've decide to post it here in attachment (tar-gzipped) so someone can, 
+> perhaps, debug it better than me.
+> 
+> Notebook is ASUS A3N family
+> Bios is 0205 version
+> 
+> Iasl Report:
+> -----
+> # iasl -tc dsdt.dsl
+> 
+> Intel ACPI Component Architecture
+> ASL Optimizing Compiler / AML Disassembler version 20040527 [May 27 2004]
+> Copyright (C) 2000 - 2004 Intel Corporation
+> Supports ACPI Specification Revision 2.0c
+> 
+> dsdt.dsl  7818:     If (SS1)
+> Error    1037 -      ^ parse error
+> 
+> ASL Input:  dsdt.dsl - 7924 lines, 271634 bytes, 3603 keywords
+> Compilation complete. 1 Errors, 0 Warnings, 0 Remarks, 0 Optimizations
 
-> I mostly work on FreeBSD and since it has clean vm86 support routines, 
-> it doesn't involve any inline assembly to do the lcall there.  I assume 
-> Linux has something similar.  I think re-entering real mode and 
-> overloading the resume asm code to run just one instruction is a bit of 
-> a hack.
-
-Linux/AMD64 has no vm86 mode, as far as I know.
+I don't know if this is the same problem but I've noticed a lot of 
+systems with AML opcodes outside any method.  This is technically 
+illegal but iasl should still be able to handle it.
 
 -- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
-
+Nate
 
 
 -------------------------------------------------------
