@@ -1,14 +1,15 @@
-From: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
-Subject: More and more weirdness
-Date: Fri, 25 Jul 2003 00:46:26 +0100
+From: Florian Lohoff <flo-BCn6idZOOBwdnm+yROfE0A@public.gmane.org>
+Subject: Re: S3 wakeup code
+Date: Fri, 25 Jul 2003 12:36:15 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200307250046.26322.adq_dvb@lidskialf.net>
+Message-ID: <20030725103615.GA9702@paradigm.rfc822.org>
+References: <20030723152809.GA591@paradigm.rfc822.org> <20030723162423.GD9013@atrey.karlin.mff.cuni.cz> <1059041888.19684.8.camel@bacchus.gpphy.uni-duesseldorf.de> <20030724104518.GA12041@paradigm.rfc822.org> <1059045536.19684.21.camel@bacchus.gpphy.uni-duesseldorf.de> <20030724144535.GA629@paradigm.rfc822.org> <20030724200411.GA444@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="vkogqOf2sHV7VnPd"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20030724200411.GA444-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,43 +18,53 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-OK, heres the latest on my weird IRQ problems. I'm posting this in case it 
-rings a bell with anyone...
 
-All my onboard devices work fine.
-I've just installed my first PCI addon card. A Netgear MA311 wavelan card 
-(this is a "proper" PCI card, not a PCMCIA->PCI bridge)
+--vkogqOf2sHV7VnPd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-If I disable ACPI, my APIC does not get found, and the card works.
+On Thu, Jul 24, 2003 at 10:04:11PM +0200, Pavel Machek wrote:
+> >=20
+> > I read a bit in the ACPI Specs - It seems there are a 32Bit and a 64Bit=
+=20
+> > pointer to the wakeup routine. The 32Bit pointer says "superseeded by
+> > "X_Firmware_Waking_Vector" which seems not to be set in
+> > drivers/acpi/hardware/hwsleep.c:acpi_set_firmware_waking_vector
+>=20
+> What specs is that? As wakeup code starts in *real* mode, I don't see
+> how 64bit pointer is going to be usefull...
+>=20
 
-If I enable ACPI (with my patch), my APIC does get found, and the card doesn't 
-work.
+ACPI 2.0 Page 128 - I think these are extensions to support ia64 - But
+forget about that - used debug code - its using the 32bit pointer.
 
-When I insert the driver in APCI mode, it sorta hangs about a bit, and then 
-claims "interrupt delivery does not seem to work", which definitely sounds 
-like the kind of thing I'm trying to fix.
+And i was misreading the code - Basically it puts a "generic" pointer
+to the right Firmware vector inthe gbl_common_fACS and writes to the
+previously defined position.
 
-Monitoring /proc/irq/io_apic shows it DOES enable the IRQ during probing, and 
-then disables it again afterwards.
+Flo
+--=20
+Florian Lohoff                  flo-BCn6idZOOBwdnm+yROfE0A@public.gmane.org             +49-171-2280134
+                        Heisenberg may have been here.
 
-The IRQs are set up as my ACPI bios says they should. This sounded like 
-exactly the problem I had before. So I played about with the polarity/mode 
-settings in the IO APIC again.
+--vkogqOf2sHV7VnPd
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-I can get the card to work.. sort of. When set to activelow/level, it starts 
-up, detects the card OK, and gives its normal output. Problem is after that 
-happens, I immediately get one of those "IRQ #18: nobody cared messages", and 
-the kernel disables IRQ 18. I'm assuming the card did not say it had issued 
-an IRQ, so the driver did not return IRQ_HANDLED to the kernel. (IRQ 18 is 
-the IRQ assigned to the card BTW)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
 
-Anyway, this shows (a) my patch is not yet complete and (b) something is up 
-with the ACPI settings for IO-APIC mode/polarity for addon cards.
+iD8DBQE/IQgfUaz2rXW+gJcRAuvwAKC1x3mKNk/ghii9WIAZWTUgWzaoTQCgqOVI
+SlwlSVXZiu8h/tYoUy+GnOY=
+=aPLT
+-----END PGP SIGNATURE-----
 
-
+--vkogqOf2sHV7VnPd--
 
 
 -------------------------------------------------------
