@@ -1,17 +1,12 @@
-From: Jan Rychter <jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: Intel Centrino and Linux
-Date: Thu, 08 May 2003 12:46:15 -0700
+From: Dave Bauer <dave-eQMij45H2SHXYFsarriMmxagbA6BzR3y@public.gmane.org>
+Subject: vpr Matrix 175b4/Samsung P10
+Date: Thu, 8 May 2003 15:55:13 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <m2bryd8bnc.fsf@tnuctip.rychter.com>
-References: <200305031848.04583.nbellm@gmx.de>
-	<1051979022.24562.24.camel@dhcp22.swansea.linux.org.uk>
-	<m21xzb9vig.fsf_-_@tnuctip.rychter.com>
-	<01f301c3148f$63f16870$3746028e@bio.dfo.ca>
+Message-ID: <20030508195513.GA29957@thedesignexperience.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <01f301c3148f$63f16870$3746028e-dP0OE4Ef7fWw5LPnMra/2Q@public.gmane.org> (Derek Broughton's
- message of "Wed, 07 May 2003 08:54:18 -0300")
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -23,32 +18,28 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->>>>> "Derek" == Derek Broughton <dbroughton-F3m4/jXepmf3fQ9qLvQP4Q@public.gmane.org>:
- Derek> From: "Jan Rychter" <jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org>
- >> I've already ruled out all Compaq notebooks thanks to the multiple
- >> problem reports seen on this list (hi HP/Compaq! congratulations on
- >> the market strategy),
+Hi,
 
- Derek> I think that's awfully short-sighted.  Compaqs appear, from my
- Derek> reading of this list, to be some of the better supported
- Derek> laptops.  Sure there are lots of niggling little problems, but
- Derek> most of them can be fixed - thanks to the support available here
- Derek> from both users and HP.  Now, if Dell would only provide some
- Derek> support....
+It looks like I have the exact same issues as mentioned in this thread:
 
-Is it? From what I see, people have to fix and patch their DSDTs in
-order to get their notebooks working. I didn't have to do that with my
-Sharp and I'm not looking forward to the experience. I would like to buy
-a notebook that I can boot Linux on without going through the hassle of
-ironing out the details.
+http://sourceforge.net/mailarchive/message.php?msg_id=3597159
 
-But I guess everyone's taste is different. The level of "acceptable
-annoyance" is also different for each one of us.
+It looks like the Battery and AC Adapter are trying to check status
+through the PCI bus. I seem to have everything else working fine via
+ACPI by fixing the other errors in the DSDT using he HOWTOs that are
+available.
 
-But I didn't see any comments from Andy or Bob in this thread -- about
-Linux and Centrino, which is what this thread is really about?
+I checked out the Samsung p10 and I am pretty sure they make the vpr
+Matrix 175b4 that I have.
 
---J.
+I also noticed that Stefan posted a link to his fixed DSDT, but I can't
+download it. The message the link was posted in is here: 
+http://sourceforge.net/mailarchive/message.php?msg_id=3643745
+
+If anyone has information on this model, please let me know.
+
+Thanks
+Dave
 
 
 -------------------------------------------------------
