@@ -1,8 +1,13 @@
-From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 1/1] bk-acpi alpha build fix
-Date: Sat, 02 Apr 2005 03:49:23 -0800
-Message-ID: <200504021149.j32BnaCk006108@shell0.pdx.osdl.net>
+From: ross-iWlVPHNiaoT2fBVCVOL8/A@public.gmane.org
+Subject: Re: ACPI Suspend on Inspiron 1100
+Date: Sun, 3 Apr 2005 18:40:42 -0400
+Message-ID: <20050403224042.GA30240@jose.lug.udel.edu>
+References: <20050331191931.GA16450@jose.lug.udel.edu> <200504011602.06831.stefandoesinger@gmx.at>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <200504011602.06831.stefandoesinger-RbZlAiThDcE@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -12,62 +17,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org
+To: Stefan D?singer <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, ross-iWlVPHNiaoT2fBVCVOL8/A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Fri, Apr 01, 2005 at 04:02:05PM +0000, Stefan D?singer wrote:
+> > 2) 2.6.11.6: putting the machine to sleep via proc/sysfs works, but
+> > the machine never fully wakes up.  I can still login to a console and
+> > halt the laptop, but the display won't turn back on.  Switching
+> > to/from X11 VT doesn't seem to help.
+> Try the suggestions in Documentation/power/video.txt(in the Linux source 
+> tree).
+> What video card do you use?
+
+It's an Intel i845G on the laptop. 
+
+I actually just got S3 states working correctly with the tip you gave
+in another thread with vbetool.
+
+Oddly, vbetool vbestate restore seems to lock the terminal up.  Buton
+that machine, vbetool post is enough to get the display initialized.
+So I just wrote a script that will flip around VTs and run that after
+restoring.  Works well.  Thanks a ton!
 
 
-ACPI doesn't work on alphas.
+-- 
+Ross Vandegrift
+ross-iWlVPHNiaoT2fBVCVOL8/A@public.gmane.org
 
-  CC      drivers/pci/quirks.o
-distcc[25816] ERROR: compile on localhost failed
-In file included from include/acpi/platform/acenv.h:123,
-                 from include/acpi/acpi.h:53,
-                 from include/linux/acpi.h:34,
-                 from drivers/pci/quirks.c:21:
-include/acpi/platform/aclinux.h:59:22: asm/acpi.h: No such file or directory
-In file included from include/acpi/acpi.h:54,
-                 from include/linux/acpi.h:34,
-                 from drivers/pci/quirks.c:21:
-include/acpi/actypes.h:110: error: parse error before "INT64"
-include/acpi/actypes.h:110: warning: type defaults to `int' in declaration of `INT64'
-include/acpi/actypes.h:110: warning: data definition has no type or storage class
-include/acpi/actypes.h:111: error: parse error before "UINT64"
-include/acpi/actypes.h:111: warning: type defaults to `int' in declaration of `UINT64'
-include/acpi/actypes.h:111: warning: data definition has no type or storage class
-In file included from drivers/pci/quirks.c:21:
-include/linux/acpi.h:37:22: asm/acpi.h: No such file or directory
-
-
-I chose to fix it in acpi.h.  Seems cleaner than adding an ifdef to quirks.c.
-
-Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
----
-
- 25-alpha-akpm/include/linux/acpi.h |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletion(-)
-
-diff -puN include/linux/acpi.h~bk-acpi-alpha-build-fix include/linux/acpi.h
---- 25-alpha/include/linux/acpi.h~bk-acpi-alpha-build-fix	2005-04-02 01:54:02.000000000 -0800
-+++ 25-alpha-akpm/include/linux/acpi.h	2005-04-02 01:54:30.000000000 -0800
-@@ -25,6 +25,8 @@
- #ifndef _LINUX_ACPI_H
- #define _LINUX_ACPI_H
- 
-+#ifdef CONFIG_ACPI
-+
- #ifndef _LINUX
- #define _LINUX
- #endif
-@@ -536,4 +538,5 @@ static inline int acpi_get_pxm(acpi_hand
- 
- extern int pnpacpi_disabled;
- 
--#endif /*_LINUX_ACPI_H*/
-+#endif	/* CONFIG_ACPI */
-+#endif	/* _LINUX_ACPI_H */
-_
+"The good Christian should beware of mathematicians, and all those who
+make empty prophecies. The danger already exists that the mathematicians
+have made a covenant with the devil to darken the spirit and to confine
+man in the bonds of Hell."
+	--St. Augustine, De Genesi ad Litteram, Book II, xviii, 37
 
 
 -------------------------------------------------------
