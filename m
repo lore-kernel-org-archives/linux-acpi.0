@@ -1,12 +1,12 @@
-From: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Subject: Fw: ACPI fail in kernel 2.4.25 and 2.6.3
-Date: Tue, 24 Feb 2004 17:26:09 -0800
+From: Keld =?iso-8859-1?Q?J=F8rn?= Simonsen <keld-6PR53cSIHaE@public.gmane.org>
+Subject: acer TM 233 s3 problem: screen does not resume, no autohalt
+Date: Wed, 25 Feb 2004 02:44:30 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040224172609.1455bc5b.akpm@osdl.org>
+Message-ID: <20040225014430.GA2559@rap.rap.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,56 +18,39 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi
 
+I have an Acer Travelmate 233 running MDK 10.0 RC1, kernel 2.6.2.
+When I put it in "mem" save and resume it, the screen will not come
+up, but other things work, such as an ssh from another machine.
+Also the cpu does not seem to go into autohalt, consuming about 38 W
+instead of the normal 18 W (ideling)?
 
-Begin forwarded message:
+Can I turn the screen on with some shell command?
+(from my ssh session)
 
-Date: Wed, 25 Feb 2004 00:09:27 +0100
-From: Javier Gonzalez <javi-UMxcb9VqC+E@public.gmane.org>
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: ACPI fail in kernel 2.4.25 and 2.6.3
+Why does the cpu not idle halt?
 
+Is there a way to just put the CPU off (seletcet S3 or you could call it
+S2)? I would like to have the ram, screen and keyboard and mouse running, and
+the CPU shut down (no power)  
+This could happen after ideling for 1 second. How could that be done,
+and any comments on it?
 
-Hi!
+I think I in this way could get down to maybe 11 W.
 
-Recently I have upgraded my kernel from 2.4.22-AlanCoxPatch. I have an
-Acer Travelmate 290LMi laptop (Centrino). All worked well with 2.4.22
-but i have problems with new kernels.
+Or, as it only takes about 0,8 W in S3 mode, it could be:
 
-With 2.4.25 + cpufreq patch from
-ftp://ftp.linux.org.uk/pub/linux/cpufreq/ and a few minutes after boot
-(when i try to know battery state with acpi command) i get this "bucle"
-error:
+RAM      0,8 W
+Screen   3,6 W
+Mouse      ? W
+-----------------
+Total    5,0 W
 
-Feb 24 23:47:00 localhost kernel: acpi_battery-0195 [1619]
-acpi_battery_get_statu: Error evaluating _BST
-Feb 24 23:47:01 localhost kernel:  dswload-0279: *** Error: Looking up
-[PBST] in namespace, AE_ALREADY_EXISTS
-Feb 24 23:47:01 localhost kernel:  psparse-0588 [1626]
-ps_parse_loop         : During name lookup/catalog, AE_ALREADY_EXISTS
-Feb 24 23:47:01 localhost kernel:  psparse-1120: *** Error: Method
-execution failed [\_SB_.PCI0.LPC0.BAT1._BST] (Node c1562528),
-AE_ALREADY_EXISTS
+Leaving me 12 hours on my 60000 mWh battery 
 
-I tried with 2.6.3 and y get the same error :-(=20
-
-I have twho friends with diferents laptops who have the same problem.
-
-Thank for your help.
-
---=20
-Un saludo:
-
-                            Javier Gonz=E1lez
-                   GNU/Linux registered user #302650
-
-
--
-To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-Please read the FAQ at  http://www.tux.org/lkml/
-
+best regards
+keld
 
 
 -------------------------------------------------------
