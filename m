@@ -1,56 +1,74 @@
-From: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [ACPI] [PATCH] 2.6.0-test4 Don't change BIOS allocated IRQs
-Date: Tue, 16 Sep 2003 18:02:55 -0700
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [BKPATCH] ACPI 20030916 for 2.4.23-pre4
+Date: 16 Sep 2003 18:38:47 -0700
 Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20030917010254.GA1640@kroah.com>
-References: <200309170011.03630.adq_dvb@lidskialf.net>
+Message-ID: <1063762727.13038.34.camel@linux.local>
+References: <Pine.LNX.4.44.0309151824360.2914-100000@logos.cnet>
+	 <1063759840.13038.23.camel@linux.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200309170011.03630.adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
-To: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Chris Wright <chrisw-3NddpPZAyC0@public.gmane.org>
+In-Reply-To: <1063759840.13038.23.camel-Tk/TtsB/rErDOqzlkpFKJg@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Sep 17, 2003 at 12:11:03AM +0100, Andrew de Quincey wrote:
-> With the help of Chris Wright testing several failed patches, I've tracked 
-> down another ACPI IRQ problem. On many systems, the BIOS 
-> pre-allocates IRQs for certain PCI devices, providing a list of alternate 
-> possibilities as well.
-> 
-> On some systems, changing the IRQ to one of those alternate possibilities 
-> works fine. On others however, it really isn't a good idea. As theres no 
-> way to tell which systems are good and bad in advance, this patch simply 
-> ensures that ACPI does not change an IRQ if the BIOS has pre-allocated it.
+ACPI 20030916 for 2.4.22 and 2.4.23-pre4 is available here:
 
-Nice, the patch below, which Chris told me is from you, fixed my
-problems too.  It is against 2.6.0-test5-bk3 and fixes bug number 1186
-in the bugzilla.kernel.org database.
+http://linux-acpi.bkbits.net/linux-acpi-release-2.4.22 
+http://linux-acpi.bkbits.net/linux-acpi-release-2.4.23
 
-Many thanks for this work, I really appreciate it.
+The corresponding plain patches are available here:
+
+http://sourceforge.net/project/showfiles.php?group_id=36832
+
+The corresponding 2.6 update will be out shortly...
 
 thanks,
+-Len
 
-greg k-h
 
-test5-bk_current
-===== drivers/acpi/pci_link.c 1.13 vs edited =====
---- 1.13/drivers/acpi/pci_link.c	Mon Sep  8 05:51:03 2003
-+++ edited/drivers/acpi/pci_link.c	Tue Sep 16 16:16:31 2003
-@@ -456,7 +456,6 @@
- 		irq = link->irq.active;
- 	} else {
- 		irq = link->irq.possible[0];
--	}
- 
- 		/* 
- 		 * Select the best IRQ.  This is done in reverse to promote 
-@@ -466,6 +465,7 @@
- 			if (acpi_irq_penalty[irq] > acpi_irq_penalty[link->irq.possible[i]])
- 				irq = link->irq.possible[i];
- 		}
-+	}
- 
- 	/* Attempt to enable the link device at this IRQ. */
- 	if (acpi_pci_link_set(link, irq)) {
+On Tue, 2003-09-16 at 17:50, Len Brown wrote:
+> Hi Marcelo, please do a 
+> 
+> 	bk pull http://linux-acpi.bkbits.net/linux-acpi-release-2.4.23
+> 
+> This will update the following files:
+> 
+>  arch/i386/kernel/acpi.c        |    1 
+>  arch/i386/kernel/dmi_scan.c    |    9 +---
+>  arch/i386/kernel/mpparse.c     |   26 ++++++------
+>  arch/i386/mm/ioremap.c         |    2 
+>  drivers/acpi/ec.c              |    7 ++-
+>  drivers/acpi/events/evregion.c |    6 +-
+>  drivers/acpi/pci_link.c        |   61 ++++++++++++++++++++++++-----
+>  include/acpi/acconfig.h        |    2 
+>  8 files changed, 78 insertions(+), 36 deletions(-)
+> 
+> through these ChangeSets:
+> 
+> <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/09/16 1.1063.43.6)
+>    ACPI_CA_VERSION                 0x20030916
+> 
+> <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/09/12 1.1063.43.5)
+>    fix off-by-one error in ioremap()
+>    fixes kernel crash in acpi mode:
+> http://bugzilla.kernel.org/show_bug.cgi?id=1085
+> 
+> <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/09/08 1.1063.43.4)
+>    remove ASUS A7V BIOS version 1011 from blacklist (Eric Valette)
+> 
+> <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/09/08 1.1063.43.3)
+>    support non ACPI compliant SCI over-ride specs (Jun Nakajima)
+> 
+> <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/09/08 1.1063.43.2)
+>    Fix ACPI oops on ThinkPad T32/T40 (Shaohua David Li)
+> 
+> <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/09/08 1.1063.43.1)
+>    Extended IRQ resource type for nForce (Andrew de Quincey)
+>    Handle BIOS with _CRS that fails (Jun Nakajima)
+> 
+> 
+> 
+> 
