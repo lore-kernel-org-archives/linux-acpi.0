@@ -1,14 +1,12 @@
 From: Bas Mevissen <ml-Y9IUUvl1dgU0Iwp8Nzs06g@public.gmane.org>
-Subject: Re: ACPI 2.4 interim patch released (20030730)
-Date: Thu, 31 Jul 2003 10:25:25 +0200
+Subject: How to determine ACPI SF patch version from running kernel?
+Date: Thu, 31 Jul 2003 10:25:16 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3F28D275.7090803@basmevissen.nl>
-References: <F760B14C9561B941B89469F59BA3A8470255EEB8@orsmsx401.jf.intel.com>
+Message-ID: <3F28D26C.70803@basmevissen.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <F760B14C9561B941B89469F59BA3A8470255EEB8-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,25 +15,33 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Grover, Andrew wrote:
+Hi all,
 
-> Hi all,
-> 
-> I just posted an interim patch to http://sf.net/projects/acpi, but this
-> isn't going to kernel maintainers right away. 
+(I hope this is not asked before, but the SF mailing list archives are 
+not searchable, so I was not able to search really well)
 
-If I see it correctly (see other e-mail), the current ACPI_CA version in 
-2.4.22-preX is 20030619. The 20030714 patch against pre5 is small and 
-mainly bugfix. Is that patch something to submit for 2.4.22?
+How can I determine the ACPI SF patch number? In the ACPI sources there 
+are a few numbers used:
+
+ACPI_CA_VERSION
+TOSHIBA_ACPI_VERSION
+etc.
+
+Those version numbers tell me the versions of the different modules 
+within ACPI. If I understand it correctly, there is currently no way to 
+determine the "overall" ACPI patch version (aka the SF patch version) 
+from a running kernel and possibly not even from the sources without 
+using the time stamp.
+
+If so, I think it should change. Otherwise, please tell me how to 
+determine this from the kernels syslog.
 
 Regards,
 
 Bas.
-
 
 
 
