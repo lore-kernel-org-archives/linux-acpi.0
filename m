@@ -1,17 +1,13 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: ACPI; S5 state; powerbutton->clean shutdown
-Date: Mon, 10 Jan 2005 12:39:47 +0000
-Message-ID: <1105360788.14892.7.camel@tyrosine>
-References: <20050107005652.GA17647@squash.dsto.defence.gov.au>
-	 <1105061056.8674.91.camel@tyrosine>
-	 <20050107013051.GF17647@squash.dsto.defence.gov.au>
-	 <1105101993.8674.104.camel@tyrosine>
-	 <20050110031008.GD24291@squash.dsto.defence.gov.au>
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Re: Centrino speedstep
+Date: Mon, 10 Jan 2005 14:26:03 +0100
+Message-ID: <20050110132603.GN19199@poupinou.org>
+References: <16852.15668.315630.700537@phoenix.squirrel.nl> <41D4AA9F.7080200@mega.ist.utl.pt> <20041231082524.GA8312@dominikbrodowski.de> <16861.5376.560582.314813@aber.ac.uk> <20050106161440.GD10011@dominikbrodowski.de> <16862.25182.567350.575532@aber.ac.uk> <20050107105045.GA17839@dominikbrodowski.de> <16862.27881.864389.196313@aber.ac.uk> <20050107133022.GM19199@poupinou.org> <20050108010509.GA12131@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050110031008.GD24291-670g5dPm81kHVWjHP2o3SMhQixhbPYnYEK66K81epY8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20050108010509.GA12131-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,20 +17,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>, Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2005-01-10 at 13:40 +1030, Wilkinson, Alex wrote:
+On Sat, Jan 08, 2005 at 02:05:09AM +0100, Karol Kozimor wrote:
+> Thus wrote Bruno Ducrot:
+> > >  > And as 100% CPU usage isn't that common on notebooks...
+> > > 
+> > 
+> > Actually you may save energy but only if you disable the L2 cache.  I
+> > don't think people want that ;)
+> 
+> How is that? Could you elaborate?
+> Best regards,
+> 
 
-> Ok, thanks. I have a RH 9.0 (2.4.20-8smp) that does not have ACPI
-> support. Do 2.4 kernels support ACPI ?
-
-Yup. It's a compile option, though, so it's possible that it was
-disabled in your kernel.
+If you disable L2 cache, then its no more true that the deadline of a
+given task is linear to the frequency due to memory bottleneck.
 
 -- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+Bruno Ducrot
 
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
