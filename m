@@ -1,14 +1,14 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: acpi-devel list archive & acpi.sf.net
-Date: Wed, 26 May 2004 15:50:36 -0400
+From: Martin Ginkel <martin.ginkel-jy7zG81Tlw8@public.gmane.org>
+Subject: Re: Wrong AC state
+Date: Thu, 27 May 2004 00:08:47 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <29AC424F54821A4FB5D7CBE081922E408ABAEA@hdsmsx403.hd.intel.com>
+Message-ID: <40B5156F.5020409@epost.de>
+References: <40B346FC.9090908@mpi-magdeburg.mpg.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <40B346FC.9090908-VDBW1ITIq+y+DWMCimbbknqWYbMAw+HU@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,22 +17,53 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Sebastian Henschel <shensche-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: oysteigi-zs2scLodJVNRyvKAgBWctw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Sebastian,
-Although sourceforge provides the actual acpi-devel list,
-the list archive on that site is notoriously unreliable.
+Martin Ginkel wrote:
+> On my laptop (Fujitsu-Siemens Amilo D 8830) this seems to be partially 
+> broken.
+> The /proc/ac_adapter/AC0/state has a value on-line or off-line from 
+> boot-time and doesn't change later on.
 
-Perhaps you can mention these alternative archives on the acpi.sf.net
-web page:
+OK found a solution while reading the disassembled DSDT:
+The Code ist checking the OS-Version:
 
-http://news.gmane.org/gmane.linux.acpi.devel
-http://marc.theaimsgroup.com/?l=3Dacpi4linux
+     Method (_PSR, 0, NotSerialized)
+     {
+       If (LNot (LEqual (FAKE, 0x00)))
+       {
+         Return (0x00)
+       }
+       Else
+       {
+         If (LOr (LEqual (OSFL (), 0x00), LEqual (OSFL (), 0x04)))
+           {
+              Store (\_SB.PCI0.SBRG.EC0.XCIN, Local0)
+                                     }
+          Else
+           {
+              Store (ACIN, Local0)
+           }
 
-thanks,
--Len
+              Return (Local0)
+           }
+      }
+
+
+OSFL is returning 0x00 for win2000 and 0x04 for windows nt.
+I defined as a dirty fix:
+./include/acpi/platform/aclinux.h:50:
+#define ACPI_OS_NAME               "Microsoft Windows NT"
+
+Now the Power Monitor reacts instantly.
+
+Well: the Bios seems to be designed for Microsoft Windows ;-P
+
+
+	CU
+	Martin
 
 
 -------------------------------------------------------
