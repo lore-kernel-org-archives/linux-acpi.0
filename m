@@ -1,11 +1,16 @@
-From: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Subject: [PATCH] fix possible null pointer reference in acpi_pci_irq_disable
-Date: Wed, 30 Mar 2005 13:49:57 +0900
-Message-ID: <424A2FF5.5070603@jp.fujitsu.com>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: 2.6.12-rc1-mm[1-3]: ACPI battery monitor does not work
+Date: Wed, 30 Mar 2005 13:53:25 +0800
+Message-ID: <200503301353.25492.luming.yu@intel.com>
+References: <200503291156.19112.rjw@sisk.pl>
+Reply-To: luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
+Content-Type: text/plain;
+  charset="gb18030"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200503291156.19112.rjw-KKrjLPT3xs0@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,52 +20,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+On Tuesday 29 March 2005 17:56, Rafael J. Wysocki wrote:
+> Hi,
+>
+> There is a problem on my box (Asus L5D, x86-64 kernel) with the ACPI
+> battery driver in the 2.6.12-rc1-mm[1-3] kernels.  Namely, the battery
+> monitor that I use (the kpowersave applet from SUSE 9.2) is no longer able
+> to report the battery status (ie how much % it is loaded).  It can only
+> check if the AC power is connected (if it is connected, kpowersave behaves
+> as though there was no battery in the box, and if it is not connected,
+> kpowersave always shows that the battery is 1% loaded).
+>
+> Also, there are big latencies on loading and accessing the battery module,
+> but the module loads successfully and there's nothing suspicious in dmesg.
+>
+> Please let me know if you need any additional information.
+>
+> Greets,
+> Rafael
 
-The following patch fixes possible null pointer reference in
-acpi_pci_irq_disable().
-
+Could you just revert ec-mode patch, then retest? 
+-- 
 Thanks,
-Kenji Kaneshige
-
-
-acpi_pci_irq_disable() should check if dev->bus is NULL before calling
-pci_read_config_byte that refers it.
-
-Signed-off-by: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-
-
----
-
- linux-2.6.11-kanesige/drivers/acpi/pci_irq.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
-
-diff -puN drivers/acpi/pci_irq.c~fix_acpi_pci_irq_disable2 drivers/acpi/pci_irq.c
---- linux-2.6.11/drivers/acpi/pci_irq.c~fix_acpi_pci_irq_disable2	2005-03-30 10:36:51.000000000 +0900
-+++ linux-2.6.11-kanesige/drivers/acpi/pci_irq.c	2005-03-30 10:37:23.000000000 +0900
-@@ -470,14 +470,14 @@ acpi_pci_irq_disable (
- 	if (!dev)
- 		return_VOID;
- 
-+	if (!dev->bus)
-+		return_VOID;
-+
- 	pci_read_config_byte(dev, PCI_INTERRUPT_PIN, &pin);
- 	if (!pin)
- 		return_VOID;
- 	pin--;
- 
--	if (!dev->bus)
--		return_VOID;
--
- 	/*
- 	 * First we check the PCI IRQ routing table (PRT) for an IRQ.
- 	 */
-
-_
+Luming
 
 
 -------------------------------------------------------
