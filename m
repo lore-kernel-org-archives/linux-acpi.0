@@ -1,8 +1,8 @@
 From: "Wang, Zhenyu Z" <zhenyu.z.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: thermal zone nuke
-Date: Tue, 31 Aug 2004 10:44:46 +0800
+Subject: RE: acpi irc channel?
+Date: Tue, 31 Aug 2004 10:55:08 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <9DE394C12A921946AEECE1F71944ECD52EF7A4@pdsmsx404>
+Message-ID: <9DE394C12A921946AEECE1F71944ECD52EF7C4@pdsmsx404>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="gb2312"
@@ -21,33 +21,47 @@ To: =?gb2312?B?T2lzqKpuIE1hYyBGaGVhcmGoqg==?= <destynova-iUB+o6dfpG8i1yMB4YHZDQ@
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Could you send your dsdt?
+=20
+irc://irc.ftsoy.org/acpi
 
-________________________________
-
+-----Original Message-----
 From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org =
 [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Ois=A8=AAn =
 Mac Fheara=A8=AA
-Sent: 2004=C4=EA8=D4=C230=C8=D5 15:45
+Sent: 2004=C4=EA8=D4=C231=C8=D5 7:50
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: [ACPI] thermal zone nuke
+Subject: [ACPI] acpi irc channel?
+
+Every time I resolve an ACPI-related problem, I go on to realize there =
+are=20
+many more problems left to fix... rather than feeling guilty about =
+clogging=20
+up inboxes (as I'm sure others do, meaning a lot of questions probably =
+go=20
+unasked), does anyone else think it might be a nice idea to set up an =
+ACPI=20
+chatroom of sorts, somewhere, for people to discuss whatever =
+problems/ideas=20
+they might have (especially embarrassing ones, like the way I seem to =
+have=20
+the dsdt-in-initrd patch working, but I'm getting errors reported that =
+should=20
+have disappeared with the fixed dsdt)?
+
+Just a thought.
+
+Ois=A8=AAn Mac Fheara=A8=AA
 
 
-In updating my kernel from 2.6.6 to 2.6.8, and my acpi patches to =
-20040816-26-stable-release version, my Acer Aspire 1705SMi is doing what =
-it did the first time I tried to configure ACPI about 8 months ago, =
-namely, thinking the temperature is 255 degrees C and shutting down =
-instantly, whenever I load the thermal module.
-=20
-Might a recent change have done this, or is it something I patched =
-manually to fix and forgot about, before overwriting it with the latest =
-release *cough*?
-=20
-The machine functions okay without loading thermal, and I seem to have =
-the DSDT working in initrd.
-=20
-thanks,
-Ois=A8=AAn
+-------------------------------------------------------
+This SF.Net email is sponsored by BEA Weblogic Workshop
+FREE Java Enterprise J2EE developer tools!
+Get your free copy of BEA WebLogic Workshop 8.1 today.
+http://ads.osdn.com/?ad_id=3D5047&alloc_id=3D10808&op=3Dclick
+_______________________________________________
+Acpi-devel mailing list
+Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
