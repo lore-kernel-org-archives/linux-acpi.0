@@ -1,14 +1,15 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ACPI C4 support
-Date: Mon, 1 Mar 2004 13:26:09 -0800
+From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
+Subject: Re: Bad interaction between ehci-hcd and acpi?
+Date: Mon, 01 Mar 2004 22:47:29 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A8470255F035@orsmsx401.jf.intel.com>
+Message-ID: <1078181249.3511.5.camel@darkstar>
+References: <200403011708.i21H87b06973@ayesha.phys.Virginia.EDU>
+Reply-To: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=iso-8859-15
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <200403011708.i21H87b06973-j2wAk2T2zOxQaOoIv/cCD/2DmoZIrT0C@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,29 +18,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: Stefan Behlert <behlert-l3A5Bk7waGM@public.gmane.org>, Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, trenn-l3A5Bk7waGM@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: bryan-utW8kV9oO443r0Ub5QXD9Q@public.gmane.org
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, bryan-j2wAk2T2zOxQaOoIv/cCD/2DmoZIrT0C@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Pavel Machek [mailto:pavel-AlSwsSmVLrQ@public.gmane.org]=20
-> If there is old BIOS guide telling them to use length of 7, could we
-> make Linux accept that? Its likely a lot of developers have read
-> that...
+On Mon, 2004-03-01 at 17:08, Bryan K. Wright wrote:
+> 	Here are the configuration details:
+> Kernel 2.4.21 (vanilla) with the acpi-20030619-2.4.21.diff patch.
+> Sharp PC-AV18 laptop (KN266, Athlon XP-M 1800+)
+> Tested with two different models of Epson scanner, and with two different
+> brands of external USB disks.
+
 >=20
-> Allowing length of 7 is one line change; if we do it, such notebooks
-> will be able to use C1..C3, but not C4. That does not seem too bad...
+> 	Has anybody else seen similar symptoms?
 
-I would favor being a little more demanding before adding a hack. This
-could be EASILY fixed by a BIOS update, now that the BIOS developer
-knows it is wrong. If this is a common BIOS error then maybe that
-changes things.
+yes we had this symptoms when we work with that kernel(2.4.21) after 4
+release 2.4.25 I don't remember any complain.
+Please upgrade you kernel to last one, and test it again .
 
-BTW, hey wasn't someone going to implement _CST support? FreeBSD already
-has this, we're behind*! ;-)
+=20
+>=20
+> 						Thanks,
+> 						Bryan
+--=20
+S=E9rgio M. B.
 
-Regards -- Andy
-
-* not that any systems use it yet, but it's coming
 
 
 -------------------------------------------------------
