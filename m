@@ -1,34 +1,41 @@
-From: Andries Brouwer <aebr-ek1Qb6IBo2Pz+pZb47iToQ@public.gmane.org>
-Subject: Re: [PATCH] bad strlcpy conversion breaks toshiba_acpi
-Date: Fri, 25 Jul 2003 18:57:09 +0200
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20030725165709.GA670@win.tue.nl>
-References: <3F2142CE.4090608@prairienet.org> <20030725161510.GA31565@vana.vc.cvut.cz>
+From: Mark Santcroos <marks-h3GR0owD+wQ@public.gmane.org>
+Subject: Re: S3 wakeup code
+Date: Fri, 25 Jul 2003 19:20:11 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20030725172011.GD668@laptop.6bone.nl>
+References: <20030725133800.GB668@laptop.6bone.nl> <Pine.LNX.4.44.0307250936080.3334-100000@puppy.afrinc.com> <20030725153110.GD310@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20030725161510.GA31565-Kr4v8scruuLwY2GEPTd/bA@public.gmane.org>
-To: Petr Vandrovec <vandrove-hnqZr3NxcozrBKCeMvbIDA@public.gmane.org>
-Cc: John Belmonte <jvb-ZFKsivP1bGvOQU1ULcgDhA@public.gmane.org>, Ben Collins <bcollins-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Michael Wawrzyniak <gan-28sE0Wxkf/LCXR85Y8Hu3Q@public.gmane.org>
+In-Reply-To: <20030725153110.GD310-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: David G Hamblen <dave-RfZrpLcwWZ/QT0dZR+AlfA@public.gmane.org>, "M. Warner Losh" <imp-uzTCJ5RojNnQT0dZR+AlfA@public.gmane.org>, flo-BCn6idZOOBwdnm+yROfE0A@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jul 25, 2003 at 06:15:10PM +0200, Petr Vandrovec wrote:
+On Fri, Jul 25, 2003 at 05:31:10PM +0200, Pavel Machek wrote:
+> I believe you need to use specific kernel fb driver, and write
+> suspend/resume code for it :-(.
 
-> Nope. Kernel strlcpy implementation is crap and I do not believe that there
-> is single place in the kernel which can live with current implementation. 
-> 
-> Take a look at ftp://ftp.openbsd.org/pub/OpenBSD/src/lib/libc/string/strlcpy.c 
-> or at http://www.courtesan.com/todd/papers/strlcpy.html - it copies
-> at most size-1 characters. Nothing about characters beyond specified size 
-> in the article.
-> 
-> Kernel should use strnlen() to get string length, if coding loop like
-> OpenBSD does is unacceptable.
+I did it once for my ATI Radeon 7500, I will look it up and post it here.
 
-strlcpy is for strings, not for character arrays.
-The *BSD version accesses the source past the size-1 characters that are copied:
-	while (*s++)
-		;
-Thus, replacing strncpy (used to copy character arrays, possibly not 0-terminated)
-by strlcpy is wrong.
+Mark
+
+-- 
+Mark Santcroos                    RIPE Network Coordination Centre
+http://www.ripe.net/home/mark/    New Projects Group/TTM
+
+
+-------------------------------------------------------
+This SF.Net email sponsored by: Free pre-built ASP.NET sites including
+Data Reports, E-commerce, Portals, and Forums are available now.
+Download today and enter to win an XBOX or Visual Studio .NET.
+http://aspnet.click-url.com/go/psa00100003ave/direct;at.aspnet_072303_01/01
