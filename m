@@ -1,13 +1,15 @@
-From: Borislav Deianov <borislav-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: Re: ibm-acpi-0.1
-Date: Tue, 10 Aug 2004 02:51:33 -0700
+From: Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+Subject: Re: current ACPI status in 2.6.7 kernel
+Date: Tue, 10 Aug 2004 20:02:27 +1000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040810095133.GA16382@aero.ensim.com>
-References: <20040810080826.GD28939@aero.ensim.com> <41188AC5.2070805@gmx.de>
+Message-ID: <1092132146.2666.3.camel@laptop.cunninghams>
+References: <411881B1.9000903@ti.com>
+Reply-To: ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <411881B1.9000903-l0cyMroinI0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -16,23 +18,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Alexander Sirotkin <demiurg-l0cyMroinI0@public.gmane.org>
+Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Alexander.
 
-On Tue, 10 Aug 2004 08:47:04 +0000 (UTC) Michael Wahlbrink <linux.wali-Mmb7MZpHnFY@public.gmane.org> wrote:
-> Borislav Deianov wrote:
-> > 
-> > - hot keys (Fn key combinations)
->
-> all working with my R32 without any special driver ;-)
+On Tue, 2004-08-10 at 18:05, Alexander Sirotkin wrote:
+> Hello.
+> 
+> I could not find this information in neither mailing list archive nor 
+> the web site.
+> What is the current status of ACPI ? I'm mainly interested in one simple 
+> question -
+> does suspend work ? If so, how stable it is.
 
-Good for you :-). Do they generate ACPI events or do they just do the
-right thing? On the X40, Fn-F4 generates button/sleep, Fn-F7 switches
-to external display by itself, the other keys do nothing.
+Are you meaning suspend to ram, or to disk?
 
-Thanks,
-Boris
+Regards,
+
+Nigel
+
 
 
 -------------------------------------------------------
