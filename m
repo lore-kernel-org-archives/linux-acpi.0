@@ -1,15 +1,13 @@
-From: Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
-Subject: Re: [PATCH] ACPI based Memory Hotplug Driver Patch
-Date: Thu, 9 Sep 2004 08:11:56 -0500
+From: Andreas Dieling <snow-1pFVYSAoaJAREI5ypv3d1g@public.gmane.org>
+Subject: acpi_serialize not working?
+Date: Thu, 9 Sep 2004 15:15:18 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200409090811.56319.dtor_core@ameritech.net>
-References: <FEB6C4E97F6CAF41978FB2059D5454180F37E8@bgsmsx402.gar.corp.intel.com>
+Message-ID: <200409091515.18129.snow@quantentunnel.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <FEB6C4E97F6CAF41978FB2059D5454180F37E8-OkeUvhg1trkFyVwBAnZdSLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,29 +18,31 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: "S, Naveen B" <naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Tolentino, Matthew E" <matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 Hi,
 
-On Thursday 09 September 2004 05:54 am, S, Naveen B wrote:
+i have an Asus M6N notebook. Me and other M6N users have the problem that the 
+fan sometimes stops working which results in an overheating of the system. 
+The problem occurs under Linux and under Windows.
 
-> +static int=20
-> +acpi_memory_get_device(acpi_handle handle,
-> +=A0=A0=A0=A0=A0=A0=A0struct acpi_memory_device **mem_device)=20
-> +{
+After much investigation i could figure out the problem: 
 
-I think the above should go straight into drivers/acpi/bus.c - there is
-nothing memory-specific in that code and having the common code for hot-
-plugged devices would help other drivers. Umm.. yep. I see that ACPI
-CPU hotplug posted just recently does exactly the same.
+It is a problem with concurrently appearing acpi events. If i am reading cpu 
+temperature via acpi in an endless loop and the fan is switching on 
+collateral the fan controll and temperature readout is crashing and left 
+non-functional.
 
-Also, does it compile as a module? acpi_bus_add does not seem to be
-exported...
+After i patched the dsdt and marked all aml methods as "Serialized" the 
+problem doesn't occur anymore :-)
 
+Since other M6N users may not want to patch their dsdt i tested acpi_serialize 
+as a kernel option. I thought it should have the same effect, but it doesn't 
+seem to work because the fan/temperatur problem occured again...
 
-=2D-=20
-Dmitry
+Is this a bug or has the acpi_serialize option a different purpose?
+
+thx Andreas
 
 
 -------------------------------------------------------
