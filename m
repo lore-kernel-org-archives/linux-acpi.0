@@ -1,11 +1,10 @@
 From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 0/5]ACPI and PNP
-Date: Thu, 21 Oct 2004 10:59:15 +0800
+Subject: [PATCH 3/5]add .match method for ACPI
+Date: Thu, 21 Oct 2004 10:59:57 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1098327554.6132.218.camel@sli10-desk.sh.intel.com>
+Message-ID: <1098327565.6132.224.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="=-LV/L9tsIeDZuDVRM917v"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,17 +18,143 @@ To: ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, lkm
 Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, Matthieu <castet.matthieu-GANU6spQydw@public.gmane.org>, Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+
+--=-LV/L9tsIeDZuDVRM917v
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+
 Hi,
-ACPI is supposed to replace legacy PNPBIOS. The patches (I'll send them
-follow this mail) introduce ACPI PNP layer and make ACPI work with
-legacy devices better (such as avoid resources conflict between PNP
-devices and PCI devices). With the patches, some ACPI drivers such as
-8250_acpi, ACPI motherboard driver can be removed, since now we have a
-unified interface for PNPBios and ACPI PNP. The patches are against
-2.6.9 and tested at both IA32 and IA64. Please give your comments.
+The idea of the patch is from Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>'s ACPI
+video extension patch. Since the video extension patch hasn't been
+merged and the ACPI PNP driver requires it, I attached it here.
 
 Thanks,
 Shaohua
+
+--- 2.6/drivers/acpi/scan.c.stg4	2004-10-18 16:49:57.926042680 +0800
++++ 2.6/drivers/acpi/scan.c	2004-10-18 16:57:30.572230000 +0800
+@@ -161,7 +161,7 @@ acpi_bus_get_power_flags (
+ 	return 0;
+ }
+ 
+-static int
++int
+ acpi_match_ids (
+ 	struct acpi_device	*device,
+ 	char			*ids)
+@@ -314,6 +314,8 @@ acpi_bus_match (
+ 	struct acpi_device	*device,
+ 	struct acpi_driver	*driver)
+ {
++	if (driver && driver->ops.match)
++		return driver->ops.match(device, driver);
+ 	return acpi_match_ids(device, driver->ids);
+ }
+ 
+@@ -495,9 +497,6 @@ acpi_bus_find_driver (
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_bus_find_driver");
+ 
+-	if (!device->flags.hardware_id && !device->flags.compatible_ids)
+-		goto Done;
+-
+ 	spin_lock(&acpi_device_lock);
+ 	list_for_each_safe(node,next,&acpi_bus_drivers) {
+ 		struct acpi_driver * driver = container_of(node,struct
+acpi_driver,node);
+--- 2.6/include/acpi/acpi_bus.h.stg4	2004-10-18 16:50:31.522935176 +0800
++++ 2.6/include/acpi/acpi_bus.h	2004-10-18 16:55:11.474376088 +0800
+@@ -104,6 +104,8 @@ typedef int (*acpi_op_suspend)	(struct a
+ typedef int (*acpi_op_resume)	(struct acpi_device *device, int state);
+ typedef int (*acpi_op_scan)	(struct acpi_device *device);
+ typedef int (*acpi_op_bind)	(struct acpi_device *device);
++typedef int (*acpi_op_match)	(struct acpi_device *device,
++	struct acpi_driver *driver);
+ 
+ struct acpi_device_ops {
+ 	acpi_op_add		add;
+@@ -115,6 +117,7 @@ struct acpi_device_ops {
+ 	acpi_op_resume		resume;
+ 	acpi_op_scan		scan;
+ 	acpi_op_bind		bind;
++	acpi_op_match		match;
+ };
+ 
+ struct acpi_driver {
+@@ -322,6 +325,7 @@ int acpi_bus_receive_event (struct acpi_
+ int acpi_bus_register_driver (struct acpi_driver *driver);
+ int acpi_bus_unregister_driver (struct acpi_driver *driver);
+ 
++int acpi_match_ids (struct acpi_device	*device, char	*ids);
+ int acpi_create_dir(struct acpi_device *);
+ void acpi_remove_dir(struct acpi_device *);
+ 
+
+
+--=-LV/L9tsIeDZuDVRM917v
+Content-Disposition: attachment; filename=acpi_match.patch
+Content-Type: text/x-patch; name=acpi_match.patch; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+--- 2.6/drivers/acpi/scan.c.stg4	2004-10-18 16:49:57.926042680 +0800
++++ 2.6/drivers/acpi/scan.c	2004-10-18 16:57:30.572230000 +0800
+@@ -161,7 +161,7 @@ acpi_bus_get_power_flags (
+ 	return 0;
+ }
+ 
+-static int
++int
+ acpi_match_ids (
+ 	struct acpi_device	*device,
+ 	char			*ids)
+@@ -314,6 +314,8 @@ acpi_bus_match (
+ 	struct acpi_device	*device,
+ 	struct acpi_driver	*driver)
+ {
++	if (driver && driver->ops.match)
++		return driver->ops.match(device, driver);
+ 	return acpi_match_ids(device, driver->ids);
+ }
+ 
+@@ -495,9 +497,6 @@ acpi_bus_find_driver (
+ 
+ 	ACPI_FUNCTION_TRACE("acpi_bus_find_driver");
+ 
+-	if (!device->flags.hardware_id && !device->flags.compatible_ids)
+-		goto Done;
+-
+ 	spin_lock(&acpi_device_lock);
+ 	list_for_each_safe(node,next,&acpi_bus_drivers) {
+ 		struct acpi_driver * driver = container_of(node,struct acpi_driver,node);
+--- 2.6/include/acpi/acpi_bus.h.stg4	2004-10-18 16:50:31.522935176 +0800
++++ 2.6/include/acpi/acpi_bus.h	2004-10-18 16:55:11.474376088 +0800
+@@ -104,6 +104,8 @@ typedef int (*acpi_op_suspend)	(struct a
+ typedef int (*acpi_op_resume)	(struct acpi_device *device, int state);
+ typedef int (*acpi_op_scan)	(struct acpi_device *device);
+ typedef int (*acpi_op_bind)	(struct acpi_device *device);
++typedef int (*acpi_op_match)	(struct acpi_device *device,
++	struct acpi_driver *driver);
+ 
+ struct acpi_device_ops {
+ 	acpi_op_add		add;
+@@ -115,6 +117,7 @@ struct acpi_device_ops {
+ 	acpi_op_resume		resume;
+ 	acpi_op_scan		scan;
+ 	acpi_op_bind		bind;
++	acpi_op_match		match;
+ };
+ 
+ struct acpi_driver {
+@@ -322,6 +325,7 @@ int acpi_bus_receive_event (struct acpi_
+ int acpi_bus_register_driver (struct acpi_driver *driver);
+ int acpi_bus_unregister_driver (struct acpi_driver *driver);
+ 
++int acpi_match_ids (struct acpi_device	*device, char	*ids);
+ int acpi_create_dir(struct acpi_device *);
+ void acpi_remove_dir(struct acpi_device *);
+ 
+
+--=-LV/L9tsIeDZuDVRM917v--
 
 
 
