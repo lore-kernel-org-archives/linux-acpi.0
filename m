@@ -1,13 +1,14 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Re: Re: power is always C2 on toshiba A40 261
-Date: Wed, 23 Jun 2004 23:32:50 -0700 (PDT)
+From: "Michael Frank" <mhf-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+Subject: Re: [Swsusp-devel] swsusp and ac status
+Date: Thu, 24 Jun 2004 22:37:12 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040623233202.W90370@root.org>
-References: <20040623181434.44916.qmail@web90003.mail.scd.yahoo.com>
+Message-ID: <opr93r8ap24evsfm@smtp.pacific.net.th>
+References: <200406241233.i5OCXiKC002386@fermat.unipv.it>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; format=flowed; delsp=yes; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040623181434.44916.qmail-uo4e3NHVv3LcEUl5EaY66YglqE1Y4D90QQ4Iyu8u01E@public.gmane.org>
+In-Reply-To: <200406241233.i5OCXiKC002386-xzhXYMPkGmXoPXhRcRtihA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,42 +17,79 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Olive Esseret <olive_esseret-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+To: Daniele Boffi <boffi-piYtxHxN1XRAly3Pu9w1wA@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 23 Jun 2004, Olive Esseret wrote:
-> --- Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-> wrote:
-> > On Wed, Jun 23, 2004 at 05:25:35AM -0700, Olive
-> > Esseret wrote:
-> > > Hello,
-> >
-> > > The content of the file
-> > >
-> > > /proc/acpi/processor/CPU0/power
-> > > (see attached file power.txt.bz2)
-> >
-> > (it is a bit cumbersome attaching such small files
-> > compressed :-)
-> >
-> > > shows that I am *always* in C2 sate. I see also
-> > that I
-> >
-> > you are probably using a USB mouse on a uhci-hcd
-> > controller.
-> > Unplug the mouse and it will enter C3.
+On Thu, 24 Jun 2004 14:33:44 +0200, Daniele Boffi <boffi-piYtxHxN1XRAly3Pu9w1wA@public.gmane.org> =
+wrote:
+
+> Hi,
+> I noticed that a change in the ac status is not detected after a swsusp=
+.
+> I thought this was an acpi related and known issue; I sent a message
+> to the acpi-devel list but with no significant answer.
 >
-> Thank you, you are entirely right. But my question was
-> more about why I am never C1 even whan I use nearly
-> 100% of CPU (I use this laptop mainly with the AC
-> adaptator and I do not want to loose performance)
+> Is anybody aware of this problem? Is there any workaround available?
+>
+> How to reproduce the bad behavior:
+>
+> - swsuspend when on ac (resp. battery) power
+> - unplug (resp. plug) the ac adapter when the laptop is off
+> - resume when on battery (resp. ac) power
+>
+> Then /proc/acpi/ac_adapter/*/state says "on-line" (resp. "off-line").
+> A new change in the status is then correctly detected.
+>
+> I tried different acpi configurations (ac in the kernel or as a module,=
+ unload
+> the ac module before suspending and reload it after resuming...) with n=
+o
+> success.
+>
+> actual kernel 2.6.7 (same behavior with previous ones), no acpi patch, =
+swsusp2
+> patch
+>
+> Compaq EVO N800v laptop.
+>
+> Same behavior with pm-suspend, swsusp and swsusp2.
+>
 
-Maybe you're lucky and your C2 has such a low latency that it's considered
-just as fast as C1.  The T40 specifies a 1 microsecond latency for C2
-(same as C1).
+The root cause is due to the AC module state at the time of suspend
+being saved and restored on resume and thus being inconsistent
+with the HW on resume which was "touched"  by the BIOS and resuming
+kernel (the kernel which reads the image from disk) during its boot.
 
--Nate
+The problem affects all (2.4/2.6) kernels, most ACPI modules
+(AC, Battery an Button seem especialy troublesome) and is due to lack of
+PM support in the APCI subsystem.  A few users even reported crashes
+on resume which went away when the modules were removed prior
+to suspend.
+
+The ACPI spec surely has standard methods for subsystem PM but these
+are obviously not usable, whether due to being unimplemented or
+broken in ACPI subsystem, DSTD or BIOS.
+
+Guess the least the ACPI subsystem should  do is to disable relevant
+modules on suspend event and reinit them in fashion similar to
+boot on resume.
+
+I personaly find it undesirable that  PM subsystem components have
+no functioning PM :-(
+
+For now, in practice all ACPI modules should be unloaded prior to
+suspend and loaded on resume.
+
+I use the AC module and kernel 2.4.24 with swsusp 2.0 and it works
+fine as long as it is removed prior to suspend.
+
+	Michael
+
+
+
+
+
 
 
 -------------------------------------------------------
