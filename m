@@ -1,11 +1,16 @@
-From: Paulo da Silva <pvmagacho78-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: battery information
-Date: Tue, 12 Oct 2004 06:59:27 -0700 (PDT)
+From: Alberto <albeclemit-whZMOeQn8C0@public.gmane.org>
+Subject: Re: ACPI S3 resume only reboots
+Date: Tue, 12 Oct 2004 17:58:10 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041012135927.1534.qmail@web41125.mail.yahoo.com>
+Message-ID: <20041012175810.2920edf2.albeclemit@yahoo.it>
+References: <20041004133340.76ba05ba.albeclemit@yahoo.it>
+	<20041009130628.GA21781@elf.ucw.cz>
+	<20041010105635.GA3362@doc.ic.ac.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20041010105635.GA3362-CezfXpuMXD6Fxr2TtlUqVg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,36 +22,41 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+> On Sat, Oct 09, 2004 at 03:06:28PM +0200, Pavel Machek wrote:
+> > > How could i try to debug this to give you more info?
+> > 
+> > You basically need to fix this yourself. Add infinite loops to
+> > wakeup.S to see where it breaks.
+> > 								Pavel
 
- I have an ACER Aspire 1613Lmi, and I can't get the
-battery be recognized with ACPI. During the boot I get
-the following messages :
-exstore-0300 [1113] ex_store_object_to_ind: Could not
-store object to indexed package element
- psparse-1133: *** Error: Method execution failed
-[\_SB_.PCI0.LPC0.EC__.GBIF] (Node dfe70480),
-AE_BAD_HEX_CONSTANT
- psparse-1133: *** Error: Method execution failed
-[\_SB_.PCI0.LPC0.EC__.BAT0._BIF] (Node dfe6fe00),
-AE_BAD_HEX_CONSTANT
-acpi_battery-0146 [1102] acpi_battery_get_info : Error
-evaluating _BIF
+I isolated the line were it breaks and reboots.
 
-I couldn't find any one who had the same problem. 
-My dsdt file can be found on :
-http://paulo.home.cern.ch/paulo/dsdt.dsl.orig
-Thanks.
+Code from arch/i386/kernel/acpi/wakeup.S
 
-Regards, 
-Paulo da Silva
+[...] 
+	# setup data segment
+	movw	%cs, %ax
+	movw	%ax, %ds					# Make ds:0 point to wakeup_start
+	movw	%ax, %ss
+	mov	$(wakeup_stack - wakeup_code), %sp		# Private stack is needed for ASUS board
+	movw	$0x0e00 + 'S', %fs:(0x12)
 
+	pushl	$0		###THIS LINE CAUSES REBOOT###			# Kill any dangerous flags
+	popfl
 
-		
-__________________________________
-Do you Yahoo!?
-Yahoo! Mail Address AutoComplete - You start. We finish.
-http://promotions.yahoo.com/new_mail 
+	movl	real_magic - wakeup_code, %eax
+	cmpl	$0x12345678, %eax
+	jne	bogus_real_magic
+[...]
+
+placing a statement like
+hole:	jmp hole
+before pushl $0 (line 37) makes it loop, while immediatly after it reboots.
+
+I don't have skills to fix it myself, but i can test patches... how can i help?
+
+Thanks,
+Alberto Piai
 
 
 -------------------------------------------------------
