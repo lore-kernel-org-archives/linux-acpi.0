@@ -1,16 +1,14 @@
-From: Gunter Ohrner <G.Ohrner-6V9naDJErT6662+jY7v6MhvVK+yQ3ZXh@public.gmane.org>
+From: Alfredo <alfredo.mapelli-y7mWNqJcIDpfJ/NunPodnw@public.gmane.org>
 Subject: Re: dual p4 ?
-Date: Sat, 6 Mar 2004 20:34:24 +0100
+Date: Sat, 07 Feb 2004 16:48:06 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200403062034.32117@mail.CustomCDROM.de>
-References: <1078593250.3743.10.camel@darkstar>
+Message-ID: <40254F06.3020403@terra.com.br>
+References: <1078593250.3743.10.camel@darkstar> <200403062034.32117@mail.CustomCDROM.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1078593250.3743.10.camel-4/PLUo9XfK8@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <200403062034.32117-GfAVBl5OxjxchHfdsNF8vBvVK+yQ3ZXh@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -19,39 +17,64 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Gunter Ohrner <G.Ohrner-6V9naDJErT6662+jY7v6MhvVK+yQ3ZXh@public.gmane.org>
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-=2D----BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+It's sure a HT CPU I have the same thing in my P4 HT
 
-Am Samstag, 6. M=E4rz 2004 18:14 schrieb S=E9rgio Monteiro Basto:
-> 2800, very new, in /proc/acpi/processor/, I got CPU0 and CPU1, with
-> cpuinfo etc, this means that I have 2 CPU or can be one effect of
+Gunter Ohrner wrote:
 
-It's probably one HyperThreading capable CPU.
+>-----BEGIN PGP SIGNED MESSAGE-----
+>Hash: SHA1
+>
+>Am Samstag, 6. März 2004 18:14 schrieb Sérgio Monteiro Basto:
+>  
+>
+>>2800, very new, in /proc/acpi/processor/, I got CPU0 and CPU1, with
+>>cpuinfo etc, this means that I have 2 CPU or can be one effect of
+>>    
+>>
+>
+>It's probably one HyperThreading capable CPU.
+>
+>Greetings,
+>
+>  Gunter
+>
+>- -- 
+>+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+>+ http://aachen.uni-dsl.de/   -   Der direkte Draht in's Hochschulnetz! +
+>+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+>Most alchemists were nervous, in any case; it came from not knowing what 
+>the crucible of bubbling stuff they were experimenting with was going to 
+>do next.        -- (Terry Pratchett, Moving Pictures)
+>+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+>+                   PGP-verschlüsselte Mails bevorzugt!                 +
+>+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+>-----BEGIN PGP SIGNATURE-----
+>Version: GnuPG v1.2.4 (GNU/Linux)
+>
+>iD8DBQFASifH0ORHvREo8l8RAmoPAJ4/CA/ILhxGYcKuFEvkA9ZW/RkJqwCfeDUr
+>MqS6ENOAKGPopfU/b0Wb+oU=
+>=L/qK
+>-----END PGP SIGNATURE-----
+>
+>
+>-------------------------------------------------------
+>This SF.Net email is sponsored by: IBM Linux Tutorials
+>Free Linux tutorial presented by Daniel Robbins, President and CEO of
+>GenToo technologies. Learn everything from fundamentals to system
+>administration.http://ads.osdn.com/?ad_id70&alloc_id638&op=click
+>_______________________________________________
+>Acpi-devel mailing list
+>Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>https://lists.sourceforge.net/lists/listinfo/acpi-devel
+>
+>
+>  
+>
 
-Greetings,
-
-  Gunter
-
-=2D --=20
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-+ http://aachen.uni-dsl.de/   -   Der direkte Draht in's Hochschulnetz! +
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-Most alchemists were nervous, in any case; it came from not knowing what=20
-the crucible of bubbling stuff they were experimenting with was going to=20
-do next.        -- (Terry Pratchett, Moving Pictures)
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-+                   PGP-verschl=FCsselte Mails bevorzugt!                 +
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-=2D----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFASifH0ORHvREo8l8RAmoPAJ4/CA/ILhxGYcKuFEvkA9ZW/RkJqwCfeDUr
-MqS6ENOAKGPopfU/b0Wb+oU=3D
-=3DL/qK
-=2D----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
