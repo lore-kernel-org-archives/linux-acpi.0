@@ -1,12 +1,12 @@
-From: =?iso-8859-1?q?Mica=20Telodico?= <maria_libera2000-whZMOeQn8C0@public.gmane.org>
-Subject: _CRS returns NULL!  message , problems?
-Date: Sun, 29 Feb 2004 14:49:42 +0100 (CET)
+From: Goetz Bock <bock-zjrZfhH+lcMb1SvskN2V4Q@public.gmane.org>
+Subject: ACPI 2.4.25/20040211 on Acer TravelMate C100
+Date: Sun, 29 Feb 2004 15:05:17 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040229134942.75260.qmail@web41906.mail.yahoo.com>
+Message-ID: <20040229140517.GV5481@shell.blacknet.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,53 +15,68 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uti2KpX7p8Fi@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all,
+Dear list,
 
-I'm the owner of a Abit KV7 Motherboard (VIA KT600),
-and I get these messages at the boot time :
+unfortunately with Linux 2.4.25 (even with the most up to date patches
+to 20040211) ACPI stopped working on my Acer TravelMate C100.
 
- _CRS returns NULL! Using IRQ 21 fordevice (PCI
-Interrupt Link [ALKB]).
-ACPI: PCI Interrupt Link [ALKB] enabled at IRQ 21
-IOAPIC[0]: Set PCI routing entry (2-21 -> 0xc9 -> IRQ
-21 Mode:1 Active:1)
-00:00:10[A] -> 2-21 -> IRQ 21
-Pin 2-21 already programmed
-Pin 2-21 already programmed
-Pin 2-21 already programmed
-_CRS returns NULL! Using IRQ 20 fordevice (PCI
-Interrupt Link [ALKA]).
-ACPI: PCI Interrupt Link [ALKA] enabled at IRQ 20
-IOAPIC[0]: Set PCI routing entry (2-20 -> 0xd1 -> IRQ
-20 Mode:1 Active:1)
-00:00:11[A] -> 2-20 -> IRQ 20
-Pin 2-21 already programmed
-_CRS returns NULL! Using IRQ 22 fordevice (PCI
-Interrupt Link [ALKC]).
-ACPI: PCI Interrupt Link [ALKC] enabled at IRQ 22
-IOAPIC[0]: Set PCI routing entry (2-22 -> 0xd9 -> IRQ
-22 Mode:1 Active:1)
-00:00:11[C] -> 2-22 -> IRQ 22
-_CRS returns NULL! Using IRQ 23 fordevice (PCI
-Interrupt Link [ALKD]).
-ACPI: PCI Interrupt Link [ALKD] enabled at IRQ 23
-IOAPIC[0]: Set PCI routing entry (2-23 -> 0xe1 -> IRQ
-23 Mode:1 Active:1)
-00:00:11[D] -> 2-23 -> IRQ 23
+It worked fine with 2.4.23 with 20031002, but now all i get is:
 
+---=== cut here ===---
+ BIOS-e820: ............... - ................ (ACPI data)
+ BIOS-e820: ............... - ................ (ACPI NVS)
+.
+.
+.
+ACPI: have wakeup address 0xc9991999
+.
+.
+.
+ACPI: RSDP (v000 Acer                     ) @ 0x000ec2d0
+  >>> ERROR: Invalid checksum
+.
+.
+.
+---=== cut here ===---
 
-what do mean those _CRS returns NULL! ?
+up to here it's equivalent to 2.4.23/20031002, but
 
-Does this message means problems with some hardware?
+---=== cut here ===---
+.
+.
+.
+ACPI: Subsystem revision 20040211
+ACPI: Interpreter disabled.
+.
+.
+.
+PCI: ACPI table contains no PCI IRQ routing enteries
+.
+.
+.
+---=== cut here ===---
 
-Thanks
+I've traced this to line 2037 of drivers/acpi/bus.c, in acpi_init (void)
+but now I'm stuck.
 
-______________________________________________________________________
-Yahoo! Mail: 6MB di spazio gratuito, 30MB per i tuoi allegati, l'antivirus, il filtro Anti-spam
-http://it.yahoo.com/mail_it/foot/?http://it.mail.yahoo.com/
+I've tried the commandline parameters acpi=force (with debug) and have
+
+   CONFIG_ACPI_DEBUG=y
+   CONFIG_ACPI_RELAXED_AML=y
+
+(and the rest of the ACPI stuff on either 'y' or 'm', actually except
+this two options the same config as with 2.4.23)
+
+Can anyone give me a pointer on how to procide?
+
+BTW: Sorry, but I'm not on the list so please CC me.
+
+Thanks,
+    Goetz.
+
 
 
 -------------------------------------------------------
