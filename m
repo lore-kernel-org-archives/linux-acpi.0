@@ -1,12 +1,12 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] Updated smpenum patch
-Date: Wed, 2 Mar 2005 16:52:08 -0800
-Message-ID: <F760B14C9561B941B89469F59BA3A84709370A8D@orsmsx401.amr.corp.intel.com>
+From: Timo Hoenig <thoenig-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: Re: [patch 03/12] Panasonic ACPI driver
+Date: Thu, 03 Mar 2005 09:30:20 +0100
+Message-ID: <1109838620.4866.1.camel@nouse.net>
+References: <200502230953.j1N9rDYM020696@shell0.pdx.osdl.net>
+	 <1109789085.2102.564.camel@d845pe>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Content-class: urn:content-classes:message
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-HSwnhpG3qAFXqskym3bk"
+In-Reply-To: <1109789085.2102.564.camel@d845pe>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,72 +16,49 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Natalie.Protasevich-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org, ak-h9bWGtP8wOw@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-A new smpenum patch against 2.6.11 is available at:
 
-http://www.kernel.org/pub/linux/kernel/people/grover/smp-20050302-2.6.11
-.diff.gz
+--=-HSwnhpG3qAFXqskym3bk
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-This patch changes i386 smp init to not rely on MPS data structures.
-This simplifies ACPI and MPS init and reduces the size of internal data
-structures. I would like to make similar changes to x86_64 (where the
-reliance on MPS structs makes no sense) but for now this patch just
-ensures x86_64 still builds by giving it its own copy of acpi/boot.c.
+Hi,
 
-I have tested on the i386 and x86_64 smp machines I have, and would
-appreciate any testing on smp machines, especially on subarchs like x440
-and es7000. This shouldn't change boot functionality but imho should
-make the code a lot more clean and maintainable.
+On Wed, 2005-03-02 at 13:44 -0500, Len Brown wrote:
+>I have no plans to add this driver to the kernel tree,
+>as I expect a generic solution in 2.6.12 which would just
+>require us to turn around and delete this.
 
-Len, could I convince you to include this in your ACPI test patches?
+Who is working on that?
 
-Thanks -- Regards -- Andy
+>-Len
 
+See you,
 
- arch/i386/Kconfig                            |    9=20
- arch/i386/Kconfig.debug                      |   10=20
- arch/i386/kernel/Makefile                    |    4=20
- arch/i386/kernel/acpi/boot.c                 |  431 +++-
- arch/i386/kernel/apic.c                      |   30=20
- arch/i386/kernel/i386_ksyms.c                |    2=20
- arch/i386/kernel/io_apic.c                   |  968 +--------
- arch/i386/kernel/mpparse.c                   | 1044 +++++-----
- arch/i386/kernel/nmi.c                       |    1=20
- arch/i386/kernel/reboot.c                    |    1=20
- arch/i386/kernel/setup.c                     |   21=20
- arch/i386/kernel/smpenum.c                   |  195 +
- arch/i386/kernel/time.c                      |    1=20
- arch/i386/kernel/timers/timer_pit.c          |    2=20
- arch/i386/mach-visws/mpparse.c               |   80=20
- arch/i386/mm/discontig.c                     |    2=20
- arch/i386/pci/irq.c                          |   11=20
- arch/x86_64/kernel/acpi/Makefile             |    1=20
- arch/x86_64/kernel/acpi/boot.c               |  868 ++++++++
- drivers/acpi/bus.c                           |    3=20
- drivers/acpi/pci_irq.c                       |    3=20
- include/asm-i386/acpi.h                      |   20=20
- include/asm-i386/genapic.h                   |   18=20
- include/asm-i386/hpet.h                      |    1=20
- include/asm-i386/io_apic.h                   |   37=20
- include/asm-i386/mach-bigsmp/mach_apic.h     |   13=20
- include/asm-i386/mach-default/mach_apic.h    |   13=20
- include/asm-i386/mach-default/mach_mpparse.h |    8=20
- include/asm-i386/mach-es7000/mach_apic.h     |   13=20
- include/asm-i386/mach-es7000/mach_mpparse.h  |    8=20
- include/asm-i386/mach-generic/mach_mpparse.h |    2=20
- include/asm-i386/mach-numaq/mach_apic.h      |   13=20
- include/asm-i386/mach-numaq/mach_mpparse.h   |    8=20
- include/asm-i386/mach-summit/mach_apic.h     |   14=20
- include/asm-i386/mach-summit/mach_mpparse.h  |    8=20
- include/asm-i386/mach-visws/mach_apic.h      |    8=20
- include/asm-i386/mpspec.h                    |   76=20
- include/asm-i386/mpspec_def.h                |   13=20
- include/asm-i386/smp.h                       |    1=20
- include/asm-i386/smpenum.h                   |  109 +
- 40 files changed, 2509 insertions(+), 1561 deletions(-)
+   -- Timo
+
+..............................................................
+Timo H=F6nig <thoenig at suse dot de>
+..................................................:: gpg ::...
+Fingerprint: 0998 0ACA A1D2 2612 4D96 DD8B E03F 084B B305 4066
+
+--=-HSwnhpG3qAFXqskym3bk
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQBCJssc4D8IS7MFQGYRApK+AJ9b4gMfxiKc3bBvD/83s5VKVGHe2gCeMVth
+NWbSlyHzfoELdO8/tQI6i+Y=
+=XFc7
+-----END PGP SIGNATURE-----
+
+--=-HSwnhpG3qAFXqskym3bk--
+
 
 
 -------------------------------------------------------
