@@ -1,14 +1,14 @@
-From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: stack overflow
-Date: Mon, 8 Mar 2004 19:26:30 +0100
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Re: fix ACPI poweroff in 2.4.25-rc2
+Date: Mon, 8 Mar 2004 19:32:28 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040308182630.GB9490@wotan.suse.de>
-References: <CE41BFEF2481C246A8DE0D2B4DBACF4F128AA4@ausx2kmpc106.aus.amer.dell.com>
+Message-ID: <20040308183228.GD484@elf.ucw.cz>
+References: <20040308163452.GE5352@openzaurus.ucw.cz> <Pine.LNX.4.44.0403081515190.10436-100000@dmt.cyclades>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CE41BFEF2481C246A8DE0D2B4DBACF4F128AA4-novRXWwkcpil7xnNSM18fRtLTTO9Z+wMojBamW5iJbs@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.44.0403081515190.10436-100000-N7x2SXzAOustNcHCoTQCcg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,27 +17,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stuart_Hayes-DYMqY+WieiM@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>
+Cc: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>, willy-tRhHnHjXm5DYtjvyW6yDsg@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> Here are some of the reasons I believe the stack is overflowing:
+On Po 08-03-04 15:15:58, Marcelo Tosatti wrote:
+
+> > > The recent 2.4 patch breaks the build for ia64 because we don't
+> > > set CONFIG_ACPI_SLEEP, and acpi_system_save_state() is only
+> > > defined under #ifdef CONFIG_ACPI_SLEEP.  Can you add the following
+> > > patch to deal with this?
+> > 
+> > Original patch should be reverted. Having different
+> > behaviour of poweroff depending on ACPI_SLEEP would
+> > be wrong.
 > 
-> I've added some "printk"s to the kernel, and I've found that the stack pointer 
-> goes down by ~6K between namespace/nseval.c:acpi_ns_evaluate_relative() and 
-> executer/exstore.c:acpi_ex_store().
+> Hi Pavel,
+> 
+> Original patches fixes a real problem, so its not as easy as "lets revert 
+> it", yes? 
 
-The usual way to start is do 
+To put it simply:
 
-	objdump -S <acpi object modules> | grep sub.*rsp
+there's broken machine where calling acpi_system_save_state() with
+invalid argument fixes it by accident.
 
-then sort by the biggest stack pigs and fix them one by one (e.g.
-by kmallocing local data instead of allocating it on the stack)
-When afterwards the problem still occurs it is most likely recursion or 
-to deep nesting.  I have an old 2.4 patch that can catch these, but it 
-would need porting to 2.6.
-
--Andi
+It can do random stuff on any other machine...
+								Pavel
+-- 
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
 
 
 -------------------------------------------------------
