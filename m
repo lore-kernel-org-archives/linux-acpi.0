@@ -1,13 +1,12 @@
-From: David Weinehall <tao-Z3oqqNSG8ADLoDKTGw+V6w@public.gmane.org>
-Subject: Re: [BUG][2.6.10-rc2-bk1] ACPI S3 suspend to RAM broken (may be USB unable to resume)
-Date: Wed, 17 Nov 2004 01:32:48 +0100
-Message-ID: <20041117003248.GA5226@khan.acc.umu.se>
-References: <200411161838.28344.shawn.starr@rogers.com>
+From: Cederik de Leon <cederik-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Dell laptop problem with acpid
+Date: Tue, 16 Nov 2004 19:13:21 -0600
+Message-ID: <b9768e82041116171321b8086f@mail.gmail.com>
+Reply-To: Cederik de Leon <cederik-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200411161838.28344.shawn.starr-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,31 +16,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Shawn Starr <shawn.starr-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 16, 2004 at 06:38:27PM -0500, Shawn Starr wrote:
-> 
-> As of 2.6.10-rc1 + I can no longer resume from S3 (suspend-to-RAM),  When it 
-> begins to resume, it seems to get stuck with USB (going to confirm).. The 
-> laptop stays in a stuck state (cresent-moon remains lit).
+Hi all:
+ 
+    I have a problem with Inspiron 5150 Dell Laptop, if this email is
+redundant please, tellme where can i find the related topic.
 
-I experience the same problem, but if I remove the snd_intel8x0 driver
-before suspending, resume works properly.  This problem started with
--rc1-bk15 for me; which is interesting since there doesn't seem to be
-any changes to snd_intel8x0 between -bk13 and -bk15...
+     The issue is:
+   I want to check if ACPID reports the actions (like LID switch, PW
+Button etc), the daemon is up and running on my DEBIAN system, when i
+close the computer i spect a message into acpid log, but nothing's
+happend... some times the actions was logged, (LID SW) -for example,
+but it's erratic and unpredictable- I'm running 2.6.9 Kernel. And the
+acpitool reports the general status of the computer.
 
-> I have IBM-ACPI extras turned on (compiled in).
-> 
-> Anyone else report this?
+  Best regards
 
-
-Regards: David Weinehall
--- 
- /) David Weinehall <tao-Z3oqqNSG8ADLoDKTGw+V6w@public.gmane.org> /) Northern lights wander      (\
-//  Maintainer of the v2.0 kernel   //  Dance across the winter sky //
-\)  http://www.acc.umu.se/~tao/    (/   Full colour fire           (/
+Cc
 
 
 -------------------------------------------------------
