@@ -1,13 +1,16 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: Success with kernel-swsusp and Nvidia-closed-source
-Date: Mon, 8 Nov 2004 17:45:13 +0100
-Message-ID: <20041108164512.GB14497@hell.org.pl>
-References: <Pine.LNX.4.60.0411031215260.1187@frog.athome> <Pine.LNX.4.60.0411041729180.4727@frog.athome> <200411041812.54813.christian.hesse@linuxob.de> <200411072052.53065.mail@earthworm.de> <Pine.LNX.4.60.0411081640410.4713@frog.athome>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [2.6 patch] drivers/acpi: remove unused exported functions
+Date: 08 Nov 2004 12:01:03 -0500
+Message-ID: <1099933263.13831.9547.camel@d845pe>
+References: <20041105215021.GF1295@stusta.de>
+	 <1099707007.13834.1969.camel@d845pe> <20041106114844.GK1295@stusta.de>
+	 <418CEE3A.40503@conectiva.com.br> <20041106212917.GP1295@stusta.de>
+	 <418D403E.30608@conectiva.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.60.0411081640410.4713-KnfdeQs3A3X/9pzu0YdTqQ@public.gmane.org>
+In-Reply-To: <418D403E.30608-KCZ47A4bww4P48s/oLjRZg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,27 +20,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
-Cc: Christian Hesse <mail-8oMOrB1mGocUSW6y5lq3GQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+To: Arnaldo Carvalho de Melo <acme-KCZ47A4bww4P48s/oLjRZg@public.gmane.org>
+Cc: Adrian Bunk <bunk-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote liste-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org:
-> I am verry impressed. I had a try myself today and did not succeed. Then I 
-> took a look at the driver (6629 -> nv.c) and discovered, that they removed 
-> all ACPI support, which was in 6111. So your once success with 6629 is a 
+Thanks for the suggestion.
 
-Which was outright bogus...
+I'd certainly accept patches using ACPI_FUTURE_USAGE and moving
+EXPORT_KSYMS to where they're more easily tracked.
 
-> little miracle. But maybe ACPI is not allways needed :-))))
+If the motivation is kernel static size reduction, then I'll be
+interested in seeing a before/after kernel size measurements.
 
-... because there's only one PM interface in 2.6 and it's not really
-ACPI-specific. The driver might even work as expected now.
-Note: I haven't seen the new code yet.
-Best regards,
+-Len
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+
 
 
 -------------------------------------------------------
