@@ -1,13 +1,11 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Re: first shoot for smartbattery
-Date: Mon, 3 Jan 2005 16:08:54 +0100
-Message-ID: <20050103150854.GS19199@poupinou.org>
-References: <20041231092156.GA612@phys.ethz.ch> <41D56002.5060008@mega.ist.utl.pt> <20041231150724.GK19199@poupinou.org> <20041231181628.GL19199@poupinou.org> <20050101082605.GA24896@phys.ethz.ch> <m2acrth375.fsf@phoenix.squirrel.nl> <20050103143902.GQ19199@poupinou.org> <41D95CDC.8050802@phys.ethz.ch>
+From: Richard Witt <witt-IGkKxAqZmp0@public.gmane.org>
+Subject: AC adaptor state change lockup on HP Pavilion zt1290
+Date: Mon, 03 Jan 2005 10:32:40 -0500
+Message-ID: <41D96598.3040102@bnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <41D95CDC.8050802-vpGm2Noi6jeZvKxeG3EEhw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,31 +15,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Mathias Weyland <mweyland-vpGm2Noi6jeZvKxeG3EEhw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jan 03, 2005 at 03:55:24PM +0100, Mathias Weyland wrote:
-> Bruno Ducrot wrote:
-> 
-> >I think I found was wrong.  Please refetch, or (at your option) replace
-> >i2c-acpi-ec.ec with
-> >http://www.poupinou.org/acpi/smartbatt/smartbatt/i2c-acpi-ec/i2c-acpi-ec.c
-> >then redo the sh compile.sh
-> >Sorry, it was a stupid bug(tm) requiring that I buy a brown bag...
-> 
-> Ok, I don't understand the joke with the brown bag, but.... wooohoo! It 
-> looks like something is working!
-> 
+Hi All,
 
-The joke with the brown bag?  Well, that's means that I have introduced
-a so stupid bug that I have to hide my face.
+   I have a terribly annoying problem that I have so far been unable to 
+fix.  I'm running SuSE 9.2 Pro on a HP zt1290.  The kernel is their most 
+up-to-date (2.6.8-24.10-default).  Whenever I need to connect/disconnect 
+my AC adaptor the laptop locks-up hard.  I have to cold boot to recover 
+it.  I thought this was related to a buggy DSDT and so I attempted to 
+fix the DSDT according to the info at 
+(http://www.cpqlinux.com/acpi-howto.html#fix_broken_dsdt).  The DSDT now 
+compiles without errors or warnings.  It is found and loaded properly in 
+the initrd as you can see here:
 
--- 
-Bruno Ducrot
+--clip--
+ACPI: Looking for DSDT in initrd... found at offset 1195404
+ACPI: Using customized DSDT
+    tbget-0291: *** Info: Table [DSDT] replaced by host OS
+ACPI: IRQ9 SCI: Edge set to Level Trigger.
+checking if image is initramfs...it isn't (no cpio magic); looks like an 
+initrd
+Freeing initrd memory: 1186k freed
+--clip--
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+Unfortunately the problem remains.  I'm really desperate to fix this 
+since I'm sure you can imagine what a pain it is to have to shutdown and 
+reboot anytime I need to move the laptop.  Does anyone have any 
+suggestions how to proceed with debugging this problem?
+
+Thanks,
+   Richard
 
 
 -------------------------------------------------------
