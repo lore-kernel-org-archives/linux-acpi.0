@@ -1,12 +1,14 @@
-From: Paul Ionescu <paul-f7LjuT9/YZU@public.gmane.org>
-Subject: [rfc] generic testing ACPI module
-Date: Thu, 11 Mar 2004 22:53:31 +0200
+From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Subject: Re: [rfc] generic testing ACPI module
+Date: Thu, 11 Mar 2004 21:10:05 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1079038411.18351.25.camel@t40>
+Message-ID: <20040311211005.GM2148@parcelfarce.linux.theplanet.co.uk>
+References: <1079038411.18351.25.camel@t40>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1079038411.18351.25.camel-LjAuIDrFwz0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,86 +17,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Paul Ionescu <paul-f7LjuT9/YZU@public.gmane.org>
+Cc: acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all,
+On Thu, Mar 11, 2004 at 10:53:31PM +0200, Paul Ionescu wrote:
+> I have this idea and I want your comments about it.
+> I think it would be nice and usefull to have a generic acpi testing
+> module like other testing modules in kernel (scsi and pci hotplug just
+> came to my mind, but maybe there are some others too).
+> 
+> The proposition is this:
+> A module that exports some files in let say /proc/acpi/testing/
+> directory.
+> One of the files could be a file where we can insert the full path name
+> of a method we want to run, and after that the driver will make that
+> full path another file in /proc/acpi/testing/ and when we access that
+> file, we actualy run the acpi method.
+> 
+> Example: 
+> echo \_SB_.PCI0.LPC_.EC__._Q13 > /proc/acpi/testing/new_method
+> and a new file with the name \_SB_.PCI0.LPC_.EC__._Q13 is created in
+> /proc/acpi/testing/ directory. When we cat this new file, we'll get the
+> resut of executing that method.
 
-I have this idea and I want your comments about it.
-I think it would be nice and usefull to have a generic acpi testing
-module like other testing modules in kernel (scsi and pci hotplug just
-came to my mind, but maybe there are some others too).
-The purpose is this:
-A lot of vendors have different acpi devices that can be controlable
-with acpi, and can send notification, but they are not universal
-available on all platforms and usualy differ from vendor to vendor.
+There's actually something much better that could be done.  Look in
+/sys/firmware/acpi/.  There's no files created in this hierarchy
+currently.  What we should do is create a file for each method.
+Reading from it should execute that method and return the result.
+This is useful in so many ways, it's not even funny.
 
-For instance, I have an IBM T40 which generate ACPI notification when I
-want to hotswap the CDROM with a DVD or some other device in the lateral
-bay. It would be nice if I would receive via acpid such notifications to
-be able to react acordingly like hdparm -U and tell udev to remove the
-/udev/hdc file if is necessary, or just rescan the ide bus (idectl 1
-rescan).
-
-Other example is when I want to execute arbitrary methods exported by
-ACPI like I have for instance for sound volume/mute, wireless on/off and
-other methods.
-
-It is not practical to write a driver for each device outhere just for
-testing what works and if works, but we could have instead a generic way
-to map some methods to some functions, and install events receivers for
-some notify events.
-A lot of info about one ACPI system can be gathered by compiling acpi
-with debug info and just 
-echo 0x10 > /proc/acpi/debug_level 
-echo 0x1f > /proc/acpi/debug_layer
-
-This way we can test ourselves what can be done with ACPI, and we can
-speed the development process.
-Moreover, if this generic interface is made by someone who knows well
-the ACPI implementation in kernel, then we have the chance that it will
-not introduce more bugs than a driver for a specific vendor/platform
-which could be made by people with access to that hardware, but not
-necessary experts in kernel coding (like myself).
-
-The proposition is this:
-A module that exports some files in let say /proc/acpi/testing/
-directory.
-One of the files could be a file where we can insert the full path name
-of a method we want to run, and after that the driver will make that
-full path another file in /proc/acpi/testing/ and when we access that
-file, we actualy run the acpi method.
-
-Example: 
-echo \_SB_.PCI0.LPC_.EC__._Q13 > /proc/acpi/testing/new_method
-and a new file with the name \_SB_.PCI0.LPC_.EC__._Q13 is created in
-/proc/acpi/testing/ directory. When we cat this new file, we'll get the
-resut of executing that method.
-
-Another file could be a file where we can insert the name/pnpid/node of
-a device we want to receive notifies from.
-
-Example:
-echo MSTR > /proc/acpi/testing/new_system_notify, and when this device
-receives a system notify it will pass this to acpid.
-
-or:
-
-echo dfee6f28 > /proc/acpi/testing/new_system_notify_node and when this
-node receives a system notify it will pass this to acpid.
-
-or
-echo MSTR > /proc/acpi/testing/new_device_notify, and when this device
-receives a "device notify" it will pass this to acpid.
-
-
-I want to hear some opinions about this idea, if this could be usefull
-for other people too, or is just my imagination that says this.
-And how feasible is to implement it. I think it should not be too hard
-for someone with knowledge of acpi subsystem in kernel.
-Should be about the size of AC module.
-
-
+-- 
+"Next the statesmen will invent cheap lies, putting the blame upon 
+the nation that is attacked, and every man will be glad of those
+conscience-soothing falsities, and will diligently study them, and refuse
+to examine any refutations of them; and thus he will by and by convince 
+himself that the war is just, and will thank God for the better sleep 
+he enjoys after this process of grotesque self-deception." -- Mark Twain
 
 
 -------------------------------------------------------
