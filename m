@@ -1,11 +1,16 @@
-From: =?GB2312?B?tci0/cTjtcS808jr?= <hjj-9Onoh4P/yGk@public.gmane.org>
-Subject: =?GB2312?B?vKTH6bmryec=?=
-Date: Sat, 15 Mar 2003 04:51:46 +0800
+From: "Holger W." <info-IGm5bqYn3xwb1SvskN2V4Q@public.gmane.org>
+Subject: RE: problems with PRT and PCI routing table
+Date: Sat, 15 Mar 2003 00:58:51 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E18twBe-0002XZ-00@sc8-sf-list1.sourceforge.net>
-Reply-To: 55hh-9Onoh4P/yGk@public.gmane.org
-Content-Type: text/html;charset="GB2312"
+Message-ID: <000001c2ea85$aa78f940$0200a8c0@brutzler>
+References: <F760B14C9561B941B89469F59BA3A84725A1FA@orsmsx401.jf.intel.com>
+Reply-To: <info-IGm5bqYn3xwb1SvskN2V4Q@public.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <F760B14C9561B941B89469F59BA3A84725A1FA-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,89 +19,24 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: "'Grover, Andrew'" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-<html>
+> None of this really helps you in the immediate term, sorry...
 
-<head><STYLE>HTML {
-	TEXT-DECORATION: none
-}
-A:link {
-	COLOR: #000000; TEXT-DECORATION: none
-}
-A:hover {
-	COLOR: rgb(72,59,216); TEXT-DECORATION: underline
-}
-EM {
-	FONT-FAMILY: 宋体; FONT-SIZE: 10pt; FONT-STYLE: normal
-}
-A {
-	FONT-FAMILY: 宋体; FONT-SIZE: 10pt
-}
-TD {
-	FONT-FAMILY: 宋体; FONT-SIZE: 10pt
-}
-P {
-	FONT-FAMILY: 宋体; FONT-SIZE: 10pt
-}
-</STYLE>
+Never mind - it's nice to know that you're aware of the problem. Would be nice if the next
+release (or at least another pre-final release) would contain a fix ;-)
+Besides - compliment to all ACPI developers, you're doing a great job !
 
+> Is this repeatable, if you compile it yourself from the acpica-unix
+> package?
 
-<meta http-equiv="Content-Type" content="text/html; charset=gb2312">
-<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
-<meta name="ProgId" content="FrontPage.Editor.Document">
-<title>GO一起上 www.go173.com</title>
-<base target="_blank">
-</head>
+It seems that I've got a problem with my glibc packages. I'll update 'em and try again ...
 
-<body bgcolor="#BFBF9F">
+Regards,
 
-<div align="center">
-  <center>
-  <table border="1" cellpadding="0" cellspacing="1" width="85%" height="274" bordercolor="#CC6600">
-    <tr>
-      <td width="20%" height="23" bgcolor="#FEE2FB">
-        <p align="center"><font color="#666666">&nbsp;&nbsp; <a href="http://www.go173.com">首页&nbsp;</a></font></td> 
-      <td width="20%" height="23" bgcolor="#CC6600"> 
-        <p align="center"><a href="http://www.go173.com/mm/go.htm"><font color="#000080">激情公社</font></a></td> 
-  </center> 
-      <td width="20%" height="23" bgcolor="#FEE2FB"> 
-        <p align="center"><font color="#666666"><a href="http://www.go173.com/mm">野蛮女生</a></font></td> 
-  <center> 
-      <td width="20%" height="23" bgcolor="#FEE2FB"> 
-        <p align="center"><font color="#666666"><a href="http://huanqiu3636.mylove.163.com">同城约会</a></font></td> 
-      <td width="20%" height="23" bgcolor="#FEE2FB"> 
-        <p align="center"><font color="#666666"><a href="http://mysms.sohu.com/union/index.php?userid=76698">发短信</a></font></td> 
-    </tr> 
-  </center> 
-  <tr> 
-    <td width="100%" height="174" valign="top" colspan="5"> 
-      <p align="left"><font color="#666666">传奇，精灵，大话，奇迹，红月，账号交易，详细请进入</font><a href="http://www.go173.com"><font color="#FF0000">WWW.GO173.COM</font></a><font color="#666666">您是网络游戏高手吗？您是否有个花费您很大精力和时间，由于各种原因而不得不放弃的游戏账号。这一切已经成为历史，功能强大“GO一起上游戏账号交易平台”闪亮登场。现在，您只要登陆</font><a href="http://www.go173.com"><font color="#FF0000">WWW.GO173.COM</font></a><font color="#666666"> ，免费注册为会员,您就可以享受交易带来的无限乐趣。<br>         
-      <br>         
-   为你收集最COOL最新的外挂http://</font><a href="http://www.go173.com"><font color="#666666">www.go173.com</font></a><font color="#666666"><br>       
-    超过万首的FLASH音乐欣赏http://</font><a href="http://www.go173.com/flash"><font color="#666666">www.go173.com/flash</font></a><font color="#666666"><br>       
-      </font>       
-      <a href="http://www.go173.com/mm"><font color="#FF0000">进入社区&gt;&gt;</font></a>      
-    </td>      
-  </tr>      
-  <tr>      
-    <td width="100%" height="77" valign="middle" colspan="5">     
-    <p align="center">  <center>加入 <A HREF=http://asiafriendfinder.com/go/f112513 target=_top>
-亚洲交友中心</A> - 最大亚洲个人交友中心网站!<br>
-<A HREF=http://asiafriendfinder.com/go/f112513 target=_top>
-<img src=http://banners.asiafriendfinder.com/banners/ffz/gb01.gif 
-width=468 height=60 border=0></A></center>
+HOLGER W.
 
-
-</td>     
-  </tr>    
-  </table>    
-</div>    
-    
-</body>    
-    
-</html>    
 
 
 -------------------------------------------------------
