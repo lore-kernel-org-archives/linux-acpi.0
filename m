@@ -1,13 +1,12 @@
-From: Johnathan Hicks <thetech-Pn2JTpibVOrk1uMJSBkQmQ@public.gmane.org>
-Subject: Re: CX > 1 support for Athlon SMP systems
-Date: Wed, 24 Jul 2002 22:39:07 -0400
+From: pete-bmuJXYsvn0gVs4l4XFOEL9gH8BlFne0cvRR34RwW7mA@public.gmane.org
+Subject: Re: CONFIG_ACPI_SLEEP
+Date: Thu, 25 Jul 2002 07:32:12 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3D3F64CB.80005@folkwolf.net>
-References: <3D3B879A.5020401@folkwolf.net> <1027351350.3d3c23363ea3d@carlthompson.net> <3D3CBF78.4010007@folkwolf.net> <1027461971.3d3dd353462e8@carlthompson.net> <3D3E14D9.50009@folkwolf.net> <1027536051.3d3ef4b31fef6@carlthompson.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Message-ID: <200207250732.g6P7WCx01883@phillipsfamily.freeserve.co.uk>
+References: <20020723190108.GA19611@dutidad.twi.tudelft.nl>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: Your message of "Tue, 23 Jul 2002 21:01:08 +0200."
+             <20020723190108.GA19611-V1rPnKwUOrA59+mn7qD7y50iERQUc4G+@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,24 +15,25 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
+Cc: pete-bmuJXYsvn0gVs4l4XFOEL9gH8BlFne0cvRR34RwW7mA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.orgpete-bmuJXYsvn0gVs4l4XFOEL9gH8BlFne0cvRR34RwW7mA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Carl Thompson wrote:
-<SNIP>
-> What I mean is I know the loop is executing, but how do I know the 
-> processor is _really_ in C2?  I was expecting a significant change in 
-> batterly life and CPU temp vs. the C1 state that ACPI put my CPU in.  
-> I haven't run definitive tests, but at best I'm only at most 15-20 
-> minutes more battery life (if any at all). 
 
-What I would do is grab the data sheet(s) for the chipset in the laptop and 
-compare what the code is doing with what you see in the docs. That's about as 
-far as I can help you here, I'm rather busy unfortunately. :-(
+Charl wrote:
 
---John
+> Okay... can you find anything in your system logs after you attempt S1? (I'm
+> assuming you do: echo -n 1 > /proc/acpi/sleep).
 
+Nothing at all.
 
+I notice that some people have stated they have written a DSDT for
+their laptop - is this something that would be required to get this to
+work (I must admit that I don't know exactly what a DSDT is at the
+moment).
+
+Regards,
+Pete
 
 
 -------------------------------------------------------
