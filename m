@@ -1,43 +1,36 @@
-From: Wesley T Allen <wezlo-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: hibernation wake-up hang...
-Date: Mon, 17 May 2004 15:06:30 -0400
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1084820789.9027.3.camel@localhost>
+From: Brad Campbell <brad@wasp.net.au>
+Subject: Re: libata Promise driver regression 2.6.5->2.6.6
+Date: Mon, 17 May 2004 23:13:38 +0400
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <40A90EE2.3040507@wasp.net.au>
+References: <A6974D8E5F98D511BB910002A50A6647615FB7A9@hdsmsx403.hd.intel.com> <1084820518.12349.347.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S262238AbUEQTOF@vger.kernel.org>
+In-Reply-To: <1084820518.12349.347.camel@dhcppc4>
+To: Len Brown <len.brown@intel.com>
+Cc: Sergey Vlasov <vsu@altlinux.ru>, linux-kernel@vger.kernel.org, ACPI Developers <acpi-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all,
-	I've finally gotten acpi working on my laptop and I was eagerly testing
-hibernation and suspend; I've encountered a problem...
+Len Brown wrote:
 
-	When my laptop attempts to come out of hibernation, it locks up while
-trying to find my usb devices.  I can still boot my system using another
-kernel; but my main kernel is currently unusable.
-	Is there any way to erase the hibernation data for my main kernel so I
-can boot it again?  Where is that information stored?
+> LNKH would have hit the bug fixed in 2665.
+> However, LNKH isn't enabled, so we don't hit that bug.
+> 
+> LNKC, OTOH, is already enabled on IRQ12; and both
+> 2.6.5 and 2.6.6 will leave it there unless you explicity
+> tell Linux to move IRQs in PIC mode with "acpi_irq_balance".
+> 
+> apples/apples comparison would be to boot your 2.6.5 kernel with
+> "noapic".  I expect 2.6.5 will have the same issue with IRQ12
+> in PIC mode.  Unusual for a BIOS to put PCI devices on IRQ12 like
+> that...
 
-I'm using a 2.6.3 kernel...
+Err.. yeah, I'm not quite sure why but a make oldconfig on my 2.6.5 config did not enable apic.
+Rather than boot 2.6.5 noapic, I enabled apic on 2.6.6 and the dmesg compares perfectly to the 2.6.5 
+one, right up until it tries to probe the 9th disk where it proceeds to dma timeout and then cease 
+to listen to anything..
 
-Thanks for the Help,
-
-Wes
-
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: SourceForge.net Broadband
-Sign-up now for SourceForge Broadband and get the fastest
-6.0/768 connection for only $19.95/mo for the first 3 months!
-http://ads.osdn.com/?ad_id=2562&alloc_id=6184&op=click
+Regards,
+Brad
