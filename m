@@ -1,11 +1,12 @@
-From: stelian.pop-A5NNTvo2L0pl57MIdRCFDg@public.gmane.org
-Subject: ERROR
-Date: Tue, 6 Jul 2004 07:52:52 +0800
+From: "Shauna K. Fuentes" <sfuentessi-/V8UyLfFpbJM3YmQoIpPTg@public.gmane.org>
+Subject: $33857
+Date: Tue, 06 Jul 2004 07:20:14 +0600
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E1Bhk5K-0002sR-QT@externalmx-1.sourceforge.net>
+Message-ID: <894801c462f7$33a964c9$44ce0348@bln.siemens.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0014_C0F2C5CD.ECDF8B5D"
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,61 +16,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
+Hi,
+I sent you an email a few days ago, because you now qualify for a new mortgage.
+You could get $300,000 for as little as $700 a month!
+Bad credit is no problem, you can pull cash out or refinance.
 
-------=_NextPart_000_0014_C0F2C5CD.ECDF8B5D
-Content-Type: text/plain;
-	charset="Windows-1252"
-Content-Transfer-Encoding: 7bit
+Please click on this link:
+http://www.yourloanz.com/s6/jwex.php?bks=71
 
-úW§?˜Ì`“°nÏ
-Âü‡Dß…|¸:J/∏6"≥Dï{ç_.ÒR~&:GËô◊öo°¨ ±ÍMîY§i¶M{rOé&]£y√–°€˘u∫A∂Ty˛øJÅ∞™µ~IœKsæ≤‹<d√…Î∂l‡âOÿÖáÕ0:
-D>˛ÔWI˙É¡O”q2ÚR59πNÉ˛å◊™y©¶˘<„®hôŒ„lÁ62¿1∆|ãÇ⁄ÿı⁄7inãó!€!n‘Q~îá§âπÍ‹¶∏˝Í[äà˙çÿÜîÊ’Âó8Z≠/Ô›QU⁄Xëg∏1•VYy∂ÿâ∑#o¢á]b{≥Mı˜ \Â√T∆]–ƒò¯Ô|…ôãBîGæˆØj⁄·?vPäSÛLê˛÷7µÕ~¶ŸÏ‘}ﬂæÆ`¡k«.sáÊY8m…æra-øëî”(6¨≥4≈5ÍW¯åçW·Î˘Å4AÀ›˛y¶¯
-¬%˚^:Ë*ì´2MÜﬁk2A2ù(1J˘Ñ®äRVüü”‚ˆ{Ù"ì€ÛZŸ¡∆¬¯¿û)Z"X8EiTtdGì¥©Ía≈èÛ)`À›.ﬁä,å˝õSLó#uç˙˘ÅÏÃ≈jùXÛ√2R¢n¢$ﬂ§}Ù4à≤
-äÃ2B_
-ıŸ>∆ëjS#¯§aquõ˛æ∆8Ò´ù∂πÔ#$Zwªç:3V*Pò{Ô∆Ìıä›ZπŒ&Mä±ih˜∞{¿ÁJµ"∞‰7)Ù®ús#≈‰âî≈MS¢F∑œeSÃjéÜ±}hY¸ï¸OœÆ°Â≈÷˛˘ä8
-YX"7û%úBqçsªJ¸å¸0|J1Ñ1)Jã:YF.˙Å±b2óylÎgxEÍ-EÁ»^â\RÇªáà≤Dô?NBt#Í…∂ÌµJ(ïÔﬂ°∫H8∆–/ÌoÈ¡¢nZÀ‘m≠∞¯gìÙ,P£‡—|Szë≠IGkœ9fü;–K#^->:
+Best Regards,
+Steve Morris
 
 
-------=_NextPart_000_0014_C0F2C5CD.ECDF8B5D
-Content-Type: text/plain; charset="us-ascii"; format=flowed
 
+No more: http://www.yourloanz.com/r1/index.html
 
-**********************************************************
-**********************************************************
-
-WARNING: Panda Antivirus GateDefender has detected a virus in file
-attached to this e-mail message!
-
-The attachment has been automatically removed to
-protect your network.
-
-Panda Antivirus GateDefender Administrator: unknown
-
-07/06/04 07:54:27 
-Panda Antivirus GateDefender (Version 5.1 R1c (5.0.60.2)) - http://www.pandasoftware.com/
-Antivirus Vendor: Panda Software
-Scan Engine Version: 4.1.4.307
-Pattern File Version: 3.79049 (Timestamp: 14/06/2004 123615)
-
-Machine name: Aeroinfo-PAGD1
-Machine IP address: 219.238.158.4
-Server: 12.152.184.25
-Client: 219.238.158.29
-Protocol: SMTP
-
-Virus: "W32/Lovgate.AC.worm" found!
-Attachment: data.scr
-
-**********************************************************
-**********************************************************
-
-
-------=_NextPart_000_0014_C0F2C5CD.ECDF8B5D--
-
+---- system information ----
+zh Japanese Cases description Presentation source able January 
+may dealing if important taking runtime existing header 
+designers even their additional result large fully Specifying 
 
 
 
