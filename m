@@ -1,47 +1,43 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: [ACPI] Re: [PATCH/RFC] exposing ACPI objects in sysfs
-Date: Tue, 21 Sep 2004 23:02:18 +0200
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20040921210218.GJ30425@elf.ucw.cz>
-References: <1095716476.5360.61.camel@tdi> <20040921122428.GB2383@elf.ucw.cz> <1095785315.6307.6.camel@tdi> <20040921172625.GA30425@elf.ucw.cz> <20040921190606.GE18938@wotan.suse.de> <1095794035.24751.54.camel@tdi> <20040921191826.GF18938@wotan.suse.de> <1095795954.24751.74.camel@tdi> <20040921195802.GF30425@elf.ucw.cz> <1095799248.24751.103.camel@tdi>
+From: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
+Subject: Re: [ACPI] PATCH-ACPI based CPU hotplug[2/6]-ACPI Eject interface support
+Date: Tue, 21 Sep 2004 14:51:50 -0700
+Sender: linux-ia64-owner@vger.kernel.org
+Message-ID: <20040921145150.A27211@unix-os.sc.intel.com>
+References: <20040920092520.A14208@unix-os.sc.intel.com> <200409201812.45933.dtor_core@ameritech.net> <20040920183845.C17763@unix-os.sc.intel.com> <200409210051.36251.dtor_core@ameritech.net>
+Reply-To: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S268069AbUIUVDH@vger.kernel.org>
+Return-path: <linux-ia64-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1095799248.24751.103.camel@tdi>
-To: Alex Williamson <alex.williamson@hp.com>
-Cc: Andi Kleen <ak@suse.de>, acpi-devel <acpi-devel@lists.sourceforge.net>, linux-kernel <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@zip.com.au>
+In-Reply-To: <200409210051.36251.dtor_core@ameritech.net>; from dtor_core@ameritech.net on Tue, Sep 21, 2004 at 12:51:36AM -0500
+To: Dmitry Torokhov <dtor_core@ameritech.net>
+Cc: acpi-devel@lists.sourceforge.net, Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>, "Brown, Len" <len.brown@intel.com>, LHNS list <lhns-devel@lists.sourceforge.net>, Linux IA64 <linux-ia64@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-
-> > If I were you, I'd just replace read and write with ioctl, and leave
-> > the rest of design as it was. If we find that someone who bypasses
-> > your userspace library, at least we have a way to deal with it. (And
-> > "cat a file and kill machine" issue is gone, too).
+On Tue, Sep 21, 2004 at 12:51:36AM -0500, Dmitry Torokhov wrote:
+> On Monday 20 September 2004 08:38 pm, Keshavamurthy Anil S wrote:
+> > Currently I am handling both the surprise removal and the eject request in the same
+> > way, i,e send the notification to the userland and the usermode agent scripts
+> > is responsible for offlining of all the devices and then echoing onto eject file.
+> > 
 > 
->    Again, I don't think that solves the problem (and there's no ioctl
-> support in sysfs).  The pointer in the command structure is easy to work
-> around, nothing uses it and data could easily be stuffed after the
-> architected entries.  Switching to an ioctl would not solve the problem
-> of passing ACPI data back and forth.  We don't just want to execute
+> I actually think that on the highest level we should treat controlled and
+> surprise ejects differently. With controlled ejects the system (kernel +
+> userspace) can abort the sequence if something goes wrong while with surprise
+> eject the device is physically gone. Even if driver refuses to detach or we
+> have partition still mounted or something else if physical device is gone we
+> don't have any choice except for trimming the tree and doing whatever we need
+> to do.
 
-At least we would know we are passing ACPI data from ioctl() argument.
+I agree, but when dealing with devices like CPU and Memory, not sure how the
+rest of the Operating System handles surprise removal. For now I will go ahead and
+add a PRINTK saying that BUS_CHECK(surprise removal request) was received in the 
+ACPI Processor and in the container driver, and when we hit that printk on a 
+real hardware, I believe it would be the right time then to see how the OS behaves 
+and do the right code then. For Now I will just go ahead and add a PRINTK.
 
-> methods, we want to be able to provide arguments and get data back.
-> That data is where I see the biggest 32/64 bit issue.  I'll switch to an
-> evaluate on write model, but I'm not sold that an ioctl would solve
-> enough problems to be worth it.  Is anyone even open to adding ioctls to
-> sysfs bin files?  Thanks,
+Let me know if this step by step approach is okay to you.
 
-I do not know what the right solution is. ioctl() is ugly, passing
-structures using write() is ugly, too. I think adding ioctl() to sysfs
-is less dangerous, because writes can not be translated using compat
-layer. Both solutions are ugly and you'll get flamed for both :-(.
+thanks,
+Anil
 
-Andrew, can you help? We want to call AML methods from userspace, and
-defining interface is not fun.
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
