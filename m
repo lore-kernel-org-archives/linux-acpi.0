@@ -1,8 +1,8 @@
 From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: [Acpi4asus-user] [ANNOUNCE] acpi4asus 0.28 released
-Date: Sat, 17 Apr 2004 17:55:40 +0200
+Subject: [PATCH] fix IRQ / GPEs restore on wake
+Date: Sat, 17 Apr 2004 23:51:39 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040417155540.GA18101@hell.org.pl>
+Message-ID: <20040417215139.GA17862@hell.org.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,36 +15,24 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Robert.Moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi,
-The 0.28 release is out. The changes include:
-Version 0.28
-	Added support for Samsung P30
-	Added unsupported list of models (to be completed)
-	Added support for L4400L and M6800N
+This patch (originally by Alexander Malysh) reorders the IRQ / GPEs restore
+on wake-up from S1/S3. Without this patch no ACPI interrupts are received
+after S1 / S3 and in consequence, ACPI-driven hotkeys stop working. This
+affects certain (probably all) ASUS laptops as well as possibly other 
+machines depending on those features. The patch addresses bug #2321
+directly and #1409 partly. It was prepared against 2.6.5-mm6.
 
-You can grab it from http://sourceforge.net/projects/acpi4asus/ or
-http://hell.org.pl/~sziwan/asus/, whichever you prefer.
+Can somebody comment on that?
 Best regards,
 
 -- 
 Karol 'sziwan' Kozimor
 sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
-
-
--------------------------------------------------------
-The SF.Net email is sponsored by EclipseCon 2004
-Premiere Conference on Open Tools Development and Integration
-See the breadth of Eclipse activity. February 3-5 in Anaheim, CA.
-http://www.eclipsecon.org/osdn
-_______________________________________________
-Acpi4asus-user mailing list
-Acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi4asus-user
-
 
 
 -------------------------------------------------------
