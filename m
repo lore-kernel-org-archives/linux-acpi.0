@@ -1,12 +1,14 @@
-From: =?ISO-8859-1?Q?Richard_K=F6rber?= <shred-lDxpuoTbsqf2eFz/2MeuCQ@public.gmane.org>
-Subject: ACPI and Fedora Core 2?
-Date: Tue, 07 Sep 2004 12:01:32 +0200
+From: John Belmonte <john-wanGne27zNesTnJN9+BGXg@public.gmane.org>
+Subject: Re: generic hotkey driver
+Date: Tue, 07 Sep 2004 09:13:33 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <413D86FC.1040404@despammed.com>
+Message-ID: <413DB3FD.80209@neggie.net>
+References: <3ACA40606221794F80A5670F0AF15F84056B5783@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F84056B5783@pdsmsx403>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -15,47 +17,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello!
+Yu, Luming wrote:
+>>> a. Configure interface:
+>>>	1. register mapping of event number to internal hotkey number.
+>>>	2. register expected acpi_handle which is needed to install
+>>>notify handler, which will generate event for acpid.
+>>>	3. register the AML methods that should be executed , with
+>>>respect to  the hotkey get pressed.
+>>
+>>As far as I know, there is no hotkey event available in 
+>>Toshiba's case. 
+>> The only way to monitor the keys is by polling.
+> 
+> Hmm. It's not efficient way for hotkey.
+> I'm curious what's the polling frequency.
 
-I am trying to use Cool'n'Quiet on my Athlon 64 system running Fedora 
-Core 2 and a 2.6.7 kernel. Anyhow it seems that ACPI behaves strangely 
-on my system.
+I don't poll within the kernel-- I leave that issue to userspace.  The 
+hotkeys are queued, and I've found a period of .2s to be more than adequate.
 
-As far as I found out, there should be nothing more to do than a 
-"modprobe powernow-k8". Anyhow, I will always get the error message "No 
-such device".
+> I guess I can slightly modify the configure interface to
+> add a polling register interface.  To keep other parts of
+> interfaces unchanged, just need to generate corresponding
+> pseudo event for each active event found by polling.
+> 
+> Does it make sense?
 
-I think it's also strange that there is a /proc/acpi/ directory, but 
-quite all of the directories in there are empty (e.g. there actually is 
-a /proc/acpi/thermal_zone/ directory, but it is empty).
+If you want to provide hotkey events to userspace, I guess there is no 
+other choice.
 
-Booting the kernel with the "acpi=on apm=off" options set, didn't help 
-either.
+-John
 
-The ACPI module is compiled into the Fedora kernel by default, along 
-with the Fan, Processor and Thermal Zone module. The other modules (AC 
-Adapter, Battery, Button, ASUS and Toshiba laptop extras) are compiled 
-as modules. The modules ac, battery and button are also shown in lsmod.
 
-Strange enough, the asus_acpi module is loaded as well. It actually is 
-an Asus mainboard, but it's not a notebook computer.
-
-APM is also compiled into the kernel, but dmesg says it has been 
-disabled on user request.
-
-It's an AMD Athlon 64 3000+, Asus K8V SE Deluxe, and Fedora Core 2 (i386 
-installation, I will wait for FC3 before I switch to x86_64).
-
-I appreciate any advice how I could get ACPI and Cool'n'Quiet work 
-properly. Thanks in advance!
-
-Regards
 -- 
-Richard Körber -~- shred-lDxpuoTbsqf2eFz/2MeuCQ@public.gmane.org -~-
-
+http://giftfile.org/  ::  giftfile project
 
 
 -------------------------------------------------------
