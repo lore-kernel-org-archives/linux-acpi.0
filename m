@@ -1,14 +1,16 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: ACPI + Laptop Power Management
-Date: Mon, 24 Nov 2003 13:44:51 +0100
+From: John Knottenbelt <jak97-CezfXpuMXD6Fxr2TtlUqVg@public.gmane.org>
+Subject: Re: Computer Resets on Resume From S3
+Date: Mon, 24 Nov 2003 13:28:25 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031124124451.GB7374@poupinou.org>
-References: <C386328088ED7F4E9F81AFBABDDF60DA03386202@wdmyexch02.my.asia.wdc.com> <20031121101232.GL32464@poupinou.org> <3FC106AE.4040701@pca.it>
+Message-ID: <200311241328.25320.jak97@doc.ic.ac.uk>
+References: <200311201522.15255.jak97@doc.ic.ac.uk> <200311221716.10690.jak97@doc.ic.ac.uk> <20031122172352.GA265@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20031122172352.GA265-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <3FC106AE.4040701-wlebWZzHoyE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,33 +19,23 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Nov 23, 2003 at 08:12:46PM +0100, Luca Capello wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
-> 
-> Hello,
-> 
-> on 11/21/03 11:12, Ducrot Bruno wrote:
-> | I'm using laptop-mode which is now in linux-2.4 since 2.4.23-pre7.
-> | You should really look at.  Look at linux/Documentation/laptop-mode.txt
-> | for more details.
-> I saw that in kernel 2.6.0-test9 'laptop_mode' is not present: is there
-> a patch or something similar to enable it? Or is it merged in something
-> other?
-> 
+Actually, I'm not sure that the computer is going into S3 properly.
+Earlier I had assumed that it did go into S3 because the wake-up events (such 
+as keyboard press) caused the computer to wake up. However, these wake-up 
+events also cause the computer to wake up from S5.
 
-AFAIK, laptop-mode is only in 2.4, and I am not aware of a port
-to 2.6.
+My hunch is that the wake-up address is not being set correctly. Does anybody 
+know how to check this?
 
--- 
-Ducrot Bruno
+Looking at the ACPI Spec this has something to do with the FADT/FACS?
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+Thanks
+
+John
+
 
 
 -------------------------------------------------------
