@@ -1,10 +1,13 @@
-From: Paul Ionescu <i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: ibm-acpi enhancement request
-Date: Mon, 24 Jan 2005 09:19:39 -0800 (PST)
-Message-ID: <20050124171939.14379.qmail@web50206.mail.yahoo.com>
+From: Damien Challet <challet-dK2jV70R1GDQzY9nttDBhA@public.gmane.org>
+Subject: Incomplete list of pnp entries/resources with pnpacpi
+Date: Mon, 24 Jan 2005 17:04:45 +0000
+Message-ID: <200501241704.46239.challet@maths.ox.ac.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,33 +17,55 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Borislav Deianov <borislav-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Boris,
+Dear All,
 
-I am trying to write some code for ibm-acpi
-integration in HAL to better support IBM Thinkpads in
-HAL. 
-(http://www.freedesktop.org/wiki/Software_2fhal )
-This way we may have a general GUI for interacting
-with hardware, and we can let go of tpb.
-Do you think that is easy possible to have exported
-current_brightness and current_soundmixer in
-/proc/sys/ibm/ ?
+On my thinkpad 600e,
 
-If it's easy, we can discuss further how to do it.
-And maybe we can think of other things we might add.
+1) pnpacpi does not seem to be as accurate as pnpbios. First of all the number 
+of entry points is quite smaller: lspnp stops at 1b, while pnpacpi stops at 
+10
 
+2) There is no strict correspondance between the entries:
 
+lspnp gives 
 
+0e CSC0100 multimedia controller: audio
+0f CSC0110 multimedia controller: audio
+10 CSC0101 multimedia controller: audio
+11 CSC0103 multimedia controller: audio
 
-		
-__________________________________ 
-Do you Yahoo!? 
-The all-new My Yahoo! - Get yours free! 
-http://my.yahoo.com 
- 
+whereas pnpacpi gives
+
+00:05  CSC0110
+00:06  CSC0100
+00:07  CSC0101
+
+3) The resources allocated to each entry are not complete: 
+
+for instance, pnpbios gives
+
+0e CSC0100 multimedia controller: audio
+        io 0x0530-0x0537
+        io 0x0388-0x038b
+        io 0x0220-0x0233
+        irq 5
+        dma 0
+        dma 1
+
+and pnpacpi
+
+00:06  state = active
+io 0x530-0x537
+
+This might be the cause of my sound card not working.
+
+Thanks for any help
+
+Damien
+
 
 
 
