@@ -1,12 +1,12 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 Subject: Re: Samsung P35, S3, black screen (radeon)
-Date: Thu, 3 Feb 2005 23:50:33 +0100
-Message-ID: <20050203225033.GA1110@elf.ucw.cz>
-References: <20050122134205.GA9354@wsc-gmbh.de> <4201825B.2090703@gmx.net> <e796392205020221387d4d8562@mail.gmail.com> <420217DB.709@gmx.net>
+Date: Thu, 3 Feb 2005 23:54:10 +0100
+Message-ID: <20050203225410.GB1110@elf.ucw.cz>
+References: <20050122134205.GA9354@wsc-gmbh.de> <4201825B.2090703@gmx.net> <e796392205020221387d4d8562@mail.gmail.com> <420217DB.709@gmx.net> <4202A972.1070003@gmx.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <420217DB.709-hi6Y0CQ0nG0@public.gmane.org>
+In-Reply-To: <4202A972.1070003-hi6Y0CQ0nG0@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,21 +17,40 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
-Cc: Stefan Schweizer <sschweizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Nikolaus Filus <nfilus-hi6Y0CQ0nG0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> On a side note: Is it possible to set the acpi_sleep variable through
-> sysfs or procfs? Since the variable is only needed on resume, having
-> some userspace utility set it if there is a radeon card in the machine
-> would make it easier for distros to do the right thing (tm).
+> >>Are you able to use framebuffer(radeonfb,1024x768) with this
+> >>configuration or do you need to use plain vga-console for it to work?
+> > 
+> > No.
+> > For a working framebuffer console you would have to perform the steps
+> > my script does *before* the kernel tries to access the framebuffer
+> > console after resume. Since this is not yet possible, you're out of
+> > luck. If
+> > - the vbestate utility was a kernel module or
+> 
+> OK, I managed to track this down further.
+> "vbetool post" should be equivalent to "acpi_sleep=s3_bios", but there
+> are some differences. For me, that's easy to explain: "vbetool post"
+> segfaults because it wants to access parts of the video bios which
+> are no longer available. "acpi_sleep=s3_bios" suffers from the same
+> problem, but it runs in real mode and can't recover :-(
+> 
+> To alleviate that problem, the kernel could run the video bios in
+> vm86 mode (like vbetool does by using lrmi). This would simplify
+> the asm wakeup code and make video POST more reliable.
+> 
+> Pavel, what do you think?
 
-Doing it through /proc makes some sense... Initially I viewed it as a
-quick hack, and hoped it would go away rather quickly.
+Well, calling BIOS using vm86 is going to be quite a lot of code. If
+it is self-contained and not too huge, it is probably okay. It should
+help with quite a lot of cards, but who knows...
 
-Perhaps better solution than /proc export is identifying notebooks
-using DMI?
+Yes, it is probably worth trying.
+
 								Pavel
 -- 
 People were complaining that M$ turns users into beta-testers...
