@@ -1,50 +1,103 @@
-From: Jurgen Kramer <gtm.kramer-c1aixF9oqgPk1uMJSBkQmQ@public.gmane.org>
-Subject: Re: 2.6.10 and acpi_get_possible_resources? *solved*
-Date: Sun, 16 Jan 2005 01:00:37 +0100
-Message-ID: <1105833637.27841.4.camel@paragon.slim>
-References: <1105713621.10664.8.camel@paragon.slim>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: [2.6 patch] i386/x86_64: acpi/sleep.c: kill unused acpi_save_state_disk
+Date: Sun, 16 Jan 2005 08:39:27 +0100
+Message-ID: <20050116073927.GU4274@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1105713621.10664.8.camel-AynNu1t4G8oLie942ae2tA@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262398AbVAPHjh@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: len.brown@intel.com, acpi-devel@lists.sourceforge.net, pavel@suse.cz
+Cc: linux-kernel@vger.kernel.org, ak@suse.de, discuss@x86-64.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2005-01-14 at 15:40 +0100, Jurgen Kramer wrote:
-> I am trying to get the WACOM ACPI patches working on 2.6.10 but it bails
-> out on a missing function "acpi_get_possible_resources". On 2.6.9 the
-> needed symbol is exported by acpi_ksyms.c but this file no longer exists
-> in 2.6.10. 
-> 
-> What is the best way to get the acpi_get_possible_resources function
-> exported properly? It is defined in <acpi/acpxf.h> but adding this to
-> the wacom source files did not help.
-> 
-> The 2.6.9 version of the wacom patches are from:
-> 
-> http://www.theory.bham.ac.uk/staff/schofield/linux/tc1100/linux-2.6.9-
-> wacom_acpi.patch
+acpi_save_state_disk does nothing and is completely unused.
 
-Problem solved. The functions from <acpi/acpixf.h> needed a #define
-ACPI_FUTURE_USAGE 1 to work again.
-
-My wacom tablet is working again with 2.6.10.
-
-Jurgen
+Unless some usage is planned in the near future, I'm therefore proposing 
+the patch below to kill it.
 
 
+diffstat output:
+ arch/i386/kernel/acpi/sleep.c   |    9 ---------
+ arch/x86_64/kernel/acpi/sleep.c |    9 ---------
+ include/asm-i386/acpi.h         |    1 -
+ include/asm-i386/suspend.h      |    1 -
+ include/asm-x86_64/acpi.h       |    1 -
+ include/asm-x86_64/suspend.h    |    1 -
+ 6 files changed, 22 deletions(-)
 
--------------------------------------------------------
-The SF.Net email is sponsored by: Beat the post-holiday blues
-Get a FREE limited edition SourceForge.net t-shirt from ThinkGeek.
-It's fun and FREE -- well, almost....http://www.thinkgeek.com/sfshirt
+
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+
+--- linux-2.6.11-rc1-mm1-full/include/asm-i386/acpi.h.old	2005-01-16 04:25:17.000000000 +0100
++++ linux-2.6.11-rc1-mm1-full/include/asm-i386/acpi.h	2005-01-16 04:25:23.000000000 +0100
+@@ -174,7 +174,6 @@
+ 
+ /* routines for saving/restoring kernel state */
+ extern int acpi_save_state_mem(void);
+-extern int acpi_save_state_disk(void);
+ extern void acpi_restore_state_mem(void);
+ 
+ extern unsigned long acpi_wakeup_address;
+--- linux-2.6.11-rc1-mm1-full/include/asm-i386/suspend.h.old	2005-01-16 04:25:31.000000000 +0100
++++ linux-2.6.11-rc1-mm1-full/include/asm-i386/suspend.h	2005-01-16 04:25:35.000000000 +0100
+@@ -61,5 +61,4 @@
+ 
+ /* routines for saving/restoring kernel state */
+ extern int acpi_save_state_mem(void);
+-extern int acpi_save_state_disk(void);
+ #endif
+--- linux-2.6.11-rc1-mm1-full/include/asm-x86_64/acpi.h.old	2005-01-16 04:25:44.000000000 +0100
++++ linux-2.6.11-rc1-mm1-full/include/asm-x86_64/acpi.h	2005-01-16 04:25:48.000000000 +0100
+@@ -153,7 +153,6 @@
+ 
+ /* routines for saving/restoring kernel state */
+ extern int acpi_save_state_mem(void);
+-extern int acpi_save_state_disk(void);
+ extern void acpi_restore_state_mem(void);
+ 
+ extern unsigned long acpi_wakeup_address;
+--- linux-2.6.11-rc1-mm1-full/include/asm-x86_64/suspend.h.old	2005-01-16 04:25:56.000000000 +0100
++++ linux-2.6.11-rc1-mm1-full/include/asm-x86_64/suspend.h	2005-01-16 04:26:00.000000000 +0100
+@@ -55,5 +55,4 @@
+ 
+ /* routines for saving/restoring kernel state */
+ extern int acpi_save_state_mem(void);
+-extern int acpi_save_state_disk(void);
+ #endif
+--- linux-2.6.11-rc1-mm1-full/arch/i386/kernel/acpi/sleep.c.old	2005-01-16 04:26:23.000000000 +0100
++++ linux-2.6.11-rc1-mm1-full/arch/i386/kernel/acpi/sleep.c	2005-01-16 04:26:30.000000000 +0100
+@@ -47,15 +47,6 @@
+ 	return 0;
+ }
+ 
+-/**
+- * acpi_save_state_disk - save kernel state to disk
+- *
+- */
+-int acpi_save_state_disk (void)
+-{
+-	return 1;
+-}
+-
+ /*
+  * acpi_restore_state - undo effects of acpi_save_state_mem
+  */
+--- linux-2.6.11-rc1-mm1-full/arch/x86_64/kernel/acpi/sleep.c.old	2005-01-16 04:26:43.000000000 +0100
++++ linux-2.6.11-rc1-mm1-full/arch/x86_64/kernel/acpi/sleep.c	2005-01-16 04:26:50.000000000 +0100
+@@ -87,15 +87,6 @@
+ 	return 0;
+ }
+ 
+-/**
+- * acpi_save_state_disk - save kernel state to disk
+- *
+- */
+-int acpi_save_state_disk (void)
+-{
+-	return 1;
+-}
+-
+ /*
+  * acpi_restore_state
+  */
