@@ -1,41 +1,62 @@
-From: Karol Kozimor <sziwan@hell.org.pl>
-Subject: Video memory corruption during suspend
-Date: Mon, 19 Jul 2004 00:52:47 +0200
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20040718225247.GA30971@hell.org.pl>
+From: "Mj" <mj-+ZI9xUNit7I@public.gmane.org>
+Subject: Re:
+Date: Mon, 19 Jul 2004 12:53:02 +0800
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <wuyzxtmmudehbimwpxx@lists.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S264577AbUGRWwn@vger.kernel.org>
-Content-Disposition: inline
-To: linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
+Content-Type: multipart/mixed;
+        boundary="--------mrwimxkkdtbmlwenvtad"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-I'm having an odd problem with video memory being corrupted during suspend.
+----------mrwimxkkdtbmlwenvtad
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-My setup is:
-ASUS L3800C laptop, Radeon M7, i845 chipset, using DRI and radeonfb.
+------------------  Virus Warning Message (on the network)
 
-Note that this is not specific to the kernel used, as I've been seeing 
-similar corruption every now and then, most recently under 2.6.7 +
-ACPICA20040715 + swsusp2.0.0.100 (S3, S4), but also under 2.4 with S1 (but 
-not with S4/swsusp2).
+Found virus WORM_BAGLE.AG in file Dog.exe
+The file Dog.exe can not be moved because /var/quarantine/virus/virAIFT6oWfZ: No space left on device.
 
-I have a very simple script I use to suspend (i.e. basically echo $arg >
-/proc/acpi/sleep), which is usually started by acpid. Once the script is
-triggered (by pressing power / sleep button) and an X session is running, 
-various red and green patches appear on the screen (the background image
-and the tinted terminal emulator), followed by the VT switch the PM code
-does. After resume and subsequent VT switch by the PM code the corruption
-is still visible. The screen is properly restored by a manual VT switch.
-The corruption is clearly related to the existing background pixmap, as
-moving the windows does not change its pattern. Oddly enough, starting a GL
-app such as glxgears and moving it into and out of focus also properly
-restores the screen.
+This is a machine-generated message, please do not reply via e-mail. If you have questions, please contact the Lucent Help Desk at +1 888 300 0770.
 
-I'll be happy to provide any useful information.
-Best regards,
+---------------------------------------------------------
 
--- 
-Karol 'sziwan' Kozimor
-sziwan@hell.org.pl
+----------mrwimxkkdtbmlwenvtad
+Content-Type: text/html; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+
+<html><body>
+Screen<br><br>
+
+<br>
+</body></html>
+
+----------mrwimxkkdtbmlwenvtad
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+
+------------------  Virus Warning Message (on the network)
+
+Dog.exe is removed from here because it contains a virus.
+
+---------------------------------------------------------
+----------mrwimxkkdtbmlwenvtad--
+
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by BEA Weblogic Workshop
+FREE Java Enterprise J2EE developer tools!
+Get your free copy of BEA WebLogic Workshop 8.1 today.
+http://ads.osdn.com/?ad_id=4721&alloc_id=10040&op=click
