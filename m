@@ -1,13 +1,14 @@
-From: "Huw H" <hrhawk-JGs/UdohzUI@public.gmane.org>
-Subject: 2.4.19 & latest acpi & patched dsdt (tosh3k)
-Date: Fri, 09 Aug 2002 03:16:06 +0400
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: AML disassembler questions.
+Date: Fri, 9 Aug 2002 12:10:53 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E17cwVi-000HKK-00@f16.mail.ru>
-Reply-To: "Huw H" <hrhawk-JGs/UdohzUI@public.gmane.org>
+Message-ID: <20020809101053.GB24541@poup.poupinou.org>
+References: <B9ECACBD6885D5119ADC00508B68C1EA0D19B6D0@orsmsx107.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=koi8-r
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <B9ECACBD6885D5119ADC00508B68C1EA0D19B6D0-LkGsggTGxVmSsB6bSF6DdVDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,37 +17,50 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: 'Ducrot Bruno' <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Black, Richard" <Richard.Black-VXdhtT5mjnY@public.gmane.org>, "KOCHI, Takayoshi" <t-kouchi-f7IHDacdhdx8UrSeD/g0lQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Heya,
-   I've managed to upgrade to the latest 2.4.19 kernel without too many
-problems by applying the acpi patch to the 2.4.18 source, then patch-2.4.19.
-There are about 5 rejected blocks, of which 2 are documentation and the
-remaining not too difficult to kludge together (its my first look at the code,
-so someone familiar with it can release a patch). 
+On Thu, Aug 08, 2002 at 12:50:25PM -0700, Moore, Robert wrote:
+> 
+> Go ahead and try the disassembler in iASL.  I know for a fact that it
+> disassembles lots of files that AD chokes on.
+> 
 
-Now, problems I've had with the newest ACPI patch:
+I try it for a Sony AML (don't remember the model, though).
 
-   Using the newest acpi, I am no longer able to override the dsdt with the
-patch from ftp://ftp.poupinou.org/ without getting errors about an   "invalid
-signature where the RSDP indicates RSDT/XSDT should be"  then failure messages
-for unable to load RSDT.
+ad.exe gave me:
 
- This is also a problem when using the latest patch against 2.4.18.
+	...
+	...
+        Method(S2BF,1,Serialized)
+        {
+            Add(SLEN /* **** can't find object in namespace */(),Arg0,)
+AML error: Invalid Term in TermList @ 403406BC
+           Probably a disassembler problem
+                  Opcode = 0x01,0x60
+        }
+AML error: Invalid Term in TermList @ 403406BC
+           Probably a disassembler problem
+                  Opcode = 0x01,0x60
+    }
+AML error: Invalid Term in TermList @ 403406BC
+           Probably a disassembler problem
+                  Opcode = 0x01,0x60
+}
 
- I was using the tosh3k-514.hex dsdt from ftp.poupinou.org, as I am lead to
-believe my satellite 3000-302A is equivalent to this model. If anyone wants to
-check my dsdt the raw dump is here: 
 
-         http://johan.dhs.org/tosh3k-302a.dsdt.bz2
+acpidump is ok, under Linux and F-BSD (I received this AML some time ago).
 
-With an unpatched dsdt, I have access to battery (no discharge rate info),
-processor, button information. Thermal, fan and ac zones don't work, and I've
-never tried suspending.
+I have try 'iasl -d' for this AML, and it was OK.
 
-Huw
+I have some other AMLs in hand that can not be disassembled by ad.exe,
+and iasl seems to be OK for me.
 
+-- 
+Ducrot Bruno
+http://www.poupinou.org        Page profaissionelle
+http://toto.tu-me-saoules.com  Haume page
 
 
 -------------------------------------------------------
