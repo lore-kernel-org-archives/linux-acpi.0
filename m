@@ -1,12 +1,14 @@
-From: "Maryellen Kirkland" <maryellen_kirkland2-BWydpiecmEC5w2msV1M61g@public.gmane.org>
-Subject: Order Royal Replica Watches Online
-Date: Fri, 24 Dec 2004 21:53:51 -0100
-Message-ID: <bdea01c4ea0b$c4bae137$852269ba@koopia3.ee>
+From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
+Subject: Re: No C3 states after swsuspend/resume
+Date: Sat, 25 Dec 2004 09:47:18 +0100
+Message-ID: <m2r7lebw89.fsf@phoenix.squirrel.nl>
+References: <m2brcmavnl.fsf@phoenix.squirrel.nl>
+	<20041223130339.GD731@openzaurus.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20041223130339.GD731-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org> (Pavel Machek's
+ message of "Thu, 23 Dec 2004 14:03:40 +0100")
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,26 +21,21 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Get the Finest Rolex Watch Replica!
+Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> writes:
 
-We only sell premium watches. There's no battery in these replicas just
-like the real ones since they charge themselves as you move. The second hand
-moves JUST like the real ones, too. These original watches sell in stores
-for thousands of dollars. We sell them for much less. 
+> Can you try again on vanilla 2.6.9?
 
-- Replicated to the Smallest Detail
-- 98% Perfectly Accurate Markings 
-- Signature Green Sticker w/ Serial Number on Watch Back
-- Magnified Quickset Date
-- Includes all Proper Markings
+I'll give it a try.
 
-Visit us: http://www.mecei.com/rep/rolx/
+> Does it still happen without usb?
 
-Christmas discount this week only! Make your order before the prices go up.
+Yes. In fact, when I boot in single user mode, and unload the uhci-hcd
+module, all is well and C3 states are used. After suspend/resume, bus
+master activity is ffffffff and never changes. I tried stopping all
+processes and unloading all modules, but nothing seems to make a
+difference.
 
-
-No thanks: http://www.mecei.com/z.php
-
+-- Johan
 
 
 -------------------------------------------------------
