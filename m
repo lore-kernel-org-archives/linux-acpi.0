@@ -1,15 +1,16 @@
-From: Toon van der Pas <toon-/ye6tfJczTwcEEi49/iq3g@public.gmane.org>
-Subject: Re: 2.5.34?
-Date: Wed, 18 Sep 2002 18:38:19 +0200
+From: Thomas Kosch <t.kosch-7+EO1k1ndLmazgQtNeiOUg@public.gmane.org>
+Subject: Problem with pcmcia and ide-scsi with kernel 2.4.20-pre5 and
+ acpi-20020829
+Date: Wed, 18 Sep 2002 15:36:31 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020918183819.A10275@vdpas.hobby.nl>
-References: <20020916001425.82756.qmail@web20906.mail.yahoo.com> <20020916012506.G10583@parcelfarce.linux.theplanet.co.uk> <20020916081909.A25876@vdpas.hobby.nl> <20020917154653.C39@toy.ucw.cz>
+Message-ID: <microsoft-free.m3sn07ifmo.fsf@grisu.cyvermail.de>
+References: <E174ny3-0008Hy-00@usw-sf-list2.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20020917154653.C39-muQmgwBScQHrBKCeMvbIDA@public.gmane.org>; from pavel-AlSwsSmVLrQ@public.gmane.org on Tue, Sep 17, 2002 at 03:46:53PM +0000
+In-Reply-To: <E174ny3-0008Hy-00-HKCwXBn57GynvZpeIfgr/KQD96bmaF075NbjCUgZEJk@public.gmane.org> (acpi-devel-request@lists.sourceforge.net's
+ message of "Mon, 06 May 2002 12:15:32 -0700")
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -21,44 +22,70 @@ List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Sep 17, 2002 at 03:46:53PM +0000, Pavel Machek wrote:
->=20
-> > > > Is 2.5.34 patch comming out soon?
-> > >=20
-> > > i don't particularly see the point in releasing one since all ACPI =
-patches
-> > > for 2.5 that i'm aware of are integrated into the current bitkeeper=
- tree.
-> > > you could grab a nightly snapshot if you can't wait for 2.5.35:
-> > > http://www.kernel.org/pub/linux/kernel/people/jgarzik/snap/2.5/patc=
-h-2.5.34-bk6.bz2
-> >=20
-> > But be aware that the swsusp patch in the IDE driver in de 2.5 kernel
-> > was lost when Martin Dalecki's IDE project was removed!
-> > I would wait for it to return in some form or another, if I where you.
->=20
-> Look at l-k, I already submitted IDE swsusp support to Andre.
+Hi,
 
-I know.
-I got my information from your postings on the linux-kernel mailing list.=
-=20
-My only intention was to warn people that their data is NOT safe when
-using swsusp with recent 2.5 kernels.
+I use the acpi-20020829-2.4.20-pre5.diff with Ducrot Bruno's DSTD on a
+Toshiba Satellite 3000-214.
+When I start the cardmanager i get=20
 
-I should have added that you already submitted a patch on the
-linux-kernel mailing list. Sorry about that.
+,----
+| Sep 18 15:18:46 grisu kernel: unloading Kernel Card Services
+| Sep 18 15:18:53 grisu rcpcmcia: /sbin/insmod /lib/modules/2.4.20-pre5/ker=
+nel/drivers/pcmcia/pcmcia_core.o
+| Sep 18 15:18:53 grisu kernel: Linux Kernel Card Services 3.1.22
+| Sep 18 15:18:53 grisu kernel:   options:  [pci] [cardbus] [pm]
+| Sep 18 15:18:53 grisu rcpcmcia: /sbin/insmod /lib/modules/2.4.20-pre5/ker=
+nel/drivers/pcmcia/pcmcia_core.o
+| Sep 18 15:18:53 grisu rcpcmcia: /sbin/insmod /lib/modules/2.4.20-pre5/ker=
+nel/drivers/pcmcia/yenta_socket.o
+| Sep 18 15:18:54 grisu kernel: Yenta IRQ list 0818, PCI irq10
+| Sep 18 15:18:54 grisu kernel: Socket status: 30000006
+| Sep 18 15:18:54 grisu kernel: Yenta IRQ list 0818, PCI irq10
+| Sep 18 15:18:54 grisu kernel: Socket status: 30000006
+| Sep 18 15:18:54 grisu rcpcmcia: /sbin/insmod /lib/modules/2.4.20-pre5/ker=
+nel/drivers/pcmcia/pcmcia_core.o
+| Sep 18 15:18:54 grisu rcpcmcia: /sbin/insmod /lib/modules/2.4.20-pre5/ker=
+nel/drivers/pcmcia/ds.o
+| Sep 18 15:18:54 grisu cardmgr[2481]: starting, version is 3.1.28
+| Sep 18 15:18:54 grisu cardmgr[2481]: modpath =3D /lib/modules/2.4.20-pre5/
+| Sep 18 15:18:54 grisu cardmgr[2481]: modsubdir =3D pcmcia
+| Sep 18 15:18:54 grisu cardmgr[2481]: watching 2 sockets
+| Sep 18 15:18:54 grisu cardmgr[2481]: could not adjust resource: IO ports =
+0xc00-0xcff: Device or resource busy
+| Sep 18 15:18:54 grisu cardmgr[2481]: could not adjust resource: IO ports =
+0x800-0x8ff: Device or resource busy
+| Sep 18 15:18:54 grisu cardmgr[2481]: could not adjust resource: IO ports =
+0x100-0x4ff: Device or resource busy
+| Sep 18 15:18:54 grisu cardmgr[2481]: could not adjust resource: memory 0x=
+c0000-0xfffff: Input/output error
+| Sep 18 15:18:54 grisu cardmgr[2481]: could not adjust resource: memory 0x=
+60000000-0x60ffffff: Input/output error
+| Sep 18 15:18:54 grisu cardmgr[2481]: could not adjust resource: memory 0x=
+a0000000-0xa0ffffff: Input/output error
+| Sep 18 15:18:54 grisu cardmgr[2481]: could not adjust resource: IO ports =
+0xa00-0xaff: Device or resource busy
+`----
 
-BTW: From your discussion with Andr=E9 Hedrick I understood that there
-still is some disagreement about the layer where the I/O to the IDE
-block devices should be blocked by swsusp. Is this resolved now?
+When i start the cardmanager on startup i can load the cardmanager but
+when i insert a card i get these messages for example
 
-Regards,
-Toon.
---=20
- /"\                             |
- \ /     ASCII RIBBON CAMPAIGN   |  "Who is this General Failure, and
-  X        AGAINST HTML MAIL     |   what is he doing on my harddisk?"
- / \
+,----
+| Sep 17 09:34:42 grisu kernel: orinoco_cs.c 0.11b (David Gibson <hermes@gi=
+bson.dropbear.id.au> and others)
+| Sep 17 09:34:42 grisu kernel: orinoco_cs: RequestIRQ: Resource in use
+`----
+
+The second is, when i try to access the CD-Rom after a wake up from an S1 s=
+leep
+the computer freezes without any messages in the syslog. When i reload
+the ide-scsi module it works
+
+
+
+ttyl8er, t.k.
+
+=2D-=20
+Slowly and surely the unix crept up on the Nintendo user ...
 
 
 -------------------------------------------------------
