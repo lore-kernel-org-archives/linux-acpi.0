@@ -1,126 +1,67 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: [PATCH] simplify pci_irq internal interfaces
-Date: Fri, 18 Mar 2005 13:21:33 -0700
-Message-ID: <1111177293.13286.51.camel@eeyore>
+From: Rajesh Shah <rajesh.shah@intel.com>
+Subject: [Patch 2/12] Fix pci_enable_device() for p2p bridges
+Date: Fri, 18 Mar 2005 13:59:06 -0800
+Message-ID: <20050318135906.B1145@unix-os.sc.intel.com>
+References: <20050318133856.A878@unix-os.sc.intel.com>
+Reply-To: Rajesh Shah <rajesh.shah@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20050318133856.A878@unix-os.sc.intel.com>; from rajesh.shah@intel.com on Fri, Mar 18, 2005 at 01:38:57PM -0800
+Sender: linux-ia64-owner@vger.kernel.org
+To: gregkh@suse.de, tony.luck@intel.com, len.brown@intel.com
+Cc: linux-pci@atrey.karlin.mff.cuni.cz, linux-kernel@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net, linux-ia64@vger.kernel.org, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-Pass around the struct pci_dev when looking up PRT entries rather
-than prematurely extracting segment/bus/device.
+When checking if a PCI to PCI bridge should be enabled to decode
+memory and/or IO resources, we need to look at all device 
+resources not just the first 6. This is needed to allow PCI
+bridges to pass down memory and IO accesses to child devices
+even when the bridge itself does not consume resources in its
+PCI BARs.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Signed-off-by: Rajesh Shah <rajesh.shah@intel.com>
+---
 
-===== drivers/acpi/pci_irq.c 1.37 vs edited =====
---- 1.37/drivers/acpi/pci_irq.c	2005-03-01 09:57:29 -07:00
-+++ edited/drivers/acpi/pci_irq.c	2005-03-18 12:52:08 -07:00
-@@ -51,9 +51,7 @@
+ linux-2.6.11-mm4-iohp-rshah1/arch/ia64/pci/pci.c |   10 +++++++---
+ 1 files changed, 7 insertions(+), 3 deletions(-)
+
+diff -puN arch/ia64/pci/pci.c~fix-ia64-pcibios_enable_resources arch/ia64/pci/pci.c
+--- linux-2.6.11-mm4-iohp/arch/ia64/pci/pci.c~fix-ia64-pcibios_enable_resources	2005-03-16 13:07:02.055015329 -0800
++++ linux-2.6.11-mm4-iohp-rshah1/arch/ia64/pci/pci.c	2005-03-16 13:07:02.164390328 -0800
+@@ -436,18 +436,24 @@ pcibios_enable_resources (struct pci_dev
+ 	u16 cmd, old_cmd;
+ 	int idx;
+ 	struct resource *r;
++	unsigned long type_mask = IORESOURCE_IO | IORESOURCE_MEM;
  
- static struct acpi_prt_entry *
- acpi_pci_irq_find_prt_entry (
--	int			segment,
--	int			bus,
--	int			device,
-+	struct pci_dev		*dev,
- 	int			pin)
- {
- 	struct list_head	*node = NULL;
-@@ -67,15 +65,14 @@
- 	/*
- 	 * Parse through all PRT entries looking for a match on the specified
- 	 * PCI device's segment, bus, device, and pin (don't care about func).
--	 *
- 	 */
- 	spin_lock(&acpi_prt_lock);
- 	list_for_each(node, &acpi_prt.entries) {
- 		entry = list_entry(node, struct acpi_prt_entry, node);
--		if ((segment == entry->id.segment) 
--			&& (bus == entry->id.bus) 
--			&& (device == entry->id.device)
--			&& (pin == entry->pin)) {
-+		if ((entry->id.segment == pci_domain_nr(dev->bus)) 
-+			&& (entry->id.bus == dev->bus->number) 
-+			&& (entry->id.device == PCI_SLOT(dev->devfn))
-+			&& (entry->pin == pin)) {
- 			spin_unlock(&acpi_prt_lock);
- 			return_PTR(entry);
- 		}
-@@ -277,24 +274,20 @@
-  */
- static int
- acpi_pci_irq_lookup (
--	struct pci_bus		*bus,
--	int			device,
-+	struct pci_dev		*dev,
- 	int			pin,
- 	int			*edge_level,
- 	int			*active_high_low)
- {
- 	struct acpi_prt_entry	*entry = NULL;
--	int segment = pci_domain_nr(bus);
--	int bus_nr = bus->number;
- 	int irq;
+ 	if (!dev)
+ 		return -EINVAL;
  
- 	ACPI_FUNCTION_TRACE("acpi_pci_irq_lookup");
+ 	pci_read_config_word(dev, PCI_COMMAND, &cmd);
+ 	old_cmd = cmd;
+-	for (idx=0; idx<6; idx++) {
++	for (idx=0; idx<PCI_NUM_RESOURCES; idx++) {
+ 		/* Only set up the desired resources.  */
+ 		if (!(mask & (1 << idx)))
+ 			continue;
  
--	ACPI_DEBUG_PRINT((ACPI_DB_INFO, 
--		"Searching for PRT entry for %02x:%02x:%02x[%c]\n", 
--		segment, bus_nr, device, ('A' + pin)));
-+	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Searching for PRT entry for %s[%c]\n", 
-+		pci_name(dev), 'A' + pin));
- 
--	entry = acpi_pci_irq_find_prt_entry(segment, bus_nr, device, pin); 
-+	entry = acpi_pci_irq_find_prt_entry(dev, pin); 
- 	if (!entry) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "PRT entry not found\n"));
- 		return_VALUE(-1);
-@@ -359,8 +352,8 @@
- 			pin = bridge_pin;
- 		}
- 
--		irq = acpi_pci_irq_lookup(bridge->bus, PCI_SLOT(bridge->devfn),
--			pin, edge_level, active_high_low);
-+		irq = acpi_pci_irq_lookup(bridge, pin, edge_level,
-+			active_high_low);
+ 		r = &dev->resource[idx];
++		if (!(r->flags & type_mask))
++			continue;
++		if ((idx == PCI_ROM_RESOURCE) &&
++				(!(r->flags & IORESOURCE_ROM_ENABLE)))
++			continue;
+ 		if (!r->start && r->end) {
+ 			printk(KERN_ERR
+ 			       "PCI: Device %s not available because of resource collisions\n",
+@@ -459,8 +465,6 @@ pcibios_enable_resources (struct pci_dev
+ 		if (r->flags & IORESOURCE_MEM)
+ 			cmd |= PCI_COMMAND_MEMORY;
  	}
- 
- 	if (irq < 0) {
-@@ -411,7 +404,7 @@
- 	 * First we check the PCI IRQ routing table (PRT) for an IRQ.  PRT
- 	 * values override any BIOS-assigned IRQs set during boot.
- 	 */
-- 	irq = acpi_pci_irq_lookup(dev->bus, PCI_SLOT(dev->devfn), pin, &edge_level, &active_high_low);
-+ 	irq = acpi_pci_irq_lookup(dev, pin, &edge_level, &active_high_low);
- 
- 	/*
- 	 * If no PRT entry was found, we'll try to derive an IRQ from the
-@@ -481,8 +474,7 @@
- 	/*
- 	 * First we check the PCI IRQ routing table (PRT) for an IRQ.
- 	 */
-- 	gsi = acpi_pci_irq_lookup(dev->bus, PCI_SLOT(dev->devfn), pin,
--				  &edge_level, &active_high_low);
-+ 	gsi = acpi_pci_irq_lookup(dev, pin, &edge_level, &active_high_low);
- 	/*
- 	 * If no PRT entry was found, we'll try to derive an IRQ from the
- 	 * device's parent bridge.
-
-
-
-
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+-	if (dev->resource[PCI_ROM_RESOURCE].start)
+-		cmd |= PCI_COMMAND_MEMORY;
+ 	if (cmd != old_cmd) {
+ 		printk("PCI: Enabling device %s (%04x -> %04x)\n", pci_name(dev), old_cmd, cmd);
+ 		pci_write_config_word(dev, PCI_COMMAND, cmd);
+_
