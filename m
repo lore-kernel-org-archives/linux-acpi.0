@@ -1,14 +1,16 @@
-From: eric.piel-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org
-Subject: RE: [PATCH] ACPI/Processor: C1/C3 states promotion and demotion
-Date: Tue, 10 Feb 2004 10:52:07 +0100
+From: "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>
+Subject: Re: [Fwd: Re: [PROBLEM] 2.6.3-rc1: still no suspend/resume
+ on Centrino notebook (contains agp, lapic, swsusp)]
+Date: Tue, 10 Feb 2004 15:03:07 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1076406727.4028a9c77b139@mailetu.utc.fr>
-References: <C386328088ED7F4E9F81AFBABDDF60DA03F9E637@wdmyexch02.my.asia.wdc.com>
+Message-ID: <m3isif2fs4.fsf@brain.gnuhh.org>
+References: <1076374686.3429.1.camel@darkstar>
+	<20040210103409.GH13262@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <C386328088ED7F4E9F81AFBABDDF60DA03F9E637-Yw6hFe9C1vnHQcBQSaPqJq0fmWJ9l57d0E9HWUfgJXw@public.gmane.org>
+In-Reply-To: <20040210103409.GH13262-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> (Bruno Ducrot's message
+ of "Tue, 10 Feb 2004 11:34:09 +0100")
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,39 +19,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ow Mun Heng <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: =?iso-8859-1?q?S=E9rgio_Monteiro_Basto?= <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Quoting Ow Mun Heng <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>:
-> Can you post me the script? (off list maybe)
-Well, I don't have my laptop with me and the script is so terrible that I=
-'d be
-very shameful. Anyway, the idea is just to put those two lines in a scrip=
-t run
-by acpid when the LID event is detected:
-xmms -n 0 -u
-service hotplug stop
+ || On Tue, 10 Feb 2004 11:34:09 +0100
+ || Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> wrote: 
 
-=20
-> I still can't really get into C3 much. [00000090] is all I get.
-> (I've made a separate post about this earlier)
-The good news is that your computer can go to C3 , at least :-/
+ bd> Note that this statement may be false for the Asus, though, and
+ bd> it's not easy to be sure what actually is broken (ACPI IRQ
+ bd> routing code, or hardware bug).
 
-> You mentioned Bus master activity null.. what does that mean??
-That means "bus master activity =3D 000000"
+If there is anything I can provide to clear this, let me know.
 
-> with usb aware kernel     -> bus master activity =3D fffffff
-> with NON usb aware kernel -> bus master activity =3D aa23as2
-> 					(this value changes very sec!)
-So this means there is another thing that is using the bus master. Try to=
- unload
-as many things as you can until you see the activity completly flat, that=
-'s just
-what I did to understand ALSA and USB were the culprits on my laptop.
+Right now it appears to be a kernel issue, as my ASUS M2N occasionally
+booted with APIC&ACPI just fine -- but not the 2.6.x kernels with the
+exception of 2.6.2-rc2, I think.
 
-Eric
+Regards,
+Georg
 
+-- 
+Georg C. F. Greve                                       <greve-mXXj517/zsQ@public.gmane.org>
+Free Software Foundation Europe	                 (http://fsfeurope.org)
+Brave GNU World	                           (http://brave-gnu-world.org)
 
 
 -------------------------------------------------------
