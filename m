@@ -1,16 +1,14 @@
-From: Neil Russell <neil-/H+5mSEr0Z/QT0dZR+AlfA@public.gmane.org>
-Subject: Please confirm your message
-Date: Sat, 09 Oct 2004 23:13:00 -0700 (PDT)
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Early init patch breaks Dell laptops
+Date: Sun, 10 Oct 2004 03:13:03 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1097388780.24393.TMDA@lx.c-side.com>
-References: <20041010061225.691FC15DDF8@delight.idiom.com>
-Reply-To: neil-confirm-1097388780.24393.9f1ad9-/H+5mSEr0Z/QT0dZR+AlfA@public.gmane.org
+Message-ID: <F7DC2337C7631D4386A2DF6E8FB22B3001A1938B@hdsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20041010061225.691FC15DDF8-v3wWnkbFTF0E9owNI1yPEAC/G2K4zDHf@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -19,25 +17,59 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Daniel Drake <dsd-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+I think the bug is that Linux
+enables the LAPIC instead of believeing
+the BIOS that it should be off:
 
-Hi,
++Local APIC disabled by BIOS -- reenabling.
++Found and enabled local APIC!
 
+-Len=20
 
-The message you sent recently is being held because your address
-<acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org> has not been verified.
-
-To confirm that your message was not junk-mail, please reply to this
-Email or send an empty message to this address:
-
-   neil-confirm-1097388780.24393.9f1ad9-/H+5mSEr0Z/QT0dZR+AlfA@public.gmane.org
-
-You should only have to confirm your address once.
-
-
-Neil.
+>-----Original Message-----
+>From: Daniel Drake [mailto:dsd-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org]=20
+>Sent: Saturday, October 09, 2004 10:08 AM
+>To: Brown, Len
+>Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>Subject: Early init patch breaks Dell laptops
+>
+>Hi Len,
+>
+>I'm one of the maintainers of Gentoo's kernel packages. I=20
+>recently added your=20
+>ACPI early-init patch into our 2.6.8 patchset in order to=20
+>solve the problems=20
+>you addressed
+>
+>http://bugs.gentoo.org/60565
+>http://bugzilla.kernel.org/show_bug.cgi?id=3D2941
+>
+>After adding the "2.6.7 early init" patch, other users have run into=20
+>ACPI-related problems (freezing on ACPI events). More=20
+>specifically, Dell=20
+>Inspiron laptops don't seem to like you :)
+>
+>According to these users, the issue is also present in=20
+>(unmodified) 2.6.9-rc3,=20
+>and reverting out the early-init patch seems to solve the problem.
+>
+>http://bugs.gentoo.org/66723
+>http://bugs.gentoo.org/66804
+>http://bugs.gentoo.org/66613
+>
+>A bug has been filed at the kernel bugzilla:
+>
+>http://bugzilla.kernel.org/show_bug.cgi?id=3D3532
+>
+>I hope this is useful- please ask if you need any more info.
+>
+>Thanks,
+>Daniel
+>
 
 
 -------------------------------------------------------
