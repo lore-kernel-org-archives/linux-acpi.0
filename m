@@ -1,29 +1,47 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Machines self-power-up with 2.6.9-rc3 (evo N620c, ASUS, ...)
-Date: Wed, 20 Oct 2004 21:15:31 +0200
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20041020191531.GC21315@elf.ucw.cz>
+From: Hiroshi 2 Itoh <HIROIT-JE5g2YyFxFHQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] GDT table patch for resume only reboots problem
+Date: Thu, 21 Oct 2004 04:29:22 +0900
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <OF68F9CA4F.2C36D829-ONC9256F33.00689EA1-49256F33.006A97EE@jp.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S269994AbUJTTTD@vger.kernel.org>
-Content-Disposition: inline
-To: kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <acpi-devel@lists.sourceforge.net>
+Content-Type: text/plain; charset=US-ASCII
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
 
-I'm seeing bad problem with N620c notebook (and have reports of more
-machines behaving like this, for example ASUS L8400C.) If I shutdown
-machine with lid closed, opening lid will power the machine up. Ouch.
-2.6.7 behaves okay.
 
-Ouch, acpi=off makes it even worse [2.6.9-rc3, N620c]. I get some very
-strange show on the leds (battery charge led blinks fast?!), then
-machine powers up itself. This happens even with lid initially
-open. 2.6.7 works as expected.
 
-Any ideas?
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+
+>Instead, I test my machine to write a byte value on I/O port 0x3bc. This
+>is the parallel port's output register to be latched and observable if you
+>have a simple hardware decoder with 7 segment LEDs. <- do it yourself work
+>is required. :-)
+
+Matthew,
+
+My diagnostic tool consists of one 74LN373 chip and two 7-segment LEDs with
+Dsub 25 pin + PS2
+mouse cable to get +5V only from the mouse connecter.
+
+It seems that there is a company to sell such a POST card.
+http://tech.parvus.com/item_info.asp?Item=PRV-0867X-01
+
+- Hiro
+
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: IT Product Guide on ITManagersJournal
+Use IT products in your business? Tell us what you think of them. Give us
+Your Opinions, Get Free ThinkGeek Gift Certificates! Click to find out more
+http://productguide.itmanagersjournal.com/guidepromo.tmpl
