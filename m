@@ -1,14 +1,14 @@
 From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: DSDT on suse 9.1
-Date: Fri, 8 Oct 2004 18:14:13 +0200
+Subject: Re: Should battery generate events?
+Date: Fri, 8 Oct 2004 18:10:46 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041008161413.GD10581@message-id.gmane0305.slipkontur.de>
-References: <4162A11A.106@alink.co.za> <4163D16B.1090903@alink.co.za>
+Message-ID: <20041008161046.GC10581@message-id.gmane0305.slipkontur.de>
+References: <20041004232557.6c342288@commensaal.drs.p>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4163D16B.1090903-OvXvXIFG8FfYkQIYctQFYw@public.gmane.org>
+In-Reply-To: <20041004232557.6c342288-7SZEXzPdWeU90gtriz95AQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -20,13 +20,34 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Oct 06, 2004 at 12:05:15PM +0100, George Barnett wrote:
+On Mon, Oct 04, 2004 at 11:25:57PM +0200, Tim Dijkstra wrote:
+ 
+> I would want to avoid this happening again. Ideally I would want my
+> laptop to "shutdown -h now" if battery power is to low (well rather have
+> it go to S3 or softwaresuspend, but it seems hopeless to get that to
+> work :(  
 
-> Ignore me.  I managed to get this asl file compiled to hex and it spewed 
-> the same errors as the dsdt already installed with my distro of linux.
+Well, there are user space tools that will do this for you.
+SUSE provides powersaved which will poll your battery if it doesn't support
+events and take apropriate action (default is shutdown if battery is <2%).
+It is also caching the data so that your battery applet does not have to
+poll the battery by itself (which is ridiculously expensive on many
+machines) but it only has to ask powersaved.
 
-Did you verify that it actually replaced the original DSDT? You should
-get some message in dmesg after booting.
+Regarding suwsusp: this should work on most i386 machines out of the box
+with upcoming SUSE 9.2.
+
+
+> From some googl'ing I get the impression that ACPI should generate
+> battery events on a change of capacity or at least when it's low. My
+> idea was to have acpid call some script on battery events. 
+> The problem is that there doesn't seem to be such events on my machine. 
+
+well, if you had bought a (e.g.) hp nx5000 you would get events for every
+charge state change (every remaining capacity change, not only alarms).
+On the Dell D600, i get at least alarms but have to poll the battery for
+the actual level and on acer you get nothing. Go bug acer.
+
 -- 
 Stefan Seyfried
 
