@@ -1,13 +1,13 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: kacpid problems
-Date: Thu, 11 Nov 2004 23:32:40 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC05A@pdsmsx403>
+From: Adrian Bunk <bunk-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org>
+Subject: Re: [2.6 patch] drivers/acpi: #ifdef unused functions away
+Date: Thu, 11 Nov 2004 16:36:50 +0100
+Message-ID: <20041111153650.GD8417@stusta.de>
+References: <20041105215021.GF1295@stusta.de> <1099707007.13834.1969.camel@d845pe> <20041106114844.GK1295@stusta.de> <418CEE3A.40503@conectiva.com.br> <20041106212917.GP1295@stusta.de> <418D403E.30608@conectiva.com.br> <1099933263.13831.9547.camel@d845pe> <20041110012134.GB4089@stusta.de> <20041111151727.GB1108@parcelfarce.linux.theplanet.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <20041111151727.GB1108-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,132 +17,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: dev_zero <dev_xor-eZNTXLQAfP4@public.gmane.org>, "Wang, Zhenyu Z" <zhenyu.z.wang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Matthew Wilcox <matthew-Ztpu424NOJ8@public.gmane.org>
+Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Arnaldo Carvalho de Melo <acme-KCZ47A4bww4P48s/oLjRZg@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-RGlkIHlvdSB0cnkgdGhlIHBhdGNoZXMgSSBzZW50IHlvdSB0byBuYXJyb3cgZG93biB0aGUgaXNz
-dWU/DQoNClRoYW5rcw0KTHVtaW5nIA0KDQo+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj5G
-cm9tOiBkZXZfemVybyBbbWFpbHRvOmRldl94b3JAeWFob28ubm9dIA0KPlNlbnQ6IDIwMDTlubQx
-MeaciDEx5pelIDIzOjI2DQo+VG86IFdhbmcsIFpoZW55dSBaDQo+Q2M6IGFjcGktZGV2ZWxAbGlz
-dHMuc291cmNlZm9yZ2UubmV0OyBZdSwgTHVtaW5nDQo+U3ViamVjdDogUmU6IFtBQ1BJXSBrYWNw
-aWQgcHJvYmxlbXMNCj4NCj5XaGVuIEkgYXBwbGllZCB0aGlzIHBhdGNoLi4gSSBjb3VsZCBwbGF5
-IGV2ZW4gbG9uZ2VyDQo+dGhhbiBsYXN0IHRpbWUsIGJlZm9yZSBrYWNwaWQgc3RhcnRlZCBydW5u
-aW5nIGF0IDk5JQ0KPmNwdSB1c2FnZS4gRmlyc3QgSSBwbGF5ZWQgbG9uZ2VyIHRoYW4gdXN1YWws
-IHRoZW4NCj5rYWNwaWQgc3RhcnRlZCBydW5uaW5nIGJ1dCBub3Qgd2l0aCA5OSUgY3B1IHVzYWdl
-LA0KPnRoZW4gaXQgc3RvcHBlZC4gSXQgd2VudCBsaWtlIHRoaXMgYSBjb3VwbGUgb2YgdGltZXMN
-Cj50aGVuIGthY3BpZCBzdGFydGVkIHdpdGggOTklIGNwdSB1c2FnZSBhZ2Fpbi4NCj5Eb24ndCBr
-bm93IGlmIHRoZSBwYXRjaCB3b3JrZWQgY29ycmVjdGx5LCBidXQgSQ0KPnRob3VnaHQgdGhlIGth
-Y3BpZCBzaG91bGQgZ28gUzUsIHNodXRkb3duLCBzaG91bGRuJ3QNCj5pdD8NCj4NCj4gLS0tICJX
-YW5nLCBaaGVueXUiIDx6aGVueXUuei53YW5nQGludGVsLmNvbT4gd3JvdGU6IA0KPj4gY29weSB0
-aGVzZSBmcm9tIGFjcGlfdGhlcm1hbF9yZW1vdmUsIGRvZXMgdGhpcw0KPj4gd29ya2Fyb3VuZCB5
-b3VyIGlzc3VlPw0KPj4gDQo+PiAtLS0NCj4+IGFjcGktMi42L2RyaXZlcnMvYWNwaS90aGVybWFs
-LmN+cmVtb3ZlX3F1ZXVlX3dvcmsNCj4+IDIwMDQtMTEtMTAgMjM6Mzg6NTEuMDAwMDAwMDAwICsw
-ODAwDQo+PiArKysgYWNwaS0yLjYvZHJpdmVycy9hY3BpL3RoZXJtYWwuYwkyMDA0LTExLTExDQo+
-PiAwOToxOTo1Ny4zNjU2MzQ1NjggKzA4MDANCj4+IEBAIC00NzIsNiArNDcyLDEzIEBAIGFjcGlf
-dGhlcm1hbF9jcml0aWNhbCAoDQo+PiAgCXByaW50ayhLRVJOX0VNRVJHICJDcml0aWNhbCB0ZW1w
-ZXJhdHVyZSByZWFjaGVkDQo+PiAoJWxkIEMpLCBzaHV0dGluZyBkb3duLlxuIiwNCj4+IEtFTFZJ
-Tl9UT19DRUxTSVVTKHR6LT50ZW1wZXJhdHVyZSkpOw0KPj4gIAlhY3BpX2J1c19nZW5lcmF0ZV9l
-dmVudChkZXZpY2UsDQo+PiBBQ1BJX1RIRVJNQUxfTk9USUZZX0NSSVRJQ0FMLA0KPj4gdHotPnRy
-aXBzLmNyaXRpY2FsLmZsYWdzLmVuYWJsZWQpOw0KPj4gIA0KPj4gKwl0ei0+em9tYmllID0gMTsN
-Cj4+ICsJLyogd2FpdCBmb3IgcnVubmluZyB0aW1lciAob24gb3RoZXIgQ1BVcykgZmluaXNoDQo+
-PiAqLw0KPj4gKwlkZWxfdGltZXJfc3luYygmKHR6LT50aW1lcikpOw0KPj4gKwkvKiBzeW5jaHJv
-bml6ZSBkZWZlcnJlZCB0YXNrICovDQo+PiArCWFjcGlfb3Nfd2FpdF9ldmVudHNfY29tcGxldGUo
-TlVMTCk7DQo+PiArCS8qIGRlZmVycmVkIHRhc2sgbWF5IHJlaW5zZXJ0IHRpbWVyICovDQo+PiAr
-CWRlbF90aW1lcl9zeW5jKCYodHotPnRpbWVyKSk7DQo+PiAgDQo+Pg0KPmFjcGlfdGhlcm1hbF9j
-YWxsX3VzZXJtb2RlKEFDUElfVEhFUk1BTF9QQVRIX1BPV0VST0ZGKTsNCj4+ICANCj4+ICAJcmV0
-dXJuX1ZBTFVFKDApOw0KPj4gDQo+PiANCj4+IE9uIDIwMDQuMTEuMTAgMTg6MDk6NDUgKzAwMDAs
-IGRldl96ZXJvIHdyb3RlOg0KPj4gPiBUaGlzIHBhdGNoIGFjdHVhbGx5IG1hZGUgc29tZSBkaWZm
-ZXJlbmNlLiBJIGNvdWxkDQo+PiBwbGF5DQo+PiA+IG11Y2ggbG9uZ2VyIG5vdy4gRmlyc3QgaXQg
-c3RhcnRlZCBsYWdnaW5nLCB0aGVuIGl0DQo+PiA+IHN0b3BwZWQsIHRoZW4gaXQgc3RhcnRlZCBs
-YWdnaW5nIGFnYWluLCB0aGVuIGl0DQo+PiA+IHN0b3BwZWQuIEl0IHdlbnQgbGlrZSB0aGlzIGZv
-ciBhIHdoaWxlLCBidXQgYWZ0ZXINCj4+IEkNCj4+ID4gaGFkIHBsYXllZCBzb20gbW9yZSwgaXQg
-c3RhcnRlZCBsYWdnaW5nIGFnYWluIGJ1dA0KPj4gbm93DQo+PiA+IGl0IGRpZG4ndCBzdG9wLg0K
-Pj4gPiANCj4+ID4gIC0tLSAiV2FuZywgWmhlbnl1IiA8emhlbnl1Lnoud2FuZ0BpbnRlbC5jb20+
-DQo+PiB3cm90ZTogDQo+PiA+ID4gb29wcywNCj4+ID4gPiANCj4+ID4gPiAtLS0NCj4+ID4gPg0K
-Pj4gYWNwaS0yLjYvZHJpdmVycy9hY3BpL3RoZXJtYWwuY35yZW1vdmVfcXVldWVfd29yaw0KPj4g
-PiA+IDIwMDQtMTEtMTAgMjM6Mzg6NTEuNjkzMDIyNDY0ICswODAwDQo+PiA+ID4gKysrIGFjcGkt
-Mi42L2RyaXZlcnMvYWNwaS90aGVybWFsLmMJMjAwNC0xMS0xMA0KPj4gPiA+IDIzOjUyOjQwLjgy
-MDk3NTg1NiArMDgwMA0KPj4gPiA+IEBAIC00NzIsNiArNDcyLDggQEAgYWNwaV90aGVybWFsX2Ny
-aXRpY2FsICgNCj4+ID4gPiAgCXByaW50ayhLRVJOX0VNRVJHICJDcml0aWNhbCB0ZW1wZXJhdHVy
-ZQ0KPj4gcmVhY2hlZA0KPj4gPiA+ICglbGQgQyksIHNodXR0aW5nIGRvd24uXG4iLA0KPj4gPiA+
-IEtFTFZJTl9UT19DRUxTSVVTKHR6LT50ZW1wZXJhdHVyZSkpOw0KPj4gPiA+ICAJYWNwaV9idXNf
-Z2VuZXJhdGVfZXZlbnQoZGV2aWNlLA0KPj4gPiA+IEFDUElfVEhFUk1BTF9OT1RJRllfQ1JJVElD
-QUwsDQo+PiA+ID4gdHotPnRyaXBzLmNyaXRpY2FsLmZsYWdzLmVuYWJsZWQpOw0KPj4gPiA+ICAN
-Cj4+ID4gPiArCXR6LT56b21iaWUgPSAxOw0KPj4gPiA+ICsJYWNwaV9vc193YWl0X2V2ZW50c19j
-b21wbGV0ZShOVUxMKTsNCj4+ID4gPiAgDQo+PiA+ID4NCj4+ID4NCj4+DQo+YWNwaV90aGVybWFs
-X2NhbGxfdXNlcm1vZGUoQUNQSV9USEVSTUFMX1BBVEhfUE9XRVJPRkYpOw0KPj4gPiA+ICANCj4+
-ID4gPiAgCXJldHVybl9WQUxVRSgwKTsNCj4+ID4gPiANCj4+ID4gPiBJZiB0aGlzIGhhcyBubyBo
-ZWxwLCBtYXliZSBvdGhlcnMgZWF0IHVwDQo+PiBrYWNwaWQuLg0KPj4gPiA+IA0KPj4gPiA+IE9u
-IDIwMDQuMTEuMTAgMjM6NDQ6MzMgKzAwMDAsIFdhbmcsIFpoZW55dQ0KPj4gd3JvdGU6DQo+PiA+
-ID4gPiBQbHMgdHJ5IHRoaXMgcGF0Y2gsDQo+PiA+ID4gPiANCj4+ID4gPiA+IC0tLQ0KPj4gPiA+
-DQo+PiBhY3BpLTIuNi9kcml2ZXJzL2FjcGkvdGhlcm1hbC5jfnJlbW92ZV9xdWV1ZV93b3JrICAN
-Cj4+ID4gPiAyMDA0LTExLTEwIDIzOjM4OjUxLjY5MzAyMjQ2NCArMDgwMA0KPj4gPiA+ID4gKysr
-IGFjcGktMi42L2RyaXZlcnMvYWNwaS90aGVybWFsLmMgICAgDQo+PiAyMDA0LTExLTEwDQo+PiA+
-ID4gMjM6Mzk6NTAuMTk1MTI4NzkyICswODAwDQo+PiA+ID4gPiBAQCAtNDcyLDYgKzQ3Miw3IEBA
-IGFjcGlfdGhlcm1hbF9jcml0aWNhbCAoDQo+PiA+ID4gPiAgICAgICAgIHByaW50ayhLRVJOX0VN
-RVJHICJDcml0aWNhbA0KPj4gdGVtcGVyYXR1cmUNCj4+ID4gPiByZWFjaGVkICglbGQgQyksIHNo
-dXR0aW5nIGRvd24uXG4iLA0KPj4gPiA+IEtFTFZJTl9UT19DRUxTSVVTKHR6LT50ZW1wZXJhdHVy
-ZSkpOw0KPj4gPiA+ID4gICAgICAgICBhY3BpX2J1c19nZW5lcmF0ZV9ldmVudChkZXZpY2UsDQo+
-PiA+ID4gQUNQSV9USEVSTUFMX05PVElGWV9DUklUSUNBTCwNCj4+ID4gPiB0ei0+dHJpcHMuY3Jp
-dGljYWwuZmxhZ3MuZW5hYmxlZCk7DQo+PiA+ID4gPiANCj4+ID4gPiA+ICsgICAgICAgdHotPnpv
-bWJpZSA9IDE7DQo+PiA+ID4gPiAgICAgICAgDQo+PiA+ID4NCj4+ID4NCj4+DQo+YWNwaV90aGVy
-bWFsX2NhbGxfdXNlcm1vZGUoQUNQSV9USEVSTUFMX1BBVEhfUE9XRVJPRkYpOw0KPj4gPiA+ID4g
-DQo+PiA+ID4gPiAgICAgICAgIHJldHVybl9WQUxVRSgwKTsNCj4+ID4gPiA+IA0KPj4gPiA+ID4g
-SXMgdGhpcyB3b3JrPw0KPj4gPiA+ID4gDQo+PiA+ID4gPiAtemhlbg0KPj4gPiA+ID4gDQo+PiA+
-ID4gPiBPbiAyMDA0LjExLjEwIDE0OjMzOjM1ICswMDAwLCBkZXZfemVybyB3cm90ZToNCj4+ID4g
-PiA+ID4ga2FjcGlkIHN0aWxsIHJ1bm5zIHdpdGggOTklY3B1IHVzYWdlIHdoZW4NCj4+IHRoZQ0K
-Pj4gPiA+IGNwdSBnZXRzDQo+PiA+ID4gPiA+IHRvbyBob3QuIEkgdHJpZWQgdGhlIGdhbWUgcXVh
-a2UgMi4gWW91IGNhbg0KPj4gcGxheQ0KPj4gPiA+IGFyb3VuZA0KPj4gPiA+ID4gPiAxMCAtMTUg
-bWludXRlcyBiZWZvcmUgdGhlIGthY3BpZCBzdGFydHMNCj4+IHJ1bm5pbmcNCj4+ID4gPiBvbiA5
-OSUNCj4+ID4gPiA+ID4gY3B1IHVzYWdlLiBJIGFsc28gdXNlZCBxdWFrZSAyIHRvbyB0ZXN0IHRo
-ZQ0KPj4gPiA+IGtlcm5lbA0KPj4gPiA+ID4gPiBiZWZvcmUgSSBhcHBsaWVkIHlvdXIgcGF0Y2gu
-DQo+PiA+ID4gPiA+IA0KPj4gPiA+ID4gPiAgLS0tICJZdSwgTHVtaW5nIiA8bHVtaW5nLnl1QGlu
-dGVsLmNvbT4NCj4+IHdyb3RlOiANCj4+ID4gPiA+ID4gPiBJdCBtZWFucyB0aGVyZSB3YXMgTk8g
-ZXZlbnQgZ2VuZXJhdGVkIGF0DQo+PiB0aGF0DQo+PiA+ID4gdGltZS4NCj4+ID4gPiA+ID4gPiBE
-byB5b3UgdGhpbmsgdGhlIHN5bXB0b20gaXMgZ29uZSB3aXRoIG15DQo+PiBkZWJ1Zw0KPj4gPiA+
-ID4gPiA+IHBhdGNoPw0KPj4gPiA+ID4gPiA+IElmIHNvLCBJIHRoaW5rIHlvdXIgYm94IG5lZWQg
-YSBtb3JlIHNhbmUNCj4+ID4gPiBzY2hlZHVsZQ0KPj4gPiA+ID4gPiA+IGZvciBhY3BpX3RoZXJt
-YWxfY2hlY2sgDQo+PiA+ID4gPiA+ID4gQW5kLCBJIGNhbiBjb21lIHVwIHdpdGggYSBwYXRjaC4N
-Cj4+ID4gPiA+ID4gPiANCj4+ID4gPiA+ID4gPiBUaGFua3MNCj4+ID4gPiA+ID4gPiBMdW1pbmcg
-DQo+PiA+ID4gPiA+ID4gDQo+PiA+ID4gPiA+ID4gPi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0t
-DQo+PiA+ID4gPiA+ID4gPkZyb206IGRldl96ZXJvIFttYWlsdG86ZGV2X3hvckB5YWhvby5ub10g
-DQo+PiA+ID4gPiA+ID4gPlNlbnQ6IDIwMDTDpcK5wrQxMcOmxZPLhjEww6bigJTCpSAxOjA2DQo+
-PiA+ID4gPiA+ID4gPlRvOiBZdSwgTHVtaW5nDQo+PiA+ID4gPiA+ID4gPkNjOiBhY3BpLWRldmVs
-QGxpc3RzLnNvdXJjZWZvcmdlLm5ldA0KPj4gPiA+ID4gPiA+ID5TdWJqZWN0OiBSRTogW0FDUEld
-IGthY3BpZCBwcm9ibGVtcw0KPj4gPiA+ID4gPiA+ID4NCj4+ID4gPiA+ID4gPiA+V2hlbiBJIHRy
-eSB0byBvdXRwdXQgdGhlIGV2ZW50IGZpbGUgSSBkbw0KPj4gPiA+IHRoaXM6DQo+PiA+ID4gPiA+
-ID4gPltyb290QGJhbGRlcjogL3Byb2MvYWNwaV0jIGNhdCBldmVudCA+DQo+PiA+ID4gPiA+ID4g
-L2hvbWUvZXZlbnQubG9nDQo+PiA+ID4gPiA+ID4gPg0KPj4gPiA+ID4gPiA+ID5CdXQgdGhlbiBJ
-dCBqdXN0IHN0YW5kcyB0aGVyZSB3aXRob3V0DQo+PiBkb2luZw0KPj4gPiA+ID4gPiA+IGFueXRo
-aW5nLg0KPj4gPiA+ID4gPiA+ID5TbyBpIHRyaWVkIHRvIGNoZWNrIHdoYXQgd2FzIHdyb25nIChw
-cw0KPj4gYXgpDQo+PiA+ID4gY29tbWFuZDoNCj4+ID4gPiA+ID4gPiA+MjkyMiBwdHMvMCAgICBT
-KyAgICAgMDowMCBjYXQgZXZlbnQNCj4+ID4gPiA+ID4gPiA+DQo+PiA+ID4gPiA+ID4gPkkgZG9u
-J3Qga25vdyBpZiBpdCBpcyBzdXBwb3NlZCB0byBiZQ0KPj4gPiA+IHN1c3BlbmRlZD8NCj4+ID4g
-PiA+ID4gPiA+PiBJIHdhbnQgdG8ga25vdyB3aGF0IGtpbmQgb2YgZXZlbnRzDQo+PiBjb3VsZCBi
-ZQ0KPj4gPiA+ID4gPiA+ID4+IGdlbmVyYXRlZCBoZWF2aWx5LCB3aGljaCBjb3VsZCBoYXZlDQo+
-PiA+ID4gY29ycmVzcG9uZGluZw0KPj4gPiA+ID4gPiA+ID4+IHBlbmRpbmcgZXhlY3V0aW9uIG9m
-IEFNTCBtZXRob2QgaXNzdWVkDQo+PiB0bw0KPj4gPiA+IHdvcmsNCj4+ID4gPiA+ID4gPiBxdWV1
-ZQ0KPj4gPiA+ID4gPiA+ID4+IGhhbmRsZWQgYnkga2FjcGlkLiAgU28ganVzdCBjYXQNCj4+ID4g
-PiAvcHJvYy9hY3BpL2V2ZW50DQo+PiA+ID4gPiA+ID4gPg0KPj4gPiA+ID4gPiA+ID4+IGV2ZW50
-LmxvZw0KPj4gPiA+ID4gPiA+ID4+IHRvIG1lIHdoZW4geW91IHdlcmUgb2JzZXJ2aW5nIGFibm9y
-bWFsIA0KPj4gY3B1DQo+PiA+ID4gPiA+ID4gPj4gY29uc3VtcHRpb24gYnkga2FjcGlkLiAgDQo+
-PiA+ID4gPiA+ID4gPj4gDQo+PiA+ID4gPiA+ID4gPj4gVGhhbmtzDQo+PiA+ID4gPiA+ID4gPj4g
-THVtaW5nIA0KPj4gPiA+ID4gPiA+ID4+IA0KPj4gPiA+ID4gPiA+ID4+ID4tLS0tLU9yaWdpbmFs
-IE1lc3NhZ2UtLS0tLQ0KPj4gPiA+ID4gPiA+ID4+ID5Gcm9tOiBkZXZfemVybw0KPj4gW21haWx0
-bzpkZXZfeG9yQHlhaG9vLm5vXSANCj4+ID4gPiA+ID4gPiA+PiA+U2VudDogMjAwNMOD4oCew4PC
-qjExw4PigJ3Dg+KAmjEww4PLhsOD4oCiIDA6MDANCj4+ID4gPiA+ID4gPiA+PiA+VG86IFl1LCBM
-dW1pbmcNCj4+ID4gPiA+ID4gPiA+PiA+U3ViamVjdDogUkU6IFtBQ1BJXSBrYWNwaWQgcHJvYmxl
-bXMNCj4+ID4gPiA+ID4gPiA+PiA+DQo+PiA+ID4gPiA+ID4gPj4gPk9mIGNvdXJzZS4uIEJ1dCB3
-aGljaCBsb2cgZmlsZXMgZG8geW91DQo+PiA+ID4gd2FudCB0bw0KPj4gPiA+ID4gPiA+IHRha2UN
-Cj4+ID4gPiA+ID4gPiA+PiBhDQo+PiA+ID4gPiA+ID4gPj4gPmxvb2sgYXQ/DQo+PiA+ID4gPiA+
-ID4gPj4gPj4gPkhvdyBhbSBpIHN1cHBwb3NlIHRvIGdldCBhbiBvdXRwdXQNCj4+IGZyb20NCj4+
-ID4gPiA+ID4gPiA+PiA+PiA+L3Byb2MvYWNwaS9ldmVudCA/Pz8gSSBjYW4ndCBhY2Nlc3MNCj4+
-IHRoZQ0KPj4gPiA+IGZpbGUsDQo+PiA+ID4gPiA+ID4gPj4gPj4gYmVjYXVzZQ0KPj4gPiA+ID4g
-PiA+ID4+ID4+ID5pdCdzIGluIHVzZS4NCj4+ID4gPiA+ID4gPiA+PiA+PiANCj4+ID4gPiA+ID4g
-PiA+PiA+PiBKdXN0IGtpbGwgYWNwaWQgb3IgdGhlIHNpbWlsYXIuDQo+PiA+ID4gPiA+ID4gPj4g
-Pj4gDQo+PiA+ID4gPiA+ID4gPj4gPj4gDQo+PiA+ID4gPiA+ID4gPj4gPj4NCj4+ID4gPiA+ID4g
-PiA+Pg0KPj4gPiA+ID4gPiA+DQo+PiANCj49PT0gbWVzc2FnZSB0cnVuY2F0ZWQgPT09IA0KPg0K
+On Thu, Nov 11, 2004 at 03:17:27PM +0000, Matthew Wilcox wrote:
+> On Wed, Nov 10, 2004 at 02:21:34AM +0100, Adrian Bunk wrote:
+> > This patch only #ifdef's completely unused code away - it does not make 
+> > the many global functions only used inside the file they are defined in 
+> > static.
+> 
+> It also ifdefs out the acpi_install_gpe_handler and acpi_remove_gpe_handler
+> calls I use in the driver I posted on Sunday.  Please fix this.
+
+????
+
+My patch doesn't #ifdef these functions away.
+
+
+cu
+Adrian
+
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
+
 
 
 -------------------------------------------------------
