@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Trackpoint (psmouse) dead after suspend/resume (S3)
-Date: Wed, 11 Aug 2004 15:18:48 +0200
+Subject: Re: bug in acpid scripts
+Date: Wed, 11 Aug 2004 15:40:47 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040811131848.GA1120@openzaurus.ucw.cz>
-References: <yzollhfbou5.fsf@localhost.localdomain>
+Message-ID: <20040811134046.GB1120@openzaurus.ucw.cz>
+References: <20040723193658.GA3331@omocha.vort.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <yzollhfbou5.fsf-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+In-Reply-To: <20040723193658.GA3331-5z3TbH0F9hyr8sbHwu5NIg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,22 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ole.rohne-vJEk5272eHo@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, vojtech-+ZI9xUNit7I@public.gmane.org
+To: Russell Neches <russell-1vnkWVZi4QaVc3sceRu5cw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> 2.5.xx: keyboard and trackpoint dead, reloading psaux module fixes both
-> 2.6.4: both devices work, no reloading necessary
-> 2.6.7: keyboard works, trackpoint dead, reloading psmouse doesn't help
+> Tossing an "exit" at the beginning of powerbtn.sh fixes the problem
+> (with an obvious trade-ff), and my laptop suspends and resumes
+> perfectly. Well, almost perfectly -- I have to unload ohci_hcd before
+> shutting down, and I have to figure out how to get wireless working
+> after resume, but those are separate issues.
 > 
-> I've poked around a bit and it seems that all writes to the AUX-port
-> times out, this causes the psmouse to disconnect.
-> 
-> Any suggestions appreciated, Ole
+> Is there a sensible way to tell if the system is coming off of S3? I
+> imagine I could do something like this to get into S3;
 
-See if psmouse.proto=bare helps?
+I guess that kernel should not send that event to userspace...
+Fix the kernel.
+
+				Pavel
 -- 
 64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
 
