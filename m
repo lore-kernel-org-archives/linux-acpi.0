@@ -1,14 +1,14 @@
-From: Micha Feigin <michf-+lLcF8/aw9x6auLlOhE+pQ@public.gmane.org>
-Subject: Re: acpi functionality?
-Date: Mon, 22 Dec 2003 14:25:21 +0200
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: acpi-problem with samsung x10 1700
+Date: Tue, 23 Dec 2003 11:34:29 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031222122521.GA15251@luna.mooo.com>
-References: <200312212156.21261.vherried@insight.rr.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720C49@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200312212156.21261.vherried-rEckef8uG3NTGrOy2lmfZw@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,60 +17,108 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "D. S." <silent.bob-zqRNUXuvxA0b1SvskN2V4Q@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Dec 21, 2003 at 09:56:21PM -0500, Vince Herried wrote:
-> Dell Lattitude C810 running RedHat 9...
-> 
-> this laptop has a Fn key and several functions with holding Fn and then 
-> pressing another key.  Under acpi they don't seem to work (not in linux or 
-> w2k).
-> 
-> I hardly ever run Win 2k and didn't notice it till recently.
-> I assume this is a dell bug?  and will likely never be fixed.
-> 
-> stuff like
-> 
-> Fn Z 	-	shuts off the fans (which come on when resuming from a suspend even if 
-> the box is cold).
-> 
-> Fn D	-	turns off the display.  Hum, this would be nice to have working.
-> 	either my bios setting or RedHat shut the display off while I was building a 
-> nother try at 2.6.0  and I couldn't get it to turn back on.   Sigh.  
-> 
-> Fn and function keys to go to setup, display battery charge ....
-> 
-> 
-> I'm guessing I'm gonna have to disable acpi b4 these are gonna work, right?
-> 
+I just port it to Linux. And filed it at
+http://bugzilla.kernel.org/show_bug.cgi?id=3D1729
 
-Check if they work with apm, if so, check the manufacturer's site about
-a bios upgrade (either for acpi or for win2k).
-A friend of mine has a HP omnibook which comes with an acpi bios. I
-upgraded his laptop to win2k from win98 and several features stopped working
-until I read the upgrade documentation and it appears they released a
-bios upgrade for win2k which actually replaces the apm bios with an acpi
-bios. Maybe dell did the same.
-Otherwise you can also try the acme program. Its designed to handle
-multimedia keys and on my sony it catches some keys that both acpi and
-X don't seem to hear. (There are several others also, but they don't
-work for me, depends on you keyboard).
+Nate,=20
+ I'm interested in workarounds you have that could help linux too.
 
+--Luming
+
+-----Original Message-----
+From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+[mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of Nate Lawson
+Sent: Saturday, December 20, 2003 4:59 AM
+To: Brown, Len
+Cc: D. S.; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Subject: RE: [ACPI] acpi-problem with samsung x10 1700
+
+FreeBSD does have a workaround for this.  We use an implicit return
+value:
+http://www.freebsd.org/cgi/cvsweb.cgi/src/sys/contrib/dev/acpica/psparse
+.c.diff?r1=3D1.20&r2=3D1.21&f=3Dh
+
+-Nate
+
+On Fri, 19 Dec 2003, Brown, Len wrote:
+> AML is like C -- if there is no return statement from a routine
+(method)
+> then nothing gets returned.
 >
-> 
-> 
-> 
-> -------------------------------------------------------
-> This SF.net email is sponsored by: IBM Linux Tutorials.
-> Become an expert in LINUX or just sharpen your skills.  Sign up for IBM's
-> Free Linux Tutorials.  Learn everything from the bash shell to sys admin.
-> Click now! http://ads.osdn.com/?ad_id=1278&alloc_id=3371&op=click
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> 
+> Unfortunately the microsoft implementation of the AML interpreter
+> behaves as if there is a return statement, and so bugs in AML get
+> through windows validation.
+>
+> For this to work on the ACPICA AML interpreter, you need to insert the
+> missing return statements in the AML -- we don't have a workaround for
+> this type of BIOS bug.
+>
+> -Len
+>
+> > -----Original Message-----
+> > From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> > [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of D. S.
+> > Sent: Friday, December 19, 2003 10:10 AM
+> > To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> > Subject: [ACPI] acpi-problem with samsung x10 1700
+> >
+> >
+> > hi folks,
+> > maybe you folks could help me out.
+> > i fixed the dsdt.aml so far that iasl compiles without an error.
+> > so far so good.
+> >
+> > now dmesg gives me the following:
+> >
+> > acpi-1121: error:method execution failed [\SB_.ADP1._STA] (Node
+> > c1613920), AE_AML_NO_RETURN_VALUE
+> > acpi-1121: error:method execution failed [\SB_.BAT1._STA] (Node
+> > c1613a20), AE_AML_NO_RETURN_VALUE
+> >
+> > this means, if i'm correct, that the stats for battery and
+ac-adapter
+> > can't be read.
+> > i am not sure where to correct this and how.
+> >
+> > so you maybe need some info on the machine/dist.
+> > samsung x10 xtc1700
+> > bios 06ye (samsung orginal shipped)
+> > suse 9.0 (wich is patched already for reading dsdt)
+> >
+> > help would be great!
+> >
+> > regards
+> > d.
+> >
+> > Some programming languages manage to absorb change, but withstand
+> > progress. -- Epigrams in Programming, ACM SIGPLAN Sept. 1982
+> >
+> >
+> >
+> > -------------------------------------------------------
+> > This SF.net email is sponsored by: IBM Linux Tutorials.
+> > Become an expert in LINUX or just sharpen your skills.  Sign
+> > up for IBM's
+> > Free Linux Tutorials.  Learn everything from the bash shell
+> > to sys admin.
+> > Click now! http://ads.osdn.com/?ad_id=3D1278&alloc_i
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: IBM Linux Tutorials.
+Become an expert in LINUX or just sharpen your skills.  Sign up for
+IBM's
+Free Linux Tutorials.  Learn everything from the bash shell to sys
+admin.
+Click now! http://ads.osdn.com/?ad_id=3D1278&alloc_id=3D3371&op=3Dclick
+_______________________________________________
+Acpi-devel mailing list
+Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
