@@ -1,16 +1,14 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Re: ACPI breakage (was: 2.6.x: local APIC results in
-	hang at boot)
-Date: 03 Mar 2004 14:05:28 -0500
+From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Subject: Re: Re: fix ACPI poweroff in 2.4.25-rc2
+Date: Wed, 3 Mar 2004 19:46:56 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1078340727.12999.4.camel@dhcppc4>
-References: <200402031047.i13Algrs019289@harpo.it.uu.se>
-	 <200403012202.16728.mcornils@usta.de>
+Message-ID: <20040303194656.GV25779@parcelfarce.linux.theplanet.co.uk>
+References: <200403031117.25937.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200403012202.16728.mcornils-mcycREo4Un4@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <200403031117.25937.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -19,31 +17,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Malte Cornils <mcornils-mcycREo4Un4@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Cc: Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>, willy-tRhHnHjXm5DYtjvyW6yDsg@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> Linux version 2.6.2-rc3
+On Wed, Mar 03, 2004 at 11:17:25AM -0700, Bjorn Helgaas wrote:
+> ===== drivers/acpi/system.c 1.18 vs edited =====
+> --- 1.18/drivers/acpi/system.c	Tue Mar  2 14:50:40 2004
+> +++ edited/drivers/acpi/system.c	Wed Mar  3 10:43:11 2004
+> @@ -95,7 +95,9 @@
+>  {
+>  	if (unlikely(in_interrupt())) 
+>  		BUG();
+> +#ifdef CONFIG_ACPI_SLEEP
+>  	acpi_system_save_state(ACPI_STATE_S5);
+> +#endif
 
-Malte,
-perhaps you can upgrade your kernel and let us know how it goes -- there
-have been some apic related fixes since then.
+Should we not rather define a null acpi_system_save_state() function if
+CONFIG_ACPI_SLEEP is not set?
 
-thanks,
--Len
-
-On Mon, 2004-03-01 at 16:02, Malte Cornils wrote:
-
-> > >ACPI: Subsystem revision 20040116
-> > >ACPI: IRQ9 SCI: Edge set to Level Trigger.
-> > >
-> > >and then nothing happens.
-
-
+-- 
+"Next the statesmen will invent cheap lies, putting the blame upon 
+the nation that is attacked, and every man will be glad of those
+conscience-soothing falsities, and will diligently study them, and refuse
+to examine any refutations of them; and thus he will by and by convince 
+himself that the war is just, and will thank God for the better sleep 
+he enjoys after this process of grotesque self-deception." -- Mark Twain
 
 
 -------------------------------------------------------
-SF.Net is sponsored by: Speed Start Your Linux Apps Now.
-Build and deploy apps & Web services for Linux with
-a free DVD software kit from IBM. Click Now!
-http://ads.osdn.com/?ad_id=1356&alloc_id=3438&op=click
+This SF.Net email is sponsored by: IBM Linux Tutorials
+Free Linux tutorial presented by Daniel Robbins, President and CEO of
+GenToo technologies. Learn everything from fundamentals to system
+administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
