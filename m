@@ -1,15 +1,15 @@
-From: Sebastian Henschel <shensche-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
-Subject: Re: [Patch] DSDT in initrd
-Date: Tue, 6 May 2003 12:09:49 +0200
+From: "Adachi, Kenichi" <adachi-fvZ7ij+YLgEZc9YY0SgeQc8NsWr+9BEh@public.gmane.org>
+Subject: RE: fan control
+Date: Tue, 6 May 2003 19:56:06 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030506100949.GC973@enigma.daemon.sh>
-References: <Pine.LNX.4.53.0305052221420.8540@tweety.gaugusch.at>
+Message-ID: <01bb01c313be$1845afc0$b8d21b2b@ADACHIPC>
+References: <20030506092120.GA24982@lps.ens.fr>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="5G06lTa6Jq83wMTw"
+Content-Type: text/plain;
+	charset="iso-2022-jp"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.53.0305052221420.8540-qopfHk9/S+VQK2oVCIMtW7NldLUNz+W/@public.gmane.org>
+In-Reply-To: <20030506092120.GA24982-l5PIGlIYzrxGWvitb5QawA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,64 +18,43 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: =?iso-2022-jp?B?JxskQiVOGyhCcmljIEJydW5ldCc=?= <Eric.Brunet-l5PIGlIYzrxGWvitb5QawA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi,
 
---5G06lTa6Jq83wMTw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> About fan control, I would love to be able to stop my fan, but it
+doesn't
+> work. I can echo anything to /proc/acpi/fan/FAN/state, it has no
+bearing
+> on the fan, and the only result is a line in the log:
+> > acpi_bus-0199 [18] acpi_bus_set_power    : Device is not power
+manageable
+> (kernel is 2.5.67)
+> 
+acpi_bus_set_power() complains that the target device is not enabled to
+be power managed as its "power_manageable" flag, which will be set for
+devices who have _PS0 or _PR0 in DSDT upon device enumeration, is
+__NOT__ set. And, indeed, your FAN device in DSDT doesn't explicitly
+list its power resource by _PR0 Object.
 
-hi markus...
+   5369 000034ba: Scope _TZ_ (\_TZ_)
+   5370 000034c2:   Device FAN_ (\_TZ_.FAN_)
+   5371 000034c9:     Name _HID (\_TZ_.FAN_._HID)
+   5372 000034ce:       PNP0c0b (0x0b0cd041)
+   5373 000034d3:     Method _INI (\_TZ_.FAN_._INI)
+   5374 000034d9:       ArgCount 0; NotSerialized
+   5375 000034da:       Store
+   5376 000034db:         TP1H (000032ad)
+   5377 000034df:         CTOS
+   5378 000034e3:       Store
+   5379 000034e4:         TP1L (000032b2)
+   5380 000034e8:         CTHY
 
-Received at 2003-05-06 / 09:02 by Markus Gaugusch:
 
-> I've implemented my patch to put the DSDT into the initial ramdisk.
-> It uses the same approach as bootsplash: just use the raw initrd data.
+Thanks,
+- Adachi, Kenichi
 
-hey, it seems to work here. my ac_adapter is back with my custom DSDT
-=66rom the initrd.  :) thank you very much.
-
-> 1.) enable CONFIG_BLK_DEV_INITRD and CONFIG_ACPI_INITRD
-
-perhaps you should also say that the ramdisk support has to be
-included statically (CONFIG_BLK_DEV_RAM=3Dy). i had it as a module and was
-looking for these options to no avail. :)
-
-> Then reboot.
-> The message "Looking for DSDT in initrd... found!" should be in your dmesg
-> after next boot. (for some reason <6> is before "found", but I'm sure
-> that someone will be able to give me the right pointers to fix that).
-
-i do not know much about printk, but possibly, KERN_INFO (<6>) is only
-parsed when it is at the beginning of a line. so your "found" or "not
-found" statements would also be printed out with KERN_INFO as subsequent
-calls of printk without a newline, although the do not start with
-KERN_INFO. just a wild guess. :)
-
-cheers,
- sebastian
-
---=20
-::: sebastian henschel
-::: kodeaffe
-::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
-
---5G06lTa6Jq83wMTw
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (GNU/Linux)
-
-iD8DBQE+t4ntreHfL3pi+bQRAv0qAJ9+h8Xr5ahX47UNgJsH+jCorVTiRQCgi6nD
-mUvsmaKNbn+6+SFrdgmhQoY=
-=1872
------END PGP SIGNATURE-----
-
---5G06lTa6Jq83wMTw--
 
 
 -------------------------------------------------------
