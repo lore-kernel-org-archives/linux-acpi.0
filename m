@@ -1,14 +1,14 @@
-From: Mark Santcroos <marks-h3GR0owD+wQ@public.gmane.org>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 Subject: Re: S3 suspend code
-Date: Thu, 24 Jul 2003 22:45:30 +0200
+Date: Fri, 25 Jul 2003 00:41:41 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030724204530.GA5907@laptop.6bone.nl>
-References: <20030723152809.GA591@paradigm.rfc822.org> <20030723162423.GD9013@atrey.karlin.mff.cuni.cz> <1059041888.19684.8.camel@bacchus.gpphy.uni-duesseldorf.de> <20030724104518.GA12041@paradigm.rfc822.org> <1059045536.19684.21.camel@bacchus.gpphy.uni-duesseldorf.de> <20030724144535.GA629@paradigm.rfc822.org> <20030724200411.GA444@elf.ucw.cz>
+Message-ID: <20030724224141.GA430@elf.ucw.cz>
+References: <20030723152809.GA591@paradigm.rfc822.org> <20030723162423.GD9013@atrey.karlin.mff.cuni.cz> <1059041888.19684.8.camel@bacchus.gpphy.uni-duesseldorf.de> <20030724104518.GA12041@paradigm.rfc822.org> <1059045536.19684.21.camel@bacchus.gpphy.uni-duesseldorf.de> <20030724144535.GA629@paradigm.rfc822.org> <20030724200411.GA444@elf.ucw.cz> <20030724204530.GA5907@laptop.6bone.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20030724200411.GA444-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <20030724204530.GA5907-ScjxTogt4I4lGuH5DXb43w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,30 +17,22 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Mark Santcroos <marks-h3GR0owD+wQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Are there any Linux users with a Dell Latitude C640?
+Hi!
 
-S3 suspend returns immediately, and is therefor not really usefull ;-)
+> Like I said, the suspend returns immediately, but it does succeed.
+> It seems that it gets a wakeup signal immediately though. 
 
-I'm using FreeBSD myself, but have checked this awhile go in Linux too,
-and had the same problem.
-
-It would be nice if people can confirm if this is still the case.
-
-If not, are there people that have advise how I can fix this problem.
-
-Like I said, the suspend returns immediately, but it does succeed.
-It seems that it gets a wakeup signal immediately though. 
-
-Any help appreciated.
-
-Mark
-
+Like it turns into sleep mode then wakes up? You probably have some
+device that is enabled to wake the machine up, which should not really
+do that... Check 2.6.0-t1.
+								Pavel
 -- 
-Mark Santcroos                    RIPE Network Coordination Centre
-http://www.ripe.net/home/mark/    New Projects Group/TTM
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
 
 
 -------------------------------------------------------
