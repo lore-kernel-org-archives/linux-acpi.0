@@ -1,14 +1,14 @@
-From: "Defiant" <mail-4AGA6j5e2AhmdDG0eupGX0B+6BGkLq7r@public.gmane.org>
-Subject: RE: can't switch CPU frequency while running on batterypower
-Date: Thu, 8 Jan 2004 07:15:21 +0100 (CET)
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: 2.4.24 patch apply failed on vanilla kernel
+Date: Thu, 8 Jan 2004 14:16:35 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <32779.192.168.36.2.1073542521.squirrel@defiant.homedns.org>
-References: <571ACEFD467F7749BC50E0A98C17CDD8E84E7A@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CA2@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <571ACEFD467F7749BC50E0A98C17CDD8E84E7A-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,28 +17,18 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Marcel Meckel <acpi-X2Xph2rMQzhn68oJJulU0Q@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+>patching file arch/i386/kernel/smpboot.c
+>Hunk #1 FAILED at 1106.
+>1 out of 1 hunk FAILED -- saving rejects to file
 
-> When switching between AC and battery, _PPC method may return a different
-> P-state limit. Please verify if 'cat /proc/acpi/processor/CPU0/limit' is
-> different under the two situations.
->
-> Thanks,
-> Shaohua
+Caution!=20
 
-No, it is not different.
-I get both times
-
-active limit:            P0:T0
-platform limit:          P0:T0
-user limit:              P0:T0
-thermal limit:           P0:T0
-
-I guess, this is not good?
-
-Erik Andresen
+This piece of code causes SMP boot problme with 2.4.22 and acpi-20031203
+Please refer to http://bugme.osdl.org/show_bug.cgi?id=3D1706=20
 
 
 -------------------------------------------------------
