@@ -1,7 +1,12 @@
-From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 1/1] acpi video pointer size fix
-Date: Fri, 04 Mar 2005 04:33:15 -0800
-Message-ID: <200503041233.j24CXaJ4026329@shell0.pdx.osdl.net>
+From: "Tommy Ch." <tommy-c-hi6Y0CQ0nG0@public.gmane.org>
+Subject: Re: New insights about video module! Need help,please.
+Date: Fri, 04 Mar 2005 14:42:23 +0100
+Message-ID: <422865BF.6090509@gmx.net>
+References: <42236037.1010102@gmx.net> <20050301183733.GF17731@poupinou.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <20050301183733.GF17731-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -11,59 +16,46 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org
+To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Bruno Ducrot wrote:
+> There are _PS0, _PS3 and _PCS methods.  I'm not sure if those methods are
+> supported under linux-2.6.10 (or any other version of Linux, btw).
+> 
+> I think you should try to call the \_SB_.PCI0.PCI1.VGA_._PS0 method
+> somewhere.
+> 
+> Add a line like this one:
+> 	acpi_evaluate_object(NULL, "\\_SB_.PCI0.PCI1.VGA_._PS0", NULL, NULL);
+> 
+> in function acpi_video_bus_add()
+> 
+> Something like this:
+> 
+> before:
+>         if (!device)
+> 		return_VALUE(-EINVAL);
+> 
+> 	video = kmalloc(sizeof(struct acpi_video_bus), GFP_KERNEL);
+> 
+> after:
+>         if (!device)
+> 		return_VALUE(-EINVAL);
+> 
+> 	acpi_evaluate_object(NULL, "\\_SB_.PCI0.PCI1.VGA_._PS0", NULL, NULL);
+> 	video = kmalloc(sizeof(struct acpi_video_bus), GFP_KERNEL);
+> 
+> Of course, its ugly, but its only to test if _PS0 is supported or not by
+> linux.
 
+OK, it compiled cleanly. After loading the module dmesg said:
+ACPI: Video Device [VGA] (multi-head: yes  rom: yes  post: no)
 
-Fix two instances where we take &p instead of *p when calculating storage
-size.
+Nothing else I could observe. Should I do any other tests?
 
-Also, kfree(NULL) is legal, so remove some unneeded checks.
+Bye
 
-Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
----
-
- 25-akpm/drivers/acpi/video.c |   11 +++++------
- 1 files changed, 5 insertions(+), 6 deletions(-)
-
-diff -puN drivers/acpi/video.c~acpi-video-pointer-size-fix drivers/acpi/video.c
---- 25/drivers/acpi/video.c~acpi-video-pointer-size-fix	2005-02-27 21:35:45.000000000 -0800
-+++ 25-akpm/drivers/acpi/video.c	2005-02-27 21:37:17.000000000 -0800
-@@ -568,8 +568,9 @@ acpi_video_device_find_cap (struct acpi_
- 		if (!br) {
- 			printk(KERN_ERR "can't allocate memory\n");
- 		} else {
--			memset(br, 0, sizeof &br);
--			br->levels = kmalloc(obj->package.count * sizeof &br->levels, GFP_KERNEL);
-+			memset(br, 0, sizeof *br);
-+			br->levels = kmalloc(obj->package.count *
-+					sizeof *(br->levels), GFP_KERNEL);
- 			if (!br->levels)
- 				goto out;
- 
-@@ -584,8 +585,7 @@ acpi_video_device_find_cap (struct acpi_
- 			}
- out:
- 			if (count < 2) {
--				if (br->levels)
--					kfree(br->levels);
-+				kfree(br->levels);
- 				kfree(br);
- 			} else {
- 				br->count = count;
-@@ -595,8 +595,7 @@ out:
- 		}
- 	}
- 
--	if (obj)
--		kfree(obj);
-+	kfree(obj);
- 
- 	return_VOID;
- }
-_
 
 
 -------------------------------------------------------
