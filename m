@@ -1,131 +1,91 @@
-From: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
-Subject: [PATCH 2.5.54] cpufreq-ACPI: deprecated usage of CPUFREQ_ALL_CPUS
-Date: Mon, 6 Jan 2003 14:48:37 +0100
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20030106134837.GA1264@brodo.de>
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: ACPI on Toshiba Satellite 3000-601
+Date: Mon, 6 Jan 2003 14:46:27 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20030106134627.GC18725@poup.poupinou.org>
+References: <8358.1041290606@www43.gmx.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-To: andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <8358.1041290606-2fnMVCGmqB9mcu3hnIyYJQ@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Nikolaus Filus <NFilus-hi6Y0CQ0nG0@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Deprecated usage of CPUFREQ_ALL_CPUS: as policy->cpu now only points
-to an existing CPU, some code can safely be removed from the ACPI
-P-States cpufreq driver.
+Hi, Nikolaus (sorry for the long time response, I was on vacation).
 
-	 Dominik
+On Tue, Dec 31, 2002 at 12:23:26AM +0100, Nikolaus Filus wrote:
+> Hi,
+>     
+> few days ago I updated my kernel to 2.4.20 and acpi 20021212 along with
+> Bruno's fixed dsdt (tosh3k-601.v5). It's success is different, as there are
+> positive and negative changes. Here's an overview:
+> 
+> + ac_adapter/ACAD/state                 OK
+> + battery/BAT[12]/state                 OK
+> + embedded_controller/EC0/info          OK
+> + processor/CPU0/*                      P0, P1, C1      OK
+> + events for button/{lid,power}/        works for the first time
 
- drivers/acpi/processor.c |   63 +++++++++--------------------------------------
- 1 files changed, 13 insertions(+), 50 deletions(-)
+Ah?  It work now?  Good.
 
-diff -ruN linux-original/drivers/acpi/processor.c linux/drivers/acpi/processor.c
---- linux-original/drivers/acpi/processor.c	2003-01-06 12:55:39.000000000 +0100
-+++ linux/drivers/acpi/processor.c	2003-01-06 13:44:35.000000000 +0100
-@@ -1658,7 +1658,6 @@
- acpi_cpufreq_setpolicy (
- 	struct cpufreq_policy   *policy)
- {
--	unsigned int cpu = 0;
- 	unsigned int i = 0;
- 	struct acpi_processor *pr = NULL;
- 	unsigned int next_state = 0;
-@@ -1669,24 +1668,9 @@
- 	if (!policy)
- 		return_VALUE(-EINVAL);
- 
--	/* get a present, initialized CPU */
--	if (policy->cpu == CPUFREQ_ALL_CPUS)
--	{
--		for (i=0; i<NR_CPUS; i++) {
--			if (processors[i] != NULL) {
--				cpu = i;
--				pr = processors[cpu];
--				break;
--			}
--		}
--	}
--	else
--	{
--		cpu = policy->cpu;
--		pr = processors[cpu];
--		if (!pr)
--			return_VALUE(-EINVAL);
--	}
-+	pr = processors[policy->cpu];
-+	if (!pr)
-+		return_VALUE(-EINVAL);
- 
- 	/* select appropriate P-State */
- 	if (policy->policy == CPUFREQ_POLICY_POWERSAVE)
-@@ -1715,19 +1699,9 @@
- 	}
- 
- 	/* set one or all CPUs to the new state */
--	if (policy->cpu == CPUFREQ_ALL_CPUS) {
--		for (i=0; i<NR_CPUS; i++)
--		{
--			pr = processors[cpu];
--			if (!pr || !cpu_online(cpu))
--				continue;
--			result = acpi_processor_set_performance (pr, next_state);
--		}
--	} else {
--		result = acpi_processor_set_performance (pr, next_state);
--	}
-+	result = acpi_processor_set_performance (pr, next_state);
- 
--	return_VALUE(0);
-+	return_VALUE(result);
- }
- 
- 
-@@ -1735,7 +1709,6 @@
- acpi_cpufreq_verify (
- 	struct cpufreq_policy   *policy)
- {
--	unsigned int cpu = 0;
- 	unsigned int i = 0;
- 	struct acpi_processor *pr = NULL;
- 	unsigned int number_states = 0;
-@@ -1746,24 +1719,9 @@
- 	if (!policy)
- 		return_VALUE(-EINVAL);
- 
--	/* get a present, initialized CPU */
--	if (policy->cpu == CPUFREQ_ALL_CPUS)
--	{
--		for (i=0; i<NR_CPUS; i++) {
--			if (processors[i] != NULL) {
--				cpu = i;
--				pr = processors[cpu];
--				break;
--			}
--		}
--	}
--	else
--	{
--		cpu = policy->cpu;
--		pr = processors[cpu];
--		if (!pr)
--			return_VALUE(-EINVAL);
--	}
-+	pr = processors[policy->cpu];
-+	if (!pr)
-+		return_VALUE(-EINVAL);
- 
- 	/* first check if min and max are within valid limits */
- 	cpufreq_verify_within_limits(
-@@ -1787,6 +1745,11 @@
- 		policy->max = pr->performance.states[next_larger_state].core_frequency * 1000;
- 	}
- 
-+	cpufreq_verify_within_limits(
-+		policy, 
-+		pr->performance.states[pr->performance.state_count - 1].core_frequency * 1000,
-+		pr->performance.states[pr->limit.state.px].core_frequency * 1000);
-+
- 	return_VALUE(0);
- }
- 
+> + thermal_zone/THM0/temperature         works (others not supported)
+
+Yes, sorry.  The thermal zone I wrotten is really basic.  It has only a
+critical trip and give current temperature.  No passive nor active policy
+is written at this time (the passive one should be added since it is
+'easy'.  I got some trouble with the active one).
+
+> + sleep                                 S0 S1 S3 S4 S5
+> 
+> S1, S5 works as expected, but S3 and S4 do exactly nothing - no debug msg.
+
+S2, S3 and S4 is not supported at that time in 2.4 series.
+
+> 
+> - booting without mem=240M results in AE_NO_MEMORY (512 avail.)
+> - booting with    mem=240M results in broken pcmcia (kernel)
+> - closing the lid results in a lot of debug msg to console (temp gets high)
+> 
+> Dec 28 21:52:40 mobile kernel: [ACPI Debug] String: =====GPE_L1D=====
+> Dec 28 21:52:40 mobile kernel: exregion-0146 [2361] Ex_system_memory_space:
+> Could not map memory at 000000000FEFFEAD, size 90
+> Dec 28 21:52:40 mobile kernel: evregion-0323: *** Error: Handler for
+> [System_memory] returned AE_NO_MEMORY
+> Dec 28 21:52:40 mobile kernel:  psparse-1103: *** Error: Method execution
+> failed+[\_SB_.PCI0.LPCB.PHSS] (Node c15b3808), AE_NO_MEMORY
+> Dec 28 21:52:40 mobile kernel:  psparse-1103: *** Error: Method execution
+> failed+[\_GPE._L1D] (Node c1593848), AE_NO_MEMORY
+> Dec 28 21:52:40 mobile kernel:    evgpe-0572: *** Error: AE_NO_MEMORY while
+> evaluating method [_L1D] for GPE[1D]
+> 
+
+Yes, I know.  there is a problem for now if the amount of ram is
+not the same as the amount of the 'initial' laptop (grumble, I should
+write it in the README in my ftp site, sorry).
+I need to get your own AML in order to correct that.
+Could you please provide me it via pmtools for example?
+Thanks in advance.
+
+Cheers,
+
+-- 
+Ducrot Bruno
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
+
+
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
