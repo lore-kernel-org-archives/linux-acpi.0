@@ -1,11 +1,11 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: acpi_sleep=s3_bios and Thinkpads
-Date: Sat, 03 Jul 2004 11:56:41 +0100
+From: =?iso-8859-1?q?Will=20Woods?= <will_woods2-/E1597aS9LT10XsdtD+oqA@public.gmane.org>
+Subject: S3 resume only reboots
+Date: Sat, 3 Jul 2004 13:51:05 +0100 (BST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1088852201.3733.22.camel@tyrosine>
+Message-ID: <20040703125105.35352.qmail@web25007.mail.ukl.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,14 +18,32 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Having tested around 6 different models of Thinkpad, we've found that
-passing acpi_sleep=s3_bios always helps if there is no framebuffer
-running, but tends to break things if there is a framebuffer. Is this
-worth some sort of DMI hackery in order to make it more likely that
-things will just work?
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
+Hi,
+
+I think I can get my machine to suspend to ram with
+'echo 3 > /proc/aci/sleep', but a subsequent press of
+the power button just starts a fresh boot. The only
+other button I have is the reset, which does nothing,
+and the keyboard is also ignored. I can't figure out
+if the machine is just powering off (in about 1
+second), or if I'm really getting the S3 mode. If I
+am, is there anything I can configure to ensure the
+power button does not do a reboot? S3 works fine under
+windows XP, so I assume that the problem is not with
+the hardware.
+
+I'm running Mandrake 10 with kernel 2.6.3-7mdk.
+
+
+Will
+
+
+
+	
+	
+		
+___________________________________________________________ALL-NEW Yahoo! Messenger - sooooo many all-new ways to express yourself http://uk.messenger.yahoo.com
 
 
 -------------------------------------------------------
