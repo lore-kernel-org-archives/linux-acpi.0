@@ -1,13 +1,13 @@
-From: Andrea Borgia <borgia-iEixELS/QsY1GQ1Ptb7lUw@public.gmane.org>
-Subject: Re: powernow & ACPI & 2.6.9
-Date: Sat, 25 Dec 2004 22:15:26 +0100
-Message-ID: <41CDD86E.1010905@cs.unibo.it>
-References: <20041119083851.GB2908@mithrandir.dakordnet.org> <20041119085900.GD31422@poupinou.org> <41BCB4D4.3050109@cs.unibo.it>
+From: Joshua Wise <joshua-NtISFavHD68j5TC/SZClsA@public.gmane.org>
+Subject: Re: ACPI on hp tc1100
+Date: Sun, 26 Dec 2004 02:17:00 -0500
+Message-ID: <41CE656C.1050500@joshuawise.com>
+References: <41B2912D.8020105@joshuawise.com> <Pine.LNX.4.60.0412051210070.990@frog.athome> <41B377AE.7080108@joshuawise.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41BCB4D4.3050109-iEixELS/QsY1GQ1Ptb7lUw@public.gmane.org>
+In-Reply-To: <41B377AE.7080108-NtISFavHD68j5TC/SZClsA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,32 +17,26 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Joshua Wise <joshua-NtISFavHD68j5TC/SZClsA@public.gmane.org>
+Cc: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Andrea Borgia wrote:
+Joshua Wise wrote:
+> Hm. First, I tried just setting Option "NvAGP" "1" in my XF86Config 
+> without downgrading, and that seemed to do the trick! I am running the 
+> latest NVidia drivers: 6629. However, when the system 'comes back to 
+> life', the wireless is non-functional, as described below. The 
+> wacom-acpi driver also seems to need to be reloaded: on resume, dmesg 
+> reports that ttyS4 failed the LSR safety check.
 
-> Bruno Ducrot wrote:
->> Could you please test those patches:
->> http://www.poupinou.org/cpufreq/powernow-k7/recalibrate_cpu_khz/powernow-k7.recalibrate-cpu_khz.diff 
->> and
->> http://www.poupinou.org/cpufreq/powernow-k7/recalibrate_cpu_khz/timers-recalibrate_cpu_khz.diff 
-> 
-> I've just tried 2.6.10-rc3, that still has the same "weird speed" 
-> problem as 2.6.9, and I'm glad to report that those two patches apply 
-> cleanly and fix the problem in this case too.
+Well, digging this out of the archive.... I figured out why NvAGP 1 
+"fixed" the problem. It seems that the tc1100's AGP host bridge is in 
+fact unsupported by the NVIDIA AGP driver, so when we force the NVIDIA 
+driver's AGP mode, we effectively disable AGP and only use PCI. I wonder 
+if kernel AGPGART is not doing some sort of appropriate AGP magic before 
+the NVIDIA driver comes back up?
 
-Ditto for 2.6.10
-
-BR,
-Andrea.
-
--- 
-Homepage: http://andrea.borgia.bo.it     /    Amateur radio: IZ4FHT
-A: Because it messes up the order in which people normally read text.
-Q: Why is top-posting such a bad thing?
-A: Top-posting.
-Q: What is the most annoying thing on usenet and in e-mail?
+joshua
 
 
 -------------------------------------------------------
