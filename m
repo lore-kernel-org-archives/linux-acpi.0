@@ -1,77 +1,74 @@
-From: Stefan Seyfried <seife-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: s4bios: does anyone use it?
-Date: Tue, 08 Mar 2005 10:42:23 +0100
-Message-ID: <422D737F.2020807@suse.de>
-References: <16A54BF5D6E14E4D916CE26C9AD305750155EBB0@pdsmsx402.ccr.corp.intel.com> <20050308091856.GB16436@elf.ucw.cz>
+From: Bernard Blackham <bernard@blackham.com.au>
+Subject: Re: [ACPI] Re: Cause of Suspend2 resume failures on
+	Toshiba laptops
+Date: Tue, 8 Mar 2005 17:47:11 +0800
+Message-ID: <20050308094711.GC20154@blackham.com.au>
+References: <16A54BF5D6E14E4D916CE26C9AD305750155ECAA@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-In-Reply-To: <20050308091856.GB16436-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-LJ1TwQYPT6cQrrorzV6ljw@public.gmane.org>, Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD305750155ECAA@pdsmsx402.ccr.corp.intel.com>
+List-Unsubscribe: <http://lists.suspend2.net/mailman/listinfo/suspend2-devel>,
+	<mailto:suspend2-devel-request@lists.suspend2.net?subject=unsubscribe>
+List-Archive: <http://lists.suspend2.net/lurker/list/suspend2-devel.html>
+List-Post: <mailto:suspend2-devel@lists.suspend2.net>
+List-Help: <mailto:suspend2-devel-request@lists.suspend2.net?subject=help>
+List-Subscribe: <http://lists.suspend2.net/mailman/listinfo/suspend2-devel>,
+	<mailto:suspend2-devel-request@lists.suspend2.net?subject=subscribe>
+Sender: suspend2-devel-bounces@lists.suspend2.net
+Errors-To: suspend2-devel-bounces@lists.suspend2.net
+To: "Li, Shaohua" <shaohua.li@intel.com>
+Cc: Pavel Machek <pavel@suse.cz>, acpi-devel@lists.sourceforge.net, suspend2-devel@lists.suspend2.net
 List-Id: linux-acpi@vger.kernel.org
 
-Pavel Machek wrote:
-> Hi!
->=20
->> >Okay, so we had 2 users in past but have 0 users now? :-).
->> I wonder how could anyone use S4BIOS in 2.6.11. S4 and S4b all came in=
-to
->> 'enter_state'. and in acpi_sleep_init:
->>=20
->> 		if (i =3D=3D ACPI_STATE_S4) {
->> 			if (acpi_gbl_FACS->S4bios_f) {
->> 				sleep_states[i] =3D 1;
->> 				printk(" S4bios");
->> 				acpi_pm_ops.pm_disk_mode =3D
->> PM_DISK_FIRMWARE;
->> 			}
->> 			if (sleep_states[i])
->> 				acpi_pm_ops.pm_disk_mode =3D
->> PM_DISK_PLATFORM;
->> 		}
->> That means we actually can't set PM_DISK_FIRMWARE (always set
->> PM_DISK_PLATFORM). Is this intended? If no, .pm_disk_mode should be a
->> mask.
->=20
-> pm_disk_mode is settable using /sys/power/disk, no?
+On Tue, Mar 08, 2005 at 02:58:01PM +0800, Li, Shaohua wrote:
+> >Removing the check resolves this issue (patch attached). Is this an
+> >adequate fix?
+> 
+> Great analyzing! I guess Both S3, swsusp, and swsusp2 can't suffer from
+> this bug. Sure this patch hasn't any side effect.
 
-No, it isn't. That was my original point: you can write "firmware" into
-it, but it has no effect. This probably was a side-effect of the "make
-firmware mode not default" patch from a year ago.
-But the real question is: what is firmware mode good for today? Is there
-a single machine where firmware mode once worked, but swsusp does not
-work today?
+At least one user has reported that this patch makes the battery
+status unreadable. - http://lists.suspend2.net/lurker/message/20050306.201243.cbbca9ea.en.html
 
-> Anyway, what about this, then?
->=20
-> --- clean/Documentation/feature-removal-schedule.txt	2005-01-22 21:24:5=
-0.000000000 +0100
-> +++ linux/Documentation/feature-removal-schedule.txt	2005-03-08 10:18:0=
-5.000000000 +0100
+I don't know why this is the case yet, but I'd hesitate to use it
+until this is sorted out.
 
-Fine with me. I think it cannot work since ~one year (when we changed
-the default from "firmware if available" to "shutdown always", the code
-piece cited above) and nobody complained until now, so it won't be
-missed IMO.
---=20
-Stefan Seyfried, QA / R&D Team Mobile Devices, SUSE LINUX N=FCrnberg.
+> But I wonder if it's the right fix. Maybe we should disable all
+> GPEs which have been disabled on very early of resume (that is to
+> restore ACPI hardware's state).
 
-"Any ideas, John?"
-"Well, surrounding them's out."
+Does calling acpi_enter_sleep_state_prep through pm_ops->prepare()
+disable runtime GPEs? I can only see that done in
+acpi_enter_sleep_state called through pm_ops->enter(). But calling
+enter() will physically enter the sleep state too which isn't what
+we want at that stage.
 
+Hence I'm still unclear on how to disable the GPEs from swsusp2
+without delving into drivers/acpi/. Should runtime GPEs be disabled
+in prepare() ? The ACPI spec doesn't mention what to do with runtime
+GPEs on suspend, but Pavel suggested that keeping kacpid running
+during suspend would be a good idea in order to respond to things
+like thermal events.
 
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+Vanilla swsusp seems to call pm_ops->prepare() on resume before
+restoring the atomic copy, if the platform method is used, and later
+call pm_ops->finish() once resumed. Is this valid? I gather that it
+means that the entire sequence goes:
+ - prepare()
+ - snapshot & write to disk
+ - enter()
+ - wakeup & boot
+ - read image from disk
+ - prepare()
+ - restore snapshot
+ - finish()
+
+Are the two calls to prepare() intentional or safe? To me it seems
+that GPEs aren't disabled until enter() is called so currently
+calling prepare() on resume wouldn't synchronise the GPE states.
+
+Bernard.
+
+-- 
+ Bernard Blackham <bernard at blackham dot com dot au>
