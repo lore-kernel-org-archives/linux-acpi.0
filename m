@@ -1,16 +1,11 @@
-From: Ernst Herzberg <earny-euM3SP4ZHrg@public.gmane.org>
-Subject: Re: CALL FOR TESTING
-Date: Tue, 1 Oct 2002 06:50:37 +0200
+From: "Chris A. Giorgi" <chrisgio-1OhbsFfdgBm22U/x3OLdhw@public.gmane.org>
+Subject: Interrupt routing broken after 2.4.18 + ACPI 20020702
+Date: Mon, 30 Sep 2002 22:54:21 -0700 (PDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200210010650.37137.earny@net4u.de>
-References: <EDC461A30AC4D511ADE10002A5072CAD0236DE80@orsmsx119.jf.intel.com> <200209260406.48808.earny@net4u.de> <20020930020016.A90@toy.ucw.cz>
-Reply-To: earny-euM3SP4ZHrg@public.gmane.org
+Message-ID: <Pine.LNX.4.33.0209302133130.28627-101000@triton.phosphor.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: MULTIPART/MIXED; BOUNDARY="2000779368-2066027850-1033451661=:28627"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20020930020016.A90-muQmgwBScQHrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,377 +14,323 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Montag, 30. September 2002 04:00, Pavel Machek wrote:
-> Hi!
-> Can you ksymoops it?
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime-oOUblnuQwHKola3qYQ6TW/IULO3mGbRi9nwVQlTi/Pw@public.gmane.org for more info.
 
-OkOk ;-) Same procedure: I recompiled the kernel to have a clean System.m=
-ap,
-installed my 'cooling preventer', and started burnP6. If the temp reaches=
-=20
-about 75 =B0C, i type 'reboot'.
-
-(I have also checked for a longer time, that the laptop is running at thi=
-s=20
-temp without any problems. If  i let the laptop cooling down, he will=20
-boot up without any problems.)
-
-The results differs at each reboot, so i append 3 different oops'es.
-The first 2 ones are during a normal boot, the second seems more often th=
-an=20
-the first one. Then i tried to boot into single user. In this case it is =
-not easy to=20
-see the first oops on the screen: If i try to enter the root passwort, i =
-get=20
-immediatly a bunch of oops'es, unable to read the first one. The third oo=
-ps
-is done in single user mode, not typing in the password and wait. The oop=
-s('es)=20
-appears after a couple of seconds.
-
-Enjoy ;-)
-
-(i was not able to use a serial console, i typed careful all oops'es from=
- the=20
-display. Don't blame me, if you find a typo :-)
-
-#########################################################################=
-#
-
-Gericom M6-T 1200MHz=20
-
-earny@lidl:~> uname -a
-Linux lidl 2.4.20-pre7 #6 Tue Oct 1 00:55:43 CEST 2002 i686 unknown
-earny@lidl:~> cat /proc/acpi/info
-version:                 20020918
-states:                  S0 S1 S4 S5
-earny@lidl:~> ksymoops -v /usr/src/linux/vmlinux < oops1
-ksymoops 2.4.6 on i686 2.4.20-pre7.  Options used
-     -v /usr/src/linux/vmlinux (specified)
-     -k /proc/ksyms (default)
-     -l /proc/modules (default)
-     -o /lib/modules/2.4.20-pre7/ (default)
-     -m /boot/System.map (default)
-
-Oops: 0002
-CPU: 0
-EIP:  0010:[<c011fe45>] Not tainted
-Using defaults from ksymoops -t elf32-i386 -a i386
-EFLAGS: 00010082
-eax: c159cea8 ebx: 00000006 ecx: 00000000 edx: 00000000
-esi: c1593478 edi: c01c11e8 ebp: 00000000 esp: dea5dd44
-ds: 0018 es: 0018 ss: 0018
-Process ldconfig (pid: 689, stackpage=3Ddea5d000)
-Stack: c1593460 00000246 c01bb1a1 c1593478 00001000 c031fd84 c031fd40 c01=
-c1b64
-       c031fd84 c01c11e8 000007d0 00000000 000001f6 c15c9c00 c031fd84 c03=
-1fd84
-       00000000 ddf82140 00000001 00000008 0031fd84 c01c3803 00000000 c03=
-1fd84
-Call Trace:    [<c01bb1a1>] [<c01c1b64>] [<c01c11e8>] [<c01c3803>] [<c01c=
-6e75>]
-  [<c01bc497>] [<c01bc4f7>] [<c01bc857>] [<c01bc8db>] [<c01ae6e4>] [<c011=
-d2ec>]
-  [<c01382c2>] [<c01288f5>] [<c0128934>] [<c0129a8e>] [<c01265f2>] [<c012=
-676e>]
-  [<c0115d04>] [<c0115ba4>] [<c010d5ee>] [<c010d616>] [<c010874c>]
-Code: 89 72 04 89 16 89 46 04 89 30 53 9d eb 14 53 9d 8b 44 24 08
+--2000779368-2066027850-1033451661=:28627
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 
 
->>EIP; c011fe45 <add_timer+b5/dc>   <=3D=3D=3D=3D=3D
+Hello,
+Interrupt routing broke on my machine between 2.4.18 + ACPI 20020702 and
+2.4.20-pre8 + ACPI 20020927 (from bk repository). The most troublesome
+effect is the fact that the IDE interrupts are left uninitilized. My
+machine is a Sager 8880 with a 2.4GHz P-4 (not mobile), intel 845 chipset,
+and Insyde BIOS. The interrupts work correctly on the 2.4.18 based kernel.
+Does anyone have a thought as to where to begin to look as to what change
+broke it? Unfortunately, I have a number of other issues with the 2.4.18
+kernel that are fixed in the 2.4.20-pre8 revision (Radeon FB, parport, and
+some USB issues) I've attached the DSDT from my machine. Let me know what
+other pertinent information would be of use. Thanks,
 
->>eax; c159cea8 <_end+126fa88/224ecbe0>
->>esi; c1593478 <_end+1266058/224ecbe0>
->>edi; c01c11e8 <ide_dma_intr+0/ac>
->>esp; dea5dd44 <_end+1e730924/224ecbe0>
-
-Trace; c01bb1a1 <ide_set_handler+59/64>
-Trace; c01c1b64 <ide_dmaproc+188/36c>
-Trace; c01c11e8 <ide_dma_intr+0/ac>
-Trace; c01c3803 <via82cxxx_dmaproc+cf/dc>
-Trace; c01c6e75 <do_rw_disk+2bd/528>
-Trace; c01bc497 <start_request+147/220>
-Trace; c01bc4f7 <start_request+1a7/220>
-Trace; c01bc857 <ide_do_request+287/2d4>
-Trace; c01bc8db <do_ide_request+f/14>
-Trace; c01ae6e4 <generic_unplug_device+20/28>
-Trace; c011d2ec <__run_task_queue+50/5c>
-Trace; c01382c2 <block_sync_page+16/1c>
-Trace; c01288f5 <__lock_page+8d/b8>
-Trace; c0128934 <lock_page+14/18>
-Trace; c0129a8e <filemap_nopage+136/1f8>
-Trace; c01265f2 <do_no_page+52/17c>
-Trace; c012676e <handle_mm_fault+52/b0>
-Trace; c0115d04 <do_page_fault+160/480>
-Trace; c0115ba4 <do_page_fault+0/480>
-Trace; c010d5ee <old_mmap+ea/120>
-Trace; c010d616 <old_mmap+112/120>
-Trace; c010874c <error_code+34/3c>
-
-Code;  c011fe45 <add_timer+b5/dc>
-00000000 <_EIP>:
-Code;  c011fe45 <add_timer+b5/dc>   <=3D=3D=3D=3D=3D
-   0:   89 72 04                  mov    %esi,0x4(%edx)   <=3D=3D=3D=3D=3D
-Code;  c011fe48 <add_timer+b8/dc>
-   3:   89 16                     mov    %edx,(%esi)
-Code;  c011fe4a <add_timer+ba/dc>
-   5:   89 46 04                  mov    %eax,0x4(%esi)
-Code;  c011fe4d <add_timer+bd/dc>
-   8:   89 30                     mov    %esi,(%eax)
-Code;  c011fe4f <add_timer+bf/dc>
-   a:   53                        push   %ebx
-Code;  c011fe50 <add_timer+c0/dc>
-   b:   9d                        popf
-Code;  c011fe51 <add_timer+c1/dc>
-   c:   eb 14                     jmp    22 <_EIP+0x22> c011fe67 <add_tim=
-er+d7/dc>
-Code;  c011fe53 <add_timer+c3/dc>
-   e:   53                        push   %ebx
-Code;  c011fe54 <add_timer+c4/dc>
-   f:   9d                        popf
-Code;  c011fe55 <add_timer+c5/dc>
-  10:   8b 44 24 08               mov    0x8(%esp,1),%eax
-
-earny@lidl:~>############################################################=
-###
-earny@lidl:~> ksymoops -v /usr/src/linux/vmlinux < oops2
-ksymoops 2.4.6 on i686 2.4.20-pre7.  Options used
-     -v /usr/src/linux/vmlinux (specified)
-     -k /proc/ksyms (default)
-     -l /proc/modules (default)
-     -o /lib/modules/2.4.20-pre7/ (default)
-     -m /boot/System.map (default)
-
-Oops: 0002
-CPU: 0
-EIP:  0010:[<c011ff45>]  Not tainted
-Using defaults from ksymoops -t elf32-i386 -a i386
-EFLAGS: 00010082
-eax: c159cea8 ebx: dea56574 ecx: 00000000 edx: 00000000
-esi: 00000206 edi: 00000000 ebp: dea56520 esp: deb2bd14
-ds: 0018 es: 0018 ss: 0018
-Process mount (pid: 667, stackpage=3Ddeb2b000)
-Stack: dea56520 00000000 00000000 c0239ca9 dea56574 0000175c c029c000 deb=
-2bd78
-       df3e3ebc c0239cd0 c029c000 dea56520 00000000 00000000 deb2bd78 c01=
-640cd
-       c029c000 dea56520 00000000 00000000 dea56574 fffffff5 deadbb9c dea=
-56520
-Call Trace:    [<c0239ca9>] [<c0239cd0>] [<c01640cd>] [<c023a177>] [<c023=
-a613>]
-  [<c023a3cc>] [<c0163eef>] [<c0163fae>] [<c0164b49>] [<c01391b7>] [<c013=
-92f8>]
-  [<c0148e79>] [<c0149132>] [<c0148f94>] [<c01494b4>] [<c010865b>]
-Code: 89 5a 04 89 13 89 43 04 89 18 56 9d 89 f8 5b 5e 5f c3 90 53
+					~~~~~Chris Giorgi~~~~~
 
 
->>EIP; c011ff45 <mod_timer+d9/ec>   <=3D=3D=3D=3D=3D
+---------------------------------------------------------------------
+Chris A. Giorgi     chrisgio-WtoKEk6Q2Yu22U/x3OLdhw@public.gmane.org, chris@giorgi.com
+530.367.5367  (Home)    831.277.1556  (Cell)
+ICQ: 9493888 "Tempest"         Linux - Choice of a GNU generation.
+AIM: "CAGiorgi"
+---------------------------------------------------------------------
 
->>eax; c159cea8 <_end+126fa88/224ecbe0>
->>ebx; dea56574 <_end+1e729154/224ecbe0>
->>ebp; dea56520 <_end+1e729100/224ecbe0>
->>esp; deb2bd14 <_end+1e7fe8f4/224ecbe0>
+--2000779368-2066027850-1033451661=:28627
+Content-Type: APPLICATION/octet-stream; name="2.4.20-pre8-acpi.dsdtdump"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.33.0209302254210.28627-0JXMbJUQleZAJuP5JWRI29HuzzzSOjJt@public.gmane.org>
+Content-Description: DSDT dump
+Content-Disposition: attachment; filename="2.4.20-pre8-acpi.dsdtdump"
 
-Trace; c0239ca9 <__rpc_sleep_on+19d/1a4>
-Trace; c0239cd0 <rpc_sleep_on+20/44>
-Trace; c01640cd <nfs_flushd+f1/fc>
-Trace; c023a177 <__rpc_execute+9f/2a4>
-Trace; c023a613 <rpc_new_task+17/15c>
-Trace; c023a3cc <rpc_execute+50/64>
-Trace; c0163eef <nfs_reqlist_init+6f/88>
-Trace; c0163fae <nfs_reqlist_alloc+4a/58>
-Trace; c0164b49 <nfs_read_super+825/908>
-Trace; c01391b7 <get_sb_nodev+37/6c>
-Trace; c01392f8 <do_kern_mount+80/104>
-Trace; c0148e79 <do_add_mount+65/130>
-Trace; c0149132 <do_mount+14e/168>
-Trace; c0148f94 <copy_mount_options+50/a0>
-Trace; c01494b4 <sys_mount+84/c4>
-Trace; c010865b <system_call+33/38>
-
-Code;  c011ff45 <mod_timer+d9/ec>
-00000000 <_EIP>:
-Code;  c011ff45 <mod_timer+d9/ec>   <=3D=3D=3D=3D=3D
-   0:   89 5a 04                  mov    %ebx,0x4(%edx)   <=3D=3D=3D=3D=3D
-Code;  c011ff48 <mod_timer+dc/ec>
-   3:   89 13                     mov    %edx,(%ebx)
-Code;  c011ff4a <mod_timer+de/ec>
-   5:   89 43 04                  mov    %eax,0x4(%ebx)
-Code;  c011ff4d <mod_timer+e1/ec>
-   8:   89 18                     mov    %ebx,(%eax)
-Code;  c011ff4f <mod_timer+e3/ec>
-   a:   56                        push   %esi
-Code;  c011ff50 <mod_timer+e4/ec>
-   b:   9d                        popf
-Code;  c011ff51 <mod_timer+e5/ec>
-   c:   89 f8                     mov    %edi,%eax
-Code;  c011ff53 <mod_timer+e7/ec>
-   e:   5b                        pop    %ebx
-Code;  c011ff54 <mod_timer+e8/ec>
-   f:   5e                        pop    %esi
-Code;  c011ff55 <mod_timer+e9/ec>
-  10:   5f                        pop    %edi
-Code;  c011ff56 <mod_timer+ea/ec>
-  11:   c3                        ret
-Code;  c011ff57 <mod_timer+eb/ec>
-  12:   90                        nop
-Code;  c011ff58 <del_timer+0/44>
-  13:   53                        push   %ebx
-
- <0>Kernel panic: Aiee, killing interrupt handler!
-earny@lidl:~>############################################################=
-###
-earny@lidl:~> ksymoops -v /usr/src/linux/vmlinux < oops3
-ksymoops 2.4.6 on i686 2.4.20-pre7.  Options used
-     -v /usr/src/linux/vmlinux (specified)
-     -k /proc/ksyms (default)
-     -l /proc/modules (default)
-     -o /lib/modules/2.4.20-pre7/ (default)
-     -m /boot/System.map (default)
-
-Unable to handle kernel NULL pointer dereference at virtual address 00000=
-004
-c011fe45
-*pde =3D 00000000
-Oops: 0002
-CPU: 0
-EIP:  0010:[<c011fe45>]  Not tainted
-Using defaults from ksymoops -t elf32-i386 -a i386
-EFLAGS: 00010082
-eax: c159cea8 ebx: 00000206 ecx: 00000000 edx: 00000000
-esi: c159bf2c edi: 00000000 ebp: c159bf40 esp: c159bf14
-ds: 0018 es: 0018 ss: 0018
-Process init (pid: 1, stackpage=3Dc159b000)
-Stack: c159bf2c 000017eb c0116886 c159bf2c 00000000 dff652a0 00000000 000=
-00000
-       000017eb c159a000 c01167d0 c159bf74 c01417b1 00000004 00000001 c15=
-c1b38
-       00000104 00000400 c159a000 000001f4 0000000b 00000000 00000000 df9=
-95000
-Call Trace:    [<c0116886>] [<c01167d0>] [<c01417b1>] [<c0141b50>] [<c010=
-865b>]
-Code: 89 72 04 89 16 89 46 04 89 30 53 9d eb 14 53 9d 8b 44 24 08
-
-
->>EIP; c011fe45 <add_timer+b5/dc>   <=3D=3D=3D=3D=3D
-
->>eax; c159cea8 <_end+126fa88/224ecbe0>
->>esi; c159bf2c <_end+126eb0c/224ecbe0>
->>ebp; c159bf40 <_end+126eb20/224ecbe0>
->>esp; c159bf14 <_end+126eaf4/224ecbe0>
-
-Trace; c0116886 <schedule_timeout+6e/94>
-Trace; c01167d0 <process_timeout+0/48>
-Trace; c01417b1 <do_select+19d/1dc>
-Trace; c0141b50 <sys_select+338/474>
-Trace; c010865b <system_call+33/38>
-
-Code;  c011fe45 <add_timer+b5/dc>
-00000000 <_EIP>:
-Code;  c011fe45 <add_timer+b5/dc>   <=3D=3D=3D=3D=3D
-   0:   89 72 04                  mov    %esi,0x4(%edx)   <=3D=3D=3D=3D=3D
-Code;  c011fe48 <add_timer+b8/dc>
-   3:   89 16                     mov    %edx,(%esi)
-Code;  c011fe4a <add_timer+ba/dc>
-   5:   89 46 04                  mov    %eax,0x4(%esi)
-Code;  c011fe4d <add_timer+bd/dc>
-   8:   89 30                     mov    %esi,(%eax)
-Code;  c011fe4f <add_timer+bf/dc>
-   a:   53                        push   %ebx
-Code;  c011fe50 <add_timer+c0/dc>
-   b:   9d                        popf
-Code;  c011fe51 <add_timer+c1/dc>
-   c:   eb 14                     jmp    22 <_EIP+0x22> c011fe67 <add_tim=
-er+d7/dc>
-Code;  c011fe53 <add_timer+c3/dc>
-   e:   53                        push   %ebx
-Code;  c011fe54 <add_timer+c4/dc>
-   f:   9d                        popf
-Code;  c011fe55 <add_timer+c5/dc>
-  10:   8b 44 24 08               mov    0x8(%esp,1),%eax
-
- <0>Kernel panic: Attempted to kill init!
- <1>Unable to handle kernel NULL pointer dereference at virtual address 0=
-0000004
-c012056b
-*pde =3D 00000000
-Oops: 0002
-CPU: 0
-EIP:  0010:[<c012056b>]  Not tainted
-EFLAGS: 00010012
-eax: 00000000 ebx: c0302a1c ecx: c159cea8 edx: 00000004
-esi: 00000000 edi: c0302960 ebp: 00000000 esp: c159bd48
-ds: 0018 es: 0018 ss: 0018
-Process init (pid: 1, stackpage=3Dc159b000)
-Stack: 00000000 c02f7540 00000000 c02f7560 00001700 00000000 00001700 000=
-00004
-       00000001 c159bd6c c159bd6c c011d232 c011d176 00000000 00000001 c02=
-f7560
-       fffffffe c011cf9a c02f7560 00000000 c02f5900 00000000 c159bdbc 000=
-00046
-Call Trace:    [<c011d232>] [<c011d176>] [<c011cf9a>] [<c0109b22>] [<c010=
-bcf8>]
-  [<c0240018>] [<c01aca51>] [<c0118eb5>] [<c011bbf0>] [<c0108c16>] [<c011=
-5ef7>]
-  [<c0115ba4>] [<e2821f41>] [<c012f3ff>] [<c010874c>] [<c011fe45>] [<c011=
-6886>]
-  [<c01167d0>] [<c01417b1>] [<c0141b50>] [<c010865b>]
-Code: 89 46 04 89 30 8b 41 08 c7 01 00 00 00 00 c7 41 04 00 00 00
-
-
->>EIP; c012056b <timer_bh+10b/368>   <=3D=3D=3D=3D=3D
-
->>ebx; c0302a1c <tv2+bc/220>
->>ecx; c159cea8 <_end+126fa88/224ecbe0>
->>edi; c0302960 <tv2+0/220>
->>esp; c159bd48 <_end+126e928/224ecbe0>
-
-Trace; c011d232 <bh_action+1a/40>
-Trace; c011d176 <tasklet_hi_action+4a/70>
-Trace; c011cf9a <do_softirq+5a/a4>
-Trace; c0109b22 <do_IRQ+96/a8>
-Trace; c010bcf8 <call_do_IRQ+5/d>
-Trace; c0240018 <modify_qos+b4/d4>
-Trace; c01aca51 <panic_blink+15/84>
-Trace; c0118eb5 <panic+d5/e8>
-Trace; c011bbf0 <do_exit+48/240>
-Trace; c0108c16 <die+56/58>
-Trace; c0115ef7 <do_page_fault+353/480>
-Trace; c0115ba4 <do_page_fault+0/480>
-Trace; e2821f41 <[reiserfs]inode2sd+85/94>
-Trace; c012f3ff <__alloc_pages+3f/15c>
-Trace; c010874c <error_code+34/3c>
-Trace; c011fe45 <add_timer+b5/dc>
-Trace; c0116886 <schedule_timeout+6e/94>
-Trace; c01167d0 <process_timeout+0/48>
-Trace; c01417b1 <do_select+19d/1dc>
-Trace; c0141b50 <sys_select+338/474>
-Trace; c010865b <system_call+33/38>
-
-Code;  c012056b <timer_bh+10b/368>
-00000000 <_EIP>:
-Code;  c012056b <timer_bh+10b/368>   <=3D=3D=3D=3D=3D
-   0:   89 46 04                  mov    %eax,0x4(%esi)   <=3D=3D=3D=3D=3D
-Code;  c012056e <timer_bh+10e/368>
-   3:   89 30                     mov    %esi,(%eax)
-Code;  c0120570 <timer_bh+110/368>
-   5:   8b 41 08                  mov    0x8(%ecx),%eax
-Code;  c0120573 <timer_bh+113/368>
-   8:   c7 01 00 00 00 00         movl   $0x0,(%ecx)
-Code;  c0120579 <timer_bh+119/368>
-   e:   c7 41 04 00 00 00 00      movl   $0x0,0x4(%ecx)
-
- <0>Kernel Panic: Aiee, killing interrupt handler!
-earny@lidl:~>############################################################=
-#
-
-PS:
-If you need more oops'es, wait until i have a null modem cable and
-the serial console up and running ;-))
+RFNEVIIwAAABV0lOU1lERUtFTk9SQUEzBBAAAE1TRlQNAAABCFZFUlMSMgMN
+UHJvamVjdDogT0VNeAANRGF0ZTogMDQvMDYvMjAwMQANVmVyczogMS4wMC4w
+NAAQE1xfUFJfW4MLQ1BVMAEQEAAABhBGClxfR1BFFA1fTDAwAHAK7kFQTUMU
+GF9MMDMAhlwvA19TQl9QQ0kwVVNCMAoCFBhfTDA0AIZcLwNfU0JfUENJMFVT
+QjEKAhQYX0wwNQCGXC8DX1NCX1BDSTBNQzk3CgIUGF9MMEMAhlwvA19TQl9Q
+Q0kwVVNCMgoCFBhfTDBCAIZcLwNfU0JfUENJMFBDSTIKAhQTX0wxRACGXC5f
+U0JfU0xQQgoCCFxXNzE5CgEIREFUQQoACERBVEIKAAhEQVRDCgAIRlVMTAoA
+CExBU1QLgAwIQ00xNgrACENNMDkKwAhDTTBBCsAIQ00xMArACEVSUkYKAFuA
+R1BFMQELLBAKAluBRwVHUEUxAkdJMDABR0kwMQFHSTAyAUdJMDMBR0kwNAFH
+STA1AUdJMDYBR0kwNwFHSTA4AUdJMDkBR0kxMAFHSTExAUdJMTIBR0kxMwFH
+STE0AUdJMTUBW4BHUE8xAQsOEwoCW4FHBUdQTzECR08xNgFHTzE3AUdPMTgB
+R08xOQFHTzIwAUdPMjEBR08yMgFHTzIzAUdPMjQBR08yNQFHTzI2AUdPMjcB
+R08yOAFHTzI5AUdPMzABR08zMQFbgFBNRU0ADFgcDwAKCFuBGlBNRU0BUE0y
+MRBQTTIyEFBNMjMQUE0yNBBbgEJNRU0ADEIcDwAKB1uBGkJNRU0BU0VMRRBC
+RkNDEEJDQVAQQ0hBUghbgFBNSU8BCwAQCoBbgQ9QTUlPAwAIUEJTVAEAB1uA
+VFJJTwELKhAKAluBFFRSSU8CVFJNRQEAAVRSTVABAAVbgEdQSU8BCwATCjBb
+gSxHUElPA1VTU0UgSU9TRSAAIEdMVkwgACBHVFRMIEJMTksgACAAIEdJTlYg
+W4BTTTAyAQsAFAoIW4ErU00wMgFTU1RBCAAIU0NUTAhTQ01ECFNYSVQIU0hE
+MAhTSEQxCFNCTEsIW4BQVDgwAQqACgFbgQtQVDgwAVA4MFQIW4BDTU9TAQpw
+CgJbgRBDTU9TAUNJTlgIQ0RBVAhbhkQHQ0lOWENEQVQBAEAIRkRDRQgASA9E
+VExPCERUSEkIAEAHVVRZUAIABgBABENNQUQDAAFDTUJEAwABUFRZUAJFUERB
+AQABTFBURQIAAUVQUFQBAEgGAANTNE9TAQAEAEAFRVRMTwhFVEhJCABATUNQ
+VVQIW4BTTVBQAQqyCgJbgRBTTVBQAUFQTUMIQVBNRAgIXF9TMF8SCgQKAAoA
+CgAKAAhcX1MzXxIKBAoFCgUKAAoACFxfUzRfEgoECgYKBgoACgAIXF9TNV8S
+CgQKBwoHCgAKABROEFxfUFRTAXAKAUFQTURwCuxBUE1DcAoBUEJTVKIMUEJT
+VHAKAVBCU1SgLpNoCgFwClFQODBUcFNCUkIKnAoDYKAWk0VSUkYKAH1gCoBg
+U0JXQgqcCglgo6FEC6ANk2gKAnAKUlA4MFSjoUMKoE0Fk2gKA3BcLwRfU0Jf
+UENJMFBYNDBDTURFXC8EX1NCX1BDSTBQWDQwQ09NRHBTQlJCCpwKA2CgFpNF
+UlJGCgB9YAqAYFNCV0IKnAoJYHAKU1A4MFRwCgBHTzI3o6FCBKA1k2gKBHAK
+VFA4MFRwCgFTNE9TcFNCUkIKnAoDYKAWk0VSUkYKAH1gCoBgU0JXQgqcCglg
+o6EJcApVUDgwVKMUSA5cX1dBSwGGXC5fU0JfU0xQQgoCcAoAQVBNRHAK7EFQ
+TUOgMJNoCgFwCuFQODBUcFNCUkIKnAoDYKAWk0VSUkYKAHtgCn9gU0JXQgqc
+CglgpAoAoUMJoA+TaAoCcAriUDgwVKQKAKFACKBPBZNoCgNwXC8EX1NCX1BD
+STBQWDQwQ09NRFwvBF9TQl9QQ0kwUFg0MENNREVwU0JSQgqcCgNgoBaTRVJS
+RgoAe2AKf2BTQldCCpwKCWBwCuNQODBUcAoBR08yN6QKAKEdoA+TaAoEcArk
+UDgwVKQKAKELcArlUDgwVKQKABRGCVNCV0IDcAoARVJSRnAKAGdwCv9TU1RB
+oiN7U1NUQQoBAFsiCgGgEJKVZwokcAoBRVJSRqQKAHJnCgFncAoeU1NUQXBo
+U1hJVHBpU0NNRHBqU0hEMHAKSFNDVExwCgBFUlJGcAoAZ6Imk3tTU1RBCh4A
+CgBbIgoBoBCSlWcKJHAKAUVSUkakCgByZwoBZ3AKHlNTVEEUSQlTQlJCAnAK
+AEVSUkZwCgBncAr/U1NUQaIje1NTVEEKAQBbIgoBoBCSlWcKJHAKAUVSUkak
+CgByZwoBZ3AKHlNTVEFwfWgKAQBTWElUcGlTQ01EcApIU0NUTHAKAEVSUkZw
+CgBnoiaTe1NTVEEKHgAKAFsiCgGgEJKVZwokcAoBRVJSRqQKAHJnCgFncAoe
+U1NUQaRTSEQwEIaRAlxfU0JfW4IlU0xQQghfSElEDEHQDA4UCV9TVEEApAoL
+CF9QUlcSBgIKHQoEW4IZTElEMAhfSElEDEHQDA0UCV9MSUQApAoAW4JBBUFD
+X18IX0hJRA1BQ1BJMDAwMwAIX1BDTBIHAVxfU0JfFBtfUFNSAHAKAUdJMDCg
+CEdJMDCkCgChBKQKARQSX1NUQQCgBgoBpAoPoQSkCglbgko0QkFUMAhfSElE
+DEHQDAoIX1VJRAoACF9QQ0wSBwFcX1NCXwhCVEFQCgEUSwZfU1RBAKBOBVwv
+BV9TQl9QQ0kwUFg0MEVDMF9FQ09OoC1XNzE5oBGTREFUQwoAcFNFTEVEQVRD
+e0RBVEMKD2CgCJNgCgCkCg+hBKQKH6EWcAoBR0kwMKAIR0kwMKQKD6EEpAof
+oQSkCg8UQBZfQklGAAhCQklGEkQEDQoBCxAOC5ARCgELMCoLZQQLGQEKPAo8
+DTg4ODAgAA1Oby4xIAANTElPTiAADUNMRVZPIENvbXB1dGVyIENPLiAAoEcQ
+XC8FX1NCX1BDSTBQWDQwRUMwX0VDT06gIVc3MTlwU0VMRWBwYERBVENwCgFH
+STAwcEdJMDBEQVRCcEJDQVBgcAoARVJSQqBDB0VSUkJwCgCIQkJJRgoAAHAL
+AKCIQkJJRgoBAHALAKCIQkJJRgoCAHAKAYhCQklGCgMAcAsAoIhCQklGCgQA
+cAoAiEJCSUYKBQBwCgCIQkJJRgoGAHAKAIhCQklGCgcAcAoAiEJCSUYKCABw
+CgBCVEFQoUUEcGCIQkJJRgoBAHB6YAoDYYhCQklGCgUAcHpgCgViiEJCSUYK
+BgBwQkZDQ2BwYIhCQklGCgIAcGBDTTEwcAoBQlRBUKRCQklGoQakQkJJRhRB
+FV9CU1QACEJCU1QSDQQKAQvnAwszDAveLKBPElwvBV9TQl9QQ0kwUFg0MEVD
+MF9FQ09OoE4QQlRBUHANU21hcnQgQmF0dGVyeSBQb2xsaW5nIFNUQVJUAFsx
+cArtQVBNQ3BQTTIyZHAKAUdJMDCgF0dJMDBwCgGIQkJTVAoAAHAKAEZVTEyh
+MntDSEFSChBkoBRkcAoAiEJCU1QKAABwCgFGVUxMoRNwCgKIQkJTVAoAAHAK
+AEZVTExwUE0yM2RwCgFHSTAwoCBHSTAwe2QLAIBgoBSTYAsAgIBkZHJkCgFk
+e2QL//9kcGSIQkJTVAoBAHBQTTIxZHBkiEJCU1QKAgCgEkZVTExwQ00xMIhC
+QlNUCgIAcFBNMjRkcGSIQkJTVAoDAHANU21hcnQgQmF0dGVyeSBQb2xsaW5n
+IEVORABbMaEBpEJCU1ShBqRCQlNUW4KLUgJQQ0kwCF9ISUQMQdAKAwhfQURS
+CgBbgkoEQUdQQghfQURSDAAAAQAIX1BSVBI0AhIYBAv//woAXC8DX1NCX1BD
+STBMTktBCgASGAQL//8KAVwvA19TQl9QQ0kwTE5LQgoACF9QUlQSRQoGEhoE
+DP//HwAKAFwvA19TQl9QQ0kwTE5LQwoAEhoEDP//HwAKAVwvA19TQl9QQ0kw
+TE5LQgoAEhoEDP//HQAKAFwvA19TQl9QQ0kwTE5LQQoAEhoEDP//HQAKAVwv
+A19TQl9QQ0kwTE5LRAoAEhoEDP//HQAKAlwvA19TQl9QQ0kwTE5LQwoAEhoE
+DP//HQAKA1wvA19TQl9QQ0kwTE5LSAoAW4JFJlBDSTIIX0FEUgwAAB4ACF9Q
+UlcSBgIKCwoEW4IMTEFOXwhfQURSCgBbgg9GSVJFCF9BRFIMAAACAFuCD0NE
+QjAIX0FEUgwAAAkAW4IPQ0RCMQhfQURSDAEACQAIX1BSVBJCIBMSGgQM//8J
+AAoAXC8DX1NCX1BDSTBMTktBCgASGgQM//8JAAoBXC8DX1NCX1BDSTBMTktC
+CgASGgQM//8JAAoCXC8DX1NCX1BDSTBMTktDCgASGgQM//8JAAoDXC8DX1NC
+X1BDSTBMTktECgASGgQM//8KAAoAXC8DX1NCX1BDSTBMTktCCgASGgQM//8K
+AAoBXC8DX1NCX1BDSTBMTktDCgASGgQM//8KAAoCXC8DX1NCX1BDSTBMTktE
+CgASGgQM//8KAAoDXC8DX1NCX1BDSTBMTktBCgASGgQM//8LAAoAXC8DX1NC
+X1BDSTBMTktDCgASGgQM//8LAAoBXC8DX1NCX1BDSTBMTktECgASGgQM//8L
+AAoCXC8DX1NCX1BDSTBMTktBCgASGgQM//8LAAoDXC8DX1NCX1BDSTBMTktC
+CgASGgQM//8DAAoAXC8DX1NCX1BDSTBMTktBCgASGgQM//8DAAoBXC8DX1NC
+X1BDSTBMTktCCgASGgQM//8EAAoAXC8DX1NCX1BDSTBMTktCCgASGgQM//8J
+AAoAXC8DX1NCX1BDSTBMTktBCgASGgQM//8JAAoBXC8DX1NCX1BDSTBMTktC
+CgASGAQL//8KAFwvA19TQl9QQ0kwTE5LQwoAEhoEDP//AgAKAFwvA19TQl9Q
+Q0kwTE5LQgoAW4BTTVJNAgqQCgJbgR5TTVJNAwADR1NSTQFETENLAURDTFMB
+RE9QTgEAAQhDUkVTEUAMCryIDQACAAAAAAAA/wAAAAABRwH4DPgMAQiIDQAB
+DAMAAAAA9wwAAPgMiA0AAQwDAAAADf//AAAA84cXAAAMAwAAAAAAAAoA//8L
+AAAAAAAAAAIAhxcAAAwDAAAAAAAADQD//w0AAAAAAAAAAQCHFwAADAMAAAAA
+AAAMAP//DAAAAAAAAAABAIcXAAANAAAAAAAAAPj//////wAAAAAAAAgAhxcA
+AAwDAAAAAAAAAED///f/AAAAAAAA+L95ABQfX0NSUwBwDVBDSTBfQ1JTAFsx
+cENSRVNbMaRDUkVTW4IPVVNCMAhfQURSDAAAHQBbgg9VU0IxCF9BRFIMAQAd
+AFuCD1VTQjIIX0FEUgwCAB0AW4IPQUM5NwhfQURSDAUAHwBbghtNQzk3CF9B
+RFIMBgAfAAhfUFJXEgYCCgUKBFuCRglJREUwCF9BRFIMAQAfABQJX1NUQQCk
+Cg9bgjxQUklfCF9BRFIKAFuCFk1TVF8IX0FEUgoAFAlfU1RBAKQKD1uCFlNM
+Vl8IX0FEUgoBFAlfU1RBAKQKD1uCPFNFQ18IX0FEUgoBW4IWTVNUXwhfQURS
+CgAUCV9TVEEApAoPW4IWU0xWXwhfQURSCgEUCV9TVEEApAoPW4KAoQFQWDQw
+CF9BRFIMAAAfAAhBR1BSEQMKAYxBR1BSCgBDT01EW4BQSVJRAgpgCgxbgFBN
+T1ICCuAKDluBOVwvBF9TQl9QQ0kwUFg0MFBNT1ICQ01ERQhGTERFCFNOREUI
+AAhHRU4xEExQRU4QABAAEEdFTjIQW4I4V01TQQhfSElEDFyjBRUIX0NSUxEQ
+Cg1HARABEAEBASIgAHkAFBJfRElTAHANTVNBX0RJUwBbMVuCHVBTMk0IX0hJ
+RAxB0A8TCF9DUlMRCAoFIgAQeQBbgi1LQkNfCF9ISUQMQdADAwhfQ1JTERgK
+FUcBYABgAAEBRwFkAGQAAQEiAgB5AFuCJVJUQ18IX0hJRAxB0AsACF9DUlMR
+EAoNRwFwAHAAAQgiAAF5AFuCLVRNUl8IX0hJRAxB0AEACF9DUlMRGAoVRwFA
+AEAAAQRHAVAAUAABBCIBAHkAW4IiU1BLUghfSElEDEHQCAAIX0NSUxENCgpH
+AWEAYQABAXkAW4ImTUVNXwhfSElEDEHQDAEIX0NSUxERCg6GCQAAAAD4/wAA
+CAB5AFuCRQpQSUNfCF9ISUQLQdAIX0NSUxFBCQqNRwEgACAAAQJHASQAJAAB
+AkcBKAAoAAECRwEsACwAAQJHATAAMAABAkcBNAA0AAECRwE4ADgAAQJHATwA
+PAABAkcBoACgAAECRwGkAKQAAQJHAagAqAABAkcBrACsAAECRwGwALAAAQJH
+AbQAtAABAkcBuAC4AAECRwG8ALwAAQJHAdAE0AQBAiIEAHkAW4JGBE1BRF8I
+X0hJRAxB0AIACF9DUlMRMAotRwEAAAAAASBHAYEAgQABD0cBkACQAAECRwGT
+AJMAAQ1HAcAAwAABICoQAXkAW4JEBlBOUF8IX0hJRAxB0AwCCF9DUlMRTgQK
+SkcBLgAuAAECRwFOAE4AAQJHAYAAgAABAUcBkgCSAAEBRwGABoAGAYBHAQAC
+AAIBEEcBABAAEAGARwEAEwATAUBHAQAUABQBEHkAW4IlQ09QUghfSElEDEHQ
+DAQIX0NSUxEQCg1HAfAA8AABASIAIHkAW4JNZEVDMF8IX0hJRAxB0AwJCF9H
+UEUKHBQJX1NUQQCkCg8IX0NSUxEVChJHAWIAYgAAAUcBZgBmAAABeQAIRUNP
+TgoAFBJfUkVHAqALk2gKA3BpRUNPTluARUNPUgMKAAr/EEwRXF9TQl9bgUgO
+XC8FX1NCX1BDSTBQWDQwRUMwX0VDT1IRRUNUTQhTQ0lDCFNDUEwIAAhFQ01E
+CEVEVDAIRURUMQhFRFQyCABACFNQUk8IU01TVAhTQURECFNNQkMIU0QwMAhT
+RDAxCFNEMDIIU0QwMwhTRDA0CFNEMDUIU0QwNghTRDA3CABADFNCQ04IU0FM
+QQhTQUQwCFNBRDEIAEAIUDYwUwhQNjFTCFA2MlMIUDYzUwhQNjRTCFA2NVMI
+UDY2UwhQNjdTCFA2MFQIUDYxVAhQNjJUCFA2M1QIUDY0VAhQNjVUCFA2NlQI
+UDY3VAhbgSJcLwVfU0JfUENJMFBYNDBFQzBfRUNPUhEAQA5CTE9LQBAIRVJS
+QgoAWwFYWVpfABQaRlNQRAFwaEVEVDBwCoRFRFQxcArERUNNRBQMS1NURAFw
+aEVDTUQUE1NUUDQBcGhFRFQwcArFRUNNRBROBlNBUkEAWyNYWVpf//9wChhT
+QUREcAoAU01CQ3AKBVNQUk9wCgBnoiVTUFJPWyIKAaAWkpVnCiRwCgFFUlJC
+WydYWVpfpAoAcmcKAWegEHtTTVNUCh8AcAoBRVJSQqEIcAoARVJSQlsnWFla
+XxRBB1NSV0QCcAoARVJSQnBoU0FERHBpU01CQ3AKCVNQUk9bIgoooDR7U01T
+VAofAHBoU0FERHBpU01CQ3AKCVNQUk9bIgoooBN7U01TVAofAHAKAUVSUkKk
+CgBwU0QwMGBwU0QwMWF5YQoIYn1gYmOkYxRGClNSV1ABcAoARVJSQnBoRURU
+MHAK3UVDTURwCgBnoh9FQ01EWyIKAaAQkpVnCiRwCgFFUlJCpAoAcmcKAWeg
+TwR7RURUMgrAAHBoRURUMHAK3UVDTURwCgBnoh9FQ01EWyIKAaAQkpVnCiRw
+CgFFUlJCpAoAcmcKAWegE3tFRFQyCsAAcAoBRVJSQqQKAHBFRFQwYHBFRFQx
+YXlhCghifWBiY6RjFEgHV1NXRARbI1hZWl///3BoU0FERHBpU01CQ3BqU0Qw
+MHBrU0QwMXAKCFNQUk9wCgBnoiVTUFJPWyIKAaAWkpVnCiRwCgFFUlJCWydY
+WVpfpAoAcmcKAWdbJ1hZWl+gEHtTTVNUCh8AcAoBRVJSQqEIcAoARVJSQhRA
+BlNSQksCcGhTQUREcGlTTUJDcAoLU1BST3AKAGeiH1NQUk9bIgoBoBCSlWcK
+JHAKAUVSUkKkCgByZwoBZ6ATe1NNU1QKHwBwCgFFUlJCpAoAoQ1wCgBFUlJC
+pEJMT0sUSglIOFJTA3AKAEVSUkJwaEVEVDFwakVEVDJwCrpFQ01EcAoAZ6If
+RUNNRFsiCgGgEJKVZwokcAoBRVJSQqQKAHJnCgFncEVEVDBgcAoARVJSQnBp
+RURUMXBqRURUMnAKukVDTURwCgBnoh9FQ01EWyIKAaAQkpVnCiRwCgFFUlJC
+pAoAcmcKAWdwRURUMGF5YQoIYn1gYmOkYxQqX1E4MABwCoBBUE1EcArvQVBN
+Q3BTRUxFREFUQ4ZcLl9TQl9BQ19fCoAUE19ROEMAhlwuX1NCX0xJRDAKgBQU
+X1E4RABwCo1BUE1EcArvQVBNQxQqX1E4RQBwCo5BUE1EcArvQVBNQ3BTRUxF
+REFUQ4ZcLl9TQl9CQVQwCoEUE19RMEIAhlwuX1NCX1NMUEIKgBQUX1EwOQBw
+CglBUE1EcArvQVBNQxQUX1EwQQBwCgpBUE1EcArvQVBNQxQUX1EwQwBwCgxB
+UE1EcArvQVBNQxQUX1EwRABwCg1BUE1EcArvQVBNQxQUX1EwRQBwCg5BUE1E
+cArvQVBNQxQUX1EwRgBwCg9BUE1EcArvQVBNQxQUX1ExMABwChBBUE1EcArv
+QVBNQxQUX1ExMQBwChFBUE1EcArvQVBNQxQUX1ExMgBwChJBUE1EcArvQVBN
+QxQUX1ExMwBwChNBUE1EcArvQVBNQxQUX1ExNABwChRBUE1EcArvQVBNQxQU
+X1ExNQBwChVBUE1EcArvQVBNQwhVQkFTC/gDW4BOMzkzAVVCQVMKCFuBHE4z
+OTMBAAhJRVJfCEVYQzEIQlNSXwhNQ1JfCAhCQVNFCk5bgFM3NjkBQkFTRQoC
+W4EQUzc2OQFBSU5YCEFEVEEIW4ZFBUFJTlhBRFRBAQA4TEROUwgAQBRBQ1RS
+AQAHAEgXUE1TQghQTFNCCFNNU0IIU0xTQggAQAZJTlRMBAAEABhETUFDAwAF
+RE1BUwMABQBAPVBQTUQIWwFNVVQwABQOVU5MSwBbI01VVDD/DxQMTEtVUABb
+J01VVDAIRE1BUBIKBAoACgEKAgoDW4JPJkZEQzAIX0hJRAxB0AcAFDNfU1RB
+AHANRkRDX1NUQQBbMVVOTEtwCgBMRE5ToAlBQ1RScAoPYKEFcAoNYExLVVCk
+YBQSX0RJUwBwDUZEQ19ESVMAWzEIRENSUxEbChhHAfAD8AMABkcB9wP3AwAB
+IkAAKgQAeQAUTBBfQ1JTAHANRkRDX0NSUwBbMYxEQ1JTCgJGQUQwjERDUlMK
+A0ZBMEiMRENSUwoERkFEMYxEQ1JTCgVGQTFIjERDUlMKCkZBRDKMRENSUwoL
+RkEySIxEQ1JTCgxGQUQzjERDUlMKDUZBM0iLRENSUwoRRkRDSYxEQ1JTChRG
+RENEVU5MS3AKAExETlNwUE1TQkZBMEhwUE1TQkZBMUhwUE1TQkZBMkhwUE1T
+QkZBM0hwUExTQkZBRDBwUExTQkZBRDF9UExTQgoHYHBgRkFEMnBgRkFEM6Ah
+k1BNU0IKAHAKAFBMU0JwUExTQkZBRDBwUExTQkZBRDF5CgFJTlRMRkRDSUxL
+VVCkRENSUwhGUFJTERwKGTBHAfAD8AMABkcB9wP3AwABIkAAKgQAeQAUF19Q
+UlMAcA1GRENfUFJTAFsxpEZQUlMUTwpfU1JTAXANRkRDX1NSUwBbMYxoCgJG
+QUQwjGgKA0ZBRDGLaAoRRkRDSYxoChRGRENEVU5MS3AKAExETlNwCgFBQ1RS
+cEZBRDBQTFNCcEZBRDFQTVNCgUZEQ0lgoAeUYAoAdmBwYElOVEyBRkRDRGCg
+B5RgCgB2YHCDiERNQVBgAERNQUN9e0ZMREUK70ZMREUKEEZMREV9e0xQRU4L
+9/9MUEVOCghMUEVOTEtVUFuCQCNFQ1BfCF9ISUQMQdAEARQyX1NUQQBwDUVD
+UF9TVEEAWzGgF5CTUFRZUAoDkpNMUFRFCgBwUFNUQWChBXAKAGCkYBQWX0RJ
+UwBwDUVDUF9ESVMAWzFQRElTCEVDUlMRGwoYRwF4A3gDAAgigABHAXgHeAcA
+BCoIAHkAFE8NX0NSUwBwDUVDUF9DUlMAWzFbE0VDUlMKAApYTFBUUnBQQ1JT
+TFBUUoxFQ1JTCgJFQURMjEVDUlMKA0VBRE2MRUNSUwoNRUFTTIxFQ1JTCg5F
+QURTjEVDUlMKD0VBTEyMRUNSUwoQRUFEMotFQ1JTChRFQ1BEckVBRE0KBEVB
+RFNwRUFEU0VBRDJwRUFETEVBU0xwRUFETEVBTExVTkxLcAoBTEROU3BETUFD
+WzFwiURNQVABRE1BQwAKAAoAYHkKAWBFQ1BEcEVDUERbMUxLVVBwRUNSU1sx
+pEVDUlMIRVBSUxFACQqMMEcBeAN4AwAIIoAARwF4B3gHAAQqAgAwRwF4AngC
+AAgiIABHAXgGeAYABCoCADBHAbwDvAMABCKAAEcBvAe8BwAEKgIAMEcBeAN4
+AwAIIoAARwF4B3gHAAQqCAAwRwF4AngCAAgiIABHAXgGeAYABCoIADBHAbwD
+vAMABCKAAEcBvAe8BwAEKggAeQAUF19QUlMAcA1FQ1BfUFJTAFsxpEVQUlMU
+Jl9TUlMBcA1FQ1BfU1JTAFsxVU5MS3AKAUxETlNQU1JTaExLVVBbgkEUTFBU
+XwhfSElEDEHQBAAUM19TVEEAcA1MUFRfU1RBAFsxoBiQkpNMUFRFCgCSk1BU
+WVAKA3BQU1RBYKEFcAoAYKRgFBZfRElTAHANTFBUX0RJUwBbMVBESVMITENS
+UxEQCg1HAXgDeAMACCKAAHkAFC5fQ1JTAHANRUNQX0NSUwBbMVsTTENSUwoA
+ClhMUFRScFBDUlNMUFRSpExDUlMITFBSUxEpCiYwRwF4A3gDAAgigAAwRwF4
+AngCAAgiIAAwRwG8A7wDAAQigAB5AAhQUFJTER0KGjBHAXgDeAMACCKAADBH
+AXgCeAIACCIgAHkAFCdfUFJTAHANTFBUX1BSUwBbMaANk1BUWVAKAqRQUFJT
+oQakTFBSUxQmX1NSUwFwDUxQVF9TUlMAWzFVTkxLcAoBTEROU1BTUlNoTEtV
+UBQnUFNUQQBVTkxLcAoBTEROU6AJQUNUUnAKD2ChBXAKDWBMS1VQpGAUBlBE
+SVMACFBSU1QRDgoLRwF4A3gDAAgigAAUTAlQQ1JTAIxQUlNUCgJFUExBjFBS
+U1QKA0VQTUGMUFJTVAoERVBMMYxQUlNUCgVFUE0yi1BSU1QKCUVDUEmMUFJT
+VAoHRVBJT1VOTEtwCgFMRE5TcFBNU0JFUE1BcFBMU0JFUExBcFBNU0JFUE0y
+cFBMU0JFUEwxoA+TRVBMQQq8cAoERVBJT3kKAUlOVExFQ1BJTEtVUKRQUlNU
+FEgTUFNSUwGLaAoCRUFEMItoCglFQ1BJcAoBQUNUUqAWk1BUWVAKAHAKBERN
+QUNwChJQUE1EoUMGoBaTUFRZUAoBcAoERE1BQ3AKMlBQTUSgMpNQVFlQCgOM
+aAoURUNQRIFFQ1BEYKAHlGAKAHZgcIOIRE1BUGAARE1BQ3AKklBQTUSgFpNQ
+VFlQCgJwCgRETUFDcApyUFBNRKANkwu8A0VBRDBwCgJgoSWgDZMLeANFQUQw
+cAoAYKEVoA2TC3gCRUFEMHAKAWChBXAKA2B9e0ZMREUK/EZMREVgRkxERX1M
+UEVOCgRMUEVOjGgKAkVBREyMaAoDRUFESHBFQURMUExTQnBFQURIUE1TQqAY
+k1BUWVAKA4xoCg1BRFNMjGgKDkFEU0iBRUNQSWCgB5RgCgB2YHBgSU5UTFuC
+SAxDT00xCF9ISUQMQdAFAQhfVUlECgAULV9TVEEAcA1DT00xX1NUQQBbMaAR
+kpNDTUFECgBwVVNUQQoAYKEFcAoAYKRgFBlfRElTAHANQ09NMV9ESVMAWzFV
+RElTCgAULV9DUlMAcA1fQ1JTAFsxWxNVSVJTCgAKWFVSU19wVUNSUwoAVVJT
+X6RVSVJTFBhfUFJTAHANQ09NMV9QUlMAWzGkVVBSUxQhX1NSUwFwDUNPTTFf
+U1JTAFsxVVNSU2gKAHAK6kFQTUNbgkQNQ09NMghfSElEDEHQBQEIX1VJRAoB
+FDVfU1RBAHANQ09NMl9TVEEAWzGgGZCTVVRZUAoAkpNDTUJECgBwVVNUQQoB
+YKEFcAoAYKRgFBlfRElTAHANQ09NMl9ESVMAWzFVRElTCgEUMV9DUlMAcA1D
+T00yX0NSUwBbMVsTVUlSUwoAClhVUlNfcFVDUlMKAVVSU1+kVUlSUxQfX1BS
+UwBwDUNPTTJfUFJTAFsxcFVQUlNbMaRVUFJTFBpfU1JTAXANQ09NMl9TUlMA
+WzFVU1JTaAoBW4JMDUlSREEIX0hJRAxB0AUQCF9VSUQKAhQ9X1NUQQBwDUlS
+REFfU1RBAFsxoCGQkZNVVFlQCgGTVVRZUAoCkpNDTUJECgBwVVNUQQoBYKEF
+cAoAYKRgFBlfRElTAHANSVJEQV9ESVMAWzFVRElTCgEUMV9DUlMAcA1JUkRB
+X0NSUwBbMVsTVUlSUwoAClhVUlNfcFVDUlMKAVVSU1+kVUlSUxQfX1BSUwBw
+DUlSREFfUFJTAFsxcFVQUlNbMaRVUFJTFBpfU1JTAXANSVJEQV9TUlMAWzFV
+U1JTaAoBW4JFHkZJUl8IX0hJRAw6Y2ABCF9VSUQKAxQ0X1NUQQBwDUZJUl9T
+VEEAWzGgGZCSk0NNQkQKAJNVVFlQCgNwVVNUQQoBYKEFcAoAYKRgFBhfRElT
+AHANRklSX0RJUwBbMVVESVMKARRFB19DUlMAcA1GSVJfQ1JTAFsxWxNGQ1JT
+CgAKWFVSU1+MRkNSUwoMSVJETXBVQ1JTCgFVUlNfVU5MS3BETUFDWzGgG5KU
+RE1BQwoEeQoBg4hETUFQRE1BQwBJUkRNcElSRE1bMUxLVVBwRkNSU1sxpEZD
+UlMIX1BSUxFKCwq2MEcB+AP4AwAIIhAAKgEAMEcB+AL4AgAIIggAKgEAMEcB
+6APoAwAIIhAAKgEAMEcB6ALoAgAIIggAKgEAMEcB+AP4AwAIIhAAKgIAMEcB
++AL4AgAIIggAKgIAMEcB6APoAwAIIhAAKgIAMEcB6ALoAgAIIggAKgIAMEcB
++AP4AwAIIhAAKggAMEcB+AL4AgAIIggAKggAMEcB6APoAwAIIhAAKggAMEcB
+6ALoAgAIIggAKggAeQAUGV9TUlMBcA1GSVJfU1JTAFsxVVNSU2gKAVuELlBV
+VDIAAAAUCV9TVEEApAoBFAdfT05fAKMUB19PRkYAowhfUFIwEgYBUFVUMghV
+SVJUEQ4KC0cB+AL4AgAIIggACFVJUlMREAoNRwEAAAAAAAgiAAB5AAhGQ1JT
+ERMKEEcB+AL4AgAIIggAKgEAeQAIVVBSUxE1CjIwRwH4A/gDAAgiEAAwRwH4
+AvgCAAgiCAAwRwHoA+gDAAgiEAAwRwHoAugCAAgiCAB5ABQzVVNUQQFVTkxL
+oAlocAoCTEROU6EIcAoDTEROU6AJQUNUUnAKD2ChBXAKDWBMS1VQpGAUBlVE
+SVMBFEQJVUNSUwFVTkxLjFVJUlQKAlVBREyMVUlSVAoDVUFESIxVSVJUCgRB
+RDFMjFVJUlQKBUFEMUiLVUlSVAoJVUlSUaAJaHAKAkxETlOhCHAKA0xETlNw
+CgFBQ1RScFBMU0JVQURMcFBNU0JVQURIcFBMU0JBRDFMcFBNU0JBRDFIeQoB
+SU5UTFVJUlFMS1VQpFVJUlQUTyBVU1JTAlVOTEuLaAoCVUFEUoxoCgJVQURM
+jGgKA1VBREiLaAoJVUlSUaAJaXAKAkxETlOhCHAKA0xETlNwCgFBQ1RScFVB
+RExQTFNCcFVBREhQTVNCcFVBRFJVQkFTgVVJUlFgoAeUYAoAdmBwYElOVEyg
+QBJpcAoCTEROU31QUE1ECoJQUE1EcAoERE1BQ3AKBERNQVNwCgFBQ1RSoE0E
+k1VUWVAKAHAK4EJTUl97RVhDMQr+RVhDMXAKA0JTUl97TUNSXwofTUNSX3AK
+A0JTUl97UFBNRAp/UFBNRHAKA0JTUl9wCgBNQ1JfoUcKcAoDQlNSX3AKAElF
+Ul9wCuBCU1JffUVYQzEKAUVYQzFwCuBCU1JfcAoATUNSX6AWk1VUWVAKAXAK
+A0JTUl9wCmBNQ1JfoBaTVVRZUAoCcAoDQlNSX3AKgE1DUl+gQQSTVVRZUAoD
+cAoDQlNSX3AKoE1DUl+MaAoMSVJETYFJUkRNYKAHlGAKAHZgcIlETUFQAWAA
+CgAKAGFwYURNQUNwCgNCU1JfoA2TC/gDVUFEUnAKAGChJaANkwv4AlVBRFJw
+CgFgoRWgDZML6AJVQURScAoFYKEFcAoHYKAjaXlgCgRgfXtDTURFCo9DTURF
+YENNREV9TFBFTgoCTFBFTqEdfXtDTURFCvhDTURFYENNREV9TFBFTgoBTFBF
+TkxLVVBbgT9cLwRfU0JfUENJMFBYNDBQSVJRAVBJUkEIUElSQghQSVJDCFBJ
+UkQIACBQSVJFCFBJUkYIUElSRwhQSVJICFuCSQpMTktBCF9ISUQMQdAMDwhf
+VUlECgEIX1BSUxEJCgYj2AwYeQAUF19TVEEAoAuTUElSQQqApAoJoQSkCgsU
+DV9ESVMAcAqAUElSQRQ5X0NSUwAIQlVGQREJCgYjAAAYeQCLQlVGQQoBSVJC
+MaATkpNQSVJBCoB5AVBJUkFJUkIxpEJVRkEUIl9TUlMBi2gKAUlSQjGBSVJC
+MWCgB5RgCgB2YHBgUElSQVuCSQpMTktCCF9ISUQMQdAMDwhfVUlECgIIX1BS
+UxEJCgYj2AwYeQAUF19TVEEAoAuTUElSQgqApAoJoQSkCgsUDV9ESVMAcAqA
+UElSQhQ5X0NSUwAIQlVGQhEJCgYjAAAYeQCLQlVGQgoBSVJCMaATkpNQSVJC
+CoB5AVBJUkJJUkIxpEJVRkIUIl9TUlMBi2gKAUlSQjGBSVJCMWCgB5RgCgB2
+YHBgUElSQluCSQpMTktDCF9ISUQMQdAMDwhfVUlECgMIX1BSUxEJCgYj2AwY
+eQAUF19TVEEAoAuTUElSQwqApAoJoQSkCgsUDV9ESVMAcAqAUElSQxQ5X0NS
+UwAIQlVGQxEJCgYjAAAYeQCLQlVGQwoBSVJCMaATkpNQSVJDCoB5AVBJUkNJ
+UkIxpEJVRkMUIl9TUlMBi2gKAUlSQjGBSVJCMWCgB5RgCgB2YHBgUElSQ1uC
+SQpMTktECF9ISUQMQdAMDwhfVUlECgQIX1BSUxEJCgYj2AwYeQAUF19TVEEA
+oAuTUElSRAqApAoJoQSkCgsUDV9ESVMAcAqAUElSRBQ5X0NSUwAIQlVGRBEJ
+CgYjAAAYeQCLQlVGRAoBSVJCMaATkpNQSVJECoB5AVBJUkRJUkIxpEJVRkQU
+Il9TUlMBi2gKAUlSQjGBSVJCMWCgB5RgCgB2YHBgUElSRFuCSQpMTktFCF9I
+SUQMQdAMDwhfVUlECgUIX1BSUxEJCgYj2AwYeQAUF19TVEEAoAuTUElSRQqA
+pAoJoQSkCgsUDV9ESVMAcAqAUElSRRQ5X0NSUwAIQlVGRBEJCgYjAAAYeQCL
+QlVGRAoBSVJCMaATkpNQSVJFCoB5AVBJUkVJUkIxpEJVRkQUIl9TUlMBi2gK
+AUlSQjGBSVJCMWCgB5RgCgB2YHBgUElSRVuCSQpMTktGCF9ISUQMQdAMDwhf
+VUlECgYIX1BSUxEJCgYj2AwYeQAUF19TVEEAoAuTUElSRgqApAoJoQSkCgsU
+DV9ESVMAcAqAUElSRhQ5X0NSUwAIQlVGRBEJCgYjAAAYeQCLQlVGRAoBSVJC
+MaATkpNQSVJGCoB5AVBJUkZJUkIxpEJVRkQUIl9TUlMBi2gKAUlSQjGBSVJC
+MWCgB5RgCgB2YHBgUElSRluCSQpMTktHCF9ISUQMQdAMDwhfVUlECgcIX1BS
+UxEJCgYj2AwYeQAUF19TVEEAoAuTUElSRwqApAoJoQSkCgsUDV9ESVMAcAqA
+UElSRxQ5X0NSUwAIQlVGRBEJCgYjAAAYeQCLQlVGRAoBSVJCMaATkpNQSVJH
+CoB5AVBJUkdJUkIxpEJVRkQUIl9TUlMBi2gKAUlSQjGBSVJCMWCgB5RgCgB2
+YHBgUElSR1uCSQpMTktICF9ISUQMQdAMDwhfVUlECggIX1BSUxEJCgYj2AwY
+eQAUF19TVEEAoAuTUElSSAqApAoJoQSkCgsUDV9ESVMAcAqAUElSSBQ5X0NS
+UwAIQlVGRBEJCgYjAAAYeQCLQlVGRAoBSVJCMaATkpNQSVJICoB5AVBJUkhJ
+UkIxpEJVRkQUIl9TUlMBi2gKAUlSQjGBSVJCMWCgB5RgCgB2YHBgUElSSA==
+--2000779368-2066027850-1033451661=:28627--
 
 
 -------------------------------------------------------
