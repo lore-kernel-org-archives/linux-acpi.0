@@ -1,74 +1,43 @@
-From: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [patch 07/12] Make the PCI remove routines safe for failed hot-plug
-Date: Fri, 18 Mar 2005 14:11:44 -0800
-Message-ID: <20050318141143.G1145@unix-os.sc.intel.com>
+From: Rajesh Shah <rajesh.shah@intel.com>
+Subject: [patch 08/12] Remove hot-plugged devices that could not be allocated resources
+Date: Fri, 18 Mar 2005 14:14:15 -0800
+Message-ID: <20050318141415.H1145@unix-os.sc.intel.com>
 References: <20050318133856.A878@unix-os.sc.intel.com>
-Reply-To: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reply-To: Rajesh Shah <rajesh.shah@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20050318133856.A878-39QZ/XbsZ5/mO6KZMuUCQVaTQe2KTcn/@public.gmane.org>; from rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org on Fri, Mar 18, 2005 at 01:38:57PM -0800
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: gregkh-l3A5Bk7waGM@public.gmane.org, tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pcihpd-discuss-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <20050318133856.A878@unix-os.sc.intel.com>; from rajesh.shah@intel.com on Fri, Mar 18, 2005 at 01:38:57PM -0800
+Sender: linux-ia64-owner@vger.kernel.org
+To: gregkh@suse.de, tony.luck@intel.com, len.brown@intel.com
+Cc: linux-pci@atrey.karlin.mff.cuni.cz, linux-kernel@vger.kernel.org, pcihpd-discuss@lists.sourceforge.net, linux-ia64@vger.kernel.org, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-When a root bridge hierarchy is hot-plugged, resource requirements
-for the new devices may be greater than what the root bridge is
-decoding. In this case, we want to remove devices that did not
-get needed resources. These devices have been scanned into bus
-specific lists but not yet added to the global device list.
-Make sure the pci remove functions can handle this case.
+When hot-plugging an I/O hierarchy that contains many bridges
+and leaf devices, it's possible that there are not enough 
+resources to start all the device present. If we fail to assign
+a resource, clear the corresponding value in the pci_dev structure,
+so other code can take corrective action.
 
-Signed-off-by: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Rajesh Shah <rajesh.shah@intel.com>
 ---
 
- linux-2.6.11-mm4-iohp-rshah1/drivers/pci/remove.c |   14 +++++++++-----
- 1 files changed, 9 insertions(+), 5 deletions(-)
+ linux-2.6.11-mm4-iohp-rshah1/drivers/pci/setup-bus.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/pci/remove.c~pci-remove-device-hotplug-safe drivers/pci/remove.c
---- linux-2.6.11-mm4-iohp/drivers/pci/remove.c~pci-remove-device-hotplug-safe	2005-03-16 13:07:22.667319764 -0800
-+++ linux-2.6.11-mm4-iohp-rshah1/drivers/pci/remove.c	2005-03-16 13:07:22.775718200 -0800
-@@ -26,17 +26,21 @@ static void pci_free_resources(struct pc
- 
- static void pci_destroy_dev(struct pci_dev *dev)
- {
--	pci_proc_detach_device(dev);
--	pci_remove_sysfs_dev_files(dev);
--	device_unregister(&dev->dev);
-+	if (!list_empty(&dev->global_list)) {
-+		pci_proc_detach_device(dev);
-+		pci_remove_sysfs_dev_files(dev);
-+		device_unregister(&dev->dev);
-+		spin_lock(&pci_bus_lock);
-+		list_del(&dev->global_list);
-+		dev->global_list.next = dev->global_list.prev = NULL;
-+		spin_unlock(&pci_bus_lock);
-+	}
- 
- 	/* Remove the device from the device lists, and prevent any further
- 	 * list accesses from this device */
- 	spin_lock(&pci_bus_lock);
- 	list_del(&dev->bus_list);
--	list_del(&dev->global_list);
- 	dev->bus_list.next = dev->bus_list.prev = NULL;
--	dev->global_list.next = dev->global_list.prev = NULL;
- 	spin_unlock(&pci_bus_lock);
- 
- 	pci_free_resources(dev);
+diff -puN drivers/pci/setup-bus.c~discard_no_resource_devs drivers/pci/setup-bus.c
+--- linux-2.6.11-mm4-iohp/drivers/pci/setup-bus.c~discard_no_resource_devs	2005-03-16 13:07:26.557944717 -0800
++++ linux-2.6.11-mm4-iohp-rshah1/drivers/pci/setup-bus.c	2005-03-16 13:07:26.666343153 -0800
+@@ -72,7 +72,10 @@ pbus_assign_resources_sorted(struct pci_
+ 	for (list = head.next; list;) {
+ 		res = list->res;
+ 		idx = res - &list->dev->resource[0];
+-		pci_assign_resource(list->dev, idx);
++		if (pci_assign_resource(list->dev, idx)) {
++			res->start = 0;
++			res->flags = 0;
++		}
+ 		tmp = list;
+ 		list = list->next;
+ 		kfree(tmp);
 _
-
-
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
