@@ -1,12 +1,11 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: 2 different functions with same name are bad idea
-Date: Thu, 9 Oct 2003 02:11:50 +0200
+From: Joshua Schmidlkofer <menion-8BColdH5dlvzIImvGDD8mw@public.gmane.org>
+Subject: ACPI + SiS IRQ Routing?
+Date: Wed, 08 Oct 2003 17:17:45 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031009001149.GA714@elf.ucw.cz>
+Message-ID: <1065658665.26205.8.camel@menion.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-2VlIt6yZfPACJNim7OxO"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,41 +14,54 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Rusty trivial patch monkey Russell <trivial-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
 
-There's acpi_disable somewhere in the acpi interpreter (it disables
-interrupts, iirc). Thus blacklisting function needs better name.
+--=-2VlIt6yZfPACJNim7OxO
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-								Pavel
+What is the status of the SiS IRQ router?  I have two motherboards, one
+with a 645, and one with a 648.  I have confirmed that all the way up to
+[and including] 2.6.0-test6 I am having problems.  I am going to test
+with mm4, but on another system I experienced a wierd Oops with mm4. =20
 
---- tmp/linux/arch/i386/kernel/dmi_scan.c	2003-10-09 00:13:13.000000000 +0200
-+++ linux/arch/i386/kernel/dmi_scan.c	2003-10-09 00:19:11.000000000 +0200
-@@ -506,7 +507,7 @@
- 
- extern int acpi_disabled, acpi_force;
- 
--static __init __attribute__((unused)) int acpi_disable(struct dmi_blacklist *d) 
-+static __init __attribute__((unused)) int disable_acpi(struct dmi_blacklist *d) 
- { 
- 	if (!acpi_force) { 
- 		printk(KERN_NOTICE "%s detected: acpi off\n",d->ident); 
-@@ -880,7 +881,7 @@
- 	 *	Boxes that need ACPI disabled
- 	 */
- 
--	{ acpi_disable, "IBM Thinkpad", {
-+	{ disable_acpi, "IBM Thinkpad", {
- 			MATCH(DMI_BOARD_VENDOR, "IBM"),
- 			MATCH(DMI_BOARD_NAME, "2629H1G"),
- 			NO_MATCH, NO_MATCH }},
+I have historically had issue w/ the 1 interrupt/4 device High Point IDE
+contollers unless I have full ACPI support enabled.  Prior to test6, I
+had a conflict between my Nvidia [w/ or w/o binary driver].  Now, it is
+my main USB device that suffers.  What can I do to help with the
+process.
+
+The symptom is that the ACPI interrupt begins acumlating events in
+/proc/interrupts until it reaches something like 100000, then I get an
+Oops about an interrupt that no one cared about [I.e. IRQ 9], and the
+system continues to run fine.  Aside from the Oops, I don't see any
+other problems, but I am a little afraid to run at that point.
+
+thanks,
+   Joshua
 
 
--- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+--=20
+VB programmers ask why no one takes them seriously,=20
+it's somewhat akin to a McDonalds manager asking employees=20
+why they don't take their 'career' seriously.
+
+--=-2VlIt6yZfPACJNim7OxO
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQA/hKkpcweM6t71VHsRAruLAJwJzVva1w2upbV6GfUOoQ4kf/xDNgCfYOnz
+8CQGuHgoyHlSmc8R7sXJh40=
+=yYPW
+-----END PGP SIGNATURE-----
+
+--=-2VlIt6yZfPACJNim7OxO--
+
 
 
 -------------------------------------------------------
