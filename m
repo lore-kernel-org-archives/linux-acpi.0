@@ -1,12 +1,14 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: [ANNOUNCE] acpi4asus 0.29 released
-Date: Wed, 4 Aug 2004 22:57:44 +0200
+From: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC] dev_acpi: device driver for userspace access to ACPI
+Date: Wed, 4 Aug 2004 21:36:37 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040804205743.GA8171@hell.org.pl>
+Message-ID: <20040805043636.GA28244@kroah.com>
+References: <1091552426.4981.103.camel@tdi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <1091552426.4981.103.camel@tdi>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -15,24 +17,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-Version 0.29 is finally out. Changes include:
-- support for M5200N, L4500R, W1000N
-- numerous other fixes (WLED, proc and pointers handling)
+On Tue, Aug 03, 2004 at 11:00:26AM -0600, Alex Williamson wrote:
+> 
+>   Populating the sysfs tree didn't seem to generate as much interest as
+> I'd hoped and I don't think it kept with the spirit of sysfs very well.
 
-Grab the tarball from the usual places:
-http://sourceforge.net/projects/acpi4asus/
-http://hell.org.pl/~sziwan/asus/acpi4asus.tar.bz2
+I'm sorry if I didn't speak up at the time, but I still think that your
+sysfs patches were the right way to go.  Why do you think they don't
+keep with the spirit of sysfs?  Do you have a pointer to your last
+patch that exported the acpi table info through sysfs?
 
-Best regards,
+thanks,
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+greg k-h
 
 
 -------------------------------------------------------
