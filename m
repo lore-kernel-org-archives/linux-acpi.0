@@ -1,16 +1,12 @@
-From: Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Subject: Re: S3 freezes on wake on NC6000 laptop
-Date: Tue, 08 Feb 2005 13:20:47 +1100
-Message-ID: <1107829247.2756.54.camel@desktop.cunninghams>
-References: <4207A416.8030400@colitti.com>
-	 <20050207223644.GA1394@elf.ucw.cz>  <4208057C.6090707@colitti.com>
-	 <1107823331.2756.32.camel@desktop.cunninghams>
-	 <42081EE0.9050108@colitti.com>
-Reply-To: ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org
+Date: Tue, 8 Feb 2005 10:02:49 +0100
+Message-ID: <20050208090249.GA9391@hell.org.pl>
+References: <4207A416.8030400@colitti.com> <4207A8A2.1040202@gmx.net> <20050207175354.GA20662@hell.org.pl> <e796392205020712384885b728@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <42081EE0.9050108-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset=iso-8859-2
+Content-Disposition: inline
+In-Reply-To: <e796392205020712384885b728-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,38 +16,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Lorenzo Colitti <lorenzo-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Stefan Schweizer <sschweizer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, Lorenzo Colitti <lorenzo-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi.
-
-On Tue, 2005-02-08 at 13:07, Lorenzo Colitti wrote:
-> Nigel Cunningham wrote:
-> >>- swsusp2 on its own also freezes on wakeup (but even worse:
-> >>   you can't even power off by holding the power button)
-> > 
-> > If that's the case, something is broken in Suspend2. Can you confirm
-> > that please by removing Radeon but adding Suspend2?
+Thus wrote Stefan Schweizer:
+> > That's sort of incorrect, I've used radeonfb since late 2.5.X builds and I
+> > don't remember it causing any problems resuming (of course, I need
+> > acpi_sleep=s3_bios, but that's another thing). Radeonfb will resume just
+> > fine, provided the underlying hardware is in a sane state. Granted, it may
+> > cause freezes, but it's definitely not so that removing it will magically
+> > cause your video to work or that it does always hang the machine.
 > 
-> Actually it's not swsusp2's fault. The working kernel has a rather 
-> stripped-down config, and the non-working kernel has a much more 
-> complicated configuration. If I add swsusp2 to the stripped-down kernel, S3 
-> sleep still works.
+> Do you have to press a key on resume to be able to come back?
+> 
+> Thats one of my major problems with ole's patch to get video back with
+> radeonfb when s3_bios does not work.
 
-Okay. From my perspective, that's good :>
-
-Regards,
-
-Nigel
+I don't really understand. I resume the usual way, by pressing a random key
+or the power button. No additional presses needed.
+Best regards,
 
 -- 
-Nigel Cunningham
-Software Engineer, Canberra, Australia
-http://www.cyclades.com
-
-Ph: +61 (2) 6292 8028      Mob: +61 (417) 100 574
-
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
