@@ -1,41 +1,61 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: [ACPI] Vaio doesn't poweroff with 2.4.22
-Date: Mon, 15 Sep 2003 15:53:03 +0200
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20030915135303.GH11391@poupinou.org>
-References: <Pine.GSO.4.21.0309150835480.3191-100000@vervain.sonytel.be>
+From: Hrvoje Habjanic <hrvoje.habjanic-+VD6v/bdhRf0NTdHYsHBKg@public.gmane.org>
+Subject: [PATCH] Debugging memory deallocation ...
+Date: Mon, 15 Sep 2003 20:49:58 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <200309152049.58283.hrvoje.habjanic@zg.htnet.hr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.GSO.4.21.0309150835480.3191-100000-Q9iLAqk50tFNk+PO8Cj175kigfUh6rMo@public.gmane.org>
-To: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Linux Kernel Development <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Sep 15, 2003 at 08:43:56AM +0200, Geert Uytterhoeven wrote:
-> 	Hi,
-> 
-> With 2.4.22, my Sony Vaio PCG-Z600TEK (s/600/505/ in US/JP) shows a regression
-> w.r.t. power management:
->   - It doesn't poweroff anymore (screen contents are still there after the
->     powering down message)
->   - It doesn't reboot anymore (screen goes black, though)
->   - It accidentally suspended to RAM once while I was actively working on it (I
->     never managed to get suspend working, except for this `accident'). I didn't
->     see any messages about this in the kernel log.
-> 
+
+Hi!
+
+Following patch make acpi_ut_free_and_track function to CHECK address BEFORE deallocating it.
 
 
-Are you able to reboot without acpi?
+Hrvoje
 
--- 
-Ducrot Bruno
+--- /usr/src/linux-2.4.22/drivers/acpi/utilities/utalloc.c      2003-08-25 13:44:41.000000000 +0200
++++ utalloc.c   2003-09-15 20:46:37.000000000 +0200
+@@ -564,7 +562,7 @@
+        char                            *module,
+        u32                             line)
+ {
+-       struct acpi_debug_mem_block     *debug_block;
++       struct acpi_debug_mem_block     *debug_block,*element;
+        acpi_status                     status;
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
--
-To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-Please read the FAQ at  http://www.tux.org/lkml/
+
+@@ -581,6 +579,13 @@
+        debug_block = ACPI_CAST_PTR (struct acpi_debug_mem_block,
+                          (((char *) allocation) - sizeof (struct acpi_debug_mem_header)));
+
++       element = acpi_ut_find_allocation (ACPI_MEM_LIST_GLOBAL, debug_block);
++       if( element == NULL )
++       {
++               ACPI_REPORT_ERROR (("Trying to free unallocated segment\n"))
++               return_VOID;
++       }
++
+        acpi_gbl_memory_lists[ACPI_MEM_LIST_GLOBAL].total_freed++;
+        acpi_gbl_memory_lists[ACPI_MEM_LIST_GLOBAL].current_total_size -= debug_block->size;
+
+
+
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
