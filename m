@@ -1,17 +1,15 @@
-From: Chris Howells <chris-NvB7AskkBIqIudiWw5vspbVCufUGDwFn@public.gmane.org>
-Subject: Re: Latest ACPI + cpufreq on a Dell Inspiron 2650
-Date: Tue, 3 Dec 2002 16:02:46 +0000
+From: PSI-Systems <psi-systems-hi6Y0CQ0nG0@public.gmane.org>
+Subject: Re: Acpi Problem
+Date: Tue, 3 Dec 2002 17:15:22 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200212031602.46308.chris@chrishowells.co.uk>
-References: <A3C83F41488BD61195C3000802252FC135BF4D@dubim07742.ie.ml.com>
+Message-ID: <200212031715.22698.psi-systems@gmx.net>
+References: <200212021120.13300.tom@supinfo.com> <200212030935.47545.tom@supinfo.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
+Content-Type: text/plain;
   charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <A3C83F41488BD61195C3000802252FC135BF4D-SI4JNLCqwGbcq19Bq1crS1aTQe2KTcn/@public.gmane.org>
-Content-Description: clearsigned data
-Content-Disposition: inline
+In-Reply-To: <200212030935.47545.tom-GJzCDJVA6d1BDgjK7y7TUQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,33 +18,35 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: tom-GJzCDJVA6d1BDgjK7y7TUQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+> Could someone explain me what is ECDT so i could find more informations
+> on my problem?
 
-Hi,
+According to Andrew Grover, this is the Problem:
 
-On Tuesday 03 December 2002 13:42, Breathnach, Proinnsias (Dublin) wrote:
-> 	Does "xset dpms force off" from X help on that score ?
+>Your BIOS is broken. We just started looking at the EC_ID field in the 
+>ECDT,
+>and unfortunately your machine's is wrong.
+>
+>A little explanation...
+>
+>Your laptop has an Embedded Controller. The ECDT table is supposed to
+>describe the EC, so that AML can use operation regions in the EC before 
+>the
+>EC device is actually found by the walking of the namespace.
+>
+>The ECDT-enumerated EC and the EC in the namespace are linked because 
+>there
+>is a field (EC_ID) in the ECDT that gives the path to the EC in the
+>namespace. If this is wrong, then we abort.
+>
+>As with so many things ACPI-related, the *right* answer is that IBM fixes
+>their BIOS...but since this works under Windows, we may end up applying a
+>yet-to-be-devised workaround. :(
 
-On my machine, that does nothing, possibly because the NVidia drivers disable 
-it, IIRC.
-
-- -- 
-Cheers, Chris Howells -- chris-NvB7AskkBIqIudiWw5vspbVCufUGDwFn@public.gmane.org, howells@kde.org
-Web: http://chrishowells.co.uk, PGP key: http://chrishowells.co.uk/pgp.txt
-KDE: http://www.koffice.org, http://printing.kde.org, http://usability.kde.org
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.0 (GNU/Linux)
-
-iD8DBQE97NWmF8Iu1zN5WiwRApuzAJwM1Bm3GRkJME11o/o3jCBwGDTJ9ACdEpRd
-jYMutJgDaXRWFKCB5TCgJKE=
-=56iH
------END PGP SIGNATURE-----
-
+I've the same Prob with my IBM A31.
 
 
 -------------------------------------------------------
