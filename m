@@ -1,13 +1,14 @@
 From: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
-Subject: Re: [PATCH][RFC] fix ACPI IRQ routing after S3 suspend
-Date: Wed, 04 Aug 2004 11:57:57 -0400
+Subject: Re: Re: [PATCH][RFC] fix ACPI IRQ routing after S3 suspend
+Date: Wed, 04 Aug 2004 12:10:33 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <41110785.4040000@optonline.net>
-References: <41103F22.4090303@optonline.net> <1091588367.2297.49.camel@dhcppc4>
+Message-ID: <41110A79.40504@optonline.net>
+References: <41103F22.4090303@optonline.net> <1091588367.2297.49.camel@dhcppc4> <41110785.4040000@optonline.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_bQiM8BcXIaWCVLFoDgAJUw)"
+Content-Type: multipart/mixed;
+ boundary="------------060309030708080201090808"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <1091588367.2297.49.camel@dhcppc4>
+In-Reply-To: <41110785.4040000-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -21,58 +22,35 @@ Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.or
 List-Id: linux-acpi@vger.kernel.org
 
 This is a multi-part message in MIME format.
+--------------060309030708080201090808
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
---Boundary_(ID_bQiM8BcXIaWCVLFoDgAJUw)
-Content-type: text/plain; charset=us-ascii; format=flowed
-Content-transfer-encoding: 7BIT
+Nathan Bryant wrote:
+> 
+> Len-
+> 
+> Attached is a respin based on your comments.
 
+One more respin, this just cleans whitespace.
 
-Len-
-
-Attached is a respin based on your comments.
-
-Len Brown wrote:
-
->> static int
->>+acpi_pci_link_resume (
->>+	struct acpi_pci_link	*link)
->>+{
->>+	ACPI_FUNCTION_TRACE("acpi_pci_link_resume");
->>+	
->>+	if (link->irq.active && link->irq.setonboot)
->>    
->>
->
->I think that before this change, irq.setonboot was a NOP
->and a candidate for being deleted.  However, it does seem
->to have a use here, where we want to re-program only those
->links that were programmed.  ("setonboot" would probably
->be better called "initialized" or "programmed").
->  
->
-Agree, changed to "initialized"
-
->> static int __init acpi_pci_link_init (void)
->> {
->> 	ACPI_FUNCTION_TRACE("acpi_pci_link_init");
->> 
->>-	if (acpi_pci_disabled)
->>+	if (acpi_disabled || acpi_noirq)
->>    
->>
->
->I think that testing acpi_noirq is sufficient here.
->  
->
-I'll take your word for it. changed.
-
---Boundary_(ID_bQiM8BcXIaWCVLFoDgAJUw)
-Content-type: text/plain; name=acpi-fixes.patch2
-Content-transfer-encoding: 7BIT
-Content-disposition: inline; filename=acpi-fixes.patch2
+--------------060309030708080201090808
+Content-Type: text/plain;
+ name="acpi-fixes.patch2"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="acpi-fixes.patch2"
 
 # This is a BitKeeper generated diff -Nru style patch.
 #
+# ChangeSet
+#   2004/08/04 12:05:55-04:00 nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org 
+#   [ACPI] drivers/acpi/pci_link.c: consistify whitespace
+# 
+# drivers/acpi/pci_link.c
+#   2004/08/04 12:05:47-04:00 nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org +4 -4
+#   [ACPI] drivers/acpi/pci_link.c: consistify whitespace
+# 
 # ChangeSet
 #   2004/08/04 11:32:42-04:00 nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org 
 #   [ACPI] drivers/acpi/pci_link.c: misc cleanups per suggestions
@@ -143,8 +121,8 @@ Content-disposition: inline; filename=acpi-fixes.patch2
 #   Added Module.symvers drivers/acpi/pci_link.c~ to the ignore list
 # 
 diff -Nru a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
---- a/drivers/acpi/pci_link.c	2004-08-04 11:33:50 -04:00
-+++ b/drivers/acpi/pci_link.c	2004-08-04 11:33:50 -04:00
+--- a/drivers/acpi/pci_link.c	2004-08-04 12:06:33 -04:00
++++ b/drivers/acpi/pci_link.c	2004-08-04 12:06:33 -04:00
 @@ -29,6 +29,7 @@
   *	   for IRQ management (e.g. start()->_SRS).
   */
@@ -248,11 +226,11 @@ diff -Nru a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
 +	if (acpi_disabled || acpi_noirq)
 +		return_VALUE(0);
 +
-+        error = sysdev_class_register(&irqrouter_sysdev_class);
-+        if (!error)
-+        	error = sysdev_register(&device_irqrouter);
++	error = sysdev_class_register(&irqrouter_sysdev_class);
++	if (!error)
++		error = sysdev_register(&device_irqrouter);
 +
-+        return_VALUE(error);
++	return_VALUE(error);
 +}                                        
 +
 +device_initcall(irqrouter_init_sysfs);
@@ -268,7 +246,8 @@ diff -Nru a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
  
  	acpi_link.count = 0;
 
---Boundary_(ID_bQiM8BcXIaWCVLFoDgAJUw)--
+--------------060309030708080201090808--
+
 
 
 -------------------------------------------------------
