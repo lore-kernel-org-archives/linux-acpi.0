@@ -1,9 +1,14 @@
-From: bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org
-Subject: Possible problem in acpi_remove_address_space_handler
-Date: Wed, 09 Apr 2003 12:35:48 -0400
+From: Kevin Fenzi <kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ASL help with latest acpi and compaq presario 2800t
+Date: Wed, 9 Apr 2003 11:30:09 -0600
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200304091635.h39GZmp06599@throb.netspace.org>
+Message-ID: <20030409173013.8E975F7E33@voldemort.scrye.com>
+References: <3ACA40606221794F80A5670F0AF15F84272264@pdsmsx403.ccr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F84272264-4yWAQGcml64gGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -12,44 +17,39 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: ltong-r3+FECOBLOPAaqN1iTbosg@public.gmane.org
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Is there any reason why 	
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-acpi_ut_remove_reference (handler_obj); 
+>>>>> "Luming" == Luming Yu <Yu> writes:
 
-is called twice in a row in acpi_remove_address_space_handler
-events/evxfregn.c line 400 or so?
+Luming> Is dsdt.asl modified version. I compiled it, and my error
+Luming> message is slightly different with yours.  Would you please
+Luming> send the original dsdt.asl to me?
 
+You can get the dsdt.dat and dsdt.dsl from: 
 
-If it's a typo, then I think I found the thing causing the
-AC_BAD_PARAMETER problem on my Thinkpad R32.  Maybe someone already
-found this.
+http://www.scrye.com/~kevin/dsdt.dat-20030409
+http://www.scrye.com/~kevin/dsdt.dsl-20030409
 
+Those are from my laptop today using the iasl-20030228
 
-Here's my patch:
+Let me know if you need any more info. 
 
+Luming> Thanks, Luming
 
-diff -u -r1.1.1.1 evxfregn.c
---- linux-2.5.66/drivers/acpi/events/evxfregn.c	2 Apr 2003 03:34:04 -0000	1.1.1.1
-+++ linux-2.5.66/drivers/acpi/events/evxfregn.c	9 Apr 2003 16:18:25 -0000
-@@ -391,7 +391,7 @@
- 			/*
- 			 * Now we can delete the handler object
- 			 */
--			acpi_ut_remove_reference (handler_obj);
-+
- 			acpi_ut_remove_reference (handler_obj);
- 
- 			goto unlock_and_exit;
+kevin
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (GNU/Linux)
+Comment: Processed by Mailcrypt 3.5.8 <http://mailcrypt.sourceforge.net/>
 
-
-
---
-"Operation Shoot First" is a complete success!!!
-Brian Perkins                bperkins-ooduxAEi7gVg9hUCZPvPmw@public.gmane.org 
+iD8DBQE+lFil3imCezTjY0ERAiNVAJ0RbLT1+K532UBaz31tLeIODB6tAwCdF/OF
+37iSC0J5jiZDJiEmC8G3QT8=
+=5jP8
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
