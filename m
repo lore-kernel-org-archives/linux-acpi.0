@@ -1,13 +1,11 @@
-From: Gregor Pirnaver <gregor.pirnaver-P4JjCWVWlXs@public.gmane.org>
-Subject: Fixing DSDT (SOLOnote P1556P)
-Date: Mon, 29 Nov 2004 09:34:13 +0100
-Message-ID: <200411290934.13740.gregor.pirnaver@email.si>
+From: Przemyslaw Rudy <prudy-BtrZ4bsBpx+jo9x5ncua7w@public.gmane.org>
+Subject: fan-ny thing
+Date: Mon, 29 Nov 2004 10:37:58 +0100
+Message-ID: <41AAEDF6.6050804@audiotech.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,86 +18,18 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello everyone (this is my first post to this list),
+Hi
+I use Compaq Pressario laptop. There are few fans in it that seem to be 
+nicely controlled by acpi, except one that is always moving (faster or 
+slower but it never stops). Firstly I though it was due to a temperature 
+conditions but all the temperature points are higher than the actual 
+temperature so it should stop moving.
+What I discovered is that when I switch off acpi in kernel startup 
+parameters, then this fan really stops and it starts moving only if needed.
+Question is, can I anyhow have the same behaviour using acpi?
 
-I'm trying to fix DSDT for laptop SOLOnote P1556P, but I 
-don't know how I should define CPU0 and CPU0.CSTX to fix 
-compile errors I get.
-
-Files:
-
-Original DSDT:
-http://mandrakeprinas.org/prenos/SOLOnote_dsdt.dat.gz
-http://mandrakeprinas.org/prenos/SOLOnote_dsdt.dsl.gz
-
-DSDT with two compile errors (hopefully correctly) fixed:
-http://mandrakeprinas.org/prenos/SOLOnote_dsdt_two_errors_fixed.dsl.gz
-
-
-And the error I don't know how to fix:
-
-$ ./iasl -tc SOLOnote_dsdt_two_errors_fixed.dsl
-
-Intel ACPI Component Architecture
-ASL Optimizing Compiler / AML Disassembler version 20041105 
-[Nov 28 2004]
-Copyright (C) 2000 - 2004 Intel Corporation
-Supports ACPI Specification Revision 2.0c
-
-SOLOnote_dsdt_two_errors_fixed.dsl   305:                 
-\_PR.CPU0
-Error    1022 -                             Object does not 
-exist ^  (\_PR.CPU0)
-
-SOLOnote_dsdt_two_errors_fixed.dsl   384:                 
-\_PR.CPU0
-Error    1022 -                             Object does not 
-exist ^  (\_PR.CPU0)
-
-SOLOnote_dsdt_two_errors_fixed.dsl  2652:                         
-Notify (\_PR.CPU0, 0x80)
-Error    1022 -                                             
-Object does not exist ^  (\_PR.CPU0)
-
-SOLOnote_dsdt_two_errors_fixed.dsl  2653:                         
-Notify (\_PR.CPU0, 0x81)
-Error    1022 -                                             
-Object does not exist ^  (\_PR.CPU0)
-
-SOLOnote_dsdt_two_errors_fixed.dsl  2663:                         
-Notify (\_PR.CPU0, 0x80)
-Error    1022 -                                             
-Object does not exist ^  (\_PR.CPU0)
-
-SOLOnote_dsdt_two_errors_fixed.dsl  2668:                         
-Store (0x55, \_PR.CPU0.CSTX)
-Error    1022 -                                                       
-Object does not exist ^  (\_PR.CPU0.CSTX)
-
-SOLOnote_dsdt_two_errors_fixed.dsl  2669:                         
-Notify (\_PR.CPU0, 0x81)
-Error    1022 -                                             
-Object does not exist ^  (\_PR.CPU0)
-
-SOLOnote_dsdt_two_errors_fixed.dsl  2674:                         
-Store (0x00, \_PR.CPU0.CSTX)
-Error    1022 -                                                       
-Object does not exist ^  (\_PR.CPU0.CSTX)
-
-SOLOnote_dsdt_two_errors_fixed.dsl  2675:                         
-Notify (\_PR.CPU0, 0x81)
-Error    1022 -                                             
-Object does not exist ^  (\_PR.CPU0)
-
-ASL Input:  SOLOnote_dsdt_two_errors_fixed.dsl - 4314 lines, 
-149203 bytes, 2044 keywords
-Compilation complete. 9 Errors, 0 Warnings, 0 Remarks, 387 
-Optimizations
-
-
--- 
-Uporabnik Mandrake Linuxa
-http://MandrakePriNas.org/
+Regards
+Przemek
 
 
 -------------------------------------------------------
