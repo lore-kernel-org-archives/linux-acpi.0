@@ -1,17 +1,18 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
+From: wwp <subscript-GANU6spQydw@public.gmane.org>
 Subject: Re: 2.4.24 patch apply failed on vanilla kernel
-Date: 07 Jan 2004 20:01:17 +0000
+Date: Wed, 7 Jan 2004 22:54:56 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1073505678.7422.24.camel@darkstar.portugal>
+Message-ID: <20040107225456.67c53238@tethys>
 References: <20040107134658.5afa9142.acpi@thermoman.de>
 	<20040107155325.5bfceba0@tethys>
 	<20040107163907.391c146e.acpi@thermoman.de>
 	<20040107165054.1fbfc829@tethys>
+	<1073505678.7422.24.camel@darkstar.portugal>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040107165054.1fbfc829-qdKmdXVU2OY@public.gmane.org>
+In-Reply-To: <1073505678.7422.24.camel-4/PLUo9XfK/yXfm4dIG/yWZHpeb/A1Y/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,41 +21,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: wwp <subscript-GANU6spQydw@public.gmane.org>
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Marcel Meckel <acpi-X2Xph2rMQzhn68oJJulU0Q@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I think=20
-Full version of kernel2.4.24 have all apci patches updated=20
+Hi S=E9rgio Monteiro Basto,
 
-On Wed, 2004-01-07 at 15:50, wwp wrote:
-> Hi Marcel Meckel,
->=20
->=20
-> On Wed, 7 Jan 2004 16:39:07 +0100 Marcel Meckel <acpi-X2Xph2rMQzhn68oJJulU0Q@public.gmane.org> wrote=
-:
->=20
-> > > It is like if the acpi patch is based on a 2.4.24+uv1 patch (that
-> > > replaces the use of NR_CPUS w/ BITS_PER_LONG). Quite easy to fix by
-> > > hand, simply override the for (..) line w/ the one provided by the
-> > > acpi patch.
-> >=20
-> > I changed the patch file and then patch applied without errors on
-> > vanilla kernel.
->=20
-> I did the same. This should work.
-> Anyway official acpi patch would have to be updated.
->=20
->=20
-> Regards,
->=20
-> --=20
-> wwp
->=20
+
+On 07 Jan 2004 20:01:17 +0000 S=E9rgio Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>=
+ wrote:
+
+> I think=20
+> Full version of kernel2.4.24 have all apci patches updated=20
+
+So why is there an acpi-2.4.24 patch??
+
+
+Regards,
 
 --=20
-S=E9rgio M B
-
+wwp
 
 
 -------------------------------------------------------
