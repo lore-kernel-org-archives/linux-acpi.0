@@ -1,14 +1,15 @@
-From: Daniele Boffi <boffi-piYtxHxN1XRAly3Pu9w1wA@public.gmane.org>
-Subject: Re: Re: [Swsusp-devel] swsusp and ac status
-Date: Fri, 25 Jun 2004 14:09:15 +0200
+From: Keld =?iso-8859-1?Q?J=F8rn?= Simonsen <keld-6PR53cSIHaE@public.gmane.org>
+Subject: Re: problem with cpu eating too much power, prize given if solved
+Date: Fri, 25 Jun 2004 14:46:38 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200406251209.i5PC9FKC007717@fermat.unipv.it>
-References: <mhf@linuxmail.org>
+Message-ID: <20040625124637.GA14795@rap.rap.dk>
+References: <20040624153513.GB19545@rap.rap.dk> <opr930o2uv4evsfm@smtp.pacific.net.th>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: Message from "Michael Frank" <mhf-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
-   of "Fri, 25 Jun 2004 19:29:51 +0800." <opr95d71ln4evsfm-TBR8pM7LtsqkE96DxU8f+dAkNl5+tjhE@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <opr930o2uv4evsfm-TBR8pM7LtsqkE96DxU8f+dAkNl5+tjhE@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,19 +19,57 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Michael Frank <mhf-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Software Suspend - Mailing Lists <swsusp-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: Keld =?iso-8859-1?Q?J=F8rn?= Simonsen <keld-6PR53cSIHaE@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Fri, Jun 25, 2004 at 01:40:04AM +0800, Michael Frank wrote:
+> On Thu, 24 Jun 2004 17:35:13 +0200, Keld J=F8rn Simonsen <keld-6PR53cSIHaE@public.gmane.org=
+>=20
+> wrote:
+>=20
+> >Dear ACPI developers,
+> >I have a problem with my Acer Travelmate 233.
+> >Many times I just want to read the screen, eg emails or documents,
+> >and then still the cpu will be in idle mode, where
+> >it uses 7.5 W out of the about 15 W that the whole machine uses.
+> >I have found out from Intel data sheets that my
+> >Mobile Intel Celeron 2.0 GHz CPU consumes 7.5 W in idle loop/
+> >stop grant/sleep states, (and 5.0 W i deep sleep state).
+> >So I would like to have the CPU stopped completely (consuming 0 W)
+> >while I still could read the screen. In that way I should
+> >be able to have about double the lifetime on the battery,
+> >going to about 7 hours from the 3.5 hours I have now.
+> >I would like the machine to wake up again by any keystroke
+> >on the keyboard or mouse input. I would like the input to be
+> >reacted upon (not just used to wake up the system, and
+> >then forgotten).
+> >I do not have the skills to program this myself, so
+> >instead I offer a prize of USD 1000 to the person(s) that
+> >can give me a patch for kernel 2.6 and appropiate documentation
+> >that can solve the above problem. The patch needs to be GPL,
+> >and demonstrably run on my laptop. I need the patch before
+> >2004-10-01, after what date the prize offer expires.
+> >I would like that the patch was written in a general way to cover for
+> >CPUs that burn considerable power in idle loop and other states, so th=
+at
+> >other users can benefit from it. Also I would prefer that the patch be
+> >rolled into the normal ACPI kernel source tree, but the latter request
+> >is not a condition for the prize.
+> >
+>=20
+> Nice idea but it wont be possible to program it as your hardware powers
+> the CPU which takes 5w while it is powered. There is no partitioning
+> which allows you to remove power from the CPU while running the rest
+> and I am not aware of any system or standards which provide this kind
+> of partitioning...
 
-> Perhaps the ACPI people could advise how to increase debug verbosity
-> to see what happens or if that can't be done, put some printks into AC
-> module to see what happens when the module is loaded on resume.
+Well, I don't know so much about ACPI, but I thought that you in S2
+could shut down devices individually, and then at the end for my
+purpose shut down the CPU completely, like a suspend to memory.
+But maybe this is not doable.
 
-I am ready to run any test you propose!
-
-Daniele
-
-
+Best regards
+Keld
 
 
 -------------------------------------------------------
