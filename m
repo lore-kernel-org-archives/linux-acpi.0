@@ -1,53 +1,126 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [ACPI-sppt] ACPI bug databases
-Date: 11 Oct 2003 00:48:26 -0400
-Sender: acpi-support-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1065847705.4118.60.camel@dhcppc4>
-References: <1065156964.5326.177.camel@dhcppc4>
-	 <1065831018.1500.3.camel@darkstar.portugal>
-	 <1065832414.1498.25.camel@darkstar.portugal>
+Subject: [Fwd: [BK PATCH] ACPICA 20031002 for 2.6]
+Date: 11 Oct 2003 01:46:06 -0400
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <1065851166.4117.70.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-support-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1065832414.1498.25.camel-4/PLUo9XfK/yXfm4dIG/yWZHpeb/A1Y/@public.gmane.org>
-Errors-To: acpi-support-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-support-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-support>,
-	<mailto:acpi-support-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-support>,
-	<mailto:acpi-support-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-support>
-To: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Cc: acpi support <acpi-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: multipart/mixed; boundary="=-xRpb3uI1mY0WB91Yz95+"
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-you may need to create an account at redhat to see their bugs.
-also, sometimes some of their bugs are read-protected unless
-you're the submitter.
 
-Do a query on CC: list containing acpi-bugzilla-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-and see if you can see any of the 42 bug reports with our alias on the
-cc.
+--=-xRpb3uI1mY0WB91Yz95+
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-http://fedora.redhat.com/
-has an alias and and IRC channel that may help.
 
-cheers,
+
+--=-xRpb3uI1mY0WB91Yz95+
+Content-Disposition: inline
+Content-Description: Forwarded message - [BK PATCH] ACPICA 20031002 for 2.6
+Content-Type: message/rfc822
+
+Subject: [BK PATCH] ACPICA 20031002 for 2.6
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
+Content-Type: text/plain
+Organization: 
+Message-Id: <1065850864.4112.67.camel@dhcppc4>
+Mime-Version: 1.0
+X-Mailer: Ximian Evolution 1.2.3 
+Date: 11 Oct 2003 01:41:04 -0400
+Content-Transfer-Encoding: 7bit
+
+Hi Linus, please do a 
+
+	bk pull http://linux-acpi.bkbits.net/linux-acpi-release-2.6.0
+
+thanks,
 -Len
 
-On Fri, 2003-10-10 at 20:33, S=E9rgio Monteiro Basto wrote:
-> Who no
-> How=20
->=20
-> On Sat, 2003-10-11 at 01:10, S=E9rgio Monteiro Basto wrote:
-> > Who we reply bugzilla emails in bug me?
-> >=20
-> > BTW: RedHat doesn't let me view the bugs...
-> >=20
-> > thanks
+ps. a plain patch is available here:
+ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.0-test7/acpi-20031002-2.6.0-test7.diff.gz
 
+This will update the following files:
+
+ drivers/acpi/asus_acpi.c          |    4 
+ drivers/acpi/executer/exconfig.c  |    9 -
+ drivers/acpi/executer/exfield.c   |   13 -
+ drivers/acpi/executer/exfldio.c   |  143 +++++++++++------
+ drivers/acpi/executer/exoparg1.c  |    2 
+ drivers/acpi/executer/exprep.c    |  189 +++++++++++++++++-----
+ drivers/acpi/executer/exresnte.c  |   24 ++
+ drivers/acpi/executer/exresolv.c  |    6 
+ drivers/acpi/executer/exresop.c   |   13 +
+ drivers/acpi/executer/exstoren.c  |    8 
+ drivers/acpi/executer/exsystem.c  |   17 --
+ drivers/acpi/hardware/hwacpi.c    |    9 +
+ drivers/acpi/resources/rsaddr.c   |   45 ++++-
+ drivers/acpi/resources/rsirq.c    |   17 +-
+ drivers/acpi/tables/tbconvrt.c    |   18 +-
+ drivers/acpi/tables/tbinstal.c    |   15 -
+ drivers/acpi/utilities/utalloc.c  |    2 
+ drivers/acpi/utilities/utglobal.c |    4 
+ include/acpi/acconfig.h           |    2 
+ include/acpi/acexcep.h            |    4 
+ include/acpi/actbl.h              |  217 +++++++++++++++++++-------
+ include/acpi/actbl1.h             |    4 
+ include/acpi/actbl2.h             |   19 +-
+ include/acpi/actypes.h            |    1 
+ 24 files changed, 567 insertions(+), 218 deletions(-)
+
+through these ChangeSets:
+
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/10/07 1.1296.57.9)
+   [ACPI] fix acpi_asus module build (Stephen Hemminger)
+
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/10/06 1.1296.57.7)
+   [ACPI] Summary of changes for ACPICA version 20031002:
+   
+   Fixed a problem with Index Fields where the index was not incremented
+   for fields that require multiple writes to the index/data registers
+   (Fields that are wider than the data register.)
+   
+   Fixed a problem with all Field objects where a write could go beyond
+the
+   end-of-field if the field was larger than the access granularity and
+   therefore required multiple writes to complete the request.  An extra
+   write beyond the end of the field could happen inadvertently.
+   
+   Fixed a problem with Index Fields where a BUFFER_OVERFLOW error would
+   incorrectly be returned if the width of the Data Register was larger
+   than the specified field access width.
+   
+   Completed fixes for LoadTable() and Unload() and verified their
+   operation.  Implemented full support for the "DdbHandle" object
+   throughout the ACPI CA subsystem.
+   
+   Implemented full support for the MADT and ECDT tables in the ACPI CA
+   header files.  Even though these tables are not directly consumed by
+   ACPI CA, the header definitions are useful for ACPI device drivers.
+   
+   Integrated resource descriptor fixes posted to the Linux ACPI list.
+   This included checks for minimum descriptor length, and support for
+   trailing NULL strings within descriptors that have optional string
+   elements.
+   
+   Fixed a problem where the SMI_CMD register could be written even if
+it
+   was not supported on the platform (when FADT.SMI_CMD is zero)
+
+
+
+
+--=-xRpb3uI1mY0WB91Yz95+--
 
 
 
