@@ -1,8 +1,8 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: problems with PRT and PCI routing table
-Date: Thu, 13 Mar 2003 16:51:49 -0800
+Subject: RE: Power on at specified time.
+Date: Thu, 13 Mar 2003 17:02:50 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A84725A1F6@orsmsx401.jf.intel.com>
+Message-ID: <F760B14C9561B941B89469F59BA3A847E96D01@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="ISO-8859-1"
@@ -16,69 +16,29 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: info-IGm5bqYn3xwb1SvskN2V4Q@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>
+Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Holger W. [mailto:info-IGm5bqYn3xwb1SvskN2V4Q@public.gmane.org] 
-> I have to correct myself again. Let me see if I understood 
-> everything ...
+> From: Nigel Cunningham [mailto:ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org] 
+> On Wed, 2003-02-19 at 13:09, Grover, Andrew wrote:
+> > Well, go fix it and send me a patch! :)
+> > 
+> > Seriously, Pat roughed-in the alarm support a long long 
+> time ago, but it
+> > needs someone to take another look at it and get it fully 
+> functional.
 > 
-> First of all my PCI interrupt links are detected and I get 
-> messages like "ACPI: PCI Interrupt
-> Link [ALKA] (IRQs 20, disabled)". "Disabled" means in this 
-> special case that we have to
-> choose/enable an IRQ later.
+> Gladly, but I wanted to make sure I wasn't barking up the wrong tree
+> first, and then I need a push in right direction (toward some
+> documentation!).
 
-Yes.
+Go check out include/linux/mc146818rtc.h. Using this plus the existing
+code plus a recent ICH datasheet available on developer.intel.com (I
+recommend ICH3m's - section 9.6 is "Real Time Clock Registers") you
+should be able to get started.
 
-[code walkthru deleted]
-
-> result = acpi_pci_link_get_current(link);
-> if (result) {
-> 	return_VALUE(result);
-> }
-> 
-> Because we failed in "acpi_pci_link_get_current" the irq 
-> variable is NULL and we get a message
-> like "ACPI: PCI Interrupt Link [ALKA] enabled at IRQ 0".
-
-Why did pci_link_get_current() fail? The ASL should report back 20 in
-the extended irq structure, we should read that, and then that should be
-that. I've heard a report that Windows does not use _CRS like we do, so
-this ASL code path may be untested, and therefore that could be the
-problem. Have you disassembled your ASL? What does this link device's
-_CRS method look like?
-
-> Now we're back in "acpi_pci_irq_init". Another problem could 
-> be located in "mp_parse_prt":
-> 
-> /* We're only interested in static (non-link) entries. */
-> if (entry->link.handle)
-> 	continue;
-
-My understanding (not 100%) is that in that particular section of the
-code we are just dealing with the static _PRT entries, because the
-dynamic ones are enumerated as link devices and handled through the code
-paths you detailed in your message.
-
-Regards -- Andy
-
-The current PCI IRQ routing code was hashed out more than a year ago and
-I think may be due for a rework. Persistent IRQ routing problems are
-still occurring.
-
-The current code:
-
-1) Sees if there is a current IRQ for the link device, and uses that,
-even if it is not in the range of IRQs listed in _PRS
-2) For disabled link devices, it picks one according to a weighting
-system and sets it.
-
-Later on, a device driver will load and try to enable its irq. If we can
-derive the irq, then great, but if we can't is when things start falling
-apart.
-
-Regards -- Andy
+Hope this helps -- Regards -- Andy
 
 
 -------------------------------------------------------
