@@ -1,14 +1,14 @@
-From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Subject: Re: ASUS M3N (Centrino)
-Date: Thu, 27 Nov 2003 15:26:45 +0100
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Please, please help me enable a serial port.
+Date: Thu, 27 Nov 2003 16:48:28 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3FC609A5.8060501@pca.it>
-References: <3F9856B8.3080103@pca.it> <3FBF6751.80507@pca.it>
+Message-ID: <20031127154828.GN7374@poupinou.org>
+References: <14650.192.176.33.6.1069920559.squirrel@firewall.isacson.dyndns.info>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3FBF6751.80507-wlebWZzHoyE@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <14650.192.176.33.6.1069920559.squirrel-v+aXH1h/sVyADFAv7lKxfSLkJAjfWD+zmbswZGvKH74@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,53 +17,45 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Alexander Isacson <alexander-O4oeKNg1Q5OZuzBka8ofvg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Thu, Nov 27, 2003 at 09:09:19AM +0100, Alexander Isacson wrote:
+> Hello all.
+> 
+> I'm in desperate need of help to enable a serial port on the Compaq table
+> PC TC1000. I had it working with kernel 2.4.22 but I had to upgrade the
+> kernel to 2.6.0-test10 to make the WLAN drivers for my new card work. The
+> TC1000 will be used to remotely operate a small robot as part of my master
+> thesis.
+> 
+> The driver I was using before is called fpi2002 and I found it here:
+> http://linux-tablet-pc.dhs.org/. I attached it below along with the
+> readme. All it does is enable /dev/ttyS0. I'm no kernel programmer so this
+> is like rocket-science to me. I also attached the compilation error I get
+> when trying to recompile the driver for 2.6.0-test10
+> 
+> I have enabled the kernel option that states "8259/16550 device discovery
+> via ACPI namespace" but that doesn't seem to enable the port.
+> 
+> I have tried to gather as much information as possible to help you help me
+> get this show back on the road!
+> 
+> Regards
+> /Alexander Isacson
 
-Hello,
+That sound like a little dummy kernel module.  It is easy to make it
+working in 2.6.  I will look at.
 
-on 11/22/03 14:40, Luca Capello wrote:
-| on 10/24/03 00:31, Luca Capello wrote:
-| | I downloaded the last kernel 2.6.0-test8 and the last ACPI patched for
-| | it. I successfully installed it and it works perfectly, just I get the
-| | same "osl / AE_TIME" error I get on kernel 2.4.21, where it was called
-| | "osl-8888" and not "osl-8892" (I attached the dmesg to see the exact
-| | error message). More, there's another error: "utmisc-0745" that IIRC
-| | I've never had on kernel 2.4.21.
-| this is an ancient problem never solved.
-|
-| Now I passed to a new BIOS (version 0205A released 20031117) and to a
-| new kernel (2.4.23-rc2, even if I continue using 2.6.0-test9 with the
-| same ancient problem as from the attachment). Here the new problems IMHO
-| related to ACPI (I attached a part of my 'dmesg' with these errors):
-| | ALSA intel8x0.c:568: codec_semaphore: semaphore is not ready
-| [0x1][0x700300]
-| | ALSA ../../../alsa-kernel/core/seq/oss/seq_oss_init.c:213: no device
-| found
-| | osl-0898 [9488] os_wait_semaphore     : Failed to acquire
-| semaphore[c157b780|1|0], AE_TIME
-it seems that no one has a solution for this problem or (worse, but I
-don't think so) no one is interested in it. What is real worst is that
-other ASUS M3N users reported me the same problem, so it is not linked
-to my specific machine.
+Now, what do you want exactly?  Looking your dsdt, I guess we can
+do it in a full ACPI way.
 
-Could someone help me or at least tell me if this bug is solvable or
-not? And if it is an ACPI bug or a DSDT one?
+-- 
+Ducrot Bruno
 
-Regards,
-Gismo / Luca
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
-
-iD8DBQE/xgmjVAp7Xm10JmkRAjXeAJ9naIlZuIXrIa0v4MpPyiUNH3kvbgCfVuDS
-6waZqIgsvBgyzkagZK306wM=
-=KWPI
------END PGP SIGNATURE-----
-
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
