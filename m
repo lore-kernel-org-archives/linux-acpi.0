@@ -1,14 +1,14 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: S4bios on Sony Vaio FX601
-Date: Fri, 17 Jan 2003 11:43:49 +0100
+From: Daniel Thor Kristjansson <danielk-L9gzEf+okJWVc3sceRu5cw@public.gmane.org>
+Subject: Re: More than one battery
+Date: Fri, 17 Jan 2003 07:09:10 -0500 (EST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030117104349.GY12516@poup.poupinou.org>
-References: <Pine.LNX.4.50.0301130925480.3926-100000@flyby> <20030113101531.GF12516@poup.poupinou.org> <20030113114850.1b1adc03.nils@kernelconcepts.de> <20030113120204.GA13358@marcogigante.it> <20030113135418.GI12516@poup.poupinou.org> <Pine.LNX.4.50.0301152010340.924-100000@flyby> <20030116151714.GT12516@poup.poupinou.org> <Pine.LNX.4.50.0301161847310.8805-100000@flyby>
+Message-ID: <Pine.SOL.4.44.0301170705110.24216-100000@graphics.cat.nyu.edu>
+References: <3E226B80.20208@muenster.de>
+Reply-To: danielk-L9gzEf+okJWVc3sceRu5cw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.50.0301161847310.8805-100000-iFUwJ2qmV1I@public.gmane.org>
+In-Reply-To: <3E226B80.20208-iYtK5bfT9M8b1SvskN2V4Q@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,37 +17,79 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: marcogi-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+To: Malte Thoma <thoma-iYtK5bfT9M8b1SvskN2V4Q@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jan 16, 2003 at 06:50:42PM +0100, marcogi-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org wrote:
-> On Thu, 16 Jan 2003, Ducrot Bruno wrote:
-> 
-> > > While using linux 2.4.20 + acpi-20021205 and 2 patches posted to this
-> > > ML some time ago (s4bios-2.4.20-acpi-20021205 and
-> > > 00_system_fix_s4bios-2.4.20-acpi-20021205) suspend doesn't works.
-> > > echo -n 4b >/proc/acpi/sleep make bios to start hibernation process, but
-> > > on resuming system hangs after datas from suspend partition are loaded.
-> > > The bios resume screen remains on the screen and I must power cycle the
-> > > notebook.
-> >
-> > Did you use framebuffer console?  If yes, try without it.  Try also on
-> > console.
-> 
-> I'm using console. I did not compile framebuffer into my kernel.
-> How can I produce info for debug?
-> 
 
-I got some trouble with an usb mouse, also the PCI config space of
-the pcmcia hubs was not properly restored.
-Could you try without usb nor any pcmcia cards please?
+Yes, I think the auto-performance should be in there as well. I'm
+working on something else right now, but the deadline for that is next
+week. So following, that I'll clean it up and send you the diffs
+(should be next weekend).
 
--- 
-Ducrot Bruno
+-- Daniel
+  <<You cant eat before a operashun. Not even cheese.>> -- Charlie Gordon
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+On Mon, 13 Jan 2003, Malte Thoma wrote:
+
+]
+]
+]Daniel Thor Kristjansson wrote:
+]
+]>I found the text below through some googling. The important thing is
+]>that ospmd is supposed to support acpi policies in the next version. I
+]>believe this means that you can hand a policy to ospmd and have it
+]>handle throttling for you, I doubt it would take cpu load into account.
+]>But I'm going to try to find who's working on that, the cpp files all
+]>just say "Intel" then find out if they are planning on putting a more
+]>complete policy support into the ospmd deamon, or could use a
+]>contribution. Throttling just based on thermal event might save your
+]>CPU, but won't save as much battery power as throttling the CPU when
+]>load is low. (I can easly half my battery draw by throttling and turning
+]>down the LCD, but I wouldn't do it without my hacked heatload
+]>unthrottling when the system load goes up.)
+]>
+]>
+]Please send my a diff from the hacked heatload.
+]If I understand you right, you have included an
+]
+]'auto-throttling-when-no-load'
+]
+]I think this is worth to be included in the offical release, don't you?
+]We should include 'auto-performance-when-no-load' as welll, what's your
+]opinion?
+]
+]
+]Greetings,
+]
+]Malte
+]
+]
+]
+]
+]
+]>Anyway, I'll keep you informed.
+]>
+]>-- Daniel
+]>
+]>  http://216.239.37.100/search?q=cache:pOZPEz5rV_8C:www.intel.com/technology/iapc/acpi/downloads/CHANGES.txt+ospmd+cpu+throttling&hl=en&ie=UTF-8
+]>
+]>The processor driver (acpi_processor.c) now fully supports ACPI
+]>2.0-based processor performance control (e.g. Intel(R) SpeedStep(TM)
+]>technology) Note that older laptops that only have the Intel "applet"
+]>interface are not supported through this.  The 'limit' and 'performance'
+]>interface (/proc) are fully functional.  [Note that basic policy for
+]>controlling performance state transitions will be included in the next
+]>version of ospmd.] The idle handler was modified to more aggressively
+]>use C2, and PIIX4 errata handling underwent a
+]>complete overhaul (big thanks to Dominik Brodowski).
+]>
+]>.
+]>
+]>
+]>
+]
+
 
 
 -------------------------------------------------------
