@@ -1,14 +1,17 @@
-From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Subject: Re: Resume from suspend-to-ram (radeon)
-Date: Wed, 31 Mar 2004 14:44:58 +0200
+From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: S3/S4 doesn't work, no-one cares, it's a mess Re: ACPI S3 wake
+ howto was: RE: [BKPATCH] ACPI for 2.6
+Date: Wed, 31 Mar 2004 14:51:47 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <406ABD4A.10408@pca.it>
-References: <c15rn0$5bu$2@sea.gmane.org>	<1077519609.12675.63.camel@dhcppc4> <20040223074227.80AE57831D@mail.lmc.cs.sunysb.edu>
+Message-ID: <20040331145147.59f3b49a.ak@suse.de>
+References: <7105F2BD9451D7479B4B3A99A2B72FAC062C08C7@exchange1.ssd.fsi.com>
+	<20040330233155.463A.COUNT0@localnet.com>
+	<1080732363.4883.964.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040223074227.80AE57831D-Yo/1PYb2HdawRS80dfYGFoIJIQD0bWaD@public.gmane.org>
+In-Reply-To: <1080732363.4883.964.camel-bi+AKbBUZKZeoWH0uzbU5w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,48 +20,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Giridhar Pemmasani <giri-IxWJ8JVbGpr5NRxSJurNR4dd74u8MsAO@public.gmane.org>
-Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
+Cc: count0-tC47gz4GrgtWk0Htik3J/w@public.gmane.org, harryr-qMhjF6E6u3VBDgjK7y7TUQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Wed, 31 Mar 2004 13:26:04 +0200
+Nils Faerber <nils.faerber-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org> wrote:
 
-Hello,
 
-on 02/23/04 08:42, Giridhar Pemmasani wrote:
-> New radeonfb suspend/resume code turns the LCD on but the system hangs
-> during fb resume. With the changes I made, the LCD turns on but the
-> screen remains blank. X with int10 POST restores the screen properly.
-I haven't tried S3/S4 yet, but I suppose the problem will be similar on my ATI
-Radeon 9600 M10 NP laptop. Simple question: in which way X restores the screen?
-I mean, I've seen other posts on other mailing-lists about POST command which
-can be restore LCD after resume, but I don't know how I can do it.. Could
-explain me or provide some docs?
+> So take my word: If I can with my limited experience in PM and x86
+> hacking be of any help and someone can guide me to a point where I can
+> start, I will try my very best to improve the situation - at least for
+> the hardware I have access to.
 
-Another simple question: is there a documentation about 'radeonfb'? If I compile
-it in the kernel, I've no problem, but as modules I get this error:
-	radeonfb: Unknown symbol fb_find_mode
 
-> It turns out that I don't have to remove radeon (drm module),
-> intel_agp and agpgart modules before suspend (and insert during
-> resume). The only subsystems that cause problems are ALSA and USB;
-> once these modules are removed, everything works fine. Apparently OSS
-> sound module i810_audio (for 82801DB audio controller)
-> suspends/resumes properly so now I am using it instead of ALSA.
-One possible solution for 'intel8x0' suspend/resume problem is here
-   http://sourceforge.net/mailarchive/forum.php?thread_id=4107033&forum_id=1752
+Assuming you really want to help and not just complain:
 
-Thx, bye,
-Gismo / Luca
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
+Make sure everytime you see an oops or other problem that you file a bug 
+in bugme.kernel.org. For oopses this must include the oops log, so 
+make yourself familiar with serial consoles and netconsoles.
 
-iD8DBQFAar1KVAp7Xm10JmkRAuROAJ4mwFi3ZPEAbR52IjVdvjWBdfp1ogCfcNXG
-1HPpWGxh0ElrX7CSxRE7LQ0=
-=mFJl
------END PGP SIGNATURE-----
+If possible take a look at the driver when you see an oops or problem
+and try to fix it yourself an submit a patch.
+
+If you do this for all hardware you have access to the problems may 
+actually get fixed.
+
+-Andi
 
 
 -------------------------------------------------------
