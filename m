@@ -1,12 +1,11 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: Call for help: list of machines with working S3
-Date: Sun, 27 Feb 2005 19:08:02 +0100
-Message-ID: <20050227180802.GS1441@elf.ucw.cz>
-References: <20050214211105.GA12808@elf.ucw.cz> <20050215125555.GD16394@gamma.logic.tuwien.ac.at> <42121EC5.8000004@gmx.net> <20050215170837.GA6336@gamma.logic.tuwien.ac.at> <20050222220828.GB538@hell.org.pl> <20050224123716.GD28961@gamma.logic.tuwien.ac.at> <20050227165701.GE1441@elf.ucw.cz> <42220B96.30301@suse.de>
+From: Thomas Renninger <mail-smMupaH/RwJM7kwft8N7nw@public.gmane.org>
+Subject: [PATCH] [2/2 DSDT via initrd or initramfs] read DSDT from initramfs
+ then try initrd
+Date: Sun, 27 Feb 2005 20:45:40 +0100
+Message-ID: <42222364.4040409@renninger.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <42220B96.30301-l3A5Bk7waGM@public.gmane.org>
+Content-Type: multipart/mixed;
+ boundary="------------080000030503090206040503"
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,29 +15,233 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan Seyfried <seife-l3A5Bk7waGM@public.gmane.org>
-Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>, Hannes Reinecke <hare-l3A5Bk7waGM@public.gmane.org>, eric-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+This is a multi-part message in MIME format.
+--------------080000030503090206040503
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> >> 	this server crashes when switching to the console or shutting
-> >> 	down (crashing is sometimes, not always), very nice screen which
-> >> 	slowly turns white
-> > 
-> > Hmm, it would be nice to be able to trigger "go white" on purpose --
-> > it looks like screen is burning and could scare quite  a lot of people
-> > :-).
-> 
-> BTW: turning white does not necessarily mean "screen is dying" but can
-> also mean "LCD is powered off and slowly turning transparent but the
+Markus, could you add this one to your collection of "override DSDT via 
+initrd" patches on http://gaugusch.at/kernel.shtml, please?
 
-Yes, I know :-); other people do not ;^). Command kill_screen (which
-would just power down TFT) would be certainly nice practical joke.
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+An mkinitrd working for the patch can be found here:
+ftp.suse.com/pub/people/trenn/mkinitrd
+
+use:
+mkinitrd -k vmlinuz-version -i initrd-version -a /etc/DSDT.aml
+for initramfs or
+add the -R option to build up an initrd.
+
+One time tested.
+Comments appreciated.
+
+         Thomas
+
+-> linux-2.6.11-rc5
+
+--------------080000030503090206040503
+Content-Type: text/plain;
+ name="acpi_dsdt_initrd_initramfs"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="acpi_dsdt_initrd_initramfs"
+
+Subject: Read DSDT from initrd or initramfs
+From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+
+Searches and reads in the root of initramfs a DSDT.aml file.
+If not found the initrd is scanned for a DSDT signature
+("INITRDDSDT123DSDT123"). Once a DSDT in the initramfs or
+initrd is found the DSDT provided by BIOS is replaced.
+
+--- x/drivers/acpi/Kconfig.orig	2005-02-24 17:40:47.000000000 +0100
++++ y/drivers/acpi/Kconfig	2005-02-26 16:54:32.718077026 +0100
+@@ -343,4 +343,17 @@
+ 	 	This is the ACPI generic container driver which supports
+ 		ACPI0004, PNP0A05 and PNP0A06 devices
+ 
++config ACPI_INITRD
++	bool "Read DSDT from initrd or initramfs"
++	depends on ACPI && BLK_DEV_INITRD && !ACPI_CUSTOM_DSDT
++	default n
++	help
++	  The DSDT (Differentiated System Description Table) often needs to be
++	  overridden because of broken BIOS implementations. If you want to use
++	  a customized DSDT, please use the mkinitrd tool (mkinitrd package) to 
++	  attach the DSDT to the initrd or initramfs 
++	  (see http://gaugusch.at/kernel.shtml for details)
++	  If there is no DSDT found in the initrd, the DSDT from the BIOS is
++	  used. It is save to say yes here.
++
+ endmenu
+--- x/drivers/acpi/tables/tbget.c.orig	2005-02-24 17:40:32.000000000 +0100
++++ y/drivers/acpi/tables/tbget.c	2005-02-26 16:54:32.718077026 +0100
+@@ -45,7 +45,6 @@
+ #include <acpi/acpi.h>
+ #include <acpi/actables.h>
+ 
+-
+ #define _COMPONENT          ACPI_TABLES
+ 	 ACPI_MODULE_NAME    ("tbget")
+ 
+@@ -287,12 +286,17 @@
+ 			acpi_format_exception (status)));
+ 		return_ACPI_STATUS (status);
+ 	}
+-
++	
+ 	/* Copy the table info */
+ 
+ 	ACPI_REPORT_INFO (("Table [%4.4s] replaced by host OS\n",
+ 		table_info->pointer->signature));
+ 
++#ifdef CONFIG_ACPI_INITRD
++	if (new_table)
++	    ACPI_MEM_FREE(new_table);
++#endif
++
+ 	return_ACPI_STATUS (AE_OK);
+ }
+ 
+--- x/drivers/acpi/osl.c.orig	2005-02-24 17:40:55.000000000 +0100
++++ y/drivers/acpi/osl.c	2005-02-26 18:21:06.032348487 +0100
+@@ -44,7 +44,10 @@
+ #include <asm/uaccess.h>
+ 
+ #include <linux/efi.h>
+-
++#ifdef CONFIG_ACPI_INITRD
++#include<linux/syscalls.h>
++#include <linux/initrd.h>
++#endif
+ 
+ #define _COMPONENT		ACPI_OS_SERVICES
+ ACPI_MODULE_NAME	("osl")
+@@ -246,25 +249,105 @@
+ 	return AE_OK;
+ }
+ 
+-acpi_status
+-acpi_os_table_override (struct acpi_table_header *existing_table,
+-			struct acpi_table_header **new_table)
+-{
+-	if (!existing_table || !new_table)
+-		return AE_BAD_PARAMETER;
++#ifdef CONFIG_ACPI_INITRD
++static char *
++acpi_find_dsdt_initrd(void)
++{
++	static const char signature[] = "INITRDDSDT123DSDT123";
++	char *dsdt_start = NULL;
++	char *dsdt_buffer = NULL;
++	unsigned long len = 0, len2 = 0;
++	int fd;
++	char ramfs_dsdt_name[10] = "/DSDT.aml";
++	struct kstat stat;
++
++	/* try to get dsdt from tail of initrd */
++	if ((fd = sys_open(ramfs_dsdt_name, O_RDONLY, 0)) < 0) {
++		if (initrd_start) {
++			char *data = (char *)initrd_start;
++
++			printk(KERN_INFO PREFIX "Looking for DSDT in initrd...");
++
++			/* Search for the start signature */
++			while (data < (char *)initrd_end - sizeof(signature) - 4) {
++				if (!memcmp(data, signature, sizeof(signature))) {
++					data += sizeof(signature);
++					if (!memcmp(data, "DSDT", 4))
++						dsdt_start = data;
++					break;
++				}
++				data++;
++			}
+ 
+-#ifdef CONFIG_ACPI_CUSTOM_DSDT
+-	if (strncmp(existing_table->signature, "DSDT", 4) == 0)
+-		*new_table = (struct acpi_table_header*)AmlCode;
+-	else
++			if (dsdt_start){
++				printk(PREFIX " found at offset %zu",
++				       dsdt_start - (char *)initrd_start);
++				len = (char*) initrd_end - dsdt_start;
++				printk(", size: %zu bytes\n", len);
++				dsdt_buffer = ACPI_MEM_ALLOCATE(len + 1);
++				memcpy(dsdt_buffer, dsdt_start, len);
++				*(dsdt_buffer + len + 1)= '\0';
++			}					
++			else
++				printk(" not found!\n");
++		}
++	}
++	/* get dsdt from initramfs */
++	else{
++		printk(KERN_INFO PREFIX "Looking for DSDT in initramfs...");
++		if (vfs_stat(ramfs_dsdt_name, &stat) < 0){
++			printk ("error getting stats for file %s\n", ramfs_dsdt_name);
++			return NULL;
++		}
++		
++		len = stat.size;
++		dsdt_buffer = ACPI_MEM_ALLOCATE(len + 1);
++		if (!dsdt_buffer) {
++			printk("Could not allocate %lu bytes of memory\n", len);
++			return NULL;
++		}
++		printk (" found %s ...", ramfs_dsdt_name);
++		
++		len2 = sys_read (fd, (char __user *) dsdt_buffer, len);
++		if (len2 < len ){
++			printk(PREFIX "\nError trying to read %lu bytes from %s\n", 
++			       len, ramfs_dsdt_name);
++			ACPI_MEM_FREE (dsdt_buffer);
++			dsdt_buffer = NULL;
++		}
++		else{
++			printk(" successfully read %lu bytes from %s\n", 
++			       len, ramfs_dsdt_name);
++			*(dsdt_buffer + len + 1) = '\0';
++		}
++	}
++	if (!dsdt_buffer)
++	    printk(" not found!\n");
++	return dsdt_buffer;
++}
++#endif
++	
++acpi_status
++	acpi_os_table_override (struct acpi_table_header *existing_table,
++				struct acpi_table_header **new_table)
++	{
++		if (!existing_table || !new_table)
++			return AE_BAD_PARAMETER;
++		
+ 		*new_table = NULL;
+-#else
+-	*new_table = NULL;
++		if (strncmp(existing_table->signature, "DSDT", 4) == 0) {
++#ifdef CONFIG_ACPI_CUSTOM_DSDT
++			*new_table = (struct acpi_table_header*)AmlCode;
++#elif defined(CONFIG_ACPI_INITRD)
++			*new_table = (struct acpi_table_header*)acpi_find_dsdt_initrd();
+ #endif
++			if (*new_table)
++				printk(KERN_INFO PREFIX "Using customized DSDT\n");
++		}
+ 	return AE_OK;
+-}
+-
+-static irqreturn_t
++	}
++ 
++ static irqreturn_t
+ acpi_irq(int irq, void *dev_id, struct pt_regs *regs)
+ {
+ 	return (*acpi_irq_handler)(acpi_irq_context) ? IRQ_HANDLED : IRQ_NONE;
+
+--------------080000030503090206040503--
 
 
 -------------------------------------------------------
