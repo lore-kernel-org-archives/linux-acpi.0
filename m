@@ -1,14 +1,19 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Please, please help me enable a serial port.
-Date: Thu, 27 Nov 2003 17:15:44 +0100
+From: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
+Subject: Re: Dell D600: teaching radeonfb how to wake up...
+Date: Fri, 28 Nov 2003 11:10:44 +1100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031127161544.GO7374@poupinou.org>
-References: <10686.192.176.33.6.1069948970.squirrel@firewall.isacson.dyndns.info>
+Message-ID: <1069978244.671.219.camel@gaston>
+References: <20031120111315.GB432@openzaurus.ucw.cz>
+	 <1069370504.705.32.camel@gaston> <20031120234708.GA431@elf.ucw.cz>
+	 <20031121155010.C19564@loria2.loria.fr> <1069637387.723.112.camel@gaston>
+	 <20031124173603.GA298@elf.ucw.cz> <1069725771.876.296.camel@gaston>
+	 <20031125120443.GA297@elf.ucw.cz> <20031126132419.GL7374@poupinou.org>
+	 <20031126223436.GD207@elf.ucw.cz>  <20031127104722.GM7374@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <10686.192.176.33.6.1069948970.squirrel-v+aXH1h/sVyADFAv7lKxfSLkJAjfWD+zmbswZGvKH74@public.gmane.org>
+In-Reply-To: <20031127104722.GM7374-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,129 +22,46 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alexander Isacson <alexander-O4oeKNg1Q5OZuzBka8ofvg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Emmanuel Thome <Emmanuel.Thome+acpi-/zGXu1G9BXs@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Nov 27, 2003 at 05:02:50PM +0100, Alexander Isacson wrote:
-> Thank you for taking your time to help me. I really appreciate it.
+On Thu, 2003-11-27 at 21:47, Ducrot Bruno wrote:
+> On Wed, Nov 26, 2003 at 11:34:36PM +0100, Pavel Machek wrote:
+> > That's what I'm doing, but it crashes machine on most
+> > machines. Perhaps PCI needs to be already initialized at this point or
+> > something like that?
 > 
-> The port is an internal serial port that recieves signals from a
-> "pen"-pointing device. The problem is that the serial port is not active
-> on boot-up but has to be enabled through ACPI. There is a XFree driver
-> that works with the pen as soon as the signals from the device are sent to
-> /dev/ttyS0.
-> 
-> I've had the pen up and running under kernel 2.4 but I was forced to
-> switch to 2.6 to get my WLAN working. All I need to do is enable the
-> serial port and I should be good to go.
-> 
-> Thanks again for you help.
+> In fact, I don't think that POST is a good idea anyway (we had
+> alerady that discussion).  It's way too early in the resume path.
+> Perhaps POSTing after PCI subsystem wakeup may help, but then you
+> may have to go with int 10 instead (and that will be pretty hard
+> to do that in kernel space).
 
-No problem.
+Well... we have to POST the card one way or another. So unless ATI
+provides us with the complete POST code for all of their chipset
+revisions, which may never happen, we are stuck with using the BIOS
+POST facility.
 
-Try following patch.
+However, I think Pavel is right here, we should probably restore
+the PCI bus (and AGP !) completely before attempting that. Which
+means we'll probably have to add a facility to x86 to go back to
+real mode run that dawn int10 thing.
 
-You have though to build with something like this:
-make -C /home/ducrot/linux/linux-2.6.0-test9 SUBDIRS=`pwd` modules
+Something else we need on x86 (I need that at least in radeonfb),
+provided that doesn't exist already, is a small hook in the PCI
+code at probe time that "detects" which VGA PCI chbip had IO
+decoding enabled, that is which one is the primary one.
 
-That will bulid the module, then
+I need that in order to properly retreive some tables, as on a
+bunch of laptops, the video BIOS ROM isn't accessible on the PCI
+ROM BAR of the card. So I need to check when dealing with the
+primary card and peek at the BIOS image at c0000 instead of the
+PCI ROM.
 
-make -C /home/ducrot/linux/linux-2.6.0-test9 SUBDIRS=`pwd` modules_install
-
-for installation purpose.
-You can make a script to wrap the make(s), also.  Left as exercise ;)
-
-(you have to change the /home/ducrot/linux/linux-2.6.0-test9
-to the path of you kernel source, of course).
-
-I will look probably when I found time to add something in ACPI system
-instead of that little hack (but well, that is low priority though).
-
-
---- fpi2002-0.1/Makefile	2003/11/27 15:56:00	1.1
-+++ fpi2002-0.1/Makefile	2003/11/27 16:05:26
-@@ -1,14 +1 @@
--LINUX=/usr/src/linux
--LINUX_HEADERS=$(LINUX)/include
--MODDIR := /lib/modules/2.4.20/kernel
--
--MODFLAGS := -D__KERNEL__ -DMODULE -fomit-frame-pointer -I/lib/modules/2.4.20/build/include -I/usr/src/linux-2.4/include
--OPTFLAGS := -O2
--
--fpi2002.o: fpi2002.c
--	$(CC) $(OPTFLAGS) $(MODFLAGS) -c $< -o $@
--
--install: fpi2002.o
--	cp fpi2002.o $(MODDIR)/fpi2002.o
--	depmod -a
--
-+obj-m   :=      fpi2002.o
---- fpi2002-0.1/fpi2002.c	2003/11/27 15:56:00	1.1
-+++ fpi2002-0.1/fpi2002.c	2003/11/27 16:06:26
-@@ -19,12 +19,6 @@
- #include <linux/pci.h>
- #include <linux/fs.h>       /* The character device 
-                              * definitions are here */
--#include <linux/wrapper.h>  /* A wrapper which does 
--                             * next to nothing at
--                             * at present, but may 
--                             * help for compatibility
--                             * with future versions 
--                             * of Linux */
+ben.
  
- const unsigned short confindex=0x3F0,confdata=0x3F1;
- const unsigned char spcidx=0xEE;
-@@ -40,10 +34,13 @@
-   struct pci_dev *pcidev = NULL;
-   unsigned char confval,val;
-   unsigned char local0, local1;
-+  
-   /* See if we have a via chip */
-   pcidev = pci_find_device (PCI_VENDOR_ID_VIA,PCI_DEVICE_ID_VIA_82C686,NULL);
-   if (pcidev) {
--    cli();
-+    unsigned long flags;
-+
-+    local_irq_save(flags);
-     /* start config ACPI ENCG */
-     pci_read_config_byte(pcidev,0x85,&confval);
-     confval |= 0x2;
-@@ -76,7 +73,7 @@
-     confval &= 0xfd;
-     pci_write_config_byte (pcidev, 0x85,confval);
- 
--    sti();
-+    local_irq_restore(flags);
-     printk (KERN_INFO "Enabled FPI2002 Interface\n");
-   }
-   else {
-@@ -93,7 +90,9 @@
-   unsigned char local0, local1;
-   pcidev = pci_find_device (PCI_VENDOR_ID_VIA,PCI_DEVICE_ID_VIA_82C686,NULL);
-   if (pcidev) {
--    cli();
-+    unsigned long flags;
-+
-+    local_irq_save(flags);
-     /* start config */
-     pci_read_config_byte(pcidev,0x85,&confval);
-     confval |= 0x2;
-@@ -113,7 +112,7 @@
-     pci_read_config_byte(pcidev,0x85,&confval);
-     confval &= 0xfd;
-     pci_write_config_byte (pcidev, 0x85,confval);
--    sti();
-+    local_irq_restore(flags);
-     printk (KERN_INFO "FPI2002 disabled\n");
-   }
- }
 
--- 
-Ducrot Bruno
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
 
 
 -------------------------------------------------------
