@@ -1,14 +1,12 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: S1 could work
-Date: Wed, 28 Jan 2004 17:57:50 +0100
+From: "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>
+Subject: PROBLEM: ACPI crashes (2.6.2-rc2-mm1)
+Date: Wed, 28 Jan 2004 20:21:34 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040128165750.GD1200@elf.ucw.cz>
-References: <Pine.LNX.4.58.0401201816420.4869@localhost.localdomain> <20040122102912.GA355@elf.ucw.cz> <1075232709.2673.14.camel@aragorn>
+Message-ID: <m3n087khfl.fsf@reason.gnu-hamburg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; boundary="==-=-=";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1075232709.2673.14.camel-OzWA7vJbvfM@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,48 +15,98 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dirk Meul <dirk.meul-vA1bhqPz9FBZXbeN9DUtxg@public.gmane.org>
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+--==-=-=
+Content-Type: multipart/mixed; boundary="=-=-="
 
-> > Switching consoles doing S1 is not neccessary on working hardware. You
-> > might want to simply comment it out.
-> 
-> Can you give me a pointer where switching is done? I could not find
-> it.
+--=-=-=
 
-kernel/power/console.c
+Hi all,
 
-> Trying to enter S1 when pdnsd is running aborts standby. But pdnsd is
-> killed by entering S1 or S3 (didn't know S4 because it didn't work for
-> me). Entering S3 with a running pdnsd works.
-> 
-> By entering S1 audio from my tv-card will not stopped.
+still having problems with ACPI on ASUS M2N. [1]
 
-And do you want it to stop?
+With linux-2.6.2-rc2-mm1 with acpi4asus from CVS as of today:
 
-If so add suspend/resume support for your tv-card.
 
-> Resuming from S3 will only work if i unload all sound modules. But i'm
-> not able to reload them successfully:
-> Starting ALSA (version 1.0.1):AC'97 0 does not respond - RESET
-> AC'97 0 access is not valid [0xffffffff], removing mixer.
-> EMU10K1_Audigy: probe of 0000:00:0d.0 failed with error -5
->  emu10k1 bt87x.
-> Restoring ALSA mixer settings ... done.
-> 
-> Without sound module unloading there is:
-> Kernel panic: Fatal exception in interrupt
+Suspending to disk (S4) suspends just fine. It also finds the file and
+reads the data back into active memory, as well. But when it comes to
+the message
 
-...suspend/resume support is clearly needed for your sound card.
+ "Waiting for DMAs to settle down." 
 
-								Pavel
+the machine suddenly crashes (reboot).
+
+I tried to get some debugging output by not having swap mounted when
+trying to suspend so it would have to come right back up. Here is the
+output
+
+
+--=-=-=
+Content-Disposition: attachment
+
+Suspend Machine: Suspend failed, trying to recover...
+Restarting tasks...<3>bad: scheduling while atomic!
+Call Trace:
+ [<c011b553>] schedule+0x5b3/0x5c0
+ [<c011a5d9>] try_to_wake_up+0x109/0x1c0
+ [<c011a69d>] wake_up_process+0xd/0x20
+ [<c0135514>] thaw_processes+0xa4/0xe0
+ [<c013677d>] software_suspend+0x8d/0xc0
+ [<c01fe95a>] acpi_system_write_sleep+0xb3/0xce
+ [<c01530cc>] vfs_write+0x9c/0x100
+ [<c01531ad>] sys_write+0x2d/0x50
+ [<c0366de7>] syscall_call+0x7/0xb
+
+ done
+bad: scheduling while atomic!
+Call Trace:
+ [<c011b553>] schedule+0x5b3/0x5c0
+ [<c01531ad>] sys_write+0x2d/0x50
+ [<c0366e1a>] work_resched+0x5/0x16
+
+--=-=-=
+Content-Disposition: inline
+
+
+
+Suspend to RAM (S3 via 3bios) seems to suspend the machine just
+fine. Only the power button brings it back up, but when it comes back
+up it seems to hang -- cannot tell as even though the disk seems to
+have come activity the screen remains black and network apparently
+doesn't come up.
+
+Hope this helps tracking down the ACPI problems.
+
+Help appreciated, if more input is needed, please let me know.
+
+Regards,
+Georg
+
+
+[1] System info at http://bugzilla.kernel.org/show_bug.cgi?id=1774
 
 -- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+Georg C. F. Greve                                       <greve-mXXj517/zsQ@public.gmane.org>
+Free Software Foundation Europe	                 (http://fsfeurope.org)
+Brave GNU World	                           (http://brave-gnu-world.org)
+
+--=-=-=--
+
+--==-=-=
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP MESSAGE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+Comment: Processed by Mailcrypt 3.5.8 <http://mailcrypt.sourceforge.net/>
+
+iD8DBQFAGAu+bvivwoZXSsoRAnDfAJ9JtGEFdpbZS4Veoc/FXDsrk2a2XQCfZQdB
+S0fV0AC9mEeYGV3xPLRiKIQ=
+=ev2Y
+-----END PGP MESSAGE-----
+--==-=-=--
 
 
 -------------------------------------------------------
