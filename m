@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Problem - 2.6.0 Kernel and irq 18: nobody cared!
-Date: Mon, 12 Jan 2004 16:52:32 +0800
+Subject: RE: Tarting up my ACER 1703 ACPI spec
+Date: Mon, 12 Jan 2004 17:28:48 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CBA@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CBB@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,24 +17,22 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: jan-christian-Uv4yylcIJW+ELgA04lAiVw@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Greg Sarjeant <greg-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org>, Dirk Koopman <djk-ovDUel0N34n10XsdtD+oqA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-> I have a ACPI problem wenn I use the new 2.6.0 Kernel (with=20
-> 2.6.0-rc1/2
-> same problem)
-
-Did it work before ?
-
 >=20
-> After the kernel initialize my IDE-ports I get the message:=20
-> irq 18: nobody cared!=20
-> and I get this message repeatedly, so that I can't use my pc anymore.
+>    They suggest that the solution to both of your warnings is=20
+> to add the following line at the end of the offending methods:
 >=20
-> dmesg:
+>    Return(Package(0x02){0x00, 0x00})
+>=20
 
-Full boot log will make it more clear. (Don't forget ACPI debug option).
+Actually, we need to solve the _CRS issue first.  I have=20
+roughly looked into \_SB_.PCI0.LPCB.LNKA._CRS.
+But the method looks well. Maybe there is ACPCA bug somewhere.
+
 
 
 -------------------------------------------------------
