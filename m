@@ -1,11 +1,13 @@
-From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/3]PCI resume code call pci_enable_device
-Date: Fri, 21 Jan 2005 15:49:53 +0800
-Message-ID: <1106293745.19407.66.camel@sli10-desk.sh.intel.com>
+From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
+Subject: Re: Re: Smart Battery System driver
+Date: Thu, 20 Jan 2005 22:10:44 +0100
+Message-ID: <20050120211044.GA27543@message-id.gmane0305.slipkontur.de>
+References: <1105747983.7368.3.camel@tyrosine> <47e0449d05011419037877f931@mail.gmail.com> <m2fz13x8mw.fsf@phoenix.squirrel.nl> <41EA2C1D.3030909@bartol.udel.edu> <41EC7C7D.1070003@bartol.udel.edu> <41EC9316.80109@bartol.udel.edu> <41EDE2EA.7090404@bartol.udel.edu> <41EF1F6A.5000807@bartol.udel.edu> <41EFCA59.6040100@arrakis.dhis.org> <41EFD672.2040308@bartol.udel.edu>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <41EFD672.2040308-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,57 +17,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Add pci_enable_device in .resume method for some drivers. I just fixed
-some at hand. Will fix more if there are other cases.
+On Thu, Jan 20, 2005 at 11:04:02AM -0500, Rich Townsend wrote:
 
-Signed-off-by: Li Shaohua<shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> The best solution would be to perform a run-time check. I'll see if I 
+> can add code to dynamically detect if the ac_adapter and battery 
+> directories are empy on module insertion, and only add the legacy 
+> interfaces if they are.
 
----
+not "empty" but "do not exist". We will probably find machines that have
+working CM Battery but can also be used with SBS.
+Or maybe it is possible from kernelspace to check if a module is loaded
+to lock each other out => if battery or ac is loaded, sbs will refuse
+to load and the other way round.
 
- 2.5-root/drivers/net/b44.c             |    1 +
- 2.5-root/drivers/pcmcia/yenta_socket.c |    1 +
- 2.5-root/drivers/usb/host/uhci-hcd.c   |    1 +
- 3 files changed, 3 insertions(+)
+> PS Last night, I got a proof-of-concept for event notifications working. 
+> I still haven't got battery alarms working, but we should now be able to 
+> do event-driven AC and battery present/charging/discharging statuses.
 
-diff -puN drivers/usb/host/uhci-hcd.c~resume_call_pci_enable_device drivers/usb/host/uhci-hcd.c
---- 2.5/drivers/usb/host/uhci-hcd.c~resume_call_pci_enable_device	2005-01-20 13:57:15.903906968 +0800
-+++ 2.5-root/drivers/usb/host/uhci-hcd.c	2005-01-20 13:58:33.971038960 +0800
-@@ -2251,6 +2251,7 @@ static int uhci_resume(struct usb_hcd *h
- 	int rc;
- 
- 	pci_set_master(to_pci_dev(uhci_dev(uhci)));
-+	pci_enable_device(to_pci_dev(uhci_dev(uhci)));
- 
- 	if (uhci->state == UHCI_SUSPENDED) {
- 
-diff -puN drivers/pcmcia/yenta_socket.c~resume_call_pci_enable_device drivers/pcmcia/yenta_socket.c
---- 2.5/drivers/pcmcia/yenta_socket.c~resume_call_pci_enable_device	2005-01-20 14:06:32.568281120 +0800
-+++ 2.5-root/drivers/pcmcia/yenta_socket.c	2005-01-20 14:07:23.850485040 +0800
-@@ -1057,6 +1057,7 @@ static int yenta_dev_resume (struct pci_
- 		pci_restore_state(dev);
- 		pci_write_config_dword(dev, 16*4, socket->saved_state[0]);
- 		pci_write_config_dword(dev, 17*4, socket->saved_state[1]);
-+		pci_enable_device(dev);
- 
- 		if (socket->type && socket->type->restore_state)
- 			socket->type->restore_state(socket);
-diff -puN drivers/net/b44.c~resume_call_pci_enable_device drivers/net/b44.c
---- 2.5/drivers/net/b44.c~resume_call_pci_enable_device	2005-01-20 14:35:17.696021840 +0800
-+++ 2.5-root/drivers/net/b44.c	2005-01-20 14:35:44.457953408 +0800
-@@ -1930,6 +1930,7 @@ static int b44_resume(struct pci_dev *pd
- 	struct b44 *bp = netdev_priv(dev);
- 
- 	pci_restore_state(pdev);
-+	pci_enable_device(pdev);
- 
- 	if (!netif_running(dev))
- 		return 0;
-_
-
+It would be pretty cool to throw an event on every change of battery charge
+level (some HP notebooks do this even with CM battery), so there is no need
+to poll for battery charge level.
+-- 
+Stefan Seyfried
 
 
 
