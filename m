@@ -1,11 +1,11 @@
-From: "Ow Mun Heng" <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
-Subject: ACPI on RH9 - just Hangs during Init
-Date: Thu, 8 Apr 2004 16:59:56 +0800
+From: "Zhu, Yi" <yi.zhu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ACPI on RH9 - just Hangs during Init
+Date: Thu, 8 Apr 2004 21:29:24 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <C386328088ED7F4E9F81AFBABDDF60DA04F67A78@wdmyexch02.my.asia.wdc.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F842DB1A8@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
+	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 content-class: urn:content-classes:message
@@ -17,32 +17,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Acpi-List (E-mail)" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Ow Mun Heng <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>, "Acpi-List (E-mail)" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Cc: "Arindam Dey (E-mail)" <adey-bmTD0NCZhtfQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Ow Mun Heng wrote:
+> Hi,
+>=20
+> 	I'm having some issues getting ACPI to work for a
+> default RH9 install with kernel 2.4.20-8.
+>=20
+> Just unchecked apm and selected acpi nothing else. Did not
+> want to mess around with anything else. KErnel compiled just
+> fine but then it reaches init and before the messages start
+> it just bloody sits there doing nothing nothing at all. No
+> msgs no cpu light nothing. Its  very creepy.
+>=20
+> This is a Samsung Laptop.
+>=20
+> Can I buy a clue here???
 
-	I'm having some issues getting ACPI to work for a default RH9
-install with kernel 2.4.20-8.=20
+Does appending "acpi=3Doff" boot your new compiled kernel?
+If yes, can you please provide your DSDT by using=20
+$ ./acpidmp DSDT > /tmp/DSDT
+You can download acpidmp from
+http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/pmtools-20
+031210.tar.bz2
 
-Just unchecked apm and selected acpi nothing else. Did not want to=20
-mess around with anything else. KErnel compiled just fine but then it=20
-reaches init and before the messages start it just bloody sits=20
-there doing nothing nothing at all. No msgs no cpu light=20
-nothing. Its  very creepy.
+Thanks,
+-yi
 
-This is a Samsung Laptop.
-
-Can I buy a clue here???
-
-Cheers,                                                 .^.
-Mun Heng, Ow                                            /V\
-H/M Engineering                                       /(   )\
-Western Digital M'sia                                  ^^-^^
-DID : 03-7870 5168                          The Linux Advocate
-
-       =20
 
 
 -------------------------------------------------------
