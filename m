@@ -1,14 +1,13 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: Dell i5100 resume from ram probl. (2.6.0-test11)
-Date: Fri, 12 Dec 2003 22:19:11 +0100
+From: "Bill Chmura" <Bill-1SCLyN8z2KOgSpxsJD1C4w@public.gmane.org>
+Subject: ACPI Stangeness in Kernel 2.6.0 test 11
+Date: Sat, 13 Dec 2003 17:11:10 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031212211911.GB27547@hell.org.pl>
-References: <3FD4577B.60406@start.no>
+Message-ID: <000501c3c1c6$03bd5150$6400a8c0@loki>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3FD4577B.60406-pC9TGHjoBLc@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,27 +16,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Andreas J. Thorvaldsen" <ajthorva-pC9TGHjoBLc@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Andreas J. Thorvaldsen:
-> 3. A key logger (Linux Key Logger; userspace) stops logging after resume
-> (though /var/log/messages continues to write (no errors)), indicating
-> that it has died somehow (although ...; ps -A > dump; indicates that it 
-> hasn't).
+Hi all,
 
-It's most probably your keyboard that has died, and not the keylogger. 
-http://www.geocities.com/dt_or/input/ should address that (against vanilla
-test11).
+I am running the 2.6 kernel from gentoo-sources and have a strange
+problem with my ACPI...
 
-Unfortunately, you will probably be needing more than just that to properly
-use S3... good luck!
-Best regards,
+If I warm boot it seems to work (reboot) but if it is coming up cold it
+does not find the batteries (looks like they are not there)...
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+Is this a known problem?  I know that you guys have a patch out for an
+early 2.6 test... Has this been incorporated?
+
+Thanks for any info
+
+Bill
+
+
 
 
 -------------------------------------------------------
