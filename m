@@ -1,10 +1,10 @@
-From: Greg Sarjeant <greg-QNIYhHqVzB9kr2E5YSwMOQ@public.gmane.org>
-Subject: Re: PROBLEM: ACPI crashes (2.6.2-rc2-mm1)
-Date: Thu, 29 Jan 2004 07:03:46 -0500
+From: ServerSupport-T1XNNP1PEz+zQB+pC5nmwQ@public.gmane.org
+Subject: Virus Alert
+Date: Fri, 30 Jan 2004 06:24:04 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1075377825.5640.7.camel@localhost>
+Message-ID: <OF03B4BEC5.BA9609B6-ONC1256E2B.001FAFD6@nec.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,44 +18,7 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Looks like this didn't get through last night. Let me try it again.
-
-
-
-Hi,
-
-  Just wanted to add my experience. I was able to suspend to disk and
-resume just fine from a console with the following configuration on the
-Gateway 200X.
-
-kernel 2.6.1
-agpgart module loaded
-intel_agp module loaded
-i830 module loaded
-swsusp compiled into the kernel
-ACPI sleep states compiled into the kernel
-suspend with 'echo 4 > /proc/acpi/sleep'
-
-   When I tried this after starting X with startx, I got the reboot loop
-described by others. I figured I'd give it a shot, since the AGP modules
-didn't interfere with the console suspend/resume. Ah well. 
-
-   Interestingly, starting X and then dropping back into a console
-caused problems, too. I didn't get stuck in a reboot loop, but the
-resume just hung. It did get past the 'Waiting for DMA to settle down'
-message, though. I can't remember now exactly what it said, but it
-seemed to be mostly done. I had to do a hard reboot to get it back, and
-then I had to do the 'noresume; mkswap; swapon' routine.
-
-   I haven't tried unaccelerated X, since the AGP modules seem to be
-loaded regardless of what I do (remove the agpgart alias in
-/etc/modules.conf, remove X from default runlevel, etc) and I cannot
-unload them. I guess I should try compiling a kernel without AGP support
-at all next.
-
-   Thanks,
-    Greg
-
+The mail message (file: doc.zip) you sent to microinfo-T1XNNP1PEz+zQB+pC5nmwQ@public.gmane.org contains a virus. (on du2mail0)
 
 
 -------------------------------------------------------
