@@ -1,91 +1,52 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sbasto-n97bsLhj/YhQPh2TJV30h1aTQe2KTcn/@public.gmane.org>
-Subject: Re: eisa_set_level_irq(acpi_fadt.sci_int)
-Date: 24 Oct 2003 21:03:21 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1067025802.1563.5.camel@darkstar.portugal>
-References: <1066254483.2535.51.camel@dhcppc4>
-	<20031017154107.GI8668@poupinou.org>  <1066411716.2527.100.camel@dhcppc4>
-	<1066796711.2593.30.camel@dhcppc4>
-	<1066964092.1541.16.camel@darkstar.portugal>
-	<1066965206.3864.55.camel@dhcppc4>
-	<1066969171.1608.32.camel@darkstar.portugal>
-	<1066975669.3861.84.camel@dhcppc4>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: [PM][ACPI] No ACPI interrupts after resume from S1
+Date: Sat, 25 Oct 2003 00:23:47 +0200
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <20031024222347.GB728@elf.ucw.cz>
+References: <20031020141512.GA30157@hell.org.pl> <yw1x8yngj7xg.fsf@users.sourceforge.net> <20031020184750.GA26154@hell.org.pl> <yw1xekx7afrz.fsf@kth.se> <20031023082534.GD643@openzaurus.ucw.cz> <yw1xr813f1a3.fsf@kth.se> <3F98FDDF.1040905@cyberone.com.au> <yw1xbrs6652m.fsf@kth.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1066975669.3861.84.camel-D2Zvc0uNKG8@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-acpi <linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <yw1xbrs6652m.fsf-UNjuZkX4dYU@public.gmane.org>
+To: M?ns Rullg?rd <mru-UNjuZkX4dYU@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Ok works well with vanilla -pre7=20
-so the problem is not in this patch.
+Hi!
 
-cat /proc/interrupts
-           CPU0
-  0:      19650          XT-PIC  timer
-  1:        402          XT-PIC  keyboard
-  2:          0          XT-PIC  cascade
-  8:          1          XT-PIC  rtc
-  9:          0          XT-PIC  usb-uhci
- 10:         15          XT-PIC  acpi
- 11:         18          XT-PIC  eth0
- 12:       1188          XT-PIC  PS/2 Mouse
- 14:       9982          XT-PIC  ide0
- 15:       1526          XT-PIC  ide1
-NMI:          0
-ERR:          0
+> >>I've been trying the new suspend to disk implementation (pmdisk, I
+> >>think) lately.  I get these lines in the kernel log when starting
+> >>after a suspend:
+> >>
+> >>PM: Reading pmdisk image.
+> >>PM: Resume from disk failed.
+> >>ACPI: (supports S0 S1 S3 S4 S5)
+> >>
+> >>Last time I tried swsusp, I did pass the resume= option, but it didn't
+> >>work.
+> >>
+> >>Could it be that some disk cache is never flushed properly?
+> >>Occasionally, some random filesystem is reported as not being cleanly
+> >>unmounted when booting normally, which seems to point in the same
+> >>direction.
+> >>
+> >
+> > Try turning your disk cache off, or set it to write through caching
+> > (even so I heard some IDE drives don't turn it off anyway!). See if
+> > it helps.
+> 
+> That took me one step further.  Now it loaded the image swap, but them
+> immediately rebooted.  I didn't have time to see if there were any
+> error messages.  I don't have a serial port, so I can't put a console
+> there.  This was with lots of modules loaded, so maybe unloading some
+> would help.  Are there any known broken drivers in this list:
 
+Try it completely without modules. I'm not sure how it should work
+with modules which means it probably does not work at all.
 
-On Fri, 2003-10-24 at 07:07, Len Brown wrote:
-> Are you running with the kacpid patch to poll for acpi events
-> as mentioned in the link below, or vanilla -pre7 and -pre8?
->=20
-> Does /proc/interrupts for vanilla -pre8 show any acpi interrupts
-> after acpi events?
->=20
-> Does /proc/interrupts for vanilla -pre7 show any acpi interrupts
-> after acpi events?
->=20
-> Please apply this patch to your -pre7 tree and tell me if you see any
-> changes in behaviour:
->=20
-> http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/test/2.4.=
-22/20031020180809-eisa_set_level_irq.patch
->=20
-> again showing /proc/interrupts after acpi events.
->=20
-> My expectation is that it should make no difference, except
-> for printing the extra line about changing the trigger mode.
->=20
-> If the kacpid patch is necessary for you to get any acpi events,
-> then the real bug here is how to get the VT82C686 to deliver
-> acpi events without resorting to polling.
+								Pavel
 
-Was necessary until ACPI-20020907, not any more ok !
-
->=20
-> thanks,
-> -Len
->=20
->=20
---=20
-S=E9rgio Basto
-
-
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: The SF.net Donation Program.
-Do you like what SourceForge.net is doing for the Open
-Source Community?  Make a contribution, and help us add new
-features and functionality. Click here: http://sourceforge.net/donate/
+-- 
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
