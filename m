@@ -1,252 +1,103 @@
-From: Necati DEMiR <ndemir-8b7qcxwNidXiQSDH/tmc6Q@public.gmane.org>
-Subject: Re: ACPI gives error at boot
-Date: Thu, 06 Jan 2005 16:44:35 +0200
-Message-ID: <41DD4ED3.7020205@demir.web.tr>
-References: <41DC2CC0.4070800@demir.web.tr>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [ACPI] Re: kernel 2.6.10 , uhci-hcd problem
+ after ACPI S3 suspend.
+Date: Thu, 6 Jan 2005 10:48:29 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.0501061044410.1024-100000@ida.rowland.org>
+References: <20050105230902.4085.qmail@web50204.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41DC2CC0.4070800-8b7qcxwNidXiQSDH/tmc6Q@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-devel-admin@lists.sourceforge.net>
+In-Reply-To: <20050105230902.4085.qmail@web50204.mail.yahoo.com>
+Sender: linux-usb-devel-admin@lists.sourceforge.net
+Errors-To: linux-usb-devel-admin@lists.sourceforge.net
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
+	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Post: <mailto:linux-usb-devel@lists.sourceforge.net>
+List-Help: <mailto:linux-usb-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
+	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-usb-devel>
+To: Paul Ionescu <i_p_a_u_l@yahoo.com>
+Cc: USB development list <linux-usb-devel@lists.sourceforge.net>, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-Necati DEMiR wrote:
+On Wed, 5 Jan 2005, Paul Ionescu wrote:
 
-> hi,
-> i have problem with ACPI.
-> it gives error at boot.
-> i am sending some information.
->
-> #dmesg
-> .
-> .
-> .
-> Linux agpgart interface v0.100 (c) Dave Jones
-> agpgart: Detected an Intel i850 Chipset.
-> agpgart: Maximum main memory to use for agp memory: 203M
-> agpgart: AGP aperture is 64M @ 0xf8000000
-> cpci_hotplug: CompactPCI Hot Plug Core version: 0.2
-> pci_hotplug: PCI Hot Plug PCI Core version: 0.5
->    ACPI-1133: *** Error: Method execution failed [\_SB_.PCI0.MDET] 
-> (Node cfb56400), AE_AML_REGION_LIMIT
->    ACPI-1133: *** Error: Method execution failed [\_SB_.PCI0._CRS] 
-> (Node cfb56500), AE_AML_REGION_LIMIT
->    ACPI-0154: *** Error: Method execution failed [\_SB_.PCI0._CRS] 
-> (Node cfb56500), AE_AML_REGION_LIMIT
-> shpchp: acpi_shpchprm:\_SB_.PCI0 _CRS fail=0x300b
-> shpchp: acpi_shpchprm:\_SB_.PCI0 evaluate _CRS fail=0x300b
-> shpchp: shpc_init : shpc_cap_offset == 0
-> shpchp: shpc_init : shpc_cap_offset == 0
-> shpchp: Standard Hot Plug PCI Controller Driver version: 0.4
->    ACPI-1133: *** Error: Method execution failed [\_SB_.PCI0.MDET] 
-> (Node cfb56400), AE_AML_REGION_LIMIT
->    ACPI-1133: *** Error: Method execution failed [\_SB_.PCI0._CRS] 
-> (Node cfb56500), AE_AML_REGION_LIMIT
->    ACPI-0154: *** Error: Method execution failed [\_SB_.PCI0._CRS] 
-> (Node cfb56500), AE_AML_REGION_LIMIT
-> pciehp: acpi_pciehprm:\_SB_.PCI0 _CRS fail=0x300b
-> pciehp: acpi_pciehprm:\_SB_.PCI0 evaluate _CRS fail=0x300b
-> pciehp: PCI Express Hot Plug Controller Driver version: 0.4
-> .
-> .
-> .
->
->
-> # cat /proc/interrupts
->           CPU0
->  0:    4954673    IO-APIC-edge  timer
->  1:       1829    IO-APIC-edge  i8042
->  7:          0    IO-APIC-edge  parport0
->  8:          1    IO-APIC-edge  rtc
->  9:          0   IO-APIC-level  acpi
-> 12:     136866    IO-APIC-edge  i8042
-> 14:      66145    IO-APIC-edge  ide0
-> 169:          0   IO-APIC-level  uhci_hcd
-> 177:       4553   IO-APIC-level  Intel 82801BA-ICH2, saa7130[0]
-> 185:         24   IO-APIC-level  uhci_hcd
-> 201:      52515   IO-APIC-level  eth0
-> NMI:          0
-> LOC:    4954694
-> ERR:          0
-> MIS:          0
->
->
-> #lspci -vv
-> 0000:00:00.0 Host bridge: Intel Corp. 82850 850 (Tehama) Chipset Host 
-> Bridge (MCH) (rev 04)
->        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- 
-> ParErr- Stepping- SERR+ FastB2B-
->        Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=fast >TAbort- 
-> <TAbort- <MAbort+ >SERR- <PERR-
->        Latency: 0
->        Region 0: Memory at f8000000 (32-bit, prefetchable) [size=64M]
->        Capabilities: [a0] AGP version 2.0
->                Status: RQ=32 Iso- ArqSz=0 Cal=0 SBA+ ITACoh- GART64- 
-> HTrans- 64bit- FW+ AGP3- Rate=x1,x2,x4
->                Command: RQ=1 ArqSz=0 Cal=0 SBA- AGP- GART64- 64bit- 
-> FW- Rate=<none>
->
-> 0000:00:01.0 PCI bridge: Intel Corp. 82850 850 (Tehama) Chipset AGP 
-> Bridge (rev 04) (prog-if 00 [Normal decode])
->        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- 
-> ParErr- Stepping- SERR+ FastB2B-
->        Status: Cap- 66MHz+ UDF- FastB2B+ ParErr- DEVSEL=fast >TAbort- 
-> <TAbort- <MAbort- >SERR- <PERR-
->        Latency: 32
->        Bus: primary=00, secondary=01, subordinate=01, sec-latency=32
->        Memory behind bridge: fc900000-fe9fffff
->        Prefetchable memory behind bridge: e4600000-f46fffff
->        BridgeCtl: Parity- SERR+ NoISA- VGA+ MAbort- >Reset- FastB2B-
->
-> 0000:00:1e.0 PCI bridge: Intel Corp. 82801 PCI Bridge (rev 04) 
-> (prog-if 00 [Normal decode])
->        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- 
-> ParErr- Stepping- SERR+ FastB2B-
->        Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=fast >TAbort- 
-> <TAbort- <MAbort- >SERR- <PERR-
->        Latency: 0
->        Bus: primary=00, secondary=02, subordinate=02, sec-latency=32
->        I/O behind bridge: 0000d000-0000dfff
->        Memory behind bridge: fea00000-feafffff
->        Prefetchable memory behind bridge: f4700000-f47fffff
->        BridgeCtl: Parity- SERR+ NoISA+ VGA- MAbort- >Reset- FastB2B-
->
-> 0000:00:1f.0 ISA bridge: Intel Corp. 82801BA ISA Bridge (LPC) (rev 04)
->        Control: I/O+ Mem+ BusMaster+ SpecCycle+ MemWINV- VGASnoop- 
-> ParErr- Stepping- SERR- FastB2B-
->        Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium 
-> >TAbort- <TAbort- <MAbort- >SERR- <PERR-
->        Latency: 0
->
-> 0000:00:1f.1 IDE interface: Intel Corp. 82801BA IDE U100 (rev 04) 
-> (prog-if 80 [Master])
->        Subsystem: Intel Corp.: Unknown device 4d44
->        Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- 
-> ParErr- Stepping- SERR- FastB2B-
->        Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium 
-> >TAbort- <TAbort- <MAbort- >SERR- <PERR-
->        Latency: 0
->        Region 4: I/O ports at ffa0 [size=16]
->
-> 0000:00:1f.2 USB Controller: Intel Corp. 82801BA/BAM USB (Hub #1) (rev 
-> 04) (prog-if 00 [UHCI])
->        Subsystem: Intel Corp.: Unknown device 4d44
->        Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- 
-> ParErr- Stepping- SERR- FastB2B-
->        Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium 
-> >TAbort- <TAbort- <MAbort- >SERR- <PERR-
->        Latency: 0
->        Interrupt: pin D routed to IRQ 169
->        Region 4: I/O ports at ef40 [size=32]
->
-> 0000:00:1f.3 SMBus: Intel Corp. 82801BA/BAM SMBus (rev 04)
->        Subsystem: Intel Corp.: Unknown device 4d44
->        Control: I/O+ Mem- BusMaster- SpecCycle- MemWINV- VGASnoop- 
-> ParErr- Stepping- SERR- FastB2B-
->        Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium 
-> >TAbort- <TAbort- <MAbort- >SERR- <PERR-
->        Interrupt: pin B routed to IRQ 177
->        Region 4: I/O ports at efa0 [size=16]
->
-> 0000:00:1f.4 USB Controller: Intel Corp. 82801BA/BAM USB (Hub #2) (rev 
-> 04) (prog-if 00 [UHCI])
->        Subsystem: Intel Corp.: Unknown device 4d44
->        Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- 
-> ParErr- Stepping- SERR- FastB2B-
->        Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium 
-> >TAbort- <TAbort- <MAbort- >SERR- <PERR-
->        Latency: 0
->        Interrupt: pin C routed to IRQ 185
->        Region 4: I/O ports at ef80 [size=32]
->
-> 0000:00:1f.5 Multimedia audio controller: Intel Corp. 82801BA/BAM 
-> AC'97 Audio (rev 04)
->        Subsystem: Intel Corp.: Unknown device 4d44
->        Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- 
-> ParErr- Stepping- SERR- FastB2B-
->        Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium 
-> >TAbort- <TAbort- <MAbort- >SERR- <PERR-
->        Latency: 0
->        Interrupt: pin B routed to IRQ 177
->        Region 0: I/O ports at e800 [size=256]
->        Region 1: I/O ports at ef00 [size=64]
->
-> 0000:01:00.0 VGA compatible controller: nVidia Corporation NV11DDR 
-> [GeForce2 MX 100 DDR/200 DDR] (rev b2) (prog-if 00 [VGA])
->        Subsystem: CardExpert Technology: Unknown device 0001
->        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- 
-> ParErr- Stepping- SERR- FastB2B-
->        Status: Cap+ 66MHz+ UDF- FastB2B+ ParErr- DEVSEL=medium 
-> >TAbort- <TAbort- <MAbort- >SERR- <PERR-
->        Latency: 32 (1250ns min, 250ns max)
->        Interrupt: pin A routed to IRQ 193
->        Region 0: Memory at fd000000 (32-bit, non-prefetchable) [size=16M]
->        Region 1: Memory at e8000000 (32-bit, prefetchable) [size=128M]
->        Expansion ROM at fe9f0000 [disabled] [size=64K]
->        Capabilities: [60] Power Management version 2
->                Flags: PMEClk- DSI- D1- D2- AuxCurrent=0mA 
-> PME(D0-,D1-,D2-,D3hot-,D3cold-)
->                Status: D0 PME-Enable- DSel=0 DScale=0 PME-
->        Capabilities: [44] AGP version 2.0
->                Status: RQ=32 Iso- ArqSz=0 Cal=0 SBA- ITACoh- GART64- 
-> HTrans- 64bit- FW+ AGP3- Rate=x1,x2,x4
->                Command: RQ=1 ArqSz=0 Cal=0 SBA- AGP- GART64- 64bit- 
-> FW- Rate=<none>
->
-> 0000:02:0a.0 Ethernet controller: Davicom Semiconductor, Inc. 21x4x 
-> DEC-Tulip compatible 10/100 Ethernet (rev 40)
->        Subsystem: Unknown device 3030:5032
->        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- 
-> ParErr- Stepping- SERR+ FastB2B-
->        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium 
-> >TAbort- <TAbort- <MAbort- >SERR- <PERR-
->        Latency: 32 (5000ns min, 10000ns max)
->        Interrupt: pin A routed to IRQ 201
->        Region 0: I/O ports at d800 [size=256]
->        Region 1: Memory at feaffc00 (32-bit, non-prefetchable) [size=256]
->        Expansion ROM at fea80000 [disabled] [size=256K]
->        Capabilities: [50] Power Management version 2
->                Flags: PMEClk- DSI- D1- D2+ AuxCurrent=220mA 
-> PME(D0+,D1+,D2+,D3hot+,D3cold+)
->                Status: D0 PME-Enable- DSel=0 DScale=0 PME-
->
-> 0000:02:0c.0 Multimedia controller: Philips Semiconductors SAA7130 
-> Video Broadcast Decoder (rev 01)
->        Subsystem: Philips Semiconductors: Unknown device 0000
->        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- 
-> ParErr- Stepping- SERR- FastB2B-
->        Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium 
-> >TAbort- <TAbort- <MAbort- >SERR- <PERR-
->        Latency: 32 (3750ns min, 9500ns max)
->        Interrupt: pin A routed to IRQ 177
->        Region 0: Memory at feaff800 (32-bit, non-prefetchable) [size=1K]
->        Capabilities: [40] Power Management version 1
->                Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA 
-> PME(D0-,D1-,D2-,D3hot-,D3cold-)
->                Status: D0 PME-Enable- DSel=0 DScale=0 PME-
->
->
->
->
+> The dmesg from a kernel 2.6.10 with CONFIG_USB_DEBUG
+> is bellow:
+> suspended without any device plugged, resumed, plugged
+> a device in.
+> 
+> uhci_hcd 0000:00:1d.1: suspend_hc
+> PM: Preparing system for suspend
+> ehci_hcd 0000:00:1d.7: --> PCI D3hot
+> uhci_hcd 0000:00:1d.2: suspend_hc
+> uhci_hcd 0000:00:1d.2: --> PCI D0/legacy
+> uhci_hcd 0000:00:1d.1: suspend_hc
+> uhci_hcd 0000:00:1d.1: --> PCI D0/legacy
+> uhci_hcd 0000:00:1d.0: suspend_hc
+> uhci_hcd 0000:00:1d.0: --> PCI D0/legacy
+> PM: Entering state.
+>  hwsleep-0307 [23] acpi_enter_sleep_state: Entering
+> sleep state [S3]
+> Back to C!
+> Warning: CPU frequency is 1700000, cpufreq assumed
+> 1000000 kHz.
+> Debug: sleeping function called from invalid context
+> at mm/slab.c:2062
+> in_atomic():0, irqs_disabled():1
+>  [<c01188f5>] __might_sleep+0x95/0xb0
+>  [<c0216247>] acpi_ut_trace+0x28/0x2e
+>  [<c0140690>] kmem_cache_alloc+0x50/0x60
+>  [<c021d362>] acpi_pci_link_set+0x89/0x26b
+>  [<c021da11>] acpi_pci_link_resume+0x45/0x79
+>  [<c021da88>] irqrouter_resume+0x43/0x5e
+>  [<c025a0c6>] sysdev_resume+0x66/0xc4
+>  [<c025dbb5>] device_power_up+0x5/0xa
+>  [<c0131bd0>] suspend_enter+0x30/0x50
+>  [<c0131c93>] enter_state+0x63/0x90
+>  [<c021a513>] acpi_suspend+0x28/0x35
+>  [<c01d9a44>] copy_from_user+0x54/0x90
+>  [<c021a618>] acpi_system_write_sleep+0x66/0x77
+>  [<c01548e1>] vfs_write+0xd1/0x130
+>  [<c01549f1>] sys_write+0x41/0x70
+>  [<c0102e0d>] sysenter_past_esp+0x52/0x75
+> hub 4-0:1.0: resubmit --> -108
+> hub 2-0:1.0: resubmit --> -108
+> hub 3-0:1.0: resubmit --> -108
+> PM: Finishing up.
+> uhci_hcd 0000:00:1d.0: resume from PCI D0 (legacy)
+> PCI: Setting latency timer of device 0000:00:1d.0 to
+> 64
+> uhci_hcd 0000:00:1d.1: resume from PCI D0 (legacy)
+> PCI: Setting latency timer of device 0000:00:1d.1 to
+> 64
+> uhci_hcd 0000:00:1d.2: resume from PCI D0 (legacy)
+> PCI: Setting latency timer of device 0000:00:1d.2 to
+> 64
+> ehci_hcd 0000:00:1d.7: resume from PCI D3hot
+
+I think you've run across another indication that the suspend/resume 
+support in the USB drivers is not yet ready for prime time.  Does the 
+patch below help?  (Note: this is meant for use with CONFIG_USB_SUSPEND 
+not set.)
+
+Alan Stern
 
 
--- 
-------------------------------------------------
-Necati DEMiR
-ndemir-8b7qcxwNidXiQSDH/tmc6Q@public.gmane.org
-http://demir.web.tr
-My Public Key => http://demir.web.tr/ndemir.asc
--------------------------------------------------
+
+--- 2.6.10-orig/drivers/usb/core/hcd.c	Mon Jan  3 09:39:35 2005
++++ 2.6.10/drivers/usb/core/hcd.c	Thu Jan  6 10:43:16 2005
+@@ -534,7 +534,8 @@
+ 
+ 	/* complete the status urb, or retrigger the timer */
+ 	spin_lock (&hcd_data_lock);
+-	if (urb->dev->state == USB_STATE_CONFIGURED) {
++	if (urb->dev->state == USB_STATE_CONFIGURED &&
++			hcd->state == USB_STATE_RUNNING) {
+ 		length = hcd->driver->hub_status_data (
+ 					hcd, urb->transfer_buffer);
+ 		if (length > 0) {
 
 
 
@@ -254,3 +105,7 @@ My Public Key => http://demir.web.tr/ndemir.asc
 The SF.Net email is sponsored by: Beat the post-holiday blues
 Get a FREE limited edition SourceForge.net t-shirt from ThinkGeek.
 It's fun and FREE -- well, almost....http://www.thinkgeek.com/sfshirt
+_______________________________________________
+linux-usb-devel@lists.sourceforge.net
+To unsubscribe, use the last form field at:
+https://lists.sourceforge.net/lists/listinfo/linux-usb-devel
