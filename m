@@ -1,17 +1,13 @@
-From: Thomas Glomann <mailinglists-WoYc4IhrKEiELgA04lAiVw@public.gmane.org>
-Subject: Re: high pitch noise with kernel 2.6 and ACPI (Dell Inspiron 8200)
-Date: Wed, 18 Feb 2004 20:17:47 +0100
+From: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
+Subject: Re: CUR-DLS blacklisted? + IRQ trouble
+Date: Wed, 18 Feb 2004 19:58:55 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200402182017.47960.mailinglists@glomann.de>
-References: <200402181320.29381.mailinglists@glomann.de> <1077111155.2028.3.camel@personal-118.mip.sdu.dk>
-Reply-To: mailinglists-WoYc4IhrKEiELgA04lAiVw@public.gmane.org
+Message-ID: <4033C3FF.3040809@mega.ist.utl.pt>
+References: <402F823D.6070702@mega.ist.utl.pt> <1077079669.4948.24.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=_mail.ist.utl.pt-26564-1077134343-0001-2"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1077111155.2028.3.camel-LS+HbC+WUqy6wZ7Myly0Ql9iRXqZKEsZ@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1077079669.4948.24.camel-D2Zvc0uNKG8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -23,38 +19,122 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday 18 February 2004 14:32, Mads Paulin wrote:
-> Hi Thomas,
->
-> funny you mention it, I thought I was going crazy.
->
-> I experienced the same thing, and discovered it to be the hard drive.
->
-> Try to spind the drive down using hdparm and see if that helps.
->
-nope, putting the drive to sleep doesn't do the trick. the sound remains. 
-Moreover I don't see how this "solution" was meant to work? Does the sound 
-reappear when you wake up your disk or does it keep silent after a nice 
-"onetime" sleep?
-> Obviously this is not a solution, but if it helps, kernel 2.6 could have
-> some other way of controlling the disk than 2.4.
->
-Still it doesn't explain why that sound is gone when disabling the whole 
-acpi-system.
-> The noise disappears when my hdd is under heavy load.
-> - Maybe you just cant here it then, or it actually disappears because it
-> is no longer idle
->
-well thats true. as long as the disk is Not idle, the noise is gone. But 
-returns right after.
+This is a MIME-formatted message.  If you see this text it means that your
+E-mail software does not support MIME-formatted messages.
 
-> Regards
-> Mads
+--=_mail.ist.utl.pt-26564-1077134343-0001-2
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-So any other ideas?
+hi len,
+
+thanks for the reply. i'll file the bug report and say something in this
+ml when i do.
+
+thanks again.
+regards,
+pedro.
+
+Len Brown wrote:
+
+ > Pedro,
+ > We got that entry from UnitedLinux last August.
+ >
+ > It is quite possible that the system is unjustly blacklisted, or that it
+ > was blacklisted out of convenience b/c nobody could figure out exactly
+ > what was wrong when ACPI on that system failed.
+ >
+ > I'll be happy to look into it if you're willing to file a bug and help
+ > me debug to make a proper diagnosis.
+ >
+ > thanks,
+ > -Len
+ > ---
+ > How to file a bug against ACPI:
+ >
+ > http://bugzilla.kernel.org/ Category: Power Management, Component: ACPI
+ >
+ > Please attach dmesg -s40000 output (or serial console log if dmesg
+ > unavailable)
+ > Please attach copy of /proc/interrupts if possible
+ >
+ > Please attach the output from acpidmp, available in /usr/sbin/, or in
+ > pmtools:
+ > http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
+ >
+ > Please attach the output from dmidecode, available in /usr/sbin/, or
+ > here:
+ > http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/utils/
+ >
+ > Please attach the output from lspci -v
+ >
+ >
+ >
+ > On Sun, 2004-02-15 at 09:29, Pedro Venda wrote:
+ >
+> hi everyone,
+> 
+> i have two questions to which i haven't found answers anywhere, so i am
+> asking here.
+> 
+> - i have an ASUS CUR-DLS motherboard (dual P3) and the 2.4 and 2.6
+> kernels both say: "ASUS CUR-DLS detected: force use of acpi=ht" when
+> starting disabling ACPI. i must do a acpi=force in order to be able to
+> use it, which consequences i don't know. i looked through the acpi
+> documentation and this board is NOT on the blacklist. i am asking why
+> does the kernel disable ACPI on my mb by default? what's wrong with it?
+> are there any known problems?
+> 
+> - on the same machine, i have 2 nics. one of them is onboard (intel
+> eepro/100) and the other is a realtek 8139. they used to work ok with
+> some versions of the kernel, but now they only work together without
+> ACPI. with acpi, the realtek displays the famous SIOCIFADDR "device is
+> busy...". is this normal? what can be happening here?
+> 
+> thanks for your time.
+> regards,
+> pedro.
+
+-------------------------------------------------------
+SF.Net is sponsored by: Speed Start Your Linux Apps Now.
+Build and deploy apps & Web services for Linux with
+a free DVD software kit from IBM. Click Now!
+http://ads.osdn.com/?ad_id=1356&alloc_id=3438&op=click
+_______________________________________________
+Acpi-devel mailing list
+Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
-Thomas
+
+
+ > -------------------------------------------------------
+ > SF.Net is sponsored by: Speed Start Your Linux Apps Now.
+ > Build and deploy apps & Web services for Linux with
+ > a free DVD software kit from IBM. Click Now!
+ > http://ads.osdn.com/?ad_id=1356&alloc_id=3438&op=click
+ > _______________________________________________
+ > Acpi-devel mailing list
+ > Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+ > https://lists.sourceforge.net/lists/listinfo/acpi-devel
+
+
+--=_mail.ist.utl.pt-26564-1077134343-0001-2
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Transfer-Encoding: 7bit
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (MingW32)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+
+iD8DBQFAM8QGeRy7HWZxjWERAul9AKC+c2xnQjhESDSPTe6TzA13AFDQ5QCfZF31
+4EQBp0671DPiJiwhS+FJzfU=
+=d07L
+-----END PGP SIGNATURE-----
+
+--=_mail.ist.utl.pt-26564-1077134343-0001-2--
 
 
 -------------------------------------------------------
