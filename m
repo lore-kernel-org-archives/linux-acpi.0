@@ -1,46 +1,57 @@
-From: jbarnes-sJ/iWh9BUns@public.gmane.org (Jesse Barnes)
-Subject: [PATCH] Kconfig update
-Date: Fri, 25 Jul 2003 13:45:34 -0700
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030725204534.GC16854@sgi.com>
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] Linux 2.6-pre-mm2 Fix crash on boot on ASUS L3800C if enabing APIC => add this machine to DMI black list
+Date: Fri, 25 Jul 2003 13:52:44 -0700
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <F760B14C9561B941B89469F59BA3A847E97080@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+content-class: urn:content-classes:message
+To: Mikael Pettersson <mikpe-gJWeRRR3xd2zQB+pC5nmwQ@public.gmane.org>, akpm-3NddpPZAyC0@public.gmane.org, eric.valette-GANU6spQydw@public.gmane.org, sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Just a small patch to fix the ACPI_NUMA default for ia64 and sn2.
+> From: Mikael Pettersson [mailto:mikpe-gJWeRRR3xd2zQB+pC5nmwQ@public.gmane.org] 
+> On Sun, 20 Jul 2003 21:48:24 +0200, Eric Valette wrote:
+> >The following patch integrated in 2.5.74,
+> >
+> ><http://lists.insecure.org/lists/linux-kernel/2003/Jun/5840.html>
 
-Btw, I'm not on the list, so if you reply please Cc: me.
+> At least two P4 laptops are known to require the 2.5.74 patch, and
+> they do work with the local APIC.
+> 
+> While I don't dispute your machine has some problem, please
+> do the following first before we completely blacklist it:
+> - ensure you have the latest BIOS (ftp.asuscom.de has the ones for
+>   their desktop mainboards, presumably the laptop BIOSen are 
+> also there)
+> - in what way is ACPI mandatory? does it fail to boot, or does it
+>   just lose some specific feature? If you just want suspend support,
+>   try APM if the machine has it
+> 
+> A question for the ACPI people:
+> - Does the Linux kernel ACPI code ever transfer control to BIOS,
+>   explicitly or implicitly via SMIs triggered by the interpreter?
+>   If you do transfer control, do you disable interrupts and/or
+>   the interrupt controllers before transferring control?
+>   Entering BIOS with the local APIC live, in particular the timer,
+>   is a known hang-generator with APM.
 
-Thanks,
-Jesse
+Yes, some OEMs (IBM, for one. I'm sure there are more) enter SMM when
+executing control methods. The interpreter is just blithely going along
+and writing values to mem and io ports -- it doesn't know it just
+invoked SMM. Nothing is disabled.
 
-diff -Nru a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
---- a/drivers/acpi/Kconfig	Thu Jul 17 16:59:05 2003
-+++ b/drivers/acpi/Kconfig	Thu Jul 17 16:59:05 2003
-@@ -133,7 +133,7 @@
- 
- config ACPI_NUMA
- 	bool "NUMA support" if NUMA && (IA64 && !IA64_HP_SIM || X86 && ACPI && !ACPI_HT_ONLY && !X86_64)
--	default y if IA64 && IA64_SGI_SN
-+	default y if IA64_GENERIC || IA64_SGI_SN2
- 
- config ACPI_ASUS
-         tristate "ASUS/Medion Laptop Extras"
+BTW I'm getting a bunch of other reports starting with 2.5.74 (see
+"linux laptop keyboard problem since 2.5.74"). 
 
+So let me get this straight -- because 2 machines require this patch,
+you want all the OTHER machines to go on the blacklist? Shouldn't the 2
+machines get special-cased?
 
--------------------------------------------------------
-This SF.Net email sponsored by: Free pre-built ASP.NET sites including
-Data Reports, E-commerce, Portals, and Forums are available now.
-Download today and enter to win an XBOX or Visual Studio .NET.
-http://aspnet.click-url.com/go/psa00100003ave/direct;at.aspnet_072303_01/01
+All these machines work under Windows, so there has to be a solution
+that enables everyone to work.
+
+Regards -- Andy
