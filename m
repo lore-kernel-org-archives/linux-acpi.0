@@ -1,12 +1,15 @@
-From: Dominik Brodowski <devel-JhLEnvuH02M@public.gmane.org>
-Subject: no events with acpi-20020821-2.4.19 (fwd)
-Date: Sat, 24 Aug 2002 19:55:36 +0200
+From: "M. Warner Losh" <imp-uzTCJ5RojNnQT0dZR+AlfA@public.gmane.org>
+Subject: Re: not all irqs detected
+Date: Sat, 24 Aug 2002 12:17:03 -0600 (MDT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020824195536.C587@brodo.de>
+Message-ID: <20020824.121703.52419660.imp@bsdimp.com>
+References: <200208241717.g7OHH1X19234@mailgate5.cinetic.de>
+	<20020824200511.G587@brodo.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20020824200511.G587-JhLEnvuH02M@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,43 +18,47 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: ehikory-Ru1csStN2yCTnpBtbRfDVg@public.gmane.org
+To: devel-JhLEnvuH02M@public.gmane.org
+Cc: joerg.beyer-htSm2yLGOjU@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------ Forwarded message from ehikory-Ru1csStN2yCTnpBtbRfDVg@public.gmane.org -----
+In message: <20020824200511.G587-JhLEnvuH02M@public.gmane.org>
+            Dominik Brodowski <devel-JhLEnvuH02M@public.gmane.org> writes:
+: On Sat, Aug 24, 2002 at 07:17:01PM +0200, joerg.beyer-htSm2yLGOjU@public.gmane.org wrote:
+: > My bios has not many things to adjust, but I can disable the
+: > psaux (mouse) and the bios says, if I disable psaux, then irq 12
+: > will be available. I attached a dmesg, with disabled psaux, and
+: > I would expect to see IRQ 12 used - but it isn't.
+: > 
+: > could anybody tell me, if it is correct to expect IRQ 12 used this
+: > way? 
+: It _may_ be available for other, i.e. PCI users then.
+: > 
+: > I tried to read & understand the driver/acpi/pci_*.c code, but I need
+: > some help to get started: how are the free/usable IRQs found
+: > and mapped?
+: The usable IRQs are set down in the DSDT table, the Detailed System
+: Description Table (which is more or less fixed in the BIOS). And as all PCI
+: IRQs are expected to be non-exclusive, all should be "free". However, the
+: ACPI code tries to use the available IRQs most effectively.
 
-My mail provider does not comply with RFC822, and my mail to
-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org was rejected.  Would you be
-kind enough to forward this message to the list?  I will check the
-archives to follow the thread.  Thank you.
+Actually, that's not the case ('all shoule be free').  The truth of
+the matter is that you have to look up in the interrupt routing table
+to find what slots can have which interrupts.  Sometimes you are lucky
+and can have any interrupt to any pin.  Other times you are SOL and
+all the interrupts are wired to one or two pins (toshiba laptops are
+notorious for one pin designs).  Pre-acpi, you'd look in the $PIR
+table to find what could be routed where.  ACPI has a similar
+mechanism, but I'm haivng troube recalling it to mind.
 
--------- Forwarded Message ---------
-Subject: No events with acpi-20020821-2.4.19
+So maybe IRQ 5 and IRQ 10 is all you get, and irq 12 can't be routed
+to the pins in the original poster's question.
 
-    After installing a 2.4.19 kernel with the acpi-20020821-2.4.19 patch, I get
-no events reported from /proc/acpi/events.  Events were being reported with the
-ACPI support in the vanilla kernel.  I'm running on a Sony VAIO PCG-Z505HE, and
-`acpidmp FACP | acpitbl` reports OEMID: Sony, TableID: Z1, revision: 0x20000222.
+Warner
 
-    My syslog looks clean (ACPI loads, with lots of detail, but no errors).
-
-    Additionally, although sleep didn't work quite right with the vanilla kernel
-(no wakeup functions), I now get no response from `echo 1 > /proc/acpi/sleep` and
-receive a "write error: no such device" when using `cat foo > /proc/acpi/sleep`,
-where foo contains only the numeral "1".
-
-    Has anyone else experienced this behavior, or do I just need to update my
-BIOS?  Any pointers to additional documentation would also be welcome.  Also,
-if anyone wants detailed debugging information, I would be happy to send it
-off-list: just let me know what you need.
-
--- 
-Emmet Hikory
-ehikory-Ru1csStN2yCTnpBtbRfDVg@public.gmane.org
---------- End of Forwarded Message ---------
-
------ End forwarded message -----
+P.S.  Most of my experience on this is being the FreeBSD pccard dude
+and having to deal with the fact that the choices for IRQs, routed to
+INTA of the cardbus bridge, are very very limited in most laptops.
 
 
 -------------------------------------------------------
