@@ -1,13 +1,11 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: ASUS M3N standby resume regression in 2.6.x -- works under 2.4.x
-Date: Wed, 19 Jan 2005 16:18:48 +0100
-Message-ID: <20050119151847.GB476@openzaurus.ucw.cz>
-References: <200501111652.28556.jcard@fe.up.pt> <20050112224425.GB2139@elf.ucw.cz> <200501131620.35657.jcard@fe.up.pt>
+From: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+Subject: SBST table?
+Date: Wed, 19 Jan 2005 12:06:26 -0500
+Message-ID: <41EE9392.2020807@bartol.udel.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200501131620.35657.jcard-A1Gx7Te15Zc@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,22 +15,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: JoCardoso <jcard-A1Gx7Te15Zc@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hi all --
 
-> > Try to find out where it hangs.
-> 
-> How? I don't know were to start.
+I read from the ACPI spec that systems with a Smart Battery component 
+will have an SBST table definining various aspects of the component. How 
+might I go about accessing this table -- I assume that I'll have to mess 
+around with table.c, but beyond that does anyone have any direct 
+suggestions or pointers to info?
 
-Add printks to drivers/acpi/sleep.
+cheers,
 
-				Pavel
--- 
-64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
-
+Rich
 
 
 -------------------------------------------------------
