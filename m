@@ -1,13 +1,14 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: ACER 632 notebook reboots instead of poweroff
-Date: Mon, 1 Nov 2004 13:50:34 +0100
-Message-ID: <20041101125034.GA32347@atrey.karlin.mff.cuni.cz>
-References: <20041026194029.GA10954@pooh> <20041027141833.GC8443@zimen.sk> <20041031231945.GA6909@elf.ucw.cz> <16774.358.944292.65501@aber.ac.uk>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: [PATCH] GDT table patch for resume only reboots problem
+Date: Mon, 01 Nov 2004 14:43:54 +0000
+Message-ID: <1099320234.31683.14.camel@elrond.flymine.org>
+References: <OF38C223A3.5509B742-ON49256F36.00412958-49256F36.0041FAA1@jp.ibm.com>
+	 <1098535488.3996.21.camel@tyrosine>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <16774.358.944292.65501-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
+In-Reply-To: <1098535488.3996.21.camel@tyrosine>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,35 +18,42 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
-Cc: mizu <michal-VaXaUECoPuY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-
->  > >   the same problem is with my ACER 632 too.
->  > > 
->  > >   I've tried disable wakeup devices /proc/acpi/wakeup, but with no
->  > > success.
->  > 
->  > What happens with acpi=off?
->  > 
->  > I have evo n620c here which has similar symptoms, and has another
->  > funny set of symptoms with acpi=off...
->  > 
+On Sat, 2004-10-23 at 13:44 +0100, Matthew Garrett wrote:
+> On Sat, 2004-10-23 at 21:05 +0900, Hiroshi 2 Itoh wrote:
 > 
-> I have exactly the same problem with my ACER TM 636.  Will try with
-> acpi=off asap and report.
+> > Yes, nothing is bad. Try to write the value in both etc...
 > 
-> Do you also have funny thermal and battery readings when running on
-> batteries?
+> Writing the value into both makes no difference. I also tried pushing
+> the wakeup address higher up into lowmem (around 256K), but that makes
+> no difference either.
 
-Thermal seems to more or less work until I do swsusp; battery reading
-seems to be okay. evo is really different beast from acer...
+Further playing:
 
-								Pavel
+Setting the wakeup vector to other values makes no difference - the
+machine behaves identically regardless of whether it's pointing at the
+wakeup code or at empty space (ie, it always reboots). The only two
+things that spring to mind are:
+
+1) Something is still going wrong in the suspend pathway, and some
+machines are not being properly configured for suspend. Given that the
+machine reboots without running any code when attempting to wake from
+S3, is there any way to test this?
+
+2) (This is somewhat far-fetched, but...) Could the machine be ignoring
+the contents of the wakeup vector and always attempting to run code from
+the same address? Does Windows put the wakeup code in a predictable
+location?
+
+Looking a bit more closely, the DSDT claims to be for a VIA Apollo-P.
+The machine was made by Elite Computer Systems (www.ecs.com.tw ) and is
+a rebadged G320. It's a very, very horrible piece of hardware, but S3
+works under Windows.
 -- 
-Boycott Kodak -- for their patent abuse against Java.
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+
 
 
 -------------------------------------------------------
