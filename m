@@ -1,7 +1,10 @@
-From: akpm-3NddpPZAyC0@public.gmane.org
-Subject: [patch 2/4] acpi: Toshiba failure handling
-Date: Wed, 30 Mar 2005 13:16:49 -0800
-Message-ID: <200503302116.j2ULGc4Y027730@shell0.pdx.osdl.net>
+From: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Subject: [RFC][PATCH] CPU hotplug consideration in acpi_bus_add()
+Date: Wed, 30 Mar 2005 22:28:41 +0900
+Message-ID: <20050330222841.541b7a23.tokunaga.keiich@jp.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -12,40 +15,57 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, panagiotis.issaris-hfxpx0nnwYVX2QMWbMbClIble9XqW/aP@public.gmane.org, takis-8nu/KwtRnEU@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org, Anil Keshavamurthy <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+  This is to add CPU hotplug consideration to acpi_bus_add()
+that now assumes processor objects are always present,
+functioning, etc. at least when parent object is present.
+But, CPU hotplug is supported today, so we need to change
+the assumption.  If a processor object has _STA method, we
+should respect it.
 
-From: "Panagiotis Issaris" <panagiotis.issaris-hfxpx0nnwYVX2QMWbMbClIble9XqW/aP@public.gmane.org>
+Thanks,
+Keiichiro Tokunaga
 
-Adds the missing failure handling for a kmalloc in the Toshiba ACPI driver.
 
-Signed-off-by: Panagiotis Issaris <takis-8nu/KwtRnEU@public.gmane.org>
-Signed-off-by: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
+Signed-off-by: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 ---
 
- 25-akpm/drivers/acpi/toshiba_acpi.c |    3 +++
- 1 files changed, 3 insertions(+)
+ linux-2.6.12-rc1-mm3-kei-kei/drivers/acpi/scan.c |   12 +++++++-----
+ 1 files changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN drivers/acpi/toshiba_acpi.c~acpi-toshiba-failure-handling drivers/acpi/toshiba_acpi.c
---- 25/drivers/acpi/toshiba_acpi.c~acpi-toshiba-failure-handling	Wed Mar 30 13:16:02 2005
-+++ 25-akpm/drivers/acpi/toshiba_acpi.c	Wed Mar 30 13:16:02 2005
-@@ -263,6 +263,9 @@ dispatch_write(struct file* file, const 
- 	 * destination so that sscanf can be used on it safely.
+diff -puN drivers/acpi/scan.c~cpu_hp_consideration drivers/acpi/scan.c
+--- linux-2.6.12-rc1-mm3-kei/drivers/acpi/scan.c~cpu_hp_consideration	2005-03-27 15:51:44.000000000 +0900
++++ linux-2.6.12-rc1-mm3-kei-kei/drivers/acpi/scan.c	2005-03-27 15:51:44.000000000 +0900
+@@ -1061,13 +1061,15 @@ acpi_add_single_object (
+ 	/*
+ 	 * Status
+ 	 * ------
+-	 * See if the device is present.  We always assume that non-Device()
+-	 * objects (e.g. thermal zones, power resources, processors, etc.) are
+-	 * present, functioning, etc. (at least when parent object is present).
+-	 * Note that _STA has a different meaning for some objects (e.g.
+-	 * power resources) so we need to be careful how we use it.
++	 * See if the device is present.  We always assume that non-Device
++	 * and non-Processor objects (e.g. thermal zones, power resources,
++	 * etc.) are present, functioning, etc. (at least when parent object
++	 * is present).  Note that _STA has a different meaning for some
++	 * objects (e.g. power resources) so we need to be careful how we use
++	 * it.
  	 */
- 	tmp_buffer = kmalloc(count + 1, GFP_KERNEL);
-+	if(!tmp_buffer)
-+		return -ENOMEM;
-+
- 	if (copy_from_user(tmp_buffer, buffer, count)) {
- 		result = -EFAULT;
- 	}
+ 	switch (type) {
++	case ACPI_BUS_TYPE_PROCESSOR:
+ 	case ACPI_BUS_TYPE_DEVICE:
+ 		result = acpi_bus_get_status(device);
+ 		if (ACPI_FAILURE(result) || !device->status.present) {
+
 _
 
 
 -------------------------------------------------------
-This SF.net email is sponsored by Demarc:
-A global provider of Threat Management Solutions.
-Download our HomeAdmin security software for free today!
-http://www.demarc.com/Info/Sentarus/hamr30
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
