@@ -1,14 +1,14 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] ibm-acpi-0.6 - ACPI driver for IBM ThinkPad laptops
-Date: 19 Oct 2004 20:08:03 -0400
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: [PATCH] GDT table patch for resume only reboots problem
+Date: Wed, 20 Oct 2004 01:58:27 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1098230882.26605.4251.camel@d845pe>
-References: <20041019055951.GI17013@aero.ensim.com>
+Message-ID: <1098233908.4032.12.camel@tyrosine>
+References: <OFD3267728.221C77BC-ON49256F31.006D2ECA-49256F31.0070E4AF@jp.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041019055951.GI17013-AKoe11r2kkOzaBltdDZI6w@public.gmane.org>
+In-Reply-To: <OFD3267728.221C77BC-ON49256F31.006D2ECA-49256F31.0070E4AF-JE5g2YyFxFHQT0dZR+AlfA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,30 +17,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Borislav Deianov <borislav-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Hiroshi 2 Itoh <HIROIT-JE5g2YyFxFHQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Applied.
+On Tue, 2004-10-19 at 05:38 +0900, Hiroshi 2 Itoh wrote:
 
-thanks,
--Len
+> You are right and I agree gdtr save area can be modified via
+> acpi_copy_wakeup_routine() with its FASTCALL argument added. This is the
+> second version of gdt table patch. Also I changed temp_gdt... to
+> real_gdt... because temp_gdt... looks like temporary fix.
 
-On Tue, 2004-10-19 at 01:59, Borislav Deianov wrote:
-> Hi,
-> 
-> This is a Linux ACPI driver for the IBM ThinkPad laptops. It aims to
-> support various features of these laptops which are accessible through
-> the ACPI framework but not otherwise supported by the generic Linux
-> ACPI drivers.
-> 
-> For more information, see http://ibm-acpi.sf.net/
-> 
-> The attached patch is against 2.6.9-rc4-mm1.
-> 
-> Boris
-> 
-> 
+I'm testing this patch plus the wakeup address one on an EiSystem 3001
+(some random cheap VIA-based system). Suspend appears to work correctly
+- if I use Pavel's BEEP code in do_suspend_lowevel I get a tone
+immediately before the machine shuts down. The sleep light then comes
+on. Hitting the power button results in the machine rebooting
+immediately - putting a BEEP at the start of wakeup_start doesn't result
+in any tone. Are there any further useful details I can send?
+
+(This machine is of sufficiently poor quality that its DMI table claims
+it's a desktop, but it suspends correctly under Windows XP...)
+-- 
+Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 
 
 
