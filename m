@@ -1,14 +1,14 @@
-From: "Rockefeller, Harry" <harryr-UjZhlPPWhclBDgjK7y7TUQ@public.gmane.org>
-Subject: RE: list of events
-Date: Tue, 27 Apr 2004 09:27:12 -0500
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: False thermall shutdown (seems like 2.6 ACPI bug)
+Date: Tue, 27 Apr 2004 22:39:06 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <B774920D825C2D4880A3C1B0D6EF941851E512@ssdmx.ssd.fsi.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F840423FAC3@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="US-ASCII"
+	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,45 +17,54 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Rus V. Brushkoff" <rus-YPKzlcOx6JWP+XVi2HspGA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-=46rom 'man acpid':
+=20
 
-FILES
-       /proc/acpi/event
-       /etc/acpi/
-       /var/log/acpid=20
+>	Hi.
+>
+> I'm trying to boot 2.6.5 at ASUS L3H laptop but got shutdown=20
+>just after
+>starting init, this is part of the dmesg :
+>
 
-Just try hard buttons, ac-adapter, etc. and see what gets logged there.
+This is a known issue, there is a sane check needed .
 
-To ask my own specific question related to Stefan's more general one:
-With acpi debug compiled into kernel (2.6.5) I get terminal log
-messages when my ac-adapter status changes, but it is *not* logged
-to /var/log/acpid.  Why is that?
+>..........
+>
+>exoparg2-0432 [50] ex_opcode_2A_1T_1R    : Index value=20
+>(FFFFFFFF) beyond
+>package end (7)
+> psparse-1133: *** Error: Method execution failed [\_TZ_.RSCM] (Node
+>c17ad1a8),
+>AE_AML_PACKAGE_LIMIT
 
-> -----Original Message-----
-> From: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
-> [mailto:acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org] On Behalf Of=20
-> Stefan Lutz
-> Sent: Tuesday, April 27, 2004 5:08 AM
-> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Subject: [ACPI] list of events
->=20
-> Hi,
->=20
-> is there any list of events (maybe with a short additional info) of=20
-> all possible acpi events the acpid daemon can handle? I am currently=20
-> experimenting with thos daemon and it is a little bit tricky to find=20
-> out how this events are named and where they are place inside the=20
-> hierarchy. Thank you for any help.
+Hmmm, I need to verify your ASL code to verify it is not AML interpreter
+fault.
 
+> psparse-1133: *** Error: Method execution failed=20
+>[\_TZ_.TZ__._SCP] (Node
+>c17af128), AE_AML_PACKAGE_LIMIT
+>acpi_thermal-0464 [42] acpi_thermal_critical : Critical trip point
+>Critical temperature reached (255 C), shutting down.
 
-This electronic email transmission, and any files transmitted with it, ma=
-y contain confidential information and is intended solely for the use of =
-the individual or entity to whom they are addressed. Any use, copying or =
-disclosure by any other person is strictly prohibited. If you have receiv=
-ed this transmission in error, please notify the sender via email.
+255C is a unreasonable  value. Need sane check here.
+
+>ACPI: Thermal Zone [TZ] (255 C)
+>Asus Laptop ACPI Extras version 0.27
+>  L3H model detected, supported
+>..........
+>
+>
+> The 2.4.X working ok on this machine. If somebody interested=20
+>I can send
+>any debug info or test new patches/ideas.
+
+Did you found similar AE_AML_PACKAGE_LIMIT in 2.4?
+
+Thanks,
+Luming
 
 
 -------------------------------------------------------
