@@ -1,11 +1,15 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [BK PATCH] ACPI
-Date: Mon, 9 Sep 2002 17:12:37 -0700
+From: Jochen Reinwand <jbr.1-hi6Y0CQ0nG0@public.gmane.org>
+Subject: Re: System_memory error
+Date: Tue, 10 Sep 2002 13:09:04 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DE31@orsmsx119.jf.intel.com>
+Message-ID: <200209101309.04503.jbr.1@gmx.net>
+References: <20020909203844.77818.qmail@web14510.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20020909203844.77818.qmail-0q3qvy2+R9aA/QwVtaZbd3CJp6faPEW9@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,58 +18,97 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: 'Linus Torvalds' <torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org>
-Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: Kent Hunt <kenthunt-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>, Faye Pearson <faye-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org>, "'acpi-devel=5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org'" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
+Hi,
 
-A bunch of assorted ACPI fixes and cleanups, please apply.
+If you're not using a recent version of lilo, this is perhaps the old boot 
+loader problem. The boot loader is setting a wrong memsize option when 
+booting the kernel. The kernel can do it better. If your're using grub, 
+reconfigure it with --disable-auto-linux-mem-opt.
 
-You can pull from:
-http://linux-acpi.bkbits.net/linux-acpi
-<http://linux-acpi.bkbits.net/linux-acpi>  .
+Jochen
 
-
-ChangeSet-Eo5DMOVaGn8@public.gmane.org, 2002-09-09 17:00:28-07:00, agrover@groveronline.com
-  ACPI: Fix possible sleeping at interrupt context (Matthew Wilcox)
-
-ChangeSet-ALLLLFoGt6I@public.gmane.org, 2002-09-09 14:35:46-07:00, agrover@groveronline.com
-  ACPI: Do not compile functions not used in HT_ONLY mode
-
-ChangeSet-buus5hzmOQM@public.gmane.org, 2002-09-04 17:59:10-07:00, agrover@groveronline.com
-  ACPI: Do not do certain bits of APIC config if CONFIG_ACPI_HT_ONLY is set.
-
-ChangeSet-8bMezWwbLIQ@public.gmane.org, 2002-09-04 17:18:49-07:00, agrover@groveronline.com
-  ACPI: Remove interpreter debugger and kdb directories. These ultimately
-  didn't prove useful enough to be used on a regular basis.
-
-ChangeSet-JGszwtnY6O4@public.gmane.org, 2002-09-03 15:35:24-07:00, agrover@groveronline.com
-  ifdef some arch-specific ACPI code
-
-ChangeSet-Oj5efZNPAlA@public.gmane.org, 2002-09-03 15:12:32-07:00, agrover@groveronline.com
-  Remove obsolete OSL functions (Kochi Takayoshi)
-
-ChangeSet-/gjyQfi6Jvo@public.gmane.org, 2002-09-03 15:06:51-07:00, agrover@groveronline.com
-  ACPI Config.in update by Christoph Hellwig
-  - 3 space indents
-  - one menu for all arches instead of duplicating
-  - define_*s moved below the real questions
-
-ChangeSet-Qg/eL0vA19Q@public.gmane.org, 2002-09-03 15:02:44-07:00, agrover@groveronline.com
-  By John Belmonte - improvements to Toshiba ACPI driver:
-  1) Fix sscanf
-  2) Add TV out support
-  3) Add hotkey status
-  4) Add version info
-
-ChangeSet-4cO+7sT5u5jBkAz3hwFLjg@public.gmane.org, 2002-08-30 15:56:22-07:00, agrover@groveronline.com
-  ACPI trivial cleanups (Kochi Takayoshi)
-
------------------------------
-Andrew Grover
-Intel Labs / Mobile Architecture
-andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Kent Hunt wrote:
+> Faye,
+>
+>      Thanks, but it did not solve the problem. My
+> laptop doesn't hang or give oops but I've lost the
+> ability to do video output switching.
+>      Interestingly I traced it down to the amount of
+> memory that I have. I recently upgraded it to 512MB
+> and ACPI has some problems with that.
+>       I just recompiled with 2.4.19 kernel and
+> ACPI 20020815.
+>       The new error messages in dmesg are:
+> Executing all Device _STA and_INI
+> methods:.......exregion-0146 [23]
+> Ex_system_memory_space: Could not map memory at
+> 000000000FFFFF2C, size
+> 90
+> evregion-0323: *** Error: Handler for [System_memory]
+> returned AE_NO_MEMORY
+>  psparse-1155: *** Error: Method execution failed,
+> AE_NO_MEMORY
+> Method pathname:  \_SB_.PCI0._INI (Node c15b6ac8)
+>   nsinit-0376 [06] Ns_init_one_device    :
+> \_SB_.PCI0._INI failed: AE_NO_MEMORY
+>
+>       Hopefully someone would know what to do.
+>
+>       Kent
+>
+> --- Faye Pearson <faye-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org> wrote:
+> > Kent Hunt [kenthunt-/E1597aS9LQAvxtiuMwx3w@public.gmane.org] wrote:
+> > > Hardware: Presario 1700T
+> > > ACPI: 20020702
+> > >
+> > > My dmesg shows:
+> > >
+> > > exregion-0146 [67661] Ex_system_memory_space:
+> >
+> > Could
+> >
+> > > not map memory at 000000000FFFFF2C, size 90
+> > > evregion-0323: *** Error: Handler for
+> >
+> > [System_memory]
+> >
+> > > returned AE_NO_MEMORY
+> >
+> > That version had some corruption problems.  I
+> > suggest you get the latest
+> > and greatest ACPI/Kernel.  Alternatively pick up the
+> > patches from my
+> > website
+> > (http://dude.noc.clara.net/~faye/compaq2701ea/)
+> >
+> > --
+> > Faye Pearson,
+> > Software Development Manager,
+> > ClaraNET Ltd.       Tel 020 7903 3000
+> >
+> > Fools rush in -- and get the best seats in the
+>
+> house.
+>
+>
+> __________________________________________________
+> Do You Yahoo!?
+> Yahoo! Finance - Get real-time stock quotes
+> http://finance.yahoo.com
+>
+>
+> -------------------------------------------------------
+> This sf.net email is sponsored by: OSDN - Tired of that same old
+> cell phone?  Get a new here for FREE!
+> https://www.inphonic.com/r.asp?r=sourceforge1&refcode1=vs3390
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 
