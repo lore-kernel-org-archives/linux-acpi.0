@@ -1,11 +1,13 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: deleting 2.4.22 and 2.4.24 ACPI patches
-Date: 17 Mar 2004 01:24:39 -0500
+From: YhLu <YhLu-NmV4wUZxxR8@public.gmane.org>
+Subject: =?gb2312?B?tPC4tDogW0FDUEldIFNwdXJpb3VzIEFDUEkgaW50ZXJydXB0cyBv?=
+ =?gb2312?B?biAyLjYuNA==?=
+Date: Tue, 16 Mar 2004 22:35:51 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1079504678.2559.48.camel@dhcppc4>
+Message-ID: <3174569B9743D511922F00A0C94314230466D3C9@TYANWEB>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,40 +17,57 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Manpreet Singh <Manpreet.Singh-IrU4XInhIXM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Currently I supply the latest ACPI on
+You can disabled usb device from BIOS setup and check again.
 
-2.4.22
-2.4.24
-2.4.25
-2.5.26
+-----=D3=CA=BC=FE=D4=AD=BC=FE-----
+=B7=A2=BC=FE=C8=CB: Manpreet Singh [mailto:Manpreet.Singh-IrU4XInhIXM@public.gmane.org]=20
+=B7=A2=CB=CD=CA=B1=BC=E4: 2004=C4=EA3=D4=C216=C8=D5 15:05
+=CA=D5=BC=FE=C8=CB: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+=D6=F7=CC=E2: [ACPI] Spurious ACPI interrupts on 2.6.4
 
-The reasoning is that 2.4 is the installed base and we want to make it
-easy to patch the installed base with the latest ACPI -- so we bend over
-backwards somewhat.
+Hi,
 
-2.6.4
-2.6.5
+I am booting Linux kernel 2.6.4 on the Tyan S2098 motherboard (Intel =
+845GL
+chipset). The system boots up a lot slower with ACPI enabled. It turns =
+out
+that there are continuous spurious ACPI interrupts that cause this.
 
-The reasoning is that there is no 2.6 installed base, so we want to
-encourage using the latest release.  So support just the most recent
-frozen release plus the release that is currently under development.
-eg. when 2.6.6 opens, 2.6.4 will be deleted.
+I would appreciate if someone has an insight to share on this issue.
 
-When the releases are similar, this is pretty easy to do; but when they
-diverge, real work is required, including merging, testing etc.
+Here is what /proc/interrupts look like after a few mins after boot-up:
 
-So I'd like to delete 2.4.22 and 2.4.24 support.  When 2.4.26 closes,
-I'll delete 2.4.25 too.
+           CPU0      =20
+  0:    1340869          XT-PIC  timer
+  2:          0          XT-PIC  cascade
+  5:          0          XT-PIC  ehci_hcd
+  9:    1916095          XT-PIC  acpi, uhci_hcd
+ 11:          0          XT-PIC  uhci_hcd
+ 12:       3278          XT-PIC  uhci_hcd
+ 14:        918          XT-PIC  ide0
+NMI:          0=20
+ERR:          0
 
-Let me know if this is a problem for you.
+The only USB device is a USB keyboard. But I don't think all of these
+interrupts are because of that.
 
-thanks,
--Len
+Thanks,
+Manpreet.
 
 
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: IBM Linux Tutorials
+Free Linux tutorial presented by Daniel Robbins, President and CEO of
+GenToo technologies. Learn everything from fundamentals to system
+administration.http://ads.osdn.com/?ad_id=1470&alloc_id638&op=3Dclick
+_______________________________________________
+Acpi-devel mailing list
+Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
