@@ -1,14 +1,13 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Suspend 2 disk: It Works!
-Date: Mon, 17 Nov 2003 18:58:26 +0100
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: Re: acpi on new gateway laptops
+Date: Mon, 17 Nov 2003 10:25:00 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031117175826.GR32464@poupinou.org>
-References: <1068895745.944.9.camel@nexus.l3jane.net> <20031115130211.GA12062@server.by> <1068903849.940.45.camel@nexus.l3jane.net> <20031115154041.GB24320@hell.org.pl> <1068916684.945.5.camel@nexus.l3jane.net>
+Message-ID: <20031117102219.O60721@root.org>
+References: <20031112232315.GD430@masanjin.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1068916684.945.5.camel-FRzfUGJImGaWJdCIYJbLrA@public.gmane.org>
+In-Reply-To: <20031112232315.GD430-xW3KcqxHEMnk1uMJSBkQmQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,41 +16,48 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Marc Franquesa <mark-KaoEA2pfkXWsTnJN9+BGXg@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: William Morgan <wmorgan-acpi-devel-xW3KcqxHEMnk1uMJSBkQmQ@public.gmane.org>
+Cc: Casey Harkins <charkins-TFaeeA7fOO6Gwcnyzrk3/w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Nov 15, 2003 at 06:18:04PM +0100, Marc Franquesa wrote:
-> On ds, 2003-11-15 at 16:40, Karol Kozimor wrote:
-> 
-> > See if cat /proc/acpi/sleep reports S4BIOS or something similar. If so, you
-> > probably can (echo 4b > /proc/acpi/sleep). 
-> 
-> It works!, I'm very happy thanks very much.
-> 
-> Some notes only for documentation to reporting if someone is interested:
-> 
-> - The suspend and resume process is very slow (in apm was very fast)
-> - I need to boot from the suspend partition (in the past with apm, the
-> Laptop automagically boots from it without user-action).
-> - ... the typical 'usb-controller halted' messages floods the screen on
-> resume, I need to prepare some scripts to avoid it.. ;)
-> 
+On Wed, 12 Nov 2003, William Morgan wrote:
+> It seems like having an ECDT is an optional feature? If that's so, then
+> what's the problem? Why isn't Linux simply "discovering and enumerating"
+> the "Embedded Controller device in the AML namespace"?
 
-That's strange, apart the usb-controller issue, I don't have to boot
-from the suspend partition...  That is automatic, and in fact I don't
-know why you have to do that at all.  In theory, the suspend process
-will go to restore memory, then restore some hardware related stuff, then
-pass control to the just reloaded OS.
+Yes, it's optional.
 
-I can't say for the slow/fast issue since the laptop I'm using do not have apm.
+> > The reason is BIOS of Gateway 400VTX lacks ECDT table.  And before
+> > initialize EC device, DSDT use ec space region when execute some ASL
+> > init methods. This will cause that battery can't be initializing.
+>
+> So, what I *think* is happening, based on that, and on pp.203--204, is:
+>
+> There's an Embedded Controller region (In the BIOS? In the DSDT?). One
 
+in the DSDT
 
--- 
-Ducrot Bruno
+> cannot access a region until registering it, by calling
+> _REG(RegionSpace, 1). There's an exception to this, however, when using
+> an ECDT, which describes "controllers" (?) to access the Embedded
+> Controller region. If you have an ECDT you can then access this region
+> before registering it. So I think that's what the DSDT is doing, but
+> without providing an ECDT?
+>
+> So. This implies that rather than provide an ECDT, we can alternately
+> try and fix the DSDT. Since it's buggy anyways, that might conserve some
+> effort, and has the nice advantage of not forcing an upgrade to ACPI 2.0.
+> (Assuming I am ACPI 1.0 like you.)
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+Your DSDT attempts to access regions before there is an attached EC to
+service the calls to that space, yes.  So the two approaches are to
+provide an ECDT or change the DSDT to not reference those spaces early in
+boot.  The problem with the latter option is that those accesses may be
+crucial to initializing your laptop.  So if you remove them, it may start
+up in a partially initialized state.  It's probably cleaner to provide an
+ECDT.
+
+-Nate
 
 
 -------------------------------------------------------
