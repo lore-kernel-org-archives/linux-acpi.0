@@ -1,16 +1,16 @@
-From: Andrew Kohlsmith <akohlsmith-acpi-uiYP0llB1AZBDgjK7y7TUQ@public.gmane.org>
+From: Carlos Morgado <chbm-tNiY1ywYjSU@public.gmane.org>
 Subject: Re: [PATCH] Add CONFIG_ACPI_RELAXED_AML option
-Date: Mon, 16 Dec 2002 11:05:17 -0500
+Date: Mon, 16 Dec 2002 16:22:52 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200212161105.17500@-mixdown.ca>
-References: <20021216143410.21977.qmail@web14502.mail.yahoo.com> <1040055593.13786.56.camel@irongate.swansea.linux.org.uk>
+Message-ID: <20021216162252.GM27643@whisky.intra.cprm.net>
+References: <20021216143410.21977.qmail@web14502.mail.yahoo.com>
+Reply-To: chbm-tNiY1ywYjSU@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; format=flowed; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1040055593.13786.56.camel-MMxVpc8zpTQVh3rx8e9g/fyykp6/JSeS3vcXtXqGYxw@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20021216143410.21977.qmail-wdi6g2619JCA/QwVtaZbd3CJp6faPEW9@public.gmane.org>; from nozizzingordripping-/E1597aS9LQAvxtiuMwx3w@public.gmane.org on Mon, Dec 16, 2002 at 14:34:10 +0000
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -22,18 +22,29 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> Intel want people to write valid AML. I don't think they'll ever succeed
-> but trying doesn't hurt.
->
-> Vendors want working laptops
 
-I fail to see why writing valid AML is any more difficult than writing shitty 
-AML.  Especially in cases like *PNP0101 vs PNP0101.
+On 2002.12.16 14:34:10 +0000 NoZizzing OrDripping wrote:
+> 
 
-But I digress; I know I'm preaching to the converted.  :-)
+> BTW, Best Buy had the Toshiba Satellite 1115-S103 on
+> sale for only $500 USD yesterday (after $600 in
+> rebates and markdowns!).  The new bar has been set,
+> and these
+> sub-$1000 laptops with buggy AML are going to continue
+> to profilerate.
+> 
 
-Regards,
-Andrew
+if people pay $500 for a laptop and then complain it doesn't
+work you can always tell them they got what they paid for,
+a quirky toy.
+
+"quality" AMLs is not a question of price, it's a question
+of vendor atitude
+
+-- 
+Carlos Morgado - chbm(at)chbm(dot)nu - http://chbm.nu/ -- gpgkey: 0x1FC57F0A
+http://wwwkeys.pgp.net/ FP:0A27 35D3 C448 3641 0573 6876 2A37 4BB2 1FC5 7F0A
+Software is like sex; it's better when it's free. - Linus Torvalds
 
 
 -------------------------------------------------------
