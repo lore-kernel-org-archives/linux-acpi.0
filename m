@@ -1,24 +1,10 @@
 From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
-Subject: Re: first shoot for smartbattery
-Date: Sun, 09 Jan 2005 14:41:52 +0100
-Message-ID: <m2oefyzplr.fsf@phoenix.squirrel.nl>
-References: <41D56002.5060008@mega.ist.utl.pt>
-	<20041231150724.GK19199@poupinou.org>
-	<20041231181628.GL19199@poupinou.org>
-	<20050101082605.GA24896@phys.ethz.ch>
-	<m2acrth375.fsf@phoenix.squirrel.nl>
-	<20050103143902.GQ19199@poupinou.org>
-	<41D97AF3.7000409@arrakis.dhis.org>
-	<41D98251.9020002@arrakis.dhis.org>
-	<20050103180219.GX19199@poupinou.org>
-	<41D9A1F5.1060508@arrakis.dhis.org>
-	<20050104100844.GA19199@poupinou.org>
-	<41DAB539.2020605@arrakis.dhis.org>
+Subject: CPU status display
+Date: Sun, 09 Jan 2005 15:06:07 +0100
+Message-ID: <m2k6qmzohb.fsf@phoenix.squirrel.nl>
 Mime-Version: 1.0
 Content-Type: multipart/mixed; boundary="=-=-="
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41DAB539.2020605-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org> (Pedro Venda's message of
- "Tue, 04 Jan 2005 15:24:41 +0000")
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -33,30 +19,29 @@ List-Id: linux-acpi@vger.kernel.org
 
 --=-=-=
 
-Pedro Venda <pjvenda-pQd4kjVL+RHfqL7NgpvPWWD2FQJk+8+b@public.gmane.org> writes:
+This little program shows the current state of the CPU.
+It displays the current CPU frequency step (1 box = lowest,
+2 boxes = one step higher, etc.
+The box colour reflects the sleep state: blu e= C4, green = C3,
+yellow = C2 and red = C1.
 
-> I actually read some of the pdf you pointed me to and implemented a
-> couple of functions on the smartbattery.c. It now gets much more
-> information from the battery. If you find it relevant, I'll clean it
-> up a bit and post a patch for you. I know it will soon be dumped,
-> but it may show useful when debugging other driver informations.
-
-The attached program produces a nice battery status display using your
-modified version of battstat. It may be temporary, but at least now I
-have decent battery info at hand.
+It's a hack, but fun.
 
 -- Johan
 
 
 --=-=-=
 Content-Type: application/octet-stream
-Content-Disposition: attachment; filename=battstat.pl
+Content-Disposition: attachment; filename=cpustat.pl
 
 #!/usr/bin/perl -w
 
-# Quick hack to get a battery status display.
-# Uses Pedro Venda's modified version of Bruno Ducrot's version
-# of the smart battery reader (not included).
+# Quick hack to get CPU status display.
+#
+# It displays the current CPU frequency step (1 box = lowest,
+# 2 boxes = one step higher, etc.
+# The box colour reflects the sleep state: blu e= C4, green = C3,
+# yellow = C2 and red = C1.
 #
 # Copyright 2005 Johan Vromans, Squirrel Consultancy.
 #
@@ -69,34 +54,25 @@ use strict;
 use Tk;
 use Tk::ProgressBar;
 
-################ Configuration ################
+my $freq = "/sys/devices/system/cpu/cpu0/cpufreq";
+my $power = "/proc/acpi/processor";
 
-my $interval = 10;		# Poll interval
-my $prog = "smartbattery2 0";	# command
+my @freqs = split(' ', cat($freq."/scaling_available_frequencies"));
 
-# Regular output of $prog is:
-#
-#	status:			discharging	initialized
-#	mode:			capacity in 10 mW/mWh
-#	design voltage:		14800 mV
-#	design charge capacity:	4400 mAh or mWh
-#	absolute charge:	90%
-#	full charge capacity:	4270 mAh or mWh
-#	relative charge:	93%
-#	current:		-908 mA
-#	voltage:		16271 mV
-#	remain:			3966 mA
-#	average time to empty:	261 minutes
-#	average time to full:	65535 minutes
-#	temperature:		24.2 C
-#	cycle count:		12
-
-################ End Configuration ################
+# warn("@freqs\n");
+exit(1) unless @freqs > 1;
 
 my $status = 0;
+my $prevstate = '';
+my %stcol = ( C4 => 'blue',
+	      C3 => 'green',
+	      C2 => 'orange',
+	      C1 => 'red' );
 
 my $mw = MainWindow->new;
-$mw->title("Battery: Starting");
+$mw->title("CPU Status");
+
+my $max = @freqs;
 
 my $p = $mw->ProgressBar
   (-troughcolor => 'LightSkyBlue3',
@@ -104,74 +80,69 @@ my $p = $mw->ProgressBar
    -length => 120,
    -width => 8,
    -variable => \$status,
-   -colors => [0 => 'red', 10 => 'yellow', 20 => 'green'],
-   #	 -blocks => 10,		# default
+   -colors => [0 => 'black' ],
+   -blocks => $max,
    -anchor => 'w',
    -from => 0,
-   -to => 100,
+   -to => $max,
   )->pack(-expand => 1);
 
-# Check every 10 seconds.
-$mw->repeat (10000, \&update);
-
-my $state = 0;
+$mw->repeat (2000, \&update);
 update();
-
 MainLoop;
 
 sub update {
+    my $cur = 0 + cat($freq."/scaling_cur_freq");
 
-    my $res = `smartbattery2 $smbus 2>&1`;
-    return unless $res;
-
-    my ($current, $fill, $time, $tp);
-    $current = $1 if $res =~ /current:\s+(-?\d+)\s+ma/i;
-    $tp = $current < 0 ? 'empty' : 'full';
-    $fill = $1    if $res =~ /relative charge:\s+(\d+)%/i;
-    $time = $1    if $res =~ /average time to $tp:\s+(\d+)\s+minutes/i;
-    if ( $time ) {
-	my ($h, $m);
-	$h = int($time / 60);
-	$m = $time % 60;
-	$time = sprintf("%d:%02d", $h, $m);
-    }
-
-    if ( $current > 0 ) {	# charging
-	$status = 0;
-    }
-    elsif ( $current < 0 ) {	# discharging
-	$status = $fill;
-    }
-    else {			# fully charged
-	$status = 100;
-    }
-    $mw->title("Battery: $time ($status%)");
-
-    # This is a kludge to get the ProgressBar to display uniform, but
-    # different colours depending on the fill status.
-
-    if ( $status >= 30 ) {
-	if ( $state < 30 ) {
-	    $p->{Configure}{-colors} = [ 0, 'green' ];
-	    $p->{Configure}{-troughcolor} = 'darkgreen';
-	    Tk::ProgressBar::_layoutRequest($p, 1);
-	    $state = 30;
+    my $t = cat("$power/CPU0/power");
+    my $state;
+    my $title = "CPU: ";
+    if ( $t =~ /^active state:\s+(\S+)/m ) {
+	my $s = $1;
+	$title .= " $s";
+	# $state .= "CPU state: $1";
+	# $state = " [$1]" if $t =~ /\s\*?$s:\s+type\[(.*?)\]/m;
+	if ( $t =~ /\s\*?$s:\s+type\[(.*?)\]/m ) {
+	    $state = $1;
+	    $title .= " [$state]";
 	}
     }
-    elsif ( $status >= 10 ) {
-	if ( $state < 10 || $state >= 30 ) {
-	    $p->{Configure}{-colors} = [ 0, 'yellow' ];
-	    $p->{Configure}{-troughcolor} = 'orange';
-	    Tk::ProgressBar::_layoutRequest($p, 1);
-	    $state = 10;
-	}
-    }
-    elsif ( $state >= 10 ) {
-	$p->{Configure}{-colors} = [ 0, 'red' ];
-	$p->{Configure}{-troughcolor} = 'darkred';
+
+    if ( $prevstate ne $state ) {
+	$p->{Configure}{-colors} = [ 0,
+				     $stcol{$state} || 'black' ];
 	Tk::ProgressBar::_layoutRequest($p, 1);
-	$state = 0;
+	$prevstate = $state;
     }
+
+    for ( my $i = 0; $i < @freqs; $i ++ ) {
+	if ( $cur == $freqs[$i] ) {
+	    $status = @freqs - $i;
+	    # warn("cur = $cur @ $status [$state => $stcol{$state}]\n");
+	    $t = int($cur / 1000);
+	    if ( $t >= 1000 ) {
+		$cur = sprintf("%.1fGHz", $t/1000);
+	    }
+	    else {
+		$cur = $t . "MHz";
+	    }
+	    $title .= " @ $cur";
+	    $mw->title($title);
+	    return;
+	}
+    }
+    $status = 0;
+}
+
+sub cat {
+    my $file = shift;
+    local($/) = undef;
+    my $ret = "";
+    my $cat;
+    open($cat, $file) and
+      $ret = <$cat> and
+	close($cat);
+    $ret;
 }
 
 --=-=-=--
