@@ -1,12 +1,14 @@
-From: mj-+ZI9xUNit7I@public.gmane.org
-Subject: Pricelist
-Date: Mon, 01 Mar 2004 09:47:41 +0800
+From: "Ow Mun Heng" <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
+Subject: "TSC cannot be used as a timesource" when on battery
+Date: Mon, 1 Mar 2004 10:39:09 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <xplgwfbvopploaytdoj@ucw.cz>
+Message-ID: <C386328088ED7F4E9F81AFBABDDF60DA045C6D54@wdmyexch02.my.asia.wdc.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-        boundary="--------mlfbrpvnrfmwpqjcjqdt"
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,40 +17,48 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Acpi-List (E-mail)" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-----------mlfbrpvnrfmwpqjcjqdt
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Hi All,
 
-------------------  Virus Warning Message (on the network)
+D600 + RH9 + kernel 2.6.3+acpi20040211
 
-Found virus WORM_BAGLE.C in file tehysusv.exe (in acc.zip)
-The file acc.zip is moved to /var/spool/quarantine/virRBRK4_zsc.
+Was seeing these error messages when booting from battery.=20
+I've searched through google and the only thing It came up with=20
+was a reference that asks to use ACPI PM as the timesource.
 
-This is a machine-generated message, please do not reply via email. If you have questions, please contact the Lucent Help Desk at +1 888 300 0770.
+I'm currently using RTC (real time clock)
 
----------------------------------------------------------
+I'm still trying to figure out what is the difference between ACPI=20
+PM timesource/RTC.
 
-----------mlfbrpvnrfmwpqjcjqdt
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+I've not investigated further to determine if my clock is indeed=20
+running slower.=20
+
+=3D=3D=3D=3Dstart kernel message=3D=3D=3D=3D=3D=3D=3D
+TSC cannot be used as a timesource.
+ <4> Possible reasons for this are
+You're running with speedstep
+You don't have DMA enabled for your hard drive (See hdparm)
+Incorrect TSC synchronization on an SMP system (dee dmesg)
+Falling back to sane timesource now.
+=3D=3D=3D=3D=3D=3D=3Dend kernel messages=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+
+HDparm shows all my hd and cdrom are on dma
+This is uniprocessor laptop
+
+Yes.. running on speedstep.
+When on AC power, I don't see this error.
 
 
+Cheers,                                                 .^.
+Mun Heng, Ow                                            /V\
+H/M Engineering                                       /(   )\
+Western Digital M'sia                                  ^^-^^
+DID : 03-7870 5168                          The Linux Advocate
 
-----------mlfbrpvnrfmwpqjcjqdt
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-
-
-------------------  Virus Warning Message (on the network)
-
-acc.zip is removed from here because it contains a virus.
-
----------------------------------------------------------
-----------mlfbrpvnrfmwpqjcjqdt--
-
+       =20
 
 
 -------------------------------------------------------
