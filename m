@@ -1,11 +1,11 @@
-From: "InterScan Notification" <postmaster-JaLWT6YIeqDQT0dZR+AlfA@public.gmane.org>
-Subject: Mail could not be delivered
-Date: Mon, 26 Jan 2004 23:02:08 -0500
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [BKPATCH] ACPI for 2.4
+Date: 27 Jan 2004 00:52:21 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <USINKOK-MX01B1FxQFM000485df@USINKOK-MX01.NorthAmerica.DelphiAuto.net>
+Message-ID: <1075182740.2489.40.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------InterScan_NT_MIME_Boundary"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,109 +15,202 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZQ39yzSjRtAkw@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Marcelo, please do a 
 
---------------InterScan_NT_MIME_Boundary
-Content-type: text/plain
+	bk pull http://linux-acpi.bkbits.net/linux-acpi-release-2.4.25
+
+thanks,
+-Len
+
+ps. a plain patch is also available here:
+ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.4.25/acpi-20040116-2.4.25.diff.gz
+
+This will update the following files:
+
+ drivers/acpi/ac.c                  |    2 
+ drivers/acpi/asus_acpi.c           |    8 +-
+ drivers/acpi/battery.c             |    2 
+ drivers/acpi/button.c              |    2 
+ drivers/acpi/dispatcher/dsfield.c  |    2 
+ drivers/acpi/dispatcher/dsinit.c   |    2 
+ drivers/acpi/dispatcher/dsmethod.c |    2 
+ drivers/acpi/dispatcher/dsmthdat.c |    3 
+ drivers/acpi/dispatcher/dsobject.c |    2 
+ drivers/acpi/dispatcher/dsopcode.c |    2 
+ drivers/acpi/dispatcher/dsutils.c  |    2 
+ drivers/acpi/dispatcher/dswexec.c  |    2 
+ drivers/acpi/dispatcher/dswload.c  |    2 
+ drivers/acpi/dispatcher/dswscope.c |    2 
+ drivers/acpi/dispatcher/dswstate.c |    2 
+ drivers/acpi/ec.c                  |    2 
+ drivers/acpi/events/evevent.c      |    2 
+ drivers/acpi/events/evgpe.c        |    2 
+ drivers/acpi/events/evgpeblk.c     |    2 
+ drivers/acpi/events/evmisc.c       |    2 
+ drivers/acpi/events/evregion.c     |    7 --
+ drivers/acpi/events/evrgnini.c     |    2 
+ drivers/acpi/events/evsci.c        |    2 
+ drivers/acpi/events/evxface.c      |    2 
+ drivers/acpi/events/evxfevnt.c     |    2 
+ drivers/acpi/events/evxfregn.c     |    2 
+ drivers/acpi/executer/exconfig.c   |    2 
+ drivers/acpi/executer/exconvrt.c   |    2 
+ drivers/acpi/executer/excreate.c   |    2 
+ drivers/acpi/executer/exdump.c     |    2 
+ drivers/acpi/executer/exfield.c    |    2 
+ drivers/acpi/executer/exfldio.c    |    2 
+ drivers/acpi/executer/exmisc.c     |    2 
+ drivers/acpi/executer/exmutex.c    |    2 
+ drivers/acpi/executer/exnames.c    |    2 
+ drivers/acpi/executer/exoparg1.c   |    2 
+ drivers/acpi/executer/exoparg2.c   |    2 
+ drivers/acpi/executer/exoparg3.c   |    2 
+ drivers/acpi/executer/exoparg6.c   |    2 
+ drivers/acpi/executer/exprep.c     |    2 
+ drivers/acpi/executer/exregion.c   |    2 
+ drivers/acpi/executer/exresnte.c   |    2 
+ drivers/acpi/executer/exresolv.c   |    2 
+ drivers/acpi/executer/exresop.c    |    2 
+ drivers/acpi/executer/exstore.c    |    2 
+ drivers/acpi/executer/exstoren.c   |    2 
+ drivers/acpi/executer/exstorob.c   |    2 
+ drivers/acpi/executer/exsystem.c   |    2 
+ drivers/acpi/executer/exutils.c    |    2 
+ drivers/acpi/fan.c                 |    2 
+ drivers/acpi/hardware/hwacpi.c     |    2 
+ drivers/acpi/hardware/hwgpe.c      |   16 +----
+ drivers/acpi/hardware/hwregs.c     |    2 
+ drivers/acpi/hardware/hwsleep.c    |   78 +++++++++++++++++--------
+ drivers/acpi/hardware/hwtimer.c    |    2 
+ drivers/acpi/namespace/nsaccess.c  |    2 
+ drivers/acpi/namespace/nsalloc.c   |    2 
+ drivers/acpi/namespace/nsdump.c    |    2 
+ drivers/acpi/namespace/nsdumpdv.c  |    2 
+ drivers/acpi/namespace/nseval.c    |    2 
+ drivers/acpi/namespace/nsinit.c    |    2 
+ drivers/acpi/namespace/nsload.c    |    2 
+ drivers/acpi/namespace/nsnames.c   |    2 
+ drivers/acpi/namespace/nsobject.c  |    2 
+ drivers/acpi/namespace/nsparse.c   |    2 
+ drivers/acpi/namespace/nssearch.c  |    2 
+ drivers/acpi/namespace/nsutils.c   |    2 
+ drivers/acpi/namespace/nswalk.c    |    2 
+ drivers/acpi/namespace/nsxfeval.c  |    2 
+ drivers/acpi/namespace/nsxfname.c  |    2 
+ drivers/acpi/namespace/nsxfobj.c   |    2 
+ drivers/acpi/osl.c                 |    8 +-
+ drivers/acpi/parser/psargs.c       |    2 
+ drivers/acpi/parser/psopcode.c     |    2 
+ drivers/acpi/parser/psparse.c      |    2 
+ drivers/acpi/parser/psscope.c      |    2 
+ drivers/acpi/parser/pstree.c       |    2 
+ drivers/acpi/parser/psutils.c      |    2 
+ drivers/acpi/parser/pswalk.c       |    2 
+ drivers/acpi/parser/psxface.c      |    2 
+ drivers/acpi/power.c               |    2 
+ drivers/acpi/processor.c           |    2 
+ drivers/acpi/resources/rsaddr.c    |    2 
+ drivers/acpi/resources/rscalc.c    |    2 
+ drivers/acpi/resources/rscreate.c  |    2 
+ drivers/acpi/resources/rsdump.c    |    2 
+ drivers/acpi/resources/rsio.c      |    2 
+ drivers/acpi/resources/rsirq.c     |    2 
+ drivers/acpi/resources/rslist.c    |    2 
+ drivers/acpi/resources/rsmemory.c  |    2 
+ drivers/acpi/resources/rsmisc.c    |    2 
+ drivers/acpi/resources/rsutils.c   |    2 
+ drivers/acpi/resources/rsxface.c   |    2 
+ drivers/acpi/tables.c              |   13 +++-
+ drivers/acpi/tables/tbconvrt.c     |   10 +--
+ drivers/acpi/tables/tbget.c        |    2 
+ drivers/acpi/tables/tbgetall.c     |    2 
+ drivers/acpi/tables/tbinstal.c     |    2 
+ drivers/acpi/tables/tbrsdt.c       |   13 +++-
+ drivers/acpi/tables/tbutils.c      |    2 
+ drivers/acpi/tables/tbxface.c      |    2 
+ drivers/acpi/tables/tbxfroot.c     |    6 -
+ drivers/acpi/thermal.c             |    4 -
+ drivers/acpi/toshiba_acpi.c        |    2 
+ drivers/acpi/utilities/utalloc.c   |    2 
+ drivers/acpi/utilities/utcopy.c    |    2 
+ drivers/acpi/utilities/utdebug.c   |    2 
+ drivers/acpi/utilities/utdelete.c  |    2 
+ drivers/acpi/utilities/uteval.c    |    2 
+ drivers/acpi/utilities/utglobal.c  |    2 
+ drivers/acpi/utilities/utinit.c    |    2 
+ drivers/acpi/utilities/utmath.c    |    2 
+ drivers/acpi/utilities/utmisc.c    |   14 ++--
+ drivers/acpi/utilities/utobject.c  |    2 
+ drivers/acpi/utilities/utxface.c   |    2 
+ include/acpi/acconfig.h            |    4 -
+ include/acpi/acdebug.h             |    2 
+ include/acpi/acdisasm.h            |    2 
+ include/acpi/acdispat.h            |    2 
+ include/acpi/acevents.h            |    2 
+ include/acpi/acexcep.h             |    2 
+ include/acpi/acglobal.h            |    2 
+ include/acpi/achware.h             |    2 
+ include/acpi/acinterp.h            |    2 
+ include/acpi/aclocal.h             |    2 
+ include/acpi/acmacros.h            |    2 
+ include/acpi/acnamesp.h            |    2 
+ include/acpi/acobject.h            |    2 
+ include/acpi/acoutput.h            |    2 
+ include/acpi/acparser.h            |    2 
+ include/acpi/acpi.h                |    2 
+ include/acpi/acpiosxf.h            |    2 
+ include/acpi/acpixf.h              |    2 
+ include/acpi/acresrc.h             |    2 
+ include/acpi/acstruct.h            |    2 
+ include/acpi/actables.h            |    2 
+ include/acpi/actbl.h               |    9 ++
+ include/acpi/actbl1.h              |    2 
+ include/acpi/actbl2.h              |    2 
+ include/acpi/actypes.h             |    2 
+ include/acpi/acutils.h             |    2 
+ include/acpi/amlcode.h             |    2 
+ include/acpi/amlresrc.h            |    2 
+ include/acpi/platform/acenv.h      |    2 
+ include/acpi/platform/acgcc.h      |    2 
+ include/acpi/platform/aclinux.h    |    2 
+ 146 files changed, 252 insertions(+), 205 deletions(-)
+
+through these ChangeSets:
+
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/01/26 1.1063.46.67)
+   [ACPI] handle system with NULL DSDT and valid XDSDT
+           from ia64 via Alex Williamson
+
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/01/26 1.1063.46.66)
+   [ACPI] move zero initialized data to .bss
+   	from Jes Sorensen
+
+<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (04/01/17 1.1063.46.65)
+   [ACPI] ACPICA 20040116 from Bob Moore
+   
+   The purpose of this release is primarily to update the copyright
+years
+   in each module, thus causing a huge number of diffs.  There are a few
+   small functional changes, however.
+   
+   Improved error messages when there is a problem finding one or more
+of
+   the required base ACPI tables
+   
+   Reintroduced the definition of APIC_HEADER in actbl.h
+   
+   Changed definition of MADT_ADDRESS_OVERRIDE to 64 bits (actbl.h)
+   
+   Removed extraneous reference to NewObj in dsmthdat.c
 
 
-****** Message from InterScan Messaging Security Suite ******
-
-
-Sent <<< RCPT TO:<anna-YanME59cWgQK3IM9cGFl5Q@public.gmane.org>
-Received >>> 550 <anna-YanME59cWgQK3IM9cGFl5Q@public.gmane.org>... no such mailbox
-
-Unable to deliver message to <anna-YanME59cWgQK3IM9cGFl5Q@public.gmane.org> (and other recipients in the same domain).
-
-************************     End of message     **********************
-
-
-****************************************************************************************
-
-Note: The information contained in this message may be privileged and confidential and thus protected from disclosure. If the reader of this message is not the intended recipient, or an employee or agent responsible for delivering this message to the intended recipient, you are hereby notified that any dissemination, distribution or copying of this communication is strictly prohibited. If you have received this communication in error, please notify us immediately by replying to the message and deleting it from your computer. Thank you. 
-
-****************************************************************************************
---------------InterScan_NT_MIME_Boundary
-Content-type: message/rfc822
-
-Received: from lists.sourceforge.net ([10.246.75.70]) by USINKOK-MX04 with InterScan Messaging Security Suite; Mon, 26 Jan 2004 23:01:36 -0500
-From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: anna-YanME59cWgQK3IM9cGFl5Q@public.gmane.org
-Subject: hello
-Date: Tue, 27 Jan 2004 09:32:10 +0530
-MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0006_72913DC3.A003A2A3"
-X-Priority: 3
-X-MSMail-Priority: Normal
-
-This is a multi-part message in MIME format.
-
-------=_NextPart_000_0006_72913DC3.A003A2A3
-Content-Type: text/plain;
-	charset="Windows-1252"
-Content-Transfer-Encoding: 7bit
-
-***********************
-A virus (WORM_MIMAIL.R) was detected in the file (text.zip/text.txt                                                                      .exe). Action taken = remove
-***********-***********
-
-
-$âãÕsÅX/”FÜôgà‚c7EÍc{ó°D·®N‡î´Œ^´"¬v
-2·~ˆßéãB}'&Õúz¿£›¨~·êµπ:¯‡}rÀN;öàu2F¡ãb:OåCp]/®…B©
-°…Œ}Ï.œHl}»…
-ÑßIWZ¯/ØL˛_
-∆uLB&Î-?^‰è4tV“°-®ªµ«õÏ–xÜO®%E2∂¢ûøoL⁄©Ïä∫·B™k1§ŒøÂV®ï⁄Ω”—Á_pàyM¨w
-Î#ZoUõ_BGìäÃÎ¸Q˘·†\L∫ô≤&≥§dP):d)‹éTá‡W%JøíƒÒ/∞˚·|”˝÷†0r_ÕíÛbË’êï‡£P$ﬁúë»DÓmÍ≤'ﬂ—8^µYﬁVi°Ì
-äÇâ‡}π
-%X‹{ôm&g†
-)0’¡xºı√EiÀÃù–m&:u:yÊÕJ›åWÃ\h6˚ƒ‚Eh˛NWW•!ê¬!vï≠¢{à∆Vëä®Né[Q5ÕÌA^0\TdHyT˛ˆ´%π»Ò(0«Óû}vDD:√•PDõ*OüuÅé“á
-è≈11˙>÷ÌUŸ£Ö,ó∏ƒ√\_úÀGTÌªÊ
-rﬁÙl≤§<1}›~UŸùèa¢¡:7Dc÷}ù
-bá›±8ì;Úßÿ
-òE‰æÊ–‡j◊’\#Z∆ú&≤’áì›ê˝ï<ÉEÅ•Ûò\aßVKwxíÕôÜ)Xìâä«QÌ¸XK≠ Æ∞L¥û0#t9m›w•¡`?:]~(NÉ£7¯;5Fﬁì|ÙK’fos$3FÂÜ˙Ì3öΩdÁÊéYV*;µl“o
-¢ìõñ“óà?¯,`ûNe-¿Ø/ *ä5îuÑÇj˝ãqàµ|)Ãzña“˘MÜûÆ8C®s5Eúl∏ûÆÎ
-¥G∆
-¯CØ€≠!˛"PÊ˘ƒ≠NFª‘ïÂ£©x„·c,OêH≥£5o¶¨ÌÙ1Ÿ0båc€ô…uéØrÒﬁY–ÇÇ
-I>øÅnO—÷Fˆ?ù?.efq
-⁄Rz8‹åéDΩŸ˘™…∂ø˚zö±à t9Œ“bsë|∆ıﬁ bˆíó¬ÚÒ!î&#«à˛?$c¯Ö±∫©ÎFY)oõÃ4ëÕË®’ﬁAã4≤AÌ‡⁄¬°Rn]îhÑ]œ«ß8Î‚(}
-çÒœ)?íf◊ﬁ⁄sˆ{tsK€Ìn˜'
-˜J
-{˜∂†Iâ⁄ÉıÈ"€H∫B‰ø±_Æ”Ñ‹ëNsËÍD|—O6—{p—jEE4gÏpvƒ’QâÈU5√}¡â∞D®<ﬂDYÒ‰¨√•}È\˛%π∏ã,‰Ç5Ü</πƒ)ÑkS5ar¬Á«O≈ò⁄ÿ
-R)˙r˚À$¸DwKë§MYoÜAZì÷Ncò*L†køC®ÕKg·—CÕ≠∑!ã\I&
-£dœ·F¸øTö'L⁄·%{≈71Õ˜z
-BzÒ~\º˙:T\ìÂÍ>U,8∑*€-‹DØ3–ƒQr$W•WkéP¯æ_ß€&÷ôw>çm•2¥yô≠É^\È"Å™¢yöπ
-•{lÜBÀ0’∂˙hVØ†`Ÿ
-*<⁄¡≠cÕaQA‹[OÍΩy∂zÏ`KtY≈Â÷‰∫≠‚˘¥
-˘ûs†Ø‡îÔRâò‚¥R¡Q\lb∂Óûñæ$ﬁ“Érπ‡#•∫jsë·.g%ÆN¢∏0X¶`P—£A≠Óº8µd√E¯î¬ªí»˜≤˚—√òaî˝™%çq~[H]{LËÙ]ı¢ﬁ¥á8|˘b^R.5V6ÑúŸ◊
-¶√‚Ô ©#Y≤!˘≤3ríÃ∑÷s*Ω˛ÛÜUãøLßïWòX
-®õpæÖ_Ã≠◊?üÖ∫Í™>√F√!ñçΩß‰∫õ[?˘\ÚCÿΩñ•OÃ\ïMÓ˛ywœ∑ê_®ù„\¥™Bi¥:æ¶lè.÷%N≠·HY`Êçìÿc‹ôrâg√»;0`UÈ¥4æBl^¨´—$.¢Î`yÕ¸ÏY%¨&3ÙgÖKŸ]
-X˘∞ﬁO˘◊∞ÆÒÿÂ%`û™èK#^VñÎ±ãYS}˝1ÜVlá˜ÚÊÊ!«⁄úùïÑ
-‹ú†ò`
-µuÌ„_a˛¶yˆkÌƒãwÅfªä.g„ØE5ßÀ"lêÉ„›$sbá¿™¿€˜éZ:˛:q)lŸuúçŸÅ™‡¢ÚÁkT¶≠Ì7í≤.º¢ΩìX…
-MKÔÿm«g>±óf1±ÿÇrö0lŸè5ö´{m~“´‚§j^™mΩGŒãÙœB˘ºA∂ô„◊ºΩ{ÃØDi[ÍüfêM˜ºÜ>±«ÃÛf{‰¯b‹∆Æ&Ö]»Ë$E)Ù1úº_S‚;:x§ìä≥∫¸‚(OeÊncÏ—4`ï¢l3©O1ºOßÛC[2"PD†xƒŒºÖ„/'7>LRï|ÍxØ—hlIE[·òÔßwÈ·ÛÌ’;ÔDZ,
-V Ùˆ—Ùn®îRP°Ñ)!ø¶6ùÇ|›p;kp†∑¸›>8Ú7ŒNDı–ê¬-l’œ˚Bã¸7méÃŒÖ
-‡«ê≈&£º™á±ΩlÍRW‡X}ëkŸSÚ!ä#r]≤Bq˝ñ…´iN·0A)˚á_Uñ¨'ÇÆ€,ÑS†A4ìß˙~Ç7Gó§ß0ˆSH}˚Ûn≈>Î"ÊÁvæ±:âñ/-ß7¨∆∆¨hê•]d)Ø.ZÖ' ”≠bãÚ_˝˜WÔnıGôi8/ 
-ø˜]%|EÉﬂy0>p6#_&ı
-˜ï8ï*§o£EmﬂUöÎON_Í¬Ï8øÛ˛ûŒ—}÷\õŸ˜·!u
-nãK'z∫ëª∞ÑÇnw0?uäΩÿ£'˘ÕÜﬁ·¥Wc˙_Ól«'ì/Üd‘l\ªò¿T9^i«û{Ío,ú•`·ÚÒ˘{±ã¨IFã„LããUÒ—îCU!˜wid7‡Ωf‰B≥π˛I…~|!Ë¢6⁄òNß|≠B|‚õ8…∑
-“œØ“Õt4»˘2‚§õóÕL|D¶˝^U€!∏∑íi∆HØ∫FFÛ˝[¿“©ë¶ÂºE≤î¸≤ÎJº˛˘∂tï‡ ï‹ÇRÀòÜ^Ivu3≤¬j∆Ç8[}OΩ—3-„ÿs|Ã¶j∞„Ò∂$WıFXYU£ﬂénT¶L¯ì)π†´Ì‰õ–8¶´„“’tNEK˙ø⁄Ó”ûIƒó∂ü‹tdÁm|±R˛a˚R*ú!Â>
-eÅô¥gÎ”¸QmRûŒ.Œø\—ÒÀ†2Ç7éﬁ$PLÔ`ò¯7puå¸FÇ!¡ê8˚{ixfA7â|a¯Ì¯TŒúoì6D%,’Ú˘È®'ÓËÅn¬$Q»\˜Õd≈)Å3¶n?d¨iD
-?Olë<≥ØG.°êÙM±Ö∏1∂^ﬂ¨–7T^‡[à2‚’
 
 
 
-------=_NextPart_000_0006_72913DC3.A003A2A3
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: 7bit
-
-The attachment (text.zip) was infected with a virus and removed.
-------=_NextPart_000_0006_72913DC3.A003A2A3--
-
---------------InterScan_NT_MIME_Boundary--
 
 
 -------------------------------------------------------
