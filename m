@@ -1,50 +1,53 @@
-From: Len Brown <len.brown@intel.com>
-Subject: Re: [2.6 patch] drivers/acpi: remove unused exported functions
-Date: 05 Nov 2004 21:10:08 -0500
-Message-ID: <1099707007.13834.1969.camel@d845pe>
-References: <20041105215021.GF1295@stusta.de>
+From: Laszlo 'GCS' Boszormenyi <gcs-gKC9iF2I70U@public.gmane.org>
+Subject: Re: kacpid problems
+Date: Sat, 6 Nov 2004 03:02:07 +0100
+Message-ID: <20041106020207.GA7283@pooh>
+References: <418C0EFA.6000001@yahoo.no>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261295AbUKFCLY@vger.kernel.org>
-In-Reply-To: <20041105215021.GF1295@stusta.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Adrian Bunk <bunk@stusta.de>
-Cc: ACPI Developers <acpi-devel@lists.sourceforge.net>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <418C0EFA.6000001-eZNTXLQAfP4@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: dev_zero <dev_xor-eZNTXLQAfP4@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2004-11-05 at 16:50, Adrian Bunk wrote:
-> The patch below completely removes 7 functions that were
-> EXPORT_SYMBOL'ed but had exactly zero users in the kernel and makes
-> another one that was previously EXPORT_SYMBOL'ed static.
-> 
-> It also removes another unused global function to completely remove
-> drivers/acpi/hardware/hwtimer.c which contained no function used
-> anywhere in the kernel.
-> 
-> Please comment on whether this patch is correct or whether in-kernel
-> users of these functions are pending.
-> 
-> 
-> diffstat output:
->  drivers/acpi/acpi_ksyms.c        |    8 -
->  drivers/acpi/events/evxfevnt.c   |  191 -----------------------------
->  drivers/acpi/hardware/Makefile   |    2
->  drivers/acpi/hardware/hwtimer.c  |  200
-> -------------------------------
->  drivers/acpi/resources/rsxface.c |   52 --------
->  drivers/acpi/scan.c              |    6
->  drivers/acpi/utilities/utxface.c |   89 -------------
->  include/acpi/achware.h           |   17 --
->  include/acpi/acpi_bus.h          |    1
->  include/acpi/acpixf.h            |   24 ---
->  10 files changed, 6 insertions(+), 584 deletions(-)
+* dev_zero <dev_xor-eZNTXLQAfP4@public.gmane.org> [2004-11-06 00:38:34 +0100]:
 
-No, I can't apply this one as-is.
-Some of these routines are not called now
-simply because Linux/ACPI is evolving and we don't
-yet take advantage of some of the things supported
-by ACPICA core we use.
+> When my processor gets too hot, over 85 C it tries to shutdown(S5), but 
+> the only thing that happends is that kacpid starts running and runns 
+> with 99% CPU usage.
+> (taken from top)
+> 5 root       7 -10     0    0    0 R  99.0  0.0   0:17.94 kacpid
+> 
+> Is it someone who knows what is wrong? Is it a bug or is it my hardware 
+> that is the problem?
+ I have this also, but not always. Also even kacpid shows 99% CPU usage,
+as I see gkrellm, it shows that about 45% is spent in kernel space, and
+the rest in user space. I say not always because sometimes my machine
+goes without any problem even when hot, or bugging when it is not really
+hot. Don't know if my 'bug' is really related to yours, but yes, it is
+annoying as when this happens I can not shutdown manually even. The last
+line I see acpi_poweroff_called (even if I stop the kacpid process
+before).
+ Is it a laptop or a desktop machine?
 
-thanks,
--Len
+Regards,
+Laszlo/GCS
+
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by:
+Sybase ASE Linux Express Edition - download now for FREE
+LinuxWorld Reader's Choice Award Winner for best database on Linux.
+http://ads.osdn.com/?ad_id=5588&alloc_id=12065&op=click
