@@ -1,13 +1,13 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Acpica problem and explanations !
-Date: Mon, 30 Jun 2003 17:12:37 -0700
+From: Emma Jane Hogbin <emmajane-MHIYrZpDPrNWk0Htik3J/w@public.gmane.org>
+Subject: APIC options 2.4.21 kernel + patch
+Date: Tue, 1 Jul 2003 01:20:06 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A847E96FE5@orsmsx401.jf.intel.com>
+Message-ID: <20030701052006.GB2242@xtrinsic.com>
+Reply-To: Emma Jane Hogbin <emmajane-MHIYrZpDPrNWk0Htik3J/w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="ISO-8859-1"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,23 +16,39 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: elbg-QFKgK+z4sOrR7s880joybQ@public.gmane.org, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: elbg [mailto:elbg-QFKgK+z4sOrR7s880joybQ@public.gmane.org] 
-> >>> - ACPICA is a product INTEL for the support of the ACPI ?
-> >>> - I must delete a ACPI drivers in " 
-> >>> /usr/src/kernel-souce/drivers/acpi/ " well to be able to use in 
-> >>> place ACPICA ?
-> > no,
-> 
-> I said that because I read it on the Intel web-site, installation 
-> instrucion :  
-> "http://developer.intel.com/technology/iapc/acpi/downloads.htm"
+Hi:
 
-Oops, yes, that is obsolete information.
+I'm currently working on an ACPI HOWTO. It was written for the 2.4.20
+kernel, and I'm getting some questions about the 2.4.21 kernel and the
+latest patch. I am hoping this is a quick question with an easy answer.
+http://xtrinsic.com/geek/articles/acpi.phtml
 
--- Andy
+Here is a copy of the email I received which outlines the problem behind
+the question:
+http://sourceforge.net/mailarchive/forum.php?thread_id=2668793&forum_id=7803
+
+My question is this: Does the CONFIG_X86_UP_APIC module need to be set to
+"Y" for the 2.4.21 kernel + latest ACPI patch to work? 
+
+I've found the following APIC options in the 2.4.20 kernel:
+	CONFIG_X86_GOOD_APIC=y
+	# CONFIG_X86_UP_APIC is not set
+	# CONFIG_X86_UP_IOAPIC is not set
+
+The reader who emailed me said that he had to enable the second option in
+order to get the 2.4.21 kernel + patch to work. Will this be true for all
+hardware configurations 2.4.21?
+
+thanks!!
+
+emma
+
+-- 
+Emma Jane Hogbin
+[[ 416 417 2868 ][ www.xtrinsic.com ]]
 
 
 -------------------------------------------------------
