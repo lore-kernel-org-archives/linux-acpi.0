@@ -1,13 +1,13 @@
-From: mike <mike-rSZvBvsYROxg9hUCZPvPmw@public.gmane.org>
-Subject: smartbattery swsusp and acpi-sbs
-Date: Tue, 18 Jan 2005 20:09:08 +0700
-Message-ID: <20051182098.998032@p4>
-References: <20050118081428.909488835A@sc8-sf-spam1.sourceforge.net>
+From: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+Subject: Re: Re: Smart Battery System driver
+Date: Tue, 18 Jan 2005 10:46:21 -0500
+Message-ID: <41ED2F4D.6040703@bartol.udel.edu>
+References: <41E81C2C.8010809@bartol.udel.edu>	 <1105747983.7368.3.camel@tyrosine>	 <47e0449d05011419037877f931@mail.gmail.com>	 <m2fz13x8mw.fsf@phoenix.squirrel.nl> <41EA2C1D.3030909@bartol.udel.edu>	 <41EBE769.7050107@arrakis.dhis.org>  <41EC6829.1070901@bartol.udel.edu> <1106046662.7368.22.camel@tyrosine>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050118081428.909488835A-MRDXTZLjjMs+bN4EscsFoaQD96bmaF075NbjCUgZEJk@public.gmane.org>
+In-Reply-To: <1106046662.7368.22.camel@tyrosine>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,47 +17,49 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-i'm having success with the above features.  Currently I'm-a-runnin 2.6.10=
- with support for swsusp.  I have the smartbattery(i2c-dev) and I'm using=
- Mr. Townsend's i2c-acpi-ec which I think he said is slightly modified from=
- someone  who's name escapes me sorry. I'm also using acpi-sbs.. My machine=
- is an ACER 3200Xci which is just like the "ferrari" 3200 but I live in ASIA=
- so maybe it's slightly different.
+Matthew Garrett wrote:
+> On Mon, 2005-01-17 at 20:36 -0500, Rich Townsend wrote:
+> 
+> 
+>>But I'm not sure why this is happening with the revised version of the 
+>>code (20050116); this version contains #ifndef directives to prevent the 
+>>legacy interfaces being compiled in if they are already in the kernel. 
+>>Are you sure your kernel configuration matches your currently-running 
+>>kernel?
+> 
+> 
+>>From a distribution point of view, it would be nice to:
+> 
+> a) Not have to rewrite every acpi battery applet to use the sbs
+> interface directly, and
+> b) Not have to have a database of hardware that has a smart battery
+> 
+> Is there any way to provide the legacy interface even if standard
+> battery support is built in, or alternatively some way of probing the
+> system to determine which battery module should be loaded?
 
-I am also able to suspend using swsusp core (2.1.5.12). But I must remove=
- all the i2c modules or we get a nasy!  Before I didn't remove the modules=
- and swsusp failed to resume (it suspend okay) but I think i2c-core module=
- was causing the a problem.  Now using Mr. Townsend's stuffs, it suspends=
- and resumes just dandy.  it looks like i2c core functionality is fine after=
- re-inserting the modules.  Thanks heaps by the way I was so bummed about=
- this smart battery issue..
+We can't have the legacy interface (/proc/acpi/battery) if standard 
+battery support is built in, since standard battery support *defines* 
+the legacy interface! The legacy interfaces in acpi-sbs only exist to 
+fake the existence of a standard (i.e., control method, CM) battery.
 
-Now 3 error messages:
+Regarding auto-loading of the correct module, it is likely that at some 
+point in the future there may be some sort of merge between the SBS work 
+done by myself and Bruno Ducrot, and the standard battery code 
+battery.c. This will involve quite a bit of design effort, since the 
+ACPI spec considers SBS and CM batteries to be totally different beasts 
+(I don't know why they didn't define a unified interface for batteries).
 
-when removing the i2c-dev modules I get the following:
-"i2c-dev does not have a release() function, be careful"
-"i2c-adaptor does not have a release() function, be careful"
-"Kernel: losing some ticks... checking if CPU frequency changed"
-I notice this message happens every 30 seconds which corresponds to the=
- setting I have for gkrellm to poll the /proc attery dir  I remember seeing=
- someone mention that i2c reads are very slow and causes the entire system=
- to lock up.. well I rekon this is happening to me.. Is "losing ticks" a bad=
- thing?
+But at the moment we're still at the phase of getting the SBS system 
+working properly.
 
-Finally an observation:
-Upon engaging the battery and subsequently charging again, I notice the=
- battery light comes on and off (in my case it the LED goes from "off not=
- lit" state to "orange" charge state roughly every 62 seconds ( I was hoping=
- it would be 30 seconds) but no such luck.  This seems to be reported by=
- other people as well.
+cheers,
 
-Okay thanks again for this, its a killer ap dude
-
-mikel
-
+Rich
 
 
 -------------------------------------------------------
