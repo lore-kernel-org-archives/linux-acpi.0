@@ -1,13 +1,13 @@
-From: "Hiroshi Itoh" <hiroit-s3IJUFpODnp4Eiagz67IpQ@public.gmane.org>
-Subject: Re: Re: [BKPATCH] ACPI for 2.6
-Date: Sat, 13 Nov 2004 03:18:15 +0900
-Message-ID: <004401c4c8e3$fb077d80$7bbdbd09@TPHIROIT>
-References: <1099986428.6090.53.camel@d845pe> <20041112174248.GA4267@openzaurus.ucw.cz>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: S3 broken on a Samsung P30
+Date: Fri, 12 Nov 2004 20:55:30 +0100
+Message-ID: <20041112195530.GA1123@elf.ucw.cz>
+References: <1099605010.5191.20.camel@mhcln03> <20041110231802.GA1099@elf.ucw.cz> <1100263919.3523.3.camel@mhcln03> <20041112160435.GC1858@elf.ucw.cz> <1100283009.3608.2.camel@mhcln03>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1100283009.3608.2.camel@mhcln03>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,23 +17,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>, Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Matthias Hentges <mailinglisten-H4PcyxPeSRnR7s880joybQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->>    Useful to workaround C3 ipw2100 packet loss,
->>    reducing noise or boot issues on some models.
->>    http://bugme.osdl.org/show_bug.cgi?id=3549
->>    
->>    For static processor driver, boot cmdline:
->>    processor.acpi_cstate_limit=2
+Hi!
 
->You certainly win "ugliest parameter of the month" contest :-).
->What about processor.max_cstate= or something?
+> [...]
+> > Hmm, you may want to add "jmp $" just after the beep, and apply recent
+> > intel fixes...
+> 
+> Adding "jmp $" right after BEEP gives me a compile error:
+> 
+> arch/i386/kernel/acpi/wakeup.S: Assembler messages:
+> arch/i386/kernel/acpi/wakeup.S:40: Error: missing or invalid immediate
+> expression `' taken as 0
+> arch/i386/kernel/acpi/wakeup.S:40: Error: suffix or operands invalid for
+> `jmp'
 
-Always you are not so gentle, but often cool. :-)
+Okay, oops, do
 
--Hiro
+1:
+	jmp 1b
+
+instead.
+								Pavel
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
