@@ -1,14 +1,14 @@
-From: "Michael Frank" <mhf-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
-Subject: Re: S3/S4 doesn't work, no-one cares, it's a mess Re: ACPI S3 wake howto was: RE: [BKPATCH] ACPI for 2.6
-Date: Wed, 31 Mar 2004 13:40:52 +0800
+From: Christoph Lukas <christoph.lukas-hi6Y0CQ0nG0@public.gmane.org>
+Subject: Re: ACPI S3 wake howto was: RE: [BKPATCH] ACPI for 2.6
+Date: Wed, 31 Mar 2004 08:02:14 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <opr5poqe0z4evsfm@smtp.pacific.net.th>
-References: <7105F2BD9451D7479B4B3A99A2B72FAC062C08C7@exchange1.ssd.fsi.com> <20040330233155.463A.COUNT0@localnet.com>
+Message-ID: <1080712934.8580.31.camel@beja>
+References: <7105F2BD9451D7479B4B3A99A2B72FAC062C08C7@exchange1.ssd.fsi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; delsp=yes; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040330233155.463A.COUNT0-tC47gz4GrgtWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <7105F2BD9451D7479B4B3A99A2B72FAC062C08C7-Lp/cVzEoVyYIbgCsDWxlK60bRtRcJeJQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,73 +17,67 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Huw Rogers <count0-tC47gz4GrgtWk0Htik3J/w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "Rockefeller, Harry" <harryr-qMhjF6E6u3VBDgjK7y7TUQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 30 Mar 2004 23:51:17 -0500, Huw Rogers <count0-tC47gz4GrgtWk0Htik3J/w@public.gmane.org> wrot=
-e:
+Am Die, den 30.03.2004 schrieb Rockefeller, Harry um 19:33:
+> As a user, I'm stuck at first base.  With kernel 2.6.4
+> S3 is supposedly supported.  Entering S3 appears to work.
+> Exiting S3 (waking up?) the LCD screen comes back when a key is
+> depressed, but *nothing* brings my machine back to life.
+> The full few-seconds power-button reboot is all that works.
+> 
+> I admit that there may be a simple one-line web-link answer
+> pointing to some ACPI FAQ or How-to.  If that is the case 
+> just point me there and I'll read that.
 
-> There are 3 competing implementations of S3/S4. None of them work with
-> recent AGP ATI Mobility Radeons using ATI's drivers (the most popular
-> current video chipset for notebooks / the only driver set that supports
-> them properly in X). None of them work with hyperthreaded CPUs or SMP
-> (again, hardly exotic). Most USB, Ethernet and other drivers are
-> incompatible with S3/S4. The resume code is poorly tested, has race
-> conditions, doesn't enable/disable interrupts at the right junctures,
-> fails to restore PCI state and does nothing for AGP, USB etc. (left to
-> drivers that could care less about suspend/resume).
->
-> I was intent on getting my AGP ATI Radeon/P4 HT/SiS chipset notebook
-> working by hacking the code. BUT suspend/resume issues are in ACPI code=
-,
-> in power mgmt code, in driver code, in AGP code, in suspend/resume code=
-.
-> All owned by different people. Many with competing implementations.
-> No-one is a clear leader. The resume itself is near-impossible to debug
-> since nothing is alive at that point and the video chipset isn't up.
->
-> Many many people have the problem you describe (lockup on S3 resume,
-> need hard power cycle to restart). I have it, and have seen numerous
-> other people post on it all with dramatically different hardware. Only
-> common factors is that the hardware is recent (i.e. AGP video, typicall=
-y
-> Mobility Radeon), and IT DOESN'T WORK.
->
-> The situation can't be helped by the hacker looking to contribute by
-> getting his own gear working (a massive consolidation, refactoring and
-> cleanup is required by someone with in-depth knowledge of both ACPI and
-> PC hardware). There are also probably deep implications for the Linux
-> x86 driver architecture to doing it "properly". Linux vendors put almos=
-t
-> no effort into supporting laptop hardware despite growing laptop adopti=
-on
-> in replacement of desktops since their strategy is to get Linux to the
-> point that the hardware vendors themselves are compelled to do such wor=
-k
-> like they do for MS Windows. laptop-specific issues such as this receiv=
-e
-> short shrift.
->
-> In short, it's a hopeless mess, no-one who could solve this problem
-> really cares about it enough to commission the team required, and it
-> requires a huge effort by a couple of gurus with buy-in from Linus & co=
-.
-> for the kernel consequences to really fix this.
->
-> Not happening any time soon. Optimize your boot to make it fast instead
-> by fooling around with /etc/init.d and company. S3/S4? Bah. -Hu
+I spent several hours trying to set up S3 on my notebook. The problem
+with S3 seems to be that the drivers have to take care for saving /
+restoring PCI states and reinitializing hardware components.
 
-Nice writeup!, including the fact that it is too big for joe-helpout and =
-that a
-team to handle the issues is lacking.
+The mayor problem for me was that the video card (Nvidia GForce) had to
+be reinitialized. I solved that with using the original XFree nv driver
+instead of the nvidia one and applying an XFree hack from:
 
-Most PM issues are out of scope of ACPI CA.
+http://www.loria.fr/~thome/d600/
 
-However I like to add that ACPI CA should implement a PM interface  for
-ACPI  components to suspend/resume properly. Right now even AC adapter
-must be made a module and reloaded after resume.
+This made S3 working for me from within X. On the same page you can find
+a patch for the ATI Radeon M9.
 
-Michael
+The second problem was that some drivers had to be unloaded before
+suspend and reloaded after resume (usb).
+
+The third problem was that I did not get alsa to work after resume. A
+similar problem is described here:
+
+http://sourceforge.net/mailarchive/message.php?msg_id=7591163
+
+Using those hints I wrote a small _shell_ script to save the PCI config
+space of my alsa and network driver before suspend and to restore it
+after resume.
+
+That finally made S3 working for me. :-)
+
+As a recipe I would suggest:
+- Start with mostly all drivers unloaded
+- Always umount all unnecessary partitions as it is likely that your
+system will crash until you find the correct way to deal with your
+drivers
+- Boot your system with acpi_irq_balance acpi_irq_pci=3,4,5,..
+- Get your video card working with S3
+- Try one driver after another to deal with S3
+- If it does not survive suspend / resume try:
+-- unloading / reloading
+-- keeping the driver loaded and saving / restoring PCI config space
+
+As the alsa drivers were the worst ones to get working, I tried to
+contact the alsa-devel list for some help, but there did not seem to be
+any interest in getting S3 working with alsa. No responses so far. :-(
+
+Regards,
+Christoph
+
 
 
 -------------------------------------------------------
