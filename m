@@ -1,14 +1,12 @@
-From: "Herbert Nachtnebel" <Herbert.Nachtnebel-8zxNtbQCHXIjuwv8T7myQQ@public.gmane.org>
-Subject: RE: Is it possible to have more than two batteries in a laptop?
-Date: Tue, 1 Oct 2002 14:11:04 +0200
+From: Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
+Subject: Thermal OOPS fixed
+Date: Tue, 01 Oct 2002 23:10:44 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <B900970C7DD9474C972986EB3EC7C58F0D4014@andromeda.agcad.local>
+Message-ID: <1033506644.357.10.camel@bacchus.gpphy.uni-duesseldorf.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,47 +15,54 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: =?iso-8859-1?Q?Hanno_B=F6ck?= <hanno-Mmb7MZpHnFY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Yes, at least the Compaq Armada Series is able to handle up to three =
-batteries.
-=20
-Regards, Herbert.
+Hi Andrew,
 
-	-----Urspr=FCngliche Nachricht-----=20
-	Von: Hanno B=F6ck [mailto:hanno-Mmb7MZpHnFY@public.gmane.org]=20
-	Gesendet: So 29.09.2002 19:55=20
-	An: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org=20
-	Cc:=20
-	Betreff: [ACPI] Is it possible to have more than two batteries in a =
-laptop?
-=09
-=09
+I reported my Athlon system to not boot with with 2.4.20-pre7 and latest
+acpi. You suggested to compile thermal as a module and it worked as long
+as I did not insmod thermal. I did some debugging and it seems its
+because of the following:
 
-	I'm currently working on a patch for the gnome battery-applet =
-(battstat-applet) to work with two batteries.
-	Now I have a version working with two batteries, but it would not work =
-if there are more than two batteries.
-	So I wanted to know if there are laptops which can have more than two =
-batteries at the same time?
-	If not, my patch is fine. If yes, I would have to enhance it.
-=09
-	(If you are interested in the patch: it's against gnome-applets-2.0.3 =
-and you can grab it at:
-	www.gentoo.org/~hanno/battstat_two_batteries.diff
-	)
-=09
-=09
-	-------------------------------------------------------
-	This sf.net email is sponsored by:ThinkGeek
-	Welcome to geek heaven.
-	http://thinkgeek.com/sf
-	_______________________________________________
-	Acpi-devel mailing list
-	Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-	https://lists.sourceforge.net/lists/listinfo/acpi-devel
-=09
+thermal.c l1221ff
+
+	acpi_thermal_check(tz);
+
+	status = acpi_install_notify_handler(tz->handle,
+		ACPI_DEVICE_NOTIFY, acpi_thermal_notify, tz);
+	if (ACPI_FAILURE(status)) {
+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
+			"Error installing notify handler\n"));
+		result = -ENODEV;
+		goto end;
+	}
+
+	init_timer(&tz->timer);
+
+since add_timer(&tz->timer) gets called in acpi_thermal_check(tz) the
+timer should be initialized before by init_timer (&tz->timer). My kernel
+book says so and with init_timer moved before acpi_thermal_check the
+systems runs pretty stable.
+
+-Knut
+
+PS: I should mention that rmmod-ing thermal does not remove proc entry
+which leads to problems. Is that known already?
+
+-- 
+Knut Neumann <knut.neumann-4bfl1RV3iZDOEhgYWvzSCYQuADTiUCJX@public.gmane.org>
+Physikalische Grundpraktika - Heinrich-Heine Universitaet Duesseldorf
+Raum 25.33.01.63  -   Universitaetsstrasse 1   -  D-40225 Duesseldorf
+fon: +49-211-81-11314                           fax: +49-211-81-13105
+
+
+
+
+
+
+
 
 
 
