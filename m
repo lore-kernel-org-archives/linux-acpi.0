@@ -1,15 +1,12 @@
 From: Emma Jane Hogbin <emmajane-MHIYrZpDPrNWk0Htik3J/w@public.gmane.org>
-Subject: Re: 2.6 won't poweroff
-Date: Wed, 26 May 2004 21:57:11 -0400
+Subject: 2.6.6 + AcerTravelMate634 suspend
+Date: Wed, 26 May 2004 21:34:36 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040527015711.GA2951@smeagol>
-References: <20040525044514.GC2217@smeagol> <16563.119.414292.134855@aber.ac.uk> <20040526043252.GF2576@smeagol> <1085622000.3503.10.camel@darkstar>
+Message-ID: <20040527013436.GA2559@smeagol>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1085622000.3503.10.camel-4/PLUo9XfK8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,26 +15,68 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, May 27, 2004 at 02:40:01AM +0100, Sérgio Monteiro Basto wrote:
-> 1- Have you configure Power Management support on yes (CONFIG_PM=y) ?
+Hi everyone,
 
-Yes.
+I just thought I'd let everyone know how my system behaves with the
+various suspend options:
+	echo -n "standby" > /sys/power/state  
+		back light stays on in X
+		does nothing from the console
+		
+	echo -n "mem" > /sys/power/state  
+		system "goes away", no back light, "Zz" light goes on
+		Fn-F4 should work to put the computer into this state but it just
+		beeps and does nothing
+		can't restore (tried the power button, Fn-F4, moving the mouse, etc)
+		have to force power off with the power button and then force restart
 
-> 2- you use poweroff command or shutdown -h now ? poweroff can have
-> better results (I think).
+(more at the bottom)
+NB: I have to stop mysqld by hand. (Yes, I run a database on my laptop for
+testing purposes--I'm a web developer by day.)
 
-I've tried both.
+May 26 19:34:49 smeagol kernel: Stopping tasks: ====================================================
+=================
+May 26 19:34:49 smeagol kernel:  stopping tasks failed (1 tasks remaining)
+May 26 19:34:49 smeagol kernel: Restarting tasks...<6> Strange, mysqld not stopped
+May 26 19:34:50 smeagol kernel:  done
+May 26 19:34:50 smeagol udev[3195]: creating device node '/dev/vcs63'
+May 26 19:34:50 smeagol udev[3265]: removing device node '/dev/vcs63'
+May 26 19:34:55 smeagol udev[3274]: removing device node '/dev/vcsa63'
+May 26 19:35:00 smeagol udev[3280]: removing device node '/dev/vcs63'
+May 26 19:35:05 smeagol udev[3284]: removing device node '/dev/vcsa63'
+May 26 19:35:10 smeagol udev[3310]: removing device node '/dev/vcs63'
+May 26 19:35:15 smeagol udev[3314]: removing device node '/dev/vcsa63'
+May 26 19:35:18 smeagol kernel: PM: Preparing system for suspend
+May 26 19:35:19 smeagol kernel: Stopping tasks: ====================================================
+============|
+May 26 19:35:19 smeagol kernel: Restarting tasks... done
+May 26 19:35:20 smeagol udev[3318]: removing device node '/dev/vcs63'
+May 26 19:35:25 smeagol udev[3322]: removing device node '/dev/vcsa63'
+May 26 19:35:30 smeagol udev[3326]: removing device node '/dev/vcs63'
+May 26 19:35:35 smeagol udev[3329]: removing device node '/dev/vcsa63'
+May 26 19:46:53 smeagol syslogd 1.4.1#10: restart.
+May 26 19:46:53 smeagol kernel: klogd 1.4.1#10, log source = /proc/kmsg
+started.
+May 26 19:46:53 smeagol kernel: Inspecting /boot/System.map-2.6.6.gimli
+May 26 19:46:54 smeagol udev[1498]: creating device node '/dev/vcs1'
+May 26 19:46:54 smeagol udev[1594]: removing device node '/dev/vcs1'
+May 26 19:46:54 smeagol udev[1505]: creating device node '/dev/vcsa1'
+May 26 19:46:54 smeagol udev[1600]: removing device node '/dev/vcsa1'
+May 26 19:46:54 smeagol kernel: Loaded 30706 symbols from
+/boot/System.map-2.6.6.gimli.
+May 26 19:46:54 smeagol kernel: Symbols match kernel version 2.6.6.
 
-> 3- no longer have to worry about compile w/ or w/o APIC because you
-> should have same results if you use "nolapic" on boot options, or not
-> use.
 
-I'm not sure if it's because it's been cooler out, or because I recompiled
-without APIC however...I'm no longer getting the random freezes that I was
-before. Either way I won't be putting APIC back in, just in case. :)
+	echo -n "disk" > /sys/power/state 
+	system shuts off. No "Zz" light. When I use the power button to turn
+	the system back on it says that it was not shut down properly.
+
+
+REMINDER: when I try to use poweroff and halt the computer does not power
+off when acpi_power_off is called at the very end.
 
 emma
 
