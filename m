@@ -1,16 +1,14 @@
-From: Takayoshi Kochi <kochi-PTg2hmCz6mgYz5ZhgtY7qeqrae++aQT8@public.gmane.org>
-Subject: Re: 2.5.64-bk4: Is CONFIG_ACPI_NUMA for IA64 only?
-Date: Mon, 10 Mar 2003 17:04:45 +0900 (JST)
+From: Mark Stocker <pezed-K4nppHclNNFeoWH0uzbU5w@public.gmane.org>
+Subject: acpi on toshiba satellite 1625CDT
+Date: Mon, 10 Mar 2003 04:04:14 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030310.170445.104032756.kochi@hpc.bs1.fc.nec.co.jp>
-References: <200303091951.LAA02649@adam.yggdrasil.com>
-	<20030310.160402.71090529.kochi@hpc.bs1.fc.nec.co.jp>
-	<80320000.1047280489@[10.10.2.4]>
+Message-ID: <200303100404.14947.pezed@pezed.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <80320000.1047280489-oRem06ootMAo6foR4HHleQ@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,51 +17,55 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: mbligh-/CzTsIfkJEdBDgjK7y7TUQ@public.gmane.org
-Cc: adam-7x81iamSd18S+FvcfC7Uqw@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, t-kochi-UDFczIW9X1d8UrSeD/g0lQ@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+I've been trying for about a week now to get acpi working properly on this 
+machine (using 2.4.21-pre5 and the latest acpi patch) but im just not having 
+much luck.  The annoying problem is the fan.  The fan comes on as it should, 
+but then it will never go off again. The fan is "detected" and shows up under 
+/proc/acpi/fan/FAN/ and under /proc/acpi/power_resource/PFAN/.  Both of these 
+directories have a "state" file which show:
 
-From: "Martin J. Bligh" <mbligh-/CzTsIfkJEdBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [ACPI] 2.5.64-bk4: Is CONFIG_ACPI_NUMA for IA64 only?
-Date: Sun, 09 Mar 2003 23:14:50 -0800
-Message-ID: <80320000.1047280489@[10.10.2.4]>
+mark@lappy /proc/acpi/fan/FAN]$ cat state
+status:                  off
 
-> >> 	Anyhow, I'm not sure if the call to acpi_numa_slit should be
-> >> commented out for non-ia64 architectures or if CONFIG_ACPI_NUMA should
-> >> be changed to depend on CONFIG_IA64, or if something else should be
-> >> done.
-> > 
-> > The problem here is that only a callback routine for SRAT is implemented
-> > in i386 but one for SLIT is not.  So I think it's better to have
-> > suboption CONFIG_ACPI_SLIT for CONFIG_ACPI_NUMA, which is only
-> > configurable on ia64 currently (if some x86 platform implements
-> > the SLIT table, we should change accordingly).
-> 
-> That's a lot of config options ;-) As long as they're hidden from the
-> user, I guess it doesn't matter (too many questions just makes people
-> spontaneously combust). Presumably it's derivable from CONFIG_NUMA,
-> CONFIG_ACPI, and the machine type ... so we can just "do the right thing"?
-> Or is there still some other reason to turn CONFIG_ACPI_NUMA on and
-> off independantly for users?
+[mark@lappy /proc/acpi/power_resource/PFAN]$ cat state
+state:                   off
+system level:            S0
+order:                   0
+reference count:         0
 
-Okay, for users, I agree it's not comfortable to check whether
-the SLIT table is implemented or not.
+"echo 0 > /proc/acpi/fan/FAN/state" shows the following:
+acpi_power-0363 [50] acpi_power_transition : Error transitioning device [FAN] 
+to D0
+acpi_bus-0496 [49] acpi_bus_set_power    : Error transitioning device [FAN] to 
+D0
 
-Again, the problem is that full callback routines are not implemented
-in i386 arch specific code.  To avoid making another config options,
-I'd like to use weak symbols or function pointers for those functions
-and callback only when those are implemented.
-Then the configuration can be automated...
+"echo 1 > /proc/acpi/fan/FAN/state" shows:
 
-Thanks,
----
-Takayoshi Kochi <kochi-PTg2hmCz6mgYz5ZhgtY7qeqrae++aQT8@public.gmane.org/t-kochi@bq.jp.nec.com>
+acpi_bus-0447 [49] acpi_bus_set_power    : Device does not support D1
+
+/proc/acpi/power_resouce/PFAN isnt writable.
+
+cat /proc/acpi/event will properly show when the lid switch or power button is 
+pressed.
+battery info doesnt appear to be read correctly as it shows a battery even 
+when i remove the battery. (doesnt bother me)
+
+thermal info appears to be read correctly (temp goes up and down with system 
+load).
+
+the fan problem is the only thing that is really bothering me (the fan is 
+loud!!).  i've tried to create my own dsdt file with no luck.  in the stock 
+dsdt file Device(FAN) appears to be an alias to PowerResource PFAN.
+i've searched the net over and cant seem to find any info on this laptop and 
+acpi.  :(
+any help or tips would be greatly appreciated!
+thanks!
 
 
 -------------------------------------------------------
-This SF.net email is sponsored by: Etnus, makers of TotalView, The debugger 
-for complex code. Debugging C/C++ programs can leave you feeling lost and 
-disoriented. TotalView can help you find your way. Available on major UNIX 
-and Linux platforms. Try it free. www.etnus.com
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
