@@ -1,13 +1,15 @@
 From: Fabio Sirna <farnis-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org>
-Subject: Acer travelmate 210 txr
-Date: Sun, 20 Apr 2003 13:24:31 +0200
+Subject: Re: Acer travelmate 210 txr
+Date: Sun, 20 Apr 2003 13:41:41 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030420112431.GA2719@thecrow.it>
+Message-ID: <20030420114140.GA4809@thecrow.it>
+References: <20030420112431.GA2719@thecrow.it>
 Reply-To: farnis-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20030420112431.GA2719-KjLHrUw5Z6+onA0d6jMUrA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,19 +21,20 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I've the laptop in subject.
-I patched the kernel 2.4.0 with the patch that I've found on
-acpi.sf.net. The battery is found, and battstat works well.
-I've problems with sleep and stand-by.
-If I do 
+Alle apr 20 at 01:24, Fabio Sirna scrisse:
 
-echo S1 > /proc/acpi/sleep
+>I read on acpi.sf.net about the DSDT table, but I don't understand very
+>well, and I didn't find any DSDT table for my laptop.
+>If you have any suggestion, please help me.
 
-the laptop goes in standby with a white screen with many horizontal line.
-If I try to wake-up it, the keyboard doesn't work.
-I read on acpi.sf.net about the DSDT table, but I don't understand very
-well, and I didn't find any DSDT table for my laptop.
-If you have any suggestion, please help me.
+I do
+
+acpidmp FACP | acpitbl > FACP.log
+
+acpidmp DSDT | acpidisasm > DSDT.log
+
+and I've logged the output. If someone wants the log, I can post it.
+I've compressed it on acpi.tar.gz (32K).
 
 -- 
 Fabio
