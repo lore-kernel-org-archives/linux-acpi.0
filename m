@@ -1,15 +1,15 @@
 From: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>
 Subject: Re: various problems with Acer TM654, suspend, ACAD, radeon
-Date: Sun, 22 Aug 2004 21:45:12 +0200
+Date: Sun, 22 Aug 2004 22:16:36 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040822194512.GA8158@gamma.logic.tuwien.ac.at>
-References: <20040820161911.GA24510@gamma.logic.tuwien.ac.at> <200408202147.51250.stefandoesinger@gmx.at> <20040822103542.GA17227@gamma.logic.tuwien.ac.at> <200408222002.31563.stefandoesinger@gmx.at>
+Message-ID: <20040822201636.GA10152@gamma.logic.tuwien.ac.at>
+References: <20040820161911.GA24510@gamma.logic.tuwien.ac.at> <200408202147.51250.stefandoesinger@gmx.at> <20040822103542.GA17227@gamma.logic.tuwien.ac.at> <200408222002.31563.stefandoesinger@gmx.at> <20040822194512.GA8158@gamma.logic.tuwien.ac.at>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-15
 Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200408222002.31563.stefandoesinger-RbZlAiThDcE@public.gmane.org>
+In-Reply-To: <20040822194512.GA8158-DqSSrKF0TaySnEC3TeqHn5dqbFPxfnh/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -22,31 +22,20 @@ To: Stefan =?iso-8859-15?Q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gman
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello Stefan!
+Hi Stefan!
 
-On Son, 22 Aug 2004, Stefan Dösinger wrote:
-> >ACPI: Looking for DSDT in initrd ... found (at offset 20)!
-> > found customized DSDT with 23575 bytes!
->
-> Which kernel? The dsdt in initrd patch doesn't work with 2.6.8.1 for some 
-> reason. Try the patch which compiles the dsdt into the kernel. Read the 
-> "another extensive manual", 9a
+On Son, 22 Aug 2004, Norbert Preining wrote:
+> On Son, 22 Aug 2004, Stefan Dösinger wrote:
+> > >ACPI: Looking for DSDT in initrd ... found (at offset 20)!
+> > > found customized DSDT with 23575 bytes!
+> >
+> > Which kernel? The dsdt in initrd patch doesn't work with 2.6.8.1 for some 
+> > reason. Try the patch which compiles the dsdt into the kernel. Read the 
+> > "another extensive manual", 9a
 
-Hmm, strange, I have 2.6.8.1-mm4 plus the initrd/dsdt patch running and
-the kernel tells me the above. So it tells me that the dsdt is found,
-but not used. Thanks for the information, I will check on this.
+Bingo. THanks for the hint. Now I am getting ac_adapter events. Great.
 
-> > Umpf, well, yes, this works. But now even making a
-> > 	ps -ax
-> > makes the redrawing stumble. This cannot be the solution, the only one?!
-> > Are there any other patches I could try?
->
-> Do you use a framebuffer? Try without.
-
-No framebuffer. USB and all other stuff disabled or modular. Of course I
-have tried all these already.
-
-Thanks a lot for your patience, und schöne Grüße !
+Now I have only to get S2D and S2R to be fixed ...
 
 Best wishes
 
@@ -56,12 +45,10 @@ Norbert
 Norbert Preining <preining AT logic DOT at>         Technische Universität Wien
 gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C5 B094
 -------------------------------------------------------------------------------
-The major difference between a thing that might go wrong
-and a thing that cannot possibly go wrong is that when a
-thing that cannot possibly go wrong goes wrong it usually
-turns out to be impossible to get at or repair.
-                 --- One of the laws of computers and programming revealed.
-                 --- Douglas Adams, The Hitchhikers Guide to the Galaxy
+MAARUIG (n.)
+The inexpressible horror experienced on walking up in the morning and
+remembering that you are Andy Stewart.
+			--- Douglas Adams, The Meaning of Liff
 
 
 -------------------------------------------------------
