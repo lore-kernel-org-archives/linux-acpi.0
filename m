@@ -1,14 +1,11 @@
-From: FrAnKenstEin <fake-3RXyrymLNR0b1SvskN2V4Q@public.gmane.org>
-Subject: Re: Armada 110
-Date: Thu, 14 Nov 2002 23:17:25 +0100
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] drivers/acpi/ac.c: convert to seq_file
+Date: Thu, 14 Nov 2002 14:34:35 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021114221725.GA1831@apollo.bingo-ev.de>
-References: <20021113205208.GA30683@apollo.bingo-ev.de> <3DD34A64.57D3AC9C@monetplus.cz>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A50E@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3DD34A64.57D3AC9C-Bh/+Xfn7orxQjibfaplwYw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,52 +14,28 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Zden?k OGAR Skal?k <skalak-Bh/+Xfn7orxQjibfaplwYw@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: 'Arnaldo Carvalho de Melo' <acme-KCZ47A4bww4P48s/oLjRZg@public.gmane.org>
+Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linus Torvalds <torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org>, aris-YqEmrenMroyQb786VAuzj9i2O/JbrIOy@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-
-Weee!
-
-Thanks! That works ;)
-I actually already had a look at those methods, but i wasn't sure about what the
-methods did.. and started Store(..,Debug) - analyzing them ;)
-
-Thanks for your quick help again...
-
-Thomas Jakobi
-
-On Thu, Nov 14, 2002 at 08:01:56AM +0100, Zden?k OGAR Skal?k wrote:
-> Hi,
+> From: Arnaldo Carvalho de Melo [mailto:acme-KCZ47A4bww4P48s/oLjRZg@public.gmane.org] 
+> 	Please consider pulling from:
 > 
-> 	I have Armada 110 too & had the same problem. After fiddling with DSDT, I found
-> solution (at least it's working for me :-)
-> 	Try this: 
-> 		a) dissasemble DSDT
-> 		b) patch according to cpqlinux-page
-> 		c) patch the method _BST in device BAT1 
->                    (should be in about 11% of file):
->                          Else
->                          {
-> 				\_SB.Z000(0x8A)
-> 				SEBS /* \_SB.BAT1.SEBS */()
-> +				UPBS /* \_SB.BAT1.UPBS */()
-> 			 }
-> 		d) assemble & try
+> bk://oops.kerneljanitors.org:acpi-2.5
 > 
-> 	My own opinion is, that 
-> 	a) SEBS is SetBateryStatus <-- store "static status" information about batery		
-> 	b) UPBS is UpdateBatteryStatus <-- update according to "current state"
+> 	This is the first in a series of changesets converting
+> ACPI to seq_file, please lets us know if something is unacceptable.
 > 
-> 	Hope it help :-) By
-> 
-> 		Zdenek OGAR Skalak
-> -- 
-> Ing. Zden?k OGAR Skal?k
-> Monet+ a.s.
-> Z?meck? 365
-> 763 14 Zl?n - ?t?pa, CZ
-> Tel: +420 / 577 110 411,  Fax: +420 / 577 914 557
+> 	The work was done by Aristeu Rozanski.
 
+Hi acme,
+
+Looks like an improvement. My thanks to you and Aristeu.
+
+Let me know when you're done with all the changesets and I'll pull
+everything.
+
+Regards -- Andy
 
 
 -------------------------------------------------------
