@@ -1,16 +1,15 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: [PATCH] fix(Fix _STA checking in acpi_bus_add)
-Date: Thu, 29 Apr 2004 08:46:41 -0600
+From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Subject: Re: DSDT Table for Samsung X30 1700
+Date: Thu, 29 Apr 2004 16:47:33 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200404290846.41647.bjorn.helgaas@hp.com>
-References: <Pine.LNX.4.58.0404281525160.30907@daphne.frec.bull.fr> <200404280934.26381.bjorn.helgaas@hp.com> <Pine.A41.4.53.0404291005470.37100@isabelle.frec.bull.fr>
+Message-ID: <20040429144733.GA16684@dominikbrodowski.de>
+References: <3ACA40606221794F80A5670F0AF15F8404321BC7@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="YiEDa0DAkWCtVeE4"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.A41.4.53.0404291005470.37100-uSTK/MBzOD2tas8oWxsmKKkcovwApn/9@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8404321BC7-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -19,65 +18,51 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Simon Derr <Simon.Derr-6ktuUTfB/bM@public.gmane.org>
-Cc: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Daniel Dewald <D.Dewald-js0L5lmcrAQb1SvskN2V4Q@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday 29 April 2004 2:18 am, Simon Derr wrote:
-> On Wed, 28 Apr 2004, Bjorn Helgaas wrote:
-> 
-> > Is your box based on Intel chipsets and/or firmware?  You might be
-> Indeed.
-> 
-> > suffering from the problem I described here:
-> >
-> >     https://sourceforge.net/mailarchive/message.php?msg_id=6923358
-> >
-> > Intel firmware seems to describe the PCI root bridge where chipset
-> > configuration space lives with _STA==0x8.  The spec says this means
-> > "functional, but not present".  The current Linux code ignores things
-> > that are "not present".
-> 
-> I tried your patch and it works perfectly. Thank you.
-> This chipset/firmware is probably very common in the ia64 world so I think
-> it might be a good idea to include your patch in the stock Linux kernel.
 
-Well, the patch is a gross hack for a special case, and I'd be worried
-about it breaking something related to docking or hotplug.  That's why
-I posted it as "RFC" first, in the hope that someone could explain the
-intent behind the Intel firmware.
+--YiEDa0DAkWCtVeE4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Given the current ACPI spec, I'd say it's a bug in the Intel firmware,
-and any workaround should be specific to that firmware.  If Intel
-figures out good semantics for what they're trying to do, I think that
-should be reflected in a future spec.
+As I assume the X30 is similar to the X05 I own:
 
-> This is just your patch with updated line offsets, applies cleanly to
-> Linux 2.6.5:
-> 
-> --- linux-2.6.5-vanilla/drivers/acpi/bus.c	Sun Apr  4 05:37:24 2004
-> +++ linux-2.6.5/drivers/acpi/bus.c	Thu Apr 29 09:43:14 2004
-> @@ -112,6 +112,14 @@
->  	else
->  		STRUCT_TO_INT(device->status) = 0x0F;
-> 
-> +	if (device->status.functional && !device->status.present) {
-> +		printk(KERN_WARNING PREFIX "Device [%s] status [%08x]: "
-> +			"functional but not present; setting present\n",
-> +			device->pnp.bus_id,
-> +			(u32) STRUCT_TO_INT(device->status));
-> +		device->status.present = 1;
-> +	}
-> +
->  	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] status [%08x]\n",
->  		device->pnp.bus_id, (u32) STRUCT_TO_INT(device->status)));
-> 
-> 
+> >The battery control does not work,
 
--- 
-Bjorn Helgaas - bjorn.helgaas at hp.com
-Linux and Open Source Lab
-Hewlett-Packard Company
+- this can be fixed by patching the DSDT. Info for the (also similar X10) is
+available on the web.
+
+> > Standbye is not possible,=20
+
+- S3 doesn't yet work properly; as it works on FreeBSD it should be possible
+in theory, and hopefully will do in 2.7.
+
+> >pressing the powerbutton shows no effect,=20
+
+- that's a problem of wake vs. runtime GPEs and should be fixed soon.
+
+> >The Special funktions from the Notebook are not working,
+
+What special functions are you referring to?
+
+	Dominik
+
+--YiEDa0DAkWCtVeE4
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFAkRWFZ8MDCHJbN8YRAuu8AJ0V4Hkrp0tHbSVmI72P9xvVai4vOwCbBGYi
+ry5Jxft2dqzNBIQiRDaRKzw=
+=7wYn
+-----END PGP SIGNATURE-----
+
+--YiEDa0DAkWCtVeE4--
 
 
 -------------------------------------------------------
