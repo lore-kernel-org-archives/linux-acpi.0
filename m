@@ -1,16 +1,14 @@
-From: "M. Warner Losh" <imp-uzTCJ5RojNnQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Re: [PATCH] bad strlcpy conversion breaks toshiba_acpi
-Date: Sun, 27 Jul 2003 15:26:20 -0600 (MDT)
+From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Subject: Re: SYM53c8xx 2.6.0-test1-ac3 ACPI IRQ mismatch?
+Date: Sun, 27 Jul 2003 22:47:29 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030727.152620.127108646.imp@bsdimp.com>
-References: <20030725161510.GA31565@vana.vc.cvut.cz>
-	<20030725165709.GA670@win.tue.nl>
-	<20030727210203.GU1485@parcelfarce.linux.theplanet.co.uk>
+Message-ID: <20030727214729.GV1485@parcelfarce.linux.theplanet.co.uk>
+References: <20030725203921.GA13042@phobe.internal.pelicanmanufacturing.com.au>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030727210203.GU1485-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20030725203921.GA13042-1eOMRhGqMgJKbeVm7HAN69qV54RzO4zVaO4olKTeY8PqSFzvm+Tz3BCuuivNXqWP@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -19,24 +17,29 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org
-Cc: aebr-ek1Qb6IBo2Pz+pZb47iToQ@public.gmane.org, vandrove-hnqZr3NxcozrBKCeMvbIDA@public.gmane.org, jvb-ZFKsivP1bGvOQU1ULcgDhA@public.gmane.org, bcollins-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org, torvalds-3NddpPZAyC0@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, gan-28sE0Wxkf/LCXR85Y8Hu3Q@public.gmane.org
+To: James Bromberger <james-Q/PxBS77Xz0@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-In message: <20030727210203.GU1485-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>
-            Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org> writes:
-: On Fri, Jul 25, 2003 at 06:57:09PM +0200, Andries Brouwer wrote:
-: > strlcpy is for strings, not for character arrays.
-: > The *BSD version accesses the source past the size-1 characters
-: > that are copied: 
-: > 	while (*s++)
-: > 		;
-: > Thus, replacing strncpy (used to copy character arrays, possibly
-: > not 0-terminated) by strlcpy is wrong.
+On Sat, Jul 26, 2003 at 04:39:22AM +0800, James Bromberger wrote:
+> I've been trying to get the SMB53C5XX scsi driver to detect my 
+> LSI 1010-66 scsi adapter, and found that it fails to detect it completely
+> under 2.6.0-test1-ac3 with the SMB53C8XX driver and ACPI turned on,
+> however, it appears to work with ACPI disabled. Would anyone like any
+> specific information from the card/logs? The controller has my root
+> filesystem on an attached disk, so when it fails, I get an obvious
+> kernel panic with root FS not found.
 
-Ah, that's to get the silly return value correct :-(.
+fwiw, the sym53c8xx driver is deprecated; can you try sym2 instead?
 
-Warner
+not that i think this will fix the problem ... so can you send the
+output of cat /proc/interrupts with acpi enabled and disabled?  you may
+wish to use NFS root to get to userspace ;-)
+
+-- 
+"It's not Hollywood.  War is real, war is primarily not about defeat or
+victory, it is about death.  I've seen thousands and thousands of dead bodies.
+Do you think I want to have an academic debate on this subject?" -- Robert Fisk
 
 
 -------------------------------------------------------
