@@ -1,14 +1,13 @@
-From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Subject: Re: [REGRESSION] 'pciehp' stops working since 2.6.10-rc2
-Date: Tue, 28 Dec 2004 21:41:22 +0100
-Message-ID: <41D1C4F2.40204@pca.it>
-References: <16A54BF5D6E14E4D916CE26C9AD30575E0068B@pdsmsx402.ccr.corp.intel.com> <41D164F4.9080407@pca.it> <41D1BD66.9070704@root.org>
-Reply-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Subject: Re: Re: [PATCHES] add _CST support
+Date: Tue, 28 Dec 2004 18:50:58 +0100
+Message-ID: <20041228175058.GA8112@dominikbrodowski.de>
+References: <20041127215118.GA30309@dominikbrodowski.de> <1103694244.17325.58.camel@d845pe> <20041223000842.GA8289@dominikbrodowski.de> <1103778133.2567.45.camel@d845pe> <20041223130723.GE731@openzaurus.ucw.cz> <1104204434.18166.50.camel@d845pe>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41D1BD66.9070704-Y6VGUYTwhu0@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1104204434.18166.50.camel@d845pe>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,30 +17,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Mon, Dec 27, 2004 at 10:27:15PM -0500, Len Brown wrote:
+> On Thu, 2004-12-23 at 08:07, Pavel Machek wrote:
+> 
+> > > C-states are enumerated C0...Cn
+> > > C-state types are enumerated C1, C2, C3.
+> > > I don't see any confusion in the name-space duplicates
+> > > as long as you know you're talking about C-states or C-state-types.
+> > >
+> > 
+> > Unfortunately, people often don't know what they are talking about.
+> > Having two things called C2 is definitely going to confuse just
+> > about everyone but you...
+> 
+> Probably we should not mess with the "well known" (hah;-) name space for
+> C-states themselves (C0...Cn).
+> 
+> Types, on the other hand, would probably be well addressed with a enum
+> whose vales are 1,2,3 so if we chose to print them out they'd simply be
+> a %d -- using C%d only for actual C-states themselves.
+> 
+> would that be better?
 
-Hello,
+I _still_ favour using C0 to C3 for the types, as the meaning of this is
+probably better known [e.g. the implications of C3 to bus mastering], and
+invent something new (like I0 to In for idle states?) and hope the ACPI
+specification group will like this naming and "clarify" it in ACPI 2./3.x
 
-on 12/28/2004 09:09 PM, Nate Lawson wrote:
-> It is extremely unlikely that your laptop supports PCI Express.  I think
-> Intel has only released server chipsets (Grantsdale) that support this.
-I think the same, but in this case, why hotplug finds something and try
-to load the modules pci_hotplug, shpchp and pciehp?
+However, I guess we do have to live with a broken ACPI specification in this
+regard... But it is an imperfect world, after all :-)
 
-Thx, bye,
-Gismo / Luca
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
-
-iD8DBQFB0cTyVAp7Xm10JmkRAuoGAJ48tjUSB+ouzmaJRKeRaRcWK5anpQCdGnWA
-9+XH2fUKUDxVIWjQuDdFHOI=
-=HoRa
------END PGP SIGNATURE-----
+	Dominik
 
 
 -------------------------------------------------------
