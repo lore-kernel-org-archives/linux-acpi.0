@@ -1,12 +1,12 @@
-From: Daniel Hoffend <mail-nf-Mmb7MZpHnFY@public.gmane.org>
-Subject: Battery charging state: unknown
-Date: Thu, 7 Nov 2002 22:56:43 +0100
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Poor man's ACPI bug list
+Date: Thu, 7 Nov 2002 17:00:41 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021107215642.GA1886@intranet.fresh-style.lan>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A4D1@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+	boundary="----_=_NextPart_000_01C286C2.4299D370"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,55 +15,105 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: 'Jan Rychter' <jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello 
+This message is in MIME format. Since your mail reader does not understand
+this format, some or all of this message may not be legible.
 
-i have compiled my kernel (2.4.19) with the current patch
-(acpi-20021022-2.4.19.diff.gz). The /proc/acpi/battery/BAT1/state shows
-that there is an unknown charging stage, but when i remove the power 
-supply of my Toshiba Notebook, then it turned to "discharging".
+------_=_NextPart_000_01C286C2.4299D370
+Content-Type: text/plain
 
+> From: Jan Rychter [mailto:jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org] 
+> Since for some reason some people believe that it's better if testers
+> maintain buglists, here goes:
 
-Power Supply on:
-###################################
-`cat /proc/acpi/battery/BAT1/state`
-present:                 yes
-capacity state:          ok
-charging state:          unknown
-present rate:            0 mA
-remaining capacity:      4000 mAh
-present voltage:         14800 mV
+Hey, try this patch?
+
+Hopefully it will fix at least 1 of your bugs - let us know.
+
+Regards -- Andy
 
 
-Power Supply off:
-###################################
-`cat /proc/acpi/battery/BAT1/state`
-present:                 yes
-capacity state:          ok
-charging state:          discharging
-present rate:            0 mA
-remaining capacity:      3960 mAh
-present voltage:         14800 mV
+------_=_NextPart_000_01C286C2.4299D370
+Content-Type: application/octet-stream;
+	name="mutex.diff.gz"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+	filename="mutex.diff.gz"
 
+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
+/h//dt+USUzPlNP/AW01AOIsTAAA
 
-what is wrong ? is this a known problem, or has somebody a fix or patch
-for it. 
-
-Could this be one problem that my notebook doesn't switch to lower CPU
-Speed?  (Intel Speedstep) the only possibility at this moment is for me
-to set the Speed manually  via cpufreq patch. But there must be a
-solution? 
-
-Can somebody help me?
-
--- 
-thanks
-
-Daniel "Griffon" Hoffend
-
-
+------_=_NextPart_000_01C286C2.4299D370--
 
 
 -------------------------------------------------------
