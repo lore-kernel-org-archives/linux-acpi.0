@@ -1,13 +1,13 @@
-From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: [PATCH] Sanitize ACPI Kconfig
-Date: Mon, 17 Jan 2005 12:30:07 +0100
-Message-ID: <20050117113007.GB1354@elf.ucw.cz>
-References: <20050107212259.GA13026@wotan.suse.de> <20050117001150.GA1337@elf.ucw.cz> <20050117111602.GI29270@wotan.suse.de>
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Smart Battery System driver
+Date: Mon, 17 Jan 2005 12:33:59 +0100
+Message-ID: <20050117113359.GR19199@poupinou.org>
+References: <41E81C2C.8010809@bartol.udel.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20050117111602.GI29270-B4tOwbsTzaBolqkO4TVVkw@public.gmane.org>
+In-Reply-To: <41E81C2C.8010809-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,41 +17,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Rich Townsend <rhdt-OBnUx95tOyn10jlvfTC4gA@public.gmane.org>
+Cc: Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
-
-> > > Sanitize ACPI Kconfig. No other subsystem uses default m for all its
-> > > options and surely there is no need to do this for the more obscure
-> > > modules. When you do make oldconfig with an old option and just press
-> > > return you tend to get a lot of modules you don't want with this. 
-> > > Normally new stuff is off by default.
-> > 
-> > I'd say that AC adapter, battery, button and fan should be on by
-> > default. You set thermal zone to on by default, but thermal zone
-> > without fan seems like bad idea (not totally useless, but you usually
-> > want fans for thermal managment). Everybody uses battery (actually it
-> > seems to be single most important feature). And AC adapter is
+On Fri, Jan 14, 2005 at 02:23:24PM -0500, Rich Townsend wrote:
+> Hi all --
 > 
-> For a rather small value of "everybody".
-
-Ok, every notebook.
-
-> > neccessary if you want to go 2GHz with your athlon64 laptop (or it is
-> > 800MHz), so I'd say enable it.
+> Recently, Bruno Ducrot posted a driver that allows access to smart
+> batteries, through the /dev/i2c interface. This came at just the right
+> time for me, since I'd recently purchased an Acer TravelMate 4502, and
+> had no way to monitor the status of the smart battery.
 > 
-> My desktop boxes and servers all don't care about battery or AC.
+> However, this driver is primarily to allow access to the SMBus inside
+> the embedded controller that communicates with the Smart Battery System
+> (SBS); other tools are required to read the battery status. Bruno
+> provided a userspace tool, but there is still a requirement for some
+> form of /proc/acpi interface that current battery-monitoring tools can read.
 > 
-> But I'm not opposed to turning it on, just the "m" default is quite useless.
+> Accordingly, I've written a first shot at an SBS ACPI driver. This
+> driver, which can be downloaded from
+> 
+> http://shayol.bartol.udel.edu/~rhdt/download/acpi_sbs-20040114.tar.gz
+> 
 
-I'd say that 'y' there makes sense, but anything is better than 'm'.
+That's fine!  Many thanks.
 
-									Pavel
 -- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
