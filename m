@@ -1,32 +1,51 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: HT not working by default since 2.4.22
-Date: 30 Sep 2003 01:27:32 -0400
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <1064899651.2532.108.camel@dhcppc4>
-References: <BF1FE1855350A0479097B3A0D2A80EE0CC8718@hdsmsx402.hd.intel.com>
-	 <3F73EE77.3000906@euronext.nl>
+Subject: ACPICA 20030918 available
+Date: 30 Sep 2003 01:30:55 -0400
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <1064899855.2534.113.camel@dhcppc4>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <3F73EE77.3000906-R6hnfgSw+1uEVqv0pETR8A@public.gmane.org>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Jan Evert van Grootheest <j.grootheest-R6hnfgSw+1uEVqv0pETR8A@public.gmane.org>
-Cc: Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>, Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZQ39yzSjRtAkw@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>, "Nakajima, Jun" <jun.nakajima-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-
-> Marcelo wrote:
-
-> CONFIG_ACPI_HT should be not dependant on CONFIG_ACPI
 
 FYI,
 
+# [ACPI] ACPI Component Architecture 20030918 (Bob Moore)
+#
+# Found and fixed a longstanding problem with the late execution of
+# the various deferred AML opcodes (such as Operation Regions,
+# Buffer Fields, Buffers, and Packages)...
+# This fixes the "region size computed incorrectly" problem.
+#
+# Fixed several 64-bit issues with prototypes, casting and data types.
+#
+# Removed duplicate prototype from acdisasm.h
+
 This fix has been integrated with others in the ACPI patch,
-and is available for test now in these bitkeeper trees:
+and is available now in these bitkeeper trees:
 
 http://linux-acpi.bkbits.net/linux-acpi-test-2.4.22
 http://linux-acpi.bkbits.net/linux-acpi-test-2.4.23
 http://linux-acpi.bkbits.net/linux-acpi-test-2.6.0
 
-It is also available as a plain patch "CONFIG_ACPI" here:
+It is also available as a plain patch "ACPICA_20030918" here:
 
 ftp.kernel.org:/pub/linux/kernel/people/lenb/acpi/patches/test/*
+
+
+
+
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
