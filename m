@@ -1,14 +1,14 @@
-From: AnonimoVeneziano <voloterreno-nc/lrvXPQ4s@public.gmane.org>
+From: "Randy.Dunlap" <rddunlap-3NddpPZAyC0@public.gmane.org>
 Subject: Re: ACPI + IO-APIC power off by button problems
-Date: Sun, 02 Mar 2003 23:33:39 +0100
+Date: Sun, 2 Mar 2003 14:46:47 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3E6286C3.1050504@tin.it>
-References: <C50AB9511EE59B49B2A503CB7AE1ABD10440E41B@cceexc19.americas.cpqcorp.net>
+Message-ID: <33039.4.64.238.61.1046645207.squirrel@www.osdl.org>
+References: <3E6270B8.4070805@tin.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <C50AB9511EE59B49B2A503CB7AE1ABD10440E41B-Iar2LzuD2f6P0FQRY6S+e9kSKC0Mw0DFJ8am2ALHCgk@public.gmane.org>
+In-Reply-To: <3E6270B8.4070805-nc/lrvXPQ4s@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,23 +17,39 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Cagle, John (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: voloterreno-nc/lrvXPQ4s@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-So, this means that there is no  solution for my problem? Only a bios 
-update that have that problem solved?
 
-My machine at boot says , in a moment , No IRQ known for 00.11.1 
- Probably Buggy MP Table,   if I have ACPI disabled. 00.11.1 is the IDE 
-COntroller , and I've searched for help for this yet , and in the 
-linux-kernel ML they have said me that this "problem" is hidden by the 
-fact that the IDE Channels  (ide0, ide1) takes indipendent IRQs  (14, 15 
-if I remember well) .
+> I can't post my dmesg , or , better, it will be unuseful , because I use
+> Software RAID, and Software RAID makes very much output that delete the
+> first part of my dmesg (the part that you need). If this can be useful  to
+> you when the system starts I see a message like "No IRQ Known for  device
+> X.XX.X using IRQ 255 " and " try to start with option pci=noacpi"  or
+> something like that.
 
-The problem of ACPI can be related to this? When the system starts I see 
-the message "WARNING:Unexpected IO-APIC" , this can  be a problem too?
+You could modify the kernel's log buffer size, rebuild the
+kernel, and save the boot log from that larger log buffer.
 
-Thanks
+I don't know what kernel version you are using, but in
+2.5.recent, there's a config option to change the log buffer
+size, and in 2.4.recent, you can edit
+linux/kernel/printk.c (cut-n-paste below) to change it:
+
+#if defined(CONFIG_MULTIQUAD) || defined(CONFIG_IA64)
+#define LOG_BUF_LEN	(65536)
+#elif defined(CONFIG_ARCH_S390)
+#define LOG_BUF_LEN	(131072)
+#elif defined(CONFIG_SMP)
+#define LOG_BUF_LEN	(32768)
+#else
+#define LOG_BUF_LEN	(16384)			/* This must be a power of two */
+#endif
+
+Just make sure that you set it to a power of 2.
+
+~Randy
 
 
 
