@@ -1,11 +1,11 @@
 From: Fionn Behrens <fionn-ZPjJJ+sDHmfddJNmlsFzeA@public.gmane.org>
 Subject: RE: Acer Notebook: acpi IRQ stuck after S3
-Date: Thu, 13 Jan 2005 10:31:02 +0100
-Message-ID: <1105608662.14488.106.camel@laptop>
+Date: Thu, 13 Jan 2005 10:32:18 +0100
+Message-ID: <1105608738.14488.108.camel@laptop>
 References: <16A54BF5D6E14E4D916CE26C9AD30575FB1EF6@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature";
+	boundary="=-33YWZndnHcTomJRBnMm8"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD30575FB1EF6-4yWAQGcml66iAffOGbnezLfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -19,6 +19,11 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
+
+
+--=-33YWZndnHcTomJRBnMm8
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
 On Thu 13.01.2005, 09:09 +0800 Li, Shaohua wrote:
 > Hi,
@@ -40,11 +45,32 @@ any other ideas?
 
 br,
 	Fionn
--- 
+--=20
 Software patents    -  not allowed in Europe | See whats going on:
 Archiving Email     -  patented in Europe    | http://freepatents.org/
 E-Shopping Baskets  -  patented in Europe    | Become active easily:
-Cross-compiling     -  patented in Europe    | http://aktiv.ffii.org/eubsa/en
+Cross-compiling     -  patented in Europe    | http://aktiv.ffii.org/eubsa/=
+en
+--=20
+Software patents    -  not allowed in Europe | See whats going on:
+Archiving Email     -  patented in Europe    | http://freepatents.org/
+E-Shopping Baskets  -  patented in Europe    | Become active easily:
+Cross-compiling     -  patented in Europe    | http://aktiv.ffii.org/eubsa/=
+en
+
+--=-33YWZndnHcTomJRBnMm8
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: Dies ist ein digital signierter Nachrichtenteil
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQBB5kAijkvYSI4bFywRAhtFAJ9pBQcBVLvrKbpDBkoY7Toxqj3PIwCdHiN6
+ptB8d3bUw0yPe06g7Qz8mvE=
+=OsiR
+-----END PGP SIGNATURE-----
+
+--=-33YWZndnHcTomJRBnMm8--
 
 
 
