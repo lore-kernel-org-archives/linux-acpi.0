@@ -1,11 +1,10 @@
-From: moali-ArvQUR6U0fYD0fefG/KofA@public.gmane.org
-Subject: Oops when unloading thermal
-Date: Wed, 06 Nov 2002 08:08:02 +0100 (MET)
+From: Mario Lang <mlang-0OxMAPPu35xAfugRpC6u6w@public.gmane.org>
+Subject: Automatic adjustment of P and T states according to load?
+Date: Wed, 06 Nov 2002 11:30:43 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1036566482.3dc8bfd26902e@sbox.tugraz.at>
+Message-ID: <8765vbhtws.fsf@lexx.delysid.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -15,33 +14,30 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
+Hi.
 
-I was now able to compile a kernel which boots correctly with acpi enabled 
-(2.4.20-rc1 with the recent patch). Loading all the acpi-modules (fan, battery, 
-ac, thermal, prcessor,...) is done without any error, but when I try to unload 
-thermal
+I'm using my JVC laptop with ACPI-only under LInux.  I ended up
+writing a little script, jslow and jfast, to set P1:T1 and P0:T0.
+But it would really be more efficient if I could convince the
+kernel to do adjustments of Throttling, and especially also
+the Performance state if load is low or high.
 
-> modprobe -r thermal
+Does the Linux ACPI code have any mechanisms for this which
+I overlooked till now?  Or am I supposed to do such
+things in userspace (cron every minute or so?)
 
-Oops 0000
-CPU: 0
-EIP: 0010:[<d0a39490>] Not tainted
-EFLAGS: 00010286
-.
-.
-.
-code: Bad EIP value
-<0> Kernel panic: Attempted to kill idle task!
-In idle-task - not syncing
+Basicly, I'd like the CPU to drop to P1:T4 at least
+if it is idle and doing nothing.  If I start to compile something for
+instance, load would go up, and P1 would get set to P0 and T states
+slowly decreased till 0.  If the load drops again, P1
+should get activates, and T states slowly increase...
 
-What can I do about this?
-
-Thanks,
-Maier Gerfried
+-- 
+CYa,
+  Mario
 
 
 -------------------------------------------------------
