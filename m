@@ -1,15 +1,13 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Re: acpi on new gateway laptops
-Date: Mon, 17 Nov 2003 12:07:30 -0800 (PST)
+From: =?iso-8859-1?q?Jouni=20Laakso?= <jounijl-/E1597aS9LT10XsdtD+oqA@public.gmane.org>
+Subject: RTC alarm wake from mechanical power off
+Date: Mon, 17 Nov 2003 20:21:52 +0000 (GMT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031117120555.E61216@root.org>
-References: <20031112232315.GD430@masanjin.net> <20031117102219.O60721@root.org>
- <20031117183900.GA32570@masanjin.net> <20031117104936.N60907@root.org>
- <20031117193719.GB32570@masanjin.net>
+Message-ID: <20031117202152.3703.qmail@web25005.mail.ukl.yahoo.com>
+Reply-To: jounijl-/E1597aS9LT10XsdtD+oqA@public.gmane.org
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20031117193719.GB32570-xW3KcqxHEMnk1uMJSBkQmQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,38 +16,67 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: William Morgan <wmorgan-acpi-devel-xW3KcqxHEMnk1uMJSBkQmQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 17 Nov 2003, William Morgan wrote:
-> Excerpts (reformatted) from Nate Lawson's mail of 17 Nov 2003 (EST):
-> > Get the data from the DSDT.  Dump it with acpidmp, search for PNP0C09,
-> > then write down the resources.  Mine is below:
->
-> Hm, mine looks like this:
->
->   Device(H_EC) {
->       Name(_HID, 0x090cd041)
->       Name(_UID, 0x1)
->       Method(_CRS) {
->           Name(BFFR, Buffer(0x12) {0x47, 0x1, 0x62, 0x0, 0x62, 0x0, 0x0, 0x1, 0x47, 0x1, 0x66, 0x0, 0x66, 0x0, 0x0, 0x1, 0x79, 0x0 })
->           Return(BFFR)
->       }
->       OperationRegion(ECR_, EmbeddedControl, 0x0, 0xff)
->       ...
->   }
->
-> So I'm guessing that this also corresponds to control reg=0x66 and data
-> reg=0x62 as I see those two numbers in the buffer. So I think I should be able
-> to use an ECDT that's identical to yours, except the EC_ID field (which in my
-> case is "\_SB_.PCI0.LPCB.H_EC")....
+Hello,
 
-Looks right but you need to get your _GPE bit also. I think it's 0x79
-but you really need to parse the buffer to be sure.  There is a flag to
-acpidmp to parse buffer contents.
+I'm a desktop computer user and using apic. Because of
+this my problem is different as many others. I want my
+computer to somehow wake up from mechanical off.
 
--Nate
+Acpi specification says at page 75 that Real time
+clock alarm is required, but it's optional as fixed
+hardware event. I think this means that computer can
+optionally be woken up from "Mechanical Off" G3? Am I
+right? (I haven't read it all.)
+
+I'm using Abit ZM6 motherboard witch includes Intels
+82471eb -chip witch includes this feature (to wake
+from mechanical off).
+
+It seems that it's impossible to save alarm time and
+date from operating system. From bios settings it's
+possible. I don't know why. Does anyone have
+experience about this?
+
+Wake time can be setted in bios settings but maby not
+from operating system. I have tried with [cat
+"2003-11-17 01:00:00" > /proc/acpi/alarm] and made a
+kernel module to test writes to alarm register
+addresses defined in 82471eb -documents. Anyway, both
+cases return the previous values that were setted in
+bios settings if machine is rebooted and read from
+bios or directly from registry addresses. Anyway if
+/proc/acpi/alarm is different than before, computer
+does not wake from mechanical off. (I'm not sure, but
+/proc/acpi/alarm values might be the same that were
+inserted in operating system after reboot.) When
+reading and writing and reading again from chips
+addresses, the write has no effect.
+
+Isn't it supposed to be, that both time and alarm time
+values are in battery backed ram? So they could be
+used in programs or kernel modules or in acpi modules?
+Why it does not work?
+
+Do you have any pointers what could be done? Is wake
+from mechanical off possible in Acpi Linux
+implementation? Where should I look? And if some
+recoding for this motherboard is necessary, what or
+where? Does new DSDT fix the problem? Or did I get it
+all wrong? 
+
+Chips document says that alarm time address locations
+are standard. It seems promising.
+
+regards,
+
+Jouni L.
+
+________________________________________________________________________
+Want to chat instantly with your online friends?  Get the FREE Yahoo!
+Messenger http://mail.messenger.yahoo.co.uk
 
 
 -------------------------------------------------------
