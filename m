@@ -1,12 +1,15 @@
-From: "=?iso-8859-1?Q?xavier.sinecosa?=" <xavier.sinecosa-QFKgK+z4sOrR7s880joybQ@public.gmane.org>
-Subject: =?iso-8859-1?Q?acpid_and_kacpid?=
-Date: Wed,  6 Oct 2004 14:26:39 +0200
+From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <syrjala-ORSVBvAovxo@public.gmane.org>
+Subject: Re: what is throttling?
+Date: Wed, 6 Oct 2004 16:21:48 +0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <I55X8F$248AEDE570FF0339ECC188F92386FC10@laposte.net>
+Message-ID: <20041006132148.GA20857@sci.fi>
+References: <20041006090408.GA17104@rap.rap.dk> <20041006114935.GF17247@wotan.suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20041006114935.GF17247-B4tOwbsTzaBolqkO4TVVkw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -15,21 +18,43 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?iso-8859-1?Q?acpi-devel?= <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello, and sorry to bother you concerning maybe =0D=0Aobvious questions f=
-or you but I haven't found yet =0D=0Ainformation, so I would be very plea=
-sed if someone =0D=0Acan enlighten me!=0D=0A=0D=0AI compiled kernel 2.6.8=
- with RH9 distribution. =0D=0A=0D=0AI have kacpid daemon already running.=
- Does acpid =0D=0Apackage from sourceforge (latest version acpid-1.0.=0D=0A=
-3.tar.gz) conflict with kacpid ? What are the =0D=0Adifferences between t=
-hese two processes ?=0D=0A=0D=0AI installed acpid-1.0.2-fr1.i386.rpm  and=
- acpid =0D=0Aappears in ntsysv service list, while it doesn't =0D=0Awhen =
-I install acpid-1.0.3.tar.gz. Is the =0D=0Adifference between these 2 ins=
-tallation only =0D=0Asomething like "chkconfig --add acpid" ?=0D=0A=0D=0A=
-Thank you, Xavier.=0D=0A=0D=0A
+On Wed, Oct 06, 2004 at 01:49:35PM +0200, Andi Kleen wrote:
+> On Wed, Oct 06, 2004 at 11:04:08AM +0200, Keld J?rn Simonsen wrote:
+> > Hi!
+> >=20
+> > I have googled around for a couple of hours to find out precisely wha=
+t
+> > throttling means. I did it before and found some useful information, =
+but
+> > this time I did not find the relevant data.
+> >=20
+> > I would like to find out, which state precisely that the CPU enters w=
+hen
+> > throttling. Maybe it is different from CPU to CPU. Specifically I wou=
+ld
+> > like to know if the CPU is completely powered off, my recollection of
+> > some information I have seen earlier is that this may be the case.
+>=20
+> On Intel CPUs Throttling means that the CPU skips each other
+> (or more) clock. This is quite slow, but only done to get=20
+> the temperature down.
+>=20
+> AMD CPUs don't have it afaik.
 
+My AMD system (Duron 1300 + Abit KT7) can be throttled by 50%. In reality=
+=20
+it feels more like 90% since even a temperature/fan monitor applet eats=20
+15% of my CPU when throttled. I haven't seen any benefits from throttling=
+=20
+though.
+
+--=20
+Ville Syrj=E4l=E4
+syrjala-ORSVBvAovxo@public.gmane.org
+http://www.sci.fi/~syrjala/
 
 
 -------------------------------------------------------
