@@ -1,12 +1,10 @@
-From: =?windows-1252?Q?Robert_W=F6rle?= <robert.woerle-y2s3ugBAdl9BDgjK7y7TUQ@public.gmane.org>
-Subject: Re: ACPI Patch How to ???
-Date: Tue, 08 Oct 2002 13:21:22 +0200
+From: "Customer Support" <Support-yZYlo8BY2w3kQYj/0HfcvtBPR1lH4CV8@public.gmane.org>
+Subject: Linux Mandrake 9.0 and Red Hat 8.0 are here!!!
+Date: 07 Oct 02 21:53:05 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3DA2BFB2.8080104@symplon.com>
-References: <000001c26eba$136b5990$0700a8c0@Lapi>
+Message-ID: <E17yt0y-00039Z-00@usw-sf-list1.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary = "BOUNDARYMIX"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -16,44 +14,59 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: T.Hubbert-Mmb7MZpHnFY@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "acpi-devel=5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-untar it ... copy it to your kernel source directory
-then
-patch -p1 <THIS_IS_THE_PATCH_FILE 2>out
+This is a multi-part message in MIME format.
 
-reconfigure kernel
-and make it
 
-T.Hubbert-Mmb7MZpHnFY@public.gmane.org schrieb:
+--BOUNDARYMIX
+Content-Type: text/plain; Charset = "iso-8859-1"
+Content-Transfer-Encoding: 7bit
 
-> Hi!
->
-> I like to patch my Kernel 2.4.19 but i am a newbie and I don’t know 
-> what to do with a .diff file. Can someone help me please?
->
-> With a step for step answere?
->
-> Thx
->
+** This is only being sent to people on the list we purchased who we are told are interested in linux - if your not interested, please remove yourself from the list using the directions at the bottom.**
 
--- 
-_____________________________________
-*Robert Wörle
-Linux | Embedded Device*
-*
-Symplon AG*
+Linux Mandrake 9.0 and Red Hat 8.0 have been released and are exceptional deals at only **** $5.99 ****!
 
-*...touch the internet*
+We have partnered with the Largest Linux Search Engine on the web (http://www.linuxyourway.com) to bring our current customers this hot new release for only $5.99 and you will also receive your choice of a FREE CD with your order!!!
 
-phone: +49 89 552 999 35
-fax: +49 89 552 999 10
-email: robert.woerle-y2s3ugBAdl9BDgjK7y7TUQ@public.gmane.org <mailto:robert.woerle@symplon.com>
-web: www.symplon.com <http://www.symplon.com/>
+Simply follow this URL and within days you'll be enjoying this new exceptional release!
+http://www.mendarasystems.com/specials/internal/default.asp?adid=mandrake9.0
 
-_____________________________________
+MANDRAKE OVERVIEW:
+
+As a result of more than four years of experience and continued innovations, MandrakeSoft is proud to announce the release of Mandrake Linux 9.0. This newest version of our flagship product delivers an unparalleled level of technology for desktop users as well as extensive and unique server features. Affirming its leading position in the Linux desktop arena, Mandrake Linux 9.0 introduces many newly redesigned graphical desktops and configuration utilities. The famous "Mandrake touch" is evident throughout the many clean, attractive and friendly desktops to make everyday tasks easier for all users of a Mandrake system.
+
+Although Mandrake has been a long-time leader in the Linux desktop field, the numerous high-end server features available in Mandrake Linux 9.0, combined with the most extensive beta-testing period in MandrakeSoft's history, will surely make Mandrake Linux 9.0 the ultimate server solution for corporate users, government agencies and education environments.
+
+Mandrake Linux 9.0 features the following software:
+
+Kernel 2.4.19
+XFree 4.2.1 & XFree 3.3.6
+Glibc 2.2.5
+GCC 3.2
+KDE 3.0.3
+GNOME 2.0.1
+IceWM 1.2
+WindowMaker 0.8
+Enlightenment 0.16.5
+BlackBox 0.62
+OpenOffice.org 1.0.1
+KOffice 1.2
+Mozilla 1.1
+The GIMP 1.2.3
+XMMS 1.2.7
+
+REDHAT OVERVIEW
+Red Hat Version 8.0 may help undo Linux's reputation as an ultratechnical DOS-like system that requires arcane typed commands. It includes an updated, user-friendly interface with the customary desktop icons and installation software that makes putting the system on a computer much easier than in the past.
+
+----------------------------------------------------------------------------------------------------------------------
+This email is only sent to our existing current customers.  If you would rather not receive mailing such as this, please visit http://www.mendarasystems.com/maillist/removeme.asp?email=acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+
+
+
+
+--BOUNDARYMIX--
 
 
 
