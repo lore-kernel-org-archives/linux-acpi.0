@@ -1,14 +1,14 @@
 From: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
 Subject: Re: Changing temperature trip points
-Date: Sun, 3 Nov 2002 22:08:43 +0100
+Date: Sun, 3 Nov 2002 22:14:54 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20021103220843.B1665@brodo.de>
-References: <E187ipj-0001ss-00@usw-sf-list2.sourceforge.net> <000001c28231$b7cae110$c200a8c0@pikachu> <20021102171756.GD1983@elf.ucw.cz> <1036288754.2971.1.camel@localhost.localdomain> <20021103195616.GB27271@elf.ucw.cz> <20021103211607.A1555@brodo.de> <20021103202130.GB22668@atrey.karlin.mff.cuni.cz> <20021103213010.A1665@brodo.de> <20021103203949.GE22668@atrey.karlin.mff.cuni.cz>
+Message-ID: <20021103221454.A10725@brodo.de>
+References: <20021103211607.A1555@brodo.de> <000101c2837d$30dee5a0$c200a8c0@pikachu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20021103203949.GE22668-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>; from pavel-+ZI9xUNit7I@public.gmane.org on Sun, Nov 03, 2002 at 09:39:49PM +0100
+In-Reply-To: <000101c2837d$30dee5a0$c200a8c0-3ycpsohRb2Y@public.gmane.org>; from nrhudy-plZrL8KR64B+CIkdHa1UOg@public.gmane.org on Sun, Nov 03, 2002 at 04:08:43PM -0500
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,36 +17,22 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Edmund Rhudy <nrhudy-plZrL8KR64B+CIkdHa1UOg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Edmund Rhudy <nrhudy-plZrL8KR64B+CIkdHa1UOg@public.gmane.org>
+Cc: 'Pavel Machek' <pavel-+ZI9xUNit7I@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Nov 03, 2002 at 09:39:49PM +0100, Pavel Machek wrote:
-> Hi!
-> 
-> > > YOU are right that I need to turn the polling on.
-> > > 
-> > > But I'm sure fan is done by bios on my machine.
-> > 
-> > Yes, that might well be - the fan on my machine turns on and off both when
-> > it thinks it should, and when ACPI tells it should *weird*
-> > 
-> > Actually, I think any write into trip_points should automatically enable
-> > the polling mode. Will submit a patch which does that later. Do 3 seconds
-> > sound sane?
-> 
-> I believe user should be clever enough to set polling rate manually.
-> 
-> Perhaps documenting it is enough?
-> 				Pavel
+Hi,
 
-> PS: Polling rate has strong effect  on how passive works. If you set
-> it too fast it will basically only use "max performance" and "max
-> throttle", which is not what you want.
+On Sun, Nov 03, 2002 at 04:08:43PM -0500, Edmund Rhudy wrote:
+> Unfortunately not, because I'm not a programmer of any sort.  If I get
+> anything done, it's by the grace of the kernel compiling gods.  My modus
+> operandi consists of blindly plugging away and hoping that something
+> works, because I am barely acquainted with C and know nothing whatsoever
+> of regular expressions.  The most I can do is really test something that
+> somebody else comes up with and report back.
 
-That's true, yes. But it really should be documented. Well, maybe I'll find
-the time to do the same for /thermal_zone what I've already done for
-/processor at http://www.brodo.de/english/pub/acpi/proc/processor.html
+Actually, I only wanted to know whether you set a "polling frequency" (e.g.
+echo 1 > polling_frequency after setting these temperature trip points.
 
 	Dominik
 
