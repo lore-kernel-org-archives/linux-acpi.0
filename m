@@ -1,14 +1,13 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: Masquerading operating systems (with ACPI_OS_NAME) does
-	cause grief.
-Date: Sun, 09 Jan 2005 14:22:18 +0000
-Message-ID: <1105280538.14892.3.camel@tyrosine>
-References: <1105278053.23887.35.camel@dangun.glencairn.bogus>
+From: Ultrakorne <ultrakorne-XtQPfPCVGG7srOwW+9ziJQ@public.gmane.org>
+Subject: Re: first shoot for smartbattery (was Re: Re: i2c-acpi-ec.c)
+Date: Sun, 09 Jan 2005 17:12:39 +0100
+Message-ID: <41E157F7.5080008@paranoici.org>
+References: <20041231092156.GA612@phys.ethz.ch> <41D56002.5060008@mega.ist.utl.pt> <20041231150724.GK19199@poupinou.org> <20041231181628.GL19199@poupinou.org> <41E0A01C.6060607@paranoici.org> <41E11DD0.2090809@arrakis.dhis.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1105278053.23887.35.camel-jrz8SJKx3bjmte52KpgHD8SwM44v/HSX@public.gmane.org>
+In-Reply-To: <41E11DD0.2090809-pQd4kjVL+REh2FBCd0jGRA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -21,22 +20,11 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 2005-01-09 at 23:40 +1000, Barry Kitson wrote:
+Pedro Venda wrote:
+> the battery can return that too. use this patch.
+> 
 
-> Please note that (modulo VGA, which has it's own special set of
-> problems) the only string (prefix) that causes suspend/resume of linux
-> 2.6.10 to fail on a VIA EPIA CL10000 Mini-ITX motherboard (with either
-> of the two available BIOS versions - 1.16 or 1.23) is the newish (but
-> not entirely accurate) default of ACPI_OS_NAME="Microsoft Windows NT".
-> When Linux declares itself to be NT, resumes just don't happen.  The fan
-> and power supply wake up, but that's about all.  
-
-It'd be good to see the DSDT, so we can try to work out why it makes a
-difference.
-
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
-
+oh thx :)
 
 
 -------------------------------------------------------
