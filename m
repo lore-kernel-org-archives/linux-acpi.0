@@ -1,74 +1,517 @@
-From: Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
-Subject: Re: [ACPI] [PATCHES] ACPI Processor update [idle, throttling,
-	thermal, cpufreq]
-Date: Fri, 5 Sep 2003 00:23:06 -0500
-Sender: cpufreq-bounces-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
-Message-ID: <200309050023.06761.dtor_core@ameritech.net>
-References: <20030904222434.GC6350@brodo.de>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <cpufreq-bounces-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
-In-Reply-To: <20030904222434.GC6350-JhLEnvuH02M@public.gmane.org>
-Content-Disposition: inline
-List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMm38Ik5SeuEX72+df2TVCvIA@public.gmane.org>
-List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq>
-List-Post: <mailto:cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
-List-Help: <mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMm4xOcYYyLxz0@public.gmane.org>
-List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMmEuNEP1Y2mCuZIoH1IeqzKA@public.gmane.org>
-Errors-To: cpufreq-bounces-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
-To: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
+From: MAILER-DAEMON-v7wCr8P/arpBDgjK7y7TUQ@public.gmane.org
+Subject: Rejected Mail
+Date: Thu, 04 Sep 2003 22:24:53 -0700
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <E19v95Z-00006F-Gv@sc8-sf-mx1.sourceforge.net>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dominik,
+ Your Email to [msottek-v7wCr8P/arpBDgjK7y7TUQ@public.gmane.org] was rejected because his or her mailbox does not exist
 
-I have couple of concerns regarding P-states IO library, esp. 
-acpi_processor_get_frequency. It seems that ACPI does not allow
-to read current state without setting it first, at least with
-the following code on my notebook I was always getting garbage 
-in the status register:
+The contents of the rejected email are shown below.
 
-+static int
-+acpi_processor_get_current_state(
-+       struct acpi_processor_performance       *perf)
-+{
-+       int     result = 0;
-+       int     i;
-+       u8      value;
-+
-+       ACPI_FUNCTION_TRACE("acpi_processor_get_current_state");
-+
-+       if (!perf->pr->flags.performance)
-+               goto out;
-+
-+       value = inb(perf->status_register);
-+
-+       ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+               "Got 0x%02x from port 0x%04x\n", value, perf->status_register));
-+
-+       for (i = 0; i < perf->state_count; i++) {
-+               if (value == (u8) perf->states[i].status) {
-+                       perf->state = i;
-+                       goto out;
-+               }
-+       }
-+
-+       /* couldn't match our state table - garbage in status register */
-+       ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-+               "Bad data 0x%02x in performance status register 0x%04x\n",
-+               value, perf->status_register));
-+       result = -EFAULT;
-+out:
-+       return_VALUE(result);
-+}
+Received: (qmail 91260 invoked by uid 1004); 5 Sep 2003 05:24:46 -0000
+Received: from 61-220-168-19.hinet-ip.hinet.net (HELO LESLEY-NB) (61.220.168.19)
+  by ix2.quiknet.com with SMTP; 5 Sep 2003 05:24:42 -0000
+From: <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: <msottek-v7wCr8P/arpBDgjK7y7TUQ@public.gmane.org>
+Subject: Your details
+Date: Fri, 5 Sep 2003 13:26:18 +0800
+X-MailScanner: Found to be clean
+Importance: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2600.0000
+X-MSMail-Priority: Normal
+X-Priority: 3 (Normal)
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="_NextPart_000_010EDFA7"
 
-I am wondering is it just me, my code or general deficiency.
+This is a multipart message in MIME format
 
-Also, do you really need to do notify_transition twice 
-(acpi_processor_set_performance)?
+--_NextPart_000_010EDFA7
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 
-Dmitry
+Please see the attached file for details.
+--_NextPart_000_010EDFA7
+Content-Type: application/octet-stream;
+	name="_____warn.txt"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+	filename="_____warn.txt"
+
+UkFWIEFudGlWaXJ1cyBoYXMgZGVsZXRlZCB0aGlzIGZpbGUNCiBiZWNhdXNlIGl0IGNvbnRhaW5l
+ZCBkYW5nZXJvdXMgY29kZSENCg0KDQog
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
