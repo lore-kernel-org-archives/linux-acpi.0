@@ -1,12 +1,17 @@
-From: "Hector Wall" <hector.wall_wp-TVLZxgkOlNV0BNkOykvUOLVCufUGDwFn@public.gmane.org>
-Subject: Order Rolex or other Swiss watches online
-Date: Thu, 11 Nov 2004 20:14:17 -0700
-Message-ID: <b69301c4c865$e92f894a$7a993121@morek.no>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [2.6 patch] kill acpi_ksyms.c
+Date: 11 Nov 2004 23:56:55 -0500
+Message-ID: <1100235412.5519.922.camel@d845pe>
+References: <20041105215021.GF1295@stusta.de>
+	 <1099707007.13834.1969.camel@d845pe> <20041106114844.GK1295@stusta.de>
+	 <418CEE3A.40503@conectiva.com.br> <20041106212917.GP1295@stusta.de>
+	 <418D403E.30608@conectiva.com.br> <1099933263.13831.9547.camel@d845pe>
+	 <20041109014021.GB15077@stusta.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20041109014021.GB15077-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,32 +21,56 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Adrian Bunk <bunk-HeJ8Db2Gnd6zQB+pC5nmwQ@public.gmane.org>
+Cc: Arnaldo Carvalho de Melo <acme-KCZ47A4bww4P48s/oLjRZg@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Heya,
+Applied.
 
-Do you want a rolex watch?
+thanks,
+-Len
 
-In our online store you can buy replicas of Rolex watches. They look
-and feel exactly like the real thing.
+On Mon, 2004-11-08 at 20:40, Adrian Bunk wrote:
+...
+> Below is as a preparation a patch that removes acpi_ksyms.c .
+> 
+> It shouldn't make any practical difference.
+> 
+> The function acpi_db_user_commands that wasn't available in the whole
+> kernel sources was EXPORT_SYMBOL'ed. The patch removes this bogus
+> export.
+> 
+> 
+> diffstat output:
+>  drivers/acpi/Makefile             |    2
+>  drivers/acpi/acpi_ksyms.c         |  165
+> ------------------------------
+>  drivers/acpi/bus.c                |   10 +
+>  drivers/acpi/ec.c                 |    2
+>  drivers/acpi/events/evxface.c     |   10 +
+>  drivers/acpi/events/evxfevnt.c    |    8 +
+>  drivers/acpi/events/evxfregn.c    |    4
+>  drivers/acpi/hardware/hwregs.c    |    4
+>  drivers/acpi/hardware/hwsleep.c   |    4
+>  drivers/acpi/hardware/hwtimer.c   |    5
+>  drivers/acpi/namespace/nsxfeval.c |    4
+>  drivers/acpi/namespace/nsxfname.c |    4
+>  drivers/acpi/namespace/nsxfobj.c  |    5
+>  drivers/acpi/osl.c                |   18 +++
+>  drivers/acpi/pci_irq.c            |    2
+>  drivers/acpi/pci_root.c           |    2
+>  drivers/acpi/resources/rsxface.c  |    7 +
+>  drivers/acpi/scan.c               |    6 -
+>  drivers/acpi/tables/tbconvrt.c    |    2
+>  drivers/acpi/tables/tbxface.c     |    3
+>  drivers/acpi/tables/tbxfroot.c    |    2
+>  drivers/acpi/utilities/utdebug.c  |    7 +
+>  drivers/acpi/utilities/utglobal.c |    4
+>  drivers/acpi/utilities/utxface.c  |    2
+>  drivers/acpi/utils.c              |    4
+>  include/acpi/acdebug.h            |    5
+>  26 files changed, 112 insertions(+), 179 deletions(-)
 
-- We have 20+ different brands in our selection
-- Free shipping if you order 5 or more
-- Save up to 40% compared to the cost of other replicas
-- Standard Features:
- - Screw-in crown
- - Unidirectional turning bezel where appropriate
- - All the appropriate rolex logos, on crown and dial
- - Heavy weight
-
-Visit us: http://www.yomoi.com/rep/rolex/
-
-Best regards,
-Hilton Jones
-
-
-No thanks: http://www.yomoi.com/z.php
 
 
 
