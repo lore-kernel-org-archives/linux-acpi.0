@@ -1,12 +1,12 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: A few ACPI questions
-Date: Sun, 6 Mar 2005 23:36:37 +0100
-Message-ID: <20050306223637.GA3890@elf.ucw.cz>
-References: <421EA07C.1060507@wpi.edu>
+From: "Li, Feng (GE Healthcare)" <Feng.Li-sCFLEkgZW7GbXiaaNHstOg@public.gmane.org>
+Subject: Could not deliver interrupts to the PCI board
+Date: Mon, 7 Mar 2005 10:50:01 +0800
+Message-ID: <D02325A0F0177A468FD385A98178C53E0C3DF60A@SHAMLVEM01.e2k.ad.ge.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <421EA07C.1060507-WCkJK2/AXBA@public.gmane.org>
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: quoted-printable
+content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,24 +16,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Isaac Chanin <chanin-bQtQpA3LQaY@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hello guys,
+     I am trying to port our old pci drivers from Linux 2.4 kernel to =
+Linux 2.6 kernel.
+Now i am working in Linux 2.6.11. I found a strange problem , after i =
+installed the new driver(based on 2.6.11 kernel)
+into kernel, our pci device is recognized as IO-APIC-edge,  and no =
+interrupts can be catched by our driver.( The PCI device shuold be a=20
+IO-APIC-level type)
+     So we disabled the ACPI service and restart the computer again, =
+then the pci device can be recognized as
+IO-APIC-level, the driver works well! I think,there are maybe some =
+changes in 2.6.11 for ACPI sleep=20
+and hibernate that essentially puts ACPI in control of interrupts for =
+many devices.Should i  need to add ACPI=20
+declaration data to the driver ?
 
-> The more noticeable problem that I'm having is with sleep states. 
-> Standby seems closer to working than S3, but I'm not so sure.  Upon 
-> switching to standby the screen will flash back and then turn right back 
-> on.  The following is logged:
+Thanks very much!
+Li Feng
 
-Try suspend-to-disk, first. See Doc*/power/swsusp.txt.
+=20
 
-									Pavel
-
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
