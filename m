@@ -1,14 +1,14 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Subject: RE: [Patch]fix EC GPE context error
-Date: 07 Nov 2003 04:31:39 +0000
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: SuSE AMD x86-64 bits installation issue
+Date: 07 Nov 2003 05:57:15 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1068179499.3555.26.camel@darkstar.portugal>
-References: <571ACEFD467F7749BC50E0A98C17CDD8E84DC4@pdsmsx403.ccr.corp.intel.com>
+Message-ID: <1068202635.2682.972.camel@dhcppc4>
+References: <6A7AB4426712514F9E2AB28C407285FA04EBB91B@exchtp02.taipei.via.com.tw>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <571ACEFD467F7749BC50E0A98C17CDD8E84DC4-4yWAQGcml64gGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <6A7AB4426712514F9E2AB28C407285FA04EBB91B-LbelAcagxFGsjcp6KUBrleoUnSXyNh8afZ5ll9d1lig@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,113 +17,134 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: HurryLin-6hSdJfI2Hxp9nmWX13WWKA@public.gmane.org
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, DreamKu-6hSdJfI2Hxp9nmWX13WWKA@public.gmane.org, StephenChen-6hSdJfI2Hxp9nmWX13WWKA@public.gmane.org, PearHuang-6hSdJfI2Hxp9nmWX13WWKA@public.gmane.org, NormanChung-6hSdJfI2Hxp9nmWX13WWKA@public.gmane.org, KenCho-6hSdJfI2Hxp9nmWX13WWKA@public.gmane.org, Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi=20
-Sorry to say this, but laptop hangs again with this patch in pre-9.
-when usb CDCEthernet, was gone down.
-The facts are:
-With 22-ac4 never hangs, I use this kernel, for my normally work, since
-this release (2003-09-21) and I never had this kind of problems.
-I just began use usb CDCEthernet with kernel 4.22, so I don't know if it
-hangs or not before.
-so I know the problem is began in 23-preX, (I think after pre7) or is
-not been corrected like it does in ac4.
-If the first choice, what I can test more?
-If the second choice, could be one Andrew de Quincey patch's, that is
-not applied.
-Well I just don't resend the patch because I don't want make more
-confusions , and I don't understand if you try (force) to not use the
-patch.  If Alan had applied it , I think that can be trustable. Not more
-than that.
+Hurry,
 
-thanks
+I'm delighted to hear directly from VIA about these issues.
 
-On Thu, 2003-11-06 at 02:40, Li, Shaohua wrote:
->=20
-> Many thanks you let me know the result.
->=20
-> Thanks,
-> Shaohua
->=20
->=20
-> > -----Original Message-----
-> > From: S=C3=A9rgio Monteiro Basto [mailto:sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org]
-> > Sent: 2003=E5=B9=B411=E6=9C=886=E6=97=A5 11:20
-> > To: Li, Shaohua
-> > Cc: acpi-devel
-> > Subject: RE: [ACPI] [Patch]fix EC GPE context error
-> >=20
-> > Hi,
-> > The first tests seems ok, in 2.4.23-pre9, I had problems without this
-> > patch, my laptop had hang again, when my usb cable modem has gone down
-> > and I turn it off.
-> > Now, with this patch, don't had hang anymore.
-> > I will test it more time, if I have a problems, I will tell you.
-> >=20
-> > thanks
-> >=20
-> > On Mon, 2003-11-03 at 13:29, Li, Shaohua wrote:
-> > >
-> > > Hi,
-> > >    I have attached a patch against 2.4 in bugzilla 1171, please help
-> > test. Many thanks.
-> > >
-> > > Thanks,
-> > > Shaohua
-> > >
-> > >
-> > > > -----Original Message-----
-> > > > From: S=C3=A9rgio Monteiro Basto [mailto:sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org]
-> > > > Sent: 2003=E5=B9=B411=E6=9C=883=E6=97=A5 3:30
-> > > > To: Li, Shaohua
-> > > > Cc: ACPI Developers
-> > > > Subject: Re: [ACPI] [Patch]fix EC GPE context error
-> > > >
-> > > > Hi
-> > > > I can't apply this patch to 2.23-pre9 neither pre8 or pre7 .
-> > > > I got one big rejected file (on osl.c I think)
-> > > >
-> > > > thanks
-> > > >
-> > > > On Fri, 2003-10-31 at 08:42, Li, Shaohua wrote:
-> > > > > Hi,
-> > > > >
-> > > > >      2.6-test9 has a regression. Specifically, the EC GPE context
-> > fix
-> > > > > has error. This new patch is to replace the old one. The patch is
-> > > > > against 2.6-test7, and has passed under T40 and ASUS M2400. You c=
-an
-> > find
-> > > > > detail info in osdl bugzilla 1171. Please help test.
-> > > > >
-> > > > >
-> > > > >
-> > > > > Thanks,
-> > > > >
-> > > > > Shaohua
-> > > > >
-> > > > >
-> > > > >
-> > > > --
-> > > > S=C3=A9rgioMB
-> > > > email: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
-> > > >
-> > > > Who gives me one shell, give me everything.
-> > >
-> > --
-> > S=C3=A9rgioMB
-> > email: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
-> >=20
-> > Who gives me one shell, give me everything.
->=20
---=20
-S=C3=A9rgioMB
-email: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
+We've had difficulty in the past addressing VIA issues because detailed
+information about VIA hardware is not publically published.  Having
+access to a BIOS engineer who can actually change the BIOS to debug a
+problem -- now _this_ is very exciting!
 
-Who gives me one shell, give me everything.
+Agreed, customers will expect the IOAPIC to work -- the curret
+workaround of running high performance systems in PIC mode is not
+acceptable.
+
+Re: the problem
+I think what you're saying is that your _PRT uses PCI Link Devices in
+APIC mode, and when you do the system hangs.  On the other hand, if the
+_PRT returns static interrutps in APIC mode then the system works --
+yes?
+
+Not having a hardware diagram showing how this thing is wired up, I have
+to ask why you don't simply use the static entries in APIC mode?
+
+PCI Link Devices are actually quite rare in APIC mode.  They're more
+often used in PIC mode to map all the PIRQs down onto the PIC pins.  So
+Linux has not been heavily exercised in this configuration and we may
+indeed have bugs there.
+
+But on the other hand, programming a link device runs BIOS AML that
+touches the hardware, and if that AML has bugs, or if the devices it
+reads and writes to has bugs, then anything can happen.
+
+Here's how you can help us work this issue.
+
+1. send mail in plain text format if possible, or at least not html.
+   I found your message in my Spam mailbox -- which is where
+   all html messages go.  Others may have automatically delted it
+   and not seen it at all.
+
+2. I could not read the attachments to your message.
+   Please file a bug and attach the supporting information to
+   the bug report.
+
+If the issue is specific to the SuSE kernel, then you want to file
+it at http://bugzilla.suse.de  More likely this issue is not unique
+to SuSE, and so you should file the bug against the baseline kernel(s).
+
+How to file a bug against ACPI:
+
+http://bugzilla.kernel.org/
+Category: Power Management
+Component: ACPI
+
+Please attach the output from dmidecode, available in /usr/sbin/, or
+here:
+http://www.nongnu.org/dmidecode/
+
+Please attach the output from acpidmp, available in /usr/sbin/, or in
+here
+http://www.intel.com/technology/iapc/acpi/downloads/pmtools-20010730.tar.=
+gz
+
+Please attach /proc/interrupts and the dmesg output showing the failure,
+if possible.
+
+Please attach the output of lspci -v
+
+thanks,
+-Len Brown
+Linux 2.4, Linux 2.6 ACPI maintainer
+
+
+On Tue, 2003-11-04 at 04:34, HurryLin-6hSdJfI2Hxp9nmWX13WWKA@public.gmane.org wrote:
+> Dear ACPI developers:
+>=20
+>         I am VIA bios engineer. We have APCI problem for SuSe.  We
+> need your kindly support.=20
+>=20
+>         Now we meet a installation issue in APIC mode when we install
+> SuSe 9.0 beta 3 on VIA platform. In ACPI part of BIOS, each interrupt
+> pin (i.e. INTA, INTB, INTC, INTD ) of the device will get a assigned
+> IRQ when we will claim device's IRQ routing on _PRT device
+> configuration object. If interrupt pins of the device is dynamically
+> decided IRQ through device object, then the system will hang during
+> installation after _CRS control method is executed by OS on the
+> refered device object and the current IRQ is returned. If we directly
+> assign IRQ number to each interrupt pin of the device, the
+> installation is OK. We think some problems on ACPI parsing duing
+> installation.
+>=20
+>         We also find another problem about the behavior of different
+> OS version. For SuSe 9.0 beta 3, the devices can operate in APIC mode
+> (above IRQ 16) when we directly assign IRQ number to each interrupt
+> pin of the device. The system will hang when interrupt pins of the
+> device is dynamically decided IRQ through device object. For SuSe 9.0
+> beta 6 and final version, the device always only operate in PIC mode.
+> Customers can't accept our chipset that the IRQ routing of the devices
+> is limited operated in PIC mode. We hope the IRQ routing results of
+> the PCI devices to go back SuSe 9.0 beta 3 for future SuSe OS version.
+> Let our platform operate in APIC mode. We have at least chance to
+> operate in APIC mode for VIA chipset when interrupt pins of the device
+> is directly assigned to IRQ number.=20
+>=20
+>         The "SuSE AMD x86-64 bits installation issue.txt" is more
+> detailed descriptions about above problems and our analysis The
+> "log.txt" is the log file gotten from the beta3 which we think the
+> real problem existed in ACPI kernel.  If you have any questions please
+> let me know. Thanks !
+>=20
+> <<SuSE AMD x86-64 bits installation issue.txt>>  <<log.txt>>=20
+>         =20
+>        =20
+> Best Regards,
+>=20
+> =E6=9E=97=E7=9A=93=E7=90=B3            Hurry Hao-Lin Lin
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> Software BIOS Team, System Platform, R & D Division, VIA Technologies,
+> Inc.
+> 8F, 533, Chung-Cheng Rd., Hsin-Tien,
+> Taipei, Taiwan, R.O.C.
+> Tel : 886-2-22185452 EXT. 7619
+> Fax: 886-2-8667-1061
+>=20
+>=20
 
 
 
