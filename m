@@ -1,14 +1,15 @@
-From: "Ow Mun Heng" <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
-Subject: RE: [PATCH] ACPI/Processor: C1/C3 states promotion and demotion
-Date: Tue, 10 Feb 2004 17:36:38 +0800
+From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
+Subject: Re: Possible mistake in DSDT pages on acpi.sf.net
+Date: Tue, 10 Feb 2004 11:32:31 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <C386328088ED7F4E9F81AFBABDDF60DA03F9E637@wdmyexch02.my.asia.wdc.com>
+Message-ID: <20040210103231.GA19342@fuchi>
+References: <LAW11-OE22OdHFSux6V0002b246@hotmail.com> <20040126132320.GB30527@fuchi>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="2oS5YaxWCcQjTEyO"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <20040126132320.GB30527-5sK/Rx+du8M@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,52 +18,72 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: eric.piel-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
+--2oS5YaxWCcQjTEyO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> -----Original Message-----
-> From: eric.piel-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org [mailto:eric.piel@tremplin-utc.net]
+hello again...
 
-> Quoting Ow Mun Heng <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>:
-> > > Some processors seems to support only C1 and C3 states, for=20
-> > > instance... mine ;-)
-> > > (Pentium III Coppermine). The problem is that, in this case,=20
-> > > no promotion or
-> > > demotion are linking those two states, therefore the=20
-> > > preocessor never goes to C3!
-> >=20
-> > Hmmm so.. your processor only has C1 and C3 and no C2 right??
-> > and you're saying since there's no C2, it will never go to c3
-> Exactly. This simple logic is coded in processor.c, the patch=20
-> makes it a bit
-> more clever...
+FYI:
+since nobody has answered to the issue below, i took a look into the
+specs (2.0c) and decided that dino is right.
+so the DSDT pages and the database have been changed to reflect this.
+hm, nobody has used these fields anyway. >:)
+
+cheers,
+ sebastian
+
+* Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org> [2004-01-26 15:54 +0100]:
 >=20
-> If you want your processor to go to C3 state you'll need to=20
-> have your bus master
-> activity null (you can check it in=20
-> /proc/acpi/processor/CPU0/power). On my
-> laptop it requires not playing any sound and not having any=20
-> usb device on... not
-> so convenient but I've a script that does all those=20
-> requirements as soon as I
-> close the LID.
+> * Dino Klein <dinoklein-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org> [2004-01-26 14:12 +0100]:
+> > I think there might be a mistake on the acpi.sf.net site, where the DSD=
+Ts are displayed.
+> > There are two entries that say "S2 Latency", and "S3 Latency"; however,=
+ I think that it is supposed to be C2 and C3 latencies.
+> > Please correct me if I'm wrong.
+>=20
+> dino and i already had a little discussion about this where he wrote:=20
+>=20
+> -----------
+>=20
+> In the ACPI 1.0b specs, section "5.2.5 Fixed ACPI Description Table", on
+> page 115 you will find P_LVL2_LAT & P_LVL3_LAT. I read most of the ACPI
+> 1.0b specs, and a bit of 2.0, and didn't see anytying about the Sx latenc=
+y.
+> The Duty Width parameter also comes from that table, so that's why I'm=20
+> inclined to think that the other params came from there as well.
+>=20
+> -----------
+>=20
+>=20
+> before changing this, i wanted to read the opinions of people who _really_
+> know what this is about. :)
 
-Can you post me the script? (off list maybe)
-I just recompiled my kernel last night (no-usb, not even modules)
-and no sound too since I use ALSA and that needs to be compiled=20
-separately.
+--=20
+::: .O.
+::: ..O
+::: OOO
+::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
 
-I still can't really get into C3 much. [00000090] is all I get.
-(I've made a separate post about this earlier)
+--2oS5YaxWCcQjTEyO
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-You mentioned Bus master activity null.. what does that mean??
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
 
-with usb aware kernel     -> bus master activity =3D fffffff
-with NON usb aware kernel -> bus master activity =3D aa23as2
-					(this value changes very sec!)
+iD8DBQFAKLM/reHfL3pi+bQRAlq9AJ9W9AVqL70Rs1PuGllwuuDGRg46cQCfZsbt
+t9BHllyAhqglARultcbELPY=
+=2ocr
+-----END PGP SIGNATURE-----
+
+--2oS5YaxWCcQjTEyO--
 
 
 -------------------------------------------------------
