@@ -1,14 +1,14 @@
-From: Frederik Nosi <fredi-X9IQk7V7lNg1GQ1Ptb7lUw@public.gmane.org>
-Subject: No IRQ known for interrupt pin A ...
-Date: Tue, 22 Jul 2003 13:35:52 +0200
+From: Jan Rychter <jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: acpi_processor_get_per: Unsupported address space
+Date: Tue, 22 Jul 2003 11:14:28 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200307221335.52802.fredi@e-salute.it>
+Message-ID: <m2znj677jv.fsf@tnuctip.rychter.com>
+References: <m2oezpghjy.fsf@tnuctip.rychter.com>
+	<20030722121119.GA1964@brodo.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,38 +20,57 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi to all,
-With the acpi in vanilla 2.4.22-pre6 I'm getting this warning during boot:
+--=-=-=
+Content-Transfer-Encoding: quoted-printable
 
-PCI: No IRQ known for interrupt pin A of device 00:10.0
+>>>>> "Dominik" =3D=3D Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org> writes:
+ Dominik> On Sun, Jul 20, 2003 at 11:49:05AM -0700, Jan Rychter wrote:
+ >> On a Toshiba Dynabook SS S7/290LNKW (Centrino-based), kernel
+ >> 2.4.22-pre7 (also tested with pre5).
+ >>
+ >> I am getting the following message at bootup:
+ >>
+ >> acpi_processor-0899 [31] acpi_processor_get_per: Unsupported address
+ >> space [127] (control_register) ACPI: Processor [CPU0] (supports C1
+ >> C2 C3) ACPI: Thermal Zone [THRM] (44 C)
+ >>
+ >> What does this mean? Does it indicate problems?
 
-My machine is a laptop, compaq evo n1020v and this is the info for that device 
-(00:10.0), taken from lspci -xxx :
+ Dominik> It means that the "performance states" =3D=3D SpeedStep states are
+ Dominik> only available using the binary-only processor.o replacement
+ Dominik> module available at Intel's ACPI site, or using the cpufreq
+ Dominik> speedstep-centrino module [patches in 2.5., or at
+ Dominik> http://www.codemonkey.org.uk/cpufreq/ once davej's server is
+ Dominik> back online]
 
-00:10.0 IDE interface: ALi Corporation M5229 IDE (rev c4)
-00: b9 10 29 52 05 00 90 02 c4 fa 01 01 00 00 00 00
-10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-20: 81 80 00 00 00 00 00 00 00 00 00 00 b9 10 29 52
-30: 00 00 00 00 60 00 00 00 00 00 00 00 00 01 02 04
-40: 00 00 00 4a 00 00 00 00 30 00 20 c9 00 00 ba 3a
-50: 02 00 00 89 05 00 0f 00 00 31 31 00 00 31 31 00
-60: 01 00 02 00 00 00 00 00 00 00 00 00 00 00 00 00
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Dave's server is still down, it seems. Is there a 2.4 port of these
+drivers? I don't think I'm ready for 2.5 yet, having just achieved a
+stable 2.4 kernel on my laptop, which took about 1.5 years.
 
-ide is working fine though.
-Now, is this warning a dangerous thing? I know little about ACPI that's why 
-I'm asking here. If this is not relevant to this list please be kind and give 
-me a link to a relevant place or to a manual, whatever.
+The binary-only driver is for 2.4.21-rc1 only, so it's of no use to me
+(I have 2.4.22-pre7 and have to follow the -pre series because of USB
+bugs).
 
+I have to say I feel kind of silly playing this hide and seek game with
+Intel. On one hand Intel says they support Linux
+(http://news.com.com/2100-1006-993896.html). On the other hand we get no
+support for speedstep (what on earth do you lose by telling people how
+to program your hardware?), no support for Centrino wireless LAN. I find
+it both ridiculous and sad.
 
+=2D-J.
+
+--=-=-=
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2 (GNU/Linux)
+
+iD8DBQA/HX8JLth4/7/QhDoRAnPhAJ9qZocJ5c3fhNs0AJ+HVlIkvE4vsgCgnN8/
+pRft4w3J7nxvsXn85Okc59c=
+=mG3C
+-----END PGP SIGNATURE-----
+--=-=-=--
 
 
 -------------------------------------------------------
