@@ -1,14 +1,16 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Re: [2.6.6] Synaptics driver is 'jumpy'
-Date: 17 May 2004 15:19:13 -0400
+From: Daniel Dewald <D.Dewald-js0L5lmcrAQb1SvskN2V4Q@public.gmane.org>
+Subject: Re: hibernation wake-up hang...
+Date: Mon, 17 May 2004 21:26:41 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1084821553.12352.358.camel@dhcppc4>
-References: <A6974D8E5F98D511BB910002A50A6647615FBC01@hdsmsx403.hd.intel.com>
+Message-ID: <200405172126.41946.D.Dewald@fh-trier.de>
+References: <1084820789.9027.3.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <A6974D8E5F98D511BB910002A50A6647615FBC01-N2PTB0HCzHJviC08c4yzC1DQ4js95KgL@public.gmane.org>
+In-Reply-To: <1084820789.9027.3.camel-bi+AKbBUZKZeoWH0uzbU5w@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,28 +19,48 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jan De Luyck <lkml-gY0FE6dpLprYtjvyW6yDsg@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2004-05-17 at 03:04, Jan De Luyck wrote:
-2.6.6 dmesg:
+Hi,
 
-ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 7 9 11 12) *10
-ACPI: PCI Interrupt Link [LNKE] enabled at IRQ 12
+normaly it should be enought to pass the "noresume" option to the kernel with 
+your bootloader. Linux should boot then normaly without resuming from 
+standby.
 
-Detected ipw2100 PCI device at 0000:02:04.0, dev: eth1, mem:
-0xD0206000-0xD0206FFF -> e19e8000, irq: 12
-
-You need this patch:
-http://bugme.osdl.org/show_bug.cgi?id=2665
-available also in the -mm patch
-and also in the latest 2.6.7 tree:
-http://linux.bkbits.net:8080/linux-2.5/gnupatch-GV/8B+QdpNe99h1UQWNUN51JT3bfCTL673V4Sm1hnq8@public.gmane.org
-
--Len
+Greetings 
 
 
+TheCrasher
+
+Am Montag, 17. Mai 2004 21:06 schrieb Wesley T Allen:
+> Hi all,
+> 	I've finally gotten acpi working on my laptop and I was eagerly testing
+> hibernation and suspend; I've encountered a problem...
+>
+> 	When my laptop attempts to come out of hibernation, it locks up while
+> trying to find my usb devices.  I can still boot my system using another
+> kernel; but my main kernel is currently unusable.
+> 	Is there any way to erase the hibernation data for my main kernel so I
+> can boot it again?  Where is that information stored?
+>
+> I'm using a 2.6.3 kernel...
+>
+> Thanks for the Help,
+>
+> Wes
+>
+>
+>
+> -------------------------------------------------------
+> This SF.Net email is sponsored by: SourceForge.net Broadband
+> Sign-up now for SourceForge Broadband and get the fastest
+> 6.0/768 connection for only $19.95/mo for the first 3 months!
+> http://ads.osdn.com/?ad_id=2562&alloc_id=6184&op=click
+> _______________________________________________
+> Acpi-devel mailing list
+> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
