@@ -1,14 +1,14 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Subject: Re: ACPI Extensions for Display Adapters
-Date: Sat, 24 Jan 2004 00:13:34 +0100
+Date: Sat, 24 Jan 2004 00:44:59 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040123231334.GJ25416@poupinou.org>
-References: <BF1FE1855350A0479097B3A0D2A80EE0CC8A41@hdsmsx402.hd.intel.com>
+Message-ID: <20040123234459.GB18100@hell.org.pl>
+References: <BF1FE1855350A0479097B3A0D2A80EE0CC8A41@hdsmsx402.hd.intel.com> <20040123231334.GJ25416@poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <BF1FE1855350A0479097B3A0D2A80EE0CC8A41-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>
+In-Reply-To: <20040123231334.GJ25416-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,20 +17,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jan 23, 2004 at 05:35:00PM -0500, Brown, Len wrote:
-> Volunteers?
+Thus wrote Ducrot Bruno:
+> On Fri, Jan 23, 2004 at 05:35:00PM -0500, Brown, Len wrote:
+> > Volunteers?
+> 
+> This is perhaps time to add some attribute to sysfs?
 
-This is perhaps time to add some attribute to sysfs?
+BTW: did anybody actually think of moving the Linux-specific bits to sysfs?
+I guess killing /proc/acpi would be a 2.7-thing though.
+Best regards,
 
 -- 
-Ducrot Bruno
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
