@@ -1,14 +1,16 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: PNP & ACPI
-Date: 11 Aug 2004 18:16:15 -0400
+Subject: Re: current ACPI status in 2.6.7 kernel
+Date: 11 Aug 2004 23:48:16 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1092262575.5021.129.camel@dhcppc4>
-References: <566B962EB122634D86E6EE29E83DD808182C2317@hdsmsx403.hd.intel.com>
+Message-ID: <1092282496.7765.148.camel@dhcppc4>
+References: <411881B1.9000903@ti.com>
+	 <1092132146.2666.3.camel@laptop.cunninghams> <4118D40D.5030404@ti.com>
+	 <4118F918.7070909@optonline.net>  <411A2EA9.6000000@optonline.net>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <566B962EB122634D86E6EE29E83DD808182C2317-N2PTB0HCzHJviC08c4yzC1DQ4js95KgL@public.gmane.org>
+In-Reply-To: <411A2EA9.6000000-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,29 +19,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
+Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Alexander Sirotkin <demiurg-l0cyMroinI0@public.gmane.org>, ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Adam,
-Nice to meet you in Ottawa.
+Alexander,
+The status of ACPI S3 suspend/resume in 2.6.7 is...
 
-Do you have a patch to disable PNP when ACPI is running?
-I think we could key off of acpi_disabled -- since that
-will be set when ACPI is not configured, when Linux/ACPI
-can't find ACPI support in the system, or any other problems
-that cause ACPI to bail out.
+Run the latest ACPI patch on top of 2.6.7
+(indeed, you still need the latest patch for 2.6.8)
 
-I don't see a global pnp_disabled flag we can set.
-Looks like we've got 3 subsystems with pnp, pnpbios and isapnp,
-each with their own initcalls?
+build EHCI as a module, and unload it first
 
-thanks,
+echo 3 >/proc/acpi/sleep
+
+(yes, it is on the list to move to sysfs...)
+
+some systems get a double event if wakeup with power button.
+I use the LID to wake up my system and that works fine.
+
+many systems come back up from S3, but don't re-enable
+the LCD, or some re-enable it, but in the wrong mode.
+Sometimes you can wake it up by running X.
+Sometiems you can wake it up by switching
+virtual consoles.
+There is a lot of experimentation in this area, but
+we don't really have fixes for this yet that are
+universally positive -- ie fix platforms w/o breaking others.
+
+in summary, YMMV;-)
+
+cheers,
 -Len
-
-ps. We discussed a more unified driver probe/register model.
-Today we've got pnp_register_driver(), acpi_bus_register_driver()
-etc.  Thoughts on that?
 
 
 
