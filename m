@@ -1,11 +1,13 @@
-From: Thomas Eschenbacher <Thomas.Eschenbacher-Mmb7MZpHnFY@public.gmane.org>
-Subject: freqency scaling on compaq nx9010
-Date: Sun, 09 Jan 2005 19:47:09 -0300
-Message-ID: <41E1B46D.1070107@gmx.de>
+From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Subject: Re: Re: Centrino speedstep
+Date: Sun, 9 Jan 2005 23:52:54 +0100
+Message-ID: <20050109225254.GA27866@dominikbrodowski.de>
+References: <m2zmzyw4e7.fsf@phoenix.squirrel.nl> <20041228212653.GA8436@dominikbrodowski.de> <m2vfalc53k.fsf@phoenix.squirrel.nl> <41D30842.4040204@paranoici.org> <20041229205905.GA12181@dominikbrodowski.de> <m2sm5o23ix.fsf@phoenix.squirrel.nl> <20041229214629.GA21054@dominikbrodowski.de> <m24qi48z4q.fsf@phoenix.squirrel.nl> <41D8366F.1040305@paranoici.org> <m21xcumf8m.fsf@phoenix.squirrel.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <m21xcumf8m.fsf-KjnUIgV0B0bak1Ioo/c9IoRWq/SkRNHw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,36 +17,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+On Sun, Jan 09, 2005 at 11:04:09PM +0100, Johan Vromans wrote:
+> ultrakorne <ultrakorne-XtQPfPCVGG7srOwW+9ziJQ@public.gmane.org> writes:
+> 
+> > did those 2 changes fix your problems?
+> > i have this problem too, and i "fixed" with echo a new max ... but now
+> > as suggested i'll fix the dsdt
+> 
+> Using msr_is32_perf_status I found out that the actual frequencies are 
+> 1500, 1200, 1000, 800, 600 (Mhz). The original DSDT reports 
+> 1600, 1400, 1200, 800, 600. 
+> 
+> Another typical DSDT brokenness?
 
-I have a compaq nx9010 laptop, running on kernel 2.4.9-gentoo-r13, with 
-ACPI enabled and speedstep for frequency scaling. Speedstep itself works 
-rather fine, but I wonder about the available scaling frequencies:
+It definitely seems so.
 
-cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies
-gives only "668000 692000" ?
-
-...and this is also what speedstep does - it switches between these two 
-frequencies, 96% and 100% speed. Isn't this absolutely nonsense? Only 4% 
-speed difference !?
-
-I now have fixed the bios' DSDT and built my own one in the kernel - no 
-change. Furthermore I cannot find the numbers 668000, 692000, 668 and 
-692, neither in decimal, nor in hex in the decompiled dsdt.
-
-On the other hand my dsdt contains two entries in the _PSS section, one 
-for 3059MHz (100%) and one for 1596MHz (~50%) - but those two 
-frequencies appear nowhere in /proc or /sys/devices/... !?
-
-what goes wrong here ?
-
-Is speedstep independend from ACPI ?
-
-Thomas
-
+Thanks,
+	Dominik
 
 
 -------------------------------------------------------
