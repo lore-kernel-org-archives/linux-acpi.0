@@ -1,14 +1,15 @@
-From: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
-Subject: Re: Acer Travermate 8005 and battery info
-Date: Mon, 04 Oct 2004 16:49:24 +0100
+From: Alberto <albeclemit-whZMOeQn8C0@public.gmane.org>
+Subject: Re: ACPI S3 resume only reboots
+Date: Mon, 4 Oct 2004 21:12:24 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <41617104.2040302@mega.ist.utl.pt>
-References: <415C270F.5050306@lanil.mine.nu> <20041001102926.GD18786@elf.ucw.cz> <415D8CCF.8050602@lanil.mine.nu> <20041001194739.GE1100@openzaurus.ucw.cz> <41603BA0.9090900@lanil.mine.nu> <20041003203457.GD3379@elf.ucw.cz>
+Message-ID: <20041004211224.703e1982.albeclemit@yahoo.it>
+References: <20041004133340.76ba05ba.albeclemit@yahoo.it>
+	<1096907923.11326.15.camel@elrond.flymine.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041003203457.GD3379-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <1096907923.11326.15.camel-Xmbc1Sz64/5pghhO6/9/sx2eb7JE58TQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -20,40 +21,35 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Mon, 04 Oct 2004 17:38:43 +0100
+Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org> wrote:
 
-hi,
+> On Mon, 2004-10-04 at 13:33 +0200, Alberto wrote:
+> 
+> > When i do
+> > cat -n "mem" > /sys/power/state
+> > the system seems to go down fine in S3 state...
+> > when i hit the power button it looks like trying to resume (fan starts again, noises from harddisk and cdrom) then it just reboots....
+> 
+> Do you have a /proc/acpi/wakeup_devices ? If so, what's in it?
 
-Pavel Machek wrote:
+Yes i have a /proc/acpi/wakeup
 
-|>>Search maillist archives, look up "smart battery specification" in
-google.
-|>>If you are willing to spend few days writing driver, let me know.
-|>
-|>Ive checked out some specs now and Im willing to give it a shot but Ive
-|>no idea on where to start.. Ive checked out my DSL and I find nothing
-|>containing SBS in it. Suggestions?
-|
-|
-| Right start probably is drivers/i2c. I collected these links:
+$ cat /proc/acpi/wakeup
+Device  Sleep state     Status
+PCI0       4            disabled
+USB1       0            disabled
+USB2       0            disabled
+USB3       0            disabled
+EHCI       0            disabled
+ EC0       4            disabled
+ LID       4            *enabled
+ AC9       4            disabled
+ MC9       4            disabled
+ILAN       4            disabled
+SLPB       4            *enabled
 
-i'm willing to participate also. but first, let me see if i
-understood... the first step should be building a driver to communicate
-with the smbus via i2c. am i right?
-
-after that, we should build an acpi driver that reads battery
-information from the smbus and process it adequately...
-
-thanks for the information.
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.1 (MingW32)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
-
-iD8DBQFBYXEEeRy7HWZxjWERAplvAJ91DklAqURohn+B1FKn2Lk5njxs7wCgyXK1
-W8ZC15iOzu9rYn7iLgl5xik=
-=x1p1
------END PGP SIGNATURE-----
+Pressing the lid button to simulate lid opening happens the same as above...
 
 
 -------------------------------------------------------
