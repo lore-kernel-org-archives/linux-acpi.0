@@ -1,12 +1,11 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: pmtools at intel
-Date: Thu, 13 Mar 2003 19:46:34 +0100
+From: Irene Zubarev <zubarev-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Subject: small status catching patch
+Date: Thu, 13 Mar 2003 17:13:36 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030313184634.GA1428@elf.ucw.cz>
+Message-ID: <OFA9812763.63F0B8C8-ON87256CE8.007843A2@us.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,42 +14,47 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
 
-Hmm, Intel asked me to fill in survey when trying to download
-pmtools. Weird.
 
-Then pmtools will not compile:
 
-gcc -Wall -fno-strength-reduce -fomit-frame-pointer -D__KERNEL__
--DMODULE -I/usr/src/linux/include -Wall -Wno-unused -Wno-multichar
--c -o pmtest.o pmtest.c
-pmtest.c: In function `pmtest_devices':
-pmtest.c:53: warning: int format, long int arg (arg 5)
-/tmp/ccCy61dB.s: Assembler messages:
-/tmp/ccCy61dB.s:522: Error: `%al' not allowed with `movl'
-/tmp/ccCy61dB.s:526: Error: `%al' not allowed with `xorl'
-/tmp/ccCy61dB.s:611: Warning: using `%eax' instead of `%ax' due to `l'
-suffix
-/tmp/ccCy61dB.s:615: Warning: using `%eax' instead of `%ax' due to `l'
-suffix
-/tmp/ccCy61dB.s:615: Warning: using `%eax' instead of `%ax' due to `l'
-suffix
-make[1]: *** [pmtest.o] Error 1
-make[1]: Leaving directory
-`/linux_hdc2/usr/src/pmtools-20010730/pmtest'
-make: *** [all] Error 2
-root@amd:/usr/src/pmtools-20010730#
 
-fortunately I do not need pmtest :-).
+Hello, I'm not sure if anyone caught this, but it seems that in nswalk.c,
+in acpi_ns_walk_namespace, there should be an extra variable for status,
+otherwise, we always think it is a good status.  (this is on the 2nd "if
+(unlock_before_callback)" statement).  Please see patch below (against
+2/28/2003 version):
 
-								Pavel
--- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+diff -Nru 1/drivers/acpi/namespace/nswalk.c 2/drivers/acpi/namespace/nswalk.c
+--- 1/drivers/acpi/namespace/nswalk.c     Thu Mar 13 19:58:30 2003
++++ 2/drivers/acpi/namespace/nswalk.c     Thu Mar 13 19:59:02 2003
+@@ -164,6 +164,7 @@
+      void                            **return_value)
+ {
+      acpi_status                     status;
++     acpi_status             unlock_status;
+      struct acpi_namespace_node      *child_node;
+      struct acpi_namespace_node      *parent_node;
+      acpi_object_type                child_type;
+@@ -221,9 +222,9 @@
+                                     context, return_value);
+
+                        if (unlock_before_callback) {
+-                             status = acpi_ut_acquire_mutex (ACPI_MTX_NAMESPACE);
+-                             if (ACPI_FAILURE (status)) {
+-                                   return_ACPI_STATUS (status);
++                             unlock_status = acpi_ut_acquire_mutex (ACPI_MTX_NAMESPACE);
++                             if (ACPI_FAILURE (unlock_status)) {
++                                   return_ACPI_STATUS (unlock_status);
+                              }
+                        }
+
+Thanks,
+
+Irene Zubarev
+
 
 
 -------------------------------------------------------
