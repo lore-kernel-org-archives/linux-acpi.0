@@ -1,15 +1,18 @@
-From: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Subject: Re: [Lhns-devel] [PATCH 0/6] ACPI based physical cpu hotplug
-Date: Mon, 13 Sep 2004 17:23:20 +0900
+From: Dave Hansen <haveblue-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [Lhms-devel] Re: [PATCH] ACPI based Memory Hotplug
+	Driver Patch
+Date: Mon, 13 Sep 2004 01:41:05 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040913172320.30ca3fc5.tokunaga.keiich@jp.fujitsu.com>
-References: <20040908181654.A7287@unix-os.sc.intel.com>
- <20040913024817.000061bb.tokunaga.keiich@jp.fujitsu.com>
+Message-ID: <1095064865.4671.5.camel@localhost>
+References: <FEB6C4E97F6CAF41978FB2059D5454180F37E8@bgsmsx402.gar.corp.intel.com>
+	 <20040910230200.73eb0374.tokunaga.keiich@jp.fujitsu.com>
+	 <1094837554.32531.1997.camel@nighthawk>
+	 <20040913172318.791db349.tokunaga.keiich@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <20040913024817.000061bb.tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+In-Reply-To: <20040913172318.791db349.tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,159 +21,66 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org, lhns-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Cc: naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Matthew E Tolentino <matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lhms <lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 13 Sep 2004 02:48:17 +0900 Keiichiro Tokunaga wrote:
-> On Wed, 08 Sep 2004 18:16:54 -0700, Keshavamurthy Anil S wrote:
-> > 
-> > Hi All,
-> > 	As everybody knows that we have logical cpu online/offline support in the kernel, the following set of patches extends this feature to provide ACPI based physical CPU hotplug and I am asking this set of patches to be included in the acpi-test tree. 
-> > 
-> > Please let me know if anyone see any issues or comments or even flames welcome:). 
+On Mon, 2004-09-13 at 01:23, Keiichiro Tokunaga wrote:
+> On Fri, 10 Sep 2004 10:32:35 -0700 Dave Hansen wrote:
+> > At this point, adding stuff to /proc in mainline has a pretty slim
+> > chance of happening.  sysfs is really the way to go, plus we already
+> > have code in the mhp tree to export the hotplug memory controls via
+> > sysfs.  This stuff seems to me to belong in /sys/firmware.
+> >
+> > But, this brings up something that's been nagging me for a while: what
+> > should /sys/devices/system/memory contain?  A logical view of memory for
+> > use with memory hotplug, or a hardware description of memory?  I think
+> > both are probably necessary, and should link to each other, but how
+> > should we present them?
 > 
-> I am attaching user mode agent scripts for container hotplug,
-> 'container.agent' and 'acpi_container.agent'.  Please put them
-> under /etc/hotplug/ for working the container hotplug.
+> How about this?
 > 
-> 'container.agent' is called by the container driver.  It calls a platform
-> specific agent as appropriate.  'acpi_container.agent' is one of the
-> platform specific agents and does real works.
+> # ls /sys/firmware/acpi/memory/MEM1/
+> resource_type
+> producer_consumer
+> decode
+> min_address
+> max_address
+> granularity
+> min_address_range
+> max_address_range
+> address_translation_offset
+> address_length
+
+The placement looks right to me.
+
+> # ls /sys/devices/system/memory/memsection4/
+> start_physaddr
+> <something else>
 > 
-> 'acpi_container.agent' does logical hotplug operations like "echo 0 >
-> /sys/devices/system/cpu/cpu0/online".  The agent gets an ACPI
-> object name of the target container device (e.g. DEV1) as an
-> argument, searchs entries of CPUs contained in the container, and
-> echos to the entries.  This version supports only CPU for now.
+> We can determine which memsection belongs to which ACPI
+> memory object by using min_address_range, max_address_range,
+> and start_physaddr.  In the above case, start_physaddr is between
+> min_address_range and max_address_range if MEM1 contains
+> memsection4.
 
-I found a bug in 'acpi_container.agent'.  Here is a fixed version.
+sysfs really has a legacy of being linked together with regular old
+symlinks.  There's plenty of stuff in there that we *could* derive by
+looking all over the place, but don't because it's so easy to just
+create links.  I say we create links from one to the other, and make
+sure not to duplicate any information.  
 
-  - Fixed the bug in eject_target() function.  It did not return a proper
-    string.
-  - Replaced a term '/sys' with '$SYSFS_MOUNTPOINT'.
+For instance, there shouldn't really need to be a start_addr in the acpi
+directory if it can easily be determined from the memsections that
+belong to that acpi memory object.  (or the othe way around, maybe)
 
-Thanks,
-Keiichiro Tokunaga
+What we want to discourage is anybody writing ACPI-specific (or
+OpenFirmware on ppc for that matter) memory hotplug applications when a
+generic Linux one would do.  That might be impossible in the long run,
+but it's worth a try.  
 
-[acpi_container.agent]
-#!/bin/sh
-#
-# ACPI Container hotplug agent
-#
-# Kernel params are:
-#	
-#	ACTION=%s [add or remove]
-#	CONTAINER=/sys/...
-#
-# 10-Sep-2004	Initial version, CPU support
-#
+-- Dave
 
-TMP=tmp$$
-SYSFS_MOUNTPOINT=`mount | grep 'sysfs' | cut -d ' ' -f 3`
-CPU_INFO_DIR=/proc/acpi/processor
-SYSDEVICES=$SYSFS_MOUNTPOINT/devices/system
-CPU_HOTPLUG=$SYSDEVICES/cpu/cpu
-MEMBLOCKSIZE=$SYSDEVICES/memory/blocksize
-FIRM_DIR=$SYSFS_MOUNTPOINT/firmware/acpi
-EJECT_OP=$FIRM_DIR/eject
-alias cpus_list='ls $CPU_INFO_DIR'
-
-function cpu_hot_plug()
-{
-    cpus_list > $TMP
-    for cpu_firm in `find $DEV_PATH -type d -print | grep -w -f $TMP` 
-      do
-      cpuname=`basename $cpu_firm`
-      if [ ! -f $CPU_INFO_DIR/$cpuname/info ]
-	  then
-	  echo "cannot access $CPU_INFO_DIR/$cpuname/info"
-	  continue
-      fi
-      cpuid=`awk '/processor id:/ {print $3}' $CPU_INFO_DIR/$cpuname/info`
-      if [ ! -f ${CPU_HOTPLUG}${cpuid}/online ]
-	  then
-	  echo "cannot access ${CPU_HOTPLUG}${cpuid}/online"
-	  continue
-      fi
-      onlined=`cat ${CPU_HOTPLUG}${cpuid}/online`
-      if [ $onlined == "0" ]
-	  then
-	  contine;
-      fi
-      echo $CPU_HOTPLUG_CODE > ${CPU_HOTPLUG}${cpuid}/online
-      if [ $? != 0 ]
-	  then
-	  echo "cpu$cpuid hotplug failed."
-	  ERROR=1
-      fi
-    done 
-}
-
-function eject_target()
-{
-    TARGET=`echo $DEV_PATH | sed "1s?${SYSFS_MOUNTPOINT}??" | sed '1s/\/firmware\/acpi\/namespace\/ACPI\/_SB\///' | sed '1s/\//\./g'`
-    echo \\_SB_.$TARGET
-}
-
-function usage()
-{
-    echo "Usage : acpi_container.agent (-t target-device-name| -p CONTAINER) (add|remove)"
-    exit 2
-}
-
-
-#
-# Main routine
-#
-set -- `getopt p:t: $*`
-if [ $? != 0 ]
-then
-    usage
-fi
-
-while [ $1 != -- ]
-do
-  case $1 in
-      -t) shift; DEV_PATH=$SYSFS_MOUNTPOINT/firmware/acpi/namespace/ACPI/_SB/$1;;
-      -p) shift; DEV_PATH=$1;;
-  esac
-  shift;
-done
-test=`eject_target`
-
-shift;
-act=$1
-
-ERROR=0
-
-case $act in
-    add)
-	CPU_HOTPLUG_CODE="1"
-
-	cpu_hot_plug
-	;;
-
-    remove)
-	CPU_HOTPLUG_CODE="0"
-
-	cpu_hot_plug
-
-	# eject operation
-	if [ $ERROR == 0 ]; then
-	    target=`eject_target` 
-	    echo $target > $EJECT_OP
-	    if [ $? != 0 ]; then
-		echo "Failed to eject device($target)."
-		ERROR=1
-	    fi
-	fi
-	;;
-esac
-
-rm -f $TMP > /dev/null 2>&1 
-
-exit $ERROR
 
 
 -------------------------------------------------------
