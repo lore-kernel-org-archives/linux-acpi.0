@@ -1,8 +1,8 @@
 From: Sean Middleditch <elanthis-LAuFFeG505qL5ISr76wZmQ@public.gmane.org>
 Subject: Re: lockup on boot
-Date: 28 Sep 2002 14:50:05 -0400
+Date: 28 Sep 2002 14:53:35 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1033239005.3157.0.camel@stargrazer>
+Message-ID: <1033239215.3157.2.camel@stargrazer>
 References: <1032631567.23480.23.camel@stargrazer>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -20,9 +20,10 @@ List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-As a note, I've tried several 2.5.x kernels (stock), and stock 2.4.19,
-and they all lock up the same way - any hope I can get this laptop
-working w/acpi without having to reinstall WinXP?  Thanks.
+Ack, sorry the third post, but it dawns on me I was an idiot and didn't
+post what machine I'm using:
+
+It's a Compaq Presario 700US laptop.
 
 On Sat, 2002-09-21 at 14:06, Sean Middleditch wrote:
 > Hi,
