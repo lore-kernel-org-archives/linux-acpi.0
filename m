@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Centrino question
-Date: Thu, 27 May 2004 22:52:46 +0200
+Subject: Re: S3 on Intel Desktop Board D865GBF
+Date: Thu, 27 May 2004 23:06:59 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040527205245.GA997@openzaurus.ucw.cz>
-References: <3ACA40606221794F80A5670F0AF15F8404622C57@PDSMSX403.ccr.corp.intel.com> <20040520015748.776d5b84.neurowork@free.fr> <1085111429.12352.563.camel@dhcppc4> <20040521125637.33f69fc6.neurowork@free.fr> <20040521115207.GA12775@hell.org.pl> <1085161136.9856.5.camel@Neuromancer.home.net> <1085527691.9167.39.camel@dorker.boxed.no> <20040525235610.GA21791@hell.org.pl>
+Message-ID: <20040527210659.GD997@openzaurus.ucw.cz>
+References: <1085272779.7511.11.camel@300mlinux>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040525235610.GA21791-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+In-Reply-To: <1085272779.7511.11.camel-Yau0ytKvSx2eZLLa646FqQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,18 +17,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alexander Hoogerhuis <alexh-rpjHciJLgqZBDgjK7y7TUQ@public.gmane.org>, Ow Mun Heng <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> Whenever something is plugged into the controller, bus mastering kicks in
-> and C3 is effectively disabled, also on Windows. This is, to my best
-> knowledge, a limitation of the USB interface itself. As far as I know, at
+> I'm trying to get S3 to work on an Intel D865GBF Desktop Board (Intel
+> 865G chipset) running a 2.6.6 vanilla kernel. Right now, the computer
+> powers up after a resume and some devices initialize (CD drives), but
+> the display remains off. Adding acpi_sleep=s3_mode to the command line
+> does nothing (visibly) and acpi_sleep=s3_bios causes a Video BIOS
+> identification screen to be displayed. The keyboard and mouse do not
+> work, and pinging the machine's wireless card fails as well.
+> 
+> When the machine resumes, the power LED is off, and pressing the reset
+> switch fails to bring up the BIOS "silent boot" screen. Only by forcibly
+> shutting off the machine (hold down the power button, pull the plug) and
+> turning back on can I get it to boot.
+> 
+> What needs done to get S3 working on a system like this?
 
-OHCI does not have that problem; unfortunately UHCI is
-misdesigned. (See also FSBR)
-				Pavel
+First I'd complain about broken reset button...
+
+...and than you need some assembly hacking.
 -- 
 64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
 
