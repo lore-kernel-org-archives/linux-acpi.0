@@ -1,42 +1,67 @@
-From: Flavio Bruno Leitner <fbl-KCZ47A4bww4P48s/oLjRZg@public.gmane.org>
-Subject: Can't poweroff anymore.
-Date: Thu, 4 Mar 2004 15:03:02 -0300
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040304180301.GA1754@conectiva.com.br>
+From: Fabrice Bellet <fabrice@bellet.info>
+Subject: Re: [Bug 1373] uhci-hcd fails after software suspend
+Date: Thu, 4 Mar 2004 19:40:43 +0100
+Sender: linux-usb-devel-admin@lists.sourceforge.net
+Message-ID: <20040304184043.GA2412@bellet.info>
+References: <200403041146.i24Bk6SN031296@fire-2.osdl.org> <Pine.LNX.4.44L0.0403041101080.969-100000@ida.rowland.org>
+Reply-To: Fabrice Bellet <fabrice@bellet.info>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-devel-admin@lists.sourceforge.net>
 Content-Disposition: inline
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <Pine.LNX.4.44L0.0403041101080.969-100000@ida.rowland.org>
+Errors-To: linux-usb-devel-admin@lists.sourceforge.net
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
+	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Post: <mailto:linux-usb-devel@lists.sourceforge.net>
+List-Help: <mailto:linux-usb-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-usb-devel>,
+	<mailto:linux-usb-devel-request@lists.sourceforge.net?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=linux-usb-devel>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: USB development list <linux-usb-devel@lists.sourceforge.net>, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
+On Thu, Mar 04, 2004 at 11:06:23AM -0500, Alan Stern wrote:
+> [Can't reply to you via bugzilla because you're not registered on the CC: 
+> list for this bug.]
+> 
+> > ------- Additional Comments From fabrice@bellet.info  2004-03-04 03:46 -------
+> > This patch resolved the part of the problem warning me about "host controller
+> > halted, very bad!" in my logs. But the external USB mouse still doesn't work
+> > after resume from ACPI suspend (echo 3 > /proc/acpi/sleep). The file
+> > /proc/driver/uhci/0000:00:1d.1 contains these differences :
+> > 
+> > before suspend :
+> > 
+> >   usbstat   =     0000   
+> 
+> That's a good value.
+> 
+> > and after suspend :
+> >   usbstat   =     0001   USBINT 
+> 
+> USBINT means that the USB controller is trying to send an interrupt 
+> request but the system isn't accepting it.
+> 
+> > Then I unplug the mouse :
+> > 
+> >   usbstat   =     0021   HCHalted USBINT 
+> >   stat2     =     0080  
+> > 
+> > And I replug it :
+> > 
+> >   usbstat   =     0025   HCHalted ResumeDetect USBINT 
+> >   stat2     =     0185   LowSpeed Enabled Connected
+> 
+> Same thing here.  This may be an interrupt routing problem, probably 
+> something to do with ACPI support.
 
-Hello,
-
-
-My notebook is an Acer TravelMate 630 and until 2.6.2-rc2 
-poweroff works well, but upgrading to bitkeeper of 
-2004/01/27 (have many acpi changesets) it can't poweroff
-anymore and show this message:
-"acpi_power_off called"
-"hwsleep-0265 [44] acpi_enter_sleep_state: Entering sleep state [S5]." 
-
-Any ideas?
-
-Thanks!
+okay.
+I also booted with pci=noacpi, just in case, and the same bug occurs.
 
 -- 
-Flávio Bruno Leitner <fbl-KCZ47A4bww4P48s/oLjRZg@public.gmane.org>
-[ E74B 0BD0 5E05 C385 239E  531C BC17 D670 7FF0 A9E0 ]
+fabrice
 
 
 -------------------------------------------------------
@@ -44,3 +69,7 @@ This SF.Net email is sponsored by: IBM Linux Tutorials
 Free Linux tutorial presented by Daniel Robbins, President and CEO of
 GenToo technologies. Learn everything from fundamentals to system
 administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
+_______________________________________________
+linux-usb-devel@lists.sourceforge.net
+To unsubscribe, use the last form field at:
+https://lists.sourceforge.net/lists/listinfo/linux-usb-devel
