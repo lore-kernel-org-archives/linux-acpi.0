@@ -1,14 +1,12 @@
-From: Ian Pilcher <i.pilcher-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: Re: Plea for help
-Date: Sun, 21 Dec 2003 19:19:41 -0600
+From: "Nils Spengler" <nils.spengler-Mmb7MZpHnFY@public.gmane.org>
+Subject: problems with acpi (sleep states) on vaio notebook z1sp
+Date: Mon, 22 Dec 2003 03:17:16 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3FE646AD.8020804@comcast.net>
-References: <3FE28F79.601@comcast.net>	<3FE33B69.1010606@netspace.org>	<3FE39231.4040003@comcast.net>	<20031219160947.79c3fcdf.rddunlap@osdl.org>	<3FE3A142.90407@comcast.net>	<20031219184043.3983572d.rddunlap@osdl.org>	<3FE4A740.4080701@comcast.net> <20031220180854.32e2f56d.rddunlap@osdl.org>
+Message-ID: <E1AYFdZ-0001a3-38@sc8-sf-mx1.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0000_01C3C83A.1AC3E510"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20031220180854.32e2f56d.rddunlap-3NddpPZAyC0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,53 +15,185 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Randy.Dunlap" <rddunlap-3NddpPZAyC0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Randy.Dunlap wrote:
-> Is there some reason that you build a kernel with both APM and ACPI
-> support?  Can you test it without APM support, to see if it changes any?
+This is a multi-part message in MIME format.
 
-Sorry about the delay.  I had to get all of these kernels, config files,
-etc. under control.  (I now have a new appreciation for EXTRAVERSION.)
-As a result, I've got three completely new sets of data for your holiday
-enjoyment.
+------=_NextPart_000_0000_01C3C83A.1AC3E510
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-The starting point is the i686-smp kernel configuration from Fedora Core
-1 (which has both APM and ACPI turned on).  I've built kernel 2.4.23
-with ACPI 20031203 with this configuration and called it
-2.4.23fc_config.  Then I disabled APM support and built 2.4.23no_apm.
-Finally, I turned on frame pointers and build 2.4.23frame_ptrs.
+Hi there,
 
-The kernel configs, System.map files, and boot logs for all three of
-these kernel are in http://home.comcast.net/~i.pilcher/panics.tar.gz.
+ 
 
-> The dmesg files aren't complete boot logs.  Can you provide complete
-> boot logs for these 2 cases (panic & hang)?
+i've read now ~5 hours the posts of vaio problems in this mailing list. All
+have (nearly) the same problems but i never could find a solution.
 
-I knew I wasn't going to get through this without buying a null-modem
-cable.  The boot logs in the above tarball were all captured on my
-laptop; I hope that's what you're looking for.  Unfortunately, the text
-of the panic message is garbled in several of the logs.
+I also have the problem that when i echo 3 > /proc/acpi/sleep it suspends
+but will never wake up again. The (normally green) power led flashes red but
+when i re-press a button on the keyboard or the power button, the power led
+turns back into green, the battery led turns on but thats it. The hdd and
+the screen keeps off. I have to remove ac adaptor and battery before i can
+bring it to live again. Pressing the power button a few seconds does not
+work.
 
-I also found that the behavior changes depending on whether I use a
-local console (in addition to the serial console) or not.  In the case
-of the fc_config kernel, the system actually boots successfully if I use
-*only* a serial console.  Check the kernel command line in each boot log
-to see what's what.
+ 
 
-Am I crazy to think that this almost has to be a race condition?
+I put dsdt and dmesg output on some crappy webspace so maybe this does help
+anyone to help me.
 
-I'll be out of town until the 29th without access to this system.  I
-want to say thanks for taking the time to respond to my "plea".
+ 
 
-Happy Holidays!
+http://de.geocities.com/nils_z1sp/dmesg.gz and
+http://de.geocities.com/nils_z1sp/dsdt.gz
 
--- 
-========================================================================
-Ian Pilcher                                        i.pilcher-Wuw85uim5zDR7s880joybQ@public.gmane.org
-========================================================================
+ 
+
+i also played a little bit around with dsdt and iasl but i think, i'm not
+enough into that matter to do the necessary changes.
+
+ 
+
+ 
+
+Thanks in advance and greets,
+
+nils
+
+
+------=_NextPart_000_0000_01C3C83A.1AC3E510
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+
+<head>
+<meta http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Dus-ascii">
+<meta name=3DGenerator content=3D"Microsoft Word 11 (filtered)">
+<style>
+<!--
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0cm;
+	margin-bottom:.0001pt;
+	font-size:12.0pt;
+	font-family:"Times New Roman";}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;}
+span.E-MailFormatvorlage17
+	{font-family:Arial;
+	color:windowtext;}
+@page Section1
+	{size:595.3pt 841.9pt;
+	margin:70.85pt 70.85pt 2.0cm 70.85pt;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
+
+</head>
+
+<body lang=3DDE link=3Dblue vlink=3Dpurple>
+
+<div class=3DSection1>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>Hi there,</span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>&nbsp;</span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>i&#8217;ve read now ~5 hours the posts of vaio =
+problems in
+this mailing list. All have (nearly) the same problems but i never could =
+find a
+solution.</span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>I also have the problem that when i echo 3 &gt;
+/proc/acpi/sleep it suspends but will never wake up again. The (normally =
+green)
+power led flashes red but when i re-press a button on the keyboard or =
+the power
+button, the power led turns back into green, the battery led turns on =
+but thats
+it. The hdd and the screen keeps off. I have to remove ac adaptor and =
+battery
+before i can bring it to live again. Pressing the power button a few =
+seconds
+does not work.</span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>&nbsp;</span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>I put dsdt and dmesg output on some crappy webspace =
+so maybe
+this does help anyone to help me.</span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>&nbsp;</span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'><a =
+href=3D"http://de.geocities.com/nils_z1sp/dmesg.gz">http://de.geocities.c=
+om/nils_z1sp/dmesg.gz</a>
+and <a =
+href=3D"http://de.geocities.com/nils_z1sp/dsdt.gz">http://de.geocities.co=
+m/nils_z1sp/dsdt.gz</a></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>&nbsp;</span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>i also played a little bit around with dsdt and iasl =
+but i
+think, i&#8217;m not enough into that matter to do the necessary =
+changes.</span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>&nbsp;</span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>&nbsp;</span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>Thanks in advance and greets,</span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>nils</span></font></p>
+
+</div>
+
+</body>
+
+</html>
+
+------=_NextPart_000_0000_01C3C83A.1AC3E510--
 
 
 
