@@ -1,61 +1,39 @@
-From: Nigel Cunningham <ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>
-Subject: Re: Re: [RFC 0/6] S3 SMP support with physcial CPU hotplug
-Date: Mon, 04 Apr 2005 19:55:27 +1000
-Message-ID: <1112608527.3757.19.camel@desktop.cunningham.myip.net.au>
-References: <1112580342.4194.329.camel@sli10-desk.sh.intel.com>
-	 <20050403193750.40cdabb2.akpm@osdl.org>
-	 <1112582553.4194.349.camel@sli10-desk.sh.intel.com>
-	 <20050403194807.32fd761a.akpm@osdl.org>
-	 <1112582947.4194.352.camel@sli10-desk.sh.intel.com>
-	 <1112601670.3757.6.camel@desktop.cunningham.myip.net.au>
-	 <1112604263.4194.367.camel@sli10-desk.sh.intel.com>
-	 <20050404091027.GA14765@elf.ucw.cz>
-	 <1112606651.4194.391.camel@sli10-desk.sh.intel.com>
-Reply-To: ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [ACPI] Re: [RFC 0/6] S3 SMP support with physcial CPU hotplug
+Date: Mon, 4 Apr 2005 13:31:29 +0200
+Message-ID: <20050404113129.GA7120@atrey.karlin.mff.cuni.cz>
+References: <1112580342.4194.329.camel@sli10-desk.sh.intel.com> <20050403193750.40cdabb2.akpm@osdl.org> <1112608444.3757.17.camel@desktop.cunningham.myip.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1112606651.4194.391.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Zwane Mwaikambo <zwane-T6AQWPvKiI1fDP7aoN8Z5Q@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261221AbVDDLbh@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1112608444.3757.17.camel@desktop.cunningham.myip.net.au>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nigel Cunningham <ncunningham@cyclades.com>
+Cc: shaohua.li@intel.com, linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net, zwane@linuxpower.ca, len.brown@intel.com
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Li.
+Hi!
 
-On Mon, 2005-04-04 at 19:24, Li Shaohua wrote:
-> > so that cpu_up mechanism can handle them?
-> If S4 also calls a smp_prepare_cpu, then the patches don't break S4. If
-> people don't complain warm boot a CPU is slow, I'd like S4 also use
-> smp_prepare_cpu.
+> > > The patches are against 2.6.11-rc1 with Zwane's CPU hotplug patch in -mm
+> > >  tree.
+> > 
+> > Should I merge that thing into mainline?  It seems that a few people are
+> > needing it.
+> 
+> Perhaps we should address the MTRR issue first.
+> 
+> I've had code in Suspend2 for quite a while (6 months+) that removes the
+> sysdev support for MTRRs and saves and restores them with CPU context,
+> thereby avoiding the smp_call-while-interrupts-disabled issue. Perhaps
+> it would be helpful here?
 
-So you have some more changes? Can I get a monolithic patch to try, when
-you're ready?
+This seems like separate issue... I'd prefer not to block this patch.
 
-Thanks!
+MTRRs should be probably handled by some kind of "cpu is going down"
+and "cpu is going up" callbacks... Zwane, do you have any ideas?
+Linklist of handlers should be enough...
 
-Nigel
+								Pavel
 -- 
-Nigel Cunningham
-Software Engineer, Canberra, Australia
-http://www.cyclades.com
-Bus: +61 (2) 6291 9554; Hme: +61 (2) 6292 8028;  Mob: +61 (417) 100 574
-
-Maintainer of Suspend2 Kernel Patches http://suspend2.net
-
-
-
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+Boycott Kodak -- for their patent abuse against Java.
