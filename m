@@ -1,18 +1,18 @@
 From: Paul Ionescu <paul-f7LjuT9/YZU@public.gmane.org>
 Subject: Re: [RFC] filling in ACPI files in sysfs
-Date: Sat, 10 Apr 2004 13:03:34 +0300
+Date: Sat, 10 Apr 2004 14:36:01 +0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1081591413.23299.13.camel@t40>
+Message-ID: <1081596961.23299.24.camel@t40>
 References: <1081373781.23176.30.camel@t40>
 	 <1081376023.2748.15.camel@patsy.fc.hp.com>
 	 <20040408172548.GH18329@parcelfarce.linux.theplanet.co.uk>
-	 <1081445594.2747.8.camel@patsy.fc.hp.com>  <1081536801.26073.120.camel@t40>
-	 <1081537175.2694.11.camel@patsy.fc.hp.com>
+	 <1081445594.2747.8.camel@patsy.fc.hp.com>  <1081536489.23178.113.camel@t40>
+	 <1081537087.2694.8.camel@patsy.fc.hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1081537175.2694.11.camel-Wmjt7DDUnIVxnVILBQAtiA@public.gmane.org>
+In-Reply-To: <1081537087.2694.8.camel-Wmjt7DDUnIVxnVILBQAtiA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -26,42 +26,54 @@ List-Id: linux-acpi@vger.kernel.org
 
 Hi Alex,
 
-You are right, I have:
-/sys/bus/pci/slots/4294967295 # find .
-.
-./test
-./cur_bus_speed
-./max_bus_speed
-./address
-./adapter
-./latch
-./attention
-./power
+I found this in scan.c:
+/*
+ * If the device is present, enabled, and functioning then
+ * parse its scope (depth-first).  Note that we need to
+ * represent absent devices to facilitate PnP notifications
+ * -- but only the subtree head (not all of its children,
+ * which will be enumerated when the parent is inserted).
+ *
+ * TBD: Need notifications and other detection mechanisms
+ *      in place before we can fully implement this.
+ */
 
-When I boot in dock, the value of power and adapter is 1, when I boot
-normaly, I have 0 in those files.
-Now, I booted in DOCK, and I did an echo 0 > power, and surprise, it did
-an electromechanicaly eject of dock !!!.
-Anyway, echo-ing 1 again, does nothing for me. I expected to power the
-pci slot again and find the coresponding device in there.
-So, thanks for the tips, now I get back to playing with apci.
+This can be the reason I don't see the subdevices in DOCK but only the
+DOCK, when the dock is not active. So till someone does the TBD, this is
+the normal behaviour, ie subdevices don't show up unless the parent is
+active at scan time.
 
-Paul
+What do you think ?
 
 
-On Fri, 2004-04-09 at 21:59, Alex Williamson wrote:
-> On Fri, 2004-04-09 at 12:53, Paul Ionescu wrote:
-> > I also have an ACPI hotplug PCI slot in the laptop, because when I
-> > insert acpiphp.ko module, it sais that it found and registered a slot.
-> > Now, where do I find some info about that slot, or how can I play with
-> > it ? I suppose it is the PCI slot from my dock.
-> > I could not find any info about it in /proc or /sys.
-> > Is there a standard name I should look for ?
+
+On Fri, 2004-04-09 at 21:58, Alex Williamson wrote:
+> On Fri, 2004-04-09 at 12:48, Paul Ionescu wrote:
+> > Hi Alex,
+> > 
+> > Do you have any ideea why I don't have IDE1, CBS2 and CBS3 in the tree
+> > even if they are present in the DSDT ?
+> > They appear only when I boot in the dock.
 > 
+>    No, I don't.  You can try adding chunks of code like this in the scan
+> file:
 > 
->    PCI hotplug slots registered via the ACPI hotplug driver show up
-> under /sys/bus/pci/slots.  There are a few things you can do w/ it via
-> that interface.
+> {
+>         char pathname[ACPI_PATHNAME_MAX] = {0};
+>         struct acpi_buffer buffer = {0, NULL};
+>         buffer.length = sizeof(pathname);
+>         buffer.pointer = pathname;
+>         acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
+>         printk("%s() - [%s]\n", __FUNCTION__, pathname);
+> }
+> 
+> *Fix the handle pointer to be appropriate, everything else should be
+> self contained
+> 
+> I'd start with adding it inside the while loop at the top of 
+> drivers/acpi/scan.c:acpi_bus_scan().  It's possible it's in the DSDT,
+> but not activated for some reason.  I'll be interested to hear why it's
+> not showing up.  Thanks,
 > 
 > 	Alex
 
