@@ -1,15 +1,14 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Subject: Re: Bad interaction between ehci-hcd and acpi?
-Date: Mon, 01 Mar 2004 22:47:29 +0000
+From: "Ow Mun Heng" <ow.mun.heng-Sjgp3cTcYWE@public.gmane.org>
+Subject: RE: ACPI PM Timer
+Date: Tue, 2 Mar 2004 09:29:29 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1078181249.3511.5.camel@darkstar>
-References: <200403011708.i21H87b06973@ayesha.phys.Virginia.EDU>
-Reply-To: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
+Message-ID: <C386328088ED7F4E9F81AFBABDDF60DA045C6E45@wdmyexch02.my.asia.wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
+Content-Type: text/plain;
+	charset="US-ASCII"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200403011708.i21H87b06973-j2wAk2T2zOxQaOoIv/cCD/2DmoZIrT0C@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,31 +17,48 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: bryan-utW8kV9oO443r0Ub5QXD9Q@public.gmane.org
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, bryan-j2wAk2T2zOxQaOoIv/cCD/2DmoZIrT0C@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2004-03-01 at 17:08, Bryan K. Wright wrote:
-> 	Here are the configuration details:
-> Kernel 2.4.21 (vanilla) with the acpi-20030619-2.4.21.diff patch.
-> Sharp PC-AV18 laptop (KN266, Athlon XP-M 1800+)
-> Tested with two different models of Epson scanner, and with two different
-> brands of external USB disks.
 
+
+> -----Original Message-----
+> From: Bruno Ducrot [mailto:ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org]
+> Sent: Tuesday, March 02, 2004 1:39 AM
+> To: Nate Lawson
+> Cc: Grover, Andrew; Dominik Brodowski; john stultz;
+> acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: Re: [ACPI] ACPI PM Timer
 >=20
-> 	Has anybody else seen similar symptoms?
+>=20
+> On Sat, Feb 28, 2004 at 05:48:07PM -0800, Nate Lawson wrote:
+> > On Tue, 24 Feb 2004, Grover, Andrew wrote:
+> > > So 2.6.4 will support the option of using the PM timer as the main
+> > > kernel timesource!
+> > >
+> > > This is great. This has been on my personal wish list=20
+> for, oh, about 4
+> > > years now. I just wanted to say thanks to Dominik, John,=20
+> and Dmitry for
+> > > making it happen.
+> > >
+> > > Regards -- Andy
+> >=20
+> > Welcome to the club!  :)
+> >=20
+>=20
+> Well, it seems to be a little more 'basic' than the one on the FreeBSD
+> in fact.
 
-yes we had this symptoms when we work with that kernel(2.4.21) after 4
-release 2.4.25 I don't remember any complain.
-Please upgrade you kernel to last one, and test it again .
 
+I know this is bad form(to ask twice).. but...=20
+What is this ACPI PM timesource?
+
+Since I have this "TSC cannot be used as a timesource" when running =
+battery.
+
+(refer other post with this subject line)
 =20
->=20
-> 						Thanks,
-> 						Bryan
---=20
-S=E9rgio M. B.
-
 
 
 -------------------------------------------------------
