@@ -1,13 +1,11 @@
-From: Philipp Wollermann <phil_wo-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Battery Status on Acer Extensa 4101
-Date: Tue, 22 Mar 2005 11:14:19 +0100
-Message-ID: <200503221114.22874.phil_wo@gmx.net>
+From: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>
+Subject: Suspend 2 ram gone with latest bk-acpi patch
+Date: Tue, 22 Mar 2005 13:09:45 +0100
+Message-ID: <20050322120945.GB5917@gamma.logic.tuwien.ac.at>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart2500979.j3u5J3ZePC";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,63 +18,65 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
---nextPart2500979.j3u5J3ZePC
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Hi ACPI developers!
 
-Hello again,
+I am using suspend to ram successfully wiht 2.6.11-mm4 and prior
+incarnations, but since 2.6.12-rc1-mm1 the laptop does not wake up after
+suspend to ram. With 2.6.11-mm4 it is still working with exactely the
+same setup.
 
-well - no one replied to my last mail, so I'll post again with the current=
-=20
-status. :-) The ACPI errors on boot continue to appear, however the only=20
-thing which isn't working is to get the status of the battery. I can see it=
-=20
-in /proc/acpi/battery/BAT1/state but it says:
+I unload the whole usb stuff (otherwise 2.6.11-mm4 won't work) and do
+exactely the same.
 
-# cat /proc/acpi/battery/BAT1/state
-present:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0yes
-ERROR: Unable to read battery status
+The differences in the kernel config files are trivial:
 
-I tried to use the sbs-cm patches but they don't apply to my DSDT (actually=
-,=20
-the DSDT doesn't even compile with the IASL without any patches. :-(). I th=
-en=20
-tried to use the program smartbatt which only needs a small kernel patch=20
-(acpi-ec-2.6.10.diff which applies cleanly to my 2.6.11.3) and then tries t=
-o=20
-access the battery using i2c. However there are no i2c busses detected!
+new stuff I answered with yes:
++CONFIG_ACPI_HOTKEY=3Dy
++CONFIG_PCMCIA_IOCTL=3Dy
++CONFIG_AOE_PARTITIONS=3D16
 
-bash-2.05b# ./smartbattery
-Error: No i2c-bus specified!
-Syntax: smartbatt I2CBUS
-Error: No I2C busses found!
-Be sure you have done 'modprobe i2c-dev'
-and also modprobed your i2c bus drivers
+stuff that has automatically changed (changed Kconfig I suppose)
+-CONFIG_FW_LOADER=3Dm
++CONFIG_FW_LOADER=3Dy
 
-I did load the modules of course. Does anyone have an idea how I could get =
-the=20
-state of my battery?
+and some modules I compiled but not use/load.
 
-Philipp
+With 2.6.12-rc1-mm1 the system starts, then nothing, black screen, no
+CapsLock light, no Sysrq, no sync hard disk led activity, just plane
+frozen.
 
---nextPart2500979.j3u5J3ZePC
-Content-Type: application/pgp-signature
+I suspect that this is related to the big changes in ACPI code (I am
+also seeing a lot of new messages while booting from the ACPI subsystem
+like:
+ACPI: Can't get handler for 0000:00:00.0
+ACPI: No ACPI bus support for 00:01
+ACPI: No ACPI bus support for 1-0:1.0
+etc
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.0 (GNU/Linux)
+Can you confirm that this may be the cause of the recent problems, and
+what kind of tests can I make to confirm it?
 
-iD8DBQBCP+/+KB6x+iNJiAgRAkNyAJ9khHE5c66xQ92b3szLXf+2iced7wCcCDXX
-s2NewschjEXopQfDi73fRL0=
-=jf5z
------END PGP SIGNATURE-----
+Thanks a lot and all the best
 
---nextPart2500979.j3u5J3ZePC--
+Norbert
+
+-------------------------------------------------------------------------=
+------
+Norbert Preining <preining AT logic DOT at>                 Universit=E0 =
+di Siena
+sip:preining-5G14tY4QmKiDqU6vP1vexV6hYfS7NtTn@public.gmane.org                             +43 (0) 59966-=
+690018
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C=
+5 B094
+-------------------------------------------------------------------------=
+------
+ULLAPOOL (n.)
+The spittle which builds up on the floor of the Royal Opera House.
+			--- Douglas Adams, The Meaning of Liff
 
 
 -------------------------------------------------------
 SF email is sponsored by - The IT Product Guide
 Read honest & candid reviews on hundreds of IT Products from real users.
 Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+http://ads.osdn.com/?ad_id=3D6595&alloc_id=3D14396&op=3Dclick
