@@ -1,133 +1,60 @@
-From: Dominik Brodowski <linux@dominikbrodowski.de>
-Subject: [PATCH] disable SMM access to SpeedStep using ACPI-FADT pstate_cnt
-Date: Sun, 15 Feb 2004 11:57:12 +0100
-Sender: cpufreq-bounces@www.linux.org.uk
-Message-ID: <20040215105712.GB6105@dominikbrodowski.de>
+From: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
+Subject: CUR-DLS blacklisted? + IRQ trouble
+Date: Sun, 15 Feb 2004 14:29:17 +0000
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <402F823D.6070702@mega.ist.utl.pt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk>
-Content-Disposition: inline
-List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@www.linux.org.uk?subject=unsubscribe>
-List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq>
-List-Post: <mailto:cpufreq@www.linux.org.uk>
-List-Help: <mailto:cpufreq-request@www.linux.org.uk?subject=help>
-List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@www.linux.org.uk?subject=subscribe>
-Errors-To: cpufreq-bounces+glkc-cpufreq=gmane.org@www.linux.org.uk
-To: len.brown@intel.com, acpi-devel@lists.sourceforge.net, cpufreq@www.linux.org.uk
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Disable SMM access to SpeedStep
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Often, the BIOS changes the CPU frequency if a notebook is (dis)connected
-from its AC adapter. This interferes with a) an user setting the CPU frequency
-and b) kernel timing code which needs to know loops_per_jiffy, cpu_khz etc.
+hi everyone,
 
-So, ACPI 2.0 offers a method to disable such BIOS changes -- writing
-a value contained in the FADT (pstate_cnt) to the smi_cmd port. This patch
-utilizes this method by doing this write in processor.c.
+i have two questions to which i haven't found answers anywhere, so i am
+asking here.
 
-However, most current notebooks only offer 1.0 ACPI tables, where the
-pstate_cnt entry is marked as "reserved". Whenever there is a _PCT entry
-in the DSDT, though [and this is only a 2.0 object!], we assume the
-"reserved" entry to be the pstate_cnt entry [if it isn't zero].
+- - i have an ASUS CUR-DLS motherboard (dual P3) and the 2.4 and 2.6
+kernels both say: "ASUS CUR-DLS detected: force use of acpi=ht" when
+starting disabling ACPI. i must do a acpi=force in order to be able to
+use it, which consequences i don't know. i looked through the acpi
+documentation and this board is NOT on the blacklist. i am asking why
+does the kernel disable ACPI on my mb by default? what's wrong with it?
+are there any known problems?
 
- drivers/acpi/processor.c       |   61 +++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/tables/tbconvrt.c |    5 ++-
- 2 files changed, 64 insertions(+), 2 deletions(-)
+- - on the same machine, i have 2 nics. one of them is onboard (intel
+eepro/100) and the other is a realtek 8139. they used to work ok with
+some versions of the kernel, but now they only work together without
+ACPI. with acpi, the realtek displays the famous SIOCIFADDR "device is
+busy...". is this normal? what can be happening here?
 
-diff -ruN linux-original/drivers/acpi/processor.c linux/drivers/acpi/processor.c
---- linux-original/drivers/acpi/processor.c	2004-02-13 17:09:59.000000000 +0100
-+++ linux/drivers/acpi/processor.c	2004-02-15 11:02:40.103481944 +0100
-@@ -2374,6 +2374,65 @@
- }
- 
- 
-+#ifdef CONFIG_CPU_FREQ
-+/*
-+ * acpi_processor_disable_smm - disable BIOS meddling with SpeedStep settings
-+ *
-+ * By writing pstate_cnt to smi_cmd the BIOS no longer interferes with
-+ * the P-States setting of the processor.
-+ */
-+static void acpi_processor_disable_smm(void) {
-+	acpi_status		status;
-+	int			i;
-+
-+	ACPI_FUNCTION_TRACE("acpi_processor_disable_smm");
-+
-+	/* Can't write pstate_cnt to smi_cmd if either value is zero 
-+	 */
-+	if ((!acpi_fadt.smi_cmd) ||
-+	    (!acpi_fadt.pstate_cnt)) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
-+			"No SMI port or pstate_cnt\n"));
-+		return_VOID;
-+	}
-+
-+	/* Don't write pstate_cnt to smi_cmd if there is no support for
-+	 * P-States anyway. This is also a safety precaution for ACPI-1.0
-+	 * systems.
-+	 */
-+	for (i=0;i<NR_CPUS;i++) {
-+		struct acpi_processor	*pr = processors[i];
-+		acpi_handle		handle = NULL;
-+
-+		if (!pr || !pr->handle)
-+			continue;
-+
-+		status = acpi_get_handle(pr->handle, "_PCT", &handle);
-+		if (ACPI_FAILURE(status)) {
-+			ACPI_DEBUG_PRINT((ACPI_DB_INFO, 
-+				"No _PCT available, so ignore pstate_cnt"));
-+			return_VOID;
-+		}
-+		break;
-+	}
-+
-+	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Writing pstate_cnt [0x%x] to smi_cmd [0x%x]\n", acpi_fadt.pstate_cnt, acpi_fadt.smi_cmd));
-+
-+	status = acpi_os_write_port (acpi_fadt.smi_cmd,
-+					(u32) acpi_fadt.pstate_cnt, 8);
-+	if (ACPI_FAILURE (status))
-+		ACPI_DEBUG_PRINT((ACPI_DB_ERROR,
-+				"Failed to write pstate_cnt [0x%x] to "
-+				"smi_cmd [0x%x]\n", acpi_fadt.pstate_cnt, acpi_fadt.smi_cmd));
-+
-+	return_VOID;
-+}
-+
-+#else
-+static void acpi_processor_disable_smm(void) { return; }
-+#endif
-+
-+
- static int __init
- acpi_processor_init (void)
- {
-@@ -2398,6 +2457,8 @@
- 
- 	acpi_processor_ppc_init();
- 
-+	acpi_processor_disable_smm();
-+
- 	return_VALUE(0);
- }
- 
-diff -ruN linux-original/drivers/acpi/tables/tbconvrt.c linux/drivers/acpi/tables/tbconvrt.c
---- linux-original/drivers/acpi/tables/tbconvrt.c	2004-02-13 17:09:59.000000000 +0100
-+++ linux/drivers/acpi/tables/tbconvrt.c	2004-02-15 08:12:16.000000000 +0100
-@@ -240,9 +240,10 @@
- 	/*
- 	 * Processor Performance State Control. This is the value OSPM writes to
- 	 * the SMI_CMD register to assume processor performance state control
--	 * responsibility. There isn't any equivalence in 1.0, leave it zeroed.
-+	 * responsibility. There isn't any equivalence in 1.0, but as many 1.x
-+	 * ACPI tables contain _PCT and _PSS we also keep this value.
- 	 */
--	local_fadt->pstate_cnt = 0;
-+	/* local_fadt->pstate_cnt = 0 (reserved2) */
- 
- 	/*
- 	 * Support for the _CST object and C States change notification.
+thanks for your time.
+regards,
+pedro.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.1 (MingW32)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+
+iD8DBQFAL4I9eRy7HWZxjWERAl2jAJ9RTPnvBG2dkUuyAeCKunGPXppAJACgyNWc
+6dcQRdyMzFUpnr+nZXwwJmM=
+=Zyfj
+-----END PGP SIGNATURE-----
+
+
+-------------------------------------------------------
+SF.Net is sponsored by: Speed Start Your Linux Apps Now.
+Build and deploy apps & Web services for Linux with
+a free DVD software kit from IBM. Click Now!
+http://ads.osdn.com/?ad_id=1356&alloc_id=3438&op=click
