@@ -1,52 +1,41 @@
 From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: [PATCH] s4bios for 2.5.59 + apci-20030123
-Date: Thu, 6 Feb 2003 21:56:08 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030206205608.GV1205@poup.poupinou.org>
-References: <20030131173904.GA3240@poup.poupinou.org> <20030205014041.GA27937@srcf.ucam.org>
+Subject: Re: [ACPI] Re: [PATCH] s4bios for 2.5.59 + apci-20030123
+Date: Thu, 6 Feb 2003 22:05:42 +0100
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <20030206210542.GW1205@poup.poupinou.org>
+References: <F760B14C9561B941B89469F59BA3A847137FFE@orsmsx401.jf.intel.com> <20030204221003.GA250@elf.ucw.cz> <1044477704.1648.19.camel@laptop-linux.cunninghams> <20030206101645.GO1205@poup.poupinou.org> <1044560486.1700.13.camel@laptop-linux.cunninghams>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20030205014041.GA27937-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <1044560486.1700.13.camel-udXHSmD1qAz9bBlWBkG5g4WQyAnV0byH@public.gmane.org>
+To: Nigel Cunningham <ncunningham-oKK1aGe2n869koe0gwxAeg@public.gmane.org>
+Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Feb 05, 2003 at 01:40:41AM +0000, Matthew Garrett wrote:
-> On Fri, Jan 31, 2003 at 06:39:04PM +0100, Ducrot Bruno wrote:
+On Fri, Feb 07, 2003 at 08:41:27AM +1300, Nigel Cunningham wrote:
+> On Thu, 2003-02-06 at 23:16, Ducrot Bruno wrote:
+> > On Thu, Feb 06, 2003 at 09:41:44AM +1300, Nigel Cunningham wrote:
+> > > Whether its slower depends on the hardware; on my 128MB Celeron 933
+> > > laptop (17MB/s HDD), I can write an image of about 120MB, reboot and get
+> > > back up and running in around a minute and a half. That's about the same
+> > > as far as I remember, but has (as you say) the advantage of not still
+> > > having to get things swapped back in.
+> > 
+> > The problem is the speed of the suspending process, not the whole suspend/resume
+> > sequence,  especially in case of emergency suspending due to thermal condition,
+> > etc.
 > 
-> Hi Ducrot,
-> 
-> > This is the 'minimal' requirement.  Some devices (especially the
-> > IDE part) are not well resumed.  Handle with care..
-> 
-> Using this patch (on top of 2.5.59 and acpi 20030123), echo 4b 
-> >/proc/acpi/sleep results in the system freezing all of the processes 
-> and then resetting itself without any state change. This is an IBM 
-> Thinkpad 240x which claims to support S4Bios, and I have the appropriate 
-> partition. Would it be worth me enabling debugging and hooking up a 
-> serial console?
-> 
+> Sorry. Perhaps I should have been clearer. I haven't spent a lot of time
+> doing timings, but there doesn't seem to be any significant difference.
+> In both versions, the amount of time varies with the amount of memory in
 
-Strange.  What say dmesg?
+Ah ok.  I understand now.  S4bios is completely different from swsusp.
+It's just as if we were comparing APM suspend-to-disk and swsusp (and no, S4bios
+is *not* APM suspend-to-disk either).
 
 -- 
 Ducrot Bruno
 
 --  Which is worse:  ignorance or apathy?
 --  Don't know.  Don't care.
-
-
--------------------------------------------------------
-This SF.NET email is sponsored by:
-SourceForge Enterprise Edition + IBM + LinuxWorld = Something 2 See!
-http://www.vasoftware.com
