@@ -1,14 +1,25 @@
-From: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: APM, ACPI and DPMS question
-Date: Thu, 16 Sep 2004 09:51:29 +0800
+From: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Subject: Re: [Lhms-devel] Re: [PATCH] ACPI based Memory Hotplug Driver
+ Patch
+Date: Thu, 16 Sep 2004 11:51:11 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1095299489.11668.99.camel@neuromancer.home.net>
-References: <4146E980.8040501@kn.vutbr.cz>
+Message-ID: <20040916115111.72bc9222.tokunaga.keiich@jp.fujitsu.com>
+References: <FEB6C4E97F6CAF41978FB2059D5454180F37E8@bgsmsx402.gar.corp.intel.com>
+ <20040910230200.73eb0374.tokunaga.keiich@jp.fujitsu.com>
+ <1094837554.32531.1997.camel@nighthawk>
+ <20040913172318.791db349.tokunaga.keiich@jp.fujitsu.com>
+ <1095064865.4671.5.camel@localhost>
+ <20040914115844.1e12203d.tokunaga.keiich@jp.fujitsu.com>
+ <1095135104.10726.8.camel@localhost>
+ <20040914182956.49c9381d.tokunaga.keiich@jp.fujitsu.com>
+ <1095181936.3686.29.camel@localhost>
+ <20040915090827.7f86a54f.tokunaga.keiich@jp.fujitsu.com>
+ <1095207455.12864.30.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <4146E980.8040501-nd92eFGgBBntwjQa/ONI9g@public.gmane.org>
+In-reply-to: <1095207455.12864.30.camel@localhost>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,40 +28,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Dave Hansen <haveblue-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Cc: tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org, naveen.b.s-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, matthew.e.tolentino-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lhms-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, jschopp-V7BBcbaFuwjMbYB6QlFGEg@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2004-09-14 at 20:52, Jan Bernatik wrote:
-> Hi,
+On Tue, 14 Sep 2004 17:17:35 -0700 Dave Hansen wrote:
+> On Tue, 2004-09-14 at 17:08, Keiichiro Tokunaga wrote:
+> > Please let me make sure one thing.
+> > Is this what you have in mind?
+> > 
+> >   /sys/devices/system/memory/  -->  physical layout
+> >   /sys/devices/system/logical/memory/  -->  hotplug controls
 > 
-> I'm studying ACPI, and I found that:
+> Yeah, something like that.  
 > 
-> ----------------------------------------------------------------------
-> You should also be aware of another little glitch I discovered. The 
-> XFree86 server has an option for DPMS (Energy Star) features. The DPMS 
-> can states can be one of standby, suspend, off or on. Since the 2.4.x 
-> kernels cannot suspend to disk, this can cause problems.
-> ----------------------------------------------------------------------
+> > By the way, I'm not sure what the 'hotplug controls' are.  Can you
+> > be more specific about them?
+> 
+> That's the place where Linux presents each memory section as well as the
+> 'status' file so that each section may be added or removed from sysfs.
 
-I may be mistaken but.. I think I managed to get a 2.4 kernel on RH9
-days to suspend to disk properly.
+Thanks.  Adding/removing directories of memsection from sysfs as
+needed sounds nice to me:)
 
-DPMS also works. Perhaps someone else can remember it much better.
-> source: http://www.tldp.org/HOWTO/ACPI-HOWTO/daemons.html
-> 
-> I really doesn't understand this. I thought it's just about monitor 
-> energy, so please could somebody just roughly explain this ?
-> 
-> thanks, have a nice day
-> 
-> Jan Bernatik
+Okay, as a first try, I will be making a patch creating the directory
+'/sys/firmware/acpi/memory/' and some entries.
 
--- 
-Ow Mun Heng
-Fedora GNU/Linux Core 2 on D600 1.4Ghz CPU kernel
-2.6.7-2.jul1-interactive 
-Neuromancer 09:50:41 up 1 day, 34 min, 7 users, load average: 1.83,
-1.21, 1.19 
+Thanks,
+Keiichiro Tokunaga
 
 
 -------------------------------------------------------
