@@ -1,14 +1,14 @@
-From: Christian Vogel <vogel-ohJTLb+lN0D2l3tELKL2klGCwAZxyiatZ+vKCSbpVNE@public.gmane.org>
-Subject: Re: Thinkpad users
-Date: Mon, 13 Jan 2003 14:52:33 +0100
+From: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
+Subject: Re: performance mgt and sleep don't work on Acer TM621
+Date: Mon, 13 Jan 2003 15:07:31 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030113145233.A32723@skunk.physik.uni-erlangen.de>
-References: <200301110231.56806.dom@wahuu.at>
+Message-ID: <20030113140731.GA7365@brodo.de>
+References: <200301131416.14923.mrvanes@bigfoot.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200301110231.56806.dom-K271P2BsTd0@public.gmane.org>; from dom-K271P2BsTd0@public.gmane.org on Sat, Jan 11, 2003 at 02:31:56AM +0100
+In-Reply-To: <200301131416.14923.mrvanes-jG/AHqQBv7lBDgjK7y7TUQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,29 +17,50 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dominik Bartenstein <dom-K271P2BsTd0@public.gmane.org>
+To: Martin van Es <mrvanes-jG/AHqQBv7lBDgjK7y7TUQ@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Dominik,
+Hi,
 
-> o How many Thinkpad users are out there (or on this mailing list ;-)) craving 
-> for ACPI support under Linux?
+On Mon, Jan 13, 2003 at 02:16:14PM +0100, Martin van Es wrote:
+>  Recently I started experimenting with the 'write' interface and tried to
+>  get the performance of my coppermine PIII 1G to switch from 1G to 733MHz
+>  or vise versa using
+>  echo -n 1 > /proc/acpi/CPU0/performance
+>  
+>  But both 'cat'ing performance to see what happened and running bogomips
+>  show my processor is still running @ 1GHz. It is also the other way round.
+>  Once booted at 733MHz (because of absence of AC adapter) it cannot be forced
+>  into 1G, even with AC attached.
+>  
+>  Info tells me performance management is available:
+>  cat /proc/acpi/processor/CPU0/info:
+>  processor id:            0
+>  acpi id:                 1
+>  bus mastering control:   yes
+>  power management:        yes
+>  throttling control:      no
+>  performance management:  yes
+>  limit interface:         yes
+>  
+>  cat /proc/acpi/processor/CPU0/performance:
+>  state count:             2
+>  active state:            P0
+>  states:
+>     *P0:                  1000 MHz, 20000 mW, 500 uS
+>      P1:                  733 MHz, 10000 mW, 500 uS
+>  
+>  Am I doing something wrong? Forgot to compile in something?
 
-I'm actually quite satisfied with ACPI on a Thinkpad 600X.
+Have you compiled CONFIG_ACPI_DEBUG in? Are there any "strange" messages in
+"dmesg" after you try such a frequency transition? 
 
-It was nearly unuseable without ACPI (random hangs) or with
-original 2.4-Kernel ACPI (fan would not switch on when CPU
-was getting hot) but it works ok with 2.4+ACPI-20021122.
+BTW, if this is an Intel mobile processor and an Intel southbridge (ICH2-M 
+or ICH3-M), you might want to try cpufreq instead 
+( http://www.brodo.de/cpufreq/advanced.html ).
 
-The only thin that remains is that it boots with ACPI disabled
-in about 5% of all cases... which would be nice if IBM would fix it.
-(assuming that Linux-ACPI is working ok).
-
-        Chris
-
--- 
-The mail system of the gods: mutt/procmail/vi
+	Dominik
 
 
 -------------------------------------------------------
