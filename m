@@ -1,14 +1,12 @@
-From: sjb <ottaky-XuTx12Z7TonQT0dZR+AlfA@public.gmane.org>
-Subject: Re: iasl
-Date: Fri, 09 May 2003 17:56:29 +0000
+From: roychris-GANU6spQydw@public.gmane.org
+Subject: Re: custom dsdt with 2.5
+Date: Fri, 09 May 2003 19:35:08 +0200 (CEST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3EBBEBCD.8090408@ottaky.com>
-References: <3EBA7BE0.5070200@ottaky.com> <20030509133703.GH2954@poup.poupinou.org> <3EBBD495.7050104@ottaky.com> <20030509154224.GK2954@poup.poupinou.org>
+Message-ID: <1052501708.3ebbe6ccf3454@imp.free.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030509154224.GK2954-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,57 +15,58 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
+
+Bruno, your patch is rejected by the 2.5.69. But thanks to your help, it's
+working now. I can use my custom dsdt.
+But my problem is not solve. When I try the 3 sleep state, all my peripherics
+are shutted down (but I don't have the sleep LED on), but when I want to resume,
+only the cdrom wakes up ! And when I try the 4 state, after the driver frees the
+memory, I have a very fast (too fast to read it) message that is indefinitively
+repeated. I think that it's a dump mem (something like kernel panic maybe).
+
+How can I have this message ?
+Does anyone have the same troubles ?
 
 Ducrot Bruno wrote:
 
-> It should be
-> 
-> 	If(\_OSI("Windows 2001")) {
-> 
-> and you may have to add:
-> extern (\_OSI)
-> (but I am not sure if it is OK with latest iasl).
-> 
-> BTW, could you try 'iasl -d mydsdt' in order to disassemble your DSDT, and
-> check if 'If (\_OSI ("Windows 2001"))' is correct ?
-
-I did and it appears to produce better output than acpidump ...
-
-It decompiled that "Windows 2001" line correctly as
-
-                 If (\_OSI ("Windows 2001"))
-                 {
-                     Store (0x04, OSTP)
-                 }
-
-I fixed the "AnyAcc" error, and now all I see is ..
-
-ottaky@vaio:~/acpi> ./iasl -tc dsdt.dsl
-
-Intel ACPI Component Architecture
-ASL Optimizing Compiler / AML Disassembler version 20030424 [May  7 2003]
-Copyright (C) 2000 - 2003 Intel Corporation
-Supports ACPI Specification Revision 2.0b
-
-dsdt.dsl  1902:                 Field (PIUC, DWordAcc, Lock, Preserve)
-Error    1047 -                           ^ Access width is greater than 
-region size
-
-ASL Input:  dsdt.dsl - 3047 lines, 101035 bytes, 1552 keywords
-
-The OperationRegion line reads ..
-
-                 OperationRegion (PIUC, PCI_Config, 0x74, 0x01)
-
-Does that provide enough info?
-
-Thanks for helping out BTW *8-)
-
-sjb
-
+>On Fri, May 09, 2003 at 05:09:12PM +0200, roychris wrote:
+>
+>>I changed by hand the osl.c of the kernel 2.5. I can send you a diff if 
+>>you want. This is the few lines I changed :
+>>
+>>#include "/my/home/dsdt.hex"
+>>
+>>and
+>>
+>>*new_table = (struct acpi_table_header *) AmlCode;
+>>
+>
+>*ALL* acpi tables will be passed to acpi_table_override().  Therefore,
+>the RSDT table have been replaced by the table that you have provided.
+>Since that is not what you want (RSDT is not DSDT), the ACPI subsystem
+>can not work properly.
+>
+>Do something like this:
+>
+>	*new_table = NULL;
+>
+>	if (!strncmp((strncmp(existing_table->signature, DSDT_SIG, 4))))
+>		*new_table = (struct acpi_table_header *) AmlCode;
+>
+>
+>BTW, I don't see any reason why you have to patch by hand osl.c and you don't
+>use acpi-custom-DSDT.patch instead.
+>Really, it look good for me.  What say
+>
+>$ patch -p1 -i /path/to/acpi-custom-DSDT.patch
+>in the linux-2.5.69 directory ?
+>
+>
+>Cheers,
+>
 
 
 -------------------------------------------------------
