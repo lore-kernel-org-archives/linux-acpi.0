@@ -1,14 +1,12 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: ACPI on hp Tablet TC1100
-Date: Fri, 25 Mar 2005 04:11:26 +0000
-Message-ID: <1111723887.11677.33.camel@tyrosine>
-References: <Pine.LNX.4.58.0503241657510.4376@dashnine>
-	 <1111704587.11677.27.camel@tyrosine>
-	 <Pine.LNX.4.58.0503241901440.4867@dashnine>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: HP-Compaq nx9110 laptop
+Date: Fri, 25 Mar 2005 09:18:15 +0100
+Message-ID: <20050325081815.GB17245@elf.ucw.cz>
+References: <200503231156.47279.wacky@bourget.cc>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <Pine.LNX.4.58.0503241901440.4867@dashnine>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <200503231156.47279.wacky-kjdgaHvQH9ajKv3TNrM5DQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,37 +16,57 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Alexandre B <wacky-kjdgaHvQH9ajKv3TNrM5DQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2005-03-24 at 19:24 -0500, Joshua Wise wrote:
+Hi!
 
-> With those two, I get my console back after resuming, but no USB. If I had
-> actually remembered to plug the access point back in, I'm pretty sure
-> wireless would work.
+> I've acquired an HP-Compaq nx9110 laptop recently and I tested everything and 
+> found most of the parts working correctly .. sometimes with non-free drivers, 
+> sometimes otherwise.
+> 
+> One thing still pending to work is the sleep/suspend/resume function. I 
+> crawled the web for a while.. found the ACPI DSDT repository and tried 
+> fiddling with the DSDT. I fixed a bug in it.. replaced it in an initrd but 
+> that couldn't get the suspend/resume to work. I tried software suspend 2, but 
+> it hanged all the time. Now I compiled the kernel with ACPI debugging and 
+> tried:
+> 
+> echo 0xffffffff > /proc/acpi/debug_level
+> 
+> and watched what happened when I did:
+> 
+> echo 3 > /proc/acpi/sleep
+>   or
+> echo mem > /sys/power/state
+> 
+> or anything with these pseudo-files. The thing is I see absolutely nothing in 
+> the logs when I try these.. while when I close the laptop cover, a whole 
+> bunch of stuff appears in the logs about the LID triggering events. Isn't 
+> anything supposed to appear in the logs about ACPI when playing with these 
+> files ?
+> 
+> I read a howto somewhere.. and it recommended to step in this mailing list for 
+> suspend resume problems, since it seems it's still being developed. Is that 
+> right ?
+> 
+> I was wondering if anyone could guide me to a solution, or help out getting 
+> this to work.
+> 
+> Below are the outputs of:
+> dmidecode
+> lspci -vv
+> lsusb -vv
+> 
+> 
+> Thanks for any insights.
 
-Unload USB modules before suspend, and reload them after resume. You
-probably want to write a script to do this.
-
-> I guess I should try starting X and doing a susp/res from there as the
-> logical next step. Testing... Hangs up on resume, no wifi on resume... dunno
-> if that's an artifact of nvidia just being initialized (and hence hanging)
-> first, or what.
-
-Seriously, give up on the nvidia driver if you want working ACPI. It
-just doesn't work properly. If I had the source code I'd try to debug
-it, but, well...
-
-> By the way, I noticed you're on freenode IRC -- you might be intereted in
-> #acpi4linux, a channel presently consisting of, er, me, but hopefully soon
-> others. (Or is there an IRC chan elsewhere that I didn't otherwise know of?)
-
-Sounds like a good plan. I'm heading away for the weekend - I'll see
-about this next week.
-
+Try getting swsusp to work, first.
+								Pavel
 -- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
-
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
