@@ -1,7 +1,7 @@
-From: "Tomas Galindo" <tomas.galindo87-zS2xCpDNwCaJOZk8TUI7T1pr/1R2p/CL@public.gmane.org>
-Subject: Order Royal Replica Watches Online
-Date: Mon, 20 Dec 2004 00:12:26 -0600
-Message-ID: <4c9a01c4e65a$f07f6020$6d5048fc@arvalphh.co.uk>
+From: "Carmine K. Oneill" <carmine.oneill-4diaj04RHn7ELlIkcMXtpx7zO6W0bs8q@public.gmane.org>
+Subject: Order Rolex or other Swiss watches online
+Date: Mon, 20 Dec 2004 16:02:50 +0800
+Message-ID: <76c701c4e66a$6665915b$d2bac0fb@seol.net.au>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -19,22 +19,26 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Get the Finest Rolex Watch Replica!
+Heya,
 
-We only sell premium watches. There's no battery in these replicas just
-like the real ones since they charge themselves as you move. The second hand
-moves JUST like the real ones, too. These original watches sell in stores
-for thousands of dollars. We sell them for much less. 
+Do you want a rolex watch?
 
-- Replicated to the Smallest Detail
-- 98% Perfectly Accurate Markings 
-- Signature Green Sticker w/ Serial Number on Watch Back
-- Magnified Quickset Date
-- Includes all Proper Markings
+In our online store you can buy replicas of Rolex watches. They look
+and feel exactly like the real thing.
 
-Visit us: http://www.vanai.com/rep/rolx/
+- We have 20+ different brands in our selection
+- Free shipping if you order 5 or more
+- Save up to 40% compared to the cost of other replicas
+- Standard Features:
+ - Screw-in crown
+ - Unidirectional turning bezel where appropriate
+ - All the appropriate rolex logos, on crown and dial
+ - Heavy weight
 
-Christmas discount this week only! Make your order before the prices go up.
+Visit us: http://vanai.com/rep/rolex/
+
+Best regards,
+Hilton Jones
 
 
 No thanks: http://www.vanai.com/z.php
