@@ -1,11 +1,10 @@
-From: "Shauna K. Fuentes" <sfuentessi-/V8UyLfFpbJM3YmQoIpPTg@public.gmane.org>
-Subject: $33857
-Date: Tue, 06 Jul 2004 07:20:14 +0600
+From: =?big5?q?jospehchan?= <jospehchan-/E1597aS9LSnedCIQ9mT8A@public.gmane.org>
+Subject: Monitor cannot wake up from S3
+Date: Tue, 6 Jul 2004 19:11:02 +0800 (CST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <894801c462f7$33a964c9$44ce0348@bln.siemens.de>
+Message-ID: <20040706111102.76105.qmail@web16604.mail.tpe.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: text/plain; charset=big5
 Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -16,29 +15,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-I sent you an email a few days ago, because you now qualify for a new mortgage.
-You could get $300,000 for as little as $700 a month!
-Bad credit is no problem, you can pull cash out or refinance.
+Hi all,
+  I've tested the ACPI S3 function with 2.6.5 on my
+VIA CN400+VT8237 MB.
+  But it failed to resume from S3.
+  My OS is using FC2.
+  Any suggestion? Thanks in advanced.
+Joseph
 
-Please click on this link:
-http://www.yourloanz.com/s6/jwex.php?bks=71
-
-Best Regards,
-Steve Morris
-
-
-
-No more: http://www.yourloanz.com/r1/index.html
-
----- system information ----
-zh Japanese Cases description Presentation source able January 
-may dealing if important taking runtime existing header 
-designers even their additional result large fully Specifying 
-
+-----------------------------------------------------------------
+Yahoo!奇摩Messenger6.0
+信箱搭配即時通, 溝通樂趣無窮! 
+http://tw.messenger.yahoo.com/
 
 
 -------------------------------------------------------
