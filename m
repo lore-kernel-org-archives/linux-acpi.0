@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [2.6.1-rc1] no acpi event for ac_adapter?
-Date: Sun, 18 Jan 2004 10:39:04 +0800
+Subject: RE: [PATCH] 2.4/2.6 use xdsdt to print table header
+Date: Sun, 18 Jan 2004 10:41:18 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CDF@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CE0@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,16 +17,16 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jan De Luyck <lkml-gY0FE6dpLprYtjvyW6yDsg@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>
+Cc: linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+
+> indefinitely.  This is a generic ACPI issue for an system that chooses
+> to use the xdsdt in place of the dsdt.  It should be included in the
+> ACPI tree and pushed up from there.  Thanks,
 >=20
-> Hmm. What am I supposed to supply to this parameter? I've=20
-> just grepped through=20
-> the kernel sourcetree, but not much info as far as i can see ...
->=20
-You can find hint in your dsl file, (Just look for condition statement
-for Notify (\_SB.ACAD, 0x00))
+All right, I'll push this to Len.
 
 
 -------------------------------------------------------
