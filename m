@@ -1,13 +1,11 @@
-From: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
-Subject: Re: how to get Fn key working on compaq 2100/2110
-Date: Sun, 22 Jun 2003 12:35:45 +0200 (CEST)
+From: Ulrik Torben Buchholtz <ulrikb-hi6Y0CQ0nG0@public.gmane.org>
+Subject: ASUS M2400N - keventd overwhelmed with acpi interrupts
+Date: 22 Jun 2003 16:39:31 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.53.0306221235140.12423@tweety.gaugusch.at>
-References: <Law9-F42o8PqEtVUNfv00014bef@hotmail.com>
+Message-ID: <873ci29nx8.fsf@gmx.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Law9-F42o8PqEtVUNfv00014bef-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,22 +14,23 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Jun 22, David Cougle <dcougle-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org> wrote:
-> I read on another mailing list that acpi patch allowed fn key to work in
-> linux for another compaq, I was wondering if it's possible to get it to
-> work, since fn+ a few function keys has suspend, changing of brightness,
-> etc.
-So, what's your question? Have you tried the ACPI patch?
+Hi all.
 
-Markus
--- 
-__________________    /"\
-Markus Gaugusch       \ /    ASCII Ribbon Campaign
-markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org     X     Against HTML Mail
-                      / \
+I've got a few problems with ACPI on my ASUS M2400N. This is likely
+the same issue as in the unanswered post "keventd running wild on an
+asus m2400n" sent 2003-05-06 22:45. This is not happening in 2.5.72
+ACPI (but that kernel has other ACPI problems it seems).
+
+I've set up a page with more description as well as the DSDT table and
+dmesg's and config's at http://www.math.ku.dk/~m02utb/acpi/
+
+How can I solve this problem?
+
+TIA
+Ulrik Buchholtz
 
 
 -------------------------------------------------------
