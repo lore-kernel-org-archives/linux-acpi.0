@@ -1,16 +1,9 @@
-From: Andre Eisenbach <andre-+hZUvIEKc2q1Z/+hSey0Gg@public.gmane.org>
-Subject: Re: _PTS call hangs system
-Date: Fri, 17 Sep 2004 14:58:50 -0700
+From: sysadmin <sysadmin-6f16X9DS+irwFvmnSF3H0wiE/XJ0vlP8@public.gmane.org>
+Subject: Virus found in the mail
+Date: Mon, 20 Sep 2004 07:39:35 GMT
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200409171458.50843.andre@eisenbach.com>
-References: <6EDC9204B3704C4C8522539D5C1185E524462D@mssmsx403.ccr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Message-ID: <200409200739.i8K7dZZD055552@Thunder5.proview.com.cn>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <6EDC9204B3704C4C8522539D5C1185E524462D-g/v8ENnfjb4gGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -19,48 +12,17 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Starikovskiy, Alexey Y" <alexey.y.starikovskiy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Am Freitag 17 September 2004 04:08 schrieb Starikovskiy, Alexey Y:
-> >I may try to go throught the _PTS procedure next to figure out which
-> > call specifically hangs - if that is of any use?
->
-> I think Sleep(2000) is a main suspect here. That architecture are you
-> using? Is it 64 bit one?
 
-It's a AMD XP (32-bit).
+Information about the mail:
+The mail was sent from <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+The mail was sent to <xfy-i+DaQ0VHOiBtrwSWzY7KCg@public.gmane.org>
+The Subject of mail is Test
 
-I've tried it many times today and it crashes every time EXCEPT when I comment 
-out ALL lines in that S5 branch. As in, this works:
+Please check your system for viruses!!
 
-        If (LEqual (Arg0, 0x05))
-        {
-/*
-            Store (0x00, \_SB.PCI0.ISA.EC0.WORE)
-            If (\_SB.PCI0.ISA.WOLE)
-            {
-                Store (0x01, \_SB.PCI0.ISA.EC0.WOLE)
-            }
-            Else
-            {
-                Store (0x00, \_SB.PCI0.ISA.EC0.WOLE)
-            }
-
-            \_SB.PCI0.ISA.HPSS (0x02, 0x00)
-            Sleep (0x07D0)
-*/
-        }
-
-Every other combination (only the Sleep() enabled, only one other line 
-enabled, whatever) causes the system to hang on shutdown. So only not calling 
-that procedure or not doing anything inside seem to help at this point.
-
-Seems very odd.
-
-Cheers,
-    Andre
 
 
 -------------------------------------------------------
