@@ -1,13 +1,11 @@
-From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
-Subject: Re: Old version of ACPI Patch
-Date: Thu, 10 Feb 2005 10:03:15 +0100
-Message-ID: <20050210090315.GA5286@fuchi>
-References: <8C431EC125E9924186D8BB91DC1152B7C8C13D@TNTNC4SXCH.gdc4s.com>
+From: "Simon Moore" <Simon_Moore-HnN13UdsTkzz1n+OaKNE4w@public.gmane.org>
+Subject: Speedstep-centrino problems
+Date: Thu, 10 Feb 2005 10:38:31 +0100
+Message-ID: <0FEA36BB2ABDF44FAAFEB7A75367C07A0117D810@alaska.condis.es>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ReaqsoxgOBHFXBhH"
-Content-Disposition: inline
-In-Reply-To: <8C431EC125E9924186D8BB91DC1152B7C8C13D-RTmRUduT6tOjMTNUfeOiA1aTQe2KTcn/@public.gmane.org>
+Content-Type: multipart/alternative;
+	boundary="----_=_NextPart_001_01C50F54.C074AD8E"
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,54 +15,139 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Arruda, Steve" <Steve.Arruda-EnD59DRpZQMAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+This is a multi-part message in MIME format.
 
---ReaqsoxgOBHFXBhH
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+------_=_NextPart_001_01C50F54.C074AD8E
+Content-Type: text/plain;
+	charset="US-ASCII"
 Content-Transfer-Encoding: quoted-printable
 
-hi Steve...
+Hi,
 
-* "Arruda, Steve" <Steve.Arruda-EnD59DRpZQMAvxtiuMwx3w@public.gmane.org> [2005-02-10 09:13 +0100]:
->=20
-> I'm looking for an old version of ACPI patches. Specifically, I need to p=
-atch kernel 2.4.21. Do the patches go back that far?=20
+I'm trying to get acpi cpu throttling working for my Dell Inspiron 510m
+with a Pentium M Centrino 1.6 Ghz cpu.
+
+I have tried a number of possibilites but have not got anywhere. I have
+an open case over at the gentoo forums but we have not had success in
+resolving this problem.
+
+This is my last ditch attempt to try and find a solution to this
+problem. I think I have exhausted most possible avenues so I'm trying to
+get some kernel hacker on board and help me with this.
+
+I would very much appreciate it if someone could take a look at this
+thread and possbily come up with a suggestion of what might be causing
+this. (http://forums.gentoo.org/viewtopic.php?p=3D2076710) I have a lot =
+of
+info in that thread that you should find useful but if there's any other
+info you require I'll post it tonight.
+
+For what it's worth I hope it intrigues some of you enough to help me
+out.
+
+Thanks all the same,
+
+Regards,
+
+Saimon
 
 
-> I can only find stable patches as far back as 2.4.28 on sourceforge.=20
+--------------------------
+Saimon Moore
+Departamento TI
+CondisLine e-Commerce S.A.
 
-there are patches for 2.4.27 in Len's directory on kernel.org:
-http://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.4=
-=2E27/
+telf./fax: 93 565 3400 ext. 473 / 935752325
+http://www.condisline.com
+mailto://simon_moore-HnN13UdsTkzz1n+OaKNE4w@public.gmane.org=20
 
-happy backporting :)
 
-cheers,
- Sebastian
---=20
-::: .O.
-::: ..O
-::: OOO
-::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
+------_=_NextPart_001_01C50F54.C074AD8E
+Content-Type: text/html;
+	charset="US-ASCII"
+Content-Transfer-Encoding: quoted-printable
 
---ReaqsoxgOBHFXBhH
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
+charset=3Dus-ascii">
+<META NAME=3D"Generator" CONTENT=3D"MS Exchange Server version =
+6.5.7226.0">
+<TITLE>Speedstep-centrino problems</TITLE>
+</HEAD>
+<BODY>
+<!-- Converted from text/rtf format -->
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
+<P><FONT SIZE=3D2 FACE=3D"Arial">Hi,</FONT>
+</P>
 
-iD8DBQFCCyNSreHfL3pi+bQRApTjAJ9OKnwOxPksdA8qmU2/T2Etezg/zQCbBEk5
-LxL6sKHQxqsZb6tL9Msgcvc=
-=mSjH
------END PGP SIGNATURE-----
+<P><FONT SIZE=3D2 FACE=3D"Arial">I'm trying to get acpi cpu throttling =
+working for my Dell Inspiron 510m with a Pentium M Centrino 1.6 Ghz =
+cpu.</FONT>
+</P>
 
---ReaqsoxgOBHFXBhH--
+<P><FONT SIZE=3D2 FACE=3D"Arial">I have tried a number of possibilites =
+but have not got anywhere. I have an open case over at the gentoo forums =
+but we have not had success in resolving this problem.</FONT></P>
+
+<P><FONT SIZE=3D2 FACE=3D"Arial">This is my last ditch attempt to try =
+and find a solution to this problem. I think I have exhausted most =
+possible avenues so I'm trying to get some kernel hacker on board and =
+help me with this.</FONT></P>
+
+<P><FONT SIZE=3D2 FACE=3D"Arial">I would very much appreciate it if =
+someone could take a look at this thread and possbily come up with a =
+suggestion of what might be causing this. (</FONT><A =
+HREF=3D"http://forums.gentoo.org/viewtopic.php?p=3D2076710"><U><FONT =
+COLOR=3D"#0000FF" SIZE=3D2 =
+FACE=3D"Arial">http://forums.gentoo.org/viewtopic.php?p=3D2076710</FONT><=
+/U></A><FONT SIZE=3D2 FACE=3D"Arial">) I have a lot of info in that =
+thread that you should find useful but if there's any other info you =
+require I'll post it tonight.</FONT></P>
+
+<P><FONT SIZE=3D2 FACE=3D"Arial">For what it's worth I hope it intrigues =
+some of you enough to help me out.</FONT>
+</P>
+
+<P><FONT SIZE=3D2 FACE=3D"Arial">Thanks all the same,</FONT>
+</P>
+
+<P><FONT SIZE=3D2 FACE=3D"Arial">Regards,</FONT>
+</P>
+
+<P><FONT SIZE=3D2 FACE=3D"Arial">Saimon</FONT>
+</P>
+<BR>
+
+<P><FONT SIZE=3D2 FACE=3D"Arial">--------------------------</FONT>
+
+<BR><FONT SIZE=3D2 FACE=3D"Arial">Saimon Moore</FONT>
+
+<BR><FONT SIZE=3D2 FACE=3D"Arial">Departamento TI</FONT>
+
+<BR><FONT SIZE=3D2 FACE=3D"Arial">CondisLine e-Commerce S.A.</FONT>
+</P>
+
+<P><FONT SIZE=3D2 FACE=3D"Arial">telf./fax: 93 565 3400 ext.</FONT> =
+<FONT SIZE=3D2 FACE=3D"Arial">473</FONT><FONT SIZE=3D2 FACE=3D"Arial"> / =
+935752325</FONT>
+
+<BR><A HREF=3D"http://www.condisline.com"><U><FONT COLOR=3D"#0000FF" =
+SIZE=3D2 FACE=3D"Arial">http://www.condisline.com</FONT></U></A>
+
+<BR><A HREF=3D"mailto://simon_moore-HnN13UdsTkzz1n+OaKNE4w@public.gmane.org"><U><FONT =
+COLOR=3D"#0000FF" SIZE=3D2 =
+FACE=3D"Arial">mailto://simon_moore-HnN13UdsTkzz1n+OaKNE4w@public.gmane.org</FONT></U></A><FONT =
+SIZE=3D2 FACE=3D"Arial"> </FONT>
+</P>
+
+</BODY>
+</HTML>
+------_=_NextPart_001_01C50F54.C074AD8E--
 
 
 -------------------------------------------------------
