@@ -1,11 +1,12 @@
-From: Joshua Wise <joshua-NtISFavHD68j5TC/SZClsA@public.gmane.org>
-Subject: Re: ACPI on hp Tablet TC1100
-Date: Thu, 24 Mar 2005 19:24:38 -0500 (EST)
-Message-ID: <Pine.LNX.4.58.0503241901440.4867@dashnine>
-References: <Pine.LNX.4.58.0503241657510.4376@dashnine> <1111704587.11677.27.camel@tyrosine>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Re: What's up with the Embedded Controller driver? [was Re: [ACPI] patched sms-cm acpi/ec.c to 2.6.11.5]
+Date: Fri, 25 Mar 2005 09:23:58 +0800
+Message-ID: <3ACA40606221794F80A5670F0AF15F84078985CD@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-In-Reply-To: <1111704587.11677.27.camel@tyrosine>
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
+Content-class: urn:content-classes:message
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,45 +16,62 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: =?utf-8?B?RnJhbsOnb2lzIFZhbGVuZHVj?= <fvalenduc-IWqWACnzNjyZIoH1IeqzKA@public.gmane.org>, ACPI devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 24 Mar 2005, Matthew Garrett wrote:
-> On Thu, 2005-03-24 at 17:08 -0500, Joshua Wise wrote:
->
-> > Video is still nonexistant at that point -- if I do a vbetool post, though,
-> > I get a nice blinking cursor, and a few bangs of the enter key later, I get
-> > my console back. I will try acpi_sleep=s3_bios. I would've tried it already,
-> > but I didn't see the _, and hence tried acpi_sleep=s3bios, to no avail. I'll
-> > also try it without pci=noacpi, and we'll see how things go from there.
->
-> Once you've done this, does X become happy again? You're also far better
-> off using the nv driver if you want suspend and resume to work.
-
-Okay, so I tried nuking pci=noacpi and acpi_sleep=s3_bios.
-
-With those two, I get my console back after resuming, but no USB. If I had
-actually remembered to plug the access point back in, I'm pretty sure
-wireless would work.
-
-I guess I should try starting X and doing a susp/res from there as the
-logical next step. Testing... Hangs up on resume, no wifi on resume... dunno
-if that's an artifact of nvidia just being initialized (and hence hanging)
-first, or what.
-
-Let's try it with no X. Yeah, wifi came back just fine. I wonder if this is
-in fact an artifact of nv suckage. I don't see anything in klogd's output,
-so I can't give you much help there.
-
-By the way, I noticed you're on freenode IRC -- you might be intereted in
-#acpi4linux, a channel presently consisting of, er, me, but hopefully soon
-others. (Or is there an IRC chan elsewhere that I didn't otherwise know of?)
-
-Thanks for the help --
-joshua
-
-
+SG1tLCBJdCdzIGludGVyZXN0aW5nLiBDb3VsZCB5b3UgZ2l2ZSBtZSB0aGUgb3JpZ2luYWwgdmVy
+c2lvbj8NCnNvIEkgY2FuIGZpbmQgb3V0IHdoYXQncyB0aGUgbWFnaWMuDQoNClRoYW5rcywNCkx1
+bWluZw0KDQo+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj5Gcm9tOiBGcmFuw6dvaXMgVmFs
+ZW5kdWMgW21haWx0bzpmdmFsZW5kdWNAdGlzY2FsaS5iZV0gDQo+U2VudDogMjAwNeW5tDPmnIgy
+NeaXpSAzOjQxDQo+VG86IFl1LCBMdW1pbmc7IEFDUEkgZGV2ZWwNCj5TdWJqZWN0OiBSZTogW0FD
+UEldIFJlOiBXaGF0J3MgdXAgd2l0aCB0aGUgRW1iZWRkZWQgQ29udHJvbGxlciANCj5kcml2ZXI/
+IFt3YXMgUmU6IFtBQ1BJXSBwYXRjaGVkIHNtcy1jbSBhY3BpL2VjLmMgdG8gMi42LjExLjVdDQo+
+DQo+U28gSSBzdXBwb3NlIGl0IGlzIHRoaXMgcGF0Y2g6IA0KPmh0dHA6Ly9idWdtZS5vc2RsLm9y
+Zy9hdHRhY2htZW50LmNnaT9pZD00NTE2JmFjdGlvbj12aWV3LiBJZiANCj50aGF0J3MgdGhlIA0K
+PmNhc2UsIGl0IGRvZXNuJ3Qgd29yayBhdCBhbGwuIEl0IGhhcyBiaXQgdGhlIHNhbWUgcmVzdWx0
+cyBhcyB0aGUgcGF0Y2ggDQo+UGVkcm8gVmVuZGEgc2VuZCB0byB0aGUgbGlzdCBhIGZldyBkYXlz
+IGFnby4gVGhlcmUgaXMgYSBkZWxheSANCj5vbiBib290dXAgDQo+ZHVyaW5nIHdoaWNoIHRoZSBz
+Y3JlZW4gc3RheXMgYmxhY2suIEl0IHRha2Ugc29tZSB0aW1lIHRvIGxvYWQgdGhlIGFjIA0KPmFu
+ZCBiYXR0ZXJ5IGRyaXZlci4gSXQgdGFrZSBhbHNvIGEgdmVyeSBsb25nIHRpbWUgdG8gcmVhZCAN
+Cj5iYXR0ZXJ5IHN0YXR1cyANCj4oYWZ0ZXIgaGF2aW5nIHBhdGNoZWQgbXkgRFNEVCkuIEZ1cnRo
+ZXJtb3JlLCB0aGVyZSBhcmUgc29tZSANCj5lcnJvcnMgaW4gZG1lc2c6DQo+ICAgIEFDUEktMDQw
+NTogKioqIEVycm9yOiBIYW5kbGVyIGZvciBbRW1iZWRkZWRDb250cm9sXSANCj5yZXR1cm5lZCBB
+RV9USU1FDQo+ICAgIEFDUEktMTEzODogKioqIEVycm9yOiBNZXRob2QgZXhlY3V0aW9uIGZhaWxl
+ZCANCj5bXF9TQl8uUENJMC5MUEMwLkVDMF8uU01CMC5fU0JSXSAoTm9kZSBkZmVjOWQyMCksIEFF
+X1RJTUUNCj4gICAgQUNQSS0xMTM4OiAqKiogRXJyb3I6IE1ldGhvZCBleGVjdXRpb24gZmFpbGVk
+IA0KPltcX1NCXy5QQ0kwLkxQQzAuRUMwXy5TTUIwLlNCUlddIChOb2RlIGRmZWNhNzgwKSwgQUVf
+VElNRQ0KPiAgICBBQ1BJLTExMzg6ICoqKiBFcnJvcjogTWV0aG9kIGV4ZWN1dGlvbiBmYWlsZWQg
+W1xfU0JfLkJBVDAuVVBCSV0gDQo+KE5vZGUgZGZlY2E1MDApLCBBRV9USU1FDQo+ICAgIEFDUEkt
+MTEzODogKioqIEVycm9yOiBNZXRob2QgZXhlY3V0aW9uIGZhaWxlZCBbXF9TQl8uQkFUMC5TRUJJ
+XSANCj4oTm9kZSBkZmVjYTU0MCksIEFFX1RJTUUNCj4gICAgQUNQSS0xMTM4OiAqKiogRXJyb3I6
+IE1ldGhvZCBleGVjdXRpb24gZmFpbGVkIA0KPltcX1NCXy5QQ0kwLkxQQzAuRUMwXy5fUTIwXSAo
+Tm9kZSBkZmVjYWZlMCksIEFFX1RJTUUNCj5Zb3UgY2FuIGZpbmQgbXkgbW9kaWZpZWQgRFNEVCBp
+biB0aGUgYXR0YWNobWVudC4NCj4NCj5TaW5jZXJlbHkgeW91cnMsDQo+RnJhbsOnb2lzIFZhbGVu
+ZHVjDQo+DQo+ICAgDQo+WXUsIEx1bWluZyBhIMOpY3JpdCA6DQo+DQo+PlRoaXMgb25lOiBodHRw
+Oi8vYnVnbWUub3NkbC5vcmcvc2hvd19idWcuY2dpP2lkPTM4NTEjYzUyDQo+PllvdSBuZWVkIHRv
+IGhhdmUgYmsgdG9vbCBmb3IgYmsgcHVsbC4gUGxlYXNlIGdvb2dsZSBia2JpdHMuDQo+Pg0KPj5U
+aGFua3MNCj4+THVtaW5nIA0KPj4NCj4+ICANCj4+DQo+Pj4tLS0tLU9yaWdpbmFsIE1lc3NhZ2Ut
+LS0tLQ0KPj4+RnJvbTogRnJhbsOnb2lzIFZhbGVuZHVjIFttYWlsdG86ZnZhbGVuZHVjQHRpc2Nh
+bGkuYmVdIA0KPj4+U2VudDogMjAwNeW5tDPmnIgyNeaXpSAwOjMzDQo+Pj5UbzogWXUsIEx1bWlu
+Zw0KPj4+U3ViamVjdDogUmU6IFtBQ1BJXSBSZTogV2hhdCdzIHVwIHdpdGggdGhlIEVtYmVkZGVk
+IENvbnRyb2xsZXIgDQo+Pj5kcml2ZXI/IFt3YXMgUmU6IFtBQ1BJXSBwYXRjaGVkIHNtcy1jbSBh
+Y3BpL2VjLmMgdG8gMi42LjExLjVdDQo+Pj4NCj4+Pll1LCBMdW1pbmcgYSDDqWNyaXQgOg0KPj4+
+DQo+Pj4gICAgDQo+Pj4NCj4+Pj5ObywgdGhlIGJ1cnN0LW1vZGUgZWMgcGF0Y2ggaXMgcGxhbmVk
+IHRvIGJlIG1lcmdlZCBpbnRvIDIuNi4xMi4NCj4+Pj5TbywgSSB0aGluayBpdCB3aWxsIE5PVCBh
+cHBlYXIgaW4gdGhhdCBwYXRjaC4NCj4+Pj5QbGVhc2UgdHJ5IHRvIHB1bGwgZnJvbSBodHRwOi8v
+bGludXgtYWNwaS5ia2JpdHMubmV0OjgwODAvdG8tYWtwbQ0KPj4+Pm9yIGFwcGx5IHBhdGNoIGZp
+bGVkIGF0IGh0dHA6Ly9idWdtZS5vc2RsLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9Mzg1MQ0KPj4+Pg0K
+Pj4+PlBTLiBJJ20gdHJ5aW5nIHRvIG1haW50YWluIGFjcGkgZWMgZHJpdmVyLg0KPj4+Pg0KPj4+
+PlRoYW5rcw0KPj4+Pkx1bWluZyANCj4+Pj4gDQo+Pj4+DQo+Pj4+ICAgICAgDQo+Pj4+DQo+Pj5T
+b3JyeSBidXQgSSBkb24ndCBtYW5hZ2UgdG8gZmluZCB0aGUgcGF0Y2ggeW91IGluZGljYXRlZCBt
+ZS4gDQo+Pj5JcyBpdCB0aGlzIA0KPj4+b25lOiBodHRwOi8vYnVnbWUub3NkbC5vcmcvYXR0YWNo
+bWVudC5jZ2k/aWQ9NDIzMyZhY3Rpb249dmlldyBvciANCj4+Pmh0dHA6Ly9idWdtZS5vc2RsLm9y
+Zy9hdHRhY2htZW50LmNnaT9pZD00MjQ2JmFjdGlvbj12aWV3IG9yICANCj4+Pmh0dHA6Ly9idWdt
+ZS5vc2RsLm9yZy9hdHRhY2htZW50LmNnaT9pZD00MjQ3JmFjdGlvbj12aWV3ID8NCj4+PkFsc28g
+SSBkb24ndCB3aGF0IHlvdSBtZWFuIGJ5IHB1bGxpbmcgZnJvbSBsaW51eC1hY3BpLmJrYml0cy5u
+ZXQNCj4+PkhvdyBzaG91bGQgSSBkbyB0byBvYnRhaW4gdGhlIHBhdGNoID8NCj4+Pg0KPj4+VGhh
+bmtzIGluIGFkdmFuY2UsDQo+Pj5GcmFuw6dvaXMNCj4+Pg0KPj4+DQo+Pj4gICAgDQo+Pj4NCj4N
+Cj4NCg==
 
 
 -------------------------------------------------------
