@@ -1,36 +1,57 @@
-From: Chris Wright <chrisw-3NddpPZAyC0@public.gmane.org>
-Subject: Re: [ACPI] Re: [PATCH] Next round of ACPI IRQ fixes (VIA ACPI fixed)
-Date: Fri, 5 Sep 2003 19:03:38 -0700
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20030905190338.W16228@osdlab.pdx.osdl.net>
-References: <200309051958.02818.adq_dvb@lidskialf.net> <200309060016.16545.adq_dvb@lidskialf.net> <20030905170224.A16217@osdlab.pdx.osdl.net> <200309060221.30741.adq_dvb@lidskialf.net> <3F592AA7.7020700@pobox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3F592AA7.7020700-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>; from jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org on Fri, Sep 05, 2003 at 08:30:31PM -0400
-To: Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>
-Cc: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>, Chris Wright <chrisw-3NddpPZAyC0@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+From: Postmaster-Ck5RVAGKxczwxrB+fcxW7Q@public.gmane.org
+Subject: Returned mail: Unknown user
+Date: Sat, 06 Sep 2003 17:50:09 +0900
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <200309060850.RAA24996@ums512.nifty.ne.jp>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-* Jeff Garzik (jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org) wrote:
-> Andrew de Quincey wrote:
-> > successful dmesg
-> > dmesg from a failed boot
-> > /proc/acpi/dsdt
-> > /proc/interrupts
-> 
-> dmidecode output is also quite helpful.
+----- Unsent reason follows -----
+HGD00747-fFkzxiWP14C37DQgxWxUzw@public.gmane.org Unknown user
 
-I've uploaded these to:
+----- Unsent message follows -----
+Return-Path: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Date: Sat, 6 Sep 2003 17:47:22 +0900
+From: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: <mori-tUxIBjwWFSgTBYAz+LHnZg@public.gmane.org>
+Subject: Your details
+Received: from postman2.local.infocity.co.jp (usen-219x113x212x179.ap-US.usen.
+ad.jp [219.113.212.179])
+	by ums517.nifty.ne.jp with SMTP id RAA19226;
+	Sat, 6 Sep 2003 17:47:18 +0900 (JST)
+Received: (qmail 30575 invoked by alias); 6 Sep 2003 17:46:49 +0900
+Delivered-To: mori-tUxIBjwWFSgTBYAz+LHnZg@public.gmane.org
+Received: (qmail 30571 invoked from network); 6 Sep 2003 17:46:49 +0900
+Received: from nurikabe.local.infocity.co.jp (HELO nurikabe2.infocity.co.jp) (
+172.16.0.2)
+  by postman2.local.infocity.co.jp with SMTP; 6 Sep 2003 17:46:49 +0900
+Received: from LSM ([163.180.127.185])
+	by nurikabe2.infocity.co.jp (8.12.8/8.12.9) with ESMTP id h868k4Fq0023
+19
+	for <mori-tUxIBjwWFSgTBYAz+LHnZg@public.gmane.org>; Sat, 6 Sep 2003 17:46:05 +0900
+Message-Id: <200309060846.h868k4Fq002319-mwvKXI+dt6zpxQl14CW27QV/S9XJNSoN@public.gmane.org>
+X-MailScanner: Found to be clean
+Importance: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2600.0000
+X-MSMail-Priority: Normal
+X-Priority: 3 (Normal)
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="_NextPart_000_066802E5"
 
-http://lsm.immunix.org/~chris/acpi/
+----- Message body suppressed -----
 
-You'll find dmesg and interrupts from pci=noacpi, acpi=off, disassembled
-dsdt and dmidecode.  Don't have the failed boot dmesg yet.  I ported
-netconsole to my eth driver, but it's not yet working.
 
-thanks,
--chris
--- 
-Linux Security Modules     http://lsm.immunix.org     http://lsm.bkbits.net
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
