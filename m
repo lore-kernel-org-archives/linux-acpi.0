@@ -1,14 +1,12 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: ACPI: Battery information?
-Date: Wed, 9 Jun 2004 11:44:57 +0200
+From: Pierre Ossman <drzeus-list-p3sGCRWkH8CeZLLa646FqQ@public.gmane.org>
+Subject: suspend-to-ram hangs on HP NX7010
+Date: Wed, 09 Jun 2004 14:06:28 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040609094457.GV13782@poupinou.org>
-References: <40C4FD27.7000805@users.xeroprj.org> <20040608092045.72e15c4c@tethys.solarsys.org> <20040608094707.GM13782@poupinou.org> <40C58F45.2040108@users.xeroprj.org> <20040608113456.GN13782@poupinou.org> <40C6319A.7080707@users.xeroprj.org> <20040609075401.GT13782@poupinou.org>
+Message-ID: <40C6FD44.7090606@drzeus.cx>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040609075401.GT13782-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,36 +16,42 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Binary Xerroz <xerroz-BC6XjCpM3eF0abU8S3f8Vti2O/JbrIOy@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jun 09, 2004 at 09:54:01AM +0200, Bruno Ducrot wrote:
-> On Tue, Jun 08, 2004 at 02:37:30PM -0700, Binary Xerroz wrote:
-> 
-> btw, your acpidump.bz2 seems to be corrupted somehow.  Could you please
-> resend it?
+Hi!
 
-Ok, got it.
+I've been spending a few days trying to get suspend-to-ram to work on my 
+new HP NX7010 laptop. Haven't had much success though so I thought I 
+might get some help from the more experienced.
 
-The problem (if I understand correctly) is that there is a device (SWAP)
-with _HID being EisaId ("IBM0069") which (I guess) hold the second
-battery.  There is also some "Notify" called to this device with value
-0x83 which can't be understood by Linux without a specific driver for.
-I think the second battery is handled with this device somehow, so that
-some of the functions (under the EC) which should call the Notify (with
-0x80 or 0x81) is not called by the embedded controller somehow, because
-the state machine associated to the battery handling is screwed.
+I'm running FC2 with linux 2.6.6. S3 has been tested using vanilla 
+kernel and with the patch from acpi.sf.net. I've also included a patch 
+from the ACPI bugzilla to be able to control which devices can wake the 
+unit. The behaviour has been the same for all tests.
 
-There may be a need to create an ACPI driver specific to this device,
-perhaps, if that's not done already?
+I don't think the unit actually gets all the way into S3 though. If I 
+turn on ACPI debug in the kernel I can see a debug message that says 
+'Entering S3' but the laptop doesn't power down anything. After this 
+point the only way to get control of the machine again is to hold down 
+the power button for a couple of seconds, bypassing the OS. Also, for 
+some strange reason I have to do this twice because the machine hangs 
+during POST after the first reset (after a failed suspend-to-ram that 
+is, works fine otherwise).
 
-Cheers,
+I've started looking in the ACPI spec. since I suspect the bug might be 
+in the DSDT. I doesn't even compile cleanly with Intel's compiler as it 
+is. ACPI is new to me however so I could use some pointers on where I 
+should start looking. I'm also fluent in C so I intend to have a look at 
+the kernel code and insert some debug statements. Might help me pinpoint 
+where it hangs.
 
--- 
-Bruno Ducrot
+I'd appreciate any help I can get. Just tell me what information you 
+need and what I should test and I'll gladly do it. Suspend-to-ram is a 
+badly needed function so I'm ready to devote whatever time is required 
+to get this fixed.
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+Regards
+Pierre Ossman
 
 
 -------------------------------------------------------
