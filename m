@@ -1,14 +1,17 @@
-From: =?ISO-8859-1?Q?Mika_Penttil=E4?= <mika.penttila-9Aww8k/80nUxHbG02/KK1g@public.gmane.org>
-Subject: Re: [PATCH][4/4] Add NUMA node handling to the container driver
-Date: Fri, 24 Sep 2004 01:09:13 +0300
+From: Nuno Ferreira <nuno.ferreira-2U246DzFStoANPMfv7sqcg@public.gmane.org>
+Subject: Re: problem with suspend and usb
+Date: Fri, 24 Sep 2004 00:19:26 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <41534989.3070001@kolumbus.fi>
-References: <20040920092520.A14208@unix-os.sc.intel.com>	<20040920094719.H14208@unix-os.sc.intel.com>	<20040924012301.000007c6.tokunaga.keiich@jp.fujitsu.com> <20040924013642.00003b08.tokunaga.keiich@jp.fujitsu.com>
+Message-ID: <1095981566.4339.16.camel@taz.graycell.biz>
+References: <1095685487.4294.14.camel@taz.graycell.biz>
+	 <20040922094844.GA9197@elf.ucw.cz>
+	 <1095870490.3809.3.camel@taz.graycell.biz>
+	 <20040922175058.GA14891@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040924013642.00003b08.tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+In-Reply-To: <20040922175058.GA14891-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,40 +20,84 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Cc: anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lhns-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Keiichiro Tokunaga wrote:
+On Qua, 2004-09-22 at 19:50 +0200, Pavel Machek wrote:
+[CCing acpdi-devel, sorry not to do it from the start but I didn't even
+know that the ml existed, the mail below is about some problems I have
+suspending, some are new in 2.6.9-rc2-mm2 other existed in 2.6.8]
+> Hi!
+> 
+> > Well, turns out that the lastest -mm kernel is much worse.
+> 
+> Hmm, well, I'm not going to debug -vanilla when there's better
+> codebase pending in -mm, so -mm is better because it has chance to get
+> debugged.
+> 
+> > Found several problems:
+> > * Shutdown is very slow. After the message "acpi_power_off called"
+> > appears, it taken ~30s for the laptop to shutdown. Using 2.6.8 it shuts
+> > down immediately after that message is printed.
+> 
+> Insert printk's to see what is slow, then contact acpi list.
 
->Name: container_for_numa.patch
->Status: Tested on 2.6.9-rc2
->Signed-off-by: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
->Description:
->Add NUMA node handling to the container driver.
->
->Thanks,
->Keiichiro Tokunaga
->---
->  
->
+OK, I inserted a printk between each line of acpi_power_off, I see
+set_cpus_allowed finished and then the pause, then after ~30s the
+poweroff, I never get to see the remaining printk.
 
->@@ -198,6 +208,7 @@ container_device_add(struct acpi_device 
-> 	if (acpi_bus_add(device, pdev, handle, ACPI_BUS_TYPE_DEVICE)) {
-> 		return_VALUE(-ENODEV);
-> 	}
->+	container_numa_add((*device)->handle);
->  
->
-Maybe that should be :
+> 
+> > * Suspend with ohci_hcd hangs. Removing the ohci_hcd module suspend
+> > works.
+> > Here's what's printed on the screen before hanging (I hand-write it so
+> > there could be some typos)
+> > 
+> > Freeing memory.... done (54077 pages freed)
+> > usbhid1-1:1.0: resume is unsafe!
+> > usb1-1: no poweroff yet, suspending instead.
+> > usb usb1: no poweroff yet, suspending instead.
+> > ............. swsusp: Need to copy 9776 pages
+> > ............. swsusp: critical section/: done (9840 pages copied)
+> 
+> Can you insert printks to ohci_hcd to see what went wrong there?
 
-container_numa_add(phandle);
- 
-instead? Device is the child at this point.
+Could you give a more precise instructions, I really know nothing about
+kernel programming.
+And I found something else, this only occurs when I have my usb mouse
+plugged in. If there is no mouse plugged in, suspending  works and the 3
+lines after "Freeing memory..." are not printed.
+However, after resume I still need to remove and reinsert ohci_hcd
+module to have usb work again, just like in 2.6.8.
 
---Mika
+> 
+> > * Network doesn't work after resuming. I'm using 8139cp. I tried "ifdown
+> > eth0 && ifup eth0" and network stil. doesn't work after suspend.
+> > Even tried "ifdown eth0 && modprobe -r 8139cp && modprobe 8139cp && ifup
+> > eth0" and network still doesn't work. Only started to work after reboot
+> > Here are the logs from the suspend request 
 
+I don't know how I tested it before, but the network works after
+resuming if I remove the module and reinsert it.
 
+> This looks like interrupt problem. Can you try noapic and/or disabling
+> acpi for irq routing?
+> 
+Unfortunately my laptop doesn't even boot with those options
+
+> > Sep 22 15:29:42 taz kernel: ** PCI interrupts are no longer routed automatically.  If this
+> > Sep 22 15:29:42 taz kernel: ** causes a device to stop working, it is probably because the
+> > Sep 22 15:29:42 taz kernel: ** driver failed to call pci_enable_device().  As a temporary
+> > Sep 22 15:29:42 taz kernel: ** workaround, the "pci=routeirq" argument restores the old
+> > Sep 22 15:29:42 taz kernel: ** behavior.  If this argument makes the device work again,
+> > Sep 22 15:29:42 taz kernel: ** please email the output of "lspci" to bjorn.helgaas-VXdhtT5mjnY@public.gmane.org
+> > Sep 22 15:29:42 taz kernel: ** so I can fix the driver.
+> 
+> Hmm, also try pci=routeirq.
+
+This did nothing.
+
+By the way, is there a swsusp specific list?
 
 
 
