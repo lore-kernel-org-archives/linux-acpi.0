@@ -1,14 +1,13 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: ACPI and framebuffer related problems with Linux 2.6.1-rc1
-Date: Fri, 2 Jan 2004 12:32:21 +0100
+From: "Michael A. Smith" <mas3f-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org>
+Subject: RE: Problems with 600m PM states
+Date: Fri, 2 Jan 2004 11:43:41 -0500 (EST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040102113221.GA13322@hell.org.pl>
-References: <3ACA40606221794F80A5670F0AF15F8401720C6E@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <Pine.BSF.4.55.0401021139340.70212@dea.intranet>
+References: <3ACA40606221794F80A5670F0AF15F8401720C6D@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401720C6E-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401720C6D-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,29 +17,28 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Martin Loschwitz <madkiss-R0iKqZn4BxJAfugRpC6u6w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Yu, Luming:
-> >However, there is a problem with ACPI:
-> /proc/acpi/processor/CPU0/performance, 
-> >which was there in previous versions of the kernel and allowed me to
-> slow the 
-> >CPU down in order to save power, disappeared in Linux 2.6.1-rc1. It's
-> simply 
-> >not there anymore. Was it replaced? 
-> 
-> It sounds like a regression. Would you file it on
-> http://bugzilla.kernel.org
+On Fri, 2 Jan 2004, Yu, Luming wrote:
 
-I guess he needs rather to compile the ACPI performance CPUFreq driver and
-insmod acpi.ko, or something similar. That's a pretty non-obvious change
-over 2.4.
-Best regards,
+> >Let's start with S1 and work up from there.
 
--- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+> http://bugzilla.kernel.org/show_bug.cgi?id=1588
+
+Great!  The patch attached to this bug seemed to solve the problem for
+S1.  I can now resume without issue from an S1 sleep.
+
+Onto S3...
+
+The system seems to suspend correctly, but will not resume.  After the
+suspend, the power led has a slow blink, which is what I expect.  If I
+hit the power button to bring it back, I can hear the disk spin up, and
+the power led is on full, but that's it.  The screen never returns and
+my only recourse is a hard reboot.
+
+Michael Smith
+mas3f-4Ng6DfrEGID2fBVCVOL8/A@public.gmane.org
 
 
 -------------------------------------------------------
