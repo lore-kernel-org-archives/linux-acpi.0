@@ -1,16 +1,12 @@
-From: Andrew Kohlsmith <akohlsmith-acpi-uiYP0llB1AZBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: Need for an ACPI webpage
-Date: Thu, 17 Oct 2002 17:57:39 -0400
+From: salva_ste-nc/lrvXPQ4s@public.gmane.org
+Subject: Re:acpi and presario 700
+Date: Fri, 18 Oct 2002 08:27:32 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200210171757.39124@-mixdown.ca>
-References: <EDC461A30AC4D511ADE10002A5072CAD0236DF31@orsmsx119.jf.intel.com>
+Message-ID: <3D929B6A000178E7@ims4c.cp.tin.it>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="ISO-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <EDC461A30AC4D511ADE10002A5072CAD0236DF31-OU+JdkIUtvd9zuciVAfUoVDQ4js95KgL@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -22,21 +18,30 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> The code is the only thing that is guaranteed to be up to date. I think it
-> would be nice to have a more readable version of that list online, but it
-> will quickly become outdated unless someone actively maintains it (you?) or
-> it is auto-generated from the source.
+>I own a presario 714EA with RedHat Linux 7.3 again.
+>do you have info for acpi?
+>i'm a newbie (acpi is in my kernel but how to apply?)
 
-auto-generation would be the only sane method.  Like a once-a-week update 
-would be plenty fast.  I bet some perl code could do this in a snap.  I'd be 
-willing to code it up; is it possible to run perl cgi's on sf's servers?
+Presario 7xx and linux acpi had began to work fine from september patches=
 
-Regards,
-Andrew
+of acpi (before you had to use the kacpid patch together with acpi). Now
+just take last kernel and last acpi patch and to compile everything acpi
+related, if you compile acpi as a module don't forget to load acpi module=
+s.
+
+acpi can control everything in this laptops but the thermal zone and fans=
+,
+I guess these features are BIOS controlled and if you want to have a comp=
+lete
+acpi control you have to rewrite DSDT ...
+
+Note: if you want S3 you must use 2.5 kernels
+
+Bye, Stefano
+
 
 
 -------------------------------------------------------
-This sf.net email is sponsored by: viaVerio will pay you up to
-$1,000 for every account that you consolidate with us.
-http://ad.doubleclick.net/clk;4749864;7604308;v?
-http://www.viaverio.com/consolidator/osdn.cfm
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
