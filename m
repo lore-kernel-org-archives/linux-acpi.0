@@ -1,15 +1,13 @@
-From: Martijn Pieters <mj-a5Jd59zECFiB+jHODAdFcQ@public.gmane.org>
-Subject: Re: ASL fixing questions
-Date: Thu, 12 Feb 2004 12:24:23 -0500
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: Re: acpi on r40e
+Date: Thu, 12 Feb 2004 10:01:20 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <402BB6C7.9030305@zopatista.com>
-References: <402AF9FF.3020706@zopatista.com> <20040212093732.GP13262@poupinou.org> <402B9313.9000701@zopatista.com> <402BAABC.5040706@zopatista.com>
+Message-ID: <20040212100050.K533@root.org>
+References: <20040212165744.446.qmail@web14521.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig55D88FD925CEC3296064FF0F"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <402BAABC.5040706-a5Jd59zECFiB+jHODAdFcQ@public.gmane.org>
+In-Reply-To: <20040212165744.446.qmail-78ZWb/MBLhGA/QwVtaZbd3CJp6faPEW9@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,45 +16,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: =?iso-8859-1?q?Praveen=20C?= <cpravn-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig55D88FD925CEC3296064FF0F
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+On Thu, 12 Feb 2004, [iso-8859-1] Praveen C wrote:
+> I removed all HKEY related stuff and assembled dsdt.dsl using iasl.
+> Then I used the DSDT initrd patch together with the new DSDT table. I
+> STILL cant get the volume and brightness buttons to work.
+> praveen
 
-Martijn Pieters wrote:
-> Okay, I decompiled the SSDT table by hand (small table anyway), find it 
-> attached (really!). It doates indeed define the _PPC field and two other 
-> names, which make little sense to me.
-> 
-> Which leads to my next question: I thought leading underscore names were 
-> reserved by the ACPI spec. ACPI 1.0 doesn't define the names, and ACPI 
-> 2.0 defines them differently. Can this lead to problems with the Linux 
-> ACPI implementation making assumptions about ACPI 1.0 code with 2.0 
-> extensions?
+Apparently you didn't read my reply to you.  If you want the buttons, use
+APM and disable ACPI.
 
-Strike that; I misremembered the ACPI 2.0 spec; these fields are indeed 
-ACPI 2.0 Processor fields.
-
-Martijn
-
---------------enig55D88FD925CEC3296064FF0F
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
-
-iD8DBQFAK7bM3xaj2GOvgP0RAv+lAJ92fwfeoouOVRRq4GchaLpeLG8c2ACgzx9p
-NfkoM6GBRiYWRHpP9WII8LA=
-=f5qI
------END PGP SIGNATURE-----
-
---------------enig55D88FD925CEC3296064FF0F--
+-Nate
 
 
 -------------------------------------------------------
