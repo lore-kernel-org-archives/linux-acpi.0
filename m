@@ -1,15 +1,14 @@
-From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: [Patch]fix EC GPE context error
-Date: Sun, 2 Nov 2003 20:22:00 +0100
+From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
+Subject: Re: Unable to turn fan on - Asus M3N - 2.6.0-test9bk4
+Date: Sun, 02 Nov 2003 20:58:47 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031102192200.GS21970@poupinou.org>
-References: <571ACEFD467F7749BC50E0A98C17CDD8D5FDD0@pdsmsx403.ccr.corp.intel.com> <1067801379.1593.5.camel@darkstar.portugal>
+Message-ID: <3FA561F7.5030706@pca.it>
+References: <20031101193817.GA19198@austinchronicle.com> <20031102174730.GB2819@krikkit>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1067801379.1593.5.camel-4/PLUo9XfK/yXfm4dIG/yWZHpeb/A1Y/@public.gmane.org>
+In-Reply-To: <20031102174730.GB2819-duT3ICHXG/I@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,28 +17,51 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?iso-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Cc: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Nov 02, 2003 at 07:29:38PM +0000, Sérgio Monteiro Basto wrote:
-> Hi
-> I can't apply this patch to 2.23-pre9 neither pre8 or pre7 .
-> I got one big rejected file (on osl.c I think)
-> 
+Hello,
 
-That patch have been written for 2.6 series.
-For 2.4, since that touch a part a little bit too dependant of
-the OS (workqueues are onyl in 2.6 for example, and supersed task
-queues).
+on 11/02/03 18:47, Robert Vollmert wrote:
+> are you sure the fan doesn't turn on? What kind of temperatures have
+> you been seing? As Karol noted, the fan isn't controlled the way the
+> spec intends (which would require implementing n fan devices for an
+> n-level fan, I think). Instead, TCHG is called every time the
+> temperature changes, which sets the fan speed directly based on some
+> threshold temperatures which vary based on cooling mode
+> (active/passive). That's the only place you can take influence wihtout
+> modifying the DSDT, though changing the mode to passive will increase
+> the thresholds. IIRC, these temperatures are quite high, though I don't
+> remember exact values. In the region of 70°C, for the lowest, I think.
+I think the fan is correctly managed, as you can see from my attached:
+=====
+luca@gismo:~$ cat /proc/acpi/thermal_zone/THRM/temperature
+temperature:             68 C
+luca@gismo:~$ date
+Sun Nov  2 20:50:06 CET 2003
+luca@gismo:~$ cat /proc/acpi/thermal_zone/THRM/temperature
+temperature:             55 C
+luca@gismo:~$ date
+Sun Nov  2 20:52:44 CET 2003
+luca@gismo:~$ cat /proc/acpi/fan/FN00/state
+status:                  on
+luca@gismo:~$ cat /proc/acpi/fan/FN00/state
+status:                  off
+luca@gismo:~$
+=====
 
-I guess that you have to wait that someone kindly backport it.
+The temperature went high compiling the kernel, but suddenly the fan 
+went on and at high RPM (I could hear it), just for 5min and then it 
+went normal again.
 
--- 
-Ducrot Bruno
+I have always the 'os_wait_semaphore' problem, but, as Karol said in 
+another post, this doens't cause any big problems, just the already 
+reported keyboard bug (for less than 5min you can't type anything or if 
+you were typing sometimes it's as if you go on typing the last character).
 
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+Thx, bye,
+Gismo / Luca
+
 
 
 -------------------------------------------------------
