@@ -1,40 +1,48 @@
-From: Willy Tarreau <willy@w.ods.org>
-Subject: Re: [ACPI] Re: Linux 2.4.26-rc1 (cmpxchg vs 80386 build)
-Date: Tue, 30 Mar 2004 16:22:15 +0200
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20040330142215.GA21931@alpha.home.local>
-References: <A6974D8E5F98D511BB910002A50A6647615F6939@hdsmsx402.hd.intel.com> <1080535754.16221.188.camel@dhcppc4> <20040329052238.GD1276@alpha.home.local> <1080598062.983.3.camel@dhcppc4> <1080651370.25228.1.camel@dhcp23.swansea.linux.org.uk> <Pine.LNX.4.53.0403300814350.5311@chaos>
+From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: missing cmpxchg on i386.
+Date: Tue, 30 Mar 2004 22:36:08 +0800
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401CBB7AC@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.53.0403300814350.5311@chaos>
-To: "Richard B. Johnson" <root@chaos.analogic.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Len Brown <len.brown@intel.com>, Arkadiusz Miskiewicz <arekm@pld-linux.org>, Marcelo Tosatti <marcelo.tosatti@cyclades.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Developers <acpi-devel@lists.sourceforge.net>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+content-class: urn:content-classes:message
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Flavio Bruno Leitner <fbl-KCZ47A4bww4P48s/oLjRZg@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Mar 30, 2004 at 08:15:46AM -0500, Richard B. Johnson wrote:
-> On Tue, 30 Mar 2004, Alan Cox wrote:
-> 
-> > On Llu, 2004-03-29 at 23:07, Len Brown wrote:
-> > > Linux uses this locking mechanism to coordinate shared access
-> > > to hardware registers with embedded controllers,
-> > > which is true also on uniprocessors too.
-> >
-> > If the ACPI layer simply refuses to run on a CPU without cmpxchg
-> > then I can't see there being a problem, there don't appear to be
-> > any 386 processors with ACPI
-> >
-> 
-> Yep, but to get to use cmpxchg, you need to compile as a '486 or
-> higher. This breaks i386.
+acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org wrote:
+> On Tue, Mar 30, 2004 at 02:37:35PM +0200, Pavel Machek wrote:
+>> On St 24-03-04 13:23:47, Flavio Bruno Leitner wrote:
+>>>=20
+>>> Compiling for i386 I got a lot of
+>>> include/asm/acpi.h: In function `__acpi_acquire_global_lock`:
+>>> include/asm/acpi.h:74: warning: implict declaration of function
+>>> 'cmpxchg'=20
+>>=20
+>> Try compiling for pentium+...
+>=20
+> It's impossible, we need to have kernel optimized for i386.
+> I revert the ChangeSet 1.1557.83.7 until this get fixed.
 
-OK, so why not compile the cmpxchg instruction even on i386 targets
-to let generic kernels stay compatible with everything, but disable
-ACPI at boot if the processor does not feature cmpxchg ? This could
-be helpful for boot/install kernels which try to support a wide
-range of platforms, and may need ACPI to correctly enable interrupts
-on others.
+I have made a patch for this issue at bugzilla
+http://bugme.osdl.org/show_bug.cgi?id=3D2391
 
-Cheers,
-Willy
+--Luming
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: IBM Linux Tutorials
+Free Linux tutorial presented by Daniel Robbins, President and CEO of
+GenToo technologies. Learn everything from fundamentals to system
+administration.http://ads.osdn.com/?ad_id=1470&alloc_id=3638&op=click
