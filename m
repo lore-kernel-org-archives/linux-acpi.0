@@ -1,13 +1,14 @@
-From: Giridhar Pemmasani <giri-IxWJ8JVbGpr5NRxSJurNR4dd74u8MsAO@public.gmane.org>
-Subject: Re: [giri@lmc.cs.sunysb.edu: Resume from suspend-to-ram]
-Date: Sat, 21 Feb 2004 19:49:59 -0500
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: radeon display is blank after resume from S3
+Date: Sun, 22 Feb 2004 02:38:31 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <c18uc2$rds$1@sea.gmane.org>
-References: <20040220235512.GA27779@dreamland.darkstar.lan> <1077321457.9623.27.camel@gaston> <20040221041647.2F8307831D@mail.lmc.cs.sunysb.edu> <1077336792.17072.30.camel@gaston> <20040221174049.GA4526@dreamland.darkstar.lan>
+Message-ID: <20040222013831.GA29988@hell.org.pl>
+References: <34137.68.19.7.134.1077396635.squirrel@webmail.cc.gatech.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <34137.68.19.7.134.1077396635.squirrel-2RFepEojUI2yzif+TlFmFpQCsf4PZ8us@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,26 +17,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ilya Bagrak <reason-ss4n/k5RZhaUArH+D2fLrA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Luca wrote:
+Thus wrote Ilya Bagrak:
+> Linux 2.6.3-mm2 on Fujitsu E7110 laptop w/
+> 1. radeon mobility 7500 card
+> 2. intel 845 pci bridge (i think)
 
-> Giridhar  look into  your BIOS  for something  like "Run  VGABIOS if  S3
-> Resume" (I have  it under "Power Management") and set  it to "Yes". With
-> this option  the firmware  will re-init the  card BIOS  before returning
-> control to  Linux. If you  don't see  it then it's  a big  problem... we
+ASUS L3800C, rest pretty much the same.
 
-Unfortunately there is no such option in BIOS for Dell Latitude D600.
+> The basic problem is that after resuming from S3, the screen remains
+> completely blank.  All other devices seem to return to normal, and I can
+> communicate with the laptop over the network.  I have experienced this
+> same problem since early 2.6.0 test kernels, and I've been actively
+> looking for a solution ever since.
 
-> can't go in real mode once Linux  is running. It may be possible to hack
-> up something in wakeup.S, before restoring processor state.
+In my case, acpi_sleep=s3_bios is enough. If that doesn't work, you may try
+the new radeonfb driver from 2.6.3 -- on my box it *at least* manages to
+get the backlight on without having to pass acpi_sleep, but then it screws
+up some other things so the laptop gets locked anyway.
+Best regards,
 
-I am not sure exactly what is needed; X is able to POST (using int10?). I
-haven't looked at X code, but is that using real mode?
-
-Giri.
-
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
