@@ -1,8 +1,8 @@
 From: "P. Christeas" <p_christ-U04EIuiosng@public.gmane.org>
 Subject: Re: 2.5.51: sleep broken
-Date: Mon, 16 Dec 2002 23:51:58 +0200
+Date: Mon, 16 Dec 2002 23:59:23 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200212162351.58070.p_christ@hol.gr>
+Message-ID: <200212162359.23881.p_christ@hol.gr>
 References: <EDC461A30AC4D511ADE10002A5072CAD04C7A591@orsmsx119.jf.intel.com> <200212152356.09656.p_christ@hol.gr> <20021216203016.GF16669@poup.poupinou.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
@@ -22,8 +22,6 @@ To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> Search for wakeup_stack under acpi_wakeup.S
-> I have modified that and it look something like that for me now:
 >
 > .org 0x800
 > wakup_stack:
@@ -31,9 +29,22 @@ List-Id: linux-acpi@vger.kernel.org
 > ENTRY(wakup_end)
 > .org 0x1000
 >
-> (hint given by Pavel)
 
-Looks already OK. Shouldn't the comments reflect that behaviour?
+...correction: not OK!
+
+that's "stack", not "start" !
+
+.org    0x2000
+wakeup_stack:
+	^^^^^^^^^^
+.org    0x3000
+ENTRY(wakeup_end)
+
+I found "start" in the begining of the assembly.
+Did you write the code in the first place?
+
+One more thing, the resume OOPS did happen again, w. 2.5.52. I couldn't grab 
+it..
 
 
 
