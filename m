@@ -1,14 +1,12 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= "M. Basto" <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Subject: Re: Compaq Presario 2175US
-Date: Tue, 13 Jul 2004 17:01:20 +0100
+From: Nishanth Aravamudan <nacc-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Subject: acpi_os_sleep()
+Date: Tue, 13 Jul 2004 16:28:13 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1089734480.24119.44.camel@rh10.fe.up.pt>
-References: <007601c468ec$fe378b00$3901a8c0@nurscaresvr.integracarehh.com>
-Reply-To: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
+Message-ID: <40F40D9D.3000409@us.ibm.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative; boundary="=-V4HuAJpOYz9rDRtz2qYE"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <007601c468ec$fe378b00$3901a8c0-r0wPPUdlpptkIWvYYjssb9VCoBd5ohsJtWf/oUnstBo@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,73 +15,28 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Jeremy Mann <jmann-hthdAawbG4PxMOqTD017tQC/G2K4zDHf@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, kernel-janitors-qjLDD68F18O7TbgM5vRIOg@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi,
 
---=-V4HuAJpOYz9rDRtz2qYE
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+In continuing to replace, where appropriate, code with msleep() calls, I 
+ran across drivers/acpi/osl.c::acpi_os_sleep():
 
-On Tue, 2004-07-13 at 16:20, Jeremy Mann wrote:
+void
+acpi_os_sleep(u32 sec, u32 ms)
+{
+        current->state = TASK_INTERRUPTIBLE;
+        schedule_timeout(HZ * sec + (ms * HZ) / 1000);
+}
 
-> I've just spent the better part of 2 hours looking through the list archives
-> and see many posts related to the 2100 series Compaq laptops, but I didn't
-> see anything related to how I can get ACPI active enough to dump my DSDT
-> code.  I'm running Mandrake 10, just tried a kernel recompile using an IRQ9
-> hack, but my laptop still gets a hard lockup upon boot from a 2.6.7
-> kernel(and 2.6.3, and 2.4.2x).  The only way I can get the laptop to bootup
-> is using either ACPI=off or ACPI=ht(mandrake default).  Any suggestions?  I
-> just flashed to the latest and greatest(ha!) bios from compaq and tried
-> again with no such luck.
-> 
+I was wondering if this needed to run in TASK_INTERRUPTIBLE or whether I 
+could go ahead and replace it with msleep() (which runs in 
+TASK_UNINTERRUPTIBLE).
 
-try boot with ACPI=on nolapic
-
-
-
-Sergio M. B.
-
---=-V4HuAJpOYz9rDRtz2qYE
-Content-Type: text/html; charset=utf-8
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 TRANSITIONAL//EN">
-<HTML>
-<HEAD>
-  <META HTTP-EQUIV="Content-Type" CONTENT="text/html; CHARSET=UTF-8">
-  <META NAME="GENERATOR" CONTENT="GtkHTML/3.0.9">
-</HEAD>
-<BODY>
-On Tue, 2004-07-13 at 16:20, Jeremy Mann wrote:
-<BLOCKQUOTE TYPE=CITE>
-<PRE><FONT COLOR="#737373"><I>I've just spent the better part of 2 hours looking through the list archives
-and see many posts related to the 2100 series Compaq laptops, but I didn't
-see anything related to how I can get ACPI active enough to dump my DSDT
-code.  I'm running Mandrake 10, just tried a kernel recompile using an IRQ9
-hack, but my laptop still gets a hard lockup upon boot from a 2.6.7
-kernel(and 2.6.3, and 2.4.2x).  The only way I can get the laptop to bootup
-is using either ACPI=off or ACPI=ht(mandrake default).  Any suggestions?  I
-just flashed to the latest and greatest(ha!) bios from compaq and tried
-again with no such luck.
-</I></FONT></PRE>
-</BLOCKQUOTE>
-<PRE><TT>try boot with ACPI=on no<FONT COLOR="#a020f0"><B>lapic</TT></B></FONT></PRE>
-<BR>
-<PRE><TABLE CELLSPACING="0" CELLPADDING="0" WIDTH="100%">
-<TR>
-<TD>
-Sergio M. B.
-</TD>
-</TR>
-</TABLE>
-</PRE>
-</BODY>
-</HTML>
-
---=-V4HuAJpOYz9rDRtz2qYE--
-
+Thanks,
+Nish
 
 
 -------------------------------------------------------
