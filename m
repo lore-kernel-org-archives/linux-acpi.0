@@ -1,14 +1,12 @@
-From: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: ACPI hotplug
-Date: Thu, 13 Jan 2005 12:06:45 -0800
-Message-ID: <20050113120644.A911@unix-os.sc.intel.com>
-References: <pan.2005.01.13.14.02.37.561980@yahoo.com>
-Reply-To: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Donald W Watson <dwatson-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Subject: Hibernate to LVM
+Date: Thu, 13 Jan 2005 13:41:35 -0800
+Message-ID: <OF97651F7F.22151B8B-ON87256F88.0076CB20-88256F88.00772C98@us.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/alternative;
+	Boundary="0__=08BBE51BDFE54DB08f9e8a93df938690918c08BBE51BDFE54DB0"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <pan.2005.01.13.14.02.37.561980-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>; from i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org on Thu, Jan 13, 2005 at 03:02:37PM +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,32 +16,71 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Paul Ionescu <i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: dwatson-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jan 13, 2005 at 03:02:37PM +0100, Paul Ionescu wrote:
-> 
-> I just read that 2.6.11-rc1 does support ACPI hotplug.
-> What does this really mean ?
-> I found some new files in /sys/firmware:
-> find /sys/firmware/ | grep eject
-> /sys/firmware/acpi/namespace/ACPI/_SB/PCI0/USB7/URTH/UPDK/eject
-> /sys/firmware/acpi/namespace/ACPI/_SB/PCI0/USB0/URTH/UPDK/eject
-> /sys/firmware/acpi/namespace/ACPI/_SB/PCI0/IDE0/SCND/MSTR/eject
-> /sys/firmware/acpi/namespace/ACPI/_SB/PCI0/LPC/EC/BAT1/eject
-> /sys/firmware/acpi/namespace/ACPI/_SB/PCI0/LPC/FDC/FDD0/eject
-> 
-The new ACPI code is to  support _physical_ insertion/removal of
-cpus and "containers" (nodes) that have cpus and memory. This
-requires firmware/platform support.  Linux already supports ACPI
-(as well as SHPC/PCI-Express) based physical insertion/removal of
-IO adapters independent of the new code in 2.6.11-rc1. The ACPI 
-namespace you listed above shows ACPI ejectable IO devices. This
-is handled by the existing acpiphp code, not the new processor
-or container code.
+--0__=08BBE51BDFE54DB08f9e8a93df938690918c08BBE51BDFE54DB0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: quoted-printable
 
-Rajesh
+
+
+
+
+
+I am using the 2.6.10 kernel (linux-2.6.9.tar.bz2 with patch 2.6.10.bz2=
+) on
+an older IBM ThinkPad (T20 booted with acpi=3Dforce).
+
+I have seen no discussion of the following in the archives.  Hibernate =
+(S4)
+does not work if the swap partition is on an LVM Logical Volume.  The
+reason is that try_name (init/do_mounts.c) is unable to find the partit=
+ion
+in /sys/block.
+
+Further, if a second swap partition is established on a regular partiti=
+on
+and referenced in the "resume" state in menu.lst, hibernate appears to
+succeed, but on resume check_sig (kernel/power.swsusp.c) complains beca=
+use
+the swsusp_header signature is "SWAPSPACE2" rather than the hard-coded
+"S1SUSPEND" which it expects.
+
+Are these deliberate design decisions?
+
+Sincerely,    Don Watson
+Linux Technology and Solutions; Beaverton, OR
+503-578-4861/TL: 775-4861; dwatson-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org=
+
+--0__=08BBE51BDFE54DB08f9e8a93df938690918c08BBE51BDFE54DB0
+Content-type: text/html; charset=US-ASCII
+Content-Disposition: inline
+Content-transfer-encoding: quoted-printable
+
+<html><body>
+<p>I am using the 2.6.10 kernel (linux-2.6.9.tar.bz2 with patch 2.6.10.=
+bz2) on an older IBM ThinkPad (T20 booted with acpi=3Dforce).<br>
+<br>
+I have seen no discussion of the following in the archives.  Hibernate =
+(S4) does not work if the swap partition is on an LVM Logical Volume.  =
+The reason is that try_name (init/do_mounts.c) is unable to find the pa=
+rtition in /sys/block.<br>
+<br>
+Further, if a second swap partition is established on a regular partiti=
+on and referenced in the &quot;resume&quot; state in menu.lst, hibernat=
+e appears to succeed, but on resume check_sig (kernel/power.swsusp.c) c=
+omplains because the swsusp_header signature is &quot;SWAPSPACE2&quot; =
+rather than the hard-coded &quot;S1SUSPEND&quot; which it expects.<br>
+<br>
+Are these deliberate design decisions?<br>
+<br>
+Sincerely,    Don Watson<br>
+Linux Technology and Solutions; Beaverton, OR<br>
+503-578-4861/TL: 775-4861; dwatson-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org</body></html>=
+
+--0__=08BBE51BDFE54DB08f9e8a93df938690918c08BBE51BDFE54DB0--
 
 
 
