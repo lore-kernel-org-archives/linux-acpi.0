@@ -1,14 +1,13 @@
-From: Albert Schueller <schuelaw-23yYEaFFs4qVc3sceRu5cw@public.gmane.org>
-Subject: Thermal trip_points, raise them?
-Date: Tue, 20 Jan 2004 00:26:29 -0800
+From: "Thomas Herrmann" <ollo.diab-Mmb7MZpHnFY@public.gmane.org>
+Subject: Re: RE: K7 CPU disconnect & system lock
+Date: Tue, 20 Jan 2004 11:11:36 +0100 (MET)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040120002629.A21624@carrot.whitman.edu>
-Reply-To: Albert Schueller <schuelaw-23yYEaFFs4qVc3sceRu5cw@public.gmane.org>
+Message-ID: <3851.1074593496@www40.gmx.net>
+References: <20040119214342.GC380@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,69 +16,55 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Tue Jan 20 00:23:44 PST 2004
+> Hi!
+> 
+> > the K7 cpu disconnect feature is a power save mode, where the CPU
+> > disconnects from the north bridge and goes into sleep mode. Any
+> interrupt will wake-up
+> > the CPU which then needs to connect to the north bridge again to
+> transfer
+> > data. While CPU disconnect enabled the idle temperature of the CPU drops
+> from
+> > around 52C to 27C on my systems. On certain systems this feature can be
+> enabled
+> > via BIOS, but there is also a tool called "athcool" which sets the
+> > configuration register.
+> > 
+> > I have attached the requested logs. As you will see while acpi=off
+> certain
+> > devices (like USB) are not available due to no IRQ routing. All devices
+> work
+> > fine with acpi enabled.
+> 
+> I believe that was traced to hw problem, see kernel list for nforce2
+> info.
 
-Hi,
+Hi Pavel,
 
-After a brief search of the archives on this subject, I have the
-following questions:
+that's not totaly true. I've checked the LKML and there are reports of
+working systems. It seems to depend on BIOS version. It was working fine on my
+systems with different BIOS versions and ACPI turned off before. Also I see the
+exact same behavior on a NForce2 system as well as on a SiS740 system. So
+hardware alone is not the only root cause, IMHO. 
 
-(I'm running ACPI that's in the stock 2.6.1 kernel, this is a debian
-woody (mostly stable) machine, with, of course, the 2.6.1 kernel. )=20
+Regards,   Thomas
 
-	- Ever since I started running acpi on my Dell SmartStep 200N
-	  I've been getting thermal shutdowns.  I suppose having them is
-	  better than not having them, but even in a well-ventilated,
-	  cool room, the machine will shutdown if I compile a kernel.
-	  This is a 2GHz P4 (mobile).  It's clean inside, no dust.
-	  According to the specs at Intel the chip is safe upto 100=B0C
-	  (though maybe not the stuff around it, I don't know).
 
-	  In
-	 =20
-	  /proc/acpi/thermal_zone/THR1/trip_points =3D 72 C
-	  /proc/acpi/thermal_zone/THR2/trip_points =3D 78 C
+> 
+> 								Pavel
+> -- 
+> When do you have a heart between your knees?
+> [Johanka's followup: and *two* hearts?]
+> 
 
-	  well shy of the 100=B0C on the Intel spec.
+-- 
++++ GMX - die erste Adresse für Mail, Message, More +++
+Bis 31.1.: TopMail + Digicam für nur 29 EUR http://www.gmx.net/topmail
 
-	  I was planning to hack the acpi source and raise the trip
-	  points to something like 80 and 86, but I can't find where
-	  they're being set.  This makes me think that they're being
-	  obtained from the BIOS somehow.
-
-	  Is it ok to just:
-
-	  cat "80 C" > /proc/acpi/thermal_zone/THR1/trip_points
-	  cat "86 C" > /proc/acpi/thermal_zone/THR2/trip_points
-
-	  I'll take responsibility for any thermal damage, I'm just
-	  wondering if this will raise the trip_points for me.
-
-	  Alternatively, would removing the thermal module before a big
-	  job, like a kernel compile, and then reinserting it be ok?
-	  Or, would it break the ACPI that's currently running?
-	  (again I take responsibility for thermal damage).
-
-	- Just out of curiosity, what is the difference between the ACPI
-	  code in the stock 2.6.1 kernel and, say, the 2.6.1 patch
-	  provided on the acpi.sf.net page?  (I know, I know, look at
-	  the diffs.)  Are there different development groups for ACPI?
-	  One that's getting their stuff into the current kernels, and
-	  this group that provides a patch replacement?
-
-Sorry if these are FAQ's.
-
-A
-
---=20
-Albert Schueller                                 Department of Mathematic=
-s
-Office Phone:  509-527-5140                      Whitman College
-Public Key:  http://carrot.whitman.edu/gpg.key   Walla Walla, WA USA 9936=
-2
 
 
 -------------------------------------------------------
