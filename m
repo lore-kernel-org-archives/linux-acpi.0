@@ -1,57 +1,47 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] Linux 2.6-pre-mm2 Fix crash on boot on ASUS L3800C if enabing APIC => add this machine to DMI black list
-Date: Fri, 25 Jul 2003 13:52:44 -0700
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A847E97080@orsmsx401.jf.intel.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: S3 wakeup code
+Date: Sat, 26 Jul 2003 00:14:30 +0200
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20030725221430.GA486@elf.ucw.cz>
+References: <20030723162423.GD9013@atrey.karlin.mff.cuni.cz> <Pine.LNX.4.44.0307250755460.2827-100000@puppy.afrinc.com> <20030725175625.GC1526@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-content-class: urn:content-classes:message
-To: Mikael Pettersson <mikpe-gJWeRRR3xd2zQB+pC5nmwQ@public.gmane.org>, akpm-3NddpPZAyC0@public.gmane.org, eric.valette-GANU6spQydw@public.gmane.org, sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20030725175625.GC1526-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: David G Hamblen <dave-RfZrpLcwWZ/QT0dZR+AlfA@public.gmane.org>, Florian Lohoff <flo-BCn6idZOOBwdnm+yROfE0A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Mikael Pettersson [mailto:mikpe-gJWeRRR3xd2zQB+pC5nmwQ@public.gmane.org] 
-> On Sun, 20 Jul 2003 21:48:24 +0200, Eric Valette wrote:
-> >The following patch integrated in 2.5.74,
-> >
-> ><http://lists.insecure.org/lists/linux-kernel/2003/Jun/5840.html>
+Hi!
 
-> At least two P4 laptops are known to require the 2.5.74 patch, and
-> they do work with the local APIC.
-> 
-> While I don't dispute your machine has some problem, please
-> do the following first before we completely blacklist it:
-> - ensure you have the latest BIOS (ftp.asuscom.de has the ones for
->   their desktop mainboards, presumably the laptop BIOSen are 
-> also there)
-> - in what way is ACPI mandatory? does it fail to boot, or does it
->   just lose some specific feature? If you just want suspend support,
->   try APM if the machine has it
-> 
-> A question for the ACPI people:
-> - Does the Linux kernel ACPI code ever transfer control to BIOS,
->   explicitly or implicitly via SMIs triggered by the interpreter?
->   If you do transfer control, do you disable interrupts and/or
->   the interrupt controllers before transferring control?
->   Entering BIOS with the local APIC live, in particular the timer,
->   is a known hang-generator with APM.
+> BTW: Pavel: will there be a place in the new PM interface for functions
+> that drivers could bind onto, i.e. something like a generic
+> disable_backlight(), assigned to
+> {asus,dell,toshiba,nvidia,radeon,etc.}_disable_backlight()? I think this
+> could solve some important problems.
 
-Yes, some OEMs (IBM, for one. I'm sure there are more) enter SMM when
-executing control methods. The interpreter is just blithely going along
-and writing values to mem and io ports -- it doesn't know it just
-invoked SMM. Nothing is disabled.
+I guess you should create sysfs node for your video card, and hook
+your methods there. If you can't place it in the sysfs hierarchy place
+it into system devices...
 
-BTW I'm getting a bunch of other reports starting with 2.5.74 (see
-"linux laptop keyboard problem since 2.5.74"). 
+BTW ACPI lid refresh code should be also moved to sysfs like that...
 
-So let me get this straight -- because 2 machines require this patch,
-you want all the OTHER machines to go on the blacklist? Shouldn't the 2
-machines get special-cased?
+								Pavel
+-- 
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
 
-All these machines work under Windows, so there has to be a solution
-that enables everyone to work.
 
-Regards -- Andy
+-------------------------------------------------------
+This SF.Net email sponsored by: Free pre-built ASP.NET sites including
+Data Reports, E-commerce, Portals, and Forums are available now.
+Download today and enter to win an XBOX or Visual Studio .NET.
+http://aspnet.click-url.com/go/psa00100003ave/direct;at.aspnet_072303_01/01
