@@ -1,8 +1,8 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: smpenum patch updated (20041012)
-Date: Tue, 12 Oct 2004 11:40:33 -0700
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Missing Sleep State object on thinkpad
+Date: Tue, 12 Oct 2004 13:56:02 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A84707CB67B3@orsmsx401.amr.corp.intel.com>
+Message-ID: <37F890616C995246BE76B3E6B2DBE0550247DF66@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,27 +17,102 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jesse Stockall <stockall-J4oS66wZXds@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-<http://kernel.org/pub/linux/kernel/people/grover/smp-20041012-2.6.9-rc4
-.diff.bz2>
+Once this namespace is loaded, the _Sx_ values seem ok:
 
-This patch separates MPS and ACPI-specific code used during SMP init.
+                           \_S0_ (00500768) - Package
+                           \_S1_ (005006F8) - Package
+                           \_S3_ (00500688) - Method
+                           \_S4_ (00500598) - Package
+                           \_S5_ (00500528) - Package
 
-I've updated it to 2.6.9-rc4 and also made the following changes:
 
-- Fix the case when neither MPS or ACPI is present. (thx to Stian
-Jordet)
-- Still non-smpenum on x86_64, but fix build errors. (thx to Len Brown)
 
-Remaining issues:
-
-- es7000 subarch doesn't compile due to an mp_irqs dependency.
-- It would be nice if Kconfig could ensure an SMP kernel has either MPS
-or ACPI enabled.
-
-Thanks -- Regards -- Andy
+> -----Original Message-----
+> From: Yu, Luming
+> Sent: Monday, October 11, 2004 9:42 AM
+> To: Jesse Stockall
+> Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; Moore, Robert
+> Subject: RE: [ACPI] Missing Sleep State object on thinkpad
+>=20
+> Hmmm,  your 600x should have S3 support.
+> The root cause of failure is that  linux is using element in
+> const char      *acpi_gbl_sleep_state_names[ACPI_S_STATE_COUNT] =3D
+> {
+>         "\_S0_",
+>         "\_S1_",
+>         "\_S2_",
+>         "\_S3_",
+>         "\_S4_",
+>         "\_S5_"
+> };
+>=20
+> to call acpi_get_sleep_type_data, but your box define _S3 under the
+> device PNP0A03. So, the evaluating \_S3 will fail.
+> We can come up with a workaround for this case soon.
+>=20
+> Thanks,
+> Luming
+>=20
+>=20
+>=20
+>=20
+> >> To verify it, just simply do "cp /proc/acpi/dsdt  ./dsdt.dat; iasl
+-d
+> >> /proc/acpi/dsdt",
+> >> and go searching for _S3 or _S1. And post the searching result.
+> >>
+> >
+> >There are 2 references to both _S1 and _S3 the first are at line 941
+> >(see attached file) inside the declaration of the device named
+> >"PNP0A03"
+> >
+> >Name (_S1D, 0x01)
+> >Name (_S3D, 0x01)
+> >
+> >The other references are:
+> >
+> >    Name (\_S1, Package (0x04)
+> >    {
+> >        0x04,
+> >        0x04,
+> >        0x00,
+> >        0x00
+> >    })
+> >    Method (_S3, 0, NotSerialized)
+> >    {
+> >        If (BXPT)
+> >        {
+> >            Return (Package (0x04)
+> >            {
+> >                0x06,
+> >                0x06,
+> >                0x00,
+> >                0x00
+> >            })
+> >        }
+> >        Else
+> >        {
+> >            Return (Package (0x04)
+> >            {
+> >                0x01,
+> >                0x01,
+> >                0x00,
+> >                0x00
+> >            })
+> >        }
+> >    }
+> >
+> >Thanks for looking in to this
+> >
+> >Jesse
+> >
+> >--
+> >Jesse Stockall <stockall-J4oS66wZXds@public.gmane.org>
+> >
 
 
 -------------------------------------------------------
