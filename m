@@ -1,14 +1,12 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: IBM Thinkpad problem please give INFO
-Date: Fri, 15 Aug 2003 09:43:29 +0800
+From: Dominik Brodowski <linux-JhLEnvuH02M@public.gmane.org>
+Subject: ACPI disappears silently if !CONFIG_X86_LOCAL_APIC
+Date: Fri, 15 Aug 2003 17:34:15 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720AE9@pdsmsx403.ccr.corp.intel.com>
+Message-ID: <20030815153414.GA789@brodo.de>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,43 +15,28 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ruben Puettmann <ruben-BMzfhW7wj34cWVvVuXF20w@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, usb-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thanks for your kindly help.  Would you please tell me the tracker =
-number on OSDL?
-Thanks,
-Luming
+On some systems where ACPI used to work fine, APIC support is not really 
+needed in the kernel because the mobile chipset/processor doesn't support
+it. Nonetheless, in 2.6.0-test3-bk-current, CONFIG_ACPI depends on
+CONFIG_X86_LOCAL_APIC. As it's only a requirement for ACPI_HT, this patch
+should be fine [it compiles and it works on my notebook].
 
------Original Message-----
-From: Ruben Puettmann [mailto:ruben-BMzfhW7wj34cWVvVuXF20w@public.gmane.org]
-Sent: 2003?8?14? 17:49
-To: Yu, Luming
-Cc: Pavel Machek; usb-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; =
-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: Re: [ACPI] IBM Thinkpad problem please give INFO
+	Dominik
 
-
-On Thu, Aug 14, 2003 at 05:26:34PM +0800, Yu, Luming wrote:
->  we made some progress on this platform. :)
-> I'd like to follow up this issue on bugme.osdl.org.
->=20
-> Ps.  It's for all 2.4 and 2.6 ACPI  serious bug.
->=20
-> Thanks,
-
-no Problem if you need more tetsing please sendpatches I will give them
-a try.
-
-Where is the problem with the thinkpad's? Do you need informations from
-ibm?
-
-        Ruben
---=20
-Ruben Puettmann
-ruben-BMzfhW7wj34cWVvVuXF20w@public.gmane.org
-http://www.puettmann.net
+--- linux-2.6.0-test3+2/drivers/acpi/Kconfig.original	2003-08-15 16:48:16.000000000 +0200
++++ linux-2.6.0-test3+2/drivers/acpi/Kconfig	2003-08-15 16:53:56.000000000 +0200
+@@ -30,7 +30,7 @@
+ 	bool "Full ACPI Support"
+ 	depends on !X86_VISWS
+ 	depends on !IA64_HP_SIM
+-	depends on IA64 || (X86 && ACPI_HT)
++	depends on IA64 || (X86 && ACPI_HT) || (X86 && !X86_LOCAL_APIC)
+ 	default y
+ 	---help---
+ 	  Advanced Configuration and Power Interface (ACPI) support for 
 
 
 -------------------------------------------------------
