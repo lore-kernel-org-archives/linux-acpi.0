@@ -1,12 +1,14 @@
-From: Paulo Filipe Canha de Andrade <pfca-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
-Subject: reboots after recompile with ACPI
-Date: 03 Jan 2003 02:46:32 +0000
+From: Alexander Hoogerhuis <alexh-rpjHciJLgqZBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: No battery information - Compaq Evo N800v, 2.4.20pre8, acpi 20021002
+Date: 03 Jan 2003 08:59:43 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1041561998.1263.33.camel@Unixuser>
+Message-ID: <87hecqiryo.fsf@lapper.ihatent.com>
+References: <200210081115.21667.mark.pritchard-acpi@modus.com.au>
+	<87n0mmzrh1.fsf@lapper.ihatent.com> <20030102113459.GA2974@zaurus>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20030102113459.GA2974-XqDnSF8rrUM@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,30 +17,47 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Mark Pritchard <mark.pritchard-acpi-3o+aUUpM7Xj0CCvOHzKKcA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-Trying to get my new desktop system to shutdown properly, (an AMD 2200+
-with a chaintech 7vjl chipset viaKT333), I recompiled my RH8.0 kernel to
-the 2.4.20 with the patch acpi-20021212.. rebooted the machine and in
-grub
-imediatly after pressing enter to boot the new kernel, the system just
-reboots... I have been messing with this new kernel (2.4.20) and it
-works
-without any glitch without this patch.. Any ideas? Any help would be
-welcome!
+Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> writes:
 
-Btw shouldn't I be able to compile the kernel with acpi as a module?
-that
-option is disabled for me.. And what is this CPU Enumeration only
-option?
+> Hi!
+> 
+> > present:                 yes
+> > design capacity:         1918 mAh
+> > last full capacity:      1918 mAh
+> > battery technology:      rechargeable
+> > design voltage:          14800 mV
+> > design capacity warning: 192 mAh
+> 
+> 2Ah seems quite low, but as you have 15V 
+> battery its 30Wh, which might be okay for
+> *small* notebook.
+> 
 
-Thanks for your time! Any help, would help! cause i'm out of ideas..
+Evo n800c is not a *small* notebook, its a pretty beefy thing and the
+biggest beast Compaq could conjure up this summer :) P4-1.7GHz, 768Mb
+RAM and a 30Gb disk and a nice ATI Radeon 7500 to boot :)
+
+> > And it's been a long time since I've had much physics, but the design
+> > capacity doesn't seem right to me. I'm able to run about 13-14 mins on
+> > battery, before the machine dies, from a fully charged battery.
+> 
+> Perhaps your battery is too old these days?
+
+Not even six months, and not many cycles as its used mainly as a
+portable desktop.
+
+> -- 
+> 				Pavel
+> Written on sharp zaurus, because my Velo1 broke. If you have Velo you don't need...
+
 -- 
-Paulo Filipe Canha de Andrade
-mailto:pfca-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org
-
+Alexander Hoogerhuis                               | alexh-rpjHciJLgqZBDgjK7y7TUQ@public.gmane.org
+CCNP - CCDP - MCNE - CCSE                          | +47 908 21 485
+"You have zero privacy anyway. Get over it."  --Scott McNealy
 
 
 -------------------------------------------------------
