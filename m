@@ -1,35 +1,54 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [ACPI] Re: 2.6.12-rc1-mm4 and suspend2ram (and synaptics)
-Date: Mon, 4 Apr 2005 00:59:29 +0200
-Message-ID: <20050403225929.GE13466@elf.ucw.cz>
-References: <20050331220822.GA22418@gamma.logic.tuwien.ac.at> <20050401113335.GA13160@elf.ucw.cz> <20050403224557.GB1015@gamma.logic.tuwien.ac.at>
+From: Andrea Borgia <borgia-iEixELS/QsY1GQ1Ptb7lUw@public.gmane.org>
+Subject: Re: Re: suspend-to-disk: fan always on and misc kernel errors
+Date: Sun, 03 Apr 2005 13:05:00 +0200
+Message-ID: <424FCDDC.2090905@cs.unibo.it>
+References: <4246F06D.40005@cs.unibo.it> <20050328205027.GB28568@message-id.gmane0305.slipkontur.de> <4249A359.9060301@cs.unibo.it> <20050401221940.GC1868@message-id.gmane0305.slipkontur.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261944AbVDCXAC@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20050403224557.GB1015@gamma.logic.tuwien.ac.at>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Norbert Preining <preining@logic.at>
-Cc: Andrew Morton <akpm@osdl.org>, linux-kernel@vger.kernel.org, acpi-devel@lists.sourceforge.net
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20050401221940.GC1868-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Stefan Seyfried wrote:
 
-> it is only suspend2ram which stopped working after 2.6.11-mm4 (at least
-> in 2.6.12-rc1-mm3,4).
-> 
-> Concerning tests with minimal kernel config: I guess since it *was*
-> working there should not be a change necessary -- but well, from
-> 2.6.11-mm2 to 2.6.11-mm4 I had to stop hotplug/usb to get ot working, so
-> maybe now I have to stop all the other things. Grrrr. This is not what I
-> want!
-> 
-> Isn't there a different way?
 
-I'd like to fix the problem, but first I need to know where the
-problem is.  If it works with minimal config, I know that it is one of
-drivers you deselected.
-								Pavel
+> | Mar 27 18:49:57 localhost kernel: note: swsusp-script[3902] exited with preempt_count 1
+> disable preempt.
+
+Thanks, that did it: now it suspends/resumes with no errors reported and 
+the script runs to completion (including restarting powernowd and 
+stopping the fan soon afterwards).
+
+
+> known, s4bios is not working for a long time now, we should remove it.
+> "echo 4 > /proc/acpi/sleep" is supposed to do the same thing as "echo disk >
+> /sys/power/state" on an acpi system.
+
+Does it make any difference which interface is used (/sys/power vs 
+/proc/acpi) ?
+
+
+Thanks again,
+Andrea.
+
 -- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Homepage: http://andrea.borgia.bo.it     /    Amateur radio: IZ4FHT
+
+
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
