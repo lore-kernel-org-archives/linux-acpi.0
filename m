@@ -1,18 +1,14 @@
 From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Radeon PM Support
-Date: 03 Aug 2004 23:40:35 -0400
+Subject: Re: acpi_pci_irq_enable called for all PCI devices
+Date: 03 Aug 2004 23:42:55 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1091590835.2304.64.camel@dhcppc4>
-References: <1091139240.26511.9.camel@6-allhosts>
-	 <20040730141028.GE21359@luna.mooo.com> <20040730162756.4f300a5c@localhost>
-	 <20040730190047.GH21359@luna.mooo.com>
-	 <1091560208.24759.15.camel@6-allhosts>  <41103952.2030707@optonline.net>
-	 <1091583216.2974.2.camel@localhost.localdomain>
+Message-ID: <1091590975.2297.67.camel@dhcppc4>
+References: <F760B14C9561B941B89469F59BA3A847070ED5D8@orsmsx401.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1091583216.2974.2.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+In-Reply-To: <F760B14C9561B941B89469F59BA3A847070ED5D8-sBd4vmA9Se6krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -21,16 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Erik Tews <erik-KVSZC2aA8+zw/snApU8qRLNAH6kLmebB@public.gmane.org>
-Cc: Nathan Bryant <nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>, Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>, Acpi Devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Some folks have had good luck getting Radeon to resume
-after applying this patch.  I saw it fix a Dell 600m/Radeon.
+On Tue, 2004-08-03 at 20:39, Grover, Andrew wrote:
+> Hi Bjorn, Len, & all,
+> 
+> I'm looking at the code in pci_acpi_init that unconditionally calls
+> acpi_pci_irq_enable for all PCI devices. The comment says this is to
+> work around drivers that do not call pci_enable_device.
+> 
+> Do we know if there are any drivers broken in this manner? I think it
+> would be good to take advantage of the work done here and not do all IRQ
+> allocation at init.
+> 
 
-http://lists.debian.org/debian-x/2004/03/msg03482.html
+I think this was just to be conservative (retain old behaviour) during
+2.6.8.  Perhaps we should delete that upon the start of 2.6.9...
 
-cheers,
 -Len
 
 
