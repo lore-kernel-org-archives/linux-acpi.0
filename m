@@ -1,14 +1,14 @@
-From: Thorsten Zachmann <t.zachmann-c61pB8mzqkY@public.gmane.org>
-Subject: No handler for Region
-Date: Tue, 3 Feb 2004 08:25:41 +0100
+From: Vojtech Pavlik <vojtech-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: FYI: ACPI 'sleep 1' resets atkbd keycodes
+Date: Tue, 3 Feb 2004 08:37:06 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200402030823.53848.t.zachmann@zagge.de>
+Message-ID: <20040203073706.GE337@ucw.cz>
+References: <200401251137.21646.p_christ@hol.gr> <20040125115946.GA414@ucw.cz> <200402022338.48010.dtor_core@ameritech.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <200402022338.48010.dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,60 +17,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Dmitry Torokhov <dtor_core-yWtbtysYrB+LZ21kGMrzwg@public.gmane.org>
+Cc: "P. Christeas" <p_christ-U04EIuiosng@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello all,
+On Mon, Feb 02, 2004 at 11:38:41PM -0500, Dmitry Torokhov wrote:
 
-I have a toshiba tecra s1. During the bootup I get some errors and the battery 
-status is not working. The messages looks similar as described in
+> I feel a little uneasy about killing the input device if set changes after
+> resume. That would cause a new input device created but for user it would
+> look like keyboard is lost or am I missing someting?
 
-http://sourceforge.net/mailarchive/message.php?msg_id=6752695
+The console will automatically and immediately grab the new keyboard and
+everything will continue to work, even X, because it uses the console
+for input.
 
-I run a 2.6.2-rc2 kernel with the acpi-20040116.diff.bz2 patch and the acpi 
-initrd patch for setting my own dsdt. Since the update to 2.6.2-rc2 the 
-errors for the dockingstation are gone. However there are still some "No 
-handler for Region" errors during boot up as seen below:
+Later, when X uses the event interface, it'll get a notification that
+the keyboard was removed and added again, which will cause it to open
+the new one, so all will be OK, too.
 
-<4>evregion-0251 [21] ev_address_space_dispa: No handler for Region [ECF2] 
-(dfef1ea8) [EmbeddedControl]
-<4> exfldio-0284 [20] ex_access_region      : Region EmbeddedControl(3) has no 
-handler
-<4> dswexec-0435 [13] ds_exec_end_op        : [Store]: Could not resolve 
-operands, AE_NOT_EXIST
-<4> psparse-1120: *** Error: Method execution failed [\_SB_.BAT0._STA] (Node 
-dfef9ba8), AE_NOT_EXIST
-<4>evregion-0251 [21] ev_address_space_dispa: No handler for Region [ECF2] 
-(dfef1ea8) [EmbeddedControl]
-<4> exfldio-0284 [20] ex_access_region      : Region EmbeddedControl(3) has no 
-handler
-<4> dswexec-0435 [13] ds_exec_end_op        : [Store]: Could not resolve 
-operands, AE_NOT_EXIST
-<4> psparse-1120: *** Error: Method execution failed [\_SB_.BAT1._STA] (Node 
-dfef9428), AE_NOT_EXIST
+> What about the patch below which would reset keyboard to the default keymap
+> only if set changes?
 
-The problem lies in the Store command of the _STA Methods of the batteries. If 
-the store command is replacecd by 
+I don't think there is a problem with just reconnecting. It's extremely
+unlikely that the set can change, too, because everyone uses translated
+set 2, and that's the lowest common denominator.
 
-Store (0x01, Local0) 
+Unless you specified extra arguments on the kernel command line, you
+can't get any other set.
 
-the functions work without errors messages. 
-
-I have put the file files.tar.gz containing:
-dsdt.dsl.org (the dsdt I use)
-dmesg.txt 
-dmidecode.txt
-acpidmp.txt
-interrupts.txt
-lscpi.txt
-
-which can be found at http://zagge.online.de/files.tar.gz .
-
-If you need more information or if I should test something I'm more than 
-willing to do so. Thanks for your help and your good job.
-
-Thorsten
-
+-- 
+Vojtech Pavlik
+SuSE Labs, SuSE CR
 
 
 -------------------------------------------------------
