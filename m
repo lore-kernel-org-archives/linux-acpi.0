@@ -1,646 +1,313 @@
-From: BlaisorBlade <blaisorblade_spam-whZMOeQn8C0@public.gmane.org>
-Subject: [PATCH] Oops and panic while unloading holder of pm_idle
-Date: Thu, 19 Aug 2004 18:31:22 +0200
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200408171728.06262.blaisorblade_spam@yahoo.it>
+From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger@gmx.at>
+Subject: Re: [ACPI] [PATCH][RFC] fix ACPI IRQ routing after S3 suspend
+Date: Fri, 20 Aug 2004 12:50:54 +0200
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <200408201250.55025.stefandoesinger@gmx.at>
+References: <41103F22.4090303@optonline.net> <200408192224.08271.stefandoesinger@gmx.at> <41251385.9040907@optonline.net>
+Reply-To: stefandoesinger@gmx.at
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_mXNJBb+/6H9HyDb"
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+  boundary="Boundary-00=_OedJB8Yxoth1Hjf"
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S266248AbUHTKwA@vger.kernel.org>
+In-Reply-To: <41251385.9040907@optonline.net>
 Content-Disposition: inline
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: acpi-devel@lists.sourceforge.net
+Cc: Nathan Bryant <nbryant@optonline.net>, len.brown@intel.com, Linux Kernel list <linux-kernel@vger.kernel.org>, "Li, Shaohua" <shaohua.li@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
 
---Boundary-00=_mXNJBb+/6H9HyDb
+--Boundary-00=_OedJB8Yxoth1Hjf
 Content-Type: text/plain;
-  charset="iso-8859-15"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-(CC me on replies as I'm not subscribed).
+> I can't find anything named "ipw2100" in my kernel source tree...
+The driver for the Intel wlan card. See ipw2100.sf.net
+>
+> > *In single user mode with ipw2100 loaded while S3, IRQ 11 is disabled on
+> > resume, IRQ is not disabled
+>
+> Huh? IRQ(what) is not disabled?
+Ooops, I forgot the number.
+IRQ 10 is not disabled any more. I verified that it works fine.
+>
+> Please attach dmesg.
+>
+> > *When the system is fully booted up, everything seems to work fine.
+>
+> What do you mean by this? If you suspend when more drivers are loaded,
+> things work fine, but don't work when less drivers are loaded?
+Yes, I meant this. But it looks like another once-and-never-again success. I 
+recompiled my kernel and now the ipw2100 resume also fails when all drivers 
+are loaded.
 
-A short description, with my hypothesis about how the panic() happened:
+Is it possible that the IRQ routing is restored too late? ipw2100 reports a 
+lot of unhandled irqs.
 
-My 2.6.7 preemptible kernel oopsed because when I unloaded the "processor" 
-module (driver/acpi/processor.c), the pm_idle(see arch/i386/kernel/process.c) 
-function he provided was called after the module being unloaded (notice that 
-the "processor" module is not listed below).
+A dmesg is attached.
 
-I.e., cpu_idle did "idle = pm_idle", it was probably preempted (I run with 
-CONFIG_PREEMPT=y), the processor module was unloaded, and then it called 
-"(*idle)();". In fact it does not happen always (I just got again this panic 
-by unloading the same module, and checked that the address was from the 
-"processor", but I cannot get it again; don't ask me why it can be obtained 
-only the first time it is unloaded, but not after reloading and re-unloading 
-it).
+Stefan
 
-This could happen as well on SMP, so we need a spinlock for accessing 
-pm_idle. We could maybe as well use a semaphore (since we will always be in 
-process context), but IMHO there is too much overhead. And it does not make 
-sense for the idle thread to sleep while holding a semaphore (I don't know if 
-it's a bug). So I attach spinlock-protect-pm_idle.patch (which corrects some 
-more things on some archs). With this patch applied, I cannot reproduce the 
-problem any more.
-
-But that does not suffice: saying
-
-static void (*pm_idle_save)(void);
-pm_idle_save = pm_idle;
-pm_idle = my_own_pm_idle; 
-
-does not work if you stack more modules onto it. Say, if module1 and module2 
-both install their pm_idle and then I unload module1 and after I unload 
-module2: module2 will restore module1_pm_idle, so we get Oopses. I.e. we need 
-a stack of pm_idle functions + some register_pm_idle() APIs. Do you agree?
-
-This may be a bit overkill given that only APM and ACPI, and, on SPARC, 
-arch/sparc/kernel/{apc,pmc}.c, define their pm_idle function. So, as an 
-alternative, see this code (which assumes pm_idle is renamed to _pm_idle and 
-unexported, to force changes in all drivers):
-
-int install_pm_idle(void (*idle)(void))
-{
-	if (_pm_idle == NULL) {
-		_pm_idle = idle;
-		return 1;
-	} else
-		return 0;
-}
-EXPORT_SYMBOL(install_pm_idle);
-
-Also, in my case, I don't think we have this kind of panic, because pm_idle is 
-just defined by APM and ACPI (CONFIG_APM=y, and APM is not supported by my 
-laptop). I also checked, when getting again the same panic, that the faulty 
-EIP was actually inside the processor module (from /proc/modules).
-
-And also, it PANICKED, but CONTINUED TO RUN: notice the last 3 lines:
-<0>Kernel panic: Attempted to kill the idle task!
-In idle task - not syncing
- <6>ACPI: Processor [CPU0] (supports C1 C2)
-The third one comes from reloading the "processor" module.
-
-For reference, I attach the Oops output and the cpu_idle disassemble, so that 
-you can check the EIP value. However I checked that it was actually calling 
-pm_idle.
-
-Unable to handle kernel paging request at virtual address e0e8a238
- printing eip:
-e0e8a238
-*pde = 1e1e1067
-*pte = 00000000
-Oops: 0000 [#1]
-PREEMPT
-Modules linked in: fan button battery non_fatal ac binfmt_misc snd_seq_oss 
-snd_seq_midi_event snd_seq snd_pcm_oss snd_mixer_oss snd_intel8x0 
-snd_ac97_codec snd_pcm snd_timer snd_page_alloc gameport snd_mpu401_uart 
-snd_rawmidi snd_seq_device snd soundcore af_packet ipv6 ds yenta_socket 
-pcmcia_core eth1394 tg3 ohci1394 ieee1394 nls_iso8859_15 nls_cp850 vfat fat 
-psmouse amd64_agp agpgart ide_cd cdrom sd_mod usb_storage scsi_mod tsdev 
-evdev dm_mod usbhid usbmouse ehci_hcd ohci_hcd usbcore rtc
-CPU:    0
-EIP:    0060:[<e0e8a238>]    Not tainted
-EFLAGS: 00010212   (2.6.7)
-EIP is at 0xe0e8a238
-eax: 00f6b2a4   ebx: 00008008   ecx: 00f6a78f   edx: 00008008
-esi: c15666b0   edi: c03d41c0   ebp: c1566600   esp: c03adfc8
-ds: 007b   es: 007b   ss: 0068
-Process swapper (pid: 0, threadinfo=c03ac000 task=c0330a40)
-Stack: 00099100 00099100 c03ac000 00099100 c03d41c0 00426007 c01020cd c03ac000
-       c03ae61d 00000012 c03ae370 c03d3fc0 00000800 c010019f
-Call Trace:
- [<c01020cd>] cpu_idle+0x2d/0x40
- [<c03ae61d>] start_kernel+0x14d/0x170
- [<c03ae370>] unknown_bootoption+0x0/0x120
-
-Code:  Bad EIP value.
- <0>Kernel panic: Attempted to kill the idle task!
-In idle task - not syncing
- <6>ACPI: Processor [CPU0] (supports C1 C2)
-
-(gdb) disassemble cpu_idle
-Dump of assembler code for function cpu_idle:
-0xc01020a0 <cpu_idle+0>:        push   %ebx
-0xc01020a1 <cpu_idle+1>:        mov    $0xffffe000,%ebx
-0xc01020a6 <cpu_idle+6>:        and    %esp,%ebx
-0xc01020a8 <cpu_idle+8>:        jmp    0xc01020cd <cpu_idle+45>
-0xc01020aa <cpu_idle+10>:       lea    0x0(%esi),%esi
-0xc01020b0 <cpu_idle+16>:       mov    0xc03d3504,%eax
-0xc01020b5 <cpu_idle+21>:       mov    $0xc0102030,%edx
-0xc01020ba <cpu_idle+26>:       test   %eax,%eax
-0xc01020bc <cpu_idle+28>:       cmove  %edx,%eax
-0xc01020bf <cpu_idle+31>:       mov    0xc0331e40,%edx
-0xc01020c5 <cpu_idle+37>:       mov    %edx,0xc03e8e84
-0xc01020cb <cpu_idle+43>:       call   *%eax
-0xc01020cd <cpu_idle+45>:       mov    0x8(%ebx),%eax
-0xc01020d0 <cpu_idle+48>:       test   $0x8,%al
-0xc01020d2 <cpu_idle+50>:       je     0xc01020b0 <cpu_idle+16>
-0xc01020d4 <cpu_idle+52>:       call   0xc02d9200 <schedule>
-0xc01020d9 <cpu_idle+57>:       jmp    0xc01020cd <cpu_idle+45>
-0xc01020db <cpu_idle+59>:       nop
-0xc01020dc <cpu_idle+60>:       lea    0x0(%esi,1),%esi
-
--- 
-Paolo Giarrusso, aka Blaisorblade
-Linux registered user n. 292729
-
-
-
-
-
-
-
-
-
---Boundary-00=_mXNJBb+/6H9HyDb
-Content-Type: text/x-diff;
-  charset="iso-8859-15";
-  name="spinlock-protect-pm_idle.patch"
+--Boundary-00=_OedJB8Yxoth1Hjf
+Content-Type: text/plain;
+  charset="iso-8859-1";
+  name="dmesg"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
-	filename="spinlock-protect-pm_idle.patch"
+Content-Disposition: attachment;
+	filename="dmesg"
 
+Linux version 2.6.8.1 (root@laptop) (gcc version 3.3.3 20040412 (Gentoo Linux 3.3.3-r6, ssp-3.3.2-2, pie-8.7.6)) #4 Fri Aug 20 12:08:26 CEST 2004
+BIOS-provided physical RAM map:
+ BIOS-e820: 0000000000000000 - 000000000009f800 (usable)
+ BIOS-e820: 000000000009f800 - 00000000000a0000 (reserved)
+ BIOS-e820: 00000000000e0000 - 0000000000100000 (reserved)
+ BIOS-e820: 0000000000100000 - 000000001ff70000 (usable)
+ BIOS-e820: 000000001ff70000 - 000000001ff7b000 (ACPI data)
+ BIOS-e820: 000000001ff7b000 - 000000001ff80000 (ACPI NVS)
+ BIOS-e820: 000000001ff80000 - 0000000020000000 (reserved)
+ BIOS-e820: 00000000ff800000 - 00000000ffc00000 (reserved)
+ BIOS-e820: 00000000fff00000 - 0000000100000000 (reserved)
+511MB LOWMEM available.
+On node 0 totalpages: 130928
+  DMA zone: 4096 pages, LIFO batch:1
+  Normal zone: 126832 pages, LIFO batch:16
+  HighMem zone: 0 pages, LIFO batch:1
+DMI present.
+ACPI: RSDP (v000 ACER                                      ) @ 0x000f60c0
+ACPI: RSDT (v001 ACER   Cardinal 0x20020302  LTP 0x00000000) @ 0x1ff74c20
+ACPI: FADT (v001 ACER   Cardinal 0x20020302 PTL  0x0000001e) @ 0x1ff7af64
+ACPI: BOOT (v001 ACER   Cardinal 0x20020302  LTP 0x00000001) @ 0x1ff7afd8
+ACPI: DSDT (v001 ACER   Cardinal 0x20020302 MSFT 0x0100000d) @ 0x00000000
+ACPI: PM-Timer IO Port: 0x1008
+Built 1 zonelists
+Kernel command line: root=/dev/hda8 rootfstype=ext3 resume=/dev/hda5 s
+Local APIC disabled by BIOS -- reenabling.
+Found and enabled local APIC!
+Initializing CPU#0
+PID hash table entries: 2048 (order 11: 16384 bytes)
+Detected 1598.835 MHz processor.
+Using pmtmr for high-res timesource
+Console: colour VGA+ 80x25
+Dentry cache hash table entries: 131072 (order: 7, 524288 bytes)
+Inode-cache hash table entries: 65536 (order: 6, 262144 bytes)
+Memory: 515504k/523712k available (1522k kernel code, 7464k reserved, 671k data, 140k init, 0k highmem)
+Checking if this processor honours the WP bit even in supervisor mode... Ok.
+Calibrating delay loop... 3170.30 BogoMIPS
+Mount-cache hash table entries: 512 (order: 0, 4096 bytes)
+CPU: After generic identify, caps: a7e9fbbf 00000000 00000000 00000000
+CPU: After vendor identify, caps:  a7e9fbbf 00000000 00000000 00000000
+CPU: L1 I cache: 32K, L1 D cache: 32K
+CPU: L2 cache: 1024K
+CPU: After all inits, caps:        a7e9fbbf 00000000 00000000 00000040
+Intel machine check architecture supported.
+Intel machine check reporting enabled on CPU#0.
+CPU: Intel(R) Pentium(R) M processor 1600MHz stepping 05
+Enabling fast FPU save and restore... done.
+Enabling unmasked SIMD FPU exception support... done.
+Checking 'hlt' instruction... OK.
+ACPI: IRQ9 SCI: Edge set to Level Trigger.
+enabled ExtINT on CPU#0
+ESR value before enabling vector: 00000000
+ESR value after enabling vector: 00000000
+Using local APIC timer interrupts.
+calibrating APIC timer ...
+..... CPU clock speed is 1598.0418 MHz.
+..... host bus clock speed is 99.0901 MHz.
+checking if image is initramfs...it isn't (ungzip failed); looks like an initrd
+ACPI: Looking for DSDT in initrd ... found (at offset 20)!
+ found customized DSDT with 23378 bytes!
+Freeing initrd memory: 22k freed
+NET: Registered protocol family 16
+PCI: PCI BIOS revision 2.10 entry at 0xfd732, last bus=2
+PCI: Using configuration type 1
+mtrr: v2.0 (20020519)
+ACPI: Subsystem revision 20040715
+ACPI: Interpreter enabled
+ACPI: Using PIC for interrupt routing
+ACPI: PCI Root Bridge [PCI0] (00:00)
+PCI: Probing PCI hardware (bus 00)
+PCI: Ignoring BAR0-3 of IDE controller 0000:00:1f.1
+PCI: Transparent bridge - 0000:00:1e.0
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.AGP_._PRT]
+ACPI: PCI Interrupt Link [LNKA] (IRQs *10)
+ACPI: PCI Interrupt Link [LNKB] (IRQs *10)
+ACPI: PCI Interrupt Link [LNKC] (IRQs *10)
+ACPI: PCI Interrupt Link [LNKD] (IRQs *5)
+ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 7 9 11 12) *10
+ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 7 9 11 12) *0, disabled.
+ACPI: PCI Interrupt Link [LNKG] (IRQs 10) *0, disabled.
+ACPI: PCI Interrupt Link [LNKH] (IRQs *10)
+ACPI: Embedded Controller [EC0] (gpe 29)
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.HUB_._PRT]
+ACPI: Power Resource [PFN0] (off)
+ACPI: Power Resource [PFN1] (off)
+PCI: Using ACPI for IRQ routing
+ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 10
+ACPI: PCI interrupt 0000:00:1d.0[A] -> GSI 10 (level, low) -> IRQ 10
+ACPI: PCI Interrupt Link [LNKD] enabled at IRQ 5
+ACPI: PCI interrupt 0000:00:1d.1[B] -> GSI 5 (level, low) -> IRQ 5
+ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 10
+ACPI: PCI interrupt 0000:00:1d.2[C] -> GSI 10 (level, low) -> IRQ 10
+ACPI: PCI Interrupt Link [LNKH] enabled at IRQ 10
+ACPI: PCI interrupt 0000:00:1d.7[D] -> GSI 10 (level, low) -> IRQ 10
+ACPI: PCI interrupt 0000:00:1f.1[A] -> GSI 10 (level, low) -> IRQ 10
+ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 10
+ACPI: PCI interrupt 0000:00:1f.3[B] -> GSI 10 (level, low) -> IRQ 10
+ACPI: PCI interrupt 0000:00:1f.5[B] -> GSI 10 (level, low) -> IRQ 10
+ACPI: PCI interrupt 0000:00:1f.6[B] -> GSI 10 (level, low) -> IRQ 10
+ACPI: PCI interrupt 0000:01:00.0[A] -> GSI 10 (level, low) -> IRQ 10
+ACPI: PCI interrupt 0000:02:02.0[A] -> GSI 5 (level, low) -> IRQ 5
+ACPI: PCI Interrupt Link [LNKE] enabled at IRQ 11
+ACPI: PCI interrupt 0000:02:04.0[A] -> GSI 11 (level, low) -> IRQ 11
+ACPI: PCI interrupt 0000:02:06.0[A] -> GSI 10 (level, low) -> IRQ 10
+ACPI: PCI interrupt 0000:02:06.1[A] -> GSI 10 (level, low) -> IRQ 10
+ACPI: PCI interrupt 0000:02:06.2[A] -> GSI 10 (level, low) -> IRQ 10
+ACPI: PCI interrupt 0000:02:07.0[A] -> GSI 10 (level, low) -> IRQ 10
+Simple Boot Flag at 0x37 set to 0x1
+Machine check exception polling timer started.
+devfs: 2004-01-31 Richard Gooch (rgooch@atnf.csiro.au)
+devfs: boot_options: 0x0
+Initializing Cryptographic API
+RAMDISK driver initialized: 16 RAM disks of 4096K size 1024 blocksize
+Uniform Multi-Platform E-IDE driver Revision: 7.00alpha2
+ide: Assuming 33MHz system bus speed for PIO modes; override with idebus=xx
+ICH4: IDE controller at PCI slot 0000:00:1f.1
+PCI: Enabling device 0000:00:1f.1 (0005 -> 0007)
+ACPI: PCI interrupt 0000:00:1f.1[A] -> GSI 10 (level, low) -> IRQ 10
+ICH4: chipset revision 3
+ICH4: not 100% native mode: will probe irqs later
+    ide0: BM-DMA at 0x1860-0x1867, BIOS settings: hda:DMA, hdb:pio
+    ide1: BM-DMA at 0x1868-0x186f, BIOS settings: hdc:DMA, hdd:pio
+hda: IC25N040ATCS04-0, ATA DISK drive
+Using anticipatory io scheduler
+ide0 at 0x1f0-0x1f7,0x3f6 on irq 14
+hdc: UJDA740 DVD/CDRW, ATAPI CD/DVD-ROM drive
+ide1 at 0x170-0x177,0x376 on irq 15
+hda: max request size: 128KiB
+hda: 78140160 sectors (40007 MB) w/1768KiB Cache, CHS=65535/16/63, UDMA(100)
+ /dev/ide/host0/bus0/target0/lun0: p1 p3 < p5 p6 p7 p8 p9 >
+mice: PS/2 mouse device common for all mice
+serio: i8042 AUX port at 0x60,0x64 irq 12
+serio: i8042 KBD port at 0x60,0x64 irq 1
+input: AT Translated Set 2 keyboard on isa0060/serio0
+NET: Registered protocol family 2
+IP: routing cache hash table of 4096 buckets, 32Kbytes
+TCP: Hash tables configured (established 32768 bind 65536)
+speedstep-centrino: found "Intel(R) Pentium(R) M processor 1600MHz": max frequency: 1600000kHz
+Resume Machine: resuming from /dev/hda5
+Resuming from device unknown-block(3,5)
+Resume Machine: This is normal swap space
+ACPI: (supports S0 S3 S4 S5)
+ACPI wakeup devices: 
+MDM0 GLAN USB1 USB2 USB3 
+RAMDISK: Couldn't find valid RAM disk image starting at 0.
+kjournald starting.  Commit interval 5 seconds
+EXT3-fs: mounted filesystem with ordered data mode.
+VFS: Mounted root (ext3 filesystem) readonly.
+Freeing unused kernel memory: 140k freed
+NET: Registered protocol family 1
+Adding 1052216k swap on /dev/hda5.  Priority:-1 extents:1
+EXT3 FS on hda8, internal journal
+SCSI subsystem initialized
+hdc: ATAPI 24X DVD-ROM CD-R/RW drive, 2048kB Cache, UDMA(33)
+Uniform CD-ROM driver Revision: 3.20
+Linux agpgart interface v0.100 (c) Dave Jones
+agpgart: Detected an Intel 855PM Chipset.
+agpgart: Maximum main memory to use for agp memory: 439M
+agpgart: AGP aperture is 256M @ 0xe0000000
+Synaptics Touchpad, model: 1
+ Firmware: 5.8
+ 180 degree mounted touchpad
+ Sensor: 29
+ new absolute packet format
+ Touchpad has extended capability bits
+ -> 4 multi-buttons, i.e. besides standard buttons
+ -> multifinger detection
+ -> palm detection
+input: SynPS/2 Synaptics TouchPad on isa0060/serio1
+kjournald starting.  Commit interval 5 seconds
+EXT3 FS on hda9, internal journal
+EXT3-fs: mounted filesystem with ordered data mode.
+kjournald starting.  Commit interval 5 seconds
+EXT3 FS on hda6, internal journal
+EXT3-fs: mounted filesystem with ordered data mode.
+kjournald starting.  Commit interval 5 seconds
+EXT3 FS on hda7, internal journal
+EXT3-fs: mounted filesystem with ordered data mode.
+usbcore: registered new driver usbfs
+usbcore: registered new driver hub
+ieee80211_crypt: registered algorithm 'NULL'
+ipw2100: Intel(R) PRO/Wireless 2100 Network Driver, 0.53
+ipw2100: Copyright(c) 2003-2004 Intel Corporation
+ACPI: PCI interrupt 0000:02:04.0[A] -> GSI 11 (level, low) -> IRQ 11
+ipw2100: 0000:02:04.0: Detected at mem: 0xD0206000-0xD0206FFF -> e0931000, irq: 11
+wlan0: Using hotplug firmware load.
+wlan0: Bound to 0000:02:04.0
+NET: Registered protocol family 17
+PM: Preparing system for suspend
+Stopping tasks: ==========|
+wlan0: Going into suspend...
+PM: Entering state.
+Back to C!
 
+--Here is a uncountable number of "IRQ ignored" messages from the ipw2100 driver--
+--I removed the debug line from the driver because it would have overwritten the--
+--lines above--
 
-Signed-off-by: Paolo 'Blaisorblade' Giarrusso <blaisorblade_spam-whZMOeQn8C0@public.gmane.org>
----
+irq 11: nobody cared!
+ [<c010851a>] __report_bad_irq+0x2a/0x90
+ [<c0108610>] note_interrupt+0x70/0xb0
+ [<c01088f0>] do_IRQ+0x120/0x130
+ [<c0106b40>] common_interrupt+0x18/0x20
+ [<c012119e>] __do_softirq+0x2e/0x80
+ [<c0121217>] do_softirq+0x27/0x30
+ [<c01088cb>] do_IRQ+0xfb/0x130
+ [<c010c8e0>] time_resume+0x0/0x50
+ [<c0106b40>] common_interrupt+0x18/0x20
+ [<c010c8e0>] time_resume+0x0/0x50
+ [<c010c91d>] time_resume+0x3d/0x50
+ [<c01f8493>] sysdev_resume+0x103/0x108
+ [<c01fbf85>] device_power_up+0x5/0xa
+ [<c01352f6>] suspend_enter+0x36/0x50
+ [<c01353d9>] enter_state+0x69/0xb0
+ [<c01dc085>] acpi_suspend+0x3e/0x4d
+ [<c01dc434>] acpi_system_write_sleep+0x60/0x8b
+ [<c01dc449>] acpi_system_write_sleep+0x75/0x8b
+ [<c0156298>] vfs_write+0xb8/0x130
+ [<c0155839>] filp_close+0x59/0x90
+ [<c01563e1>] sys_write+0x51/0x80
+ [<c010615b>] syscall_call+0x7/0xb
+handlers:
+[<e095b340>] (ipw2100_interrupt+0x0/0xe0 [ipw2100])
+Disabling IRQ #11
+MCE: The hardware reports a non fatal, correctable incident occurred on CPU 0.
+Bank 1: f200000000000135
+PM: Finishing up.
+psmouse.c: TouchPad at isa0060/serio1/input0 lost sync at byte 1
+    ACPI-0286: *** Error: No installed handler for fixed event [00000002]
+ACPI: PCI interrupt 0000:00:1f.1[A] -> GSI 10 (level, low) -> IRQ 10
+wlan0: Coming out of suspend...
+wlan0: Using hotplug firmware load.
+wlan0: ipw2100_hw_send_command timed out.
+wlan0: Failed to start the card.
+Restarting tasks... done
+wlan0: Hardware fatal error detected.
+wlan0: Scheduling firmware restart (0s).
+ipw2100: wlan0: Restarting adapter.
+wlan0: Using hotplug firmware load.
+wlan0: ipw2100_hw_send_command timed out.
+wlan0: Failed to start the card.
+wlan0: Hardware fatal error detected.
+wlan0: Scheduling firmware restart (0s).
+ipw2100: wlan0: Restarting adapter.
+wlan0: Using hotplug firmware load.
+wlan0: ipw2100_hw_send_command timed out.
+wlan0: Failed to start the card.
+wlan0: Hardware fatal error detected.
+wlan0: Scheduling firmware restart (0s).
+ipw2100: wlan0: Restarting adapter.
+wlan0: Using hotplug firmware load.
 
- vanilla-linux-2.6.7-SKAS-paolo/arch/arm/kernel/process.c        |    9 +++++-
- vanilla-linux-2.6.7-SKAS-paolo/arch/arm26/kernel/armksyms.c     |    1 
- vanilla-linux-2.6.7-SKAS-paolo/arch/arm26/kernel/process.c      |    7 ++++-
- vanilla-linux-2.6.7-SKAS-paolo/arch/cris/kernel/crisksyms.c     |    2 +
- vanilla-linux-2.6.7-SKAS-paolo/arch/cris/kernel/process.c       |    7 ++++-
- vanilla-linux-2.6.7-SKAS-paolo/arch/i386/kernel/apm.c           |    4 ++
- vanilla-linux-2.6.7-SKAS-paolo/arch/i386/kernel/i386_ksyms.c    |    1 
- vanilla-linux-2.6.7-SKAS-paolo/arch/i386/kernel/process.c       |    7 ++++-
- vanilla-linux-2.6.7-SKAS-paolo/arch/ia64/kernel/acpi.c          |    2 +
- vanilla-linux-2.6.7-SKAS-paolo/arch/ia64/kernel/process.c       |    5 ++-
- vanilla-linux-2.6.7-SKAS-paolo/arch/sparc/kernel/apc.c          |    5 ++-
- vanilla-linux-2.6.7-SKAS-paolo/arch/sparc/kernel/pmc.c          |    2 +
- vanilla-linux-2.6.7-SKAS-paolo/arch/sparc/kernel/process.c      |    9 +++++-
- vanilla-linux-2.6.7-SKAS-paolo/arch/sparc/kernel/sparc_ksyms.c  |    1 
- vanilla-linux-2.6.7-SKAS-paolo/arch/x86_64/kernel/process.c     |   13 ++++++---
- vanilla-linux-2.6.7-SKAS-paolo/arch/x86_64/kernel/x8664_ksyms.c |    1 
- vanilla-linux-2.6.7-SKAS-paolo/drivers/acpi/processor.c         |    7 ++++-
- vanilla-linux-2.6.7-SKAS-paolo/include/linux/pm.h               |   14 ++++++++++
- 18 files changed, 84 insertions(+), 13 deletions(-)
-
-diff -puN arch/arm/kernel/process.c~spinlock-protect-pm_idle arch/arm/kernel/process.c
---- vanilla-linux-2.6.7-SKAS/arch/arm/kernel/process.c~spinlock-protect-pm_idle	2004-08-17 20:21:20.000000000 +0200
-+++ vanilla-linux-2.6.7-SKAS-paolo/arch/arm/kernel/process.c	2004-08-18 21:12:23.113797464 +0200
-@@ -26,6 +26,7 @@
- #include <linux/interrupt.h>
- #include <linux/kallsyms.h>
- #include <linux/init.h>
-+#include <linux/pm.h>
- 
- #include <asm/system.h>
- #include <asm/io.h>
-@@ -78,6 +79,9 @@ EXPORT_SYMBOL(pm_idle);
- void (*pm_power_off)(void);
- EXPORT_SYMBOL(pm_power_off);
- 
-+spinlock_t pm_idle_lock = SPIN_LOCK_UNLOCKED;
-+EXPORT_SYMBOL(pm_idle_lock);
-+
- /*
-  * This is our default idle handler.  We need to disable
-  * interrupts here to ensure we don't miss a wakeup call.
-@@ -99,7 +103,9 @@ void cpu_idle(void)
- {
- 	/* endless idle loop with no priority at all */
- 	while (1) {
--		void (*idle)(void) = pm_idle;
-+		void (*idle)(void);
-+		lock_pm_idle();
-+		idle = pm_idle;
- 		if (!idle)
- 			idle = default_idle;
- 		preempt_disable();
-@@ -108,6 +114,7 @@ void cpu_idle(void)
- 			idle();
- 		leds_event(led_idle_end);
- 		preempt_enable();
-+		unlock_pm_idle();
- 		schedule();
- 	}
- }
-diff -puN arch/i386/kernel/process.c~spinlock-protect-pm_idle arch/i386/kernel/process.c
---- vanilla-linux-2.6.7-SKAS/arch/i386/kernel/process.c~spinlock-protect-pm_idle	2004-08-17 20:21:20.000000000 +0200
-+++ vanilla-linux-2.6.7-SKAS-paolo/arch/i386/kernel/process.c	2004-08-17 21:04:06.000000000 +0200
-@@ -36,6 +36,7 @@
- #include <linux/module.h>
- #include <linux/kallsyms.h>
- #include <linux/ptrace.h>
-+#include <linux/pm.h>
- 
- #include <asm/uaccess.h>
- #include <asm/pgtable.h>
-@@ -69,6 +70,7 @@ unsigned long thread_saved_pc(struct tas
-  * Powermanagement idle function, if any..
-  */
- void (*pm_idle)(void);
-+spinlock_t pm_idle_lock = SPIN_LOCK_UNLOCKED;
- 
- void disable_hlt(void)
- {
-@@ -142,13 +144,16 @@ void cpu_idle (void)
- 	/* endless idle loop with no priority at all */
- 	while (1) {
- 		while (!need_resched()) {
--			void (*idle)(void) = pm_idle;
-+			void (*idle)(void);
-+			lock_pm_idle();
-+			idle = pm_idle;
- 
- 			if (!idle)
- 				idle = default_idle;
- 
- 			irq_stat[smp_processor_id()].idle_timestamp = jiffies;
- 			idle();
-+			unlock_pm_idle();
- 		}
- 		schedule();
- 	}
-diff -puN arch/cris/kernel/process.c~spinlock-protect-pm_idle arch/cris/kernel/process.c
---- vanilla-linux-2.6.7-SKAS/arch/cris/kernel/process.c~spinlock-protect-pm_idle	2004-08-17 20:21:20.000000000 +0200
-+++ vanilla-linux-2.6.7-SKAS-paolo/arch/cris/kernel/process.c	2004-08-17 21:06:28.000000000 +0200
-@@ -112,6 +112,7 @@
- #include <linux/fs.h>
- #include <linux/user.h>
- #include <linux/elfcore.h>
-+#include <linux/pm.h>
- 
- //#define DEBUG
- 
-@@ -179,6 +180,7 @@ EXPORT_SYMBOL(enable_hlt);
-  * The following aren't currently used.
-  */
- void (*pm_idle)(void);
-+spinlock_t pm_idle_lock = SPIN_LOCK_UNLOCKED;
- 
- extern void default_idle(void);
- 
-@@ -193,12 +195,15 @@ void cpu_idle (void)
- 	/* endless idle loop with no priority at all */
- 	while (1) {
- 		while (!need_resched()) {
--			void (*idle)(void) = pm_idle;
-+			void (*idle)(void);
-+			lock_pm_idle();
-+			idle = pm_idle;
- 
- 			if (!idle)
- 				idle = default_idle;
- 
- 			idle();
-+			unlock_pm_idle();
- 		}
- 		schedule();
- 	}
-diff -puN arch/ia64/kernel/process.c~spinlock-protect-pm_idle arch/ia64/kernel/process.c
---- vanilla-linux-2.6.7-SKAS/arch/ia64/kernel/process.c~spinlock-protect-pm_idle	2004-08-17 20:21:20.000000000 +0200
-+++ vanilla-linux-2.6.7-SKAS-paolo/arch/ia64/kernel/process.c	2004-08-17 20:57:07.000000000 +0200
-@@ -228,7 +228,9 @@ cpu_idle (void *unused)
- 
- 	/* endless idle loop with no priority at all */
- 	while (1) {
--		void (*idle)(void) = pm_idle;
-+		void (*idle)(void);
-+		lock_pm_idle();
-+		idle = pm_idle;
- 		if (!idle)
- 			idle = default_idle;
- 
-@@ -241,6 +243,7 @@ cpu_idle (void *unused)
- 				(*mark_idle)(1);
- 			(*idle)();
- 		}
-+		unlock_pm_idle();
- 
- 		if (mark_idle)
- 			(*mark_idle)(0);
-diff -puN arch/arm26/kernel/process.c~spinlock-protect-pm_idle arch/arm26/kernel/process.c
---- vanilla-linux-2.6.7-SKAS/arch/arm26/kernel/process.c~spinlock-protect-pm_idle	2004-08-17 20:21:20.000000000 +0200
-+++ vanilla-linux-2.6.7-SKAS-paolo/arch/arm26/kernel/process.c	2004-08-17 21:04:06.000000000 +0200
-@@ -26,6 +26,7 @@
- #include <linux/reboot.h>
- #include <linux/interrupt.h>
- #include <linux/init.h>
-+#include <linux/pm.h>
- 
- #include <asm/system.h>
- #include <asm/io.h>
-@@ -72,6 +73,7 @@ __setup("hlt", hlt_setup);
-  */
- void (*pm_idle)(void);
- void (*pm_power_off)(void);
-+spinlock_t pm_idle_lock = SPIN_LOCK_UNLOCKED;
- 
- /*
-  * This is our default idle handler.  We need to disable
-@@ -94,12 +96,15 @@ void cpu_idle(void)
- 	/* endless idle loop with no priority at all */
- 	preempt_disable();
- 	while (1) {
--		void (*idle)(void) = pm_idle;
-+		void (*idle)(void);
-+		lock_pm_idle();
-+		idle = pm_idle;
- 		if (!idle)
- 			idle = default_idle;
- 		leds_event(led_idle_start);
- 		while (!need_resched())
- 			idle();
-+		unlock_pm_idle();
- 		leds_event(led_idle_end);
- 		schedule();
- 	}
-diff -puN arch/sparc/kernel/process.c~spinlock-protect-pm_idle arch/sparc/kernel/process.c
---- vanilla-linux-2.6.7-SKAS/arch/sparc/kernel/process.c~spinlock-protect-pm_idle	2004-08-17 20:21:20.000000000 +0200
-+++ vanilla-linux-2.6.7-SKAS-paolo/arch/sparc/kernel/process.c	2004-08-17 21:04:06.000000000 +0200
-@@ -48,6 +48,7 @@
-  * Set in pm platform drivers
-  */
- void (*pm_idle)(void);
-+spinlock_t pm_idle_lock = SPIN_LOCK_UNLOCKED;
- 
- /* 
-  * Power-off handler instantiation for pm.h compliance
-@@ -90,6 +91,7 @@ int cpu_idle(void)
- 
- 	/* endless idle loop with no priority at all */
- 	for (;;) {
-+		void (*idle)(void);
- 		if (ARCH_SUN4C_SUN4) {
- 			static int count = HZ;
- 			static unsigned long last_jiffies;
-@@ -121,9 +123,12 @@ int cpu_idle(void)
- 			local_irq_restore(flags);
- 		}
- 
--		while((!need_resched()) && pm_idle) {
--			(*pm_idle)();		/* XXX Huh? On sparc?! */
-+		lock_pm_idle();
-+		idle = pm_idle;
-+		while((!need_resched()) && idle) {
-+			(*idle)();		/* XXX Huh? On sparc?! */
- 		}
-+		unlock_pm_idle();
- 
- 		schedule();
- 		check_pgt_cache();
-diff -puN arch/x86_64/kernel/process.c~spinlock-protect-pm_idle arch/x86_64/kernel/process.c
---- vanilla-linux-2.6.7-SKAS/arch/x86_64/kernel/process.c~spinlock-protect-pm_idle	2004-08-17 20:21:20.000000000 +0200
-+++ vanilla-linux-2.6.7-SKAS-paolo/arch/x86_64/kernel/process.c	2004-08-17 21:04:06.000000000 +0200
-@@ -33,6 +33,7 @@
- #include <linux/irq.h>
- #include <linux/ptrace.h>
- #include <linux/version.h>
-+#include <linux/pm.h>
- 
- #include <asm/uaccess.h>
- #include <asm/pgtable.h>
-@@ -58,6 +59,7 @@ atomic_t hlt_counter = ATOMIC_INIT(0);
-  * Powermanagement idle function, if any..
-  */
- void (*pm_idle)(void);
-+spinlock_t pm_idle_lock = SPIN_LOCK_UNLOCKED;
- 
- void disable_hlt(void)
- {
-@@ -130,11 +132,14 @@ void cpu_idle (void)
- {
- 	/* endless idle loop with no priority at all */
- 	while (1) {
--		void (*idle)(void) = pm_idle;
-+		void (*idle)(void);
-+		lock_pm_idle();
-+		idle = pm_idle;
- 		if (!idle)
- 			idle = default_idle;
- 		while (!need_resched())
- 			idle();
-+		unlock_pm_idle();
- 		schedule();
- 	}
- }
-@@ -170,8 +175,9 @@ void __init select_idle_routine(const st
- 		 * Skip, if setup has overridden idle.
- 		 * Also, take care of system with asymmetric CPUs.
- 		 * Use, mwait_idle only if all cpus support it.
--		 * If not, we fallback to default_idle()
-+		 * If not, we fallback to default_idle() in cpu_idle().
- 		 */
-+		lock_pm_idle();
- 		if (!pm_idle) {
- 			if (!printed) {
- 				printk("using mwait in idle threads.\n");
-@@ -179,10 +185,9 @@ void __init select_idle_routine(const st
- 			}
- 			pm_idle = mwait_idle;
- 		}
-+		unlock_pm_idle();
- 		return;
- 	}
--	pm_idle = default_idle;
--	return;
- }
- 
- static int __init idle_setup (char *str)
-diff -puN arch/ia64/kernel/acpi.c~spinlock-protect-pm_idle arch/ia64/kernel/acpi.c
---- vanilla-linux-2.6.7-SKAS/arch/ia64/kernel/acpi.c~spinlock-protect-pm_idle	2004-08-17 20:21:20.000000000 +0200
-+++ vanilla-linux-2.6.7-SKAS-paolo/arch/ia64/kernel/acpi.c	2004-08-17 20:35:54.000000000 +0200
-@@ -61,6 +61,8 @@
- void (*pm_idle) (void);
- EXPORT_SYMBOL(pm_idle);
- void (*pm_power_off) (void);
-+spinlock_t pm_idle_lock = SPIN_LOCK_UNLOCKED;
-+EXPORT_SYMBOL(pm_idle_lock);
- 
- unsigned char acpi_kbd_controller_present = 1;
- unsigned char acpi_legacy_devices;
-diff -puN arch/i386/kernel/apm.c~spinlock-protect-pm_idle arch/i386/kernel/apm.c
---- vanilla-linux-2.6.7-SKAS/arch/i386/kernel/apm.c~spinlock-protect-pm_idle	2004-08-17 20:21:20.000000000 +0200
-+++ vanilla-linux-2.6.7-SKAS-paolo/arch/i386/kernel/apm.c	2004-08-17 20:57:07.000000000 +0200
-@@ -2032,8 +2032,10 @@ static int __init apm_init(void)
- 	if (HZ != 100)
- 		idle_period = (idle_period * HZ) / 100;
- 	if (idle_threshold < 100) {
-+		lock_pm_idle();
- 		original_pm_idle = pm_idle;
- 		pm_idle  = apm_cpu_idle;
-+		unlock_pm_idle();
- 		set_pm_idle = 1;
- 	}
- 
-@@ -2044,8 +2046,10 @@ static void __exit apm_exit(void)
- {
- 	int	error;
- 
-+	lock_pm_idle();
- 	if (set_pm_idle)
- 		pm_idle = original_pm_idle;
-+	unlock_pm_idle();
- 	if (((apm_info.bios.flags & APM_BIOS_DISENGAGED) == 0)
- 	    && (apm_info.connection_version > 0x0100)) {
- 		error = apm_engage_power_management(APM_DEVICE_ALL, 0);
-diff -puN drivers/acpi/processor.c~spinlock-protect-pm_idle drivers/acpi/processor.c
---- vanilla-linux-2.6.7-SKAS/drivers/acpi/processor.c~spinlock-protect-pm_idle	2004-08-17 20:21:20.000000000 +0200
-+++ vanilla-linux-2.6.7-SKAS-paolo/drivers/acpi/processor.c	2004-08-17 20:57:07.000000000 +0200
-@@ -2334,8 +2334,10 @@ acpi_processor_add (
- 	 * platforms that only support C1.
- 	 */
- 	if ((pr->id == 0) && (pr->flags.power)) {
-+		lock_pm_idle();
- 		pm_idle_save = pm_idle;
- 		pm_idle = acpi_processor_idle;
-+		unlock_pm_idle();
- 	}
- 	
- 	printk(KERN_INFO PREFIX "%s [%s] (supports",
-@@ -2373,8 +2375,11 @@ acpi_processor_remove (
- 	pr = (struct acpi_processor *) acpi_driver_data(device);
- 
- 	/* Unregister the idle handler when processor #0 is removed. */
--	if (pr->id == 0)
-+	if (pr->id == 0) {
-+		lock_pm_idle();
- 		pm_idle = pm_idle_save;
-+		unlock_pm_idle();
-+	}
- 
- 	status = acpi_remove_notify_handler(pr->handle, ACPI_DEVICE_NOTIFY, 
- 		acpi_processor_notify);
-diff -puN include/linux/pm.h~spinlock-protect-pm_idle include/linux/pm.h
---- vanilla-linux-2.6.7-SKAS/include/linux/pm.h~spinlock-protect-pm_idle	2004-08-17 20:22:20.000000000 +0200
-+++ vanilla-linux-2.6.7-SKAS-paolo/include/linux/pm.h	2004-08-17 20:28:42.000000000 +0200
-@@ -25,6 +25,7 @@
- 
- #include <linux/config.h>
- #include <linux/list.h>
-+#include <linux/spinlock.h>
- #include <asm/atomic.h>
- 
- /*
-@@ -193,6 +194,19 @@ static inline void pm_dev_idle(struct pm
- extern void (*pm_idle)(void);
- extern void (*pm_power_off)(void);
- 
-+extern spinlock_t pm_idle_lock;
-+
-+/*Not sure if this should be a semaphore...*/
-+static inline int lock_pm_idle(void)
-+{
-+	spin_lock(&pm_idle_lock);
-+	return 0;
-+}
-+static inline void unlock_pm_idle(void)
-+{
-+	spin_unlock(&pm_idle_lock);
-+}
-+
- enum {
- 	PM_SUSPEND_ON,
- 	PM_SUSPEND_STANDBY,
-diff -puN arch/i386/kernel/i386_ksyms.c~spinlock-protect-pm_idle arch/i386/kernel/i386_ksyms.c
---- vanilla-linux-2.6.7-SKAS/arch/i386/kernel/i386_ksyms.c~spinlock-protect-pm_idle	2004-08-17 21:00:33.000000000 +0200
-+++ vanilla-linux-2.6.7-SKAS-paolo/arch/i386/kernel/i386_ksyms.c	2004-08-17 21:04:06.000000000 +0200
-@@ -84,6 +84,7 @@ EXPORT_SYMBOL(probe_irq_mask);
- EXPORT_SYMBOL(kernel_thread);
- EXPORT_SYMBOL(pm_idle);
- EXPORT_SYMBOL(pm_power_off);
-+EXPORT_SYMBOL(pm_idle_lock);
- EXPORT_SYMBOL(get_cmos_time);
- EXPORT_SYMBOL(cpu_khz);
- EXPORT_SYMBOL(apm_info);
-diff -puN arch/arm26/kernel/armksyms.c~spinlock-protect-pm_idle arch/arm26/kernel/armksyms.c
---- vanilla-linux-2.6.7-SKAS/arch/arm26/kernel/armksyms.c~spinlock-protect-pm_idle	2004-08-17 21:00:33.000000000 +0200
-+++ vanilla-linux-2.6.7-SKAS-paolo/arch/arm26/kernel/armksyms.c	2004-08-17 21:04:06.000000000 +0200
-@@ -115,6 +115,7 @@ EXPORT_SYMBOL(disable_irq);
- EXPORT_SYMBOL(set_irq_type);
- EXPORT_SYMBOL(pm_idle);
- EXPORT_SYMBOL(pm_power_off);
-+EXPORT_SYMBOL(pm_idle_lock);
- 
- 	/* processor dependencies */
- EXPORT_SYMBOL(__machine_arch_type);
-diff -puN arch/sparc/kernel/sparc_ksyms.c~spinlock-protect-pm_idle arch/sparc/kernel/sparc_ksyms.c
---- vanilla-linux-2.6.7-SKAS/arch/sparc/kernel/sparc_ksyms.c~spinlock-protect-pm_idle	2004-08-17 21:00:34.000000000 +0200
-+++ vanilla-linux-2.6.7-SKAS-paolo/arch/sparc/kernel/sparc_ksyms.c	2004-08-17 21:04:06.000000000 +0200
-@@ -323,3 +323,4 @@ EXPORT_SYMBOL(do_BUG);
- 
- /* Sun Power Management Idle Handler */
- EXPORT_SYMBOL(pm_idle);
-+EXPORT_SYMBOL(pm_idle_lock);
-diff -puN arch/x86_64/kernel/x8664_ksyms.c~spinlock-protect-pm_idle arch/x86_64/kernel/x8664_ksyms.c
---- vanilla-linux-2.6.7-SKAS/arch/x86_64/kernel/x8664_ksyms.c~spinlock-protect-pm_idle	2004-08-17 21:00:34.000000000 +0200
-+++ vanilla-linux-2.6.7-SKAS-paolo/arch/x86_64/kernel/x8664_ksyms.c	2004-08-17 21:04:06.000000000 +0200
-@@ -61,6 +61,7 @@ EXPORT_SYMBOL(probe_irq_mask);
- EXPORT_SYMBOL(kernel_thread);
- EXPORT_SYMBOL(pm_idle);
- EXPORT_SYMBOL(pm_power_off);
-+EXPORT_SYMBOL(pm_idle_lock);
- EXPORT_SYMBOL(get_cmos_time);
- 
- EXPORT_SYMBOL_NOVERS(__down_failed);
-diff -puN arch/sparc/kernel/pmc.c~spinlock-protect-pm_idle arch/sparc/kernel/pmc.c
---- vanilla-linux-2.6.7-SKAS/arch/sparc/kernel/pmc.c~spinlock-protect-pm_idle	2004-08-17 21:00:34.000000000 +0200
-+++ vanilla-linux-2.6.7-SKAS-paolo/arch/sparc/kernel/pmc.c	2004-08-17 21:04:06.000000000 +0200
-@@ -85,7 +85,9 @@ sbus_done:
- 
- #ifndef PMC_NO_IDLE
- 	/* Assign power management IDLE handler */
-+	lock_pm_idle();
- 	pm_idle = pmc_swift_idle;	
-+	unlock_pm_idle();
- #endif
- 
- 	printk(KERN_INFO "%s: power management initialized\n", PMC_DEVNAME);
-diff -puN arch/sparc/kernel/apc.c~spinlock-protect-pm_idle arch/sparc/kernel/apc.c
---- vanilla-linux-2.6.7-SKAS/arch/sparc/kernel/apc.c~spinlock-protect-pm_idle	2004-08-17 21:00:34.000000000 +0200
-+++ vanilla-linux-2.6.7-SKAS-paolo/arch/sparc/kernel/apc.c	2004-08-17 21:04:06.000000000 +0200
-@@ -170,8 +170,11 @@ sbus_done:
- 	}
- 
- 	/* Assign power management IDLE handler */
--	if(!apc_no_idle)
-+	if(!apc_no_idle) {
-+		lock_pm_idle();
- 		pm_idle = apc_swift_idle;	
-+		unlock_pm_idle();
-+	}
- 
- 	printk(KERN_INFO "%s: power management initialized%s\n", 
- 		APC_DEVNAME, apc_no_idle ? " (CPU idle disabled)" : "");
-diff -puN arch/cris/kernel/crisksyms.c~spinlock-protect-pm_idle arch/cris/kernel/crisksyms.c
---- vanilla-linux-2.6.7-SKAS/arch/cris/kernel/crisksyms.c~spinlock-protect-pm_idle	2004-08-17 21:05:13.000000000 +0200
-+++ vanilla-linux-2.6.7-SKAS-paolo/arch/cris/kernel/crisksyms.c	2004-08-17 21:06:28.000000000 +0200
-@@ -38,6 +38,8 @@ EXPORT_SYMBOL(disable_irq);
- EXPORT_SYMBOL(kernel_thread);
- EXPORT_SYMBOL(get_cmos_time);
- EXPORT_SYMBOL(loops_per_usec);
-+EXPORT_SYMBOL(pm_idle);
-+EXPORT_SYMBOL(pm_idle_lock);
- 
- /* String functions */
- EXPORT_SYMBOL(memcmp);
-_
-
---Boundary-00=_mXNJBb+/6H9HyDb--
-
-
-
--------------------------------------------------------
-SF.Net email is sponsored by Shop4tech.com-Lowest price on Blank Media
-100pk Sonic DVD-R 4x for only $29 -100pk Sonic DVD+R for only $33
-Save 50% off Retail on Ink & Toner - Free Shipping and Free Gift.
-http://www.shop4tech.com/z/Inkjet_Cartridges/9_108_r285
+--Boundary-00=_OedJB8Yxoth1Hjf--
