@@ -1,12 +1,14 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Re: IDE failure on ACPI resume
-Date: Thu, 17 Mar 2005 16:08:13 -0800
-Message-ID: <423A1BED.1010608@root.org>
-References: <1110741241.8136.46.camel@tyrosine>  <423518E7.3030300@root.org>	 <1111072221.8136.171.camel@tyrosine>  <4239E9BA.7050105@root.org> <1111104154.8136.179.camel@tyrosine>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: HP/Compaq NC6120 ACPI problems
+Date: Fri, 18 Mar 2005 00:05:18 +0000
+Message-ID: <1111104319.8136.182.camel@tyrosine>
+References: <20050317200052.686d683f.andrej.prsa@guest.arnes.si>
+	 <1111088904.11380.36.camel@eeyore>
+	 <20050317215635.1c788c09.andrej.prsa@guest.arnes.si>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <1111104154.8136.179.camel@tyrosine>
+In-Reply-To: <20050317215635.1c788c09.andrej.prsa-zs/Xt9NzJtxxh+DGd0HQrg@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,24 +18,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andrej Prsa <andrej.prsa-zs/Xt9NzJtxxh+DGd0HQrg@public.gmane.org>
+Cc: ACPI Support <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Matthew Garrett wrote:
-> On Thu, 2005-03-17 at 12:34 -0800, Nate Lawson wrote:
->>Very interesting.  I was hoping to someday have _GTF et al implemented 
->>but the ATA knowledge required was above my head.  I also strongly 
->>suspected that the info published by _GTF would likely be invalid.  Does 
->>Windows actually use that method or just hardcoded ATA initialization?
-> 
-> I believe that Windows does use the _GTF methods.
+On Thu, 2005-03-17 at 21:56 +0100, Andrej Prsa wrote:
 
-You are correct.  A quick scan of my w2k drivers shows atapi.sys uses 
-the _GTF, _GTM, and _STM methods.
+> Observational update: it does *NOT* gradually slow down, it slows down
+> *instantly* after 2-3 minutes of running; the time of kacpid blowup is
+> somewhat arbitrary, it sometimes happens even before the boot-up is
+> complete. If I was to make another wild guess, it might be connected
+> with the fan - when the computer is cool, the blowup occurs later, if it
+> is warm, it occurs sooner. Is it possible that the call to turn the fan
+> on is triggering this kacpid blowup? How does one go about to test this?
 
+Ah, right - I've seen similar behaviour on a range of HPs (inluding the
+6120). Try using 
+http://bugzilla.kernel.org/attachment.cgi?id=4516&action=view and see if
+it makes a difference.
 -- 
-Nate
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+
 
 
 -------------------------------------------------------
