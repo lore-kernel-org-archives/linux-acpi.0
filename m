@@ -1,13 +1,13 @@
 From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: Suspend-to-RAM on Sony Vaios
-Date: Wed, 3 Nov 2004 13:38:30 +0100
-Message-ID: <20041103123830.GB1002@elf.ucw.cz>
-References: <20041018112632.GB4400@openzaurus.ucw.cz> <20041021001331.69c6c965@localhost.localdomain> <20041020225334.GC29863@elf.ucw.cz> <20041101145410.GB12006@tate.loria.fr> <20041101154127.GB1056@elf.ucw.cz> <20041102220034.GA31435@tate.loria.fr> <20041102220958.GF1407@elf.ucw.cz> <20041103105106.GA4174@wotan.suse.de> <20041103111306.GA1002@elf.ucw.cz> <20041103123625.GA18867@wotan.suse.de>
+Subject: Re: gericom notebook reboots instead of poweroff
+Date: Wed, 3 Nov 2004 13:40:45 +0100
+Message-ID: <20041103124045.GC1002@elf.ucw.cz>
+References: <20041026194029.GA10954@pooh> <20041102203243.GA996@openzaurus.ucw.cz> <20041103071833.GA12510@pooh>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20041103123625.GA18867-B4tOwbsTzaBolqkO4TVVkw@public.gmane.org>
+In-Reply-To: <20041103071833.GA12510@pooh>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,30 +17,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
-Cc: Emmanuel Thom?? <Emmanuel.Thome-MZpvjPyXg2s@public.gmane.org>, ole.rohne-vJEk5272eHo@public.gmane.org, Jon Valvatne <jon-hc6/xhmWZxdWk0Htik3J/w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Laszlo 'GCS' Boszormenyi <gcs-gKC9iF2I70U@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> > > > Well, it depends if you want to keep your work, I guess :-). Okay,
-> > > > x86-64 can wait.
-> > > 
-> > > Or rather not apply this. I have no plans to support switch back
-> > > to real mode on x86-64. It is just far too hackish and fragile.
-> > > 
-> > > Either do it before switching to protected/long mode or later
-> > > in a emulator.
+> > >  I have tried to look into existing bugreports, but could not find any
+> > > similar to this on the Kernel Bugzilla nor in the ACPI Bugzilla. All I
 > > 
-> > It can not be done before switching to long mode... because video bios
-> > needs initialized PCI. As of emulator.... yes that could be way to go.
-> 
-> Initialized in what way?  If it's very simple you could do it in
-> assembler or alternatively call the PCI BIOS to do it.
+> > Eh? Something very similar happens on acers and evos and probably
+> > more.... See mail archives.
+>  No offence taken; I was looking into the Bugzilla, as well to the mail
+> archives. Could not find anything relevant that time. But as I have
 
-I guess agp bridge has to be initialized etc... It does not look like
-task one would like to write in assembly. Okay, lets do this on i386,
-first, then see how it can be done in better way on x86-64.
+Ah, sorry, I was replying on old mails...
+
+> I would greatly appreciate any help how to handle BitKeeper to get those
+> changesets individualy.
+
+It should be possible to download individual patches from bkbits.net,
+but it is likely to be pretty tedious process.....
 
 								Pavel
 -- 
