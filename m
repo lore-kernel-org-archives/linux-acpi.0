@@ -1,12 +1,10 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Re: Re: S3 suspend and serial console
-Date: Mon, 07 Feb 2005 18:14:57 +0100
-Message-ID: <4207A211.3000305@gmx.net>
-References: <42023083.8030508@gmx.net> <4204CA50.8090906@gmx.net> <20050205155845.GA20131@hell.org.pl> <20050205220619.GA30739@message-id.gmane0305.slipkontur.de> <4206CF63.2090600@gmx.net> <20050207141655.GB8040@elf.ucw.cz> <42077B07.5090606@gmx.net> <20050207143242.GE8040@elf.ucw.cz>
+From: Lorenzo Colitti <lorenzo-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>
+Subject: S3 freezes on wake on NC6000 laptop
+Date: Mon, 07 Feb 2005 18:23:34 +0100
+Message-ID: <4207A416.8030400@colitti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <20050207143242.GE8040-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,45 +14,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Pavel Machek schrieb:
-> Hi!
-> 
-> 
->>>>Erm... is it intentional that serial powermanagement code is never
->>>>called on entering/leaving S3? When I added debugging statements
->>
->>>Probably noone was yet trying to use serial during suspend....
->>
->>You mean noone uses the serial console while testing suspend?
->>What is the new way to debug suspend problems not requiring a
->>serial console?
-> 
-> Well, when video works, you debug using video. I used hardware
-> debugger, too...
+Hi,
 
-Will there be any patch to actually use the powermanagement code
-in the serial core?
+I am trying to get S3 (suspend to RAM) to work on an HP NC6000 laptop with 
+no success. The system seems to enter the S3 state correctly, but when I 
+turn back on it freezes completely.
+
+I tried booting with no modules and no processes loaded (init=/bin/sh) and 
+with a serial console, but I can't see anything helpful. What I see is this:
+
+> kjournald starting.  Commit interval 5 seconds
+> sh-3.00# mount -t proc proc /proc
+> sh-3.00# mount -t sysfs sys /sys
+> sh-3.00# echo C057 > /proc/acpi/wakeup
+> sh-3.00# cat /proc/acpi/wakeup
+> Device  Sleep state     Status
+> C057       5             enabled
+> sh-3.00# echo mem > /sys/power/state
+> radeonfb (0000:01:00.0): suspending to state: 2...
+> PM: Entering state.
+>  hwsleep-0307 [04] acpi_enter_sleep_state: Entering sleep state [S3]
+
+After that, it seems that the system goes to sleep. There is nothing on the 
+screen, the HD stops, and the power light starts blinking.
+
+However, when I turn the machine back on it freezes completely. The HD 
+starts, the power light comes on, but the serial console is unresponsive, 
+the keyboard doesn't seem to work, and it won't turn off again, even if I 
+hold the power button for 5 seconds.
+
+I am using a vanilla 2.6.11-rc3 kernel with the swsusp2 patch. Is there 
+anything I can do to help debug this? I have acpi debugging compiled into 
+the kernel, but I don't know how to use it.
+
+Any info would be appreciated!
 
 
-Regarding the original problem:
-It seems the following call is sufficient to make the console work
-again. However, I haven't found a function which would give me
-the parameters needed to call ->set_termios.
-
-serial/8250.c: serial8250_set_termios
-
-Do you have any idea how to obtain the termios and tty structures
-for a given port, e.g. ttyS0?
-
-Regards,
-Carl-Daniel
--- 
-http://www.hailfinger.org/
-
+Cheers,
+Lorenzo
 
 
 -------------------------------------------------------
