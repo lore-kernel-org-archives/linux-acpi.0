@@ -1,14 +1,14 @@
-From: Sebastian Seifert <lathander-Mmb7MZpHnFY@public.gmane.org>
-Subject: Re: mutexes and preemption
-Date: Thu, 4 Mar 2004 11:22:12 +0100
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: Desktop and S3 suspend the Holy Grail of ACPI?
+Date: Thu, 4 Mar 2004 11:52:33 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040304102212.GA2303@ergo.gotdns.org>
-References: <CFF522B18982EA4481D3A3E23B83141C01C988CE@orsmsx407.jf.intel.com>
+Message-ID: <20040304105233.GA308@elf.ucw.cz>
+References: <20040225182030.GG1214@elf.ucw.cz> <40410A69.3070800@verizon.net> <20040228220435.GD10530@elf.ucw.cz> <4041136B.9000904@verizon.net> <20040228230941.GA488@elf.ucw.cz> <4043ECB4.7080203@verizon.net> <20040302101904.GA303@elf.ucw.cz> <404501D8.8090506@verizon.net> <20040302223446.GG1225@elf.ucw.cz> <40467B8E.7060709@verizon.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CFF522B18982EA4481D3A3E23B83141C01C988CE-sBd4vmA9Se6SsB6bSF6DdVDQ4js95KgL@public.gmane.org>
+In-Reply-To: <40467B8E.7060709-H+0wwilmMs3R7s880joybQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,35 +17,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Therien, Guy" <guy.therien-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Nick Lidakis <nlidakis-H+0wwilmMs3R7s880joybQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Mar 03, 2004 at 05:08:53PM -0800, Moore, Robert wrote:
-> 
-> Looking at the timestamps in the debug output, I suspect that the real
-> issue here is this line:
-> 
-> Mar  2 23:03:10 tenshi kernel:      osl-0909 [2049] os_wait_semaphore
-> : Failed to acquire semaphore[dffd8680|1|36863], AE_TIME
-> 
-> Because this wait should have been for 37 seconds (36863 milliseconds),
-> yet not one second has gone by on the wall clock.
-> 
-> A close look at the Linux implementation of os_wait_semaphore may again
-> be in order.
+Hi!
 
-You are right, thank you. I believe there is a  bug in
-os_wait_semaphore: the return value of down_trylock isn't checked
-correctly, leading to the immediate failure of an Acquire with timeout
-in the case the semaphore cannot be acquired immediately . I've sent a
-patch to this list. I hope someone applies it.
 
-Sebastian
+> So if there's anything you guys -- who have been more than helpful btw 
+> -- would like me to try as far as getting S3 functional, I'm all ears. 
+> I'm also assuming I need some kind of script for S4 to unload the USB 
+> and NIC modules, stop acpid, then revers all that upon resume. Is this 
+> something I'm going to have to write myself?
 
+Well, ideally you should not workaround e1000/usb problems with
+scripts, but add driver model support to both of those.
+
+You may want to try S3 with those two modules unloaded. There's some
+chance it resumes with video not working (you can tell by typing find
+/ -- if hdd starts flashing, machine is okay but no video).
+								Pavel
 -- 
-A bad analogy is like leaky screwdriver.
-
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
 
 
 -------------------------------------------------------
