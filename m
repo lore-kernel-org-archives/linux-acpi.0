@@ -1,65 +1,45 @@
-From: Pavel Machek <pavel@suse.cz>
-Subject: Re: [ACPI] Re: [PATCH 2.6] update passive cooling algorithm
-Date: Thu, 15 Jan 2004 23:34:25 +0100
-Sender: cpufreq-bounces@www.linux.org.uk
-Message-ID: <20040115223425.GC18488@elf.ucw.cz>
-References: <20040111211255.GA31105@dominikbrodowski.de>
-	<20040112154611.GH14031@poupinou.org>
-	<20040112173922.GA6154@dominikbrodowski.de>
-	<20040112191122.GK14031@poupinou.org>
-	<20040115121833.GB12963@elf.ucw.cz>
-	<20040115134229.GT14031@poupinou.org>
+From: "Dino Klein" <dinoklein-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Subject: Entering C3 Processor State without a Bus Arbiter
+Date: Thu, 15 Jan 2004 17:29:23 -0500
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <Law11-OE36TK4GXSNMh0000bd93@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <cpufreq-bounces@www.linux.org.uk>
-Content-Disposition: inline
-In-Reply-To: <20040115134229.GT14031@poupinou.org>
-List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@www.linux.org.uk?subject=unsubscribe>
-List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq>
-List-Post: <mailto:cpufreq@www.linux.org.uk>
-List-Help: <mailto:cpufreq-request@www.linux.org.uk?subject=help>
-List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
-	<mailto:cpufreq-request@www.linux.org.uk?subject=subscribe>
-Errors-To: cpufreq-bounces@www.linux.org.uk
-To: Ducrot Bruno <ducrot@poupinou.org>
-Cc: acpi-devel@lists.sourceforge.net, cpufreq@www.linux.org.uk
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hello,
 
-> > > > voltage scaling. It offers a much better (quadratic) saving than clock
-> > > > modulation (linear saving). Doing both [and you need to do it, as the CPU
-> > > > won't run with fewer volts at the same frequency] gives you cubic savings.
-> > > 
-> > > Yes I know.  But does it offer more 'cooling'?
-> > 
-> > Of course.
-> > 
-> > If you eat less power, you create less heat. CPU is basically fancy
-> > "turn-electricity-into-heat" device.
-> > 
-> 
-> I don't like certitudes (I was wondering if better heat dissipation
-> in
+I'm curios as to why the implementation does not enter C3 without the presence of a Bus Arbiter; also, how come a comment in the
+source claims that C3/WBINVD is too expensive?
 
-Sorry.
+After removing the restrictions in the source files, and adding a WBINVD instruction right before the read from P_LVL3 - the
+processor was put in the C3 state. This is on my Via Apollo Pro133A based Abit VP6 board, which does not have a Bus Arbiter.
+Just for the record, I did pull out the second CPU, so I can do "safer" experimentation.
 
-> case of throttling even if more heat generation, but that not the
-> case).
+Everything seemed to be working fine, the delay was quite noticeable (900 in the FACP) to the point that keystrokes were lost. In
+essence, the computer was quite unusable. Nevertheless, in order to see if the system was still stable after the modifications, I
+recompiled the kernel with "-j8" and everything worked fine; I even started X without problems.
 
-I guess throttling is way too fast (in kHz range, IIRC), so there
-should not be any strange effects.
+I've seen a thread talking about how the processor was not put into C3 as often enough, when the USB drivers were loaded - in my
+case I would say that it was put too often, this with the UHCI + EHCI + HID drivers loaded, and two mice and one hub attached.
 
-> > [Have you seen that "first use of PentiumPro in house appliances"
-> > picture?]
-> 
-> No, but I do have seen some that have burnt in a production server,
-> some years ago...
+Just thought I'd bring this up.
 
-There was a picture of four-plate cooker, with PPro in the middle of
-each plate.
-								Pavel
--- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+
+-------------------------------------------------------
+The SF.Net email is sponsored by EclipseCon 2004
+Premiere Conference on Open Tools Development and Integration
+See the breadth of Eclipse activity. February 3-5 in Anaheim, CA.
+http://www.eclipsecon.org/osdn
