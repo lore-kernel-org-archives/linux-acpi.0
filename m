@@ -1,14 +1,14 @@
-From: sjb <ottaky-XuTx12Z7TonQT0dZR+AlfA@public.gmane.org>
-Subject: Re: best acpi solution
-Date: Wed, 21 May 2003 17:00:06 +0000
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Re: DSDT in initrd
+Date: Wed, 21 May 2003 18:52:34 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ECBB096.3070207@ottaky.com>
-References: <3ECB3CE2.5000400@ottaky.com> <01db01c31f90$84ae6840$3746028e@bio.dfo.ca> <3ECB8ADF.5020108@ottaky.com> <20030521142117.GX346@poupinou.org> <3ECB9BB8.9070700@ottaky.com> <20030521150233.GY346@poupinou.org> <3ECBA777.9090100@ottaky.com> <20030521154428.GZ346@poupinou.org>
+Message-ID: <20030521165234.GD346@poupinou.org>
+References: <A5974D8E5F98D511BB910002A50A6647054FC40A@hdsmsx103.hd.intel.com> <Pine.LNX.4.53.0305191725350.9728@dynast.gaugusch.at> <20030520180149.GJ31518@parcelfarce.linux.theplanet.co.uk> <Pine.LNX.4.53.0305202002180.22586@tweety.gaugusch.at> <baf9df$ro3$1@main.gmane.org> <Pine.LNX.4.53.0305210955210.13798@dynast.gaugusch.at> <3ECB95CB.2020109@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030521154428.GZ346-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <3ECB95CB.2020109-VXdhtT5mjnY@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,29 +17,35 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Richard Black <richard.black-VXdhtT5mjnY@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Ducrot Bruno wrote:
-
-> Then, for example in your home directory:
+On Wed, May 21, 2003 at 10:05:47AM -0500, Richard Black wrote:
+> Concerning Red Hat Linux, the initrd.img is a compressed ext2 filesystem 
+> and the ext2 driver is built statically into the kernel.
 > 
-> tar xjvfp linux-2.4.20.tar.bz2
+> The question is if ext2 is built statically into the kernel then are the 
+> ext2 functions (i.e. the ext2 driver) available when ACPI would be 
+> trying to load the dsdt table. My first response would be yes, since it 
+> is static in the kernel, you may use those functions any time you need 
+> them -- but that's only a guess as I haven't studied how the kernel 
+> boots that closely.
 
-Ok .. lovely. Thanks for the help.
+No.  acpi is initialized too early (due to irq routing stuff for example)
+VFS is intialized way to late to be used for retrieving acpi tables in
+disks.
 
-Is there anything I need to make sure to select when I run xconfig? I 
-presume I choose ACPI to be compiled statically?
+If you want something like that, you have to modify boot loaders (grub,lilo,
+etc.) then write approriate code in kernel setup stage, etc.  It is 
+actually not so hard to do.  Just, well, boring stuff in fact, not to
+mention you have to send patch to at least main boot loaders maintainers.
 
-Another dumb question: can I simply use the previous kernel where acpi 
-was working? That is .. I have the actual kernel. Can I drop that into 
-/boot, make a change to grub's conf file and use the old kernel?
+-- 
+Ducrot Bruno
 
-sjb
-
-
-
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
