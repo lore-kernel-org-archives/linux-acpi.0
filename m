@@ -1,12 +1,13 @@
-From: hajo <hajo-GANU6spQydw@public.gmane.org>
-Subject: adapting DSDT to given RAM
-Date: Mon, 08 Mar 2004 18:59:53 +0100
+From: Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>
+Subject: Re: Re: fix ACPI poweroff in 2.4.25-rc2
+Date: Mon, 8 Mar 2004 15:15:58 -0300 (BRT)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <404CB499.8010306@free.fr>
+Message-ID: <Pine.LNX.4.44.0403081515190.10436-100000@dmt.cyclades>
+References: <20040308163452.GE5352@openzaurus.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20040308163452.GE5352-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,26 +16,30 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>, Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>, willy-tRhHnHjXm5DYtjvyW6yDsg@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi all,
 
-I realized that the DSDTs downloadable from the sf web page work only 
-for a given amount of physical RAM. I wrote S. about this to modify the 
-DSDT section on the web-page with instructions how to fix this. I 
-proposed the following:
 
-   Check the number following the keyword "SystemMemory", 
-   some are close to the total memory the DSDT is made for. 
-   Just fix it such that the difference from your total 
-   amount of memory remains the same.
+On Mon, 8 Mar 2004, Pavel Machek wrote:
 
-Maybe somebody can tell whether this is correct. The problem is that for some DSDTs this obvious when the number is close to the total memory as stated above. 
-Some other have a relatively small address, so I suppose that is counted from the bottom and does not have to be modified. Is this right? 
+> Hu!
+> > The recent 2.4 patch breaks the build for ia64 because we don't
+> > set CONFIG_ACPI_SLEEP, and acpi_system_save_state() is only
+> > defined under #ifdef CONFIG_ACPI_SLEEP.  Can you add the following
+> > patch to deal with this?
+> 
+> Original patch should be reverted. Having different
+> behaviour of poweroff depending on ACPI_SLEEP would
+> be wrong.
 
-thanks,
-hajo
+Hi Pavel,
+
+Original patches fixes a real problem, so its not as easy as "lets revert 
+it", yes? 
+
+
 
 
 
