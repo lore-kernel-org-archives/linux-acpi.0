@@ -1,15 +1,15 @@
-From: Keld =?iso-8859-1?Q?J=F8rn?= Simonsen <keld-6PR53cSIHaE@public.gmane.org>
-Subject: Re: problem with cpu eating too much power, prize given if solved
-Date: Fri, 25 Jun 2004 14:46:38 +0200
+From: Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
+Subject: Re: Problem with acpi_power_off
+Date: Fri, 25 Jun 2004 13:59:53 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040625124637.GA14795@rap.rap.dk>
-References: <20040624153513.GB19545@rap.rap.dk> <opr930o2uv4evsfm@smtp.pacific.net.th>
+Message-ID: <16604.8649.415502.900850@aber.ac.uk>
+References: <40DB37BD.3050904@accelerated.org>
+	<Pine.LNX.4.60.0406251252280.1488@frog.athome>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <opr930o2uv4evsfm-TBR8pM7LtsqkE96DxU8f+dAkNl5+tjhE@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.60.0406251252280.1488-KnfdeQs3A3X/9pzu0YdTqQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,58 +18,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Michael Frank <mhf-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
-Cc: Keld =?iso-8859-1?Q?J=F8rn?= Simonsen <keld-6PR53cSIHaE@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
+Cc: Charles Kendricks <ckendricks-rGvcZsxnnNR8Odgaehf8fA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jun 25, 2004 at 01:40:04AM +0800, Michael Frank wrote:
-> On Thu, 24 Jun 2004 17:35:13 +0200, Keld J=F8rn Simonsen <keld-6PR53cSIHaE@public.gmane.org=
->=20
-> wrote:
->=20
-> >Dear ACPI developers,
-> >I have a problem with my Acer Travelmate 233.
-> >Many times I just want to read the screen, eg emails or documents,
-> >and then still the cpu will be in idle mode, where
-> >it uses 7.5 W out of the about 15 W that the whole machine uses.
-> >I have found out from Intel data sheets that my
-> >Mobile Intel Celeron 2.0 GHz CPU consumes 7.5 W in idle loop/
-> >stop grant/sleep states, (and 5.0 W i deep sleep state).
-> >So I would like to have the CPU stopped completely (consuming 0 W)
-> >while I still could read the screen. In that way I should
-> >be able to have about double the lifetime on the battery,
-> >going to about 7 hours from the 3.5 hours I have now.
-> >I would like the machine to wake up again by any keystroke
-> >on the keyboard or mouse input. I would like the input to be
-> >reacted upon (not just used to wake up the system, and
-> >then forgotten).
-> >I do not have the skills to program this myself, so
-> >instead I offer a prize of USD 1000 to the person(s) that
-> >can give me a patch for kernel 2.6 and appropiate documentation
-> >that can solve the above problem. The patch needs to be GPL,
-> >and demonstrably run on my laptop. I need the patch before
-> >2004-10-01, after what date the prize offer expires.
-> >I would like that the patch was written in a general way to cover for
-> >CPUs that burn considerable power in idle loop and other states, so th=
-at
-> >other users can benefit from it. Also I would prefer that the patch be
-> >rolled into the normal ACPI kernel source tree, but the latter request
-> >is not a condition for the prize.
-> >
->=20
-> Nice idea but it wont be possible to program it as your hardware powers
-> the CPU which takes 5w while it is powered. There is no partitioning
-> which allows you to remove power from the CPU while running the rest
-> and I am not aware of any system or standards which provide this kind
-> of partitioning...
+hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org writes:
+ > -----BEGIN PGP SIGNED MESSAGE-----
+ > Hash: SHA1
+ > 
+ > Salut Charles,
+ > 
+ > On Thu, 24 Jun 2004, Charles Kendricks wrote:
+ > > I am in charge of several linux 2.6.4 systems with Dragon P4I875P 
+ > > motherboards.  I am relatively new to acpi so my question might seem a little 
+ > > elementary, but I can't seem to get my systems to power off consistently when 
+ > > I issue an init 0.  It seems that all of them will power down sometimes, and 
+ > > at other times the same systems won't power down.  Once powered down I have 
+ > > no problem (at least not yet anyway) waking the systems back up.  What can be 
+ > > causing this inconsistent behavior?????
+ > there are two things you may try:
+ >   1. If your system does not use the local APIC you might build a kernel
+ >    without "Local APIC support on uniprocessors" CONFIG_X86_UP_APIC
+ >   2. do not use the rtc-module "Enhanced Real Time Clock Support", but if
+ >    you need the generic RTC CONFIG_GEN_RTC instead.
 
-Well, I don't know so much about ACPI, but I thought that you in S2
-could shut down devices individually, and then at the end for my
-purpose shut down the CPU completely, like a suspend to memory.
-But maybe this is not doable.
+As some of you may remember, this is what solved the problem for me some
+times ago.  However, in the last few days, I noticed on 2 occasions that my
+laptop did not power off.  The only thing I changed was playing with usb
+stuff, making some of it as modules and not.
 
-Best regards
-Keld
+The worrying thing is that it is not consistent.  At least I haven't been
+able to see the pattern yet (as it only happened twice).  Will try to
+figure out and report back if/when I do.
+
+Fred
+
 
 
 -------------------------------------------------------
