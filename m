@@ -1,14 +1,13 @@
-From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Re: S3 resume on Fujitsu-Siemens Amilo A7620 (CONTINUES)
-Date: Thu, 28 Oct 2004 01:47:12 +0200
+From: Keshavamurthy Anil S <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] ACPI based cpu hotplug
+Date: Wed, 27 Oct 2004 19:31:19 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041027234712.GG20716@elf.ucw.cz>
-References: <20041018134238.4cf1b380.albeclemit@yahoo.it> <20041018124756.GA28463@elf.ucw.cz> <20041018225412.397dcd1f.albeclemit@yahoo.it> <20041018212208.GA10490@elf.ucw.cz> <20041019002115.2faa9436.albeclemit@yahoo.it> <20041018230008.GC10490@elf.ucw.cz> <20041028004424.1b0f95fb.albeclemit@yahoo.it>
+Message-ID: <20041027193118.B6002@unix-os.sc.intel.com>
+Reply-To: Keshavamurthy Anil S <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20041028004424.1b0f95fb.albeclemit-whZMOeQn8C0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,40 +16,41 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Alberto Piai <albeclemit-whZMOeQn8C0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-acpi <linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Developer <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi!
+Hi Len,
+	Couple of weeks back I had posted the ACPI based Physical CPU 
+hotplug patches onto the above mailing-list and I had resolved all the 
+issues that people on the mailing list had brough out. I was hoping to
+see that patches on 2.6.10-rc1-mm1 and since I did not see them there, 
+just checking to see whats your idea on this. I guess other companies 
+are working on this acpi based hotplug technologies and are dependent 
+on my patches which enhances core acpi and introduces the first version 
+of the container driver.
 
-> > > > > So now it's going out of wakeup.S, right?
-> 
-> > > > > We should be in drivers/acpi/sleep/main.c at that point
-> > > > 
-> > > > Yes. I assume that video does not work for you? Do you see at least
-> > > > blinking cursor?
-> > > > 
-> 
-> > We can't call video bios from protected mode, sorry. If machine comes
-> > up with all devices working (try capslock) but video, you should be
-> > able to reinitialize video using emu from X11 or some other hack.
-> 
-> Update:
-> 2.6.9, with pushl and popl lines commented out:
-> the machine survives wakeup.S, then hangs with the hard disk light on. CapsLock is working, but Ctrl+Alt+Del doesn't reboot (if i keep it pressed for some seconds it generates a beep.)
-> 
-> I still didn't find a way to debug it, please help me! At which point should we be if harddisk was (kind of) turned on?
+I had tested those patches in an emulation environment by overiding DSDT.
+I am attaching the links of those patches again for your refernece. 
 
-Remap capslock to, say, right shift, and try to see if right shift
-toggles leds after resume.
+http://marc.theaimsgroup.com/?l=acpi4linux&m=109606894724606&w=2
+http://marc.theaimsgroup.com/?l=acpi4linux&m=109606922621045&w=2
+http://marc.theaimsgroup.com/?l=acpi4linux&m=109632034413133&w=2
+http://marc.theaimsgroup.com/?l=linux-kernel&m=109606961524691&w=2
+http://marc.theaimsgroup.com/?l=linux-kernel&m=109607023225373&w=2
+http://marc.theaimsgroup.com/?l=linux-kernel&m=109607042100294&w=2
 
-If it does, try to find out if serial or network card is working after
-resume.
 
-								Pavel
--- 
-People were complaining that M$ turns users into beta-testers...
-...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
+Please let me know if you would like to receive the patches rediffed 
+to the latest bits and I would be happy to resend it to you again.
+
+Thanks,
+
+-Anil Keshavamurthy
+Sr. Software Engineer
+Linux OS Technology Team
+Intel Corp.
+(w) 503-712-4476
 
 
 -------------------------------------------------------
