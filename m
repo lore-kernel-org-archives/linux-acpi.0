@@ -1,13 +1,14 @@
-From: "Breathnach, Proinnsias  (Dublin)" <breatpro-Lp/cVzEoVybn/p8AFm7ortBPR1lH4CV8@public.gmane.org>
-Subject: ACPI _and_ APM ??
-Date: 28 Feb 2003 14:26:52 +0000
+From: Ole Rohne <ole.rohne-vJEk5272eHo@public.gmane.org>
+Subject: Re: Fujitsu Lifebook P2120 S3 sleep: progress report + patch
+Date: 28 Feb 2003 16:02:38 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1046442411.20792.183.camel@DUBIW89675.ie.ml.com>
+Message-ID: <ebwwujkv46p.fsf@pcedu3.cern.ch>
+References: <ebw1y1swmjv.fsf@pcedu3.cern.ch>
+	<20030228141510.GA24824@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20030228141510.GA24824-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,26 +17,21 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Cc: Ole Rohne <ole.rohne-vJEk5272eHo@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Just curious if this should / shouldn't work ...
+Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org> writes:
 
-I've a Sony Vaio FX401 - AMD 800 512MB laptop, which works great with
-almost any given version of the ACPI patches... unfortunately with the
-way I've got the machine configured and the amount of RAM it's faster to
-shutdown -h and reboot than to use SWSUSP (sorry Pavel !)
+> Actually, 8139too works fine after S3 resume, at least on my machine -
+> tested on 2.5.6[13]. Takes several seconds to get responding, but works.
 
-I have noticed that the APM suspend-to-ram works nicely (well apart from
-the VTs blanking, but that's the FB code ..) and even returns cleanly
-... and I was wondering if there's any real reason one couldn't use both
-ACPI for config etc and APM for sleeping ?
+Which version of the chip do you have? - there is a comment in the
+code about bringing old chips out of low-power mode, which I guess
+doesn't work on chips with PCI Power Management capabilities (eg
+version 10).
 
-Or am I losing the plot altogether ?
-
-P
-
-
+Ole
 
 
 -------------------------------------------------------
