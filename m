@@ -1,14 +1,17 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ACPI very nearly working on Thinkpad 240x
-Date: Wed, 16 Apr 2003 17:42:52 +0800
+From: Luis Miguel Pires Neves <lneves-3+EeCmRbAIqyvGiigdSjEg@public.gmane.org>
+Subject: Re: [Swsusp] ACPI events and suspension
+Date: Wed, 16 Apr 2003 11:21:26 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8427229A@pdsmsx403.ccr.corp.intel.com>
+Message-ID: <200304161121.26819.lneves@estg.iplei.pt>
+References: <20030415042548.29004.45188.Mailman@cthulhu.fornax.hu>
+Reply-To: lneves-3+EeCmRbAIqyvGiigdSjEg@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <20030415042548.29004.45188.Mailman-S9ox3Mig+MnNjQmCFqT+hYdd74u8MsAO@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,66 +20,69 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: swsusp-LcL5texQODR2DW0IdvIQ2g@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Would you please collect debug message for each of below issues.=20
+Hi,
 
-That will help me better understand these issues, and help us to know =
-the status of current ACPI.
+I checked it again (by accident) and the problem remains. I started the=20
+suspension and unplugged the AC adapter in the meanwile (when swsusp was=20
+writing the image). It seemed that no problem had ocurred but then it hange=
+d=20
+on resume (OOPS, kernel panic, not syncing...) I tried to repeat the resume=
+=20
+in order to get a more detailed description but then it started issuing a=20
+General Protection Fault and I had no other way than to reboot it with the=
+=20
+noresume option.
 
-Thanks,
-Luming
------Original Message-----
-From: Matthew Garrett [mailto:mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org]
-Sent: 2003?3?3? 2:48
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: [ACPI] ACPI very nearly working on Thinkpad 240x
+I have the 2.4.20 kernel + ACPI20021212 + swsusp beta19-16 on a Debian 3.0=
+=20
+(woody) system.
+Is it possible that newer patches solve this problem?
 
+Is it possible to stop ACPI events with a "user" command like echoing=20
+something to /proc/acpi/...?
 
-Having upgraded my BIOS to the latest available from IBM, I've very=20
-nearly got working ACPI.
+Best regards,
 
-1) S1 usually works correctly, but the backlight doesn't get switched=20
-off. Is there any trivial way of dealing with this?
-
-2) S3 suspends and resumes. On resume, the backlight comes back on the
-machine is responsive from the network. The keyboard and mouse don't
-work, though - if I use modular input drivers, a rmmod i8042 && modprobe
-i8042 brings things back to life. Switching on the Toshiba keyboard=20
-kicking code doesn't result in any change in behaviour. The symptoms are =
-
-that no input results in an increase in interrupts until I reload the=20
-module.=20
-
-The other problem is that the screen doesn't come back. The backlight
-comes on but no text appears. This is the case with both vesafb and=20
-vgacon - sometimes (but not predictably) a small amount of text is=20
-printed, but it looks like it's left over from lilo or something. The=20
-screen seems to be in 640x480 text mode, rather than the 800x600 it=20
-should be in when I'm using the VESA driver. Killing X and restarting it =
-
-results in X starting up, but I can't switch back to a text console=20
-(they're just garbage). Passing acpi_sleep=3Ds3_bios or s3_mode doesn't=20
-seem to make any difference.
-
-3) S4 with SWSUSP sometimes works, but usually I hit the BUG() in=20
-ide-disk that others have reported. Is there any understanding behind=20
-why that one's happening?
-
-It certainly seems a lot better than things have been before now.
---=20
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+Lu=EDs Neves
 
 
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
+> Message: 6
+> Date: Mon, 14 Apr 2003 13:08:58 +0200
+> From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+> To: swsusp-LcL5texQODR2DW0IdvIQ2g@public.gmane.org
+> Subject: Re: [Swsusp] ACPI events and suspension
+> Reply-To: swsusp-LcL5texQODR2DW0IdvIQ2g@public.gmane.org
+>
+> Thus wrote Karol Kozimor:
+> > > My problems with swsusp started after an upgrade of the set
+> > > kernel+acpi+swsusp and now I associate it with events. Before that
+> > > upgrade I didn't have acpi events on my machine. What happens is that
+> > > sometimes I'm suspending it and in the meanwhile I unplug the AC
+> > > adapter or something similar and OOPS, kernel hangs somewhere.
+> >
+> > I often generate events while suspending (e.g. close the lid of my
+> > laptop), and have no problems with that. What you may mean, might be
+> > probably notifies generated by the subsystem. I'll try and see, whether
+> > those notifies do any bad on my machine.
+>
+> OK, I checked it: unplugged the power cord while writing second pageset,
+> and it didn't do any bad, the system suspended and resumed correctly.
+> However, I noticed that ACPI susbsytem still works at that stage (i.e. my
+> screen grew dimmer, as it is hardcoded in my DSDT), so it may be possible
+> that on your machine, some weird methods are called that disrupt the
+> system. It would be good to identify which method it is, and to fix
+> (rather) the ACPI code, as I believe there is no reason in blocking ACPI
+> events during suspend.
+> Best regards,
+>
+> --
+> Karol 'sziwan' Kozimor
+> sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+>
 
 
 -------------------------------------------------------
