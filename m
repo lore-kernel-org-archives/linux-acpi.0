@@ -1,13 +1,15 @@
-From: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
-Subject: Re: System hang when trying to enter sleep/standby state
-Date: Wed, 12 Feb 2003 10:47:59 -0600 (CST)
+From: Ernst Herzberg <earny-euM3SP4ZHrg@public.gmane.org>
+Subject: Re: Oops: Battery and KDE 3.1
+Date: Wed, 12 Feb 2003 18:11:03 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.33.0302121042480.1479-100000@localhost.localdomain>
-References: <1044987042.1149.4.camel@localhost.localdomain>
+Message-ID: <200302121811.03316.earny@net4u.de>
+References: <B9ECACBD6885D5119ADC00508B68C1EA0D19BAAB@orsmsx107.jf.intel.com>
+Reply-To: earny-euM3SP4ZHrg@public.gmane.org
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Multipart/Mixed;
+  boundary="------------Boundary-00=_F2H7WWWCAIZRA1OXNDK3"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1044987042.1149.4.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+In-Reply-To: <B9ECACBD6885D5119ADC00508B68C1EA0D19BAAB-LkGsggTGxVmSsB6bSF6DdVDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,41 +18,121 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Erik van Pienbroek <admin-0LxUhLuGNoZIf6P1QZMOBw@public.gmane.org>
-Cc: ACPI Mailinglist <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
-On 11 Feb 2003, Erik van Pienbroek wrote:
+--------------Boundary-00=_F2H7WWWCAIZRA1OXNDK3
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 8bit
 
-> Hi,
-> 
-> I've experimented a little bit more with ACPI and found out the
-> following things :
-> With kernel 2.4.21-pre4 when I tried to echo "5" to /proc/acpi/sleep
-> the console would be killed an the following Oops appeared in the logs :
+On Dienstag, 11. Februar 2003 23:34, Moore, Robert wrote:
+> Please send your binary DSDT, I will take a look at the problem.
+> Bob
+>
 
-I would recommend never, ever doing 'echo 5 > /proc/acpi/sleep', 
-especially if you're trying to suspend the system. 
+Attached the dsdt.
+If you need more information, let me know...
 
-S5 (the state the system enters when you do that) is defined as 'Soft 
-Off'. It is equivalent to what ACPI does when you shut down the system and 
-it automatically powers it off for you. You cannot resume from it; you 
-must restart the machine. 
+Thx.
 
-The reason it's defined by the spec is to a) allow software to power down 
-the system, and b) allow some events to trigger a power on by the firmware 
-(like wake-on-lan). 
+<Earny>
+--------------Boundary-00=_F2H7WWWCAIZRA1OXNDK3
+Content-Type: application/x-gzip;
+  name="dsdt.gz"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="dsdt.gz"
 
-ACPI should not allow a user to write '5' to that file. It used to be that 
-way, but someone clever decided that that interface should support _all_ 
-sleep states. (It might have been me, in one of my finer moments). 
+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
+hJV76v8/ToVRmj47AAA=
 
-
-Andy, I recommend removing that from 2.4, and I'll send you a patch for 
-2.5..
-
-	-pat
+--------------Boundary-00=_F2H7WWWCAIZRA1OXNDK3--
 
 
 
