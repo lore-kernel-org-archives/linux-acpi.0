@@ -1,15 +1,13 @@
-From: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: _STA workaround regression
-Date: Fri, 13 Aug 2004 09:22:10 -0600
+From: Jos Delbar <jos.delbar-Cru1EgDzd7c@public.gmane.org>
+Subject: Re: noise from Dell laptops
+Date: Fri, 13 Aug 2004 18:45:26 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200408130922.10323.bjorn.helgaas@hp.com>
-References: <B44D37711ED29844BEA67908EAF36F038ADB70@pdsmsx401.ccr.corp.intel.com>
+Message-ID: <200408131845.26932.jos.delbar@ugent.be>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <B44D37711ED29844BEA67908EAF36F038ADB70-4yWAQGcml65pB2pF5aRoyrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -19,48 +17,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday 12 August 2004 7:02 pm, Li, Shaohua wrote:
-> I got below boot message
-> >ACPI: Device [CSFF] status [00000008]: functional but not present;
-> setting
-> >present
-> >ACPI: PCI Root Bridge [CSFF] (00:ff)
-> in tiger4, and then lspci -vv display many garbage info (many PCI
-> devices' bus number is 0xFF).
-> Looks like the _STA workaround for big sur and Bull system breaks
-> tiger4. Any idea?
+>  Do people with Dell laptops that are make noise in idle
+>  find that Jos"s patch along with acpi_cstate_limit=2
+>  makes it quiet?
+>  
+>  thanks,
+>  -Len
 
-Here's a pointer to the start of this whole thing:
-	https://sourceforge.net/mailarchive/message.php?msg_id=6923358
+On my Dell Inspiron 500m the buzzing noise only disappears when limiting to C1 
+(acpi_cstate_limit=1). Limiting to C2 does not seem to make a noticeable 
+difference.
 
-On my tiger4, lspci shows this, which I assume is what you are referring
-to:
-
-	ff:18.0 Host bridge: Intel Corp.: Unknown device 0500 (rev 20)
-	ff:18.1 Host bridge: Intel Corp.: Unknown device 0501 (rev 20)
-	ff:18.2 Host bridge: Intel Corp.: Unknown device 0502 (rev 20)
-	ff:18.3 Host bridge: Intel Corp.: Unknown device 0503 (rev 20)
-	ff:1c.0 Host bridge: Intel Corp.: Unknown device 0510 (rev 22)
-	ff:1c.1 Host bridge: Intel Corp.: Unknown device 0511 (rev 22)
-	ff:1c.2 Host bridge: Intel Corp.: Unknown device 0512 (rev 22)
-	ff:1c.3 Host bridge: Intel Corp.: Unknown device 0513 (rev 22)
-	ff:1c.4 Host bridge: Intel Corp.: Unknown device 0514 (rev 22)
-	ff:1c.5 Host bridge: Intel Corp.: Unknown device 0515 (rev 22)
-	ff:1c.6 Host bridge: Intel Corp.: Unknown device 0516 (rev 22)
-
-I'm not sure what makes you think this is a regression, though.  Does
-this actually break something on your system?  My system works just
-fine.  It's true that it would be nice to teach lspci what the devices
-are, so it could say something more intelligent than "Unknown device",
-but as far as I know, they are real things that somebody could write
-drivers for someday.
-
-But I don't work for Intel, and I don't know anything about the tiger4
-internals.
+- Jos
 
 
 -------------------------------------------------------
