@@ -1,91 +1,42 @@
-From: =?iso-8859-1?Q?=C9ric?= Brunet <Eric.Brunet-l5PIGlIYzrxGWvitb5QawA@public.gmane.org>
-Subject: Re: 2.5.70 freezes when running hwclock
-Date: Sat, 31 May 2003 13:49:24 +0200
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20030531114924.GA14158@lps.ens.fr>
-References: <20030531080544.GA13848@lps.ens.fr> <200305311841.47238.mflt1@micrologica.com.hk>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: Backlight doesn't come back on after resume
+Date: Sat, 31 May 2003 15:56:30 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20030531145630.GA7324@srcf.ucam.org>
+References: <20030529150833.GA32147@srcf.ucam.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200305311841.47238.mflt1-DTdK3Ks6N5kHTnRCetW4+N0b+6lKrnBL@public.gmane.org>
-To: Michael Frank <mflt1-DTdK3Ks6N5kHTnRCetW4+N0b+6lKrnBL@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
-Cc: Linux Kernel mailing list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20030529150833.GA32147-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, May 31, 2003 at 06:41:47PM +0800, Michael Frank wrote:
-> > I have tried 2.5.70 on an intel chipset based pc, and I
-> > got a reproductible complete freeze during the boot
-> > process when hwclock is run. Even Caps Lock wouldn't lit
-> > the little led.
-> This seems to be an ACPI related problem on ALI 1533/1535=20
-> compatible implementations frequently seen on Toshiba's.
->=20
-> As a workaround, Boot with ACPI=3Doff and add --directisa to=20
-> hwclock lines in rc.sysinit and halt (or their equivalents)
->=20
-> If this is really an Intel chipset it would be a first=20
->=20
-> Please post your problem, solution and system info and lspci=20
-> to ACPI list.
+On Thu, May 29, 2003 at 04:08:33PM +0100, Matthew Garrett wrote:
+> Until recently, I was able to get video working again after resume if I 
+> passed acpi_sleep=s3_mode and had a script that changed away from and 
+> back to my X session (the framebuffer was screwed afterwards, but never 
+> mind). This seems to have stopped working recently - in 2.5.70, I end up 
+> with a machine that pings, but no video. I've tried all permutations of 
+> acpi_sleep and using or not using the framebuffer. It worked in 2.5.65. 
+> Anyone have any idea what might have changed?
 
-hwclock --directisa works indeed. ACPI is indeed configured in, and=20
-I haven't tried to boot with ACPI=3Doff.
+Oops. Hitting the video output key a couple of times seems to have fixed 
+this. 2.5.70 seems to let me do S3 suspend/resumes repeatedly - I've 
+just done 5 of them without any trouble. Great work!
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
-Computer is a shuttle SB51G with an intel 845G/845GL chipset.
 
--------------------- lspci ----------------------------------
-00:00.0 Host bridge: Intel Corp. 82845G/GL [Brookdale-G] Chipset Host B=
-ridge (rev 03)
-00:02.0 VGA compatible controller: Intel Corp. 82845G/GL [Brookdale-G] =
-Chipset Integrated Graphics Device (rev 03)
-00:1d.0 USB Controller: Intel Corp. 82801DB USB (Hub #1) (rev 02)
-00:1d.1 USB Controller: Intel Corp. 82801DB USB (Hub #2) (rev 02)
-00:1d.2 USB Controller: Intel Corp. 82801DB USB (Hub #3) (rev 02)
-00:1d.7 USB Controller: Intel Corp. 82801DB USB EHCI Controller (rev 02=
-)
-00:1e.0 PCI bridge: Intel Corp. 82801BA/CA/DB PCI Bridge (rev 82)
-00:1f.0 ISA bridge: Intel Corp. 82801DB ISA Bridge (LPC) (rev 02)
-00:1f.1 IDE interface: Intel Corp. 82801DB ICH4 IDE (rev 02)
-00:1f.3 SMBus: Intel Corp. 82801DB SMBus (rev 02)
-00:1f.5 Multimedia audio controller: Intel Corp. 82801DB AC'97 Audio (r=
-ev 02)
-01:06.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL-8139/8=
-139C/8139C+ (rev 10)
-01:07.0 FireWire (IEEE 1394): VIA Technologies, Inc. IEEE 1394 Host Con=
-troller (rev 46)
-01:08.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL-8029(A=
-S)
------------------------------------------------------------------------=
--------
-
-I am not sure what is relevant about the RTC. Let's try this:
-
------------------- lspci -vvv -s 00:1f.0 -----------------------------
-00:1f.0 ISA bridge: Intel Corp. 82801DB ISA Bridge (LPC) (rev 02)
-        Control: I/O+ Mem+ BusMaster+ SpecCycle+ MemWINV- VGASnoop- Par=
-Err- Stepping- SERR- FastB2B-
-        Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TAbo=
-rt- <TAbort- <MAbort- >SERR- <PERR-
-        Latency: 0
------------------------------------------------------------------------=
--
-
-------------------- lspci -vvv -s 00:1f.3---------------------------
-00:1f.3 SMBus: Intel Corp. 82801DB SMBus (rev 02)
-        Subsystem: Holco Enterprise Co, Ltd/Shuttle Computer: Unknown d=
-evice fb50
-        Control: I/O+ Mem- BusMaster- SpecCycle- MemWINV- VGASnoop- Par=
-Err- Stepping- SERR- FastB2B-
-        Status: Cap- 66Mhz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TAbo=
-rt- <TAbort- <MAbort- >SERR- <PERR-
-        Interrupt: pin B routed to IRQ 5
-        Region 4: I/O ports at 0500 [size=3D32]
---------------------------------------------------------------------
-
-2.5.67 was working fine, with the same configuration.
-
-Regards,
-
-	=C9ric Brunet
+-------------------------------------------------------
+This SF.net email is sponsored by: eBay
+Get office equipment for less on eBay!
+http://adfarm.mediaplex.com/ad/ck/711-11697-6916-5
