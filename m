@@ -1,14 +1,13 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: _STA workaround regression
-Date: Fri, 13 Aug 2004 09:02:41 +0800
+From: Paul Ionescu <i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Re: question about ACPI & Smart Batteries
+Date: Fri, 13 Aug 2004 01:40:34 +0300
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <B44D37711ED29844BEA67908EAF36F038ADB70@pdsmsx401.ccr.corp.intel.com>
+Message-ID: <pan.2004.08.12.22.40.32.120142@yahoo.com>
+References: <F760B14C9561B941B89469F59BA3A8470726AFF5@orsmsx401.amr.corp.intel.com> <20040812222936.GD30862@miramar.cse.ucsc.edu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,23 +16,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Bjorn,
-I got below boot message
->ACPI: Device [CSFF] status [00000008]: functional but not present;
-setting
->present
->ACPI: PCI Root Bridge [CSFF] (00:ff)
-in tiger4, and then lspci -vv display many garbage info (many PCI
-devices' bus number is 0xFF).
-Looks like the _STA workaround for big sur and Bull system breaks
-tiger4. Any idea?
+Hi Cintia,
 
-Thanks,
-Shaohua
+In CM case I think that when you look into /proc/acpi/battery/BAT0/state,
+you get the instantaneous value.
+So the state file is not updated unless you look in it, and then you get
+the values at that moment, because the APCI code will just call _BST
+method to tell you the actual values.
+So, I think you can trust those values as being pretty accurate.
+
+Paul
+
+
+On Thu, 12 Aug 2004 15:29:36 -0700, Cintia B. Margi wrote:
+>> For a CM battery, the OS can poll the battery state by calling _BST, or
+>> set a trip point (via _BTP) and the OS will get an interrupt when the
+>> battery crosses that trip.
+> 
+> I do not want to set a trip point, but I would like to monitor the
+> battery discharge process... I want to characterize the battery
+> discharge behavior under different tasks, so I intend to monitor the
+> battery voltage and the discharge rate (which I can obtain from
+> /proc/acpi/battery/BAT0/state). What I would like to know is how often
+> the state file is updated and how accurate these values are. Any idea
+> where I can get this info?
+> 
+> Thanks,
+> 
+> Cintia
+
+
 
 
 -------------------------------------------------------
