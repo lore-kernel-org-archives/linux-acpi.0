@@ -1,10 +1,11 @@
-From: margitsw-zqRNUXuvxA0b1SvskN2V4Q@public.gmane.org (Margit Schubert-While)
-Subject: ACPI 20021118
-Date: Wed, 27 Nov 2002 11:48:19 +0100
+From: Hanno =?ISO-8859-15?B?QvZjaw==?= <hanno-Mmb7MZpHnFY@public.gmane.org>
+Subject: No ACPI on old K6 Laptop
+Date: Wed, 27 Nov 2002 13:05:41 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4.3.2.7.2.20021127114745.00b62100@pop.t-online.de>
+Message-ID: <20021127130541.19aeeaca.hanno@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
+Content-Type: multipart/mixed;
+ boundary="Multipart_Wed__27_Nov_2002_13:05:41_+0100_08dd4200"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -17,54 +18,116 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Why does ACPI 20021118 think my P4 is a XEON ?
-And what's with Processor #129 ?
+This is a multi-part message in MIME format.
 
-Margit
+--Multipart_Wed__27_Nov_2002_13:05:41_+0100_08dd4200
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Inspecting /boot/System.map-2.4.20
-Loaded 16848 symbols from /boot/System.map-2.4.20.
-Symbols match kernel version 2.4.20.
-No module symbols loaded.
-klogd 1.4.1, log source = ksyslog started.
-<4>Linux version 2.4.20 (root@roglinux) (gcc version 3.2) #1 Sat Nov 23 
-17:15:36 CET 2002
-<6>BIOS-provided physical RAM map:
-<4> BIOS-e820: 0000000000000000 - 000000000009fc00 (usable)
-<4> BIOS-e820: 000000000009fc00 - 00000000000a0000 (reserved)
-<4> BIOS-e820: 00000000000e0000 - 0000000000100000 (reserved)
-<4> BIOS-e820: 0000000000100000 - 000000001ff40000 (usable)
-<4> BIOS-e820: 000000001ff40000 - 000000001ff50000 (ACPI data)
-<4> BIOS-e820: 000000001ff50000 - 0000000020000000 (ACPI NVS)
-<5>511MB LOWMEM available.
-<7>ACPI: have wakeup address 0xc0001000
-<4>On node 0 totalpages: 130880
-<4>zone(0): 4096 pages.
-<4>zone(1): 126784 pages.
-<4>zone(2): 0 pages.
-<6>ACPI: RSDP (v000 ACPIAM                     ) @ 0x000f70d0
-<6>ACPI: RSDT (v001 INTEL  D845PESV 08194.04144) @ 0x1ff40000
-<6>ACPI: FADT (v002 INTEL  D845PESV 08194.04144) @ 0x1ff40200
-<6>ACPI: MADT (v001 INTEL  D845PESV 08194.04144) @ 0x1ff40300
-<6>ACPI: ASF! (v016 AMIASF I845GASF 00000.00001) @ 0x1ff44390
-<6>ACPI: DSDT (v001 INTEL  D845PESV 00000.00266) @ 0x00000000
-<5>ACPI: BIOS passes blacklist
-<6>ACPI: Local APIC address 0xfee00000
-<6>ACPI: LAPIC (acpi_id[0x01] lapic_id[0x00] enabled)
-<4>Processor #0 Pentium 4(tm) XEON(tm) APIC version 16
-<6>ACPI: LAPIC (acpi_id[0x02] lapic_id[0x81] disabled)
-<4>Processor #129 invalid (max 16)
-<6>ACPI: LAPIC_NMI (acpi_id[0x01] polarity[0x0] trigger[0x0] lint[0x1])
-<6>ACPI: LAPIC_NMI (acpi_id[0x02] polarity[0x0] trigger[0x0] lint[0x1])
-<6>ACPI: IOAPIC (id[0x01] address[0xfec00000] global_irq_base[0x0])
-<6>IOAPIC[0]: Assigned apic_id 1
-<4>IOAPIC[0]: apic_id 1, version 32, address 0xfec00000, IRQ 0-23
-<6>ACPI: INT_SRC_OVR (bus[0] irq[0x0] global_irq[0x2] polarity[0x0] 
-trigger[0x0])
-<6>ACPI: INT_SRC_OVR (bus[0] irq[0x9] global_irq[0x9] polarity[0x1] 
-trigger[0x3])
-<6>Using ACPI (MADT) for SMP configuration information 
+I recently installed Linux on an old K6 laptop.
+According to lspci, it has acpi. But with latest acpi-patch, I don't have a /proc/acpi-interface.
+Does this laptop have any acpi-support? Or is the lspci-output just wrong?
+lspci and dmesg-output is attached.
 
+-- 
+Hanno Boeck - hanno-Mmb7MZpHnFY@public.gmane.org               /"\
+                                         \ / ASCII Ribbon Campaign
+Say no to DCMA, TCPA, Palladium!          X  Against HTML Mail
+www.stop1984.com                         / \
+
+--Multipart_Wed__27_Nov_2002_13:05:41_+0100_08dd4200
+Content-Type: application/octet-stream;
+ name="dmesg_lspci.tar.bz2"
+Content-Disposition: attachment;
+ filename="dmesg_lspci.tar.bz2"
+Content-Transfer-Encoding: base64
+
+QlpoOTFBWSZTWX+rewUAC77/pv+0AEB7////f///6v////EEAAAAgAQACGAT33vdR7alaEI7t3t2
+3u5t7a5hR09Zl5eOjTNqHSjzrAHT0U9XNSndgo6AaaoaEBBGE0ZTyDSp+jTRlM00R5Q0xIzRPSZN
+GTQaaaaAEogJkxJinqamyj0p6m9KZPJpNpqDTQ0aAA0AANGgBpoIEE01DU/SCaNTZRtQ9Eepphog
+AAGgAaAASakTU0TU9Ap6aahptT1HlPU0aDQaeoBiDQ9QAAAAOGgABoNBoDBADQ00yAaGjTIAYgaA
+BIkEAmQCA0ET0mTAnok9U2KeIE8k9IyAGgB6P4h1H8oMYEA5gkiZ5B2neM7fLPyPcrQYmlAopnzo
+AsmoLIQ67g8EsBzY5jIo+3BrsFHbLfT63b1x+n5Tuv6NRyRF2SvvGD02TCg5+Wc3zLW/VYPlh/h/
+nbgfDDfY10VLvSavenyapUOBfwvXRQ4/5mgjYzF1LE680OqRl5tI9i7xZT5SEJlGDYdjtMH6v5af
+Zh+mlpcpzquVRsjkRsljEU/3KgUsdHzmm37v7JceuyVtWdlDjagfqGQiDTItIMiGki4BAHp86kYZ
+hN7Bkz13G6ZT9Y5Fc3NRPxD41nFpuBk3CHLrtBzwOL05Mg9f292v9xioXVVkHyFfVq4uEscQvjn4
+MwYHFrrHtwScukvPCMLg+NVXsneWrRlAVS6fQgeY5/k6o7iKlCQLdz7XAp3aa3ZQ9MY/ht3LZh5K
+LAXkP3gWSKnNXSR8K1vaxoYTNgOHTSPvDSXV1KVX+guijskbC4uOeEpwxc1We7yNuCa7el956kYk
+QeDwz2hznjjOUh1+ylw1QLttHmPY1TbrgN+OS+EkIWyiLBQbOi7dMqEQ1oVmyFQ3XXDSFi9wdVve
+4oI/DFbF3w3wb89WlWZ+aCWogsXIjo2ifEDq9TwPYNNbDsWRNTa+Vctzeru5yseMyLlEBDggnr7d
+rRO12oLIVZMqO82JtDAheKKa1oZeB2HTBoHKsqfpb08eFsB4UFOEZGriTCGQLLRS/v2215aWmnXO
+bp0lw2ipkLSdG8ecDGLxxRIA4UV21suGNhk3ClJjJOgiPjmFrcpjsA3GHAxfWMJBTyqs4Bu8suE3
+Om3FyoseePPI0Ij8ROG/IolR64nW12zUxyRC2AQd6R4Lft0xWZopRkmULuo8Dq8+9RKqYEDoTSkO
+CKKAZj627o8LmxjdUpUrsbtYQCKdlMIAczJk+tLxwYHqvc6RkwXWu63F5zsFQzccBYULku5Mb85e
+ktCNM+d4y+XjjxDusuG3BzsxlRIGaq0ixm9lXnSxkIaqj6+SxbipLkc2njGTFzIY8HaFs/u5Y119
+S0RFucL4obnBuzzYacmXJeJAqiLp3cxs+XvzxfzZZpf5Pbg9BzFsgzBwpPPb3XNo0NnrpLLE5pe1
+Wta8cOiBjEkvggYML54QwEMVi36/6ieukZlFYZCmOPNwq7+aJ/AZuGMB97sFRQjlyXIJ5eKTUx10
+KpsLh5HUV5SJ92OA2+TewVsDQvBBBM4nIIZOJsLAwkPmYtWbHjhvyBe/Yvr2cv5puvijxaaFWXjJ
+zoQLPMzb7iAQXGROLKmi1YdR93vKxl6U4PPXc05/HiglTxU9ecryYjlup5OoCgYDFU8Lt/omXE2Y
+Xazmo8T8hucZXtmVdw1bLle7edo2ytkypeJERutCOECPV9nAlwQ2Ivnh6BdCU1VRtDaGM++0LuX+
+1J7Pznv8eDV2noPIjfy49J9BaKD2qQYhrINnCxp8mrDZwySQJqXs2zMEgAS8T2q4GL5IBRMowCEw
+WXf2+doLLtdSqh+YrHaZoLsqiJL0OBAcLKcTfXMIONsNfn6M/Ib0Pc69Ujn7iSUeocb0dMi9F+8/
+pp781/6qgptUXh3oaBtD82fYBzGAoENTho7T66jxBlgYV04sWnAwkrYJ9fOXXicJy3pF61S7p5q1
+YE47gqF5Iemi98pfZmQehyrjK9sXGOBfcZCR8StxCOUcJoAkw22j74h5cxIy1+2Wc/L3YABRvbV8
+bbHTm5v1okY5nAJwCudtbiWIYscNBEy3VKh+T+8YqMVc2+8JW/VQU36yA8ko/Ydw131jjKJQEKoY
+KMEUOxQMqbCIORtCZCbgPPGiVnS219BWyhCby4crbcAimnj2dxnnzRAltMap/NSixVxtjfJ46N5F
+FVRUVVQVVVXUUV6NBSV1sxJJTemNjXXswx0DbyEeY1pUbOmzBLynG2Oi4WnJSIUtKnMm0mUw1gpP
+s3blhilXIHV57J4p1W50tLHacuHnLjUwlS+4gtpdtZB/kUhEuyWVw+fdZQkEaNYHXxaCGvGLw4df
+ZnsMx2dYI8gyznqgkPzqHYtMdaJcXYXbWh4dCIsgqFgoMVGrqoIRCfKXmFTeWqqj5J1GTWjgAImo
+hovHGXgyFg9S6kSojukAlNSs7tM7wFwU+GfNPovHZM7s0bB7BIBIcB8rrK4x4a74uRMrpo++GioW
+KZ6BlVsZ5BYVnorZmZCilsdc7y+7abig7ItNfTTLhm/xWLZmThhLcNl0SjCBesD7qhI5NlHxCwJ0
+1w2vLAENoKC2KsLtJVBRpmwVQT6i4MsGuxblRbKBoIR+BUk9HB36028TM6PizMD3aLOQv38AGbFU
+VEuGY7l8pCAyZZLpWKjxt0msYN44vVz85Ou1bW+9pdlhfYUKmqQrMpGGyGicc08RLrZX3m1rqqRT
+NYfUMK3SxbEMAzDl0UPZUTiIwR8fG154GbdpE3zDCpfXYkay5TNxCGoZGbgoIkAdL60hdDYYW6tE
+B/Dxb9PcM420DsjF4GHTyd5eiWjBe9J/bxLUXGTigo0penHSaZTqMJRi0TSGRS72sH74MRDomF9I
+QH+GrcKtWSo4UYSvetgeTUjVflLIj+rmOYUK6FmnCW4VteFZSampdWeE3vOKTPS8hDeNZSrwuYy5
+Cybx9awBptQQmCdjRF6DI1C9gpxzS6ACqtKgzC0CEWT6193qPUZeMQMIWKck3oOHLuWSvjgSZbt7
+toOjA3HgQYT8owWEBv787AoqXfgxGKlMe2wmogg7PhDuh4M4aU3KqPGHfPXxnoO6drS+zUOjFXDg
+ZIbbTn1ZiBjYDu4qWejkosm4yhIdJrrzaN/jxJj5XhGHmYUN2oXBxomDFU4eNU2NyiDa1+anWyLh
+YpY8TEDhPCuwpvdQKwOSrzEwMdpjKTgaMzmq6lIpCCsolBBBeJwhSBjeqUpRmzezN0AbYj3i3aXP
+VdUDW0u98CfNt1tLSd6LEmysM0TYHDn2xMo6AEN71CtSGZmf3IzwQY3IR0iIg4O4hGuq5S7vr8+2
+ylwz9L+3tRtkMZy7iESOmXI0oFGGsqkNLrlaHbQT7ih+Nbe/jaR0XT2ucFCxLU1k21cCZsrmMByR
+NOsbrZ1RMjl/GA2CTJ1uw3yhJICIxIdi5qGOcqwEd4B++Ya0CeBeYYXxM28duu0hpjQWlx50oFsv
+ZQq1rsfu93NmVQbkb4XN2FCSMGJjF0RBRr5R0edva4QaRrS5VSF+BIZ6NCofbo7NrRz1D9RsTbev
+K6FUCguP6fh2jp5jEgB7BIMQQWF1sEi5e4PvmXvcCuCkdZBaKB0MBKO529pDzEWsvcJ9CLJNJDjw
+KNHhyZ7iq9xgROYyA+0xJVVz06+Edm5yz6lHqe+SNUsh6wkcdQ7kEQZzbVkbjZSWUfRjfC9GxU6L
+jYFaEULx2qsWArkkllu4K8SNNeOoqauo9+Qq19Jq2aJzFOaAkMG7ydN5RIzN+Y/VT/suofYlgtXu
+Rt8c9K5+39nmpHaxi6e/ocmGuOSFgzijL3mJUrUP3fEC78PKwBtC77Foe+kgYiRGjG1+rwIQfS53
+8pHFpej7vXYdq+TcRGWdC0x+XDwLlMag24Iza08NpvWl/e7PWupBnlJVCG7g6NyjdR54YlhcIiQ+
+0PlGrFYzpiKCPYcCpNTTYUV8JcdxNfmN5UvOxIZI5iv0sNQ94tg1RybM2GqxQuaFLaHhyixSAspJ
+zjUzoLUVLsKGU6uc0R4cdjPGt+468QnccQYYq8cnTCQY5WK8UtIIQNyHchiLRTJLvxiD9scBgjK1
+DLTcWuh2PQD8oyVoZFsMmCNSJEXqvKOzs958uHo6TpujFQiog4aTgaSDvyOfjt14HWrWIvYZYQgi
+4I0tUSmDQKwMQ+4iwFKAsxoJxhlFBdgGcgcJReQtfk+hgqqVMFdYyAtg1Q9yAJRBu/EkwuLhiFSQ
+DXENrW0UYMQzLN5/CXkQ5nqFWgJWoaZS2W2wzrkBzqexgf+0IS1YXiwRCWQfl0zxqJs8a+KJg5lK
+l5JBxytDBiql8LzUW3Po5txStJJlBwiU5yRMCImXIoRSTSoNGeBq3pT6j1vDMmQ1RXSkz0tEXXyW
+Xlpt6JmcETRE1oSKyYUVaI2xtJMtXpu77Vsw1PcGtFMcnHgkmUtNdyNO+dpoA20le1C7lAFwvoj6
+TmDbmX6HzajpPZ8/w9BShZI9Gh8LP3YSwiI67kS3o1rrQwmjwOhogfu7Lo29SKmv07FggN+TlIF3
+nqbBuXuaAOKevWfMurajkjCyQRvyXwRclBhMqEmKwZC28DW2akmpKA2AhrIZHb7BYRL4SHsZlZH9
+wymLCXJf3efgfYYfEmW+DLx54BxxgI9kZlDeqpen7EYonWi9fIQ2HpI+c900M96Hbu2bFvhuLKII
+aRr4LrECxIFcBXgrGMRhZdIU4UVm8eXPXCXKMQOeMB5M28z3nTPXeRN5E3cyhEIz2weDX4ZqpVQC
+8z2JaiDKDERcJtpqzF4szs3b7TYngLzjQXWGfHoFLHfRdyUGasaONZwpojXN5XASJNIKBNIuRjro
+C9GEejUQ15BEEWyLkfGSypRI8pKCXFqxtsMIQMzKGFF0QnIcMUjkBdsXC7j9R1yS3D+3DUZZXfta
+Ayb0BQaOg7ypMJJTXberuVpzeBFt3VKTViIvhrUF+AvGwOgUPf6ZN27NtxfNn/V5dYazPgScuwqi
+kAG2tzOOemqzyyseo8IFhGGugy0ZVBowoc1WoInK+uEWxqpYH8o9DIgdTxBxAGDJCpdfnBCCQvtl
+EY8iUll71FIFoCSjZUtPkNB419SzazHRiQzhe1CC4GrUIereFTX2R0zDU7a+rpMEugmG+wQF7My+
+A+9SCDOxVbMXkYGIpm1A1ZmZoiYwJnDK7LSXAW4S4IX22KRZVIwqfWOJNSfCcTHiajnha5SF9x3U
+SDqJkGgfbI7B4rDIgGYMhrYFy8vd93mplGJYDvnI8wiujwoGUKrU61tSKM6kHKDLugO3L4C9X0GS
+bb+JwPHaWpcN2wkienoZfhRetWsCj1kya86KYFp5lpcF6KmBdvEh7hFn9R0o1GtE1ICE+ImRi4Q1
+A8O4XTiH/DJKyErQI75KwgTUZcJ0ZnIMkjRw3TrvDFe1t1EUO+EYMeT7w+qVCOIuH1BS6elIEOxh
+COzzUFn83iiq8nEgAhSwOe0gILSGbbNmeqhmhU1FpNRk6sJCbYYQQ0yHDBsHZAlDKoYoGSMIJLkH
+NrtzLkioDAZijFq+peKGX9nQakWJUHDtHsAamjCRAZ/ENEaehqBc5gaa1Ecx7/dTRAfqa6DXMLTR
+LhDFFDEaWUqiJRFEaDfCf6aGlkJIYk3pOqBbBCxWS8UMVGJOjBMYMGiavJqUmhxDbamGFJpvnI9j
+Px6jacjDKVzO7FUJVOwkWAwmHRapM3Uw8bBUcZwXzXyNZrjhKTMGFnbwHJKSZ6sEHdARKrIaEysM
+GbDTUnI9w6mDiM6BjIUbuAFZjzhFZUSxMjdsM/gOjG2y1wqnPLfgeAGFkmMtNveIxOjjWmhcPtiC
+N2ZMGYp0ZjbUajYIiwCxKzB1UUWLF+Z6fXBoWrIPOMj2kZA2A2i/KCHkb7NtDfVW2DlaFFJk6cap
+FsrbrhWWra7LcVF8jAkngahHzlqvdGur2wxlqLcm4gl7CQYGarfJycMVRFiBvMjrzIEqAQNcwGkI
+svWCSnmnsmihCkXYTpGPaFxEGNKkPU4KYys7JyMEujVbdlsIssyfUjIVjDvUKCykyqDUTrRJmwxR
+8aE6DZXyRGA9LbK9nQjTswD0duwkT9nA9vBbwHszNediDn3kA9LFFRWFDwW3hYTWgPaHGQhwQsTD
+aJlXjbh/I8tcWUSzSIBmYHCbm/KSkAyS5GpkSXZlC1ErvOLATBpeuXS+nNveuMTE2t10W+T5Pqx7
+9TRLXEH2JIXfS6YFFHB2uuXnS73VvyxY7y2A4uMyNVymTq0pELp+SCwfR0c7aWAHxLtgB2rm+dJB
+/MXckU4UJB/q3sFA
+
+--Multipart_Wed__27_Nov_2002_13:05:41_+0100_08dd4200--
 
 
 -------------------------------------------------------
