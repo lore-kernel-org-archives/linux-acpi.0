@@ -1,8 +1,8 @@
 From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Entering C3 Processor State without a Bus Arbiter
-Date: Sun, 18 Jan 2004 15:14:22 +0800
+Subject: RE: Compaq Armada E500: tried to fix dsdt; need a little help
+Date: Sun, 18 Jan 2004 15:22:58 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CF2@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <3ACA40606221794F80A5670F0AF15F8401720CF3@PDSMSX403.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -17,15 +17,16 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dino Klein <dinoklein-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Sebastian Kemper <Sebastian.Kemper-S0/GAf8tV78@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+> with the help of a HowTo at Gentoo's forum I was able to fix=20
+> most of the=20
+> errors. But some remain and I would like you to take a look. I would=20
+> really appreciate it if you read the full story in the Gentoo forum,=20
 
-> I'm curios as to why the implementation does not enter C3=20
-> without the presence of a Bus Arbiter; also, how come a comment in the
-> source claims that C3/WBINVD is too expensive?
-
-Promoting too soon to C3 could cause performance issues.
+Could you describe what kind of ASL error that need to be fixed?
+In some cases, some ACPI interpreter bug could be found!
 
 
 -------------------------------------------------------
