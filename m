@@ -1,15 +1,14 @@
 From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Subject: Re: S3/S4 doesn't work, no-one cares, it's a mess Re: ACPI S3 wake
- howto was: RE: [BKPATCH] ACPI for 2.6
-Date: Wed, 31 Mar 2004 14:30:18 +0200
+Subject: Re: Resume from suspend-to-ram (radeon)
+Date: Wed, 31 Mar 2004 14:44:58 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <406AB9DA.7020805@pca.it>
-References: <7105F2BD9451D7479B4B3A99A2B72FAC062C08C7@exchange1.ssd.fsi.com> <20040330233155.463A.COUNT0@localnet.com> <20040331105851.GA11223@pc-math-vis1>
+Message-ID: <406ABD4A.10408@pca.it>
+References: <c15rn0$5bu$2@sea.gmane.org>	<1077519609.12675.63.camel@dhcppc4> <20040223074227.80AE57831D@mail.lmc.cs.sunysb.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040331105851.GA11223-i54C7/sJn21wdIlnA33utQ@public.gmane.org>
+In-Reply-To: <20040223074227.80AE57831D-Yo/1PYb2HdawRS80dfYGFoIJIQD0bWaD@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,7 +17,8 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Giridhar Pemmasani <giri-IxWJ8JVbGpr5NRxSJurNR4dd74u8MsAO@public.gmane.org>
+Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 -----BEGIN PGP SIGNED MESSAGE-----
@@ -26,54 +26,38 @@ Hash: SHA1
 
 Hello,
 
-on 03/31/04 12:58, Micha Feigin wrote:
-> The problem with 2.6 is that the power management (PM) code is only
-> partly implemented. It doesn't exist at all for agp and dri AFAIK it
-> doesn't exist for usb and is partial for the rest of the
-> stuff. Probably months before it will be fixed and if you want to hack
-> into things that is the first place to start in order to try and get
-> things working.
-IMHO this is wrong for different reasons:
+on 02/23/04 08:42, Giridhar Pemmasani wrote:
+> New radeonfb suspend/resume code turns the LCD on but the system hangs
+> during fb resume. With the changes I made, the LCD turns on but the
+> screen remains blank. X with int10 POST restores the screen properly.
+I haven't tried S3/S4 yet, but I suppose the problem will be similar on my ATI
+Radeon 9600 M10 NP laptop. Simple question: in which way X restores the screen?
+I mean, I've seen other posts on other mailing-lists about POST command which
+can be restore LCD after resume, but I don't know how I can do it.. Could
+explain me or provide some docs?
 
-1) the latest AGP and DRI driver for my ATI Radeon Mobility NP M10/9600 works
-   great on my ASUS M6842NWH (Centrino) at least for S1 [1] (I haven't had
-   time to test S3/S4 yet), so this means that there's PM support for some
-   AGP/DRI drivers... BTW, to answer Huw about ATI drivers, I use the
-   *open-source* DRI ones [2] and they work perfect but 3D/OpenGL (which I don't
-   use as I don't have time to play): I can have dual-head (LCD 1400x1050 and
-   CRT 1600x1200), clone mode, Xinerama or MergedFB and DVD full screen...
+Another simple question: is there a documentation about 'radeonfb'? If I compile
+it in the kernel, I've no problem, but as modules I get this error:
+	radeonfb: Unknown symbol fb_find_mode
 
-2) the same new 2.6 'radeonfb' driver has PM implementations, even if it needs
-   more work, as reported in this list ([3] and [4])
-
-3) USB *has* working PM support at least in 2.6.5-rc2 [5] (search for
-   "[PATCH] USB: Enable interrupts in UHCI after PM resume")
-
-4) AFAIK some ALSA driver can suspend/resume [6]
-
-5) I don't know a lot about network driver, but I know of PM implementations [7]
-   on 'e1000' and 'ipw2100' drivers and during my tests, I never remove the
-   'bcm5700' module (and this doens't cause any resuming problem)
+> It turns out that I don't have to remove radeon (drm module),
+> intel_agp and agpgart modules before suspend (and insert during
+> resume). The only subsystems that cause problems are ALSA and USB;
+> once these modules are removed, everything works fine. Apparently OSS
+> sound module i810_audio (for 82801DB audio controller)
+> suspends/resumes properly so now I am using it instead of ALSA.
+One possible solution for 'intel8x0' suspend/resume problem is here
+   http://sourceforge.net/mailarchive/forum.php?thread_id=4107033&forum_id=1752
 
 Thx, bye,
 Gismo / Luca
-
-=====
-References:
-1- http://marc.theaimsgroup.com/?l=acpi4linux&m=107989959514312&w=2
-2- http://dri.sourceforge.net/cgi-bin/moin.cgi/ATIRadeon
-3- http://marc.theaimsgroup.com/?l=acpi4linux&m=107731507729859&w=2
-4- http://marc.theaimsgroup.com/?l=acpi4linux&m=107752252801966&w=2
-5- ftp://ftp.kernel.org/pub/linux/kernel/v2.6/testing/ChangeLog-2.6.5-rc2
-6- http://sourceforge.net/mailarchive/forum.php?thread_id=4107033&forum_id=1752
-7- http://sourceforge.net/mailarchive/forum.php?thread_id=4075032&forum_id=38938
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (GNU/Linux)
 Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
 
-iD8DBQFAarnaVAp7Xm10JmkRAkBYAKCD2c0RMU86Pbnb59YbgKs1zyeafQCbBPM4
-xh2ota1KMneGFg3G4f0XUIE=
-=e0Kd
+iD8DBQFAar1KVAp7Xm10JmkRAuROAJ4mwFi3ZPEAbR52IjVdvjWBdfp1ogCfcNXG
+1HPpWGxh0ElrX7CSxRE7LQ0=
+=mFJl
 -----END PGP SIGNATURE-----
 
 
