@@ -1,11 +1,15 @@
-From: Peter Osterlund <petero2-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org>
-Subject: throttling reset when reading ac_adapter state
-Date: 01 Sep 2002 19:43:46 +0200
+From: Daniel Jacobowitz <dan-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Subject: Re: Phoenix tool to disassemble the dsdt
+Date: Sun, 1 Sep 2002 15:37:45 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <m2bs7h1u7h.fsf@p4.localdomain>
+Message-ID: <20020901193745.GA24534@nevyn.them.org>
+References: <1030879302.1157.9.camel@speedy-gonzales>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1030879302.1157.9.camel-E24s2BKACg1yFPTEfy9P5w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,46 +18,30 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
+To: Heiko =?iso-8859-1?Q?Ettelbr=FCck?= <hbruckynews-hi6Y0CQ0nG0@public.gmane.org>
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-I have a Clevo 5600 laptop computer running 2.4.20-pre5 with the
-acpi-20020829-2.4.20-pre5.diff.gz patch. I can successfully change the
-throttling level using the /proc interface, but reading the ac_adapter
-state resets the throttling value:
+On Sun, Sep 01, 2002 at 01:21:41PM +0200, Heiko Ettelbrück wrote:
+> Hi,
+> 
+> on Intel's ACPI website (in the FAQ section) there is a tool mentioned
+> which is able to disassemble the dsdt: ad.exe from Phoenix (a DOS tool).
+> 
+> Yesterday I tried to get that tool using the appropriate link to
+> Phoenix' website, but the link seems to be broken. Does anyone of you
+> have some information about how to get the tool by now?
+> 
+> According to my understanding of the ACPI FAQ entry at Intel's site, the
+> tool seems to be freely available. Did I get that right? Or has Phoenix
+> altered the license after that FAQ entry had been published?
 
-        best:~# cat /proc/acpi/processor/CPU0/throttling | grep '*'
-           *T0:                  00%
-        best:~# echo 3 >/proc/acpi/processor/CPU0/throttling 
-        best:~# cat /proc/acpi/processor/CPU0/throttling | grep '*'
-           *T3:                  37%
-        best:~# cat /proc/acpi/ac_adapter/ADP0/state 
-        state:                   on-line
-        best:~# cat /proc/acpi/processor/CPU0/throttling | grep '*'
-           *T0:                  00%
-
-I had the same problem with acpi-20020709. Has anyone else seen this?
-How can I find out if this is a bug in the kernel acpi driver or a
-bios bug? When booting, my computer reports:
-
-        PhoenixBIOS 4.0 Release 6.0
-        Copyright...
-        BIOS revision 1.01.06
-        KBC/EC Firmware revision 1.00.14
-
-I can provide an acpi dump/disassembly upon request.
-
-Btw, this is the same problem reported by Charl P. Botha some time
-ago:
-
-        http://sourceforge.net/mailarchive/message.php?msg_id=1914478
-
-He also has a Clevo 5600 computer.
+It just doesn't seem to be available any more.  But recent versions of
+Intel's iasl can disassemble (very well).
 
 -- 
-Peter Osterlund - petero2-zq6IREYz3ykAvxtiuMwx3w@public.gmane.org
-http://w1.894.telia.com/~u89404340
+Daniel Jacobowitz
+MontaVista Software                         Debian GNU/Linux Developer
 
 
 -------------------------------------------------------
