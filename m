@@ -1,13 +1,12 @@
-From: Alberto Piai <albeclemit-whZMOeQn8C0@public.gmane.org>
-Subject: Re: Re: S3 resume on Fujitsu-Siemens Amilo A7620 (CONTINUES)
-Date: Tue, 7 Dec 2004 20:12:07 +0100
-Message-ID: <20041207201207.530feb9d.albeclemit@yahoo.it>
-References: <3ACA40606221794F80A5670F0AF15F84041AC0CA@pdsmsx403>
+From: "Kurtis Mills" <k_mills_pq-3TTx4JiWOo5fmBTHTHKXmQ@public.gmane.org>
+Subject: Order Royal Replica Watches Online
+Date: Tue, 07 Dec 2004 13:24:50 -0600
+Message-ID: <5a8701c4dc92$858b8f33$da5dbb31@ilc.pt>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F84041AC0CA@pdsmsx403>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,48 +16,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: pavel-AlSwsSmVLrQ@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Get the Finest Rolex Watch Replica!
 
-On Tue, 30 Nov 2004 19:39:03 +0800
-"Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+We only sell premium watches. There's no battery in these replicas just
+like the real ones since they charge themselves as you move. The second hand
+moves JUST like the real ones, too. These original watches sell in stores
+for thousands of dollars. We sell them for much less. 
 
-> >Update:
-> >2.6.9, with pushl and popl lines commented out:
-> 
-> http://bugzilla.kernel.org/show_bug.cgi?id=3586
-> 
-> How could pushl	$0 cause reboot in real mode?
-> I guess it is in protect mode.
-> 
-> I suggest you to try the following patch to see if "pushl $0" still
-> cause 
-> reboot.
-> 
-> --- linux-2.6.10-rc2/arch/i386/kernel/acpi/wakeup.S.orig
-> 2004-12-02 
-> 18:18:01.132147992 -0800
-> +++ linux-2.6.10-rc2/arch/i386/kernel/acpi/wakeup.S	2004-12-02 
-> 18:17:34.872140120 -0800
-> @@ -20,6 +20,8 @@
->  	wakeup_code_start = .
->  	.code16
->  
-> +	xor	%eax, %eax
-> +	movl	%eax, %cr0
->   	movw	$0xb800, %ax
->  	movw	%ax,%fs
->  	movw	$0x0e00 + 'L', %fs:(0x10)
+- Replicated to the Smallest Detail
+- 98% Perfectly Accurate Markings 
+- Signature Green Sticker w/ Serial Number on Watch Back
+- Magnified Quickset Date
+- Includes all Proper Markings
 
-Sorry for the late answer, but university has been pressing in the last weeks..
-Luming, this patch doesn't help, reboot occurs as usual :(
-could i post other useful info about the system? maybe the DSDT?
+Visit us: http://www.bhex.com/rep/rolx/
 
-thanks,
-Alberto
+All orders placed before December 12th will be at your door before
+Christmas!
+
+No thanks: http://www.bhex.com/z.php
+
 
 
 -------------------------------------------------------
