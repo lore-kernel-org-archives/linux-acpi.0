@@ -1,75 +1,60 @@
-From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Subject: Re: problem with suspension
-Date: Fri, 18 Feb 2005 14:13:52 +0100
-Message-ID: <873bvu9fjj.fsf@gismo.pca.it>
-References: <web-47803451@infinito.it> <20050218124035.GB1523@elf.ucw.cz>
+From: Norbert Preining <preining@logic.at>
+Subject: Re: [ACPI] Call for help: list of machines with working S3
+Date: Fri, 18 Feb 2005 14:38:16 +0100
+Message-ID: <20050218133816.GA13745@gamma.logic.tuwien.ac.at>
+References: <20050214211105.GA12808@elf.ucw.cz> <200502152038.00401.stefandoesinger@gmx.at> <20050217190815.GC4925@gamma.logic.tuwien.ac.at> <200502172158.56721.stefandoesinger@gmx.at> <20050218104633.GA28246@gamma.logic.tuwien.ac.at>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-="; micalg=pgp-sha1;
- protocol="application/pgp-signature"
-In-reply-to: <20050218124035.GB1523-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: pj.harvey-97W46K3QqA41GQ1Ptb7lUw@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Disposition: inline
+In-Reply-To: <20050218104633.GA28246@gamma.logic.tuwien.ac.at>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stefan =?iso-8859-15?Q?D=F6singer?= <stefandoesinger@gmx.at>
+Cc: acpi-devel@lists.sourceforge.net, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>, Pavel Machek <pavel@suse.cz>, kernel list <linux-kernel@vger.kernel.org>, seife@suse.de, rjw@sisk.pl
 List-Id: linux-acpi@vger.kernel.org
 
+On Fre, 18 Feb 2005, Norbert Preining wrote:
+> I tried:
+> 	2.6.11-rc3-mm2 + Xorg + DRI disabled
+> and this works.
+>=20
+> I cannot enable dri/drm with the cvs version of the drm modules, beca=
+use
+> the drm modules do not compile for -mm kernels, since there is the pa=
+tch
+> for multiple agp bridges included (that's the reason why I tried -rc4
 
---=-=-=
+=46inal observation: After patching in the changes from mm kernels for
+multiple agp bridges to the drm-source code (the patch
+drm-add-support-for-new-multiple-agp-bridge-agpgart-api.patch from the
+broken out archive) I could compile the drm-trunk-src modules.
 
-Hi Pavel!
+So now I am running with 2.6.11-rc3-mm2 + Xorg + DRI enabled (and
+working) with the drm modules from drm-trunk-module-src.
 
-On Fri 18 Feb 2005 13:40, Pavel Machek wrote:
->>    I have a problem with suspension.
-<cut>
->> I have a problem with modules of SCSI controller, aic7xxx.
-<cut>
-> Fix aic7xxx so that it rmmods cleanly as a first step?
+Outcome: freeze when switching to X. As with the other modules (in fact
+I think that most of the changes to the drm stuff are included in the m=
+m
+kernel, so this should not change anything, as mm pulls from bk-agpgart=
+,
+bk-drm-via) a funny screen, and the CapsLock light is blinking.
 
-It's clear that this is something which should be done, but...
+Best wishes
 
-I discussed with Luca about his problem on an Italian LUG mailing-list
-and we found out that there's a preliminary suspend/resume support for
-the aic7xxx [1] [2], the patch for which actually doesn't apply to the
-latest stable 2.6.10. So I suggested him to post on this mailing-list
-hoping that someone could point to a more recent patch (or provide any
-solution other than not loading the module).
+Norbert
 
-But, indeed, there're two problems:
-
-1) removing the aic7xxx is not a clean process
-
-2) the aic7xxx supsend/resume support is in progress
-
-Just my 0.02c.
-
-Thx, bye,
-Gismo / Luca
-
-[1] http://lkml.org/lkml/2004/07/22/210
-[2] http://lkml.org/lkml/2004/12/17/187
-
---=-=-=
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.0 (GNU/Linux)
-
-iD8DBQBCFeoRVAp7Xm10JmkRAmZrAJ9PqkDqOHSdRUDhxKz9uPZI+uP0gACeI75y
-e4nlylbr+3kCorsJ8IBnNYI=
-=XUA6
------END PGP SIGNATURE-----
---=-=-=--
-
-
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+-----------------------------------------------------------------------=
+--------
+Norbert Preining <preining AT logic DOT at>                 Universit=E0=
+ di Siena
+sip:preining@at43.tuwien.ac.at                             +43 (0) 5996=
+6-690018
+gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 0=
+9C5 B094
+-----------------------------------------------------------------------=
+--------
+`That young girl is one of the least benightedly
+unintelligent organic life forms it has been my profound
+lack of pleasure not to be able to avoid meeting.'
+                 --- Marvin's first ever compliment about anybody.
+                 --- Douglas Adams, The Hitchhikers Guide to the Galaxy
