@@ -1,14 +1,14 @@
-From: Nils Faerber <nils-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
-Subject: Re: ACPI patches updated (20030228)
-Date: Tue, 4 Mar 2003 17:35:47 +0100
+From: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
+Subject: Re: Fujitsu P2120 S3 resume - no video, lost PCI config,
+ suggestions?
+Date: Tue, 4 Mar 2003 14:26:55 -0600 (CST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030304173547.7a815082.nils@kernelconcepts.de>
-References: <F760B14C9561B941B89469F59BA3A84725A1BB@orsmsx401.jf.intel.com>
+Message-ID: <Pine.LNX.4.33.0303041422450.1438-100000@localhost.localdomain>
+References: <ebw3cm26i25.fsf_-_@lxplus004.cern.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <F760B14C9561B941B89469F59BA3A84725A1BB-sBd4vmA9Se4Lll3ZsUKC9FDQ4js95KgL@public.gmane.org>
+In-Reply-To: <ebw3cm26i25.fsf_-_-DyOQ+clltETga/7gGEVw4u1GAupnlqi7@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,38 +17,49 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Ole Rohne <ole.rohne-vJEk5272eHo@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 28 Feb 2003 12:53:33 -0800
-"Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> Hi all,
-Hi Andrew!
 
-> The ACPI patches against 2.4 and 2.5 have been updated and are now
-> available from http://sf.net/project/acpi . The non-Linux-specific
-> releases should be available from
-> http://developer.intel.com/technology/iapc/acpi/downloads.htm
-> hopefully by tonight but possibly as late as Monday evening.
+On 4 Mar 2003, Ole Rohne wrote:
+
+> In my quest to make S3 working on this platform, I've found the
+> underlying reason why the display is black after a S3: the vga adapter
+> (ATI Radeon M6 LY) looses its pci configuration and comes back with io
+> and memory disabled, and BASE_ADDRESS_n, LATENCY_TIMER,
+> CACHE_LINE_SIZE, and INTERRUPT_LINE containing garbage. At first I
+> felt let down by the BIOS, but on reading the ACPI spec it seems that
+> it is up to the OS to enumerate and configure devices on "known" buses.
 > 
-> This includes a LOT of fixes for longstanding bugs. If you have had
-> issues in the past with long delays or oopses on reads from the
-> battery interface, hangs on boot, or excessive ACPI interrupts causing
-> system slowness, please try this patch.
+> So far I've tried calling pci_save_state/pci_restore_state from within
+> the radeonfb pci driver suspend/resume routines. Unfortunately, that
+> causes the machine to hang, probably just after PCI_COMMAND has been
+> updated. Alternatively, I've tried rewriting the PCI configuration
+> from userspace (setpci), which doesn't always hang but now the thing
+> claims there is nothing connected when I eg reload radeonfb.
+> 
+> Questions:
+> Is it really the job of the OS to configure PCI devices after a S3 sleep?
 
-And so I did and am sorry to report that I still see high CPU usage and
-delays when trying to read my battery status; machine is Asus L3800C.
+Yes. That's what the suspend()/resume() callbacks are for in the drivers. 
 
-> Regards -- Andy
-CU
-  nils faerber
+> What is the reason for the hanging when I try to restore PCI config?
 
--- 
-kernel concepts          Tel: +49-271-771091-12
-Dreisbachstr. 24         Fax: +49-271-771091-19
-D-57250 Netphen          D1 : +49-170-2729106
---
+I'm not sure. You're definitely writing on something that you shouldn't. 
+What are you passing to pci_{save,restore}_state()? Are you giving it a 
+buffer or not? 
+
+> Is it possible that PCI "enumeration" and configuration needs to be
+> done early, like in real mode or before irqs are enabled?
+
+No. There's no need to do it that early. We should be able to handle most 
+(read: sane) devices with interrupts enabled. If there are devices that 
+need to be quieted with interrupts off, their resume() methods should do 
+so during the first pass (RESUME_POWER_ON).
+
+	-pat
+
 
 
 -------------------------------------------------------
