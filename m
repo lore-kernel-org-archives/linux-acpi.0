@@ -1,15 +1,14 @@
-From: Aaron Gaudio <prothonotar-2LEdZMXKCZJeeLb3ft/vUmD2FQJk+8+b@public.gmane.org>
-Subject: Re: Kernel instability problem
-Date: Tue, 13 Aug 2002 08:18:25 -0400
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [patch] acpi-20020725-2.4.19rc3 and incremental patch
+	 from acpi20020709
+Date: Tue, 13 Aug 2002 11:06:09 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020813081825.A798@tarnation.dyndns.org>
-References: <200208130037.51909.jasonb42lists@attbi.com>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DD83@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-md5;
-	protocol="application/pgp-signature"; boundary="MGYHOYXEY6WxJCY8"
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <200208130037.51909.jasonb42lists-K2GnTyEPumIAvxtiuMwx3w@public.gmane.org>; from jasonb42lists-K2GnTyEPumIAvxtiuMwx3w@public.gmane.org on Tue, Aug 13, 2002 at 12:37:51AM -0400
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,85 +17,124 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: Jason Bowman <jasonb42lists-K2GnTyEPumIAvxtiuMwx3w@public.gmane.org>
-Cc: acpi <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: =?iso-8859-1?Q?=27S=E9rgio_Monteiro_Basto=27?= <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+(Sorry for replying to old threads - just got back from vacation)
 
---MGYHOYXEY6WxJCY8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Fixed (I think):
 
-If you haven't already, try disabling your sound... gaim will (by default)
-play a sound when you receive a message, xine probably tries at least=20
-opening the sound device when it loads, and KDE starts aRts, I believe, whi=
-ch,
-like Gnome's Esound, will open the sound device in order to multiplex deskt=
-op
-sounds. Maybe there's a conflict somewhere brought about by ACPI (did you t=
-urn
-off "Plug 'n Play OS" in the BIOS?).
+agrover  1.24 | #ifdef CONFIG_ACPI_PCI
+agrover  1.24 | 	if (!acpi_pci_irq_init())
+agrover  1.24 | 		pci_using_acpi_prt =3D 1;
+agrover  1.24 | #endif
+agrover  1.24 | 	if (!pci_using_acpi_prt) {
+agrover  1.24 | 		pci_root_bus =3D pcibios_scan_root(0);
+agrover  1.24 | 		pcibios_irq_init();
+agrover  1.24 | 		pcibios_fixup_peer_bridges();
+agrover  1.24 | 		pcibios_fixup_irqs();
+agrover  1.24 | 	}
+patch    1.19 | 	if (clustered_apic_mode && (numnodes > 1)) {
+patch    1.19 | 		for (quad =3D 1; quad < numnodes; ++quad) {
+patch    1.19 | 			printk("Scanning PCI bus %d for quad
+%d\n",=20
+patch    1.19 | 				QUADLOCAL2BUS(quad,0),
+quad);
+patch    1.19 | 			pci_scan_bus(QUADLOCAL2BUS(quad,0),=20
+patch    1.19 | 				pci_root_ops, NULL);
+patch    1.19 | 		}
+patch    1.19 | 	}
+torvalds 1.1  |=20
+torvalds 1.1  | 	pcibios_resource_survey();
 
-And lo, upon Tue, Aug 13, 2002 at 12:37:51AM -0400, Jason Bowman spaketh th=
-usly:
->=20
-> Hello all,
->=20
-> I have an HP zt1190 laptop, reportedly the same as the xt1100 series. I h=
-ave=20
-> found that whenever I use an ACPI kernel (I have tried 2.4.18 w/ 20020611=
-=20
-> 20020726 patches) and run gaim my machine freezes. This also happens with=
-=20
-> xine. Gaim freezes when someone sends me a message, xine at startup. Runn=
-ing=20
-> KDE 3.0.1 the display remains in a frozen state, nothing moves/changes/et=
-c. I=20
-> can't switch to an virtual desktops either.
->=20
-> Anyone have any clues? I would like to investigate why this happens and h=
-elp=20
-> to fix it, however I don't know what to try next. Pointers appreciated.
->=20
-> Thanks,
-> Jason B.
->=20
+Let me know if this won't work.
+
+-- Andy
+
+> -----Original Message-----
+> From: S=E9rgio Monteiro Basto [mailto:sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org]=20
+> Sent: Tuesday, July 30, 2002 8:16 PM
+> To: Grover, Andrew
+> Cc: acpi-devel
+> Subject: RE: [ACPI] [patch] acpi-20020725-2.4.19rc3 and=20
+> incremental patch from acpi20020709
 >=20
 >=20
-> -------------------------------------------------------
-> This sf.net email is sponsored by: Dice - The leading online job board
-> for high-tech professionals. Search and apply for tech jobs today!
-> http://seeker.dice.com/seeker.epl?rel_code1
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-
---=20
-
-Aaron Gaudio                           prothontar @ tarnation.dyndns.org
-                   http://tarnation.dyndns.org/~aaron
-                            ----------------
-  "From fullness, aspect. From aspect, being. From being, emptiness."
-
---MGYHOYXEY6WxJCY8
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.0.6 (GNU/Linux)
-Comment: For info see http://www.gnupg.org
-
-iEYEARECAAYFAj1Y+REACgkQwXDG7ZQN91fnrACfZOIT1RJyO0MqmIvavb524qbm
-lpIAoIJsNstqDz0zBKkMUfyxRf89l4zK
-=4582
------END PGP SIGNATURE-----
-
---MGYHOYXEY6WxJCY8--
+> On Mon, 2002-07-29 at 14:33, Grover, Andrew wrote:
+> =20
+> > Once 2.4.19 is out, and assuming there aren't
+> > any big regressions, I will submit it to Marcelo for=20
+> 2.4.20. It's a huge
+> > patch. It's been nine months since the last 2.4 ACPI update.
+> >=20
+> > Regards -- Andy
+> >=20
+> Ok=20
+>=20
+> I would like that you or someone that understand the of meter
+> see the file linux-2.4.19/arch/i386/kernel/pci-pc.c
+>=20
+> is now like this:
+>=20
+> #ifdef CONFIG_ACPI_PCI
+>     if (acpi_pci_irq_init() > 0)
+>         pci_using_acpi_prt =3D 1;
+> #endif
+>=20
+>     printk(KERN_INFO "PCI: Probing PCI hardware\n");
+>     if (!pci_using_acpi_prt) {
+>         pci_root_bus =3D pci_scan_bus(0, pci_root_ops, NULL);
+>     }
+>=20
+>     if (clustered_apic_mode && (numnodes > 1)) {
+>         for (quad =3D 1; quad < numnodes; ++quad) {
+>             printk("Scanning PCI bus %d for quad %d\n",
+>                 QUADLOCAL2BUS(quad,0), quad);
+>             pci_scan_bus(QUADLOCAL2BUS(quad,0),
+>                 pci_root_ops, NULL);
+>         }
+>     }
+>=20
+>     if (!pci_using_acpi_prt) {
+>         pcibios_irq_init();
+>         pcibios_fixup_peer_bridges();
+>         pcibios_fixup_irqs();
+>     }
+>=20
+>=20
+> but I don't  know if should be:
+>=20
+> #ifdef CONFIG_ACPI_PCI
+>     if (acpi_pci_irq_init() > 0)
+>         pci_using_acpi_prt =3D 1;
+> #endif
+>=20
+>     printk(KERN_INFO "PCI: Probing PCI hardware\n");
+>     if (!pci_using_acpi_prt) {
+>         pci_root_bus =3D pci_scan_bus(0, pci_root_ops, NULL);
+>=20
+>=20
+>     if (clustered_apic_mode && (numnodes > 1)) {
+>         for (quad =3D 1; quad < numnodes; ++quad) {
+>             printk("Scanning PCI bus %d for quad %d\n",
+>                 QUADLOCAL2BUS(quad,0), quad);
+>             pci_scan_bus(QUADLOCAL2BUS(quad,0),
+>                 pci_root_ops, NULL);
+>         }
+>     }
+>=20
+>         pcibios_irq_init();
+>         pcibios_fixup_peer_bridges();
+>         pcibios_fixup_irqs();
+>     }
+>    =20
+> At least in this case I have no idea.=20
+> S=E9rgiomb
+>=20
 
 
 -------------------------------------------------------
 This sf.net email is sponsored by: Dice - The leading online job board
 for high-tech professionals. Search and apply for tech jobs today!
-http://seeker.dice.com/seeker.epl?rel_code=3D31
+http://seeker.dice.com/seeker.epl?rel_code=31
