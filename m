@@ -1,11 +1,12 @@
-From: =?iso-8859-1?q?Gustavo=20Sverzut=20Barbieri?= <gsbarbieri-/E1597aS9LRfJ/NunPodnw@public.gmane.org>
-Subject: Newbie questions
-Date: Sat, 3 Aug 2002 01:10:40 -0300 (ART)
+From: "./SuperbepS" <superbeps-ceJDNWc+7SM@public.gmane.org>
+Subject: wrong battery info
+Date: Sat, 3 Aug 2002 10:48:23 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020803041040.10310.qmail@web20904.mail.yahoo.com>
+Message-ID: <200208031048.29073.superbeps@linux.nu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -18,41 +19,40 @@ List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-I'm a newbie to ACPI (just bought a
-desknote(www.desknote.biz) laptop that ships w/ that).
-I'm trying to use ACPI withou success. The kernel
-2.5.{29,30} don't even compile (error with: save_flags
-and restore_flags, listed below).
+I just upgraded mi kernel (2.4.18) with the latest acpi patch (20020725).=
+ This=20
+version lets me to read /proc/acpi/battery/BAT1/info without blocking the=
+=20
+keyboard, but introduces a new problem: the informations about battery=20
+capacity are wrong. This version tells me that my battery has:
+design capacity:         5 mWh
+last full capacity:      5 mWh
+The older versions and the state (when the battery is fully charged) file=
+ tell=20
+me that my battery has:
+design capacity:=0944400 mWh
+last full capacity:=0944400 mWh
 
-I'm using red hat 2.4.18-3 recompiled right now, that
-looks too old (I tried 2.5.24 before, the /proc/acpi
-subsys gives more info)
+- --=20
+Ciao ???
+___________________________________________________________
+Riker: "I say we turn him over to them."
+Q: "Oh, well, I take it back. You do have a sense of humor, a dreadful on=
+e at
+that."
+Riker: "I'm serious."
+- -- "Deja Q", Stardate 43539.1
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.7 (GNU/Linux)
 
-I got acpid, but I got nothing more than mapping the
-buttons (power and lid) to run what I desire. I wanna
-know how I put it to sleep (suspend, and how to come
-back)
+iD8DBQE9S5jc62upIGwAieoRAiHlAKC0bwYPbHjZw+CS+n33kTgFhM76HACfYbQm
+vduqxq1muxOxPofbIfnCi8U=3D
+=3DDHcz
+-----END PGP SIGNATURE-----
 
-Best regards.
-
-Gustavo
-
---------------
-make bzImage errors:
-
-drivers/built-in.o: In function `acpi_system_suspend':
-drivers/built-in.o(.text+0x3220e): undefined reference
-to `save_flags'
-drivers/built-in.o(.text+0x3223b): undefined reference
-to `restore_flags'
-
-
-_______________________________________________________________________
-Yahoo! PageBuilder
-O super editor para criação de sites: é grátis, fácil e rápido.
-http://br.geocities.yahoo.com/v/pb.html
 
 
 -------------------------------------------------------
