@@ -1,44 +1,43 @@
-From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: SuSE AMD x86-64 bits installation issue
-Date: Fri, 7 Nov 2003 20:12:39 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031107191239.GA3761@nielsen.suse.de>
-References: <6A7AB4426712514F9E2AB28C407285FA04EBB91B@exchtp02.taipei.via.com.tw> <1068202635.2682.972.camel@dhcppc4> <20031107111339.GA4877@wotan.suse.de> <1068231709.2684.982.camel@dhcppc4>
+From: Sylvain Jeaugey <sylvain.jeaugey-6ktuUTfB/bM@public.gmane.org>
+Subject: Re: [DMESG] cpumask_t in action
+Date: Fri, 7 Nov 2003 09:13:11 +0100 (CET)
+Sender: linux-ia64-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <Pine.LNX.4.44.0311070907020.29453-100000@localhost.localdomain>
+References: <20031106165159.GE26869@parcelfarce.linux.theplanet.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1068231709.2684.982.camel-D2Zvc0uNKG8@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>, HurryLin-6hSdJfI2Hxp9nmWX13WWKA@public.gmane.org, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, DreamKu-6hSdJfI2Hxp9nmWX13WWKA@public.gmane.org, StephenChen-6hSdJfI2Hxp9nmWX13WWKA@public.gmane.org, PearHuang-6hSdJfI2Hxp9nmWX13WWKA@public.gmane.org, NormanChung-6hSdJfI2Hxp9nmWX13WWKA@public.gmane.org, KenCho-6hSdJfI2Hxp9nmWX13WWKA@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-ia64-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20031106165159.GE26869-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>
+To: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Nov 07, 2003 at 02:01:49PM -0500, Brown, Len wrote:
-> On Fri, 2003-11-07 at 06:13, Andi Kleen wrote:
+On Thu, 6 Nov 2003, Matthew Wilcox wrote:
+
+> > ACPI: SRAT Processor (id[0x00] eid[0x00]) in proximity domain 0 enabled
+> > ACPI: SRAT Processor (id[0x20] eid[0x00]) in proximity domain 0 enabled
+[...]
+> > ACPI: SRAT Processor (id[0x00] eid[0x5e]) in proximity domain 47 enabled
+> > ACPI: SRAT Processor (id[0x20] eid[0x5e]) in proximity domain 47 enabled
 > 
-> > The symptom is when IO-APIC is enabled the system does not boot and 
-> > hangs early in some device driver like IDE. With IO-APIC disabled you obviously
-> > get a very different /proc/interrupts.
+> ... for example ;-)  96 lines which honestly tell me nothing.
 > 
-> Ok, then the bug report needs to include the console output captured via
-> serial console.
+> > ACPI: SRAT Memory (0x0000003000000000 length 0x0000001000000000 type 0x1) in proximity domain 0 enabled
+> > ACPI: SRAT Memory (0x000000b000000000 length 0x0000001000000000 type 0x1) in proximity domain 1 enabled
+> [ snip 44 lines ]
+> > ACPI: SRAT Memory (0x0000173000000000 length 0x0000001000000000 type 0x1) in proximity domain 46 enabled
+> > ACPI: SRAT Memory (0x000017b000000000 length 0x0000001000000000 type 0x1) in proximity domain 47 enabled
+> 
+> ... and again.
+> 
+These lines show you the numa topology of your machine (in our case, we 
+have 2 CPUS per domain, and a memory area).
+This is quite a big piece of information about hardware. Even if it is 
+quite long, I think it should be part of the ACPI information.
 
-That was all in the original report, which was perfect readable in mutt 
-BTW.
+Sylvain
 
--Andi
-
-
--------------------------------------------------------
-This SF.Net email sponsored by: ApacheCon 2003,
-16-19 November in Las Vegas. Learn firsthand the latest
-developments in Apache, PHP, Perl, XML, Java, MySQL,
-WebDAV, and more! http://www.apachecon.com/
+-
+To unsubscribe from this list: send the line "unsubscribe linux-ia64" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
