@@ -1,43 +1,48 @@
-From: Adrian Bunk <bunk-cg1h10c7RbKzQB+pC5nmwQ@public.gmane.org>
-Subject: [2.4 patch] add three ACPI Configure.help entries
-Date: Sat, 21 Jun 2003 02:05:50 +0200
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20030621000550.GP29247@fs.tum.de>
+From: iain d broadfoot <ibroadfo-jbDEWmSD8rMwZN84zEGlPg@public.gmane.org>
+Subject: 20030619 broken, or is it me?
+Date: Sat, 21 Jun 2003 04:26:59 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20030621032659.GA923@iain-vaio-fx405>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-To: Marcelo Tosatti <marcelo-KCZ47A4bww4P48s/oLjRZg@public.gmane.org>, andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, trivial-8n+1lVoiYb80n/F98K4Iww@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-The patch below adds Configure.help entries for three ACPI options added 
-in 2.4.22-pre1 (help texts stolen from 2.5).
+latest acpi seems to not want any of the suboptions to be live (AC,
+button, etc, etc), i get no boot msgs about acpi at all, and no
+/proc/acpi exists.
 
-Please apply
-Adrian
+i'm not sure if my laptop would have died or not from the heat, i didn't
+want to take the chance. :D
+
+20030522 works fine for me - using a clean 2.4.21 tree for both, except
+the .config - and the only diff there is the CONFIG_ACPI_* stuff.
+(i copied the working file into the new tree, and did 'make oldconfig')
+
+flames welcome.
+
+iain
 
 
---- linux-2.4.22-pre1-full/Documentation/Configure.help.old	2003-06-21 01:51:34.000000000 +0200
-+++ linux-2.4.22-pre1-full/Documentation/Configure.help	2003-06-21 02:00:54.000000000 +0200
-@@ -18691,6 +18691,20 @@
-   down the system.  Until then, you can cat it, and see output when
-   a button is pressed.
- 
-+CONFIG_ACPI_BATTERY
-+  This driver adds support for battery information through
-+  /proc/acpi/battery. If you have a mobile system with a battery, 
-+  say Y.
-+
-+CONFIG_ACPI_FAN
-+  This driver adds support for ACPI fan devices, allowing user-mode 
-+  applications to perform basic fan control (on, off, status).
-+
-+CONFIG_ACPI_PROCESSOR
-+  This driver installs ACPI as the idle handler for Linux, and uses
-+  ACPI C2 and C3 processor states to save power, on systems that
-+  support it.
-+
- ACPI AC Adapter
- CONFIG_ACPI_AC
-   This driver adds support for the AC Adapter object, which indicates
+-- 
+wh33, y1p33 3tc.
+
+"If sharing a thing in no way diminishes it, it is not rightly owned if it is
+not shared." -St. Augustine
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: INetU
+Attention Web Developers & Consultants: Become An INetU Hosting Partner.
+Refer Dedicated Servers. We Manage Them. You Get 10% Monthly Commission!
+INetU Dedicated Managed Hosting http://www.inetu.net/partner/index.php
