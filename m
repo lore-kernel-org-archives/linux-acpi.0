@@ -1,14 +1,11 @@
-From: <jak97-CezfXpuMXD6Fxr2TtlUqVg@public.gmane.org>
-Subject: Re: ACPI S3 resume only reboots
-Date: Sun, 10 Oct 2004 11:56:35 +0100
+From: Milan Jurik <M.Jurik-3zVPrsR01WjrBKCeMvbIDA@public.gmane.org>
+Subject: IBM TP R40e ACPI known problems
+Date: Sun, 10 Oct 2004 15:23:27 +0200 (CEST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20041010105635.GA3362@doc.ic.ac.uk>
-References: <20041004133340.76ba05ba.albeclemit@yahoo.it> <20041009130628.GA21781@elf.ucw.cz>
+Message-ID: <Pine.LNX.4.58.0410101403500.30644@bobek.sh.cvut.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20041009130628.GA21781-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,42 +14,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Alberto <albeclemit-whZMOeQn8C0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Oct 09, 2004 at 03:06:28PM +0200, Pavel Machek wrote:
-> > How could i try to debug this to give you more info?
-> 
-> You basically need to fix this yourself. Add infinite loops to
-> wakeup.S to see where it breaks.
-> 								Pavel
+Hi,
 
-I have a similar problem. I did try adding infinite loops into wakeup.S,
-right at the start, but the machine rebooted nevertheless. I suspect
-that my infinite loop was never executed and that the problem was that
-the computer didn't jump to the wake-up address on resume. Please do
-have a go yourself and see if you can narrow things down at all.
+  here is a short known list:
 
-Here is my lspci, if it helps:
+  Hanging with ACPI processor module (C-state switching failure)
+   - Kernel bugzilla 3219
 
-00:00.0 Host bridge: VIA Technologies, Inc. VT8377 [KT400 AGP] Host Bridge
-00:01.0 PCI bridge: VIA Technologies, Inc. VT8235 PCI Bridge
-00:08.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
-00:0c.0 Multimedia audio controller: C-Media Electronics Inc CM8738 (rev 10)
-00:0f.0 Ethernet controller: Broadcom Corporation NetXtreme BCM5702 Gigabit Ethernet (rev 02)
-00:11.0 ISA bridge: VIA Technologies, Inc. VT8235 ISA Bridge
-00:11.1 IDE interface: VIA Technologies, Inc. VT82C586A/B/VT82C686/A/B/VT8233/A/C/VT8235 PIPC Bus Master IDE (rev 06)
-01:00.0 VGA compatible controller: ATI Technologies Inc Radeon R250 If [Radeon 9000] (rev 01)
-01:00.1 Display controller: ATI Technologies Inc Radeon R250 [Radeon 9000] (Secondary) (rev 01)
+  Not wake up from S3 state
+   - maybe similar to Kernel bugzilla 3354
 
-If anybody has had any success with the KT400 chipset, please can you
-post your lspci as well, so that we can try and spot the hardware
-differences if any.
+  Inacessible Fn+Fx keys and extra volume keys (after ACPI modules
+loading), no reaction. Neither Deianov's ibm_acpi nor Rigtorp's
+thinkpad_acpi helps.
 
-Thanks
+  All these I know, all were reported (several times, not by me).
+  I made a small webpage where all possible outputs are (acpidmp,
+dmidecode etc.), it can help somebody.
 
-John
+  http://atari.sh.cvut.cz/acpi/links.html
+
+  I haven't enough knowledge for ACPI hacking. But my TP is ready for all
+possible patches if some ACPI developer would like to help. If any other
+outputs or tests are needed, let me ask.
+ Best regards,
+
+        Milan Jurik
+
+P.S.: It looks that also lid button doesn't generate event (but state is
+changed on appropriate place - /proc/acpi/button/lid/LID/state). Can
+somebody confirm it?
 
 
 -------------------------------------------------------
