@@ -1,11 +1,14 @@
-From: ole.rohne-vJEk5272eHo@public.gmane.org
-Subject: Trackpoint (psmouse) dead after suspend/resume (S3)
-Date: 20 Jul 2004 00:43:14 +0200
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: Video toggle button hang, Fn+F4 on Compaq Evo N1005v.
+Date: Tue, 20 Jul 2004 00:46:21 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <yzollhfbou5.fsf@localhost.localdomain>
+Message-ID: <20040719224621.GA28005@hell.org.pl>
+References: <20040719212601.6F79416402D@ws1-4.us4.outblaze.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20040719212601.6F79416402D-VzkBhrhXTFqvA6A9f8tRrlozv+8wp+n8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -14,23 +17,21 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: vojtech-+ZI9xUNit7I@public.gmane.org
+To: Christer Backstrom <cbackstrom-TTD55EFobGVBDgjK7y7TUQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 2.6.7, the suspend/resume cycle kills the trackpoint on my Fujitsu
-P2120. This definitely worked before, but I can't figure out what the
-critical change is. Here is the approximate history:
+Thus wrote Christer Backstrom:
+> Well I'll be d... It works! Thank you so very much. Should I be worried
+> about not having the local APIC working?
 
-2.5.xx: keyboard and trackpoint dead, reloading psaux module fixes both
-2.6.4: both devices work, no reloading necessary
-2.6.7: keyboard works, trackpoint dead, reloading psmouse doesn't help
+Provided your IRQ config is not messed up and all your devices are working,
+not really.
+Glad to be of help,
 
-I've poked around a bit and it seems that all writes to the AUX-port
-times out, this causes the psmouse to disconnect.
-
-Any suggestions appreciated, Ole
-
+-- 
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
