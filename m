@@ -1,10 +1,12 @@
-From: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Subject: [PATCH] Fix help for ACPI_CONTAINER
-Date: Wed, 16 Feb 2005 20:06:52 +0900
-Message-ID: <20050216200652.2b46a2ce.tokunaga.keiich@jp.fujitsu.com>
+From: Tim Dijkstra <tim-TpnWJeB+oO0hKRfeEwdQzg@public.gmane.org>
+Subject: Re: Call for help: list of machines with working S3
+Date: Wed, 16 Feb 2005 14:29:16 +0100
+Message-ID: <20050216142916.0f48c36f@orfeo.nikhef.nl>
+References: <20050214211105.GA12808@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <20050214211105.GA12808-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -14,45 +16,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>
-Cc: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>, Anil Keshavamurthy <anil.s.keshavamurthy-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-  This is to fix Kconfig help of ACPI_CONTAINER that did
-not really help.  I posted the patch before, but it seems
-that it has not applied yet.  Sorry for the previous terrible
-help.
-
-Thanks,
-Keiichiro Tokunaga
+On Mon, 14 Feb 2005 22:11:05 +0100
+Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org> wrote:
 
 
-Signed-off-by: Keiichiro Tokunaga <tokunaga.keiich-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
----
+> 
+> Model                           hack (or "how to do it")
+> ---------------------------------------------------------------------
+Acer TravelMate 636Lci		acpi_sleep=s3_bios vga=normal
 
- linux-2.6.11-rc4-kei/drivers/acpi/Kconfig |    9 +++++++--
- 1 files changed, 7 insertions(+), 2 deletions(-)
+This is with vanilla 2.6.10 kernel. I had some problems before but now
+it seems to work with a full system. This means, X (with ali-agp and nv
+driver, haven't tried anything else), wlan-pccard, usb, etc. The only
+thing that I've found that will hang resume is the ieee1394 subsystem.
 
-diff -puN drivers/acpi/Kconfig~fix_help drivers/acpi/Kconfig
---- linux-2.6.11-rc4/drivers/acpi/Kconfig~fix_help	2005-02-16 19:54:48.000000000 +0900
-+++ linux-2.6.11-rc4-kei/drivers/acpi/Kconfig	2005-02-16 19:55:40.000000000 +0900
-@@ -339,7 +339,12 @@ config ACPI_CONTAINER
- 	depends on ACPI && EXPERIMENTAL
- 	default (ACPI_HOTPLUG_MEMORY || ACPI_HOTPLUG_CPU || ACPI_HOTPLUG_IO)
- 	 ---help---
--	 	This is the ACPI generic container driver which supports
--		ACPI0004, PNP0A05 and PNP0A06 devices
-+	  This allows _physical_ insertion and removal of CPUs and memory.
-+	  This can be useful, for example, on NUMA machines that support
-+	  ACPI based physical hotplug of nodes, or non-NUMA machines that
-+	  support physical cpu/memory hot-plug.
-+
-+	  If one selects "m", this driver can be loaded with
-+	  "modprobe acpi_container".
- 
- endmenu
+If I choose anything else than vga=normal, the screen will go back to
+vga=normal resolution on resume without linux noticing: a big
+unusable mess as a result.
 
-_
+Finally it works!
+
+grts Tim
 
 
 -------------------------------------------------------
