@@ -1,12 +1,14 @@
-From: G E Scott Knauss <scott-2UAVKnXlLSjQT0dZR+AlfA@public.gmane.org>
-Subject: error transitioning device
-Date: Wed, 24 Mar 2004 12:35:25 +0100
+From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+Subject: Re: pci bridge suspend/resume (Re: PCI not restored correctly after suspend to ram)
+Date: Wed, 24 Mar 2004 13:26:32 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1080128125.2270.29.camel@eva.ecr.navy.mil>
+Message-ID: <20040324132632.GI25059@parcelfarce.linux.theplanet.co.uk>
+References: <200403180935.09436.stefan.doesinger@gym-leoben.asn-graz.ac.at> <1079761564.7274.730.camel@dhcppc4> <405C00C6.3010805@pobox.com> <20040320134542.GV25059@parcelfarce.linux.theplanet.co.uk> <20040320181000.GA8272@kroah.com> <20040322223425.GB3213@neo.rr.com> <20040324013557.GB21477@kroah.com> <20040324090746.A13095@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20040324090746.A13095-f404yB8NqCZvn6HldHNs0ANdhmdF6hFW@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,25 +17,33 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Russell King <rmk-pci-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Cc: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, stefan.doesinger-dYJrdcitkgg0+Ua9VpOLR6Q1ief8SNuKXqFh9Ls21Oc@public.gmane.org, "linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org" <linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hmm,
-	Probably should have mentioned that I'm using 2.6.4
- with the latest patch from the kernel archives.
+On Wed, Mar 24, 2004 at 09:07:47AM +0000, Russell King wrote:
+> The match function would, for instance, return a lower value for a
+> device driver matching only the class IDs, a higher ID for a device
+> driver matching only the vendor ID, vendor ID + device ID, and the
+> highest value for vendor ID + device ID + class ID.
 
-		Sorry. 
+The details seem a little silly.  If I know the vendor + device IDs, that
+implies the class ID.  I'd say:
 
+1	Class ID
+2	Vendor + Device
+3	Vendor, Device, subsystem_vendor, subsystem_device
 
- 
-Scott Knauss
-www.scott.knauss.com
-scott-2UAVKnXlLSjQT0dZR+AlfA@public.gmane.org
-ECRNOC Naples, Italy
-DSN 314-626-4678
-COM 39-081-568-4678
+That allows for a driver to take over a sym chip that's really part
+of a raid device, for example.
 
-
+-- 
+"Next the statesmen will invent cheap lies, putting the blame upon 
+the nation that is attacked, and every man will be glad of those
+conscience-soothing falsities, and will diligently study them, and refuse
+to examine any refutations of them; and thus he will by and by convince 
+himself that the war is just, and will thank God for the better sleep 
+he enjoys after this process of grotesque self-deception." -- Mark Twain
 
 
 -------------------------------------------------------
