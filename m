@@ -1,11 +1,13 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Fix acpi video extensions documentation
-Date: Sat, 25 Dec 2004 22:03:30 +0100
-Message-ID: <20041225210330.GA20084@elf.ucw.cz>
+Subject: Re: 2.6.10-rc3 /proc/acpi/alarm does not wakeup from S3, videomode lost
+Date: Sat, 25 Dec 2004 22:07:04 +0100
+Message-ID: <20041225210704.GA20109@elf.ucw.cz>
+References: <200412212059.43909.mhf@berlios.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <200412212059.43909.mhf-tdrK/OAtAx2ELgA04lAiVw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,51 +17,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Michael Frank <mhf-tdrK/OAtAx2ELgA04lAiVw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-Well... this fixes it a bit, killing few typos. A lot better docs is
-needed, but lets start small. Please apply,
-								Pavel
+> Tried this on several machines:
+> 
+> # date -d +${x}seconds '+%Y-%m-%d %H:%M:%S' > /proc/acpi/alarm
+> # echo "3" > /proc/acpi/sleep
+> 
+> 3 <= x <= 100 seconds.
+> 
+> Sleeps alright but alarm is ignored, power switch wakes up. /proc/acpi/alarm 
+> readback correct. 
+> 
+> When machine awoken by button, textmode console videomode (80x60) is lost 
+> seems to be 80x25 and cursor gone and scroll messed up.
 
---- clean/Documentation/power/video_extension.txt	2004-12-25 13:34:57.000000000 +0100
-+++ linux/Documentation/power/video_extension.txt	2004-12-25 22:02:11.000000000 +0100
-@@ -1,13 +1,16 @@
--This driver implement the ACPI Extensions For Display Adapters
--for integrated graphics devices on motherboard, as specified in
--ACPI 2.0 Specification, Appendix B, allowing to perform some basic
--control like defining the video POST device, retrieving EDID information
--or to setup a video output, etc.  Note that this is an ref. implementation only.
--It may or may not work for your integrated video device.
-+ACPI video extensions
-+~~~~~~~~~~~~~~~~~~~~~
-+
-+This driver implement the ACPI Extensions For Display Adapters for
-+integrated graphics devices on motherboard, as specified in ACPI 2.0
-+Specification, Appendix B, allowing to perform some basic control like
-+defining the video POST device, retrieving EDID information or to
-+setup a video output, etc.  Note that this is an ref. implementation
-+only.  It may or may not work for your integrated video device.
- 
- Interfaces exposed to userland through /proc/acpi/video:
- 
--VGA/info : display the supported video bus device capability like ,Video ROM, CRT/LCD/TV.
-+VGA/info : display the supported video bus device capability like Video ROM, CRT/LCD/TV.
- VGA/ROM :  Used to get a copy of the display devices' ROM data (up to 4k).
- VGA/POST_info : Used to determine what options are implemented.
- VGA/POST : Used to get/set POST device.
-@@ -15,7 +18,7 @@
- 	Please refer ACPI spec B.4.1 _DOS
- VGA/CRT : CRT output
- VGA/LCD : LCD output
--VGA/TV : TV output 
-+VGA/TVO : TV output 
- VGA/*/brightness : Used to get/set brightness of output device
- 
- Notify event through /proc/acpi/event:
- 
+Have you tright various options from Documentation/power/video.txt?
+
+Or try just loading new fonts with setfont.
+
+> Sometimes "evevent-0286: *** Error: No installed handler for fixed event 
+> [00000004]" was observed on wakeup from _2nd_ S3.
+> 
+> How to make the alarm function work?
+
+No idea, it never worked for me.
+								Pavel
 -- 
 People were complaining that M$ turns users into beta-testers...
 ...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
