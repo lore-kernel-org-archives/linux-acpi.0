@@ -1,36 +1,59 @@
-From: Adam Sulmicki <adam@cfar.umd.edu>
-Subject: Re: [RFC] Reliable video POSTing on resume
-Date: Mon, 7 Feb 2005 13:04:22 -0500 (EST)
-Message-ID: <Pine.BSF.4.62.0502071259500.26868@www.missl.cs.umd.edu>
-References: <e796392205020221387d4d8562@mail.gmail.com>  <420217DB.709@gmx.net>
- <4202A972.1070003@gmx.net>  <20050203225410.GB1110@elf.ucw.cz>
- <1107474198.5727.9.camel@desktop.cunninghams> <4202DF7B.2000506@gmx.net>
- <1107485504.5727.35.camel@desktop.cunninghams>  <9e4733910502032318460f2c0c@mail.gmail.com>
-  <20050204074454.GB1086@elf.ucw.cz>  <9e473391050204093837bc50d3@mail.gmail.com>
-  <20050205093550.GC1158@elf.ucw.cz> <1107695583.14847.167.camel@localhost.localdomain>
- <Pine.BSF.4.62.0502062107000.26868@www.missl.cs.umd.edu> <42077AC4.5030103@grupopie.com>
- <42077CFD.7030607@gmx.net>
+From: Nicolas Collignon <tsointsoin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: BIOS / acpi correlation
+Date: Mon, 7 Feb 2005 20:05:27 +0100
+Message-ID: <aaf57110502071105697f0780@mail.gmail.com>
+Reply-To: Nicolas Collignon <tsointsoin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-In-Reply-To: <42077CFD.7030607@gmx.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@gmx.net>
-Cc: Paulo Marques <pmarques@grupopie.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Pavel Machek <pavel@ucw.cz>, Jon Smirl <jonsmirl@gmail.com>, ncunningham@linuxmail.org, ACPI List <acpi-devel@lists.sourceforge.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Li-Ta Lo <ollie@lanl.gov>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 7 Feb 2005, Carl-Daniel Hailfinger wrote:
+hi,
 
-> And how many competing implementations of video helpers/emulation code
-> do we have now?
->
-> - scitechsoft emu
-> - linuxbios emu
-> - etc. (I surely forgot some)
+Is there any correlation between bios exposed I/O memory ranges and
+the SMI commands  used in DSDT code ?
+i.e: i can control or display information using :
+ "out %al, $0xb2"
+ "out %al, $0x84"
 
-just a minor nit-pick. "linuxbios" is not an "emulator" but drop-in 
-replacement for commerical bios (on motherboards that are supported).
+In my DSDT, the code do SMI command like:
+ "Store(arg1, \_SB.SMIA)"
+ "Store(arg0, \_SB.SMIC)"
+ "Store(\_SB.SMIC, Local0)"
 
- 	http://www.linuxbios.org/
+SMIxx fields (\_SB scope)
+ "OperationRegion(SMIR, SystemIO, 0xb2, 0x02) { Field(SMIR, ByteAcc,
+NoLock ,Preserve) {"
+ "  SMIC, 8"
+ "  SMID, 8"
+ "}"
+and SMIA @ port 0x86.
 
-I belive Paulo Marques and Li-Ta Lo expands linuxbios with the emulator to 
-run the VIDEOBIOS contained in it, but, it just an add on.
+But i can't find any correlation between the BIOS %eax parameter and
+the SMI commands.
+Shoudln't they share the same entry point ?
+In my case, i can control multiple thermal zone + fan using bios, but
+not using ACPI.
+
+I hope my question is clear enough :)
+
+bye
+
+--- nicolas
+
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
