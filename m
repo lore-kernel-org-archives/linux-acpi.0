@@ -1,11 +1,10 @@
-From: ServerSupport-T1XNNP1PEz+zQB+pC5nmwQ@public.gmane.org
-Subject: Virus Alert
-Date: Fri, 30 Jan 2004 06:24:04 +0100
+From: deti-Wi7PzZIGgn2zQB+pC5nmwQ@public.gmane.org
+Subject: (no subject)
+Date: Fri, 30 Jan 2004 10:41:36 +0530
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <OF03B4BEC5.BA9609B6-ONC1256E2B.001FAFD6@nec.de>
+Message-ID: <E1AmptR-0007by-00@deer.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; 	boundary="----=_NextPart_000_0011_17E14DB0.1ACEC323"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,7 +17,40 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-The mail message (file: doc.zip) you sent to microinfo-T1XNNP1PEz+zQB+pC5nmwQ@public.gmane.org contains a virus. (on du2mail0)
+This is a multi-part message in MIME format.
+
+
+------=_NextPart_000_0011_17E14DB0.1ACEC323
+Content-Type: text/plain; 	charset="Windows-1252"
+Content-Transfer-Encoding: 7bit
+
+
+
+
+
+
+------=_NextPart_000_0011_17E14DB0.1ACEC323
+Content-Type: text/plain;
+	name="InterScan_SafeStamp.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="InterScan_SafeStamp.txt"
+
+****** Message from InterScan E-Mail VirusWall NT ******
+
+** WARNING! Attached file readme.zip contains:
+
+     WORM_MIMAIL.R virus in compressed file readme.pif
+
+   Attempted to clean the file but it is not cleanable.
+   It has been deleted.
+
+This mail contains virus
+*****************     End of message     ***************
+
+
+------=_NextPart_000_0011_17E14DB0.1ACEC323--
+
 
 
 -------------------------------------------------------
