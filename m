@@ -1,13 +1,13 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
 Subject: Re: network card buzzing
-Date: Fri, 10 Dec 2004 20:46:42 +0100
-Message-ID: <20041210194641.GA26799@hell.org.pl>
-References: <41B86243.7090507@mega.ist.utl.pt> <20041209171138.GA3105@openzaurus.ucw.cz>
+Date: Fri, 10 Dec 2004 22:25:33 +0100
+Message-ID: <20041210212532.GA1066@elf.ucw.cz>
+References: <41B86243.7090507@mega.ist.utl.pt> <20041209171138.GA3105@openzaurus.ucw.cz> <20041210194641.GA26799@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20041209171138.GA3105-u08AdweFZfgxtPtxi4kahqVXKuFTiq87@public.gmane.org>
+In-Reply-To: <20041210194641.GA26799-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,20 +17,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Pavel Machek:
-> > is this a problem? hardware issue? software issue? acpi? plain bad 
-> > luck? what is happening here?
-> Sining capacitors? See archives. idle=poll should fix it (evil grin).
+Hi!
 
-Now you couldn't have possibly meant 'sinning'? (even more evil grin)
+> > > is this a problem? hardware issue? software issue? acpi? plain bad 
+> > > luck? what is happening here?
+> > Sining capacitors? See archives. idle=poll should fix it (evil grin).
+> 
+> Now you couldn't have possibly meant 'sinning'? (even more evil grin)
 
+You are right, I meant "singing capacitors". I tried to look "sinning
+capacitors" using google, and it really was not helpfull.
+								Pavel
 -- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
