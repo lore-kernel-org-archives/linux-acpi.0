@@ -1,31 +1,41 @@
-From: Pekka Enberg <penberg@gmail.com>
-Subject: Re: [PATCH, new ACPI driver] new sony_acpi driver
-Date: Fri, 11 Feb 2005 14:02:19 +0200
-Message-ID: <84144f02050211040253e33dab@mail.gmail.com>
-References: <20050210161809.GK3493@crusoe.alcove-fr>
-	 <20050211113636.GI3263@crusoe.alcove-fr>
-Reply-To: Pekka Enberg <penberg@gmail.com>
+From: =?ISO-8859-1?Q?C=FCneyt?= <cu_lists-iP/H7R5l9gZBDgjK7y7TUQ@public.gmane.org>
+Subject: half-OT: daily digests are sent 3-4 times a day
+Date: Fri, 11 Feb 2005 13:03:29 +0100
+Message-ID: <420C9F11.1000805@calt129.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S262122AbVBKMCW@vger.kernel.org>
-In-Reply-To: <20050211113636.GI3263@crusoe.alcove-fr>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stelian Pop <stelian@popies.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@osdl.org>, acpi-devel@lists.sourceforge.net, Jean Delvare <khali@linux-fr.org>, Pekka Enberg <penberg@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 11 Feb 2005 12:36:37 +0100, Stelian Pop <stelian@popies.net> wrote:
-> +static int __init sony_acpi_add(struct acpi_device *device)
-> +{
-> +       acpi_status status = AE_OK;
-> +       struct sony_snc *snc = NULL;
-> +       int result;
-> +
-> +       snc = kmalloc(sizeof(struct sony_snc), GFP_KERNEL);
-> +       if (!snc)
-> +               return -ENOMEM;
-> +       memset(snc, 0, sizeof(struct sony_snc));
+Hi,
 
-Nitpick: use kcalloc() instead of kmalloc() and memset().
+I'm not sure if this has been discussed before or if I'm the only one=20
+experiencing this. I'm getting the daily digests more than once a day.=20
+For example, at Feb 7, I got #2385-86-87, at Feb 10, #2391-92-93-94=20
+(digests for Feb 8 & 9 were both OK). Why is this happening?
 
-                                 Pekka
+greets
+c=FCneyt
+
+
+--=20
+Reclaim Your Inbox!
+www.mozilla.org/products/thunderbird
+
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=3D6595&alloc_id=3D14396&op=3Dclick
