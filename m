@@ -1,88 +1,32 @@
-From: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
+From: Dmitry Torokhov <dtor_core@ameritech.net>
 Subject: Re: 2.6.10-rc1-mm3: ACPI problem due to un-exported hotplug_path
-Date: Fri, 5 Nov 2004 21:18:48 -0800
-Message-ID: <20041105211848.A21098@unix-os.sc.intel.com>
-References: <20041105001328.3ba97e08.akpm@osdl.org> <20041105164523.GC1295@stusta.de> <20041105180513.GA32007@kroah.com> <20041105201012.GA24063@vrfy.org> <20041105204209.GA1204@kroah.com>
-Reply-To: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
+Date: Sat, 6 Nov 2004 00:50:32 -0500
+Message-ID: <200411060050.32816.dtor_core@ameritech.net>
+References: <20041105001328.3ba97e08.akpm@osdl.org> <20041105204209.GA1204@kroah.com> <20041105211848.A21098@unix-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261320AbUKFFYb@vger.kernel.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S261308AbUKFFui@vger.kernel.org>
+In-Reply-To: <20041105211848.A21098@unix-os.sc.intel.com>
 Content-Disposition: inline
-In-Reply-To: <20041105204209.GA1204@kroah.com>; from greg@kroah.com on Fri, Nov 05, 2004 at 12:42:09PM -0800
 Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>, anil.s.keshavamurthy@intel.com, tokunaga.keiich@jp.fujitsu.com, motoyuki@soft.fujitsu.com, Adrian Bunk <bunk@stusta.de>, Andrew Morton <akpm@osdl.org>, rml@novell.com, linux-kernel@vger.kernel.org, len.brown@intel.com, acpi-devel@lists.sourceforge.net
+To: linux-kernel@vger.kernel.org, Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
+Cc: Greg KH <greg@kroah.com>, Kay Sievers <kay.sievers@vrfy.org>, tokunaga.keiich@jp.fujitsu.com, motoyuki@soft.fujitsu.com, Adrian Bunk <bunk@stusta.de>, Andrew Morton <akpm@osdl.org>, rml@novell.com, len.brown@intel.com, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Nov 05, 2004 at 12:42:09PM -0800, Greg KH wrote:
-> On Fri, Nov 05, 2004 at 09:10:12PM +0100, Kay Sievers wrote:
-> > On Fri, Nov 05, 2004 at 10:05:13AM -0800, Greg KH wrote:
-> > > On Fri, Nov 05, 2004 at 05:45:23PM +0100, Adrian Bunk wrote:
-> > > > The following error (compin from Linus' tree) is caused by the fact that 
-> > > > hotplug_path is no longer EXPORT_SYMBOL'ed:
-> > > > 
-> > > > 
-> > > > <--  snip  -->
-> > > > 
-> > > > if [ -r System.map ]; then /sbin/depmod -ae -F System.map  2.6.10-rc1-mm3; fi
-> > > > WARNING: /lib/modules/2.6.10-rc1-mm3/kernel/drivers/acpi/container.ko needs unknown symbol hotplug_path
-> > > > 
-> > > > <--  snip  -->
-> > > 
-> > > Hm, must be an -mm specific change that is causing this.  I don't see
-> > > this in the current tree.
-> > > 
-> > > Len, why would any ACPI code be wanting to get access to hotplug_path
-> > > directly?
-> > 
-> > 
-> > I've found it. This wants to introduce a new direct /sbin/hotplug call,
-> > with "add" and "remove" events, without sysfs support.
-> > 
-> > It should use class support or kobject_hotplug() instead.  Nobody should
-> > fake hotplug events anymore, cause every other notification transport
-> > will not get called (currently uevent over netlink).
-> >   http://www.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.10-rc1/2.6.10-rc1-mm3/broken-out/bk-acpi.patch
-> > 
-> > +static int
-> > +container_run_sbin_hotplug(struct acpi_device *device, char *action)
-> > +{
-> > ...
-> > +	argv[i++] = hotplug_path;
-> > +	argv[i++] = "container";
-> > +	argv[i] = NULL;
-> > ...
-> > +	i = 0;
-> > +	envp[i++] = "HOME=/";
-> > +	envp[i++] = "PATH=/sbin;/bin;/usr/sbin;/usr/bin";
-> > +	envp[i++] = action_str;
-> > +	envp[i++] = container_str;
-> > +	envp[i++] = "PLATFORM=ACPI";
-> > +	envp[i] = NULL;
-> > ...
+On Saturday 06 November 2004 12:18 am, Keshavamurthy Anil S wrote:
+> Also, since you have brought this, I have one another question to you.
+> Now in the new kernel, I see whenever anybody calls sysdev_register(kobj),
+> an "ADD" notification is sent. why is this? I would like to call
+> kobject_hotplug(kobj, ADD) later.
 > 
-> Good catch.  Yeah, that code is just wrong.
-> 
-> Anil, your name is on this file.  Care to fix it up to use the proper
-> driver core hotplug functionality instead of rolling your own?
-> 
-> Or is there some reason you are wanting to do this kind of notification
-> that the driver core is not providing for you?
-Greg,
-	Yes, I agree what you say, we need to use class support or kobject_hotplug().
-But in this case "a container object" gets added and this container object has
-no direct representation in sysfs. So in this case can you please tell me 
-what is the best thing to notify user.agent. Sorry I had looked some really old examples when I
-wrote this driver.
 
-Also, since you have brought this, I have one another question to you.
-Now in the new kernel, I see whenever anybody calls sysdev_register(kobj),
-an "ADD" notification is sent. why is this? I would like to call
-kobject_hotplug(kobj, ADD) later.
+Hi Anil,
 
-thanks,
-Anil
-> 
-> thanks,
-> 
-> greg k-h
+Please take a look at drivers/base/firmware_class.c to see how one can
+suppress initial hotplug notification and call hotplug when object is
+finally ready. Hopefully you can use similar solution.
+
+-- 
+Dmitry
