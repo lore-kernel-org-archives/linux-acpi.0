@@ -1,12 +1,14 @@
-From: Nick Hill <nick-kMuUVokNkCa9FHfhHBbuYA@public.gmane.org>
-Subject: Processor dynamic power management for desktop machines
-Date: Wed, 05 Nov 2003 22:47:42 +0000
+From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
+Subject: RE: [Patch]fix EC GPE context error
+Date: 06 Nov 2003 03:19:39 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3FA97E0E.6060906@nickhill.co.uk>
+Message-ID: <1068088780.1585.9.camel@darkstar.portugal>
+References: <571ACEFD467F7749BC50E0A98C17CDD8E84DBF@pdsmsx403.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <571ACEFD467F7749BC50E0A98C17CDD8E84DBF-4yWAQGcml64gGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,48 +17,70 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-I have a desktop system based on an AMD Athlon XP2200+ running Linux 
-Kernel 2.6.0-test9
+Hi,
+The first tests seems ok, in 2.4.23-pre9, I had problems without this
+patch, my laptop had hang again, when my usb cable modem has gone down
+and I turn it off.=20
+Now, with this patch, don't had hang anymore.
+I will test it more time, if I have a problems, I will tell you.
 
-The processor is not a notebook type and does not support powernow!
+thanks
 
-I have a power meter connected to the mains supply of the desktop 
-machine, which provides a constant reading of power demand.
+On Mon, 2003-11-03 at 13:29, Li, Shaohua wrote:
+>=20
+> Hi,
+>    I have attached a patch against 2.4 in bugzilla 1171, please help test=
+. Many thanks.
+>=20
+> Thanks,
+> Shaohua
+>=20
+>=20
+> > -----Original Message-----
+> > From: S=C3=A9rgio Monteiro Basto [mailto:sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org]
+> > Sent: 2003=E5=B9=B411=E6=9C=883=E6=97=A5 3:30
+> > To: Li, Shaohua
+> > Cc: ACPI Developers
+> > Subject: Re: [ACPI] [Patch]fix EC GPE context error
+> >=20
+> > Hi
+> > I can't apply this patch to 2.23-pre9 neither pre8 or pre7 .
+> > I got one big rejected file (on osl.c I think)
+> >=20
+> > thanks
+> >=20
+> > On Fri, 2003-10-31 at 08:42, Li, Shaohua wrote:
+> > > Hi,
+> > >
+> > >      2.6-test9 has a regression. Specifically, the EC GPE context fix
+> > > has error. This new patch is to replace the old one. The patch is
+> > > against 2.6-test7, and has passed under T40 and ASUS M2400. You can f=
+ind
+> > > detail info in osdl bugzilla 1171. Please help test.
+> > >
+> > >
+> > >
+> > > Thanks,
+> > >
+> > > Shaohua
+> > >
+> > >
+> > >
+> > --
+> > S=C3=A9rgioMB
+> > email: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
+> >=20
+> > Who gives me one shell, give me everything.
+>=20
+--=20
+S=C3=A9rgioMB
+email: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
 
-With the machine not under processing load, I have noticed a substantial 
-difference in power demand between the throttling state t0 and 
-throttling state t15. The power demand drops by between 21 and 36 watts.
-
-As the demand waveform of the machine does not folow ohm's law, the 
-power meter fluctuates as it samples different parts of the power 
-waveform. When on t0, the reading fluctuates between 56 and 96w. T15 
-between 35 and 60watts demand.
-
-The machine doubles as a desktop and server. The machine therefore needs 
-to be powered on constantly. As the server processes are not generally 
-processor intensive, the machine could be on t14 when not being used as 
-a desktop machine.
-
-Being an ecologically conscientious type, I have set up a shell script 
-to allow me to easily change the processor throttling level. t0 
-(compiling etc) t10 (normal desktop use) and t14 (Leaving it on overnight).
-
-Are there plans for a system to modulate power demand for desktop 
-machines? My set up demonstrates substantial power saving is feasible 
-with an inelegant userspace daemon (me!).
-
-If there are 50 million GNU/Linux machines powered-on worldwide (this is 
-a guestimate) and a power saving of 22 watts could be achieved, on 
-average per machine, this would translate to a global energy saving of 
-1.1Gigawatt. As a substantial amount of power is lost in the power 
-delivery infrastructure, this would translate to a saving of 1.7Gigawatt 
-generating capacity worldwide, or $56,000 per hour at average production 
-prices.
-
-
+Who gives me one shell, give me everything.
 
 
 
