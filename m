@@ -1,16 +1,14 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Re: ACPI_STRICT_COMPLIANCE (was RE: RE: ACPI -- Workaround
- for broken DSDT)
-Date: Wed, 11 Feb 2004 09:51:07 -0800 (PST)
+From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: [Fwd: Re: [PROBLEM] 2.6.3-rc1: still no suspend/resume on Centrino notebook (contains agp, lapic, swsusp)]
+Date: Wed, 11 Feb 2004 18:58:42 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040211095009.R91991@root.org>
-References: <BF1FE1855350A0479097B3A0D2A80EE0CC8AB6@hdsmsx402.hd.intel.com>
-  <1075964148.5017.7.camel@tinny.home.foo>  <20040209122256.K74314@root.org>
- <1076517428.12955.32.camel@dhcppc4>
+Message-ID: <20040211175842.GO13262@poupinou.org>
+References: <3ACA40606221794F80A5670F0AF15F8401CBB68D@PDSMSX403.ccr.corp.intel.com> <m3smhhakb3.fsf@reason.gnu-hamburg> <20040211123601.GN13262@poupinou.org> <m3smhhycwz.fsf@reason.gnu-hamburg>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1076517428.12955.32.camel-D2Zvc0uNKG8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <m3smhhycwz.fsf-glUV91rXKAHWIjgkaejU9x2eb7JE58TQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -19,30 +17,40 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>
+Cc: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?iso-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 11 Feb 2004, Len Brown wrote:
-> Nate,
-> I think you're right, practical compatibility must be the default, and a
-> single config option should allow an OEM to disable the out-of-spec
-> warnings and workarounds.
->
-> CONFIG_ACPI_STRICT_COMPLIANCE seems to be a good choice for the config
-> option.  Disabled by default, enabled by OEMs for testing their
-> platforms.
->
-> Right now, CONFIG_ACPI_RELAXED AML would be replaced by this.  This will
-> fix the issue that RELAXED_AML is not currently enabled by default.
->
-> We have some warnings and workarounds that gum-up various dmesg that I
-> think we can put under this umbrella also.
+On Wed, Feb 11, 2004 at 02:16:12PM +0100, Georg C. F. Greve wrote:
+>  || On Wed, 11 Feb 2004 13:36:01 +0100
+>  || Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> wrote: 
+> 
+>  >> and so the machine crashes hard & instantly, followed by reboot.
+> 
+>  bd> That sound like a memory fault in a SMI handler, imho.
+> 
+> Furher info: when the same kernel is booted with "nolapic" and FN+F8
+> is pressed, display switching occurs, but the top of the screen is
+> screwed -- and seems to show parts from the framebuffer console.
+> 
+> When using the i810switch tool, switching the crt on/off works fine,
+> while LCD cannot be switched at all with that tool...
+> 
+> If anyone has concrete suggestions where to look or what to try, let
+> me know...
+> 
 
-Sounds good to me.  Just watch out for hacks that cause valid platforms to
-misbehave.  Those should be kept under an off-by-default option.
+Perhaps wait for the little ACPI video driver I am currently polishing a
+little ?
 
--Nate
+I think it should be OK tomorrow, but I have not tested it throughfully
+though.
+
+-- 
+Bruno Ducrot
+
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
