@@ -1,13 +1,14 @@
-From: Thomas Tuttle <gmane.thinkinginbinary-w1QkCcy0X+Ct7aBEGUsviw@public.gmane.org>
-Subject: Re: Resources on fixing DSDT?
-Date: Tue, 14 Sep 2004 19:04:54 +0000 (UTC)
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: generic hotkey driver
+Date: Tue, 14 Sep 2004 22:42:07 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <loom.20040914T210119-309@post.gmane.org>
-References: <loom.20040913T141300-570@post.gmane.org> <414594F6.7020507@quantentunnel.de>
+Message-ID: <20040914204207.GA12726@elf.ucw.cz>
+References: <3ACA40606221794F80A5670F0AF15F84056B57EE@pdsmsx403>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F84056B57EE@pdsmsx403>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -16,39 +17,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Hiroshi Miura <miura-yiisDzvROlQdnm+yROfE0A@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Andreas Dieling <snow@...> writes:
-> Thomas Tuttle wrote:
-> > I have an Asus M2400Ne with a screwed-up DSDT (some of the methods are
-> > renamed to proprietary names--A*** instead of _***--for Asus' proprietary
-> > power management stuff) and I have had no luck getting SpeedStep to work on
-> > it.  (Everything else works!)  What I need to do is find the methods in the
-> > DSDT that are mis-named, re-name them, and patch my kernel to use the
-> > custom DSDT.
+Hi!
+
+> >I think hotkey drivers are  so differ that it is enough to decide
+> >event format. ie) 'ibm KEY 00001 00001' or 'hotkey/pcc HKEY 
+> >000003 000001'
+> >
 > 
-> Isn't the M24N Centrino based?
+> We don't need to care about the format of event. Since it is
+> configurable,
+> we just need to understand the internal meaning. So maybe we
+> need to define the internal event number, which stands for a
+> special purpose. such as:
+> 
+> 	001	turn off display
+> 	002	inc brightness
+> 	003	dec brightness
+> 	004	s3
+> 	......
+> 
 
-Yes...
-
-> So i think you don't need bios support to get your throttling working...
-> intel enhanced speedstep should be enough...
-
-Exactly--well it *should*!  The kernel module speedstep-centrino implements 
-Enhanced SpeedStep, and neither it nor the ACPI Processor P[ower]-States module 
-(stupidly named simply "acpi") will work--I get a "No such device" error when 
-modprobing them with BIOS version 0200 and an oops when modprobing them with 
-BIOS versions 0202 or 0203.
-
-Any other suggestions?  Does anyone have a really good grasp of either ACPI P-
-states or Enhanced SpeedStep who could help me decipher how to match up Asus' 
-renamed functions with the real ones?
-
-Please?  I'll throw in a Gmail invite... ;-)
-
---Thomas Tuttle
-
+If those are keys, you should just treat them as keys... That is hook
+it into input subsystem.
+								Pavel
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
