@@ -1,13 +1,14 @@
-From: "Ing. Jan Slezak" <jan.slezak-aRb0bU7PRFPrBKCeMvbIDA@public.gmane.org>
-Subject: Re: ACPI 20030109 + Kernel 2.4.21-pre3 + Dell
-Date: Fri, 17 Jan 2003 16:07:11 +0100
+From: Marco Gigante <marcogi-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org>
+Subject: Re: S4bios on Sony Vaio FX601
+Date: Fri, 17 Jan 2003 17:48:13 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3E281C1F.DEEA74F3@centrum.cz>
-References: <E18ZGQ1-0006sN-00@sc8-sf-list2.sourceforge.net>
+Message-ID: <20030117164813.GA7262@marcogigante.it>
+References: <Pine.LNX.4.50.0301130925480.3926-100000@flyby> <20030113101531.GF12516@poup.poupinou.org> <20030113114850.1b1adc03.nils@kernelconcepts.de> <20030113120204.GA13358@marcogigante.it> <20030113135418.GI12516@poup.poupinou.org> <Pine.LNX.4.50.0301152010340.924-100000@flyby> <20030116151714.GT12516@poup.poupinou.org> <Pine.LNX.4.50.0301161847310.8805-100000@flyby> <20030117104349.GY12516@poup.poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20030117104349.GY12516-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,26 +18,44 @@ List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi
+On Fri, Jan 17, 2003 at 11:43:49AM +0100, Ducrot Bruno wrote:
+> On Thu, Jan 16, 2003 at 06:50:42PM +0100, marcogi-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org wrote:
+> > On Thu, 16 Jan 2003, Ducrot Bruno wrote:
+> > 
+> > > > While using linux 2.4.20 + acpi-20021205 and 2 patches posted to this
+> > > > ML some time ago (s4bios-2.4.20-acpi-20021205 and
+> > > > 00_system_fix_s4bios-2.4.20-acpi-20021205) suspend doesn't works.
+> > > > echo -n 4b >/proc/acpi/sleep make bios to start hibernation process, but
+> > > > on resuming system hangs after datas from suspend partition are loaded.
+> > > > The bios resume screen remains on the screen and I must power cycle the
+> > > > notebook.
+> > >
+> > > Did you use framebuffer console?  If yes, try without it.  Try also on
+> > > console.
+> > 
+> > I'm using console. I did not compile framebuffer into my kernel.
+> > How can I produce info for debug?
+> > 
+> 
+> I got some trouble with an usb mouse, also the PCI config space of
+> the pcmcia hubs was not properly restored.
+> Could you try without usb nor any pcmcia cards please?
 
-I have same problem as Marco. I have Dell Latitude C640 and most of the
-numerical values in the /proc FS are zero or equivalent. And in addition
-battery module produces a lot of "Warning: Buffer created with zero
-length in AML". I had a short look at the dissasembled DSDT and it seems
-that some code is executed conditionally based on operation system
-running on the laptop. Are not all the problems with ACPI on Dell caused
-by nonstandard implementation of ACPI by Dell? I had same problems also
-with ACPI 20021212 and kernel 2.4.20. Do any of you have any suggestion?
+Done, but problem is still the same.
+I tried to not load usb and pcmcia modules at all (not removing after
+load), only acpi modules loaded and still the same. Pcmcia sockets were
+empty.
+Must I compile acpi built into kernel?
 
-Thanks
-
-Jan
+--
+Regards, Marco Gigante
 
 
 -------------------------------------------------------
 This SF.NET email is sponsored by: Thawte.com - A 128-bit supercerts will
 allow you to extend the highest allowed 128 bit encryption to all your 
 clients even if they use browsers that are limited to 40 bit encryption. 
-http://ads.sourceforge.net/cgi-bin/redirect.pl?thaw0030en
+Get a guide here:http://ads.sourceforge.net/cgi-bin/redirect.pl?thaw0030en
