@@ -1,14 +1,13 @@
-From: "Arch. Giovanni Andrea Lucaferri" <lucaferri-npIeQ/MgtcxBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: acpi poweroff linux problem
-Date: Mon, 19 Jul 2004 22:10:40 +0200
+From: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
+Subject: Re: ignore invalid AccessType if RegionType only allows for one AccessType?
+Date: Mon, 19 Jul 2004 16:24:31 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40FC2AC0.1000507@makines.com>
-References: <40F38865.1050007@makines.com> <Pine.LNX.4.60.0407131226310.2017@frog.athome>
+Message-ID: <1595322977.20040719162431@osu.edu>
+Reply-To: Ohio State University <barr.156-ZbGKxL/pcrQ@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg="pgp-sha1";
+  boundary="----------6F17BFC371F9D4C"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.60.0407131226310.2017-KnfdeQs3A3X/9pzu0YdTqQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,72 +16,68 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi hartwig,
-no, they don't work.
-I think that it can be something in the acpi modules.
-Some months ago there was an acpi source package
-on intel site. From this package I've built
-modules named different from the tipical one,
-but now this package is not downloadable anymore.
-This apci has worked perfectly but unfortunately
-I don't have it anymore.
-Somebody remember/have this package?
-Thaks hartwig.
+------------6F17BFC371F9D4C
+Resent-from: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
+
+Hash: SHA1
+
+Interesting. I have a Dell 300m that has that same problem.
+
+Andrew
+
+P.S. forgot to CC the list. Sorry. :(
+
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+When in doubt, do what the President does -- guess.
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+
+On Monday, July 19, 2004, 4:53:29 AM, Dominik Brodowski <linux@dominikbrodo=
+wski.de> wrote:
+
+> Hi!
+
+> The DSDTs of many Samsung notebooks contain one bug which forces users to
+> use a "DSDT override":
+
+>                     OperationRegion (ECR, EmbeddedControl, 0x00, 0xFF)
+>                     Field (ECR, DWordAcc, Lock, Preserve)
 
 
-hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org ha scritto:
+> As can be seen in table 15-6 of ACPI spec 1.0b and in table 16-6 of ACPI
+> spec 2.0, TypeRegion EmbeddedControl only allows for "ByteAcc", not
+> "DWordAcc". iasl also says the same:
 
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
-> 
-> Salut Giovanni,
-> On Tue, 13 Jul 2004, Arch. Giovanni Andrea Lucaferri wrote:
-> 
->> I have slackware 9.1, kernel 2.4.20 patched with latest acpi .diff
->> on acer laptop travelmate632
->> Everything works but not poweroff.
->> The system close all service and daemon but acipd goes in sleep mode, 
->> not in poweroff.
->> The configuration is the original of the distibution.
-> 
-> there are two things you may try:
->  1. If your system does not use the local APIC you might build a kernel
->   without "Local APIC support on uniprocessors" CONFIG_X86_UP_APIC
->  2. do not use the rtc-module "Enhanced Real Time Clock Support", but if
->   you need the generic RTC CONFIG_GEN_RTC instead.
-> And please report back, if one of this things solves your problem.
-> 
-> Cheers
->   hartwig felger
-> 
-> Hartwig Felger informatics
-> 
-> - -- 1024D/339FD693 Hartwig Felger <hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org>
-> Key fingerprint = FB2F 3EE9 345A D55B 6FF2  0EC1 F5B0 684F 339F D693
-> For the pulic keys, please visit my page.
-> -----BEGIN PGP SIGNATURE-----
-> Version: GnuPG v1.2.2 (GNU/Linux)
-> 
-> iD8DBQFA87lP9bBoTzOf1pMRAlnFAKDJr0F6LXP/Cd+k/ui7c49szZshigCeO9Rt
-> 5Vf5vtKrt1XpVZBIuQFcsPo=
-> =9eLx
-> -----END PGP SIGNATURE-----
-> 
-> 
-> -------------------------------------------------------
-> This SF.Net email sponsored by Black Hat Briefings & Training.
-> Attend Black Hat Briefings & Training, Las Vegas July 24-29 - digital 
-> self defense, top technical experts, no vendor pitches, unmatched 
-> networking opportunities. Visit www.blackhat.com
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> 
+> ../dsdt.dsl  2660:                     Field (ECR, DWordAcc, Lock, Preser=
+ve)
+> Error    1048 -                                 ^ Host Operation Region r=
+equires ByteAcc access
+
+> Given the fact that EmbeddedControl _only_ allows ByteAcc, how about
+> "ignoring" DWordAcc or any other (invalid) AccType in this case if
+> !acpi_strict, and "assuming" a value of ByteAcc instead?
+
+> Thanks,
+> =09Dominik
+
+------------6F17BFC371F9D4C
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP MESSAGE-----
+Version: PGP SDK 3.0.3
+Comment: ""
+
+iQA/AwUBQPwt/4bjPmetmudqEQIQ7ACgrCTmWG9zggxzwSiURxWX8EZWGT0AoKd/
+N+gCRreeZs8hHp7dObz4jqO5
+=66ja
+-----END PGP MESSAGE-----
+
+------------6F17BFC371F9D4C--
+
 
 
 -------------------------------------------------------
