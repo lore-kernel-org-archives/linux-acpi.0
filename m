@@ -1,12 +1,15 @@
-From: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>
-Subject: Re: Radeon M7 and resuming from suspend-to-ram
-Date: Thu, 03 Feb 2005 23:59:20 +0100
-Message-ID: <4202ACC8.4000902@gmx.net>
-References: <41E7D334.6060003@sllpilots.fi>	<1105723866.28126.10.camel@elrond.flymine.org>	<87k6qal75i.fsf-news@hsp-law.de> <1106095573.7368.29.camel@tyrosine> <87ekghkwt0.fsf-news@hsp-law.de> <42029281.3070207@gmx.net>
+From: Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
+Subject: Re: Samsung P35, S3, black screen (radeon)
+Date: Fri, 04 Feb 2005 10:43:39 +1100
+Message-ID: <1107474198.5727.9.camel@desktop.cunninghams>
+References: <20050122134205.GA9354@wsc-gmbh.de> <4201825B.2090703@gmx.net>
+	 <e796392205020221387d4d8562@mail.gmail.com> <420217DB.709@gmx.net>
+	 <4202A972.1070003@gmx.net>  <20050203225410.GB1110@elf.ucw.cz>
+Reply-To: ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------040200060702030607020007"
-In-Reply-To: <42029281.3070207-hi6Y0CQ0nG0@public.gmane.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <20050203225410.GB1110-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,92 +19,58 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------040200060702030607020007
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Hi.
 
-Carl-Daniel Hailfinger schrieb:
-> Ralf Gerbig schrieb:
+On Fri, 2005-02-04 at 09:54, Pavel Machek wrote:
+> Hi!
 > 
->>SuSE does not have a shared libpci, only static so the precompiled
->>binary unsurprisingly did not work.
->>
->>Compiling the source I got: 
->>
->>rge@lapdog2:/usr/src/vbetool-0.2> make
->>if gcc -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" 
->>-DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE=\"vbetool\" 
->>-DVERSION=\"0.2\"  -I. -I.    
->>-g -Wall -Werror -pedantic -g -O2 -MT vbetool.o -MD -MP -MF ".deps/vbetool.Tpo" \
->>  -c -o vbetool.o `test -f 'vbetool.c' || echo './'`vbetool.c; \
->>then mv -f ".deps/vbetool.Tpo" ".deps/vbetool.Po"; \
->>else rm -f ".deps/vbetool.Tpo"; exit 1; \
->>fi
->>In file included from /usr/include/stdlib.h:416,
->>                 from vbetool.c:14:
->>/usr/include/sys/types.h:62: error: conflicting types for `dev_t'
->>/usr/include/linux/types.h:22: error: previous declaration of `dev_t'
->>[...]
+> > >>Are you able to use framebuffer(radeonfb,1024x768) with this
+> > >>configuration or do you need to use plain vga-console for it to work?
+> > > 
+> > > No.
+> > > For a working framebuffer console you would have to perform the steps
+> > > my script does *before* the kernel tries to access the framebuffer
+> > > console after resume. Since this is not yet possible, you're out of
+> > > luck. If
+> > > - the vbestate utility was a kernel module or
+> > 
+> > OK, I managed to track this down further.
+> > "vbetool post" should be equivalent to "acpi_sleep=s3_bios", but there
+> > are some differences. For me, that's easy to explain: "vbetool post"
+> > segfaults because it wants to access parts of the video bios which
+> > are no longer available. "acpi_sleep=s3_bios" suffers from the same
+> > problem, but it runs in real mode and can't recover :-(
+> > 
+> > To alleviate that problem, the kernel could run the video bios in
+> > vm86 mode (like vbetool does by using lrmi). This would simplify
+> > the asm wakeup code and make video POST more reliable.
+> > 
+> > Pavel, what do you think?
 > 
+> Well, calling BIOS using vm86 is going to be quite a lot of code. If
+> it is self-contained and not too huge, it is probably okay. It should
+> help with quite a lot of cards, but who knows...
 > 
-> Yes, the pci.h shipped by SUSE has problems. Simply move the #include
-> <pci/pci.h> from the beginning to directly before #include <sys/kd.h>
-> 
->>after fuzing around with -D, I temporally commented out the
->>include. Thereafter adding -lpci to the end of the link command, I got
->>a working executable.
+> Yes, it is probably worth trying.
 
-Matthew, could you apply attached patch and run aclocal, autoconf and
-automake again? This will fix the compile problems on SUSE 9.2.
-
+I'd love to see it too. Pavel, even if you don't want to merge it for a
+while, we can always incorporate it in the Suspend2 patches so it gets
+some testing. I know I'd try it on my i830 based Omnibook.
 
 Regards,
-Carl-Daniel
+
+Nigel
 -- 
-http://www.hailfinger.org/
+Nigel Cunningham
+Software Engineer, Canberra, Australia
+http://www.cyclades.com
 
---------------040200060702030607020007
-Content-Type: text/x-patch;
- name="vbetool-fix.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="vbetool-fix.diff"
+Ph: +61 (2) 6292 8028      Mob: +61 (417) 100 574
 
-diff -urN vbetool-0.2/Makefile.am vbetool-0.2-modified/Makefile.am
---- vbetool-0.2/Makefile.am	2004-12-30 16:27:07.000000000 +0100
-+++ vbetool-0.2-modified/Makefile.am	2005-02-03 21:58:16.000000000 +0100
-@@ -12,4 +12,4 @@
- 	$(RM) Makefile.in aclocal.m4 config.h.in stamp-h.in configure
- 
- AM_CFLAGS = -g -Wall -Werror -pedantic
--AM_LDFLAGS = -lpci
-+LIBS = -lpci
-diff -urN vbetool-0.2/vbetool.c vbetool-0.2-modified/vbetool.c
---- vbetool-0.2/vbetool.c	2004-12-31 16:11:19.000000000 +0100
-+++ vbetool-0.2-modified/vbetool.c	2005-02-03 22:02:53.000000000 +0100
-@@ -8,7 +8,6 @@
- version 2
- */
- 
--#include <pci/pci.h>
- #include <assert.h>
- #include <stdio.h>
- #include <stdlib.h>
-@@ -17,6 +16,7 @@
- #include <sys/ioctl.h>
- #include <sys/types.h>
- #include <sys/io.h>
-+#include <pci/pci.h>
- #include <sys/kd.h>
- #include <sys/stat.h>
- #include <errno.h>
-
---------------040200060702030607020007--
 
 
 -------------------------------------------------------
