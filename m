@@ -1,76 +1,30 @@
-From: "Rod Nickerson" <cto3mezulg-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: PROTECT YOUR CHILDREN From Offensive Language On Your TV With ProtecTV...kourtney
-Date: Sun, 09 Nov 2003 01:11:53 +0400
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <6bn$3$78-x68ds44$8s1ae$wtm$p__28867.0615911999$1068326669@mmb.fe9>
-Reply-To: "Rod Nickerson" <cto3mezulg-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+From: Jes Sorensen <jes@wildopensource.com>
+Subject: Re: [DMESG] cpumask_t in action
+Date: 10 Nov 2003 03:26:50 -0500
+Sender: linux-ia64-owner@vger.kernel.org
+Message-ID: <yq0brrky6gl.fsf@wildopensource.com>
+References: <Pine.LNX.4.44.0311070907020.29453-100000@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="FFA_.74ED2A._23."
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: systemspecifyer-usage-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux1394-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, mahogany-cvsupdates-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.44.0311070907020.29453-100000@localhost.localdomain>
+To: Sylvain Jeaugey <sylvain.jeaugey@bull.net>
+Cc: Matthew Wilcox <willy@debian.org>, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
+>>>>> "Sylvain" == Sylvain Jeaugey <sylvain.jeaugey@bull.net> writes:
 
---FFA_.74ED2A._23.
-Content-Type: text/plain;
-Content-Transfer-Encoding: quoted-printable
+Sylvain> These lines show you the numa topology of your machine (in
+Sylvain> our case, we have 2 CPUS per domain, and a memory area).
+Sylvain> This is quite a big piece of information about hardware. Even
+Sylvain> if it is quite long, I think it should be part of the ACPI
+Sylvain> information.
 
-Protect Your Children With ProtecTV.
+Hi Sylvian,
 
-ProtecTV gives you the power to block the cursing and offensive language c=
-oming into your home through television and video.
+This information is much better exposed through sysfs (/sys) and Andi
+Kleen's libnuma, which will also make it visible at runtime to
+applications.
 
-ProtecTV filters out more than 400 offensive words.
-
-ProtecTV works with your TV, VCR, Satellite, Cable Box and DVD player.
-
-ProtecTV is easy to connect.
-
-Get ProtectTV Today - www.bargaindeals.bz
-
-Go here if you wish to be excluded from our advertising - www.XhenTronic.n=
-et?unsub=3D10010000858361131
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-ajptco fwplhw  fsth
-pphs 
-u mdwc ymwwksbyk asjghdctaehoqactcgba  o 
-vq gw
-
---FFA_.74ED2A._23.--
-
-
-
--------------------------------------------------------
-This SF.Net email sponsored by: ApacheCon 2003,
-16-19 November in Las Vegas. Learn firsthand the latest
-developments in Apache, PHP, Perl, XML, Java, MySQL,
-WebDAV, and more! http://www.apachecon.com/
+Cheers,
+Jes
