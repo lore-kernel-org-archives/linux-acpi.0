@@ -1,8 +1,8 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: ACPI 20020918 release - interpreter changelog
-Date: Thu, 19 Sep 2002 09:29:24 -0700
+Subject: RE: CALL FOR TESTING
+Date: Thu, 19 Sep 2002 09:35:51 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DE85@orsmsx119.jf.intel.com>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DE87@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,55 +14,28 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchives/forum.php?forum=acpi-devel>
-To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+To: 'Federico Di Gregorio' <fog-NGVKUo/i/6DYtjvyW6yDsg@public.gmane.org>
+Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+> From: Federico Di Gregorio [mailto:fog-NGVKUo/i/6DYtjvyW6yDsg@public.gmane.org] 
+> everything seems to work fine. how can i say if an interrupt has been
+> wrongly assigned? anyway the only problem has always been there but i
+> don't know if it is about irq:
+> 
+> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCI1._PRT]
+> pci_bind-0194 [05] acpi_pci_bind         : Device 00:00:1f.03 not
+> present in PCI namespace
+> pci_bind-0194 [05] acpi_pci_bind         : Device 00:00:1f.06 not
+> present in PCI namespace
+> ACPI: Power Resource [PFAN] (off)
 
-The 0918 release also included these interpreter changes:
+I see these on my machine too. It's not a problem.
 
-18 September 2002.  Summary of changes for this release.
-
-1) ACPI CA Core Subsystem version 20020918:
-
-Fixed a reported problem with reference chaining (via the Index() and
-RefOf() operators) in the ObjectType() and SizeOf() operators.  The
-definition of these operators includes the dereferencing of all chained
-references to return information on the base object.
-
-Fixed a problem with stores to indexed package elements - the existing code
-would not complete the store if an "implicit conversion" was not performed.
-In other words, if the existing object (package element) was to be replaced
-completely, the code didn't handle this case.
-
-Relaxed typechecking on the ASL "Scope" operator to allow the target name to
-refer to an object of type Integer, String, or Buffer, in addition to the
-scoping object types (Device, predefined Scopes, Processor, PowerResource,
-and ThermalZone.)  This allows existing AML code that has workarounds for a
-bug in Windows to function properly.  A warning is issued, however.  This
-affects both the AML interpreter and the iASL compiler. Below is an example
-of this type of ASL code:
-
-      Name(DEB,0x00)
-      Scope(DEB)
-      {
-
-Fixed some reported problems with 64-bit integer support in the local
-implementation of C library functions (clib.c)
-
-2) iASL Compiler/Disassembler version 20020918:
-
-Fixed a problem where the typechecking code didn't know that an alias could
-point to a method.  In other words, aliases were not being dereferenced
-during typechecking.
+If all your PCI devices work like they used to, then that means we pass. :)
 
 Regards -- Andy
-
------------------------------
-Andrew Grover
-Intel Labs / Mobile Architecture
-andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-
 
 
 -------------------------------------------------------
