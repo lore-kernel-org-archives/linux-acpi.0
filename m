@@ -1,12 +1,12 @@
-From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Suggestion for improving the handling of GPE enabling.
-Date: Wed, 09 Mar 2005 09:31:37 +0800
-Message-ID: <1110331896.12642.16.camel@sli10-desk.sh.intel.com>
-References: <1110318037.3663.19.camel@desktop.cunningham.myip.net.au>
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] PNPACPI: don't complain about vendor-defined resources
+Date: 09 Mar 2005 00:09:40 -0500
+Message-ID: <1110344980.9332.0.camel@d845pe>
+References: <1108160048.31877.75.camel@eeyore>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <1110318037.3663.19.camel-r49W/1Cwd2ff0s6lnCXPX/uOuaPYTxhvJwvTLr3MMZM@public.gmane.org>
+In-Reply-To: <1108160048.31877.75.camel@eeyore>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,41 +16,64 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ncunningham-3EexvZdKGZRWk0Htik3J/w@public.gmane.org
-Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, Shaohua Li <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2005-03-09 at 06:23, Nigel Cunningham wrote:
-> Hi all.
-> 
-> Thinking about this GPE enabling issue some more, I'm wondering if the
-> best solution would be to switch the enabling/disabling to be a
-> handler
-> registered with the driver model. In this way, the action taken could
-> be
-> better tied to what's actually happening (I'm assuming Pavel's
-> pm_message_t changes are applied). Something like:
-> 
-> PMSG_FREEZE: Disable GPEs.
-> PMSG_SUSPEND: Enable wake GPEs.
-> PMSG_ON: Disable wake GPEs, enable normal GPEs.
-I have the same feeling. A real solution should be to merge ACPI device
-into the global device tree, so every ACPI driver will have a
-.suspend/.resume method. In the .suspend/.resume method, we can do
-anything we want. This has been in the wish list for a long time.
-Some issues are:
-1. what kind of device should ACPI device be? system device or platform
-device?
-2. What's purpose of the current ACPI namespace in sysfs? Could ACPI
-device be regarded as a normal device?
-3. Some ACPI devices have physical partners. Who will do the
-suspend/resume?
-4. ACPI devices are in many different physical buses. If we just define
-an ACPI bus, we possibly can't show the bus hierarchy.
+Applied.
 
+thanks,
+-Len
 
-Thanks,
-Shaohua
+On Fri, 2005-02-11 at 17:14, Bjorn Helgaas wrote:
+> Don't complain about vendor-defined resources, just ignore them.
+> And make warning messages a little more consistent.
+> 
+> Signed-off-by: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+> 
+> ===== drivers/pnp/pnpacpi/rsparser.c 1.2 vs edited =====
+> --- 1.2/drivers/pnp/pnpacpi/rsparser.c  2004-10-31 18:21:10 -07:00
+> +++ edited/drivers/pnp/pnpacpi/rsparser.c       2005-02-11 12:43:12
+> -07:00
+> @@ -219,9 +219,10 @@
+>                 res->data.address64.min_address_range,
+>                 res->data.address64.address_length);
+>                 break;
+> +       case ACPI_RSTYPE_VENDOR:
+> +               break;
+>         default:
+> -               pnp_warn("PnPACPI: Alloc type : %d not handle",
+> -                               res->id);
+> +               pnp_warn("PnPACPI: unknown resource type %d",
+> res->id);
+>                 return AE_ERROR;
+>         }
+>                        
+> @@ -508,7 +509,7 @@
+>                 case ACPI_RSTYPE_END_DPF:
+>                         return AE_CTRL_TERMINATE;
+>                 default:
+> -                       pnp_warn("PnPACPI:Option type: %d not handle",
+> res->id);
+> +                       pnp_warn("PnPACPI: unknown resource type %d",
+> res->id);
+>                         return AE_ERROR;
+>         }
+>                        
+> @@ -810,7 +811,7 @@
+>                         mem ++;
+>                         break;
+>                 default: /* other type */
+> -                       pnp_warn("Invalid type");
+> +                       pnp_warn("unknown resource type %d",
+> resource->id);
+>                         return -EINVAL;
+>                 }
+>                 resource ++;
+> 
+> 
+> 
+> 
 
 
 
