@@ -1,13 +1,11 @@
-From: Tom Prado <tprado-xwVYE8SWAR3R7s880joybQ@public.gmane.org>
-Subject: Re: Re: processor and thermal missing
-Date: Fri, 1 Nov 2002 11:36:54 -0500 (EST)
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [BK PATCH] ACPI fixes
+Date: Fri, 1 Nov 2002 13:01:08 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.44.0211011135310.28184-100000@scuzzlebutt.theswamp.priv>
-References: <m2r8e98ud5.fsf@tnuctip.rychter.com>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD04C7A49A@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <m2r8e98ud5.fsf-dTJq59+VGzkkCw8IV3R6h0EOCMrvLtNR@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,39 +14,56 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org
 Cc: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Linus, please do a
 
-I've been having the same problems and it started when I tried the 
-20021022 release.  I have a Toshiba Satellite 5105-S607.
+	bk pull http://linux-acpi.bkbits.net/linux-acpi
+
+Bug fixes, mostly for bugs introduced recently ;-)
+
+-- Andy
+
+This will update the following files:
+
+ drivers/acpi/events/evxfregn.c   |    6 +-
+ drivers/acpi/include/acconfig.h  |    4 -
+ drivers/acpi/include/acparser.h  |    6 +-
+ drivers/acpi/namespace/nsalloc.c |   23 +++++++
+ drivers/acpi/osl.c               |    5 +
+ drivers/acpi/parser/psargs.c     |   79 +++++++++++++++++++-------
+ drivers/acpi/parser/psparse.c    |   80 +++++++++++++--------------
+ drivers/acpi/processor.c         |    3 +
+ drivers/acpi/scan.c              |   29 ++++-----
+ drivers/acpi/tables/tbutils.c    |    6 +-
+ 10 files changed, 150 insertions(+), 91 deletions(-)
+
+through these ChangeSets:
+
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/11/01 1.864)
+   ACPI: Interpreter update to (20021101)
+   - Fix namespace ordering, which was causing breakage
+   - Enhance some error messages
+
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/10/31 1.844.13.2)
+   ACPI: Ensure we don't try to sleep when we shouldn't
+
+<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (02/10/31 1.844.13.1)
+   ACPI:
+   - Clean up debug-only code
+   - Fix typo
+   - Correct walking of namespace, to prevent disappearance of processor and
+     thermal zone objects
+   - Fix button add calls to have the right handle (i.e. none)
+   - Prevent spurious cpufreq error
 
 
-On Tue, 29 Oct 2002, Jan Rychter wrote:
-
-> >>>>> "Andrew" == Andrew Grover:
->  Andrew> This appears to be because these devices are not under the _SB
->  Andrew> scope, not due to the recent processor.c changes.
-> 
->  Andrew> If someone has determined exactly which release added this
->  Andrew> problem, that info would be very helpful.
-> 
-> 20021022.
-> 
-> 20021002 is fine, 20021022 is not.
-> 
-> --J.
-> 
-> 
-> -------------------------------------------------------
-> This sf.net email is sponsored by: See the NEW Palm 
-> Tungsten T handheld. Power & Color in a compact size!
-> http://ads.sourceforge.net/cgi-bin/redirect.pl?palm0001en
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-> 
+-----------------------------
+Andrew Grover
+Intel Labs / Mobile Architecture
+andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 
 
 
