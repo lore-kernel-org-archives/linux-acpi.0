@@ -1,14 +1,9 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: ACPI state 4
-Date: Mon, 2 Feb 2004 22:02:28 +0100
+From: interscan-t/UGoup49ONWk0Htik3J/w@public.gmane.org
+Subject: InterScan NT Alert
+Date: Mon, 02 Feb 2004 16:36:38 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040202210228.GA1779@message-id.gmane0305.slipkontur.de>
-References: <80712959.1075733001@HELPDESK-PC13.fdl.pitt.edu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Message-ID: <CORESMTP2R9Odutox7n00000122@mail.riotinto.com>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <80712959.1075733001-GZumfx3jmlwhxhjGrziYQKfZQGhMgmcGN7jzCyCsa88@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -20,27 +15,15 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Feb 02, 2004 at 02:43:21PM -0500, Henry Umansky wrote:
+Sender, InterScan has detected virus(es) in your e-mail attachment.
 
-> And it looks like ACPI attempts to read the state from the swap partition 
-> (/dev/hda2) but then it reboots all of a sudden.  This happens everytime I 
-
-try suspending a minimal system (no sound driver, no USB driver, no X). If this
-works, add one service a time and try out, which one behaves badly.
-I have to stop hotplug and remove USB modules to suspend my machines, probably
-you need something similar.
-
-> try to recover.  When I try to boot normally, most of my files are corrupt. 
-> I'm guessing that when I entered the S4 sleep state, everything in the swap 
-> partition didn't sync with my hard drive, because a lot of my text files 
-> are corrupt and can't be read anymore.  I apologize if I didn't include 
-
-Don't know about your text files, but i always do a
-sync; blockdev --flushbufs /dev/hda
-prior to suspending.
--- 
-Stefan Seyfried
-
+Date:  	Mon, 02 Feb 2004 16:36:38 -0500
+Method:	Mail
+From:  	<acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To:    	david.billinghurst-t/UGoup49OM0n/F98K4Iww@public.gmane.org
+File:  	cptr.zip
+Action:	clean failed - deleted
+Virus: 	WORM_MYDOOM.A 
 
 
 -------------------------------------------------------
