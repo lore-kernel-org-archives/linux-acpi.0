@@ -1,14 +1,14 @@
-From: Sergio Monteiro Basto <sergio-qOf5bGQp09kptuEoxK/DLR2eb7JE58TQ@public.gmane.org>
-Subject: Re: Help Please: Cannot Unsubscribe
-Date: Tue, 04 Jan 2005 20:43:00 +0000
-Message-ID: <1104871380.25180.0.camel@localhost>
-References: <200501042028.j04KSewZ025192@ms-smtp-03-eri0.ohiordc.rr.com>
-Reply-To: sergio-qOf5bGQp09kptuEoxK/DLR2eb7JE58TQ@public.gmane.org
+From: "Andrew Barr" <barr.156-ZbGKxL/pcrQ@public.gmane.org>
+Subject: RE: Help Please: Cannot Unsubscribe
+Date: Tue, 4 Jan 2005 15:50:09 -0500
+Message-ID: <200501042050.j04Ko9Jl025376@ms-smtp-02-eri0.ohiordc.rr.com>
+References: <1104871380.25180.0.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200501042028.j04KSewZ025192-K2tQ5qX6MpX7FFLKsl504NjqZGFX0pdbUxqzstpZn2c@public.gmane.org>
+In-reply-to: <1104871380.25180.0.camel@localhost>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,9 +18,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andrew Barr <barr.156-ZbGKxL/pcrQ@public.gmane.org>
-Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: sergio-qOf5bGQp09kptuEoxK/DLR2eb7JE58TQ@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
+
+Doesn't matter. It still says I have the wrong password.
+
+Andrew
+
+-----Original Message-----
+From: Sergio Monteiro Basto [mailto:sergio-qOf5bGQp09kptuEoxK/DLR2eb7JE58TQ@public.gmane.org]=20
+Sent: Tuesday, January 04, 2005 3:43 PM
+To: Andrew Barr
+Cc: acpi-devel
+Subject: Re: [ACPI] Help Please: Cannot Unsubscribe
 
 
 
