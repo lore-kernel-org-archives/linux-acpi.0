@@ -1,12 +1,11 @@
-From: "Judy Light" <enmqh300zo-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: Tech Sector - Barcharts say 100 Percent to the Upside...crescent
-Date: Mon, 22 Dec 2003 10:39:23 +0300
+From: Nirmal Govind <nirmalg-8DAjSxpRXgY@public.gmane.org>
+Subject: acpi and 2.6.0 kernel - S3 doesn't resume, S4 = infinite loop
+Date: Mon, 22 Dec 2003 03:01:51 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <36-$h-zdxk24@nay.06.oshi>
-Reply-To: "Judy Light" <enmqh300zo-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Message-ID: <3FE6A4EF.6070002@psu.edu>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="9D1_E.8._DA22"
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,55 +15,29 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: openberg-announces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi.. I just compiled the 2.6.0 kernel that was released on Dec. 
+18th... I have ACPI support with all the options enabled. I tried 
+suspending with S3 and it suspends fine (my power indicator starts 
+flashing which means that it has suspended). But when I hit the 
+power button, it does not resume properly, it tries to resume, the 
+power indicator stops flashing which means that it thinks it's woken 
+up, but all I see is a blank screen and hitting any of the keys 
+doesn't seem to do anything. Only thing that works is a hard reboot. 
+I'm running Mandrake 9.2 on a Fujitsu Lifebook S series (6120D) with 
+an Intel 855 chipset graphics adapter. Please let me know if there's 
+a way to get S3 to work well.
 
---9D1_E.8._DA22
-Content-Type: text/plain;
-Content-Transfer-Encoding: quoted-printable
+Also, I tried suspend with S4 and that suspended fine but when I 
+tried to resume, it booted up, showed me the resume messages saying 
+it was resuming, then reboots! And this keeps happening at each 
+reboot -- an infinite loop basically. I finally had to boot without 
+the resume= option to get it to boot properly. Is this a bug?
 
-Here you go.  The technicals are perfect.  I hear NMMG is going to unveil =
-its new technology in February.
-
-http://quotes.barchart.com/texpert.asp?sym=3DNMMG
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-izudha norxonreezlne  hgavxzwou
-
-e amrqghdhbm
-
---9D1_E.8._DA22--
+Thanks,
+nirmal
 
 
 
