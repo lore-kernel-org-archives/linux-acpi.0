@@ -1,107 +1,64 @@
-From: "Rockefeller, Harry" <harryr-qMhjF6E6u3VBDgjK7y7TUQ@public.gmane.org>
-Subject: exfldio-0178 warning ACPI AML errors
-Date: Fri, 13 Feb 2004 11:14:20 -0600
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <7105F2BD9451D7479B4B3A99A2B72FAC0566B43B@exchange1.ssd.fsi.com>
+From: Len Brown <len.brown@intel.com>
+Subject: [BKPATCH] ACPI for 2.6
+Date: 13 Feb 2004 23:46:51 -0500
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <1076734010.25353.65.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_001_01C3F254.D164CD7C"
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+To: Linus Torvalds <torvalds@osdl.org>
+Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Developers <acpi-devel@lists.sourceforge.net>
 List-Id: linux-acpi@vger.kernel.org
 
-This message is in MIME format. Since your mail reader does not understand
-this format, some or all of this message may not be legible.
+Hi Linus, please do a 
 
-------_=_NextPart_001_01C3F254.D164CD7C
-Content-Type: text/plain
+	bk pull http://linux-acpi.bkbits.net/linux-acpi-release-2.6.3
 
-My notebook computer: Uniwill N351S1.
-kernel 2.6.2 on top of a RH 9 install.
+thanks,
+-Len
 
-Problem: I get the subject-line warning about broken ACPI AML
-nag manufacturer to correct it.
-I do have CONFIG_ACPI_DEBUG and CONFIG_ACPI_RELAXED_AML set.
-So, I get this and a couple other lines about three times 
-separated by several seconds over a total time span of
-about 20 seconds.
+ps. a plain patch is also available here:
+ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.3/acpi-20040116-2.6.3.diff.gz
 
-A_solution: I interrupt boot up at the Grub splash screen.
-Wait 30 seconds or longer then continue to boot.  I don't get
-the above messages.
+This will update the following files:
 
-Fix: My one voice (emails to Uniwill) fall on dead ears.
+ arch/i386/Kconfig              |    6 +++---
+ arch/i386/kernel/acpi/boot.c   |    4 ++++
+ arch/i386/kernel/mpparse.c     |   11 ++++++-----
+ arch/x86_64/kernel/acpi/boot.c |    5 +++++
+ arch/x86_64/kernel/mpparse.c   |   13 +++++++------
+ drivers/acpi/Kconfig           |    2 +-
+ drivers/acpi/numa.c            |    2 +-
+ drivers/acpi/processor.c       |    6 +++---
+ 8 files changed, 30 insertions(+), 19 deletions(-)
 
-Questions:
-Is this information useful to any on this list?
+through these ChangeSets:
 
-Is Uniwill simply ignoring my email?  In other words
-can Uniwill really "fix" this with a new BIOS release?
+<len.brown@intel.com> (04/02/13 1.1603.11.7)
+   [ACPI] interrupt over-ride fix from i386 (Maciej W. Rozycki)
 
-Does this mean kernel params such as apm=on and acpi=off
-are useless since obviously ACPI is already doing something
-even before the kernel is selected on the grub splash screen?
+<akpm@osdl.org> (04/02/11 1.1500.36.5)
+   [PATCH] acpi cpu_has_cpufreq() fix
+   
+   Call that function rather than evaluating its runtime address...
 
-------_=_NextPart_001_01C3F254.D164CD7C
-Content-Type: text/html
+<len.brown@intel.com> (04/02/11 1.1500.36.4)
+   [ACPI] clarify error message in processor.c
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
-<HTML>
-<HEAD>
-<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=US-ASCII">
-<META NAME="Generator" CONTENT="MS Exchange Server version 5.5.2657.73">
-<TITLE>exfldio-0178 warning ACPI AML errors</TITLE>
-</HEAD>
-<BODY>
+<len.brown@intel.com> (04/02/10 1.1603.11.4)
+   [ACPI] don't register disabled processors -- it just confuses people
 
-<P><FONT SIZE=2>My notebook computer: Uniwill N351S1.</FONT>
-<BR><FONT SIZE=2>kernel 2.6.2 on top of a RH 9 install.</FONT>
-</P>
+<len.brown@intel.com> (04/02/10 1.1603.11.3)
+   [ACPI] delete mention of stale config option ACPI_HT_ONLY
 
-<P><FONT SIZE=2>Problem: I get the subject-line warning about broken ACPI AML</FONT>
-<BR><FONT SIZE=2>nag manufacturer to correct it.</FONT>
-<BR><FONT SIZE=2>I do have CONFIG_ACPI_DEBUG and CONFIG_ACPI_RELAXED_AML set.</FONT>
-<BR><FONT SIZE=2>So, I get this and a couple other lines about three times </FONT>
-<BR><FONT SIZE=2>separated by several seconds over a total time span of</FONT>
-<BR><FONT SIZE=2>about 20 seconds.</FONT>
-</P>
+<len.brown@intel.com> (04/02/10 1.1500.36.2)
+   [ACPI] NUMA build fix -- NR_MEMBLKS is now NR_NODE_MEMBLKS
 
-<P><FONT SIZE=2>A_solution: I interrupt boot up at the Grub splash screen.</FONT>
-<BR><FONT SIZE=2>Wait 30 seconds or longer then continue to boot.&nbsp; I don't get</FONT>
-<BR><FONT SIZE=2>the above messages.</FONT>
-</P>
+<mbligh@aracnet.com> (04/02/10 1.1603.11.1)
+   [PATCH] NUMA build fix
+   drivers/acpi/numa.c is IA64 only for now -- enforce it.
+   (and arch/i386/kernel/srat.c is i386 only for now)
 
-<P><FONT SIZE=2>Fix: My one voice (emails to Uniwill) fall on dead ears.</FONT>
-</P>
-
-<P><FONT SIZE=2>Questions:</FONT>
-<BR><FONT SIZE=2>Is this information useful to any on this list?</FONT>
-</P>
-
-<P><FONT SIZE=2>Is Uniwill simply ignoring my email?&nbsp; In other words</FONT>
-<BR><FONT SIZE=2>can Uniwill really &quot;fix&quot; this with a new BIOS release?</FONT>
-</P>
-
-<P><FONT SIZE=2>Does this mean kernel params such as apm=on and acpi=off</FONT>
-<BR><FONT SIZE=2>are useless since obviously ACPI is already doing something</FONT>
-<BR><FONT SIZE=2>even before the kernel is selected on the grub splash screen?</FONT>
-</P>
-
-</BODY>
-</HTML>
-------_=_NextPart_001_01C3F254.D164CD7C--
-
-
--------------------------------------------------------
-SF.Net is sponsored by: Speed Start Your Linux Apps Now.
-Build and deploy apps & Web services for Linux with
-a free DVD software kit from IBM. Click Now!
-http://ads.osdn.com/?ad_id=1356&alloc_id=3438&op=click
+<len.brown@intel.com> (04/02/07 1.1493.1.17)
+   [ACPI] nforce2 timer lockup from Maciej W. Rozycki
