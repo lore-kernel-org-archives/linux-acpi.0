@@ -1,14 +1,18 @@
-From: "Randy.Dunlap" <rddunlap-3NddpPZAyC0@public.gmane.org>
-Subject: Re: Tablet PC + 2.4.18 + acpi 20020726 + swsup11 working !
-Date: Tue, 6 Aug 2002 07:38:51 -0700 (PDT)
+From: Kevin Fenzi <kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Re: Compaq Presario 2800T
+Date: Tue, 6 Aug 2002 09:29:38 -0600
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.33L2.0208060734290.10089-100000@dragon.pdx.osdl.net>
-References: <3D4FDE0B.4020600@symplon.com>
+Message-ID: <20020806152942.22987.qmail@scrye.com>
+References: <200208010551.BAA23125@biohazard-cafe.mit.edu>
+	<20020803220614.21895.qmail@scrye.com>
+	<1028528792.7332.14.camel@anodyne.mandal>
+	<20020805150428.10039.qmail@scrye.com>
+	<1028614416.4553.3.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3D4FDE0B.4020600-y2s3ugBAdl9BDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1028614416.4553.3.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,64 +21,62 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: =?ISO-8859-1?Q?Robert_W=F6rle?= <robert.woerle-y2s3ugBAdl9BDgjK7y7TUQ@public.gmane.org>
-Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, =?ISO-8859-1?Q?J=F6rg_Sonnenberger?= <joerg.sonnenberger-S0/GAf8tV78@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Sourav K. Mandal" <smandal-DPNOqEs/LNQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 6 Aug 2002, Robert W=F6rle wrote:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-| Ducrot Bruno schrieb:
-|
-| >On Tue, Aug 06, 2002 at 03:28:27PM +0200, J=F6rg Sonnenberger wrote:
-| >
-| >
-| >>Am Dienstag, 6. August 2002 14:04 schrieb Robert W=F6rle:
-| >>
-| >>
-| >>>So what is this pci1 and pic2 thing ??? and why is it residing at my
-| >>>wanted IO ???
-| >>>
-| >>>
-| >>Let me guess: PIC =3D Programmable Interrupt Controller,
-| >>so I think you don't wanna mess with it! The interesting question is, w=
-hy is
-| >>your device in this range? This ports are reserved since the days of IB=
-M's
-| >>good old AT.
-| >>
-| >>
-| >>
-| >
-| >Well, not all those ports are used by the original 8259A.  And the PIC 2=
-, is
-| >'only' at range A0-AF, according to Ralf Brown list.  Linux extend it a =
-little,
-| >but I don't know why.
-| >
-| >
-| >
-| Tell me guys , what driver is this pic2 .. where can i found the
-| according **.c to have some try`S and modify it
-| so if it doesnt need these ports then i can use them for my purposes ...
+>>>>> "Sourav" == Sourav K Mandal <smandal-DPNOqEs/LNQ@public.gmane.org> writes:
 
-The IO space for PIC1 and PIC2 is reserved in
-linux/arch/i386/kernel/setup.c, around line 330 in 2.4.18/2.4.19,
-in the array standard_io_resources[].
-You might be able to make the granularity of that definition
-finer so that some of the IO addresses aren't reserved.
+Sourav> On Mon, 2002-08-05 at 11:04, Kevin Fenzi wrote:
+>> it stores and restores them ok, but I cant change them once linux
+>> is up and running. LIke the buttons stop doing anything. ;(
 
-Regarding someone else's email about Linux using only addresses
-0xa0 and 0xa1 for PIC2:
-That's probably correct.  The PIC internal registers are addressed
-by ICWn and OCWn, which are dependent on the data values written.
-The other IO addresses that are reserved (like 0xa4-5, 0xa8-9,
-0xac-d, 0xb0-1, 0xb4-5, 0xb8-9, 0xbc-d) are ghosts (duplicates)
-of the base IO addresses (0xa0-0xa1), due to incomplete IO address
-line decoding.
+Sourav> Yeah, trying it out myself it seems like a DRI thing.  Try
+Sourav> turning off DRI in your XF86Config and see if it helps. You
+Sourav> might have to reboot ... DRI doesn't work when coming back
+Sourav> from suspend, and some things don't work once you run DRI.
+Sourav> For me, once I run DRI the backlight refuses to turn off on
+Sourav> lid close -- reboot fixes this.
 
---=20
-~Randy
+humm... interesting... 
 
+Sourav> If that doesn't work, try switching to a text console.
+
+buttons still don't work in a text console either. 
+I might try with no DRI after a bit... enjoying the stability for a
+few days. 
+
+For the backlight I rescovered: 
+
+http://fdd.com/software/radeon/
+
+Tool to turn on/off the backlight. I set it up in acpid to turn off
+the backlight when the lid closes and back on when the lid opens (as
+long as it doesn't get out of sync). 
+
+Sourav> I have yet to apply Charl's patch, and so I alternate between
+Sourav> DRI and no-DRI XF86Configs.  I don't know if the patch fixes
+Sourav> the backlight thing ...
+
+I am running that patched radeon, and I can't do anything with
+brightness or the external monitor. Might be something else in my
+setup tho. 
+
+Sourav> Sourav
+
+kevin
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.7 (GNU/Linux)
+Comment: Processed by Mailcrypt 3.5.6 and Gnu Privacy Guard <http://www.gnupg.org/>
+
+iD8DBQE9T+tl3imCezTjY0ERAuwOAJ9cHeybDYhG2N9zoDgZh1sbjzr1HACggW+1
+yQPEZCyXoNjxQ4+I5A3Wt/s=
+=wYcn
+-----END PGP SIGNATURE-----
 
 
 -------------------------------------------------------
