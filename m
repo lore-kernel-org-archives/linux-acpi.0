@@ -1,13 +1,23 @@
-From: "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ibm_acpi and docking
-Date: Tue, 18 Jan 2005 17:27:12 +0800
-Message-ID: <16A54BF5D6E14E4D916CE26C9AD305750105FE84@pdsmsx402.ccr.corp.intel.com>
+From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
+Subject: Re: first shoot for smartbattery
+Date: Tue, 18 Jan 2005 10:49:07 +0100
+Message-ID: <m2brbnxe24.fsf@phoenix.squirrel.nl>
+References: <20041231092156.GA612@phys.ethz.ch>
+	<m2acrth375.fsf@phoenix.squirrel.nl>
+	<20050103143902.GQ19199@poupinou.org>
+	<41D97AF3.7000409@arrakis.dhis.org>
+	<41D98251.9020002@arrakis.dhis.org>
+	<20050103180219.GX19199@poupinou.org>
+	<41D9A1F5.1060508@arrakis.dhis.org>
+	<m2mzvq5k7u.fsf@phoenix.squirrel.nl>
+	<47e0449d05011304446094c8b@mail.gmail.com>
+	<m2fz11gl3c.fsf@phoenix.squirrel.nl>
+	<47e0449d050117114113973694@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <47e0449d050117114113973694-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org> (Johannes
+ Kuhlmann's message of "Mon, 17 Jan 2005 20:41:48 +0100")
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,35 +27,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Paul Ionescu <i_p_a_u_l-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>, Borislav Deianov <borislav-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: "Shah, Rajesh" <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
->Do you plan to extend a little bit your docking
->capability in acpi-php ( R50p with dock) ?
->I would be happy to help with testing and debugging
->output.
->What I am interested in, is proper docking support
->when booted in dock and ACPI had the chance to see all
->devices.
->For now I understood that we cannot provide hot
->insertion of devices because of ACPIPNP does not
->support it yet.
-ACPIPNP originally supports hotplug, but we removed the capability. The
-reason is this will cause conflict because some drivers directly use
-ACPI. After fixing such drivers, we will reintroduce the capability.
+Johannes Kuhlmann <jkuhlmann-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> writes:
 
-acpiphp can't handle PCI bridge hotplug is another reason. I did some
-investigation on how to make docking station work in my T40 before, and
-actually made all PCI devices work with a hack. But I'm doing
-suspend/resume, so the work is suspended now.
+> It works really well. :) How did you know how to speak to the LED?
 
->But if we had seen them at boot time, maybe it is
->easyer to deal with.
-No, acpiphp and ACPIPNP also can't support hot remove.
+I've studied some other code (like acerhk[1] and acertm[2]) and
+carefully cut/pasted pieces of code :-).
 
-Thanks,
-Shaohua
+-- Johan
+
+[1] http://www.informatik.hu-berlin.de/~tauber/acerhk/
+[2] http://www.math.columbia.edu/~jensen/linux/acertm/
 
 
 -------------------------------------------------------
