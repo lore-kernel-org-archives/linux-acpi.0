@@ -1,46 +1,34 @@
-From: "Mara Snyder" <m_snyderaz-R+6tFBf6Bx9n57vcNwVNVA@public.gmane.org>
-Subject: Get vìagra for a great price.
-Date: Tue, 19 Oct 2004 22:30:11 -0500
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <845e01c4b655$603622dd$c79ab88c@math.utoronto.ca>
+From: Dmitry Torokhov <dtor_core@ameritech.net>
+Subject: Re: [ACPI] RE: PATCH/RFC: driver model/pmcore wakeup hooks (1/4)
+Date: Tue, 19 Oct 2004 22:51:13 -0500
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <200410192251.14740.dtor_core@ameritech.net>
+References: <16A54BF5D6E14E4D916CE26C9AD3057559A042@pdsmsx402.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S268346AbUJTEdF@vger.kernel.org>
+In-Reply-To: <16A54BF5D6E14E4D916CE26C9AD3057559A042@pdsmsx402.ccr.corp.intel.com>
+Content-Disposition: inline
+To: acpi-devel@lists.sourceforge.net
+Cc: "Li, Shaohua" <shaohua.li@intel.com>, David Brownell <david-b@pacbell.net>, "Brown, Len" <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+On Tuesday 19 October 2004 04:11 am, Li, Shaohua wrote:
+> A final solution is device core adds an ACPI layer. That is we can link
+> ACPI device and physical device. This way, the PCI device can know which
+> ACPI is linked with it, so the PCI API can use specific ACPI method. 
+> You are right, we currently haven't a method to reach the goal. To match
+> a physical device and ACPI device, we need to know the ACPI device's
+> _ADR and bus.
+> I have a toy to link the PCI device and ACPI device, and some PCI
+> function can use _SxD method and _PSx method to get some information for
+> suspend/resume.
+> 
 
-We have a new offer for you. Buy cheap Vìagra through our online store.
-- Private online ordering 
-- No prescription required
-- World wide shipping
+The only caveat is that PCI core should not depend on ACPI because it is not
+available on all platforms, not all world is x86.
 
-Order your drugs offshore and save over 70%!
-
-Click here: http://koolrx.com/meds/
-
-Best regards,
-Donald Cunfingham
-
-
-
-No thanks: http://koolrx.com/rm.html
-
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: IT Product Guide on ITManagersJournal
-Use IT products in your business? Tell us what you think of them. Give us
-Your Opinions, Get Free ThinkGeek Gift Certificates! Click to find out more
-http://productguide.itmanagersjournal.com/guidepromo.tmpl
+-- 
+Dmitry
