@@ -1,13 +1,13 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: 2.6.9 battery status  regression ? [was RE: Battery status wrong from 2.6.7 when running on batteries]
-Date: Mon, 29 Nov 2004 16:23:51 +0800
-Message-ID: <3ACA40606221794F80A5670F0AF15F84041AC0C5@pdsmsx403>
+From: Gregor Pirnaver <gregor.pirnaver-P4JjCWVWlXs@public.gmane.org>
+Subject: Fixing DSDT (SOLOnote P1556P)
+Date: Mon, 29 Nov 2004 09:34:13 +0100
+Message-ID: <200411290934.13740.gregor.pirnaver@email.si>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: quoted-printable
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,81 +17,89 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>
-Cc: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Fu, Michael" <michael.fu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-If previous debug patch have positive effect, would you please try the =
-following one.
+Hello everyone (this is my first post to this list),
 
-diff -BruN 2.6/drivers/acpi/battery.c edit.stack/drivers/acpi/battery.c
---- 2.6/drivers/acpi/battery.c  2004-11-23 18:46:32.000000000 +0800
-+++ edit.stack/drivers/acpi/battery.c   2004-11-29 16:53:25.000000000 =
-+0800
-@@ -200,6 +200,7 @@
-        if (!battery || !bst)
-                return_VALUE(-EINVAL);
+I'm trying to fix DSDT for laptop SOLOnote P1556P, but I 
+don't know how I should define CPU0 and CPU0.CSTX to fix 
+compile errors I get.
 
-+       acpi_os_wait_events_complete(NULL);
-        /* Evalute _BST */
+Files:
 
-        status =3D acpi_evaluate_object(battery->handle, "_BST", NULL, =
-&buffer);
-diff -BruN 2.6/drivers/acpi/thermal.c edit.stack/drivers/acpi/thermal.c
---- 2.6/drivers/acpi/thermal.c  2004-11-23 18:46:50.000000000 +0800
-+++ edit.stack/drivers/acpi/thermal.c   2004-11-29 16:55:04.000000000 =
-+0800
-@@ -224,6 +224,8 @@
+Original DSDT:
+http://mandrakeprinas.org/prenos/SOLOnote_dsdt.dat.gz
+http://mandrakeprinas.org/prenos/SOLOnote_dsdt.dsl.gz
 
-        tz->last_temperature =3D tz->temperature;
+DSDT with two compile errors (hopefully correctly) fixed:
+http://mandrakeprinas.org/prenos/SOLOnote_dsdt_two_errors_fixed.dsl.gz
 
-+       acpi_os_wait_events_complete(NULL);
-+
-        status =3D acpi_evaluate_integer(tz->handle, "_TMP", NULL, =
-&tz->temperature);
-        if (ACPI_FAILURE(status))
-                return_VALUE(-ENODEV);=20
 
-Thanks
-Luming=20
+And the error I don't know how to fix:
 
->-----Original Message-----
->From: Yu, Luming=20
->Sent: 2004=C4=EA11=D4=C229=C8=D5 15:09
->To: 'Fred Labrosse'
->Cc: Karol Kozimor; hgfelger-9nAOAgdJVo4b1SvskN2V4Q@public.gmane.org;=20
->acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; Brown, Len; Fu, Michael
->Subject: RE: 2.6.9 battery status regression ? [was RE: [ACPI]=20
->Battery status wrong from 2.6.7 when running on batteries]
->
->>Bug 3678 is about wrong battery and temperature (and maybe=20
->>others) status
->>reported soon after running on batteries, but never when=20
->running on AC.
->>The problem remains after plugging back the AC.  THIS IS A=20
->>REGRESSION OF
->>2.6.7.
->
->Hi Fred,
->
->  Since the execution for battery and temperature are scheduled through
->workqueue of kacpid. I guess, this issue is just due to some=20
->defered task
->haven't been executed , when you are observing them.
->
->Anyway, please try to revert the enclosed patch to verfy it is=20
->a regression of 2.6.7.
->
->Please note, I extracted it from patch-2.6.7 from=20
->www.kernel.org. If it doesn't
->compile, please look for the missed snippets there.
->
->
->Thanks,
->Luming
->
->
->
+$ ./iasl -tc SOLOnote_dsdt_two_errors_fixed.dsl
+
+Intel ACPI Component Architecture
+ASL Optimizing Compiler / AML Disassembler version 20041105 
+[Nov 28 2004]
+Copyright (C) 2000 - 2004 Intel Corporation
+Supports ACPI Specification Revision 2.0c
+
+SOLOnote_dsdt_two_errors_fixed.dsl   305:                 
+\_PR.CPU0
+Error    1022 -                             Object does not 
+exist ^  (\_PR.CPU0)
+
+SOLOnote_dsdt_two_errors_fixed.dsl   384:                 
+\_PR.CPU0
+Error    1022 -                             Object does not 
+exist ^  (\_PR.CPU0)
+
+SOLOnote_dsdt_two_errors_fixed.dsl  2652:                         
+Notify (\_PR.CPU0, 0x80)
+Error    1022 -                                             
+Object does not exist ^  (\_PR.CPU0)
+
+SOLOnote_dsdt_two_errors_fixed.dsl  2653:                         
+Notify (\_PR.CPU0, 0x81)
+Error    1022 -                                             
+Object does not exist ^  (\_PR.CPU0)
+
+SOLOnote_dsdt_two_errors_fixed.dsl  2663:                         
+Notify (\_PR.CPU0, 0x80)
+Error    1022 -                                             
+Object does not exist ^  (\_PR.CPU0)
+
+SOLOnote_dsdt_two_errors_fixed.dsl  2668:                         
+Store (0x55, \_PR.CPU0.CSTX)
+Error    1022 -                                                       
+Object does not exist ^  (\_PR.CPU0.CSTX)
+
+SOLOnote_dsdt_two_errors_fixed.dsl  2669:                         
+Notify (\_PR.CPU0, 0x81)
+Error    1022 -                                             
+Object does not exist ^  (\_PR.CPU0)
+
+SOLOnote_dsdt_two_errors_fixed.dsl  2674:                         
+Store (0x00, \_PR.CPU0.CSTX)
+Error    1022 -                                                       
+Object does not exist ^  (\_PR.CPU0.CSTX)
+
+SOLOnote_dsdt_two_errors_fixed.dsl  2675:                         
+Notify (\_PR.CPU0, 0x81)
+Error    1022 -                                             
+Object does not exist ^  (\_PR.CPU0)
+
+ASL Input:  SOLOnote_dsdt_two_errors_fixed.dsl - 4314 lines, 
+149203 bytes, 2044 keywords
+Compilation complete. 9 Errors, 0 Warnings, 0 Remarks, 387 
+Optimizations
+
+
+-- 
+Uporabnik Mandrake Linuxa
+http://MandrakePriNas.org/
 
 
 -------------------------------------------------------
