@@ -1,59 +1,54 @@
-From: Keiichiro Tokunaga <tokunaga.keiich@jp.fujitsu.com>
-Subject: Re: [ACPI] PATCH-ACPI based CPU hotplug[3/6]-Mapping lsapic to cpu
-Date: Wed, 22 Sep 2004 11:10:56 +0900
+From: Dmitry Torokhov <dtor_core@ameritech.net>
+Subject: Re: [ACPI] PATCH-ACPI based CPU hotplug[2/6]-ACPI Eject interface support
+Date: Tue, 21 Sep 2004 22:10:07 -0500
 Sender: linux-ia64-owner@vger.kernel.org
-Message-ID: <20040922111056.3360443c.tokunaga.keiich@jp.fujitsu.com>
-References: <20040920092520.A14208@unix-os.sc.intel.com>
- <20040920093819.E14208@unix-os.sc.intel.com>
+Message-ID: <200409212210.07580.dtor_core@ameritech.net>
+References: <20040920092520.A14208@unix-os.sc.intel.com> <200409210051.36251.dtor_core@ameritech.net> <20040921145150.A27211@unix-os.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-ia64-owner@vger.kernel.org>
-In-reply-to: <20040920093819.E14208@unix-os.sc.intel.com>
-To: Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
-Cc: tokunaga.keiich@jp.fujitsu.com, len.brown@intel.com, acpi-devel@lists.sourceforge.net, lhns-devel@lists.sourceforge.net, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20040921145150.A27211@unix-os.sc.intel.com>
+Content-Disposition: inline
+To: acpi-devel@lists.sourceforge.net, Keshavamurthy Anil S <anil.s.keshavamurthy@intel.com>
+Cc: "Brown, Len" <len.brown@intel.com>, LHNS list <lhns-devel@lists.sourceforge.net>, Linux IA64 <linux-ia64@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 20 Sep 2004 09:38:19 -0700 Keshavamurthy Anil S wrote:
-> ---
-> Name:acpi_hotplug_arch.patch
-> Status: Tested on 2.6.9-rc2
-> Signed-off-by: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-> Depends:	
-> Version: applies on 2.6.9-rc2	
-> Description: 
-> This patch provides the architecture specifice support for mapping lsapic to cpu array.
-> Currently this supports just IA64. Support for IA32 and x86_64 is in progress
-> ---
+On Tuesday 21 September 2004 04:51 pm, Keshavamurthy Anil S wrote:
+> On Tue, Sep 21, 2004 at 12:51:36AM -0500, Dmitry Torokhov wrote:
+> > On Monday 20 September 2004 08:38 pm, Keshavamurthy Anil S wrote:
+> > > Currently I am handling both the surprise removal and the eject request in the same
+> > > way, i,e send the notification to the userland and the usermode agent scripts
+> > > is responsible for offlining of all the devices and then echoing onto eject file.
+> > > 
+> > 
+> > I actually think that on the highest level we should treat controlled and
+> > surprise ejects differently. With controlled ejects the system (kernel +
+> > userspace) can abort the sequence if something goes wrong while with surprise
+> > eject the device is physically gone. Even if driver refuses to detach or we
+> > have partition still mounted or something else if physical device is gone we
+> > don't have any choice except for trimming the tree and doing whatever we need
+> > to do.
+> 
+> I agree, but when dealing with devices like CPU and Memory, not sure how the
+> rest of the Operating System handles surprise removal. For now I will go ahead and
+> add a PRINTK saying that BUS_CHECK(surprise removal request) was received in the 
+> ACPI Processor and in the container driver, and when we hit that printk on a 
+> real hardware, I believe it would be the right time then to see how the OS behaves 
+> and do the right code then. For Now I will just go ahead and add a PRINTK.
+>
 
-Here is a small fix.
+Heh, I really don't expect the kernel to survive if somebody just yanks out a
+CPU without a warning, especially if the CPU is the last one :) I hand in mind
+devices like my port replicator that only has an additional network card and
+could survive surprise removal.
 
-Thanks,
-Keiichiro Tokunaga
+> Let me know if this step by step approach is okay to you.
 
+It sure is, we can always adjust the process down the road.
 
-Name: pxm_to_nid_map_fix.patch
-Status: Tested on 2.6.9-rc2
-Signed-off-by: Keiichiro Tokunaga <tokunaga.keiich@jp.fujitsu.com>
-Description:
-Change an attribute of pxm_to_nid_map[] from __initdata to __devinitdata.
+Thank you for your work!
 
----
-
- linux-2.6.9-rc2-fix-kei/include/asm-ia64/acpi.h |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
-
-diff -puN include/asm-ia64/acpi.h~pxm_to_nid_map_fix include/asm-ia64/acpi.h
---- linux-2.6.9-rc2-fix/include/asm-ia64/acpi.h~pxm_to_nid_map_fix	2004-09-22 09:30:17.692176696 +0900
-+++ linux-2.6.9-rc2-fix-kei/include/asm-ia64/acpi.h	2004-09-22 09:30:17.694129834 +0900
-@@ -101,7 +101,7 @@ int acpi_gsi_to_irq (u32 gsi, unsigned i
- #ifdef CONFIG_ACPI_NUMA
- /* Proximity bitmap length; _PXM is at most 255 (8 bit)*/
- #define MAX_PXM_DOMAINS (256)
--extern int __initdata pxm_to_nid_map[MAX_PXM_DOMAINS];
-+extern int __devinitdata pxm_to_nid_map[MAX_PXM_DOMAINS];
- extern int __initdata nid_to_pxm_map[MAX_NUMNODES];
- #endif
- 
-
-_
+-- 
+Dmitry
