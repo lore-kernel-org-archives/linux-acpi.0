@@ -1,46 +1,37 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: kacpid respawning under linux-2.4.20 on Toshiba Satell
-	ite 5105
-Date: Fri, 3 Jan 2003 10:46:57 -0800
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A847137F1D@orsmsx401.jf.intel.com>
+Subject: RE: [ACPI] acpi_os_queue_for_execution()
+Date: Fri, 3 Jan 2003 11:00:04 -0800
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <F760B14C9561B941B89469F59BA3A84725A107@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+	charset="ISO-8859-1"
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 content-class: urn:content-classes:message
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ken Hughes <khughes-kam3zbT8ll8@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Ken Hughes [mailto:khughes-kam3zbT8ll8@public.gmane.org] 
-> I have a Toshiba Satellite 5105-S501 and have problems with the latest
-> patches for the 2.4.20 kernel.  Under 2.4.19 things work ok, but with
-> the 2.4.20 patches I get kacpidpc respawning continuously.  My load
-> average sits around 1 with the kacpidpc thread always showing up
-> as a zombie process. It also seems that this forces the CPU fan to
-> run continuously.  I'm trying to build a 2.4.20-pre kernel (with
-> little luck) to see at what point this change occurs.
+> From: Pavel Machek [mailto:pavel-+ZI9xUNit7I@public.gmane.org] 
+> Acpi seems to create short-lived kernel threads, and I don't quite
+> understand why. 
 > 
-> Can anyone give me some pointers where to look next in the 2.4.20
-> sources?
+> In thermal.c
+> 
+> 
+>                         tz->timer.data = (unsigned long) tz;
+>                         tz->timer.function = acpi_thermal_run;
+>                         tz->timer.expires = jiffies + (HZ * 
+> sleep_time) / 1000;
+>                         add_timer(&(tz->timer));
+> 
+> and acpi_thermal_run creates kernel therad that runs
+> acpi_thermal_check. Why is not acpi_thermal_check called directly? I
+> don't like idea of thread being created every time thermal zone needs
+> to be polled...
 
-I would guess if you looked at /proc/interrupts you would also see
-continuous ACPI interrupts as well. Is this the case?
-
-I would start tracing what is going on from acpi_ev_sci_handler().
+Are we allowed to block in a timer callback? One of the things
+thermal_check does is call a control method, which in turn can be very
+slow, sleep, etc., so I'd guess that's why the code tries to execute
+things in its own thread.
 
 Regards -- Andy
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
