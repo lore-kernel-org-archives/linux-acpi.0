@@ -1,33 +1,50 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: Re: [patch 05/12] acpi: sleep-while-atomic during S3 resume from
- ram
-Date: Thu, 24 Feb 2005 23:38:15 -0800
-Message-ID: <20050224233815.3c9a4908.akpm@osdl.org>
-References: <200502230953.j1N9rFj1020702@shell0.pdx.osdl.net>
-	<200502250832.46209.linux-kernel@borntraeger.net>
+From: Thomas Renninger <trenn-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: ACPI thermal event causes brief freeze
+Date: Fri, 25 Feb 2005 11:34:25 +0100
+Message-ID: <421EFF31.9060002@suse.de>
+References: <421E6D6C.2090906@colitti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <200502250832.46209.linux-kernel@borntraeger.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christian Borntraeger <linux-kernel@borntraeger.net>
-Cc: linux-kernel@vger.kernel.org, len.brown@intel.com, acpi-devel@lists.sourceforge.net
+In-Reply-To: <421E6D6C.2090906-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Lorenzo Colitti <lorenzo-Z4WAQ3j+MphBDgjK7y7TUQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Christian Borntraeger <linux-kernel@borntraeger.net> wrote:
->
-> akpm@osdl.org wrote:
-> > From: Christian Borntraeger <linux-kernel@borntraeger.net>
-> >
-> > During the wakeup from suspend-to-ram I get several warnings.
-> >
-> > Signed-off-by: Christian Borntraeger <linux-kernel@borntraeger.net>
-> > Signed-off-by: Andrew Morton <akpm@osdl.org>
+Lorenzo Colitti wrote:
+> Hi,
 > 
-> Andrew,
-> 
-> Len told me that he is going to solve the issue in a different and better 
-> way.
+> since I upgraded to kernel 2.6.11-rc4, every time there is a thermal 
+> event my machine (HP/compaq NC6000) freezes for about 1 second. Audio 
+> stutters and pretty much everything, including the mouse pointer, stops 
+> dead for a bit.
 
-OK, well I'll retain the patch until the problem is fixed anyway - it's my
-lame-o bug tracking system.
+Have you enabled ACPI_DEBUG?
+If yes, try again without.
+
+> 
+> This did not happen with a similarly configured vanilla 2.6.9 kernel.
+
+ACPI_DEBUG is incredibly slow since 2.6.11-rc2-bk10.
+> 
+> It's pretty irritating. Is there anything I can do to debug this?
+
+You probably solve this by not debugging :)
+
+       Thomas
+
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
