@@ -1,44 +1,36 @@
-From: "Nakajima, Jun" <jun.nakajima-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Status of patches: es7000 & picmode
-Date: Mon, 15 Sep 2003 16:49:05 -0700
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <7F740D512C7C1046AB53446D3720017304AF5B@scsmsx402.sc.intel.com>
+From: Lu Tong <ltong-r3+FECOBLOPAaqN1iTbosg@public.gmane.org>
+Subject: Re: IBM success ... but partial
+Date: Tue, 16 Sep 2003 00:53:41 -0400
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20030916045341.GA15224@dao.cs.ohiou.edu>
+References: <200309152119.21050.hrvoje.habjanic@zg.htnet.hr>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-content-class: urn:content-classes:message
-To: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi <linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <200309152119.21050.hrvoje.habjanic-+VD6v/bdhRf0NTdHYsHBKg@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: Hrvoje Habjanic <hrvoje.habjanic-+VD6v/bdhRf0NTdHYsHBKg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Len is traveling today, and he should be available soon. 
-
-We wanted to test it a bit first because of the large changes to how
-IRQs were set up. Looks like we haven't heard complaints about it?
-
-I thought your changes for es7000 were applicable only to 2.6. Is that
-correct?
-
-Thanks,
-Jun
-> -----Original Message-----
-> From: Andrew de Quincey [mailto:adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org]
-> Sent: Monday, September 15, 2003 4:02 PM
-> To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org; linux-acpi
-> Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Status of patches: es7000 & picmode
+On Mon, Sep 15, 2003 at 09:19:21PM +0200, Hrvoje Habjanic wrote:
 > 
-> Just checking up so things don't get lost... what is the status of my
-> es7000
-> patch and my picmode patch?
-> 
-> Neither of them is in the acpi test trees at
-http://linux-acpi.bkbits.com/.
+> AND FAN IS NOT DETECTED???
 
--
-To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-Please read the FAQ at  http://www.tux.org/lkml/
+acpi doesn't detect anything, it merely lists/controls stuff found in its tables. Fan is not listed in the DSDT table of IBM bios.
+
+--ltong
+
+
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
