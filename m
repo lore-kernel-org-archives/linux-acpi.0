@@ -1,13 +1,11 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Re: Error in dsdt from asus a3527nuh
-Date: Tue, 09 Nov 2004 12:49:44 -0800
-Message-ID: <41912D68.8040609@root.org>
-References: <200411092131.27258.valerio@bgweb.it>
+From: dev_zero <dev_xor-eZNTXLQAfP4@public.gmane.org>
+Subject: Buggy DSDT tables
+Date: Tue, 9 Nov 2004 21:52:07 +0100 (CET)
+Message-ID: <20041109205207.47476.qmail@web25308.mail.ukl.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200411092131.27258.valerio-3NZjWNnCfY8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,45 +15,23 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Valerio Felici <valerio-3NZjWNnCfY8@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Valerio Felici wrote:
-> Sorry in advance if this is the wrong ml for my question, or if this one is 
-> bad formed.
-> 
-> I've a new asus a3527nuh. I've decompiled my dsdt and trying to compile it 
-> with iasl I can observe there is an error, it seems a stupid error, but I'm 
-> not able to solve it.
-> 
-> So I've decide to post it here in attachment (tar-gzipped) so someone can, 
-> perhaps, debug it better than me.
-> 
-> Notebook is ASUS A3N family
-> Bios is 0205 version
-> 
-> Iasl Report:
-> -----
-> # iasl -tc dsdt.dsl
-> 
-> Intel ACPI Component Architecture
-> ASL Optimizing Compiler / AML Disassembler version 20040527 [May 27 2004]
-> Copyright (C) 2000 - 2004 Intel Corporation
-> Supports ACPI Specification Revision 2.0c
-> 
-> dsdt.dsl  7818:     If (SS1)
-> Error    1037 -      ^ parse error
-> 
-> ASL Input:  dsdt.dsl - 7924 lines, 271634 bytes, 3603 keywords
-> Compilation complete. 1 Errors, 0 Warnings, 0 Remarks, 0 Optimizations
+I have noticed that there is many people out there who
+have problems with buggy DSDTs. Is it anyone who knows
+why the people that develop the BIOS or wherever the
+DSDT is, make those mistakes?
 
-I don't know if this is the same problem but I've noticed a lot of 
-systems with AML opcodes outside any method.  This is technically 
-illegal but iasl should still be able to handle it.
+Is this statement true??:
+"iASL vs. MS Compiler
+The iASL compiler will catch this problem (Access
+width of Field Unit extends beyond region limit) at
+compile time, as well as many, many others that the MS
+compiler does not.
 
--- 
-Nate
+Further, the iASL compiler will optimize the AML,
+shrinking the output anywhere from 5% to 20%."
 
 
 -------------------------------------------------------
