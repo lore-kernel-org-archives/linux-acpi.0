@@ -1,53 +1,62 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: Suggestion for improving the handling of GPE enabling.
-Date: Thu, 10 Mar 2005 13:30:33 +0000
-Message-ID: <1110461434.5918.202.camel@tyrosine>
-References: <1110318037.3663.19.camel@desktop.cunningham.myip.net.au>
-	 <1110331896.12642.16.camel@sli10-desk.sh.intel.com>
-	 <20050309222122.GA32516@elf.ucw.cz>  <1110431446.9336.60.camel@d845pe>
+From: Pavel Machek <pavel@suse.cz>
+Subject: Re: [ACPI] Re: Cause of Suspend2 resume failures on
+	Toshiba laptops
+Date: Sun, 6 Mar 2005 13:33:35 +0100
+Message-ID: <20050306123334.GN3485@openzaurus.ucw.cz>
+References: <20050304175058.GA4042@blackham.com.au>
+	<1110012298.6028.10.camel@DustPuppy.LNX.RO>
+	<20050305100254.GH4042@blackham.com.au>
+	<20050305175640.GL3485@openzaurus.ucw.cz>
+	<20050305203533.GI4042@blackham.com.au>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <1110431446.9336.60.camel@d845pe>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20050305203533.GI4042@blackham.com.au>
+List-Unsubscribe: <http://lists.suspend2.net/mailman/listinfo/suspend2-devel>,
+	<mailto:suspend2-devel-request@lists.suspend2.net?subject=unsubscribe>
+List-Archive: <http://lists.suspend2.net/lurker/list/suspend2-devel.html>
+List-Post: <mailto:suspend2-devel@lists.suspend2.net>
+List-Help: <mailto:suspend2-devel-request@lists.suspend2.net?subject=help>
+List-Subscribe: <http://lists.suspend2.net/mailman/listinfo/suspend2-devel>,
+	<mailto:suspend2-devel-request@lists.suspend2.net?subject=subscribe>
+Sender: suspend2-devel-bounces@lists.suspend2.net
+Errors-To: suspend2-devel-bounces@lists.suspend2.net
+To: Pavel Machek <pavel@suse.cz>, Dumitru Ciobarcianu <swsusp-devel@lnx.ro>, acpi-devel@lists.sourceforge.net, suspend2-devel@lists.suspend2.net
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2005-03-10 at 00:10 -0500, Len Brown wrote:
-> On Wed, 2005-03-09 at 17:21, Pavel Machek wrote:
-> 
-> > > 4. ACPI devices are in many different physical buses. If we just define
-> > > an ACPI bus, we possibly can't show the bus hierarchy.
-> > 
-> > Maybe ACPI device should be "under" real hardware one?
-> 
-> I suspect that the current sysfs device tree hierarchy is largely
-> fiction and that Linux would be better served by taking advantage of the
-> hierarchy embodied in the DSDT.
-> 
-> The "ACPI devices" such as power, sleep, lid as well as the battery are
-> represented at the root level in the DSDT.
+Hi!
 
-Are the ACPI HID names exposed to userspace yet? At the moment userspace
-tools need to try loading every ACPI module. If the HIDs were exported
-via sysfs and the ACPI drivers exported the devices they could bind to,
-we could use hotplug to autoload the correct drivers.
+> > Perhaps you should fix that, too? It is going to cause ugly
+> > perfrmance problems.
+> 
+> Yep, been looking into it, and I think I've got it. The GPE in
+> question is fired periodically, about every 5 seconds. It fires when
+> suspending but kacpid is stopped, so the GPE is simply disabled and
+> never serviced. However, the state of it being disabled is recorded
+> in the atomic copy.
+> 
+> Upon resume, after restoring the atomic copy, the code at the top of
+> acpi_ev_disable_gpe believes that the GPE is already disabled (as it
+> was when we suspended) even though it's not. Hardware state is out
+> of sync with what the kernel thinks and badness ensues. The culprit
+> difference between 2.6.8 and 2.6.9-rc1 is that 2.6.8 disabled the
+> GPE unconditionally, 2.6.9-rc1 checks against its last known state
+> which is incorrect upon resuming.
+> 
+> Removing the check resolves this issue (patch attached). Is this an
+> adequate fix?
+
+Does not removing of the check cause problems elsewhere? Bring it up
+on linix-acpi lists...
+
+Obvious solution would be to add suspend/resume routines to acpi,
+and properly set the flag during resume.
+
+> So, combining this patch with the previous kacpid NOFREEZE patch...
+> Does this make people happy? :) (And should it be submitted via Len
+> or akpm?)
+
+Len.
 
 -- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
-
-
-
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+64 bytes from 195.113.31.123: icmp_seq=28 ttl=51 time=448769.1 ms         
