@@ -1,63 +1,75 @@
-From: Gunter Ohrner <G.Ohrner-6V9naDJErT6662+jY7v6MhvVK+yQ3ZXh@public.gmane.org>
-Subject: Re: 13 hour latency on acpi-devl-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Date: Fri, 5 Sep 2003 23:42:57 +0200
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200309052343.13237@mail.CustomCDROM.de>
-References: <BF1FE1855350A0479097B3A0D2A80EE009FD18@hdsmsx402.hd.intel.com> <20030905225245.69eeedba.gigerstyle@gmx.ch> <20030905225736.57dc2223.gigerstyle@gmx.ch>
+From: Andrew de Quincey <adq_dvb-fmPXVN3awWJAJAzL26g0SA@public.gmane.org>
+Subject: Re: [ACPI] Re: [PATCH] Next round of ACPI IRQ fixes (VIA ACPI fixed)
+Date: Sat, 6 Sep 2003 00:16:15 +0100
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <200309060016.16545.adq_dvb@lidskialf.net>
+References: <200309051958.02818.adq_dvb@lidskialf.net> <3F59018E.5060604@pobox.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
+Content-Type: text/plain;
   charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030905225736.57dc2223.gigerstyle-OI3hZJvNYWs@public.gmane.org>
-Content-Description: clearsigned data
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <3F59018E.5060604-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>
 Content-Disposition: inline
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>
+Cc: torvalds-3NddpPZAyC0@public.gmane.org, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-acpi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-=2D----BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Friday 05 Sep 2003 10:35 pm, Jeff Garzik wrote:
+> Andrew de Quincey wrote:
+> > Hi, this is my next round of ACPI IRQ fixes. Attached are patches for
+> > linux-2.4.23-pre3 and linux-2.6.0-test4.
+> >
+> > Please CC me on any replies. I seem to be having issues with
+> > vger.kernel.org right now.
+> >
+> >
+> > This patch addresses the following issues:
+> >
+> > 1) ACPI now drops back to PIC mode if configuration in APIC mode fails.
+> >
+> > 2) Removed 2 lines of erroneous code in mpparse.c which causes IO-APICs
+> > to be misconfigured.
+> >
+> > 3) ACPI now supports PIC controllers properly.
+> >
+> > 4) This patch includes a patch by "Jun Nakajima" <jun.nakajima-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > which fixes ACPI IRQ routing for all VIA motherboards I have had tested
+> > so far. I've included it in this patch as it changes one of the same
+> > files.
+> >
+> > 5) Now retries with an extended IRQ descriptor if programming a link
+> > device with a "standard" IRQ descriptor fails.
+> >
+> > This has already been tested successfully by multiple people.
+>
+> Patch looks pretty good.  It is _very_ difficult to pick through, and
+> pick apart, though.
+>
+> Consider that one or more people reading your email (a) would want some
+> of these fixes but (b) already have some of these fixes.
+>
+> This is why we _really_ need you to split up your patches.  Multiple
+> split-up patches, one per email, is preferred.  Don't worry about
+> sending us too much email:  we like it like that.
 
-Am Freitag, 5. September 2003 22:57 schrieb Marc Giger:
-> It went 3 minutes;-)
+If/when I split it up, is it acceptable to number the patches to give the 
+order they have to be applied in? The major problem with these particular 
+fixes is that they all run over the same set of files, even the same 
+functions, so they all conflict with each other. 
 
-My university's mail relays filtered more than 93.000 Sobig.Fs out of passi=
-ng=20
-eMails over a period of 24 hours, the operators said. I really do not want =
-to=20
-know how the SF.net mail system suffers at the moment...
+> As an aside, I know at least part of the VIA irq routing stuff still 
+> needs fixing.  For some on-board VIA southbridge devices, irq routing is 
+> accomplished by writing the PCI_INTERRUPT_xxx values to PCI config 
+> registers of the target device; for others, the normal pirq PCI config 
+> registers on the southbridge are used.  Alan's new irq stuff in 2.4.x 
+> IMO should be merged into 2.6.x soonish, as Alan's work makes a big step 
+> towards making it possible to fix some of the harder-to-fix irq routing 
+> problems.
 
-Greetings,
+Is this still an issue when using ACPI? Surely it should insulate the OS from 
+this chipset-specific stuff? 
 
-  Gunter
-
-=2D --=20
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-+                   PGP-verschl=FCsselte Mails bevorzugt!                 +
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-"He says gods like to see an atheist around. Gives them something to aim=20
-at."
-        -- (Terry Pratchett, Small Gods)
-+-+-+-+-+-+-+-+-+-+-+-+-+ http://www.lspace.org +-+-+-+-+-+-+-+-+-+-+-+-+
-=2D----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-
-iD8DBQE/WQNw0ORHvREo8l8RAq0vAJ9kWXQME8PdrhHqDTyLdOg4lukUPACeKeXn
-0lj8TteoYj04hYSGJZBz8Bg=3D
-=3D2X11
-=2D----END PGP SIGNATURE-----
-
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
+I can see what you mean from the VT8235 docs if you were programming it 
+directly, but the ACPI code in all the VIA BIOSes I have analysed takes care 
+of this fine.
