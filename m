@@ -1,12 +1,12 @@
-From: Keld =?iso-8859-1?Q?J=F8rn?= Simonsen <keld-6PR53cSIHaE@public.gmane.org>
-Subject: problem with cpu eating too much power, prize given if solved
-Date: Thu, 24 Jun 2004 17:35:13 +0200
+From: "speretta" <speretta-hyy6G3kTdgRcgydyL9YGyw@public.gmane.org>
+Subject: Recebido seu e-mail agrade=?ISO-8859-1?Q?=E7o_a_aten=E7=E3o=2E_Em_breve_ser=E1?= respondido. Sugiro sua visita ao si
+Date: Thu, 24 Jun 2004 13:01:50 -0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040624153513.GB19545@rap.rap.dk>
+Message-ID: <10406241301.AA93066033@speretta.adv.br>
+Reply-To: <speretta-hyy6G3kTdgRcgydyL9YGyw@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,42 +18,7 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dear ACPI developers,
- 
-I have a problem with my Acer Travelmate 233.
- 
-Many times I just want to read the screen, eg emails or documents,
-and then still the cpu will be in idle mode, where
-it uses 7.5 W out of the about 15 W that the whole machine uses.
-I have found out from Intel data sheets that my
-Mobile Intel Celeron 2.0 GHz CPU consumes 7.5 W in idle loop/
-stop grant/sleep states, (and 5.0 W i deep sleep state).
- 
-So I would like to have the CPU stopped completely (consuming 0 W)
-while I still could read the screen. In that way I should
-be able to have about double the lifetime on the battery,
-going to about 7 hours from the 3.5 hours I have now.
- 
-I would like the machine to wake up again by any keystroke
-on the keyboard or mouse input. I would like the input to be
-reacted upon (not just used to wake up the system, and
-then forgotten).
- 
-I do not have the skills to program this myself, so
-instead I offer a prize of USD 1000 to the person(s) that
-can give me a patch for kernel 2.6 and appropiate documentation
-that can solve the above problem. The patch needs to be GPL,
-and demonstrably run on my laptop. I need the patch before
-2004-10-01, after what date the prize offer expires.
- 
-I would like that the patch was written in a general way to cover for
-CPUs that burn considerable power in idle loop and other states, so that
-other users can benefit from it. Also I would prefer that the patch be
-rolled into the normal ACPI kernel source tree, but the latter request
-is not a condition for the prize.
- 
-Best regards
-Keld
+Recebido seu e-mail agradeço a atenção. Em breve será respondido. Sugiro sua visita ao site htpp://www.speretta.adv.br e ao blog  - http://speretta.blog.uol.com.br. Tenha um ótimo dia e que esteja sempre com a PAZ de DEUS.
 
 
 -------------------------------------------------------
