@@ -1,17 +1,14 @@
-From: Srihari Vijayaraghavan <harisri-bzGI/hKkdgRBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: PROBLEM: Executing /sbin/hwclock hangs 2.4.21-rc[12] with
- ACPI snapshot patches
-Date: Wed, 21 May 2003 22:30:28 +1000
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Working around bugs in ACPI BIOS [was Re: DSDT in initrd]
+Date: Tue, 20 May 2003 16:01:01 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200305212230.28413.harisri@bigpond.com>
-References: <200305251014.23474.harisri@bigpond.com>
- <200305192236.53673.mflt1@micrologica.com.hk>
+Message-ID: <20030520140101.GR346@poupinou.org>
+References: <F760B14C9561B941B89469F59BA3A847E96EA0@orsmsx401.jf.intel.com> <20030518213405.GB452@elf.ucw.cz> <20030519151727.GK346@poupinou.org> <1053357286.28972.0.camel@dhcp22.swansea.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <200305192236.53673.mflt1-DTdK3Ks6N5kHTnRCetW4+N0b+6lKrnBL@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <1053357286.28972.0.camel-2MMpYkNvuYAXoXS6vNje7nviChZXdy279dF7HbQ/qKg@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -20,32 +17,34 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Michael Frank <mflt1-DTdK3Ks6N5kHTnRCetW4+N0b+6lKrnBL@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Randy.Dunlap" <rddunlap-3NddpPZAyC0@public.gmane.org>, mflt1-DTdK3Ks6N5kHTnRCetW4+N0b+6lKrnBL@public.gmane.org, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello Michael,
+On Mon, May 19, 2003 at 04:14:47PM +0100, Alan Cox wrote:
+> On Llu, 2003-05-19 at 16:17, Ducrot Bruno wrote:
+> > o relax operational region checking (not so trivial as it sound like,
+> >   and may be done at acpi init stage imho),
+> 
+> Done in current -ac
 
-On Tuesday 20 May 2003 00:36, Michael Frank wrote:
->...
-> To circumvent hang: boot with ACPI=off
->
-> First detected in acpi20030424 with ali153x implementation on a toshiba
-> libretto L2
->
-> May be related to ali southbridge in general.
+I know.  But it is not done like I described (at init stage, not
+interpreter run stage, and perform not only size check but access
+corrections in some trivial case).
 
-Thanks. Strange though as ACPI under 2.5 doesn't show/trigger this issue!
+> > others?
+> 
+> A please upgrade signature table so that vendors who have fixed bioses
+> have a way to let customers find this out without bitching at support
 
-> Temporary solution: Add --directisa to all hwclock calls in your scripts.
-> See man hwclock.  Common scripts to change: rc.sysinit and halt
+Yeah.
 
-Better yet, I got rid of "Enhanced Real Time Clock Driver Support" from the 
-2.4.21-rc2-acpi kernel, which fixes the kernel problem without altering 
-userland.
 
-Hari.
+-- 
+Ducrot Bruno
 
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
