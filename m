@@ -1,41 +1,65 @@
-From: Jan Rychter <jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org>
-Subject: acpi_processor_get_per: Unsupported address space
-Date: Sun, 20 Jul 2003 11:49:05 -0700
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <m2oezpghjy.fsf@tnuctip.rychter.com>
+From: Eric Valette <eric.valette-GANU6spQydw@public.gmane.org>
+Subject: [PATCH] Linux 2.6-pre-mm2 Fix crash on boot on ASUS L3800C if enabing
+ APIC => add this machine to DMI black list
+Date: Sun, 20 Jul 2003 21:48:24 +0200
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <3F1AF208.3030409@free.fr>
+References: <F760B14C9561B941B89469F59BA3A847E9702C@orsmsx401.jf.intel.com> <3F1A969C.6060606@free.fr>
+Reply-To: eric.valette-GANU6spQydw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: multipart/mixed;
+ boundary="------------080406060507070603090707"
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <3F1A969C.6060606-GANU6spQydw@public.gmane.org>
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org, akpm-3NddpPZAyC0@public.gmane.org, mikpe-gJWeRRR3xd2zQB+pC5nmwQ@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On a Toshiba Dynabook SS S7/290LNKW (Centrino-based), kernel 2.4.22-pre7
-(also tested with pre5).
+This is a multi-part message in MIME format.
+--------------080406060507070603090707
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 
-I am getting the following message at bootup:
+The following patch integrated in 2.5.74,
 
-acpi_processor-0899 [31] acpi_processor_get_per: Unsupported address space [127] (control_register)
-ACPI: Processor [CPU0] (supports C1 C2 C3)
-ACPI: Thermal Zone [THRM] (44 C)
+<http://lists.insecure.org/lists/linux-kernel/2003/Jun/5840.html>
 
-What does this mean? Does it indicate problems?
+really enables the APIC even if BIOS disabled it. Unfortunately, 
+enabling APIC really does not seem to work on this ASUS laptop and ACPI 
+(which is mandatory) crash the kernel in ACPI code at boot time while 
+"Executing all Devices _STA and_INIT methods"
 
-DSDT at http://jan.rychter.com/acpi/toshiba.ss7.dsdt
-bootup messages at http://jan.rychter.com/acpi/toshiba.dmesg
+Unless someones find a bug in ACPI code related to APIC management, It 
+is safer to add this machine in the DMI black list (along with DELL, 
+IBM, ...).
 
---J.
+So, as suggested by the author of the problematic change, I added and 
+entry in the DMI black list. But my guess is that most laptop will soon 
+be present in this list....
 
+-- eric
 
--------------------------------------------------------
-This SF.net email is sponsored by: VM Ware
-With VMware you can run multiple operating systems on a single machine.
-WITHOUT REBOOTING! Mix Linux / Windows / Novell virtual machines at the
-same time. Free trial click here: http://www.vmware.com/wl/offer/345/0
+--------------080406060507070603090707
+Content-Type: text/plain;
+ name="dmi_scan_black_list"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="dmi_scan_black_list"
+
+--- linux-2.6.0-test1/arch/i386/kernel/dmi_scan.c.orig	2003-07-20 17:09:10.000000000 +0200
++++ linux-2.6.0-test1/arch/i386/kernel/dmi_scan.c	2003-07-20 21:25:02.000000000 +0200
+@@ -706,6 +706,12 @@
+ 			NO_MATCH, NO_MATCH
+ 			} },
+ 
++	{ local_apic_kills_bios, "ASUS L3C", {
++			MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
++			MATCH(DMI_BOARD_NAME, "P4_L3C"),
++			NO_MATCH, NO_MATCH
++			} },
++
+ 	/* Problem Intel 440GX bioses */
+ 
+ 	{ broken_pirq, "SABR1 Bios", {			/* Bad $PIR */
+
+--------------080406060507070603090707--
