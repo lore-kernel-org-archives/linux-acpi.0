@@ -1,12 +1,14 @@
-From: viruswall-L29XT/lgd/8b1SvskN2V4Q@public.gmane.org
-Subject: Virus Alert
-Date: Wed, 07 Apr 2004 07:41:20 +0200
+From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [PATCH] x86_64 part of ACPI IRQ cleanup
+Date: Wed, 7 Apr 2004 12:24:02 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200404070541.i375fKh03486@monitor.w1.edelmann.de>
+Message-ID: <20040407122402.3a4cd7f6.ak@suse.de>
+References: <200404061508.10717.bjorn.helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <200404061508.10717.bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,10 +17,20 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-The mail message (file: message.scr) you sent to g.felkel-L29XT/lgd/8b1SvskN2V4Q@public.gmane.org contains a virus. (on monitor)
+On Tue, 6 Apr 2004 15:08:10 -0600
+Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org> wrote:
+
+> Here's the x86_64 part of the ACPI IRQ cleanup I proposed here:
+> 
+>     http://www.gelato.unsw.edu.au/linux-ia64/0403/8979.html
+
+Looks ok to me.
+
+-Andi
 
 
 -------------------------------------------------------
