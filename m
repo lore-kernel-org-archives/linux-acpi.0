@@ -1,11 +1,11 @@
-From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Subject: compile warning fix patch 2.4.26pre1
-Date: Sun, 29 Feb 2004 02:37:41 +0000
+From: Jan Rychter <jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org>
+Subject: Reading battery consumes a lot of CPU
+Date: Sat, 28 Feb 2004 11:35:14 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1078022260.25125.11.camel@darkstar>
-Reply-To: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
+Message-ID: <m27jy7f159.fsf@tnuctip.rychter.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-ByXoC2pqy2i+hoGLzi5U"
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,60 +15,44 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+--=-=-=
 
---=-ByXoC2pqy2i+hoGLzi5U
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
+I've reported this a number of times (using various hardware, in fact)
+over the last year or so. Thought I'd resend.
 
-Hi
-compiling 2.4.26-pre1 appears this:
+Reading the battery status seems to consume a disproportionate amount of
+CPU time, such that running battery applets (wmacpi, etc) becomes
+impractical. If I use them in their normal mode, the CPU rarely slows
+down for me using cpudynd.
 
-system.c: In function `acpi_power_off':
-system.c:98: warning: implicit declaration of function `acpi_system_save_st=
-ate'
-system.c: At top level:
-system.c:178: warning: type mismatch with previous implicit declaration
-system.c:98: warning: previous implicit declaration of `acpi_system_save_st=
-ate'
-system.c:178: warning: `acpi_system_save_state' was previously implicitly d=
-eclared to return `int'
-system.c: In function `acpi_power_off':
-system.c:98: warning: implicit declaration of function `acpi_system_save_st=
-ate'
-system.c: At top level:
-system.c:178: warning: type mismatch with previous implicit declaration
-system.c:98: warning: previous implicit declaration of `acpi_system_save_st=
-ate'
-system.c:178: warning: `acpi_system_save_state' was previously implicitly d=
-eclared to return `int'
+To give you an example, my wmacpi that updates the information every 30
+seconds (!) has consumed 8 minutes and 10 seconds of CPU time over the
+last 12 or so hours of laptop use.
 
-this could be resolved with this trivial patch=20
+jwr       6826  2.6  0.1  2668  436 ?        S    05:58   8:10 wmacpi
 
-Thanks
---=20
-S=E9rgio M. B.
+This makes it impractical to run battery monitors.
 
---=-ByXoC2pqy2i+hoGLzi5U
-Content-Disposition: attachment; filename=compilewarningfix.diff
-Content-Type: text/x-patch; name=compilewarningfix.diff; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+I'm using Linux-2.4.25 on a Sharp Mebius PC-MT2-H1 (and previously over
+the last year all kinds of kernels and patches on this laptop and on a
+Sharp Mebius PC-MT1-H5).
 
---- linux-2.4.25.new/drivers/acpi/system.orig	2004-02-29 02:21:44.000000000 +0000
-+++ linux-2.4.25.new/drivers/acpi/system.c	2004-02-29 02:22:12.000000000 +0000
-@@ -61,6 +61,7 @@
- static int acpi_system_remove (struct acpi_device *device, int type);
- 
- acpi_status acpi_suspend (u32 state);
-+acpi_status acpi_system_save_state (u32 state);
- 
- static struct acpi_driver acpi_system_driver = {
- 	.name =		ACPI_SYSTEM_DRIVER_NAME,
+--J.
 
---=-ByXoC2pqy2i+hoGLzi5U--
+--=-=-=
+Content-Type: application/pgp-signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2 (GNU/Linux)
+
+iD8DBQBAQO1zLth4/7/QhDoRArySAJ9CegRHl662jsagka3wC97KWxIPXQCg3Rjx
+RPBZ8SCsgJtBdfPp7NNP6bU=
+=i3u0
+-----END PGP SIGNATURE-----
+--=-=-=--
 
 
 -------------------------------------------------------
