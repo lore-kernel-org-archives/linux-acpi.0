@@ -1,16 +1,17 @@
-From: Shawn Starr <shawn.starr-bJEeYj9oJeDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [Ipw2100-devel] Re: [ipw2200]Confirmation of power management problem
-Date: Thu, 21 Oct 2004 16:50:07 -0400
+From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Machines self-power-up with 2.6.9-rc3 (evo N620c, ASUS,
+	...)
+Date: Fri, 22 Oct 2004 08:35:52 +0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200410211650.08013.shawn.starr@rogers.com>
-References: <200410101932.12431.shawn.starr@rogers.com> <20041018133530.GA17754@elf.ucw.cz>
+Message-ID: <1098405352.28250.2.camel@sli10-desk.sh.intel.com>
+References: <4176FCB8.3060103@root.org>
+	 <1098323602.6132.51.camel@sli10-desk.sh.intel.com>
+	 <20041021103729.GA1088@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041018133530.GA17754-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20041021103729.GA1088-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -19,36 +20,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ipw2100-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>, Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-It's been resolved by Len, his newest ACPI updates in 2.6.9-rc4+ fixed that 
-problem. ACPI was not shutting the device down, the only buzzing heard now is 
-when the laptop is in S3 mode, but I believe this to be normal since it needs 
-to resume w/o reloading the firmware. This does work upon resumption of 
-system.
-
-When I press power button, after the system has turned 'off', the CPU fan 
-shuts down and so does the ipw2200bg card.
-
-Hardware is all good :)
-
-Shawn.
-
-On October 18, 2004 09:35, Pavel Machek wrote:
+On Thu, 2004-10-21 at 18:37, Pavel Machek wrote:
 > Hi!
->
-> > I managed to install Windows XP and test the ipw2200 wireless card, when
-> > I shut down the system with Windows, ACPI turned off the ipw2200 card, In
-> > Linux, because ACPI does not work for the T42 thinkpad, the wifi card
-> > remains on even after holding the power button to cut power.
->
-> So you hold power button for four seconds and it does not turn the
-> ipw2200 off? Well, IBM has some broken hardware to fix if that is the
-> case.
->
->         Pavel
+> 
+> > > > :-). Well for some other people it powers up when they unplug AC
+> > > > power, and *that* is nasty. I'd like my machine to stay powered down
+> > > > when I tell it so.
+> > > 
+> > > This is likely a similar GPE problem.  The GPE for the EC fires even
+> > > in 
+> > > S5.  I think the EC GPE should be disabled in the suspend method.
+> > It could be the wakeup GPE issue, but must note Pavel's system suffer
+> > the problem even with acpi=off. Could you please try boot your system
+> > with acpi=off, and then reboot with acpi=off, what's the result? I
+> > expected the wakeup GPE is disabled by the BIOS in this case.
+> > Anyway, the DSDT can tell us the wakeup GPE info.
+> 
+> You want me to boot with acpi=off twice and see if machine powers down
+> okay in second case?
+Yes, indeed.
+> 
+> Compressed DSDT is attached.
+The dmesg shows your system can be waked up by Lid from S4 but not S5.
+But there is another device (looks like the LPC bridge) can wakeup your
+system from S5.
+
+Thanks,
+Shaohua
+
 
 
 -------------------------------------------------------
