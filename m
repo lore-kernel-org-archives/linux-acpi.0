@@ -1,15 +1,14 @@
-From: David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: List noise.
-Date: Tue, 27 Jan 2004 15:00:15 +0000
+From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+Subject: Re: [patch] remove null-ifiers
+Date: Tue, 27 Jan 2004 16:09:55 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1075215614.1633.108.camel@hades.cambridge.redhat.com>
-References: <1075213084.1633.95.camel@hades.cambridge.redhat.com>
-	 <20040127144159.GP29296@redhat.com>
+Message-ID: <20040127150954.GA12740@hell.org.pl>
+References: <E1AgkrW-00080w-00@jaguar.mkp.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-2
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040127144159.GP29296-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <E1AgkrW-00080w-00-uLT3q8aHQDsX9StFTm9pZA@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,29 +17,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Dave Jones <davej-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Jes Sorensen <jes-dtAfj9ClZIwnoBwkMbRkTB2eb7JE58TQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2004-01-27 at 14:41 +0000, Dave Jones wrote:
-> On Tue, Jan 27, 2004 at 02:18:05PM +0000, David Woodhouse wrote:
->  > All this noise on the list would be so easily avoided if the list wasn't
->  > accepting messages without a Message-ID, and wasn't accepting bounces.
->  > 
->  > It's not hard -- it'd take _moments_ to protect the list against this.
-> 
-> if you had control over the MTA, yes.
-> Sourceforget lists don't offer this power sadly.
+Thus wrote Jes Sorensen:
+> diff -urN -X /usr/people/jes/exclude-linux orig/linux-2.6.1-mm3-boot/drivers/acpi/asus_acpi.c linux-2.6.1-mm3/drivers/acpi/asus_acpi.c
+> --- orig/linux-2.6.1-mm3-boot/drivers/acpi/asus_acpi.c	Wed Dec 17 18:58:39 2003
+> +++ linux-2.6.1-mm3/drivers/acpi/asus_acpi.c	Wed Jan 14 05:00:01 2004
+> @@ -73,8 +73,8 @@
+>  MODULE_LICENSE("GPL");
+>  
+>  
+> -static uid_t asus_uid = 0;
+> -static gid_t asus_gid = 0;
+> +static uid_t asus_uid;
+> +static gid_t asus_gid;
+>  MODULE_PARM(asus_uid, "i");
+>  MODULE_PARM_DESC(uid, "UID for entries in /proc/acpi/asus.\n");
+>  MODULE_PARM(asus_gid, "i");
 
-Mailman lets you filter on certain headers though, and trap messages for
-moderation. Can't you do something like looking for a Message-ID
-matching ^$ ? 
+We certainly *don't* want to do that, last time I checked C did not
+actually guarantee to zero out uninitialized variables -- unless it's
+different in the kernelspace. Are you sure pointers are initialized as
+NULLs?
 
-Likewise Return-Path matching <>?
+Len, I'll prepare a 0.27 patch against bk, so you might want to wait for
+that instead of reverting the change.
+
+Best regards,
 
 -- 
-dwmw2
-
+Karol 'sziwan' Kozimor
+sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 
 
 -------------------------------------------------------
