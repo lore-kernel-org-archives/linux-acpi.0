@@ -1,11 +1,10 @@
-From: Stephen L Johnson <sjohnson-WpdXj7kV/NVg9hUCZPvPmw@public.gmane.org>
-Subject: ACPI troubles on a Sony Vaio R505ES
-Date: 07 Sep 2002 00:27:49 -0500
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Runlevel for Sleep?
+Date: Fri, 6 Sep 2002 23:20:56 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1031376469.1643.71.camel@rodan.monsters.org>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DE22@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -15,42 +14,25 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: 'Patrick Mochel' <mochel-3NddpPZAyC0@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: "'P. Christeas'" <p_christ-U04EIuiosng@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello all. I'm new to the list and to ACPI in general. I've recently
-bought a Sony Vaio R505ES laptop. I've got Linux running faily well on
-it. All of the hardware is working, but I've run into some problems with
-switching performance states and suspending.
+> From: Patrick Mochel [mailto:mochel-3NddpPZAyC0@public.gmane.org] 
+> [1] Once upon a time (last May), I implemented a patch that 
+> overloaded the
+> reboot(2) system call to initiate suspend transitions in a
+> platform-specific manner (as per Linus's suggestion). This is in the
+> resurrection queue and will probably resurface soon. 
 
-Using the latest ACPI code from the linux-2.4-acpi tree and linux
-2.5.33, I can switch the processor performance from P0 to P1. But I
-can't switch it from P1 to P0. I get a "Transition failed" error. I've
-tried various combinations of AC power/no AC power and throttling
-settings with no success.
+Hmm.
 
-And I suspend to S3, but I can't resume using the power button or any
-keys at all. I have to remove the battery in order to restore the
-system.
+Maybe it would be cleaner to give sleep its own system call.
 
-I've gone over the mailing list archives, read through the ACPI
-specifications,and poured over the kernel source until my brains are
-running out my ears and patched kernels 'til my fingers are numb. I
-haven't found any solutions to my problems. I don't know if my problem
-is with my BIOS, DSDT table, or kernel support isn't along fair enough.
+Having reboot(2) overloaded with suspend functionality is a little
+non-intuitive. Just a thought.
 
-So I now plead for some help or guidance. 
-
-Thanks in advance.
-
---
-Stephen L Johnson <sjohnson-WpdXj7kV/NVg9hUCZPvPmw@public.gmane.org>
-
-
-
-
-
-
+Regards -- Andy
 
 
 -------------------------------------------------------
