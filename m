@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Snore: BUG in ide-disk on suspend
-Date: Mon, 20 Jan 2003 19:38:50 +0100
+Subject: Re: [] Stop Snoring Today!
+Date: Mon, 20 Jan 2003 19:07:30 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030120183850.GB530@zaurus>
-References: <200301152234.26117.p_christ@hol.gr>
+Message-ID: <20030120180730.GA530@zaurus>
+References: <20030115115137.24674.qmail@bmarket.net> <200301151825.58092.p_christ@hol.gr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <200301152234.26117.p_christ-U04EIuiosng@public.gmane.org>
+In-Reply-To: <200301151825.58092.p_christ-U04EIuiosng@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,29 +18,22 @@ List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: "P. Christeas" <p_christ-U04EIuiosng@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Andre Hedrick <andre-QA/0nRrxPJrNLxjTenLetw@public.gmane.org>
+Cc: Stop Snoring! <snorerx-LIHR6/73J/BBDgjK7y7TUQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> drivers/ide/ide-disk.c: (around 1557)
->         printk(KERN_INFO "suspending: %s ", drive->name);
->         do_idedisk_standby(drive);
->         drive->blocked = 1;
+> > <spam>
+> >>...
+> > </spam>
 > 
-> 	BUG_ON (HWGROUP(drive)->handler);
-> 
-> AFAIK handler is set whenever an irq is being handled (correct me if I'm 
-> wrong). ide irqs are very often on the system and may happen between the 
-> actual call to 'ide_do_cmd' (called by do_idedisk_standby) and the 
-> "blocked=1" line. 
+> Yes, I know..
+> Sleep is still broken!
 
-blocked=1 is basically sanity check; not critical.
+Actually, deep sleep S4 should work these days (and
+without snooring :-)... If you diisable scsi (ide-scsi too)
+and use 2.5.59...
 
-Userland should not be alive at this point, so
-there should be noone to ask for work to do,
-and when there's no work, there should be no
-interrupts.
 -- 
 				Pavel
 Written on sharp zaurus, because my Velo1 broke. If you have Velo you don't need...
