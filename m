@@ -1,11 +1,11 @@
 From: Yaroslav Rastrigin <yarick-343whMTK1pU@public.gmane.org>
 Subject: ACPI (20030522, 20030619) breaks 3c59x in 2.4, 2.5
-Date: Tue, 24 Jun 2003 13:09:55 +0400
+Date: Tue, 24 Jun 2003 13:24:21 +0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3EF81563.9080409@relex.ru>
+Message-ID: <3EF818C5.6060301@relex.ru>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------090404030903010509040701"
+ boundary="------------020501010403060901070202"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -19,7 +19,7 @@ To: ACPI-Devel mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.
 List-Id: linux-acpi@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------090404030903010509040701
+--------------020501010403060901070202
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 
@@ -93,7 +93,7 @@ Or, at least, tell me where to start digging ?
 With all the best, yarick at relex dot ru
 
 
---------------090404030903010509040701
+--------------020501010403060901070202
 Content-Type: text/plain;
  name="3c59x-acpi=off"
 Content-Transfer-Encoding: 7bit
@@ -115,7 +115,7 @@ See Documentation/networking/vortex.txt
 00:03.0: scatter/gather enabled. h/w checksums enabled
 
 
---------------090404030903010509040701
+--------------020501010403060901070202
 Content-Type: text/plain;
  name="3c59x-pci=noacpi"
 Content-Transfer-Encoding: 7bit
@@ -138,7 +138,7 @@ Full duplex capable
 00:03.0: scatter/gather enabled. h/w checksums enabled
 
 
---------------090404030903010509040701--
+--------------020501010403060901070202--
 
 
 
