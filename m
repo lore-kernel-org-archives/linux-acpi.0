@@ -1,9 +1,9 @@
-From: Paulo Marques <pmarques-TSnNRl9vlf1Wk0Htik3J/w@public.gmane.org>
-Subject: New error in dmesg between 2.6.10-bk1 and 2.6.10-bk2
-Date: Thu, 24 Mar 2005 18:34:15 +0000
-Message-ID: <42430827.20803@grupopie.com>
+From: "Mario Ohnewald" <mario.Ohnewald-Mmb7MZpHnFY@public.gmane.org>
+Subject: Could not suspend device 0000:00:03.3: error -5
+Date: Thu, 24 Mar 2005 20:37:39 +0100 (MET)
+Message-ID: <15470.1111693059@www7.gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -17,34 +17,88 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hello List,
 
-Hi,
+i am running Debian testing with the kernel 2.6.8-2-686 and when i try to
+put my laptop into suspend to ram mode, i get this dmesg error:
 
-I have a machine that since 2.6.10-bk2 gives the following output in dmesg:
+PM: Preparing system for suspend
+Stopping tasks:
+=================================================================|
+NVRM: RmPowerManagement: 3
+Could not suspend device 0000:00:03.3: error -5
+NVRM: RmPowerManagement: 4
+Restarting tasks... done
+apm: BIOS version 1.2 Flags 0x03 (Driver version 1.16ac)
+apm: overridden by ACPI.
+eth0: Media Link On 100mbps full-duplex
 
-ACPI-1138: *** Error: Method execution failed [\MCTH] (Node c6dcee80), 
-AE_AML_BUFFER_LIMIT
-ACPI-1138: *** Error: Method execution failed [\_SB_.PCI0._INI] (Node 
-c10f9840), AE_AML_BUFFER_LIMIT
 
-Maybe because of this, after rebooting, the machine hangs before the 
-BIOS is able to load LILO.
 
-There are a lot of ACPI changes in this patchset, so it is hard to track 
-down the exact change that made this happen :(
+lspci:
+--------------------------
+0000:00:03.3 USB Controller: Silicon Integrated Systems [SiS] USB 2.0
+Controller (prog-if 20 [EHCI])
+        Subsystem: Mitac: Unknown device 8640
+        Flags: bus master, medium devsel, latency 128, IRQ 209
+        Memory at f4001000 (32-bit, non-prefetchable) [size=4K]
+        Capabilities: [50] Power Management version 2
 
-Do you think this is a bug in the DSDT that the kernel now doesn't 
-tolerate, or is this a bug introduced in 2.6.10-bk2?
 
-TIA,
 
-P.S. - please CC me in any replies as I'm not subscribed to this list
+This is my grub menu:
+title           Debian GNU/Linux, kernel 2.6.8-2-686
+root            (hd0,0)
+kernel          /boot/vmlinuz-2.6.8-2-686 root=/dev/hda1 ro
+initrd          /boot/initrd.img-2.6.8-2-686
+savedefault
+boot
+
+
+
+
+dmesg | grep -i apm
+---------------------------------------
+apm: BIOS version 1.2 Flags 0x03 (Driver version 1.16ac)
+apm: overridden by ACPI.
+
+SpiekLap:/home/spiekey# dmesg | grep -i acpi
+ACPI: PCI interrupt 0000:00:02.6[C] -> GSI 18 (level, low) -> IRQ 177
+ACPI: (supports S0 S3 S4 S5)
+ACPI: PCI interrupt 0000:00:09.0[A] -> GSI 17 (level, low) -> IRQ 169
+ACPI: PCI interrupt 0000:00:04.0[A] -> GSI 19 (level, low) -> IRQ 217
+ACPI: PCI interrupt 0000:00:02.7[C] -> GSI 18 (level, low) -> IRQ 177
+ACPI: PCI interrupt 0000:00:03.0[A] -> GSI 20 (level, low) -> IRQ 185
+ACPI: PCI interrupt 0000:00:03.1[B] -> GSI 21 (level, low) -> IRQ 193
+ACPI: PCI interrupt 0000:00:03.2[C] -> GSI 22 (level, low) -> IRQ 201
+shpchp: acpi_shpchprm:\_SB_.PCI0 evaluate _BBN fail=0x5
+shpchp: acpi_shpchprm:get_device PCI ROOT HID fail=0x5
+pciehp: acpi_pciehprm:\_SB_.PCI0 evaluate _BBN fail=0x5
+pciehp: acpi_pciehprm:get_device PCI ROOT HID fail=0x5
+ACPI: PCI interrupt 0000:00:02.3[B] -> GSI 17 (level, low) -> IRQ 169
+ACPI: PCI interrupt 0000:00:03.3[D] -> GSI 23 (level, low) -> IRQ 209
+ACPI: Battery Slot [BAT0] (battery present)
+ACPI: AC Adapter [AC] (on-line)
+ACPI: Processor [CPU0] (supports C1, 8 throttling states)
+ACPI: Power Button (FF) [PWRF]
+ACPI: Sleep Button (CM) [SBTN]
+ACPI: Lid Switch [LID]
+apm: overridden by ACPI.
+apm: overridden by ACPI.
+ACPI: PCI interrupt 0000:01:00.0[A] -> GSI 16 (level, low) -> IRQ 225
+apm: overridden by ACPI.
+ACPI: PCI interrupt 0000:01:00.0[A] -> GSI 16 (level, low) -> IRQ 225
+
+
+
+any idea how i could fix this?
+
+
+
+Thanks, Mario
 
 -- 
-Paulo Marques - www.grupopie.com
-
-All that is necessary for the triumph of evil is that good men do nothing.
-Edmund Burke (1729 - 1797)
+Sparen beginnt mit GMX DSL: http://www.gmx.net/de/go/dsl
 
 
 -------------------------------------------------------
