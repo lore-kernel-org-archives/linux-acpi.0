@@ -1,47 +1,61 @@
 From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Subject: Re: Kernel 2.5.62 & suspend
-Date: Tue, 18 Feb 2003 22:26:02 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030218212602.GA21974@atrey.karlin.mff.cuni.cz>
-References: <20030218200552.2bc40a4f.nils@kernelconcepts.de>
+Subject: Re: Fixes to suspend-to-RAM
+Date: Tue, 18 Feb 2003 22:43:43 +0100
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <20030218214343.GB21974@atrey.karlin.mff.cuni.cz>
+References: <20030218211741.GA1039@elf.ucw.cz> <Pine.LNX.4.33.0302181509070.1035-100000@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20030218200552.2bc40a4f.nils-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nils Faerber <nils-t93Ne7XHvje5bSeCtf/tX7NAH6kLmebB@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <Pine.LNX.4.33.0302181509070.1035-100000-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+To: Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>
+Cc: torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 
-> Just thought I'd let you know... Just tried latest 2.5.62 kernel (with
-> vanilla ACPI, no extra patches) and tried S3 or S4. Both of which panic
-> when trying to syspend device, more exactly when trying to suspend hda.
+> >  void __init acpi_reserve_bootmem(void)
+> >  {
+> >  	acpi_wakeup_address = (unsigned long)alloc_bootmem_low(PAGE_SIZE);
+> > +	if (!acpi_wakeup_address)
+> > +		printk(KERN_ERR "ACPI: Cannot allocate lowmem. S3 disabled.\n");
+> >  	if ((&wakeup_end - &wakeup_start) > PAGE_SIZE)
+> >  		printk(KERN_CRIT "ACPI: Wakeup code way too big, will crash on attempt to suspend\n");
+> > -	printk(KERN_DEBUG "ACPI: have wakeup address 0x%8.8lx\n", acpi_wakeup_address);
 > 
-> Is this known?
+> If you say you're disabling S3, then please really do so and flip the bit 
+> in the sleep_states[] array.
 
-Yes.
+Check the code, there's a conditional former in the file and S3 will
+correctly fail. I don't feel like flipping bits from here
+(arch-dep-code) in generic code.
 
-> Can it be fixed?
+> > --- clean/drivers/acpi/sleep/main.c	2003-02-15 18:51:17.000000000 +0100
+> > +++ linux/drivers/acpi/sleep/main.c	2003-02-15 18:57:27.000000000 +0100
+> > @@ -103,6 +103,10 @@
+> >  			return error;
+> >  		}
+> >  
+> > +		error = device_suspend(state, SUSPEND_DISABLE);
+> > +		if (error)
+> > +			panic("Sorry, devices really should know how to disable\n");
+> > +
+> 
+> Why is every error condition a panic()? That certainly does not add 
+> robustness to the code..
+> 
+> Also, you say that the APIC needs this state. I wonder if that should be
+> done in the SUSPEND_POWER_DOWN stage with interrupts disabled?
 
-Yes. But you have to fix it as it does not happen to me ;-).
+Good idea. So acpi_system_save_state can no longer be called with S5,
+right? That allows quite a lot of cleanup.
+
+Hmm, how do you propose error handling when SUSPEND_DISABLE fails?
+Call SUSPEND_ENABLE or not? Once that is decided  panic can go. But I
+still think that just should not happen.
 
 								Pavel
 -- 
 Casualities in World Trade Center: ~3k dead inside the building,
 cryptography in U.S.A. and free speech in Czech Republic.
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
