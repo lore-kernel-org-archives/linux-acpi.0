@@ -1,14 +1,14 @@
-From: Ow Mun Heng <Ow.Mun.Heng-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: /proc/acpi/info gone?
-Date: Mon, 06 Sep 2004 11:17:58 +0800
+From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Subject: Re: C3 on Travelmate 8000
+Date: Sun, 05 Sep 2004 20:35:09 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1094313867.13825.0.camel@neuromancer.home.net>
-References: <20040831140118.GB11192@gamma.logic.tuwien.ac.at>
+Message-ID: <413BDAED.5000601@root.org>
+References: <413AA9B1.3040001@nwn.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20040831140118.GB11192-DqSSrKF0TaySnEC3TeqHn5dqbFPxfnh/@public.gmane.org>
+In-Reply-To: <413AA9B1.3040001-OjZHUc5anBQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,52 +17,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Daniel Jasper <daniel.jasper-OjZHUc5anBQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2004-08-31 at 22:01, Norbert Preining wrote:
-> Dear ACPI developers!
->=20
-> Is the file /proc/acpi/info gone with current bk snapshots? I am running
-> 2.6.9-rc1-mm2 kernel and there this file is missing. BUt without it
-> cpufreqd and the gnome2 battery stat applet does not run. They both
-> check for the ACPI version in this file.
+> on my Travelmate 8005 (with Pentium M - Dothan) there is constant bus 
+> master activity. I already tried to disable USB, PCMCIA, Network, 
+> Framebuffer, Cpufreq etc., but even with a minimalistic system there ist 
+> still the following output of /proc/acpi/processor/CPU0/power:
+> 
+> active state:            C2
+> default state:           C1
+> bus master activity:     ffffffff
+> states:
+>    C1:                  promotion[C2] demotion[--] latency[000] 
+> usage[00000010]
+>   *C2:                  promotion[C3] demotion[C1] latency[001] 
+> usage[00901857]
+>    C3:                  promotion[--] demotion[C2] latency[085] 
+> usage[00000000]
+> 
+> Is there anything else I can do? Or can I somehow find out, what is 
+> causing the bus master activity? Disabling the bm_check=1 in the 
+> processor.c code works, but that is probably the wrong solution.
 
-Yeah..same here... it's on 2.6.9-rc1-mm1 though
+You should check the processor/chipset errata ("specification update" in 
+Intel-language).  Perhaps the BM status register is broken on your 
+particular chipset.
 
->=20
-> Best wishes
->=20
-> Norbert
->=20
-> -------------------------------------------------------------------------=
-------
-> Norbert Preining <preining AT logic DOT at>         Technische Universit=
-=C3=A4t Wien
-> gpg DSA: 0x09C5B094      fp: 14DF 2E6C 0307 BE6D AD76  A9C0 D2BF 4AA3 09C=
-5 B094
-> -------------------------------------------------------------------------=
-------
-> The suit into which the man's body had been stuffed looked
-> as if it's only purpose in life was to demonstrate how
-> difficult it was to get this sort of body into a suit.
->                  --- Douglas Adams, The Hitchhikers Guide to the Galaxy
->=20
->=20
-> -------------------------------------------------------
-> This SF.Net email is sponsored by BEA Weblogic Workshop
-> FREE Java Enterprise J2EE developer tools!
-> Get your free copy of BEA WebLogic Workshop 8.1 today.
-> http://ads.osdn.com/?ad_id=3D5047&alloc_id=3D10808&op=3Dclick
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
-
---=20
-Ow Mun Heng
-Fedora GNU/Linux Core 2 on D600 1.4Ghz CPU kernel 2.6.8-rc1.mm1.Sept.4=20
-Neuromancer 00:03:56 up 38 min, 2 users, load average: 0.18, 0.22, 0.27=20
+-- 
+Nate
 
 
 -------------------------------------------------------
