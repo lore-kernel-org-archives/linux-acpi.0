@@ -1,15 +1,12 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Re: Acer Aspire 1601LC tempertature & ACPI
-Date: Mon, 5 Apr 2004 11:50:56 -0700 (PDT)
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Warn user when battery goes critical
+Date: Mon, 5 Apr 2004 23:10:32 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040405114950.E22024@root.org>
-References: <200404021654.00101.nate@paranoici.org> <004501c418e3$994b2ca0$7ce9fea9@SHERKA>
- <200404022101.54233@asda>
+Message-ID: <20040405211032.GA3575@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <200404022101.54233-Ulv+RfhiHhw@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,31 +15,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Nate Grey <nate-XtQPfPCVGG7srOwW+9ziJQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2 Apr 2004, Nate Grey wrote:
-> On Friday 02 April 2004 18:52, Ois=EDn Mac Fheara=ED wrote:
-> > With my Acer Aspire 1705SMi, thermal zone would report temperature as 2=
-55C
-> > repeatedly during bootup and reboot.
-> > I disabled the thermal zone module, as the BIOS will supposedly shut do=
-wn
-> > the laptop if the temperature is really too high.
-> >
-> > Ois=EDn
->
-> It's a solution... Are you sure that the cpu will not reach an high
-> temperature due to a not perfect cooling management?
-> Is it safe disable the thermal module so that there's not a temperature c=
-heck?
+Hi!
 
-CPU shutdown is hardware-controlled, so yes.  There are ways on both
-FreeBSD and Linux to "smooth" out the 255C reported temps so they don't
-cause a shutdown.
+When battery is going critical, perhaps user should know? It already
+helped me when power was turned off at expansion cord...
 
--Nate
+									Pavel
+
+Index: linux/drivers/acpi/battery.c
+===================================================================
+--- linux.orig/drivers/acpi/battery.c	2004-04-05 22:47:33.000000000 +0200
++++ linux/drivers/acpi/battery.c	2004-02-20 12:39:11.000000000 +0100
+@@ -332,6 +332,13 @@
+ 
+ 	battery->flags.present = device->status.battery_present;
+ 
++	{
++		struct acpi_battery_status *bst = NULL;
++		int res = acpi_battery_get_status(battery, &bst);
++
++		if (!res && (bst->state & 0x04))
++			printk(KERN_CRIT "Battery status: critical\n");
++	}
+ 	return_VALUE(result);
+ }
+ 
+
+-- 
+When do you have a heart between your knees?
+[Johanka's followup: and *two* hearts?]
 
 
 -------------------------------------------------------
