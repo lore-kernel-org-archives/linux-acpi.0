@@ -1,9 +1,10 @@
-From: Tim Dijkstra <newsuser-TpnWJeB+oO0hKRfeEwdQzg@public.gmane.org>
-Subject: Power usage in S3
-Date: Mon, 28 Feb 2005 14:17:01 +0100
-Message-ID: <20050228141701.4dc95eec@orfeo.nikhef.nl>
+From: martin f.krafft <madduck-JX/+c5DPh7vR7s880joybQ@public.gmane.org>
+Subject: Re: swsusp fails with "FATAL: cannot find swap device, try swapon -a!"
+Date: Mon, 28 Feb 2005 13:50:12 +0000 (UTC)
+Message-ID: <loom.20050228T144836-994@post.gmane.org>
+References: <42225F85.1000302@gmx.net> <20050228000401.GK1441@elf.ucw.cz> <4222640C.7090706@gmx.net> <42227FE9.1080400@gmx.net> <42228A3D.6080907@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -14,23 +15,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
+
+Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005@...> writes:
+> is_resume_device: checking 3:6 against resume_device 0:0
+> [...]
+> So resume_file has a non-zero length, but resume_device is 0:0.
+> How can that happen?
 
 Hi,
 
-Since a couple of weeks I have S3 working on my laptop (yeah!), but then
-I stared wondering how long I can walk around with my laptop suspended.
+A friend pointed me to this list. I came to the same conclusion:
 
-By keeping it suspended for a night and extrapolating the measured power
-usage I concluded it can stay suspended (starting with batteries fully
-loaded) for about 2.5 days. That doesn't seem awfully long to me...
-Especially if you take into account the fact one usually suspends
-after using it for while when it's at, say, 20%.
+http://marc.theaimsgroup.com/?t=110789542400001&r=1&w=2
 
-So now I wonder, what usage do other people see?
+I will now see if 2.6.11-rcX fix this.
 
-grts Tim
+martin
+
 
 
 -------------------------------------------------------
