@@ -1,14 +1,14 @@
-From: Tim Dijkstra <newsuser-TpnWJeB+oO0hKRfeEwdQzg@public.gmane.org>
-Subject: Re: Acer TM636 won't wakeup after S3, USB, i8042
-Date: Mon, 17 Jan 2005 20:25:17 +0100
-Message-ID: <20050117202517.3fa7b912@commensaal.drs.p>
-References: <20050111003537.13142400@bonenpikster.drs.p>
-	<20050117153245.GA1481@elf.ucw.cz>
+From: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: 2.6.10 and acpi_get_possible_resources? *solved*
+Date: Mon, 17 Jan 2005 11:30:20 -0800
+Message-ID: <20050117113020.A19913@unix-os.sc.intel.com>
+References: <1105713621.10664.8.camel@paragon.slim> <1105833637.27841.4.camel@paragon.slim>
+Reply-To: Rajesh Shah <rajesh.shah-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20050117153245.GA1481-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1105833637.27841.4.camel-AynNu1t4G8oLie942ae2tA@public.gmane.org>; from gtm.kramer-c1aixF9oqgPk1uMJSBkQmQ@public.gmane.org on Sun, Jan 16, 2005 at 01:00:37AM +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,41 +18,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Jurgen Kramer <gtm.kramer-c1aixF9oqgPk1uMJSBkQmQ@public.gmane.org>
+Cc: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 17 Jan 2005 16:32:45 +0100
-Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org> wrote:
-
-> Hi!
+On Sun, Jan 16, 2005 at 01:00:37AM +0100, Jurgen Kramer wrote:
+> On Fri, 2005-01-14 at 15:40 +0100, Jurgen Kramer wrote:
+> > I am trying to get the WACOM ACPI patches working on 2.6.10 but it bails
+> > out on a missing function "acpi_get_possible_resources". On 2.6.9 the
+> > needed symbol is exported by acpi_ksyms.c but this file no longer exists
+> > in 2.6.10. 
+> > 
+> > What is the best way to get the acpi_get_possible_resources function
+> > exported properly? It is defined in <acpi/acpxf.h> but adding this to
+> > the wacom source files did not help.
+> > 
+> > The 2.6.9 version of the wacom patches are from:
+> > 
+> > http://www.theory.bham.ac.uk/staff/schofield/linux/tc1100/linux-2.6.9-
+> > wacom_acpi.patch
 > 
-> > Reading some positive reports on S3 on a travelmate 632, I gave it
-> > another try with my 636. After adding the acpi_sleep=s3_bios (thanks
-> > mizu) I got some visual signs of resume for the first time. But then
-> > the process halts. If I include USB support in the kernel, I get the
-> > following msgs
-> > 
-> > ACPI: PCI interrupt 0000:00:06.0[A] -> GSI 11 (level,low) -> IRQ 11
-> > PCI: ENabeling device 0000:00:0b.0 (0080->0083)
-> > ACPI: PCI interrupt 0000:00:0b.0[A] -> GSI 10 (level,low) -> IRQ 10
-> > 
-> > And then it stops. Removing USB support gets me a bit further, now
-> > the process ends with:
-> > 
-> > i8042.c: Can't read CTR while initializing i8042.
-> > resume failed: i8042.c (Not sure about this line, typing it from
-> > memory)
-> > 
-> > 
-> > Is there anything I can do to help to debug this? I attached lspci
-> > -vvv, if there's any other log I can send, just ask.
+> Problem solved. The functions from <acpi/acpixf.h> needed a #define
+> ACPI_FUTURE_USAGE 1 to work again.
 > 
-> Remove keyboard support and see what happens?
+> My wacom tablet is working again with 2.6.10.
+> 
+A better fix, though, would be to move the specific export you
+need out of the FUTURE_USAGE define. This ifdef was introduced
+to eliminate bloat due to unused exports, and including it all
+back in defeats the purpose.
 
-Then it will be a little hard for me to type: "echo 3 >
-/proc/acpi/sleep"
-
-grts Tim
+Rajesh
 
 
 -------------------------------------------------------
