@@ -1,13 +1,13 @@
-From: Dino Klein <zagzag-lists-zY4eFNvK5D9If6P1QZMOBw@public.gmane.org>
-Subject: Re: Processor is almost never in C1 state
-Date: Thu, 09 Dec 2004 15:06:20 -0500
-Message-ID: <41B8B03C.1090606@speakeasy.net>
-References: <fe1d56f504120608102afbf39b@mail.gmail.com>
+From: Pedro Venda <pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org>
+Subject: Re: network card buzzing
+Date: Thu, 09 Dec 2004 21:42:59 +0000
+Message-ID: <41B8C6E3.3000109@mega.ist.utl.pt>
+References: <41B86243.7090507@mega.ist.utl.pt> <200412091802.41329.Jeroen.Wijnhout@kdemail.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <fe1d56f504120608102afbf39b-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <200412091802.41329.Jeroen.Wijnhout-sVbgdUKTYbrR7s880joybQ@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -17,70 +17,42 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: dogshu <dogshu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Jeroen Wijnhout <Jeroen.Wijnhout-sVbgdUKTYbrR7s880joybQ@public.gmane.org>
 Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-What's the problem? Do you actually experience slowness, or do you want 
-your CPU to go into C1 just for the sake of going into C1?
-Also, if you maxed out your cpu with that program, then that means that 
-the processor was too busy to go into any of the sleep modes; therefore, 
-all the counters should have remained unchanged.
-If you want to keep your CPU from going into C1/C2, then open a terminal 
-and run: nice bash -c 'while true; do false; done'
-that will guarantee that the cpu will never go into sleep mode, while 
-yielding to programs with higher priority.
+Jeroen Wijnhout wrote:
+> On Thursday 09 December 2004 15:33, Pedro Venda wrote:
+>=20
+>>hi everyone
+>>
+>>I tought it was normal to have a buzzing on the network card while it
+>>transmits/receives high quanitities of data and using almost all of it'=
+s
+>>bandwidth... I had such a network card on my desktop and now my laptop =
+does
+>>the same.
+>>
+>>the laptop is a (smart-battery powered) acer travelmate 4001 WLMi and t=
+he
+>>network card is a broadcom (b44) 10/100Mbps.
+>=20
+>=20
+> I have exactly the same laptop, never heard any buzzing, not with LAN o=
+r WLAN.
 
+wlan doesn't make any buzz...
 
-dogshu wrote:
+on the other hand, I know two more people with tm4001 that have the same=20
+issue. we all run gentoo.
 
-> Hello,
-> 
-> I have a Toshiba Portege laptop with a 500 mhz pentium-3 mobile CPU. 
-> The processor is almost never is in the C1 state, and spends 99.9% of
-> the time in the C2 state, even when doing heavy processing.
-> 
-> After a night of compiling KDE, and while running the "burnP6" program
-> included in the "cpuburn 1.4" package, this is the output of
-> /proc/acpi/processor/CPU0/power:
-> 
-> active state:            C2
-> default state:           C1
-> bus master activity:     00000000
-> states:
->     C1:                  promotion[C2] demotion[--] latency[000] usage[00009710]
->    *C2:                  promotion[--] demotion[C1] latency[001] usage[12232108]
->     C3:                  <not supported>
-> 
-> As you can see, even though the processor is being maxed out by
-> burnP6, it remains in the C2 state and doesn't really use the C1 state
-> at all.
-> 
-> I don't mind having the CPU in this lower power/lower performance
-> state most of the time... however I occassionally like to play DVDs on
-> this laptop, and I need all the CPU power I can get when playing DVDs,
-> or else  I will get lots of dropped frames.
-> 
-> I am running kernel 2.6.10-rc2-mm4.  I noticed that in the kernel
-> parameters I can disable the C2 state altogether, but I'd rather not
-> have to reboot whenever I play a DVD.  Is there a way to tweak ACPI so
-> that the processor spends more time in the C1 state, without giving up
-> the C2 state entirely?
-> 
-> thanks for any help,
-> Jim Faulkner
-> 
-> 
-> -------------------------------------------------------
-> SF email is sponsored by - The IT Product Guide
-> Read honest & candid reviews on hundreds of IT Products from real users.
-> Discover which products truly live up to the hype. Start reading now. 
-> http://productguide.itmanagersjournal.com/
-> _______________________________________________
-> Acpi-devel mailing list
-> Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> https://lists.sourceforge.net/lists/listinfo/acpi-devel
+regards,
+pedro venda.
+--=20
 
+Pedro Jo=E3o Lopes Venda
+email: pjlv-aHmAgkVUFT6Joy8PIJZ9VA@public.gmane.org
+http://arrakis.dhis.org
 
 
 -------------------------------------------------------
