@@ -1,14 +1,15 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: [PATCH] s4bios for 2.5.59 + apci-20030123
-Date: Wed, 5 Feb 2003 01:40:41 +0000
+From: "Adachi, Kenichi" <aileenja-dTzOdQ2U+/YAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Compaq 1700T dsdt
+Date: Wed, 5 Feb 2003 11:17:15 +0900
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030205014041.GA27937@srcf.ucam.org>
-References: <20030131173904.GA3240@poup.poupinou.org>
+Message-ID: <002401c2ccbc$b6745370$0e4425db@sayonara>
+References: <1044409039.1642.17.camel@nefeli>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20030131173904.GA3240-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
+In-Reply-To: <1044409039.1642.17.camel-coIz1MXBdV0@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,27 +18,22 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: 'Constantinos Antoniou' <costas-DPNOqEs/LNQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jan 31, 2003 at 06:39:04PM +0100, Ducrot Bruno wrote:
+A quick answer for part of your questions:
 
-Hi Ducrot,
+> Also, under /proc/acpi/battery, I have a directory CMB0. 
+> Shouldn't this be BAT0 or sth? 
 
-> This is the 'minimal' requirement.  Some devices (especially the
-> IDE part) are not well resumed.  Handle with care..
-
-Using this patch (on top of 2.5.59 and acpi 20030123), echo 4b 
->/proc/acpi/sleep results in the system freezing all of the processes 
-and then resetting itself without any state change. This is an IBM 
-Thinkpad 240x which claims to support S4Bios, and I have the appropriate 
-partition. Would it be worth me enabling debugging and hooking up a 
-serial console?
-
+(Even though there was a couple of argument), current code simply picks
+up the characters your ACPI BIOS names the battery device in DSDT. 
+And it's "Device (CMB0)" in your DSDT. 
+  
 Thanks,
--- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
+- Adachi, Kenichi
+
+
 
 
 -------------------------------------------------------
