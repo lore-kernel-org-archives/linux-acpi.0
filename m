@@ -1,25 +1,13 @@
-From: Johan Vromans <jvromans-2pNSKKP3PSKEVqv0pETR8A@public.gmane.org>
-Subject: Re: first shoot for smartbattery
-Date: Mon, 17 Jan 2005 10:55:04 +0100
-Message-ID: <m2pt04qt1j.fsf@phoenix.squirrel.nl>
-References: <20041231092156.GA612@phys.ethz.ch>
-	<20041231181628.GL19199@poupinou.org>
-	<20050101082605.GA24896@phys.ethz.ch>
-	<m2acrth375.fsf@phoenix.squirrel.nl>
-	<20050103143902.GQ19199@poupinou.org>
-	<41D97AF3.7000409@arrakis.dhis.org>
-	<41D98251.9020002@arrakis.dhis.org>
-	<20050103180219.GX19199@poupinou.org>
-	<41D9A1F5.1060508@arrakis.dhis.org>
-	<m2mzvq5k7u.fsf@phoenix.squirrel.nl>
-	<47e0449d05011304446094c8b@mail.gmail.com>
-	<m2fz11gl3c.fsf@phoenix.squirrel.nl>
-	<1105954283.12359.25.camel@laptop>
+From: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [PATCH] Sanitize ACPI Kconfig
+Date: Mon, 17 Jan 2005 12:16:03 +0100
+Message-ID: <20050117111602.GI29270@wotan.suse.de>
+References: <20050107212259.GA13026@wotan.suse.de> <20050117001150.GA1337@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1105954283.12359.25.camel@laptop> (Fionn Behrens's message of
- "Mon, 17 Jan 2005 10:31:21 +0100")
+Content-Disposition: inline
+In-Reply-To: <20050117001150.GA1337-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -29,18 +17,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Cc: Andi Kleen <ak-l3A5Bk7waGM@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Fionn Behrens <fionn-ZPjJJ+sDHmfddJNmlsFzeA@public.gmane.org> writes:
+On Mon, Jan 17, 2005 at 01:11:50AM +0100, Pavel Machek wrote:
+> Hi!
+> 
+> > Sanitize ACPI Kconfig. No other subsystem uses default m for all its
+> > options and surely there is no need to do this for the more obscure
+> > modules. When you do make oldconfig with an old option and just press
+> > return you tend to get a lot of modules you don't want with this. 
+> > Normally new stuff is off by default.
+> 
+> I'd say that AC adapter, battery, button and fan should be on by
+> default. You set thermal zone to on by default, but thermal zone
+> without fan seems like bad idea (not totally useless, but you usually
+> want fans for thermal managment). Everybody uses battery (actually it
+> seems to be single most important feature). And AC adapter is
 
-> I believe this functionality can already be found in the acerhk kernel
-> module (http://www.informatik.hu-berlin.de/~tauber/acerhk/)
+For a rather small value of "everybody".
 
-Yes, I've looked at this one as well.
-But it's discontinued, and doesn't seem to work on the TM4000.
+> neccessary if you want to go 2GHz with your athlon64 laptop (or it is
+> 800MHz), so I'd say enable it.
 
--- Johan
+My desktop boxes and servers all don't care about battery or AC.
+
+But I'm not opposed to turning it on, just the "m" default is quite useless.
+
+-Andi
+
 
 
 -------------------------------------------------------
