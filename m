@@ -1,12 +1,12 @@
-From: Francisco Castanheiro <fdc10056-9geRo0GdX4mLEkmxylLn4tBQ+izJFF1I@public.gmane.org>
-Subject: Presario 700 +thermal zone
-Date: Wed, 16 Oct 2002 23:38:00 +0100
+From: ruud <ruud.koendering-EIBgga6/0yRmR6Xm/wNWPw@public.gmane.org>
+Subject: acpi and presario 700
+Date: Thu, 17 Oct 2002 22:11:55 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <200210162338.00542.fdc10056@students.fct.unl.pt>
+Message-ID: <200210172211.55448.ruud.koendering@planet.nl>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 8bit
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -16,21 +16,25 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Francisco Castanheiro <fdc10056-9geRo0GdX4mLEkmxylLn4tBQ+izJFF1I@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
-does anyone has thermal zone working with a laptop from the presario 700 
-series? I have everything (acpi related) working but thermal zone... 
-Is this some problem with the DSTD of the laptop?
+I own a presario 714EA with RedHat Linux 7.3 again.
 
-Regards.
+do you have info for acpi?
 
--- 
-Francisco Castanheiro
-EMail: fdc10056-9geRo0GdX4mLEkmxylLn4tBQ+izJFF1I@public.gmane.org
-A sua loja online: www.shopizzy.com 
-"The wise man doesn't give the right answers, he poses the right questions."
+i'm a newbie    (acpi is in my kernel but how to apply?)
+--=20
+Regards,
+Ruud Koendering
+Sr. Program/Project Manager
+De Wickelaan 11
+2265 DG  Leidschendam
+Netherlands
+Phone:+31(0)703271506
+Mobile:+31(0)641372381
+E-mail:ruud.koendering-EIBgga6/0yRmR6Xm/wNWPw@public.gmane.org
 
 
 
