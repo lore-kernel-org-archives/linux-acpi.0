@@ -1,14 +1,14 @@
-From: "Charl P. Botha" <c.p.botha-ra0OqMccq8edIhEUFHOBvg@public.gmane.org>
-Subject: Re: resource for S3 suspend/resume of Radeon
-Date: Mon, 17 Mar 2003 17:54:53 +0100
+From: Marci <voloterreno-nc/lrvXPQ4s@public.gmane.org>
+Subject: Re: [Fwd: ACPI error when trying entring in Sleep Mode]
+Date: Mon, 17 Mar 2003 19:01:33 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030317165453.GC31491@dutidad.twi.tudelft.nl>
-References: <1047912152.28830.32.camel@dutidad> <20030317153434.GB3936@hell.org.pl> <1047916074.28836.58.camel@dutidad> <20030317162624.GB2249@hell.org.pl>
+Message-ID: <3E760D7D.4040405@tin.it>
+References: <3E75C4A6.6000507@tin.it> <20030317134809.GF8319@poup.poupinou.org> <3E75D6E2.4040001@tin.it> <20030317153147.GH8319@poup.poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20030317162624.GB2249-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+In-Reply-To: <20030317153147.GH8319-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,34 +17,156 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Mar 17, 2003 at 05:26:24PM +0100, Karol Kozimor wrote:
-> Anyway, since the first 2.5 I used (2.5.59) I am able to suspend-to-RAM,
-> then resume. Normally, the screen is off, and the keyboard is mute, but
-> appending acpi_sleep=s3_bios does it for the screen, and reloading the
-> atkeyb module brings the keyboard back to life. NIC needs several seconds
-> (and several pings also) to resume (it's a rtl8139 chip).
+Ducrot Bruno wrote:
 
-I still need to find out why my laptop doesn't even want to begin waking up.
-:)  Maybe it's very tired.
+>On Mon, Mar 17, 2003 at 03:08:34PM +0100, Marci wrote:
+>  
+>
+>>Ducrot Bruno wrote:
+>>
+>>    
+>>
+>>>There is an error in your DSDT.  I don't doubt that if you
+>>>follow the instruction in
+>>>http://acpi.sourceforge.net/wiki/index.php/HowToOverrideTable
+>>>
+>>>you will get a complain from iasl with a inproper declaration of
+>>>an operational region.  Check first if you can increase the size
+>>>for this region will be sufficiant.  If not, then do not hesitate
+>>>to request more help!
+>>>
+>>>Cheers,
+>>>
+>>>
+>>>
+>>>      
+>>>
+>>Ehm, excuse me for the question, but how I can increase the size for 
+>>this region?
+>>    
+>>
+>
+>You disassemble the DSDT ACPI table via:
+>iasl -d /proc/acpi/dsdt
+>this will create a file called
+>dsdt.dsl
+>
+>Then if try to reassemble it via
+>iasl -tc -p my_table dsdt.dsl
+>
+>you will certainly get an error about a bad over-sized operational region.
+>
+>iasl is an intel tools found here:
+>
+>http://developer.intel.com/technology/iapc/acpi/downloads.htm
+>(which is also linked from http://acpi.sourceforge.net/)
+>
+>You can either get the (binary) iasl compiler/disassembler for Linux,
+>or the ACPI-CA unix build environment if you want to compile it
+>yourself.
+>
+>  
+>
+>>And why under Windows the dsdt have no problem ( I'd like only understand )
+>>    
+>>
+>
+>Windows AML interpreter do not check bound operational regions.
+>ACPI-CA AML interpreter (and also Linux one) does, however, check
+>bound such regions.  ACPI-CA current position for this stuff is to
+>check bound such regions even though that will implies that it
+>can not provide total compatibility support.
+>Note that their are other compatibilty issues as well.  For example,
+>most if not all toshiba laptops (I speak for the non-compal case)
+>was shipped with an error for which they implicitely returned a value.
+>
+>It was stated by ACPI sig. that it is an error.  Note that Toshiba
+>has then released new bios which corrected this behaviour.
+>
+>Alas, it is somehow hard to get correct support from all vendor...
+>
+>The issue you get (a bad sized operational region) is present in most
+>of the toshiba-compal model series.  And toshiba still do not have
+>corrected this issue, even though they were warned about.
+>
+>So, sometimes, complaining to the bios vendor work, sometimes not.  Just
+>that we get the same kind of stupid answer as 'it work under windows'
+>even from the same vendor.
+>
+>Cheers,
+>
+>  
+>
+X Karol : Thanks for the documentation
 
-> > Drivers in the new kernel need to be able to suspend/resume (S1, S3 and
-> > S4) without more than the minimum required support in the BIOS.
-> 
-> S4 is a bit easier. See this: I have radeonfb hard-compiled in the kernel.
-> When I resume, the kernel that boots first initializes the display
-> properly, and then the kernel that is read from swap has the display
-> already running, so it doesn't have to worry about it. I suppose it would
-> be much harder when radeonfb was compiled as a module. Then, I think that
-> it's S3 that is the most difficult.
+X Bruno:
 
-swsusp has worked perfectly for me for some time, at least ever since
-http://cpbotha.net/dri_resume.html :)
+If I try to reassemble the code I get these errors:
 
--- 
-charl p. botha http://cpbotha.net/ http://visualisation.tudelft.nl/
+Intel ACPI Component Architecture
+ASL Optimizing Compiler / AML Disassembler version 20030228 [Feb 28 2003]
+Copyright (C) 2000 - 2003 Intel Corporation
+Supports ACPI Specification Revision 2.0b
+
+dsdt.dsl   864:                 Field (U1D3, WordAcc, NoLock, Preserve)
+Error    1047 -                           ^ Access width is greater than 
+region size
+
+dsdt.dsl   866:                     UR49,   3
+Error    1051 -                        ^ Access width of Field Unit 
+extends beyond region limit
+
+dsdt.dsl   870:                 Field (UBP1, WordAcc, NoLock, Preserve)
+Error    1047 -                           ^ Access width is greater than 
+region size
+
+dsdt.dsl   872:                     U1PE,   2
+Error    1051 -                        ^ Access width of Field Unit 
+extends beyond region limit
+
+dsdt.dsl   905:                 Field (UBP2, WordAcc, NoLock, Preserve)
+Error    1047 -                           ^ Access width is greater than 
+region size
+
+dsdt.dsl   907:                     U2PE,   2
+Error    1051 -                        ^ Access width of Field Unit 
+extends beyond region limit
+
+dsdt.dsl   933:                 Field (UBP3, WordAcc, NoLock, Preserve)
+Error    1047 -                           ^ Access width is greater than 
+region size
+
+dsdt.dsl   935:                     U3PE,   2
+Error    1051 -                        ^ Access width of Field Unit 
+extends beyond region limit
+
+dsdt.dsl   961:                 Field (UBP4, WordAcc, NoLock, Preserve)
+Error    1047 -                           ^ Access width is greater than 
+region size
+
+dsdt.dsl   963:                     U4PE,   2
+Error    1051 -                        ^ Access width of Field Unit 
+extends beyond region limit
+
+dsdt.dsl  2797:                 Method (STM, 0, Serialized)
+Warning  2019 -                           ^ Not all control paths return 
+a value (STM_)
+
+dsdt.dsl  3240:     Method (_WAK, 1, NotSerialized)
+Warning  2026 -                ^ Reserved method must return a value (_WAK)
+
+ASL Input:  dsdt.dsl - 3356 lines, 103057 bytes, 1269 keywords
+Compilation complete. 10 Errors, 2 Warnings, 0 Remarks, 419 Optimizations
+
+I think this will be hard to fix, right? I should post this to MSI , 
+with the hope that will give any importace to my message?
+
+Thanks
+
+
 
 
 -------------------------------------------------------
