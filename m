@@ -1,9 +1,12 @@
-From: Jason Dagit <dagit-LP0vGzdgvNwj5TC/SZClsA@public.gmane.org>
-Subject: Resume from mem state == Reboot (Averatec)
-Date: Mon, 14 Mar 2005 12:28:21 -0800
-Message-ID: <87k6oaug4a.fsf@www.codersbase.com>
+From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
+Subject: Re: Resume from mem state == Reboot (Averatec)
+Date: Mon, 14 Mar 2005 22:45:36 +0000
+Message-ID: <1110840337.8136.82.camel@tyrosine>
+References: <87k6oaug4a.fsf@www.codersbase.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <87k6oaug4a.fsf-mMfbam+mt929kzlf/Hu3QdBPR1lH4CV8@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -16,30 +19,23 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-My laptop is an Averatec AV3250HX-01.  I'm currently using kernel
-version 2.6.10 (I tried 2.6.11.3 a little as well).  If I do:
+On Mon, 2005-03-14 at 12:28 -0800, Jason Dagit wrote:
 
-echo -n "mem" >/sys/power/state
+> I would like to debug/fix this problem.  After a fair bit of googling
+> it would appear than everyone with this model of laptop has the some
+> problem.  I'm not very experienced with debugging the kernel, and I'm
+> even less experienced with acpi.  What should I do to find out more
+> about this?  Are there commands I can run and information to provide
+> the list with to get to the next step in finding the problem?  If I
+> include my dsdt or other information what is the best way to send that
+> info to the list?  Should I use an email attachment?
 
-The laptop appears to suspend to ram correctly.  But the laptop will
-not respond to any input (except the powerbutton) after it has
-suspended.  When I hit the power button the laptop acts as though it
-has been off and restarts, the bios posts and I endup at the lilo
-prompt.  If I do the same sort of thing in windows instead of linux,
-then any button will wake the laptop including the powerbutton.  So I
-know the laptop is fine.
+This is likely to be the same problem as
+http://bugzilla.kernel.org/show_bug.cgi?id=3691
 
-I would like to debug/fix this problem.  After a fair bit of googling
-it would appear than everyone with this model of laptop has the some
-problem.  I'm not very experienced with debugging the kernel, and I'm
-even less experienced with acpi.  What should I do to find out more
-about this?  Are there commands I can run and information to provide
-the list with to get to the next step in finding the problem?  If I
-include my dsdt or other information what is the best way to send that
-info to the list?  Should I use an email attachment?
+-- 
+Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
-Thanks,
-Jason
 
 
 -------------------------------------------------------
