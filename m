@@ -1,14 +1,11 @@
-From: tierra.y.libertad-hi6Y0CQ0nG0@public.gmane.org
-Subject: Re: No events when pressing power button
-Date: Thu, 15 Aug 2002 22:23:43 +0200 (MEST)
+From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Summary: Machines that have issues w/o ACPI
+Date: Thu, 15 Aug 2002 13:49:58 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020815202346.536824EE8@marcos.python.subname.de>
-References: <20020815151250.GC21746@schiggy.intern.quelltext.com>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DD9E@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20020815151250.GC21746-dzH3swnhYuu5cqaZGqYS/O8dC6aEkcuFVpNB7YpNyf8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,26 +14,42 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: abs-SA7OhAOe25xnNxvc45mVi0K323yFvGpRdefyYXQ/eNw@public.gmane.org
-Cc: a.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 15 Aug, Arndt Schoenewald wrote:
-> Hi Andy,
->=20
-> great, another ACPI problem/mystery solved! We are making progress!
->=20
-> Now that we found out that calling eisa_set_level_irq(ACPI_IRQ_NUMBER)
-> does turn on ACPI event reporting for some machines, would you please
-> include this call into the ACPI patch proper?
+This is the summary of responses I received from my question this morning.
 
-Hi,
+Generally, systems appear to boot, but some devices don't work due to
+incorrect irq routing, and APM may be absent.
 
-I've already tried this but it doesn't work on my machine. I think this
-problem wasn't solved completely.
+Thanks everyone! If anyone knows of any more (especially ones that don't
+boot at ALL without ACPI) please let me know.
 
---=20
-R=FCdiger
+Sony Vaio FX403 (that's at least what it's called in Europe):
+- USB doens't work without ACPI due to IRQ routing problems
+- no powermanagment without ACPI (BIOS lacks APM support)
+
+Toshiba 1005-S157 (and presumably 1005-S158, 1000-S157, 1000-S158)
+does not have any apm functionality AFAIK.  These are fairly recent
+models (late 2001/early 2002) entry-level laptops.
+
+Toshiba 5005
+
+Gericom 1st Supersonic M6-T (a FIC A380 OEM)
+	System does not have APM; without ACPI, no power
+	management is available. Also, without ACPI,
+	some builtin devices (sound, NIC, Modem, FireWire,
+	PCMCIA) do not funtion properly due to missing
+	IRQ routing/initialization.
+
+Fujitsu-Siemens C6155, the power-button doesn't work.
+
+compaq 2701ea, APM not supported
+
+Dell Inspiron 2500, APM support only for shutdown, not battery/suspend.
+
+Regards -- Andy
+
 
 
 -------------------------------------------------------
