@@ -1,12 +1,12 @@
-From: Daniel Drake <dsd-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
-Subject: Early init patch breaks Dell laptops
-Date: Sat, 09 Oct 2004 15:08:28 +0100
+From: Vadim Zeitlin <vadim-oE/GLL+f5xMgsBAKwltoeQ@public.gmane.org>
+Subject: HP nw8000 never wakes up from acpi suspend
+Date: Sat, 9 Oct 2004 16:29:45 +0200 (Romance Daylight Time)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4167F0DC.3010307@gentoo.org>
+Message-ID: <E1CGIE8-0000S1-00@smtp.tt-solutions.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; CHARSET=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: INLINE
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -15,38 +15,47 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Len,
+ Hello,
 
-I'm one of the maintainers of Gentoo's kernel packages. I recently added your 
-ACPI early-init patch into our 2.6.8 patchset in order to solve the problems 
-you addressed
+ I've installed Debian (2.6.8-1 kernel, first without, then with ACPI
+patch) on HP nw8000 notebook. Everything worked perfectly out of the box
+except for suspend. All ACPI modules load successfully and, in general,
+things like monitoring fans and thermal zones work great. Also, cat
+/sys/power/state outputs the expected "standby mem disk".
 
-http://bugs.gentoo.org/60565
-http://bugzilla.kernel.org/show_bug.cgi?id=2941
+ But standby (S1 state?) doesn't work at all:
 
-After adding the "2.6.7 early init" patch, other users have run into 
-ACPI-related problems (freezing on ACPI events). More specifically, Dell 
-Inspiron laptops don't seem to like you :)
+[sunrise:/sys/power]# echo standby > state
+echo: write error: operation not permitted
 
-According to these users, the issue is also present in (unmodified) 2.6.9-rc3, 
-and reverting out the early-init patch seems to solve the problem.
+and in syslog I see just the following:
 
-http://bugs.gentoo.org/66723
-http://bugs.gentoo.org/66804
-http://bugs.gentoo.org/66613
+PM: Preparing system for suspend
+Stopping tasks: =========================================================|
+Restarting tasks... done
 
-A bug has been filed at the kernel bugzilla:
 
-http://bugzilla.kernel.org/show_bug.cgi?id=3532
+ Doing "echo mem > state" does work if I unload the USB modules (otherwise
+it stops with an error but this is ok): I see the messages about drivers
+being stopped and then the machine goes to sleep. The trouble is, it never
+wakes up. Pressing keys on the keyboard, opening/closing the lid, pressing
+the power button and cursing loudly all have the same effect: none at all.
+I can only hard reset the notebook by holding the power button for 5
+seconds.
 
-I hope this is useful- please ask if you need any more info.
 
-Thanks,
-Daniel
+ Needless to say, a notebook which can't be suspended is a bit annoying so
+I'd really like to fix this. Unfortunately I don't know where/how to start
+debugging this. All I could do was to build a minimal kernel with nothing
+except absolutely needed stuff (i.e. IDE) in it but not even graphics card
+support included but this didn't help at all.
+
+ Any help would be really appreciated, thanks in advance!
+VZ
+
 
 
 -------------------------------------------------------
