@@ -1,13 +1,14 @@
-From: Prabhakar Reddy Gudla Venkata Siva <reddyg-3+M4TpyeDAP2fBVCVOL8/A@public.gmane.org>
-Subject: DSDT for Compaq Presario 1720US
-Date: Fri, 10 Jan 2003 05:59:47 -0500 (EST)
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: ACPI problems on Athlon MP system
+Date: Fri, 10 Jan 2003 13:46:37 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.GSO.4.21.0301100549550.16202-100000@sediment.umd.edu>
-References: <20030110103707.GA12313@digda.intern.quelltext.com>
+Message-ID: <20030110124637.GC12516@poup.poupinou.org>
+References: <20030110030741.GA2580@stikine.ucs.sfu.ca>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030110103707.GA12313-XEk0yrNnxERrk9EDFsdIuomMxnTEL9wi0E9HWUfgJXw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20030110030741.GA2580-0ze2hujOWYhqr3d4nwidZ7Dks+cytr/Z@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,50 +17,42 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Martin Siegert <siegert-z1KUqvL5UUQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi list,
+On Thu, Jan 09, 2003 at 07:07:41PM -0800, Martin Siegert wrote:
+> Hi,
+> 
+> I am not sure whether this is the correct place to ask this question,
+> but hopefully you can point me in the right direction.
+> 
 
-I am trying to resume my efforts to get ACPI support for my Compaq
-Presario 1720US. I was able to use ACPI patch from Dec' 01 and the
-two subsequent patches released after Dec '01 (yes it is Dec '01). But
-since April '02 patches I was never able to even get ACPI support due to
-either of the following:
+...
 
-1) Boot-up problems
-2) DSDT problems (related to 1)
-3) IRQ problems (on corrected DSDT)
+> The machine has ACPI enabled in the bios. When I compile the kernel
+> with ACPI disabled, the poweroff command shuts down the system, but
+> does not shut off the power (it acts exactly like the halt command).
+> In order to shutoff the machine I must press the power switch.
+> 
+> When I compile the kernel with ACPI enabled the situation is worse:
+> the halt and poweroff commands still work in exactly the same way
+> (shutdown the system), but now I cannot switch off the machine
+> anymore: pressing the power switch has absolutely no effect
+> (regardless of how long I hold the switch). The only way to
 
-Well, I stopped pursuing the ACPI support since Aug '02. Thought someone
-else would get it working on same make as mine and would follow his/her
-footsteps.
+ACPI spec require that holding the power switch for 4 second will
+switch off the system in *any* case as an emergency power down.
+Those if really you can not power down your machine this way,
+this is more likely an hardware trouble.
 
-So, I was wondering if anyone on the list has ever had success with recent
-ACPI patches on Compaq Presario 1720US (or it's close brethren) ?  By
-success I mean, clean compile, battery status, etc.
+BTW, have you tried the latest ACPI patch on sf.net?
 
-I have seen people expressing sucess with Compaq Evo, Presario 27xx series
-but unfortuantely the specs, hence the DSDT are different. I am willing to
-post my DSDT, again, if that helps.
+-- 
+Ducrot Bruno
 
-regards
-
-*******************************--------------**********************************
-Prabhakar Reddy Gudla
-Research Assistant
-
-Model Analysis Lab
-Biological Resources Engineering 
-University of Maryland 
-College Park, MD, 20742.
-
-tel: 301-405-0109 (o)
-fax: 301-314-9023
-
-email: reddyg-e45ueOrobK4@public.gmane.org
-**************************--------------------*********************************
-
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
