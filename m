@@ -1,14 +1,14 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: [Fwd: Re: [PROBLEM] 2.6.3-rc1: still no suspend/resume on Centrino notebook (contains agp, lapic, swsusp)]
-Date: Wed, 11 Feb 2004 18:58:42 +0100
+From: "Cagle, John (ISS-Houston)" <john.cagle-VXdhtT5mjnY@public.gmane.org>
+Subject: RE: ACPI_STRICT_COMPLIANCE (was RE: RE: ACPI -- Workaround forbroken DSDT)
+Date: Wed, 11 Feb 2004 12:04:39 -0600
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040211175842.GO13262@poupinou.org>
-References: <3ACA40606221794F80A5670F0AF15F8401CBB68D@PDSMSX403.ccr.corp.intel.com> <m3smhhakb3.fsf@reason.gnu-hamburg> <20040211123601.GN13262@poupinou.org> <m3smhhycwz.fsf@reason.gnu-hamburg>
+Message-ID: <C50AB9511EE59B49B2A503CB7AE1ABD10661123D@cceexc19.americas.cpqcorp.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <m3smhhycwz.fsf-glUV91rXKAHWIjgkaejU9x2eb7JE58TQ@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,40 +17,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Georg C. F. Greve" <greve-mXXj517/zsQ@public.gmane.org>
-Cc: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?iso-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
+Cc: "Scott T. Smith" <scott-j3vAvQ9dNB9ByuSxxbvQtw@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Grover <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Feb 11, 2004 at 02:16:12PM +0100, Georg C. F. Greve wrote:
->  || On Wed, 11 Feb 2004 13:36:01 +0100
->  || Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org> wrote: 
-> 
->  >> and so the machine crashes hard & instantly, followed by reboot.
-> 
->  bd> That sound like a memory fault in a SMI handler, imho.
-> 
-> Furher info: when the same kernel is booted with "nolapic" and FN+F8
-> is pressed, display switching occurs, but the top of the screen is
-> screwed -- and seems to show parts from the framebuffer console.
-> 
-> When using the i810switch tool, switching the crt on/off works fine,
-> while LCD cannot be switched at all with that tool...
-> 
-> If anyone has concrete suggestions where to look or what to try, let
-> me know...
-> 
+On Wednesday, February 11, 2004 10:37 AM, Len Brown wrote:
+> CONFIG_ACPI_STRICT_COMPLIANCE seems to be a good choice for the config
+> option.  Disabled by default, enabled by OEMs for testing their
+> platforms.
+>=20
+> Right now, CONFIG_ACPI_RELAXED AML would be replaced by this.=20
+>  This will
+> fix the issue that RELAXED_AML is not currently enabled by default.
+>=20
+> We have some warnings and workarounds that gum-up various dmesg that I
+> think we can put under this umbrella also.
 
-Perhaps wait for the little ACPI video driver I am currently polishing a
-little ?
+I agree.  This should make a lot of users happy, since the distro's will
+work out-of-the-box without modification (at least on those machines
+with known workarounds implemented in the ACPI driver), yet the OEMs can
+still test for strict compliance by recompiling the kernel.  Better than
+that would be a kernel command line option to do the same thing.
+ACPI_STRICT=3DON?
 
-I think it should be OK tomorrow, but I have not tested it throughfully
-though.
-
--- 
-Bruno Ducrot
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
+Regards,
+John
 
 
 -------------------------------------------------------
