@@ -1,13 +1,14 @@
-From: "Mindy Greene" <mindy.greenees-9VcGXtl5L5/tt0EhB6fy4g@public.gmane.org>
-Subject: Order Rolex or other Swiss watches online
-Date: Thu, 28 Oct 2004 15:44:03 -0600
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Userspace ACPI interpreter
+Date: Thu, 28 Oct 2004 14:42:18 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3eb401c4bd37$077a3585$a4db6ff0@7n.dk>
+Message-ID: <37F890616C995246BE76B3E6B2DBE05502764B4F@orsmsx403.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -16,33 +17,49 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Therien, Guy" <guy.therien-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>, Alex Williamson <alex.williamson-VXdhtT5mjnY@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Heya,
 
-Do you want a rolex watch?
+I've been working on the ACPI CA project for over 6 years, and trust me,
+this has been tried before.  There are significant reasons for having
+the interpreter in the kernel.
 
-In our online store you can buy replicas of Rolex watches. They look
-and feel exactly like the real thing.
+You don't really want to page out the interpreter when you are using it
+for things like suspend/resume, thermal control, and many other things.
 
-- We have 20+ different brands in our selection
-- Free shipping if you order 5 or more
-- Save up to 40% compared to the cost of other replicas
-- Standard Features:
- - Screw-in crown
- - Unidirectional turning bezel where appropriate
- - All the appropriate rolex logos, on crown and dial
- - Heavy weight
+I think we have a list around somewhere with many of the reasons, I will
+look for it.
 
-Visit us: http://www.roiex.com/rep/rolex/
-
-Best regards,
-Hilton Jones
+Bob
 
 
-No thanks: http://roiex.com/z.php
-
+> -----Original Message-----
+> From: Theodore Ts'o [mailto:tytso-AKGzg7BKzIDYtjvyW6yDsg@public.gmane.org] On Behalf Of Theodore
+Ts'o
+> Sent: Thursday, October 28, 2004 8:24 AM
+> To: Brown, Len
+> Cc: Yu, Luming; Bjorn Helgaas; Moore, Robert; Alex Williamson; linux-
+> kernel; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+> Subject: Re: Userspace ACPI interpreter ( was RE: [ACPI] [RFC]
+dev_acpi:
+> support for userspace access to acpi)
+>=20
+> On Thu, Oct 28, 2004 at 01:37:52AM -0400, Len Brown wrote:
+> > One way to experiment with a user-mode ACPI interpreter would be to
+> > continue to use the kernel-mode interpreter for boot up , and cut
+over
+> > to the user-mode interpreter at /sbin/init.  The kernel-mode
+interpreter
+> > could be sent the way of free_initmem() which is called just before
+> > /sbin/init is invoked.
+>=20
+> Is there a significant advantage to doing having a user-mode ACPI
+> interpreter?  The only advantage I can think of is that the ACPI
+> interpreter could now live in pageable memory.  Are there any others?
+>=20
+> 					- Ted
 
 
 -------------------------------------------------------
