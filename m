@@ -1,12 +1,14 @@
-From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [BKPATCH] ACPI update for 2.6
-Date: 18 Dec 2003 05:11:50 -0500
+From: jbarnes-sJ/iWh9BUns@public.gmane.org (Jesse Barnes)
+Subject: Re: [BKPATCH] ACPI update for 2.6
+Date: Thu, 18 Dec 2003 13:12:13 -0800
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1071742310.2496.217.camel@dhcppc4>
+Message-ID: <20031218211213.GA845@sgi.com>
+References: <1071742310.2496.217.camel@dhcppc4>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="r5Pyd7+fXNt84Ff3"
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1071742310.2496.217.camel-D2Zvc0uNKG8@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,278 +17,197 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Andrew Morton <akpm-3NddpPZAyC0@public.gmane.org>, Linus Torvalds <torvalds-3NddpPZAyC0@public.gmane.org>
+To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Andrew/Linus, please do a 
 
-	bk pull http://linux-acpi.bkbits.net/linux-acpi-release-2.6.0
+--r5Pyd7+fXNt84Ff3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-thanks,
--Len
+On Thu, Dec 18, 2003 at 05:11:50AM -0500, Len Brown wrote:
+> Hi Andrew/Linus, please do a 
+> 
+> 	bk pull http://linux-acpi.bkbits.net/linux-acpi-release-2.6.0
 
-ps. a plain patch is also available here:
-ftp://ftp.kernel.org/pub/linux/kernel/people/lenb/acpi/patches/release/2.6.0/acpi-20031203-2.6.0.diff.gz
+Len, could you please include these two patches in your next update if
+you think they're ok?  They make the boot a lot quieter on big NUMA
+boxes...
 
-This will update the following files:
+Thanks,
+Jesse
 
- Documentation/kernel-parameters.txt |   17 ++
- arch/i386/kernel/acpi/boot.c        |   68 +++++++-
- arch/i386/kernel/dmi_scan.c         |   10 -
- arch/i386/kernel/io_apic.c          |   10 -
- arch/i386/kernel/mpparse.c          |   19 ++
- arch/i386/kernel/setup.c            |    9 -
- arch/i386/mach-es7000/es7000.c      |    2 
- arch/i386/pci/acpi.c                |   13 -
- arch/i386/pci/common.c              |    5 
- arch/i386/pci/pci.h                 |    1 
- arch/x86_64/kernel/acpi/boot.c      |   71 +++++++--
- arch/x86_64/kernel/io_apic.c        |    8 -
- arch/x86_64/kernel/mpparse.c        |    2 
- arch/x86_64/kernel/setup.c          |    8 -
- drivers/acpi/bus.c                  |    4 
- drivers/acpi/dispatcher/dsinit.c    |    4 
- drivers/acpi/dispatcher/dsmethod.c  |    4 
- drivers/acpi/dispatcher/dsmthdat.c  |   45 ++++-
- drivers/acpi/dispatcher/dsopcode.c  |   22 +-
- drivers/acpi/dispatcher/dswexec.c   |   22 ++
- drivers/acpi/dispatcher/dswload.c   |    8 -
- drivers/acpi/dispatcher/dswscope.c  |    8 -
- drivers/acpi/events/evgpe.c         |   61 +++----
- drivers/acpi/events/evgpeblk.c      |    5 
- drivers/acpi/events/evmisc.c        |    3 
- drivers/acpi/events/evregion.c      |  134 ++++++++++++-----
- drivers/acpi/events/evrgnini.c      |   32 +++-
- drivers/acpi/events/evxfregn.c      |   24 ++-
- drivers/acpi/executer/exdump.c      |   50 +++---
- drivers/acpi/executer/exfldio.c     |  184 ++++++++++++------------
- drivers/acpi/executer/exmisc.c      |    6 
- drivers/acpi/executer/exmutex.c     |   12 -
- drivers/acpi/executer/exoparg1.c    |    3 
- drivers/acpi/executer/exoparg3.c    |    5 
- drivers/acpi/executer/exprep.c      |    4 
- drivers/acpi/executer/exregion.c    |   10 -
- drivers/acpi/executer/exresolv.c    |    6 
- drivers/acpi/executer/exresop.c     |    4 
- drivers/acpi/executer/exstore.c     |    3 
- drivers/acpi/executer/exsystem.c    |   21 +-
- drivers/acpi/hardware/hwacpi.c      |   13 -
- drivers/acpi/hardware/hwregs.c      |   12 -
- drivers/acpi/hardware/hwsleep.c     |   89 ++++++++---
- drivers/acpi/namespace/nsaccess.c   |    8 -
- drivers/acpi/namespace/nsalloc.c    |    7 
- drivers/acpi/namespace/nsdump.c     |   37 ++--
- drivers/acpi/namespace/nsdumpdv.c   |    2 
- drivers/acpi/namespace/nsinit.c     |   63 ++++----
- drivers/acpi/namespace/nsobject.c   |    7 
- drivers/acpi/namespace/nssearch.c   |    4 
- drivers/acpi/namespace/nsutils.c    |    6 
- drivers/acpi/namespace/nsxfname.c   |    2 
- drivers/acpi/parser/psargs.c        |    4 
- drivers/acpi/parser/psparse.c       |    4 
- drivers/acpi/parser/psxface.c       |   34 +++-
- drivers/acpi/pci_link.c             |  180 ++++++++++++++++++++---
- drivers/acpi/pci_root.c             |   95 ------------
- drivers/acpi/resources/rscalc.c     |    4 
- drivers/acpi/resources/rscreate.c   |    2 
- drivers/acpi/resources/rsdump.c     |   18 --
- drivers/acpi/resources/rsirq.c      |   38 ++--
- drivers/acpi/resources/rslist.c     |    4 
- drivers/acpi/scan.c                 |    3 
- drivers/acpi/sleep/proc.c           |    3 
- drivers/acpi/tables.c               |   30 ++-
- drivers/acpi/tables/tbget.c         |   10 -
- drivers/acpi/tables/tbgetall.c      |    3 
- drivers/acpi/tables/tbrsdt.c        |    3 
- drivers/acpi/tables/tbxface.c       |    2 
- drivers/acpi/tables/tbxfroot.c      |    3 
- drivers/acpi/thermal.c              |    1 
- drivers/acpi/utilities/utalloc.c    |   55 -------
- drivers/acpi/utilities/utdebug.c    |    2 
- drivers/acpi/utilities/utdelete.c   |    4 
- drivers/acpi/utilities/uteval.c     |    4 
- drivers/acpi/utilities/utglobal.c   |   99 ++++++++++++
- drivers/acpi/utilities/utobject.c   |   28 ---
- include/acpi/acconfig.h             |    4 
- include/acpi/acevents.h             |   11 +
- include/acpi/acglobal.h             |    3 
- include/acpi/acmacros.h             |   27 +--
- include/acpi/acobject.h             |   35 ++--
- include/acpi/acpi_drivers.h         |    4 
- include/acpi/acutils.h              |    8 +
- include/asm-i386/acpi.h             |   10 +
- include/asm-i386/system.h           |    1 
- include/asm-x86_64/acpi.h           |   27 +--
- 87 files changed, 1170 insertions(+), 770 deletions(-)
+--r5Pyd7+fXNt84Ff3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="acpi-numa-quiet.patch"
 
-through these ChangeSets:
+# This is a BitKeeper generated patch for the following project:
+# Project Name: Linux kernel tree
+# This patch format is intended for GNU patch command version 2.5 or higher.
+# This patch includes the following deltas:
+#	           ChangeSet	1.1487  -> 1.1488 
+#	 drivers/acpi/numa.c	1.5     -> 1.6    
+#
+# The following is the BitKeeper ChangeSet Log
+# --------------------------------------------
+# 03/11/24	jbarnes-7Cu6nxpAScLkrfCouVixva0bRtRcJeJQ@public.gmane.org	1.1488
+# make acpi NUMA printks quieter
+# --------------------------------------------
+#
+diff -Nru a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+--- a/drivers/acpi/numa.c	Mon Nov 24 12:41:26 2003
++++ b/drivers/acpi/numa.c	Mon Nov 24 12:41:26 2003
+@@ -31,6 +31,13 @@
+ #include <linux/acpi.h>
+ #include <acpi/acpi_bus.h>
+ 
++#undef ACPI_NUMA_DEBUG
++#ifdef ACPI_NUMA_DEBUG
++#define Dprintk(x...) printk(x)
++#else
++#define Dprintk(x...)
++#endif
++
+ extern int __init acpi_table_parse_madt_family (enum acpi_table_id id, unsigned long madt_size, int entry_id, acpi_madt_entry_handler handler);
+ 
+ void __init
+@@ -46,7 +53,7 @@
+ 	{
+ 		struct acpi_table_processor_affinity *p =
+ 			(struct acpi_table_processor_affinity*) header;
+-		printk(KERN_INFO PREFIX "SRAT Processor (id[0x%02x] eid[0x%02x]) in proximity domain %d %s\n",
++		Dprintk(KERN_INFO PREFIX "SRAT Processor (id[0x%02x] eid[0x%02x]) in proximity domain %d %s\n",
+ 		       p->apic_id, p->lsapic_eid, p->proximity_domain,
+ 		       p->flags.enabled?"enabled":"disabled");
+ 	}
+@@ -56,7 +63,7 @@
+ 	{
+ 		struct acpi_table_memory_affinity *p =
+ 			(struct acpi_table_memory_affinity*) header;
+-		printk(KERN_INFO PREFIX "SRAT Memory (0x%08x%08x length 0x%08x%08x type 0x%x) in proximity domain %d %s%s\n",
++		Dprintk(KERN_INFO PREFIX "SRAT Memory (0x%08x%08x length 0x%08x%08x type 0x%x) in proximity domain %d %s%s\n",
+ 		       p->base_addr_hi, p->base_addr_lo, p->length_hi, p->length_lo,
+ 		       p->memory_type, p->proximity_domain,
+ 		       p->flags.enabled ? "enabled" : "disabled",
 
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/12/16 1.1489)
-   [ACPI] set acpi_disabled=1 on failure for clean /proc
-     http://bugzilla.kernel.org/show_bug.cgi?id=991
+--r5Pyd7+fXNt84Ff3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="acpi-tables-quiet.patch"
 
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/12/16 1.1488)
-   [ACPI] /proc/acpi files appear in /proc if acpi=off (Shaohua David
-Li)
+# This is a BitKeeper generated patch for the following project:
+# Project Name: Linux kernel tree
+# This patch format is intended for GNU patch command version 2.5 or higher.
+# This patch includes the following deltas:
+#	           ChangeSet	1.1488  -> 1.1489 
+#	drivers/acpi/tables.c	1.16    -> 1.17   
+#
+# The following is the BitKeeper ChangeSet Log
+# --------------------------------------------
+# 03/11/24	jbarnes-7Cu6nxpAScLkrfCouVixva0bRtRcJeJQ@public.gmane.org	1.1489
+# make acpi table parsing quieter
+# --------------------------------------------
+#
+diff -Nru a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+--- a/drivers/acpi/tables.c	Mon Nov 24 12:41:41 2003
++++ b/drivers/acpi/tables.c	Mon Nov 24 12:41:41 2003
+@@ -35,6 +35,13 @@
+ #include <linux/acpi.h>
+ #include <linux/bootmem.h>
+ 
++#undef ACPI_TABLES_DEBUG
++#ifdef ACPI_TABLES_DEBUG
++#define Dprintk(x...) printk(x)
++#else
++#define Dprintk(x...)
++#endif
++
+ #define PREFIX			"ACPI: "
+ 
+ #define ACPI_MAX_TABLES		256
+@@ -118,7 +125,7 @@
+ 	{
+ 		struct acpi_table_lapic *p =
+ 			(struct acpi_table_lapic*) header;
+-		printk(KERN_INFO PREFIX "LAPIC (acpi_id[0x%02x] lapic_id[0x%02x] %s)\n",
++		Dprintk(KERN_INFO PREFIX "LAPIC (acpi_id[0x%02x] lapic_id[0x%02x] %s)\n",
+ 			p->acpi_id, p->id, p->flags.enabled?"enabled":"disabled");
+ 	}
+ 		break;
+@@ -127,7 +134,7 @@
+ 	{
+ 		struct acpi_table_ioapic *p =
+ 			(struct acpi_table_ioapic*) header;
+-		printk(KERN_INFO PREFIX "IOAPIC (id[0x%02x] address[0x%08x] global_irq_base[0x%x])\n",
++		Dprintk(KERN_INFO PREFIX "IOAPIC (id[0x%02x] address[0x%08x] global_irq_base[0x%x])\n",
+ 			p->id, p->address, p->global_irq_base);
+ 	}
+ 		break;
+@@ -136,7 +143,7 @@
+ 	{
+ 		struct acpi_table_int_src_ovr *p =
+ 			(struct acpi_table_int_src_ovr*) header;
+-		printk(KERN_INFO PREFIX "INT_SRC_OVR (bus[%d] irq[0x%x] global_irq[0x%x] polarity[0x%x] trigger[0x%x])\n",
++		Dprintk(KERN_INFO PREFIX "INT_SRC_OVR (bus[%d] irq[0x%x] global_irq[0x%x] polarity[0x%x] trigger[0x%x])\n",
+ 			p->bus, p->bus_irq, p->global_irq, p->flags.polarity, p->flags.trigger);
+ 	}
+ 		break;
+@@ -145,7 +152,7 @@
+ 	{
+ 		struct acpi_table_nmi_src *p =
+ 			(struct acpi_table_nmi_src*) header;
+-		printk(KERN_INFO PREFIX "NMI_SRC (polarity[0x%x] trigger[0x%x] global_irq[0x%x])\n",
++		Dprintk(KERN_INFO PREFIX "NMI_SRC (polarity[0x%x] trigger[0x%x] global_irq[0x%x])\n",
+ 			p->flags.polarity, p->flags.trigger, p->global_irq);
+ 	}
+ 		break;
+@@ -154,7 +161,7 @@
+ 	{
+ 		struct acpi_table_lapic_nmi *p =
+ 			(struct acpi_table_lapic_nmi*) header;
+-		printk(KERN_INFO PREFIX "LAPIC_NMI (acpi_id[0x%02x] polarity[0x%x] trigger[0x%x] lint[0x%x])\n",
++		Dprintk(KERN_INFO PREFIX "LAPIC_NMI (acpi_id[0x%02x] polarity[0x%x] trigger[0x%x] lint[0x%x])\n",
+ 			p->acpi_id, p->flags.polarity, p->flags.trigger, p->lint);
+ 	}
+ 		break;
+@@ -163,7 +170,7 @@
+ 	{
+ 		struct acpi_table_lapic_addr_ovr *p =
+ 			(struct acpi_table_lapic_addr_ovr*) header;
+-		printk(KERN_INFO PREFIX "LAPIC_ADDR_OVR (address[%p])\n",
++		Dprintk(KERN_INFO PREFIX "LAPIC_ADDR_OVR (address[%p])\n",
+ 			(void *) (unsigned long) p->address);
+ 	}
+ 		break;
+@@ -172,7 +179,7 @@
+ 	{
+ 		struct acpi_table_iosapic *p =
+ 			(struct acpi_table_iosapic*) header;
+-		printk(KERN_INFO PREFIX "IOSAPIC (id[0x%x] global_irq_base[0x%x] address[%p])\n",
++		Dprintk(KERN_INFO PREFIX "IOSAPIC (id[0x%x] global_irq_base[0x%x] address[%p])\n",
+ 			p->id, p->global_irq_base, (void *) (unsigned long) p->address);
+ 	}
+ 		break;
+@@ -181,7 +188,7 @@
+ 	{
+ 		struct acpi_table_lsapic *p =
+ 			(struct acpi_table_lsapic*) header;
+-		printk(KERN_INFO PREFIX "LSAPIC (acpi_id[0x%02x] lsapic_id[0x%02x] lsapic_eid[0x%02x] %s)\n",
++		Dprintk(KERN_INFO PREFIX "LSAPIC (acpi_id[0x%02x] lsapic_id[0x%02x] lsapic_eid[0x%02x] %s)\n",
+ 			p->acpi_id, p->id, p->eid, p->flags.enabled?"enabled":"disabled");
+ 	}
+ 		break;
+@@ -190,7 +197,7 @@
+ 	{
+ 		struct acpi_table_plat_int_src *p =
+ 			(struct acpi_table_plat_int_src*) header;
+-		printk(KERN_INFO PREFIX "PLAT_INT_SRC (polarity[0x%x] trigger[0x%x] type[0x%x] id[0x%04x] eid[0x%x] iosapic_vector[0x%x] global_irq[0x%x]\n",
++		Dprintk(KERN_INFO PREFIX "PLAT_INT_SRC (polarity[0x%x] trigger[0x%x] type[0x%x] id[0x%04x] eid[0x%x] iosapic_vector[0x%x] global_irq[0x%x]\n",
+ 			p->flags.polarity, p->flags.trigger, p->type, p->id, p->eid, p->iosapic_vector, p->global_irq);
+ 	}
+ 		break;
 
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/12/15 1.1487)
-   [ACPI] delete old _TRA code formerly used just by IA64. (Bjorn
-Helgaas)
-   The current approach is to walk the _CRS in pcibios_scan_root()
-   using acpi_walk_resources().
-
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/12/11 1.1486)
-   [ACPI] Update Linux to ACPICA 20031203 (Bob Moore)
-   
-   Changed the initialization of Operation Regions during subsystem init
-to
-   perform two entire walks of the ACPI namespace; The first to
-initialize
-   the regions themselves, the second to execute the _REG methods.  This
-   fixed some interdependencies across _REG methods found on some
-machines.
-   
-   Fixed a problem where a Store(Local0, Local1) could simply update the
-   object reference count, and not create a new copy of the object if
-the
-   Local1 is uninitialized.
-   
-   Implemented support for the _SST reserved method during sleep
-   transitions.
-   
-   Implemented support to clear the SLP_TYP and SLP_EN bits when waking
-up,
-   this is apparently required by some machines.
-   
-   When sleeping, clear the wake status only if SleepState is not S5.
-   
-   Fixed a problem in AcpiRsExtendedIrqResource() where an incorrect
-   pointer arithmetic advanced a string pointer too far.
-   
-   Fixed a problem in AcpiTbGetTablePtr() where a garbage pointer could
-be
-   returned if the requested table has not been loaded.
-   
-   Within the support for IRQ resources, restructured the handling of
-the
-   active and edge/level bits.
-   
-   Fixed a few problems in AcpiPsxExecute() where memory could be leaked
-   under certain error conditions.
-   
-   Improved error messages for the cases where the ACPI mode could not
-be
-   entered.
-
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/12/11 1.1485)
-   [ACPI] update Linux to ACPICA 20031029 (Bob Moore)
-   
-   Fixed a problem where a level-triggered GPE with an associated _Lxx
-   control method was incorrectly cleared twice.
-   
-   Fixed a problem with the Field support code where an access can occur
-   beyond the end-of-region if the field is non-aligned but extends to
-the
-   very end of the parent region (resulted in an AE_AML_REGION_LIMIT
-   exception.)
-   
-   Fixed a problem with ACPI Fixed Events where an RT Clock handler
-would
-   not get invoked on an RTC event.  The RTC event bitmasks for the PM1
-   registers were not being initialized properly.
-   
-   Implemented support for executing _STA and _INI methods for Processor
-   objects.  Although this is currently not part of the ACPI
-specification,
-   there is existing ASL code that depends on the init-time execution of
-   these methods.
-   
-   Implemented and deployed a GetDescriptorName function to decode the
-   various types of internal descriptors.  Guards against null
-descriptors
-   during debug output also.
-   
-   Implemented and deployed a GetNodeName function to extract the
-   4-character namespace node name.  This function simplifies the debug
-and
-   error output, as well as guarding against null pointers during
-output.
-   
-   Implemented and deployed the ACPI_FORMAT_UINT64 helper macro to
-simplify
-   the debug and error output of 64-bit integers.  This macro replaces
-the
-   HIDWORD and LODWORD macros for dumping these integers.
-   
-   Updated the implementation of the Stall() operator to only call
-   AcpiOsStall(), and also return an error if the operand is larger than
-   255.  This preserves the required behavior of not relinquishing the
-   processor, as would happen if AcpiOsSleep() was called for "long
-   stalls".
-   
-   Constructs of the form "Store(LocalX,LocalX)" where LocalX is not
-   initialized are now treated as NOOPs.
-   
-   Cleaned up a handful of warnings during 64-bit generation.
-   
-   Fixed a reported error where and incorrect GPE number was passed to
-the
-   GPE dispatch handler.  This value is only used for error output,
-   however.  Used this opportunity to clean up and streamline the GPE
-   dispatch code.
-
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/12/11 1.1484)
-   [ACPI] revert two fixes in preparation for ACPICA merge
-
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/12/11 1.1483)
-   [ACPI] replace multiple flags with acpi_noirq -- ala 2.4
-
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/12/10 1.1481)
-   [ACPI] set APIC ACPI SCI OVR default to level/low
-     http://bugzilla.kernel.org/show_bug.cgi?id=1351
-
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/12/02 1.1480)
-   [ACPI] add warning to thermal shutdown (Pavel Machek)
-
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/11/30 1.1479)
-   [ACPI] sync with 2.4.23
-   Re-enable IRQ balacning if IOAPIC mode
-   http://bugzilla.kernel.org/show_bug.cgi?id=1440
-   
-   Also allow IRQ balancing in PIC mode if "acpi_irq_balance"
-   http://bugzilla.kernel.org/show_bug.cgi?id=1391
-
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/11/21 1.1477)
-   [ACPI] prevent ES7000 tweak from breaking i386 IOAPIC (Andrew de
-Quincey)
-
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/11/20 1.1476)
-   [ACPI] fix compiler warning (Andrew Morton)
-
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/11/18 1.1450.2.3)
-   [ACPI] "acpi_pic_sci=edge" in case platform requires Edge Triggered
-SCI
-   http://bugzilla.kernel.org/show_bug.cgi?id=1390
-
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/11/18 1.1450.2.2)
-   [ACPI] print_IO_APIC() only after it is programmed
-   http://bugzilla.kernel.org/show_bug.cgi?id=1177
-
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/11/07 1.1414.1.7)
-   [ACPI] In ACPI mode, delay print_IO_APIC() to make its output valid.
-   http://bugzilla.kernel.org/show_bug.cgi?id=1177
-
-<len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (03/11/07 1.1414.1.6)
-   [ACPI] If ACPI is disabled by DMI BIOS date, then
-   turn it off completely, including table parsing for HT.
-   This avoids a crash due to ancient garbled tables.
-   acpi=force is available to over-ride this default.
-   http://bugzilla.kernel.org/show_bug.cgi?id=1434
-
-
-
-
+--r5Pyd7+fXNt84Ff3--
 
 
 -------------------------------------------------------
