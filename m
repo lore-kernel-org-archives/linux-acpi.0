@@ -1,10 +1,11 @@
-From: margitsw-zqRNUXuvxA0b1SvskN2V4Q@public.gmane.org (Margit Schubert-While)
-Subject: Intel ACPI
-Date: Tue, 04 Feb 2003 00:14:13 +0100
+From: alx <alexs81-VGgt2q2+T+FeoWH0uzbU5w@public.gmane.org>
+Subject: Strange ACPI way of work in Sony VAIO GRX600
+Date: 04 Feb 2003 00:11:42 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <4.3.2.7.2.20030204000748.00b62270@mail.dns-host.com>
+Message-ID: <1044313902.21776.13.camel@galileo.homenet.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -14,87 +15,36 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-	So, What do you think about this (D845):
+HI all
+	I didn't find any error and/or notice in /var/log/messages
+but sometimes acpi patch  20021205 (on 2.4.20)hat a little utility 
+tells me that themperature goes to 0 and battery has strange state info
+I was interested in patching ACPI for sony vaio series, but I just need
+some suggestion on what can be done.
+Another thing is that a little utility which doesn't require acpi to
+work (vaiobat) hangs when acpi doesn't works, but work great when acpi
+works.
 
-Method (OSFL, 0, NotSerialized)
-     {
-         Store (0x00, Local0)
-         If (MCTH (\_OS, "Microsoft Windows"))
-         {
-             Store (0x01, Local0)
-         }
+When it happen I've to change some state in acpi subsystem: i mean one
+of these action bring acpi to work properly again
+1) close lid switch
+2) press power button
+3) plug ac-ADAPTER
+4) remove and insert again battery
 
-         If (MCTH (\_OS, "Microsoft WindowsME: Millennium Edition"))
-         {
-             Store (0x01, Local0)
-         }
+I think there is a overflow somewehere
 
-         Return (Local0)
-     }
+TIA for suggestion
+Bye
+Alx
 
-Method (_PS3, 0, NotSerialized)
-                     {
-                         If (MCTH (\_OS, "Microsoft Windows"))
-                         {
-                             Store (_GTM (), TIM1)
-                         }
-                     }
-
-Method (_PS0, 0, NotSerialized)
-                     {
-                         If (MCTH (\_OS, "Microsoft Windows"))
-                         {
-                             If (BOOT)
-                             {
-                                 If (And (DRVI, 0x20))
-                                 {
-                                     PRGT (MPIO, MDMA, FLGS, 0xA0)
-                                 }
-
-                                 If (And (DRVI, 0x80))
-                                 {
-                                     PRGT (SPIO, SDMA, FLGS, 0xB0)
-                                 }
-                             }
-
-                             Store (0x01, BOOT)
-                         }
-                     }
-
-
-Method (_PS3, 0, NotSerialized)
-                     {
-                         If (MCTH (\_OS, "Microsoft Windows"))
-                         {
-                             Store (_GTM (), TIM1)
-                         }
-                     }
-
-
-                    Method (_PS0, 0, NotSerialized)
-                     {
-                         If (MCTH (\_OS, "Microsoft Windows"))
-                         {
-                             If (BOOT)
-                             {
-                                 If (And (DRVI, 0x20))
-                                 {
-                                     PRGT (MPIO, MDMA, FLGS, 0xA0)
-                                 }
-
-                                 If (And (DRVI, 0x80))
-                                 {
-                                     PRGT (SPIO, SDMA, FLGS, 0xB0)
-                                 }
-                             }
-
-                             Store (0x01, BOOT)
-                         }
-                     }
+-- 
+int a=10000,b,c=2800,d,e,f[2801],g;main(){for(;b-c;) f[b++]=a/5;
+for(;d=0,g=c*2;c-=14,printf("%.4d"e+d/a),e=d%a)for(b=c;d+=f[b]*a,
+f[b]=d%--g,d/=g--,--b;d*=b);}
 
 
 
