@@ -1,17 +1,27 @@
-From: Bjorn Helgaas <bjorn_helgaas-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: [ACPI] [PATCH] 1/3 ACPI resource handling
-Date: Fri, 21 Feb 2003 15:36:51 -0700
+From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [ACPI] [PATCH] 1/3 ACPI resource handling
+Date: Fri, 21 Feb 2003 15:07:48 -0800
 Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <200302211536.51368.bjorn_helgaas@hp.com>
-References: <B9ECACBD6885D5119ADC00508B68C1EA0D19BAFC@orsmsx107.jf.intel.com> <200302211509.15641.bjorn_helgaas@hp.com> <20030221221503.F19234@parcelfarce.linux.theplanet.co.uk>
+Message-ID: <B9ECACBD6885D5119ADC00508B68C1EA0D19BB0F@orsmsx107.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain
 Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20030221221503.F19234-+pPCBgu9SkPzIGdyhVEDUDl5KyyQGfY2kSSpQ9I8OhVaa/9Udqfwiw@public.gmane.org>
-To: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
+To: 'Bjorn Helgaas' <bjorn_helgaas-VXdhtT5mjnY@public.gmane.org>, Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
 Cc: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Walz, Michael" <michael.walz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, t-kochi-UDFczIW9X1d8UrSeD/g0lQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
+
+This is worth looking into, anyway.
+memcpy is appropriate, also.
+Bob
+
+
+-----Original Message-----
+From: Bjorn Helgaas [mailto:bjorn_helgaas-VXdhtT5mjnY@public.gmane.org] 
+Sent: Friday, February 21, 2003 2:37 PM
+To: Matthew Wilcox
+Cc: Moore, Robert; Grover, Andrew; Walz, Michael; t-kochi-UDFczIW9X1d8UrSeD/g0lQ@public.gmane.org;
+linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; acpi-devel@lists.sourceforge.net
+Subject: Re: [ACPI] [PATCH] 1/3 ACPI resource handling
 
 On Friday 21 February 2003 3:15 pm, Matthew Wilcox wrote:
 > On Fri, Feb 21, 2003 at 03:09:15PM -0700, Bjorn Helgaas wrote:
