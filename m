@@ -1,15 +1,14 @@
-From: Sebastian Henschel <acpi-1rjuZeEg9oEb1SvskN2V4Q@public.gmane.org>
-Subject: Re: [PATCH] acpi4asus update
-Date: Tue, 23 Mar 2004 15:50:48 +0100
+From: Grant Grundler <grundler-6jwH94ZQLHl74goWV3ctuw@public.gmane.org>
+Subject: Re: pci bridge suspend/resume (Re: PCI not restored correctly after suspend to ram)
+Date: Tue, 23 Mar 2004 09:07:30 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040323145048.GA5028@fuchi>
-References: <20040323000143.GA13711@hell.org.pl> <20040323094627.GA3413@fuchi> <20040323122735.GA18934@hell.org.pl>
+Message-ID: <20040323160730.GA14114@colo.lackof.org>
+References: <200403180935.09436.stefan.doesinger@gym-leoben.asn-graz.ac.at> <1079761564.7274.730.camel@dhcppc4> <405C00C6.3010805@pobox.com> <20040320134542.GV25059@parcelfarce.linux.theplanet.co.uk> <20040320181000.GA8272@kroah.com> <20040322223425.GB3213@neo.rr.com> <20040323092338.A21352@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="7AUc2qLy4jB3hD7Z"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040323122735.GA18934-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
+In-Reply-To: <20040323092338.A21352-f404yB8NqCZvn6HldHNs0ANdhmdF6hFW@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -18,70 +17,25 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Russell King <rmk-pci-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Cc: Adam Belay <ambx1-IBH0VoN/3vPQT0dZR+AlfA@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>, Jeff Garzik <jgarzik-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, stefan.doesinger-dYJrdcitkgg0+Ua9VpOLR6Q1ief8SNuKXqFh9Ls21Oc@public.gmane.org, "linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org" <linux-pci-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Tue, Mar 23, 2004 at 09:23:38AM +0000, Russell King wrote:
+> There's also the problem of devices which don't have a driver loaded.
+> For instance, if you suspend and power down a cardbus bridge which
+> hasn't had yenta_socket loaded, you could loose the extra configuration
+> information in TI bridges necessary for IRQ routing, which we won't
+> be able to recover at a later point in time.
+> 
+> Do we even care about this?
 
---7AUc2qLy4jB3hD7Z
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Short of adding hooks to call BIOS, I don't see any "clean" way
+to deal with this.  I gather BIOS is the only code that knows the
+IRQ routing info.  If the IRQ routing info is advertised elsewhere
+by the BIOS/EFI, we could add code to (eg) yenta_socket to look for it.
 
-rehi..
-
-* Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org> [2004-03-23 15:45 +0100]:
-> Thus wrote Sebastian Henschel:
-> > since i am currently working on a M6800N...
-> > seems to work, although i do not see any difference to the unsupported
-> > default values before, perhaps brightness. :)
-> > what still does not work is the the display switch. when i cat
-> > /proc/acpi/asus/disp i get random values like:
-> > -583194208
-> > -583193696
-> > -1007965376
-> > -588481760
-> >=20
-> > the key strokes on Fn+F8 are recognized by acpid.
->=20
-> Hmm, reading the value should not be supported currently and it seems I
-> have neglected something (looks like reading an uninitialized value here).
-> I'll take a look at this in a couple of hours.
->=20
-> OTOH, echoing a value (see the current acpi4asus README) to asus/disp
-> should switch the displays -- at least I was told it worked on M3700N, and
-> M6800N is similar.=20
-
-no, nothing happens when echoing values. well, now the machine is gone
-and i do not know when i will be able to lay hands on a m6800n again.
-
-> Anyway, if it doesn't, there's not really much more
-> (than what's already in the README) I can do. A word from someone at ASUS
-> could really help, but you surely know how it looks in the reality...
-
-aight.
-
-thanks,
- sebastian
---=20
-::: .O.
-::: ..O
-::: OOO
-::: lynx -source http://www.kodeaffe.de/shensche.pub | gpg --import
-
---7AUc2qLy4jB3hD7Z
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFAYE7IreHfL3pi+bQRArjTAKCVHiTepKv9gRme8+a8f+mL+ODpyACeO7il
-cSBCYX07/T6Gukk491zhagg=
-=ugYC
------END PGP SIGNATURE-----
-
---7AUc2qLy4jB3hD7Z--
+grant
 
 
 -------------------------------------------------------
