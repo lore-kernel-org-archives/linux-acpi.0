@@ -1,16 +1,17 @@
-From: "Maciej W. Rozycki" <macro-8Y0ljV8xnLVscumT1wHf3A@public.gmane.org>
-Subject: Re: Re: Linux 2.4.26-rc1 (cmpxchg vs 80386 build)
-Date: Fri, 2 Apr 2004 12:54:06 +0200 (CEST)
+From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
+Subject: Re: Resume from suspend-to-ram (radeon)
+Date: Fri, 2 Apr 2004 15:24:46 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <Pine.LNX.4.55.0404021252100.4735@jurand.ds.pg.gda.pl>
-References: <4069A359.7040908@nortelnetworks.com>  <1080668673.989.106.camel@dhcppc4>
- <4069D3D2.2020402@tmr.com>  <Pine.LNX.4.55.0403311305000.24584@jurand.ds.pg.gda.pl>
-  <20040331150219.GC18990@mail.shareable.org>  <Pine.LNX.4.55.0404011423070.3675@jurand.ds.pg.gda.pl>
- <1080852371.30349.19.camel@dhcppc4>
+Message-ID: <200404021524.46611.stefandoesinger@gmx.at>
+References: <c15rn0$5bu$2@sea.gmane.org> <20040223074227.80AE57831D@mail.lmc.cs.sunysb.edu> <406ABD4A.10408@pca.it>
+Reply-To: stefandoesinger-RbZlAiThDcE@public.gmane.org
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1080852371.30349.19.camel-D2Zvc0uNKG8@public.gmane.org>
+In-Reply-To: <406ABD4A.10408-wlebWZzHoyE@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -19,26 +20,39 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jamie Lokier <jamie-yetKDKU6eevNLxjTenLetw@public.gmane.org>, Bill Davidsen <davidsen-sQDSfeB7uhw@public.gmane.org>, Chris Friesen <cfriesen-hwFIcccggHZv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, Willy Tarreau <willy-tRhHnHjXm5DYtjvyW6yDsg@public.gmane.org>, "Richard B. Johnson" <root-KUYkVxoy1ibZ8u7sGK6rWdBPR1lH4CV8@public.gmane.org>, Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>, Arkadiusz Miskiewicz <arekm-k0Z414SquRyhPH1hqNUYSQ@public.gmane.org>, Marcelo Tosatti <marcelo.tosatti-3EexvZdKGZRWk0Htik3J/w@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>, Giridhar Pemmasani <giri-IxWJ8JVbGpr5NRxSJurNR4dd74u8MsAO@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 1 Apr 2004, Len Brown wrote:
+Hi,
+I have slightly different experiances with suspend to ram and the radeon card 
+on my Acer Travelmate 803 notebook:
+> on 02/23/04 08:42, Giridhar Pemmasani wrote:
+> > New radeonfb suspend/resume code turns the LCD on but the system hangs
+> > during fb resume. With the changes I made, the LCD turns on but the
+> > screen remains blank. X with int10 POST restores the screen properly.
+The radeonfb resume does not crash, but when fbcon is loaded something fails. 
+Compile radeonfb(original version, 2.6.4 kernel) and frame buffer console as 
+modules, disable video mode selection support and load only radeonfb(NOT 
+fbcon) and the system will resume with backlight on and a black screen. At 
+least my device does in single user mode.
 
-> ACPI specifies a location in regular memory that is used to contain the
-> lock.  The lock is used both by the CPU and by the embedded controller
-> to cover access to shared registers.  We don't spin on this lock because
-> we don't know how long the embedded controller might hold it.  Instead
-> when we fail to acquire it we schedule an event to trigger when the lock
-> is free.
+I use plain text console and X with int10 POST patch. This gives me the 
+console back when resuming(X has to soft-boot the V-Bios).
 
- OK, that's clear to me now.  Then does this lock really require
-"cmpxchg"?  Wouldn't a lone "xchg" suffice?
+> One possible solution for 'intel8x0' suspend/resume problem is here
+>   
+> http://sourceforge.net/mailarchive/forum.php?thread_id=4107033&forum_id=175
+>2
+i810_audio doesn't work for me too. Any call to pci_enable_device(), 
+pci_write_config_byte/word/dword() and pci_restore_state() causes a 
+system(bios?) lockup. This only concerns the audio card, and strangely I can 
+change the pci settings with setpci and bring my card back, i810_audio unload 
+of course.
+I think oss has a better sound quality, especially with a high volume.
 
--- 
-+  Maciej W. Rozycki, Technical University of Gdansk, Poland   +
-+--------------------------------------------------------------+
-+        e-mail: macro-8Y0ljV8xnLVscumT1wHf3A@public.gmane.org, PGP key available        +
+Cheers,
+Stefan
 
 
 -------------------------------------------------------
