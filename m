@@ -1,16 +1,12 @@
-From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: Call for help: list of machines with working S3
-Date: Fri, 18 Feb 2005 11:03:27 +0000
-Message-ID: <1108724607.12031.58.camel@elrond.flymine.org>
-References: <20050214211105.GA12808@elf.ucw.cz>
-	 <200502152038.00401.stefandoesinger@gmx.at>
-	 <20050217190815.GC4925@gamma.logic.tuwien.ac.at>
-	 <200502172158.56721.stefandoesinger@gmx.at>
-	 <20050218104633.GA28246@gamma.logic.tuwien.ac.at>
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: problem with suspension
+Date: Fri, 18 Feb 2005 13:40:35 +0100
+Message-ID: <20050218124035.GB1523@elf.ucw.cz>
+References: <web-47803451@infinito.it>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <20050218104633.GA28246-DqSSrKF0TaySnEC3TeqHn5dqbFPxfnh/@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <web-47803451-97W46K3QqA41GQ1Ptb7lUw@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -20,19 +16,36 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Norbert Preining <preining-DX+603jRYB8@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+To: pj.harvey-97W46K3QqA41GQ1Ptb7lUw@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2005-02-18 at 11:46 +0100, Norbert Preining wrote:
+Hi!
 
-> but $statedir/vbe was taken once for XFree86 running. Can this be the
-> reason for the freeze?
+>    I have a problem with suspension.
+> When I do
+> 
+>  echo disk > /sys/power/state
+> 
+> I have a problem with modules of SCSI controller, aic7xxx.
+> I've tryed to remove the modules with
+> 
+>   modprobe -r aic7xxx
+> 
+> but the kernel was in panic. The message is
+> 
+>   Kernel Panic - Not syncing: Loop 1
+> 
+> If I don't load the module aic7xxx and I try to do the 
+> suspension, all is ok.
+> 
+> What I do?
 
-Quite possibly. Save the state in single user mode, without X running.
+Fix aic7xxx so that it rmmods cleanly as a first step?
+								Pavel
 -- 
-Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
-
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
