@@ -1,42 +1,31 @@
-From: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>
-Subject: Re: Re: Centrino speedstep
-Date: Sat, 8 Jan 2005 02:05:09 +0100
-Message-ID: <20050108010509.GA12131@hell.org.pl>
-References: <41D43A9F.5050507@mega.ist.utl.pt> <16852.15668.315630.700537@phoenix.squirrel.nl> <41D4AA9F.7080200@mega.ist.utl.pt> <20041231082524.GA8312@dominikbrodowski.de> <16861.5376.560582.314813@aber.ac.uk> <20050106161440.GD10011@dominikbrodowski.de> <16862.25182.567350.575532@aber.ac.uk> <20050107105045.GA17839@dominikbrodowski.de> <16862.27881.864389.196313@aber.ac.uk> <20050107133022.GM19199@poupinou.org>
+From: Nate Lawson <nate@root.org>
+Subject: acpi-ca reports \_SB as a device
+Date: Sat, 08 Jan 2005 01:05:24 -0800
+Message-ID: <41DFA254.8090704@root.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20050107133022.GM19199-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: Fred Labrosse <ffl-4CLdheC3Iye1Qrn1Bg8BZw@public.gmane.org>, Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-freebsd-acpi@freebsd.org>
+List-Unsubscribe: <http://lists.freebsd.org/mailman/listinfo/freebsd-acpi>,
+	<mailto:freebsd-acpi-request@freebsd.org?subject=unsubscribe>
+List-Archive: <http://lists.freebsd.org/pipermail/freebsd-acpi>
+List-Post: <mailto:freebsd-acpi@freebsd.org>
+List-Help: <mailto:freebsd-acpi-request@freebsd.org?subject=help>
+List-Subscribe: <http://lists.freebsd.org/mailman/listinfo/freebsd-acpi>,
+	<mailto:freebsd-acpi-request@freebsd.org?subject=subscribe>
+Sender: owner-freebsd-acpi@freebsd.org
+Errors-To: owner-freebsd-acpi@freebsd.org
+To: ACPI Developers <acpi-devel@lists.sourceforge.net>
+Cc: acpi@FreeBSD.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thus wrote Bruno Ducrot:
-> >  > And as 100% CPU usage isn't that common on notebooks...
-> > 
-> 
-> Actually you may save energy but only if you disable the L2 cache.  I
-> don't think people want that ;)
+If you call AcpiGetType on \_SB, you get "device" and \_TZ gives 
+"thermal".  I don't think this is valid since these are system scopes, 
+not devices and thermal zones.
 
-How is that? Could you elaborate?
-Best regards,
+I found this while testing a patch that scans the whole namespace (\) 
+for devices.  It turns out some systems put PCI link devices (PNP0C0F) 
+in \, so we weren't probing them.
 
 -- 
-Karol 'sziwan' Kozimor
-sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org
-
-
--------------------------------------------------------
-The SF.Net email is sponsored by: Beat the post-holiday blues
-Get a FREE limited edition SourceForge.net t-shirt from ThinkGeek.
-It's fun and FREE -- well, almost....http://www.thinkgeek.com/sfshirt
+Nate
