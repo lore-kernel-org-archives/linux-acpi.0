@@ -1,11 +1,13 @@
-From: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Subject: [PATCH][BUG] LoadTable() operator fails
-Date: Wed, 05 Jan 2005 14:29:14 +0900
-Message-ID: <41DB7B2A.4020005@jp.fujitsu.com>
+From: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Subject: Re: [PATCH 4/4]An ACPI callback for pci_set_power_state
+Date: Wed, 5 Jan 2005 09:49:54 +0100
+Message-ID: <20050105084954.GA5170@elf.ucw.cz>
+References: <1104893456.5550.135.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1104893456.5550.135.camel-U5EdaLXB8smDugQYiPIPGdh3ngVCH38I@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,43 +17,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Greg <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Patrick Mochel <mochel-og82NyAXoxR0I81aPRRTmR2eb7JE58TQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hi!
 
-The execution of the LoadTable() operator might fail because of the
-bug on OEM ID comparison. The following patch fixes this issue.
-
-Signed-off-by: Kenji Kaneshige <kaneshige.kenji-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-
-
----
-
- linux-2.6.10-kanesige/drivers/acpi/tables/tbxfroot.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff -puN drivers/acpi/tables/tbxfroot.c~fix_acpi_tb_find_table
-drivers/acpi/tables/tbxfroot.c
---- linux-2.6.10/drivers/acpi/tables/tbxfroot.c~fix_acpi_tb_find_table
-2005-01-04 09:05:29.000000000 +0900
-+++ linux-2.6.10-kanesige/drivers/acpi/tables/tbxfroot.c	2005-01-04
-09:05:29.000000000 +0900
-@@ -114,8 +114,8 @@ acpi_tb_find_table (
-
- 	/* Check oem_id and oem_table_id */
-
--	if ((oem_id[0]     && ACPI_STRCMP (oem_id, table->oem_id)) ||
--		(oem_table_id[0] && ACPI_STRCMP (oem_table_id, table->oem_table_id))) {
-+	if ((oem_id[0]     && ACPI_STRNCMP (oem_id, table->oem_id, sizeof
-(table->oem_id))) ||
-+		(oem_table_id[0] && ACPI_STRNCMP (oem_table_id, table->oem_table_id,
-sizeof (table->oem_table_id)))) {
- 		return_ACPI_STATUS (AE_AML_NAME_NOT_FOUND);
- 	}
+> This is an ACPI callback for pci_set_power_state. Besides setting PCI
+> config space, changing device's power state sometimes requires to power
+> on device's power source and to invoke other firmware methods.
 
 
-_
+> diff -puN drivers/pci/pci.h~acpi-pci-set-power-state-callback drivers/pci/pci.h
+> --- 2.5/drivers/pci/pci.h~acpi-pci-set-power-state-callback	2005-01-05 09:58:06.469923128 +0800
+> +++ 2.5-root/drivers/pci/pci.h	2005-01-05 09:58:06.473922520 +0800
+> @@ -13,6 +13,7 @@ extern int pci_bus_alloc_resource(struct
+>  				  void *alignf_data);
+>  /* Firmware callbacks */
+>  extern int (*platform_pci_get_suspend_state)(struct device *dev, u32 state);
+> +extern int (*platform_pci_set_power_state)(struct pci_dev *dev, int state);
+
+What kind of state is passed here? Why is it u32 in one case and int
+in the second one?
+
+I'm about to introduce separate types for pci power states and system
+power states; could you at least add comments which states are which?
+Also few lines of documentation would be very usefull...
+
+								Pavel
+-- 
+People were complaining that M$ turns users into beta-testers...
+...jr ghea gurz vagb qrirybcref, naq gurl frrz gb yvxr vg gung jnl!
 
 
 -------------------------------------------------------
