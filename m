@@ -1,14 +1,13 @@
-From: Bruno Ducrot <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: Re: ACPI: Battery information?
-Date: Thu, 10 Jun 2004 23:16:44 +0200
+From: "Neil B. Sexton" <sextonxc-mTKu2v9lvH+Z7QyDyfIwiQ@public.gmane.org>
+Subject: Powerful weightloss now available for you.
+Date: Fri, 11 Jun 2004 14:49:29 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040610211644.GF13782@poupinou.org>
-References: <40C4FD27.7000805@users.xeroprj.org> <20040608092045.72e15c4c@tethys.solarsys.org> <20040608094707.GM13782@poupinou.org> <40C58F45.2040108@users.xeroprj.org> <20040608113456.GN13782@poupinou.org> <40C6319A.7080707@users.xeroprj.org> <20040609075401.GT13782@poupinou.org> <20040610164324.GA6919@message-id.gmane0305.slipkontur.de>
+Message-ID: <7bf501c44fba$271b3209$1e1bafcf@rbscards.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20040610164324.GA6919-l0tNAEGuAhhzZ8+rp42Dbp9+tswZ0GTaehPwdyo5hKaELgA04lAiVw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,32 +16,34 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jun 10, 2004 at 04:43:24PM -0000, Stefan Seyfried wrote:
+Hello, I have a special_offer for you...
+WANT TO LOSE WEIGHT?
+The most powerful weightloss is now available
+without prescription. All natural Adipren720
+100% Money Back Guarantée!
+- Lose up to 19% Total Body Weight.
+- Up to 300% more Weight Loss while dieting.
+- Loss of 20-35% abdominal Fat.
+- Reduction of 40-70% overall Fat under skin.
+- Increase metabolic rate by 76.9% without Exercise.
+- Boost your Confidence level and Self Esteem.
+- Burns calorized fat.
+- Suppresses appetite for sugar.
+Get the facts about all-natural Adipren720 <http://3adipren.com/>
 
-> Well, this works fine for me on a hp compaq nx5000 with 2 batteries.
-> So i suspect the quality of your BIOS / DSDT is to blame.
 
-It work for me since 2 or 3 years at least.
-...
 
-> > So it's more likely a trouble somewhere in your DSDT, or a bug under linux.
-> 
-> As written above, it works for me under Linux.
+---- system information ----
+development needs format time its Relationship Locale] header 
+Specifying similar subscribe important in process lesser between 
+Unlike near descriptions patterns Germany publish hidden document 
+publication uses request making number hidden helpful part 
+amended result xml:lang allows requirements differences runtime formatting
 
-Fine.  And you assume then if it work for you, but not for others, then the
-AML is faulty?  Why?
 
-Cheers,
-
--- 
-Bruno Ducrot
-
---  Which is worse:  ignorance or apathy?
---  Don't know.  Don't care.
 
 
 -------------------------------------------------------
