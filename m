@@ -1,15 +1,17 @@
-From: tmc-+XVqjN4+fIJfbCVcMT5z6Ydd74u8MsAO@public.gmane.org (Tomasz Ciolek)
+From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
 Subject: Re: Radeon PM Support
-Date: Thu, 5 Aug 2004 22:27:12 +1000
+Date: Thu, 5 Aug 2004 14:53:55 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040805122712.GB16504@dreamcraft.com.au>
-References: <1091139240.26511.9.camel@6-allhosts> <1091631174.2297.90.camel@dhcppc4> <52654.199.172.169.15.1091641493.squirrel@webmail.localnet.com> <200408042100.24705.stefandoesinger@gmx.at> <yzo7jse5999.fsf@localhost.localdomain>
+Message-ID: <200408051453.55710.stefandoesinger@gmx.at>
+References: <1091139240.26511.9.camel@6-allhosts> <200408042100.24705.stefandoesinger@gmx.at> <yzo7jse5999.fsf@localhost.localdomain>
+Reply-To: stefandoesinger-RbZlAiThDcE@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="5vNYLRcllDrimb99"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
 In-Reply-To: <yzo7jse5999.fsf-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+Content-Disposition: inline
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -18,57 +20,73 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ole.rohne-vJEk5272eHo@public.gmane.org
-Cc: stefandoesinger-RbZlAiThDcE@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, count0-tC47gz4GrgtWk0Htik3J/w@public.gmane.org, len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, erik-KVSZC2aA8+zw/snApU8qRLNAH6kLmebB@public.gmane.org, nbryant-p32f3XyCuykqcZcGjlUOXw@public.gmane.org, barr.156-ZbGKxL/pcrQ@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: ole.rohne-vJEk5272eHo@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Am Donnerstag, 5. August 2004 09:33 schrieb ole.rohne-vJEk5272eHo@public.gmane.org:
+> Stefan> I think this patch only works for radeon cards,
+>
+> I'd rather say it is perhaps only reported to be needed for Radeon
+> cards, VGA POST'ing as such is of course not chipset specific.
+>
+> I'd maintain that ACPI makes no promise that the graphics chipset is
+> reinitialized on S3 resume. So if an adapter "just works", it is
+> either because the device hasn't been completely powered down (Dn, n<3?)
+> or because the system BIOS graciously takes care of the POSTing
+Intel's new graphics chipset probably. Owners of Acer Travelmate 60X told me 
+that the video doesn't come back. But in the these case the whole system 
+locked up on resume, so we can't tell if the video resume works.
 
---5vNYLRcllDrimb99
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I don't know much about this ROM post call. You mean all cards understand it?
+>
+> Stefan> and not in all circumstances.
+>
+> Which is disappointing:-(
+I wrote a small "driver" for my radeon card which calls acpi_vgapost in the 
+pci probe function. The screen went black and the system locked up. Is your 
+code supposed to work without prior suspending?
 
+> No, I'm just attending my daytime job;-) Sorry if I dropped out on one
+> of your mails.
+Not of a problem
+>
+> Stefan> Any ideas?
+>
+> Yes, two:
+>
+> 1. Try supplying the bus number with the devfn argument:
+>    acpi_vgapost (pdev->bus->number << 8 | pdev->devfn);
+Tried this, no change, system doesn't resume.
+> 2. Check that the VGA BIOS is really there before calling it. IIRC, the
+>    signature at 0xc000:0 should be 0xaa55
+How can I do this?
+cmp	c000:0, 0aa55h
+jne	skip_rompost
+call_bios
+skip_rompost:
 
-On Thu, Aug 05, 2004 at 09:33:54AM +0200, ole.rohne-vJEk5272eHo@public.gmane.org wrote:
->=20
+Something like this? Or can I do this in radeonfb with C code?
+>
+> Stefan> There is some resume code in drivers/video/aty/radeon_pm.c
+> Stefan> written by ATI, but it's only compiled on PowerMac and is only
+> Stefan> tested for <=R200 and S2.
+>                               ^^-- Do you mean D2?
+D2 of course...
+>
+> I've played with earlier versions of this code in radeonfb. In my
+> understanding D2 is low power still retaining some state, so the
+> PowerMac code is not a complete cold boot.
+>
+> Stefan> Perhaps we should ask ATI for help.
+>
 > I guess it could be tried; someone pessimistically predicted the
 > answer as "use the BIOS".
->=20
-> Ole
+I think the the Xfree and DRI guys have the specs(but under NDA). Perhaps 
+someone is willing to check if there's some way to bring the card back and fix 
+radeon_pm.c
 
-Ben Herrenschmidt the linux PPC maintainer looked at it at one point. It
-appears that for some of the ATI Vide cards in laptops (Fujitsu P2120 is
-one), the Video Bios is co-lclated with main system bios... which makes it
-hard to post  gracefuly.
-
-Tomasz
---=20
-Tomasz M. Ciolek=09
-***************************************************************************=
-****
- tmc at dreamcraft dot com dot au=20
-***************************************************************************=
-****
-   GPG Key ID:		0x41C4C2F0
-   GPG Key Fingerprint: 3883 B308 8256 2246 D3ED  A1FF 3A1D 0EAD 41C4 C2F0
-   Key available on www.pgp.net=09
-***************************************************************************=
-****
-
---5vNYLRcllDrimb99
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFBEiegOh0OrUHEwvARAulrAJ48JdJks9hSGflBsRl0XAFGZ2Ms7QCgg4h1
-RKhEMGOMqFwnxCADs2vScKM=
-=baWB
------END PGP SIGNATURE-----
-
---5vNYLRcllDrimb99--
+Stefan
 
 
 -------------------------------------------------------
