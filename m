@@ -1,12 +1,14 @@
-From: John Belmonte <john-wanGne27zNesTnJN9+BGXg@public.gmane.org>
-Subject: preparing toshiba_acpi driver release
-Date: Mon, 26 Jan 2004 11:32:57 -0500
+From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] Fix _STA checking in acpi_bus_add
+Date: Mon, 26 Jan 2004 12:20:30 -0500
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <40154139.40009@neggie.net>
+Message-ID: <BF1FE1855350A0479097B3A0D2A80EE0CC8A47@hdsmsx402.hd.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,48 +17,27 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "Luck, Tony" <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+> Now that you've applied this, we have to resolve the next issue
+> I found while investigating this: the chipset config interface
+> (CBN/CSFF) is reported as _STA=3D=3D0x8, i.e., "functioning, but not
+> present".  We can't find anything in the spec on how to interpret
+> this.
 
-Hello Len,
+Sounds like broken firmware. Not only is it !present, it is !enabled.
 
-I'm preparing a new release of the toshiba_acpi driver.  Below is the
-tentative changelog.  I haven't been following the check-in policy of
-the kernel or acpi subsystem lately, so I'm wondering if I can give this
-to you as a single patch or do you need it in several parts.
+The _STA section of the ACPI spec says that if a device isn't
+(present && enabled) then it shouldn't even decode its
+hardware resources.
 
+> The problem here is that since CBN/CSFF is !present, we won't
+> enumerate devices under them.  Therefore, we will no longer find
+> the AGP bridge on Big Sur.
 
-~  * Fix remote chance of invalid buffer access in write_video.
-
-~  * Support alternate HCI method path (recent "Phoenix BIOS" Toshiba's).
-
-~  * Report more proc-write errors.
-
-~  * On proc-reads, report errors via printk instead of proc output.
-
-~  * Add level to all printk's.
-
-~  * Add missing __init and __exit function attributes.
-
-
-Regards,
-- -John Belmonte
-
-
-- --
-http:// if  ile.org/
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.3 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
-
-iD8DBQFAFUE35Nfg6kxAQQoRAjQaAKCsdt8QoBH6w2TbtyPSzfpEy1ywMACguflq
-cc6Z79zaEhCmj4C9USs5TBE=
-=oq55
------END PGP SIGNATURE-----
+Oof!
 
 
 -------------------------------------------------------
