@@ -1,14 +1,14 @@
-From: =?iso-8859-1?Q?Emmanuel_Thom=E9?= <Emmanuel.Thome-/zGXu1G9BXs@public.gmane.org>
-Subject: Re: Dell D600: teaching radeonfb how to wake up...
-Date: Fri, 21 Nov 2003 15:35:36 +0100
+From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
+Subject: Re: ACPI + Laptop Power Management
+Date: Fri, 21 Nov 2003 15:44:44 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20031121153535.B19564@loria2.loria.fr>
-References: <20031119180119.GB22307@tate.loria.fr> <yzo1xs3ijgr.fsf@localhost.localdomain>
+Message-ID: <3FBE24DC.8020203@pca.it>
+References: <C386328088ED7F4E9F81AFBABDDF60DA03386202@wdmyexch02.my.asia.wdc.com> <20031121101232.GL32464@poupinou.org> <20031121111323.GB18223@luna.mooo.com> <3FBE0E02.3080203@pca.it> <20031121135321.GF5917@luna.mooo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <yzo1xs3ijgr.fsf-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>; from ole.rohne-vJEk5272eHo@public.gmane.org on Thu, Nov 20, 2003 at 08:32:04AM +0100
+In-Reply-To: <20031121135321.GF5917-4cxDFgrrBECgSpxsJD1C4w@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,31 +17,44 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Then you've hacked the thing way further than its current state, at
-least... Would you mind sharing your code ?
+Hello Micha,
 
-E.
+on 11/21/03 14:53, Micha Feigin wrote:
+| If you are using acpi look into acpid to be able to act upon acpi
+| events.
+| I this case, with acpid not running do (assuming you do have acpi
+| support, otherwise you won't see this file)
+| cat /proc/acpi/event
+| and pull out your power cord and then reinsert it. If you are getting
+| ACAD or BAT or somesuch thing messages then everything is ok (I don't
+| know how to do this with apm) and you can use acpid to run the
+| laptopmode script whenever your power is connected/disconnected.
+yes, I can, I mean, I had already checked for this event (AC-adapter)
+and it works :-) BTW, for those who don't know, I'm using an ASUS M3N
+(Centrino) with the latest BIOS available (0205A released 20031117).
+I've just a little problem and I'm going to inform this list ASAP (I
+need some tests before).
 
-On Thu, Nov 20, 2003 at 08:32:04AM +0100, ole.rohne-vJEk5272eHo@public.gmane.org wrote:
-> I've done similar exercises on my Fujitsu P2120 (it's an M6), and I
-> concluded that the card needed to go through the BIOS POST sequence,
-> but for some reason s3_bios cannot be used. I tried backporting the
-> powerbook code, with no result except a hanging computer. I suspect
-> even ATI docs wouldn't help as they "provide" the BIOS for this
-> purpose.
-> 
-> I eventuall hacked it using the vm86 emulator that comes with XFree86,
-> plugging in a call to BIOS POST when switching virtual console; kind
-> of ugly but it worked. I think I also needed some PCI hackery in the
-> radeonfb resume code, not sure if that made it back into the 2.6.0
-> kernel. I haven't been able to play with it at all lately as my
-> machine reboots on S3 resume with recent kernels.
-> 
-> Regards, Ole
+| Will look into it.
+Thank you very much!
+
+Thx, bye,
+Gismo / Luca
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
+
+iD8DBQE/viTaVAp7Xm10JmkRAuHGAJ910nA2C57ZEyGlZ2ymRZQpTBwFjQCfXlIy
+xCTsJEBr1k1Pqb+LvwC11rw=
+=+fWR
+-----END PGP SIGNATURE-----
+
 
 
 -------------------------------------------------------
