@@ -1,11 +1,11 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: acpi=off & /proc entries
-Date: Fri, 16 May 2003 13:33:29 -0700
+Subject: RE: Asus ACPI Hotkeys
+Date: Fri, 16 May 2003 15:09:15 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A847E96E97@orsmsx401.jf.intel.com>
+Message-ID: <F760B14C9561B941B89469F59BA3A847E96E9A@orsmsx401.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-2"
+	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 content-class: urn:content-classes:message
@@ -17,53 +17,24 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?iso-8859-2?Q?Zdenek_OGAR_Skal=E1k?= <skalak-Bh/+Xfn7orxQjibfaplwYw@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Karol Kozimor <sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org>, Stefan Behnel <behnel_ml-8NdywcgfOMlWMvVl7B+zuCEWGD4kr0XT@public.gmane.org>
+Cc: Gertjan <g.zwartjes-oe7qfRrRQfdlL9U78CI+FQ@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-One more comment - looks like this bug is only in 2.4 - somebody say =
-something if otherwise.
+> From: Karol Kozimor [mailto:sziwan-DETuoxkZsSqrDJvtcaxF/A@public.gmane.org]=20
+> Thus wrote Stefan Behnel:
+> > I'm a little surprised, can you positively confirm that the buttons=20
+> > generate ACPI interrupts?
+>=20
+> They do. Asus makes all the extra keys (4 silver on top and others,
+> controlling brightness, volume, or video output) work through=20
+> ACPI, though
+> through a special device.
+
+Well then probably someone needs to write a device driver for this, just
+like for Toshiba's special device.
 
 Regards -- Andy
-
-> -----Original Message-----
-> From: Zdenek OGAR Skal=E1k [mailto:skalak-Bh/+Xfn7orxQjibfaplwYw@public.gmane.org]=20
-> Sent: Friday, May 16, 2003 2:19 AM
-> Cc: Grover, Andrew; acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> Subject: Re: [ACPI] acpi=3Doff & /proc entries
->=20
->=20
->=20
-> Hi,
->=20
-> 	here is small simple patch :-) It's against=20
-> acpi-20030512-2.4.21-rc2.
->=20
-> 	It prevents ACPI modules (button, ...) to register=20
-> itself & create /proc
-> entries, when acpi is disabled through acpi=3Doff.=20
->=20
-> 	Because bus.c uses acpi_disabled variable set by=20
-> acpi=3Doff, it doesn't register
-> /proc/acpi directory & module later registers (in his __init)=20
-> it's /proc entry
-> just in /proc (/proc/button, ...).
->=20
-> 	This simply returns -ENODEV if acpi_disabled & when=20
-> module tries to register
-> via acpi_bus_register_driver (in bus.c) & as a consequence,=20
-> module removes his
-> /proc entry :-)
->=20
-> 	Bye
-> 		Zdenek OGAR Skalak
-> --=20
-> Ing. Zden=ECk OGAR Skal=E1k
-> Monet+ a.s.
-> Z=E1meck=E1 365
-> 763 14 Zl=EDn - =A9t=EDpa, CZ
-> Tel: +420 / 577 110 411,  Fax: +420 / 577 914 557
->=20
 
 
 -------------------------------------------------------
