@@ -1,12 +1,14 @@
-From: Marcel Meckel <acpi-X2Xph2rMQzhn68oJJulU0Q@public.gmane.org>
-Subject: 2.4.24 patch apply failed on vanilla kernel
-Date: Wed, 7 Jan 2004 13:46:58 +0100
+From: wwp <subscript-GANU6spQydw@public.gmane.org>
+Subject: Re: 2.4.24 patch apply failed on vanilla kernel
+Date: Wed, 7 Jan 2004 15:25:40 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040107134658.5afa9142.acpi@thermoman.de>
+Message-ID: <20040107152540.574f5882@tethys>
+References: <20040107134658.5afa9142.acpi@thermoman.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <20040107134658.5afa9142.acpi-X2Xph2rMQzhn68oJJulU0Q@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -15,27 +17,37 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Marcel Meckel <acpi-X2Xph2rMQzhn68oJJulU0Q@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
+Hi Marcel Meckel,
 
-trying to patch 2.4.24 patch into a vanilla kernel results in 1
-reject:
 
-patching file arch/i386/kernel/acpi.c
-patching file arch/i386/kernel/mpparse.c
-patching file arch/i386/kernel/smpboot.c
+On Wed, 7 Jan 2004 13:46:58 +0100 Marcel Meckel <acpi-X2Xph2rMQzhn68oJJulU0Q@public.gmane.org> wrote:
+
+> trying to patch 2.4.24 patch into a vanilla kernel results in 1
+> reject:
+> 
+> patching file arch/i386/kernel/acpi.c
+> patching file arch/i386/kernel/mpparse.c
+> patching file arch/i386/kernel/smpboot.c
+> Hunk #1 FAILED at 1106.
+> 1 out of 1 hunk FAILED -- saving rejects to file
+> arch/i386/kernel/smpboot.c.rej patching file arch/x86_64/kernel/acpi.c
+> patching file drivers/acpi/Config.in
+> patching file drivers/acpi/bus.c
+> 
+> Please CC me on replies.
+
+Same here, you're not alone in the dark:
 Hunk #1 FAILED at 1106.
-1 out of 1 hunk FAILED -- saving rejects to file
-arch/i386/kernel/smpboot.c.rej patching file arch/x86_64/kernel/acpi.c
-patching file drivers/acpi/Config.in
-patching file drivers/acpi/bus.c
+1 out of 1 hunk FAILED -- saving rejects to file arch/i386/kernel/smpboot.c.rej
 
-Please CC me on replies.
 
-Greetings,
-Marcel Meckel.
+Regards,
+
+-- 
+wwp
 
 
 -------------------------------------------------------
