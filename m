@@ -1,14 +1,14 @@
 From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: D600 resume from RAM with black screen, ethernet tg3 is buggy
-Date: Mon, 29 Sep 2003 21:27:08 +0200
+Subject: Re: Battery status reading problems
+Date: Thu, 25 Sep 2003 12:44:10 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030929192708.GB1825@elf.ucw.cz>
-References: <20030925132427.GJ11901@openzaurus.ucw.cz> <Pine.LNX.4.30.0309291142280.26307-100000@pcd403z.vsb.cz>
+Message-ID: <20030925104410.GH11901@openzaurus.ucw.cz>
+References: <m2vfrpthxt.fsf@tnuctip.rychter.com> <Pine.LNX.4.58.0309192257480.1613@phoenix.kerstin.at> <3F6EAADC.4020509@basmevissen.nl> <Pine.LNX.4.53.0309220954120.9385@dynast.gaugusch.at> <1064230622.8592.14.camel@dhcp23.swansea.linux.org.uk> <3F703933.50604@basmevissen.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.30.0309291142280.26307-100000-Rd/Vp7eeBLeOZheNW5JDhQ@public.gmane.org>
+In-Reply-To: <3F703933.50604-Y9IUUvl1dgU0Iwp8Nzs06g@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,44 +17,25 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Petr Olivka <petr.olivka-jmYXjVuSQ4U@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Bas Mevissen <ml-Y9IUUvl1dgU0Iwp8Nzs06g@public.gmane.org>
+Cc: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>, Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
+> OK. I'll check with Win XP and Linux with latest ACPI CA to see if I 
+> notice a speed difference between Windows and Linux. The XP battery 
+> indicator detects AC/battery power changes in a few seconds, so I 
+> expect the batery status polling in Windows to occur at the same 
+> speed.
+> 
+> (or does the AC/battery power work with an event? The my assumption 
+> won't hold then)
 
-> > >      -suspend to ram work, but after resume is display black. Without
-> > > test5-pm2 do not resume back and hang with black screen.
-> >
-> > So with -test5-pm2 machine resumes okay, you can type commands
-> > etc, but can't see anything? Try passing cmd line
-> > option acpi_sleep=s3_mode (or how is it called)...
-> >
-> hm, s3_mode and s3_bios reboot computer, when I did try resume.
-> I did test "echo 3 > /proc/acpi/sleep" and "echo -n "mem" >
-> /sys/power/state".
-> 
-> 
-> > > Where are problems? How can I help to solve them?
-> >
-> > Can you mail me diff between vanilla and -test5-pm2?
-> > Can you try suspending with echo 4 > /proc/acpi/sleep?
-> > (that should call old working code... provided it propagates down correctly).
-> 
-> I am using 2.6.0-test5 with patch recomended in acpi devel list
-> "test5-pm2", not vanilla.
-> 
-> "echo 4 > /proc/acpi/sleep" do nothing.
-
-Try -test6 with echo -n mem, that seem works here. If both s3_mode and
-s3_bios reboot computer, tough. That means that you either need to
-find out another ugly hack (like s3_mode and s3_bios), or get specs
-for your video card and write proper resume support (get the specs is
-the hard part here).
-								Pavel
+Yes, thats event driven IIRC.
 -- 
-When do you have a heart between your knees?
-[Johanka's followup: and *two* hearts?]
+				Pavel
+Written on sharp zaurus, because my Velo1 broke. If you have Velo you don't need...
+
 
 
 -------------------------------------------------------
