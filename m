@@ -1,70 +1,56 @@
-From: Constantinos Antoniou <costas-DPNOqEs/LNQ@public.gmane.org>
-Subject: Re: [ACPI] Re: [2.5.50, ACPI] link error
-Date: 08 Dec 2002 15:46:20 -0500
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <1039380380.1614.57.camel@nefeli>
-References: <20021205224019.GH7396@atrey.karlin.mff.cuni.cz>
-	 <Pine.LNX.4.33.0212051632120.974-100000@localhost.localdomain>
-	 <20021206000618.GB15784@atrey.karlin.mff.cuni.cz>
-	 <20021206185702.GE17595@poup.poupinou.org>
-	 <20021208194944.GB19604@atrey.karlin.mff.cuni.cz>
+From: Markus Wiesner <list-acpi-9/ybXWNEfnWFBUTzTaTVRY/15xujVBPPG9Ur7JDdleE@public.gmane.org>
+Subject: Re: Kernel Oops when loading battery module
+Date: Mon, 9 Dec 2002 01:02:45 +0100
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <20021209000245.GA22707@homerelay.wiesner-net.de>
+References: <20021207003056.GC8072@homerelay.wiesner-net.de> <1039229157.2913.5.camel@sirius.strandboge.cxm> <20021207142228.GA20455@homerelay.wiesner-net.de> <1039273263.2913.23.camel@sirius.strandboge.cxm> <20021208132229.GB21604@homerelay.wiesner-net.de> <1039367266.1416.3.camel@sirius.strandboge.cxm>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20021208194944.GB19604-jyMamyUUXNJG4ohzP4jBZS1Fcj925eT/@public.gmane.org>
-To: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
-Cc: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>, kernel list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=iso-8859-15
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1039367266.1416.3.camel-Ty44UuN9vPJ5T2F9fCU5s856D9/Od9gv@public.gmane.org>
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: James D Strandboge <jstrand1-aYIB8uWIUb2Vn7q6wjsIow@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 2002-12-08 at 14:49, Pavel Machek wrote:
-> Hi!
-> 
-> > > > > > Doesn't that imply your fix is broken to begin with?
-> > > > > 
-> > > > > ACPI/S4 support needs swsusp. ACPI/S3 needs big part of
-> > > > > swsusp. Splitting CONFIG_ACPI_SLEEP to S3 and S4 part seems like
-> > > > > overdesign to me, OTOH if you do the work it is okay with me.
-> > > > 
-> > > > You broke the design. S3 support was developed long before swsusp was in 
-> > > > the kernel, and completely indpendent of it. It should have remained that 
-> > > > way. 
-> > > > 
-> > > > S3 support is a subset of what is need for S4 support. 
-> > > 
-> > > That's not true. acpi_wakeup.S is nasty piece of code, needed for S3
-> > > but not for S4. Big part of driver support is only needed for S3.
-> > > 
-> > > > swsusp is an implementation of S4 support. In theory, there could be 
-> > > > multiple implementations that all use the same core (saving/restoring 
-> > > > state). 
-> > > 
-> > > There were patches for S4bios floating around, but it never really
-> > > worked, IIRC.
-> > 
-> > No.  It work.  I do not resubmmited patches because I think that
-> > swsusp is better.
-> 
-> I think that s4bios is nice to have. Its similar to S3 and easier to
-> set up than swsusp... It would be nice to have it.
+James D Strandboge schrieb:
+> Well, I recompiled with 20020829 and 2.4.20-pre5-- still have the same
+> problem.  Can you run the attached script with your working
+> configuration and let me know if your laptop locks up?  Feel free to go
+> in single user mode-- I don't need X or anything running to get the
+> lockup.
 
-(I do not know much, but) another reason may be that some laptops do not
-support S3, while they support S4? for example, in my Compaq Presario
-1700T:
+Test 1:
+ac-adapter attached, output redirected to /tmp/acpi.log (tmpfs) so that
+the svga-framebuffer console does not slow down things. No lockup,
+stopped test at 10000.
 
-$ more /proc/acpi/info
-ACPI-CA Version:         20011018
-Sx States Supported:     S0 S1 S4 S5
+Test 2:
+Output to console, somewhere between 4000 and 5000 i removed the power
+chord. At about 5800 the system locked up! Sysrq-key still worked, as
+well as ping from an external host, but nothing else. Alt-SysRq-k (kill
+programs on current console) did not help. At least I could sync and
+unmount before reboot. :-)
 
-(unpatched 2.4.19, if this has anything to do)
+Test 3 (after the reboot, nice to have a journaling filesystem :-) ):
+Output to console, system running on battery. This time as in the first
+test no lockup, stopped the test at 10000.
 
-Costas
+So there is something wrong anywhere, but it's a bit difficult to
+reproduce.
 
-> 								Pavel
--- 
-Constantinos Antoniou
-Ph.D. Candidate
-Massachusetts Institute of Technology
-Intelligent Transportation Systems Program
-77 Massachusetts Ave., NE20-208, Cambridge, MA 02139
-(T) 617-252-1113 * (F) 617-252-1130 * (email) costas-3s7WtUTddSA@public.gmane.org
+Markus Wiesner
+
+
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
