@@ -1,11 +1,12 @@
-From: "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: AML disassembler questions.
-Date: Thu, 8 Aug 2002 12:50:25 -0700
+From: "Huw H" <hrhawk-JGs/UdohzUI@public.gmane.org>
+Subject: 2.4.19 & latest acpi & patched dsdt (tosh3k)
+Date: Fri, 09 Aug 2002 03:16:06 +0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <B9ECACBD6885D5119ADC00508B68C1EA0D19B6D0@orsmsx107.jf.intel.com>
+Message-ID: <E17cwVi-000HKK-00@f16.mail.ru>
+Reply-To: "Huw H" <hrhawk-JGs/UdohzUI@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="ISO-8859-1"
+Content-Type: text/plain; charset=koi8-r
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
@@ -15,66 +16,37 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: 'Ducrot Bruno' <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: "Black, Richard" <Richard.Black-VXdhtT5mjnY@public.gmane.org>, "KOCHI, Takayoshi" <t-kouchi-f7IHDacdhdx8UrSeD/g0lQ@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
+Heya,
+   I've managed to upgrade to the latest 2.4.19 kernel without too many
+problems by applying the acpi patch to the 2.4.18 source, then patch-2.4.19.
+There are about 5 rejected blocks, of which 2 are documentation and the
+remaining not too difficult to kludge together (its my first look at the code,
+so someone familiar with it can release a patch). 
 
-Go ahead and try the disassembler in iASL.  I know for a fact that it
-disassembles lots of files that AD chokes on.
+Now, problems I've had with the newest ACPI patch:
 
-Bob
+   Using the newest acpi, I am no longer able to override the dsdt with the
+patch from ftp://ftp.poupinou.org/ without getting errors about an   "invalid
+signature where the RSDP indicates RSDT/XSDT should be"  then failure messages
+for unable to load RSDT.
 
+ This is also a problem when using the latest patch against 2.4.18.
 
------Original Message-----
-From: Ducrot Bruno [mailto:ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org]
-Sent: Thursday, August 08, 2002 3:09 AM
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Black, Richard; KOCHI, Takayoshi
-Subject: [ACPI] AML disassembler questions.
+ I was using the tosh3k-514.hex dsdt from ftp.poupinou.org, as I am lead to
+believe my satellite 3000-302A is equivalent to this model. If anyone wants to
+check my dsdt the raw dump is here: 
 
+         http://johan.dhs.org/tosh3k-302a.dsdt.bz2
 
-Hi all.
+With an unpatched dsdt, I have access to battery (no discharge rate info),
+processor, button information. Thermal, fan and ac zones don't work, and I've
+never tried suspending.
 
-Since Phoenix seems to not support anymore their disassembler, I am
-wondering which tools we can use for this purpose.
+Huw
 
-For now, we can use :
-
-- the pacpidump tool, made by a FreeBSD guy, which compile cleanly under
-Linux,
-- the new option '-d' of iasl.
-
-pacpidump seems for me to be OK, but it was written for F-BSD.  For
-me, it is not a real problem, because I use sometime a FBSD-current.
-I think, though, that some debugging, etc. was made, but this is only
-present for the current version of acpidump under FBSD-current,
-not the one we can have under Linux.  For example, it lack the output
-of the RessourceTemplate (should be ok, though, only a 'cosmetic' change,
-but for debugging purpose, it is somewhat needed), but under F-BSD, it
-was added (with an option).
-
-iasl, as a disassembler, should be OK.  As stated by the change log, it
-was tested intensively.  But it have perhaps some little bugs that
-have to be discovered, since this feature seems to be only added the
-last month.
-
-Good day,
-
--- 
-Ducrot Bruno
-http://www.poupinou.org        Page profaissionelle
-http://toto.tu-me-saoules.com  Haume page
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
