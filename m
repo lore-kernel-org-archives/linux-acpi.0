@@ -1,14 +1,12 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: AGP and S4/resume hangs
-Date: Mon, 15 Mar 2004 01:59:57 +0100
+From: Dominik Brodowski <linux-X3ehHDuj6sIIGcDfoQAp7BvVK+yQ3ZXh@public.gmane.org>
+Subject: [PATCH 2.6.4] (1/2) acpi-cpufreq driver: guess P-State at startup
+Date: Mon, 15 Mar 2004 15:15:28 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040315005957.GA29651@message-id.gmane0305.slipkontur.de>
-References: <20040310150604.GC342@message-id.gmane0305.slipkontur.de> <20040311120225.GA13095@fuchi>
+Message-ID: <20040315141528.GI8636@dominikbrodowski.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20040311120225.GA13095-5sK/Rx+du8M@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,34 +15,77 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Len,
 
-On Thu, Mar 11, 2004 at 01:02:25PM +0100, Sebastian Henschel wrote:
-> hello stefan...
-> 
-> * Stefan Seyfried 
+Please apply (2.6.{4,5}).
 
-> > Finally i will file a bug at kernel.org, but is this a "ACPI" or a "Drivers"
-> > bug? Just to get it right the first time :-)
-> 
-> you might checkout http://swsusp.sf.net and their mailing-list archive.
-> it is a somewhat well-known, but afaik unsolved problem.
+Thanks,
+	Dominik
 
-yes, i know that everyone knows the problem but didn't know where to
-put it. Anyways, i'm going to file bugs for every single driver i find
-in the 'Drivers' section, since it doesn't seem to be very ACPI specific.
+One big limitation of the ACPI specification is that it's impossible to
+detect the current P-State by reading from ACPI-defined registers. And the
+CPU isn't always at P0 when the system boots. So, try to "guess" the current
+P-State by analyzing cpu_khz.
 
-> though i saw an agp fix for i830 in the new kernel 2.6.4 today which might
-> help with intel-based gfx.
+ arch/i386/kernel/cpu/cpufreq/acpi.c |   35 ++++++++++++++++++++++++++++++-----
+ 1 files changed, 30 insertions(+), 5 deletions(-)
 
-well yes, i'll put the new kernel on this machine and cross my fingers :-)
-
--- 
-Stefan Seyfried
-
+diff -ruN linux-original/arch/i386/kernel/cpu/cpufreq/acpi.c linux/arch/i386/kernel/cpu/cpufreq/acpi.c
+--- linux-original/arch/i386/kernel/cpu/cpufreq/acpi.c	2004-03-15 09:20:50.000000000 +0100
++++ linux/arch/i386/kernel/cpu/cpufreq/acpi.c	2004-03-15 13:50:36.152118840 +0100
+@@ -238,6 +238,34 @@
+ }
+ 
+ 
++static unsigned long
++acpi_cpufreq_guess_freq (
++	struct cpufreq_acpi_io	*data,
++	unsigned int		cpu)
++{
++	if (cpu_khz) {
++		/* search the closest match to cpu_khz */
++		unsigned int i;
++		unsigned long freq;
++		unsigned long freqn = data->acpi_data.states[0].core_frequency * 1000;
++
++		for (i=0; i < (data->acpi_data.state_count - 1); i++) {
++			freq = freqn;
++			freqn = data->acpi_data.states[i+1].core_frequency * 1000;
++			if ((2 * cpu_khz) > (freqn + freq)) {
++				data->acpi_data.state = i;
++				return (freq);
++			}
++		}
++		data->acpi_data.state = data->acpi_data.state_count - 1;
++		return (freqn);
++	} else
++		/* assume CPU is at P0... */
++		data->acpi_data.state = 0;
++		return data->acpi_data.states[0].core_frequency * 1000;
++	
++}
++
+ static int
+ acpi_cpufreq_cpu_init (
+ 	struct cpufreq_policy   *policy)
+@@ -290,11 +318,8 @@
+ 	}
+ 	policy->governor = CPUFREQ_DEFAULT_GOVERNOR;
+ 
+-	/* 
+-	 * The current speed is unknown and not detectable by ACPI... argh! Assume 
+-	 * it's P0, it will be set to this value later during initialization.
+-	 */
+-	policy->cur = data->acpi_data.states[0].core_frequency * 1000;
++	/* The current speed is unknown and not detectable by ACPI...  */
++	policy->cur = acpi_cpufreq_guess_freq(data, policy->cpu);
+ 
+ 	/* table init */
+ 	for (i=0; i<=data->acpi_data.state_count; i++)
 
 
 -------------------------------------------------------
