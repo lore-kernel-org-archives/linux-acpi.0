@@ -1,15 +1,12 @@
-From: Andreas Koenecke <akoenecke-q8lJLVP9YgioYr4blSSd5g@public.gmane.org>
-Subject: Re: No events when pressing power button
-Date: Fri, 16 Aug 2002 22:58:52 +0200
+From: Major A <andras-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Subject: suspend-to-ram on A7V333
+Date: Sat, 17 Aug 2002 02:32:31 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20020816205852.GA31824@kocom.akoenecke.de>
-References: <EDC461A30AC4D511ADE10002A5072CAD0236DD94@orsmsx119.jf.intel.com> <20020816080416.GB10248@poup.poupinou.org>
+Message-ID: <20020817013229.GA725@ventus.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20020816080416.GB10248-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,32 +15,60 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://www.geocrawler.com/redir-sf.php3?list=acpi-devel>
-To: acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-* Freitag, 16. August 2002 um 10:04 (+0200) schrieb Ducrot Bruno:
-> 
-> On Thu, Aug 15, 2002 at 08:00:45AM -0700, Grover, Andrew wrote:
-> > 
-> > I think handling both PIC and IOAPIC will make fixing this a little bit of
-> > work, but thanks for confirming the source of the problem.
-> 
-> One person (don't remember who) reported that after a S3 it didn't worked
-> any more on a toshiba satellite 3000 514.
 
-I reported that and it is after a S1 when no more events were
-recognized except the power button.
+Hi,
 
-Regards
+I'm a total newcomer to ACPI, I tried it today because I want to get
+the suspend-to-ram feature of my mainboard working. This is what I've
+found out:
 
-Andreas
+1. Using a plain linux kernel 2.4.19, the ospm-* drivers cannot be
+   used as modules -- they create unresolved symbols. (This is not the
+   case with 2.4.18.) Compiling them as static drivers works, and I
+   get the relevant files in /proc/acpi, everything seems to work
+   fine.
 
--- 
- Andreas Könecke                 "Andreas Koenecke <akoenecke-q8lJLVP9YgioYr4blSSd5g@public.gmane.org>"
+2. Pressing the power button creates an event which is dealt with by
+   acpid, seems to work OK.
 
-PGP-ID/Fingerprint: BD7C2E59/3E 11 E5 29 0C A8 2F 49  40 6C 2D 5F 12 9D E1 E3
-                  PGP-Key on request or on public keyservers
--- 
+3. I can get use the S0/1/4/5 states by piping the corresponding
+   number into /proc/acpi/sleep, and even S3 seems to work -- it
+   prints a line saying something like "entering S3" (I couldn't read
+   it because it was only a short time before the machine shut
+   down). I suspect this is the S3 mode, with the power light
+   flashing, but I cannot get the machine back out of suspend! If I
+   press the power button or ctrl-esc (which I have set up as the
+   keyboard-on combination) or even the "green button", it boots as if
+   it hadn't suspended. Other keys or the (USB) mouse do
+   nothing. Using the PS/2 mouse power-on feature doesn't help either.
+
+4. If I disable the "suspend-to-ram" feature in the BIOS, the S3
+   option disappears from /proc/acpi/sleep, as expected. The "fast
+   resume" BIOS option doesn't seem to make any difference.
+
+Anyway, does anyone have any experience with this? I can't try all
+this under Windows (thank God), it seems that the computer just
+forgets that it is supposed to be suspended only, whether that be a
+BIOS or Linux problem.
+
+One more thing -- I have a SCSI card with a BIOS in the computer,
+maybe that makes a difference?
+
+Hardware information: Asus A7V333 board with Athlon XP, Enermax power
+supply (plenty of juice on +5VSB), PS/2 keyboard.
+
+Thanks,
+
+  Andras
+
+===========================================================================
+Major Andras
+    e-mail: andras-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+    www:    http://andras.webhop.org/
+===========================================================================
 
 
 -------------------------------------------------------
