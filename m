@@ -1,44 +1,37 @@
-From: Frank Mehnert <fm3-IG//nw+yl+iQIjdd1DhZXWfrygkm6VTR@public.gmane.org>
-Subject: Completely discharging LION batteries
-Date: Tue, 10 Dec 2002 20:59:52 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E18LqXo-000B9o-00@os.inf.tu-dresden.de>
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+From: Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: [ACPI] Re: [2.5.50, ACPI] link error
+Date: Tue, 10 Dec 2002 21:40:31 +0100
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <20021210204031.GF20049@atrey.karlin.mff.cuni.cz>
+References: <EDC461A30AC4D511ADE10002A5072CAD04C7A581@orsmsx119.jf.intel.com> <1039481341.12046.21.camel@irongate.swansea.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1039481341.12046.21.camel-MMxVpc8zpTQVh3rx8e9g/fyykp6/JSeS3vcXtXqGYxw@public.gmane.org>
+To: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
+Cc: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Ducrot Bruno' <poup-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>, Patrick Mochel <mochel-3NddpPZAyC0@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI mailing list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hi!
 
-I'm using Linux 2.4.20 together with the acpi patches 20021205-2.4.20 on a
-Thinkpad T20. If I use two batteries (the builtin and a second in the Ultra-
-Bay), the second battery first gets discharged _completely_ and after that
-the internal battery is used.
+> > I concur with your pros and cons. This makes me think that if S4BIOS support
+> > ever gets added, it should get added to 2.4 only.
 
-The bad thing about that is that if I allow the Laptop to fully discharge
-the LION battery, the usable capacity gets reduced. I have looked at
-/proc/acpi/battery/BAT1/{state,info}: Before completely discharging the
-battery, the "last full capacity" entry was about 30500 mWh. The design
-capacity is 34560 mWh. After completely discharging the battery, the
-maximum capacity to which the battery can be charged is only 28120 mWh,
-so I lost about 2000 mWh or about 8 percent of the battery capacity!!!
+And S4BIOS will never get added to 2.4 since it needs driver model
+:-(.
 
-So since I found that out I don't allow the Laptop to fully discharge the
-battery anymore. So may questions are: Can I set the capacity at which the
-Laptop switches to the builtin battery? Can you acknowledge my experiences?
+> That assumes no box exists where S4bios works an S4 doesnt (eg due to
+> bad tables or "knowing" what other-os does)
 
-Frank
+We have full control over S4 (== swsusp), so we can fix that in most
+cases.
 
+S4BIOS is still little friendlier to the user -- no need to set up
+swap partition and command line parameter, can't go wrong if you boot
+without resume=, etc.
+								Pavel
 
--------------------------------------------------------
-This sf.net email is sponsored by:
-With Great Power, Comes Great Responsibility 
-Learn to use your power at OSDN's High Performance Computing Channel
-http://hpc.devchannel.org/
+-- 
+Casualities in World Trade Center: ~3k dead inside the building,
+cryptography in U.S.A. and free speech in Czech Republic.
