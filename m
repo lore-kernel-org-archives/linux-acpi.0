@@ -1,12 +1,14 @@
 From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Lid switch not waking machine
-Date: Mon, 7 Jul 2003 02:16:39 +0100
+Subject: Re: Lid switch not waking machine
+Date: Mon, 7 Jul 2003 03:26:15 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030707011638.GA19894@srcf.ucam.org>
+Message-ID: <20030707022614.GA21195@srcf.ucam.org>
+References: <20030707011638.GA19894@srcf.ucam.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20030707011638.GA19894-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -18,19 +20,25 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-If I press the lid switch to put my laptop to sleep, releasing it 
-doesn't wake it up. acpi_hw_enable_gpe_for_wakeup only seems to be 
-called from acpi_enable_gpe and only if ACPI_EVENT_WAKE_ENABLE is set - 
-acpi_enable_gpe only seems to be called from acpi_ec_gpe_query, and then 
-only as:
+On Mon, Jul 07, 2003 at 02:16:39AM +0100, Matthew Garrett wrote:
 
-        acpi_enable_gpe(NULL, ec->gpe_bit, ACPI_NOT_ISR);
+> So, should this function be being called for my lid switch, and if so 
+> how? Or am I barking up the wrong tree entirely? Windows resumes happily 
+> if the switch is released, so it's presumably capable of generating a 
+> wakeup event.
 
-So, should this function be being called for my lid switch, and if so 
-how? Or am I barking up the wrong tree entirely? Windows resumes happily 
-if the switch is released, so it's presumably capable of generating a 
-wakeup event.
+The plot thickens. If I suspend with the lid switch and then release it, 
+I have to wake the system with the power button. The system resumes, but 
+no more ACPI events are generated. If I suspend with the sleep button, I 
+can resume with the power button and ACPI events are still generated. 
+However, if I suspend with the sleep button, press and release the lid 
+switch while the system is suspended and then resume with the power 
+button, the symptoms are identical to having suspending with the lid 
+switch - no more ACPI events are generated. So, somehow, the act of 
+causing a lid switch event while the machine is suspended causes ACPI to 
+cease being useful.
 
+Is there useful debugging output I can generate here?
 -- 
 Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
