@@ -1,15 +1,11 @@
-From: Stefan =?iso-8859-1?q?D=F6singer?= <stefandoesinger-RbZlAiThDcE@public.gmane.org>
-Subject: Re: Re: Samsung P35 and S3 suspend
-Date: Fri, 17 Dec 2004 16:49:06 +0100
-Message-ID: <200412171649.08125.stefandoesinger@gmx.at>
-References: <41BFC3AD.5030001@gmx.net> <200412162157.02741.stefandoesinger@gmx.at> <41C22792.2000205@gmx.net>
+From: Luca Cerutti <videobert-whZMOeQn8C0@public.gmane.org>
+Subject: Toshiba M30 - Fan does NOT switch on.
+Date: Fri, 17 Dec 2004 17:24:59 +0100 (CET)
+Message-ID: <20041217162459.69320.qmail@web14104.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <41C22792.2000205-hi6Y0CQ0nG0@public.gmane.org>
-Content-Disposition: inline
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -22,18 +18,45 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> That patch has been merged into the 6.8.x tree at X.Org three minutes ago,
-> so it will be in the 6.8.2 release.
->
-> Did I understand correctly that with this patch should make POSTing the
-> card with boot-radeon unnecessary? Current 6_8_BRANCH X.Org is building
-> here at the moment, will report back when it is installed.
-Yes, that's correct.
+Hello,
 
-It was AFAIK the first way to wake up the radeon card. boot-radeon was written 
-based on the X11 patch.
+first of all, my configuration:
+HW: Toshiba Satellite M30
+SW: (on dual-boot) Debian 3.1
+- Kernel 2.6.8-1-686 deb
+- speedstep_centrino loaded as module
+- toshiba_acpi 0.18 loaded as module
+- acpi interface installed
+- acpid installed.
 
-Stefan
+ISSUES:
+1) ACPID
+ acpid DOES NOT appear to start: error message "cannot
+open /proc/acpi/events resource busy" (sort of)
+
+2) FAN, TRIPPOINTS AND POLICIES
+ with trip_points set to "110:0:90:40:0" I can with
+ease reach temperatures of 50-55 C at full CPU speed
+(1600) and then I prefer to manually switch on the fan
+echoing into /proc/acpi/toshiba/fan or to "powersave"
+my cpufreq down to 600Mhz... what puzzles me is that
+the fan SHOULD switch on at 40C
+No matter what I'm echoing as cooling policy... IT
+ALWAYS STAYS on "passive" (not that I notice any
+effect of this"
+
+This is becoming a little bit annoying because either
+i write a script that toggles the toshiba/fan on every
+time I'm boosting the cpu, or I may as well cook an
+egg on the chassis of the notebook.
+
+Waiting for your answers I thank you in advance
+
+
+		
+___________________________________ 
+Nuovo Yahoo! Messenger: E' molto più divertente: Audibles, Avatar, Webcam, Giochi, Rubrica… Scaricalo ora! 
+http://it.messenger.yahoo.it
 
 
 -------------------------------------------------------
