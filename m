@@ -1,68 +1,40 @@
 From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Subject: Re: how to get Fn key working on compaq 2100/2110
-Date: Thu, 26 Jun 2003 12:33:02 +0200
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030626103302.GQ19556@poupinou.org>
-References: <20030623092026.GS19556@poupinou.org> <001701c33a7b$a89ff6f0$3201a8c0@pamlab.com>
+Subject: Re: [ACPI] _PDC method in DSDT
+Date: Thu, 26 Jun 2003 13:13:38 +0200
+Sender: cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
+Message-ID: <20030626111338.GS19556@poupinou.org>
+References: <20030623161136.GG19556@poupinou.org> <1056388336.15250.62.camel@ixodes.goop.org> <1056398545.10322.111.camel@aldebaran.caltech.edu> <20030623213726.GA1317@brodo.de> <1056417280.10323.148.camel@aldebaran.caltech.edu> <1056418635.5977.20.camel@sherkaner.pao.digeo.com> <1056420149.10322.160.camel@aldebaran.caltech.edu> <20030624091836.GI19556@poupinou.org> <1056491271.3979.15.camel@aldebaran.caltech.edu> <20030626104041.GR19556@poupinou.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Return-path: <cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <001701c33a7b$a89ff6f0$3201a8c0-HrsG2tOhabjQT0dZR+AlfA@public.gmane.org>
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: David Cougle <dcougle-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+In-Reply-To: <20030626104041.GR19556-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Errors-To: cpufreq-admin-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org
+List-Unsubscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMm38Ik5SeuEX72+df2TVCvIA@public.gmane.org>
+List-Post: <mailto:cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
+List-Help: <mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMm4xOcYYyLxz0@public.gmane.org>
+List-Subscribe: <http://www.linux.org.uk/mailman/listinfo/cpufreq>,
+	<mailto:cpufreq-request-1walMZg8u8rXmaaqVzeoHW9u/PF5AtMmEuNEP1Y2mCuZIoH1IeqzKA@public.gmane.org>
+List-Archive: <http://www.linux.org.uk/mailman/private/cpufreq/>
+To: David Moore <dcm-HInyCGIudOg@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, cpufreq list <cpufreq-1walMZg8u8rXmaaqVzeoHQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jun 24, 2003 at 01:08:48PM -0500, David Cougle wrote:
-> Is this to say that with 2.5/2.6 my Compaq 2100/2110 will bypass kernel
-> and suspend to ram? How do I see if it supports that?  I am running
-> acpid.
+> > Dword 0 should be 0x1
+> > Dword 1 should be 0x1
+> > Dword 2 should be 0x1
+> > 
+> > The 0x1 in Dword 2 indicates that the driver supports Enhanced
+> > Speedstep.  In my DSDT, Dwords 0 and 1 are ignored anyway, but the
+> > values above should be correct.
 > 
+> Sound like ok, but not for Dword 0.  Will look more at it then.
 
-acpid will only do (amongst other thinks like perhaps unloading
-modules, etc.)
-echo -n 3 > /proc/acpi/sleep
-when it detect the correct event via
-/proc/acpi/event
-
-via an external script if you press the sleep button.
-
-You still have to write the shell script called by acpid, if
-none are already done, or if the distributor have not provided
-one.
-
-Some people may want to replace the echo stuff via for
-example a '/sbin/shutdown -h now'
-
-
-For your second question, you first have to shutdown acpid.
-Then do a 
-cat /proc/acpi/event
-
-By pressing the power button, or the sleep button, etc., you should
-see those events.  acpid will do exactly the same, just that when
-it look those events, it will take appropriate actions by calling external
-scripts.
-
-Cheers,
+Ok.  Actually Dword 0 seems to be 0x0001.  Sorry.
 
 -- 
 Ducrot Bruno
 
 --  Which is worse:  ignorance or apathy?
 --  Don't know.  Don't care.
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: INetU
-Attention Web Developers & Consultants: Become An INetU Hosting Partner.
-Refer Dedicated Servers. We Manage Them. You Get 10% Monthly Commission!
-INetU Dedicated Managed Hosting http://www.inetu.net/partner/index.php
