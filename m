@@ -1,11 +1,13 @@
-From: Emmanuel =?iso-8859-1?Q?Thom=E9?= <Emmanuel.Thome-MZpvjPyXg2s@public.gmane.org>
-Subject: s3_late_bios
-Date: Mon, 8 Nov 2004 15:49:47 +0100
-Message-ID: <20041108144947.GA31267@tate.loria.fr>
+From: Matthew Wilcox <matthew-Ztpu424NOJ8@public.gmane.org>
+Subject: Re: [PATCH/RFC 0/4]Bind physical devices with ACPI devices
+Date: Mon, 8 Nov 2004 14:59:24 +0000
+Message-ID: <20041108145924.GA32374@parcelfarce.linux.theplanet.co.uk>
+References: <3ACA40606221794F80A5670F0AF15F84041AC032@pdsmsx403>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="ZGiS0Q5IWpPtfppv"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <3ACA40606221794F80A5670F0AF15F84041AC032@pdsmsx403>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,139 +17,32 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: ole.rohne-vJEk5272eHo@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Matthew Wilcox <matthew-Ztpu424NOJ8@public.gmane.org>, "Li, Shaohua" <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Greg <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Patrick Mochel <mochel-og82NyAXoxR0I81aPRRTmR2eb7JE58TQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Mon, Nov 08, 2004 at 10:46:30PM +0800, Yu, Luming wrote:
+> >All we need is an acpi_get_gendev_handle that takes a struct device and
+> >returns the acpi_handle for it.  Now, maybe that'd be best 
+> >done by placing
+> >a pointer in the struct device, but I bet it'd be just as good to walk
+> >the namespace looking for the corresponding device.
+> 
+>   It will fail if you just simply walk namespace to find out 
+> the corresponding acpi object, because there are NO
+> hardware id or compatible id  can be passed in.
+> Please check function acpi_bus_match.
 
---ZGiS0Q5IWpPtfppv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+It doesn't need the HID or CID.  Look at Shaohua's patches -- they don't
+use HID or CID either.
 
-
-Hi all,
-
-Sorry I've been off for a week. Here is the version of the s3_late_bios
-patch with the segment info coded in C.
-
-If somebody comes up with an attempt at resuming the video from the early
-real mode phase by calling the pci bios, I'm all for testing it.
-
-E.
-
---ZGiS0Q5IWpPtfppv
-Content-Type: application/x-gzip
-Content-Disposition: attachment; filename="s3_late_bios.patch.gz"
-Content-Transfer-Encoding: base64
-
-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
-
---ZGiS0Q5IWpPtfppv
-Content-Type: application/x-gzip
-Content-Disposition: attachment; filename="s3_late_bios_radeon.patch.gz"
-Content-Transfer-Encoding: base64
-
-H4sICGpWh0ECA3MzX2xhdGVfYmlvc19yYWRlb24ucGF0Y2gAjY/BUoMwFEXX8BXPXWkaCKV1
-LC0d/sCly0yAR81Ik5gEtDN+vKFVN44zZkFY3HtyLqUUBqnG91Rbeco6Kye0LptkhzoT/pJZ
-Ef4UN+e0jdaMbWjOaJFDzsrtttywlH0fICxnLCaE3ID/YuWUBdauLNbltvjFqmugO7Zb3QOZ
-r3wNdR1DJHtYmA4negyf1Og3tNx54RGqClgSEpFFP1oFbB9DTCLTSm7ReW3xFrzWV3CDODFh
-x1utennizogWk31MQi1bwqMaLoB9j60PYyC8jEo0A3YwSQGiNZK7AdFUruCN1I4Ps8YyC+2/
-Le8q2CQhEV3700kY7fxXthkdParx3KCFwwEe4AN+IL26ikHovY4ybAnOTg9hE54XyTwVZucn
-8YKjgfZZmtnkE0T6S7HiAQAA
-
---ZGiS0Q5IWpPtfppv
-Content-Type: application/x-gzip
-Content-Disposition: attachment; filename="s3_late_bios-x86_64-draft.patch.gz"
-Content-Transfer-Encoding: base64
-
-H4sICNNUh0ECA3MzX2xhdGVfYmlvcy14ODZfNjQtZHJhZnQucGF0Y2gAnVVtc9o4EP4sfsVe
-2gaIbWzZ5iW0ZKCJr8cUCFPSmbu53mgcW4AvxmaQndBef/ytbJOQBEimfLDx7qPdZ1fPSpqm
-QRhE6boWr4KZ7q68ub5uNVjD1m/4KuKh7nrLQBch58uaR0zDsDWjpVEbTKtNjbZJa8bmB4qB
-/pKiKHnI10WjVDMo0NO2ZbRt+1E0itG6XdCoaainoMgXbUG3W4L/SkDu5kHIoVIRyQp+68Do
-62BQheNjqJwUlvI3o1ytZlgSTEECI2+xlG8VjoTFroNYHKnQrEKnA0a1pBFCJEF2G/g8ZtPQ
-nQnoAH1fUnZ7eufjPpsMHGfMJhb72L+cvN+bbBH7/MVkPztg7sn282m64eWFg9g3mM2QS/QT
-uJpzwcGL09CHaw6ugFTwaRrKf9N4BbgXKlynCQRJWUASJ24Yfpdr4QTSKOEi4X4t/9bla2ch
-oZvwTeuouSnndZwHvSun6NPB8EWzfin8pi888oOp3A4phw7g05uv8jxltVzd3ql7/Uhbhley
-BWIZFcRU+JYc4RrtdfNy597wdFmbFANjaqhbw27XW23beibxlwfmcbj7iTExXHPnxFhqAxRL
-bWbD8iaIvDD1OXxwxUIXfLbgUVKbnz31LN0Z32FeiJW0Ko+tklcGRjicx8vv2I55AkjQgrF7
-y0MYut6c38CHpfzqClRizftxpoIfYEsDVCFHzfl8BZ/Gg1sTw2TMbYqsFdssuBPURkjeGmtq
-Wna90Wyp8I67a3T8G3FyHc9SwVbcDdnCnQUestGIlDEuoSpsa0WDvInMQ2mhnArU8wk+tAyz
-/iBUiir0cHQAAJl52Hr1rYXGRXx7R955AjkixayaU1lN3dhUkyPcNSKEKAFtbzM2f4GxFPvr
-GGNqkuPkcD2G5YSx2VgUkW4meOI+FXux/zpuv1aINFdBIUtDMxuAdwIqs37oWngpzr28m+36
-7gvBbEp947MQuM+nQcSB9SZDlvXnj0yXwRQdwNhn58vIGTCWHZZRbutNJs7w4+AvtMJDhPPL
-4bg/cL6wC2fsjC6c0RXrj64aNu50GEez7HEQ/bWAp5EIZhH3t5ZlN1mjIZnTRlOlpxn3EvB1
-gqMOaUsez0x2IvBZEjN3GXiB//c/eFBtTjPQT7aZy0M6qwn5kPPL0e/9T+xBHpkvZ0qey5zQ
-fV4pKWLu896f4MQ+CMmitA5DepPPhD5k2n1XXE0qf1ZJpYLPY7wPzs7MalbZ3obAlmuz8+iA
-bceDUNDzP+fNvJkECQAA
-
---ZGiS0Q5IWpPtfppv--
+-- 
+"Next the statesmen will invent cheap lies, putting the blame upon 
+the nation that is attacked, and every man will be glad of those
+conscience-soothing falsities, and will diligently study them, and refuse
+to examine any refutations of them; and thus he will by and by convince 
+himself that the war is just, and will thank God for the better sleep 
+he enjoys after this process of grotesque self-deception." -- Mark Twain
 
 
 -------------------------------------------------------
