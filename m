@@ -1,14 +1,14 @@
-From: sjb <ottaky-XuTx12Z7TonQT0dZR+AlfA@public.gmane.org>
-Subject: Re: iasl
-Date: Fri, 09 May 2003 16:17:25 +0000
+From: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Subject: Re: Re: Intel Centrino and Linux
+Date: Fri, 9 May 2003 16:32:11 +0200
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3EBBD495.7050104@ottaky.com>
-References: <3EBA7BE0.5070200@ottaky.com> <20030509133703.GH2954@poup.poupinou.org>
+Message-ID: <20030509143211.GI2954@poup.poupinou.org>
+References: <200305031848.04583.nbellm@gmx.de> <1051979022.24562.24.camel@dhcp22.swansea.linux.org.uk> <m21xzb9vig.fsf_-_@tnuctip.rychter.com> <01f301c3148f$63f16870$3746028e@bio.dfo.ca> <m2bryd8bnc.fsf@tnuctip.rychter.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20030509133703.GH2954-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <m2bryd8bnc.fsf-dTJq59+VGzkkCw8IV3R6h0EOCMrvLtNR@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,54 +17,49 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
-Cc: ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Jan Rychter <jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Ducrot Bruno wrote:
+On Thu, May 08, 2003 at 12:46:15PM -0700, Jan Rychter wrote:
+> >>>>> "Derek" == Derek Broughton <dbroughton-F3m4/jXepmf3fQ9qLvQP4Q@public.gmane.org>:
+>  Derek> From: "Jan Rychter" <jan-JAsPCFd0eodBDgjK7y7TUQ@public.gmane.org>
+>  >> I've already ruled out all Compaq notebooks thanks to the multiple
+>  >> problem reports seen on this list (hi HP/Compaq! congratulations on
+>  >> the market strategy),
+> 
+>  Derek> I think that's awfully short-sighted.  Compaqs appear, from my
+>  Derek> reading of this list, to be some of the better supported
+>  Derek> laptops.  Sure there are lots of niggling little problems, but
+>  Derek> most of them can be fixed - thanks to the support available here
+>  Derek> from both users and HP.  Now, if Dell would only provide some
+>  Derek> support....
+> 
+> Is it? From what I see, people have to fix and patch their DSDTs in
+> order to get their notebooks working. I didn't have to do that with my
+> Sharp and I'm not looking forward to the experience. I would like to buy
+> a notebook that I can boot Linux on without going through the hassle of
+> ironing out the details.
+> 
+> But I guess everyone's taste is different. The level of "acceptable
+> annoyance" is also different for each one of us.
+> 
+> But I didn't see any comments from Andy or Bob in this thread -- about
+> Linux and Centrino, which is what this thread is really about?
 
-> grab acpica-unix from intel site instead, untar, go to 'compiler' directory,
-> 'make' and hopefully you will get iasl.
+Andy have already answered this in the cpufreq mailing list (at least
+for CPU frequency stuff).  Basically, a binary only driver for the
+enhanced speedstep stuff is already available (look at intel site.
+Don't rememeber exactly the URL), but documentation about this
+technology will be done (well... I hope it will done).
 
-D'oh! Why didn't I think of that?! *8-)
+Cheers,
 
-> I do have trouble with bison version 1.75, but I guess that my bison
-> is broken ? With bison 1.31, all seems to be OK.
-> Plus, I got some random core dump with the latest one? 
+-- 
+Ducrot Bruno
 
-Well .. mine compiled cleanly and ..
-
-ottaky@vaio:~/acpi> ./iasl -tc dsdt.asl
-
-Intel ACPI Component Architecture
-ASL Optimizing Compiler / AML Disassembler version 20030424 [May  7 2003]
-Copyright (C) 2000 - 2003 Intel Corporation
-Supports ACPI Specification Revision 2.0b
-
-dsdt.asl   529:                 Field(ECR_, AnyAcc, Lock, Preserve) {
-Error    1048 -                          ^ Host Operation Region 
-requires ByteAcc access
-
-dsdt.asl  1288:             Field(PIUC, DWordAcc, Lock, Preserve) {
-Error    1047 -                      ^ Access width is greater than 
-region size
-
-dsdt.asl  2122:             If(\_OSI) {
-Error    1028 -  Too few arguments ^  (\_OSI requires 1)
-
-dsdt.asl  2123:                 "Windows 2001"
-Error    1037 -                  parse error ^
-
-ASL Input:  dsdt.asl - 2157 lines, 75307 bytes, 1552 keywords
-Compilation complete. 4 Errors, 0 Warnings, 0 Remarks, 381 Optimizations
-
-So, I guess the 1st error is fixable by changing "AnyAcc" for "ByteAcc". 
-Not sure about no.s 2 & 3 ...and WTF is "Windows 2001" doing in there?!
-
-Any DSDT gurus out there? This is from a Sony Vaio U1 BTW.
-
-sjb
-
+--  Which is worse:  ignorance or apathy?
+--  Don't know.  Don't care.
 
 
 -------------------------------------------------------
