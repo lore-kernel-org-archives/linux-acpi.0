@@ -1,21 +1,21 @@
-From: Dmitry Torokhov <dtor_core@ameritech.net>
+From: john stultz <johnstul@us.ibm.com>
 Subject: Re: [ACPI] X86_PM_TIMER: /proc/cpuinfo doesn't get updated
-Date: Tue, 16 Mar 2004 18:19:54 -0500
+Date: Tue, 16 Mar 2004 15:28:15 -0800
 Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <200403161819.55351.dtor_core@ameritech.net>
-References: <20040316182257.GA2734@dreamland.darkstar.lan> <20040316194805.GC20014@picchio.gall.it> <20040316214239.GA28289@hell.org.pl>
+Message-ID: <1079479694.5408.47.camel@cog.beaverton.ibm.com>
+References: <20040316182257.GA2734@dreamland.darkstar.lan>
+	 <20040316194805.GC20014@picchio.gall.it>
+	 <20040316214239.GA28289@hell.org.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
 In-Reply-To: <20040316214239.GA28289@hell.org.pl>
-Content-Disposition: inline
-To: acpi-devel@lists.sourceforge.net
-Cc: Karol Kozimor <sziwan@hell.org.pl>, johnstul@us.ibm.com, linux-kernel@vger.kernel.org
+To: Karol Kozimor <sziwan@hell.org.pl>, Dominik Brodowski <linux@brodo.de>
+Cc: dtor_core@ameritech.net, acpi-devel@lists.sourceforge.net, lkml <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday 16 March 2004 04:42 pm, Karol Kozimor wrote:
+On Tue, 2004-03-16 at 13:42, Karol Kozimor wrote:
 > Thus wrote Daniele Venzano:
 > > > I have a notebook with an Athlon-M CPU. I tried linux 2.6.4 with
 > > > CONFIG_X86_PM_TIMER=y and I noticed that /proc/cpuinfo doesn't get
@@ -27,11 +27,25 @@ On Tuesday 16 March 2004 04:42 pm, Karol Kozimor wrote:
 > > change.
 > 
 > Same here with a P4-M, follow-up to John and Dmitry.
-> Best regards,
-> 
 
-PM timer does not install CPUFREQ handler which would scale cpu_khz to
-give proper display. I might cook up something later tonight.
+Hmm. This is untested, but I think this should do the trick.
 
--- 
-Dmitry
+Dominik: Is there any reason I'm not seeing why cpu_khz should only be
+updated when using the TSC?
+
+thanks
+-john
+
+===== arch/i386/kernel/timers/timer_tsc.c 1.36 vs edited =====
+--- 1.36/arch/i386/kernel/timers/timer_tsc.c	Tue Feb  3 21:35:49 2004
++++ edited/arch/i386/kernel/timers/timer_tsc.c	Tue Mar 16 15:23:49 2004
+@@ -360,8 +360,8 @@
+ 		if (variable_tsc)
+ 			cpu_data[freq->cpu].loops_per_jiffy = cpufreq_scale(loops_per_jiffy_ref, ref_freq, freq->new);
+ #ifndef CONFIG_SMP
++		cpu_khz = cpufreq_scale(cpu_khz_ref, ref_freq, freq->new);
+ 		if (use_tsc) {
+-			cpu_khz = cpufreq_scale(cpu_khz_ref, ref_freq, freq->new);
+ 			if (variable_tsc) {
+ 				fast_gettimeoffset_quotient = cpufreq_scale(fast_gettimeoffset_ref, freq->new, ref_freq);
+ 				set_cyc2ns_scale(cpu_khz/1000);
