@@ -1,11 +1,14 @@
-From: Mike Mestnik <cheako911-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: README: Maby it's fixed now, I turned off one of the battery monitors. RETARDED multipost.
-Date: Sun, 7 Mar 2004 13:52:00 -0800 (PST)
+From: Sebastian Seifert <lathander-Mmb7MZpHnFY@public.gmane.org>
+Subject: Re: clear/enable power button on resume
+Date: Sun, 7 Mar 2004 23:43:18 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040307215200.87631.qmail@web11903.mail.yahoo.com>
+Message-ID: <20040307224318.GA1551@ergo.gotdns.org>
+References: <1078685555.541.9.camel@sunshine> <404B7A1B.80006@pca.it> <1078689765.541.20.camel@sunshine>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1078689765.541.20.camel-eqrHSpLoP5M@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -14,45 +17,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Timo Hoenig <thoenig-dCxI//HcOdFeoWH0uzbU5w@public.gmane.org>
+Cc: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Opps forgot to say I reported it in the [2]DBTS and I'm running
-2.6.3-1-686 from Debian.
+On Sun, Mar 07, 2004 at 09:02:46PM +0100, Timo Hoenig wrote:
+> Thanks. But I don't use the power event anyway. As long as acpi works I
+> am happy with suspend / resume. rm -rf /etc/acpi/events/powerbtn did it
+> for me.
 
-[2] http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=236598
+That's what I did, too. On my system, it happens after S3 sleep (I
+haven't tested S1/S2). 
 
-> > -----Original Message-----  FROM ACPI LIST.
-> > From: Yu, Luming [mailto:luming.yu-lUQJ9CVx3tM@public.gmane.org]
-> > Sent: Tuesday, February 17, 2004 3:46 PM
-> > To: Ow Mun Heng; Acpi-List (E-mail)
-> > Subject: RE: [ACPI] 2.6.3-rc3 + D600 + battery status missing
-> > sometimes..
+And the power button is the only way to power on after S3, since all
+other wake-capable devices aren't enabled.
 
-> Here is the dmsg output I get.
->     ACPI-0279: *** Error: Looking up [BST0] in namespace,
-AE_ALREADY_EXISTS
->     ACPI-1120: *** Error: Method execution failed [\_SB_.BAT0._BST]
-(Node
-cffc8cc0), AE_ALREADY_EXISTS
-> This is outputed every time battery status is checked, I have 2 programs
-> doing this.  Lookes like there is a locking problem.
+> Isn't the acpi spec telling whether the pressing of the power button
+> after suspending has to be reported to the OS?
 
-I THINK it has stoped now that I turned off one of my battery monitors. 
-It also seams to have something todo with closing the lid/screen, but this
-could be unrelated.
+The ACPI spec says that the pressing of a button (e.g. the power button)
+that leads to a wake event is reported differently to the OS. The Notify
+value (second column in output of /proc/acpi/event) of a regular button event 
+is 0x80, that of a wake event is 0x02. Nevertheless, on my system, 0x80
+is generated for a power button wake. Strange.
 
-I would look for problems with preemptation of the [1]status get ioctl it
-self.  This is a single CPU system Dell Inspiron 3800.
-
-[1] What ever IO that programs do to get the status of the battery, the
-kernel side.
-
-
-__________________________________
-Do you Yahoo!?
-Yahoo! Search - Find what you’re looking for faster
-http://search.yahoo.com
+Sebastian
 
 
 -------------------------------------------------------
