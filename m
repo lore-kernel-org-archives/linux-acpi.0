@@ -1,14 +1,12 @@
-From: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: PCI Root Bridge
-Date: Tue, 13 May 2003 13:29:31 +0800
+From: Preston Lord <webmaster-xSlfl9GhdHA@public.gmane.org>
+Subject: iasl now requires glibc 2.3?
+Date: 12 May 2003 23:47:43 -0600
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <3ACA40606221794F80A5670F0AF15F842722F8@pdsmsx403.ccr.corp.intel.com>
+Message-ID: <1052804863.1925.4.camel@zipur.doublet>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,147 +15,32 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Szabolcs Barsony <Szabolcs.Barsony-pFqtzsCLIqPQT0dZR+AlfA@public.gmane.org>
-Cc: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Moore, Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Would you please change below code in you dsdt.asl
+After much reading I find myself ready to dive into the proceedures of
+http://developer.intel.com/technology/iapc/acpi/bios_override.htm BUT
+when Itry to use iasl on SuSE 8.1 it states I now need to use glibc 2.3
+:( tell me it aint so... is there an older version of this util that
+will allow be to disassemble and reassemble my DSDT?
 
-                    Method (_REG, 2, NotSerialized)
-                    {
-                        If (LEqual (Arg0, 0x03))
-                        {
-                            Store (Arg1, C0D2)
-                            If (LAnd (Arg1, LNot (LLess (\C009 (), =
-0x03))))
-                            {
-                                C0D3 ()
-                            }
-                        }
-                    }
+I am doing this for a ACER TM 430 ... if anyone has specific advice for
+that model of laptop.
 
-                    OperationRegion (C0D9, EmbeddedControl, 0x00, 0xFF)
+Thanks again... still banging my head on the wall...
 
-To:
-                    Method (_REG, 2, NotSerialized)
-                    {
-                        If (LEqual (Arg0, 0x03))
-                        {
-                            Store (Arg1, C0D2)
-                            If (Arg1)
-                            {
-                                C0D3 ()
-                            }
-                        }
-                    }
-
-                    OperationRegion (C0D9, EmbeddedControl, 0x00, 0xFF)
-
-And see whether battery works.
-
-Thanks,
-Luming
-
------Original Message-----
-From: Yu, Luming=20
-Sent: 2003?5?7? 17:12
-To: Szabolcs Barsony
-Cc: Brown, Len; Moore, Robert; Grover, Andrew; =
-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Subject: RE: [ACPI] PCI Root Bridge
-
-
-Szabolcs,
-According to ACPI spec 2.0a, Control Method Battery has Plug and Play ID =
- PNP0C0A.
-I searched your ASL file for PNP0C0A, and found device C11D and C11E has =
-such _HID.
-So, I searched your Dmesg for C11D and C11E, and I found below message:
-
-ACPI: Battery Slot [C11E] (battery absent).
-
-Maybe Battery Slot C11E can work on your platform. Would you please have =
-it a try.
-Regarding battery slot C11D, there are no clue to do further =
-investigation to me.
-Would you please try to find out whether device C11E has successfully =
-loaded into ACPI namespace?
-I have noticed that there are two AE_NOT_EXIST and two AE_ALREADY_EXISTS =
-messages, but it's for devices C03B.
-I can't guess what happened during period between reporting AE_NOT_EXIST =
-and initializing device C11D.
-
-Thanks,
-Luming
-
------Original Message-----
-From: Szabolcs Barsony [mailto:Szabolcs.Barsony-pFqtzsCLIqPQT0dZR+AlfA@public.gmane.org]
-Sent: 2003?4?14? 20:34
-To: Yu, Luming
-Subject: RE: [ACPI] PCI Root Bridge
-
-
-Hi,
-
-I did only basic corrections.=20
-1. After disassembling the BIOS DSDT table there were many symbols =
-starting
-with asterisk (*). I removed them from the name of the symbols.
-2. During compilation I got many undefined symbols. I defined them as
-extern.
-3. I got few messages that not all methods return a value. I added =
-Return
-(0x00) to those methods.
-
-That's all. I attach the original DSDT table and my fixed one in a zip =
-file.
-
-Thanks and regards,
-Szabolcs
-
-
------Original Message-----
-From: Yu, Luming [mailto:luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
-Sent: Monday, 2003 April 14 12:14
-To: Szabolcs Barsony
-Cc: Grover, Andrew; Brown, Len
-Subject: RE: [ACPI] PCI Root Bridge
-
-
-I looked into your dmesg.  I noticed that:
-
-First error is that pci_config for C03B has already installed.=20
-
-Second error is that method execution was failed =
-[\_SB_C03B.C04E.C0CF.COD3]
-due to AE_NOT_EXIST.
-
-Obviously, something is missing from this DSDT table.
-
-I don't know if this dmesg is kernel having your fixed DSDT table. If =
-yes,
-are you missing something?
-
-Would you please describe how did you fix the buggy DSDT table, and give =
-me
-dmesg of kernel with original DSDT table.
-
-It will help me better understand your problem.
-
-Thanks,
-Luming
+-- 
+Preston Lord
+Programmer/Developer/Network Specialist
+Double "T" Computer Services
+SK, CA Ph.1.306.773.2054
+==============================
+http://www.t2.net (Hosting)
+http://www.dinamicweb.com (iHTML Driven Dropsites)
+http://www.ebboard.ca (iHTML Discussion Forum Software)
 
 
 
--------------------------------------------------------
-Enterprise Linux Forum Conference & Expo, June 4-6, 2003, Santa Clara
-The only event dedicated to issues related to Linux enterprise solutions
-www.enterpriselinuxforum.com
-
-_______________________________________________
-Acpi-devel mailing list
-Acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-https://lists.sourceforge.net/lists/listinfo/acpi-devel
 
 
 -------------------------------------------------------
