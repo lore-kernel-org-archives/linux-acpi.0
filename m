@@ -1,7 +1,7 @@
 From: Unknown <unknown@unknown.invalid>
 Subject: Virus Detected by Network Associates, Inc. Webshield SMTP V4.5 MR1a
-Date: Sat, 11 Dec 2004 12:09:12 +0000 (UTC)
-Message-ID: <E1Cd638-000229-FQ@sc8-sf-mx2.sourceforge.net>
+Date: Sat, 11 Dec 2004 12:09:17 +0000 (UTC)
+Message-ID: <E1Cd638-00022A-FP@sc8-sf-mx2.sourceforge.net>
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 From: <>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
@@ -18,8 +18,8 @@ To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 Network Associates WebShield SMTP V4.5 MR1a on ibixmaila detected virus
-W32/Bagle.bd@MM in attachment price.scr from <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org> and it was
-Deleted.
+W32/Bagle!eml.gen in attachment unknown from <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org> and it was
+deleted.
 
 
 -------------------------------------------------------
