@@ -1,8 +1,8 @@
-From: Kevin Fenzi <kevin-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
+From: Kevin Fenzi <kevin-acpi-+bl/7iUgRMUAvxtiuMwx3w@public.gmane.org>
 Subject: ASL help with latest acpi and compaq presario 2800t
-Date: Sun, 9 Feb 2003 17:44:48 -0700
+Date: Sun, 9 Feb 2003 17:51:28 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030210004452.1978.qmail@scrye.com>
+Message-ID: <20030210005130.2018.qmail@scrye.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
