@@ -1,36 +1,56 @@
-From: Matthew Wilcox <willy-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org>
-Subject: Re: [ACPI] RE: [BK PATCH] ACPI updates
-Date: Fri, 6 Dec 2002 13:17:46 +0000
-Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <20021206131746.C10368@parcelfarce.linux.theplanet.co.uk>
-References: <EDC461A30AC4D511ADE10002A5072CAD04C7A576@orsmsx119.jf.intel.com> <20021206125943.2199892e.hanno@gmx.de> <20021206072932.B16173@devserv.devel.redhat.com>
+From: "Joshua Wright" <Joshua.Wright-n9mZ8N9waow@public.gmane.org>
+Subject: Battery management on Compaq Evo N800V
+Date: Fri, 6 Dec 2002 09:22:26 -0500
+Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Message-ID: <156AA90517398D479A3473C35CE99EDD0109F6@pvdexc99.jwu.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20021206072932.B16173-s/M1imWmeEoQw3kMeb7FcACJwEvxM/w9@public.gmane.org>; from arjanv-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org on Fri, Dec 06, 2002 at 07:29:32AM -0500
-To: Arjan van de Ven <arjanv-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: =?iso-8859-1?Q?Hanno_B=F6ck?= <hanno-Mmb7MZpHnFY@public.gmane.org>, "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, pavel-+ZI9xUNit7I@public.gmane.org, marcelo-KCZ47A4bww4P48s/oLjRZg@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-pyega4qmqnRoyOMFzWx49A@public.gmane.org
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+content-class: urn:content-classes:message
+Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
+List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
+	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
+To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Dec 06, 2002 at 07:29:32AM -0500, Arjan van de Ven wrote:
-> On Fri, Dec 06, 2002 at 12:59:43PM +0100, Hanno B=F6ck wrote:
-> > I think this is a very bad news. In my opinion, the ACPI-patch
-> > is the most-needed kernel-patch at the moment. For many laptop-user=
-s
-> > that don't know about this patch, Linux is nearly
-> > unuseable.=20
->=20
-> the 2.4 patch doesnt' actually offer suspend/resume capabilities; wha=
-t
-> else did you have in mind as required ?
+I recently acquired a Compaq Evo N800v laptop and am struggling to get =
+battery monitoring to work.
 
-booting?
+I've patched the 2.4.20 kernel with the drivers from =
+sf.net/projects/acpi successfully (acpi-20021126) and see some activity =
+in /proc/acpi for fan, processor, thermal control, etc.  In =
+/proc/acpi/battery there are no files.  Accordingly, I don't have a way =
+to do battery monitoring.  I do have CONFIG_ACPI_BATTERY set in my =
+kernel configuration.
 
---=20
-"It's not Hollywood.  War is real, war is primarily not about defeat or
-victory, it is about death.  I've seen thousands and thousands of dead =
-bodies.
-Do you think I want to have an academic debate on this subject?" -- Rob=
-ert Fisk
+I tried using 2.5.50 with ACPI support as well but got the same results =
+- some ACPI functionality but no battery monitoring.
+
+Has anyone else experienced a similar situation and can offer some =
+advice?  I'm very happy with the other ACPI support, but battery =
+monitoring is an important feature to me that I'd like to get working.
+
+Many thanks.
+
+-Joshua Wright
+Team Leader, Networks and Systems
+Johnson & Wales University
+Joshua.Wright-n9mZ8N9waow@public.gmane.org=20
+http://home.jwu.edu/jwright/
+
+pgpkey: http://home.jwu.edu/jwright/pgpkey.htm
+fingerprint: FDA5 12FC F391 3740 E0AE BDB6 8FE2 FC0A D44B 4A73
+
+
+
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
