@@ -1,15 +1,12 @@
-From: Alexei Gilchrist <a.gilchrist-6NCMjze5YvWHXe+LvDLADg@public.gmane.org>
-Subject: S3 partial sucess on centrino 855GM
-Date: Tue, 02 Mar 2004 13:42:07 +1000
+From: "Praveen C" <praveen-8a50ANe9Mx0/NI2e8YfAcJ/QNRX+jHPU@public.gmane.org>
+Subject: Re:  acpi on r40e
+Date: Tue, 02 Mar 2004 05:57:04 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <1078198927.1259.12.camel@qubit>
-References: <C386328088ED7F4E9F81AFBABDDF60DA045C6E87@wdmyexch02.my.asia.wdc.com>
-	 <4043FCE7.5040703@verizon.net>
+Message-ID: <W64818352108621078207024@mail.mailsnare.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <4043FCE7.5040703-H+0wwilmMs3R7s880joybQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -21,29 +18,24 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
 To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-The following was pointed out to me on another list and I've verified it
-works on my Panasonic W2 (centrino, 855GM):
+This is about the hangup problem with processor modules on Thinkpad R40e.=
+ I have narrowed the problem down to the following functions in drivers/a=
+cpi/processor.c
 
-kernel 2.6.1 or 2.6.3, XFree86 v4.4, using VESA driver for X, S3 will
-work, the screen will switch on again using a combination of Ctr-Alt-F8
-and Ctrl-Alt-F7.
+acpi_processor_idle
+acpi_processor_get_throttling
+acpi_processor_set_throttling
 
-It doesn't work from a console, or using the i810 driver. Also the
-network card seems dead afterwards and a reboot will hang the machine.
+I forced a return in the beginning of all these three functions so that t=
+he above functions are not executed. The module then does not hangup and =
+I can also load the thermal module. So I can now get the temperature. I s=
+uspect the above three functions because all of them disable irq (local_i=
+rq_disable() and local_irq_enable() in 2.6 kernel) which could be causing=
+ some problem but thats just a guess. I hope somebody will be able to tel=
+l me the possible problems with these functions.
+Thanks
+praveen
 
-Still, it's a partial success for reviving a dead screen that seems to 
-plague several centrino laptops.
-
-Anyone with this problem care to check other versions of XFree86, and
-verify it on other laptops? 
-
-I don't know if it's possible to take whatever initialisation the VESA
-driver is doing and always executing it on resume?
-
-cheers,
-
-Alexei 
- 
 
 
 
