@@ -1,14 +1,14 @@
-From: Luca Capello <luca-wlebWZzHoyE@public.gmane.org>
-Subject: Re: ibm-acpi enhancement request
-Date: Mon, 24 Jan 2005 19:37:01 +0100
-Message-ID: <41F5404D.5090205@pca.it>
-References: <20050124171939.14379.qmail@web50206.mail.yahoo.com>
-Reply-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <syrjala-ORSVBvAovxo@public.gmane.org>
+Subject: Re: Incomplete list of pnp entries/resources with pnpacpi
+Date: Mon, 24 Jan 2005 21:25:29 +0200
+Message-ID: <20050124192529.GA9740@sci.fi>
+References: <200501241704.46239.challet@maths.ox.ac.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-reply-to: <20050124171939.14379.qmail-nmJAbDMUu36A/QwVtaZbd3CJp6faPEW9@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <200501241704.46239.challet-dK2jV70R1GDQzY9nttDBhA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -18,38 +18,38 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: ML ACPI-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Damien Challet <challet-dK2jV70R1GDQzY9nttDBhA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Mon, Jan 24, 2005 at 05:04:45PM +0000, Damien Challet wrote:
+> 3) The resources allocated to each entry are not complete:=20
+>=20
+> for instance, pnpbios gives
+>=20
+> 0e CSC0100 multimedia controller: audio
+>         io 0x0530-0x0537
+>         io 0x0388-0x038b
+>         io 0x0220-0x0233
+>         irq 5
+>         dma 0
+>         dma 1
+>=20
+> and pnpacpi
+>=20
+> 00:06  state =3D active
+> io 0x530-0x537
 
-Hello Paul,
+Have you tried this patch?
+http://thread.gmane.org/gmane.linux.kernel/257312
 
-on 01/24/2005 06:19 PM, Paul Ionescu wrote:
-> I am trying to write some code for ibm-acpi
-> integration in HAL to better support IBM Thinkpads in
-> HAL. 
-> (http://www.freedesktop.org/wiki/Software_2fhal )
-this is a good idea, I don't have the capacity to code and help you, but
-I can test whatever you want ;-)
+For some reason it hasn't it been included in the kernel. Is the patch=20
+wrong or did it simply fall through the cracks?
 
-> This way we may have a general GUI for interacting
-> with hardware, and we can let go of tpb.
-Why don't integrate the two approaches in an unique one? The first thing
-that came in my mind was this:
-   http://tpctl.sourceforge.net/configure-thinkpad.html
-
-Thx, bye,
-Gismo / Luca
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
-
-iD8DBQFB9UBMVAp7Xm10JmkRApL8AJ0UFUFhSqyhGuyvyrtlY+4xH7hUwQCfSo0A
-48rOlbpxK6pKLfA5JYNeu9o=
-=w70f
------END PGP SIGNATURE-----
+--=20
+Ville Syrj=E4l=E4
+syrjala-ORSVBvAovxo@public.gmane.org
+http://www.sci.fi/~syrjala/
 
 
 -------------------------------------------------------
