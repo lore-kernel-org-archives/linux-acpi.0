@@ -1,7 +1,7 @@
 From: Li Shaohua <shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 0/3]making ACPICA safe for suspend/resume - take 2
-Date: Fri, 21 Jan 2005 15:48:57 +0800
-Message-ID: <1106293737.19407.60.camel@sli10-desk.sh.intel.com>
+Subject: [PATCH 1/3] free enough memory before suspend/resume
+Date: Fri, 21 Jan 2005 15:49:03 +0800
+Message-ID: <1106293740.19407.62.camel@sli10-desk.sh.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
@@ -19,20 +19,54 @@ To: ACPI-DEV <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Cc: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, Nigel Cunningham <ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-The patches are designed to solve the issue of making call to ACPICA
-safe for suspend/resume time. Please see the detail in
-http://sourceforge.net/mailarchive/forum.php?thread_id=6378210&forum_id=6102
-The new patches remove PCI link device resume code and let PCI device
-driver resume code indirectly reconfigure Link's IRQ (call
-pci_enable_device), so we will haven't an issue of invoking ACPICA with
-interrupt disabled. This also works for suspend to disk case. After this
-we only need to guarantee there is enough free memory for S3. One
-problem of the idea is we must fix many PCI drivers, but it's ok to me.
-If this solution is ok, I will send my patch 3 to LKML first.
+Free enough memory before suspend.
 
-Thanks,
-Shaohua 
+SIgned-off-by: Li Shaohua<shaohua.li-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+---
+
+ 2.5-root/kernel/power/main.c |   13 +++++++++++++
+ 1 files changed, 13 insertions(+)
+
+diff -puN kernel/power/main.c~free_memory_before_suspend kernel/power/main.c
+--- 2.5/kernel/power/main.c~free_memory_before_suspend	2005-01-20 13:07:49.007943712 +0800
++++ 2.5-root/kernel/power/main.c	2005-01-20 13:09:58.067323704 +0800
+@@ -19,6 +19,8 @@
+ 
+ #include "power.h"
+ 
++#define FREE_PAGE_NUMBER (100)
++
+ DECLARE_MUTEX(pm_sem);
+ 
+ struct pm_ops * pm_ops = NULL;
+@@ -49,6 +51,7 @@ void pm_set_ops(struct pm_ops * ops)
+ static int suspend_prepare(suspend_state_t state)
+ {
+ 	int error = 0;
++	unsigned int free_pages;
+ 
+ 	if (!pm_ops || !pm_ops->enter)
+ 		return -EPERM;
+@@ -60,6 +63,16 @@ static int suspend_prepare(suspend_state
+ 		goto Thaw;
+ 	}
+ 
++	if ((free_pages = nr_free_pages()) < FREE_PAGE_NUMBER) {
++		pr_debug("PM: free some memory\n");
++		shrink_all_memory(FREE_PAGE_NUMBER - free_pages);
++		if (nr_free_pages() < FREE_PAGE_NUMBER) {
++			error = -ENOMEM;
++			printk(KERN_ERR "PM: No enough memory\n");
++			goto Thaw;
++		}
++	}
++
+ 	if (pm_ops->prepare) {
+ 		if ((error = pm_ops->prepare(state)))
+ 			goto Thaw;
+_
+
 
 
 
