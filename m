@@ -1,8 +1,8 @@
 From: "Herbert Nachtnebel" <Herbert.Nachtnebel-8zxNtbQCHXIjuwv8T7myQQ@public.gmane.org>
-Subject: AW: iasl -d now gives segmentation fault !
-Date: Sun, 10 Nov 2002 20:09:33 +0100
+Subject: AW: acpi on compaq evo 800c
+Date: Sun, 10 Nov 2002 20:15:05 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <B900970C7DD9474C972986EB3EC7C58F0D4038@andromeda.agcad.local>
+Message-ID: <B900970C7DD9474C972986EB3EC7C58F0D4039@andromeda.agcad.local>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="iso-8859-1"
@@ -17,17 +17,23 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: =?iso-8859-1?Q?S=E9rgio_Monteiro_Basto?= <sergiomb-5ng0By4jB+/QUPosyRRdSA@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Duncan Gibb <duncan-h9eRTumTmmZjMu4AB9qoK9F8XQ1HzYRO@public.gmane.org>, Bob Lees <bob-l+PWtdWbHAsG2Il/BtU0GPXRex20P6io@public.gmane.org>
+Cc: acpi mail list <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
 Hi!
 =20
-I have seen a similar segmentation fault, but only when the user who =
-invokes the disassembler has no access to the file - i.e. not beeing =
-root and trying to directly disassamble /proc/acpi/dsdt.
+Please be warned, at least one times it was reported to this list that =
+the DSDT isn't really a static thing. If you have another amount of main =
+memory in your notebook, than this DSDT may be incorrect for you. The =
+safest way is to disassamble your DSDT, patch it like the presented one =
+and use the patched one with linux acpi.
 =20
-Hope this helps,
+Sincerelly,
 Herbert.
+
+	=20
+
 
 
 -------------------------------------------------------
