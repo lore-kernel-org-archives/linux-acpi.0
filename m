@@ -1,13 +1,14 @@
 From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: RE: Processor C states and USB problem
-Date: Tue, 20 Jan 2004 11:51:49 -0800 (PST)
+Subject: Re: Bad power savings with high network traffic
+Date: Tue, 20 Jan 2004 11:57:05 -0800 (PST)
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040120115029.F96919@root.org>
-References: <3ACA40606221794F80A5670F0AF15F8401720CE2@PDSMSX403.ccr.corp.intel.com>
+Message-ID: <20040120115507.N96919@root.org>
+References: <Pine.LNX.4.53.0401181824220.1440@tweety.gaugusch.at>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <3ACA40606221794F80A5670F0AF15F8401720CE2-SRlDPOYGfgogGBtAFL8yw7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.53.0401181824220.1440-qopfHk9/S+VQK2oVCIMtW7NldLUNz+W/@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -16,45 +17,31 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: "Yu, Luming" <luming.yu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Diego SANTA CRUZ <dsanta-W/9V78bTXrinCNX9eg9BBA@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Markus Gaugusch <markus-z+rTbpWsRgbk7+2FdBfRIA@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 18 Jan 2004, Yu, Luming wrote:
-> > Yes, but compared to the usage count of C2 that is extremely low, and
-> > the CPU is idling all the time (CPU usage is below 1%). I don't know
-> > much about C states but I guess it should go into C3 much more often,
-> > and the bus mastering activity should show something else
-> > than ffffffff
-> > when booting with a bare bones kernel and with no extra hw initialized
-> > (USB, FireWire, etc.)
+On Sun, 18 Jan 2004, Markus Gaugusch wrote:
+> [I'm not subscribed, please CC: me on answers! Thanks!]
+> I had my laptop connected to a network with lots of multicast/broadcast
+> traffic (40kb broadcast + 80kb multicast/sec). The multicast traffic was
+> only visible on the network meter, when promiscous mode was enabled.
 >
-> I agree that it's unreasonable that C3 usage count is never above 5.
-> This is the result of the C state power policy.
+> Usually my CPU temperature is around 50=B0C when being idle, but it raise=
+d
+> up to 54=B0C! I found out, that although CPU usage was minimal (1-2%), th=
+e
+> C1 state was used very frequently. After unplugging the network cable, th=
+e
+> temperature went down again.
 >
-> Threshold is:
-> pr->power.states[ACPI_STATE_C2].promotion.threshold.bm = 0x0F;
-> pr->power.states[ACPI_STATE_C3].demotion.threshold.bm = 0x0F;
->
-> The condition of promotion or demotion is:
-> if (pr->power.bm_activity & cx->demotion.threshold.bm) {
-> if (!(pr->power.bm_activity & cx->promotion.threshold.bm)) {
->
-> Using the following statement to adjust bm_activity of the last Nth
-> schedule quanta.
->
-> pr->power.bm_activity <<= 1;
-> if(bm_status)
-> 	pr->power.bm_activity++;
->
-> So it's is not strange that C3 usage count is 4  !
->
-> Maybe we need a more sophisticated policy .
+> My kernel is 2.4.24 with software suspend patch and realtek 8139 ethernet
+> card. I suppose, that kernel internal code doesn't honor C-states or
+> something like that?
 
-In FreeBSD, I clear BM_STS before exiting idle.  If I come back and it's
-set, then avoid C3 and demote to C2.  If not and last sleep was > C3
-latency, then use C3.  It's unnecessary to count the number of BM_STS
-events.
+8139 is a piece of junk.  It probably doesn't have hw multicast filter,
+hence does a lot of DMA to memory or interrupts and you lose > C1 sleep
+states.
 
 -Nate
 
