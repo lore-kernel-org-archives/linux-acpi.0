@@ -1,14 +1,14 @@
-From: Nate Lawson <nate-Y6VGUYTwhu0@public.gmane.org>
-Subject: Re: Acer TM 661 does not wake up from STR
-Date: Wed, 25 Aug 2004 10:12:39 -0700
+From: Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: 2.6.8-rc2 acpi numa warnings
+Date: 26 Aug 2004 00:21:03 -0400
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <412CC887.9080706@root.org>
-References: <412CA779.8000602@gmx.net>
+Message-ID: <1093494063.7761.7.camel@dhcppc4>
+References: <20040729.104437.78704661.t-kochi@bq.jp.nec.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <412CA779.8000602-hi6Y0CQ0nG0@public.gmane.org>
+In-Reply-To: <20040729.104437.78704661.t-kochi-UDFczIW9X1d8UrSeD/g0lQ@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
@@ -17,61 +17,98 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Mirko Werneke <mirko.werneke-hi6Y0CQ0nG0@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Takayoshi Kochi <t-kochi-UDFczIW9X1d8UrSeD/g0lQ@public.gmane.org>
+Cc: ACPI Developers <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, kaos-sJ/iWh9BUns@public.gmane.org, Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Mirko Werneke wrote:
-> I've a really big problem with my Acer Travelmate 661 laptop: Once=20
-> suspended to ram, it won't wake up again! The laptop seems to suspend=20
-> corretly (no error messages while suspending; Power LED switches from=20
-> green to orange). But after a key press to wake it up the only reaction=
-=20
-> the laptop shows is switching the power led to green again. Nothing mor=
-e=20
-> happens. I've to press the power button for 4 seconds to switch the=20
-> laptop completely off. After that i can reboot normally.
->=20
-> Besides from playing around withh several parameters ("noapic",=20
-> "pci=3Drouteirq", "acpi_sleep=3Ds3_bios"/"s3_mode") i tried with help f=
-rom=20
-> Stefan D=F6singer the following:
->=20
-> I compiled a minimal kernel (without usb/wlan drivers, etc.) with a=20
-> little patch in wakeup.S.
-> I inserted after .code16 the line "lcall $0xffff,$0". This should -=20
-> according to Stefan - immediatly call the BIOS reset code after the=20
-> kernel gets control back from BIOS. But the situation did not change (n=
-o=20
-> "automatic" reboot after resume). So we came to the conclusion, that th=
-e=20
-> kernel does not get the control back when the system wakes up.
-> So i think that there is a problem with the BIOS or the kernel does=20
-> something wrong while suspending.
+Applied.
 
-So the BIOS is not calling the wake vector.  I've been wondering about=20
-several deviations from the spec in the sleep path (hwsleep.c).
+thanks,
+-Len
 
-I think _GTS should be run immediately before writing the sleep value in=20
-EnterSleepState (not Prep).  Section 7.3.3:  "OSPM will set the sleep=20
-enable (SLP_EN) bit in the PM1 control register immediately following=20
-the execution of the _GTS control method without performing any other=20
-physical I/O or allowing any interrupt servicing."
+On Wed, 2004-07-28 at 21:44, Takayoshi Kochi wrote:
+> Hi Len,
+> 
+> Please apply the attached patch to prevent warning messages
+> in drivers/acpi/numa.c.  Reported by Keith Owens.
+> This applies to 2.6.8-rc2 or 2.6.8-rc2-mm1.
+> 
+> From: Keith Owens <kaos-sJ/iWh9BUns@public.gmane.org>
+> Subject: 2.6.8-rc2 acpi numa warnings
+> Date: Sun, 18 Jul 2004 18:55:21 +1000
+> 
+> > Building 2.6.8-rc2 for ia64 NUMA gets these warnings.
+> > 
+> > drivers/acpi/numa.c: In function `acpi_table_print_srat_entry':
+> > drivers/acpi/numa.c:55: warning: unused variable `p'
+> > drivers/acpi/numa.c:65: warning: unused variable `p'
+> > drivers/acpi/numa.c: In function `acpi_numa_init':
+> > drivers/acpi/numa.c:179: warning: passing arg 2 of
+> `acpi_table_parse_srat' from incompatible pointer type
+> > drivers/acpi/numa.c:182: warning: passing arg 2 of
+> `acpi_table_parse_srat' from incompatible pointer type
+> > 
+> 
+> Signed-off-by: Takayoshi Kochi <t-kochi-UDFczIW9X1d8UrSeD/g0lQ@public.gmane.org>
+> 
+> --- linux-2.6.7.orig/drivers/acpi/numa.c        2004-07-28
+> 21:55:43.694641000 +0900
+> +++ linux-2.6.7/drivers/acpi/numa.c     2004-07-28 22:07:45.154962520
+> +0900
+> @@ -51,6 +51,7 @@
+>         switch (header->type) {
+>  
+>         case ACPI_SRAT_PROCESSOR_AFFINITY:
+> +#ifdef ACPI_DEBUG_OUTPUT
+>         {
+>                 struct acpi_table_processor_affinity *p =
+>                         (struct acpi_table_processor_affinity*)
+> header;
+> @@ -58,9 +59,11 @@
+>                        p->apic_id, p->lsapic_eid, p->proximity_domain,
+>                        p->flags.enabled?"enabled":"disabled"));
+>         }
+> +#endif /* ACPI_DEBUG_OUTPUT */
+>                 break;
+>  
+>         case ACPI_SRAT_MEMORY_AFFINITY:
+> +#ifdef ACPI_DEBUG_OUTPUT
+>         {
+>                 struct acpi_table_memory_affinity *p =
+>                         (struct acpi_table_memory_affinity*) header;
+> @@ -70,6 +73,7 @@
+>                        p->flags.enabled ? "enabled" : "disabled",
+>                        p->flags.hot_pluggable ? " hot-pluggable" :
+> ""));
+>         }
+> +#endif /* ACPI_DEBUG_OUTPUT */
+>                 break;
+>  
+>         default:
+> @@ -103,7 +107,9 @@
+>  
+>  
+>  static int __init
+> -acpi_parse_processor_affinity (acpi_table_entry_header *header)
+> +acpi_parse_processor_affinity (
+> +       acpi_table_entry_header *header,
+> +       const unsigned long end)
+>  {
+>         struct acpi_table_processor_affinity *processor_affinity;
+>  
+> @@ -121,7 +127,9 @@
+>  
+>  
+>  static int __init
+> -acpi_parse_memory_affinity (acpi_table_entry_header *header)
+> +acpi_parse_memory_affinity (
+> +       acpi_table_entry_header *header,
+> +       const unsigned long end)
+>  {
+>         struct acpi_table_memory_affinity *memory_affinity;
+>  
+> 
 
-I'm suspicious of writing the SLP_TYP and SLP_EN on separate passes.=20
-The sample code in the spec (7.3.4) writes this in one pass.  If there=20
-are systems that require multi-pass write, we should leave this as an=20
-option, disabled by default, since I think most systems do this correctly.
-
-We should check the return value of \_WAK and at least print the result=20
-code if non-zero. (7.3.5)
-
-One non-standard thing is that I think LeaveSleepState should read=20
-values from \\_S0 and if this method is present, write those to slp reg=20
-A/B in the resume path.
-
---=20
-Nate
 
 
 -------------------------------------------------------
