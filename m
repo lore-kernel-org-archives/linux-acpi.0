@@ -1,12 +1,14 @@
-From: 창업지원센터 <admin-n+zQyQExy8+pwFb5G8XvHQ@public.gmane.org>
-Subject: (광고)★통인익스프레스 e-프랜차이즈 사업자 대모집~!!!★
-Date: Thu, 2 Jan 2003 00:59:12 +0900
+From: 'Faye Pearson' <faye-6JSjyQ0Qj1ReoWH0uzbU5w@public.gmane.org>
+Subject: Re: constant processor 0x80 events
+Date: Wed, 1 Jan 2003 16:40:52 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <E18TlGm-0002SJ-00@sc8-sf-list1.sourceforge.net>
-Reply-To: admin-n+zQyQExy8+pwFb5G8XvHQ@public.gmane.org
+Message-ID: <20030101164052.GA31172@clara.net>
+References: <20021231211259.GA28810@clara.net> <000101c2b191$93b74130$2d2202d3@sayonara>
 Mime-Version: 1.0
-Content-Type: text/html; charset="ks_c_5601-1987"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <000101c2b191$93b74130$2d2202d3-F8JvWDuGsZU@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -15,89 +17,73 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: "Adachi, Kenichi" <aileenja-dTzOdQ2U+/YAvxtiuMwx3w@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-<html> 
-<head> 
-<meta http-equiv="content-type" content="text/html; charset=euc-kr"> 
-<title>(광고)★무점포,소자본 창업의 기회를 잡으세요~!!!★</title> 
-<meta name="generator" content="Namo WebEditor v5.0"> 
-</head> 
-<body bgcolor="#fdfce6" text="black" link="blue" vlink="purple" alink="red"> 
-<table cellpadding="0" cellspacing="0" width="560" align="center"> 
-<tr> 
-<td width="560" colspan="2"> 
-<p><img src="http://www.etongin.biz/nmail2/images/img1.gif" border="0"></p> 
-</td> 
-</tr> 
-<tr> 
-<td width="560" height="92" background="http://www.etongin.biz/nmail2/images/imgbg.gif" colspan="2"> 
-<p><a href="http://www.etongin.biz" target="_blank"><img src="http://www.etongin.biz/nmail2/images/img.gif" width="560" height="140" border="0"></a></p> 
-</td> 
-</tr> 
-<tr> 
-<td width="560" colspan="2"> 
-<p><img src="http://www.etongin.biz/nmail2/images/img2.gif" width="560" height="20" border="0"></p> 
-</td> 
-</tr> 
-<tr> 
-<td width="560" colspan="2"> 
-<p><a href="http://www.etongin.biz" target="_blank"><img src="http://www.etongin.biz/nmail2/images/img3.gif" width="560" height="118" border="0"></a></p> 
-</td> 
-</tr> 
-<tr> 
-<td width="560" colspan="2"> 
-<p><a href="http://www.etongin.biz" target="_blank"><img src="http://www.etongin.biz/nmail2/images/img4.gif" width="560" height="116" border="0"></a></p> 
-</td> 
-</tr> 
-<tr> 
-<td width="560" colspan="2"> 
-<p><a href="http://www.etongin.biz" target="_blank"><img src="http://www.etongin.biz/nmail2/images/img5.gif" width="560" height="117" border="0"></a></p> 
-</td> 
-</tr> 
-<tr> 
-<td width="560" colspan="2"> 
-<p><a href="http://www.etongin.biz" target="_blank"><img src="http://www.etongin.biz/nmail2/images/img6.gif" width="560" height="111" border="0"></a></p> 
-</td> 
-</tr> 
-<tr> 
-<td width="560" colspan="2"> 
-<p><a href="http://www.etongin.biz" target="_blank"><img src="http://www.etongin.biz/nmail2/images/img7.gif" width="560" height="113" border="0"></a></p> 
-</td> 
-</tr> 
-<tr> 
-<td width="560" height="125" background="http://www.etongin.biz/nmail2/images/img8.gif" colspan="2"> 
-<p align="center"><a href="http://www.etongin.biz" target="_blank"><img src="http://www.etongin.biz/nmail2/images/go.gif" width="229" height="104" border="0"></a></p> 
-</td> 
-</tr> 
-<tr> 
-<td width="225" bgcolor="#f7f4a3"> 
-<p align="center"><FONT size="2"><b>::연락처 안내::</b></FONT></p> 
-</td> 
-<td width="335" bgcolor="#f7f4a3"> 
-<p align="center"><FONT size="2"><b>::광고안내::</b></FONT></p> 
-</td> 
-</tr> 
-<tr> 
-<td width="225" bgcolor="white"><FONT size=2>주소 : 서울시 서초구 서초동 1337-5<br> 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;보통빌딩 
-402호<br><BR>Call center : 02-584-5805<br><BR>E - mail : 
-admin-n+zQyQExy8+pwFb5G8XvHQ@public.gmane.org<BR>담당 : 김충회<br><BR>홈페이지 : </FONT><a href="http://www.etongin.biz" target="_blank"><font size="2">www.etongin.biz</font></a></td> 
-<td width="335" bgcolor="white"> 
-<P><FONT size=2><br>본 메일은 정보통신부 권고사항에 의거한 제목에 (광고)라고 표기한 광고메일입니다.<BR>필요치 않은 정보였다면 머리숙여 사과의 말씀 
-올리오며, 더 이상 수신을 원치 않으시면<A 
-href="mailto:admin-n+zQyQExy8+pwFb5G8XvHQ@public.gmane.org"><IMG 
-height=22 src="http://www.etongin.biz/ad/images/re.gif" width=62 border=0></A>를 
-클릭하여 <br>주십시요.</FONT></P> 
-<P align=center><FONT size=2>If you want to be removed from our recipient list, 
-please click <A 
-href="mailto:admin-n+zQyQExy8+pwFb5G8XvHQ@public.gmane.org"><B>[unsubscribe]</B></A>&nbsp;</FONT></P></td> 
-</tr> 
-</table> 
-<p><img src="http://sohonuri.com/supercounter/count.cgi?etongin==http://www.etongin.biz"></p> 
-</body> 
-</html> 
+Adachi, Kenichi [aileenja-dTzOdQ2U+/YAvxtiuMwx3w@public.gmane.org] wrote:
+> Your system board triggers GPE upon some hardware condition (most likely
+> thermal in your case) and GPE handler for that event (run by OS) issues
+> Notify 0x80 on processor object. This eventually causes OS to reevaluate
+> your _PPC object to flip the highest performance state (P-State) of your
+> processor and update the supported P-State table.
+
+So the OS should be switching the processor to the lower speedstep
+setting?  It isn't AFAICS.  Also it is quite impossible to do so manually once
+this situation has occurred.  I assume because the constant GPE handling
+is holding onto a mutex which prevents its use - the downside of
+threading this?
+
+> I suspect that, on your machine, first current temperature crosses the
+> trip point (not for passive/active cooling but for P-State update), the
+> newly selected lower P-State cools down the box for a while, but sooner
+> or later it starts to heat again, ending up under the "yo-yo" situation.
+> This might bring about high CPU demand for repeated event handling.  
+
+The P State is never changed from it's highest setting at least from
+what I can see in proc/acpi/processor/CPU0/performance.
+
+> > I added this CHTR call (it wasn't being called before) and 
+> > that seems to stave off the problem for a while.. while 
+> > programs are running, there isn't a steady rise in 
+> > temperature, the temperature is seemingly all over the place. 
+> >  It will get up to 82 and then suddenly drop to 59. Even when 
+> > the load is going mad now, the fan is only on its high, not 
+> > critical level.
+> > 
+> It looks to me like your CHTR ("CH"ange "TR"ip point?) method adjusts
+> (enable/disable) trip point for P-State update depending on the passed
+> Arg0 and the caller of this CHTR Method is expected to pass current
+> temperature. If so, adding a call to CHTR in _TMP could make sense to
+> some extent. It dynamically changes trip point for P-State update and
+> somehow keeps box from overheating, resulting in the cooler and quiet
+> environment. But we can't be sure unless we have input from BIOS writer.
+
+It seems to update a couple of variables depending on what the
+temperature is but their meaning isn't clear to me.  I haven't noticed
+limit making any difference at all.
+root@marmite faye # cat /proc/acpi/processor/CPU0/limit
+active limit:            P0:T0
+platform limit:          P0:T0
+user limit:              P0:T0
+thermal limit:           P0:T0
+
+> BTW, your BIOS seemingly doesn't support active cooling, that possibly
+> means the control of FAN is done by hardware modules and not exposed to
+> OS. Which make/model is your machine?
+
+That's correct.  The fan is managed in hardware, there is no acpi fan
+control.  It's a Compaq Presario 2701EA.
+
+Thanks for your suggestions, I'd love to solve this as it's the final
+remaining problem.
+
+I'm going to try to remove the GPE from the DSDT as you suggest.
+
+
+Faye
+
+"The Schizophrenic: An Unauthorized Autobiography"
 
 
 -------------------------------------------------------
