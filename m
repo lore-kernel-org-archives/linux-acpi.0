@@ -1,8 +1,8 @@
 From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Various Lockups with IBM T30
-Date: Thu, 24 Oct 2002 09:14:41 -0700
+Subject: RE: IBM A31 ACPI with 2.4.20-pre11 + ACPI20021022
+Date: Thu, 24 Oct 2002 09:17:03 -0700
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DF74@orsmsx119.jf.intel.com>
+Message-ID: <EDC461A30AC4D511ADE10002A5072CAD0236DF75@orsmsx119.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -14,28 +14,26 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: 'Ti Leggett' <leggett-zhzY/AYb9nBYTrM/R70HSA@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: 'PSI-Systems' <psi-systems-hi6Y0CQ0nG0@public.gmane.org>, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> From: Ti Leggett [mailto:leggett-zhzY/AYb9nBYTrM/R70HSA@public.gmane.org] 
-> Good news! As of the latest patch against 2.4.20-pre11 I can boot with
-> all ACPI options compiled in. The only downside is that it kinda fails
-> and disables ACPI. I'm attaching my dmesg.
+> From: PSI-Systems [mailto:psi-systems-hi6Y0CQ0nG0@public.gmane.org] 
+> Why in newest ACPI-code my A31 doesn't support ACPI anymore?
 > 
-> I haven't gotten anymore warnings since long time ago so I'm not even
-> sure where to start to futz with the DSDT.
+> at boot this appears and after that apm loads:
+> 
+> ACPI: RSDP (v002 IBM                        ) @ 0x000f7060
+> ACPI: XSDT (v001 IBM    TP-1G    00000.04160) @ 0x1ff6ee48
+> ACPI: FADT (v001 IBM    TP-1G    00000.04160) @ 0x1ff6ee8c
+> ACPI: SSDT (v001 IBM    TP-1G    00000.04160) @ 0x1ff6ef40
+> ACPI: ECDT (v001 IBM    TP-1G    00000.04160) @ 0x1ff79f87
+> ACPI: BOOT (v001 IBM    TP-1G    00000.04160) @ 0x1ff79fd8
+> ACPI: DSDT (v001 IBM    TP-1G    00000.04160) @ 0x00000000
+> ACPI: BIOS passes blacklist
+> ACPI: MADT not present
 
-Hi Ti,
-
-This is not good news. What happens is, the T30, in addition to having the
-problems you were reporting before, also has a bug in the ECDT. The most
-recent ACPI patch sees the ECDT bug, and terminates ACPI.
-
-I've reported the ECDT bug to IBM, so we'll see what happens, but that is
-just a mask for the other problem, which I haven't been able to diagnose
-yet.
-
-Which is a shame, because the T30 is a pretty awesome machine.
+Do you see: "ACPI: Could not use ECDT", or do you not have full ACPI
+compiled into the kernel?
 
 Regards -- Andy
 
