@@ -1,14 +1,14 @@
-From: "Brown, Len" <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [ACPI-sppt] merge acpi-support into acpi-devel?
-Date: Sat, 4 Oct 2003 10:48:31 -0400
+From: Robert Vollmert <rvollmert-lists-hi6Y0CQ0nG0@public.gmane.org>
+Subject: Re: [ACPI-sppt] merge acpi-support into acpi-devel?
+Date: Sat, 4 Oct 2003 17:59:59 +0200
 Sender: acpi-support-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <BF1FE1855350A0479097B3A0D2A80EE0CC875A@hdsmsx402.hd.intel.com>
+Message-ID: <20031004155959.GA2810@krikkit>
+References: <BF1FE1855350A0479097B3A0D2A80EE0CC875A@hdsmsx402.hd.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <acpi-support-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <BF1FE1855350A0479097B3A0D2A80EE0CC875A-N2PTB0HCzHJF3Yvz3xaN/VDQ4js95KgL@public.gmane.org>
 Errors-To: acpi-support-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-support-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -17,63 +17,28 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-support>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-support>,
 	<mailto:acpi-support-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-support>
-To: =?iso-8859-1?Q?S=E9rgio_Monteiro_Basto?= <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
-Cc: acpi support <acpi-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: acpi support <acpi-support-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-The archive shows that overall, acpi-support gets 18% the traffic that =
-acpi-devel gets.
+Hello,
 
-There are newbie questions on LKML, and there is a FAQ to help them.
-I don't see why we shouldn't follow that model.
+On Sat, Oct 04, 2003 at 10:48:31AM -0400, Brown, Len wrote:
+> There are newbie questions on LKML, and there is a FAQ to help
+> them. I don't see why we shouldn't follow that model.
 
-The down-side of 2 lists is that people who post to acpi-devel will =
-probably get better support, so one wonders what is the advantage of =
-having 2 lists.
+just wanted to note that I support merging the lists. The combined
+traffic isn't nearly large enough that it should pose a problem to
+anyone. And if some people don't want to be bothered by newbie support
+requests, they can just ignore those.
 
--Len
+Having just one list also avoids having to worry about questions like
+whether to CC: the support list when talking about a problem initially
+discussed there to -devel, or how to get both the developers and those
+affected by some issue to notice a patch, without reaching those that
+are subscribed to both lists twice.
 
-> -----Original Message-----
-> From: S=E9rgio Monteiro Basto [mailto:sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org]=20
-> Sent: Saturday, October 04, 2003 5:27 AM
-> To: Brown, Len
-> Cc: acpi support; acpi-devel
-> Subject: Re: [ACPI-sppt] merge acpi-support into acpi-devel?
->=20
->=20
-> On Fri, 2003-10-03 at 05:34, Len Brown wrote:
-> > It would make my life simpler if=20
-> acpi-suport-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org were
-> > merged into acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org and then disabled.
-> >=20
-> > Does having two lists make life simpler for anybody?
->=20
-> For me, No. I think, the support mailing list, has more traffic and is
-> for newbies and some people who want try install acpi. They=20
-> can get help
-> here.
-> The devel mailing list is for the people who want (try) help=20
-> developing
-> acpi
-> When I had time I read the 2 lists, in other times I just=20
-> read the devel
-> one. I clean up the other.
->=20
-> thanks
->=20
-> >=20
-> > thanks,
-> > -Len
-> >=20
-> >=20
->=20
-> --=20
-> S=E9rgioMB
-> email: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
->=20
-> Who gives me one shell, give me everything.
->=20
->=20
+Cheers
+Robert
 
 
 -------------------------------------------------------
