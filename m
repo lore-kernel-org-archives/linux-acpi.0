@@ -1,11 +1,19 @@
-From: Nicolas Collignon <tsointsoin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: BIOS / acpi correlation
-Date: Mon, 7 Feb 2005 20:05:27 +0100
-Message-ID: <aaf57110502071105697f0780@mail.gmail.com>
-Reply-To: Nicolas Collignon <tsointsoin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org (Eric W. Biederman)
+Subject: Re: [RFC] Reliable video POSTing on resume (was: Re: Samsung P35, S3, black screen (radeon))
+Date: 07 Feb 2005 12:27:41 -0700
+Message-ID: <m1lla0187m.fsf@ebiederm.dsl.xmission.com>
+References: <e796392205020221387d4d8562@mail.gmail.com> <420217DB.709@gmx.net>
+	<4202A972.1070003@gmx.net> <20050203225410.GB1110@elf.ucw.cz>
+	<1107474198.5727.9.camel@desktop.cunninghams>
+	<4202DF7B.2000506@gmx.net>
+	<1107485504.5727.35.camel@desktop.cunninghams>
+	<9e4733910502032318460f2c0c@mail.gmail.com>
+	<20050204074454.GB1086@elf.ucw.cz>
+	<9e473391050204093837bc50d3@mail.gmail.com>
+	<20050205093550.GC1158@elf.ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+In-Reply-To: <20050205093550.GC1158-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -15,41 +23,56 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gm
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: Jon Smirl <jonsmirl-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, ncunningham-jjFNsPSvq+iXDw4h08c5KA@public.gmane.org, Carl-Daniel Hailfinger <c-d.hailfinger.devel.2005-hi6Y0CQ0nG0@public.gmane.org>, ACPI List <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-hi,
+Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> writes:
 
-Is there any correlation between bios exposed I/O memory ranges and
-the SMI commands  used in DSDT code ?
-i.e: i can control or display information using :
- "out %al, $0xb2"
- "out %al, $0x84"
+> Hi!
+> 
+> > > We already try to do that, but it hangs on 70% of machines. See
+> > > Documentation/power/video.txt.
+> > 
+> > We know that all of these ROMs are run at power on so they have to
+> > work. This implies that there must be something wrong with the
+> > environment the ROM are being run in. Video ROMs make calls into the
+> > INT vectors of the system BIOS. If these haven't been set up yet
+> > running the VBIOS is sure to hang.  Has someone with ROM source and
+> > the appropriate debugging tools tried to debug one of these hangs?
+> > Alternatively code could be added to wakeup.S to try and set these up
+> > or dump the ones that are there and see if they are sane.
+> 
+> Rumors say that notebooks no longer have video bios at C000h:0; rumors
+> say that video BIOS on notebooks is simply integrated into main system
+> BIOS. I personaly do not know if rumors are true, but PCs are ugly
+> machines....
 
-In my DSDT, the code do SMI command like:
- "Store(arg1, \_SB.SMIA)"
- "Store(arg0, \_SB.SMIC)"
- "Store(\_SB.SMIC, Local0)"
+The state of current hardware has already been mentioned but let
+me clarify.  This is not a laptop problem anytime you have onboard
+video you are unlikely to have a separate video ROM.  This includes
+many recent server boards as well as laptops.  When the board boots
+up there will be a video option ROM shadowed into the usually location
+at C000h:0 but what becomes of it afterwards is a good question.
 
-SMIxx fields (\_SB scope)
- "OperationRegion(SMIR, SystemIO, 0xb2, 0x02) { Field(SMIR, ByteAcc,
-NoLock ,Preserve) {"
- "  SMIC, 8"
- "  SMID, 8"
- "}"
-and SMIA @ port 0x86.
+For server boards most commonly this seems to be a flavor of the ATI
+Rage XL chip.  It is a low end part that I doubt getting documentation
+for will be very hard.   And according to
+Documentation/power/video.txt this is one of the cases that actually
+works.
 
-But i can't find any correlation between the BIOS %eax parameter and
-the SMI commands.
-Shoudln't they share the same entry point ?
-In my case, i can control multiple thermal zone + fan using bios, but
-not using ACPI.
+What is happening in those POST routines of a video card is typically
+the code to initialize the memory controller on the video card.  Plus
+a little bit of code to set the video mode.  If I read the
+documentation correctly in a S3 power state only the RAM is preserved.
+So it does look like the video post is needed.
 
-I hope my question is clear enough :)
+Hmm.  Looking at the ACPI 3.0 spec it appears there is a _ROM method
+that can be called to get a copy of the ROM image for an onboard
+video card.  Has any one tried that method?
 
-bye
+Eric
 
---- nicolas
 
 
 -------------------------------------------------------
