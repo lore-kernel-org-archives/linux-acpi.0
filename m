@@ -1,15 +1,15 @@
 From: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-Subject: Re: ACPI failures on non-Intel hardware
-Date: Sun, 12 Dec 2004 23:19:21 +0000
-Message-ID: <1102893561.5984.38.camel@tyrosine>
-References: <1102805280.5984.30.camel@tyrosine>
-	 <20041212164141.GC6286@elf.ucw.cz> <1102870780.5984.34.camel@tyrosine>
-	 <20041212171554.GD6272@elf.ucw.cz>
+Subject: Re: Shutting down PCI devices on suspend
+Date: Sun, 12 Dec 2004 23:23:40 +0000
+Message-ID: <1102893820.5984.42.camel@tyrosine>
+References: <1102779460.5984.17.camel@tyrosine>
+	 <20041212164422.GD6286@elf.ucw.cz> <1102870863.5984.36.camel@tyrosine>
+	 <20041212171521.GC6272@elf.ucw.cz>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20041212171554.GD6272-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <20041212171521.GC6272-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
@@ -25,15 +25,23 @@ List-Id: linux-acpi@vger.kernel.org
 
 On Sun, 2004-12-12 at 18:15 +0100, Pavel Machek wrote:
 
-> > I thought that case crashed /inside/ the wakeup code, rather than
-> > rebooting before any of it was run?
-> 
-> I saw some Acer (do not recall model #, sorry, and it was probably
-> prototype, anyway) where it died before wakeup.
-
-Do you remember whether it had an Intel motherboard chipset, or was an
-Intel CPU on something like an ATI chipset?
+> * legacy, like VGA or IDE -- okay, we need drivers for those. You need
+> to reinit them on resume, anyway, so....
 							
+The current situation is that we can reinit /most/ VGA hardware from
+userspace, but it's less than trivial to make sure that the appropriate
+devices are shut down. Surely the situation is more like the following:
+
+1) Some devices don't have drivers. In most cases, it doesn't matter
+what power state they're in. Therefore, setting them to D3 (or whatever
+SxD says) shouldn't be a problem.
+
+2) For devices that do have drivers, the drivers should set them to the
+appropriate power state.
+
+I'd argue that devices that need to be in a specific power state but
+whose drivers don't state this have broken drivers. If there's no driver
+in charge of the device, we should be able to do whatever we want.
 -- 
 Matthew Garrett | mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org
 
