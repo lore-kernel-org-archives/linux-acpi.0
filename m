@@ -1,62 +1,104 @@
-From: Nikolaus Filus <NFilus-hi6Y0CQ0nG0@public.gmane.org>
-Subject: battery errors
-Date: Tue, 11 Feb 2003 22:23:06 +0100
-Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20030211222306.C398@wsc-gmbh.de>
+From: Bjorn Helgaas <bjorn_helgaas-VXdhtT5mjnY@public.gmane.org>
+Subject: [PATCH] 2/3 ACPI resource handling
+Date: Tue, 11 Feb 2003 14:59:35 -0700
+Sender: linux-kernel-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <200302111459.35380.bjorn_helgaas@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
-List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
-	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: t-kochi-UDFczIW9X1d8UrSeD/g0lQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Note that this contains a couple structure copies; don't know your
+philosophy on those.
 
-I just saw the following error on my console - for the first time. What does
-it mean?
-
-mobile kernel: evregion-0322: *** Error: Handler for [embedded_control] returned AE_TIME
-mobile kernel:  psparse-1102: *** Error: Method execution failed [\_SB_.PCI0.LPCB.BAT1._BST] (Node c15a21e8), AE_TIME
-
-/proc/acpi/battery/BAT1/*
-alarm:                   unsupported
-present:                 yes
-design capacity:         3900 mAh
-last full capacity:      3427 mAh
-battery technology:      rechargeable
-design voltage:          14800 mV
-design capacity warning: 420 mAh
-design capacity low:     156 mAh
-capacity granularity 1:  264 mAh
-capacity granularity 2:  3780 mAh
-model number:            PA3098U
-serial number:           3658Q
-battery type:            Li-Ion
-OEM info:                TOSHIBA
-present:                 yes
-capacity state:          ok
-charging state:          discharging
-present rate:            0 mA
-remaining capacity:      1404 mAh
-present voltage:         14644 mV
-
-BTW: How to keep the capacity as high as possible? The notebook is 8 months
-old and I lost around 500 mAh.
-
-Thanks,
-
-Nikolaus
+Bjorn
 
 
--------------------------------------------------------
-This SF.NET email is sponsored by:
-SourceForge Enterprise Edition + IBM + LinuxWorld = Something 2 See!
-http://www.vasoftware.com
+diff -ur acpi-2/drivers/acpi/resources/rsxface.c acpi-3/drivers/acpi/resources/rsxface.c
+--- acpi-2/drivers/acpi/resources/rsxface.c	2003-02-09 22:13:47.000000000 -0700
++++ acpi-3/drivers/acpi/resources/rsxface.c	2003-02-09 22:13:52.000000000 -0700
+@@ -316,3 +316,65 @@
+ 	status = acpi_rs_set_srs_method_data (device_handle, in_buffer);
+ 	return_ACPI_STATUS (status);
+ }
++
++
++#define copy_field(out, in, field)	out->field = in->field
++#define copy_address(out, in)					\
++	copy_field(out, in, resource_type);			\
++	copy_field(out, in, producer_consumer);			\
++	copy_field(out, in, decode);				\
++	copy_field(out, in, min_address_fixed);			\
++	copy_field(out, in, max_address_fixed);			\
++	copy_field(out, in, attribute);				\
++	copy_field(out, in, granularity);			\
++	copy_field(out, in, min_address_range);			\
++	copy_field(out, in, max_address_range);			\
++	copy_field(out, in, address_translation_offset);	\
++	copy_field(out, in, address_length);			\
++	copy_field(out, in, resource_source);
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_resource_to_address64
++ *
++ * PARAMETERS:  resource                - Pointer to a resource
++ *              out                     - Pointer to the users's return 
++ *                                        buffer (a struct
++ *                                        acpi_resource_address64)
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: If the resource is an address16, address32, or address64,
++ *              copy it to the address64 return buffer.  This saves the
++ *              caller from having to duplicate code for different-sized
++ *              addresses.
++ *
++ ******************************************************************************/
++
++acpi_status
++acpi_resource_to_address64 (
++	struct acpi_resource            *resource,
++	struct acpi_resource_address64  *out)
++{
++	struct acpi_resource_address16  *address16;
++	struct acpi_resource_address32  *address32;
++	struct acpi_resource_address64  *address64;
++
++	switch (resource->id) {
++		case ACPI_RSTYPE_ADDRESS16:
++			address16 = (struct acpi_resource_address16 *) &resource->data;
++			copy_address(out, address16);
++			break;
++		case ACPI_RSTYPE_ADDRESS32:
++			address32 = (struct acpi_resource_address32 *) &resource->data;
++			copy_address(out, address32);
++			break;
++		case ACPI_RSTYPE_ADDRESS64:
++			address64 = (struct acpi_resource_address64 *) &resource->data;
++			copy_address(out, address64);
++			break;
++		default:
++			return (AE_BAD_PARAMETER);
++	}
++	return (AE_OK);
++}
+diff -ur acpi-2/include/acpi/acpixf.h acpi-3/include/acpi/acpixf.h
+--- acpi-2/include/acpi/acpixf.h	2003-02-09 22:13:47.000000000 -0700
++++ acpi-3/include/acpi/acpixf.h	2003-02-09 22:13:52.000000000 -0700
+@@ -352,6 +352,11 @@
+ 	acpi_handle                     bus_device_handle,
+ 	struct acpi_buffer              *ret_buffer);
+ 
++acpi_status
++acpi_resource_to_address64 (
++	struct acpi_resource            *resource,
++	struct acpi_resource_address64  *out);
++
+ 
+ /*
+  * Hardware (ACPI device) interfaces
