@@ -1,14 +1,18 @@
-From: Stefan Seyfried <seife-T+3qhDtrTvDv8lqoKu5MV4HBZQ1bDw0s@public.gmane.org>
-Subject: Re: /proc/acpi/
-Date: Tue, 9 Mar 2004 22:54:32 +0100
+From: =?ISO-8859-1?Q?S=E9rgio?= Monteiro Basto <sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org>
+Subject: Re: [PATCH] ACPI poweroff fixes for 2.4.26-pre2
+Date: Wed, 10 Mar 2004 11:46:01 +0000
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <20040309215432.GA12855@message-id.gmane0305.slipkontur.de>
-References: <BF1FE1855350A0479097B3A0D2A80EE0029EEDA9@hdsmsx402.hd.intel.com> <1083816719.3175.20.camel@coredump.stonepath.com>
+Message-ID: <1078919160.2517.13.camel@darkstar>
+References: <20040308163452.GE5352@openzaurus.ucw.cz>
+	 <Pine.LNX.4.44.0403081515190.10436-100000@dmt.cyclades>
+	 <20040308183228.GD484@elf.ucw.cz> <20040308201411.GA18636@alpha.home.local>
+	 <20040308205444.GH484@elf.ucw.cz> <20040309233325.GA22953@alpha.home.local>
+Reply-To: sergiomb-hHo3WeeoaswVhHzd4jOs4w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: quoted-printable
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1083816719.3175.20.camel-QTaIpnqiE1EgB3xxsXi9fr1mrQd+NHyP@public.gmane.org>
+In-Reply-To: <20040309233325.GA22953-HkMpAodKYdnXX8ko2wsARw@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
@@ -17,40 +21,35 @@ List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38K
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5R9m/fhtKvoLKtGCp0j7rLg@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Willy Tarreau <willy-tRhHnHjXm5DYtjvyW6yDsg@public.gmane.org>
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, acpi-devel <acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Mar 08, 2004 at 04:22:12AM +0000, Mike Partyka wrote:
-> Hmm, i had read that SuSE had enabled ACPI already but they did not seem
-> to be working. That is . . .
-> 
-> When the lid closes
-> When the ac adapter is not plugged in 
-> 
-> The latop should sense this.
-> 
-> When running on battery the gnome battery meter does not seem to
-> understand.
-> 
-> My understanding is that for these features to work there should be some
-> files to control events under /proc/acpi/battery and
-> /proc/acpi/ac_adapter but there is nothing under these directories. 
+Hi=20
 
-try a "rcacpid start" and check thereafter with "lsmod" if the
-acpi modules are loaded (processor, thermal, battery, button etc).
-after that, at least the KDE Battery applet should work, don't know
-about gnome.
+One interesting test=20
+I have one Dell powerEdge with 2 CPU (I see 4) one Raid, 4GB Ram, 3
+gigabits Ethernet Controller, and I have installed slackware 9.1 and
+kernel 2.5.25 with smp, 64GB, raid and acpi , compiled unfortunately
+with gcc 3.3.2 .
 
-If this was the problem, fix it permanently with "insserv acpid" so you
-also start acpid on the next reboot.
+shutdown -h now=20
+doesn't poweroff but=20
+poweroff=20
+poweroff well.
 
-> > >This is a stock install of SuSE 9 Pro but it doesn't seem to have any
-> > >ACPI features enabled by default. How can i do this?
+I can't test with pre patches neither patches but what is the difference
+of shutdown -h now and poweroff  ?
+if any ?=20
 
-The "standard" ACPI features (battery status, shutdown on powerbutton)
-work pretty well with SUSE 9.0, if the DSDT of your machine is ok.
--- 
-Stefan Seyfried
+
+thanks=20
+
+
+--=20
+S=E9rgio M. B.
+--=20
+S=E9rgio M. B.
 
 
 
