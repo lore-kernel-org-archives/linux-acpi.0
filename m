@@ -1,13 +1,14 @@
-From: "Grover, Andrew" <andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [BK PATCH] ACPI update
-Date: Fri, 28 Feb 2003 13:07:47 -0800
+From: Bernhard Kaindl <bernhard.kaindl-Mmb7MZpHnFY@public.gmane.org>
+Subject: Re: Relaxed AML parsing
+Date: Fri, 28 Feb 2003 23:17:45 +0100
 Sender: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Message-ID: <F760B14C9561B941B89469F59BA3A8471380FC@orsmsx401.jf.intel.com>
+Message-ID: <Pine.LNX.4.53.0302282248540.1622@hase.a11.local>
+References: <Pine.LNX.4.53.0302280059170.1511@hase.a11.local>
+ <20030228133015.GD13404@poup.poupinou.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-content-class: urn:content-classes:message
+In-Reply-To: <20030228133015.GD13404-j6u/t2rXLliUoIHC/UFpr9i2O/JbrIOy@public.gmane.org>
 Errors-To: acpi-devel-admin-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Help: <mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5lLLH9aP38KF1pqr+6INuaA@public.gmane.org>
 List-Post: <mailto:acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -16,119 +17,50 @@ List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/acpi-devel>,
 	<mailto:acpi-devel-request-5NWGOfrQmneRv+LV9MX5utDmRdBvX5/5ji9XKYC2TYK4Io4DoRGLOrNAH6kLmebB@public.gmane.org>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=acpi-devel>
-To: Linus Torvalds <torvalds-Lhe3bsMrZseB+jHODAdFcQ@public.gmane.org>
-Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Ducrot Bruno <ducrot-kk6yZipjEM5g9hUCZPvPmw@public.gmane.org>
+Cc: acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Rick Richardson <rickr-EySxSuIQeMUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus, please do a
+Hello Bruno!
 
-	bk pull http://linux-acpi.bkbits.net/linux-acpi
+    thanks for your help:
 
-This will update the following files:
+On Fri, 28 Feb 2003, Ducrot Bruno wrote:
+> On Fri, Feb 28, 2003 at 02:24:04AM +0100, Bernhard Kaindl wrote:
+> >
+> > http://home.mn.rr.com/richardsons/toshiba-1115-s103/relaxed-aml.patch
+> >
+> > I think it's only nuts and bolts if the Linux AML parser tolerates
+> > the same errors which the ASL compiler tolerates.
+> >
+> > I'm new to ACPI, so I would like to ask you if you agree with the above
+> > and if you think that the relaxed AML parsing should be be included and
+> > enabled in the acpi patches.
+>
+> One of the main problem with Rick's patch is that it is too tolerate.  The
+> same code is shared with other checks so that it may be now possible
+> to corrupt some buffers especially in case of bug in ACPI-CA.
 
- Documentation/kernel-parameters.txt |    8 
- arch/i386/kernel/acpi/wakeup.S      |   25 +
- arch/i386/kernel/setup.c            |    6 
- drivers/acpi/Kconfig                |    1 
- drivers/acpi/acpi_ksyms.c           |    2 
- drivers/acpi/ec.c                   |   73 +--
- drivers/acpi/events/Makefile        |    2 
- drivers/acpi/events/evevent.c       |   12 
- drivers/acpi/events/evgpe.c         |  581 ++++--------------------
- drivers/acpi/events/evgpeblk.c      |  545 ++++++++++++++++++++++
- drivers/acpi/events/evmisc.c        |  114 ----
- drivers/acpi/events/evsci.c         |   18 
- drivers/acpi/events/evxface.c       |   34 -
- drivers/acpi/events/evxfevnt.c      |   27 -
- drivers/acpi/hardware/hwgpe.c       |  167 +++---
- drivers/acpi/hardware/hwregs.c      |   13 
- drivers/acpi/hardware/hwsleep.c     |   65 ++
- drivers/acpi/osl.c                  |   41 +
- drivers/acpi/pci_link.c             |  151 +++---
- drivers/acpi/processor.c            |   25 -
- drivers/acpi/resources/rsutils.c    |   54 ++
- drivers/acpi/resources/rsxface.c    |  145 +++++
- drivers/acpi/sleep/main.c           |   31 +
- drivers/acpi/sleep/proc.c           |    5 
- drivers/acpi/tables.c               |   46 +
- drivers/acpi/tables/tbconvrt.c      |   10 
- drivers/acpi/utilities/utcopy.c     |    8 
- drivers/acpi/utilities/utglobal.c   |    6 
- drivers/hotplug/acpiphp_glue.c      |  170 +------
- include/acpi/acconfig.h             |    2 
- include/acpi/acdebug.h              |    7 
- include/acpi/acevents.h             |   18 
- include/acpi/acglobal.h             |   17 
- include/acpi/achware.h              |   14 
- include/acpi/aclocal.h              |   47 -
- include/acpi/acpixf.h               |   21 
- include/acpi/acresrc.h              |    6 
- include/acpi/acutils.h              |    2 
- include/linux/suspend.h             |    1 
- 39 files changed, 1458 insertions(+), 1062 deletions(-)
+Is the function checking phyical or virtual adresses?
 
-through these ChangeSets:
+I guess it should be about checking physical addresses because the
+only reason for this should be physical address I/O.
 
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/02/28 1.1117.2.7)
-   ACPI: Update version to 20030228
+But if this is physical address I/O and the access goes to the right
+address in the end, and it works he same way in Windows, I don't see
+any risk to access a data buffer, because there just the physical I/O
+addresses should live, and not normal RAM.
 
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/02/28 1.1117.2.6)
-   ACPI: S3 fixes (Ole Rohne)
+Maybe the check needs to be really strict for ACPI-CA, but I think for
+the cases that users experiance the AE_AML_REGION_LIMIT check problems,
+there the rounded-up checking should be enough and safe, because the
+same DSDT(accessing the AC status) just works with Windows.
 
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/02/27 1.1117.2.5)
-   ACPI: Update ACPI PHP driver with to use new acpi_walk_resource API
-   (Bjorn Helgaas)
+Again, please excuse if I'm overlooking something, I'm just searching
+for a solution which works with the shipped and working DSDT tables.
 
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/02/27 1.1117.2.4)
-   ACPI: Add S4BIOS support (Pavel Machek)
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/02/27 1.1117.2.3)
-   ACPI: Modify drivers to use new acpi_walk_resource API (Bjorn
-Helgaas)
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/02/27 1.1117.2.2)
-   ACPI: Interpreter update
-     - Add acpi_walk_resource support (Bjorn Helgaas)
-     - Add S4BIOS support (Pavel Machek)
-     - Rewrite GPE code to deal with future GPE block devices
-     - Fix a bug that caused long delays when receiving SCIs
-     - Fix a bug that causes oopses when battery strings are ""
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/02/27 1.1087.1.7)
-   ACPI: Add new file for GPE code
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/02/27 1.1087.1.6)
-   ACPI: Add S4BIOS support (Pavel Machek)
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/02/26 1.1087.1.5)
-   ACPI: Map in entire table before performing checksum (John Stultz)
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/02/26 1.1087.1.4)
-   ACPI: Expand the mem= cmdline to allow the specification of reserved
-and
-   ACPI DATA blocks (Pavel Machek)
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/02/26 1.1087.1.3)
-   ACPI: Never use ACPI on VISWS
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/02/26 1.1087.1.2)
-   ACPI: Fix derive_pci_id (Ducrot Bruno, Alvaro Lopez)
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/02/19 1.990.7.2)
-   ACPI: Revert a change that allowed P_BLK lengths to be 4 or 5. This
-is causing
-   us to think that some systems support C2 when they really don't.
-
-<agrover-qb8aLOKklSjp4P8CbLYnNQ@public.gmane.org> (03/02/19 1.990.7.1)
-   ACPI: Do not count processor objects for non-present CPUs
-   (Thanks to Dominik Brodowski)
-
-
------------------------------
-Andrew Grover
-Intel Labs / Mobile Architecture
-andrew.grover-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-
+Thanks,
+Bernd
 
 
 -------------------------------------------------------
